@@ -2394,7 +2394,19 @@ export function DiscoverSurface({
 
           {/* The bulk bar takes the list's own header slot rather than floating
               over it, per `useSelection`'s own note: everything that floats here
-              would land on the "Show all" control directly below the rows. */}
+              would land on the "Show all" control directly below the rows.
+
+              NO CONFIRMATION, DELIBERATELY, and the asymmetry with /decide is
+              the rule rather than an oversight. Friction is proportional to what
+              an act SPENDS and to how hard it is to take back. Decide's bulk
+              drop asks first because each row files a rejection into the
+              decision log with a person's name on it. This spends nothing:
+              `setThemeStatus` writes one column and `dismissed_at_frequency`,
+              the Settled block six rows down puts any of them back with one
+              press, and the clusterer re-opens a declined cluster on its own the
+              moment it grows past the escalation bar. A dialog in front of a
+              reversible column write is friction charged for nothing, which is
+              how people learn to click through the dialogs that matter. */}
           <SelectionBar selection={picked} total={ranked.length} noun="cluster">
             <Button
               disabled={busy || declineMany.isPending}

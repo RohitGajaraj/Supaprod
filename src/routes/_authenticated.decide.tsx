@@ -2883,8 +2883,8 @@ function DecideSurface() {
             <Empty>
               {q.trim() ? (
                 <>
-                  Nothing among the <Num>{others.length}</Num> ranked bets matches
-                  &ldquo;{q.trim()}&rdquo;
+                  Nothing among the <Num>{others.length}</Num> ranked bets matches &ldquo;{q.trim()}
+                  &rdquo;
                   {lens === "all" ? "" : `, under ${LENSES.find((l) => l.id === lens)?.label}`}.
                 </>
               ) : (
