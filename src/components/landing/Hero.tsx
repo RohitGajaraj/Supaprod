@@ -157,7 +157,28 @@ export function Hero() {
                 ember is the human, blue is the machine. The connectives stay
                 at zinc-600 so only the two nouns carry hue. */}
             <p
-              className="hero-rise mb-4 font-mono text-[11px] uppercase text-zinc-600 md:text-[12px]"
+              // LIFTED 2026-08-10, and this is a legibility failure, not a
+              // preference. Measured on the live page against the #0a0a0a
+              // ground: zinc-600 is 2.56:1 at 11px. The AA floor for text under
+              // 18px is 4.5:1, so the line was a little over half of the
+              // required contrast. That is the same 2.56:1 that failed the
+              // brief audit, and the same shape as the disclosure that beat 4
+              // shipped "engineered not to be read".
+              //
+              // It mattered more here than it would anywhere else on the page.
+              // The only part of this sentence a visitor could actually read
+              // was "AGENTIC-FIRST", because ember measures 6.97:1 and passes.
+              // The four words carrying the category (operating system for
+              // product teams) sat under the floor. The page's one-line answer
+              // to "what is this" was the least readable text in the hero.
+              //
+              // zinc-400 is 7.72:1 and clears it with room. It stays well below
+              // the sub (13.4:1) and the headline (19.8:1), so the ladder is
+              // intact: this line is now legible without competing for first
+              // read. Size goes 11 to 12 (12 to 13 at md) for the same reason,
+              // since 11px mono uppercase at 0.14em tracking is small even when
+              // the contrast is legal.
+              className="hero-rise mb-4 font-mono text-[12px] uppercase text-zinc-400 md:text-[13px]"
               style={{ animationDelay: "0ms", letterSpacing: "0.14em" }}
             >
               {/* "who ship with agents" CAME OUT 2026-08-10, and it was doing
@@ -213,8 +234,28 @@ export function Hero() {
                   intact. The accent still marks the new information; the new
                   information is no longer who it is for but what it is, and
                   the differentiating word is the one everything is about. */}
-              The <span className="font-medium text-[#FF6B2C]">agentic-first</span> operating system
-              for product teams
+              {/* TWO ACCENTS ON THIS LINE (founder 2026-08-10), and they are the
+                  page's own colour language rather than decoration. The note at
+                  the top of this file records the rule as ONE ember word, and
+                  this is a deliberate revision of it by the person who set it.
+
+                  It is defensible on the page's own terms. Blue is the machine
+                  here (the replay, the 80% stat, layer 02) and ember is the
+                  human (layer 01, the CTA). "Agentic-first" is the machine half
+                  of the category and "product teams" is who the humans are, so
+                  the line teaches the palette before the headline arrives: blue
+                  is what runs it, ember is who answers for it. That is exactly
+                  what the earlier two-colour version of this line did, for the
+                  same stated reason.
+
+                  What keeps it from being the everything-is-important failure
+                  the one-accent rule was written against: both accents are 12px
+                  inside one short line and they mark the two nouns of a single
+                  sentence, not four unrelated objects competing across a
+                  viewport. The headline stays the only white object and the
+                  only large one. */}
+              The <span className="font-medium text-[#6cb0f5]">agentic-first</span> operating system
+              for <span className="font-medium text-[#FF6B2C]">product teams</span>
             </p>
 
             <h1
@@ -242,7 +283,7 @@ export function Hero() {
               {/* Each stage of the loop answers the pointer on its own, the
                   same per-item grammar as the spec column opposite (founder
                   2026-07-25). Four separate targets, never lit together. */}
-              <span className="mt-3 block text-[21px] leading-[1.3] text-zinc-500 md:text-[28px] lg:text-[32px]">
+              <span className="mt-3 block text-[21px] leading-[1.3] text-[#7a7a85] md:text-[28px] lg:text-[32px]">
                 {/* "gets sharper." until 2026-08-10. Same four-target grammar,
                     same weight, same colour: only the words changed.
 
@@ -470,7 +511,7 @@ export function Hero() {
               feel". "while it still matters" lost "still" for the same reason:
               it was the one phrase too wide to hold its line. */}
           <div
-            className="hero-spec hero-rise hidden pl-5 font-mono text-[12px] uppercase text-zinc-600 lg:grid lg:grid-cols-[auto_1fr] lg:gap-x-3 lg:gap-y-3.5"
+            className="hero-spec hero-rise hidden pl-5 font-mono text-[12px] uppercase text-zinc-400 lg:grid lg:grid-cols-[auto_1fr] lg:gap-x-3 lg:gap-y-3.5"
             style={{ animationDelay: "120ms", letterSpacing: "0.14em", lineHeight: 1.5 }}
           >
             <span>to decide</span>
