@@ -90,6 +90,8 @@ describe("StationSpine", () => {
     // Learn is the cursor, but nothing is running, so it must read as finished
     // rather than as permanently in progress.
     expect(colourOf("Learn")).toBe(colourOf("Ship"));
-    expect(screen.getAllByRole("listitem").filter((li) => li.getAttribute("aria-current"))).toHaveLength(0);
+    expect(
+      screen.getAllByRole("listitem").filter((li) => li.getAttribute("aria-current")),
+    ).toHaveLength(0);
   });
 });

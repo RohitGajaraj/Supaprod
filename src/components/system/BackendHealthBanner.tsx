@@ -87,7 +87,12 @@ export function BackendHealthBanner() {
    * asserting that anything is broken, only that we could not tell.
    */
   if (isError) {
-    return <Banner tone="unknown">Could not check backend status. This is not a report that anything is wrong, only that the check did not complete.</Banner>;
+    return (
+      <Banner tone="unknown">
+        Could not check backend status. This is not a report that anything is wrong, only that the
+        check did not complete.
+      </Banner>
+    );
   }
 
   if (!data || data.ok) return null;
