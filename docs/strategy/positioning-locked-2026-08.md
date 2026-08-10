@@ -135,6 +135,31 @@ So the counter is not *"our tool is better than your spreadsheet."* It is: **we 
 
 **And it strengthens §5B's station-order question:** measured on real throughput, **Decide's largest single inbound source is already Learn** — 36 real edges, 4× what opportunities contribute. Reordering the loop would be *describing what our own lineage already does*, which is a far easier change to defend than a repositioning.
 
+## 5E. The station-order ruling — founder, 2026-08-10 19:19 IST
+
+**Level 2 (the diagram and the story): APPROVED and in flight.** The loop is drawn as a **cycle with two front doors** — Discover for genuinely new problems, Build → Learn for anything cheap to test. No code. This makes the picture match the database, where Decide's largest inbound is already Learn at 36 real edges against 9 from opportunities, and it sheds the SAFe visual signature this buyer is actively removing.
+
+**Level 3 was two changes, not one, and they separate cleanly.** The founder pushed on the deferral and was right to — the honest answer is that half of it should ship immediately and half should not.
+
+### 3a — Forecast capture at decision time: **BUILD NOW. P0.**
+
+Un-backfillable, one feature, and the whole §4 moat rests on it. Evidence is strong and independent: Duke's First Round instrument, the backfill falsification, and Lane 1's own correction that a *cause* is recoverable from artifacts while a *forecast* is not. **This was already the top routed directive and it does not depend on any routing change.** No reason to wait.
+
+### 3b — Changing the DEFAULT entry point for new missions: **DO NOT. Instrument instead.**
+
+Make Build → Learn a **first-class selectable route now** (cheap, reversible). Do **not** make it the default.
+
+**Why, stated as risk rather than preference:**
+
+1. **A default is a claim about what is normal, and we have zero external users.** Setting it from one operator's anecdote means encoding a guess into every new user's first experience — and we would have no baseline to detect that it was wrong.
+2. **The counter-evidence is not weak.** In the *same thread*, two operators hold that strategic planning remains critical and is *"the critical opportunity to get the cross-functional alignment"*; a third names an enterprise constraint — *"the velocity of product changes isn't just about what you can ship, it's also about what your customers are willing to uptake."* From the 2022 baseline: *"if you jump stages, you're hosed"* and *"you need to do it all the way. You can't adopt the process halfway."*
+3. **The asymmetry decides it.** Making Build-first *available* is cheap to reverse. Making it the *default* and being wrong mis-routes every new user by construction, silently. When one direction is cheap to undo and the other is not, the cheap one wins on thinner evidence.
+4. **We can already measure this.** Our lineage instrumentation proves it — that is how we know Learn already outfeeds opportunities 4:1.
+
+**The trigger, so this is a scheduled decision and not a dropped one:** review after the first **four weeks of real external usage**. **If ≥50% of missions are manually routed Build-first, flip the default.** If it sits below that, the current default was right and we saved ourselves a silent mis-route. Either way the answer comes from our users rather than from one studio.
+
+**Net effect: nothing of value is deferred.** The moat feature ships now; the capability ships now; only the *guess about what is normal* waits for data we will have in a month.
+
 ## 6. Routed to the lanes
 
 **Lane 1 (function/gaps):** forecast capture at decision time is the priority build — it is the only un-backfillable asset and it is one feature. Then confidence grades on outcome labels (30–40% of lift-showing experiments show no long-term lift; a p<0.05 result is wrong ~1 in 4). Intervention logging is wired but starved and begins accruing now.
