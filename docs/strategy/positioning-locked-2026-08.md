@@ -176,6 +176,45 @@ Three independent routes reach this: the community sweep, *How I AI* (every work
 
 **And the trap to design against, from the same operator:** *"'building systems' becomes its own busywork fast. You end up with elaborate workflows that feel productive and move nothing."*
 
+## 5G. The messaging kit — what to actually say, and where
+
+**Is there a strategy shift? No pivot. One repositioning and four retirements.** The product is right; the corpus confirms the thesis in practitioners' own words. What changes is **how we describe it, who we aim at, and when we expect them to pay.**
+
+### The spine — three beats, entirely in operator language
+
+> **1.** The half of the job that was doing the reps is going to agents.
+> **2.** What doesn't compress: **deciding what's worth doing, defining what good looks like, and catching when the system is confidently wrong.**
+> **3.** Supaprod runs those three — and keeps what you believed *before* you found out.
+
+Beat 2 is verbatim from an operator (Bal Sieber, 2026-06-27). Those three jobs **are** stations 02, 03 and 07. Beat 3 is the forecast claim, which is the only un-backfillable part.
+
+**The felt promise, one line:** **"Less operator, more director."** _(His words. It also maps exactly onto our layer 01, the director.)_
+
+**Category line, under test:** *"There is no GitHub for product decisions."*
+
+### Where each claim is allowed to appear
+
+| Surface | Register | Use | Never |
+| --- | --- | --- | --- |
+| **Landing page, brief, listings** | public | the three beats · *less operator, more director* · evidence · history · track record · ready/review/stuck | receipts · ledger · audit trail · company brain · operating system · unattended |
+| **In-product** | private | context governance · drift · gate · memory life cycle · audit trail · current-vs-stale | receipt · unattended (dead in both registers) |
+| **VC / accelerator** | analytical | the five below | any present-tense compounding claim |
+| **Community / Slack** | practitioner | plain problem language only | all deck vocabulary — *"'cracked' is VC BS"* was said twice in one thread |
+
+### For investors, accelerators and incubators — five things, in this order
+
+1. **Why now, with a number.** Build cost collapsed; the bottleneck moved. Not our claim — a practitioner's: *"AI can accelerate delivery fast enough that the bottleneck moves… PMs got faster at shipping but didn't get better at defending why. **The judgment gap got exposed.**"* And 82% of the market reports AI already makes them measurably more productive, while burnout rose 44.7% → 55.7% and the #1 fear is *"expected to do more for the same pay."* **Speed is solved. Judgment is not.**
+2. **The wedge, and why it is not "a better folder."** Every DIY success in the corpus is single-operator. Every DIY failure is multi-person or multi-agent governance. **We sell at the transition** — the second person, or the first fleet of agents. Proof: an operator who tried Obsidian, abandoned it, built his own, and still could not solve *who changed what · what is trustworthy vs polluted · why they changed it · preventing changes.*
+3. **The moat, stated so it survives a query.** Not the record — that is backfillable and was backfilled twice on the record. **The forecast captured at decision time**: what a team believed would happen, recorded before the outcome was known. It is not an artifact; it leaves no trace unless something captured it at the moment of the call.
+4. **The proof line.** *The arrow that appears nowhere in 5.9M words of the market's own writing, we built — and it already carries more real traffic than the link it competes with.* (36 real `learning → decision` edges; Learn outfeeds opportunities 4:1.)
+5. **The metric, which is also the answer to "is this vitamin or painkiller."** **Rework, not speed** — clarification loops, reopened tickets, first-pass acceptance. **Rework is unpaid work**, so cutting it is relief, not more throughput.
+
+**The honest beat, said before they ask:** the loop is **wired and proven, and empty by design until used.** First-pass acceptance began capturing 2026-08-10. *"Wired, proven, accrues on first real use"* survives diligence; *"we learn from your corrections"* does not survive one query.
+
+### The four retirements
+
+❌ *"the agentic-first operating system for product teams"* as the lead — platform words read as meaningless, and nobody in 5.9M words names an operating system · ❌ *"that compounding is the moat"* — the compounding record is backfillable; **the forecast is the moat** · ❌ *"90–95% agentic"* · ❌ the seven-station diagram as the front door.
+
 ## 6. Routed to the lanes
 
 **Lane 1 (function/gaps):** forecast capture at decision time is the priority build — it is the only un-backfillable asset and it is one feature. Then confidence grades on outcome labels (30–40% of lift-showing experiments show no long-term lift; a p<0.05 result is wrong ~1 in 4). Intervention logging is wired but starved and begins accruing now.
