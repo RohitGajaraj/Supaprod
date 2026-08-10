@@ -32,7 +32,7 @@ The loop does not end in a report. It ends by changing what you are shown, which
 
 Product management software holds what you decided. Supaprod changes what you are shown next because of it.
 
-The distinction is the whole product. Any vendor can store decisions, and a frontier model release can absorb search over them next quarter, so a filing cabinet is not defensible. What compounds is the loop closing: a settled outcome is written back against the decision that caused it and re-ranks the next bet. That needs the one input no model has, which is your outcomes, labelled, over time. **The moat is the compounding, not the record.**
+The distinction is the whole product. Any vendor can store decisions, and a frontier model release can absorb search over them next quarter, so a filing cabinet is not defensible. Nor is the record itself: causes survive in chat logs, email and call recordings, and have been reconstructed after the fact with an agent built in days. What compounds is the loop closing: a settled outcome is written back against the decision that caused it and re-ranks the next bet. **The moat is the forecast captured at decision time, not the record** — what a team believed would happen before the outcome landed is not an artifact, and leaves no trace unless something captured it at the moment of the call.
 
 ## Do I need to be technical?
 
@@ -161,7 +161,7 @@ Two motions, and the first is the larger of the two:
 - **Transform** an existing product. Connect the sources you already have and the loop starts from your real signals. The wedge is deliberately no-migration: it sits beside the tools you run today rather than replacing them.
 - **Create** a new one, agent-native from the first decision.
 
-The moat compounds with use, and the compounding is the claim rather than the record underneath it. Any vendor can hold your decisions; what is defensible is a settled outcome changing what you are shown next, because that needs your outcomes labelled over time and no model ships with those.
+The moat is the forecast captured at decision time, rather than the record underneath it. Any vendor can hold your decisions, and causes can be reconstructed after the fact because they survive in chat logs, email and call recordings. What cannot be reconstructed is what a team believed would happen before the outcome landed: a forecast is not an artifact and leaves no trace unless something captured it at the moment of the call. Supaprod captures that, then writes the settled outcome back against the decision that caused it, which changes what you are shown next.
 
 Entry point: the Critic (free, no-signup teardown at `/p/teardown`). Expands to the decision system of record for the whole product org.
 

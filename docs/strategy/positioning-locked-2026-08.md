@@ -215,6 +215,41 @@ Beat 2 is verbatim from an operator (Bal Sieber, 2026-06-27). Those three jobs *
 
 ❌ *"the agentic-first operating system for product teams"* as the lead — platform words read as meaningless, and nobody in 5.9M words names an operating system · ❌ *"that compounding is the moat"* — the compounding record is backfillable; **the forecast is the moat** · ❌ *"90–95% agentic"* · ❌ the seven-station diagram as the front door.
 
+## 5H. The product definition in under 50 words — and the rule for every application
+
+### The definition (recommended, 44 words)
+
+> **Supaprod is where product decisions live when agents do the work. Agents run the reps; you direct. It records what you expected before the outcome landed — the one part of a decision nobody can reconstruct afterwards — and uses it to sharpen the next call.**
+
+**Why this shape.** It opens with a **noun a stranger can hold** (*where product decisions live*) rather than a platform word. It names the **felt promise** in three words (*agents run the reps; you direct*). It states **the moat as the differentiator**, not as an afterthought. And it ends on the benefit rather than the mechanism.
+
+**Note the deliberate concession:** *"where decisions live"* is storage-shaped language, which our own doctrine has resisted. That is intentional and evidence-backed — the community describes this problem **entirely in nouns of storage and correctness** (*context, source of truth, drift, invisible states*). We **meet them at the problem in their nouns and deliver governance in the next sentence.** What stays banned is the *verb* form: the brain never "remembers", "stores" or "logs".
+
+**Alternate (job-first, 38 words)** — use where the audience already feels the pain, e.g. a practitioner conversation or the community:
+
+> **Agents do the reps now. What doesn't compress: deciding what's worth doing, defining what good looks like, and catching when the system is confidently wrong. Supaprod runs those three, and records what you expected before you found out.**
+
+**Where the retired line still belongs.** *"The agentic-first operating system for product teams"* stays as the **internal definition** and on **machine-readable surfaces** (`llms.txt`, `agents.txt`, the A2A card). An answer engine wants a precise categorical definition; a human buyer hears a platform word. **Same register split as the vocabulary rule** — it is not wrong, it is wrong for humans.
+
+### Binding rule for every outward application, from 2026-08-10 forward
+
+**Every accelerator, incubator, VC and grant application speaks in the five beats of §5G, in that order:** why now with a number · the wedge and why it is not "a better folder" · the moat stated so it survives a query · the proof line · the metric (rework, not speed). **And the honest beat before they ask it:** wired and proven, empty by design until used.
+
+**Three hard prohibitions in any application:**
+1. **No present-tense accumulated-learning claim.** *"Wired and proven, begins accruing on first real use"* survives diligence; *"we learn from your corrections"* does not survive one query against `agent_memory`.
+2. **No unbroken signal → shipped → learned chain.** It is broken in two places.
+3. **No "90–95% agentic", no "cannot be backfilled", no inevitability language.** The most credentialed post of its era called web3 *"risky and inevitable"* and pointed readers at FTX.
+
+### What to change in the submitted YC application
+
+**Highest leverage is the Progress Update** — one of the five surfaces the portal leaves editable, and the only place the current truth reaches a partner. Suggested content, in the five-beat order and true as of 2026-08-10:
+
+> Since applying I ran a full read of the market rather than guessing at it — 679 documents, 5.9M words of operator interviews and a members-only PM community. It falsified three of my own moat claims, and I corrected them in public in the repo rather than defending them. The record is backfillable; the **forecast** — what a team believed before the outcome landed — is not, and that is now the product's core. Practitioners name the pain in their own words: *"PMs got faster at shipping but didn't get better at defending why. The judgment gap got exposed."* The loop is wired and proven end to end, and empty by design until real usage accrues; first-pass acceptance began capturing this week.
+
+**If 9a/9b/9c are editable** (the file records them as locked; the founder reports otherwise — verify in the portal): **9c already has a paste-ready correction** at its section, replacing the spliced Mosseri/Lemkin arithmetic. For **9b (competitors)**, the current answer aims at incumbent suites; the corpus says the real objection is **DIY and "simpler tools are more AI-friendly"** — the answer is §5C: *low-level tools are agent-writable but not agent-governable*.
+
+**Interview prep is already updated** — brutal question #13 in [`../pitch/yc/interview-prep.md`](../pitch/yc/interview-prep.md) covers the spliced claim if a partner quotes the locked text back.
+
 ## 6. Routed to the lanes
 
 **Lane 1 (function/gaps):** forecast capture at decision time is the priority build — it is the only un-backfillable asset and it is one feature. Then confidence grades on outcome labels (30–40% of lift-showing experiments show no long-term lift; a p<0.05 result is wrong ~1 in 4). Intervention logging is wired but starved and begins accruing now.
