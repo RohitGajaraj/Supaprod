@@ -60,6 +60,18 @@ export function fanoutEnabled(): boolean {
  * budget, so their per-run ceilings sum to the parent's rather than to nothing.
  * A resolved `null` still reaches the children uncapped, and should: that is a
  * workspace that cleared its own ceiling on the record, which the resolver obeys.
+ *
+ * WHY `spend_cap_usd` IS `number | undefined` AND NOT `number | null | undefined`,
+ * unlike every sibling writer. The paragraph above says a caller-supplied `null` is
+ * "the one answer this path must never give", and for two months that stayed a
+ * comment while `agent.spawn` supplied exactly that null whenever it could not read
+ * the parent run's cap. The narrower type is the same sentence written where the
+ * compiler enforces it: a caller that does not know the ceiling passes `undefined`
+ * and inherits the workspace's, and there is no longer a way to spell "uncap all N
+ * children" at this door. The single legitimate uncapped child still exists — it
+ * comes out of the resolver, from a workspace that cleared its ceiling on the
+ * record, and never from a caller. Use {@link remainingMissionBudget} to compute the
+ * argument; it returns `undefined` for an unknown ceiling on purpose.
  */
 export async function enqueueFanout(
   supabase: SupabaseClient,
@@ -74,7 +86,8 @@ export async function enqueueFanout(
     parent_depth: number;
     source_run_id: string | null;
     source_trace_id: string | null;
-    spend_cap_usd?: number | null;
+    /** Absent = "nobody said", inherit the workspace ceiling. No null: see above. */
+    spend_cap_usd?: number;
     token_cap?: number | null;
   },
 ): Promise<{ spawned: { message_id: string; queued_run_id: string }[]; dropped: number }> {

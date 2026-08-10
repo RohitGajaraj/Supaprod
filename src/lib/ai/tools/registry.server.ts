@@ -20,7 +20,12 @@ import { callModel } from "@/lib/ai/runtime.server";
 import { extractArrayField, wrapBareArrayField } from "@/lib/ai/json-shape";
 import { enqueueHandoff, resolveAgent, type HandoffPayload } from "@/lib/ai/handoff.server";
 import { enqueueFanout, fanoutEnabled } from "@/lib/ai/fanout.server";
-import { FANOUT_MAX_CHILDREN, fanoutDepthOf, canSpawnAtDepth } from "@/lib/ai/fanout";
+import {
+  FANOUT_MAX_CHILDREN,
+  fanoutDepthOf,
+  canSpawnAtDepth,
+  remainingMissionBudget,
+} from "@/lib/ai/fanout";
 import { submitDelegation } from "@/lib/delegate/openhands.server";
 import { DELEGATE_TASK_MAX_CHARS } from "@/lib/delegate/provider";
 import { rememberOutcome } from "@/lib/ai/memory.server";
@@ -4503,11 +4508,24 @@ const agentSpawn = def({
     }
 
     // Split the REMAINING budget (cap minus what this run already used) across the
-    // children. A null here means THIS run carries no cap, which is "nobody said",
-    // not "no ceiling": `enqueueFanout` puts it through `resolveMissionSpendCap` so
-    // the children inherit the workspace ceiling rather than running uncapped.
-    const remainingSpend = typeof spendCap === "number" ? Math.max(0, spendCap - spendUsed) : null;
-    const remainingTokens = typeof tokenCap === "number" ? Math.max(0, tokenCap - tokenUsed) : null;
+    // children. When this run's own ceiling is NOT a number we pass `undefined`, not
+    // `null`, and the difference is the whole guard: `enqueueFanout` feeds this to
+    // `resolveMissionSpendCap`, which reads `undefined` as "nobody said" and inherits
+    // the workspace ceiling, but reads `null` as "somebody said no ceiling" and
+    // returns it verbatim without ever reading the workspace.
+    //
+    // THE BUG THIS LINE USED TO BE, and the comment that used to sit here asserting
+    // the opposite. `spendCap` is null on three paths that all mean "we don't know":
+    // the `agent_runs` read above errored, there is no `runId` to read, or the row
+    // predates the day every writer began resolving. This line wrote `: null` on all
+    // three, so a single failed SELECT uncapped every child of the fan-out — the one
+    // tool call that becomes N runs, so the one place an absent ceiling costs N times
+    // what it costs anywhere else. Proved 2026-08-10 by driving `enqueueFanout` with
+    // an explicit null: `[null, null]` landed on the child `agent_runs` rows and the
+    // workspaces table was never read. `mission-caps.server.ts` names this exact fail
+    // direction as "exactly backwards for a safety control".
+    const remainingSpend = remainingMissionBudget(spendCap, spendUsed);
+    const remainingTokens = remainingMissionBudget(tokenCap, tokenUsed);
 
     const res = await enqueueFanout(supabase, userId, {
       mission_id: missionId,
