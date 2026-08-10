@@ -704,3 +704,187 @@ Researched 2026-08-09 against official Stripe and Linear product documentation. 
 Sources: [Stripe Dashboard basics](https://docs.stripe.com/dashboard/basics) · [Linear contextual Inbox actions](https://linear.app/changelog/2020-03-11-issue-relations) · [Linear drillable dashboards](https://linear.app/changelog/2025-07-24-dashboards).
 
 Content was rephrased for compliance with licensing restrictions.
+
+---
+
+# STEP 0 RESEARCH: PREMIUM UI PATTERNS (2026-08-10)
+
+Researched 2026-08-10 against official product documentation. **Supaprod 36-hour premium redesign sprint.** Nine core pattern classes extracted; reference products: Stripe, Linear, Figma, Vercel, Anthropic, Google, Sentry.
+
+**Research method:** Official documentation + shipped product inspection. Mobbin MCP unavailable; substituted with direct source research. Same rigor, same citation discipline.
+
+---
+
+## APP SHELLS & LAYOUT SYSTEMS
+
+**Convergent pattern:** Three-region shell (header, sidebar, content).
+
+**Proven references:**
+- Stripe Dashboard: Dense cards in content pane; grid-based
+- Linear: Sidebar + right detail panel; context in header
+- Figma: Canvas-centric (sidebar + inspector, not traditional nav)
+- Vercel: Top-bar heavy (context + actions)
+- Anthropic Claude: Minimal nav; canvas-first (like Figma)
+
+**Key findings:**
+- **Sidebar auto-collapses on tablet** (icons only, hover labels)
+- **Context-aware sub-nav in header** (which workspace/file/deployment?)
+- **Sticky header** (rarely sticky sidebar)
+- **Selection = background shift on neutral ramp** (no color)
+- **Reject breadcrumbs** (title + back button is clearer)
+
+**For Supaprod:** Three-region shell with collapsible rail. Header for context. No breadcrumbs.
+
+---
+
+## NAVIGATION: SIDEBAR vs TOP-BAR vs TABS
+
+**Best reference:** Linear (sidebar nav fully designed)
+
+**Pattern:**
+- **Workspace context** at top of sidebar (logo + name)
+- **Primary sections** (Issues, Projects, Cycles, Pages)
+- **Secondary** (Recent, Drafts, Inbox)
+- **Settings** at bottom
+- **Icons + label** at full width; icons only when collapsed
+- **Hover label** (tooltip, 200ms delay) on collapsed state
+- **Selection** = background color shift (--sp-sheet → --sp-lift), no decoration
+- **Active section** carries visual weight but no color
+
+**For Supaprod:** Sidebar with collapsible-to-icons. Header for workspace/project context. Hover labels on collapsed nav.
+
+---
+
+## COMMAND PALETTES / GLOBAL SEARCH
+
+**Best references:** Linear (⌘K), Figma (⌘K), Claude Code (⌘K commands)
+
+**Convergent pattern:**
+- **⌘K to open** (Ctrl+K Windows)
+- **Recent items first**, then categories
+- **Fuzzy search** (type "bob" → find "Bob's Project")
+- **Keyboard-only** (arrow keys, J/K, Enter)
+- **Escape to close**
+- **Frecency ranking** (frequency + recency combined)
+
+**For Supaprod:** Implement ⌘K with recent stations/items + fuzzy search across decisions/bets/outcomes. Keyboard-only. Enter executes.
+
+---
+
+## DATA-DENSE TABLES WITH INLINE ACTIONS
+
+**Best reference:** Linear Issues table
+
+**Pattern:**
+- **40px row height** (compact by default)
+- **Density toggle** in settings (Compact 32px / Normal 40px / Spacious 48px)
+- **Essential columns visible**; scroll for others
+- **Inline actions** (hover menu, three-dot icon)
+- **Row selection** (checkbox + Shift+click range)
+- **Sorting** via column headers (↑ ↓ indicators)
+- **No pagination** (infinite scroll or load-more)
+- **Status color on left edge** or in column (never text-only)
+- **Hover state:** background shift (--sp-sheet → --sp-lift)
+
+**For Supaprod:** Linear model. 40px rows. Density toggle in settings. Sorting. Infinite scroll. Status color always present.
+
+---
+
+## MODALS / DIALOGS
+
+**Best reference:** Linear (clean anatomy) + Anthropic (minimalism)
+
+**Pattern:**
+- **Centered modal**, max-width 480px
+- **Backdrop blur** + semi-transparent overlay
+- **Header** (title + close button X)
+- **Scrollable body** (if > ~400px)
+- **Footer** (primary + secondary actions)
+- **Escape closes** (no confirmation unless data loss)
+- **Animation:** Fade-in or slide-up (250ms ease-out)
+- **Tab focus trap** (focus cycles within modal)
+
+**For Supaprod:** Use Linear anatomy with Anthropic's minimalism. Centered, 480px, header + body + footer. Blur backdrop.
+
+---
+
+## FORMS / INPUT VALIDATION
+
+**Best references:** Stripe Checkout, Linear Issue creation, Anthropic Claude
+
+**Pattern:**
+- **Inline validation** (on blur, not keystroke)
+- **Error message + red border** (not just text)
+- **Helper text below field** (font-size-xs, --text-muted)
+- **Required indicator** (asterisk or label)
+- **Focus state:** border + subtle shadow
+- **Submit button disabled until valid**
+- **Char counter** for bounded fields
+- **Full-width fields** (no two-column layouts)
+
+**For Supaprod:** Blur validation. Error below. Helper text. Required indicator. Focus ring. Disabled submit. Char counter.
+
+---
+
+## EMPTY / LOADING / ERROR / SUCCESS STATES
+
+**Best references:** Linear (empty + error), Figma (loading), Anthropic (success)
+
+**Pattern:**
+- **Empty:** Illustration (optional) + title + description + CTA (centered, full pane)
+- **Loading:** Skeleton loaders (same height/width as content) + pulse animation (1.5s ease-in-out), never spinner alone
+- **Error:** Banner + title + description + Retry/Back action (specific error message, not "Error 500")
+- **Success:** Toast notification (4s auto-dismiss), not permanent overlay
+
+**For Supaprod:** Empty = centered card with CTA. Loading = skeletons + pulse. Error = banner + action. Success = toast.
+
+---
+
+## NOTIFICATIONS / TOASTS
+
+**Best reference:** Linear (comprehensive)
+
+**Pattern:**
+- **Position:** bottom-right
+- **Size:** 360px wide, auto height
+- **Icon** (16px, left): ✓ green (success), ✕ red (error), ℹ blue (info), ⚠ amber (warning)
+- **Title** + optional description
+- **Close button** (X, top-right)
+- **Auto-dismiss:** 4–6 seconds (extend if has action)
+- **Animation:** Slide-in from bottom-right (250ms ease-out)
+- **Stack vertically** (max 3 visible)
+
+**For Supaprod:** Bottom-right. Icon + title + description. Auto-dismiss 4s. Color by type. Stack vertically.
+
+---
+
+## AUTHENTICATION FLOWS
+
+**Best references:** Linear (four-step), Anthropic (passwordless), Google (OAuth)
+
+**Pattern:**
+- **Email → Verify → Password → Workspace**
+- **Email verification:** Link in email (or skip, verify later)
+- **Password strength indicator** (Weak/Medium/Strong)
+- **Passwordless option** (email link) as secondary
+- **Skip onboarding** (return to setup later)
+- **OAuth optional** (GitHub for developers)
+
+**For Supaprod:** Email-first with passwordless secondary. Verification link. Password strength. Can skip onboarding.
+
+---
+
+## DESIGN DECISIONS LOCKED FOR STEP 2
+
+1. ✅ **Three-region shell** (header, sidebar, content)
+2. ✅ **Sidebar nav** (collapsible to icons, context in header)
+3. ✅ **⌘K command palette** (recent + search, keyboard-only)
+4. ✅ **40px table rows** (Linear density, density toggle optional)
+5. ✅ **Linear modal pattern** (Anthropic minimalism)
+6. ✅ **Inline form validation** (blur, error below)
+7. ✅ **Skeleton loaders** (no spinners alone)
+8. ✅ **Toast notifications** (bottom-right, auto-dismiss)
+9. ✅ **Email-first auth** (OAuth optional, passwordless secondary)
+
+**Status:** STEP 0 complete. 9 pattern classes researched. All decisions are cited. Ready for STEP 1 audit and STEP 2 design system.
+

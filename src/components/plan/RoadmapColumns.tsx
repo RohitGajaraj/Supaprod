@@ -1,7 +1,13 @@
-import { useState, useMemo, type CSSProperties } from "react";
+import {
+  useState,
+  useMemo,
+  useRef,
+  useCallback,
+  type CSSProperties,
+  type KeyboardEvent,
+} from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { toast } from "@/lib/notify";
 import {
   getRoadmap,
   updateRoadmapItem,
@@ -16,7 +22,18 @@ import { BetCard } from "./BetCard";
 import { revertRoadmapItemToPrevious } from "@/lib/artifact-rewind.functions";
 import { stillWaiting } from "@/lib/query-state";
 import { CommitCeremony, type CommitCeremonyBet } from "./CommitCeremony";
-import { Actions, Button, Empty, Failed, Num } from "@/components/shell/primitives";
+import {
+  Actions,
+  Button,
+  Choices,
+  Empty,
+  Failed,
+  Line,
+  Num,
+  Receipt,
+  SelectionBar,
+} from "@/components/shell/primitives";
+import { useSelection } from "@/components/shell/use-selection";
 
 /** The three columns, in plain words. NOW used to be printed in ember: ember
  *  marks the human and the one thing waiting on you, never a column heading, so
@@ -45,28 +62,26 @@ const BOARD_TRACK: CSSProperties = {
 };
 
 /**
- * The outcome-declared Now/Next/Later board. Backlog items (`bucket: null`) draw
- * no card in the columns, which are lanes and can only hold what has a lane.
+ * HOW THE BOARD IS ORDERED, AND IT USED TO BE ONE ANSWER.
  *
- * ONE EXCEPTION, AND IT IS THE POINT OF THIS SURFACE. A lane-less bet whose
- * LIFECYCLE status is already 'committed' or 'now' is named here and can be
- * placed from here, because "we are building this" and "it is in a lane" are
- * different facts and this is the only surface that can reconcile them. It is
- * named in BOTH exits below. The empty state names it in a SECOND branch — a
- * workspace that genuinely holds nothing keeps its original sentence and its
- * original instruction, untouched — and once the board has drawn its first card
- * a quiet line above the columns keeps naming what is left, because placing one
- * bet does not place the rest and the door must not shut after one press. See
- * `unplacedDecided` for the measurement.
+ * Every column sorted by `ice_score` descending, hardcoded, with no control and
+ * no label. Two things were wrong with that beyond the missing choice. The
+ * score itself was PASSED INTO THE CARD AND DISCARDED, so the order was
+ * unexplained; that is fixed on the card. And ICE is the DISCOVER ranking, which
+ * answers "what is worth doing", while a person standing on Plan is usually
+ * asking one of two other questions: what is stale, and what is not finished
+ * being promised.
  *
- * It draws no heading and no card of its own: the section holding it is already
- * titled and is the one bordered container in the region.
- *
- * Editing the outcome of an ALREADY-committed bet goes through the same
- * governed `commitRoadmapItem` path (bucket stays put, outcome+measure get
- * re-declared), and a multi-select bulk re-prioritize bar calls
- * `bulkUpdateRoadmapItems`.
+ * Three orders, each one a real question, and each computed from a column this
+ * board already reads. Nothing new is fetched.
  */
+const SORTS = [
+  { id: "rank", label: "Rank", title: "By ICE, the score the Decide queue is ordered by" },
+  { id: "moved", label: "Last moved", title: "Most recently changed first" },
+  { id: "undeclared", label: "Undeclared first", title: "Bets carrying no promise, first" },
+] as const;
+type Sort = (typeof SORTS)[number]["id"];
+
 export function RoadmapColumns() {
   const qc = useQueryClient();
   const fRoadmap = useServerFn(getRoadmap);
@@ -76,7 +91,11 @@ export function RoadmapColumns() {
   const fRewind = useServerFn(revertRoadmapItemToPrevious);
   const roadmap = useQuery({ queryKey: ["roadmap"], queryFn: () => fRoadmap() });
   const [ceremonyBet, setCeremonyBet] = useState<CommitCeremonyBet | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [sort, setSort] = useState<Sort>("rank");
+  /** Show only the bets that carry no declared promise. A filter and not a sort,
+   *  because it answers a different question: not "which first" but "which of
+   *  these is the station's own Gate about". */
+  const [onlyUndeclared, setOnlyUndeclared] = useState(false);
   // One toggle per column (Now/Next/Later are independent lists).
   const [expandedCols, setExpandedCols] = useState<Set<RoadmapBucket>>(new Set());
   const toggleExpanded = (key: RoadmapBucket) =>
@@ -87,104 +106,15 @@ export function RoadmapColumns() {
       return next;
     });
 
-  const toggleSelect = (id: string, on: boolean) =>
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (on) next.add(id);
-      else next.delete(id);
-      return next;
-    });
-
-  const move = useMutation({
-    mutationFn: (v: { id: string; bucket: RoadmapBucket }) =>
-      fUpdate({ data: { id: v.id, bucket: v.bucket } }),
-    onSuccess: (_d, v) => {
-      qc.invalidateQueries({ queryKey: ["roadmap"] });
-      toast.success(`Moved to ${v.bucket === "next" ? "Next" : "Later"}.`);
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  // PC-10: one-key rewind of the last placement change (agent roadmap.move or a
-  // human move/commit). The button only shows when hasSnapshot is true.
-  const rewind = useMutation({
-    mutationFn: (v: { opportunity_id: string }) => fRewind({ data: v }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["roadmap"] });
-      // Narrowed to what actually happens on every path. The comment four lines
-      // up already says this button fires for a human move as well as an agent
-      // one, and revertRoadmapItemToPrevious only writes the agent_approvals row
-      // when roadmap_last_agent_slug is set — which a human move never sets and
-      // the first rewind clears. The re-captured snapshot, on the other hand, is
-      // unconditional, so that is what the toast now claims.
-      toast.success("Reverted to the previous placement. You can rewind back.");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const commit = useMutation({
-    mutationFn: (v: { id: string; outcome: string; measure: string }) =>
-      fCommit({ data: { id: v.id, bucket: "now", outcome: v.outcome, measure: v.measure } }),
-    onSuccess: () => {
-      setCeremonyBet(null);
-      qc.invalidateQueries({ queryKey: ["roadmap"] });
-      toast.success("Committed to Now. The team builds this next.");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  // Re-declare outcome+measure for a bet already sitting in a bucket, the same
-  // governed write as `commit` above, but the bucket is the bet's current one
-  // (not forced to "now"), so it never re-homes a bet for an edit.
-  const editOutcome = useMutation({
-    mutationFn: (v: { id: string; bucket: RoadmapBucket; outcome: string; measure: string }) =>
-      fCommit({ data: { id: v.id, bucket: v.bucket, outcome: v.outcome, measure: v.measure } }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["roadmap"] });
-      toast.success("Outcome saved.");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  // Bulk re-prioritize the selected set into one bucket, lenient like the drag
-  // move (place-first; per-item outcome+measure governance still applies and the
-  // gap surface flags what moved without one).
-  const bulkMove = useMutation({
-    mutationFn: (v: { ids: string[]; bucket: RoadmapBucket }) =>
-      fBulk({ data: { ids: v.ids, bucket: v.bucket } }),
-    onSuccess: (res) => {
-      setSelectedIds(new Set());
-      qc.invalidateQueries({ queryKey: ["roadmap"] });
-      toast.success(
-        res.moved > 0
-          ? `Moved ${res.moved}${res.skipped ? ` · ${res.skipped} unchanged` : ""}.`
-          : "Nothing to move.",
-      );
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const handleMove = (item: RoadmapItem, bucket: RoadmapBucket) => {
-    if (bucket === "now") {
-      setCeremonyBet({
-        id: item.id,
-        title: stripAutoPrefix(item.title),
-        outcome: item.outcome,
-        measure: item.measure,
-      });
-      return;
-    }
-    move.mutate({ id: item.id, bucket });
-  };
-
   // Hooks must run unconditionally before the read-state early returns below
   // (isError, then stillWaiting — the pair was isLoading/isError until the wait
   // was widened), or the hook count changes between the loading and loaded
   // renders and React throws "Rendered more hooks than during the previous
   // render." (found + fixed 2026-07-11).
-  const allItems = roadmap.data?.items ?? [];
-  const items = allItems.filter(
-    (i): i is RoadmapItem & { bucket: RoadmapBucket } => i.bucket !== null,
+  const allItems = useMemo(() => roadmap.data?.items ?? [], [roadmap.data]);
+  const items = useMemo(
+    () => allItems.filter((i): i is RoadmapItem & { bucket: RoadmapBucket } => i.bucket !== null),
+    [allItems],
   );
 
   /**
@@ -200,53 +130,340 @@ export function RoadmapColumns() {
    *
    * Re-measured through the Lovable MCP on 2026-08-06: of 294 opportunities, 36
    * read status 'committed' and 10 read 'now' - 46 decided bets - and exactly 1
-   * carries a lane, `60000000-0b00-4000-8000-000000000001` ("Skip the address
-   * re-confirm when nothing changed", bucket 'next', in Helio Labs). That leaves
-   * 45 decided bets in no lane, across 13 of the 21 workspaces.
+   * carries a lane. That leaves 45 decided bets in no lane, across 13 of the 21
+   * workspaces.
    *
    * THE LANE COUNT IS NOT A CONSTANT AND MUST NOT BE WRITTEN HERE AS ONE. It was
-   * 0 database-wide all morning, and the earlier version of this paragraph said
-   * so and drew a universal conclusion from it ("every one of the 21 workspaces
-   * draws an empty board"). That became false 15 minutes after it was committed,
-   * when the first bet was placed. So the branch below is CONDITIONAL: a caller
-   * who can reach a placed bet gets a board with a card on it and never sees
-   * this branch at all, and a caller who cannot gets an empty board. On today's
-   * read that is 20 of the 21 workspaces - 12 of them holding a decided bet,
-   * which is where the empty board was contradicting a head that had just
-   * counted those bets out loud, and 8 holding none, which are the
-   * genuinely-empty case and keep the original sentence, instruction and all.
+   * 0 database-wide all morning, and an earlier version of this paragraph drew a
+   * universal conclusion from it that became false 15 minutes later, when the
+   * first bet was placed. So the branch below is CONDITIONAL: a caller who can
+   * reach a placed bet gets a board with a card on it and never sees the empty
+   * branch, and a caller who cannot gets an empty board.
    *
    * TEN OF THOSE 46 CARRY STATUS 'now', AND THIS COPY STILL CALLS THEM
    * "committed". That is deliberate rather than sloppy: plan.index's head uses
    * the byte-identical predicate and the byte-identical word forty pixels above
-   * (its `decided`), and the two surfaces agreeing is the entire point of this
-   * branch. The word is loose on both in the same way, so it changes on both in
-   * one commit or on neither - correcting it here alone reopens the
-   * contradiction this branch was written to close.
+   * (its `decided`), and the two surfaces agreeing is the entire point. The word
+   * is loose on both in the same way, so it changes on both in one commit or on
+   * neither.
    *
-   * This reads the SAME ["roadmap"] cache entry the station head reads, and in
-   * the empty branch below no bet has a lane at all, so there this count and the
-   * head's own `decided` are the same number by construction rather than by
-   * coincidence. Sorted by ICE the way every column on this board is, so
-   * "highest-ranked" means one thing on this surface.
+   * Sorted by ICE the way the board's default order is, so "highest-ranked"
+   * means one thing on this surface.
    */
-  const unplacedDecided = allItems
-    .filter((i) => i.bucket === null && (i.status === "committed" || i.status === "now"))
-    .sort((a, b) => (b.ice_score ?? 0) - (a.ice_score ?? 0));
+  const unplacedDecided = useMemo(
+    () =>
+      allItems
+        .filter((i) => i.bucket === null && (i.status === "committed" || i.status === "now"))
+        .sort((a, b) => (b.ice_score ?? 0) - (a.ice_score ?? 0)),
+    [allItems],
+  );
 
-  // Memoize bucket grouping so we don't re-filter/sort on every render (e.g., when selectedIds changes).
-  // Maps each column key to its sorted items, computed once per items change.
+  /**
+   * Each column's list, filtered then ordered. Memoized so re-filtering does not
+   * run on every render (the selection changes far more often than the data).
+   */
   const itemsByBucket = useMemo(() => {
+    const compare = (a: RoadmapItem, b: RoadmapItem) => {
+      if (sort === "moved") {
+        // A missing timestamp sorts last rather than first: a row that never
+        // recorded a change is not the most recently changed thing on the board.
+        const at = a.updated_at ? Date.parse(a.updated_at) : 0;
+        const bt = b.updated_at ? Date.parse(b.updated_at) : 0;
+        return bt - at;
+      }
+      if (sort === "undeclared") {
+        const ag = isCommitmentGoverned(a) ? 1 : 0;
+        const bg = isCommitmentGoverned(b) ? 1 : 0;
+        // Undeclared first, then by rank inside each group, so the second key is
+        // the board's own default and the order never looks arbitrary.
+        if (ag !== bg) return ag - bg;
+      }
+      return (b.ice_score ?? 0) - (a.ice_score ?? 0);
+    };
     const grouped = new Map<RoadmapBucket, RoadmapItem[]>();
     for (const col of COLUMNS) grouped.set(col.key, []);
     for (const item of items) {
+      if (onlyUndeclared && isCommitmentGoverned(item)) continue;
       grouped.get(item.bucket)?.push(item);
     }
-    for (const arr of grouped.values()) {
-      arr.sort((a, b) => (b.ice_score ?? 0) - (a.ice_score ?? 0));
-    }
+    for (const arr of grouped.values()) arr.sort(compare);
     return grouped;
-  }, [items]);
+  }, [items, sort, onlyUndeclared]);
+
+  /** What is on screen right now, in reading order: down Now, then Next, then
+   *  Later. This is BOTH the range-select order and the arrow-key order, and it
+   *  has to be one list or shift-click would select rows the eye did not sweep. */
+  const visibleIds = useMemo(() => {
+    const ids: string[] = [];
+    for (const col of COLUMNS) {
+      const colItems = itemsByBucket.get(col.key) ?? [];
+      const shown = expandedCols.has(col.key) ? colItems : colItems.slice(0, VISIBLE_ITEMS);
+      for (const i of shown) ids.push(i.id);
+    }
+    return ids;
+  }, [itemsByBucket, expandedCols]);
+
+  const selection = useSelection(visibleIds);
+  const undeclaredSelected = useMemo(
+    () => items.filter((i) => selection.has(i.id) && !isCommitmentGoverned(i)).length,
+    [items, selection],
+  );
+
+  /**
+   * ============================================================================
+   * THE RECEIPTS, WHICH USED TO BE TOASTS, AND WHY THAT WAS A SCHISM RATHER
+   * THAN A PREFERENCE.
+   * ============================================================================
+   *
+   * This component fired TEN toasts across five mutations, and it is embedded
+   * inside plan.index.tsx, forty pixels below a surface that writes `<Receipt>`
+   * for the very same class of act (a promise declared, a promise refused, a
+   * spec that did not get written). So one station had two idioms for "what your
+   * click caused", and which one you got depended on whether the button you
+   * pressed happened to live in the route file or in this one.
+   *
+   * The rule is the shell's, stated at the `Receipt` primitive and in
+   * agents/FINAL-agent-presence.md R10: a toast confirms that your CLICK
+   * REGISTERED; a receipt renders what your click CAUSED. On a product whose
+   * whole claim is that judgement compounds, an act that erases itself after
+   * four seconds teaches a person their judgement left no trace. Receipts is the
+   * station's own idiom, so receipts is what this uses.
+   *
+   * SESSION-LOCAL AND CAPPED AT FOUR, the same shape the spec editor keeps: the
+   * durable record is the roadmap row and the decision `commitRoadmapItem`
+   * writes, and a second copy of it here would be a second source of one truth.
+   *
+   * ONE STRING WENT ENTIRELY. `rewind`'s toast used to read "The change is on the
+   * Trust Ledger." Two things were wrong with it. "Ledger" is dead vocabulary,
+   * 0.2 uses per million words against 562.8 for "decisions", so it named a thing
+   * nobody says. And it was very likely false: `revertRoadmapItemToPrevious`
+   * writes an `agent_approvals` row only when `roadmap_last_agent_slug` is set,
+   * which a human move never sets and the first rewind clears, so a rewind of a
+   * human placement wrote nothing anywhere called a ledger. That string had
+   * already been narrowed once, to "Reverted to the previous placement. You can
+   * rewind back."; the receipt below says the same true thing in the station's
+   * own voice and the dead word does not come back.
+   */
+  const [receipts, setReceipts] = useState<
+    { key: number; verb: string; consequence: string; failed?: boolean }[]
+  >([]);
+  const receiptSeq = useRef(0);
+  const commitReceipt = useCallback((verb: string, consequence: string, failed?: boolean) => {
+    receiptSeq.current += 1;
+    setReceipts((r) => [{ key: receiptSeq.current, verb, consequence, failed }, ...r].slice(0, 4));
+  }, []);
+
+  const move = useMutation({
+    mutationFn: (v: { id: string; bucket: RoadmapBucket; title: string }) =>
+      fUpdate({ data: { id: v.id, bucket: v.bucket } }),
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["roadmap"] });
+      // The consequence is what the lane MEANS, not the lane's name. "Moved to
+      // Next" tells a person what they already watched happen.
+      commitReceipt(
+        "You moved the bet",
+        v.bucket === "next"
+          ? `${v.title} is lined up behind Now, and nothing starts on it yet.`
+          : `${v.title} is parked in Later. It keeps its promise and waits.`,
+      );
+    },
+    onError: (e: Error, v) =>
+      commitReceipt("The bet did not move", `${v.title} is where it was. ${e.message}`, true),
+  });
+
+  // PC-10: one-key rewind of the last placement change (agent roadmap.move or a
+  // human move/commit). The button only shows when hasSnapshot is true.
+  const rewind = useMutation({
+    mutationFn: (v: { opportunity_id: string; title: string }) =>
+      fRewind({ data: { opportunity_id: v.opportunity_id } }),
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["roadmap"] });
+      // Narrowed to what actually happens on EVERY path, which is the snapshot
+      // being re-captured. See the receipts docblock above for the claim that
+      // used to be here and was not true of a human placement.
+      commitReceipt(
+        "You put the placement back",
+        `${v.title} is where it was before the last change, and the change it undid is now the one you can rewind to.`,
+      );
+    },
+    onError: (e: Error, v) =>
+      commitReceipt("Nothing was rewound", `${v.title} is unchanged. ${e.message}`, true),
+  });
+
+  const commit = useMutation({
+    mutationFn: (v: { id: string; outcome: string; measure: string; title: string }) =>
+      fCommit({ data: { id: v.id, bucket: "now", outcome: v.outcome, measure: v.measure } }),
+    onSuccess: (_d, v) => {
+      setCeremonyBet(null);
+      qc.invalidateQueries({ queryKey: ["roadmap"] });
+      commitReceipt(
+        "You wrote the promise",
+        `${v.title} is in Now and promises ${v.outcome}, and Learn can grade it.`,
+      );
+    },
+    onError: (e: Error, v) =>
+      commitReceipt(
+        "The promise was not written",
+        `${v.title} is unchanged on the board. ${e.message}`,
+        true,
+      ),
+  });
+
+  // Re-declare outcome+measure for a bet already sitting in a bucket, the same
+  // governed write as `commit` above, but the bucket is the bet's current one
+  // (not forced to "now"), so it never re-homes a bet for an edit.
+  const editOutcome = useMutation({
+    mutationFn: (v: {
+      id: string;
+      bucket: RoadmapBucket;
+      outcome: string;
+      measure: string;
+      title: string;
+    }) => fCommit({ data: { id: v.id, bucket: v.bucket, outcome: v.outcome, measure: v.measure } }),
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["roadmap"] });
+      commitReceipt(
+        "You rewrote the promise",
+        `${v.title} now promises ${v.outcome}, and it stayed in the lane it was in.`,
+      );
+    },
+    onError: (e: Error, v) =>
+      commitReceipt(
+        "The promise was not saved",
+        `${v.title} still reads as it did. ${e.message}`,
+        true,
+      ),
+  });
+
+  /**
+   * THE BULK MOVE, AND WHAT IT SKIPS, SAID OUT LOUD.
+   *
+   * `bulkUpdateRoadmapItems` sets the lane and nothing else. It does not run the
+   * ceremony, so a set moved into Now through this bar can land there carrying no
+   * outcome and no measure, which is exactly the state the station's Gate exists
+   * to catch. That was documented in a comment on this file and stated NOWHERE on
+   * screen: a person selected six bets, pressed Now, and six commitments entered
+   * the lane the product calls "the one thing the team builds next" without one
+   * of them promising anything.
+   *
+   * THREE THINGS CHANGED, AND NONE OF THEM IS A REFUSAL.
+   *   · The bar COUNTS, before the press, how many of the selected bets carry no
+   *     promise. It is read off `isCommitmentGoverned`, the same predicate the
+   *     Gate and the card use, so the number cannot disagree with either.
+   *   · The receipt afterwards names what is now undeclared in Now rather than
+   *     saying "Moved 6".
+   *   · Moving ONE bet into Now still goes through the ceremony, because that is
+   *     the single-bet path and there is no reason for a selection of one to be a
+   *     way around it.
+   * Bulk stays lenient on purpose: a person re-prioritising twenty bets at once
+   * is doing lane work, and forcing twenty ceremonies would mean nobody ever
+   * re-prioritises. What it must not do is stay quiet about it.
+   */
+  const bulkMove = useMutation({
+    mutationFn: (v: { ids: string[]; bucket: RoadmapBucket; undeclared: number }) =>
+      fBulk({ data: { ids: v.ids, bucket: v.bucket } }),
+    onSuccess: (res, v) => {
+      selection.clear();
+      qc.invalidateQueries({ queryKey: ["roadmap"] });
+      if (res.moved === 0) {
+        commitReceipt("Nothing moved", "Every bet you picked was already in that lane.");
+        return;
+      }
+      const lane = COLUMNS.find((c) => c.key === v.bucket)?.label ?? v.bucket;
+      const skipped = res.skipped ? ` ${res.skipped} were already there.` : "";
+      commitReceipt(
+        "You re-lined the board",
+        v.undeclared > 0
+          ? `${res.moved} ${res.moved === 1 ? "bet is" : "bets are"} in ${lane}.${skipped} ${v.undeclared} of them carry no outcome, so they are tasks rather than promises until somebody declares one.`
+          : `${res.moved} ${res.moved === 1 ? "bet is" : "bets are"} in ${lane}, each still carrying the promise it already had.${skipped}`,
+      );
+    },
+    onError: (e: Error) => commitReceipt("Nothing moved", e.message, true),
+  });
+
+  const handleMove = (item: RoadmapItem, bucket: RoadmapBucket) => {
+    if (bucket === "now") {
+      setCeremonyBet({
+        id: item.id,
+        title: stripAutoPrefix(item.title),
+        outcome: item.outcome,
+        measure: item.measure,
+      });
+      return;
+    }
+    move.mutate({ id: item.id, bucket, title: stripAutoPrefix(item.title) });
+  };
+
+  /**
+   * THE KEYBOARD, AND THE BOARD HAD NONE.
+   *
+   * A board is a composite widget: the whole thing is one tab stop and the arrows
+   * move within it, which is how every list in every operating system behaves and
+   * what a screen reader user expects the moment they meet a grid of cards.
+   * Before this, reaching the twelfth bet meant Tab through eleven cards' worth
+   * of checkboxes, move buttons, history popovers and rewinds.
+   *
+   * Up and Down walk the column, Left and Right cross to the same position in the
+   * next one, Home and End jump to the ends of the whole board. Space toggles the
+   * selection because the checkbox is a real checkbox and gets that for free.
+   *
+   * NO BARE LETTERS, and this is a deliberate limit rather than an oversight.
+   * `src/lib/key-model.ts` is the product's single declaration of every key, and
+   * `key-model.test.ts` fails the build in BOTH directions against it: a key
+   * bound and not declared is the exact defect it exists to catch, and that file
+   * is not this lane's to edit. Arrows, Home, End and Space are structural rather
+   * than shortcuts, which key-model's own comment states, so they need no entry.
+   * Whoever adds `n`, `x` or `d` here owns declaring them there in the same
+   * commit.
+   */
+  const cardRefs = useRef(new Map<string, HTMLDivElement>());
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+  const focusCard = useCallback((id: string | undefined) => {
+    if (!id) return;
+    cardRefs.current.get(id)?.focus();
+    setFocusedId(id);
+  }, []);
+
+  const onCardKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLDivElement>, colIndex: number, rowIndex: number) => {
+      const colKey = COLUMNS[colIndex].key;
+      const colItems = itemsByBucket.get(colKey) ?? [];
+      const shown = expandedCols.has(colKey) ? colItems : colItems.slice(0, VISIBLE_ITEMS);
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        const next = shown[rowIndex + (e.key === "ArrowDown" ? 1 : -1)];
+        if (!next) return;
+        e.preventDefault();
+        focusCard(next.id);
+        return;
+      }
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        const step = e.key === "ArrowRight" ? 1 : -1;
+        // Walk past an empty column rather than stopping dead in it.
+        for (let c = colIndex + step; c >= 0 && c < COLUMNS.length; c += step) {
+          const other = itemsByBucket.get(COLUMNS[c].key) ?? [];
+          const otherShown = expandedCols.has(COLUMNS[c].key)
+            ? other
+            : other.slice(0, VISIBLE_ITEMS);
+          if (otherShown.length === 0) continue;
+          e.preventDefault();
+          focusCard((otherShown[rowIndex] ?? otherShown[otherShown.length - 1]).id);
+          return;
+        }
+        return;
+      }
+      if (e.key === "Home" || e.key === "End") {
+        if (visibleIds.length === 0) return;
+        e.preventDefault();
+        focusCard(e.key === "Home" ? visibleIds[0] : visibleIds[visibleIds.length - 1]);
+      }
+    },
+    [itemsByBucket, expandedCols, visibleIds, focusCard],
+  );
+
+  /** The one card carrying tabIndex 0. Falls back to the first on the board, so
+   *  the board is always reachable with a single Tab even before anything has
+   *  been focused inside it. */
+  const tabStopId = focusedId && visibleIds.includes(focusedId) ? focusedId : visibleIds[0];
 
   // A read that failed is not an empty state. "Nothing is committed" and "we
   // could not find out" are different facts and a person acts differently on each.
@@ -273,11 +490,10 @@ export function RoadmapColumns() {
    * react-query v5 and therefore FALSE for a query that is pending but not in
    * flight (paused with no network, or not yet started). In that state the
    * skeleton stood down and the branch below announced "No bets on the roadmap
-   * yet. Commit a ranked opportunity from Discover." to a workspace whose bets
-   * had simply not arrived — the /discover first-frame defect, on the board that
-   * exists to place bets. `stillWaiting` is the shared guard written for exactly
-   * this (src/lib/query-state.ts) and it also covers the error path, which is
-   * why the <Failed> branch above had to move ahead of it.
+   * yet." to a workspace whose bets had simply not arrived. `stillWaiting` is the
+   * shared guard written for exactly this (src/lib/query-state.ts) and it also
+   * covers the error path, which is why the <Failed> branch above had to move
+   * ahead of it.
    */
   if (stillWaiting(roadmap)) {
     return (
@@ -313,7 +529,7 @@ export function RoadmapColumns() {
 
   /**
    * The commit ceremony belongs to BOTH exits below, not just the loaded board.
-   * The empty branch now opens it too, and a dialog mounted on only one of two
+   * The empty branch opens it too, and a dialog mounted on only one of two
    * returns is a button that silently does nothing on the other.
    */
   const ceremony = ceremonyBet ? (
@@ -321,51 +537,92 @@ export function RoadmapColumns() {
       bet={ceremonyBet}
       pending={commit.isPending}
       onCancel={() => setCeremonyBet(null)}
-      onConfirm={(values) => commit.mutate({ id: ceremonyBet.id, ...values })}
+      onConfirm={(values) =>
+        commit.mutate({ id: ceremonyBet.id, title: ceremonyBet.title, ...values })
+      }
     />
   ) : null;
+
+  /** What the last few acts on this board caused. Above everything, because a
+   *  consequence a person has to scroll to find is one they do not read. */
+  const receiptStack = receipts.length ? (
+    <>
+      {receipts.map((r) => (
+        <Receipt key={r.key} verb={r.verb} consequence={r.consequence} failed={r.failed} />
+      ))}
+    </>
+  ) : null;
+
+  /**
+   * THE UNPLACED DOOR, WRITTEN ONCE.
+   *
+   * There were two copies of this button, one in the empty branch and one above
+   * the columns, in mutually exclusive branches and therefore never visible at
+   * the same time. That is worse than a visible duplicate, not better: nobody
+   * looking at the screen could ever see that the two had drifted, and they had
+   * already drifted in emphasis (one was `variant="primary"`, the other was not,
+   * for a reason that is real and is preserved below).
+   *
+   * `lead` is the only difference between the two sites and it is a genuine one:
+   * on an empty board the sentence explains why the board is blank, and on a
+   * drawn board it explains what is still missing from it.
+   */
+  const placeDoor = (variant: "primary" | undefined) =>
+    unplacedDecided.length > 0 ? (
+      <Button variant={variant} onClick={() => handleMove(unplacedDecided[0], "now")}>
+        Place it in Now
+      </Button>
+    ) : null;
 
   if (items.length === 0) {
     // RATCHET: a workspace that genuinely has nothing keeps the exact sentence
     // it has always had, instruction and all. What follows is a second branch
     // for the case that sentence was WRONG about, never a replacement for it.
     if (unplacedDecided.length === 0) {
-      return <Empty>No bets on the roadmap yet. Commit a ranked opportunity from Discover.</Empty>;
+      return (
+        <>
+          {receiptStack}
+          {onlyUndeclared ? (
+            // The filter's own empty state, which is a different fact from an
+            // empty board and must not borrow its instruction: telling somebody
+            // to go to Discover when they have simply filtered everything out
+            // would send them away from the answer.
+            <Empty
+              action={<Button onClick={() => setOnlyUndeclared(false)}>Show every bet</Button>}
+            >
+              Every bet on the board names an outcome, so the filter has nothing to show.
+            </Empty>
+          ) : (
+            <Empty>No bets on the roadmap yet. Commit a ranked opportunity from Discover.</Empty>
+          )}
+        </>
+      );
     }
     // The bet the board would have drawn first if it could draw any of them.
     const top = unplacedDecided[0];
     const topTitle = stripAutoPrefix(top.title);
     return (
       <>
-        <Empty
-          action={
-            /* The station's primary act, finally reachable from the surface
-               that exists to perform it. It calls the SAME `handleMove(item,
-               "now")` a card's "move to Now" calls, so a promise declared from
-               here and one declared from the board are one function and cannot
-               drift. No competing primary is on screen in this state:
-               plan.index's Gate reads its `undeclared` out of the BUCKETED bets,
-               which is the empty set here, and TrackStart's primary only mounts
-               once its form is opened.
+        {receiptStack}
+        {/* The station's primary act, reachable from the surface that exists to
+            perform it. It calls the SAME `handleMove(item, "now")` a card calls,
+            so a promise declared from here and one declared from the board are
+            one function and cannot drift. No competing primary is on screen in
+            this state: plan.index's Gate reads its `undeclared` out of the
+            BUCKETED bets, which is the empty set here, and TrackStart's primary
+            mounts only once its own form is opened.
 
-               ONE KNOWN LIMIT, STATED RATHER THAN FIXED. A successful commit
-               from here unmounts this whole branch, and CommitCeremony overrides
-               nothing about Radix's close behaviour, so focus returns to a
-               trigger that no longer exists and falls to document.body: a
-               keyboard user loses their place. It is not this branch's
-               invention: three other `<Empty action={<Button…>}>` callers open a
-               dialog that then changes the branch out from under the trigger and
-               behave identically (DecisionsPanel, DesignMemoryPanel and
-               ProductsTab, all checked). The fix belongs where the idiom lives,
-               either as an `onCloseAutoFocus` on the ceremony or as a focus
-               target handed to Empty, and neither of those is this file. Left
-               alone on purpose in launch week rather than solved here for a
-               fourth time in a fourth private way. */
-            <Button variant="primary" onClick={() => handleMove(top, "now")}>
-              Place it in Now
-            </Button>
-          }
-        >
+            ONE KNOWN LIMIT, STATED RATHER THAN FIXED. A successful commit from
+            here unmounts this whole branch, and CommitCeremony overrides nothing
+            about Radix's close behaviour, so focus returns to a trigger that no
+            longer exists and falls to document.body. It is not this branch's
+            invention: three other `<Empty action={<Button…>}>` callers open a
+            dialog that then changes the branch out from under the trigger and
+            behave identically (DecisionsPanel, DesignMemoryPanel and ProductsTab,
+            all checked). The fix belongs where the idiom lives, either as an
+            `onCloseAutoFocus` on the ceremony or as a focus target handed to
+            Empty, and neither of those is this file. */}
+        <Empty action={placeDoor("primary")}>
           {unplacedDecided.length === 1 ? (
             <>
               One bet is committed and it is in no lane yet, so this board has nothing to draw:{" "}
@@ -385,77 +642,115 @@ export function RoadmapColumns() {
 
   return (
     <>
+      {receiptStack}
+
+      {/* HOW THE BOARD IS ORDERED AND WHAT IT IS SHOWING, as a control rather
+          than as a hardcoded constant nobody could see. A `Choices` radio group,
+          not a tab strip: the station strip is the navigation on this page and
+          this is a control on one list. The filter sits beside it as its own
+          quiet toggle, because "which first" and "which at all" are different
+          questions and a five-option control that mixed them would answer
+          neither. */}
+      <Actions
+        trailing={
+          <Button
+            variant="ghost"
+            aria-pressed={onlyUndeclared}
+            onClick={() => setOnlyUndeclared((v) => !v)}
+            title="Show only the committed bets that carry no outcome and no measure"
+          >
+            {onlyUndeclared ? "Showing undeclared only" : "Only undeclared"}
+          </Button>
+        }
+      >
+        <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>Order by</span>
+        <Choices<Sort>
+          label="How the board is ordered"
+          value={sort}
+          options={SORTS.map((s) => ({ id: s.id, label: s.label, title: s.title }))}
+          onPick={setSort}
+        />
+      </Actions>
+
       {/* THE BETS THE COLUMNS STILL CANNOT DRAW, ONCE THE BOARD CAN DRAW SOME.
           Placing one bet does not place the others, so without this line the
           first press of the empty state's button would carry the board out of
           the branch above and take the remaining bets off the page with it: the
           door this surface just opened would shut after one press, and a count
           the user had just been shown would silently stop being shown.
-          Re-measured through the Lovable MCP on 2026-08-06: 13 workspaces hold
-          unplaced committed bets, 12 of them hold more than one, and the counts
-          run 7,5,5,5,3,3,3,3,3,3,2,2,1. Six of the seven seeded demo workspaces
-          hold 3; the seventh, Helio Labs, holds 2, because the third of its
-          bets is the one bet in the database that has been given a lane - which
-          is also why a caller who can see Helio Labs is, today, the only one who
-          reaches THIS line rather than the empty branch above. So in a seeded
-          workspace (the ones a visitor is most likely to open) the first press
-          leaves two behind, or one in Helio Labs.
-
-          THAT IS AS FAR AS THE MEASUREMENT REACHES, and the sentence here used
-          to reach further. Across all 13 the first press leaves anywhere from
-          six behind (the workspace holding 7) down to none at all (the one
-          holding 1, where this line correctly disappears after the press). What
-          holds for every one of the 13 is only that placing one bet does not
-          place the rest, and that is the whole reason this line exists.
 
           Deliberately NOT variant="primary". Here the columns are not empty, so
-          plan.index's Gate can fire, because it reads `undeclared` out of the BUCKETED
-          bets, and that Gate owns the one primary act on this station; Actions'
-          own contract is one primary among them and only one. To be exact about
-          which bets can make it fire, because the looser version of this
-          sentence read as though this button could: never one placed from HERE.
-          CommitCeremony will not confirm until both fields are filled
-          (`canConfirm`), so this path always writes an outcome. It is the
-          lenient drag (`updateRoadmapItem`) and the bulk bar that can leave a
-          placed bet carrying no promise. */}
+          plan.index's Gate can fire, because it reads `undeclared` out of the
+          BUCKETED bets, and that Gate owns the one primary act on this station;
+          Actions' own contract is one primary among them and only one. To be
+          exact about which bets can make it fire, because the looser version of
+          this sentence read as though this button could: never one placed from
+          HERE. CommitCeremony will not confirm until both fields are filled
+          (`canConfirm`), so this path always writes an outcome. It is the lenient
+          drag (`updateRoadmapItem`) and the bulk bar that can leave a placed bet
+          carrying no promise, and the bulk bar now says so. */}
       {unplacedDecided.length > 0 && (
-        <Actions>
-          <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
-            <Num>{unplacedDecided.length}</Num>{" "}
-            {unplacedDecided.length === 1 ? "committed bet is" : "committed bets are"} in no lane.
-            Highest-ranked: {stripAutoPrefix(unplacedDecided[0].title)}
-          </span>
-          <Button onClick={() => handleMove(unplacedDecided[0], "now")}>Place it in Now</Button>
-        </Actions>
-      )}
-      {/* The bulk bar appears only once a set is selected (calm front), and it is
-          a line of actions rather than a panel: a card here would be a card
-          inside the section's card. */}
-      {selectedIds.size > 0 && (
-        <Actions
-          trailing={
-            <Button variant="ghost" onClick={() => setSelectedIds(new Set())}>
-              Clear
-            </Button>
+        <Line
+          label={
+            <>
+              <Num>{unplacedDecided.length}</Num>{" "}
+              {unplacedDecided.length === 1 ? "committed bet is" : "committed bets are"} in no lane
+            </>
           }
+          sub={`Highest-ranked: ${stripAutoPrefix(unplacedDecided[0].title)}`}
         >
-          <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
-            <Num>{selectedIds.size}</Num> selected, move to
-          </span>
-          {COLUMNS.map((col) => (
-            <Button
-              key={col.key}
-              disabled={bulkMove.isPending}
-              onClick={() => bulkMove.mutate({ ids: [...selectedIds], bucket: col.key })}
-            >
-              {col.label}
-            </Button>
-          ))}
-        </Actions>
+          {placeDoor(undefined)}
+        </Line>
       )}
+
+      {/* THE SELECTION BAR, IN THE LIST'S OWN HEADER SLOT. It replaces a
+          hand-rolled `Actions` row that carried three lane buttons and a Clear,
+          and it brings three things that row never had: a select-all over
+          everything on screen, Escape to leave the mode, and range-select from a
+          shift-click, all of which arrive with `useSelection` rather than being
+          written here for a ninth time.
+
+          THE SENTENCE UNDER IT IS THE CEREMONY BYPASS, NAMED. See `bulkMove`. */}
+      <SelectionBar selection={selection} total={visibleIds.length} noun="bet">
+        {COLUMNS.map((col) => (
+          <Button
+            key={col.key}
+            disabled={bulkMove.isPending}
+            title={
+              col.key === "now" && undeclaredSelected > 0
+                ? `${undeclaredSelected} of these carry no outcome. A bulk move places the lane and does not ask for one.`
+                : undefined
+            }
+            onClick={() =>
+              bulkMove.mutate({
+                ids: [...selection.ids],
+                bucket: col.key,
+                undeclared: undeclaredSelected,
+              })
+            }
+          >
+            {col.label}
+          </Button>
+        ))}
+      </SelectionBar>
+      {selection.count > 0 && undeclaredSelected > 0 ? (
+        <p
+          style={{
+            margin: "var(--sp-space-2) 0 0",
+            fontSize: "var(--sp-text-meta)",
+            color: "var(--sp-mute)",
+          }}
+        >
+          <Num>{undeclaredSelected}</Num> of the{" "}
+          {selection.count === 1 ? "bet you picked carries" : "bets you picked carry"} no outcome. A
+          bulk move sets the lane and does not ask for one, so they stay tasks rather than promises
+          until somebody declares one. Moving a single bet into Now still asks.
+        </p>
+      ) : null}
+
       <div style={BOARD_SCROLLER}>
         <div style={BOARD_TRACK}>
-          {COLUMNS.map((col) => {
+          {COLUMNS.map((col, colIndex) => {
             const colItems = itemsByBucket.get(col.key) ?? [];
             const expanded = expandedCols.has(col.key);
             const shownItems = expanded ? colItems : colItems.slice(0, VISIBLE_ITEMS);
@@ -489,7 +784,7 @@ export function RoadmapColumns() {
                     gap: "var(--sp-space-3)",
                   }}
                 >
-                  {shownItems.map((item) => (
+                  {shownItems.map((item, rowIndex) => (
                     <BetCard
                       key={item.id}
                       id={item.id}
@@ -500,20 +795,48 @@ export function RoadmapColumns() {
                       iceScore={item.ice_score}
                       hasOutcome={isCommitmentGoverned(item)}
                       updatedAt={item.updated_at}
-                      selected={selectedIds.has(item.id)}
-                      onToggleSelect={(on) => toggleSelect(item.id, on)}
+                      selected={selection.has(item.id)}
+                      onToggleSelect={(_on, e) => selection.toggle(item.id, e)}
                       onMoveTo={(bucket) => handleMove(item, bucket)}
                       onEditOutcome={(values) =>
-                        editOutcome.mutate({ id: item.id, bucket: col.key, ...values })
+                        editOutcome.mutate({
+                          id: item.id,
+                          bucket: col.key,
+                          title: stripAutoPrefix(item.title),
+                          ...values,
+                        })
                       }
                       editPending={editOutcome.isPending && editOutcome.variables?.id === item.id}
                       canRewind={item.hasSnapshot}
-                      onRewind={() => rewind.mutate({ opportunity_id: item.id })}
+                      onRewind={() =>
+                        rewind.mutate({
+                          opportunity_id: item.id,
+                          title: stripAutoPrefix(item.title),
+                        })
+                      }
                       rewindPending={
                         rewind.isPending && rewind.variables?.opportunity_id === item.id
                       }
+                      tabIndex={item.id === tabStopId ? 0 : -1}
+                      onCardKeyDown={(e) => onCardKeyDown(e, colIndex, rowIndex)}
+                      onFocusCard={() => setFocusedId(item.id)}
+                      registerRef={(el) => {
+                        if (el) cardRefs.current.set(item.id, el);
+                        else cardRefs.current.delete(item.id);
+                      }}
                     />
                   ))}
+                  {colItems.length === 0 ? (
+                    <span
+                      style={{
+                        fontSize: "var(--sp-text-meta)",
+                        color: "var(--sp-mute)",
+                        padding: "var(--sp-space-2) 0",
+                      }}
+                    >
+                      {onlyUndeclared ? "Every bet here names an outcome." : "Nothing here."}
+                    </span>
+                  ) : null}
                   {colItems.length > VISIBLE_ITEMS ? (
                     <Button variant="ghost" onClick={() => toggleExpanded(col.key)}>
                       {expanded ? "Show fewer" : `Show ${colItems.length - VISIBLE_ITEMS} more`}

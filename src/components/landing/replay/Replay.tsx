@@ -1089,7 +1089,23 @@ const TAB_CONFIG: Record<ReplayTab, { log: LogEntry[]; litThrough: number; capti
   failure: {
     log: FAIL_LOG,
     litThrough: 6,
-    caption: "It never stopped; it recovered. Your gate stayed in the middle the whole time.",
+    /* "YOUR GATE STAYED IN THE MIDDLE THE WHOLE TIME" WAS FALSE, corrected
+       2026-08-10. The same sentence was retired from the machine-readable copy
+       in src/routes/index.tsx earlier today, and the fix never reached this
+       caption, which is the version a PERSON reads under the "When it breaks"
+       tab. A correction that lands only where machines read it is not a
+       correction.
+       The gate is real but it does not sit in the middle. It sits at the EDGE
+       and at the CAP: nothing merges or takes an irreversible outward action
+       without a human, and MAX_TRACK_CORRECTIONS in spine/correction.ts is 2,
+       with verify-green.server.ts completing a mission as
+       'completed_with_failures' on the cap rather than looping quietly. The
+       loop is DESIGNED to run unattended; that is the product, and claiming a
+       human was watching throughout argues against it.
+       Two checkable facts beat one reassurance, which is also why this reads
+       better to anyone quoting the page back at us. */
+    caption:
+      "It never stopped; it recovered. Nothing merges without you, and it gives up after two corrections rather than looping.",
   },
 };
 

@@ -155,7 +155,15 @@ describe("settings-sections - the nav ring", () => {
   it("Autonomy leads and Diagnostics is last, so Home and End reach both in one press", () => {
     expect(NAV_DOOR_IDS[0]).toBe("autonomy");
     expect(NAV_DOOR_IDS[NAV_DOOR_IDS.length - 1]).toBe("health");
-    expect(DEFAULT_SECTION).toBe("autonomy");
+  });
+
+  // A bare /settings is an address people ARRIVE at - the account menu, `g s`,
+  // the /notifications redirect - rather than one they ask for, so it must not
+  // land on the governance pane. Autonomy keeps the first door, so Home still
+  // reaches it in one press; it is simply not where an unasked visit begins.
+  it("a bare /settings does not open on a governance pane", () => {
+    expect(DEFAULT_SECTION).toBe("profile");
+    expect(DEFAULT_SECTION).not.toBe("autonomy");
   });
 
   it("every group's landing section draws a door", () => {
@@ -226,11 +234,11 @@ describe("settings-sections - derivations", () => {
 });
 
 describe("settings-sections - normalizeSection (deep-link safety)", () => {
-  it("defaults to Autonomy when nothing is provided", () => {
+  it("defaults to Profile when nothing is provided", () => {
     expect(normalizeSection(undefined)).toBe(DEFAULT_SECTION);
     expect(normalizeSection(null)).toBe(DEFAULT_SECTION);
     expect(normalizeSection("")).toBe(DEFAULT_SECTION);
-    expect(DEFAULT_SECTION).toBe("autonomy");
+    expect(DEFAULT_SECTION).toBe("profile");
   });
 
   it("passes through every valid section id unchanged", () => {

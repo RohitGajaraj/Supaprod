@@ -119,7 +119,7 @@ import { isCommitmentGoverned } from "@/lib/roadmap-governance";
 import { generatePrd, listSpecs } from "@/lib/discovery.functions";
 import { listDesignWork, type DesignWorkRow } from "@/lib/design-scaffold.functions";
 import { DESIGN_SKIPPED_ON_PURPOSE } from "@/lib/trust-chain.functions";
-import { stripAutoPrefix } from "@/components/plan/format";
+import { specStateWords, stripAutoPrefix } from "@/components/plan/format";
 import { RoadmapColumns } from "@/components/plan/RoadmapColumns";
 import { TrackStart } from "@/components/spine/TrackStart";
 import { CommitCeremony, type CommitCeremonyBet } from "@/components/plan/CommitCeremony";
@@ -130,6 +130,7 @@ import {
   Button,
   CtxHead,
   CtxRow,
+  Door,
   Empty,
   Failed,
   Line,
@@ -152,6 +153,49 @@ import { AgentPulse } from "@/components/shell/AgentPulse";
 const PLAN_VIEWS = ["goals", "loops", "roadmap", "specs", "stakeholders"] as const;
 type PlanView = (typeof PLAN_VIEWS)[number];
 
+/**
+ * THE THREE VALUES THAT RESOLVED TO NOTHING, AND NOW SAY WHERE THE THING WENT.
+ *
+ * `validateSearch` accepts five and only two of them, `roadmap` and `specs`,
+ * have a section left on this page to scroll to. The other three name panels the
+ * redesign moved off Plan, and `go()` handled them by returning early: a person
+ * following a link, a bookmark or the live `/stakeholder` redirect
+ * (legacy-redirects.ts, still pointed here) arrived at the top of a page with no
+ * trace of what they came for and nothing to tell them it had moved. That is not
+ * a 404, which is the thing the union exists to avoid; it is worse, because a
+ * 404 at least says something happened.
+ *
+ * So a dead value now answers the question the link asked. Each one names what
+ * it was, where it went and why, and carries the door: a link that stops
+ * resolving is a broken link nobody reports, and a link that resolves to a
+ * silent no-op is a broken link nobody can even see.
+ *
+ * THE DESTINATIONS ARE THIS FILE'S OWN KEEP/MOVE/KILL RULING, quoted from the
+ * docblock above rather than invented here, and all three routes were checked to
+ * exist. When `legacy-redirects.ts` is re-pointed at them, this table is what
+ * says where to point it.
+ */
+const MOVED_VIEWS: Record<string, { what: string; why: string; to: string; door: string }> = {
+  stakeholders: {
+    what: "The stakeholder pack is not on Plan any more.",
+    why: "Writing an update for an audience is a communication job, and it shares nothing with committing a bet except that both mention decisions. It lives with the record's readable output.",
+    to: "/brain",
+    door: "Open the brain",
+  },
+  goals: {
+    what: "Standing objectives are not on Plan any more.",
+    why: "A standing objective is policy set in advance: it is the machine that proposes candidate bets rather than a bet. It lives beside the strategic brief.",
+    to: "/settings",
+    door: "Open Settings",
+  },
+  loops: {
+    what: "Work that re-runs on its own is not on Plan any more.",
+    why: "Every run and what it cost is machinery status, and machinery lives behind one door rather than on the surface where you place bets.",
+    to: "/engine-room",
+    door: "Open the engine room",
+  },
+};
+
 /** Fleet state to mark state. State is never a hue: the mark carries it. */
 function markState(state: FleetAgentState): MarkState {
   if (state === "working") return "running";
@@ -173,14 +217,12 @@ function ago(iso: string | null | undefined): string | null {
   return `${Math.floor(hours / 24)}d`;
 }
 
-/** prds.status in plain words. The retired list shouted these in mono caps
- *  ("CRITIC REVIEW"); a row's second line is a fact, not a chip. */
-function specState(status: string): string {
-  if (status === "shipped") return "Shipped";
-  if (status === "approved") return "Approved";
-  if (status === "review") return "In review";
-  return "Drafting";
-}
+/* `specState` used to live here, private to this file, turning prds.status into
+ * plain words for the spec rows below. One click away, the spec EDITOR printed
+ * `{prd.status}` raw, so the same document read "In review" on this list and
+ * "review" on the page the row opens. A word that has to read the same on two
+ * surfaces belongs to neither of them: it is `specStateWords` in
+ * components/plan/format.ts now, imported above, and both surfaces read it. */
 
 /** The two agents that work this surface. ux-architect moved to /design in the
  *  2026-07-17 repair pass and does not belong here. */
@@ -473,8 +515,9 @@ function PlanPage() {
   const refSpecs = React.useRef<HTMLDivElement>(null);
 
   // Scroll the section up and move focus to it, so keyboard and screen-reader
-  // users land there too. The three retired views resolve to nothing and leave
-  // the reader at the top of the plan rather than scrolling them nowhere.
+  // users land there too. The three retired views have no section to scroll to
+  // and are answered by the moved-view line above instead, which is why this
+  // still returns early on them rather than guessing at a nearest section.
   const go = React.useCallback((v: PlanView) => {
     const el = v === "roadmap" ? refRoadmap.current : v === "specs" ? refSpecs.current : null;
     if (!el) return;
@@ -656,6 +699,21 @@ function PlanPage() {
         title={headline}
         sub="Every bet names the outcome it promises and how that outcome gets measured."
       />
+
+      {/* WHAT THE LINK ASKED FOR, WHEN IT IS NOT HERE ANY MORE. Above the Gate
+        on purpose: a person who followed `/stakeholder` or a bookmarked
+        `?view=goals` is not looking at this station yet, they are looking for
+        the thing they came for, and answering that has to happen before the
+        station asks them anything. It is one Line rather than a Gate, because
+        nothing here is waiting on them: it is a redirection, not a decision.
+        See `MOVED_VIEWS`. */}
+      {view && MOVED_VIEWS[view] ? (
+        <Line label={MOVED_VIEWS[view].what} sub={MOVED_VIEWS[view].why}>
+          <Door onClick={() => void navigate({ to: MOVED_VIEWS[view].to })}>
+            {MOVED_VIEWS[view].door}
+          </Door>
+        </Line>
+      ) : null}
 
       {undeclared.length > 0 ? (
         <Gate
@@ -1043,8 +1101,8 @@ function PlanPage() {
                     // happened at the design gate.
                     sub={
                       bet
-                        ? `${specState(spec.status)} · serves ${bet}${withDesignStatus}`
-                        : `${specState(spec.status)}${withDesignStatus}`
+                        ? `${specStateWords(spec.status)} · serves ${bet}${withDesignStatus}`
+                        : `${specStateWords(spec.status)}${withDesignStatus}`
                     }
                     time={ago(spec.updated_at)}
                     onClick={() =>
