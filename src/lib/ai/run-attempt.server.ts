@@ -5,7 +5,25 @@
  * WHY THIS MODULE EXISTS AT ALL, RATHER THAN THREE COPIES OF THE SAME GUARD.
  * `agent_runs.attempt` and `agent_runs.resume_count` are added by
  * `20260810200000_a_rerun_was_indistinguishable_from_a_first_attempt.sql`, which
- * is NOT applied yet. PostgREST does not ignore an unknown column: naming one in
+ * was APPLIED to production on 2026-08-10 and verified there on 2026-08-11 —
+ * both columns exist, integer, nullable, no default. This line said "is NOT
+ * applied yet" for a day after it landed, which is worth more than a correction:
+ * a reader who believes it concludes the probe below permanently fails closed
+ * and that this whole module is dead weight, and deletes the instrumentation.
+ *
+ * THE PROBE STAYS ANYWAY. It is not scaffolding for an unapplied migration; it
+ * is what lets this code run against a checkout whose database has not caught
+ * up, which is every developer's laptop between a pull and a push.
+ *
+ * IF YOU QUERY PRODUCTION AND FIND `attempt` NULL ON EVERY ROW, THAT IS
+ * CORRECT AND NOT A DEFECT. The newest run predates the migration by 59
+ * minutes (`2026-08-10 19:00:35` against a `20260810200000` stamp), so every
+ * one of the 1,237 rows was written before the column existed. `retriesNotMeasured`
+ * reporting true is the honest answer to "have any retries been counted", not a
+ * broken writer. The writer is wired: `mission-advance.server.ts` passes a
+ * counted `attemptNo` into `enqueueHandoff`, which persists it here.
+ *
+ * PostgREST does not ignore an unknown column: naming one in
  * a `select` or an `insert` fails the whole statement (42703). Three code paths
  * write runs and one reads them, and every one of them treats its own failure as
  * fatal — `runAgentLoop` throws on an insert error by design, `enqueueHandoff`
