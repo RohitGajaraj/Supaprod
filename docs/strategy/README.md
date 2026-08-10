@@ -25,7 +25,8 @@ Any document in this folder that contradicts one of these is wrong, whatever its
 | If you need | Pick | Role |
 | --- | --- | --- |
 | **Where we are, what is next** | [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) §0 | The live cursor. **No document in this folder tells you what to build next.** That is the SSOT's job, and mistaking a strategy doc for a queue is what produced the mess described at the bottom of this file. |
-| **Direction, moat, the core-user lens, market** | [**v11 Guiding Star**](./v11-guiding-star.md) | The standing direction canon (2026-06-23). Supersedes v7 to v10. |
+| **Category, ICP, the one job, what we refuse** | [**positioning-locked-2026-08.md**](./positioning-locked-2026-08.md) | **Founder-approved 2026-08-10, grounded in the full 679-document corpus read.** Supersedes v11's positioning sections where they disagree. Carries the category test, the AI-stance ICP targeting, the forecast claim, and the kill list. **Read before any outward copy.** |
+| **Direction, moat, the core-user lens, market** | [**v11 Guiding Star**](./v11-guiding-star.md) | The standing direction canon (2026-06-23). Supersedes v7 to v10. **Three of its four moat asymmetries were falsified 2026-08-10 and are corrected in place.** |
 | **The learning loop, foresight, the memory OS, design capability, journey coverage** | [**v12 Self-Improving OS**](./v12-self-improving-os.md) | The depth layer under v11 (2026-07-02, audit-grounded). v11 still wins direction. |
 | **The moat, competitors, objection answers** | [**moat.md**](./moat.md) | Decision-layer thesis, the integrate/absorb/race/ignore map, the investor Q&A. |
 | **Build, buy, or integrate a capability** | [**build-buy-integrate.md**](./build-buy-integrate.md) | The BBI gate. Operative summary: [`../../AGENTS.md`](../../AGENTS.md) §1.5. |

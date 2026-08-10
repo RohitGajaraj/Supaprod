@@ -134,6 +134,24 @@ Signals ingested from every source, a shared brain, cross-functional read and wr
 - **"Release Room"** (Mithun Gunalan, CW 195, borrowed from Anthropic) — a gate where PMs publish a feature only when it is GTM-ready, *"so marketing does not get handed anything half-baked."* Maintained by hand in **Slack and Notion**. That is our Ship station, hand-built, spreading by word of mouth.
 - **"full-stack PM"** (Cliffe) — hiring engineers who want to become PMs so one person decides and builds.
 
+### What operators actually do with a long AI-generated document
+
+Asked by the design lane, answered by search rather than impression. The answer is not "skim."
+
+**Async distribution fails outright.** Kevin Yien (Stripe, on a practice Square took from Amazon): *"When you are all so busy and someone's like, 'I wrote a doc,' you send it into the Slack ecosystem and everyone goes, 'Please give feedback.' You have so much going on… **You'll be lucky to maybe get a response.**"* Ian McAllister states the rule: *"**Anything longer simply won't get read, so all the effort writing it is wasted.**"* **Any surface whose implicit model is "we generated it, they'll read it later" is designing for a behaviour that does not occur.**
+
+**What replaces it is the forced silent read.** Jessica Fain: *"we do a lot of **silent read of docs**… in the meeting, and then coming back for conversation"* — and the exec preference verbatim: *"I want no upfront explanation. **I want 10 minutes of quiet reading time**, and then we can come back together."* Amazon's six-pager is the same mechanic. **So the long form's real constraint is readable-straight-through-in-ten-minutes with no narrator** — a harder bar than "well organised", and it argues for length limits over better navigation.
+
+**The first line decides.** Keith Rabois, on litigation briefs: *"the hardest part… was **the first paragraph**. If I could write that first paragraph really well, the chance I would win the case… would go through the roof."* He spent a week of three on it.
+
+**The failure mode is annotation sprawl, not length.** Fain: *"a leader will **smatter your doc with 100 comments** and you're like, 'Oh my gosh, what is actually [important]'"* — which is exactly what we reproduce if agent findings, human edits and gate notes render flat and inline.
+
+**The structure operators converge on** (Cindy Cohen): objective · status · accomplishments since last update · next 1–2 priorities · risks/dependencies/blockers · decisions needed. Her diagnosis governs our run summary: *"**The biggest mistake I see is reporting activity** ('met with X, researched Y') **instead of progress toward an outcome.**"*
+
+**And the real exam is verbal.** Shipper's slop test: *"the slop one is **it took them less time to make it than it takes me to read it**… if we talk about it and it's clear you have no idea what's in it, big no-no."* The artifact must help its owner *defend* it, not merely receive it.
+
+**One counterweight:** Snowflake's product-review doc is deliberately long — exec summary, goals and non-goals, tenets, risks, FAQ — and exists *"not to 'sell' the leadership team… but to detail."* **Long is legitimate when the artifact exists to be interrogated in a room.** That is a different job from a run summary and should look different.
+
 ### Two disconfirming findings, recorded with equal weight
 
 1. **Scaffolding decay, observed directly.** Shane J on the BMAD agent-orchestration method: *"We used BMAD before. Was no longer relevant for us as of Opus 4.6 and GPT-5.5 (or at least not worth the structure)."* A named method, abandoned because models improved. This is the Cherny thesis happening in the field, dated.
