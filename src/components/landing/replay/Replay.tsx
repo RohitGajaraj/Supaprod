@@ -1125,12 +1125,10 @@ const TAB_CONFIG: Record<ReplayTab, { log: LogEntry[]; caption: string }> = {
   },
   others: {
     log: OTHERS_LOG,
-    litThrough: 0,
     caption: "This is where every other tool stops.",
   },
   failure: {
     log: FAIL_LOG,
-    litThrough: 6,
     /* "YOUR GATE STAYED IN THE MIDDLE THE WHOLE TIME" WAS FALSE, corrected
        2026-08-10. The same sentence was retired from the machine-readable copy
        in src/routes/index.tsx earlier today, and the fix never reached this
