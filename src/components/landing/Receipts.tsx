@@ -159,8 +159,29 @@ export function Receipts(_props: { stats?: LandingStats | null }) {
               className="mt-12 md:mt-auto md:pt-16 text-[17px] leading-relaxed text-zinc-300"
               style={{ maxWidth: "52ch" }}
             >
-              Verdicts take weeks. The record accrues in calendar time. It cannot be backfilled,
-              bought, or bolted on. A competitor starting next year starts at zero, next year.
+              {/* CORRECTED 2026-08-10. This sentence used to assert that the
+                  record could not be backfilled, bought or bolted on. (The exact
+                  former wording is deliberately not reproduced here: the test
+                  beside this file greps the source for it, so quoting it would
+                  trip the guard that stops it coming back.)
+                  That claim is falsified on
+                  the record: Vercel's COO ran an agent over Slack, email and Gong
+                  and reconstructed the true cause of a lost deal, overturning the
+                  account executive's own account -- two days to build, about
+                  $1,000 a year to run. Causes ARE recoverable from raw exhaust,
+                  so a claim that they are not is one a well-read buyer can break
+                  in a sentence.
+                  What genuinely cannot be reconstructed is narrower and stronger:
+                  a FORECAST. What a team believed would happen, recorded before
+                  the outcome was known, is not an artifact -- it leaves no trace
+                  in Slack or email or a CRM unless something captured it at the
+                  moment of the call. The narrower claim survives being queried,
+                  which the broad one did not. Evidence and approved language:
+                  docs/research/lennys-corpus-sweep-2026-08.md section 2. */}
+              Verdicts take weeks, so the record accrues in calendar time. What nobody can
+              reconstruct afterwards is what you believed <em>before</em> the outcome landed — a
+              forecast leaves no trace unless something wrote it down at the moment you decided. A
+              competitor starting next year starts at zero, next year.
             </p>
           </div>
         </div>

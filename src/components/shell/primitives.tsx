@@ -36,6 +36,7 @@ import { agentDisplayName, agentBlurb } from "@/lib/agent-vocabulary";
 import { glyphForSlug, stageHueForSlug } from "./agent-glyphs";
 import { IconMore } from "./icons";
 import { AgentPulse } from "@/components/shell/AgentPulse";
+import type { Selection } from "./use-selection";
 
 /* ------------------------------------------------------------------ *
  * Agent mark
@@ -1352,5 +1353,68 @@ export function Door({
     <button type="button" className="sp-block-more sp-door" title={title} onClick={onClick}>
       {children}
     </button>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Selection. The primitive this product has never had.
+ *
+ * The STATE lives in ./use-selection.ts, following this folder's own
+ * convention that a hook gets its own file (see use-spine-strip.ts). Only the
+ * bar is a component, and only the bar belongs here.
+ * ------------------------------------------------------------------ */
+
+/**
+ * The bar a selection puts in a list's header slot.
+ *
+ * It states the count as a fact and then offers verbs. Nothing else: a
+ * selection bar that also carries filters or a search box has stopped being a
+ * statement about what is selected.
+ *
+ * `Escape` clears, because a selection is a mode and every mode in this shell
+ * leaves by the same key.
+ */
+export function SelectionBar({
+  selection,
+  total,
+  noun = "item",
+  children,
+}: {
+  selection: Selection;
+  /** How many rows are selectable right now, after filtering. */
+  total: number;
+  /** Singular. "call", "run", "decision". Pluralised here. */
+  noun?: string;
+  /** The verbs. Buttons, and the destructive one last. */
+  children: React.ReactNode;
+}) {
+  const { count, allSelected, selectAll, clear } = selection;
+
+  React.useEffect(() => {
+    if (count === 0) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") clear();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [count, clear]);
+
+  if (count === 0) return null;
+
+  return (
+    <div className="sp-selbar" role="region" aria-label={`${count} selected`}>
+      <span className="sp-selbar-count">
+        <Num>{count}</Num> {count === 1 ? noun : `${noun}s`} selected
+      </span>
+      {!allSelected && total > count ? (
+        <button type="button" className="sp-block-more" onClick={selectAll}>
+          Select all {total}
+        </button>
+      ) : null}
+      <button type="button" className="sp-block-more" onClick={clear}>
+        Clear
+      </button>
+      <span className="sp-selbar-acts">{children}</span>
+    </div>
   );
 }

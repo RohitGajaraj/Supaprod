@@ -2,14 +2,25 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getMissionChain } from "@/lib/trust-chain.functions";
 import { MissionChain } from "@/components/trust/MissionChain";
-import { MonoLabel } from "@/components/supaprod/Primitives";
-import { LOOM_CARD, SkeletonBlock } from "./studio-ui";
+import { Empty, Failed, Loading } from "@/components/shell/primitives";
 
 /**
- * PC-22 — the eng receipts chain, surfaced on Build detail. Reuses SW-5's
- * pipeline chain assembler wholesale (signal -> ... -> outcome from real
- * rows); no new join logic. An eng lead reading a mission's own PR/CI history
- * gets the full provenance walk without leaving to the Trust Ledger surface.
+ * PC-22 — the provenance chain, surfaced on the run. Reuses SW-5's pipeline
+ * chain assembler wholesale (signal -> ... -> outcome from real rows); no new
+ * join logic. An eng lead reading a run's own PR/CI history gets the full walk
+ * without leaving to the Trust Ledger surface.
+ *
+ * THE TAB READS "EVIDENCE", and only the label moved. "Receipts" is measured at
+ * 3.0 uses per million words of operator conversation, which is dead, and the
+ * ones that survive read it as billing; "evidence" is what this chain is. The
+ * search key stays `receipts` so every ?tab=receipts link that ever worked still
+ * lands here — a word nobody says is worth changing, a URL is not.
+ *
+ * THE THREE STATES ARE NOW THE SHELL'S. This drew a shimmer skeleton for the
+ * wait, a legacy card for the failure and a dashed box for the empty, all on the
+ * pre-token palette, inside a run surface built entirely out of primitives. A
+ * failed read still refuses to wear the empty state's clothes — that distinction
+ * was right and is kept — it just wears the system's clothes for it now.
  */
 export function ReceiptsPanel({ missionId }: { missionId: string }) {
   const fChain = useServerFn(getMissionChain);
@@ -18,43 +29,18 @@ export function ReceiptsPanel({ missionId }: { missionId: string }) {
     queryFn: () => fChain({ data: { missionId } }),
   });
 
-  if (chainQ.isPending) return <SkeletonBlock height={280} />;
+  if (chainQ.isPending) return <Loading>Walking the chain.</Loading>;
 
   if (chainQ.isError) {
-    // An error never wears the empty state's clothes: solid card, madder
-    // cause line, one retry action (not the dashed nothing-here box).
     return (
-      <div style={{ ...LOOM_CARD, padding: 24 }}>
-        <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load the chain</MonoLabel>
-        <p style={{ marginTop: 6, color: "var(--text-muted)" }}>
-          {(chainQ.error as Error)?.message}
-        </p>
-        <button
-          type="button"
-          onClick={() => chainQ.refetch()}
-          className="btn btn-ghost btn-sm loom-press"
-          style={{ marginTop: 12 }}
-        >
-          Retry · reloads the chain
-        </button>
-      </div>
+      <Failed onRetry={() => void chainQ.refetch()}>
+        {(chainQ.error as Error)?.message ?? "The chain did not load."}
+      </Failed>
     );
   }
 
   if (!chainQ.data) {
-    return (
-      <div
-        style={{
-          border: "1px dashed var(--hairline)",
-          borderRadius: 12,
-          padding: "48px 0",
-          textAlign: "center",
-          color: "var(--text-subtle)",
-        }}
-      >
-        No chain evidence for this mission yet.
-      </div>
-    );
+    return <Empty>Nothing has been recorded against this run yet.</Empty>;
   }
 
   return <MissionChain chain={chainQ.data} />;

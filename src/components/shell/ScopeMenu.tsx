@@ -10,20 +10,28 @@
  * than a plain label: it teaches a person that the control is broken rather
  * than that the feature is elsewhere.
  *
- * WHERE IT ALL WENT. Every one of these actions was BUILT and is currently
- * unreachable. `src/components/mission/AccountMenu.tsx` (417 lines) implements
+ * WHERE IT ALL WENT. Every one of these actions had been BUILT and was
+ * unreachable. `src/components/mission/AccountMenu.tsx` (417 lines) implemented
  * switch workspace, new workspace, rename, delete, leave and sign out, against
- * the same server functions used here. It renders only inside `MissionShell` /
- * `RoomChrome`, the legacy Mission Control chrome that `AppFrame` replaced. So
- * the rebuild stranded it. Its own header comment records that it was written
+ * the same server functions used here. It rendered only inside `MissionShell` /
+ * `RoomChrome`, the legacy Mission Control chrome that `AppFrame` replaced, so
+ * the rebuild stranded it. Its own header comment recorded that it was written
  * to fix an earlier version of exactly this bug ("could not switch workspace,
- * and had no visible door to..."), which is worth reading twice: this is the
- * second time the same capability has been orphaned by a shell change.
+ * and had no visible door to..."), which is worth reading twice: that was the
+ * second time the same capability had been orphaned by a shell change.
  *
- * SIGN OUT IS THE SERIOUS ONE. `auth.signOut` is called in exactly one file in
- * the entire repo, and it is that stranded component. In the shipped shell
- * there is no way to log out. On a shared machine that is not a missing
- * feature, it is a way to leave someone else's session open.
+ * THAT FILE NO LONGER EXISTS. The whole Mission Control tree was deleted on
+ * 2026-08-10 as unreachable, so the path above is history and not somewhere to
+ * go looking -- read it in git if you need the prior art. This file is why the
+ * deletion cost nothing: the capability was re-implemented here first, and the
+ * dead copy was the thing removed, in that order. Reversing that order is how
+ * you lose a feature to a cleanup.
+ *
+ * SIGN OUT WAS THE SERIOUS ONE. `auth.signOut` used to be called in exactly one
+ * file in the entire repo, and it was that stranded component -- so the shipped
+ * shell had no way to log out. On a shared machine that is not a missing
+ * feature, it is a way to leave someone else's session open. It is called below
+ * now, which is what closed that hole.
  *
  * THE SPLIT, and why it is two menus rather than one. Sign out belongs to the
  * ACCOUNT, not to the workspace: it is not a thing you do to Helio Labs. So the

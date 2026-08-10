@@ -13,13 +13,17 @@
 //   Cmd/Ctrl+K and supaprod:open-cmdk ->  ComposerOverlay, unchanged. It is the
 //     palette: Jump, Act, Catalog, journeys.
 //
-// The Mission Control room is excluded: the room's shell owns the composer and
+// THE ROOM IS GONE, as of 2026-08-10, and this file outlived it.
+//
+// The exclusion below used to matter: the room's shell owned the composer and
 // the Thread there, and a second stream on the same conversation would go stale
-// mid-answer. Journey chips activate by navigating INTO the room with the
-// journey and its first stage in the URL. NOTE, reported not worked around:
-// that navigation is a live door into the one unported legacy surface. It is
-// gone from Ask, where it was actively routing people into the old design, and
-// it survives in the palette because retiring the room is not this lane's call.
+// mid-answer. `ROOM_PRODUCT_ROUTE_IDS` has been an empty array for some time
+// (`src/lib/room-url.ts`, both ids commented out), so `inRoom` was already
+// permanently false and the whole tree it guarded was unreachable. That tree
+// was deleted rather than restored, because it also rendered fabricated
+// analytics as product chrome. The check is kept because it is honest at zero
+// cost -- an empty list matches nothing -- and it is the seam to re-arm if a
+// product-scoped surface ever wants to suppress the global dock again.
 
 import * as React from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
@@ -57,11 +61,21 @@ export function GlobalComposer({ pane }: { pane?: React.ComponentType } = {}) {
   //
   // `GlobalComposerHost` below is therefore no longer rendered. It is left in
   // the file rather than deleted, per the standing rule that retired UI stays
-  // in the tree unmounted (Addendum 1.1 rule 8): its journey chips are the only
-  // remaining door into the legacy Mission Control room, and retiring that room
-  // is a separate call from retiring this overlay. Nothing dispatches
+  // in the tree unmounted (Addendum 1.1 rule 8). Nothing dispatches
   // `supaprod:open-cmdk` on a rebuilt surface any more, and Cmd+K belongs to
   // AskProvider, so the overlay is unreachable rather than merely discouraged.
+  //
+  // ITS STATED REASON FOR SURVIVING HAS EXPIRED, and the next reader should
+  // know that rather than inherit a stale justification. The reason recorded
+  // here was that its journey chips were "the only remaining door into the
+  // legacy Mission Control room, and retiring that room is a separate call".
+  // That room was retired on 2026-08-10, so the chips now navigate at a
+  // redirect stub and the door leads nowhere. What is left is rule 8 alone.
+  // Deleting `GlobalComposerHost` would drop twelve more files out of
+  // `mission/` -- Spine, ComposerOverlay, Composer, SuggestionPopover,
+  // JourneyChips and all six primitives, which exist only to serve it -- and
+  // that is a live option someone should take deliberately, not a cleanup to
+  // slip into an unrelated commit.
   // THE DOCK, not the bare pane. AskDock renders this same AskPane unchanged
   // and adds the collapsed row that makes the door visible from everywhere.
   // See AskDock.tsx: the pane keeps Cmd+K, Escape and both forks exactly as

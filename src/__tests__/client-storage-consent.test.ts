@@ -211,8 +211,13 @@ const DECLARED_LOCAL = [
   "supaprod.workspace.active", // necessary
   "supaprod:avatar", // functional
   "supaprod:claim-admin-dismissed", // functional
-  "supaprod:mc:first-approval-seen", // functional
-  "supaprod:mc:tour-seen", // functional
+  // `supaprod:mc:first-approval-seen` and `supaprod:mc:tour-seen` were here
+  // until the Mission shell was deleted (2026-08-10). MissionShell.tsx was the
+  // only writer of either, so the product stopped taking that storage and the
+  // entries had to come out. This is the second direction in this file's header
+  // firing exactly as designed: the policy cannot go on naming a key the code
+  // stopped writing, because that is the 2026-08-07 defect in miniature. Their
+  // rows in cookie-and-storage-policy.md were removed in the same commit.
   "supaprod:rail-narrow", // functional
   "supaprod:rail-visited", // functional
 ];

@@ -246,8 +246,11 @@ export function timeEstimateFor(id: ProviderId): string {
 }
 
 // PC-02 step arithmetic (2026-07-11): the name pre-gate folded INTO the
-// product screen, so the counted path is exactly STEP 1 OF 3 (product) ->
-// STEP 2 OF 3 (data) -> STEP 3 OF 3 (critic), then results.
+// THE COUNTED PATH IS GONE (founder ruling 2026-08-10: sixty seconds, one
+// input). There is no "step 1 of 3" because there is one step: the Critic runs
+// on the one thing the user brought, and everything else is offered after they
+// have a result. A step counter on a one-step flow is an admission that it is
+// not one step.
 type Phase = "arrival" | "product" | "data" | "critic" | "results";
 
 // The honest Critic-run stages the AiPulse cycles through while the run is
@@ -436,7 +439,8 @@ function ConfidenceBar({ value }: { value: number }) {
   );
 }
 
-// STEP 1 OF 3 - the product screen, with the old name pre-gate folded in.
+// The product screen. Optional and post-outcome: a product name improves a
+// teardown, it does not gate one.
 // When the profile has no display name yet, the same screen asks for it
 // first; one submit saves both, so the counted path stays three steps.
 function ProductStep({
@@ -506,7 +510,7 @@ function ProductStep({
   return (
     <Screen>
       <form onSubmit={save} style={{ width: 420, maxWidth: "calc(100vw - 48px)" }}>
-        <MonoLabel style={{ marginBottom: 10 }}>STEP 1 OF 3</MonoLabel>
+        <MonoLabel style={{ marginBottom: 10 }}>OPTIONAL</MonoLabel>
         <h1 className="text-heading-24" style={{ color: "var(--ds-gray-1000)", margin: 0 }}>
           What are you building?
         </h1>
@@ -634,17 +638,39 @@ export function ObsidianOnboarding() {
 
   const fGetProfile = useServerFn(getProfile);
   const profileQ = useQuery({ queryKey: ["profile"], queryFn: () => fGetProfile() });
-  // Folded into STEP 1 OF 3 (the product screen) - no standalone pre-gate.
+  // Folded into the product screen - no standalone pre-gate.
   const needsDetails =
     !!profileQ.data && !(profileQ.data.profile as { display_name?: string } | null)?.display_name;
 
-  // PC-02: phase state persists for tab refresh resilience
+  /* FIRST RUN STARTS AT THE ONE INPUT. Founder ruling 2026-08-10: sixty
+   * seconds, one input.
+   *
+   * This used to open on `arrival` and walk arrival -> product -> data ->
+   * critic -> results, so a person met three screens before anything happened
+   * to them. Latency was never the constraint -- measured across 20,000+
+   * ai_events, the heaviest substantive calls average 3.5 to 3.8 seconds -- the
+   * PHASE COUNT was. Three screens of setup in front of a four-second answer.
+   *
+   * So the flow now opens where the value is. The user types the one thing they
+   * care about, the Critic runs, and they leave with a real teardown of their
+   * own idea rather than a tour. Everything that was asked before is asked
+   * after, if at all: a product name improves the teardown and does not gate
+   * it, and connecting data was already skippable and should never have stood
+   * between a person and their first outcome.
+   *
+   * `arrival`, `product` and `data` are NOT deleted. They are reachable from
+   * the result, which is where an ask has earned itself, and a saved phase
+   * still restores exactly as before so a refresh mid-flow loses nothing. */
   const [phase, setPhase] = useState<Phase>(() => {
-    if (typeof window === "undefined") return "arrival";
+    if (typeof window === "undefined") return "critic";
     const saved = window.sessionStorage.getItem("supaprod.onboarding.phase");
-    return saved === "product" || saved === "data" || saved === "critic" || saved === "results"
+    return saved === "arrival" ||
+      saved === "product" ||
+      saved === "data" ||
+      saved === "critic" ||
+      saved === "results"
       ? (saved as Phase)
-      : "arrival";
+      : "critic";
   });
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1285,7 +1311,7 @@ export function ObsidianOnboarding() {
     const seedLive = !!seedEnabledQ.data?.enabled;
     return (
       <Screen>
-        <Frame eyebrow="STEP 2 OF 3" heading="What should Supaprod read?" showTimer={elapsed}>
+        <Frame eyebrow="OPTIONAL" heading="What should Supaprod read?">
           {!showPaste ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {/* While the availability reads are in flight, say so - without
@@ -1548,10 +1574,9 @@ export function ObsidianOnboarding() {
     return (
       <Screen>
         <Frame
-          eyebrow="STEP 3 OF 3"
+          eyebrow="START HERE"
           // Present-progressive only once the run actually starts.
           heading={running ? "Challenging your thinking…" : "Challenge your thinking."}
-          showTimer={elapsed}
         >
           <p
             className="text-copy-13"
@@ -1703,7 +1728,6 @@ export function ObsidianOnboarding() {
                 ? "The Critic came back with nothing to show."
                 : "The Critic couldn't finish this run."
           }
-          showTimer={elapsed}
         >
           {shown ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>

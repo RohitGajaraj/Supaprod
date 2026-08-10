@@ -461,14 +461,14 @@ export function ReceiptsPanel() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search what, why, or who"
-          aria-label="Search receipts"
+          aria-label="Search the record"
           style={{ flex: 1, minWidth: 200, width: "auto" }}
         />
       </div>
 
       {query.isPending ? null : query.isError ? (
         <Failed onRetry={() => void query.refetch()}>
-          The receipts did not load. {(query.error as Error)?.message}
+          The record did not load. {(query.error as Error)?.message}
         </Failed>
       ) : receipts.length === 0 ? (
         narrowed ? (
@@ -489,8 +489,8 @@ export function ReceiptsPanel() {
               </Button>
             }
           >
-            Nothing on the record yet. A decision, or an autonomous action you let through, writes a
-            receipt the moment it happens.
+            Nothing on the record yet. A decision, or an autonomous action you let through, leaves
+            evidence the moment it happens.
           </Empty>
         )
       ) : (

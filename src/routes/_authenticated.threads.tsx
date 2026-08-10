@@ -137,6 +137,7 @@ import {
 import { renameConversation } from "@/lib/conversations.functions";
 import { proposeMemoryCandidate } from "@/lib/memory-candidates.functions";
 import { openAskConversation } from "@/lib/ask-open";
+import { Answer } from "@/components/ask/Answer";
 import {
   Actions,
   AgentMark,
@@ -221,17 +222,32 @@ function initialsFrom(email: string | null, name: string | null): string {
  *  mark in mid-air and print the message in label grey. Every value here is a
  *  token; nothing carries a literal colour. `overflowWrap` is load bearing:
  *  a pasted URL or a code fragment must break inside this column rather than
- *  push the page sideways, which was named twice as a pain point. */
+ *  push the page sideways, which was named twice as a pain point. It is an
+ *  inherited property, so it still governs inside the parsed blocks `Answer`
+ *  renders.
+ *
+ *  `plain` HOLDS THE NEWLINES OF A RAW STRING, and it is off for anything that
+ *  arrives already laid out in blocks. A person's own message is characters
+ *  they typed, so its line breaks are theirs and `pre-wrap` is the only thing
+ *  keeping them; parsed Markdown carries its breaks as real elements, and
+ *  leaving `pre-wrap` on top of those doubles every gap (the same reason
+ *  `.sp-prose[data-markdown="true"]` turns it off in primitives.css).
+ *
+ *  The body slot is a DIV, not a SPAN, because `Answer` renders one and a
+ *  `<div>` inside a `<span>` is invalid markup that React refuses to hydrate.
+ *  primitives.tsx carries the same fix on `Empty`, found the same way. */
 function Said({
   mark,
   who,
   at,
+  plain = false,
   children,
 }: {
   mark: ReactNode;
   who: string;
   at: string | null;
-  children: string;
+  plain?: boolean;
+  children: ReactNode;
 }) {
   return (
     <div
@@ -244,15 +260,14 @@ function Said({
       }}
     >
       <span style={{ flex: "none", width: 34, display: "flex", paddingTop: 1 }}>{mark}</span>
-      <span style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <span style={{ display: "block", fontSize: "var(--sp-text-body)" }}>
           <Who>{who}</Who>
         </span>
-        <span
+        <div
           style={{
-            display: "block",
             marginTop: "var(--sp-space-1)",
-            whiteSpace: "pre-wrap",
+            whiteSpace: plain ? "pre-wrap" : undefined,
             overflowWrap: "anywhere",
             fontSize: "var(--sp-text-prose)",
             lineHeight: "var(--sp-leading-body)",
@@ -260,8 +275,8 @@ function Said({
           }}
         >
           {children}
-        </span>
-      </span>
+        </div>
+      </div>
       {at ? (
         <span style={{ flex: "none", fontSize: "var(--sp-text-data)", color: "var(--sp-mute)" }}>
           <Num>{at}</Num>
@@ -462,7 +477,12 @@ function ThreadsSurface() {
       </>
     ) : undefined
   ) : (
-    "Ask is top right, or Cmd J. Every conversation it has lands here, saved."
+    // CMD K, BECAUSE CMD J OPENS NOTHING. Ask owned Cmd+J and the palette owned
+    // Cmd+K until 2026-07-30, when the two collapsed into one key on Ask;
+    // ask-context.tsx removed Cmd+J rather than keeping it as an alias, and
+    // says why. This line kept teaching the dead key, which is the worst kind
+    // of wrong copy: it reads as a broken product to anyone who tries it.
+    "Ask is top right, or Cmd K. Every conversation it has lands here, saved."
   );
 
   return (
@@ -656,6 +676,7 @@ function ThreadsSurface() {
         <Block title="What was said">
           {messages.map((m, i) => {
             const isYou = m.role === "user";
+            const text = typeof m.content === "string" ? m.content : "";
             return (
               <Said
                 key={m.id ?? i}
@@ -668,8 +689,29 @@ function ThreadsSurface() {
                 }
                 who={isYou ? "You" : agentDisplayName(ANSWERED_BY)}
                 at={clock(m.createdAt)}
+                plain={isYou}
               >
-                {typeof m.content === "string" ? m.content : ""}
+                {/* THE CREW'S WORDS GO THROUGH THE ONE RENDERER, and this
+                    surface was the second place they did not.
+                    `Answer` (src/components/ask/Answer.tsx) exists because the
+                    founder read `### Workspace Status` and `**finalizing**`
+                    printed literally on 2026-07-30, and its header says the fix
+                    is at the boundary rather than at the call site: anything
+                    that shows what the crew said comes through it. This file
+                    read the SAME `messages` rows into a `pre-wrap` span, so
+                    every hash and asterisk in the archive printed raw. Ask and
+                    Threads are one object at two moments, and until now they
+                    disagreed about what a message looks like.
+
+                    YOUR OWN MESSAGES STAY PLAIN, on purpose. `Answer` is the
+                    renderer of ASSISTANT prose: the model is instructed to
+                    write Markdown (api/chat.ts), so its syntax is meant to be
+                    read as syntax. Nobody instructed the person typing. Their
+                    `*` is an asterisk they wanted, a line starting `#` is not a
+                    heading, and their newlines are the only structure they
+                    have. Parsing their text would rewrite what they said, which
+                    is a worse defect than the one being fixed. */}
+                {isYou ? text : <Answer>{text}</Answer>}
               </Said>
             );
           })}

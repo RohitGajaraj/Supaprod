@@ -25,11 +25,43 @@
 // UNCHANGED: auditDecision / proposeSupersession, and the
 // ["lineage","decision",id] invalidation that keeps the detail's Evidence
 // section true the moment an edge is recorded.
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// THE ZERO PASS, 2026-08-10. THE SECTION DESCRIBED AN AGENT THAT DOES NOT EXIST.
+//
+//   KILLED "A standing auditor re-reads the workspace's decisions". Nothing is
+//     standing. `auditDecision` fires from the `more` control on this Block and
+//     from nowhere else in the codebase: no cron, no trigger, no loop step. A
+//     reader who takes that sentence at face value believes a background process
+//     is watching their record, which is the single most expensive false belief
+//     this product can create, because they will stop checking. The idle state
+//     now says who runs it, when, and that the answer is theirs to ask for.
+//   ADDED the `scanned === 0` branch. With no earlier calls on the record, the
+//     zero-count path printed "Nothing disagrees. Read 0 prior decisions, all
+//     consistent with this call." That is a clean bill of health manufactured
+//     out of nothing read, on the account of every user who has settled exactly
+//     one call -- which is every new user, at the first moment they would ever
+//     open this. Zero reads is not a finding and it does not get a finding's
+//     sentence.
+//   ADDED provenance to each disagreement. A contradiction is INFERRED: a model
+//     read two calls and formed a view about them. The decisions on either side
+//     of it are the workspace's own. Marking which is which is the difference
+//     between a warning a person can weigh and one they must simply trust.
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { auditDecision, proposeSupersession } from "@/lib/contradiction-auditor.functions";
-import { Block, Button, Failed, Loading, Num, Receipt, Row } from "@/components/shell/primitives";
+import {
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Loading,
+  Num,
+  Receipt,
+  Row,
+} from "@/components/shell/primitives";
+import { Provenance } from "./EvidenceQuality";
 
 export function ContradictionAuditSection({
   decisionId,
@@ -111,11 +143,33 @@ export function ContradictionAuditSection({
           {(audit.error as Error)?.message ?? ""}
         </Failed>
       ) : !report ? (
-        <p className="sp-loading">
-          A standing auditor re-reads the workspace&apos;s decisions and flags the ones that
-          disagree with this call, so a stale decision never quietly outlives the one that replaced
-          it.
-        </p>
+        /* NOTHING IS STANDING, AND THE OLD COPY SAID IT WAS.
+           "A standing auditor re-reads the workspace's decisions" describes a
+           background process this product does not run. The only caller of
+           `auditDecision` in the codebase is the control on this Block's own
+           head, twenty lines up. A reader who believes an auditor is watching
+           stops watching themselves, which makes it the most expensive sentence
+           on the surface.
+           So: who runs it, when it runs, and what it costs, in the reader's
+           terms. It names the control by the words printed on it rather than
+           describing a feature, because that is how somebody finds it. */
+        <Empty action={<Button onClick={() => audit.mutate()}>Read the prior decisions</Button>}>
+          Nothing has been checked yet. Press <b>Read the prior decisions</b> and an agent reads
+          every earlier call in this workspace against this one, then names any that disagree and
+          why. It runs when you ask it to, and not before.
+        </Empty>
+      ) : report.scanned === 0 ? (
+        /* ZERO READS IS NOT A CLEAN BILL OF HEALTH.
+           This branch used to fall through to the one below and print "Nothing
+           disagrees. Read 0 prior decisions, all consistent with this call." --
+           a finding manufactured out of nothing read, in the confident voice.
+           On every account with one settled call, which is every account at the
+           first moment anybody would open this, that was the ONLY thing it
+           could say. An audit over an empty set has no verdict in it. */
+        <Empty>
+          There is no earlier call to read this one against. This is the first on the record, so
+          nothing can disagree with it yet. Settle another and this becomes worth running.
+        </Empty>
       ) : report.count === 0 ? (
         <p className="sp-loading">
           Nothing disagrees. Read <Num>{report.scanned}</Num> prior{" "}
@@ -136,7 +190,20 @@ export function ContradictionAuditSection({
                 key={item.decisionId}
                 lead={item.title}
                 // The different fact, never a restatement: WHY it disagrees.
-                sub={item.rationale}
+                //
+                // AND WHOSE VIEW THAT IS. The call in the lead is the
+                // workspace's own; the reason underneath it is a model's
+                // reading of two calls side by side, and nothing has confirmed
+                // it. Those are not the same grade of evidence and the reader
+                // is about to act on the weaker one -- "Supersede it" rewrites
+                // what the graph reasons over. The mark says which is which
+                // without adding a sentence to a row that already has two.
+                sub={
+                  <>
+                    <Provenance source="inferred" />
+                    {item.rationale}
+                  </>
+                }
                 action={
                   done ? (
                     <span className="sp-value" data-tone="pass">

@@ -3,7 +3,14 @@
  * graph, dispatched through the existing loop rather than previewed:
  *   decision            reopen it (status back to pending) and publish its receipt
  *   opportunity / spec  run the Critic against it
- *   any kind            start a mission from it
+ *   MISSION_KINDS       start a mission from it, behind a confirm
+ *
+ * The mission action used to be offered on ANY kind and fired on one click. Two
+ * things were wrong with that. It was drawn on records where following up is
+ * not a thing you can do (an outcome, a deployment, a design rule), and it was
+ * the one control here that spends money with no guard, while its own receipt
+ * said it "spends credits until it finishes or you stop it". Both fixed below:
+ * MISSION_KINDS gates which nodes draw it, useConfirm states the cost first.
  *
  * Kept as a self-contained sibling of GraphNodeStory (own server functions, own
  * mutations) so the story panel stays a pure read view.
@@ -39,9 +46,36 @@ import { updateDecision } from "@/lib/decisions.functions";
 import { getDecisionShareState, setDecisionShared } from "@/lib/decisions-share.functions";
 import { runCriticReview } from "@/lib/discovery.functions";
 import { startOrchestratedMission } from "@/lib/orchestrator.functions";
-import type { GraphNode } from "@/lib/knowledge-graph-view";
+import type { GraphNode, GraphNodeKind } from "@/lib/knowledge-graph-view";
 import { artifactWord } from "@/lib/artifact-words";
+import { useConfirm } from "@/hooks/use-confirm";
 import { Actions, Button, Receipt } from "@/components/shell/primitives";
+
+/**
+ * The kinds "Start a mission from this" is offered on.
+ *
+ * The action hands the node to the Orchestrator as real work and spends credits
+ * until the crew finishes, so it only belongs on records that name work still
+ * to be done. Everything left out is either a record of something that already
+ * happened (learning, deployment, changeset, meeting, mission) or a standing
+ * constraint rather than a job (design_memory), or a fragment generated off a
+ * spec whose parent spec is the thing you would actually hand over
+ * (prd_scaffold, prd_flow, prototype). "Follow up on: <that>" produces a goal
+ * nobody can act on and a bill for finding that out.
+ *
+ * ABSENCE, not a disabled button. A greyed control with no explanation tells
+ * you a verb exists here and refuses to say why you cannot use it; the kinds
+ * below simply do not draw it.
+ */
+const MISSION_KINDS: readonly GraphNodeKind[] = [
+  "signal", // an input nobody has acted on yet
+  "theme", // a cluster of those, same thing at one remove
+  "opportunity", // a bet that has not been taken
+  "prd", // the spec, i.e. the thing to build
+  "roadmap_item", // committed work with no run behind it
+  "task", // the smallest unit of work there is
+  "decision", // a settled call still has to be carried out
+];
 
 function copyShareLink(slug: string) {
   const url = `${typeof window !== "undefined" ? window.location.origin : ""}/d/${slug}`;
@@ -68,6 +102,7 @@ type Settled = {
 export function GraphNodeActions({ node }: { node: GraphNode }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const confirm = useConfirm();
 
   const [settled, setSettled] = useState<Settled[]>([]);
   const commit = (s: Omit<Settled, "id">) =>
@@ -182,6 +217,26 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
 
   const isDecision = node.kind === "decision";
   const isReviewable = node.kind === "opportunity" || node.kind === "prd";
+  const canStartMission = MISSION_KINDS.includes(node.kind);
+
+  // The subject of the mission, in the same words its goal and its receipt use.
+  const subject = node.title || `this ${artifactWord(node.kind)}`;
+
+  // Starting a mission is the only action here that spends money, and the
+  // receipt below already admits it runs until it finishes or you stop it. That
+  // is a fact you are owed BEFORE the click, not after it. The Critic and the
+  // publish stay unguarded on purpose: a confirm on every button is a confirm
+  // nobody reads.
+  async function confirmAndStartMission() {
+    const ok = await confirm({
+      title: node.title
+        ? `Start a mission on "${node.title}"?`
+        : `Start a mission on this ${artifactWord(node.kind)}?`,
+      body: `The crew picks up "${subject}" now and works on it without you. It spends credits the whole time it runs, and it does not stop until it finishes or you stop it.`,
+      confirmLabel: "Start the mission",
+    });
+    if (ok) startMission.mutate();
+  }
 
   return (
     <>
@@ -196,9 +251,11 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
           ) : undefined
         }
       >
-        <Button disabled={startMission.isPending} onClick={() => startMission.mutate()}>
-          {startMission.isPending ? "Starting" : "Start a mission from this"}
-        </Button>
+        {canStartMission ? (
+          <Button disabled={startMission.isPending} onClick={() => void confirmAndStartMission()}>
+            {startMission.isPending ? "Starting" : "Start a mission from this"}
+          </Button>
+        ) : null}
         {isReviewable ? (
           <Button disabled={critic.isPending} onClick={() => critic.mutate()}>
             {critic.isPending ? "Reviewing" : "Send it to the Critic"}
@@ -210,7 +267,9 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
             onClick={() => share.mutate()}
             title="Make this decision public and copy a shareable link"
           >
-            {share.isPending || shareLoading ? "Publishing" : "Publish the receipt"}
+            {/* Same label as DecisionDetail's share control, and for the same
+                reason: this makes the decision public and copies a link. */}
+            {share.isPending || shareLoading ? "Publishing" : "Share this decision"}
           </Button>
         ) : null}
       </Actions>

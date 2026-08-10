@@ -16,15 +16,26 @@
  *   engine's confidence tier) was already being fetched and none had ever been
  *   rendered anywhere.
  *
- * WHY IT IS ITS OWN COMPONENT AND NOT PART OF GraphCanvasView. Reduced motion
- * makes the OUTLINE the default view (GraphPanel does this deliberately, and the
- * outline exists for exactly that reason), so anything living inside the canvas
- * container is invisible to the reader most likely to need a text answer. Sitting
- * beside both views, it is the same information whichever door you came through.
+ * WHY IT IS ITS OWN COMPONENT AND NOT PART OF GraphCanvasView. The OUTLINE is
+ * the default view now wherever it can answer at all, and it was already the
+ * default under reduced motion (GraphPanel states both rulings), so anything
+ * living inside the canvas container is invisible to the reader most likely to
+ * need a text answer. Sitting beside both views, it is the same information
+ * whichever door you came through.
  *
- * IT COSTS NO SECOND REQUEST. It reads the same `["knowledge-graph", kind, id]`
- * key GraphCanvasView uses, so TanStack Query serves it from the one in-flight
- * fetch rather than issuing another.
+ * IT COSTS NO SECOND REQUEST. It reads the same
+ * `["knowledge-graph", kind, id, workspace]` key GraphCanvasView and the Brain
+ * route use, so TanStack Query serves it from the one in-flight fetch rather
+ * than issuing another.
+ *
+ * THE SILENCE PASS, 2026-08-10. THIS COMPONENT RENDERED LITERALLY NOTHING.
+ * `if (!graph) return null` folded "still reading", "the read failed" and "there
+ * is nothing here" into one indistinguishable void, and both regions then stood
+ * down again on `scored > 0` and `changes.length > 0`. On a real account both of
+ * those are zero, so the whole file was an empty fragment and a broken read
+ * looked exactly like a young workspace. Now: Loading, Failed and one empty
+ * state, and the empty one is written as the primary case rather than as the
+ * exception, because it is the one almost every reader gets.
  *
  * NO NEW SURFACE, NO PANE. Every row either recentres the map through the
  * existing `/brain?tab=graph&focusKind&focusId` route contract, or opens the
@@ -36,6 +47,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { getKnowledgeGraph } from "@/lib/knowledge-graph-view.functions";
+import { useWorkspace } from "@/hooks/use-workspace";
 import {
   buildBeliefChanges,
   findOutcomeTrails,
@@ -45,7 +57,17 @@ import {
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { outcomeLabel } from "./graph-visual";
 import { nodeDoor } from "./graph-doors";
-import { Block, Choices, Door, Empty, Num, Row } from "@/components/shell/primitives";
+import {
+  Block,
+  Button,
+  Choices,
+  Door,
+  Empty,
+  Failed,
+  Loading,
+  Num,
+  Row,
+} from "@/components/shell/primitives";
 
 const VERDICT_CHOICES: { id: OutcomeVerdict; label: string; title: string }[] = [
   { id: "missed", label: "Did not pay off", title: "Outcomes the record scored as a miss" },
@@ -70,16 +92,41 @@ function splitKey(key: string): [string, string] {
 export function GraphRecordRegions({
   focusKind,
   focusId,
+  readStatedAbove = false,
 }: {
   focusKind?: string;
   focusId?: string;
+  /**
+   * True when the view directly above reads THIS query key and already renders
+   * its own Loading and Failed for it.
+   *
+   * The canvas does (GraphCanvasView returns early on both, and returns nothing
+   * else). The OUTLINE does not: GraphTreeView reads ["lineage-tree", kind, id],
+   * a different request, and says nothing at all about this one. The outline is
+   * now the default view, so the reader most likely to need a text answer was
+   * the one reader for whom a failed graph read was completely silent. This flag keeps a failure said exactly once on either path, rather
+   * than twice on one and zero times on the other.
+   */
+  readStatedAbove?: boolean;
 }) {
   const navigate = useNavigate();
   const fGraph = useServerFn(getKnowledgeGraph);
+  // The SAME key GraphCanvasView and the Brain route use. Changing it would
+  // double every request -- which is exactly what happened when the scoping
+  // pass added the workspace to the route's key and not to the two views'. The
+  // workspace travels to the server with it so the read can be narrowed there
+  // without touching this side.
+  const { activeWorkspaceId } = useWorkspace();
   const graphQ = useQuery({
-    // The SAME key GraphCanvasView uses. Changing it would double every request.
-    queryKey: ["knowledge-graph", focusKind ?? null, focusId ?? null],
-    queryFn: () => fGraph({ data: { focusKind: focusKind as GraphNodeKind | undefined, focusId } }),
+    queryKey: ["knowledge-graph", focusKind ?? null, focusId ?? null, activeWorkspaceId],
+    queryFn: () =>
+      fGraph({
+        data: {
+          focusKind: focusKind as GraphNodeKind | undefined,
+          focusId,
+          workspaceId: activeWorkspaceId ?? undefined,
+        },
+      }),
   });
 
   /**
@@ -106,9 +153,40 @@ export function GraphRecordRegions({
     [graph],
   );
 
-  // Silent while the graph is in flight or failed: the canvas above already says
-  // both of those things, and saying them twice on one screen is noise.
+  /**
+   * THREE FACTS, THREE STATES, AND THIS FILE USED TO RENDER ONE SILENCE.
+   *
+   * `if (!graph) return null` collapsed "still reading", "the read failed" and
+   * "there is nothing here" into the same nothing, and the two regions below
+   * then ALSO stood down whenever `scored` and `changes.length` were both zero.
+   * On a real account today both ARE zero, so the whole component returned an
+   * empty fragment and the reader could not tell a broken read from a young
+   * workspace. primitives.tsx states the law this violated: a read that FAILED
+   * must never wear an empty state's clothes.
+   *
+   * The premise the old comment rested on was only half true. The canvas above
+   * does say both things; the outline does not, and the outline is the default.
+   * See `readStatedAbove`.
+   */
+  if (graphQ.isLoading) {
+    return readStatedAbove ? null : <Loading>Reading what this view can answer.</Loading>;
+  }
+  if (graphQ.isError && !graph) {
+    return readStatedAbove ? null : (
+      <Failed onRetry={() => void graphQ.refetch()}>
+        This did not load, so it is not a claim that nothing here has an outcome or a revision.{" "}
+        {(graphQ.error as Error)?.message ?? ""}
+      </Failed>
+    );
+  }
   if (!graph) return null;
+
+  /**
+   * Nothing is in view at all. The canvas and the outline above each say that
+   * in their own words, and a third sentence saying it again is the stacked
+   * empty state this pass exists to stop, not a fix for it.
+   */
+  if (graph.nodes.length === 0) return null;
 
   const recentre = (key: string) => {
     const [kind, id] = splitKey(key);
@@ -125,6 +203,45 @@ export function GraphRecordRegions({
     // against its route file and that route's own search parser.
     navigate({ to: door.to, search: door.search, params: door.params } as never);
   };
+
+  /**
+   * THE MAJORITY VIEW, DESIGNED AS THE PRIMARY ONE.
+   *
+   * Both regions fill from the same act, so when both are empty they get ONE
+   * state rather than two "nothing yet" blocks stacked under a map. It names the
+   * control by the words printed on it ("Record it", on Learn) instead of
+   * describing a feature, and it works one case through, because a worked
+   * example is how an operator reads a thing they have never seen produce
+   * output. What it must never do is apologise or count zero, which is why
+   * there is no "0 outcomes" anywhere in it.
+   */
+  if (scored === 0 && changes.length === 0) {
+    return (
+      <Block title="What this view will answer, once an outcome comes back">
+        <Empty
+          action={
+            <Button variant="primary" onClick={() => navigate({ to: "/learn" })}>
+              Record an outcome
+            </Button>
+          }
+        >
+          Nothing drawn here carries a verdict yet, and no belief here has been revised. Both come
+          from one act: open Learn, pick a bet that shipped, say how it landed, and press the{" "}
+          <b>Record it</b> button.
+          {/* The example is the point, not decoration. An operator reading a
+              region that has never produced output needs to see one case run
+              through it; a description of the feature leaves them guessing what
+              they would get. It is written as a hypothetical in prose and never
+              as a row, so nothing here can be mistaken for a record. */}
+          <span style={{ display: "block", marginTop: "var(--sp-space-3)" }}>
+            Worked through: a bet called &ldquo;Self-serve trial&rdquo; ships, and you record that
+            it missed. This view then names every call that led to it, in order, and marks any
+            belief that outcome overturned, with the reason and the agent that wrote it.
+          </span>
+        </Empty>
+      </Block>
+    );
+  }
 
   return (
     <>

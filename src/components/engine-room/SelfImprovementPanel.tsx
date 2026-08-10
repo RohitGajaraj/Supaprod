@@ -220,8 +220,16 @@ function ProposalEnricher({
         <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--hairline)" }}>
           {applied ? (
             <p style={{ color: "var(--moss-bright)", margin: 0, lineHeight: 1.5 }}>
-              Applied. Your agents now follow this as a house rule, and the change is on the Trust
-              Ledger. It is reversible.
+              {/* The ledger clause is gone rather than reworded. applyFixCore
+                  (self-improve.functions.ts step 2) inserts the decision inside
+                  a try/catch whose own comment calls it a "best-effort ledger
+                  stamp", and a supabase insert returns its error instead of
+                  throwing, so an ordinary DB failure is swallowed with no
+                  signal here. The house rule IS guaranteed — a failed insert
+                  returns applied:false, so this branch only renders once the
+                  rule exists — and supersession makes it reversible. Those two
+                  are what the sentence now claims. */}
+              Applied. Your agents now follow this as a house rule, and it is reversible.
             </p>
           ) : (
             <>
@@ -271,7 +279,10 @@ const MODE_COPY: Record<SelfImproveMode, { label: string; outcome: string; con: 
     label: "Auto",
     outcome:
       "Supaprod enriches and applies fixes on its own, as flags fire. You only step in for the exceptions.",
-    con: "Highest AI spend, and changes land before you look (each one is screened, reversible, and on the Trust Ledger).",
+    // Same narrowing as the Applied line above: screening and reversibility are
+    // guaranteed by applyFixCore, the ledger stamp is best-effort, so only the
+    // first two are claimed.
+    con: "Highest AI spend, and changes land before you look (each one is screened and reversible).",
   },
   scheduled: {
     label: "Scheduled",

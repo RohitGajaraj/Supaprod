@@ -33,7 +33,17 @@ export function RewindButton({ prdId, hasSnapshot, onReverted }: RewindButtonPro
   const revert = useMutation({
     mutationFn: () => fRevert({ data: { prd_id: prdId } }),
     onSuccess: () => {
-      toast.success("Reverted to the previous version. The change is on the Ledger.");
+      // Says only what the server definitely did. revertPrdToPrevious always
+      // restores body_md and re-captures the just-current body as the next
+      // snapshot, so "you can rewind back" is unconditionally true. The track
+      // record row is NOT: artifact-rewind.functions.ts only inserts into
+      // agent_approvals when an artifact_lineage edge names a created_by_agent,
+      // and that edge is cleared by the first rewind — so a second rewind, and
+      // any PRD with no agent edge, files nothing. The old copy promised that
+      // row every time.
+      toast.success(
+        "Reverted to the previous version. The current one is kept, so you can rewind back.",
+      );
       setOpen(false);
       void qc.invalidateQueries({ queryKey: ["prd", prdId] });
       onReverted?.();
@@ -66,7 +76,7 @@ export function RewindButton({ prdId, hasSnapshot, onReverted }: RewindButtonPro
             <AlertDialogTitle>Revert to the previous version?</AlertDialogTitle>
             <AlertDialogDescription>
               This restores what the PRD said before the last agent edit. The current version is
-              kept too, so this is itself reversible, and the action lands on the Ledger.
+              kept too, so this is itself reversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

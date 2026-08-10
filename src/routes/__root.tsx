@@ -314,14 +314,32 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function ThemeBootstrapScript() {
-  // Pre-hydration theme bootstrap: avoid FOUC. Tempo v5 contract: dark is the
-  // default (class 'dark', no data-theme); light = data-theme='light' plus the
-  // 'dark' class removed. Legacy stored "aurora" resolves to dark.
+  // Pre-hydration theme bootstrap: avoid FOUC. Contract: dark = class 'dark'
+  // with NO data-theme (:root already holds the dark tokens); light =
+  // data-theme='light' with the 'dark' class removed. Legacy stored "aurora"
+  // and an absent value both resolve to dark.
+  //
+  // THIS MUST MIRROR `resolveTheme` IN use-theme.tsx EXACTLY, INCLUDING 'system'.
+  // It did not, and that was a real defect rather than a nicety: the stored
+  // value is one of three ("dark" | "light" | "system", use-theme.tsx:3) and the
+  // toggle cycles through all three (CYCLE, use-theme.tsx:65), but this script
+  // branched only on 'light'. So a user in SYSTEM mode on a light-preferring OS
+  // was painted dark here, then ThemeProvider's mount effect resolved
+  // system -> light and flipped the document: a dark-to-light flash on every
+  // single page load, in the one mode that cannot express itself as a stored
+  // literal. Reading the media query here is what makes "system" a real theme
+  // at first paint rather than a preference that only applies after hydration.
+  //
+  // The media query is read ONLY when the stored value is 'system'. An absent
+  // value still resolves to dark, deliberately: "dark is the default
+  // experience" is a product decision (DEFAULT_THEME, use-theme.tsx:8), and
+  // quietly following the OS for brand-new users would change it here rather
+  // than where it belongs.
   return (
     <script
       suppressHydrationWarning
       dangerouslySetInnerHTML={{
-        __html: `(function(){try{var t=localStorage.getItem('supaprod.theme');var d=document.documentElement;if(t==='light'){d.classList.remove('dark');d.setAttribute('data-theme','light');}else{d.classList.add('dark');d.removeAttribute('data-theme');}}catch(e){/* default dark via the SSR class */}})();`,
+        __html: `(function(){try{var t=localStorage.getItem('supaprod.theme');var d=document.documentElement;var light=t==='light'||(t==='system'&&typeof window.matchMedia==='function'&&window.matchMedia('(prefers-color-scheme: light)').matches);if(light){d.classList.remove('dark');d.setAttribute('data-theme','light');}else{d.classList.add('dark');d.removeAttribute('data-theme');}}catch(e){/* default dark via the SSR class */}})();`,
       }}
     />
   );

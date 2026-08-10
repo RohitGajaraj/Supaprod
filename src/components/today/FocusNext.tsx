@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Button, Num } from "@/components/shell/primitives";
+import { Button, Failed, Num } from "@/components/shell/primitives";
 import { getFocusNext, type FocusInsight } from "@/lib/brain/insights.functions";
 
 export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
@@ -16,7 +16,38 @@ export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
     staleTime: 5 * 60 * 1000,
   });
 
-  if (focus.isLoading || focus.isError || !focus.data) return null;
+  /* A FAILED READ IS NOT SILENCE, and until 2026-08-10 this line made it look
+     like silence: `isError` was folded in with `isLoading` and "no data", so the
+     Director's read vanished from Today with no mark whenever the brain could
+     not be reached.
+     That is the one failure this product cannot afford to render quietly. The
+     whole claim is that the brain has something to say about what to build next;
+     an empty space where its recommendation should be reads as "it considered
+     your work and had no view", which is the most damaging possible false
+     message. The user cannot tell a calm morning from a broken one.
+     primitives.tsx states the doctrine directly -- "A read that FAILED is not an
+     empty state, and must never wear one's clothes" -- and TrustDial.tsx already
+     honours it. This now does too.
+     Loading still returns null deliberately: this panel sits below the fold on a
+     surface that already has a headline, and a skeleton appearing there would
+     pull the eye away from the decision the page exists to present. Absence
+     during a 200ms fetch is not a claim; absence after a failure is. */
+  if (focus.isError) {
+    return (
+      <section className="today-director" aria-labelledby="today-director-title">
+        <div className="today-section-head">
+          <span className="today-kicker" id="today-director-title">
+            Director&rsquo;s read
+          </span>
+        </div>
+        <Failed onRetry={() => void focus.refetch()}>
+          The brain did not answer, so there is no read on what to build next. This is a failed
+          look-up, not a quiet morning.
+        </Failed>
+      </section>
+    );
+  }
+  if (focus.isLoading || !focus.data) return null;
 
   const recommendation = focus.data;
   const evidence = recommendation.evidence;

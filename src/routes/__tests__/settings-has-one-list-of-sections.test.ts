@@ -91,16 +91,24 @@ describe("the pane says where focus went", () => {
   });
 });
 
-describe("a control that names a section goes to that section", () => {
-  it("the brand link carries the section it names", () => {
-    // "Brand kit lives in Settings" landed on Profile, leaving a person to find
-    // the brand pane themselves. Same defect as a keycap that does nothing, one
-    // layer up: the control names an act it does not perform.
-    const faces = readFileSync(
-      join(import.meta.dir, "..", "..", "components", "mission", "faces.tsx"),
-      "utf8",
-    );
-    const link = faces.slice(faces.indexOf("Brand kit lives in Settings") - 600);
-    expect(link.slice(0, 700)).toMatch(/section:\s*"brand"/);
-  });
-});
+/*
+ * THE BRAND-LINK TEST IS GONE BECAUSE ITS SUBJECT IS, not because it stopped
+ * mattering.
+ *
+ * A `a control that names a section goes to that section` block used to live
+ * here. It asserted that the "Brand kit lives in Settings" link carried
+ * `section: "brand"` rather than dumping the reader on Profile -- the same
+ * defect as a keycap that does nothing, one layer up: a control that names an
+ * act it does not perform.
+ *
+ * Its evidence source was `components/mission/faces.tsx`, deleted on 2026-08-10
+ * with the unreachable Mission Control room. That string was checked across
+ * `src/` before removing this: it existed ONLY in faces.tsx, so there is no
+ * live surface to re-point the assertion at. Re-pointing it at the rebuilt
+ * Settings would have meant inventing a subject, and an assertion with no
+ * subject passes vacuously forever while reading like coverage.
+ *
+ * So it is recorded here instead of being re-homed. THE RULE SURVIVES THE TEST:
+ * if a rebuilt surface reintroduces a link that names a Settings section, it
+ * carries that section id, and this is the file that should say so again.
+ */

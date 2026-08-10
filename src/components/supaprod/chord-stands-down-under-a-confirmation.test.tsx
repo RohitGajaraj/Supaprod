@@ -1,8 +1,6 @@
 import * as React from "react";
 import { render, fireEvent, cleanup, act } from "@testing-library/react";
 import { describe, test, expect, mock, beforeEach, afterEach } from "bun:test";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 
 /**
  * THE QUESTION STAYS, AND SO DOES THE PAGE THAT ASKED IT.
@@ -181,43 +179,21 @@ describe("a pane you consult beside the work keeps the keyboard alive", () => {
   });
 });
 
-describe("one guard, not two copies of a guard", () => {
-  const MISSION_SHELL = readFileSync(
-    join(import.meta.dir, "..", "mission", "MissionShell.tsx"),
-    "utf8",
-  );
-
-  /**
-   * MissionShell runs the identical guard for its 1-7 Spine keys and carried a
-   * hand-copied duplicate of the selector string. A copy is a guard with its
-   * own age: it was written the same day and then stopped learning, so the
-   * alertdialog blindness above lived on in the retired shell after the live
-   * one was fixed. This asserts the string is imported, never retyped, so the
-   * next role that needs adding is added once.
-   */
-  /**
-   * WHERE IT IS IMPORTED FROM STOPPED MATTERING, and pinning the path was this
-   * test asking the wrong question.
-   *
-   * The selector moved to `@/lib/overlay` an hour after this was written. Not
-   * tidying: three unrelated layers needed it, and importing it from
-   * CommandPalette meant pulling an entire React component -- its catalog, its
-   * recents, its Radix dialog and everything they touch -- into whatever asked.
-   * That broke AskPane's own suite the moment AskPane reached for one string.
-   *
-   * So the assertion is now the RULE rather than the address: imported from
-   * somewhere, never retyped. The sibling test below is what actually forbids a
-   * hand-written copy, and it is the one carrying the weight.
-   */
-  test("MissionShell imports the selector rather than retyping it", () => {
-    expect(MISSION_SHELL).toMatch(/import \{ OPEN_MODAL_SELECTOR \} from "[^"]+";/);
-    expect(MISSION_SHELL).toContain("document.querySelector(OPEN_MODAL_SELECTOR)");
-  });
-
-  test("MissionShell hand-writes no role selector of its own", () => {
-    // Comments are stripped first: the one above the guard NAMES the roles in
-    // prose, and a raw scan would read that explanation as the offence.
-    const code = MISSION_SHELL.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-    expect(code).not.toMatch(/\[role="(dialog|alertdialog)"\]/);
-  });
-});
+/*
+ * THE SECOND COPY OF THE GUARD IS GONE, so the describe that policed it is too.
+ *
+ * A `one guard, not two copies of a guard` block used to live here. It read
+ * `../mission/MissionShell.tsx` off disk and asserted the retired shell
+ * imported OPEN_MODAL_SELECTOR rather than retyping the role selector. That
+ * file was deleted on 2026-08-10 along with the rest of the unreachable Mission
+ * Control room, so there is no longer a second copy to keep honest -- the DOM
+ * tests above are now the only guard, which is exactly the state the deleted
+ * block was asking for.
+ *
+ * Recorded rather than silently dropped because the RULE it encoded still
+ * stands for whatever comes next: a surface that needs this selector imports
+ * it, and never retypes it. If a second consumer appears, police it the same
+ * way. Note the block was read at describe-callback scope, so once the file
+ * went, its ENOENT took down all nine tests in this file and not merely its
+ * own two -- the reason it had to be removed in the same commit as the delete.
+ */

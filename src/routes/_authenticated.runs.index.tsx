@@ -931,9 +931,26 @@ function BuildPage() {
             {spend > 0 ? (
               <>
                 <div className="sp-ctx-head">What these runs cost</div>
+                {/* THIS SENTENCE USED TO READ "Each run stops at the ceiling set
+                    in Build." It was unconditional, and this surface never reads
+                    the spend policy at all -- there is no `getWorkspaceSpendPolicy`
+                    call anywhere in this file. `cap_usd` is nullable and defaults
+                    to null (governance.functions.ts), and /build renders that
+                    exact case as "No ceiling. A run continues until it finishes or
+                    something else stops it."
+                    So on any workspace without a cap, this asserted a boundary that
+                    did not exist -- on the one number a person uses to decide
+                    whether to let an agent run unattended. A safety claim that is
+                    false by default is worse than no claim, because it is believed.
+                    Corrected 2026-08-10 to name where the control lives rather than
+                    to promise what it is doing, which is true whether or not a
+                    ceiling is set. Stating the ACTUAL ceiling here would be better
+                    still and needs a policy read wired into this route; that is
+                    logged for the engineering lane in HANDOFF-ENGINEERING.md. */}
                 <div className="sp-ctx-body">
                   <Num>{usd(spend)}</Num> across <Num>{rows.length}</Num>{" "}
-                  {rows.length === 1 ? "run" : "runs"}. Each run stops at the ceiling set in Build.
+                  {rows.length === 1 ? "run" : "runs"}. The ceiling that stops a run is set in
+                  Build.
                 </div>
               </>
             ) : null}

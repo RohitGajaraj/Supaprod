@@ -50,8 +50,6 @@ That is the whole cookie surface. There is no session cookie, no analytics cooki
 | `supaprod.flow.history` | [`src/lib/flow/session.ts:127`](../../../src/lib/flow/session.ts) | A capped local ledger of finished focus blocks, so the Desk can say "2 blocks today". Never leaves the browser; a durable table is a recorded follow-up. | functional |
 | `supaprod.ask.conversations.v2` | [`src/hooks/use-ask-stream.ts:140`](../../../src/hooks/use-ask-stream.ts), [`src/lib/ask-open.ts:89`](../../../src/lib/ask-open.ts) | Which conversation thread each scope is on, so reopening the pane lands on the same thread. The messages themselves are in Postgres, not here. | functional |
 | `supaprod.feedback.prefs.v1` | [`src/lib/interaction-feedback.ts:48`](../../../src/lib/interaction-feedback.ts) | Sound and haptics preferences. | functional |
-| `supaprod:mc:first-approval-seen` | [`src/components/mission/MissionShell.tsx:199`](../../../src/components/mission/MissionShell.tsx) | One-shot coachmark, so it never nags twice. | functional |
-| `supaprod:mc:tour-seen` | [`src/components/mission/MissionShell.tsx:312`](../../../src/components/mission/MissionShell.tsx) | One-shot tour offer, same reason. | functional |
 | `supaprod:claim-admin-dismissed` | [`src/routes/_authenticated.settings.tsx:1146`](../../../src/routes/_authenticated.settings.tsx) | A banner the person dismissed. | functional |
 | `supaprod.notepad.<workspaceId>` | [`src/lib/notepad.ts:64`](../../../src/lib/notepad.ts) | The PM's private scratchpad, one note per workspace. Local only: never synced, never a Discover signal, never sent anywhere. **Currently unwired**, the `useNotepad` hook its own header describes does not exist, so nothing writes it today. It is classified here anyway so the question is already settled the day it gets a consumer. | functional |
 
@@ -127,7 +125,9 @@ The privacy policy previously described storage this product has never had, and 
 | It said | The truth |
 | --- | --- |
 | "one first-party cookie, `session-id`, expires after 30 minutes of inactivity" | No such cookie is set. No cookie is set at all. |
-| localStorage keys `user_id`, `workspace_id`, `auth_token`, `preferences` | None of those key names exist. The real keys are the twenty listed above. |
+| localStorage keys `user_id`, `workspace_id`, `auth_token`, `preferences` | None of those key names exist. The real keys are the ones inventoried above. |
 | "Supaprod's analytics provider is Flock Analytics (see subprocessors)" | There is no Flock Analytics in this repo, and `/subprocessors` lists no such vendor, so the link pointed at a page that contradicted the sentence. |
 
 The copy was written in August 2026 against a `/~flock.js` script described in [`planning/archive/LAUNCH-READINESS-TRACKER-2026-08-07.md`](../../planning/archive/LAUNCH-READINESS-TRACKER-2026-08-07.md), which is not in this codebase and leaves no trace in it. A policy is a factual claim about behaviour, and describing storage more invasive than what actually happens is a false claim in the direction that costs trust when a reviewer checks. It was replaced with the inventory above.
+
+The correction table deliberately carries no key count. It used to say "the twenty listed above" when there were seventeen, and after the Mission shell was deleted on 2026-08-10 there are fifteen. A hand-maintained number in a sentence nobody re-counts is the same rot in a smaller form, so the table is the count and [`src/__tests__/client-storage-consent.test.ts`](../../../src/__tests__/client-storage-consent.test.ts) is what keeps it true in both directions.

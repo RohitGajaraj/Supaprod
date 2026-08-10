@@ -156,7 +156,11 @@ export function ShareDecisionButton({
         onClick={() => toggle.mutate(true)}
         title="Make this decision public and copy a shareable link"
       >
-        {toggle.isPending ? "Publishing" : "Publish the receipt"}
+        {/* "Share this decision", not "Publish the receipt": the button makes
+            the decision PUBLIC and copies a link, which is what the title
+            attribute already says. "Receipt" also named the wrong object —
+            the thing being shared is the decision itself. */}
+        {toggle.isPending ? "Publishing" : "Share this decision"}
       </Button>
     );
   }
@@ -256,7 +260,7 @@ export function DecisionDetail({ id }: { id: string }) {
   if (decisions.isError) {
     return (
       <Failed onRetry={() => void decisions.refetch()}>
-        The ledger did not load, so this is not a claim that the call is gone.{" "}
+        The record did not load, so this is not a claim that the call is gone.{" "}
         {(decisions.error as Error)?.message ?? ""}
       </Failed>
     );

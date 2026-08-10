@@ -40,6 +40,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
 import {
@@ -224,6 +225,10 @@ export function ChangesPanel({
   fileSetPolicy?: StudioFileSetPolicy | null;
   constraints?: StudioConstraints;
 }) {
+  /** Client navigation for the rollback hand-off. See the rollback onSuccess
+   *  below for why this is not a document reload. */
+  const navigate = useNavigate();
+
   /** The file a person explicitly clicked. Null until they click one. */
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   /**
@@ -723,8 +728,28 @@ export function ChangesPanel({
         },
       }),
     onSuccess: (result) => {
-      toast.success("Rollback initiated. Navigating to revert session...");
-      window.location.href = `/studio/${result.revertMissionId}`;
+      /* A ROUTER NAVIGATION, NOT A DOCUMENT RELOAD, and the difference matters
+       * most precisely here.
+       *
+       * This used to be `window.location.href = "/studio/" + id`, on the
+       * ROLLBACK SUCCESS PATH -- the highest-stakes action in the product, and
+       * the one moment a person most needs to feel the system is in control of
+       * itself. It cost three things at once. A full document reload threw away
+       * the client cache and every optimistic state the surface was holding.
+       * Then `/studio/$id` redirected to `/build/$id`, which redirected again to
+       * `/runs/$id`, so the reload was followed by two more round trips. The
+       * user pressed "roll back" and watched the application blank and rebuild
+       * itself, which reads as a crash rather than as a rollback.
+       *
+       * Going straight to /runs/$id is correct both now and after the
+       * engineering lane collapses the redirect chain, since the intermediate
+       * routes are being kept as redirects so existing links survive.
+       *
+       * The toast also stopped narrating the mechanism. "Navigating to revert
+       * session" describes what the code is doing; the operator needs to know
+       * what happened to their software. */
+      toast.success("Rolling back. Opening the revert run.");
+      void navigate({ to: "/runs/$missionId", params: { missionId: result.revertMissionId } });
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Rollback failed."),
   });

@@ -84,9 +84,31 @@ Per [`AGENTS.md` §10](../../AGENTS.md), git is the only shared substrate and ea
 
 Do **not** also register it in a harness-local config (`~/.claude.json`, etc.) while `.mcp.json` carries it — §10 warns that double-sourcing registers the server twice.
 
-**Sanity check:** `list_content` should report `"total": 679`. A total of 60 means the token is starter-tier, not full.
+**Sanity check:** `list_content` should report `"total": 679` alongside `"tier": "eligible"`. A total of 60 means the token is starter-tier, not full. Verified against the live endpoint 2026-08-10.
 
 Pagination over MCP is slow. Prefer the local clone for bulk work, MCP for targeted search.
+
+### Claude Code — two traps between a correct `.mcp.json` and a working server
+
+A correct `.mcp.json` is not sufficient here. Both traps present as the same symptom — `mcp__lennysdata__*` simply absent — and **neither is a token problem**. Both cost a session on 2026-08-10.
+
+**1. Claude Code never reads `.env`.** `${LENNYSDATA_TOKEN}` in [`.mcp.json`](../../.mcp.json) expands against the *Claude Code process environment*, not the repo's `.env`. Bun and Vite read `.env`; the agent harness does not — one filename, two unrelated consumers. Left unset, the server is skipped and `claude doctor` reports `Missing environment variables: LENNYSDATA_TOKEN`. Inject it in `.claude/settings.local.json`, which is gitignored, so the secret stays out of the tree:
+
+```json
+{ "env": { "LENNYSDATA_TOKEN": "<bearer>" } }
+```
+
+That is a **second copy of the token.** When it lapses **2026-09-09**, rotate `.env` *and* this file.
+
+**2. A claude.ai connector on the same URL hides it.** If "Lenny's Newsletter" is also enabled as an account-level connector at claude.ai, Claude Code dedupes by URL and reports `◯ hidden — same URL as your server 'lennysdata'`, offering `claude mcp remove lennysdata`. **Do not take that offer.** The `.mcp.json` server carries the bearer verified at `tier: eligible`; the connector's tier follows whichever account its OAuth resolved to and is unverified. Keeping `.mcp.json` also preserves the portability §10 asks for — the connector exists only inside Anthropic surfaces, and Codex, Antigravity and Cursor cannot see it.
+
+Project-scoped servers need explicit approval on top of that, or they sit at `⏸ Pending approval` forever:
+
+```json
+{ "enabledMcpjsonServers": ["lennysdata"] }
+```
+
+**MCP changes need a full restart.** `claude mcp list` printing `✔ Connected` is evidence about a *fresh* process, never about the running session. Confirm with ToolSearch after restarting, not before.
 
 ---
 

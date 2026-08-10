@@ -13,6 +13,20 @@
  *     honest absence of data, which are three different facts and a user acts
  *     differently on each. A failed read is Failed with a retry now.
  *
+ * THE ZERO PASS, 2026-08-10. THE HEADING WAS THE LIE, NOT THE NUMBERS.
+ *   ADDED a data threshold. With nothing learned, no measurable lift, no scored
+ *     forecast and no revision in view, this drew "Your record, compounding"
+ *     over four values reading "Not yet" and an eight-bar chart of zeroes. Every
+ *     number was correct; the composition asserted the opposite of what it
+ *     showed, and on a real account today that is the only state it has. It now
+ *     renders nothing at all until one of the four facts is real, because none
+ *     of what it was drawing was information a person acts on.
+ *   KILLED "Lights up after the next sync". That is our migration queue reported
+ *     to a customer, and it stood where the honest fact belonged: `tableReady`
+ *     false means the read did not answer. It says that, in the fail voice.
+ *   KILLED the all-zero chart. Eight bars of nothing draw only the axis, which
+ *     reads as a broken chart rather than as a quiet eight weeks.
+ *
  * UNCHANGED: getMemoryCompounding / getMemoryLift / getForecastCalibration,
  * every query key including the activeWorkspaceId scoping, the eight-week
  * client-side growth computation, and the SketchBarChart mount.
@@ -84,6 +98,55 @@ export function GraphCompoundingStrip({
   const lift = liftQ.data;
   const prediction = calibrationQ.data?.prediction;
 
+  /**
+   * WHETHER "COMPOUNDING" IS A CLAIM THIS STRIP HAS EARNED.
+   *
+   * It used to render the heading "Your record, compounding" over four values
+   * reading "Not yet" and an eight-bar chart of zeroes. Every one of those is
+   * accurate and the composition is still a lie: the heading asserts a thing is
+   * happening, and every number under it says it is not. On a real account
+   * today that is the ONLY state this strip has, so the overclaim was the
+   * normal view rather than an edge case.
+   *
+   * A zero also has no reader. Nobody does anything differently having seen
+   * four "Not yet"s, so drawing them costs the space and buys nothing, and the
+   * page has somewhere better already: Brain's own guidance region above the
+   * Graph tab states what has not fired yet AND names the act that ends it.
+   * Repeating it here would just be the second copy.
+   *
+   * So the strip is silent until at least one of its four facts is real. It is
+   * not hiding anything: nothing it would have drawn was information.
+   */
+  const learned = mem?.tableReady ? mem.stored : 0;
+  const liftKnown = Boolean(lift?.tableReady) && lift?.liftPoints != null;
+  const hitRateKnown = prediction?.hitRate != null;
+  const hasClaim = learned > 0 || liftKnown || hitRateKnown || beliefsRevised > 0;
+
+  /**
+   * The memory read came back with the graceful shape it uses when the table
+   * itself could not be read (gauntlet.functions.ts degrades rather than
+   * throwing). That is "we could not find out", which is a Failed, not a zero
+   * and not a young workspace. It used to be reported as "Lights up after the
+   * next sync", which tells a customer about our migration queue and reads to
+   * them as a feature that has not shipped.
+   */
+  const memUnread = mem != null && !mem.tableReady;
+
+  // A chart of eight zero bars is a chart of zeroes: the axis is the only thing
+  // it draws. Kept off until a week in the window actually gained something.
+  const grew = growth.some((n) => n > 0);
+
+  if (!loading && !failed && !hasClaim) {
+    return memUnread ? (
+      <Block title="Your record, compounding">
+        <Failed onRetry={() => void memQ.refetch()}>
+          What the record has learned could not be read, so nothing here is a claim that it has
+          learned nothing.
+        </Failed>
+      </Block>
+    ) : null;
+  }
+
   return (
     <Block
       title="Your record, compounding"
@@ -108,17 +171,25 @@ export function GraphCompoundingStrip({
         </Failed>
       ) : (
         <>
+          {/* "LIGHTS UP AFTER THE NEXT SYNC" IS GONE. That was our migration
+              queue reported to a customer, in a sentence that reads to them as
+              a feature nobody has shipped, and it was standing in for the one
+              thing this system refuses to blur: `tableReady` false means the
+              read did not answer, not that there is nothing to answer with. It
+              says that now, in the fail voice, in the reader's terms. */}
           <Line
             label="What it learned"
             sub={
-              mem?.tableReady
-                ? mem.stored > 0
+              memUnread
+                ? "This could not be read just now, so it is not a claim that nothing was learned"
+                : mem && mem.stored > 0
                   ? `${mem.newThisWeek} of them landed this week`
                   : "Nothing learned yet, so there is nothing to compound"
-                : "Lights up after the next sync"
             }
           >
-            {mem?.tableReady && mem.stored > 0 ? (
+            {memUnread ? (
+              <Value tone="fail">Not read</Value>
+            ) : mem && mem.stored > 0 ? (
               <Value>
                 <Num>{mem.stored.toLocaleString()}</Num> memories
               </Value>
@@ -177,13 +248,19 @@ export function GraphCompoundingStrip({
             )}
           </Line>
 
-          <SketchBarChart
-            data={growth.map((count, i) => ({ label: `w${i + 1}`, value: count }))}
-            color="var(--sp-stage-learn)"
-            formatValue={(v) => String(Math.round(v))}
-            ariaLabel={`New beliefs per week, last ${WEEKS} weeks`}
-            trackH={40}
-          />
+          {/* A CHART OF EIGHT ZERO BARS DRAWS ONLY ITS OWN AXIS. It reads as a
+              broken chart rather than as a quiet eight weeks, and it is what
+              every view whose nodes are all older than the window got. Drawn
+              only once a week in the window actually gained something. */}
+          {grew ? (
+            <SketchBarChart
+              data={growth.map((count, i) => ({ label: `w${i + 1}`, value: count }))}
+              color="var(--sp-stage-learn)"
+              formatValue={(v) => String(Math.round(v))}
+              ariaLabel={`New beliefs per week, last ${WEEKS} weeks`}
+              trackH={40}
+            />
+          ) : null}
         </>
       )}
     </Block>

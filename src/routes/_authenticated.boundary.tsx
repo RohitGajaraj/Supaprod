@@ -61,6 +61,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
 
+import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
   getBoundary,
@@ -397,6 +398,54 @@ function BoundarySurface() {
     queryFn: () => fLedger(),
   });
 
+  /* MOVING A BOUNDARY IS A DECISION, NOT A PREFERENCE, and until 2026-08-10 it
+   * was the least guarded control in the product. Every mode change on this
+   * surface fired straight into the mutation on one click, while deleting a
+   * feature flag two routes away carries a full typed confirmation. So granting
+   * an agent the right to act with no human present was cheaper than removing a
+   * toggle -- an inversion nobody chose, which is how the most consequential
+   * control in an autonomous system ends up as the quietest one.
+   *
+   * Friction is scaled to consequence rather than applied evenly, because a
+   * confirmation on everything is a confirmation on nothing: people learn the
+   * rhythm and click through the one that mattered.
+   *
+   *   auto    GRANTS autonomy. An agent will act with nobody watching. This is
+   *           the only direction where the cost of being wrong is unbounded, so
+   *           it is the one that stops you.
+   *   off     REVOKES entirely. Safe in direction but disruptive in effect: it
+   *           can strip a capability from work already in flight, and it binds
+   *           the human too. Confirmed, but never styled destructive -- turning
+   *           something off is not a destruction, and dressing it in red would
+   *           teach people that safety is dangerous.
+   *   confirm THE SAFE MIDDLE, and it stays one click. Deliberate: making a
+   *           boundary TIGHTER must never be harder than leaving it loose, or
+   *           the interface quietly argues for the riskier setting.
+   */
+  const confirm = useConfirm();
+  const askBeforeMoving = React.useCallback(
+    async (tool: BoundaryTool, mode: "auto" | "confirm" | "off"): Promise<boolean> => {
+      if (mode === "confirm") return true;
+      if (mode === "auto") {
+        return confirm({
+          title: `Let agents run ${tool.label} on their own?`,
+          // States what changes, then what it costs, then the way back -- the
+          // way back last, so it is the thought a person leaves with. The
+          // wording matches the block headings on this page rather than
+          // inventing a second vocabulary for the same three modes.
+          body: `From now on ${tool.label} runs without stopping to ask you, including while you are away. You can move it back to "Come to me first" at any time, and work already running is not affected.`,
+          confirmLabel: "Let them do it alone",
+        });
+      }
+      return confirm({
+        title: `Turn ${tool.label} off for everyone?`,
+        body: `Nobody may do it, including you, until it is turned back on. Anything already relying on it stops asking and starts failing.`,
+        confirmLabel: "Turn it off",
+      });
+    },
+    [confirm],
+  );
+
   const move = useMutation({
     mutationFn: (v: { tool: BoundaryTool; mode: "auto" | "confirm" | "off" }) =>
       fSetMode({
@@ -548,17 +597,34 @@ function BoundarySurface() {
                 ) : (
                   <MoreMenu label={`Move the boundary for ${t.label}`}>
                     {t.mode !== "auto" && t.floor !== "confirm" ? (
-                      <MoreItem onClick={() => move.mutate({ tool: t, mode: "auto" })}>
+                      <MoreItem
+                        onClick={() => {
+                          void (async () => {
+                            if (await askBeforeMoving(t, "auto")) {
+                              move.mutate({ tool: t, mode: "auto" });
+                            }
+                          })();
+                        }}
+                      >
                         Let them do it alone
                       </MoreItem>
                     ) : null}
+                    {/* Tightening stays one click. See askBeforeMoving. */}
                     {t.mode !== "confirm" ? (
                       <MoreItem onClick={() => move.mutate({ tool: t, mode: "confirm" })}>
                         Come to me first
                       </MoreItem>
                     ) : null}
                     {t.mode !== "off" ? (
-                      <MoreItem onClick={() => move.mutate({ tool: t, mode: "off" })}>
+                      <MoreItem
+                        onClick={() => {
+                          void (async () => {
+                            if (await askBeforeMoving(t, "off")) {
+                              move.mutate({ tool: t, mode: "off" });
+                            }
+                          })();
+                        }}
+                      >
                         Nobody may do this
                       </MoreItem>
                     ) : null}

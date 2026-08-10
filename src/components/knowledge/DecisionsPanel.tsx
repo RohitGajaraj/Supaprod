@@ -81,6 +81,7 @@ import {
   Failed,
   Field,
   Input,
+  Loading,
   Num,
   Receipt,
   Row,
@@ -343,7 +344,16 @@ export function DecisionsPanel() {
         />
       ))}
 
-      {decisions.isLoading ? null : decisions.isError ? (
+      {/* A COLD LOAD PAINTED A FILTER ROW OVER NOTHING. This was `null`, and
+          the surface mounts this panel inside a Block it has already drawn and
+          titled, so the first visit to Brain's default tab showed a bordered
+          region with a source filter, a status filter, a search box and a "Log
+          decision" button standing over empty space. Every control implied
+          there was a ledger under it. A read in flight is not an empty ledger,
+          and Loading is the primitive that says which one this is. */}
+      {decisions.isLoading ? (
+        <Loading>Reading the calls on the record.</Loading>
+      ) : decisions.isError ? (
         <Failed onRetry={() => void decisions.refetch()}>
           {(decisions.error as Error).message}
         </Failed>
