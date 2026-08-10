@@ -176,7 +176,22 @@ function LoginPage() {
             maxWidth: 290,
           }}
         >
-          Sign in to your decision workspace. Your calls, the receipts, and the loop, in one place.
+          {/* "RECEIPTS" AND "CALLS" BOTH WENT, 2026-08-10, and this line survived
+              two earlier sweeps because it is on the auth surface rather than
+              inside the app.
+              Measured across 5.72M words of real product-operator conversation:
+              "receipts" appears 3.0 times per million and is dead in BOTH
+              registers -- the only word in the sweep that fails on the marketing
+              side and the in-product side at once. "Calls" is barely better here
+              and collides with a phone call in the same breath as agents and
+              runs; the shell header moved off it for the same reason. Against
+              that, "decisions" is the single most common substantive term
+              operators use at 562.8, and "evidence" at 50.9 is what a receipt
+              actually IS.
+              The sentence also stopped listing three nouns and started naming
+              the sequence, because the loop's whole argument is that the three
+              are connected: what you decided, what it rested on, what happened. */}
+          Sign in. Your decisions, the evidence behind them, and what happened next.
         </p>
       }
       footer={

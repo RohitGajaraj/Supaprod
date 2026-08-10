@@ -2398,15 +2398,30 @@ export function DiscoverSurface({
 
               NO CONFIRMATION, DELIBERATELY, and the asymmetry with /decide is
               the rule rather than an oversight. Friction is proportional to what
-              an act SPENDS and to how hard it is to take back. Decide's bulk
-              drop asks first because each row files a rejection into the
-              decision log with a person's name on it. This spends nothing:
-              `setThemeStatus` writes one column and `dismissed_at_frequency`,
-              the Settled block six rows down puts any of them back with one
-              press, and the clusterer re-opens a declined cluster on its own the
-              moment it grows past the escalation bar. A dialog in front of a
-              reversible column write is friction charged for nothing, which is
-              how people learn to click through the dialogs that matter. */}
+              an act SPENDS and to how hard it is to take back.
+
+              THE OLD REASONING HERE WAS "this spends nothing", AND THAT WENT
+              FALSE (corrected 2026-08-10). `setThemeStatus` now writes three
+              columns, not one, and RPT-32 made a decline file a `rejection`
+              against `customer-insights` in `human_gate_events`. That row is
+              append-only: putting the cluster back restores the surface but
+              never unfiles the correction. So this does spend something, and
+              the previous justification no longer holds.
+
+              It still takes no dialog, for a better reason. What it spends is a
+              CORRECTION TO THE MACHINE, and that is the thing this product
+              wants more of, not less. Decide's bulk drop asks first because
+              each row files a judgment on somebody's bet, with a person's name
+              on it; declining a cluster files feedback on how well the
+              clusterer clustered. Charging friction for teaching the agent
+              taxes precisely the behaviour the brain is built to read back,
+              and a dialog people learn to click through is worse than no
+              dialog at all.
+
+              The surface act stays cheap: the Settled block six rows down puts
+              any of them back with one press, and the clusterer re-opens a
+              declined cluster on its own once it grows past the escalation
+              bar. */}
           <SelectionBar selection={picked} total={ranked.length} noun="cluster">
             <Button
               disabled={busy || declineMany.isPending}

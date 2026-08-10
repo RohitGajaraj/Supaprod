@@ -179,7 +179,7 @@ export function Receipts(_props: { stats?: LandingStats | null }) {
                   which the broad one did not. Evidence and approved language:
                   docs/research/lennys-corpus-sweep-2026-08.md section 2. */}
               Verdicts take weeks, so the record accrues in calendar time. What nobody can
-              reconstruct afterwards is what you believed <em>before</em> the outcome landed — a
+              reconstruct afterwards is what you believed <em>before</em> the outcome landed. A
               forecast leaves no trace unless something wrote it down at the moment you decided. A
               competitor starting next year starts at zero, next year.
             </p>

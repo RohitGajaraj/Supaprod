@@ -7,7 +7,7 @@
  * the rule that outranks both: a record citation is never invented.
  */
 import * as React from "react";
-import { render, screen, cleanup, act } from "@testing-library/react";
+import { render, screen, cleanup, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, test, expect, mock, beforeEach, afterEach } from "bun:test";
 import type { ApprovalQueueItem } from "@/lib/approvals-queue.functions";
@@ -437,11 +437,46 @@ describe("AskPane: the conversation switcher", () => {
     ...over,
   });
 
+  /**
+   * Open the pane, open the switcher, and WAIT FOR THE READ TO SETTLE rather
+   * than for a number of milliseconds.
+   *
+   * THE DEFECT THIS ENDS, and it is worth the paragraph because it read as a
+   * regression in the switcher and was not one. This used to be
+   * `await new Promise((res) => setTimeout(res, 10))`, which does not wait for
+   * anything: it is a bet that `listThreads` resolves AND React commits the
+   * result inside ten milliseconds. The switcher needs two macrotask ticks
+   * after the click -- the click's render is what MOUNTS `AskSwitcher` and
+   * therefore what starts the query, so the resolution can only commit on the
+   * tick after that -- and one commit of this tree costs 10-25ms under
+   * happy-dom. The bet was won or lost by a hair depending on machine load,
+   * and the three tests that read the settled list failed roughly one run in
+   * three.
+   *
+   * Then the tree got heavier and the bet started losing every time, so three
+   * tests went from flaky to red together and looked like something had broken
+   * the switcher. Nothing had. Measured on the same commit, the read settles in
+   * 13-26ms and every assertion below passes; the tests were simply reading the
+   * pane while it still said "Reading your conversations." A timing bet that
+   * has drifted onto the wrong side of its deadline reports itself as a
+   * behavioural failure, which is the most expensive kind of false alarm.
+   *
+   * `waitFor` polls for the condition instead of guessing at a duration, so
+   * these read the settled state on any machine and at any tree size.
+   */
   async function openSwitcher() {
     const r = await open();
     await act(async () => {
       screen.getByText("Conversations").click();
-      await new Promise((res) => setTimeout(res, 10));
+    });
+    // Settled means the read is OVER, whichever way it went: rows, the empty
+    // state, or the failure. Waiting on any one of those three would make the
+    // other two hang for the full timeout instead of failing on their own
+    // assertion, which is the difference between a useful failure and a slow one.
+    await waitFor(() => {
+      const pane = screen.getByTestId("ask-pane");
+      expect(pane.textContent).toContain("Recent");
+      expect(pane.textContent).not.toContain("Reading your conversations");
     });
     return r;
   }

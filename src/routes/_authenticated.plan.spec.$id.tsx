@@ -303,7 +303,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import ReactMarkdown from "react-markdown";
 import {
   getPrd,
   savePrd,
@@ -348,6 +347,14 @@ import { getDecisionCurrency } from "@/lib/decision-currency.functions";
 import { getDecisionPrecedent } from "@/lib/decision-precedent.functions";
 import { CriticBadge } from "@/components/governance/CriticBadge";
 import { RewindButton } from "@/components/prds/RewindButton";
+// The document, rendered. It carries the citation chips, the lede and the type
+// ladder that used to be sixty lines of inline style in this file. See its own
+// docblock for why the obsidian chip is not the one being used.
+import { SpecProse, PROSE_MEASURE } from "@/components/prds/SpecProse";
+// The state word, the reading budget and the opening line. All three belong to
+// Plan's formatting module rather than to this route: `specStateWords` was
+// private to plan.index.tsx while this page printed the raw enum beside it.
+import { openingLine, readingLoad, specStateWords } from "@/components/plan/format";
 import { CitationsCard, type Citation } from "@/components/product/CitationsCard";
 import { OutcomeCard, type OutcomePrd } from "@/components/product/OutcomeCard";
 import { OutcomeContractPanel } from "@/components/product/OutcomeContractPanel";
@@ -387,6 +394,7 @@ import {
   Record as RecordRecess,
   Row,
   Surface,
+  Value,
 } from "@/components/shell/primitives";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 
@@ -469,74 +477,11 @@ const ASSIST_LABEL: Record<(typeof ASSIST_ACTIONS)[number], string> = {
   critique: "Critique",
 };
 
-/** Rendered markdown. There is no prose primitive, so the document's own
- *  ladder is written here once against the type scale rather than per call. */
-const PREVIEW_COMPONENTS = {
-  h1: ({ children }: { children?: ReactNode }) => (
-    <h1
-      style={{
-        fontSize: "var(--sp-text-gate)",
-        fontWeight: "var(--sp-weight-strong)",
-        letterSpacing: "var(--sp-track-gate)",
-        lineHeight: "var(--sp-leading-gate)",
-        color: "var(--sp-ink)",
-        margin: "0 0 14px",
-      }}
-    >
-      {children}
-    </h1>
-  ),
-  h2: ({ children }: { children?: ReactNode }) => (
-    <h2
-      style={{
-        fontSize: "var(--sp-text-body)",
-        fontWeight: "var(--sp-weight-strong)",
-        color: "var(--sp-ink)",
-        margin: "26px 0 8px",
-      }}
-    >
-      {children}
-    </h2>
-  ),
-  h3: ({ children }: { children?: ReactNode }) => (
-    <h3
-      style={{
-        fontSize: "var(--sp-text-prose)",
-        fontWeight: "var(--sp-weight-medium)",
-        color: "var(--sp-ink)",
-        margin: "20px 0 6px",
-      }}
-    >
-      {children}
-    </h3>
-  ),
-  p: ({ children }: { children?: ReactNode }) => <p style={{ margin: "0 0 12px" }}>{children}</p>,
-  ul: ({ children }: { children?: ReactNode }) => (
-    <ul style={{ margin: "0 0 12px", paddingLeft: 20, listStyle: "disc" }}>{children}</ul>
-  ),
-  ol: ({ children }: { children?: ReactNode }) => (
-    <ol style={{ margin: "0 0 12px", paddingLeft: 20, listStyle: "decimal" }}>{children}</ol>
-  ),
-  li: ({ children }: { children?: ReactNode }) => <li style={{ margin: "0 0 5px" }}>{children}</li>,
-  strong: ({ children }: { children?: ReactNode }) => (
-    <strong style={{ color: "var(--sp-ink)", fontWeight: "var(--sp-weight-strong)" }}>
-      {children}
-    </strong>
-  ),
-  code: ({ children }: { children?: ReactNode }) => (
-    <code
-      style={{
-        fontFamily: "var(--sp-font-mono)",
-        fontSize: "var(--sp-text-data)",
-        background: "var(--sp-sink)",
-        borderRadius: "var(--sp-radius-xs)",
-        padding: "1px 5px",
-      }}
-    >
-      {children}
-    </code>
-  ),
-};
+/* The rendered-markdown component map that stood here has moved to
+ * src/components/prds/SpecProse.tsx, and it did not move unchanged: the version
+ * in this file rendered a citation marker as the characters `[1]`. A renderer is
+ * not a page, and sixty lines of type scale inline in a route is how a document
+ * surface ends up with a type ladder nobody can find. */
 
 export const Route = createFileRoute("/_authenticated/plan/spec/$id")({
   // Optional so existing links/navigates work without search; CNV-04 lands
@@ -890,106 +835,174 @@ function SpecEditorPage() {
     onError: (e: Error) => commit("The route did not change", e.message, true),
   });
 
-  /** What picking this route would actually do to THIS spec, read from the
-   *  record rather than described in general terms. */
-  const routeConsequence = (): string => {
-    if (!routeInfo) return "";
-    if (route === "design") {
-      if (!routeInfo.hasDrawing) {
-        return "Design draws the screen this spec implies, and somebody judges the drawing before Build starts.";
-      }
-      if (routeInfo.gateStatus === "approved") {
-        return "A screen is already drawn and its design is approved. This spec can reach Build.";
-      }
-      // "Sent back" is the word Design itself prints for a rejected gate
-      // (GATE_WORD in components/design/vocabulary.ts), and it is not the same
-      // fact as "waiting": somebody DID judge this drawing and asked for
-      // changes. One sentence for both states told the person who acted that
-      // nobody had.
-      return routeInfo.gateStatus === "rejected"
-        ? "A screen is already drawn and Design sent it back. The next pass happens there."
-        : "A screen is already drawn and is waiting on a call at Design.";
+  /**
+   * ============================================================================
+   * ONE ROUTE, ONE PARAGRAPH. What this region says about THIS spec, said once.
+   * ============================================================================
+   *
+   * WHAT WAS HERE, AND WHY IT KEPT GOING WRONG. Six separate functions and
+   * constants described a single choice: the section's `sub`, the sentence under
+   * the radio, both hover hints, the primary's label and the receipt written
+   * after the skip. Each one branched on its own reading of `hasDrawing` and
+   * `gateStatus`, and the docblock at the top of this file records the count
+   * going FOUR, then FIVE, then SIX, each time because a reader looked again
+   * rather than because the code changed. That is not six bugs. It is one shape:
+   * a region whose copy is spread across six independently-branching sites will
+   * always have a seventh nobody has found yet, and the fix that catches five of
+   * them leaves the sixth saying something false with more confidence than
+   * before, because its neighbours now agree with each other.
+   *
+   * So the branch happens ONCE. `routeState` names which of four situations this
+   * spec is actually in, and every sentence in the region is read out of the one
+   * table below. Adding a sentence means adding a field, which means the compiler
+   * asks for it in all four states rather than a reader noticing in a month.
+   *
+   * EVERY STRING IS THE ONE THAT WAS THERE, character for character. This is a
+   * consolidation and not a rewrite: the words were correct after the handoff
+   * pass, and the defect was their number rather than their content.
+   *
+   * WHY `gateHolds` IS PASSED RATHER THAN DERIVED. It is
+   * `stageEnabled && hasDrawing && status !== "approved"` on the server
+   * (`designGateBlocksDispatch`), and the `stageEnabled` half is not in the pair
+   * this table branches on. A workspace with the design stage turned OFF and an
+   * unjudged drawing has `gateHolds === false`, and the direct route's copy has
+   * always taken its undrawn default there. Deriving the hold from the pair would
+   * have silently changed what that workspace reads, which is a behaviour change
+   * wearing a refactor's clothes.
+   *
+   * THE TWO SENTENCES THAT ARE NOT HERE, and both stay where they are on
+   * purpose: `routeBlocker` and `sendsWithoutIssue` below are PREDICATES about
+   * whether the send can run, not descriptions of the route, and they are each
+   * pinned by name in plan-can-finish-its-own-artifact.test.ts because both were
+   * once wrong in a way no type could catch.
+   */
+  type RouteState = "undrawn" | "waiting" | "sentBack" | "approved";
+  const routeState: RouteState = !routeInfo?.hasDrawing
+    ? "undrawn"
+    : routeInfo.gateStatus === "approved"
+      ? "approved"
+      : routeInfo.gateStatus === "rejected"
+        ? // "Sent back" is the word Design itself prints for a rejected gate
+          // (GATE_WORD in components/design/vocabulary.ts), and it is not the
+          // same fact as "waiting": somebody DID judge this drawing and asked
+          // for changes. One sentence for both states told the person who acted
+          // that nobody had.
+          "sentBack"
+        : "waiting";
+
+  /**
+   * WHAT THE REGION SAYS IN EACH STATE. Two arms, because the two routes read
+   * the record differently and always did.
+   *
+   * The DESIGN arm branches on `routeState` alone: it describes what Design
+   * would do with the drawing, and Design's queue does not care whether this
+   * workspace has the stage switched on.
+   *
+   * The DIRECT arm branches on the HOLD, and that is the one asymmetry in the
+   * region. Its copy answers "can this spec be skipped past Design", which is
+   * exactly the question `gateHolds` answers, stage switch included. So the
+   * direct arm is read at `directState` below rather than at `routeState`.
+   */
+  const ROUTE_COPY: Record<
+    RouteState,
+    {
+      /** The section's own standing description, above the radio. */
+      sectionSub: string;
+      /** The hover hint on "Through Design". */
+      designHint: string;
+      /** The hover hint on "Straight to Build". Read at `directState`. */
+      directHint: string;
+      /** Under the radio, with "Through Design" selected. */
+      designConsequence: string;
+      /** Under the radio, with "Straight to Build" selected. Read at `directState`. */
+      directConsequence: string;
+      /** The primary's resting label with "Through Design" selected. The direct
+       *  route's label is the same in every state, so it is written once below. */
+      designLabel: string;
     }
-    if (routeInfo.gateHolds) {
-      return routeInfo.gateStatus === "rejected"
-        ? "A screen is already drawn for this spec and Design sent it back. That call has to be settled there; skipping the step cannot clear it."
-        : "A screen is already drawn for this spec and nobody has judged it. That call has to be settled at Design first; skipping the step cannot clear it.";
-    }
-    // The other half of the same falsehood. With a drawing approved, this route
-    // still writes `design_skipped`, and no design was skipped. The door stays
-    // open, because a person may have a reason; what it stops doing is
-    // describing the record it would write as if it were true.
-    if (designIsDoneAndApproved) {
-      return "A screen is already drawn for this spec and its design is approved, so there is nothing to skip. This route would still put a skip on the record. Through Design sends it to Build without one.";
-    }
-    return "No screen gets drawn. Build reads the spec as it stands, and the skip goes on this spec's record.";
+  > = {
+    undrawn: {
+      sectionSub:
+        "A spec can be drawn first or built as it stands. Pick the one this outcome needs; either way the choice goes on this spec's record.",
+      designHint: "Design draws the screen, then somebody judges it before Build starts.",
+      directHint: "No screen gets drawn. Build reads the spec as it stands.",
+      designConsequence:
+        "Design draws the screen this spec implies, and somebody judges the drawing before Build starts.",
+      directConsequence:
+        "No screen gets drawn. Build reads the spec as it stands, and the skip goes on this spec's record.",
+      designLabel: "Hand it to Design",
+    },
+    waiting: {
+      sectionSub:
+        "A spec can be drawn first or built as it stands. Pick the one this outcome needs; either way the choice goes on this spec's record.",
+      designHint:
+        "A drawn screen is waiting on a call at Design. This hands it back to the same queue.",
+      directHint: "A drawn screen is waiting on a call at Design. Settle it there first.",
+      designConsequence: "A screen is already drawn and is waiting on a call at Design.",
+      directConsequence:
+        "A screen is already drawn for this spec and nobody has judged it. That call has to be settled at Design first; skipping the step cannot clear it.",
+      designLabel: "Hand it to Design",
+    },
+    sentBack: {
+      sectionSub:
+        "A spec can be drawn first or built as it stands. Pick the one this outcome needs; either way the choice goes on this spec's record.",
+      designHint: "Design sent the drawn screen back. This hands it there for the next pass.",
+      directHint: "Design sent the drawn screen back. Settle it there first.",
+      designConsequence:
+        "A screen is already drawn and Design sent it back. The next pass happens there.",
+      directConsequence:
+        "A screen is already drawn for this spec and Design sent it back. That call has to be settled there; skipping the step cannot clear it.",
+      designLabel: "Hand it to Design",
+    },
+    // The state the handoff pass exists for. Through Design ENDS AT BUILD here
+    // and writes no route event, because `decideDesignGate` already put
+    // `design_approved` on this spec's record; and the direct route still says
+    // out loud that the skip it would write did not happen. The door stays open,
+    // because a person may have a reason.
+    approved: {
+      sectionSub:
+        "The screen this spec needs is already drawn and approved, so both routes end at Build. Through Design sends it there and writes nothing further, because Design's approval is already on this spec's record.",
+      designHint:
+        "A screen is already drawn and approved, so this sends the spec to Build rather than back to Design.",
+      directHint:
+        "A screen is already drawn and approved, so this route would record a skip that did not happen.",
+      designConsequence:
+        "A screen is already drawn and its design is approved. This spec can reach Build.",
+      directConsequence:
+        "A screen is already drawn for this spec and its design is approved, so there is nothing to skip. This route would still put a skip on the record. Through Design sends it to Build without one.",
+      designLabel: "Send it to Build",
+    },
   };
 
   /**
-   * The hover hint on "Through Design", and it was the fifth of the six.
-   *
-   * It read "Design draws the screen, then somebody judges it before Build
-   * starts" in EVERY state, including the one where the screen is drawn, the
-   * judgment is already in, and the primary directly underneath says "Send it to
-   * Build". Three statements about one spec, one of them describing finished
-   * work as work about to happen. An earlier draft of this comment called it the
-   * LAST constant string in this region; it was not. The Block `sub` above the
-   * radio was still one, and it is `routeSectionSub()` now.
-   *
-   * BOTH HALVES, the same rule `designIsDoneAndApproved` is written under: it
-   * branches on the `hasDrawing` / `gateStatus` PAIR that `routeConsequence`'s
-   * design arm branches on, never on the gate word alone. A spec with nothing
-   * drawn carries `design_gate_status = 'pending'` by column default and no
-   * design was pending, so reading that word by itself is the defect three other
-   * surfaces were corrected for today. The undrawn default is the same words it
-   * always was, and it is still what most specs get.
+   * Where the DIRECT arm reads its copy. A held gate speaks for itself; with no
+   * hold, an approved drawing is the one thing left worth saying, and everything
+   * else takes the undrawn default. That last clause is what preserves today's
+   * behaviour for a workspace with the design stage switched OFF and an unjudged
+   * drawing: `gateHolds` is false there, and the direct route has always told
+   * that workspace "no screen gets drawn" rather than sending it to a gate it
+   * has turned off.
    */
-  const designRouteHint = (): string => {
-    if (designIsDoneAndApproved) {
-      return "A screen is already drawn and approved, so this sends the spec to Build rather than back to Design.";
-    }
-    if (routeInfo?.hasDrawing) {
-      return routeInfo.gateStatus === "rejected"
-        ? "Design sent the drawn screen back. This hands it there for the next pass."
-        : "A drawn screen is waiting on a call at Design. This hands it back to the same queue.";
-    }
-    return "Design draws the screen, then somebody judges it before Build starts.";
-  };
+  const directState: RouteState = routeInfo?.gateHolds
+    ? routeState
+    : routeState === "approved"
+      ? "approved"
+      : "undrawn";
 
-  /** The hover hint on "Straight to Build". It has to agree with the sentence
-   *  under the radio rather than restate the default at every gate state. */
-  const directRouteHint = (): string => {
-    if (routeInfo?.gateHolds) {
-      return routeInfo.gateStatus === "rejected"
-        ? "Design sent the drawn screen back. Settle it there first."
-        : "A drawn screen is waiting on a call at Design. Settle it there first.";
-    }
-    return designIsDoneAndApproved
-      ? "A screen is already drawn and approved, so this route would record a skip that did not happen."
-      : "No screen gets drawn. Build reads the spec as it stands.";
+  /** The region's five sentences, resolved once for this render. `consequence`
+   *  keeps its empty answer for a spec whose route has not been read, exactly as
+   *  the four functions it replaces did. */
+  const story = {
+    sectionSub: ROUTE_COPY[routeState].sectionSub,
+    designHint: ROUTE_COPY[routeState].designHint,
+    directHint: ROUTE_COPY[directState].directHint,
+    consequence: !routeInfo
+      ? ""
+      : route === "design"
+        ? ROUTE_COPY[routeState].designConsequence
+        : ROUTE_COPY[directState].directConsequence,
+    label: route === "design" ? ROUTE_COPY[routeState].designLabel : "Send it straight to Build",
   };
-
-  /**
-   * THE SIXTH SITE, and it was the section's own standing description.
-   *
-   * The Block's `sub` was the constant "A spec can be drawn first or built as
-   * it stands. Pick the one this outcome needs; either way the choice goes on
-   * this spec's record." On an approved drawing both halves of that second
-   * sentence are false. The two options no longer branch on whether a screen
-   * gets drawn, because the screen is drawn: they both end at Build. And
-   * "either way the choice goes on this spec's record" is the exact promise the
-   * approved path deliberately does not keep, since pressing "Send it to Build"
-   * runs `sendToBuild` and never calls `chooseDesignRoute`, which is the only
-   * writer of a route stage event. The sentence that introduced the region
-   * promised the record entry the fix had just stopped writing.
-   *
-   * It sits above the radio, so it is read before any of the five strings the
-   * handoff pass swept, and it is the same predicate as all of them.
-   */
-  const routeSectionSub = (): string =>
-    designIsDoneAndApproved
-      ? "The screen this spec needs is already drawn and approved, so both routes end at Build. Through Design sends it there and writes nothing further, because Design's approval is already on this spec's record."
-      : "A spec can be drawn first or built as it stands. Pick the one this outcome needs; either way the choice goes on this spec's record.";
 
   /** Why the send cannot run right now, or null when it can. Never a greyed
    *  button with no reason beside it.
@@ -1250,11 +1263,29 @@ function SpecEditorPage() {
     onError: (e: Error) => commit("The rewrite did not land", e.message, true),
   });
 
-  // State one of four: reading. A fact, not a spinner and not a fake skeleton.
+  /**
+   * State one of four: reading.
+   *
+   * WHAT WAS HERE, and it was the whole state: `<PageHead title="Spec" />` and
+   * nothing else. A bare noun, no verb, no sentence, on the longest read in the
+   * product. It said less than the shell's own skeleton would have, and it said
+   * it in the slot where the document's TITLE is about to appear, so the first
+   * thing a person saw on every cold load was a word that then vanished and was
+   * replaced by different words in the same position.
+   *
+   * `Loading` is the primitive for this and it exists precisely so that the
+   * three facts stay apart: Empty says "nothing here", Failed says "we could
+   * not find out", and this says "neither is known yet". It also reserves the
+   * height, so the page does not jump when the answer lands.
+   *
+   * NO `working` FLAG. Nobody is reasoning: this is `getPrd`, one row by id, and
+   * dressing a database read as an agent at work is the invented status this
+   * shell refuses everywhere else.
+   */
   if (prdQ.isLoading) {
     return (
       <Surface>
-        <PageHead title="Spec" />
+        <Loading>Reading the spec.</Loading>
       </Surface>
     );
   }
@@ -1338,6 +1369,19 @@ function SpecEditorPage() {
     .filter(Boolean)
     .join("\n\n");
 
+  /**
+   * THE TWO MEASUREMENTS THE BODY REGION MAKES OF ITSELF.
+   *
+   * Both read `body`, the live editor state, rather than `prd.body_md`, so they
+   * move as the writer types instead of reporting the last save. Both are pure
+   * and both live in plan/format.ts with their own tests; the reasoning for the
+   * ten-minute budget and for pulling the opening sentence out is written there
+   * rather than here, because the numbers are the thing that will be argued
+   * with and they should be argued with where they are defined.
+   */
+  const readLoad = readingLoad(body);
+  const firstLine = openingLine(body);
+
   const orderedTasks = [...prdTasks].sort(
     (a: { seq?: number | null }, b: { seq?: number | null }) => (a.seq ?? 999) - (b.seq ?? 999),
   );
@@ -1386,7 +1430,28 @@ function SpecEditorPage() {
           <>
             <CtxHead>Linked work</CtxHead>
             <CtxBody>
-              <Num>{prdTasks.length}</Num> {prdTasks.length === 1 ? "task" : "tasks"} on this spec.{" "}
+              {/* THE COUNT IS NOT CLAIMED UNLESS IT IS KNOWN.
+                  `listTasks` has no failure path anywhere on this page, so a
+                  refused read left `tasksQ.data` undefined, `prdTasks` [], and
+                  this rail printed "0 tasks on this spec." as a FACT beside a
+                  block that printed "No tasks yet." as another one. Two
+                  confident statements, both manufactured out of an error nobody
+                  handled, on the question this rail exists to answer.
+                  primitives.tsx states the rule at <Failed>: "nothing here" and
+                  "we could not find out" are different facts and a person acts
+                  differently on each. So the count speaks only when the read
+                  answered, and the GitHub fact beside it is unaffected either
+                  way because it comes off the spec row rather than the tasks. */}
+              {tasksQ.isError ? (
+                <span className="sp-fail">The work on this spec did not load.</span>
+              ) : tasksQ.isLoading ? (
+                "Reading the work on this spec."
+              ) : (
+                <>
+                  <Num>{prdTasks.length}</Num> {prdTasks.length === 1 ? "task" : "tasks"} on this
+                  spec.
+                </>
+              )}{" "}
               {issueMatch ? (
                 <a
                   href={prd.github_issue_url!}
@@ -1429,7 +1494,9 @@ function SpecEditorPage() {
               <>
                 <CtxHead>Before the crew touched it</CtxHead>
                 <CtxBody>
-                  <RewindButton prdId={id} hasSnapshot={true} />
+                  {/* It reports through this page's own receipt stack rather
+                      than through a toast of its own. See RewindButton. */}
+                  <RewindButton prdId={id} hasSnapshot={true} onCommit={commit} />
                 </CtxBody>
               </>
             ) : null}
@@ -1459,9 +1526,21 @@ function SpecEditorPage() {
         />
         {/* Two facts, never the same one twice: what state it is in, and when
             its words last changed. A save stamps the second one rather than
-            firing a toast that says a thing this line already says. */}
+            firing a toast that says a thing this line already says.
+
+            THE FIRST FACT WAS THE RAW DATABASE ENUM. It read `{prd.status}`,
+            so this line printed "draft · saved 8/6/2026" and "review · saved
+            ..." in lowercase, straight out of the column, as the second-highest
+            line on the largest surface in the product. One file away, the spec
+            ROW on /plan printed "Drafting" and "In review" for the same
+            document, through a `specState` helper that was private to that
+            file. Same spec, two spellings, one click apart.
+
+            The helper is `specStateWords` in plan/format.ts now, and both
+            surfaces read it, so the word cannot drift again. */}
         <div className="sp-subtitle">
-          {prd.status} · saved <Num>{savedAt ?? new Date(prd.updated_at).toLocaleDateString()}</Num>
+          {specStateWords(prd.status)} · saved{" "}
+          <Num>{savedAt ?? new Date(prd.updated_at).toLocaleDateString()}</Num>
         </div>
 
         {/* The record, in one region, and now ABOVE the actions rather than
@@ -1619,11 +1698,85 @@ function SpecEditorPage() {
             />
           </Actions>
 
+          {/* ================================================================
+              WHETHER THIS DOCUMENT CAN BE READ IN ONE SITTING, AND WHAT A
+              READER MEETS FIRST. Two facts, both derived from the words already
+              on screen, and both are the document research's hardest findings
+              turned into something a writer can act on.
+
+              ONE. A long artifact posted for people to read later is NOT read.
+              A Stripe PM on the practice: "you send it into the Slack ecosystem
+              and everyone goes, 'Please give feedback.' You have so much going
+              on... You'll be lucky to maybe get a response." What replaced it is
+              the forced silent read, on the clock, in the room: "I want no
+              upfront explanation. I want 10 minutes of quiet reading time, and
+              then we can come back together." So the job of this document is to
+              be readable straight through in ten minutes with no narrator, and
+              the constraint that follows is a LENGTH BUDGET rather than better
+              navigation. See `readingLoad` for the arithmetic and the 220 wpm.
+
+              TWO. The opening sentence is the only text on a silently-read
+              document that is guaranteed to be read. A famed operator on written
+              argument spent one week of three on the first paragraph of a brief:
+              "If I could write that first paragraph really well, the chance I
+              would win the case would go through the roof." So the writer is
+              shown the exact sentence a reader will meet, pulled out of the
+              document rather than described.
+
+              IT JUDGES NOTHING ELSE. There is no score, no grade and no advice
+              about the prose: two measurements and the budget they are measured
+              against. Both panes get them, because the length of the thing you
+              are writing is not a property of whether you are writing or reading
+              it, and a budget you only see in preview is a budget you find out
+              about too late.
+              ================================================================ */}
+          {readLoad.words > 0 ? (
+            <Line
+              label={
+                <>
+                  <Num>{readLoad.words.toLocaleString()}</Num> words, about{" "}
+                  <Num>{readLoad.minutes}</Num> {readLoad.minutes === 1 ? "minute" : "minutes"} to
+                  read.
+                </>
+              }
+              sub={
+                readLoad.over ? (
+                  <>
+                    That is <Num>{readLoad.overBy.toLocaleString()}</Num> past what fits in the ten
+                    minutes a reader gets for a silent read, so this one gets skimmed or deferred
+                    rather than read. Cutting is the fix; navigation is not.
+                  </>
+                ) : (
+                  "It fits the ten minutes a reader gets for a silent read, which is the only way a document this long actually gets read."
+                )
+              }
+            >
+              <Value tone={readLoad.over ? "warn" : "quiet"}>
+                {readLoad.over ? "Over one sitting" : "One sitting"}
+              </Value>
+            </Line>
+          ) : null}
+
+          {firstLine ? (
+            <Line
+              label="The line a reader meets first"
+              // Quoted rather than paraphrased, because the whole point is that
+              // this is the writer's own sentence seen the way a stranger meets
+              // it, with no title and no preamble around it.
+              sub={`"${firstLine}"`}
+            />
+          ) : null}
+
           {pane === "write" ? (
             <>
               {/* The Textarea primitive does not forward a ref and the assist
                   mutation needs the selection, so this is the primitive's class
-                  on a raw control rather than a second control. */}
+                  on a raw control rather than a second control.
+
+                  IT HOLDS THE SAME MEASURE THE READ STATE HOLDS. The editor ran
+                  full width while Read set a measure, so switching states
+                  rewrapped every line of the document and a writer lost the
+                  place they were looking at. One width, two states. */}
               <textarea
                 ref={taRef}
                 value={body}
@@ -1632,7 +1785,7 @@ function SpecEditorPage() {
                 spellCheck={false}
                 rows={26}
                 className="sp-textarea"
-                style={{ fontFamily: "var(--sp-font-mono)" }}
+                style={{ fontFamily: "var(--sp-font-mono)", maxWidth: PROSE_MEASURE }}
               />
               <Actions>
                 {ASSIST_ACTIONS.map((a) => (
@@ -1669,17 +1822,19 @@ function SpecEditorPage() {
             </>
           ) : (
             <>
+              {/* THE DOCUMENT, WITH ITS CITATIONS AS CITATIONS. This rendered
+                  `[1]` and `[2]` as literal characters until 2026-08-10: the
+                  component map overrode p / h1 / ul / li and nothing anywhere
+                  handled a marker, so the one artifact in the product whose
+                  claim is that its assertions carry evidence printed that
+                  evidence as punctuation. `splitCitationMarkers` had been
+                  sitting in plan/format.ts, written and tested, with no
+                  consumers at all. See SpecProse for what a marker is allowed to
+                  claim, and for why a marker with nothing behind it renders as
+                  plain text rather than as a chip that promises an excerpt it
+                  does not have. */}
               {body.trim() ? (
-                <article
-                  style={{
-                    maxWidth: "72ch",
-                    fontSize: "var(--sp-text-body)",
-                    lineHeight: "var(--sp-leading-body)",
-                    color: "var(--sp-body)",
-                  }}
-                >
-                  <ReactMarkdown components={PREVIEW_COMPONENTS}>{body}</ReactMarkdown>
-                </article>
+                <SpecProse body={body} citations={citations} />
               ) : (
                 <Empty>Nothing is written yet. Switch to Write and start it.</Empty>
               )}
@@ -1721,11 +1876,12 @@ function SpecEditorPage() {
                 detail={title.trim() || prd.title}
               />
             ) : (
-              // Derived, like every other sentence in this region. A constant
-              // here promised that "either way the choice goes on this spec's
-              // record" directly above a primary that, on an approved drawing,
-              // writes no route event at all; see `routeSectionSub`.
-              routeSectionSub()
+              // Derived, like every other sentence in this region, and now out
+              // of the SAME table as its five neighbours. A constant here once
+              // promised that "either way the choice goes on this spec's record"
+              // directly above a primary that, on an approved drawing, writes no
+              // route event at all; see `ROUTE_COPY`.
+              story.sectionSub
             )
           }
         >
@@ -1737,7 +1893,7 @@ function SpecEditorPage() {
             </Failed>
           ) : (
             <>
-              <Line label="Route" sub={routeConsequence()}>
+              <Line label="Route" sub={story.consequence}>
                 <Choices<DesignRouteChoice>
                   label="How this spec reaches Build"
                   value={route}
@@ -1748,8 +1904,8 @@ function SpecEditorPage() {
                       // Derived, exactly like its neighbour. A constant here
                       // promised a drawing and a judgment on a spec that had
                       // already had both, under a button reading "Send it to
-                      // Build"; see `designRouteHint`.
-                      title: designRouteHint(),
+                      // Build"; see `ROUTE_COPY`.
+                      title: story.designHint,
                       // `checkingRepo` joins the pair for the same reason the
                       // other two are here: a send is in flight, and moving the
                       // radio under it would change the label and the sentence
@@ -1759,7 +1915,7 @@ function SpecEditorPage() {
                     {
                       id: "direct",
                       label: "Straight to Build",
-                      title: directRouteHint(),
+                      title: story.directHint,
                       // The design gate, unchanged and enforced here too: a
                       // drawing that exists and is not approved is a call
                       // somebody owes, and skipping the step is not a way to
@@ -1817,11 +1973,7 @@ function SpecEditorPage() {
                 >
                   {chooseRoute.isPending || checkingRepo || sendToStudio.isPending
                     ? "Sending"
-                    : route === "design"
-                      ? designIsDoneAndApproved
-                        ? "Send it to Build"
-                        : "Hand it to Design"
-                      : "Send it straight to Build"}
+                    : story.label}
                 </Button>
               </Actions>
 
@@ -1982,7 +2134,27 @@ function SpecEditorPage() {
             if (!genTasks.isPending) genTasks.mutate();
           }}
         >
-          {tasksQ.isLoading ? null : orderedTasks.length === 0 ? (
+          {/* A FAILED READ MUST NEVER RENDER AS AN EMPTY STATE, and this is the
+              P1 on the surface. The branch was `isLoading ? null : length === 0
+              ? <Empty>` with no error arm at all, so any failure of `listTasks`
+              printed "No tasks yet. Break the spec into tasks when it is settled
+              enough to build." That sentence is an INSTRUCTION built on a claim
+              the page could not make: it tells a person to press the Planner on
+              a spec that may already carry a full graph, and pressing it deletes
+              every generated task and writes a new set (`generateTaskGraph`
+              deletes where `seq is not null`). So the honest cost of this defect
+              was not a wrong word, it was a destructive action recommended on
+              the strength of an unhandled error.
+              The retry is the read's own, not the Planner's: nothing needs to be
+              regenerated, the list simply has to be fetched again. */}
+          {tasksQ.isError ? (
+            <Failed onRetry={() => void tasksQ.refetch()}>
+              The work on this spec did not load, so nothing here can say whether it has any.{" "}
+              {(tasksQ.error as Error)?.message ?? "No reason was reported."}
+            </Failed>
+          ) : tasksQ.isLoading ? (
+            <Loading>Reading the work this spec implies.</Loading>
+          ) : orderedTasks.length === 0 ? (
             <Empty>
               No tasks yet. Break the spec into tasks when it is settled enough to build.
             </Empty>

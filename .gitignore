@@ -219,3 +219,15 @@ design-reference/Latest Design System - v3 /
 /HANDOFF-ENGINEERING.md
 /DESIGN-LANE-STATUS.md
 /POST-LAUNCH.md
+
+# Lovable's plan-mode scratch. Calling `send_message` with plan_mode writes a
+# plan file here, named with a date, and docs-doctor hard-FAILS on a dated
+# filename. One was committed on 2026-08-10 (.lovable/plan/v3-v1-as-12-...md)
+# and fails `bun run docs:check` for every lane on every run until it is
+# untracked. Ignoring the directory stops the next one; the committed one still
+# needs `git rm --cached`.
+#
+# Ignored rather than renamed because the plan is scratch for a single agent
+# turn, not a document anybody reads later. `.lovable/project.json` and
+# `.lovable/mcp/manifest.json` stay TRACKED - those are real project config.
+/.lovable/plan/

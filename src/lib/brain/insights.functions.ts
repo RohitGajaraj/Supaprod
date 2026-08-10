@@ -26,12 +26,16 @@ const FRESH_MS = 30 * 60 * 1000; // reuse an insight derived within the last 30 
  * `INELIGIBLE_STATUSES` below -- and one of the TWO in that list that nothing
  * in src/ writes at all, because `done` is equally unwritten. The only
  * theme-status writes anywhere are `new`/`dismissed` (the setThemeStatus enum,
- * discovery.functions.ts:548, applied at :576), `merged` (:671) and `promoted`
- * (:1059). CITED BY LINE ONLY BECAUSE THE PREDICATES ARE UNIQUE: all four were
- * re-checked on 2026-08-06 and discovery.functions.ts is under active edit, so
- * grep the predicate, not the number -- `z.enum(["new", "dismissed"])`,
- * `.update(update)`, `.update({ status: "merged" })`, `.update({ status:
- * "promoted" })`. Each matches exactly once in that file.
+ * now applied in `setThemeStatusCore`), `merged` (`attachThemeToOpportunityCore`)
+ * and `promoted`. LINE NUMBERS DELIBERATELY DROPPED, and the reason is that they
+ * went stale exactly as predicted: discovery.functions.ts is under active edit
+ * and the four cited lines (548/576/671/1059) all moved on 2026-08-10 when the
+ * triage handlers were extracted into testable cores. Grep the predicate, not
+ * the number -- `z.enum(["new", "dismissed"])`, `.update(update)`,
+ * `.update(settleUpdate)`, `.update({ status: "promoted" })`. Each matches
+ * exactly once in that file, re-checked 2026-08-10. (The merge predicate was
+ * `.update({ status: "merged" })` until that date, when the merge write gained
+ * the `status_reason` note and the literal stopped being one.)
  *
  * Re-measured through the Lovable MCP on 2026-08-06, second pass of the day: the
  * live theme statuses are new 164, active 64, investigating 14, at_risk 9,

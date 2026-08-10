@@ -90,8 +90,32 @@ const LAYERS: Layer[] = [
     // straight off to the section that proves it.
     name: "the loop",
     claim: "It runs the whole lifecycle.",
+    /* A CYCLE WITH TWO WAYS IN, NOT A LINE THAT STARTS AT DISCOVER.
+     * Founder-approved 2026-08-10. Copy only — the stations and the engine are
+     * unchanged, and the default entry point for a new run has not moved.
+     *
+     * This read "Discover to ship to learn, one governed pass", which draws a
+     * line with a beginning. Two things are wrong with that.
+     *
+     * FIRST, OUR OWN DATABASE CONTRADICTS IT. Measured on production lineage
+     * with demo workspaces excluded, Decide's single largest inbound source is
+     * already LEARN -- 36 real edges against 9 from opportunities. The end of
+     * the line feeds its start four to one. So the picture implies a beginning
+     * that mostly is not used, and a reader who arrives with a hypothesis they
+     * want to test cheaply is told, wrongly, that the product wants them to go
+     * and do discovery first.
+     *
+     * SECOND, A HEAVILY-STAGED LIFECYCLE DIAGRAM IS THE VISUAL SIGNATURE OF
+     * SAFe, and this exact buyer is in the middle of tearing that out. We were
+     * paying that association for a picture the data does not support.
+     *
+     * The operator framing that produced this, and the reason the two doors are
+     * peers rather than a main path and an exception: planning did not
+     * disappear, it moved downstream of the evidence instead of upstream of it.
+     * Build then Learn is not a shortcut. It is what you do when building the
+     * thing is cheaper than arguing about it. */
     context:
-      "Discover to ship to learn, one governed pass. Agents do the work in your own stack. You make every call that matters.",
+      "Two ways in: start at Discover when the problem is new, or Build and Learn when it is cheaper to try than to argue. Either way the loop closes, and what you learn re-ranks what comes next.",
     hue: "#6cb0f5",
   },
   {

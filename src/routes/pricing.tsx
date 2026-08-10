@@ -926,7 +926,7 @@ function PricingPage() {
             href="/#join"
             style={{ fontSize: 11, color: "var(--ink-subtle, #6b6457)", textDecoration: "none" }}
           >
-            Request access -&gt;
+            Request access &rarr;
           </a>
         </footer>
       </div>

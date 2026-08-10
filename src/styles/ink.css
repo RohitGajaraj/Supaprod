@@ -450,6 +450,49 @@
   --sp-seen-rule: var(--sp-gate);
   --sp-seen-weight: 1px;
   --sp-seen-fade: rgba(255, 107, 44, 0.14); /* the wash below the rule */
+
+  /* ---- Stacking order ----
+   * SALVAGED 2026-08-10 from src/styles/design-tokens.css, which a PARALLEL
+   * DESIGN SESSION wrote against the same brief on the same day and which is
+   * now deleted. That file was imported by nothing: it declared a second token
+   * namespace, a set of `.text-sm` / `.text-primary` / `.font-bold` utilities
+   * that collide by name with the Tailwind classes this app actually uses, and
+   * bare `html` / `body` / `input` element rules that would have overridden
+   * Preflight everywhere. Wiring it in would have fractured the system rather
+   * than extended it. One idea in it was genuinely load-bearing and missing
+   * here, and this is that idea. What was rejected, and why, is recorded in
+   * docs/design/STEP-0-2-COMPLETE.md so the other lane's work is not lost.
+   *
+   * THE GAP IT FOUND. This system has never named what stacks above what. The
+   * consequence is eleven bare z-index values across shell.css and
+   * primitives.css (30, 50, 60, 62, 70, 70) and two more inline in
+   * CommandPalette.tsx (80, 81), none of which say what they outrank or why.
+   * Two of them are the same number on two different objects, which means the
+   * winner is decided by the order the rules happen to appear in the file. That
+   * is a layout accident, not a decision, and it is exactly the class of thing
+   * this file exists to write down.
+   *
+   * THE VALUES ARE THE SHIPPED ONES, NOT THE ONES THE OTHER SESSION PROPOSED.
+   * Its scale could not be adopted: it put `--z-dropdown` and `--z-tooltip` on
+   * the same number, so a tooltip over a menu was a coin flip, and it put modal
+   * content at 50 UNDER sticky at 100, so a dialog would open behind a pinned
+   * header. Renaming numbers that already ship costs nothing and moves nothing;
+   * importing a broken ladder would have moved everything.
+   *
+   * THIS BAND IS THE APP FRAME'S OWN, AND IT ENDS AT 70. Radix portals to
+   * document.body and stacks on the Tempo layer's `--ds-z-*` scale, which starts
+   * at 200 (drawer) and runs to 99999 (tooltip). Everything below is deliberately
+   * beneath all of it, because a dialog or a toast has to cover the frame it was
+   * summoned from. Do not raise anything here past 70 to win a fight with a
+   * portal: that fight is lost by design and the answer is the `--ds-z-*` stop.
+   *
+   * Pure ordering, so it is theme invariant and defined once. A stacking order
+   * that changed between themes would reorder the screen on a toggle. */
+  --sp-z-dock: 30; /* the composer dock, above the work region it sits on */
+  --sp-z-tip: 50; /* the rail's label, over the row it names */
+  --sp-z-summon: 60; /* a summoned full-viewport overlay: the board */
+  --sp-z-sheet: 62; /* a side sheet, above a board that may have opened it */
+  --sp-z-menu: 70; /* a menu, the topmost thing inside the frame. See Q3 */
 }
 
 /* ---- Light ----
@@ -514,10 +557,12 @@
 
   /* ---- Paper values for the 2026-08-10 additions ----
    * Only the tokens that RESOLVE TO A COLOUR appear here. The ring geometry,
-   * the density steps and the tint ratios are facts about the shape of a
-   * control, not about the ground it sits on: if they changed between themes
-   * the layout would shift when someone flips the toggle, which is a bug the
-   * light theme has been careful to avoid everywhere else in this file.
+   * the density steps, the tint ratios and the stacking order are facts about
+   * the shape of a control, not about the ground it sits on: if they changed
+   * between themes the layout would shift when someone flips the toggle, which
+   * is a bug the light theme has been careful to avoid everywhere else in this
+   * file. A stacking order in particular must not vary, or the screen would
+   * reorder itself on a toggle.
    *
    * The provenance tokens are absent on purpose. --sp-eviq-mine resolves
    * through --sp-gate, --sp-eviq-inferred through --sp-stage-build and
@@ -566,6 +611,15 @@
  *    prototype's 550 and 650 render as 600 and 700 and the system is
  *    four weights. Either 700 goes (identity monograms drop to 600) or
  *    the rule reads four. Encoded as what renders today.
+ *
+ * 3. Two objects share stop 70. `.sp-menu` is a menu and `.sp-keys` is
+ *    the shortcut sheet, and shell.css says of the latter that it is
+ *    "built on the board panel's geometry ... because the two are the
+ *    same object". If that is true then `.sp-keys` belongs at
+ *    --sp-z-summon with the board, and the two would stop tying. It is
+ *    left where it ships because moving it changes which surface wins
+ *    when both are open, and that is a product judgement rather than a
+ *    tokenizing one. Recorded, not decided.
  * =================================================================== */
 
 /* ===================================================================

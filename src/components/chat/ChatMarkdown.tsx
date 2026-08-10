@@ -109,7 +109,13 @@ const components: Components = {
   h3: ({ children }) => <h3 className="mb-1 mt-3 text-heading-14 text-foreground">{children}</h3>,
   h4: ({ children }) => <h4 className="mb-1 mt-3 text-heading-14 text-foreground">{children}</h4>,
   blockquote: ({ children }) => (
-    <blockquote className="my-2 border-l-2 border-border pl-3 italic text-muted-foreground">
+    // No left rule and no italic (founder ruling 2026-08-10). A 2px bar plus
+    // muted italic text is the most recognisable machine-written blockquote
+    // there is. Quoted text sits on a sunken ground instead, matching the code
+    // block below, which is already this file's idiom for borrowed text.
+    // Italic also costs readability over more than a line or two, which is
+    // most of what gets quoted into a chat.
+    <blockquote className="my-2 rounded-sm bg-muted/40 px-3 py-2 text-muted-foreground">
       {children}
     </blockquote>
   ),

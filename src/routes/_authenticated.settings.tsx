@@ -32,18 +32,20 @@
  *    surface whose job is "look at things", which question 1 says is the finding
  *    rather than the design.
  *
- *    WHAT LEADS INSTEAD, changed 2026-08-06: /settings opens on Autonomy and
- *    approvals, not Profile. Question 1 says the sentence in the visitor's head
- *    is "stop asking me before it edits code"; Autonomy is the pane that answers
- *    it, and it is the only pane whose entire content is standing policy.
- *    Profile is identity and appearance, filled once at onboarding and then, by
- *    the rows, never returned to - of 16 profiles, none has moved working hours
- *    off the 9-18 default and none has written a voice anchor. Opening every
- *    visit on the pane nobody comes back for, with the pane they came for
- *    fourteen tab stops away, was the "randomly designed" the founder named.
- *    Profile keeps its door, its address and its place in the account menu. The
- *    defence in full, with the grouping it belongs to, is the header of
- *    lib/settings-sections.ts, which is now the only place the IA is written.
+ *    WHAT LEADS, settled 2026-08-10 after a pass at the opposite: /settings
+ *    opens on Profile. The 2026-08-06 change led on Autonomy and approvals,
+ *    because question 1 says the sentence in the visitor's head is "stop asking
+ *    me before it edits code". True, and still the wrong default. A bare
+ *    /settings is an address people ARRIVE at - the account menu, `g s`, the
+ *    /notifications redirect, a palette entry saying only "Settings" - and
+ *    Autonomy is the governance pane, the one a security reviewer is walked
+ *    through. Somewhere that consequential is a destination you choose. Autonomy
+ *    also stopped being an editor in the same pass that gave /boundary the one
+ *    home, so leading on it now means leading on a read-only restatement of
+ *    another surface. It keeps the FIRST door in the nav, so Home reaches it in
+ *    one keypress. The defence in full, with the grouping it belongs to, is the
+ *    header of lib/settings-sections.ts, which is the only place the IA is
+ *    written.
  *
  * 3. KEEP / MOVE / KILL, every element:
  *    KEEP - profile identity and working hours (working hours ARE quiet hours,
@@ -81,14 +83,24 @@
  *      no server function; the workspace-bindings summary that duplicated Sync;
  *      the avatar identity header sitting above the fields holding the same
  *      name; every animate-pulse skeleton.
- *    MOVE (needs another agent to receive it) -
- *      · the agent roster and the autonomy controls -> /crew, which a parallel
- *        lane owns. They are left exactly as they are here, deliberately, so
- *        that lane can lift them without a merge fight.
+ *    MOVED, 2026-08-10, and this is the receipt for the line that used to sit
+ *      here saying it was pending:
+ *      · the per-agent tool-reach control -> /crew, which already had it. What
+ *        stays is a READ of the same rows under /crew's own query key, and a
+ *        door per agent. See the RosterSection header for the second thing that
+ *        went with it, which was worse than the duplication: a posture this
+ *        page GUESSED at from the agent catalog rather than read from the
+ *        stored dial.
+ *      · every tool boundary -> /boundary, the one home for it by founder
+ *        ruling. Autonomy states what that boundary currently allows and links
+ *        to it; it no longer offers a second set of levers in a second
+ *        vocabulary over the same stored value.
+ *    STILL PENDING, unmoved and honestly flagged -
  *      · the credit debit ledger and per-product attribution -> Engine room,
  *        Spend. Purchases stay, because the purchase is made here.
  *      · Members and Team duplicate /admin. Left rendering because /admin is
- *        gated behind being an admin.
+ *        gated behind being an admin, so a workspace owner who is not a
+ *        platform admin would otherwise have nowhere to manage their own people.
  *
  * 4. WHAT IS ONE CLICK AWAY INSTEAD OF ON THE SURFACE:
  *    Each agent's lessons and run history (/crew) · the credit debit ledger and
@@ -148,12 +160,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
-import {
-  agentBlurb,
-  agentDisplayName,
-  catalogEntry,
-  SPECIALIST_CATALOG,
-} from "@/lib/agent-vocabulary";
+import { agentDisplayName, catalogEntry, SPECIALIST_CATALOG } from "@/lib/agent-vocabulary";
 import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { useDensity } from "@/hooks/use-density";
@@ -164,7 +171,6 @@ import { useAvatarChoice } from "@/hooks/use-avatar-choice";
 import { orbBackground, AVATAR_VARIANTS, defaultAvatarVariant } from "@/components/supaprod/Avatar";
 
 import { getProfile, updateProfile } from "@/lib/profile.functions";
-import { listAgents, setAgentToolCap } from "@/lib/agents.functions";
 import { MODELS, AUTO_MODEL } from "@/lib/ai/models";
 import {
   listApiKeys,
@@ -218,6 +224,8 @@ import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
 import { ControlsPanel } from "@/components/governance/ControlsPanel";
 import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
+import { ARC_CHOICE } from "@/components/crew/crew-words";
+import { listCrew } from "@/lib/crew.functions";
 
 import {
   Actions,
@@ -567,12 +575,20 @@ function SettingsPage() {
         {/* No door in the index; the address still answers so old links land. */}
         {active === "memory" && <MemorySection onOpen={() => navigate({ to: "/brain" })} />}
 
-        {active === "staff" && <RosterSection />}
+        {active === "staff" && (
+          <RosterSection
+            onOpenCrew={(slug) => navigate({ to: "/crew", search: slug ? { agent: slug } : {} })}
+          />
+        )}
         {active === "autonomy" && (
           <>
             <PageHead
               title="Autonomy and approvals"
-              sub="Set the boundary once here, and the crew stops asking inside every run."
+              // It no longer says "set the boundary here". The boundary has one
+              // home and this is not it; what this pane does is state what that
+              // boundary currently allows, beside the two things that ARE set
+              // here and nowhere else: the kill switch and the auto-pipelines.
+              sub="What the crew may do without you, what routes itself, and the switch that stops all of it."
             />
             <ControlsPanel onOpenQueue={() => navigate({ to: "/approvals" })} />
           </>
@@ -1180,188 +1196,178 @@ function MemorySection({ onOpen }: { onOpen: () => void }) {
 }
 
 /* ================================================================== *
- * Agents - roster reach, models, keys
+ * Agents - the roster, models, keys
  *
- * The Crew lane is lifting the roster and the autonomy controls onto
- * /crew. Left exactly as they are so that lift is a move rather than a
- * merge.
+ * THE ROSTER STOPPED BEING A SECOND EDITOR, 2026-08-10.
+ *
+ * It rendered a per-agent tool-reach Select writing `setAgentToolCap` - the
+ * same column /crew writes, from a page whose own header already conceded the
+ * move was pending and never made. Worse, the POSTURE beside each name was
+ * invented here: `defaultPosture` derived "runs alone / asks first / needs
+ * review" from the agent's station in the catalog, so a workspace that had
+ * actually pulled an agent back to "everything waits for you" was told by this
+ * page that it ran alone. A governance surface guessing at a boundary is a
+ * worse defect than a duplicated control, because a guess is unfalsifiable
+ * from the screen.
+ *
+ * Both are gone. This pane now reads `listCrew` - the same server function
+ * under the same query key /crew uses, so the two share one cache entry - and
+ * states the real stored dial per agent, in the shared vocabulary. Every row
+ * is a door to the one page that can change it.
+ *
+ * WHAT IT KEEPS, deliberately: the census, and one line per agent. A VP
+ * standing in Settings still has to be able to answer "how much of my crew
+ * runs unattended" without leaving the surface they are on. Removing the
+ * duplicate control is the fix; removing the ANSWER would have been a
+ * different bug wearing the fix's clothes.
  * ================================================================== */
 
-type AgentRow = {
-  id: string;
-  slug: string;
-  name: string;
-  role: string;
-  enabled: boolean;
-  max_tool_risk?: string | null;
-};
-
-// Per-agent blast-radius cap. Sets agents.max_tool_risk; the loop then drops
-// any tool whose tier exceeds the cap. Unrestricted (null) is the default.
-const TOOL_CAP_OPTIONS: { value: string; label: string }[] = [
-  { value: "", label: "Anything" },
-  { value: "low", label: "Low reach" },
-  { value: "medium", label: "Medium reach" },
-  { value: "high", label: "High reach" },
-];
-
-/** The DEFAULT oversight for the role, which is real product behaviour: agents
- *  that read or analyse run alone, agents that draft an artifact ask first, and
- *  agents that change code or deploy need review. A cap of "high" forces
- *  review. Never a fabricated per-tool state: the exact runtime mode is still
- *  resolved per tool by resolveApprovalMode. */
-function defaultPosture(entry: ReturnType<typeof catalogEntry>): "alone" | "asks" | "review" {
-  if (!entry) return "alone";
-  if (entry.conductor) return "alone";
-  if (entry.face === "critic") return "alone";
-  if (entry.station === "sense" || entry.station === "learn") return "alone";
-  if (entry.station === "build") return "review";
-  return "asks";
-}
-
-function approvalForAgent(
-  agent: AgentRow,
-  entry: ReturnType<typeof catalogEntry>,
-): { label: string; review: boolean } {
-  const posture = agent.max_tool_risk === "high" ? "review" : defaultPosture(entry);
-  if (posture === "review") return { label: "needs review", review: true };
-  if (posture === "asks") return { label: "asks first", review: false };
-  return { label: "runs alone", review: false };
-}
-
-function AgentReach({ agent }: { agent: AgentRow }) {
-  const qc = useQueryClient();
-  const fSet = useServerFn(setAgentToolCap);
-  const m = useMutation({
-    mutationFn: (v: string) =>
-      fSet({
-        data: {
-          agentId: agent.id,
-          maxToolRisk: v === "" ? null : (v as "low" | "medium" | "high"),
-        },
-      }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["agents"] });
-      toast(`${agent.name}: tool reach updated`);
-    },
-    onError: (e) => toast((e as Error).message),
+function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => void }) {
+  const { activeWorkspace } = useWorkspace();
+  const fList = useServerFn(listCrew);
+  // Same key, same function, same cache entry as /crew. Not "a read that
+  // agrees with it" - the identical one.
+  const crew = useQuery({
+    queryKey: ["crew", "roster", activeWorkspace?.id ?? null],
+    queryFn: () => fList({ data: { workspaceId: activeWorkspace?.id ?? null } }),
+    staleTime: 30_000,
   });
-  return (
-    <Select
-      value={agent.max_tool_risk ?? ""}
-      disabled={m.isPending}
-      onChange={(e) => m.mutate(e.target.value)}
-      aria-label={`How far ${agent.name} may reach`}
-      style={{ width: 150 }}
-    >
-      {TOOL_CAP_OPTIONS.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </Select>
-  );
-}
 
-function RosterSection() {
-  const fAgents = useServerFn(listAgents);
-  const agentsQ = useQuery({ queryKey: ["agents"], queryFn: () => fAgents() });
+  const head = (sub: React.ReactNode) => <PageHead title="Roster" sub={sub} />;
 
-  if (agentsQ.isLoading) {
+  if (crew.isLoading) {
     return (
       <>
-        <PageHead title="Roster" sub="How far each agent's tools may reach." />
+        {head("Reading the boundary in force.")}
         <Loading>Reading the roster.</Loading>
       </>
     );
   }
 
-  if (agentsQ.error) {
+  if (crew.isError) {
     return (
       <>
-        <PageHead title="Roster" sub="How far each agent's tools may reach." />
-        <Failed onRetry={() => void agentsQ.refetch()}>
-          The roster did not load. {(agentsQ.error as Error)?.message ?? "The read failed."}
+        {head("The roster did not load.")}
+        <Failed onRetry={() => void crew.refetch()}>
+          Nothing below would be the real boundary.{" "}
+          {(crew.error as Error)?.message ?? "The read failed."}
         </Failed>
       </>
     );
   }
 
-  const rows = ((agentsQ.data?.agents ?? []) as AgentRow[]).filter(
-    (a) => catalogEntry(a.slug)?.status !== "deprecated",
-  );
+  // Read down the loop (station order, cast then conductor), not by insert
+  // order. An agent the catalog has never heard of still renders, at the end.
+  const catOrder = new Map(SPECIALIST_CATALOG.map((c, i) => [c.slug, i]));
+  const members = [...(crew.data?.members ?? [])]
+    .filter((m) => catalogEntry(m.slug)?.status !== "deprecated")
+    .sort((a, b) => (catOrder.get(a.slug) ?? 999) - (catOrder.get(b.slug) ?? 999));
 
-  if (rows.length === 0) {
+  if (members.length === 0) {
     return (
       <>
-        <PageHead title="Roster" sub="How far each agent's tools may reach." />
-        <Empty>No agents in this workspace yet. They arrive with your first mission.</Empty>
+        {head("Nobody has a row here yet.")}
+        <Empty action={<Button onClick={() => onOpenCrew(null)}>Open Crew</Button>}>
+          This account has no agent rows, so there is no boundary to read. They arrive with the
+          first mission that needs one, already running on the default policy.
+        </Empty>
       </>
     );
   }
 
-  // Read down the loop (station order, cast then conductor), not by insert
-  // order.
-  const catOrder = new Map(SPECIALIST_CATALOG.map((c, i) => [c.slug, i]));
-  const ordered = [...rows].sort(
-    (a, b) => (catOrder.get(a.slug) ?? 999) - (catOrder.get(b.slug) ?? 999),
-  );
-
-  // The boundary currently in force, derived from the same rule each row shows.
-  const modes = ordered.map((a) => approvalForAgent(a, catalogEntry(a.slug)));
-  const alone = modes.filter((m) => m.label === "runs alone").length;
-  const asks = modes.filter((m) => m.label === "asks first").length;
-  const review = modes.filter((m) => m.review).length;
+  // The boundary in force, counted off the STORED dial rather than off the
+  // station a catalog file happens to file each agent under.
+  const on = members.filter((m) => m.enabled);
+  const alone = on.filter((m) => m.arc === "trusted" || m.arc === "ambient").length;
+  const asks = on.filter((m) => m.arc === "proving" || m.arc === "observing").length;
+  const off = members.length - on.length;
+  const asking = members.filter((m) => m.asking.length > 0).length;
+  // Exactly one mark on a screen may blink, and it belongs to the first thing
+  // actually waiting on a person.
+  const blinkSlug = members.find((m) => m.asking.length > 0)?.slug ?? null;
 
   return (
     <>
-      <PageHead
-        title="Roster"
-        sub={
-          <>
-            <Num>{alone}</Num> run alone, <Num>{asks}</Num> ask first, and <Num>{review}</Num> wait
-            for you on anything risky.
-          </>
-        }
-      />
+      {head(
+        <>
+          <Num>{alone}</Num> run without asking you, <Num>{asks}</Num> ask first
+          {off > 0 ? (
+            <>
+              , <Num>{off}</Num> are switched off
+            </>
+          ) : null}
+          .
+        </>,
+      )}
 
-      <Block title="How far each one may reach">
-        {ordered.map((a) => {
-          const entry = catalogEntry(a.slug);
-          const approval = approvalForAgent(a, entry);
-          const off = a.enabled === false;
-          return (
-            <Line
-              key={a.slug}
-              label={
-                <span style={{ display: "flex", alignItems: "center", gap: "var(--sp-space-3)" }}>
-                  <AgentMark slug={a.slug} name={a.name} state={off ? "quiet" : "idle"} />
-                  {agentDisplayName(a.slug, a.name)}
-                </span>
-              }
-              sub={
-                off ? (
-                  "Off. Turning an agent back on is set in Autonomy."
-                ) : (
-                  <>
-                    <span className={approval.review ? "sp-warn" : undefined}>
-                      {approval.label}
-                    </span>
-                    {" · "}
-                    {agentBlurb(a.slug) ?? a.role}
-                  </>
-                )
-              }
-            >
-              <AgentReach agent={a} />
-            </Line>
-          );
-        })}
+      <Block
+        title="Who works here"
+        // The different fact, not the census again: where this is changed, and
+        // what is currently waiting on a person.
+        sub={
+          asking > 0 ? (
+            <>
+              <Num>{asking}</Num> {asking === 1 ? "is asking" : "are asking"} for more room. Open
+              one to rule on it.
+            </>
+          ) : (
+            "How much rope each one gets is set on Crew, one agent at a time."
+          )
+        }
+        more="Open Crew"
+        onMore={() => onOpenCrew(null)}
+      >
+        {members.map((m) => (
+          <Row
+            key={m.slug}
+            tight
+            marks={
+              <AgentMark
+                slug={m.slug}
+                name={m.name}
+                state={
+                  m.asking.length > 0
+                    ? m.slug === blinkSlug
+                      ? "gate"
+                      : "waiting"
+                    : m.runs.running > 0
+                      ? "running"
+                      : !m.enabled
+                        ? "quiet"
+                        : "idle"
+                }
+              />
+            }
+            lead={agentDisplayName(m.slug, m.name)}
+            // The DIFFERENT fact: the dial actually stored, whose choice it was,
+            // and what this one has done here. Never the blurb, which the
+            // roster on Crew already carries beside a picture of it.
+            sub={
+              !m.enabled ? (
+                "Switched off. Nothing dispatches it."
+              ) : (
+                <>
+                  {ARC_CHOICE[m.arc]}
+                  {m.arcIsDefault ? " · our default, not one you set" : ""}
+                  {m.runs.total > 0 ? (
+                    <>
+                      {" · "}
+                      <Num>{m.runs.total}</Num> runs here
+                    </>
+                  ) : (
+                    " · no runs here yet"
+                  )}
+                </>
+              )
+            }
+            onClick={() => onOpenCrew(m.slug)}
+          />
+        ))}
       </Block>
 
       <Empty>
-        A new tool asks for permission the moment it is first needed, inside the run. What each
-        agent has learned, and every run it has taken, live on Crew.
+        A new tool asks for permission the moment it is first needed, inside the run. Every tool
+        boundary across the whole crew at once lives on the boundary, not here.
       </Empty>
     </>
   );
