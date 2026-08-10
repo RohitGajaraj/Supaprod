@@ -6,6 +6,32 @@
 >
 > _Archived record of what was sent. Do not edit; copy this file if a later cycle needs a draft, because any interview will be against these answers._
 >
+> ---
+>
+> ## ⚠️ Read this before the interview — corrected 2026-08-10
+>
+> **Invitations go out by 2026-08-30, so this is live.** The answers below stay exactly as filed. A full read of the market falsified one claim in Q13 and dated the numbers in Q9 and Q15.
+>
+> **1. Q13 closes on the retired moat claim.** *"Whoever owns it owns the record of how companies actually decided things, and that record is the one thing a better model cannot generate for you afterward."*
+>
+> That is false and it is checkable. The reasons behind a decision survive — in Slack threads, in call recordings — and someone rebuilt a year of them with an agent he made in two days. A better model can generate that record for you afterward.
+>
+> **What is true, and it is a sharper close for the same paragraph:** the record can be rebuilt. What cannot be rebuilt is what a team expected *before* the outcome landed. Almost nobody writes that down, so there is nothing to go back to. It only exists if something caught it at the moment of the call.
+>
+> **2. Same paragraph, softer point.** *"This layer gets settled in the next two years, not the next ten"* is a prediction stated as a fact. Say you think it settles soon and that this is why you are working on it now, not that it is going to.
+>
+> **3. "It learns" is present tense.** Q13 and Q15 both say it tells you what worked and warns you before you repeat what did not. **There is no history yet** — capture began 2026-08-10. Say **wired and proven, and it starts accruing on first real use.** Q15 already carries the honest version (*"a system whose whole value is accumulated decision history teaches you nothing while it is empty"*); reuse that sentence.
+>
+> **4. The engine run is not unbroken.** *"Sense, decide, define, build, ship and learn"* is broken in two places: Discover promotes 3 of 86 themes, and Build writes no changeset or deployment links. **The decide-and-learn half is real and always has been.** Do not walk the full station demo on a live account — that path crosses exactly the broken region.
+>
+> **5. If the DIY objection comes up** — *why not just use a folder of notes, since agents drive simple tools better?* — the answer is: simple files are easy for an agent to write and impossible for an agent to govern. A folder works fine for one person. It stops at the second person, or the first fleet of agents.
+>
+> **6. Numbers.** Q9 and Q15 say **4,297 commits, 410 migrations, eight weeks**. Those were true on 2026-07-31. **Live on 2026-08-10: 4,876 commits, 508 migrations, nine weeks** since the first commit on 2026-06-03. Quote tonight's figures in a call, and re-derive first: `git rev-list --count origin/main`.
+>
+> _Q14's "I am the user" line is **fine** and stays. It answers why he is the right person to build this, not how he knows anyone wants it — which is the version that does not survive._
+>
+> ---
+>
 > ⚠️ **Before any interview:** Q10's account of the four discarded versions was reconstructed from his own written record, not dictated. Confirm the order is true, because a partner may ask which version was which.
 >
 > _Form captured live from the real Airtable on 2026-07-31. Questions below are **verbatim**. Deadline was **2026-08-02, 11:59pm PT**._
@@ -147,6 +173,8 @@ Software built for agents instead of for humans. When the main user of a system 
 Why it matters now: this layer gets settled in the next two years, not the next ten. Whoever owns it owns the record of how companies actually decided things, and that record is the one thing a better model cannot generate for you afterward.
 ```
 
+> 🔴 **Falsified 2026-08-10 — see §1 and §2 of the correction block at the top.** *"The one thing a better model cannot generate for you afterward"* is not true of the record. The reasons survive in Slack and call recordings and have been rebuilt with a two-day agent. It **is** true of what a team expected before the outcome landed, because almost nobody writes that down. Everything above this closing line is good and stays.
+
 ### Q14. What expertise do you have related to this idea? Why are you the right person to work on this? *
 
 ```
@@ -232,6 +260,7 @@ I am building this either way. The Fellowship changes the speed and the people a
 2. **No brackets remain.** Every field is filled and submittable. Two optional upgrades, both worth doing if you have ten minutes: the real cause of death for one or two of the discarded versions (Q10), and one real name in the recruiting answer (Q17).
 3. Test `voyage@supaprod.ai / Supaprod!Voyage2026` in incognito on supaprod.ai. Confirm it lands populated with a live pending approval queue.
 4. Re-pull the commit count the hour you submit: `git rev-list --count HEAD`. It was 4,297 on 2026-07-31 and it moves daily.
+   > _**Live on 2026-08-10: 4,876 commits, 508 migrations, nine weeks.** Use `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l` — the migration count had drifted from 410 to 508 and nothing was re-deriving it._
 5. Confirm LinkedIn is current.
 6. Recount Q9 and Q10 against the 1,000-character limit after filling the brackets.
 7. Read every answer aloud once. Any sentence that sounds like a pitch deck gets rewritten as speech.

@@ -42,6 +42,11 @@ import { resolveBestAgentModelForUser } from "./platform-keys.server";
 import { buildNativeToolDefs } from "./tool-schemas.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { classifyFailureCode } from "@/lib/observability/gates";
+import {
+  countsAsResumption,
+  nextResumeCount,
+  runAttemptColumnsPresent,
+} from "./run-attempt.server";
 
 const MAX_RUNNING_PER_WORKSPACE = 5;
 
@@ -483,6 +488,23 @@ export async function runAgentLoop(
      * on their behalf or what came of it.
      */
     trackId?: string | null;
+    /**
+     * INSTRUMENT: which attempt at this work this run is, 1-based.
+     *
+     * ONLY a caller that actually counts attempts may pass it — the reactor
+     * reads `event_queue.attempt_count` (10 rows have retried in production),
+     * an orchestrated hop reads `mission_steps.attempts`. Everyone else leaves
+     * it undefined and the column stays NULL, which renders as "not measured".
+     *
+     * THIS DOES NOT DEFAULT TO 1, and the temptation to make it is the defect
+     * this parameter exists to avoid. A run cannot verify its own ordinal: a
+     * person re-asking the same goal in chat for the third time arrives here
+     * looking exactly like a first attempt, so writing 1 would manufacture a
+     * measurement out of an assumption. The brief asks for retries; a fabricated
+     * "every run is attempt 1" answers it with a number that is worse than the
+     * missing one, because it looks answered.
+     */
+    attempt?: number | null;
   },
 ): Promise<LoopResult> {
   const traceId = crypto.randomUUID();
@@ -532,6 +554,24 @@ export async function runAgentLoop(
       ? await resolveBestAgentModelForUser(supabase, userId)
       : input.model;
 
+  // INSTRUMENT: is the run row able to hold its own attempt/resume record yet?
+  // Asked ONCE here and reused by both inserts below. Cached per isolate, so
+  // this costs one query per Worker lifetime, and it is not optional: the
+  // migration that adds the columns is not applied, and PostgREST fails an
+  // entire insert that names a column the table does not have — which the
+  // `runInsertErr` throw below would turn into "no dispatch at all".
+  const runInstrumented = await runAttemptColumnsPresent(supabase);
+  /**
+   * `resume_count: 0` is a MEASUREMENT, not a placeholder, and it is the one
+   * number this path is entitled to write. The row is being created here, so it
+   * has demonstrably been resumed zero times. Contrast `attempt`, which is left
+   * NULL unless a caller counted: the difference is that one is a fact this
+   * function witnessed and the other is a claim about history it cannot see.
+   */
+  const instrumentation = runInstrumented
+    ? { attempt: input.attempt ?? null, resume_count: 0 }
+    : {};
+
   // Backpressure: cap concurrent running missions per workspace. Over-cap
   // missions are enqueued and promoted by the resume-runs sweeper.
   if (workspaceId) {
@@ -560,6 +600,7 @@ export async function runAgentLoop(
           ),
           mission_token_cap: input.missionTokenCap ?? null,
           model: resolvedModel,
+          ...instrumentation,
         })
         .select("id")
         .single();
@@ -597,6 +638,7 @@ export async function runAgentLoop(
       ),
       mission_token_cap: input.missionTokenCap ?? null,
       model: resolvedModel,
+      ...instrumentation,
     })
     .select("id")
     .single();
@@ -1541,6 +1583,48 @@ export async function resumeAgentLoop(
     .order("step_index", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  // INSTRUMENT: record that this run had to be picked up again.
+  //
+  // This is the ONE signal in the retry family the loop can measure without a
+  // dispatcher's help, and it is deliberately NOT called a retry: a resume
+  // continues THIS run from its checkpoint, while a retry is a different run at
+  // the same work. Conflating them would report the sweeper's ordinary rescue
+  // work as the agent failing and trying again.
+  //
+  // `run.status` is the status read BEFORE the promotion CAS above, which is
+  // what makes the distinction possible — by now the row says 'running' whether
+  // it was queued a second ago or evicted mid-step an hour ago. Everything here
+  // is best-effort and swallowed: a run must never fail to resume because its
+  // instrumentation could not be written.
+  if (await runAttemptColumnsPresent(supabase)) {
+    try {
+      if (countsAsResumption({ status: run.status as string, hasCheckpoint: !!cp })) {
+        const { data: current } = await supabase
+          .from("agent_runs")
+          .select("resume_count")
+          .eq("id", runId)
+          .maybeSingle();
+        const next = nextResumeCount(
+          (current as { resume_count?: number | null } | null)?.resume_count,
+        );
+        // Null means the row was never instrumented at birth, so there is no
+        // count to continue. See nextResumeCount: promoting a null to 1 would
+        // publish a lower bound dressed as a total.
+        //
+        // KNOWN AND LEFT: this read-modify-write can lose an increment if two
+        // sweeper ticks resume the same 'running' run at once (the promotion CAS
+        // above only guards the queued / waiting_approval transitions). The cost
+        // is an undercount on a friction metric; the alternative is an RPC for a
+        // number nothing gates on. It undercounts, which is the safe direction.
+        if (next !== null) {
+          await supabase.from("agent_runs").update({ resume_count: next }).eq("id", runId);
+        }
+      }
+    } catch (e) {
+      console.error("resume_count update failed:", e);
+    }
+  }
 
   const traceId = (cp?.state as { traceId?: string } | undefined)?.traceId ?? crypto.randomUUID();
   // Model resolution: prefer the stored run.model, then checkpoint state, then vault-aware

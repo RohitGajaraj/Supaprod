@@ -80,7 +80,7 @@ import { runRollbackRelease } from "@/lib/studio-rollbacks";
 import { stampSpecShippedOnStudioMerge } from "@/lib/studio.functions";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
-import { recordLineageSafe } from "@/lib/lineage.functions";
+import { recordDecisionOrigins, recordLineageSafe } from "@/lib/lineage.functions";
 // design.draft draws through the SAME generator the human path uses, so an
 // agent's drawing inherits the workspace design language and lands in the one
 // row (`prd_scaffolds`) the gate, the Design surface and both dispatch paths
@@ -3628,8 +3628,36 @@ const decisionRecord = def({
       .select("id")
       .single();
     if (error) throw new Error(error.message);
+    const decisionId = (data as { id: string }).id;
+    /**
+     * THE AGENT'S OWN CALL, PUT ON THE GRAPH.
+     *
+     * This tool is the Decide station's hand, and it already files both ids the
+     * schema models: `mission_id` from the run context and `prd_id` from the
+     * agent's argument. Both are written, because a call made during a mission
+     * about a spec is genuinely both, and each end answers a different reader —
+     * "what did this mission decide" and "what has been decided about this
+     * spec". The unique index keys on the pair plus the relation, so two edges
+     * from one decision never collide.
+     *
+     * After the insert and after `error` is checked, because supabase-js
+     * resolves a refused write: the throw above is what proves the row landed.
+     *
+     * `workspaceId` comes from the tool context — the workspace the run is
+     * executing in, and the same value the insert above filed the decision
+     * under. Not the column default, which would resolve the caller's default
+     * workspace and misfile the edge for any operator with two.
+     */
+    await recordDecisionOrigins(supabase, userId, {
+      decisionId,
+      missionId: missionId ?? null,
+      prdId: a.prd_id ?? null,
+      workspaceId: workspaceId ?? null,
+      createdByAgent: agentSlug ?? null,
+      rationale: "The artifact this agent's call was recorded against",
+    });
     return {
-      decision_id: (data as { id: string }).id,
+      decision_id: decisionId,
       title: a.title,
       alternatives_weighed: a.alternatives_considered.length,
     };

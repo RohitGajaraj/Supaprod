@@ -163,6 +163,129 @@ export async function recordLineageSafe(
   }
 }
 
+/**
+ * THE RELATION A DECISION'S ORIGIN EDGE CARRIES.
+ *
+ * Not a new word. `recordJudgment` (discovery.functions.ts) has written
+ * `opportunity --decided--> decision` since the judgment gate was built, and
+ * that edge has exactly this shape: PARENT is the artifact the call was made
+ * about, CHILD is the decision that recorded it. Reusing the spelling is what
+ * lets one query — `relation = 'decided'` — answer "what calls were recorded
+ * against this artifact" for a bet, a spec and a mission alike, instead of
+ * three readers each learning a different word.
+ *
+ * What it was weighed against, since a relation nobody argued about is how a
+ * vocabulary forks:
+ *   `produced`     mission -> changeset, a mechanical output. A judgment is not
+ *                  a build artifact and should not read as one.
+ *   `test_verdict` already occupies mission -> decision (test-station), and
+ *                  deliberately stays narrow: one specific verdict, not "a call
+ *                  was recorded here". Both survive, because `relation` is part
+ *                  of the unique index.
+ *   `documents`    capability_change -> decision, which the read layer folds
+ *                  into `relates-to`. Too weak: it asserts adjacency, and this
+ *                  edge asserts origin.
+ *   `informs` / `cites`  declared families, but both claim INFLUENCE. The spec
+ *                  did not influence its approval receipt; it is what the
+ *                  receipt is about.
+ *   `derived-from` declared, and its rendered voice ("gave rise to") is right.
+ *                  Rejected on spelling alone: written on a parent -> child row
+ *                  the literal string reads backwards, and this file already
+ *                  carries one documented exception of that kind.
+ */
+export const DECISION_ORIGIN_RELATION = "decided";
+
+/**
+ * THE EDGES A DECISION'S OWN FOREIGN KEYS ALWAYS IMPLIED AND NOTHING WROTE.
+ *
+ * `decisions` carries `prd_id` and `mission_id` — the two directions the schema
+ * genuinely models, every foreign key on a decision pointing at the artifact
+ * the call was made ABOUT. Measured against production 2026-08-10: 105 of 154
+ * real decisions carry `source_kind='mission'` and NOT ONE has an edge in
+ * `artifact_lineage` saying which mission. So the graph could not see the
+ * largest single source of decisions in the product, and every reading of the
+ * station chain under-measured Decide's real inbound.
+ *
+ * This is not the struck `decision -> prd` row. That one failed both cheap
+ * tests — no column could hold it and no door could supply the parent. These
+ * two pass both: the column exists on the child, and every door that creates a
+ * decision already has the parent id in hand at the moment it writes.
+ *
+ * `recordLineageSafe`, never `recordLineage`: a provenance stamp runs after the
+ * decision row already exists, and a transport failure must never fail the
+ * settle, the mission completion or the spec approval that produced it.
+ *
+ * WORKSPACE IS REQUIRED HERE rather than optional, which is the one thing this
+ * helper exists to enforce. `artifact_lineage.workspace_id` defaults to
+ * `current_user_default_workspace()` — the CALLER'S default, not the
+ * workspace the two artifacts live in. Those differ the moment a user belongs
+ * to more than one workspace, and an edge filed under the wrong one is read by
+ * the wrong reader forever after: the WM-F1 failure. Making the parameter
+ * required means a caller cannot omit it by not thinking about it; it can only
+ * pass null deliberately, and every caller today passes the PARENT artifact's
+ * own workspace.
+ *
+ * BOTH edges are written when a decision carries both ids — `decision.record`
+ * files a mission-scoped call against a spec routinely — because both are true
+ * and each answers a different reader's question.
+ */
+export async function recordDecisionOrigins(
+  supabase: SupabaseClient,
+  userId: string,
+  input: {
+    /** The decision row, AFTER its insert has been confirmed to have landed. */
+    decisionId: string;
+    missionId?: string | null;
+    prdId?: string | null;
+    /**
+     * The workspace the ARTIFACTS live in, not the writer's. Null only when the
+     * caller genuinely cannot name it, and then the column default fires — the
+     * behaviour this parameter exists to make visible rather than to hide.
+     */
+    workspaceId: string | null;
+    createdByAgent?: string | null;
+    rationale?: string | null;
+  },
+): Promise<void> {
+  if (!input.decisionId) return;
+  // Everything both edges share EXCEPT the two fields that name the hop. Those
+  // stay spelled out at each call below so `parent_kind: "mission"` and
+  // `child_kind: "decision"` sit in one object a reader (and the chain guard)
+  // can see together.
+  const common = {
+    relation: DECISION_ORIGIN_RELATION,
+    rationale: input.rationale ?? null,
+    created_by_agent: input.createdByAgent ?? null,
+    workspace_id: input.workspaceId,
+  };
+  /*
+   * Two spelled-out calls rather than a loop over a parents array. The loop was
+   * written first and is shorter, and it hides both hops from every grep in the
+   * repo: `parent_kind: "mission"` would appear nowhere, and the chain guard —
+   * which reads source text because there is no code to call when a hop is
+   * missing — cannot see a kind that only exists as a variable. A hop the guard
+   * cannot read is the exact failure this pair of edges was filed under.
+   */
+  if (input.missionId) {
+    await recordLineageSafe(supabase, userId, {
+      parent_kind: "mission",
+      parent_id: input.missionId,
+      child_kind: "decision",
+      child_id: input.decisionId,
+      ...common,
+    });
+  }
+  if (input.prdId) {
+    await recordLineageSafe(supabase, userId, {
+      parent_kind: "prd",
+      parent_id: input.prdId,
+      child_kind: "decision",
+      child_id: input.decisionId,
+      ...common,
+    });
+  }
+}
+
 type LineageEdge = {
   id: string;
   parent_kind: ArtifactKind;

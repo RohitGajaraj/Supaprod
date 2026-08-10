@@ -375,7 +375,68 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
     // Project resolution, one batched pass for every family that carries a
     // project_id (specs, opportunities, design gates directly; decisions only
     // indirectly via their prd_id -> prds.project_id).
-    const pendingDecisions = (decisionsRes.decisions ?? []).filter((d) => d.status === "pending");
+    /* ==================================================================
+     * THE SAME JUDGMENT WAS QUEUED TWICE, AND ONLY ONE OF THEM DID
+     * ANYTHING.
+     *
+     * Measured on production 2026-08-10: 172 decisions sat pending, 170
+     * of them `source_kind: 'mission'`. Of those, 155 belong to a
+     * mission whose own status is still 'proposed' - work nobody has
+     * agreed to run yet.
+     *
+     * A proposed mission ALREADY carries its own gate. studio.functions
+     * fetches proposed missions separately, precisely so their "Review
+     * and launch" stays reachable, and 228 of them are sitting there.
+     * That gate is the live one: launching is what spends money and
+     * starts work.
+     *
+     * The decision row beside it is a companion that moves nothing.
+     * `updateDecision` and `routeDecision` are its only resolvers and
+     * both do exactly one thing - flip a status, write a stage event.
+     * Verified at the database too, because application code could not
+     * settle it: `decisions_reactor_fanout` fires on INSERT only, does
+     * not branch on status, and there are zero enabled 'decision.made'
+     * subscriptions.
+     *
+     * So a person opening this queue was asked to judge the same
+     * proposal twice: once where pressing the button launches it, and
+     * once where pressing the button does nothing. The second copy is
+     * what made the queue look like 172 items of homework.
+     *
+     * FILTERED, NOT AUTO-APPROVED, and the difference matters. Marking
+     * these approved would assert that a human agreed to work they have
+     * not seen - consent they never gave, on a mission still awaiting
+     * launch. Hiding a duplicate claims nothing. The decision stays
+     * pending and honest; it simply stops being counted as a second
+     * call when the first one is still open.
+     *
+     * A decision REJOINS this queue the moment its mission leaves
+     * 'proposed', because then the launch gate is spent and the
+     * decision is the only remaining call on it.
+     * ================================================================== */
+    const rawPendingDecisions = (decisionsRes.decisions ?? []).filter(
+      (d) => d.status === "pending",
+    );
+    const decisionMissionIds = [
+      ...new Set(rawPendingDecisions.map((d) => d.mission_id).filter((x): x is string => !!x)),
+    ];
+    const proposedMissionIds = new Set<string>();
+    if (decisionMissionIds.length) {
+      const { data: proposedRows, error: proposedErr } = await supabase
+        .from("missions")
+        .select("id")
+        .in("id", decisionMissionIds)
+        .eq("status", "proposed");
+      // A FAILED READ MUST NOT HIDE A CALL. If we cannot tell which
+      // missions are still proposed, every decision stays in the queue:
+      // showing a duplicate is a nuisance, and dropping a real call
+      // because a lookup failed is a missed decision nobody sees.
+      noteReadError("proposed-mission dedup", proposedErr);
+      for (const r of (proposedRows ?? []) as Array<{ id: string }>) proposedMissionIds.add(r.id);
+    }
+    const pendingDecisions = rawPendingDecisions.filter(
+      (d) => !(d.mission_id && proposedMissionIds.has(d.mission_id)),
+    );
     const decisionPrdIds = [
       ...new Set(pendingDecisions.map((d) => d.prd_id).filter((x): x is string => !!x)),
     ];

@@ -2,13 +2,14 @@
  * Phase 7: Accessibility Testing
  * Keyboard navigation, focus traps, aria-labels, color contrast
  */
-import { test, expect, Page } from '@playwright/test';
-import { login, takeScreenshot } from './helpers/auth';
+import { test, expect, Page } from "@playwright/test";
+import { login, takeScreenshot } from "./helpers/auth";
+import { becomesVisible } from "./helpers/waits";
 
 async function checkColorContrast(page: Page) {
   return await page.evaluate(() => {
     // Sample key text elements and check approximate contrast
-    const textElements = document.querySelectorAll('h1, h2, h3, p, span, label, button');
+    const textElements = document.querySelectorAll("h1, h2, h3, p, span, label, button");
     const samples: {
       tag: string;
       color: string;
@@ -37,25 +38,29 @@ async function checkColorContrast(page: Page) {
 
 async function checkAriaLabels(page: Page) {
   return await page.evaluate(() => {
-    const interactiveEls = document.querySelectorAll('button, a, input, select, textarea, [role="button"], [role="link"]');
+    const interactiveEls = document.querySelectorAll(
+      'button, a, input, select, textarea, [role="button"], [role="link"]',
+    );
     const missing: string[] = [];
     const hasLabel: string[] = [];
 
     interactiveEls.forEach((el) => {
-      const ariaLabel = el.getAttribute('aria-label');
-      const ariaLabelledBy = el.getAttribute('aria-labelledby');
-      const title = el.getAttribute('title');
+      const ariaLabel = el.getAttribute("aria-label");
+      const ariaLabelledBy = el.getAttribute("aria-labelledby");
+      const title = el.getAttribute("title");
       const textContent = el.textContent?.trim();
-      const placeholder = el.getAttribute('placeholder');
+      const placeholder = el.getAttribute("placeholder");
 
       const hasAccessibleName = ariaLabel || ariaLabelledBy || textContent || title || placeholder;
 
       if (!hasAccessibleName) {
         const tag = el.tagName;
-        const className = (el.className || '').toString().substring(0, 40);
+        const className = (el.className || "").toString().substring(0, 40);
         missing.push(`${tag}.${className}`);
       } else {
-        hasLabel.push(`${el.tagName}: ${ariaLabel || textContent?.substring(0, 20) || 'via-labelledby'}`);
+        hasLabel.push(
+          `${el.tagName}: ${ariaLabel || textContent?.substring(0, 20) || "via-labelledby"}`,
+        );
       }
     });
 
@@ -70,18 +75,18 @@ async function checkAriaLabels(page: Page) {
 async function checkSemanticHTML(page: Page) {
   return await page.evaluate(() => {
     const landmarks = {
-      main: document.querySelectorAll('main').length,
-      nav: document.querySelectorAll('nav').length,
-      header: document.querySelectorAll('header').length,
-      footer: document.querySelectorAll('footer').length,
-      aside: document.querySelectorAll('aside').length,
+      main: document.querySelectorAll("main").length,
+      nav: document.querySelectorAll("nav").length,
+      header: document.querySelectorAll("header").length,
+      footer: document.querySelectorAll("footer").length,
+      aside: document.querySelectorAll("aside").length,
     };
 
     const headingHierarchy: string[] = [];
     let prevLevel = 0;
     const headingViolations: string[] = [];
 
-    document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
+    document.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((h) => {
       const level = parseInt(h.tagName[1]);
       headingHierarchy.push(`${h.tagName}: "${h.textContent?.trim().substring(0, 40)}"`);
 
@@ -95,7 +100,7 @@ async function checkSemanticHTML(page: Page) {
   });
 }
 
-test.describe('Accessibility - Keyboard Navigation', () => {
+test.describe("Accessibility - Keyboard Navigation", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
   let authCookies: any;
@@ -108,81 +113,95 @@ test.describe('Accessibility - Keyboard Navigation', () => {
   });
 
   const surfaces = [
-    { path: '/today', name: 'today' },
-    { path: '/build', name: 'build' },
-    { path: '/settings', name: 'settings' },
-    { path: '/agents', name: 'agents' },
+    { path: "/today", name: "today" },
+    { path: "/build", name: "build" },
+    { path: "/settings", name: "settings" },
+    { path: "/agents", name: "agents" },
   ];
 
   for (const surface of surfaces) {
     test(`keyboard navigation on ${surface.path}`, async ({ page }) => {
       await page.context().addCookies(authCookies);
-      await page.goto(surface.path, { waitUntil: 'networkidle' });
+      await page.goto(surface.path, { waitUntil: "networkidle" });
 
-      if (page.url().includes('/login')) {
+      if (page.url().includes("/login")) {
         await login(page);
-        await page.goto(surface.path, { waitUntil: 'networkidle' });
+        await page.goto(surface.path, { waitUntil: "networkidle" });
       }
 
       // Tab through elements and track focus
       const focusPath: string[] = [];
       for (let i = 0; i < 10; i++) {
-        await page.keyboard.press('Tab');
+        await page.keyboard.press("Tab");
         const focused = await page.evaluate(() => {
           const el = document.activeElement;
           if (!el || el === document.body) return null;
           return {
             tag: el.tagName,
-            role: el.getAttribute('role'),
-            ariaLabel: el.getAttribute('aria-label'),
+            role: el.getAttribute("role"),
+            ariaLabel: el.getAttribute("aria-label"),
             text: el.textContent?.trim().substring(0, 30),
-            hasOutline: getComputedStyle(el).outline !== 'none' || getComputedStyle(el).boxShadow !== 'none',
+            hasOutline:
+              getComputedStyle(el).outline !== "none" || getComputedStyle(el).boxShadow !== "none",
           };
         });
         if (focused) {
-          focusPath.push(`${focused.tag}${focused.ariaLabel ? `[${focused.ariaLabel}]` : ''}: "${focused.text}" (ring:${focused.hasOutline})`);
+          focusPath.push(
+            `${focused.tag}${focused.ariaLabel ? `[${focused.ariaLabel}]` : ""}: "${focused.text}" (ring:${focused.hasOutline})`,
+          );
         }
       }
 
       console.log(`Focus path on ${surface.path}:`, focusPath);
-      await takeScreenshot(page, `a11y-keyboard-${surface.name}`, 'accessibility');
+      await takeScreenshot(page, `a11y-keyboard-${surface.name}`, "accessibility");
 
       // At least some focusable elements should exist
       expect(focusPath.length).toBeGreaterThan(0);
     });
   }
 
-  test('Escape key closes modals/dropdowns', async ({ page }) => {
+  test("Escape key closes modals/dropdowns", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'networkidle' });
+    await page.goto("/today", { waitUntil: "networkidle" });
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'networkidle' });
+      await page.goto("/today", { waitUntil: "networkidle" });
     }
 
     // Try to open a dialog if one exists
-    const dialogTrigger = page.locator('[data-testid*="dialog"], button[aria-haspopup="dialog"], [aria-haspopup="true"]').first();
+    const dialogTrigger = page
+      .locator('[data-testid*="dialog"], button[aria-haspopup="dialog"], [aria-haspopup="true"]')
+      .first();
     const hasDialogTrigger = await dialogTrigger.isVisible().catch(() => false);
 
     if (hasDialogTrigger) {
+      const dialog = page.locator('[role="dialog"], [aria-modal="true"]').first();
+
       await dialogTrigger.click();
-      await page.waitForTimeout(500);
-      const dialogOpen = await page.locator('[role="dialog"], [aria-modal="true"]').isVisible().catch(() => false);
+      // `locator.isVisible()` is a SNAPSHOT with no retry, so the old
+      // `click(); waitForTimeout(500); isVisible()` was betting the dialog
+      // mounted, animated in and painted inside 500ms. `becomesVisible` waits on
+      // the condition and turns only the timeout into `false` — which stays
+      // legal here, because the trigger selector is a heuristic and "this
+      // surface has no dialog" is a real outcome, not a failure.
+      const dialogOpen = await becomesVisible(dialog);
 
       if (dialogOpen) {
-        await takeScreenshot(page, 'a11y-modal-open', 'accessibility');
-        await page.keyboard.press('Escape');
-        await page.waitForTimeout(300);
-        const dialogClosed = !(await page.locator('[role="dialog"], [aria-modal="true"]').isVisible().catch(() => false));
-        expect(dialogClosed).toBe(true);
-        await takeScreenshot(page, 'a11y-modal-closed', 'accessibility');
+        await takeScreenshot(page, "a11y-modal-open", "accessibility");
+        await page.keyboard.press("Escape");
+        // Once the dialog HAS opened, closing on Escape is not optional — so
+        // this is the web-first assertion, which retries until the dialog is
+        // gone and fails loudly if it never is. The 300ms sleep it replaces
+        // would have reported a slow-closing dialog as a broken one.
+        await expect(dialog, "Escape must close an open dialog").toBeHidden();
+        await takeScreenshot(page, "a11y-modal-closed", "accessibility");
       }
     }
   });
 });
 
-test.describe('Accessibility - Semantic HTML & ARIA', () => {
+test.describe("Accessibility - Semantic HTML & ARIA", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
   let authCookies: any;
@@ -195,21 +214,21 @@ test.describe('Accessibility - Semantic HTML & ARIA', () => {
   });
 
   const surfaces = [
-    { path: '/today', name: 'today' },
-    { path: '/agents', name: 'agents' },
-    { path: '/settings', name: 'settings' },
-    { path: '/engine-room', name: 'engine-room' },
-    { path: '/guardrails', name: 'guardrails' },
+    { path: "/today", name: "today" },
+    { path: "/agents", name: "agents" },
+    { path: "/settings", name: "settings" },
+    { path: "/engine-room", name: "engine-room" },
+    { path: "/guardrails", name: "guardrails" },
   ];
 
   for (const surface of surfaces) {
     test(`aria-labels audit on ${surface.path}`, async ({ page }) => {
       await page.context().addCookies(authCookies);
-      await page.goto(surface.path, { waitUntil: 'networkidle' });
+      await page.goto(surface.path, { waitUntil: "networkidle" });
 
-      if (page.url().includes('/login')) {
+      if (page.url().includes("/login")) {
         await login(page);
-        await page.goto(surface.path, { waitUntil: 'networkidle' });
+        await page.goto(surface.path, { waitUntil: "networkidle" });
       }
 
       const ariaAudit = await checkAriaLabels(page);
@@ -220,7 +239,9 @@ test.describe('Accessibility - Semantic HTML & ARIA', () => {
 
       // Warn about missing labels but don't hard-fail
       if (ariaAudit.missing.length > 0) {
-        console.warn(`${ariaAudit.missing.length} elements missing accessible names on ${surface.path}`);
+        console.warn(
+          `${ariaAudit.missing.length} elements missing accessible names on ${surface.path}`,
+        );
       }
 
       // Should have landmark regions
@@ -228,39 +249,39 @@ test.describe('Accessibility - Semantic HTML & ARIA', () => {
     });
   }
 
-  test('color contrast sampling on Today', async ({ page }) => {
+  test("color contrast sampling on Today", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'networkidle' });
+    await page.goto("/today", { waitUntil: "networkidle" });
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'networkidle' });
+      await page.goto("/today", { waitUntil: "networkidle" });
     }
 
     const contrastSamples = await checkColorContrast(page);
-    console.log('Color contrast samples:', JSON.stringify(contrastSamples, null, 2));
-    await takeScreenshot(page, 'a11y-contrast-today', 'accessibility');
+    console.log("Color contrast samples:", JSON.stringify(contrastSamples, null, 2));
+    await takeScreenshot(page, "a11y-contrast-today", "accessibility");
   });
 
-  test('heading hierarchy is logical', async ({ page }) => {
+  test("heading hierarchy is logical", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'networkidle' });
+    await page.goto("/today", { waitUntil: "networkidle" });
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'networkidle' });
+      await page.goto("/today", { waitUntil: "networkidle" });
     }
 
     const semanticAudit = await checkSemanticHTML(page);
-    console.log('Heading hierarchy:', semanticAudit.headingHierarchy);
+    console.log("Heading hierarchy:", semanticAudit.headingHierarchy);
 
     if (semanticAudit.headingViolations.length > 0) {
-      console.warn('Heading hierarchy violations:', semanticAudit.headingViolations);
+      console.warn("Heading hierarchy violations:", semanticAudit.headingViolations);
     }
   });
 });
 
-test.describe('Accessibility - Reduced Motion', () => {
+test.describe("Accessibility - Reduced Motion", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
   let authCookies: any;
@@ -272,30 +293,32 @@ test.describe('Accessibility - Reduced Motion', () => {
     await page.close();
   });
 
-  test('reduced motion media query is respected', async ({ page }) => {
+  test("reduced motion media query is respected", async ({ page }) => {
     await page.context().addCookies(authCookies);
 
     // Set reduced motion preference
-    await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto('/today', { waitUntil: 'networkidle' });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/today", { waitUntil: "networkidle" });
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'networkidle' });
+      await page.goto("/today", { waitUntil: "networkidle" });
     }
 
     const motionCheck = await page.evaluate(() => {
-      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       // Check for animation-duration: 0s on animated elements
-      const animatedEls = document.querySelectorAll('[class*="animate"], [class*="transition"], [class*="motion"]');
+      const animatedEls = document.querySelectorAll(
+        '[class*="animate"], [class*="transition"], [class*="motion"]',
+      );
       const results: { el: string; duration: string }[] = [];
 
       animatedEls.forEach((el) => {
         const style = getComputedStyle(el);
-        if (style.animationName !== 'none') {
+        if (style.animationName !== "none") {
           results.push({
-            el: el.tagName + '.' + (el.className || '').toString().split(' ')[0],
+            el: el.tagName + "." + (el.className || "").toString().split(" ")[0],
             duration: style.animationDuration,
           });
         }
@@ -304,8 +327,8 @@ test.describe('Accessibility - Reduced Motion', () => {
       return { prefersReduced, animatedElements: results.slice(0, 10) };
     });
 
-    console.log('Reduced motion check:', motionCheck);
-    await takeScreenshot(page, 'a11y-reduced-motion', 'accessibility');
+    console.log("Reduced motion check:", motionCheck);
+    await takeScreenshot(page, "a11y-reduced-motion", "accessibility");
 
     expect(motionCheck.prefersReduced).toBe(true);
   });

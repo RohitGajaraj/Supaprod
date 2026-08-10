@@ -15,9 +15,12 @@ Confirm three things: it logs in, it lands on a populated workspace, and **the a
 
 **2. Re-pull the commit count.**
 ```bash
-git rev-list --count HEAD
+git rev-list --count origin/main
+ls supabase/migrations/*.sql | wc -l
 ```
 It was **4,264** on 2026-07-31. Use whatever it says the hour you submit. The same number appears in Q9 and Q15, so change both.
+
+> _Updated 2026-08-10: **4,876 commits, 508 migrations, nine weeks** since the first commit on 2026-06-03. Two fixes to this step. It said `HEAD`, which on a lane branch counts that branch rather than main, so **use `origin/main`**. And it only re-pulled commits — the **migration count sat at 410 in the filed answers and is now 508**, which nothing here was checking._
 
 **3. Check LinkedIn is current.** `linkedin.com/in/rohit-gajaraj`. It is a required field and partners open it.
 

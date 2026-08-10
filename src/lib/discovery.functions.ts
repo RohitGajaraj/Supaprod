@@ -6,7 +6,7 @@ import { extractArrayField } from "@/lib/ai/json-shape";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { runCritic } from "@/lib/ai/critic.server";
 import { loadDecisionPrecedent } from "@/lib/ai/decision-precedent.server";
-import { recordLineage, recordLineageSafe } from "@/lib/lineage.functions";
+import { recordDecisionOrigins, recordLineage, recordLineageSafe } from "@/lib/lineage.functions";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { retrieve, type RetrievedChunk } from "@/lib/rag/retriever.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
@@ -2810,6 +2810,30 @@ export const savePrd = createServerFn({ method: "POST" })
             actor: "human",
             workspaceId: prior.workspace_id,
             userId,
+          });
+          /**
+           * THE `prd -> decision` EDGE, written where the only spec-sourced
+           * decision in the product is actually made.
+           *
+           * Not to be confused with the `decision -> prd` row this audit struck
+           * on 2026-08-10, which pointed the other way and was a drawing rather
+           * than a hop. This is the direction `decisions.prd_id` has always
+           * modelled: the spec is what the call was about, and this row is the
+           * approval receipt for it.
+           *
+           * The guard above (`countErr` / `count === 0`) already means at most
+           * one decision exists per spec, and the edge is written only in the
+           * branch where the insert returned a row — the same `decErr ||
+           * !decision` check that exists because supabase-js resolves a refused
+           * write. `prior.workspace_id` is the SPEC'S workspace, the same value
+           * this handler passed to the decision insert.
+           */
+          await recordDecisionOrigins(supabase, userId, {
+            decisionId: decision.id as string,
+            prdId: id,
+            workspaceId: (prior.workspace_id as string | null) ?? null,
+            createdByAgent: null,
+            rationale: "The spec this approval was recorded against",
           });
         }
       }
