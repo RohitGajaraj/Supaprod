@@ -14,11 +14,15 @@ import { waitForFocusToLand, waitForLayoutToSettle } from "./helpers/waits";
 
 // A SECOND COPY OF THE LEAKED CREDENTIAL LIVED HERE.
 //
-// This file kept its own `DEMO_PASSWORD = "Cadence!Demo2026"` rather than
-// importing the helper, so removing the constant from `helpers/auth.ts` alone
-// would have left the secret in the repo and this spec still trying a password
-// rotated on 2026-07-25. A duplicated credential is the reason a rotation
-// half-lands: whoever fixes the obvious copy reasonably believes they are done.
+// This file kept its own `DEMO_PASSWORD` constant rather than importing the
+// helper, so removing the one in `helpers/auth.ts` alone would have left the
+// secret in the repo and this spec still trying a password rotated on
+// 2026-07-25. A duplicated credential is the reason a rotation half-lands:
+// whoever fixes the obvious copy reasonably believes they are done.
+//
+// The value is not quoted here. `error-context.md` embeds source around a
+// failure, so a comment naming it puts it straight back into an artifact —
+// see the header of `helpers/auth.ts`.
 //
 // Both now come from one place, and the absence of the env var throws by name.
 import { DEMO_EMAIL, demoPassword, BASE_URL } from "./helpers/auth";

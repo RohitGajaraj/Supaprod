@@ -28,8 +28,18 @@ export const DEMO_EMAIL = process.env.E2E_DEMO_EMAIL ?? "demo@redcadence.app";
 /**
  * THE PASSWORD IS NOT IN THIS FILE, AND IT USED TO BE.
  *
- * `Cadence!Demo2026` sat here as a constant until 2026-08-11. Two things were
- * wrong with that and only one of them is obvious.
+ * A password sat here as a constant until 2026-08-11. Two things were wrong
+ * with that and only one of them is obvious.
+ *
+ * ITS VALUE IS DELIBERATELY NOT REPRODUCED IN THIS COMMENT, and that is not
+ * fussiness. `error-context.md` embeds the SOURCE around a failure, and the
+ * throw below is inside `demoPassword()` — so Playwright prints these very
+ * lines into a failure artifact. An earlier draft of this comment quoted the
+ * value, which meant the file that no longer contains the credential still
+ * contained the credential, and the fix that stopped the DOM carrying it moved
+ * the failure point onto the lines that did. `src/components/landing/
+ * Receipts.tsx` reaches the same conclusion for a weaker reason: do not quote
+ * the thing the guard exists to keep out.
  *
  * It was STALE. That account was rotated and suspended on 2026-07-25; the row
  * still exists, is confirmed and unbanned, and its `last_sign_in_at` is
