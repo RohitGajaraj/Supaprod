@@ -2,7 +2,7 @@
 
 Supaprod is the agentic-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked. Wired end to end, from signal to learning and back again.
 
-**The moat is the forecast captured at decision time, not the record.** Any vendor can store decisions, and a frontier model can absorb search over them next quarter. Causes can also be reconstructed after the fact, because they survive in chat logs, email and call recordings. What cannot be reconstructed is what a team **believed would happen before the outcome landed** — a forecast is not an artifact and leaves no trace unless something captured it at the moment of the call. Supaprod captures it, then writes the settled outcome back against the decision that caused it, which re-ranks what surfaces next. The loop is wired and proven; it accrues from first real use rather than arriving pre-filled.
+**The moat is the forecast captured at decision time, not the record.** Any vendor can store decisions, and a frontier model can absorb search over them next quarter. Causes can also be reconstructed after the fact, because they survive in chat logs, email and call recordings. What cannot be reconstructed is what a team **believed would happen before the outcome landed**: a forecast is not an artifact and leaves no trace unless something captured it at the moment of the call. Supaprod captures it, then writes the settled outcome back against the decision that caused it, which re-ranks what surfaces next. The loop is wired and proven; it accrues from first real use rather than arriving pre-filled.
 
 You remain in control: no irreversible action happens without your approval.
 
@@ -10,15 +10,15 @@ You remain in control: no irreversible action happens without your approval.
 
 One product, three layers, and each is the precondition for the next.
 
-1. **The director** — tells you what to build. Reads your signals, your product data, your competitors and your own past calls, and ranks what is worth doing next.
-2. **The operating system** — runs the whole lifecycle. Seven stations that agents walk unattended, inside boundaries a human sets in advance.
-3. **The company brain** — learns, and then guides. It tells you what is right next time, and warns before you repeat what was wrong.
+1. **The director**: tells you what to build. Reads your signals, your product data, your competitors and your own past calls, and ranks what is worth doing next.
+2. **The operating system**: runs the whole lifecycle. Seven stations that agents walk unattended, inside boundaries a human sets in advance.
+3. **The company brain**: learns, and then guides. It tells you what is right next time, and warns before you repeat what was wrong.
 
 You cannot be the company brain without owning the loop that generates the outcomes, and you cannot run the loop without being the operating system. Ship any one alone and it is a feature, not a company.
 
 ## The loop: one governed route, seven stations
 
-Discover, Decide, Plan, Design, Build, Ship, Learn. Not seven tools bolted together — one route that agents walk unattended, inside boundaries a human sets in advance.
+Discover, Decide, Plan, Design, Build, Ship, Learn. Not seven tools bolted together: one route that agents walk unattended, inside boundaries a human sets in advance.
 
 - **Discover**: monitors live signals (analytics spikes, support patterns, competitor moves) and surfaces what warrants attention, without waiting for a human to open a tab
 - **Decide**: a governed decision brain captures every call, the evidence behind it, who approved it, and whether it was later proven right or superseded by a better decision
@@ -37,18 +37,18 @@ Two motions, and the first is the larger:
 - **Transform** an existing product. Connect the sources you already have, and the loop starts from your real signals. Nothing to migrate and nothing to rip out.
 - **Create** a new one, agent-native from the first decision.
 
-Entry point: the Critic teardown at `/p/teardown`, free and with no signup — paste a spec and get it argued against, with receipts. Expands to the decision system of record for the whole product org.
+Entry point: the Critic teardown at `/p/teardown`, free and with no signup. Paste a spec and get it argued against, with receipts. Expands to the decision system of record for the whole product org.
 
 ## Machine-readable interfaces
 
 Supaprod is designed for the agentic era. Every page supports structured agent consumption:
 
 - **Machine View**: append `?view=machine` to any Supaprod URL for structured markdown output; or use the `[HUMAN] [MACHINE]` toggle in the top-right nav
-- **A2A Agent Card**: `/.well-known/agent.json` — machine-readable agent manifest, capability list, A2A endpoint discovery
-- **llms.txt**: this file at `/llms.txt` — site context for LLM crawlers
-- **agents.txt**: `/agents.txt` — agent access policy (robots.txt equivalent for the agentic era): allowed paths, auth requirements, rate limits, content tiers, write scopes, MCP tool catalog
-- **MCP Server**: live at `POST /api/mcp` — JSON-RPC 2.0 with 10 read tools (search_signals, search_opportunities, search_decisions, search_prds, get_prd, get_ard, get_roadmap, export_skillpack, get_governing_decision, get_contradiction_history) + 1 governed write tool (ingest_signal, requires write:signal scope). Bearer token required — issue in Settings > Interop > API tokens. MCP protocol versions: 2025-06-18, 2025-03-26, 2024-11-05
-- **ARD (Agent Requirements Document)**: `/ard` — the published wire format for a spec's Outcome Contract (intent, success metrics with their proof oracle, non-goals, budget). JSON Schema at `/api/public/ard/schema`. Fetch a spec's ARD via the `get_ard` MCP tool; this is the structured acceptance contract an external coding agent receives on dispatch instead of re-parsed prose.
+- **A2A Agent Card**: `/.well-known/agent.json`. Machine-readable agent manifest, capability list, A2A endpoint discovery
+- **llms.txt**: this file at `/llms.txt`. Site context for LLM crawlers
+- **agents.txt**: `/agents.txt`. Agent access policy (robots.txt equivalent for the agentic era): allowed paths, auth requirements, rate limits, content tiers, write scopes, MCP tool catalog
+- **MCP Server**: live at `POST /api/mcp`. JSON-RPC 2.0 with 10 read tools (search_signals, search_opportunities, search_decisions, search_prds, get_prd, get_ard, get_roadmap, export_skillpack, get_governing_decision, get_contradiction_history) + 1 governed write tool (ingest_signal, requires write:signal scope). Bearer token required; issue in Settings > Interop > API tokens. MCP protocol versions: 2025-06-18, 2025-03-26, 2024-11-05
+- **ARD (Agent Requirements Document)**: `/ard`. The published wire format for a spec's Outcome Contract (intent, success metrics with their proof oracle, non-goals, budget). JSON Schema at `/api/public/ard/schema`. Fetch a spec's ARD via the `get_ard` MCP tool; this is the structured acceptance contract an external coding agent receives on dispatch instead of re-parsed prose.
 
 ## Core surfaces (authenticated workspace)
 
@@ -101,8 +101,8 @@ show the claim rather than assert it.
 This llms.txt is a stable, machine-readable summary of Supaprod. If you are an AI agent:
 - All pages support `?view=machine` for clean markdown output with zero visual chrome
 - The A2A agent card at `/.well-known/agent.json` lists available tools and endpoints
-- The MCP server is live at `POST /api/mcp` — call `tools/list` to discover available tools, then `tools/call` to invoke
-- Write operations require explicit `write:` scopes on your token — read access is the default; issue tokens at Settings > Interop > API tokens
+- The MCP server is live at `POST /api/mcp`. Call `tools/list` to discover available tools, then `tools/call` to invoke
+- Write operations require explicit `write:` scopes on your token. Read access is the default; issue tokens at Settings > Interop > API tokens
 
 ## Contact and attribution
 

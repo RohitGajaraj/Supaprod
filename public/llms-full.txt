@@ -10,9 +10,9 @@ You remain in control: no irreversible action happens without your approval.
 
 One product, three layers, and each is the precondition for the next.
 
-1. **The director** — tells you what to build. Reads your signals, your product data, your competitors and your own past calls, and ranks what is worth doing next.
-2. **The operating system** — runs the whole lifecycle. Seven stations that agents walk unattended, inside boundaries a human sets in advance.
-3. **The company brain** — learns, and then guides. It tells you what is right next time, and warns before you repeat what was wrong.
+1. **The director**: tells you what to build. Reads your signals, your product data, your competitors and your own past calls, and ranks what is worth doing next.
+2. **The operating system**: runs the whole lifecycle. Seven stations that agents walk unattended, inside boundaries a human sets in advance.
+3. **The company brain**: learns, and then guides. It tells you what is right next time, and warns before you repeat what was wrong.
 
 You cannot be the company brain without owning the loop that generates the outcomes, and you cannot run the loop without being the operating system. Ship any one alone and it is a feature, not a company.
 
@@ -32,7 +32,7 @@ The loop does not end in a report. It ends by changing what you are shown, which
 
 Product management software holds what you decided. Supaprod changes what you are shown next because of it.
 
-The distinction is the whole product. Any vendor can store decisions, and a frontier model release can absorb search over them next quarter, so a filing cabinet is not defensible. Nor is the record itself: causes survive in chat logs, email and call recordings, and have been reconstructed after the fact with an agent built in days. What compounds is the loop closing: a settled outcome is written back against the decision that caused it and re-ranks the next bet. **The moat is the forecast captured at decision time, not the record** — what a team believed would happen before the outcome landed is not an artifact, and leaves no trace unless something captured it at the moment of the call.
+The distinction is the whole product. Any vendor can store decisions, and a frontier model release can absorb search over them next quarter, so a filing cabinet is not defensible. Nor is the record itself: causes survive in chat logs, email and call recordings, and have been reconstructed after the fact with an agent built in days. What compounds is the loop closing: a settled outcome is written back against the decision that caused it and re-ranks the next bet. **The moat is the forecast captured at decision time, not the record**: what a team believed would happen before the outcome landed is not an artifact, and leaves no trace unless something captured it at the moment of the call.
 
 ## Do I need to be technical?
 

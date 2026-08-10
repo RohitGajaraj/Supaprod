@@ -1,4 +1,4 @@
-# Supaprod — Agent Access Policy
+# Supaprod Agent Access Policy
 # https://supaprod.app/agents.txt
 # This file declares Supaprod's policy for autonomous AI agents interacting with
 # this platform. It is the robots.txt equivalent for the agentic era.
@@ -25,13 +25,13 @@ Allow: /api/public/health
 Allow: /ard
 Allow: /api/public/ard/schema
 
-# MCP server — bearer token required (read tools are open to any valid token)
+# MCP server: bearer token required (read tools are open to any valid token)
 Allow: /api/mcp
 
-# Machine-readable views — append ?view=machine to any URL
+# Machine-readable views: append ?view=machine to any URL
 Allow: /*?view=machine
 
-# Public surfaces — all crawlable without a token
+# Public surfaces: all crawlable without a token
 Allow: /
 Allow: /p/teardown
 Allow: /proof
@@ -83,7 +83,7 @@ Content-tier: knowledge     -> read  (tool: export_skillpack)
 
 MCP-endpoint: POST /api/mcp
 MCP-protocol: JSON-RPC 2.0 (MCP 2025-06-18 / 2025-03-26 / 2024-11-05)
-MCP-auth: Bearer token — issue at /settings (Interop > API tokens)
+MCP-auth: Bearer token; issue at /settings (Interop > API tokens)
 MCP-read-tools: search_signals, search_opportunities, search_decisions, search_prds, get_prd, get_ard, get_roadmap, export_skillpack, get_governing_decision, get_contradiction_history
 MCP-write-tools: ingest_signal (requires write:signal scope + workspace write gate)
 
