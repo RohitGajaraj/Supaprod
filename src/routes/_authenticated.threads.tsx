@@ -147,6 +147,7 @@ import {
   Failed,
   Input,
   Line,
+  Loading,
   Num,
   PageHead,
   Receipt,
@@ -664,13 +665,28 @@ function ThreadsSurface() {
         </Block>
       ) : null}
 
+      {/* Three states, three primitives, on both reads (2026-08-10).
+          Both branches used `isLoading ? null`, so a cold load rendered
+          nothing and then announced that nothing had ever been asked. A read
+          in flight was indistinguishable from an empty workspace, which is the
+          one confusion Empty, Failed and Loading exist to prevent.
+          The list read also had no error arm at all, while the thread read two
+          lines below it did. Same page, same shape of failure, one of them
+          silent: a failed list would also have claimed the workspace was
+          empty. */}
       {!selectedId ? (
-        list.isLoading ? null : (
+        list.isLoading ? (
+          <Loading>Reading what has been asked.</Loading>
+        ) : list.isError ? (
+          <Failed onRetry={() => void list.refetch()}>The thread list did not load.</Failed>
+        ) : (
           <Empty>Nothing has been asked in this workspace yet.</Empty>
         )
       ) : thread.isError ? (
         <Failed onRetry={() => void thread.refetch()}>This thread did not open.</Failed>
-      ) : thread.isLoading ? null : messages.length === 0 ? (
+      ) : thread.isLoading ? (
+        <Loading>Opening the thread.</Loading>
+      ) : messages.length === 0 ? (
         <Empty>This thread has no messages yet.</Empty>
       ) : (
         <Block title="What was said">
