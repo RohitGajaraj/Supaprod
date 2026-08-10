@@ -213,9 +213,36 @@ describe("settings-sections - derivations", () => {
   });
 
   it("findGroup returns the definition, or undefined when unknown", () => {
-    expect(findGroup("plan")?.label).toBe("What it costs, and whether it works");
+    // Asserts the lookup resolves, not the copy. Pinning the exact label here
+    // is what made a wording fix fail an unrelated test: this case is about
+    // findGroup, and the labels are guarded on their own terms below.
+    expect(findGroup("plan")?.id).toBe("plan");
+    expect(findGroup("plan")?.sections.map((s) => s.id)).toContain("billing");
     // @ts-expect-error - unknown id
     expect(findGroup("nope")).toBeUndefined();
+  });
+
+  /**
+   * A sidebar is scanned for a noun, not read for a sentence.
+   *
+   * All five labels used to be sentence fragments ("What the crew may do",
+   * "What reaches you"), so finding notification settings meant parsing a
+   * clause, and one group was named after only one of its two items. Eight
+   * shipped settings surfaces were checked and none uses a sentence, a
+   * question or a verb phrase for a group.
+   *
+   * The sentences still exist, as each group's `desc`, which is the slot that
+   * can afford one.
+   */
+  it("names every group with a noun rather than a sentence", () => {
+    for (const g of SETTINGS_GROUPS) {
+      expect(g.label).not.toMatch(/^(what|how|where|when|who|why)\b/i);
+      expect(g.label).not.toContain("?");
+      // Short enough to scan at a glance rather than read.
+      expect(g.label.split(/\s+/).length).toBeLessThanOrEqual(3);
+      // The sentence it replaced has to survive somewhere.
+      expect(g.desc.length).toBeGreaterThan(20);
+    }
   });
 
   it("sectionLabel matches the label the nav actually draws", () => {

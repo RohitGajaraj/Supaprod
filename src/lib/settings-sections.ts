@@ -164,10 +164,38 @@ export type SettingsGroup = {
   sections: SettingsSection[];
 };
 
+/**
+ * GROUP LABELS ARE NOUNS THAT NAME A SCOPE (2026-08-11).
+ *
+ * All five used to be sentence fragments: "What the crew may do", "What the
+ * crew reads", "What it can reach", "What reaches you", "What it costs, and
+ * whether it works". They read well in a document and badly in a sidebar,
+ * because a sidebar is scanned for a noun, not read for a sentence. Someone
+ * looking for their notification settings has to parse "What reaches you";
+ * someone looking for API keys has to work out that keys live under a clause
+ * about permission.
+ *
+ * One of them was also plainly wrong rather than merely indirect. "What
+ * reaches you" contained Profile, and your own name does not reach you: the
+ * group was named after one of its two items.
+ *
+ * Eight shipped settings surfaces were checked and the convention is
+ * unanimous. GitBook uses Account and Organization; ClickUp uses Workspace and
+ * the person's name; Toggl uses Toggl Account and Availability; Lindy,
+ * Squarespace, Runway and Hume all use bare nouns. Not one uses a sentence, a
+ * question or a verb phrase.
+ *
+ * The sentences were not wasted, they were just in the wrong slot: each one is
+ * now the group's `desc`, which is where a sidebar can afford a sentence.
+ *
+ * "Crew" is kept rather than swapped for "Agents" because the rail already
+ * carries Crew as a destination, and inventing a second word for one thing is
+ * the confusion this change exists to remove.
+ */
 export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   {
     id: "crew",
-    label: "What the crew may do",
+    label: "Crew",
     desc: "How far each agent may reach, when it stops to ask you, and which model runs the work.",
     sections: [
       { id: "autonomy", label: "Autonomy and approvals" },
@@ -177,7 +205,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   },
   {
     id: "brief",
-    label: "What the crew reads",
+    label: "Company",
     desc: "The standing instruction every mission starts by reading, before it does anything.",
     sections: [
       { id: "workspace", label: "Brief and voice" },
@@ -189,7 +217,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   },
   {
     id: "reach",
-    label: "What it can reach",
+    label: "Connections and data",
     desc: "What flows in, what an agent outside Supaprod may read, and what we keep of yours.",
     sections: [
       { id: "connections", label: "Connectors" },
@@ -201,7 +229,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   },
   {
     id: "you",
-    label: "What reaches you",
+    label: "Account",
     desc: "Your name, your hours, and what is allowed to interrupt them.",
     sections: [
       { id: "profile", label: "Profile" },
@@ -210,7 +238,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   },
   {
     id: "plan",
-    label: "What it costs, and whether it works",
+    label: "Plan and usage",
     desc: "Your plan, what credit is left, and whether the loop is running clean.",
     sections: [
       { id: "billing", label: "Plan" },

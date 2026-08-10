@@ -2496,11 +2496,23 @@ function DecideSurface() {
             ...(activeOpp.problem ? [<span key="problem">{activeOpp.problem}</span>] : []),
             ...(activeOpp.critic_review?.summary
               ? [
-                  <span key="critic" className="flex items-center gap-2">
+                  /* INLINE FLOW, NOT A FLEX ROW (2026-08-10, measured in the
+                     browser). This was `flex items-center gap-2`, which made
+                     the badge, the challenger's name and the summary three
+                     flex items. A summary long enough to wrap became a tall
+                     block, the badge floated centred against the middle of it,
+                     and the text started 190px right of where every other
+                     bullet in the same list starts. One item in a list of five
+                     had its own left edge.
+                     The badge is `inline-flex` (ui/badge.tsx), so it already
+                     flows inside a sentence. Dropping the flex wrapper lets the
+                     whole bullet wrap as one paragraph on the list's own text
+                     column, which is what the other four do. */
+                  <span key="critic">
                     <VerdictBadge
                       verdict={activeVerdict}
                       confidence={activeOpp.critic_review.confidence}
-                    />
+                    />{" "}
                     <b>{challengerName}</b> {activeOpp.critic_review.summary}
                   </span>,
                 ]
@@ -2527,10 +2539,13 @@ function DecideSurface() {
                which describes the outcome and not the spend. Three model runs
                is the fact that makes this the expensive answer of the three on
                offer, and it is the reason the button asks again. */
+            /* Parentheses rather than a dash pair. Em dashes are banned in
+               copy, and these two were the last in the app because they were
+               written as `&mdash;` entities: every sweep tonight grepped for
+               the literal character and walked straight past them. */
             <span key="consequence">
-              Keeping it writes the spec, its body and its outcome contract &mdash; three model runs
-              &mdash; and moves it into Plan. It asks once before it spends. Nothing ships from
-              here.
+              Keeping it writes the spec, its body and its outcome contract (three model runs) and
+              moves it into Plan. It asks once before it spends. Nothing ships from here.
             </span>,
           ]}
         >

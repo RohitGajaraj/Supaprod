@@ -44,7 +44,7 @@ export const BASE_URL = "http://localhost:8080";
  * It THROWS when it cannot find the root, because the whole lesson here is that
  * a silent fallback is how a path goes stale for a week.
  */
-function findRepoRoot(): string {
+export function findRepoRoot(): string {
   let dir = process.cwd();
   for (let i = 0; i < 10; i++) {
     if (
@@ -72,6 +72,21 @@ function findRepoRoot(): string {
  * collides with hand-taken screenshots.
  */
 export const SCREENSHOT_DIR = path.join(findRepoRoot(), "docs", "screenshots", "e2e");
+
+/**
+ * Where the one signed-in session for the whole run is parked.
+ *
+ * Under `test-results/`, which is already gitignored, and derived from the
+ * repo root for the same reason SCREENSHOT_DIR is: a hardcoded absolute path
+ * here is what pointed this suite at a deleted worktree for a week.
+ *
+ * Written by `e2e/auth.setup.ts` and consumed by every project through
+ * `storageState` in playwright.config.ts. It holds localStorage as well as
+ * cookies, which is the whole point: the Supabase session lives in
+ * localStorage, so the cookie replay this file's header describes could never
+ * have carried it.
+ */
+export const STORAGE_STATE = path.join(findRepoRoot(), "test-results", "storage-state.json");
 
 export async function ensureScreenshotDir(subDir?: string) {
   const dir = subDir ? path.join(SCREENSHOT_DIR, subDir) : SCREENSHOT_DIR;

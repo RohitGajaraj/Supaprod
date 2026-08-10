@@ -78,6 +78,7 @@ import {
   Button,
   Empty,
   Gate,
+  Loading,
   Num,
   PageHead,
   Receipt,
@@ -371,13 +372,21 @@ function ApprovalsSurface() {
         : null;
 
   const n = allItems.length;
+  /* "CALL" AND "DECISION" WERE THE SAME OBJECT IN TWO WORDS, one inch apart.
+     The shell above this page reads "83 decisions are ready for you"
+     (AppFrame.tsx), and this headline read "83 calls need you" off the same
+     count at the same moment. AppFrame's own comment records that exact drift
+     being fixed there against /today; the fix never reached this page, which
+     is the surface the shell is counting FOR.
+     "Ready for you" over "needs you" is also the more honest verb: nothing
+     here has happened yet, so nothing is owed. */
   const headline = queue.isLoading
     ? "Approvals"
     : n === 0
-      ? "Nothing needs you."
+      ? "Nothing is ready for you."
       : n === 1
-        ? "One call needs you."
-        : `${n} calls need you.`;
+        ? "1 decision is ready for you."
+        : `${n} decisions are ready for you.`;
 
   return (
     <Surface
@@ -443,7 +452,16 @@ function ApprovalsSurface() {
         </div>
       ) : null}
 
-      {queue.isLoading ? null : queue.isError ? (
+      {/* A LOADING READ IS NOT AN EMPTY PAGE. This was `isLoading ? null`,
+          which rendered the heading and then nothing at all: on a cold load
+          the queue surface was a blank rectangle for as long as the read took,
+          with no signal that anything was coming. Empty, Failed and Loading
+          are three different primitives in this product precisely so that a
+          read in flight never wears the clothes of a queue with nothing in it,
+          and this page was skipping straight past that rule. */}
+      {queue.isLoading ? (
+        <Loading>Reading the queue.</Loading>
+      ) : queue.isError ? (
         <Gate question="The queue did not load.">
           <Button variant="primary" onClick={() => void queue.refetch()}>
             Try again
