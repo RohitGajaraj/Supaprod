@@ -1,6 +1,40 @@
 # Pick up here
 
-> _Created: 2026-08-07 · Last updated: 2026-08-10_
+> _Created: 2026-08-07 · Last updated: 2026-08-11_
+
+## UI/UX SESSION CLOSED — 2026-08-11 01:05. Everything is on `main` at `c69b2464`.
+
+**Nothing in flight, no agent running, tree clean, `HEAD` and `origin/main` identical.** `tsc` 0 errors, `bun test` **8730 pass / 0 fail**.
+
+### The founder's three items, smallest first
+
+| | |
+| --- | --- |
+| **1. The e2e demo password** | `E2E_DEMO_PASSWORD` is unset, so **421 browser tests cannot run**. This is NOT a broken fixture: `Cadence!Demo2026` leaked in a public v4 README and was rotated on 2026-07-25 as containment. **Do not restore it.** Supply a new one as an env var; nothing needs editing. `demoPassword()` throws with instructions until then. |
+| **2. The leaked literal is still in four files** | `docs/pitch/yc/founder-profile-answers.md:183`, `docs/pitch/yc/fall-2026-application.md:253`, `docs/operations/rename-cadence-to-supaprod.md:47`, and `supabase/migrations/20260604203338_*.sql:4`. **The first three are records OF the leak, so deleting them edits a security record. The migration is different: it is `v_password text := '<literal>'`, real code that already ran.** His call, all four. |
+| **3. A fourth session is writing to the `Supaprod` worktree** | Not Lane 0, not Lane 1, not this lane; all three verified. It committed four times tonight with `git add -A`, each sweeping another lane's uncommitted work into its own message. Nothing was lost, by luck. All three known lanes now commit after every edit with explicit paths. |
+
+### What shipped
+
+| | |
+| --- | --- |
+| **Three surfaces lying while loading** | `/approvals` was a blank rectangle, `/threads` announced an empty workspace mid-read, `/engine-room` printed a heading over nothing. All `isLoading ? null`. |
+| **Four composition and language defects** | `/today` reserved 234px no content could reach · `/decide` had one bullet 190px off the list's edge · `/plan` mixed a consequence into a list of bets · `/crew` said "16 work here" and pointed "13 of them" at zero |
+| **Settings sidebar** | Five sentence-fragment group labels → nouns (Crew, Company, Connections and data, Account, Plan and usage). One was wrong: "What reaches you" contained Profile. Checked against 8 shipped settings surfaces; none uses a sentence. Guarded by test. |
+| **Row density** | Leading moved from document (1.55) to row (1.4) on the row primitives. `.sp-line` 46.9 → 40.9px. Chrome was tighter than data; that is backwards. |
+| **Light theme bug** | `--ds-gray-alpha-400` sat below `-300`, so `--hairline` and `--card-border` came out in **opposite relative orders in light vs dark**. |
+| **The e2e harness** | Nine correct specs that could not run: `@playwright/test` was never a dependency. Wired, plus the `storageState` setup project. 421 tests now list. |
+| **Guards added** | public-surface truthfulness (47 surfaces), row density, settings labels, station-spine render, `a-null-under-a-heading-is-a-broken-promise`, `the-browser-suite-cannot-carry-a-password` |
+
+### The pattern worth carrying forward
+
+**Seven enforcement layers were reading zero while looking healthy.** The e2e suite that could not start; density tokens with 1 consumer of 3; the humanization hook whose pattern could not match an HTML entity; `public/*.txt` with no checker at all; two of Lane 1's guards anchored on the wrong occurrence; and a credential guard blind to the credential in its own file's comment.
+
+**A guard that has only ever passed is indistinguishable from one that cannot fail.** The only way to tell them apart is to plant a known-bad input. Commission every guard that way.
+
+**And its twin:** this repo documents a fixed defect by quoting the broken value verbatim, so a grep for the broken value finds it forever. That cost time in all three lanes tonight, and once put a leaked credential back into every failure artifact. Sweep the *thing*, not the encoding you happen to think in.
+
+---
 
 ## ✅ LANE 0 SESSION CLOSED — 2026-08-11 00:15. Everything is on `main` at `6052dbcb`.
 
