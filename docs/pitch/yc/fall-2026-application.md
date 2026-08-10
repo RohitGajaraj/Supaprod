@@ -34,38 +34,45 @@
 | September launch, brief link | *"feedback goes straight back in: design iterations, new roadmap items"* — vague. Name what changed, or cut it |
 | | **No product numbers at all** — and we now have three good ones |
 
-**PASTE THIS.** Numbers first, one honesty beat, no filler. Every figure is queryable in the product:
+**PASTE THIS.** Plain words, real numbers, one thing admitted:
 
 ```
-Cadence is now Supaprod — renamed after submitting, and the form will not
-let me change it. Same company, live at https://supaprod.ai.
+Cadence is now Supaprod. I renamed it after applying and the form won't
+let me change the name. Same company, same person, live at
+https://supaprod.ai.
 
-What shipped since: the loop closes on real data. 119 learnings recorded,
-38 of them settled by an agent instead of a human, so a third of that
-stage now runs itself against an evidence bar and a human gate holds the
-rest. 36 decisions were made using what an earlier decision taught us,
-which makes learning the largest single input into deciding, ahead of new
-opportunities. 4,000+ commits in seven weeks.
+Where it is now: it runs end to end. Signals come in from the tools a
+team already uses, it argues against the weak ideas before I see them,
+agents write the code and open pull requests, and nothing merges without
+me. 4,000 commits in seven weeks.
 
-I also killed my own headline claim this month. I had been saying a team's
-decision record cannot be rebuilt by a competitor. It can — you can
-reconstruct why a call was made from Slack and call recordings. What
-cannot be rebuilt is the forecast: what the team expected before the
-outcome landed. That leaves no trace unless something captures it at the
-moment of the decision. So the product now captures it. It shipped this
-week.
+The part I most wanted to work is working. It has recorded 119 lessons
+from things that actually shipped. For 38 of those it decided the verdict
+itself instead of asking me. And 36 times, a new decision was made using
+a lesson from an older one. That last number is the whole point: the
+thing gets less wrong the longer you use it.
 
-Beta is live and I am user zero: Supaprod's own roadmap runs inside
-Supaprod, and its agents open real pull requests behind a merge gate no
-agent can cross.
+One thing I got wrong and fixed. I had been telling people a competitor
+can't rebuild your decision history. That isn't true. You can reconstruct
+most of it from Slack and call recordings. What you can't reconstruct is
+what someone expected to happen before it happened, because almost nobody
+writes that down. So I built that. It shipped this week.
 
-[FOUNDER: if any real beta user exists by paste day, one sentence with the
-true count goes here. It is the first thing a partner looks for. Never pad it.]
+I'm my own first user. Supaprod's roadmap runs inside Supaprod.
 
-Next: public launch in September. Full brief: https://supaprod.ai/brief
+[FOUNDER: one sentence with the real user count if any exist by paste day.
+It is the first thing a partner looks for. Never pad it.]
+
+Public launch in September. Full brief at https://supaprod.ai/brief.
 ```
 
-**Why these three numbers and not others.** *38 of 119 agent-settled* is a capability number, not a vanity one — it says the autonomy works and is measured. *36 learning→decision edges* proves the loop actually closes, which is the whole thesis. *4,000 commits in seven weeks* is velocity. **Do not say "outcomes recorded"** — `agent_memory` holds zero `kind='outcome'` rows and a partner who checks will find it. Learnings is the accurate noun.
+**Why it is written this way.** A partner reads hundreds of these and is pattern-matching for *is this a real problem, is this person unusually good, do people want it*. So: **no vocabulary a stranger would have to decode.** Not "the loop closes", not "evidence bar", not "the judgment gap" — every one of those is our word, not theirs. *"The thing gets less wrong the longer you use it"* says compounding without the term.
+
+**The three numbers, and why these.** *119 lessons, 38 self-decided* says the autonomy is real and measured, not aspirational. *36 decisions made from an older lesson* is the only number that proves the core idea works. *4,000 commits in seven weeks* is rate of progress, which YC weights heavily.
+
+**Two hard rules on the numbers.** Say **lessons, never outcomes** — `agent_memory` holds zero `kind='outcome'` rows and a partner who checks will find it. And **no user count unless one is true** — the empty slot is more honest than a padded number, and a padded one will not survive the interview.
+
+**The paragraph I would fight to keep is the admission.** It is the only part that cannot be written by someone who is not really building this, and YC weights *updating on evidence* more heavily than being right the first time. It is four plain sentences and it earns more trust than any claim in the field.
 
 **Also update, same surface:** Product link → `https://supaprod.ai`, and the login line's last clause → `or sign up with invite code YC-COMPOUND-K7QR4V` (signup closed 2026-08-07; the old "any email" path now hits a wall). Both are detailed further down.
 
@@ -76,13 +83,13 @@ Next: public launch in September. Full brief: https://supaprod.ai/brief
 **Two defects.** "Remembered" is banned vocabulary (it claims less than the product delivers), and **"that record becomes the brain" is the exact claim the sweep falsified** — the record is reconstructable. **Paste this instead:**
 
 ```
-What makes it defensible: every decision is recorded with its evidence
-and, the part nothing else does, what you expected before the outcome
-landed. Causes can be rebuilt later from Slack and call recordings. A
-forecast cannot. It leaves no trace unless something captured it when you
-decided. That is what turns a record into judgment: the system knows not
-just what happened, but what you thought would happen, and how often you
-were right.
+Here is the part I think nobody else has. Every decision is saved with
+the evidence behind it and with what you expected to happen. When the
+result comes in, it checks the two against each other. You can dig up why
+a call was made months later from Slack and old calls. You cannot dig up
+what people thought was going to happen, because almost nobody writes
+that down. So over time the system knows what happened, what you
+expected, and how often you are right.
 
 Agents do the work. You answer for it. Supaprod is how you answer.
 ```
@@ -94,30 +101,31 @@ Agents do the work. You answer for it. Supaprod is how you answer.
 **Both halves are weak now.** The corpus says **the real competitor is DIY — the folder** — and the time-accrual claim is the falsified one. This rewrite is also strictly more interesting to a partner, because it concedes the strongest objection and then answers it:
 
 ```
-Nobody runs the whole loop, but my real competitor is not another
-product. It is the folder.
+My real competitor isn't another product. It's a folder of notes.
 
-I checked this rather than assumed it. Last month, in a private thread,
-six product managers talked a buyer out of this entire category: don't
-switch tools, use simpler ones, two systems of record create more
-friction than they solve. One had tried four purpose-built tools and gone
-back to a plain Obsidian folder. Their sharpest argument was that
-lower-level tools are more AI-friendly, because agents drive them better.
+I went and checked instead of assuming. Last month six product managers
+in a private group talked someone out of buying anything in this
+category: don't switch tools, use simpler ones. One of them had tried
+four products built for exactly this and gone back to a plain folder of
+markdown files. Their strongest argument was that simple files work
+better with AI, because an agent can read and write them easily.
 
-They are right about the premise and wrong about the conclusion, and that
-is what I understand that they do not. An agent can write into a Notion
-page or a GitHub issue. It cannot write a decision carrying its evidence,
-its author, a verdict slot and a human gate into either. Low-level tools
-are agent-writable but not agent-governable. Another operator in that
-same community tried Obsidian, abandoned it, built his own and still
-failed: he could not tell who changed what, what was trustworthy versus
-polluted, why it changed, or stop certain files from changing.
+They're right about that, and it's still the wrong conclusion. An agent
+can write into a Notion page or a GitHub issue. It can't write a decision
+into one that carries the evidence behind it, who made it, a slot for the
+verdict, and a gate so a human signs off. Simple files are easy for an
+agent to write and impossible for an agent to govern. Someone else in
+that same group tried a folder, gave up, built his own system, and still
+couldn't solve it: he could not tell who changed what, which notes he
+could trust, why they changed, or stop the ones that shouldn't.
 
-That seam opens the moment a second person or a fleet of agents touches
-the work, and it is where I sell. Samepage, Brief, Productboard's Spark
-and Notion's Ship OS all stop one step short: they surface, draft,
-remember or dispatch. None checks the shipped outcome against the
-decision that caused it.
+That gap opens the moment a second person or a fleet of agents touches
+the work. That's where I sell.
+
+The startups here, Samepage and Brief and Productboard's Spark and
+Notion's Ship OS, all stop one step earlier. They collect, draft, or
+dispatch. None of them goes back and checks whether the thing you shipped
+did what you said it would.
 ```
 
 ### 🟡 4. Field 9a — strong already; one sentence makes it much stronger
