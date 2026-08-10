@@ -166,6 +166,45 @@ Nobody in the market has ever described this pain in our words. What they say:
 | the loop / stations | "velocity of decision-making" (Miller) · "control handoffs" · "context rot" · "tribal knowledge" (Sherwin Wu) · "process knowledge… how do I get shit done around here" (Conley) |
 | governance | "the optics layer" (Nickels) · "hyper-realistic work-like activities" (Butterfield) · "we're not on the same page even though we literally never have been" (LaPointe) |
 
+### Measured, not asserted — frequency per million words across all 5.72M
+
+The qualitative reports said our vocabulary was absent. Counting settles which words to actually use, and **corrects one over-broad claim of my own**: "decision" is not absent. It is everywhere. What is dead is our **compound coinages**.
+
+| Our word | per M | Verdict | Operator-native replacement (per M) |
+| --- | --- | --- | --- |
+| decisions | **562.8** | ✅ **use freely** — my earlier "absent" claim was wrong | — |
+| review | 232.1 | ✅ use freely | — |
+| ready | 160.3 | ✅ use freely | — |
+| stuck | 95.8 | ✅ strong — beats "blocked" (11.7) by 8× | — |
+| judgment | 47.2 | ✅ fine (note: "judgement" with an 'e' is dead at 0.3) | — |
+| shipped | 36.2 | ✅ fine | — |
+| approve | 5.8 | ⚠️ weak | **review** (232.1) |
+| **receipt** | **3.0** | ❌ dead | **evidence** (50.9) · **history** (103.3) · record (39.5) |
+| **provenance** | **0.3** | ❌ dead | **history** (103.3) |
+| **ledger** | **0.2** | ❌ dead ("trust ledger" = **zero**) | **track record** (4.0) · **history** (103.3) |
+| **audit trail** | **0.2** | ❌ dead | **history** (103.3) |
+| **unattended** | **0.2** | ❌ dead | **overnight** (14.3) · **on its own** (12.4) · in the background (8.6) |
+| **first run** | **0.2** | ❌ dead | **get started** (42.1) · set up (100.3) |
+
+**Two nuances that matter.** `context` scores 243/M but is **unusable on the front** — in this corpus it overwhelmingly means the LLM context window, so it reads as jargon. And `memory` scores **40.7/M**, so it *is* market-native as a **noun**; the standing ban is on *remembers / stores / logs* as **verbs**, which claim less than the product delivers. That distinction is now evidenced rather than stylistic.
+
+### The empty-state answer, and the margin is not close
+
+| candidate | per M |
+| --- | --- |
+| **example** | **711.9** |
+| template | 63.3 |
+| opinionated | 19.2 |
+| starting point | 18.2 |
+| what good looks like | 6.8 |
+| blank page | 1.6 |
+
+**"Example" is the highest-frequency term measured anywhere in this corpus** — 4,073 occurrences. Operators reason in worked examples. **An empty state should therefore show a labelled worked example, not describe a feature and not apologise.**
+
+The mechanism is Linear's Nan Yu: buyers pay to **import an opinion** — *"you're not just adopting the actual software, you're adopting the idea that this is a practice you ought to be doing."* **An empty screen is the only moment where the product is pure opinion and zero data**, which makes it the moment the opinion *is* the product. That `opinionated` scores 19.2/M says the market rewards it.
+
+Note the tension with Widjaja's test — *"information that doesn't change what you do is entertainment"* — which argues **against empty counters**: a "0 decisions" tile changes nothing. Prefer the worked example over the zero-count.
+
 **The single best positioning line in the corpus is a complaint, not a pitch** — Tal Raviv, 2025-07-22, describing our product before it existed:
 
 > *"Today, I'm the human API between my copilot and everything else. I manually recount what happened… update my project knowledge when I remember to. It works, with a lot of work."*
