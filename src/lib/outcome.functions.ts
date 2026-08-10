@@ -32,6 +32,7 @@ import { decideSettlement, SHIPPED_AUTONOMY_POLICY } from "@/lib/autonomy-policy
 import { loadAutonomyPolicies } from "@/lib/autonomy-policy.server";
 import { gradeOutcomeContract } from "@/lib/outcome-contract-grade";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { recordLineageSafe } from "@/lib/lineage.functions";
 // Type only, so nothing is imported at runtime and the cycle this file would
 // otherwise close with outcome-suggestion.server (which imports
 // draftOutcomeVerdict from here) never exists. The runtime call is a dynamic
@@ -602,6 +603,43 @@ export async function applyOutcome(
       learning = inserted;
     }
     const learningId = (learning as { id?: string } | null)?.id ?? null;
+
+    /**
+     * THE SPEC -> LEARNING EDGE, the hop that turns a shipped bet into a
+     * judgeable one.
+     *
+     * Found 2026-08-10 by a guard that starts from the CHAIN and asks who
+     * writes each hop, rather than testing edges that already exist. No code
+     * path in src/ had ever written `child_kind: "learning"`. The eight
+     * `decision -> learning` edges in production are seeded, carrying a
+     * fabricated `created_by_agent: "strategist"` that makes them read like
+     * real agent writes.
+     *
+     * It is `prd -> learning` and not `decision -> learning` because
+     * `learnings` carries `prd_id`, `opportunity_id` and `mission_id` and NO
+     * decision reference, so the seeded shape is one the schema cannot
+     * actually produce. Writing the edge the data supports is the honest fix;
+     * writing the seeded one would need a join that does not exist.
+     *
+     * Guarded on `learningId` because the row is what the edge points at. The
+     * insert above throws on error, but the overturn branch can leave the id
+     * null, and an edge pointing at nothing is worse than no edge.
+     *
+     * Fail-soft and after the fact: a provenance stamp must never fail the
+     * outcome write that a person just settled.
+     */
+    if (learningId) {
+      await recordLineageSafe(db, userId, {
+        parent_kind: "prd",
+        parent_id: prd.id,
+        child_kind: "learning",
+        child_id: learningId,
+        relation: "settled-by",
+        rationale: "The outcome recorded against this spec",
+        created_by_agent: "learn",
+        workspace_id: (prd.workspace_id as string | null) ?? null,
+      });
+    }
 
     // ---- The record of who settled it. `prds.outcome` is still the last write
     // in this function; the overturn is computed here because the memory content

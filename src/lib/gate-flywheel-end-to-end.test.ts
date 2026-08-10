@@ -45,7 +45,11 @@ function stubDb(sourceRow: Record<string, unknown> | null): {
         select(_sel: string) {
           return {
             eq(_c: string, _v: string) {
-              return { async maybeSingle() { return { data: sourceRow, error: null }; } };
+              return {
+                async maybeSingle() {
+                  return { data: sourceRow, error: null };
+                },
+              };
             },
           };
         },
@@ -106,7 +110,11 @@ describe("a decision at the tray reaches the table, in a form a reader can use",
   test("a family with no explicit slug still attributes, never to null", async () => {
     // `decision` carries no agent_slug column; it must fall back to its
     // station's specialist rather than landing unattributed.
-    const rows = await decideAndRecord("decision", { workspace_id: WS, source_kind: "mission" }, "approve");
+    const rows = await decideAndRecord(
+      "decision",
+      { workspace_id: WS, source_kind: "mission" },
+      "approve",
+    );
     expect(rows).toHaveLength(1);
     expect(rows[0].agent_slug).toBeTruthy();
     expect(rows[0].agent_slug).not.toBe("(unattributed)");
@@ -115,7 +123,11 @@ describe("a decision at the tray reaches the table, in a form a reader can use",
   test("a human judging their OWN draft writes nothing at all", async () => {
     // Not a silent skip of telemetry: it is a refusal to score a human's own
     // work as an agent's error, which would bias every rate downstream.
-    const rows = await decideAndRecord("decision", { workspace_id: WS, source_kind: "manual" }, "reject");
+    const rows = await decideAndRecord(
+      "decision",
+      { workspace_id: WS, source_kind: "manual" },
+      "reject",
+    );
     expect(rows).toHaveLength(0);
   });
 });
@@ -142,10 +154,18 @@ describe("the rows become the number self-improve acts on", () => {
   test("two agents are ranked apart, which is the whole point of attributing", async () => {
     const rows: Captured[] = [];
     rows.push(
-      ...(await decideAndRecord("tool_call", { workspace_id: WS, agent_slug: "trusted" }, "approve")),
+      ...(await decideAndRecord(
+        "tool_call",
+        { workspace_id: WS, agent_slug: "trusted" },
+        "approve",
+      )),
     );
     rows.push(
-      ...(await decideAndRecord("tool_call", { workspace_id: WS, agent_slug: "trusted" }, "approve")),
+      ...(await decideAndRecord(
+        "tool_call",
+        { workspace_id: WS, agent_slug: "trusted" },
+        "approve",
+      )),
     );
     rows.push(
       ...(await decideAndRecord("tool_call", { workspace_id: WS, agent_slug: "shaky" }, "reject")),

@@ -1700,6 +1700,47 @@ const studioStage = def({
         .single();
       if (error) throw new Error(`changeset create failed: ${error.message}`);
       changeset = created as ChangesetRow;
+
+      /**
+       * THE EDGE BUILD NEVER WROTE.
+       *
+       * `artifact_lineage` declares `changeset` as a first-class kind, the
+       * Trust Ledger walks signal -> decision -> spec -> build -> merge ->
+       * deploy -> outcome through it, and the Helio demo seed fabricates 21
+       * `mission -> changeset` edges so the walk looks unbroken in a demo.
+       *
+       * Measured against production 2026-08-10: NO code path in src/ has ever
+       * written `child_kind: "changeset"`. Not one. Against 228 real missions
+       * there are ZERO real `mission -> changeset` edges, so the chain has
+       * always stopped dead at the busiest station in the product and the only
+       * place it appeared to continue was seeded data.
+       *
+       * This is the write. It belongs here rather than at commit or merge
+       * because this branch runs exactly once per changeset, at creation,
+       * which is what makes the edge idempotent by construction rather than by
+       * relying on the unique index to absorb repeats.
+       *
+       * `recordLineageSafe`, not `recordLineage`: a provenance stamp runs after
+       * the changeset already exists, and a transport failure must never fail
+       * the stage call that produced real staged files. A missing edge is a
+       * reporting gap; a thrown stage is lost work.
+       *
+       * The workspace is passed explicitly. Omitting it would resolve the
+       * column default `current_user_default_workspace()`, which is the
+       * CALLER'S default and not necessarily the workspace this mission lives
+       * in. Those differ as soon as a user has two workspaces, and an edge
+       * filed under the wrong one is read by the wrong reader forever.
+       */
+      await recordLineageSafe(supabase, userId, {
+        parent_kind: "mission",
+        parent_id: missionId,
+        child_kind: "changeset",
+        child_id: changeset.id,
+        relation: "produced",
+        rationale: "Studio staged the first change for this mission",
+        created_by_agent: "studio",
+        workspace_id: workspaceId,
+      });
     }
 
     // Snapshot base from the branch the commit will build on: the changeset's
