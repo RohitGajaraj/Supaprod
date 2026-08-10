@@ -109,6 +109,20 @@ run_scanner() {
     my $hits = 0;
     # Banned set: em dash, en dash, then the invisible / look-alike chars.
     my $banned = qr/[\x{2014}\x{2013}\x{200B}\x{200C}\x{200D}\x{2060}\x{FEFF}\x{00A0}\x{202F}\x{00AD}\x{200E}\x{200F}\x{FFFD}]/;
+    # THE SAME DASH, WRITTEN SO THIS SCANNER COULD NOT SEE IT.
+    #
+    # Every sweep any lane ran on 2026-08-10 grepped the literal codepoint, and
+    # so did this scanner. HTML entities render as the identical character in a
+    # browser and matched nothing: two live instances sat in
+    # _authenticated.decide.tsx and one in public/brief.html while this hook
+    # returned clean on roughly 25 commits in a single day.
+    #
+    # A guard that has only ever passed is indistinguishable from one that
+    # cannot fail. That is the whole reason this line exists.
+    #
+    # Named, decimal and hex forms all count, and the trailing semicolon is
+    # optional because browsers accept &mdash without it.
+    my $banned_entity = qr/&(?:mdash|ndash|nbsp|zwnj|zwj|shy)\b;?|&\#(?:8212|8211|160|8203|8204|8205|8288|65279|173);?|&\#x(?:2014|2013|00a0|a0|200b|200c|200d|2060|feff|00ad|ad);?/i;
     while (my $rec = <STDIN>) {
       chomp $rec;
       my ($lineno, $content) = split(/\t/, $rec, 2);
@@ -163,13 +177,20 @@ run_scanner() {
       my $stripped = $content;
       $stripped =~ s/`[^`]*`//g if $file =~ /\.(md|markdown)$/i;
 
-      next unless $stripped =~ $banned;
+      next unless $stripped =~ $banned || $stripped =~ $banned_entity;
 
       my @names;
       push @names, "em-dash(U+2014)"  if $stripped =~ /\x{2014}/;
       push @names, "en-dash(U+2013)"  if $stripped =~ /\x{2013}/;
       push @names, "invisible-or-lookalike-char"
         if $stripped =~ /[\x{200B}\x{200C}\x{200D}\x{2060}\x{FEFF}\x{00A0}\x{202F}\x{00AD}\x{200E}\x{200F}\x{FFFD}]/;
+      # Reported separately from the literal so the fix is obvious: the author
+      # typed an entity, and the message should say so rather than sending them
+      # hunting for a character their editor will not show them.
+      if ($stripped =~ $banned_entity) {
+        my ($ent) = $stripped =~ /($banned_entity)/;
+        push @names, "html-entity-dash($ent)";
+      }
       printf "  %s:%s  %s\n", $file, (defined $lineno ? $lineno : "?"), join(", ", @names);
       $hits++;
     }
