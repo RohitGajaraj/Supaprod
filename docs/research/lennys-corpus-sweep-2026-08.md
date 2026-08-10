@@ -68,10 +68,23 @@ Cost: *"the lost bot version was two days basically… he had it 40 hours later,
 
 Corroborated independently: Spiegel (Glean), Fung (Anthropic) and Mosseri each built cross-tool recall in weeks; Klein (monday.com) and Salisbury rebuilt months of decisions from Slack exports; Becker backfilled 100 RFP responses in 2023; Willison documents Anthropic extracting ChatGPT's memory *by asking the model to print it*; Truell (Cursor): *"no matter what entrenchment you build, you can be leapfrogged."*
 
-**Two defensible narrowings, both better than what we have:**
+**The defensible claim is the forecast, and it is one buildable feature.** _(This narrowing is sharper than the two I first drafted; Lane 1 supplied the distinction from the code side and it is correct.)_
 
-1. **The label, not the record.** The corpus is backfillable — proved in 2023 and again in 2025. What is not backfillable is the **outcome label tied to the decision that caused it**, accrued in calendar time. Duolingo is the proof: Jorge Mazal re-derived the decision history and *"CURR had not moved in years"* — the raw record existed, the decision→outcome linkage did not.
-2. **Annie Duke's reframe, which is sharper than our own.** *"There is no such thing as a long feedback loop… You can choose to shorten the feedback loop."* Judgment lacks a fast oracle **because nobody records the forecast**, not because it is impossible. She built one at First Round: forecast at decision time, resolved in 16 months instead of ten years. This converts our moat from a passive claim ("we keep the record") into an active, buildable, harder-to-copy mechanism: **capture the forecast at decision time.**
+Grosser reconstructed a **cause** from surviving artifacts. Causes are recoverable because Slack, email and call recordings persist. What is **not** recoverable is the **forecast** — what the team believed would happen, recorded *before* the outcome was known. That leaves no trace in any artifact unless someone wrote it down at the time. No amount of raw data reconstructs a belief nobody logged.
+
+So the moat is not the record (backfillable — proved in 2023 and again in 2025), and not even the outcome label (substantially derivable once outcomes land). **It is the forecast captured at decision time**, which is structurally impossible to backfill and cheap for us to capture because we already sit at the decision.
+
+Annie Duke supplies both the mechanism and the proof: *"There is no such thing as a long feedback loop… You can choose to shorten the feedback loop."* Judgment lacks a fast oracle **because nobody records the forecast**, not because it is impossible. She built exactly this at First Round — forecast at decision time, resolved in 16 months instead of ten years.
+
+Corroboration from our own data: Duolingo's Jorge Mazal re-derived the decision history and found *"CURR had not moved in years."* The raw record existed. The decision→outcome linkage did not. And the forecast never existed at all.
+
+**This converts the moat from a passive claim ("we keep the record") into one active, buildable, un-backfillable mechanism — and it should be prioritised above both the record and the label.**
+
+### The wiring constraint on all outward copy (binding)
+
+Lane 1 measured the loop against live production on 2026-08-10. **The mechanism is real and proven; the corpus is empty.** `human_gate_events` holds 113 rows, of which **112 are demo seed** (16 rows copied into seven workspaces at an identical microsecond timestamp) and **one** was written by a real human — carrying `workspace_id = NULL`, which every reader scopes on, so it is invisible to all of them. Ten real approvals by real humans in real workspaces captured **zero** events. Separately, `agent_memory` holds **zero** rows of `kind='outcome'` against 119 learnings; the write path is proven against production but has never once completed.
+
+**Therefore: no outward surface may claim accumulated learning in the present tense.** Not "we learn from your corrections." The honest and still-strong form is *the loop is wired and proven, and it begins accruing on first real use*. This is the existing claim-never-outruns-wiring doctrine, now with a measurement behind it.
 
 ### T4 — "90–95% agentic execution" is contradicted by everyone who actually ships agents
 
