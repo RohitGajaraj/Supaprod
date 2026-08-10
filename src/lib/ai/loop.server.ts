@@ -41,6 +41,7 @@ import { capToolsByRisk } from "@/lib/agent-tool-cap";
 import { resolveBestAgentModelForUser } from "./platform-keys.server";
 import { buildNativeToolDefs } from "./tool-schemas.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import { classifyFailureCode } from "@/lib/observability/gates";
 
 const MAX_RUNNING_PER_WORKSPACE = 5;
 
@@ -1103,7 +1104,20 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         try {
           await supabase
             .from("agent_runs")
-            .update({ status: "failed", output: errMsg })
+            .update({
+              status: "failed",
+              output: errMsg,
+              // AFD-06: classify the failure at the moment we know what it was.
+              // `failure_kind` is read by the observability dashboard's failure
+              // breakdown, which filters `.not("failure_kind","is",null)` and
+              // was therefore permanently empty: measured 2026-08-10, ZERO of
+              // 1,225 runs carried a kind against 226 real failed or
+              // partially-failed ones. The only writer was the AI-call layer,
+              // which never sees a tool or provider failure that surfaces here.
+              // Same classifier and same taxonomy, so the two paths cannot
+              // disagree about what a timeout is called.
+              failure_kind: classifyFailureCode(errMsg),
+            })
             .eq("id", runId);
         } catch (err) {
           console.error("agent_runs fail-mark failed:", err);
@@ -1853,7 +1867,12 @@ export async function executeApproval(
     const missionId = (appr as { mission_id?: string | null }).mission_id ?? null;
     if (runId) {
       try {
-        await supabase.from("agent_runs").update({ status: "failed", output: msg }).eq("id", runId);
+        // Same classification as the main loop's catch: a post-approval tool
+        // failure is a real failure kind and was previously recorded with none.
+        await supabase
+          .from("agent_runs")
+          .update({ status: "failed", output: msg, failure_kind: classifyFailureCode(msg) })
+          .eq("id", runId);
       } catch (err) {
         console.error("agent_runs fail-mark failed (executeApproval):", err);
       }
