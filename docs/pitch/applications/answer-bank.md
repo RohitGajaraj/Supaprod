@@ -348,9 +348,21 @@ merged pull request.
 
 What I understand that they do not: every one of them stops one step short. They
 surface, draft, remember, or dispatch. None of them checks the shipped outcome
-against the decision that caused it and feeds that back, and that last step is
-the only one that compounds. It cannot be bolted onto a tracker, and it cannot
-be copied quickly, because it only accumulates with time.
+against the decision that caused it and feeds that back.
+
+But the real competitor is not another product. It is the folder. Six product
+managers talked a buyer out of this category in a private thread last month:
+don't switch tools, use simpler ones, two systems of record create friction.
+One had tried four purpose-built tools and gone back to a plain Obsidian
+folder. Their sharpest argument was that lower-level tools are more AI-friendly,
+because agents drive them better.
+
+They are right about the premise and wrong about the conclusion. An agent can
+write into a Notion page or a GitHub issue. It cannot write a decision carrying
+its evidence, its author, a verdict slot and a human gate into either.
+Low-level tools are agent-writable but not agent-governable. That seam opens
+the moment a second person or a fleet of agents touches the work, and it is
+where we sell.
 ```
 
 ---

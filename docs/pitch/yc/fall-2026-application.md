@@ -14,6 +14,113 @@
 >
 > **How to use this file:** five columns now. ① PREVIOUS (the rolled-over application) and ② NEW (2026-07-10) sit field-by-field below; ③ the ⭐ SUBMIT SHEET (2026-07-22) and ④ 🔥 THE NEXT ITERATION (2026-07-22) were the submit-day rewrites. **The application is SUBMITTED. The 🚨 UPDATE SHEET (⑤, 2026-07-23) is the only operative column now — YC's portal exposes exactly five editable surfaces, and ⑤ maps them one to one. Columns ①–④ stay untouched as the historical record and as interview prep (a partner may quote the locked text back at you).** Anything in `[square brackets]` is a slot you fill or confirm on paste day — never submit a bracket. The evidence behind every choice: [`research-findings.md`](./research-findings.md). Interview prep: [`interview-prep.md`](./interview-prep.md). Videos: [`video-scripts.md`](./video-scripts.md).
 
+## ⚠️ 2026-08-10 — PASTE-READY CORRECTIONS FROM THE CORPUS SWEEP. DO THESE BEFORE ANY OTHER EDIT.
+
+> _Grounded in a full read of the market — 679 documents / 5,935,025 words, plus the members-only PM community. Canon: [`../../strategy/positioning-locked-2026-08.md`](../../strategy/positioning-locked-2026-08.md). Four fields below carry claims that are now **falsified**, not merely dated. Ranked by damage if a partner tests them._
+
+### 🔴 1. Surface 1 — Progress Update (editable, highest leverage, and the only place current truth reaches a partner)
+
+**Paste this.** It is the five-beat structure and every claim in it survives being queried:
+
+```
+Since applying I ran a full read of my market rather than guessing at it:
+679 operator interviews and a members-only community of 30,000 product
+managers. It falsified three of my own moat claims. I corrected them in
+public, in the repo, rather than defending them.
+
+The biggest one: I had been saying the decision record cannot be
+backfilled. It can. Vercel's COO reconstructed a lost deal's true cause
+from Slack, email and call recordings with an agent built in two days.
+What cannot be reconstructed is the forecast, what a team believed would
+happen before the outcome landed. That is not an artifact. It leaves no
+trace unless something captured it at the moment of the call. So the
+product now captures it, and the migration that does it shipped this week.
+
+Practitioners name the pain better than I had: "PMs got faster at
+shipping but didn't get better at defending why. The judgment gap got
+exposed." Speed is solved. 82% of the market reports AI already makes
+them measurably more productive, while burnout rose from 44.7% to 55.7%
+and their top fear is being expected to do more for the same pay.
+
+The loop is wired and proven end to end, and empty by design until real
+usage accrues. First-pass acceptance began capturing this week.
+```
+
+### 🔴 2. Field 7f — the closing paragraph states the falsified claim
+
+**Current, replace it:** *"What makes it compound: every decision is recorded with its evidence, and every outcome is checked and remembered. That record becomes the brain of your product org…"*
+
+**Two defects.** "Remembered" is banned vocabulary (it claims less than the product delivers), and **"that record becomes the brain" is the exact claim the sweep falsified** — the record is reconstructable. **Paste this instead:**
+
+```
+What makes it defensible: every decision is recorded with its evidence
+and, the part nothing else does, what you expected before the outcome
+landed. Causes can be rebuilt later from Slack and call recordings. A
+forecast cannot. It leaves no trace unless something captured it when you
+decided. That is what turns a record into judgment: the system knows not
+just what happened, but what you thought would happen, and how often you
+were right.
+
+Agents do the work. You answer for it. Supaprod is how you answer.
+```
+
+### 🔴 3. Field 9b — the competitor set is wrong, and this is the answer most likely to impress
+
+**Current** names Samepage, Brief, Productboard, Notion, and closes on *"it cannot be copied quickly, because it only accumulates with time."*
+
+**Both halves are weak now.** The corpus says **the real competitor is DIY — the folder** — and the time-accrual claim is the falsified one. This rewrite is also strictly more interesting to a partner, because it concedes the strongest objection and then answers it:
+
+```
+Nobody runs the whole loop, but my real competitor is not another
+product. It is the folder.
+
+I checked this rather than assumed it. Last month, in a private thread,
+six product managers talked a buyer out of this entire category: don't
+switch tools, use simpler ones, two systems of record create more
+friction than they solve. One had tried four purpose-built tools and gone
+back to a plain Obsidian folder. Their sharpest argument was that
+lower-level tools are more AI-friendly, because agents drive them better.
+
+They are right about the premise and wrong about the conclusion, and that
+is what I understand that they do not. An agent can write into a Notion
+page or a GitHub issue. It cannot write a decision carrying its evidence,
+its author, a verdict slot and a human gate into either. Low-level tools
+are agent-writable but not agent-governable. Another operator in that
+same community tried Obsidian, abandoned it, built his own and still
+failed: he could not tell who changed what, what was trustworthy versus
+polluted, why it changed, or stop certain files from changing.
+
+That seam opens the moment a second person or a fleet of agents touches
+the work, and it is where I sell. Samepage, Brief, Productboard's Spark
+and Notion's Ship OS all stop one step short: they surface, draft,
+remember or dispatch. None checks the shipped outcome against the
+decision that caused it.
+```
+
+### 🟡 4. Field 9a — strong already; one sentence makes it much stronger
+
+Keep it. **Add this after the 1,500-hours line**, because a practitioner naming the pain unprompted outranks YC's own RFS as evidence:
+
+```
+Then a working PM named it better than I had, unprompted, in a private
+community: "PMs got faster at shipping but didn't get better at
+defending why. The judgment gap got exposed."
+```
+
+### ✅ Already handled elsewhere
+
+- **9c** — paste-ready correction sits at its own section below (the spliced Mosseri/Lemkin arithmetic).
+- **Interview prep** — brutal question #13 in [`interview-prep.md`](./interview-prep.md) covers the spliced claim if a partner quotes locked text back.
+- **7b (50 characters)** — *"Cursor for PMs, but for the whole product org."* survives the sweep unchanged. No edit needed.
+
+### ❌ Three things that must not appear anywhere in this application
+
+1. **No present-tense accumulated-learning claim.** *"We learn from your corrections"* does not survive one query against `agent_memory`, which holds zero outcome rows. Say *wired and proven, accrues on first real use.*
+2. **No unbroken signal → shipped → learned chain.** It is broken in two places: Discover promotes 3 of 86 themes, and Build writes no changeset or deployment edges.
+3. **No inevitability language.** The most credentialed post of its era called web3 *"risky and inevitable"* and pointed readers at FTX nine months before it collapsed.
+
+---
+
 ## The five laws this application is written under
 
 1. **True on the day you hit submit, with zero outside users.** Plans appear as dated plans. Nothing depends on August going well. YC verifies numbers ("if you state numbers in the interview we may ask for verification").

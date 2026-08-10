@@ -73,6 +73,35 @@ export function resolveMaxChildrenForTier(tierCap: number | null): number {
   return Math.min(tierCap, FANOUT_MAX_CHILDREN);
 }
 
+/**
+ * PURE. What a parent run has LEFT to hand its children, from its own ceiling and
+ * what it has already spent. `undefined` means "this run's ceiling is unknown", and
+ * that distinction is the whole point of the function.
+ *
+ * WHY THIS IS NOT `?? null`, WHICH IS WHAT IT USED TO BE. `resolveMissionSpendCap`
+ * reads `undefined` as "nobody said" (inherit the workspace ceiling) and `null` as
+ * "somebody said no ceiling" (returned verbatim, no read, no ceiling). A caller that
+ * cannot read the parent's cap — the `agent_runs` row errored, or there is no run id
+ * to read, or the run predates the day every writer began resolving — knows nothing,
+ * which is "nobody said". Collapsing that into `null` made a database hiccup delete
+ * the spending limit for EVERY child of the fan-out, on the one call that turns
+ * itself into N runs. Proved 2026-08-10 against the real path: an explicit null went
+ * in and `[null, null]` came out on the child `agent_runs` rows, with the workspace
+ * never read. That is precisely the fail direction `mission-caps.server.ts` names as
+ * "exactly backwards for a safety control".
+ *
+ * A parent that has genuinely burnt its budget returns 0, NOT undefined: zero is a
+ * real ceiling that halts each child on its first check. See `planFanout` below.
+ */
+export function remainingMissionBudget(
+  cap: number | null | undefined,
+  used: number | null | undefined,
+): number | undefined {
+  if (typeof cap !== "number" || !Number.isFinite(cap)) return undefined;
+  const spent = typeof used === "number" && Number.isFinite(used) ? used : 0;
+  return Math.max(0, cap - spent);
+}
+
 export type FanoutItem = { task: string; context?: Record<string, unknown> };
 
 export type PlannedChild = {

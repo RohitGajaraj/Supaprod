@@ -6,6 +6,7 @@ import {
   fanoutDepthOf,
   canSpawnAtDepth,
   resolveMaxChildrenForTier,
+  remainingMissionBudget,
 } from "./fanout";
 
 describe("planFanout (ephemeral sub-agent fan-out)", () => {
@@ -100,6 +101,49 @@ describe("planFanout (ephemeral sub-agent fan-out)", () => {
   it("carries each item's context through to its child", () => {
     const plan = planFanout([{ task: "a", context: { sourceId: "s1" } }]);
     expect(plan.children[0].context).toEqual({ sourceId: "s1" });
+  });
+});
+
+/**
+ * THE TWO ABSENCES THIS FUNCTION EXISTS TO KEEP APART, and the one that is
+ * expensive. `undefined` is "we could not learn this run's ceiling" and must reach
+ * `resolveMissionSpendCap` as "nobody said", so the workspace ceiling is inherited.
+ * `null` would be "somebody chose no ceiling" and is returned by the resolver
+ * verbatim, uncapped, without a workspace read at all. `agent.spawn` used to write
+ * `?? null` here, which turned an unreadable `agent_runs` row into an uncapped
+ * fan-out: N children, not one of them stoppable. Every case below is the fail-closed
+ * direction, and the LAST one is the regression itself.
+ */
+describe("remainingMissionBudget (an unknown ceiling is not an absent one)", () => {
+  it("subtracts what the parent already spent from its ceiling", () => {
+    expect(remainingMissionBudget(10, 4)).toBe(6);
+    expect(remainingMissionBudget(10, 0)).toBe(10);
+  });
+
+  it("floors an overspent parent at zero, which is a REAL ceiling its children obey", () => {
+    // Not undefined: an exhausted parent must hand its children a ceiling that
+    // halts them on their first check, not an unanswered one that halts nothing.
+    expect(remainingMissionBudget(10, 12)).toBe(0);
+    expect(remainingMissionBudget(0, 0)).toBe(0);
+  });
+
+  it("treats an unreadable spend figure as zero spent rather than dropping the ceiling", () => {
+    expect(remainingMissionBudget(10, null)).toBe(10);
+    expect(remainingMissionBudget(10, undefined)).toBe(10);
+    expect(remainingMissionBudget(10, NaN)).toBe(10);
+  });
+
+  it("returns undefined, NEVER null, when the parent's ceiling is unknown", () => {
+    // The regression. `agent_runs` unreadable, no run id, or a legacy row that
+    // predates universal resolution — all three are "nobody said", and all three
+    // used to be written as null, which uncapped every child of the fan-out.
+    expect(remainingMissionBudget(null, 3)).toBeUndefined();
+    expect(remainingMissionBudget(undefined, 3)).toBeUndefined();
+    expect(remainingMissionBudget(NaN, 3)).toBeUndefined();
+    expect(remainingMissionBudget(Infinity, 3)).toBeUndefined();
+    // Spelled out, because `toBeUndefined` would also pass for a null in a
+    // loosely-typed caller and the two values mean opposite things downstream.
+    expect(remainingMissionBudget(null, 3)).not.toBeNull();
   });
 });
 

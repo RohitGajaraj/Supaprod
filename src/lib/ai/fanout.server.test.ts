@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from "bun:test";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { enqueueFanout, fanoutEnabled } from "./fanout.server";
-import { FANOUT_MAX_CHILDREN, type FanoutItem } from "./fanout";
+import { FANOUT_MAX_CHILDREN, remainingMissionBudget, type FanoutItem } from "./fanout";
 
 // A spy Supabase client: resolves the target agent, serves the workspace ceiling
 // `resolveMissionSpendCap` reads, and counts the agent_messages / agent_runs
@@ -191,6 +191,40 @@ describe("enqueueFanout budget resolution (an absent cap is not a no-ceiling)", 
       spend_cap_usd: 0,
     });
     expect(childSpendCaps(rows)).toEqual([0, 0]);
+  });
+
+  it("inherits the workspace ceiling when the PARENT's own cap could not be read", async () => {
+    // The regression, composed exactly as `agent.spawn` composes it. The parent's
+    // `agent_runs` row is unreadable (errored SELECT, no run id, or a legacy row),
+    // so `remainingMissionBudget` yields undefined. That must arrive as "nobody
+    // said" and inherit the ceiling. It used to arrive as `null`, which
+    // `resolveMissionSpendCap` returns verbatim without reading the workspace at
+    // all, so one failed SELECT uncapped every child of the fan-out.
+    const { client, rows, reads } = fanoutSpy(undefined, 8);
+    const unknownParentCap = remainingMissionBudget(null, 0);
+    expect(unknownParentCap).toBeUndefined();
+    await enqueueFanout(client, "u1", {
+      ...args([{ task: "a" }, { task: "b" }]),
+      spend_cap_usd: unknownParentCap,
+    });
+    expect(childSpendCaps(rows)).toEqual([4, 4]); // 8 / 2, and never null
+    expect(reads.workspaces).toBe(1); // the read that the null path skipped entirely
+  });
+
+  it("makes a caller-supplied null unspellable, so the guard is the compiler and not a convention", () => {
+    // `fanout.server.ts` has said since day one that a caller-supplied null is "the
+    // one answer this path must never give". That stayed prose for two months while
+    // `agent.spawn` supplied exactly that null. It is now the parameter's type.
+    // Widen `spend_cap_usd` back to `number | null` and this @ts-expect-error goes
+    // unused, which fails `bunx tsc --noEmit`. Never invoked: it is a compile-time
+    // assertion, and the behaviour it forbids must not be exercised.
+    const forbidden = () =>
+      enqueueFanout(null as unknown as SupabaseClient, "u1", {
+        ...args([{ task: "a" }]),
+        // @ts-expect-error a caller may not hand fan-out an explicit "no ceiling"
+        spend_cap_usd: null,
+      });
+    expect(typeof forbidden).toBe("function");
   });
 
   it("obeys a workspace that cleared its own ceiling (the one legitimate uncapped child)", async () => {

@@ -2,6 +2,27 @@
 
 > _Created 2026-07-31. 144 programs researched live against their own sites and forms on 2026-07-31. This is the single index. Deadlines were verified the day this was written and **programs change them without notice**, so re-check the source link before relying on any date._
 
+## ⚠️ BINDING, 2026-08-10 — every application in this folder speaks the corrected language
+
+**Founder ruling: any application we make must speak in the post-sweep positioning.** Canon: [`../../strategy/positioning-locked-2026-08.md`](../../strategy/positioning-locked-2026-08.md) §5G. Grounded in a full read of 679 documents / 5.9M words plus the members-only PM community.
+
+**The five beats, in this order:** why now with a number · the wedge and why it is not "a better folder" · the moat stated so it survives a query · the proof line · the metric (rework, not speed). **Then the honest beat before they ask it:** wired and proven, empty by design until used.
+
+**Four claims are retired. They are falsified, not dated — a partner who tests one will find it:**
+
+| ❌ Never say | ✅ Say instead |
+| --- | --- |
+| the record / ledger "cannot be backfilled", "cannot be copied quickly", "only accumulates with time" | **the forecast** cannot be backfilled — causes survive in Slack and call recordings and have been rebuilt with an agent made in two days |
+| "the labs decline this vertical" | they could not build it **securely** across someone else's tools; an independent has no such restriction |
+| "single-suite incumbents cannot be neutral" | the threat is **DIY** — the folder, and the belief that simpler tools are more agent-friendly |
+| "90–95% agentic" | graduated autonomy with gates, which is what we built and what the field wants |
+
+**Three hard prohibitions:** no present-tense accumulated-learning claim · no unbroken signal → shipped → learned chain (it is broken in two places) · no inevitability language.
+
+**Sweep by the CLAIM, not the phrase.** One assertion travels under at least five wordings — *backfilled · bolted on · bought · copied quickly · recovered after the fact*. Grep all of them. This rule was learned the hard way: the same claim escaped six separate sweeps today.
+
+**Files still carrying retired language as of this writing** (the shared [`answer-bank.md`](./answer-bank.md) and [`positioning-doctrine.md`](./positioning-doctrine.md) are corrected; these inherit from older copies and need a pass before submission): [`betaworks-ai-camp/`](./betaworks-ai-camp/), [`the-residency/`](./the-residency/). Check [`ef-bridge-sf/`](./ef-bridge-sf/) and [`south-park-commons/`](./south-park-commons/) before sending either.
+
 ## How this folder works
 
 | File | What it is |
