@@ -185,6 +185,38 @@ Same issue, a different thread on the limits of AI automation. **Kira M Allen**,
 
 Also worth carrying, from the same edition's link roundup — *"AI makes the artifact cheaper, not the evidence. Once people can click through the flow, the discussion shifts from 'Should we build this?' to **'What would it take to ship what we already have?'**"* That is the judgment gap, observed at the prototype.
 
+### The station ORDER is challenged — planning moves downstream of evidence
+
+**Community Wisdom 192, 2026-07-04**, thread titled *"Has AI killed the quarterly product planning cycle?"* **Bal Sieber**, who runs an agent-led studio:
+
+> *"The quarterly cycle was never really about deciding what to build. It was a **batching thing**. When shipping a feature cost you six weeks, you had to commit three months out because a wrong bet burned a quarter, so you front-loaded all the arguing into planning season.
+> **Drop the build cost to a day and that math breaks. You stop forecasting what's worth building and start deciding what's worth keeping after you've watched it run.**… What dies is **the roadmap-as-forecast**… **Planning didn't disappear, it just moved downstream of the evidence instead of upstream of it.**"*
+
+**This is the most serious structural challenge in the sweep, and it is not to whether we are right — it is to our ORDER.** Our loop runs Discover → Decide → Plan → Design → Build → Ship → **Learn**. He describes: build cheaply → watch it run → **then** decide what to keep. **If build cost collapses, Learn stops being station 07 and becomes the front of the loop.**
+
+It also cuts against the §2 forecast claim as stated — if the decision moves after the evidence, there is less to forecast. **The reconciliation, and it survives:** what he describes is still a decision with a verdict, and *"what's worth keeping"* is an outcome judgment that must be recorded against something. The forecast does not vanish; it shrinks in horizon, from *"will this quarter's bet pay off"* to *"what do I expect this prototype to prove."* **A forecast at prototype-launch is cheaper to capture and resolves in days rather than quarters — which makes the mechanism easier, not harder.**
+
+**Recommended reading, not yet a founder ruling:** treat the seven stations as a **cycle with two legitimate entry points** — one at Discover for genuinely new problems, one at Build/Learn for cheap-to-test ones — rather than a route that always begins upstream. Two operators in the same thread hold the line that strategy itself does not move (*"the planning is still critical… the critical opportunity to get the cross-functional alignment"*), and a third notes an enterprise constraint we should not ignore: *"the velocity of product changes isn't just about what you can ship — it's also about what your customers are willing to uptake."*
+
+### A 1,500-person org is building us internally — and its advisor wrote our spec
+
+Same edition, thread 6. **Helen Wang**, PM at a Series E company with 1,500+ employees, is standing up *"a spec-driven AI SDLC for our R&D org where PMs, designers, and engineers can leverage agents"* — inspired by BMAD, with a dedicated PM counterpart, org-wide adoption plan and KPIs. **That is our product, staffed and funded, inside one enterprise.**
+
+**Brandon Parker's reply is the most precise product specification found anywhere in the corpus:**
+
+> *"the prompt is rarely the hard part. **Context governance is.** Agents fall apart when they can't tell what's **current vs. stale, canonical vs. just-discussed, decided vs. still-needs-a-human.** Once that goes fuzzy, they produce impressive-looking work that quietly creates rework and trust problems.
+> So I'd spend as much time on the operating model as the agents. **Source-of-truth hierarchy, clean handoff packets, explicit decision records, acceptance criteria, verification gates.** Plus some separation between the agent that plans, the one that executes, and the agent or human that checks.
+> **The KPI I'd watch isn't speed. It's rework:** clarification loops, reopened tickets, spec/design mismatches, review burden, first-pass acceptance.
+> …adoption comes when teams trust the system to **stay oriented**. **'Here's what I used, what changed, what I think is true, and how to verify it'** beats a flashy demo."*
+
+Four things we should take verbatim:
+1. **"Context governance"** is the operator's name for what we sell. It outranks anything in §3's vocabulary table for the in-product register.
+2. **"Current vs. stale, canonical vs. just-discussed, decided vs. still-needs-a-human"** is a plain-English description of our bi-temporal supersession graph. That is our most differentiated built asset described as an unmet need.
+3. **The KPI is rework, not speed** — clarification loops, reopened tickets, first-pass acceptance. This is a better metric than anything in our canon, it is measurable from data we already hold, and it directly answers the survey's *"more for the same pay"* fear because rework is unpaid work.
+4. **"Here's what I used, what changed, what I think is true, and how to verify it"** is a four-part output contract for every agent artifact. Route to Lane 1 and Lane 2.
+
+**Also worth tracking:** Google published **OKF (Open Knowledge Format)** in July 2026 — org knowledge as a folder of Markdown files with YAML front matter, linked into a navigable knowledge graph. Helen Wang is adopting it. **A standard is forming in exactly our layer**; being compatible with it is likely cheaper than competing with it.
+
 ### Two disconfirming findings, recorded with equal weight
 
 1. **Scaffolding decay, observed directly.** Shane J on the BMAD agent-orchestration method: *"We used BMAD before. Was no longer relevant for us as of Opus 4.6 and GPT-5.5 (or at least not worth the structure)."* A named method, abandoned because models improved. This is the Cherny thesis happening in the field, dated.

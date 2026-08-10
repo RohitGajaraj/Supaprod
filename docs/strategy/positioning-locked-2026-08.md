@@ -98,6 +98,15 @@ Measured on production lineage, demo workspaces excluded: 36 real `learning → 
 
 ---
 
+## 5B. Added 2026-08-10 from the private community — four things that outrank what we had
+
+1. **"Context governance" is the operator's name for our category.** Brandon Parker, advising an enterprise building this internally: *"the prompt is rarely the hard part. **Context governance is.**"* For the in-product register this beats every term in the vocabulary table.
+2. **Our most differentiated built asset, described as an unmet need.** Same source: agents fail when they cannot tell *"**current vs. stale, canonical vs. just-discussed, decided vs. still-needs-a-human**."* That is our bi-temporal supersession graph in plain English. Lead with it.
+3. **The metric is rework, not speed.** *"The KPI I'd watch isn't speed. It's rework: clarification loops, reopened tickets, spec/design mismatches, review burden, first-pass acceptance."* Better than anything in our canon, measurable from data we already hold, and it directly answers the survey's top fear — **rework is unpaid work**, so reducing it is relief rather than more throughput.
+4. **A four-part output contract for every agent artifact:** *"Here's what I used, what changed, what I think is true, and how to verify it."*
+
+**And one open structural question, flagged not decided.** An agent-led studio operator: *"You stop forecasting what's worth building and start **deciding what's worth keeping after you've watched it run**… Planning didn't disappear, it just **moved downstream of the evidence** instead of upstream of it." ***If build cost collapses, Learn stops being station 07 and becomes the front of the loop.*** The reconciliation that preserves §4: the forecast does not vanish, it shortens — from *"will this quarter's bet pay off"* to *"what do I expect this prototype to prove"*, which resolves in days instead of quarters and is therefore **easier** to capture. Recommended treatment: two legitimate entry points (Discover for new problems, Build/Learn for cheap-to-test ones). **This touches the station model and is the founder's call.**
+
 ## 6. Routed to the lanes
 
 **Lane 1 (function/gaps):** forecast capture at decision time is the priority build — it is the only un-backfillable asset and it is one feature. Then confidence grades on outcome labels (30–40% of lift-showing experiments show no long-term lift; a p<0.05 result is wrong ~1 in 4). Intervention logging is wired but starved and begins accruing now.
