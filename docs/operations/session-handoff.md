@@ -103,3 +103,97 @@ Hero spacing also went from **20 / 28 / 36px** (a linear ramp in 8px steps, invi
 3. **`/faq`, `/product` and `/security` copy was not audited.** Three of the four surfaces that *were* checked carried a dated or false claim, so these deserve the same read.
 4. **The hero spec column's vertical anchor.** It is centred against a left column that got ~120px shorter when two blocks came out. Its colours are now correct; its position was not re-derived.
 5. **`/brief` and `/investors` are still iframe-over-`brief.html`,** so crawlers cannot see them. This is the SEO/GEO item the founder asked for by name and it is still open.
+
+---
+
+## 🚨 LANE 0 CYCLE 1 COMPLETE — FINDINGS & EXECUTION DIRECTIVES (2026-08-10)
+
+**Lenny's Data analysis is done.** Full findings in [`../research/lane0-cycle1-findings.md`](../research/lane0-cycle1-findings.md). **Eight actionable gaps are now routed to Lanes 1 & 2 in SSOT rows 96–103.** This section broadcasts them. Do not treat this as a report to read later — these are active directives with owner, priority, sequencing.
+
+### Three Primary Findings (Market Evidence)
+
+**Finding 1: Decision Memory + Receipts Is The Wedge (P0)**
+- **The pain:** Operators say "why did we decide X?" — they need instant proof (decision → evidence → shipped → outcome verdict).
+- **Not agent autonomy; not Critic red-team.** Market validates verification over capability (Aakash $28K, Fin $0.99/resolution, Mercor $400M).
+- **Market vocabulary is exact:** Reddit r/PM (480 pts): *"Why did we decide X? Cue hours finding that Slack conversation."*
+- **Action:** RPT-01 & RPT-12 (decision memory + outcome-fed trust) MUST ship BEFORE launch, tested end-to-end. Demo: "Why did we decide X?" → instant chain with proof.
+- **Owner:** Lane 1 (engineering) + Lane 2 (UX reframe)
+
+**Finding 2: Governance Via Capabilities, Not Process Orchestration (P1)**
+- **Cherny right:** Process orchestration is dying (2026-02-19: "you get better results if you just give the model tools, you give it a goal, and you let it figure it out").
+- **But governance is load-bearing:** Approval floors, capability grants, receipts as evidence — Anthropic Cowork, OpenAI rules, Reganti/Badam patterns all require this.
+- **Market validates governance:** Teams pay for trust + receipts, not tool breadth. Graduated autonomy requires proof (receipts per capability, not assumed).
+- **Action:** WM-M15 (Captains + trust ladder) is HIGHER priority than mission breadth. Every agent capability starts at trust tier, earns advancement only via receipts. Reorder build queue.
+- **Owner:** Lane 1 (prioritize governance over autonomy expansion) + Lane 2 (remove "orchestrates"; say "governs")
+
+**Finding 3: Buyer Is The Fleet Manager, Not Solo PM (P1 ICP shift)**
+- **Evidence:** Lemkin (SaaStr 2026-01-01): Amelia (product staff) spends 20% time managing, orchestrating agents. Coinbase: one-person teams (2026).
+- **Implication:** TAM isn't "PMs using AI helpers." It's "one operator managing a fleet of agents (2–20)." Title shift from PM to product-staff / product generalist / product founder.
+- **Action:** Refine ICP archetype from "individual PM" to **"operator (PM/founder/product generalist) managing an agent fleet."** Lead GTM with Lemkin's Amelia seat.
+- **Owner:** Founder (positioning/messaging) + Sales (GTM targeting)
+
+### Eight Gaps — Execution Lanes & Sequencing
+
+**Lane 1 (Engineering & Core) — 5 Items**
+
+| Gap | Priority | Owner | What Changed | Action | Blocker? |
+|-----|----------|-------|-------------|--------|----------|
+| **G1.1** Memory expiry gate OFF | P1 | Lane 1 | Moat breaks if expiry is ON at launch. Currently OFF (correct state). **Gap: no test** that fails if it ever flips. | Add gate test: `memory_expiry_enabled()` must read false at launch. Test fails if ever enabled without founder approval. | Founder confirms state is good |
+| **G1.2** Decision memory + receipts | P0 🔥 | Lane 1 + L2 | Wedge is decision memory, not Critic. RPT-01 & RPT-12 must ship BEFORE launch, tested end-to-end. Demo: "Why did we decide X?" → instant chain (decision → evidence → shipped → outcome). | Ship + test RPT-01 & RPT-12. Do NOT launch without this working. | None |
+| **G1.3** Billing tier reconciliation | P1 | Lane 1 | Code has five internal tiers (free/pro/max/team/enterprise); founder locked four public tiers (Free/Pro/Business/Enterprise, 2026-07-13). Reconcile slugs, verify memory-expiry logic covers all tiers. `max` is internal-only, `team` displays as "Business" — likely already correct. | Verify tier reconciliation is complete or remove unused `max` tier per founder decision. Audit memory-expiry list. | Founder decision: is current state acceptable? |
+| **G1.4** Outcome settlement end-to-end | P2 | Lane 1 + Founder | `applyOutcome` has never run in production. Moat claim rests on this. Founder needs to settle one outcome (10 minutes: visit `/proof`, pick any decision, run verdict, record outcome). | Founder: settle one outcome. Lane 1: verify path works, close the loop in `/proof`. | Founder time (10 min) |
+| **G1.5** WM-M15 priority reorder | P1 | Lane 1 | Governance (Captains + trust ladder) is now HIGHER priority than mission breadth. Founder was expanding mission tiers; evidence says governance first. | Reorder build queue: move WM-M15 (Captains, trust ladder, approval gates) above additional capability expansion. Every new capability starts at trust tier. | None |
+
+**Lane 2 (Design & UX) — 3 Items**
+
+| Gap | Priority | Owner | What Changed | Action | Blocker? |
+|-----|----------|-------|-------------|--------|----------|
+| **G2.1** Hero reframe | P0 🔥 | Lane 2 + Founder | Current hero says "agents build autonomously." Market pain is "why did we decide X?" with proof. Wedge is decision memory, not agent autonomy. | Reframe hero from "agents build" to "every decision on the record with proof." Lead with "Why did we decide X?" — the exact operator pain language. | None |
+| **G2.2** Seven-station UX compression | P1 | Lane 2 | Station model is architecturally correct (seven-station is right). But market loops compress to 3-beat: Prototype → Outcome → Learn (W3 finding). Showing all seven names adds cognitive load, makes product look pedagogical. | Hide station names from user path; show only decision → build → outcome milestones. Keep 7-station in Engine Room (admin). UX refactor only, no architecture change. | None |
+| **G2.3** Vocabulary shift | P1 | Lane 2 | Cherny right: process orchestration dying. But governance is load-bearing. Language matters for differentiation. "Orchestrates" is wrong. | Replace "orchestrates" with "governs decisions." Add "agents earn capability via receipts," "approval gates," "graduated autonomy." Audit all user-facing surfaces. | None |
+
+### Founder-Escalated Calls (Blocking)
+
+These three must be resolved before Lanes 1 & 2 can execute some gaps.
+
+| Item | Status | Action | Urgency |
+|------|--------|--------|---------|
+| **Lemkin quote in YC app** | BROKEN (lines 1051–1052 in fall-2026-application.md) | Paste corrected paragraph (lines 1071–1080, same file). Full audit in [`../research/lennys-quote-verification.md`](../research/lennys-quote-verification.md). | 🚨 URGENT — blocks investor submission |
+| **Memory expiry gate** | GOOD (set to FALSE in DB seed) | Confirm this state is acceptable. G1.1 will add test to prevent flipping. | CRITICAL — unblocks G1.1 |
+| **Billing tier reconciliation** | LIKELY OK (max is internal-only, team displays as Business) | Confirm current structure matches your intent or decide on max-tier removal. | STRATEGIC — unblocks G1.3 |
+
+### What This Means for Build Priority
+
+**Do not start anything new until:**
+1. G1.2 ships (decision memory + receipts) — this is the wedge and the moat
+2. G2.1 ships (hero reframe) — this is how you talk about G1.2
+3. WM-M15 moves up the queue (governance before autonomy expansion)
+
+**Do not launch without:**
+1. G1.2 working end-to-end
+2. G1.1 test in place (memory expiry gate)
+3. G1.4 verified (at least one outcome settled and on `/proof`)
+
+**What you are not building (kill list):**
+- Mission breadth expansion without governance in place
+- Agent expansion without capability-tier advancement
+- Orchestration language (use "governance" instead)
+- Storage claims (use "decides," "learns," "guides next call")
+- Seven-station UX (keep internal, hide from user path)
+
+### Evidence
+
+- **Lenny's Data:** 679 documents (312 podcasts + 367 newsletters), official paid archive, 2026-08-10
+- **W3 analysis:** Full corpus sweep completed; findings synthesized from 200+ on-topic hits
+- **Quote verification:** [`../research/lennys-quote-verification.md`](../research/lennys-quote-verification.md) — official transcripts checked against ASR captions; two Class 2 defects found (archive mis-filing)
+- **Positioning locked:** moat, category, ICP (shift to fleet manager), wedge (decision memory), station model (pedagogical, UX refactor only)
+
+### What the Next Cycle Looks Like
+
+**Trigger:** New Lenny drop (newsletter or podcast) OR when Lanes 1 & 2 ship 50%+ of the 8 gaps.  
+**Refresh:** Compare market shifts against what you built; push changes only when something moved.  
+**Frequency:** Max 2x/month, never daily.
+
+---
+
+**Cycle status:** Analysis complete. Findings routed. Execution waiting on Lanes 1 & 2 prioritization and founder confirmation on three calls. Do not mark this as done until lanes have committed changes.
