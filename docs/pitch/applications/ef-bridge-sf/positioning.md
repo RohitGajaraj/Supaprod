@@ -27,7 +27,7 @@ Non-US, not European. He qualifies. The Europe framing is positioning copy, not 
 
 **EF invests in talent before ideas. He has a company.**
 
-Their own language for this programme is "pre-idea, pre-team, or just getting started". He is eight weeks into a working product with 4,297 commits, a live beta and a September launch. On EF's stated intake he is past the stage they buy at.
+Their own language for this programme is "pre-idea, pre-team, or just getting started". He is nine weeks into a working product with 4,876 commits, a live beta and a September launch. On EF's stated intake he is past the stage they buy at.
 
 **The resolution, and it is the same move that fixed the Residency accomplishments answer:** do not present Supaprod as the thing being funded. Present it as **evidence of the talent**, which is what EF is actually purchasing. He is not asking them to back a product. He is demonstrating, with a working system, the thing their whole thesis is a bet on: that one exceptional person can now build what a team used to.
 
@@ -43,7 +43,7 @@ From EF's own guidance (Alice Bentinck, co-founder) and their assessment framewo
 
 **His edge, stated as things he knows that others do not:**
 
-1. **What it is actually like to be the single human in the loop.** Eight weeks of directing an agent fleet against a production codebase, including the failure he learned from: approving everything until he became the queue. Almost nobody has run that experiment on themselves yet.
+1. **What it is actually like to be the single human in the loop.** Nine weeks of directing an agent fleet against a production codebase, including the failure he learned from: approving everything until he became the queue. Almost nobody has run that experiment on themselves yet.
 2. **How AI behaves in regulated production.** Three years shipping AI into banking, where "the model decided" is not an accepted answer and a name is attached to every outcome.
 3. **Why surfacing does not change behaviour.** He built the dashboard version first and watched it fail. That is a diagnosis he owns rather than a thesis he read.
 
@@ -54,7 +54,7 @@ From EF's own guidance (Alice Bentinck, co-founder) and their assessment framewo
 | Criterion | The evidence |
 | --- | --- |
 | **Challenging convention** | Threw away four complete working versions. Left an Assistant Vice President title to build alone. Chose not to compete on code generation while everyone else raced there. |
-| **Drive to achieve** | 4,297 commits in eight weeks, solo, seven days a week. 401 features specced, 362 shipped, independently audited. |
+| **Drive to achieve** | 4,876 commits in nine weeks, solo, seven days a week. 401 features specced, 362 shipped, independently audited. |
 | **Followership** | **This is the one applicants fumble.** He has led cross-functional teams of 20+ engineers, designers and ML specialists at Intellect, and coordinated 20+ engineering teams plus NASA, ESA and JAXA at ISRO. That is verifiable evidence people follow him. |
 
 ### Ability: he is a CEO profile with unusual technical depth

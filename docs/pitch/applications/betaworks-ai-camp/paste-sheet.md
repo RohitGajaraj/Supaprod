@@ -7,6 +7,19 @@
 > Work top to bottom. Fields marked **YOU** need your input. Everything else is paste-ready.
 > Videos are the last three fields; record after the text is in.
 
+> ## ⚠️ Submitted 2026-07-31. Four claims below were falsified 2026-08-10.
+>
+> **This sheet is spent — it is the record of what was actually pasted into the form, so it stays as written.** The full interview briefing is in [`application.md`](./application.md); read that block, not this one, before a call. The short version:
+>
+> | Where | What is wrong | What to say instead |
+> | --- | --- | --- |
+> | **#6**, the thesis answer | *"the one asset a better model cannot generate for you"* — false of the record. Reasons survive in Slack and call recordings and have been rebuilt with a two-day agent. | The record can be rebuilt. **What a team expected before the outcome landed cannot**, because almost nobody writes it down. |
+> | **#13**, competitors | *"cannot be bolted onto a tracker… cannot be copied quickly… only accumulates with time"* — same claim, most quotable form. | Same as above. And the real competitor is a folder of notes, not Linear or Notion: **simple files are easy for an agent to write and impossible for an agent to govern.** |
+> | **#4**, the product | *"it tells you what worked last time and warns you"* — present tense, no history behind it. Capture began 2026-08-10. | **Wired and proven, and it starts accruing on first real use.** |
+> | **#4** and **#12** | the run reads as one unbroken chain | It is broken twice: Discover promotes 3 of 86 themes, Build writes no changeset or deployment links. The **decide-and-learn half is real**; the rest began writing this week. |
+>
+> **If this sheet is copied for a later cycle, fix all four in the copy before pasting anything.**
+
 ---
 
 ## ⚡ Do these two things first
@@ -271,5 +284,6 @@ a name so we could do a reference check." Only name someone who would actually v
 2. Screenshots attached, taken on `compass@`.
 3. No square brackets anywhere in the form.
 4. Numbers current: **4,279 commits**, **410 migrations**, **401 specced / 362 shipped**. Re-pull with `git rev-list --count HEAD` if the day has turned.
+   > _Those were the figures on 2026-07-31, the day this was filed. **Live on 2026-08-10: 4,876 commits, 508 migrations, nine weeks** since the first commit on 2026-06-03. Re-derive with `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l` — the migration count in particular had drifted by nearly a hundred and no checklist was catching it._
 5. Record in [`answer-bank.md`](../answer-bank.md) that `compass@` is now spent on Betaworks.
 6. Update Notion: **My status** to `Submitted`, fill **Date applied**.

@@ -5,6 +5,46 @@
 > **Decision by 2026-08-28 at the latest.** Confirmation screen received. Questions go to `support@livetheresidency.com`.
 >
 > _Everything below is the archived record of what was sent. Do not edit it; if a later cycle needs a new draft, copy this file rather than changing it, because the interview will be against these answers._
+
+---
+
+## ⚠️ Read this before the interview — corrected 2026-08-10
+
+**The answers below stay exactly as filed.** A full read of the market falsified two of them and dated a third. Decisions go out by 2026-08-28, so a call could come any day.
+
+### 1. The dogfooding line has to go, and this is the one that would actually cost you
+
+**"How do you know the world needs what you're making?"** closes on: *"And I am the most demanding user I have. I run my company on it daily and hit every rough edge before anyone else does."*
+
+**That answers a different question than the one they asked.** Using it yourself proves the product functions. It never proves anyone wants it. The obvious reply is: *if you are the customer, who pays you?* — and you have no answer to that, because there are no paying users yet.
+
+**The good news is the first half of that answer is already right, and it is the best version of this argument in the whole folder.** *"Because people are already building it themselves, badly, in private… One described spending fifteen hundred hours on her setup. Nobody spends fifteen hundred hours on a mild annoyance."* That is real demand evidence from people who are not you. **Lead with it and stop there.**
+
+If pushed further, the honest extension is: every one of those home-built setups belongs to one person and dies with them. They hold up fine for one operator and fall apart at the second person, or the first fleet of agents. **That is the moment we sell into.**
+
+### 2. The moat claim in "what do you understand that they don't"
+
+It closes: *"it cannot be bolted onto a tracker afterward, and it cannot be copied quickly, because it only accumulates with time."*
+
+**False, and easy to check.** The reasons behind a decision survive — in Slack threads, in call recordings — and someone rebuilt a year of them with an agent he made in two days.
+
+**What is true:** the record can be rebuilt. What cannot be rebuilt is what a team expected *before* the outcome landed, because almost nobody writes that down. There is nothing to go back to. That is the part we catch at the moment of the call.
+
+The rest of that answer — *"storing decisions is easy and worth almost nothing on its own"* — is right and worth keeping.
+
+### 3. "It learns", and the chain
+
+*"Every call and its outcome make the next call sharper"* and *"gets sharper every time"* are present tense. **There is no history yet;** capture began 2026-08-10. Say **wired and proven, and it starts accruing on first real use.**
+
+And *"sense, decide, define, build, ship and learn"* reads as one unbroken run. It is broken twice — Discover promotes 3 of 86 themes, Build writes no changeset or deployment links. **The decide-and-learn half is real and always has been.**
+
+**Your traction answer already handles the empty-by-design point honestly** (*"a system whose value is accumulated judgment teaches you nothing while it is empty"*). Reuse that sentence rather than inventing a new one.
+
+### 4. Numbers
+
+Live on 2026-08-10: **4,876 commits**, **508 migrations**, **nine weeks** since the first commit on 2026-06-03. The answers below say eight weeks, which was true on 2026-07-31. **This form deliberately carries no commit count** and that judgment still holds — see the pre-submit checklist. If a volume number comes up in conversation, use shipped features, not commits.
+
+---
 >
 > _Form captured 2026-07-31. Questions verbatim. Cohort **7 Sept to 29 Nov 2026**. Deadline was **2026-08-14**, submitted 14 days early._
 
@@ -188,6 +228,8 @@ Product people at companies like OpenAI and DoorDash are assembling their own ve
 And I am the most demanding user I have. I run my company on it daily and hit every rough edge before anyone else does.
 ```
 
+> 🔴 **Retired 2026-08-10 — see §1 of the correction block at the top.** The last paragraph answers a different question than the one asked. Using it yourself proves the product works; it never proves anyone wants it, and the reply is *"if you are the customer, who pays you?"* **The first two paragraphs are already the right answer** — other people burning fifteen hundred hours building this by hand is real demand evidence, and it comes from someone who is not you. Lead with it and stop.
+
 ---
 
 ## progress
@@ -254,6 +296,8 @@ That is the difference between a tool that remembers and one that learns. Storin
 
 The other thing: I do not compete on generating code. That layer is a knife fight and the models keep absorbing it. I own the harness instead, the gates and receipts and rollback, and plug the best model into it. When a better model ships, this gets better the same day and I do nothing.
 ```
+
+> 🔴 **Falsified 2026-08-10 — see §2 of the correction block at the top.** *"Cannot be bolted onto a tracker… cannot be copied quickly… only accumulates with time"* does not hold. The reasons behind a decision survive in Slack and call recordings and have been rebuilt with a two-day agent. **Say instead:** the record can be rebuilt, but what a team expected before the outcome landed cannot, because almost nobody writes it down. Everything else in this answer stands.
 
 ---
 
@@ -322,7 +366,8 @@ So it is less a person who inspired me and more something I noticed about myself
 1. **Scan every prose answer for a URL and delete it.** Only the six dedicated link fields get links. This is the rule they said they are grading.
 2. **Read the book answer and the "who inspired you" answer once.** Both are personal, and both are written as you. If either does not sound like you, change it; a slightly worse answer in your own voice beats a better one in mine.
 3. Confirm **roommates = yes** (assumed from your Munich MBA years) and pick the true option for **how you heard about the residency**. Those are the only two slots left; the employment clause and the 50-character line are now settled.
-4. **The commit count is deliberately absent.** It contradicted "agents wrote the code" (the number would be measuring them, not you) and reads as a vanity metric to a house full of engineers. If you want a volume number anywhere, re-pull the shipped-feature count instead: `bash scripts/dashboard-tally.sh`. It was 362 shipped of 401 specced on 2026-07-31.
+4. **The commit count is deliberately absent.** It contradicted "agents wrote the code" (the number would be measuring them, not you) and reads as a vanity metric to a house full of engineers. If you want a volume number anywhere, use the shipped-feature count: it was 362 shipped of 401 specced on 2026-07-31.
+   > ⚠️ **`scripts/dashboard-tally.sh` does not exist in this checkout** (checked 2026-08-10). The instruction to re-pull the feature count points at a script that is not there, so **401/362 could not be re-derived tonight and may be stale in the same way the commit count was.** Verify before quoting it anywhere. The commit and migration counts do re-derive: `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l`.
 5. Leave the demo video field blank unless a short cut exists.
 6. Read the "be concise" answers aloud. Past roughly eight lines, cut.
 7. No em dashes anywhere.
