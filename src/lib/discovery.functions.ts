@@ -564,6 +564,58 @@ export const toggleAutoCluster = createServerFn({ method: "POST" })
 // written by anything but the demo seeds.
 
 /**
+ * A PostgREST/Postgres "that column is not on the table" — the pre-migration
+ * signal for `themes.status_reason`. 42703 is undefined_column; PostgREST
+ * answers an UPDATE naming an unknown column with PGRST204 and the message
+ * "Could not find the 'status_reason' column of 'themes' in the schema cache".
+ *
+ * Local rather than shared, deliberately, and by the convention every other
+ * module here already follows (opportunities-share.functions.ts,
+ * decisions-share.functions.ts, design-scaffold.functions.ts): the exported
+ * `isMissingRelation` in gauntlet-metrics.ts is written for READS and carries
+ * neither PGRST204 nor the column-shaped message, so reusing it here would read
+ * a pre-migration write as a genuine failure and throw triage away with it.
+ */
+function isMissingColumnError(e: { code?: string; message?: string } | null | undefined): boolean {
+  if (!e) return false;
+  return (
+    e.code === "42703" ||
+    e.code === "PGRST204" ||
+    /column .* does not exist|could not find the .* column/i.test(e.message ?? "")
+  );
+}
+
+/**
+ * Longest decline note stored. Mirrors the CHECK on `themes.status_reason` so
+ * the validator and the column agree on where the boundary is, instead of the
+ * database rejecting a string zod had just accepted.
+ */
+export const THEME_STATUS_REASON_MAX = 400;
+
+export type SetThemeStatusResult = {
+  ok: boolean;
+  /**
+   * Whether the write actually moved the row. Separate from `ok` for the reason
+   * the merge path below documents at length: supabase-js RESOLVES an RLS
+   * refusal rather than throwing, so `error === null` is not proof that
+   * anything happened, and `.select("id")` is what makes the answer readable.
+   */
+  settled: boolean;
+  status: "new" | "dismissed";
+  title: string;
+  /**
+   * True only when a note was given, the row moved, AND the column exists.
+   * `settled: true` with `reasonRecorded: false` after a note was supplied is
+   * the pre-migration state, and it is reported rather than hidden — a taken
+   * sentence that silently goes nowhere is the exact defect this change exists
+   * to end.
+   */
+  reasonRecorded: boolean;
+  /** Null exactly when `settled` is true. */
+  unsettledReason: string | null;
+};
+
+/**
  * Triage a cluster without destroying its evidence.
  *
  * `dismissed` is not `deleted`: the signals stay, the cluster stays, and the
@@ -571,6 +623,35 @@ export const toggleAutoCluster = createServerFn({ method: "POST" })
  * twice over. A dismissed cluster is still corroboration if the same complaint
  * returns louder later, and "we looked at this and said no" is exactly the kind
  * of prior call the brain is supposed to hand back the next time it forms.
+ *
+ * WHAT STOPPED WAS RECORDED. WHY IT STOPPED WAS NOT (measured 2026-08-10).
+ *
+ * Production holds 87 real themes, excluding the seven seeded "Helio Labs" demo
+ * workspaces whose ids match '_0000000-0000-4000-8000-000000000000'. 48 of them
+ * sit at 'new', never triaged at all, and ZERO real themes have ever been
+ * dismissed or merged.
+ *
+ * The tempting misreading of those numbers is that promotion is too rare and
+ * the fix is to promote more. It is not, and the section note above is the
+ * reason: promotion is DELIBERATELY the rare case, and the operator is supposed
+ * to spend their time saying "not a pattern" or "same as that one". A theme
+ * that never promotes may be perfectly correctly declined.
+ *
+ * What made it a defect is that a decline left no sentence behind. `status`
+ * moved, `dismissed_at_frequency` recorded HOW BIG the cluster was, a
+ * `stage_events` row recorded WHEN and BY WHOM — and nothing anywhere recorded
+ * WHY. So the one thing the brain is supposed to hand back the next time the
+ * same complaint forms ("we looked at this in April; it was one loud account")
+ * could not be handed back, because nobody had ever written it down. A decline
+ * was an event, not a decision.
+ *
+ * AND THIS FUNCTION ALREADY TOOK THE SENTENCE AND THREW IT AWAY. `reason` has
+ * been in this input validator since the verb shipped (771c2606) and was never
+ * once read by the handler: a caller could post a carefully worded decline and
+ * the server would parse it, bound it to 400 chars, and drop it on the floor.
+ * That is worse than never accepting it, because the surface above has no way
+ * to tell the difference between stored and discarded. Hence `reasonRecorded`
+ * in the result: from here on the caller is told which one happened.
  */
 export const setThemeStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -579,51 +660,161 @@ export const setThemeStatus = createServerFn({ method: "POST" })
       .object({
         theme_id: z.string().uuid(),
         status: z.enum(["new", "dismissed"]),
-        reason: z.string().max(400).optional(),
+        reason: z.string().max(THEME_STATUS_REASON_MAX).optional(),
       })
       .parse(i),
   )
-  .handler(async ({ context, data }) => {
-    const { supabase, userId } = context;
-    const { data: prior } = await supabase
-      .from("themes")
-      .select("status,workspace_id,title,frequency")
-      .eq("id", data.theme_id)
-      .maybeSingle();
-    if (!prior) throw new Error("Theme not found");
+  .handler(({ context, data }) => setThemeStatusCore(context.supabase, context.userId, data));
 
-    // Record how big the cluster was at the moment it was declined. This is what
-    // makes "not a pattern" mean "not YET a pattern": theme growth compares later
-    // frequency against this number, so a decline at 3 signals and a decline at 40
-    // are held to proportionate bars rather than one flat threshold. Cleared on the
-    // way back to `new` so a second decline is measured from where it actually
-    // stood, not from a stale reading taken the first time round.
-    const update: Record<string, unknown> = { status: data.status };
-    if (data.status === "dismissed") {
-      update.dismissed_at_frequency = (prior as { frequency?: number | null }).frequency ?? 0;
-    } else {
-      update.dismissed_at_frequency = null;
-      update.escalated_at = null;
-    }
+/**
+ * Triage core, callable with an explicit (supabase, userId) so the whole path —
+ * the reason write, the pre-migration fallback, the stage event and the gate
+ * signal — is testable against an injected client. Same precedent as
+ * `compileContractOraclesCore` and `clusterSignalsCore`.
+ */
+export async function setThemeStatusCore(
+  supabase: SupabaseClient,
+  userId: string,
+  input: { theme_id: string; status: "new" | "dismissed"; reason?: string | null },
+): Promise<SetThemeStatusResult> {
+  const { data: prior } = await supabase
+    .from("themes")
+    .select("status,workspace_id,title,frequency")
+    .eq("id", input.theme_id)
+    .maybeSingle();
+  if (!prior) throw new Error("Theme not found");
 
-    const { error } = await supabase.from("themes").update(update).eq("id", data.theme_id);
-    if (error) throw new Error(error.message);
+  const reason =
+    typeof input.reason === "string" ? input.reason.trim().slice(0, THEME_STATUS_REASON_MAX) : "";
 
+  // Record how big the cluster was at the moment it was declined. This is what
+  // makes "not a pattern" mean "not YET a pattern": theme growth compares later
+  // frequency against this number, so a decline at 3 signals and a decline at 40
+  // are held to proportionate bars rather than one flat threshold. Cleared on the
+  // way back to `new` so a second decline is measured from where it actually
+  // stood, not from a stale reading taken the first time round.
+  const update: Record<string, unknown> = { status: input.status };
+  if (input.status === "dismissed") {
+    update.dismissed_at_frequency = (prior as { frequency?: number | null }).frequency ?? 0;
+  } else {
+    update.dismissed_at_frequency = null;
+    update.escalated_at = null;
+  }
+
+  // The note follows the same rule as `dismissed_at_frequency`: written on the
+  // way down, CLEARED on the way back to `new`. A stale sentence left behind on
+  // an un-declined cluster would be the record asserting a judgment the operator
+  // has since withdrawn, which is worse than no sentence at all — and the
+  // append-only history of every decline, withdrawn or not, is in `stage_events`
+  // and `human_gate_events`, so nothing is lost by clearing the current one.
+  const withReason: Record<string, unknown> = {
+    ...update,
+    status_reason: input.status === "dismissed" && reason ? reason : null,
+  };
+
+  /**
+   * THE ONE WRITE THAT MOVES THE CLUSTER IS CHECKED, TWICE OVER.
+   *
+   * `.select("id")` for the reason the merge path below spells out in full: an
+   * UPDATE that RLS refuses resolves with neither an error nor a row, so the
+   * error alone cannot tell a refusal from a success, and this function used to
+   * report `ok: true` for both.
+   *
+   * The retry is for the OTHER failure this change introduces. `status_reason`
+   * ships as an unapplied migration (20260810190000), so until it is applied
+   * every triage call would name a column PostgREST does not know and fail
+   * whole — turning a feature addition into an outage on the one verb the
+   * station is mostly supposed to use. So a missing column costs the note and
+   * nothing else: the status still lands, and `reasonRecorded` says false.
+   */
+  let attempt = await supabase
+    .from("themes")
+    .update(withReason)
+    .eq("id", input.theme_id)
+    .select("id");
+  let reasonWritten = true;
+  if (attempt.error && isMissingColumnError(attempt.error)) {
+    reasonWritten = false;
+    attempt = await supabase.from("themes").update(update).eq("id", input.theme_id).select("id");
+  }
+  if (attempt.error) throw new Error(attempt.error.message);
+
+  const settled = (attempt.data?.length ?? 0) > 0;
+  const reasonRecorded =
+    settled && reasonWritten && input.status === "dismissed" && reason.length > 0;
+
+  // Only a transition that HAPPENED goes in the history, the same rule the merge
+  // path holds itself to. A stage event for a refused write is the record
+  // asserting something the database disagrees with, which is worse than a gap.
+  if (settled) {
     // SEAM-1: a triage call is a stage transition and belongs in the history
     // beside the promotions, so the record shows what was rejected as well as
     // what was kept. A record that only holds the yeses is a highlight reel.
     await recordStageEvent(supabase, {
       entityType: "theme",
-      entityId: data.theme_id,
+      entityId: input.theme_id,
       from: prior.status ?? null,
-      to: data.status,
+      to: input.status,
       actor: "human",
       workspaceId: (prior.workspace_id as string | null) ?? null,
       userId,
     });
+  }
 
-    return { ok: true, status: data.status, title: prior.title as string };
-  });
+  /**
+   * RPT-32: A HUMAN DECLINING AN AGENT-SURFACED CLUSTER IS AN AGENT CORRECTION.
+   *
+   * Every theme in this product is drafted by an agent — `cluster.server.ts` and
+   * the MCP tool registry are the only two writers of `themes` anywhere in src/,
+   * and there is no human-authored theme insert at all. So unlike the spec-body
+   * and contract-clause captures further down this file, there is no "the human
+   * is only editing their own draft" case to skip: a decline is always the human
+   * correcting `customer-insights`, the cast member whose entire job description
+   * is "clusters what customers are saying into themes" (agent-vocabulary.ts).
+   *
+   * `rejection` is in CORRECTION_GATE_TYPES, so this reaches the per-agent
+   * correction rate `readAgentSignals` rolls up for self-improve, and the
+   * operator's own words ride along in `diff_summary` — the only field on that
+   * row that can carry WHY. That also makes the reason survive the un-decline
+   * above: `themes.status_reason` holds the current judgment, `human_gate_events`
+   * holds every judgment ever made, which is the one the brain reads back.
+   *
+   * ONLY ON THE WAY DOWN, and only on a real TRANSITION into `dismissed`, which
+   * is the same rule `recordStageEvent` applies to itself (it returns early when
+   * from === to). Two things would otherwise be counted that are not
+   * corrections: putting a cluster back to `new`, which is the operator
+   * reversing THEMSELVES rather than correcting the agent, and re-declining a
+   * cluster that is already declined, which the bulk-decline path on /discover
+   * can reach by retrying a set that partly succeeded. Either one would let a
+   * single cluster move a correction rate twice.
+   *
+   * Best-effort and awaited so it survives the Workers response teardown, and it
+   * can never break triage because recordGateSignalCore never throws.
+   */
+  const moved = (prior.status ?? null) !== input.status;
+  if (settled && moved && input.status === "dismissed") {
+    await recordGateSignalCore(supabase, userId, {
+      gateType: "rejection",
+      subjectType: "theme",
+      subjectRef: input.theme_id,
+      agentSlug: "customer-insights",
+      verdict: "dismissed",
+      diffSummary: reason || null,
+      workspaceId: (prior.workspace_id as string | null) ?? null,
+    });
+  }
+
+  return {
+    ok: settled,
+    settled,
+    status: input.status,
+    title: prior.title as string,
+    reasonRecorded,
+    unsettledReason: settled
+      ? null
+      : "The record refused to move the cluster, so its status is unchanged.",
+  };
+}
 
 /**
  * "This is not a new bet, it is more evidence for one we already have."
@@ -639,6 +830,15 @@ export const setThemeStatus = createServerFn({ method: "POST" })
  * cluster is marked merged rather than deleted, and nothing is re-scored behind
  * the user's back: attaching evidence must not silently change a bet's rank,
  * because that would make the queue move for a reason nobody can see.
+ *
+ * `reason` is the merge half of the decline note documented on `setThemeStatus`.
+ * "Same as that one" is a judgment with a WHY behind it too, and the why is the
+ * part a reader six months later cannot reconstruct from the edge alone: the
+ * lineage records THAT this cluster backs that bet, never what the operator saw
+ * that made them the same thing. Optional, and threaded three places at once —
+ * `themes.status_reason` (the current judgment), the `artifact_lineage`
+ * rationale (so the graph carries it wherever it walks that edge), and
+ * `human_gate_events` (the append-only record the brain reads back).
  */
 export const attachThemeToOpportunity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -647,151 +847,226 @@ export const attachThemeToOpportunity = createServerFn({ method: "POST" })
       .object({
         theme_id: z.string().uuid(),
         opportunity_id: z.string().uuid(),
+        reason: z.string().max(THEME_STATUS_REASON_MAX).optional(),
       })
       .parse(i),
   )
-  .handler(async ({ context, data }) => {
-    const { supabase, userId } = context;
+  .handler(({ context, data }) =>
+    attachThemeToOpportunityCore(context.supabase, context.userId, data),
+  );
 
-    const [{ data: theme }, { data: opp }] = await Promise.all([
-      supabase
-        .from("themes")
-        .select("id,title,status,workspace_id")
-        .eq("id", data.theme_id)
-        .maybeSingle(),
-      supabase
-        .from("opportunities")
-        .select("id,title,workspace_id")
-        .eq("id", data.opportunity_id)
-        .maybeSingle(),
-    ]);
-    if (!theme) throw new Error("Theme not found");
-    if (!opp) throw new Error("That bet no longer exists");
+/**
+ * Merge core, callable with an explicit (supabase, userId) so the reason write,
+ * its pre-migration fallback and the gate signal are testable against an
+ * injected client. Same precedent as `setThemeStatusCore` above.
+ */
+export async function attachThemeToOpportunityCore(
+  supabase: SupabaseClient,
+  userId: string,
+  data: { theme_id: string; opportunity_id: string; reason?: string | null },
+): Promise<{
+  ok: boolean;
+  settled: boolean;
+  opportunity: { id: string; title: string };
+  evidence: number;
+  reasonRecorded: boolean;
+  unsettledReason: string | null;
+}> {
+  const reason =
+    typeof data.reason === "string" ? data.reason.trim().slice(0, THEME_STATUS_REASON_MAX) : "";
 
-    /**
-     * THE MERGE PATH NEVER GOT THE GUARD THE PROMOTE PATH WAS GIVEN.
-     *
-     * `promoteThemeToOpportunity` carries `workspace_id: theme.workspace_id`
-     * onto the new bet precisely so a cluster cannot produce an opportunity in
-     * a tenant it does not belong to, and the comment there records two live
-     * rows that landed wrong before it existed. This function loaded the
-     * theme's `workspace_id` for the stage event and never compared it to
-     * anything, so a cluster sensed in workspace B could be merged into a bet
-     * in workspace A: the bet's evidence count grows by signals nobody in that
-     * workspace ever saw, and `artifact_lineage` gains a set of cross-tenant
-     * edges that the graph then walks.
-     *
-     * RLS lets both reads through because the caller legitimately belongs to
-     * both workspaces; the two rows being visible to one person is exactly what
-     * makes this reachable rather than theoretical. Refused here, before any
-     * edge is written, so a refusal costs nothing and leaves no partial state.
-     */
-    const themeWorkspace = (theme.workspace_id as string | null) ?? null;
-    const oppWorkspace = (opp.workspace_id as string | null) ?? null;
-    if (themeWorkspace && oppWorkspace && themeWorkspace !== oppWorkspace) {
-      throw new Error(
-        "That bet lives in a different workspace, so this cluster's evidence cannot back it.",
-      );
-    }
-
-    const { data: memberRows } = await supabase
-      .from("signals")
-      .select("id")
-      .eq("theme_id", data.theme_id);
-    const memberIds = (memberRows ?? []).map((r) => (r as { id: string }).id);
-
-    // The cluster's own edge, then one per quote. Same shape promotion writes,
-    // so a merged cluster's evidence walks back exactly like a promoted one's.
-    await recordLineageSafe(supabase, userId, {
-      parent_kind: "theme",
-      parent_id: theme.id as string,
-      child_kind: "opportunity",
-      child_id: opp.id as string,
-      relation: "supports",
-      rationale: "Merged into an existing bet as further evidence",
-      created_by_agent: null,
-    });
-    if (memberIds.length > 0) {
-      try {
-        await supabase.from("artifact_lineage").upsert(
-          memberIds.map((sid) => ({
-            user_id: userId,
-            parent_kind: "signal" as const,
-            parent_id: sid,
-            child_kind: "opportunity" as const,
-            child_id: opp.id as string,
-            relation: "supports",
-            rationale: "Evidence merged from a later cluster",
-            created_by_agent: null,
-          })),
-          { onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation" },
-        );
-      } catch {
-        // Best-effort provenance; the theme edge above already survived.
-      }
-    }
-
-    /**
-     * THE WRITE THAT SETTLES THE CLUSTER IS CHECKED, AND IT WAS NOT.
-     *
-     * This was a bare `await` with the result thrown away, on the one write
-     * that takes the cluster out of the ranking. The failure mode is the class
-     * this file already documents on `deleteSignal`: "`.delete()` with no
-     * `.select()` returns `{ error: null }` when row-level security refuses it,
-     * because supabase-js RESOLVES a refusal rather than throwing." An update
-     * behaves identically, so a refused write and a successful one were the
-     * same value here, and the function reported `ok: true` for both.
-     *
-     * WHAT THAT COST DOWNSTREAM. The surface printed "You merged it", a
-     * `stage_events` row recorded a transition to `merged` that never happened,
-     * and the cluster stayed in the ranking still focusable, so it could be
-     * merged into a SECOND bet and duplicate its whole set of `artifact_lineage`
-     * edges under a different parent.
-     *
-     * `.select("id")` is what makes the answer readable: the error AND the row
-     * set both have to be checked, because a refusal returns neither an error
-     * nor a row. The evidence edges above are deliberately NOT rolled back on a
-     * failure here: they are true statements about what backs the bet whether
-     * or not the cluster ever leaves the queue, and the same upsert is
-     * idempotent on a retry. What the caller gets instead is the truth, so it
-     * can say the evidence landed and the cluster did not settle.
-     */
-    const { data: settledRows, error: settleErr } = await supabase
+  const [{ data: theme }, { data: opp }] = await Promise.all([
+    supabase
       .from("themes")
-      .update({ status: "merged" })
+      .select("id,title,status,workspace_id")
+      .eq("id", data.theme_id)
+      .maybeSingle(),
+    supabase
+      .from("opportunities")
+      .select("id,title,workspace_id")
+      .eq("id", data.opportunity_id)
+      .maybeSingle(),
+  ]);
+  if (!theme) throw new Error("Theme not found");
+  if (!opp) throw new Error("That bet no longer exists");
+
+  /**
+   * THE MERGE PATH NEVER GOT THE GUARD THE PROMOTE PATH WAS GIVEN.
+   *
+   * `promoteThemeToOpportunity` carries `workspace_id: theme.workspace_id`
+   * onto the new bet precisely so a cluster cannot produce an opportunity in
+   * a tenant it does not belong to, and the comment there records two live
+   * rows that landed wrong before it existed. This function loaded the
+   * theme's `workspace_id` for the stage event and never compared it to
+   * anything, so a cluster sensed in workspace B could be merged into a bet
+   * in workspace A: the bet's evidence count grows by signals nobody in that
+   * workspace ever saw, and `artifact_lineage` gains a set of cross-tenant
+   * edges that the graph then walks.
+   *
+   * RLS lets both reads through because the caller legitimately belongs to
+   * both workspaces; the two rows being visible to one person is exactly what
+   * makes this reachable rather than theoretical. Refused here, before any
+   * edge is written, so a refusal costs nothing and leaves no partial state.
+   */
+  const themeWorkspace = (theme.workspace_id as string | null) ?? null;
+  const oppWorkspace = (opp.workspace_id as string | null) ?? null;
+  if (themeWorkspace && oppWorkspace && themeWorkspace !== oppWorkspace) {
+    throw new Error(
+      "That bet lives in a different workspace, so this cluster's evidence cannot back it.",
+    );
+  }
+
+  const { data: memberRows } = await supabase
+    .from("signals")
+    .select("id")
+    .eq("theme_id", data.theme_id);
+  const memberIds = (memberRows ?? []).map((r) => (r as { id: string }).id);
+
+  // The cluster's own edge, then one per quote. Same shape promotion writes,
+  // so a merged cluster's evidence walks back exactly like a promoted one's.
+  await recordLineageSafe(supabase, userId, {
+    parent_kind: "theme",
+    parent_id: theme.id as string,
+    child_kind: "opportunity",
+    child_id: opp.id as string,
+    relation: "supports",
+    // The operator's own words when they gave any, appended rather than
+    // replacing the default, so the edge still says what KIND of link it is
+    // for every reader that never had a reason to parse it.
+    rationale: reason
+      ? `Merged into an existing bet as further evidence: ${reason}`
+      : "Merged into an existing bet as further evidence",
+    created_by_agent: null,
+  });
+  if (memberIds.length > 0) {
+    try {
+      await supabase.from("artifact_lineage").upsert(
+        memberIds.map((sid) => ({
+          user_id: userId,
+          parent_kind: "signal" as const,
+          parent_id: sid,
+          child_kind: "opportunity" as const,
+          child_id: opp.id as string,
+          relation: "supports",
+          rationale: "Evidence merged from a later cluster",
+          created_by_agent: null,
+        })),
+        { onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation" },
+      );
+    } catch {
+      // Best-effort provenance; the theme edge above already survived.
+    }
+  }
+
+  /**
+   * THE WRITE THAT SETTLES THE CLUSTER IS CHECKED, AND IT WAS NOT.
+   *
+   * This was a bare `await` with the result thrown away, on the one write
+   * that takes the cluster out of the ranking. The failure mode is the class
+   * this file already documents on `deleteSignal`: "`.delete()` with no
+   * `.select()` returns `{ error: null }` when row-level security refuses it,
+   * because supabase-js RESOLVES a refusal rather than throwing." An update
+   * behaves identically, so a refused write and a successful one were the
+   * same value here, and the function reported `ok: true` for both.
+   *
+   * WHAT THAT COST DOWNSTREAM. The surface printed "You merged it", a
+   * `stage_events` row recorded a transition to `merged` that never happened,
+   * and the cluster stayed in the ranking still focusable, so it could be
+   * merged into a SECOND bet and duplicate its whole set of `artifact_lineage`
+   * edges under a different parent.
+   *
+   * `.select("id")` is what makes the answer readable: the error AND the row
+   * set both have to be checked, because a refusal returns neither an error
+   * nor a row. The evidence edges above are deliberately NOT rolled back on a
+   * failure here: they are true statements about what backs the bet whether
+   * or not the cluster ever leaves the queue, and the same upsert is
+   * idempotent on a retry. What the caller gets instead is the truth, so it
+   * can say the evidence landed and the cluster did not settle.
+   *
+   * The retry below is the pre-migration fallback documented on
+   * `setThemeStatusCore`: `themes.status_reason` ships unapplied
+   * (20260810190000), and a merge must not start failing whole on a column
+   * that is only there to carry a note. A missing column costs the note only.
+   */
+  const settleUpdate: Record<string, unknown> = { status: "merged" };
+  let settleRes = await supabase
+    .from("themes")
+    .update({ ...settleUpdate, status_reason: reason || null })
+    .eq("id", data.theme_id)
+    .select("id");
+  let reasonWritten = true;
+  if (settleRes.error && isMissingColumnError(settleRes.error)) {
+    reasonWritten = false;
+    settleRes = await supabase
+      .from("themes")
+      .update(settleUpdate)
       .eq("id", data.theme_id)
       .select("id");
-    const settled = !settleErr && (settledRows?.length ?? 0) > 0;
+  }
+  const settleErr = settleRes.error;
+  const settled = !settleErr && (settleRes.data?.length ?? 0) > 0;
+  const reasonRecorded = settled && reasonWritten && reason.length > 0;
 
-    // Only a transition that HAPPENED goes in the history. A stage event for a
-    // refused write is the record asserting something the database disagrees
-    // with, which is worse than a gap in the trail.
-    if (settled) {
-      await recordStageEvent(supabase, {
-        entityType: "theme",
-        entityId: theme.id as string,
-        from: (theme.status as string | null) ?? null,
-        to: "merged",
-        actor: "human",
-        workspaceId: (theme.workspace_id as string | null) ?? null,
-        userId,
-      });
-    }
+  // Only a transition that HAPPENED goes in the history. A stage event for a
+  // refused write is the record asserting something the database disagrees
+  // with, which is worse than a gap in the trail.
+  if (settled) {
+    await recordStageEvent(supabase, {
+      entityType: "theme",
+      entityId: theme.id as string,
+      from: (theme.status as string | null) ?? null,
+      to: "merged",
+      actor: "human",
+      workspaceId: (theme.workspace_id as string | null) ?? null,
+      userId,
+    });
+  }
 
-    // ONE SHAPE, BOTH OUTCOMES, so no caller has to narrow a union to find out
-    // whether it may say the cluster is gone. `unsettledReason` is null exactly
-    // when `settled` is true.
-    return {
-      ok: settled,
-      settled,
-      opportunity: { id: opp.id as string, title: opp.title as string },
-      evidence: memberIds.length,
-      unsettledReason: settled
-        ? null
-        : (settleErr?.message ??
-          "The record refused to close the cluster, so it is still in the ranking."),
-    };
-  });
+  /**
+   * RPT-32: A MERGE IS A CORRECTION OF THE CLUSTERING, NOT A REJECTION OF IT.
+   *
+   * `edit`, not `rejection`, and the distinction is real rather than
+   * cosmetic. The operator is not saying the evidence was noise — they are
+   * saying `customer-insights` drew the boundary in the wrong place and this
+   * cluster was never a separate thing. Both types sit in
+   * CORRECTION_GATE_TYPES so both move the same correction rate; what differs
+   * is what a person reading the row back learns about the mistake.
+   *
+   * Same skip-nothing rule as the decline path: every theme is agent-drafted
+   * (cluster.server.ts and the MCP registry are the only writers of `themes`),
+   * so there is no human-authored case to exclude. Awaited, best-effort, and
+   * gated on `settled` — a correction the database refused is not evidence
+   * about an agent.
+   */
+  if (settled) {
+    await recordGateSignalCore(supabase, userId, {
+      gateType: "edit",
+      subjectType: "theme",
+      subjectRef: data.theme_id,
+      agentSlug: "customer-insights",
+      verdict: "merged",
+      diffSummary: reason
+        ? `Merged into "${opp.title as string}": ${reason}`
+        : `Merged into "${opp.title as string}"`,
+      workspaceId: themeWorkspace ?? oppWorkspace,
+    });
+  }
+
+  // ONE SHAPE, BOTH OUTCOMES, so no caller has to narrow a union to find out
+  // whether it may say the cluster is gone. `unsettledReason` is null exactly
+  // when `settled` is true.
+  return {
+    ok: settled,
+    settled,
+    opportunity: { id: opp.id as string, title: opp.title as string },
+    evidence: memberIds.length,
+    reasonRecorded,
+    unsettledReason: settled
+      ? null
+      : (settleErr?.message ??
+        "The record refused to close the cluster, so it is still in the ranking."),
+  };
+}
 
 /**
  * "Am I seeing everything?" - the first question anyone asks of a discovery
