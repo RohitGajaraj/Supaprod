@@ -44,6 +44,9 @@ import {
   missionObserve,
   missionFinalize,
 } from "./orchestrator.server";
+import { decideDecisionReview, DECISION_RECORD_EFFECT } from "@/lib/decision-gate";
+import { recordAutoApproval } from "@/lib/decision-gate.server";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { runCriticTool } from "@/lib/ai/critic.server";
 import { promoteChangesetToProductionCore } from "@/lib/deployments.functions";
 import { autoReflect } from "@/lib/ai/reflection.server";
@@ -3608,6 +3611,50 @@ const decisionRecord = def({
   preview: (a) =>
     `Record decision "${a.title}" against ${a.alternatives_considered.length} rejected alternative${a.alternatives_considered.length === 1 ? "" : "s"}`,
   run: async (a, { supabase, userId, agentSlug, missionId, workspaceId }) => {
+    /**
+     * THE STATUS IS DECIDED HERE, NOT ASSERTED. This line used to read
+     * `status: "approved"` outright.
+     *
+     * The comment defending it was RIGHT about the outcome and wrong about the
+     * mechanism: filing every agent call as pending would turn the one station
+     * whose job is deciding into a queue for a person, which this product does
+     * refuse. But "the answer is usually approve" is not a reason to skip
+     * asking. An approval with no test behind it and no reason recorded cannot
+     * be audited and cannot be overturned by anyone who does not already know
+     * it happened, and the founder's condition for keeping anything off the
+     * queue was that it stay attributable and reversible. A literal is neither.
+     *
+     * `decideDecisionReview` is the same gate the two mission write points use,
+     * so all three doors now answer the same policy. In the ordinary case it
+     * returns "approved" and this tool behaves exactly as before — the change
+     * is that there is now a recorded reason, and five other conditions that
+     * can take the call away from the agent when provenance, attribution or
+     * effect are not clean.
+     *
+     * WHY `medium` AND NOT `high`. The convention in confidence.ts is that a
+     * writer maps a signal it already holds and says medium rather than
+     * fabricating high. The signal here is real but weak: the args schema
+     * refuses a decision with no rejected alternative, which is this product's
+     * own test of whether a call was weighed or merely asserted, so a tool call
+     * that got this far has weighed something. Nothing external verified it,
+     * which is precisely what "high" would claim. Note that gate 4 refuses on
+     * ABSENCE as well as on "low", so a future edit that drops this field sends
+     * the row to a human rather than through.
+     */
+    const gate = decideDecisionReview({
+      sourceKind: "agent",
+      agentSlug: agentSlug ?? null,
+      confidence: "medium",
+      effect: DECISION_RECORD_EFFECT,
+      /* False, and checkable rather than hopeful, on the same grounds
+       * handoff.server.ts states: `updateDecision` and `routeDecision` are the
+       * only two paths that resolve a decision and both only flip `status` and
+       * write a stage event. The lineage edges written below are internal and
+       * reversible. No spend starts, nothing ships, nothing leaves the
+       * workspace. If landing a decision is ever made to DO something, this
+       * argument is the line that has to change with it. */
+      commitsBeyondTheRecord: false,
+    });
     const { data, error } = await supabase
       .from("decisions")
       .insert({
@@ -3618,17 +3665,47 @@ const decisionRecord = def({
         title: a.title,
         rationale: a.rationale,
         alternatives_considered: a.alternatives_considered,
-        // The agent made this call, so the record says so and names the agent.
-        // Filing it as pending would turn the one station whose job is deciding
-        // into a queue for a person, which is the shape this product refuses.
-        status: "approved",
+        status: gate.status,
         decided_by_agent_slug: agentSlug ?? null,
+        /**
+         * 'agent' — and until 2026-08-11 the database refused this value, so
+         * EVERY call of this tool threw and the Decide station's only
+         * artifact-creating hand wrote nothing for ten days. Measured before
+         * the fix: 296 decisions across eight source kinds and zero 'agent'.
+         * `decisions_source_kind_check` was widened in migration
+         * 20260811140000, and the-source-kinds-agree.test.ts now fails if the
+         * constraint and the union ever drift apart again — which they had
+         * done three times.
+         */
         source_kind: "agent",
+        /* The loop raised this, not a person. Same column and same reason as
+         * the mission receipt: an auto-approval a human cannot FIND is the half
+         * of "attributable and reversible" that is easy to miss. */
+        auto_origin: true,
       })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
     const decisionId = (data as { id: string }).id;
+    /**
+     * The receipt for a call a human never saw, written before anyone asks for
+     * it — the question "why was I not shown this" always arrives after the
+     * fact. `supabaseAdmin` because `workspace_audit_log` has no insert policy
+     * at all by design; only the service role writes it. Never throws: a
+     * missing trail row is a gap, a thrown one would lose the decision.
+     */
+    if (gate.action === "auto_approve") {
+      await recordAutoApproval(supabaseAdmin, {
+        decisionId,
+        workspaceId: workspaceId ?? null,
+        userId: userId ?? null,
+        agentSlug: agentSlug ?? null,
+        missionId: missionId ?? null,
+        sourceKind: "agent",
+        writtenBy: "decision.record (lib/ai/tools/registry.server.ts)",
+        decision: gate,
+      });
+    }
     /**
      * THE AGENT'S OWN CALL, PUT ON THE GRAPH.
      *

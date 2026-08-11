@@ -31,12 +31,39 @@ function stripComments(src: string): string {
   return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 }
 
-/** The two places a mission emits a decision. Found by grepping
- *  `source_kind: "mission"`; the third assertion below keeps that list honest. */
+/**
+ * Every place an AGENT-DRAFTED decision is written. The last assertion in this
+ * file keeps the list honest by walking src/ for any other writer.
+ *
+ * THIS LIST WAS TOO SHORT FOR TEN DAYS, and the way it was too short is the
+ * lesson. It held only the two mission writers, because it was derived by
+ * grepping one literal — `source_kind: "mission"`. `decision.record`
+ * (lib/ai/tools/registry.server.ts) shipped on 2026-08-01 stamping
+ * `source_kind: "agent"` and hard-coding `status: "approved"`, and every check
+ * in this file walked straight past it: the per-file loop only visits files
+ * already in this array, and the catch-all scan below was looking for the
+ * wrong string. A guard scoped to one spelling of the thing it guards is a
+ * guard against that spelling, not against the defect.
+ *
+ * So the scan is keyed on KINDS below rather than on a single literal, and a
+ * new agent-drafted origin has to be added there deliberately.
+ */
 const WRITE_POINTS = [
   "lib/ai/handoff.server.ts",
   "routes/api/public/hooks/trigger-tick.ts",
+  "lib/ai/tools/registry.server.ts",
 ] as const;
+
+/**
+ * The `decisions.source_kind` values that mean "an agent drafted this".
+ *
+ * Deliberately NOT every value in DECISION_SOURCES: 'manual' is a person's own
+ * call and gate 2 refuses it by design, and the artifact origins ('prd',
+ * 'roadmap', 'meeting'…) are written by paths where a human is already in the
+ * loop. These two are the ones where an agent decides and writes unattended,
+ * which is exactly the set the gate has to sit on.
+ */
+const AGENT_DRAFTED_KINDS = ["mission", "agent"] as const;
 
 describe("the decision gate is wired, not merely written", () => {
   it("reads the write points", () => {
@@ -67,10 +94,12 @@ describe("the decision gate is wired, not merely written", () => {
     });
   }
 
-  it("no OTHER file emits a mission decision behind the gate's back", () => {
-    // The gate is only a policy if it sits on every door. A third writer
-    // stamping source_kind "mission" would reopen the queue one row at a time
-    // and nothing else in the suite would notice.
+  it("no OTHER file emits an agent-drafted decision behind the gate's back", () => {
+    // The gate is only a policy if it sits on every door. A writer stamping any
+    // agent-drafted source_kind would reopen the queue one row at a time and
+    // nothing else in the suite would notice — which is precisely what
+    // `decision.record` did between 2026-08-01 and 2026-08-11, while this test
+    // was green, because it was checking one literal instead of the set.
     const offenders: string[] = [];
     const walk = (dir: string): void => {
       for (const name of readdirSync(dir)) {
@@ -85,7 +114,9 @@ describe("the decision gate is wired, not merely written", () => {
         const rel = full.slice(SRC.length + 1);
         if (WRITE_POINTS.includes(rel as (typeof WRITE_POINTS)[number])) continue;
         const src = stripComments(readFileSync(full, "utf8"));
-        if (src.includes('source_kind: "mission"')) offenders.push(rel);
+        for (const kind of AGENT_DRAFTED_KINDS) {
+          if (src.includes(`source_kind: "${kind}"`)) offenders.push(`${rel} (${kind})`);
+        }
       }
     };
     walk(SRC);

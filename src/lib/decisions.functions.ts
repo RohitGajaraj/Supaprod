@@ -9,7 +9,54 @@ import { recordStageEvent } from "@/lib/stage-events.server";
 // Pure string helpers, zero imports of their own, so they are safe on the server.
 import { stripAutoPrefix } from "@/components/plan/format";
 
-export type DecisionSource = "meeting" | "mission" | "prd" | "manual";
+/**
+ * Every origin `decisions.source_kind` can hold, and the ONLY place the list is
+ * written down on this side of the wire.
+ *
+ * IT USED TO BE A HAND-WRITTEN UNION OF FOUR, and it had fallen three
+ * migrations behind the database. The check constraint has been widened three
+ * times -- 'opportunity' 2026-08-06, 'mcp' 2026-08-10, 'agent' 2026-08-11 --
+ * and 'roadmap', 'retrospective' and 'critic' predate all of them. None reached
+ * this union, so `d.source_kind as DecisionSource` at DecisionDetail.tsx told
+ * tsc a value was one of four when the database permits ten, and
+ * `SOURCE_LABEL[sourceKind]` returned undefined for every row outside the four.
+ *
+ * Measured 2026-08-11:
+ *
+ *   select source_kind, count(*) from decisions group by 1 order by 2 desc;
+ *   -- mission 205, prd 29, roadmap 28, manual 10, critic 8,
+ *   -- retrospective 8, opportunity 6, meeting 2
+ *
+ * 50 of 296 rows -- roadmap, critic, retrospective, opportunity -- rendered a
+ * blank source label, and none of the four was reachable from the panel's
+ * filter, which hard-coded the same stale list a second time.
+ *
+ * A CONST ARRAY RATHER THAN A UNION, because the union could only be kept in
+ * step by remembering to. Deriving the type from the array makes
+ * `Record<DecisionSource, string>` an exhaustiveness check: add a value here
+ * and every label map that does not cover it fails to compile, which is what
+ * should have happened the first time this drifted.
+ *
+ * Adding a value here is HALF the change. The database's check constraint is
+ * the other half, and `the-source-kinds-agree.test.ts` reads the migrations and
+ * fails when the two disagree in either direction.
+ */
+export const DECISION_SOURCES = [
+  "meeting",
+  "mission",
+  "prd",
+  "manual",
+  "roadmap",
+  "retrospective",
+  "critic",
+  "opportunity",
+  /** Recorded by an external agent through POST /api/mcp under a scoped token. */
+  "mcp",
+  /** The Decide station's own hand, `decision.record`, called inside a mission. */
+  "agent",
+] as const;
+
+export type DecisionSource = (typeof DECISION_SOURCES)[number];
 
 export type DecisionRow = {
   id: string;

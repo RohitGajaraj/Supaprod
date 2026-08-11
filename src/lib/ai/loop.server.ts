@@ -854,8 +854,39 @@ export async function runAgentLoop(
     goal: input.goal,
     recalledMemories: memories,
     injectedApprovalIds: [],
+    // AFD-06 / INSTRUMENT: hand the in-process start mark down so the halt,
+    // failure and pause writes inside executeLoop can report elapsed time.
+    // Same value `finalize` already closes over, so a completed run and a
+    // failed run now measure the same interval from the same origin.
+    startedAtMs: startedAt,
     finalize,
   });
+}
+
+/**
+ * AFD-06 / INSTRUMENT: the `duration_ms` patch for a TERMINAL write, or nothing.
+ *
+ * Spread into a terminal `.update()`. Returns `{}` — leaving the column NULL,
+ * which every reader already renders as "not measured" — whenever the start
+ * mark is unknown or the arithmetic yields a negative number. It never returns
+ * `{ duration_ms: 0 }` for a run it could not measure, which is the whole
+ * point: a hardcoded zero is indistinguishable from an instantaneous run, and
+ * that ambiguity is what let a literal `duration_ms: 0` sit unnoticed across
+ * 441 of 471 real runs and drag every median toward zero.
+ *
+ * Measured 2026-08-11, BEFORE this fix: of 1,272 production runs, the 208
+ * `failed` rows carried a duration on exactly 1, and the 7 `halted` and 7
+ * `waiting_approval` rows carried one on NONE. Latency matters most where
+ * things fail, and the failure paths were the only ones not writing it.
+ *
+ * Same refusal discipline as `resumeElapsedMs` below; kept separate because
+ * that one derives elapsed time from a stored `created_at` on the resume path,
+ * while this one closes over a live in-process start mark.
+ */
+function elapsedPatch(startedAtMs: number | null): { duration_ms?: number } {
+  if (startedAtMs === null || !Number.isFinite(startedAtMs)) return {};
+  const elapsed = Date.now() - startedAtMs;
+  return elapsed >= 0 ? { duration_ms: elapsed } : {};
 }
 
 type LoopState = {
@@ -879,6 +910,20 @@ type LoopState = {
   recalledMemories: string[];
   /** Approval ids whose outcomes were already injected into conv (survives via checkpoint state). */
   injectedApprovalIds: string[];
+  /**
+   * AFD-06 / INSTRUMENT: when the work behind this run actually began, in ms.
+   *
+   * Carried on the state because the three terminal FAILURE writes live in
+   * `executeLoop`, while the only start mark used to live in `runAgentLoop`'s
+   * closure — so the paths that most needed a duration were the paths that
+   * structurally could not reach one, and every one of them wrote a row with
+   * no elapsed time at all.
+   *
+   * NULLABLE on purpose. A resumed run reconstructs its mark from the stored
+   * `created_at`, and an unparseable timestamp must yield "not measured"
+   * rather than a fabricated zero.
+   */
+  startedAtMs: number | null;
   finalize: (m: string) => Promise<LoopResult>;
 };
 
@@ -1124,6 +1169,12 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
               // sentence is already in `output`.
               halted_reason: e.kind,
               halted_at: new Date().toISOString(),
+              // AFD-06 / INSTRUMENT: how long the run ran before governance
+              // stopped it. Measured 2026-08-11: all 7 halted rows in
+              // production carried NO duration, so "how long do we burn before
+              // a spend cap bites" — the question a governance halt exists to
+              // answer — had no data behind it at all.
+              ...elapsedPatch(s.startedAtMs),
             })
             .eq("id", runId);
         // G-PRICE PR-A1: a halted run never delivered an artifact — refund its draw.
@@ -1159,6 +1210,13 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
               // Same classifier and same taxonomy, so the two paths cannot
               // disagree about what a timeout is called.
               failure_kind: classifyFailureCode(errMsg),
+              // AFD-06 / INSTRUMENT: how long the run ran before it failed.
+              // Measured 2026-08-11: of 208 failed rows in production exactly
+              // 1 carried a duration, so a timeout and an instant provider
+              // rejection were indistinguishable on every latency surface —
+              // and "how long until it fell over" is the first question asked
+              // of a failure.
+              ...elapsedPatch(s.startedAtMs),
             })
             .eq("id", runId);
         } catch (err) {
@@ -1354,7 +1412,25 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         try {
           await supabase
             .from("agent_runs")
-            .update({ status: "waiting_approval", output: pauseMsg })
+            .update({
+              status: "waiting_approval",
+              output: pauseMsg,
+              // AFD-06 / INSTRUMENT: agent time spent BEFORE the gate, written
+              // now because a paused run may never come back — all 7
+              // waiting_approval rows in production are from a single day and
+              // none ever resumed, so leaving this unset means the work they
+              // did is unmeasurable forever.
+              //
+              // This is deliberately the agent's own elapsed time, NOT the
+              // wall clock, so a run that waits three days on a human is not
+              // reported as a three-day run. If the gate is answered,
+              // resumeAgentLoop's finalize overwrites this with the whole-run
+              // measure from `created_at` — the same fresh-versus-resumed
+              // convention `finalize` already uses, so this adds no new
+              // ambiguity. Callers that need "agent time only" must read the
+              // row while it is still paused.
+              ...elapsedPatch(s.startedAtMs),
+            })
             .eq("id", runId);
         } catch (e) {
           console.error("waiting_approval mark failed:", e);
@@ -1820,6 +1896,20 @@ export async function resumeAgentLoop(
    * made the previous literal so hard to notice.
    */
   const elapsedMs = resumeElapsedMs(run.created_at as string | null | undefined, Date.now());
+  /**
+   * AFD-06 / INSTRUMENT: the same origin as `elapsedMs`, kept as a start MARK
+   * so the terminal failure writes inside executeLoop can measure at the
+   * moment they fire rather than reusing a snapshot taken here.
+   *
+   * A resumed run that then halts or fails must report the whole run's elapsed
+   * time for the same reason `elapsedMs` does — it is the second half of one
+   * run — so both derive from the row's `created_at`, and an unparseable
+   * timestamp yields null, never 0.
+   */
+  const startedAtMs = (() => {
+    const parsed = Date.parse((run.created_at as string | null | undefined) ?? "");
+    return Number.isFinite(parsed) ? parsed : null;
+  })();
   const finalize = async (finalMsg: string) => {
     try {
       await supabase
@@ -1887,6 +1977,7 @@ export async function resumeAgentLoop(
     goal: run.input,
     recalledMemories,
     injectedApprovalIds,
+    startedAtMs,
     finalize,
   });
 }
@@ -1953,9 +2044,30 @@ export async function executeApproval(
       try {
         // Same classification as the main loop's catch: a post-approval tool
         // failure is a real failure kind and was previously recorded with none.
+        // AFD-06 / INSTRUMENT: this is the FOURTH terminal writer of
+        // `status: "failed"` and the only one outside the loop, so it has no
+        // in-process start mark to close over — it is entered fresh when a
+        // human answers a gate, long after the run began. The origin is
+        // therefore read back from the row, exactly as the resume path does.
+        // Without this the post-approval failure was the one failure a person
+        // had explicitly waited on, recorded with no elapsed time at all.
+        const { data: runRow } = await supabase
+          .from("agent_runs")
+          .select("created_at")
+          .eq("id", runId)
+          .maybeSingle();
+        const failedElapsedMs = resumeElapsedMs(
+          (runRow as { created_at?: string | null } | null)?.created_at,
+          Date.now(),
+        );
         await supabase
           .from("agent_runs")
-          .update({ status: "failed", output: msg, failure_kind: classifyFailureCode(msg) })
+          .update({
+            status: "failed",
+            output: msg,
+            failure_kind: classifyFailureCode(msg),
+            ...(failedElapsedMs === null ? {} : { duration_ms: failedElapsedMs }),
+          })
           .eq("id", runId);
       } catch (err) {
         console.error("agent_runs fail-mark failed (executeApproval):", err);

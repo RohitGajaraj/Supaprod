@@ -67,6 +67,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useDebouncedValue } from "@/components/admin/admin-ui";
 import {
+  DECISION_SOURCES,
   listDecisions,
   createDecision,
   type DecisionRow,
@@ -282,7 +283,17 @@ export function DecisionsPanel() {
               aria-label="Filter by where the call came from"
             >
               <option value="all">Any source</option>
-              {(["meeting", "mission", "prd", "manual"] as const).map((s) => (
+              {/*
+                THE LIST COMES FROM THE SOURCE OF TRUTH, not a second hand-typed
+                copy of it. This was `["meeting","mission","prd","manual"]`,
+                which is the same stale four that SOURCE_LABEL held, so the 50
+                decisions carrying roadmap / critic / retrospective /
+                opportunity could not be filtered to at all — the option was
+                never rendered. A hard-coded list here can only ever be right by
+                someone remembering; deriving it means a new origin appears the
+                moment it is added, or fails to compile.
+              */}
+              {DECISION_SOURCES.map((s) => (
                 <option key={s} value={s}>
                   {SOURCE_LABEL[s]}
                 </option>
