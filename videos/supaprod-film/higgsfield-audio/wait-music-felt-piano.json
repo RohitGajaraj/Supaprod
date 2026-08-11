@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-08-11T23:30:52.479284Z",
+  "display_name": "Sonilo Music",
+  "id": "8b2c1b76-c578-417d-bdf7-acc63e981853",
+  "job_type": "sonilo_music",
+  "min_result_url": null,
+  "params": {
+    "duration": 145,
+    "prompt": "Intimate felt piano over soft analog tape hiss, a small recurring four note motif, slow warm sub bass pulse, spacious and human, documentary film score restraint, stays quiet under a narrator, one gentle swell in the final third, ends resolved and calm, no drums, no vocals, no drop"
+  },
+  "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3GrM9hprJ3PH4vVtwjOom6boQVj/hf_20260811_233052_8b2c1b76-c578-417d-bdf7-acc63e981853.m4a",
+  "status": "completed"
+}

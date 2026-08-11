@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-08-11T23:30:55.282053Z",
+  "display_name": "Sonilo Music",
+  "id": "f40567ba-837c-4d12-bd2d-9c32e5477059",
+  "job_type": "sonilo_music",
+  "min_result_url": null,
+  "params": {
+    "duration": 145,
+    "prompt": "Quiet analog synthesizer arpeggio like a machine gently working, dusty brushed percussion barely there, warm Rhodes chords far in the background, steady patient forward motion at one tempo throughout, krautrock restraint, premium and modern, low energy under a narrator, one confident lift near the end then a calm resolved outro, no vocals, no drop"
+  },
+  "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3GrM9hprJ3PH4vVtwjOom6boQVj/hf_20260811_233055_f40567ba-837c-4d12-bd2d-9c32e5477059.m4a",
+  "status": "completed"
+}

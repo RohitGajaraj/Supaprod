@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-08-11T23:30:57.952368Z",
+  "display_name": "Sonilo Music",
+  "id": "5e55cd74-f3ec-47c1-9939-3c2ccca82e81",
+  "job_type": "sonilo_music",
+  "min_result_url": null,
+  "params": {
+    "duration": 145,
+    "prompt": "Organic minimalism with soft hang drum and warm marimba patterns, deep upright bass notes, subtle room air, handmade and premium, unusual for a product film, gentle constant pulse that never competes with a narrator, patient build, one warm bloom in the final third, quiet resolved ending, no vocals, no drop, no cymbals"
+  },
+  "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3GrM9hprJ3PH4vVtwjOom6boQVj/hf_20260811_233057_5e55cd74-f3ec-47c1-9939-3c2ccca82e81.m4a",
+  "status": "completed"
+}
