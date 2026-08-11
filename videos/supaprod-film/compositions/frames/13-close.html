@@ -295,12 +295,14 @@
   opacity:0;
   will-change:transform,opacity;
 }
-#cl-tag{
-  position:absolute;left:0;right:0;top:56cqh;
-  display:flex;justify-content:center;gap:0.62cqw;
-  font:600 2.25cqw/1.15 var(--sk-ui);letter-spacing:-0.015em;color:var(--sk-text);
+/* the quiet line under the lockup: it says what the voice is saying */
+#cl-subtag{
+  position:absolute;left:0;right:0;top:56.8cqh;
+  text-align:center;
+  font:400 1.15cqw/1.3 var(--sk-ui);letter-spacing:0.004em;color:var(--sk-muted);
+  opacity:0;
+  will-change:transform,opacity;
 }
-#cl-tag span{display:inline-block;opacity:0;will-change:transform,opacity;}
 
 /* ————— the address field — the caret's bookend ————— */
 #cl-url{
@@ -487,7 +489,7 @@
           <div class="cl-light" id="cl-light-ember"></div>
         </div>
 
-        <!-- ── the lockup — mark draws · wordmark · tagline · address · sub-line ── -->
+        <!-- ── the lockup · mark draws · wordmark · quiet line · address · sub-line ── -->
         <div id="cl-lockup">
           <div id="cl-glow"></div>
           <div id="cl-spin">
@@ -507,7 +509,7 @@
             </svg>
           </div>
           <div id="cl-word">supaprod</div>
-          <div id="cl-tag"><span id="cl-t1">Build</span><span id="cl-t2">what</span><span id="cl-t3">matters.</span></div>
+          <div id="cl-subtag">agents run the work. you make the calls.</div>
           <div id="cl-url">
             <span id="cl-url-text"></span>
             <span id="cl-caret"></span>
@@ -558,65 +560,61 @@
     };
     applyCam(); // seed frame 0
 
-    // phase 1 — slow approach while the mark draws
-    tl.to(cam, { s: 1.015, duration: 2.6, ease: "power2.inOut" }, 0);
-    // phase 2 — the very slow push under the lockup + typing
-    tl.to(cam, { s: 1.05, duration: 3.2, ease: "power1.inOut" }, 2.6);
-    // phase 3 — settle deeper into the mark as the film ends
-    tl.to(cam, { s: 1.09, duration: 3.5, ease: "power2.inOut" }, 5.8);
+    // phase 1 · approach while the mark draws itself (VO says the name)
+    tl.to(cam, { s: 1.005, duration: 1.9, ease: "power2.inOut" }, 0);
+    // phase 2 · the very slow push under the lockup + the typing
+    tl.to(cam, { s: 1.035, duration: 3.55, ease: "power1.inOut" }, 1.95);
+    // phase 3 · settle a little deeper through the read-hold and the exit
+    tl.to(cam, { s: 1.065, duration: 3.7, ease: "power2.inOut" }, 5.6);
 
-    /* ═══ SCENE 1 (0.0–2.6s) · the app recedes, the mark draws itself ═══ */
-
-    // the app home, pre-blurred (depth-of-field-blur on --cl-dof), receding
-    // in perspective the whole first two scenes — "the world recedes."
+    /* ══ THE SLOW PRODUCT MOMENT · one continuous recede, 0.0 to 9.3s ══
+       The app behind never stops moving and never hurries: a single gentle
+       scale drift with the focus falling away. No staged dim, no snap. */
     tl.fromTo("#cl-backwrap",
-      { scale: 1.035, opacity: 0.55, "--cl-dof": "11px" },
-      { scale: 0.95, opacity: 0.38, "--cl-dof": "17px", duration: 5.8, ease: "power1.inOut" }, 0);
+      { scale: 1.045, opacity: 0.52, "--cl-dof": "12px" },
+      { scale: 1.0, opacity: 0.30, "--cl-dof": "18px", duration: DUR, ease: "none" }, 0);
+
+    /* ═══ SCENE 1 (0.0 to 1.9s) · the mark draws as the name is spoken ═══ */
 
     // the mark revolves as it completes (F4's draw motif, bookended)
-    tl.fromTo("#cl-spin", { rotation: -46 }, { rotation: 0, duration: 2.4, ease: "power2.out" }, 0.05);
-    // stroke draw — pen trace, power2.out, no bounce (VO: "Supaprod.")
-    tl.to(loop, { strokeDashoffset: 0, duration: 1.85, ease: "power2.out" }, 0.10);
+    tl.fromTo("#cl-spin", { rotation: -46 }, { rotation: 0, duration: 1.85, ease: "power2.out" }, 0.02);
+    // stroke draw · pen trace, power2.out, no bounce (VO: "Supaprod.")
+    tl.fromTo(loop, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: 1.45, ease: "power2.out" }, 0.12);
     // loader motif: the stroke warms from white toward amber as the loop closes
-    tl.fromTo(loop, { stroke: "#F2EFE9" }, { stroke: "#F6DFC9", duration: 1.6, ease: "power2.inOut" }, 0.35);
+    tl.fromTo(loop, { stroke: "#F2EFE9" }, { stroke: "#F6DFC9", duration: 1.30, ease: "power2.inOut" }, 0.30);
     // ember glow blooms behind the mark as the loop nears close
     tl.fromTo("#cl-glow", { opacity: 0, scale: 0.85 },
-      { opacity: 0.26, scale: 1, duration: 0.7, ease: "power2.out" }, 1.35);
+      { opacity: 0.26, scale: 1, duration: 0.70, ease: "power2.out" }, 1.05);
     // the ember core comes to rest at center
-    tl.fromTo("#cl-core", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 1.5);
+    tl.fromTo("#cl-core", { opacity: 0 }, { opacity: 1, duration: 0.55, ease: "power2.out" }, 1.20);
+    // the wordmark joins under the mark: the lockup completes on the spoken name
+    tl.fromTo("#cl-word", { opacity: 0, y: 18 },
+      { opacity: 1, y: 0, duration: 0.62, ease: "power3.out" }, 1.20);
 
-    // "Build what matters." — the three words rise beneath the mark on the cue
-    var tagWords = ["#cl-t1", "#cl-t2", "#cl-t3"];
-    tagWords.forEach(function (sel, i) {
-      var el = $(sel);
-      tl.set(el, { opacity: 0, y: 20 }, 0);
-      tl.to(el, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 1.55 + i * 0.15);
-    });
+    /* ═══ SCENE 2 (1.9 to 5.6s) · the quiet line, then the caret types ═══ */
 
-    /* ═══ SCENE 2 (2.6–5.8s) · the wordmark completes; the caret types ═══ */
+    // "agents run the work. you make the calls." rides the spoken subtagline
+    tl.fromTo("#cl-subtag", { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.70, ease: "power3.out" }, 2.55);
 
-    // wordmark joins between mark and tagline — the lockup completes
-    tl.set("#cl-word", { opacity: 0, y: 18 }, 0);
-    tl.to("#cl-word", { opacity: 1, y: 0, duration: 0.65, ease: "power3.out" }, 2.62);
+    // the address field arrives · F3's caret, returned for the bookend
+    tl.fromTo("#cl-url", { opacity: 0, y: 12, scale: 0.98 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.50, ease: "power3.out" }, 3.05);
 
-    // the address field arrives — F3's caret, returned for the bookend
-    tl.set("#cl-url", { opacity: 0, y: 12, scale: 0.98 }, 0);
-    tl.to("#cl-url", { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "power3.out" }, 3.92);
-
-    /* typing (discrete-text-sequence) — "supaprod.ai", timed to the VO */
+    /* typing (discrete-text-sequence) · "supaprod.ai" rides "you make the calls" */
     var SEQ = [
       { t: 0,    x: "" },
-      { t: 4.30, x: "s" },
-      { t: 4.41, x: "su" },
-      { t: 4.52, x: "sup" },
-      { t: 4.63, x: "supa" },
-      { t: 4.75, x: "supap" },
-      { t: 4.86, x: "supapr" },
-      { t: 4.97, x: "supapro" },
-      { t: 5.08, x: "supaprod" },
-      { t: 5.24, x: "supaprod." },
-      { t: 5.36, x: "supaprod.a" },
-      { t: 5.47, x: "supaprod.ai" }
+      { t: 3.55, x: "s" },
+      { t: 3.71, x: "su" },
+      { t: 3.87, x: "sup" },
+      { t: 4.03, x: "supa" },
+      { t: 4.19, x: "supap" },
+      { t: 4.35, x: "supapr" },
+      { t: 4.51, x: "supapro" },
+      { t: 4.67, x: "supaprod" },
+      { t: 4.95, x: "supaprod." },
+      { t: 5.22, x: "supaprod.a" },
+      { t: 5.42, x: "supaprod.ai" }
     ];
     function seqAt(t) {
       for (var i = SEQ.length - 1; i >= 0; i--) if (t >= SEQ[i].t) return SEQ[i];
@@ -637,19 +635,18 @@
       caret.style.opacity = Math.sin(blink.p) > 0 ? "1" : "0";
     }}, 0);
 
-    /* ═══ SCENE 3 (5.8–9.3s) · the ask lands, the lights dim, the film ends ═══ */
+    /* ═══ SCENE 3 (5.6 to 9.3s) · the ask settles, the hold, the exit ═══ */
 
-    // sub-line fades in on "no login needed"
-    tl.set("#cl-sub", { opacity: 0, y: 10 }, 0);
-    tl.to("#cl-sub", { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 6.25);
+    // the last new thing on screen, settled by 6.95s
+    tl.fromTo("#cl-sub", { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.60, ease: "power3.out" }, 6.35);
 
-    // the blurred app lights dim FIRST — the product recedes into the dark
-    tl.to("#cl-backwrap", { opacity: 0.10, scale: 0.93, duration: 1.1, ease: "power2.inOut" }, 7.35);
-    tl.to("#cl-glow", { opacity: 0.12, duration: 1.0, ease: "power2.inOut" }, 7.5);
-
-    // …then the film's one real exit — a gentle fade to black over the last second
-    // (final frame owns this; every other frame's exit is the root transition)
-    tl.to("#cl-fade", { opacity: 1, duration: 1.0, ease: "power2.inOut" }, 8.3);
+    /* READ-HOLD (6.95 to 8.3s): nothing new arrives. Only the camera breathing,
+       the app drifting back, and the caret blinking. Then the film's one real
+       exit: a gentle fade to black over the final second. Every other frame's
+       exit is the root transition; this one is ours. */
+    tl.fromTo("#cl-fade", { opacity: 0 },
+      { opacity: 1, duration: 1.0, ease: "power2.inOut" }, 8.3);
 
     /* drift — continuous micro-motion the whole 9.3s. Added LAST so every
        cam tween has updated before applyCam composes the transform. */
