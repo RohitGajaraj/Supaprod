@@ -36,6 +36,20 @@
 
 ---
 
+## 📌 STANDING RULES for every session, all lanes (founder ruling 2026-08-11, relayed via the UI lane)
+
+**Everything lands on `main` in the `Supaprod` worktree. Nothing anywhere else is finished. No work gets lost.**
+
+1. **`Supaprod`/`main` is the single destination.** Branch worktrees are workspaces; nothing is done until merged and pushed to `main` there.
+2. **`git add -A` is banned. Name explicit paths.** This is the rule that actually prevents loss: a session none of the lanes could reach committed four times with `-A`, each sweep taking another lane's *uncommitted* work into its own commit under its own message. Nothing was lost by design, only by luck. A sweep cannot take what is already committed and cannot take what it did not name.
+3. **Commit after every edit, not at the end of a chunk.** The exposure window is exactly the time your work sits uncommitted.
+4. **Never stash or delete files you believe belong to another session. Diff before you describe.** An invisible mistake is the worst kind.
+5. **An agent you spawned is your work**, even if you did not type it.
+
+**And the reading rule, which cost all three lanes time last night:** two lanes opened the same file to resolve the e2e credential question, each quoted the paragraph confirming they were stuck, and **neither read down to line 40, which names the answer** (`harbor@supaprod.ai`, *"the account any agent uses for testing"*). **Read past the paragraph that agrees with you** — `docs/operations/*` files are running records and put corrections *after* the thing they correct.
+
+---
+
 ## ✅ LANE 0 SESSION CLOSED — 2026-08-11 00:15. Everything is on `main` at `6052dbcb`.
 
 **Nothing is in flight. No agent is running. The tree is clean and `origin/main`, `parallel/lane-0-fresh` and my HEAD are all the same commit.** `docs:check` 0, `tsc` 0.
