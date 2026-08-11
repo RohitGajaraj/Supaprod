@@ -3,7 +3,7 @@
  * Sizing consistency, stroke weight, color role compliance
  */
 import { test, expect, Page } from '@playwright/test';
-import { login, takeScreenshot } from './helpers/auth';
+import { login, takeScreenshot, waitForShell } from './helpers/auth';
 
 async function auditIcons(page: Page) {
   return await page.evaluate(() => {
@@ -58,6 +58,25 @@ async function auditIcons(page: Page) {
   });
 }
 
+/**
+ * NAVIGATION IN THIS FILE: `domcontentloaded` PLUS `waitForShell`, never
+ * `networkidle`. Measured on 2026-08-11 across the whole suite: `/evals`,
+ * `/agents` and `/drift` redirect to `/engine-room`, which loads
+ * `js.stripe.com`, and Stripe holds its connection open, so the page never
+ * gives `networkidle` the 500ms of silence it waits for. `goto` sat for the
+ * full navigation timeout and threw WHILE THE PAGE WAS RENDERED AND CORRECT
+ * BEHIND IT.
+ *
+ * `networkidle` does not report "the page is not ready". It reports "something
+ * on this page is still talking", and the two are unrelated, which is why
+ * Playwright discourages it. `waitForShell` waits for `main` to be visible,
+ * which IS the readiness condition every assertion below depends on, and it is
+ * indifferent to a third-party socket.
+ *
+ * Proven first on `02-surfaces-desktop.spec.ts`, where the same substitution
+ * turned 3 failures into 15 passes and a run of timeouts into 38 seconds.
+ */
+
 test.describe('Icon Audit', () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
@@ -81,11 +100,13 @@ test.describe('Icon Audit', () => {
   for (const surface of surfaces) {
     test(`icon audit on ${surface.path}`, async ({ page }) => {
       await page.context().addCookies(authCookies);
-      await page.goto(surface.path, { waitUntil: 'networkidle' });
+      await page.goto(surface.path, { waitUntil: 'domcontentloaded' });
+      await waitForShell(page);
 
       if (page.url().includes('/login')) {
         await login(page);
-        await page.goto(surface.path, { waitUntil: 'networkidle' });
+        await page.goto(surface.path, { waitUntil: 'domcontentloaded' });
+        await waitForShell(page);
       }
 
       const audit = await auditIcons(page);
@@ -105,11 +126,13 @@ test.describe('Icon Audit', () => {
 
   test('icon color compliance - check for ember vs neutral usage', async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'networkidle' });
+    await page.goto('/today', { waitUntil: 'domcontentloaded' });
+    await waitForShell(page);
 
     if (page.url().includes('/login')) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'networkidle' });
+      await page.goto('/today', { waitUntil: 'domcontentloaded' });
+      await waitForShell(page);
     }
 
     const colorAudit = await page.evaluate(() => {
@@ -136,11 +159,13 @@ test.describe('Icon Audit', () => {
 
   test('icon alignment in buttons', async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'networkidle' });
+    await page.goto('/today', { waitUntil: 'domcontentloaded' });
+    await waitForShell(page);
 
     if (page.url().includes('/login')) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'networkidle' });
+      await page.goto('/today', { waitUntil: 'domcontentloaded' });
+      await waitForShell(page);
     }
 
     const buttonIconAlignment = await page.evaluate(() => {

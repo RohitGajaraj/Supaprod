@@ -3,7 +3,7 @@
  * Keyboard navigation, focus traps, aria-labels, color contrast
  */
 import { test, expect, Page } from "@playwright/test";
-import { login, takeScreenshot } from "./helpers/auth";
+import { login, takeScreenshot, waitForShell } from "./helpers/auth";
 import { becomesVisible } from "./helpers/waits";
 
 async function checkColorContrast(page: Page) {
@@ -100,6 +100,25 @@ async function checkSemanticHTML(page: Page) {
   });
 }
 
+/**
+ * NAVIGATION IN THIS FILE: `domcontentloaded` PLUS `waitForShell`, never
+ * `networkidle`. Measured on 2026-08-11 across the whole suite: `/evals`,
+ * `/agents` and `/drift` redirect to `/engine-room`, which loads
+ * `js.stripe.com`, and Stripe holds its connection open, so the page never
+ * gives `networkidle` the 500ms of silence it waits for. `goto` sat for the
+ * full navigation timeout and threw WHILE THE PAGE WAS RENDERED AND CORRECT
+ * BEHIND IT.
+ *
+ * `networkidle` does not report "the page is not ready". It reports "something
+ * on this page is still talking", and the two are unrelated, which is why
+ * Playwright discourages it. `waitForShell` waits for `main` to be visible,
+ * which IS the readiness condition every assertion below depends on, and it is
+ * indifferent to a third-party socket.
+ *
+ * Proven first on `02-surfaces-desktop.spec.ts`, where the same substitution
+ * turned 3 failures into 15 passes and a run of timeouts into 38 seconds.
+ */
+
 test.describe("Accessibility - Keyboard Navigation", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
@@ -122,11 +141,13 @@ test.describe("Accessibility - Keyboard Navigation", () => {
   for (const surface of surfaces) {
     test(`keyboard navigation on ${surface.path}`, async ({ page }) => {
       await page.context().addCookies(authCookies);
-      await page.goto(surface.path, { waitUntil: "networkidle" });
+      await page.goto(surface.path, { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
 
       if (page.url().includes("/login")) {
         await login(page);
-        await page.goto(surface.path, { waitUntil: "networkidle" });
+        await page.goto(surface.path, { waitUntil: "domcontentloaded" });
+        await waitForShell(page);
       }
 
       // Tab through elements and track focus
@@ -162,11 +183,13 @@ test.describe("Accessibility - Keyboard Navigation", () => {
 
   test("Escape key closes modals/dropdowns", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto("/today", { waitUntil: "networkidle" });
+    await page.goto("/today", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
 
     if (page.url().includes("/login")) {
       await login(page);
-      await page.goto("/today", { waitUntil: "networkidle" });
+      await page.goto("/today", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
     }
 
     // Try to open a dialog if one exists
@@ -224,11 +247,13 @@ test.describe("Accessibility - Semantic HTML & ARIA", () => {
   for (const surface of surfaces) {
     test(`aria-labels audit on ${surface.path}`, async ({ page }) => {
       await page.context().addCookies(authCookies);
-      await page.goto(surface.path, { waitUntil: "networkidle" });
+      await page.goto(surface.path, { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
 
       if (page.url().includes("/login")) {
         await login(page);
-        await page.goto(surface.path, { waitUntil: "networkidle" });
+        await page.goto(surface.path, { waitUntil: "domcontentloaded" });
+        await waitForShell(page);
       }
 
       const ariaAudit = await checkAriaLabels(page);
@@ -251,11 +276,13 @@ test.describe("Accessibility - Semantic HTML & ARIA", () => {
 
   test("color contrast sampling on Today", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto("/today", { waitUntil: "networkidle" });
+    await page.goto("/today", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
 
     if (page.url().includes("/login")) {
       await login(page);
-      await page.goto("/today", { waitUntil: "networkidle" });
+      await page.goto("/today", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
     }
 
     const contrastSamples = await checkColorContrast(page);
@@ -265,11 +292,13 @@ test.describe("Accessibility - Semantic HTML & ARIA", () => {
 
   test("heading hierarchy is logical", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto("/today", { waitUntil: "networkidle" });
+    await page.goto("/today", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
 
     if (page.url().includes("/login")) {
       await login(page);
-      await page.goto("/today", { waitUntil: "networkidle" });
+      await page.goto("/today", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
     }
 
     const semanticAudit = await checkSemanticHTML(page);
@@ -298,11 +327,13 @@ test.describe("Accessibility - Reduced Motion", () => {
 
     // Set reduced motion preference
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/today", { waitUntil: "networkidle" });
+    await page.goto("/today", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
 
     if (page.url().includes("/login")) {
       await login(page);
-      await page.goto("/today", { waitUntil: "networkidle" });
+      await page.goto("/today", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
     }
 
     const motionCheck = await page.evaluate(() => {
