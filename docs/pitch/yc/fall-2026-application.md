@@ -116,6 +116,8 @@ Public launch in September. Full brief at https://supaprod.ai/brief.
 >
 > _Verify the two commit-side figures the morning you paste; those are sound and reproduce from the commands below._
 >
+> **Every number in this file now routes through [`../verified-numbers.md`](../verified-numbers.md).** Read it before typing a figure anywhere. It carries the query beside each one, the honest set excluding seeded workspaces, and the retired list. **This file still contains stale vintages of the same quantities in the draft blocks further down**, including 83, 176 and 145 for missions and 384, 387, 393, 508 and 510 for migrations. The copy-paste sheet is the only authority here, and `verified-numbers.md` is the authority over that.
+>
 > **Why "I'm my own first user" is gone.** It was in the draft and it reads badly to a partner: *if you are the customer, who pays you?* The dogfooding fact is genuinely strong, but it is **proof the product functions, not proof anyone wants it** — so it now says what it actually proves and stops there. It cannot stand in for a user count, and the slot above says so explicitly.
 
 **Why it is written this way.** A partner reads hundreds of these and is pattern-matching for *is this a real problem, is this person unusually good, do people want it*. So: **no vocabulary a stranger would have to decode.** Not "the loop closes", not "evidence bar", not "the judgment gap" — every one of those is our word, not theirs. *"The thing gets less wrong the longer you use it"* says compounding without the term.

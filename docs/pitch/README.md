@@ -53,6 +53,7 @@ Most work here is an accelerator, incubator, residency or grant application. The
 | [`applications/README.md`](./applications/README.md) | Picking a program, or logging a submission. 144 researched, with deadlines and fit. |
 | [`applications/positioning-doctrine.md`](./applications/positioning-doctrine.md) | Working out how to get selected by a specific program. |
 | [`applications/answer-bank.md`](./applications/answer-bank.md) | Writing any answer. Pull, do not compose. |
+| [**`verified-numbers.md`**](./verified-numbers.md) | **Quoting any number outward. Read it before you type a figure.** Every number with the query that reproduces it, the honest set excluding seeded workspaces, and the retired list. **Three numbers presented as proof in the YC application were seed data and a fourth set claimed thirteen months against ten weeks; none had a recorded query.** The rule: a number carries its query or it does not go. |
 | `applications/<program>/` | Per-program: `positioning.md`, `application.md`, `how-to-apply.md`. Currently Betaworks AI Camp, EF The Bridge SF, South Park Commons, The Residency. |
 
 ### YC specifically
