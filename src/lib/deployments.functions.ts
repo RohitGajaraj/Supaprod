@@ -490,6 +490,33 @@ export const listDeployments = createServerFn({ method: "GET" })
     // nothing — the same answer the deployments read would have given, reached
     // one query earlier. Its error is checked, so a failed read is never spent
     // as proof of "no such change".
+    //
+    // AND THE `[]` ON THE NEXT LINE MUST NOT BECOME A DISCRIMINATOR. An audit on
+    // 2026-08-11 proposed returning something like `read: "unreadable-changeset"`
+    // here, on the reasonable-sounding ground that this file already defines
+    // `DeployReadOutcome` for exactly the "absence vs unread" distinction and
+    // three different facts currently share one `[]`. It is the wrong call here,
+    // and the reason is a fact about the database rather than about taste.
+    //
+    // VERIFIED against pg_policies, not assumed: `studio_changesets` and
+    // `deployments` carry the IDENTICAL predicate, `is_workspace_member(
+    // workspace_id)`, on both SELECT and ALL. So a caller who cannot see the
+    // changeset provably cannot see any deployment of it either — "hidden from
+    // you" and "there are none" are not merely similar answers, they are the same
+    // observable answer, and collapsing them loses nothing. Distinguishing them
+    // would ADD something: an id that returns "unreadable" rather than "empty" is
+    // a changeset that exists, and this endpoint would become the only way to
+    // learn that. A discriminator here is an existence oracle, not a fix.
+    //
+    // `DeployReadOutcome` is right where it lives, because a provider read that
+    // was never attempted genuinely is a different fact from one that came back
+    // empty, and no permission boundary separates them.
+    //
+    // THE CONFLATION THAT IS REAL IS ON THE CLIENT, not here. `runs.$missionId
+    // .tsx` does `deploymentsQ.data?.deployments ?? []`, which folds PENDING, a
+    // disabled query and a COLD FAILURE into the same `false` as a genuine empty,
+    // and then states "Production — merged, not promoted yet" as fact over all
+    // four. That `?? []` is the defect; this `[]` is a correct answer.
     let workspaceId: string | null;
     if (data.changesetId) {
       const { data: csRow, error: csErr } = await db

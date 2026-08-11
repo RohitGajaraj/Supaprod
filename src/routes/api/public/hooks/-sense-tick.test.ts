@@ -168,7 +168,29 @@ describe("sense-tick resolves the allowlist from the database", () => {
 
   it("does not re-introduce a domain-suffix test on the owner email", () => {
     // `endsWith(SOME_DOMAIN)` is the shape of the defect, independent of which
-    // domain is written. Catching the shape outlives catching the string.
+    // domain is written. Catching the shape outlives catching the string, and
+    // that is not theoretical: planting the defect back with the CURRENT domain
+    // is caught by this line and would sail past every check keyed on the
+    // retired one.
     expect(codeOf(source)).not.toMatch(/email[^\n]*\.endsWith\(/);
+  });
+
+  it("the owner check REACHES the allowlist rather than merely declaring it", () => {
+    /**
+     * FOUND BY PLANTING THE DEFECT, and the plant is the only reason this test
+     * exists. Rewriting `isDemoWorkspaceOwner` to hardcode a domain again left
+     * `demoAccountEmails()` defined but uncalled — so the positive assertion
+     * above, which asks whether the FILE contains `.rpc("demo_account_emails")`,
+     * still passed. Presence in the file is not reachability from the predicate.
+     *
+     * That is the same green-while-measuring-nothing shape this repo has now
+     * found six times, reproduced inside the guard written to prevent it, within
+     * an hour of writing it. Scoping the assertion to the function BODY is what
+     * makes it measure the thing it claims to.
+     */
+    const body = codeOf(source).match(/async function isDemoWorkspaceOwner\([\s\S]*?\n\}/);
+    expect(body, "isDemoWorkspaceOwner is gone or was renamed").not.toBeNull();
+    expect(body![0]).toContain("demoAccountEmails()");
+    expect(body![0]).toContain("isDemoAccountEmail(");
   });
 });
