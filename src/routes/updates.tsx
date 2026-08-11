@@ -35,6 +35,18 @@ export const Route = createFileRoute("/updates")({
 // provider landed 2026-06-30 to 07-09, so it predates the row below it.
 const ENTRIES: { date: string; title: string; body: string; fromPulse?: boolean }[] = [
   {
+    /* Added 2026-08-11 with the duration ruling. Onboarding's three setup
+     * screens were unreachable from 2026-08-10 and have now been deleted, so
+     * the newest word this page had on onboarding described a flow that no
+     * longer exists and priced it at ten minutes. A changelog supersedes, it
+     * does not silently edit, so the correction is this row rather than a
+     * rewrite of the 2026-07-10 one below. Dated to when the change a stranger
+     * would notice actually landed. */
+    date: "2026-08-10",
+    title: "Onboarding is one question now",
+    body: "Signing up used to mean naming your product and connecting a source before Supaprod did anything for you. It now opens on the one thing worth asking: write the assumption you would hate to be wrong about, and the Critic challenges it and shows the evidence, usually in under a minute. Everything else is offered afterwards, once you have a result to react to.",
+  },
+  {
     date: "2026-08-09",
     title: "Today opens on the call, not the dashboard",
     body: "Today now leads with the single call most worth making, the evidence standing behind it, and the follow-through attached to it, in one brief. It replaces a screen of panels that asked what you wanted to do with one that says what is worth doing.",
@@ -66,7 +78,14 @@ const ENTRIES: { date: string; title: string; body: string; fromPulse?: boolean 
   },
   {
     date: "2026-07-10",
-    title: "The first ten minutes now prove the value",
+    /* This row was titled "The first ten minutes now prove the value" until
+     * 2026-08-11. The number went, the row stayed. Ten minutes was never a
+     * measured figure, it carried no query, and docs/pitch/verified-numbers.md
+     * is explicit that a number quoted outward without one does not ship. The
+     * entry's substance is untouched and still true of what landed that day:
+     * this is a correction to an unverifiable claim, not a rewrite of history.
+     * The row above supersedes it on the flow itself. */
+    title: "Onboarding starts with your own bet, not a tour",
     body: "Onboarding no longer starts with a tour. Name your product, connect one source or paste your notes, and Supaprod tears down your own bet with real evidence before you have done anything else.",
   },
   {
