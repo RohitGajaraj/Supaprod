@@ -351,3 +351,44 @@ Both came out of [`../research/market-validation-2026-08.md`](../research/market
 **Two things it buys us and one it costs.** It gives the layer a name someone else coined, at a credible ring, recently enough that we are not late. It is outside the corpus this positioning was built from, which answers the generalisation question. **And it omits forecasts from its own enumeration**, which is either the gap we occupy or evidence nobody wants that part; §8.5 of the market validation argues the former, and the Google record is the reason to hold the claim carefully.
 
 **What we do NOT do: claim "decision intelligence".** It is a real Gartner category with an inaugural Magic Quadrant in January 2026, and its Leaders are FICO, SAS, IBM, Quantexa, ACTICO and Aera, selling automated high-volume operational decisioning to credit-risk, fraud, pricing and supply-chain buyers. Claiming the name puts us in a bake-off on decision throughput and latency against companies that do nothing else. **That is worse than having no category.**
+
+---
+
+## §5L. The "audit trail" question, resolved 2026-08-11
+
+**Raised against myself.** `AGENTS.md` rule 3 puts **audit trail** on the KEEP list "because practitioners say it unprompted." **The measured table in the corpus sweep rates it 0.2 per million and marks it dead**, the same score as *ledger*. I then used it roughly 170 times across the repo as the replacement for *receipts*. Two canonical files disagreed and I was the one who put them there.
+
+### What the evidence actually says
+
+**In the corpus: one occurrence in 5,935,025 words.** A 2023 newsletter about Palantir, a government and enterprise data company, in a sentence about not "neglecting the audit trail." The 0.2/M figure is confirmed, and **where** it occurs is the finding: exactly the register you would predict.
+
+**The KEEP claim rested on a single quote**, Brian Kim in a community thread: *"the audit trail as to why should be clear."* One practitioner. Against a measured near-zero. **That was too thin a basis and I should not have written it as settled.**
+
+**And practitioners have no noun for this concept at all.** *Paper trail* appears twice, both in Nan Yu of Linear, and **both are negative**: people "leaving behind this crazy paper trail" of abandoned drafts. *Traceability* does not appear. When practitioners describe the need, they use **questions, not a category noun** (Aaron Nichols, 2026-06-20): *who changed what · which notes to trust · why they changed · how to stop the ones that shouldn't.*
+
+### The resolution, and why it is not the retired register split
+
+**The DROP list is not a frequency list. It is a list of words we invented.** *Receipts, ledger, trust ledger, unattended, first run, decision layer* are all ours. **Frequency was the detector, never the criterion**, and reading it as the criterion is what produced this contradiction.
+
+> **`audit trail` is not our invention.** It is the industry's standard term, it has a legally meaningful sense, and it is the **native vocabulary of AI governance platforms**, the category §5K.1 just adopted as our entry vector: an inaugural Gartner Magic Quadrant on 2026-06-16, a Forrester Wave, an IDC MarketScape, $492M in 2026 at 45.3% CAGR. A word that is central to the market we are entering is not dead because a PM podcast does not use it.
+
+**So the test is not who is reading. It is what the word is doing in the sentence.**
+
+| The word is | Use | Why |
+| --- | --- | --- |
+| **Naming the artifact or the control** | ✅ **`audit trail`** | It is the precise, industry-standard, checkable name for the thing. "Every agent action lands in an audit trail." |
+| **Naming what an enterprise buys** | ✅ **`audit trail`** | Their word, their budget line. "Where the audit trail is the thing they actually budget for." |
+| **Trying to make someone care** | ❌ never `audit trail` | Use their questions: *who changed what, why, and is it still true.* Or **evidence** (50.9/M) and **history** (103.3/M) |
+| **A headline, hero or eyebrow** | ❌ never | It names a control. Controls do not earn attention |
+
+**This is not the register split returning.** That split asked *"is the reader public or in-product"* and gave the same word two verdicts. This asks *"is the word naming a thing or earning belief"*, which is a property of the sentence, and gives one verdict per job. A word can name the artifact in one sentence and be wrong in the next, to the same reader.
+
+### What changes
+
+**Nothing in the 170 existing uses needs reverting.** Spot-checked the highest-stakes file: both instances in the YC application are naming uses, one of the artifact and one of the enterprise budget line. The sweep landed correctly by instinct; this ruling makes it deliberate.
+
+**Corrections applied:** `AGENTS.md` rule 3 no longer claims practitioners say it unprompted. The corpus sweep's "❌ dead" verdict is annotated, because the measurement is right and the verdict was drawn from the wrong criterion.
+
+**The generalisable rule, and it is the one to keep:**
+
+> **Drop the words we invented. Keep the industry's words even when our buyer's peers do not say them. And never let an industry word do the work of making someone care.**

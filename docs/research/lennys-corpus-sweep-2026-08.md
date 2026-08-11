@@ -365,7 +365,7 @@ The qualitative reports said our vocabulary was absent. Counting settles which w
 | **receipt** | **3.0** | ❌ dead | **evidence** (50.9) · **history** (103.3) · record (39.5) |
 | **provenance** | **0.3** | ❌ dead | **history** (103.3) |
 | **ledger** | **0.2** | ❌ dead ("trust ledger" = **zero**) | **track record** (4.0) · **history** (103.3) |
-| **audit trail** | **0.2** | ❌ dead | **history** (103.3) |
+| **audit trail** | **0.2** | ⚠️ **measurement right, verdict corrected 2026-08-11** | **The rate is confirmed** (one occurrence in 5.9M words, a 2023 Palantir piece). **But this table's criterion is wrong for this row.** The DROP list is words *we invented*; frequency was the detector, not the criterion. `audit trail` is the industry's term and the native vocabulary of AI governance platforms, our entry category. **Keep it to NAME the artifact; use evidence (50.9) or history (103.3) to make someone care.** See `../strategy/positioning-locked-2026-08.md` §5L |
 | **unattended** | **0.2** | ❌ dead | **overnight** (14.3) · **on its own** (12.4) · in the background (8.6) |
 | **first run** | **0.2** | ❌ dead | **get started** (42.1) · set up (100.3) |
 
