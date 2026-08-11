@@ -86,7 +86,18 @@ export function Hero() {
         .hero-cta:active { transform: scale(0.98); }
         .hero-quiet { transition: color 0.2s cubic-bezier(0.23, 1, 0.32, 1); }
         .hero-arrow { transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1); }
+        /* The open door (see the note on the CTA row). Outline only, never a
+           fill: the ember button stays the one filled object above the fold, so
+           this answers "can I see it work" without entering the contest the
+           one-accent rule was written to settle. */
+        .hero-try {
+          transition: border-color 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+                      background-color 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+                      transform 0.15s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .hero-try:active { transform: scale(0.99); }
         .hero-cta:focus-visible,
+        .hero-try:focus-visible,
         .hero-quiet:focus-visible {
           outline: none;
           box-shadow: 0 0 0 2px #0a0a0a, 0 0 0 4px #FF6B2C;
@@ -100,7 +111,12 @@ export function Hero() {
         @media (hover: hover) and (pointer: fine) {
           .hero-cta:hover { background-color: #ff8344; }
           .hero-quiet:hover { color: #ffffff; }
+          .hero-try:hover {
+            border-color: rgba(255, 255, 255, 0.22);
+            background-color: rgba(255, 255, 255, 0.055);
+          }
           .hero-cta:hover .hero-arrow,
+          .hero-try:hover .hero-arrow,
           .hero-quiet:hover .hero-arrow { transform: translateX(2px); }
           /* One phrase at a time. Founder 2026-07-25, explicit and repeated:
              hovering the column must NOT warm all three together, only the
@@ -115,7 +131,8 @@ export function Hero() {
         @media (prefers-reduced-motion: reduce) {
           .hero-rise { animation: heroFade 0.5s cubic-bezier(0.23, 1, 0.32, 1) both; }
           .hero-arrow { transition: none; }
-          .hero-cta:active { transform: none; }
+          .hero-cta:active,
+          .hero-try:active { transform: none; }
         }
       `}</style>
 
@@ -359,8 +376,25 @@ export function Hero() {
               Agents that own outcomes. Not just output.
             </p>
 
+            {/* WRAPS SINCE 2026-08-11, and the wrap is load-bearing rather than
+                defensive. With the teardown door added below, the row carries
+                three controls, and this column is EXACTLY 511px at every desktop
+                width (the measurement is in the sub's note above: max-w-5xl caps
+                the container, so the number does not drift). The three controls
+                measure about 650px laid end to end, so at lg they cannot share a
+                line and a row with no wrap would have pushed the tertiary link
+                out of the column.
+
+                Wrapping puts the hierarchy in the layout: the ember button and
+                the teardown sit together on line one, which is the pairing that
+                matters, and "Watch a real run" drops to its own line as the
+                third thing it has always been. Below lg the column is the whole
+                page width and all three fit on one line; at 320 the row is a
+                stack, as it already was. The y gap is smaller than the x gap so
+                a wrapped line reads as the same row continuing, not as a new
+                block. */}
             <div
-              className="hero-rise flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-7"
+              className="hero-rise flex flex-col items-start gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-7 sm:gap-y-4"
               style={{ animationDelay: "180ms" }}
             >
               {/* 2026-08-05, AND WHY IT IS BEING PARTLY UNDONE ON 2026-08-07.
@@ -444,6 +478,60 @@ export function Hero() {
                   </span>
                 </span>
               </a>
+              {/* THE OPEN DOOR, PUT BACK ON 2026-08-11 (founder), and it is a
+               * deliberate partial reversal of the removal recorded below. Read
+               * that note first: it is still right about the shape that failed.
+               *
+               * WHY IT COMES BACK. The button above it is honest and it is shut.
+               * A visitor with no invite code reads "Join the beta", and the
+               * only thing the hero then offers them is a video of somebody
+               * else's run. /p/teardown is the one surface in this product that
+               * turns a stranger into a person who has SEEN it work: one
+               * textarea, no account, no code, and it hands back a real
+               * evidence-backed critique of THEIR OWN spec. It was reachable
+               * only from the footer, from a link list five beats down, and from
+               * /demo, which is to say only by people who had already decided to
+               * keep reading.
+               *
+               * WHY THIS IS NOT THE THING THAT WAS REMOVED. The 2026-08-10
+               * ruling killed three asks and five lines of body copy under one
+               * button. What returns is ONE control and no paragraph: the invite
+               * door stays gone from the hero, and the cost and the payload ride
+               * inside the control itself instead of in prose beneath it. The
+               * ladder is legible at a glance because each rung is a different
+               * kind of object: one filled ember button, one outlined door, one
+               * plain text link. That is a hierarchy, not three equal asks.
+               *
+               * THE COPY IS THE OFFER. "Tear down your PRD" is what they get and
+               * whose document it runs on; the mono line is what it costs, and
+               * "no signup" is the word that matters most standing next to an
+               * invite-only button. Second line is the machine register this
+               * hero already uses for specification (the column opposite, the
+               * eyebrow above), so it reads as terms rather than as sell.
+               *
+               * The contrast ruling recorded on the eyebrow above binds small
+               * type here too, and 11px is the smallest this hero goes. Measured
+               * live against this box's own ground (3% white over #0a0a0a, which
+               * computes to #111111): the label is 12.78:1 and the mono line is
+               * 7.2:1, both clear of the 4.5:1 floor. zinc-500 was the obvious
+               * choice for a second line and it is the wrong one, at 4.1:1. */}
+              <a
+                href="/p/teardown"
+                className="hero-try rounded-xl border border-white/10 bg-white/[0.03] px-4 py-[7px] text-left"
+              >
+                <span className="flex items-center gap-2 text-sm font-medium leading-5 text-zinc-300">
+                  Tear down your PRD
+                  <span className="hero-arrow inline-block" aria-hidden>
+                    &rarr;
+                  </span>
+                </span>
+                <span
+                  className="mt-0.5 block font-mono text-[11px] uppercase leading-[14px] text-zinc-400"
+                  style={{ letterSpacing: "0.08em" }}
+                >
+                  No signup &middot; evidence in a minute
+                </span>
+              </a>
               <a
                 href="/demo"
                 // The session key is read inside the handler, never at render,
@@ -479,7 +567,17 @@ export function Hero() {
                 Receipts beat ("A public teardown, no signup") and it is in the
                 footer; the invite door is /signup, which is where an invited
                 person is sent by the email that invited them, and "Sign in" is
-                in the nav. The hero now asks for one thing. */}
+                in the nav.
+
+                THE CRITIC CAME BACK ON 2026-08-11 and the invite door did not,
+                which is the distinction this note failed to draw the first time.
+                The defect was never that the hero named the Critic; it was that
+                three doors and five lines of footnote sat under one button, and
+                two of those doors led somewhere a stranger cannot go. Sending a
+                person with no code to /signup is a dead end. Sending them to a
+                textarea that answers them in a minute is the only first-hand
+                evidence this page can offer. One is worth a control in the CTA
+                row; the other is not, and it stays where it is. */}
           </div>
 
           {/* Center: the mark, backlit like an eclipse (desktop) */}

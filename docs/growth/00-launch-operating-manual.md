@@ -84,7 +84,7 @@ Each day: theme → founder actions (~time) → agent-lane actions → success c
 
 **Theme: the honest inversion story nobody else can tell.**
 
-- **The centerpiece (X thread + LinkedIn long-form, morning US time):** "We spent 13 months building the engine and never opened the doors. 133 missions, 72 decisions, 2,162 governed AI calls — all on our own product. Today we open them. Here's the track record, including what we got wrong." Radical honesty IS the differentiation — every AI launch screams; a launch that shows its own evidence and its own mistakes is the pattern-break. Waitlist link in the reply, not the post.
+- **The centerpiece (X thread + LinkedIn long-form, morning US time):** "We spent ten weeks building the engine and never opened the doors. 133 missions, 72 decisions, 2,162 governed AI calls — all on our own product. Today we open them. Here's the track record, including what we got wrong." Radical honesty IS the differentiation — every AI launch screams; a launch that shows its own evidence and its own mistakes is the pattern-break. Waitlist link in the reply, not the post.
 - **Founder (2–3h):** post, then live in the replies all day; DM wave 1 goes out (25 hand-personalized, gift-first: "saw your post on X — want the Critic to red-team your top bet? Takes us 48h, no strings").
 - **Agent lanes:** monitor everything (mentions, comments, referrers); log every reply into the capture system ([`03`](./03-customer-discovery-and-validation.md) §capture); draft Day 4's post from what resonates TODAY — the wave adapts daily.
 - **Done when:** the story is live, 25 DMs out, the first waitlist cohort is in.
@@ -111,7 +111,7 @@ Each day: theme → founder actions (~time) → agent-lane actions → success c
 
 **Theme: attention becomes named humans on calendars.**
 
-- **Founder (3–4h):** X Space / AMA ("agents ran my product org for 13 months — the evidence, the failures, the track record"); first 10 design-partner sessions booked from waitlist + DM replies (sessions double as discovery interviews — the exact 30-minute script is in [`03`](./03-customer-discovery-and-validation.md)); "what the agents did while I slept" evidence post (the morning brief as a public artifact).
+- **Founder (3–4h):** X Space / AMA ("agents ran my product org for ten weeks — the evidence, the failures, the track record"); first 10 design-partner sessions booked from waitlist + DM replies (sessions double as discovery interviews — the exact 30-minute script is in [`03`](./03-customer-discovery-and-validation.md)); "what the agents did while I slept" evidence post (the morning brief as a public artifact).
 - **Agent lanes:** score the waitlist (the paying-likelihood rubric in [`03`](./03-customer-discovery-and-validation.md)); rank DP candidates; prep week-2 beta onboarding slots.
 - **Done when:** ≥10 sessions on the calendar with named, qualified humans.
 
@@ -129,7 +129,7 @@ Each day: theme → founder actions (~time) → agent-lane actions → success c
 
 | Stage | This week's form | Entry | Exit (= the v13 gate) |
 | --- | --- | --- | --- |
-| Private alpha | founder dogfood (done, 13 months) | — | engine warm [PROVEN] |
+| Private alpha | founder dogfood (done, ten weeks) | — | engine warm [PROVEN] |
 | **Waitlist + wave** | **Days 1–7 (this manual)** | homepage live | Floor tier hit; ≥10 DP sessions booked |
 | Design partners / closed beta | week 2: 25 contacted, ≥10 onboarded | signed simple terms | **G-BETA:** 10+ active external workspaces, a real card buys credits |
 | The listing | week 2–3: stories → Show HN → PH same week | PC-04 live + 2–3 beta stories + failure GIF | **G-LAUNCH:** ≥50 external workspaces, ≥20 weekly-active |
