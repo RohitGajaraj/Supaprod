@@ -6,7 +6,7 @@
 # Supaprod is the agentic-first operating system for product teams. It tells you
 # what to build, builds it, ships it, checks what actually happened, and learns
 # from it, so next time it guides the call. Seven stations that agents walk
-# unattended, inside boundaries a human sets in advance. A settled outcome is
+# on their own, inside boundaries a human sets in advance. A settled outcome is
 # written back against the decision that caused it and re-ranks what surfaces
 # next. The moat is the forecast captured at decision time, not the record
 # underneath it: causes survive in chat logs and recordings and can be
