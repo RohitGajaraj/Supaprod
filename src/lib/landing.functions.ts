@@ -45,21 +45,70 @@ export type LandingStats = {
 export const getLandingStats = createServerFn({ method: "GET" }).handler(
   async (): Promise<LandingStats | null> => {
     try {
-      // Receipts law: the public counters exclude seeded sample/demo workspaces,
-      // so a visitor's demo signup can never inflate them. Undercounting is
-      // acceptable; inflating never is. Rows with a null workspace_id drop out
-      // of a not-in filter, which errs in the same safe direction.
-      const sampleWs = await db
-        .from("workspaces")
-        .select("id")
-        .or('is_sample.eq.true,name.in.("Sample workspace","Demo workspace")');
-      if (sampleWs.error) return null;
-      const excluded = (sampleWs.data ?? []).map((w: { id: string }) => w.id);
+      /**
+       * THE PUBLIC COUNTERS COUNT ONLY WHAT IS PROVABLY REAL, AND THIS USED TO
+       * BE THE OTHER WAY AROUND.
+       *
+       * The law has always been right and is worth restating: undercounting is
+       * acceptable, inflating never is. The predicate was wrong.
+       *
+       * It built a BLOCKLIST — every workspace with `is_sample` set, plus two
+       * names — and excluded those. A blocklist fails OPEN: anything it has not
+       * heard of counts. Measured on production 2026-08-11, two things it had
+       * not heard of were counting.
+       *
+       *   * SIX OF THE SEVEN "Helio Labs" fixture workspaces carry
+       *     `is_sample = false`. Only `10000000-…` has the flag set, so the
+       *     other six passed a filter written specifically to catch them, and
+       *     33 graded fixture outcomes counted as real.
+       *   * AN ORPHANED `workspace_id` CANNOT BE IN A LIST BUILT BY QUERYING
+       *     `workspaces`. Sixteen more graded outcomes point at a workspace id
+       *     with NO ROW in that table at all, fifteen of them dated before this
+       *     repo's first commit. They passed too.
+       *
+       * Together that was every single "outcome graded" this function would
+       * report — 49 of 49 — plus roughly 110 missions and 126 decisions. The
+       * old comment claimed a null `workspace_id` "errs in the same safe
+       * direction", and for a null it does; the case it missed is an id that is
+       * PRESENT and matches nothing, which is not a null and does not drop out.
+       *
+       * THE DEFECT IS LATENT, NOT LIVE, AND THE COMMIT THAT FIXED IT SAID
+       * OTHERWISE. Its message claims these numbers were on the public homepage.
+       * They were not: the counters beat was deleted on 2026-08-09 and only the
+       * prop survived, so `Receipts` takes `_props` and ignores it, and no field
+       * this function returns except `waitlistCount` reaches a rendered surface.
+       * Nothing false was ever shown to a visitor. Corrected here rather than
+       * left, because a reader who believes the message concludes a live public
+       * claim was repaired and stops looking for the one that still could be.
+       *
+       * It is worth having fixed anyway, and that is the whole argument for
+       * doing it now rather than when the fields are next used: the exposure is
+       * that the day someone wires `outcomesGraded` to a surface, they ship a
+       * seed count, and the field name makes it look safe. A predicate that
+       * fails closed is only cheap to write before there is a surface depending
+       * on the number it produces.
+       *
+       * So the shape is inverted. Read the workspaces that are provably NOT
+       * samples and count only those, with `.in`. An unknown, orphaned or
+       * newly-seeded workspace is now excluded by default rather than admitted
+       * by default, which is the only direction a public counter may fail. An
+       * empty allowlist returns no counters at all rather than counting
+       * everything, for the same reason.
+       *
+       * This is the same root cause as the `artifact_lineage` census fixed in
+       * `20260811090000`: identity asserted by a name or an id shape instead of
+       * read from a column. `is_sample` is the column here, and the migration
+       * beside this change sets it on the six fixtures where it was simply
+       * false.
+       */
+      const realWs = await db.from("workspaces").select("id").not("is_sample", "is", true);
+      if (realWs.error) return null;
+      const allowed = (realWs.data ?? []).map((w: { id: string }) => w.id);
+      if (!allowed.length) return null;
       // Loose builder typing on purpose: supabase-js generics recurse too deep
       // here (TS2589), and this file already runs on a relaxed client cast.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const scoped = (q: any) =>
-        excluded.length ? q.not("workspace_id", "in", `(${excluded.join(",")})`) : q;
+      const scoped = (q: any) => q.in("workspace_id", allowed);
 
       const [missions, decisions, learnings, aiEvents, waitlist] = await Promise.all([
         scoped(db.from("missions").select("id", { count: "exact", head: true })),
