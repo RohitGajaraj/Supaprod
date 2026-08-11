@@ -42,6 +42,20 @@ export type LandingStats = {
   pulledAt: string;
 };
 
+/**
+ * ⚠️ NOT ON ANY RENDER PATH, as of 2026-08-11, and it must not be put back on
+ * one without deciding first what renders. `/` now loads `getWaitlistCount`
+ * instead. Four of the five fields below have had no consumer since the
+ * counters beat was deleted on 2026-08-09.
+ *
+ * It is kept rather than deleted because the predicate is the valuable part and
+ * it was expensive to get right: identity read from `production_workspace_ids()`
+ * rather than asserted from a name, an id shape, or an `is_sample` flag that a
+ * sign-in never sets. That is the lesson three separate wrong censuses taught,
+ * and deleting the function would delete the only place it is written down as
+ * running code. Anything that wires these counters to a surface should start
+ * here, not from a fresh query.
+ */
 export const getLandingStats = createServerFn({ method: "GET" }).handler(
   async (): Promise<LandingStats | null> => {
     try {
@@ -152,6 +166,47 @@ export const getLandingStats = createServerFn({ method: "GET" }).handler(
         waitlistCount: waitlist.error ? 0 : (waitlist.count ?? 0),
         pulledAt: new Date().toISOString(),
       };
+    } catch {
+      return null;
+    }
+  },
+);
+
+/**
+ * The ONE count `/` actually renders.
+ *
+ * WHY THIS EXISTS RATHER THAN THE ROUTE CALLING `getLandingStats`. That
+ * function makes SIX round trips: the `production_workspace_ids` RPC, four
+ * scoped COUNTs, and this one. Exactly one of the six reaches a pixel.
+ * `Receipts` takes `_props` and ignores them, so `missionsRun`,
+ * `decisionsRecorded`, `outcomesGraded` and `aiCallsGoverned` are computed and
+ * discarded on every render. `/` is server-rendered on the login and signup
+ * paths too, so that ran on the three hottest public routes in the product.
+ *
+ * THE COUPLING WAS THE WORSE HALF, AND IT IS THE REASON THIS IS A SPLIT RATHER
+ * THAN A COMMENT. `getLandingStats` returns null if the RPC fails, if the
+ * allowlist comes back empty, or if ANY of the four counters errors. Every one
+ * of those outcomes also threw away `waitlistCount`, so the social-proof nudge
+ * on the close beat would silently vanish for a reason that has nothing to do
+ * with the waitlist, and it would look like the queue had emptied rather than
+ * like a census had failed. A rendered number should not depend on the health
+ * of four numbers nobody renders.
+ *
+ * Unscoped on purpose: a waitlist signup has no workspace, so the demo and real
+ * split the counters need does not apply here and there is nothing to exclude.
+ *
+ * Null rather than 0 on failure, because `WaitlistForm` hides the nudge on null
+ * and the floor already hides small true totals. A failed count must not read
+ * as a real "0 in line", which is the one number that beat must never publish.
+ */
+export const getWaitlistCount = createServerFn({ method: "GET" }).handler(
+  async (): Promise<number | null> => {
+    try {
+      const { count, error } = await db
+        .from("waitlist_signups")
+        .select("id", { count: "exact", head: true });
+      if (error) return null;
+      return count ?? 0;
     } catch {
       return null;
     }

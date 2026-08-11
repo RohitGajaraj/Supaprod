@@ -38,7 +38,7 @@ import { LoopWalkthrough } from "@/components/landing/LoopWalkthrough";
 import { Receipts } from "@/components/landing/Receipts";
 import { TrustClose } from "@/components/landing/TrustClose";
 import { LandingFooter } from "@/components/landing/LandingFooter";
-import { getLandingStats, trackLandingEvent } from "@/lib/landing.functions";
+import { getWaitlistCount, trackLandingEvent } from "@/lib/landing.functions";
 import { getLandingSessionKey } from "@/lib/landing-session";
 
 const SITE = "https://supaprod.ai";
@@ -170,7 +170,13 @@ Join the beta: / (waitlist) | Sign in: /login | Pricing: /pricing | Security: /s
 
 export const Route = createFileRoute("/")({
   ssr: true,
-  loader: async () => ({ stats: await getLandingStats() }),
+  // One count, not six. `getLandingStats` computed four counters that no
+  // component on this page renders, and `/` is server-rendered on the login and
+  // signup paths as well, so those queries ran on the three hottest public
+  // routes to be thrown away. See `getWaitlistCount`'s header for why the split
+  // also fixes a coupling: the rendered number used to be discarded whenever an
+  // unrendered one failed.
+  loader: async () => ({ waitlistCount: await getWaitlistCount() }),
   component: LandingPage,
   head: () => ({
     meta: [
@@ -202,7 +208,7 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
-  const { stats } = Route.useLoaderData();
+  const { waitlistCount } = Route.useLoaderData();
 
   // Logged-in users go to the app. A client effect, not beforeLoad, so the
   // server-rendered page ships to every crawler unconditionally.
@@ -347,8 +353,8 @@ function LandingPage() {
               (founder ruling 2026-07-25). */}
           <ThreeLayers />
           <LoopWalkthrough />
-          <Receipts stats={stats} />
-          <TrustClose waitlistCount={stats?.waitlistCount ?? null} />
+          <Receipts />
+          <TrustClose waitlistCount={waitlistCount} />
           {/* The [HUMAN]/[MACHINE] toggle lives inside the footer's bottom
               row now (founder 2026-07-15): container-aligned, real spacing. */}
           <LandingFooter />

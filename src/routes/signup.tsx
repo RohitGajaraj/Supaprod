@@ -32,8 +32,8 @@ import {
 // Where a signup with no `next` lands. NOT "/", which is the marketing landing.
 //
 // Pressing "Create account" used to hand the person straight back the page they
-// had just left: "/" is server-rendered with five COUNT queries (getLandingStats),
-// ships Hero/TheGap/ThreeLayers/LoopWalkthrough/Receipts/TrustClose, hydrates, and
+// had just left: "/" is server-rendered with a loader query, ships
+// Hero/TheGap/ThreeLayers/LoopWalkthrough/Receipts/TrustClose, hydrates, and
 // only THEN does a client effect in src/routes/index.tsx call getUser() and
 // window.location.replace("/today") — a second full document load — after which the
 // _authenticated gate sends a first-run account on to /onboarding. Two document
@@ -453,9 +453,8 @@ function SignupPage() {
       // and returns `{ redirected: true }`, which is why the
       // `window.location.assign(dest)` below is unreachable in the usual case.
       // The round trip comes back to this URL, "/", so pressing "Continue with
-      // Google" renders the whole marketing landing (getLandingStats fires five
-      // `count: "exact", head: true` queries, landing.functions.ts:60-69) and
-      // only then does the effect at index.tsx:161 notice the session and
+      // Google" renders the whole marketing landing, its loader query included,
+      // and only then does the effect at index.tsx:161 notice the session and
       // `window.location.replace("/today")`. Two documents, on the button most
       // people press, and precisely the detour SIGNED_IN_HOME removes from the
       // email path above.
