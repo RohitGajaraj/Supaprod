@@ -70,6 +70,9 @@
 }
 .win-hd{display:flex;align-items:center;gap:.5cqw;flex:none;padding:.55cqw .8cqw;border-bottom:1px solid var(--sk-hairline);background:var(--sk-panel);}
 .win-bd{flex:1;min-height:0;overflow:hidden;}
+/* brand glyph in a window header (marks inlined, never fetched) */
+.win-glyph{width:.75cqw;height:.75cqw;flex:none;display:block;margin-right:-.16cqw;}
+.win-glyph svg{display:block;width:100%;height:100%;fill:var(--sk-muted);}
 
 /* kit type + chrome (sk- prefixed, copied inline) */
 .sk-title{font:600 1.3cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
@@ -104,10 +107,12 @@
 .ib-new{opacity:0;background:color-mix(in srgb,var(--sk-warn) 5%,transparent);}
 .ib-unread{color:var(--sk-warn);border-color:color-mix(in srgb,var(--sk-warn) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-warn) 8%,transparent);}
 
-/* W3 tickets */
+/* W3 linear issues */
 .tk-cols{display:grid;grid-template-columns:1fr 1fr;gap:.7cqw;padding:.7cqw .8cqw;}
 .tk-col .sk-label{display:block;margin-bottom:.45cqw;font-size:.55cqw;}
 .tk-card{padding:.5cqw .6cqw;background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:var(--sk-r-card);margin-bottom:.5cqw;}
+.tk-meta{display:flex;align-items:center;gap:.3cqw;}
+.tk-pri{width:.3cqw;height:.3cqw;flex:none;border-radius:50%;background:currentColor;}
 .tk-id{font:500 .55cqw/1.3 var(--sk-mono);color:var(--sk-faint);letter-spacing:.04em;}
 .tk-tt{margin-top:.18cqw;font:400 .66cqw/1.35 var(--sk-ui);color:var(--sk-text);}
 .tk-new{opacity:0;border-color:color-mix(in srgb,var(--sk-fail) 40%,var(--sk-hairline));}
@@ -148,6 +153,16 @@
 .ch-reacts{display:flex;gap:.4cqw;margin-top:.45cqw;}
 .ch-react{opacity:0;will-change:transform,opacity;}
 .ch-pin{opacity:0;color:var(--sk-ember);border-color:color-mix(in srgb,var(--sk-ember) 45%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-ember) 9%,transparent);}
+
+/* W8 claude code agent session */
+.cc-term{padding:.55cqw .75cqw;display:flex;flex-direction:column;gap:.42cqw;}
+.cc-line{display:flex;align-items:baseline;gap:.34cqw;font:400 .6cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:.01em;}
+.cc-p{color:var(--sk-faint);}
+.cc-run{width:.32cqw;height:.32cqw;flex:none;align-self:center;border-radius:50%;background:var(--sk-warn);}
+.cc-ok{color:var(--sk-pass);}
+.cc-txt{color:var(--sk-text);}
+.cc-new{opacity:0;}
+.cc-caret{display:inline-block;width:.42cqw;height:.72cqw;background:var(--sk-text);vertical-align:-.1cqw;}
 
 /* ask palette (scene 4) */
 .ask-wrap{position:absolute;left:33cqw;top:24cqh;width:34cqw;z-index:40;opacity:0;transform-origin:50% 50%;will-change:transform,opacity;}
@@ -216,6 +231,7 @@
       <!-- W2 · intercom-style inbox -->
       <section class="win" id="w-ib" style="left:28.5cqw;top:4cqh;width:26cqw;height:36cqh;transform:rotateY(-1.6deg);z-index:5;">
         <header class="win-hd">
+          <span class="win-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 0H3C1.343 0 0 1.343 0 3v18c0 1.658 1.343 3 3 3h18c1.658 0 3-1.342 3-3V3c0-1.657-1.342-3-3-3zm-5.801 4.399c0-.44.36-.8.802-.8.44 0 .8.36.8.8v10.688c0 .442-.36.801-.8.801-.443 0-.802-.359-.802-.801V4.399zM11.2 3.994c0-.44.357-.799.8-.799s.8.359.8.799v11.602c0 .44-.357.8-.8.8s-.8-.36-.8-.8V3.994zm-4 .405c0-.44.359-.8.799-.8.443 0 .802.36.802.8v10.688c0 .442-.36.801-.802.801-.44 0-.799-.359-.799-.801V4.399zM3.199 6c0-.442.36-.8.802-.8.44 0 .799.358.799.8v7.195c0 .441-.359.8-.799.8-.443 0-.802-.36-.802-.8V6zM20.52 18.202c-.123.105-3.086 2.593-8.52 2.593-5.433 0-8.397-2.486-8.521-2.593-.335-.288-.375-.792-.086-1.128.285-.334.79-.375 1.125-.09.047.041 2.693 2.211 7.481 2.211 4.848 0 7.456-2.186 7.479-2.207.334-.289.839-.25 1.128.086.289.336.25.84-.086 1.128zm.281-5.007c0 .441-.36.8-.801.8-.441 0-.801-.36-.801-.8V6c0-.442.361-.8.801-.8.441 0 .801.357.801.8v7.195z"/></svg></span>
           <span class="sk-label" style="font-size:.55cqw;">intercom · inbox</span>
           <span class="sk-badge ib-unread" id="ib-count">47</span>
           <span class="sk-spacer"></span>
@@ -231,26 +247,27 @@
         </div>
       </section>
 
-      <!-- W3 · zendesk-style ticket board -->
+      <!-- W3 · linear issue board -->
       <section class="win" id="w-tk" style="left:60cqw;top:8cqh;width:33cqw;height:36cqh;transform:rotateY(-2.6deg) rotateX(1deg);z-index:4;">
         <header class="win-hd">
-          <span class="sk-label" style="font-size:.55cqw;">zendesk · tickets</span>
+          <span class="win-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2.886 4.18A11.982 11.982 0 0 1 11.99 0C18.624 0 24 5.376 24 12.009c0 3.64-1.62 6.903-4.18 9.105L2.887 4.18ZM1.817 5.626l16.556 16.556c-.524.33-1.075.62-1.65.866L.951 7.277c.247-.575.537-1.126.866-1.65ZM.322 9.163l14.515 14.515c-.71.172-1.443.282-2.195.322L0 11.358a12 12 0 0 1 .322-2.195Zm-.17 4.862 9.823 9.824a12.02 12.02 0 0 1-9.824-9.824Z"/></svg></span>
+          <span class="sk-label" style="font-size:.55cqw;">linear · issues</span>
           <span class="sk-chip ping" id="tk-ping"><span class="sk-dot-inline" style="color:var(--sk-fail)"></span>12 open</span>
           <span class="sk-spacer"></span>
-          <span class="sk-meta" style="font-size:.55cqw;">billing · checkout</span>
+          <span class="sk-meta" style="font-size:.55cqw;">cycle 14 · checkout</span>
         </header>
         <div class="win-bd tk-cols">
           <div class="tk-col">
-            <span class="sk-label">open · 12</span>
-            <div class="tk-card"><div class="tk-id">SUP-291</div><div class="tk-tt">card declined, no error shown</div></div>
-            <div class="tk-card"><div class="tk-id">SUP-287</div><div class="tk-tt">duplicate invoice emails</div></div>
-            <div class="tk-card"><div class="tk-id">SUP-301</div><div class="tk-tt">promo field hidden on mobile</div></div>
+            <span class="sk-label">todo · 12</span>
+            <div class="tk-card"><div class="tk-meta"><span class="tk-pri" style="color:var(--sk-warn);"></span><span class="tk-id">SUP-291</span></div><div class="tk-tt">card declined, no error shown</div></div>
+            <div class="tk-card"><div class="tk-meta"><span class="tk-pri" style="color:var(--sk-faint);"></span><span class="tk-id">SUP-287</span></div><div class="tk-tt">duplicate invoice emails</div></div>
+            <div class="tk-card"><div class="tk-meta"><span class="tk-pri" style="color:var(--sk-faint);"></span><span class="tk-id">SUP-301</span></div><div class="tk-tt">promo field hidden on mobile</div></div>
           </div>
           <div class="tk-col">
             <span class="sk-label">urgent · 4</span>
-            <div class="tk-card"><div class="tk-id">SUP-278</div><div class="tk-tt">checkout timeout at step 3</div></div>
-            <div class="tk-card"><div class="tk-id">SUP-296</div><div class="tk-tt">refund not reflected</div></div>
-            <div class="tk-card tk-new" id="tk-new"><div class="tk-id" style="color:var(--sk-fail);">SUP-304</div><div class="tk-tt">payment retry loop</div></div>
+            <div class="tk-card"><div class="tk-meta"><span class="tk-pri" style="color:var(--sk-fail);"></span><span class="tk-id">SUP-278</span></div><div class="tk-tt">checkout timeout at step 3</div></div>
+            <div class="tk-card"><div class="tk-meta"><span class="tk-pri" style="color:var(--sk-fail);"></span><span class="tk-id">SUP-296</span></div><div class="tk-tt">refund not reflected</div></div>
+            <div class="tk-card tk-new" id="tk-new"><div class="tk-meta"><span class="tk-pri" style="color:var(--sk-fail);"></span><span class="tk-id" style="color:var(--sk-fail);">SUP-304</span></div><div class="tk-tt">payment retry loop</div></div>
           </div>
         </div>
       </section>
@@ -258,6 +275,7 @@
       <!-- W4 · analytics dashboard -->
       <section class="win" id="w-fx" style="left:9cqw;top:44cqh;width:30cqw;height:34cqh;transform:rotateY(1.8deg);z-index:3;">
         <header class="win-hd">
+          <span class="win-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M22.84 2.9982v17.9987c.0086 1.6473-1.3197 2.9897-2.967 2.9984a2.9808 2.9808 0 01-.3677-.0208c-1.528-.226-2.6477-1.5558-2.6105-3.1V3.1204c-.0369-1.5458 1.0856-2.8762 2.6157-3.1 1.6361-.1915 3.1178.9796 3.3093 2.6158.014.1201.0208.241.0202.3619zM4.1326 18.0548c-1.6417 0-2.9726 1.331-2.9726 2.9726C1.16 22.6691 2.4909 24 4.1326 24s2.9726-1.3309 2.9726-2.9726-1.331-2.9726-2.9726-2.9726zm7.8728-9.0098c-.0171 0-.0342 0-.0513.0003-1.6495.0904-2.9293 1.474-2.891 3.1256v7.9846c0 2.167.9535 3.4825 2.3505 3.763 1.6118.3266 3.1832-.7152 3.5098-2.327.04-.1974.06-.3983.0593-.5998v-8.9585c.003-1.6474-1.33-2.9852-2.9773-2.9882z"/></svg></span>
           <span class="sk-label" style="font-size:.55cqw;">analytics · funnels</span>
           <span class="sk-meta" style="font-size:.55cqw;">last 7 days</span>
           <span class="sk-spacer"></span>
@@ -279,10 +297,11 @@
         </div>
       </section>
 
-      <!-- W5 · roadmap doc -->
+      <!-- W5 · notion roadmap doc -->
       <section class="win" id="w-rm" style="left:36cqw;top:47cqh;width:24cqw;height:32cqh;z-index:2;">
         <header class="win-hd">
-          <span class="sk-label" style="font-size:.55cqw;">roadmap: q3</span>
+          <span class="win-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z"/></svg></span>
+          <span class="sk-label" style="font-size:.55cqw;">notion · roadmap</span>
           <span class="sk-spacer"></span>
           <span class="sk-meta ping" id="rm-edited" style="font-size:.55cqw;color:var(--sk-warn);">edited just now</span>
         </header>
@@ -309,10 +328,26 @@
         </div>
       </section>
 
+      <!-- W8 · claude code agent session (it overlaps its neighbours on purpose: the pile is crowded) -->
+      <section class="win" id="w-cc" style="left:47cqw;top:30cqh;width:22cqw;height:24cqh;z-index:6;transform:rotateY(-1.4deg);">
+        <header class="win-hd">
+          <span class="win-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></svg></span>
+          <span class="sk-label" style="font-size:.55cqw;">claude code · agent session</span>
+          <span class="sk-spacer"></span>
+          <span class="sk-chip ping" id="cc-ping"><span class="sk-dot-inline" style="color:var(--sk-pass)"></span>running</span>
+        </header>
+        <div class="win-bd cc-term">
+          <div class="cc-line"><span class="cc-p">$</span><span class="cc-txt">claude</span></div>
+          <div class="cc-line"><span class="cc-run"></span>building payment retry…</div>
+          <div class="cc-line cc-new"><span class="cc-ok">✓</span>3 files changed · tests passing</div>
+          <div class="cc-line cc-new"><span class="cc-p">$</span><span class="cc-caret" id="cc-caret"></span></div>
+        </div>
+      </section>
+
       <!-- W7 · chat thread -->
       <section class="win" id="w-ch" style="left:68cqw;top:45cqh;width:26cqw;height:33cqh;transform:rotateY(-2deg);z-index:7;">
         <header class="win-hd">
-          <span class="sk-label" style="font-size:.55cqw;">slack · #product</span>
+          <span class="sk-label" style="font-size:.55cqw;">#product · team chat</span>
           <span class="sk-meta" style="font-size:.55cqw;">14 people</span>
           <span class="sk-spacer"></span>
           <span class="sk-chip ch-pin" id="ch-pin"><span class="sk-dot-inline"></span>pinned</span>
@@ -418,7 +453,7 @@ gsap.defaults({ lazy: false });   // paused, seeked timelines never tick — laz
   }}, 0);
 
   /* ——— depth-of-field racks (focal pull: focused window sharp, the rest blur + dim) ——— */
-  var WINS = ["#w-iv", "#w-ib", "#w-tk", "#w-fx", "#w-rm", "#w-hn", "#w-ch"];
+  var WINS = ["#w-iv", "#w-ib", "#w-cc", "#w-tk", "#w-fx", "#w-rm", "#w-hn", "#w-ch"];
   function focusOn(at, focal, dur){
     WINS.forEach(function(sel){
       var isF = sel === focal;
@@ -463,6 +498,12 @@ gsap.defaults({ lazy: false });   // paused, seeked timelines never tick — laz
   tl.fromTo("#tk-new", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 4.55);
   ping(5.30, "#fx-ping");
   tl.fromTo("#fx-bar4", { scaleX: 0.69 }, { scaleX: 0.41, duration: 0.6, ease: "power2.out" }, 5.30);
+  /* the agent session lands between the dashboard and the hunches, same reveal shape as its siblings */
+  ping(5.72, "#cc-ping");
+  tl.fromTo(".cc-new", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.42, ease: "power3.out", stagger: 0.14 }, 5.82);
+  /* the pile restacks so the hunches note owns its own camera stop, then settles back under the agent pane */
+  tl.set("#w-hn", { zIndex: 9 }, 5.98);
+  tl.set("#w-hn", { zIndex: 5 }, 7.45);
   ping(6.20, "#hn-ping");
   tl.fromTo("#hn-hl", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 6.20);
 
@@ -542,9 +583,12 @@ gsap.defaults({ lazy: false });   // paused, seeked timelines never tick — laz
   }}, 0);
 
   /* deterministic cursor blink — 20 cycles over 14.5s (period ≈ 0.72s), sin square-wave */
+  var ccCaret = document.getElementById("cc-caret");
   var blink = { p: 0 };
   tl.to(blink, { p: Math.PI * 2 * 20, duration: DUR, ease: "none", onUpdate: function(){
     askCursor.style.opacity = Math.sin(blink.p) > 0 ? "1" : "0";
+    /* the agent terminal rides the same driver, phase shifted so the two carets never blink in lockstep */
+    ccCaret.style.opacity = Math.sin(blink.p * 0.62 + 1.9) > 0 ? "1" : "0.12";
   }}, 0);
 
   window.__timelines["03-you-know-the-feeling"] = tl;
