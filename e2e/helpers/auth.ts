@@ -23,7 +23,26 @@ import { expect, type Page } from "@playwright/test";
 import * as path from "path";
 import * as fs from "fs";
 
-export const DEMO_EMAIL = process.env.E2E_DEMO_EMAIL ?? "demo@redcadence.app";
+/**
+ * THE DEFAULT POINTED AT A DISABLED ACCOUNT until 2026-08-11.
+ *
+ * It was `demo@redcadence.app`, and `docs/operations/demo-credentials.md:69`
+ * says that login and its twin are "disabled and must not be used or quoted
+ * anywhere", and that "harbor@supaprod.ai replaces them for all internal use".
+ * Line 40 of the same file calls harbor "the account any agent uses for
+ * testing".
+ *
+ * Leaving the old default was the more dangerous half of the credential
+ * problem, because the password now fails loudly by name when unset while the
+ * email failed silently. Someone exporting the correct harbor password would
+ * have got "That email or password isn't right" and had nothing pointing at
+ * the email. That is a harder version of the trap that has already cost two
+ * agents a session.
+ *
+ * The address is not a secret; it is in a tracked doc. Only the password comes
+ * from the environment.
+ */
+export const DEMO_EMAIL = process.env.E2E_DEMO_EMAIL ?? "harbor@supaprod.ai";
 
 /**
  * THE PASSWORD IS NOT IN THIS FILE, AND IT USED TO BE.
