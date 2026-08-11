@@ -403,3 +403,38 @@ These three must be resolved before Lanes 1 & 2 can execute some gaps.
 ---
 
 **Cycle status:** Analysis complete. Findings routed. Execution waiting on Lanes 1 & 2 prioritization and founder confirmation on three calls. Do not mark this as done until lanes have committed changes.
+
+---
+
+## Lane 1 — parked, 2026-08-11 09:40 IST
+
+**Parked, not dropped. Blocked on a tool, not on a decision.**
+
+**The pending-decision backlog (audit finding #8).** This is the founder's own
+"83 decisions are ready for you" complaint, and it is the one item I will not
+estimate. It needs live counts and the Lovable MCP has returned
+`499 request_cancelled` on every query since roughly 09:25. Retry before doing
+anything else with it.
+
+The call is already made, so whoever picks it up does not need to re-decide it:
+**approve only the reconstructible subset, never a blanket sweep.** Gate 6's input
+is `launchesNow || !p.reversible`, a per-proposal signal no column on `decisions`
+preserves, so a blanket `WHERE auto_origin IS TRUE` approves rows the live gate
+would have queued. The reconstructible half is "the mission is still proposed".
+Every row approved this way needs a `workspace_audit_log` entry stating
+explicitly that `decideDecisionReview` was **not** re-run and which input could
+not be rebuilt — a backfilled row must never imitate a gate-decided one, which is
+the distinction `decision-gate.server.ts` already exists to protect.
+
+Exclude the manual rows (gate 2 refuses those forever, correctly) and the handoff
+"Mission completed" rows, which carry low confidence that `decisions` has no
+column to record.
+
+**Still open behind it, in order:** the first-run path (finding #3, the 60-second
+P0, a user-path change), Discover being blind to work already started (#4), and
+the promotion bar that is mathematically unreachable (#5).
+
+**Do not trust any number that splits demo from real by workspace-id shape.** That
+pattern is wrong in both directions and it is what hid the product's largest gap.
+`artifact_lineage` now carries a `seeded` column; use it. Other tables still need
+the same treatment.
