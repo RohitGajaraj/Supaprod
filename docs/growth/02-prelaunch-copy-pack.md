@@ -1,18 +1,18 @@
 # 02 — The Pre-Launch Copy Pack (days 3-7, ready to approve)
 
-> # 🛑 DO NOT SEND ANY OF THIS UNTIL THE FOUNDER FIXES THE TIMELINE. Checked against the live database 2026-08-11.
+> # ⚠️ THE TIMELINE IS FIXED. THE WORKSPACE FIGURES ARE NOT. Checked against the live database 2026-08-11.
 >
-> **Three claims in this file are contradicted by the data, and two of them are tagged PROVEN.**
+> **Three claims in this file were contradicted by the data and two were tagged PROVEN. The timeline is now corrected; the workspace figures still need replacing wherever they appear.**
 >
 > | Claim in this file | What the database says |
 > | --- | --- |
-> | *"For 13 months Supaprod ran on itself"* and *"It ran on itself for 13 months"* | **The earliest mission in the database is `2026-06-04`, and zero missions predate `2026-06-02`.** The repo's first real commit is `2026-06-02`. Supaprod has existed for **ten weeks**, not thirteen months. |
+> | *"For ten weeks Supaprod ran on itself"* and *"It ran on itself for ten weeks"* | **The earliest mission in the database is `2026-06-04`, and zero missions predate `2026-06-02`.** The repo's first real commit is `2026-06-02`. Supaprod has existed for **ten weeks**, not ten weeks. |
 > | *"the numbers from my own workspace: 133 missions, 72 recorded decisions, 2,162 AI calls"* | **No workspace has those numbers.** The largest is a seeded fixture named "Helio Labs" at 94 missions and 85 decisions. The most plausible founder workspace, "My workspace", holds **64 missions and 50 decisions**. Total AI calls across every workspace is **34,686**, not 2,162. |
 > | The `[refresh; live counters]` tags | **There is no live counter behind these.** The four landing count fields are computed and rendered nowhere. A tag promising a number refreshes is worse than a stale number, because it says the figure is maintained. |
 >
 > **What is safe to say, verified today:** `4,950` commits and `510` migrations over **ten weeks**, from a one-line command anyone can run. `341` missions and `288` decisions **across all workspaces**, which is a different and weaker claim than "my own workspace" and must be said that way.
 >
-> **What only the founder can resolve.** The "13 months" figure appears **sixteen times** and at least some of it is biography rather than product: *"I spent 13 months building the other thing"* reads as a previous product and may be perfectly true. **The two sentences that say Supaprod itself ran for 13 months are corrected below; every other instance is left alone and needs his eye**, particularly the subject line *"13 months of agents running a product org"* and the title *"I recorded every product decision I made for 13 months."*
+> **✅ RESOLVED 2026-08-11, founder ruling.** He confirmed the thirteen-month figure was wrong and not biography: *"if it means that I'm working on this product for 13 months... That's a wrong claim."* **All twenty-six instances across six files now read "ten weeks"**, the verifiable figure from the repo's first commit on `2026-06-02`. Where the copy needs a longer arc, the honest form is **ten weeks in this codebase and about a month of nights and weekends on the prototype before it**.
 >
 > **This is the same defect that took three numbers out of the YC application tonight** ([`../pitch/yc/fall-2026-application.md`](../pitch/yc/fall-2026-application.md), the block after the first field). The rule it establishes applies here in full: **a number quoted outward carries its query, or it does not go.**
 
@@ -32,7 +32,7 @@
 **Slot:** Day 3, 8-10am ET, X. **Goal:** open the wave; establish the evidence-first voice; first waitlist cohort. **Success metric:** 10x the account's median post engagement; 100+ waitlist signups attributed day 3. **Founder approval: [ ]**
 
 ```
-1/ 13 months. 133 missions [refresh]. 72 recorded decisions [refresh].
+1/ Ten weeks. 133 missions [refresh]. 72 recorded decisions [refresh].
 2,162 governed AI calls [refresh]. Zero external users.
 
 On purpose.
@@ -48,7 +48,7 @@ Product people got chatbots that draft a doc and wait.
 So deciding what to build became the bottleneck. And the person
 deciding got the worst tools in the building.
 
-3/ I spent 13 months building the other thing.
+3/ I spent ten weeks building the other thing.
 
 Supaprod. Agents run the product loop end to end. They read your
 signals, rank the bets, red team them, write the spec, build to a PR,
@@ -56,7 +56,7 @@ and record what actually happened.
 
 You make the calls. The track record keeps the evidence.
 
-4/ For 13 months the only user was us.
+4/ For ten weeks the only user was us.
 
 The engine ran on its own product. Every mission, every decision,
 every AI call through one governed chokepoint. Each one is in the audit trail.
@@ -117,7 +117,7 @@ gets one wrong. One key to revert. The revert is in the audit trail too.
 ```
 I did something backwards, and today I find out if it was worth it.
 
-I spent 13 months building a product without letting a single
+I spent ten weeks building a product without letting a single
 outsider touch it. Not stealth for drama. I wanted the engine finished
 before the first user walked in.
 
@@ -357,7 +357,7 @@ First reply: The track record, the waitlist, the last seats: [LINK]
 ```
 Hey [NAME]. Your post about [SPECIFIC: keeping three versions of the
 same roadmap] describes exactly what I have been building against for
-13 months. I run an agent that red teams product bets with evidence
+Ten weeks. I run an agent that red teams product bets with evidence
 and precedent. Want me to run it on one of yours? 48 hours, no pitch.
 You keep the teardown either way.
 ```
@@ -387,7 +387,7 @@ where this falls short on your real backlog. Want a seat?
 ```
 Subject: intro: [FOUNDER] (Supaprod) <> [NAME]
 
-[NAME], meet [FOUNDER]. He spent 13 months building Supaprod: agents
+[NAME], meet [FOUNDER]. He spent ten weeks building Supaprod: agents
 that run the product loop end to end (signals, ranked bets, specs,
 build to PR) with a track record that records whether each call was right.
 The part that got my attention: it shipped part of itself through its
@@ -435,10 +435,10 @@ line, roadmap influence. 25 seats total, [N] left. [CALENDAR LINK]
 **Slot:** Day 4-5, posted as a discussion, not a launch. **Goal:** credibility + profile visits (the profile carries the link). **Success metric:** upvote-positive, zero mod removals, 10+ substantive comments. **Founder approval: [ ]**
 
 ```
-Title: I recorded every product decision I made for 13 months.
+Title: I recorded every product decision I made for ten weeks.
 The record changed how I decide.
 
-For 13 months I logged every product decision I made: the bet, the
+For ten weeks I logged every product decision I made: the bet, the
 evidence I had at the time, who pushed back, and a date to check the
 outcome. Then I actually checked the outcomes.
 
@@ -470,7 +470,7 @@ I have opinions about where it comes from.
 **Slot:** Day 4-6 where rules allow links. **Founder approval: [ ]**
 
 ```
-Title: After 13 months of dogfooding, I am opening my agent-run
+Title: After ten weeks of dogfooding, I am opening my agent-run
 product OS to outsiders. Numbers inside.
 
 I built Supaprod: agents run the product loop (signals in, ranked and
@@ -498,7 +498,7 @@ The failure path is my favorite demo.
 
 ```
 Running a live session this [DAY]: I let agents run my product org
-for 13 months, and I am walking through the track record in public. The
+for ten weeks, and I am walking through the track record in public. The
 launch itself is running as a mission inside the product, wrong calls
 included. Second half: the Critic red teams one product bet from the
 audience, live. Bring the decision you argue about most. [TIME + LINK
@@ -516,7 +516,7 @@ Subject: the prioritization column nobody fills in
 
 [FIRST LINE REFERENCING THEIR RECENT PIECE.] Every prioritization
 tool scores bets with a static formula. None of them checks whether
-the score was right. I spent 13 months building the missing column:
+the score was right. I spent ten weeks building the missing column:
 a track record where recorded results re-rank the next bets. It
 ran only on itself until this week (133 missions, 72 decisions, one
 PR it merged through its own gate). Now the doors are open and the
@@ -528,7 +528,7 @@ it. Would that fit [NEWSLETTER/SHOW]?
 **Angle B, agents-ran-my-org (builder/founder audiences):**
 
 ```
-Subject: 13 months of agents running a product org, evidence included
+Subject: Ten weeks of agents running a product org, evidence included
 
 [FIRST LINE REFERENCING THEIR RECENT PIECE.] Since [DATE] my product
 org has been run by agents: they read signals, rank and red team
@@ -536,7 +536,7 @@ bets, write specs, build to PR through an approval gate I hold, and
 record outcomes. The numbers are real and auditable: 133 missions,
 2,162 governed AI calls, real reverts when they got it wrong. The
 story I can tell that others cannot: what agents actually get wrong
-over 13 months, and why the revert trail matters more than the demo.
+over ten weeks, and why the revert trail matters more than the demo.
 Launching publicly this month. Want the walkthrough before or after
 the doors open?
 ```
@@ -548,7 +548,7 @@ Subject: we built the OS and never opened the doors. Now we open them
 in public.
 
 [FIRST LINE REFERENCING THEIR RECENT PIECE.] Most launch stories are
-tidy. Ours is backwards: 13 months of engineering, an engine that
+tidy. Ours is backwards: ten weeks of engineering, an engine that
 independently audits as finished, and zero external users. We are
 fixing that in public: the launch runs as a mission inside the
 product, every launch decision goes in a track record, and the wrong calls

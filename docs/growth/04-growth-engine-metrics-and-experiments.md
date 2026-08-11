@@ -63,7 +63,7 @@ For the 7-day wave (details and copy in [05-viral-and-guerrilla-playbook.md](./0
 
 ### 2.1 Founder-led (weeks 1–8 this is ~70% of growth; do not delegate it)
 
-- **Build-in-public arc with the evidence.** The standing pipe exists: postable insights → [`brand-feed.md`](../growth/brand-feed.md) → the brand engine stages Buffer drafts → **founder approves every send** (never auto-publish; standing rule). The launch month arc: _"13 months building an autonomous product engine in silence. Opening the doors in 25 days. Evidence daily."_ Daily artifact-backed posts (a real trace, a real revert, a real track record entry) — never announcements without evidence.
+- **Build-in-public arc with the evidence.** The standing pipe exists: postable insights → [`brand-feed.md`](../growth/brand-feed.md) → the brand engine stages Buffer drafts → **founder approves every send** (never auto-publish; standing rule). The launch month arc: _"ten weeks building an autonomous product engine in silence. Opening the doors in 25 days. Evidence daily."_ Daily artifact-backed posts (a real trace, a real revert, a real track record entry) — never announcements without evidence.
 - **Founder-led sales IS the discovery system** — every beta first-session doubles as a discovery interview (ground-truth mandate; frameworks in [03-customer-discovery-and-validation.md](./03-customer-discovery-and-validation.md)).
 - Why: at zero market contact, credibility only transfers person-to-person. Impact: fills the 25-partner list (PC-13). Effort: 60–90 founder-min/day. Metric: replies + booked sessions/week. Next: the day-by-day script in [00-launch-operating-manual.md](./00-launch-operating-manual.md).
 

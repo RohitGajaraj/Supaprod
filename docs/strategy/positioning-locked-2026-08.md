@@ -309,3 +309,41 @@ The six-PM thread is one cluster of nine spanning four years: Tolga (four tools 
 - [`../research/lennys-corpus-sweep-2026-08.md`](../research/lennys-corpus-sweep-2026-08.md) — the full evidence base
 - [`../research/lennys-quote-verification.md`](../research/lennys-quote-verification.md) — quote audit, nine mis-filed archive files
 - [`v11-guiding-star.md`](./v11-guiding-star.md) · [`moat.md`](./moat.md) — the canon this corrects
+
+
+---
+
+## §5K. Two founder rulings, 2026-08-11, after the outside-evidence test
+
+Both came out of [`../research/market-validation-2026-08.md`](../research/market-validation-2026-08.md) §8, the lane that tested the category question outside Lenny's ecosystem.
+
+### 1. Stop leading with the forecast. Lead with the governed record.
+
+**The forecast stays as the moat. It stops being the opening line.**
+
+**Lead with:** the governed record of agentic product work. When agents do the work, answering *"why did we decide this, on what evidence, and who signed off"* stops being a nicety and becomes the control that lets you let them run at all. That is a **recognised buying requirement with a named market**: AI governance platforms took an inaugural Gartner Magic Quadrant on 2026-06-16, a Forrester Wave in Q3 2025 and an IDC MarketScape in 2025-2026, and Gartner forecasts **$492M in 2026 growing 45.3% a year**.
+
+**Then the forecast**, as what makes that record uniquely ours and cannot be rebuilt from chat logs.
+
+**Why the order matters, and it is not cosmetic.** Corporate prediction markets at Google, Ford and a third firm were relatively efficient and beat expert forecasts by **up to a 25% reduction in mean-squared error** (Cowgill & Zitzewitz, *Review of Economic Studies*, 2015). **Google's markets died anyway.** The post-mortem (*Asterisk*, November 2024) records a Waymo VP saying cross-division metric transparency *"was counter to his division's goal to restrict information like this"*, and supply-chain managers who valued accuracy but did not personally benefit from it.
+
+> **The mechanism works and gets rejected. A pitch that leads with *"we record what you predicted so it can be checked later"* is selling accountability to the person who would be held accountable.**
+
+**So the surviving shape is:** the forecast is a **byproduct of doing the work**, not a submission to a scoreboard, and **its first consumer is the agent doing the next piece of work**, not a reviewing executive. Any surface that inverts that is reintroducing the Google failure.
+
+### 2. Adopt "context graph" as the industry name for layer 03.
+
+**ThoughtWorks Technology Radar Vol. 34, April 2026, techniques quadrant, Assess ring.** Its description: decisions, policies, exceptions, precedents, evidence and outcomes modelled as first-class connected nodes in a graph structured for AI consumption, where systems of record capture *what* happened and a context graph captures *why*, turning reasoning buried in chat threads and approval chains into a queryable structure.
+
+**Where to use it and where not.**
+
+| Surface | Use it |
+| --- | --- |
+| Docs, `AGENTS.md`, technical writing | **Yes.** It is the precise term and it is independent of the ecosystem all our other evidence came from. |
+| A technical buyer, a CTO, an engineering-led evaluation | **Yes, and it is worth more there than any category we could invent.** "The layer we built is what ThoughtWorks named at Assess in April 2026" is a checkable, third-party sentence. |
+| The hero, the 50-character line, a cold conversation | **No.** The hero's job is to be understood by a PM in four seconds, and this is a term that must be taught before it helps. |
+| An accelerator or investor answer | **Sparingly**, as third-party validation of the layer, never as our category claim. |
+
+**Two things it buys us and one it costs.** It gives the layer a name someone else coined, at a credible ring, recently enough that we are not late. It is outside the corpus this positioning was built from, which answers the generalisation question. **And it omits forecasts from its own enumeration**, which is either the gap we occupy or evidence nobody wants that part; §8.5 of the market validation argues the former, and the Google record is the reason to hold the claim carefully.
+
+**What we do NOT do: claim "decision intelligence".** It is a real Gartner category with an inaugural Magic Quadrant in January 2026, and its Leaders are FICO, SAS, IBM, Quantexa, ACTICO and Aera, selling automated high-volume operational decisioning to credit-risk, fraud, pricing and supply-chain buyers. Claiming the name puts us in a bake-off on decision throughput and latency against companies that do nothing else. **That is worse than having no category.**
