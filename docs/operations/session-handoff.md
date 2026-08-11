@@ -2,6 +2,39 @@
 
 > _Created: 2026-08-07 · Last updated: 2026-08-11_
 
+## 🔴 LANE 1, 2026-08-11 — READ THIS FIRST IF ANY WORK LOOKS MISSING FROM THE PRODUCT
+
+### A finished commit was invisible because it never left the machine
+
+The founder reported the Ask pane work was "almost in the closing stage" and that he could not see it any more, and guessed it had not saved. **It had saved.** Commit `724d585a` sat on **local `main` in the Supaprod worktree and was never pushed**, while `origin/main` still carried the file it replaces. **Lovable deploys from GitHub, so an unpushed commit cannot appear in the product**, however complete it is.
+
+It was stranded rather than merely unpushed: local `main` was **15 behind and 1 ahead**, so `git push origin main` would have been refused and forcing it would have destroyed 15 commits of other lanes' work.
+
+**Recovered.** Cherry-picked with `-x` onto `parallel/lane-1-fresh` as `85d15762`; the parent `87281343` was already an ancestor, so it applied with zero conflicts. Verified on the merged tree: **`tsc` 0, 8712 tests pass, 0 fail**, up 27 from 8685 because its own test files came with it. Pushed and confirmed on the remote.
+
+> **The rule this buys: a commit that never left the machine looks exactly like one that shipped.** `git status` is clean, `git log` shows it, the files are on disk. The only number that reveals it is **ahead-of-origin**, and nothing in the normal workflow puts that in front of you. **When someone says shipped work is missing, check ahead-of-origin before you check the code.**
+
+**Swept every local branch for the same shape; that commit was the only one.** `wip/safety-snapshot` is fully pushed, `parallel/lane-0-fresh` is 0 ahead, lane-0's worktree is clean, and `backup/graphify-work`'s two commits are the deliberately parked graphify tooling. **Still at risk, and it belongs to whoever owns the Supaprod worktree:** that tree is dirty with 12 modified files plus untracked `src/components/governance/BoundaryStatement.tsx`, which is new and one step earlier in exactly the same failure.
+
+### What Lane 1 shipped, all verified on the merged tree
+
+| | What was wrong |
+| --- | --- |
+| **1** | **Gate signals filed under no workspace.** `recordHumanGateEvent` took `workspaceId` as optional and three callers omitted it, so rows landed with `workspace_id` NULL while `readAgentSignals` scopes by it with no fallback. The most-decided gate in the product moved no correction rate at all. The key is now required and the value nullable, so a caller that forgets is told at compile time. |
+| **2** | **An extended approval came back in a column no queue reads.** `approvals-tick` expires a gate by writing both `escalation_state` and `status`, and every queue asks `status`. `extendApprovalTtl` moved only the first, so the extension reported success and the call returned to nothing, and the sweeper's expiry pass only re-reads pending rows so nothing could repair it. The run guard is an **allowlist of live statuses**, not a denylist of finished ones: `agent_runs.status` has no check constraint, and the denylist draft omitted `completed_with_failures`, which is 40 percent of every run ever recorded. |
+| **3** | **A PR merged outside the product sat at `pr_open` forever.** `studio.pr.merge` was the only writer of status `merged` anywhere and no trigger writes it, so a merge from the GitHub UI, auto-merge or a bot meant preview capture, the changelog trigger, promote, revert and the spec ship stamp never fired. `ci-poll-tick` already read `pr.merged` every two minutes and dropped it. It now adopts the merge, idempotent by an `eq status pr_open` guard, stamping the spec at GitHub's `merged_at` rather than now. |
+| **4** | **An unattended apply read back as a call the human made.** `decisions.auto_origin` defaults to false and neither caller of `applyFixCore` passed it. `source_kind` deliberately stays `manual` until `20260811140000` is applied by Lovable, because the live constraint would refuse `agent` and the insert reads no error, so the row would silently stop being written on a cron path. A missing row is worse than a mislabelled one. |
+| **5** | **The landing loader made six round trips for a page that renders one count.** `Receipts` has ignored its `stats` prop since the counters beat was deleted on 2026-08-09, and `/` is server-rendered on the login and signup paths too. **The coupling was the worse half:** `getLandingStats` returns null if the RPC, the allowlist or any of four counters fails, and every one of those also discarded `waitlistCount`, so the close beat's nudge would vanish for a reason unrelated to the waitlist and read as the queue emptying. New `getWaitlistCount` is one unscoped query returning null rather than 0 on failure. |
+| **6** | **The Ask pane recovery above**, `724d585a`. |
+
+### Open, and routed rather than blocked
+
+- **The filmability pass could not run, and the reason is not a bug in the product.** This checkout has no Supabase env (`.env` holds only `E2E_DEMO_PASSWORD`), so a local run cannot sign in and every authenticated route silently renders `/login`. **The first report showed 33 identical "screens" at 261 chars each, which is the login page 33 times.** The tell was that every measurement was identical; a constant across every subject means you are measuring the instrument. Against production the login hung at "Signing in" with the auth POST never returning, while Supabase itself answered `/auth/v1/health` in 0.08s. The founder confirmed a Supabase admin-user 500 that Lovable was fixing, then applied a full migration and republished. **Retry before assuming anything about screen quality.** Capture script takes `FILM_BASE`, navigates by URL only and never clicks.
+- **`teaser-video-plan.md` §0.2 is stale and reads as open.** The `/proof` seeded-data leak is **already closed**: `SEEDED_CLONE_IDS` in `proof-surface.functions.ts` lists all six Helio clones, closed 2026-08-07. §0.1, settling one real outcome, is **still unverified** because Lovable's `query_database` was returning 499 on every call including `SELECT 1`, while `get_me`, `list_projects` and `get_database_status` all worked.
+- **Video is not Lane 1's.** A judged creative panel (`wf_ccbb05a5-fa8`) produced a teaser treatment and it has been handed to the main lane, which owns the call on it.
+
+---
+
 ## ✅ LANE 0 SESSION CLOSED — 2026-08-11. Everything is on `main`, tree clean, zero divergence.
 
 **What this lane was:** positioning, market research, claim integrity. **What it found:** the product was fine; almost everything we *said* about it was not.
