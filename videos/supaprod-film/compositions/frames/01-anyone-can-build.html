@@ -252,7 +252,7 @@
               <div class="f1-codeline"><span class="f1-ln">1</span><code><span class="tk-k">import</span> { preserveFields, surfaceError } <span class="tk-k">from</span> <span class="tk-s">"@checkout/form"</span>;</code><span class="f1-caret"></span></div>
               <div class="f1-codeline"><span class="f1-ln">2</span><code><span class="tk-k">import</span> { tokenize } <span class="tk-k">from</span> <span class="tk-s">"@payments/client"</span>;</code><span class="f1-caret"></span></div>
               <div class="f1-codeline"><span class="f1-ln">3</span><code> </code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">4</span><code><span class="tk-c">// one-tap retry — keep state on a declined card</span></code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">4</span><code><span class="tk-c">// one-tap retry: keep state on a declined card</span></code><span class="f1-caret"></span></div>
               <div class="f1-codeline"><span class="f1-ln">5</span><code><span class="tk-k">export async function</span> <span class="tk-f">retryPayment</span>(form: <span class="tk-t">CheckoutForm</span>) {</code><span class="f1-caret"></span></div>
               <div class="f1-codeline"><span class="f1-ln">6</span><code>  <span class="tk-k">const</span> attempt = <span class="tk-k">await</span> <span class="tk-f">tokenize</span>(form.card);</code><span class="f1-caret"></span></div>
               <div class="f1-codeline"><span class="f1-ln">7</span><code> </code><span class="f1-caret"></span></div>
@@ -274,7 +274,7 @@
               <div class="f1-codeline"><span class="f1-ln">23</span><code><span class="tk-k">const</span> retry = <span class="tk-f">createRetryQueue</span>({ max: <span class="tk-n">3</span> });</code><span class="f1-caret"></span></div>
               <div class="f1-codeline"><span class="f1-ln">24</span><code><span class="tk-k">export const</span> view = &lt;<span class="tk-t">RetryBanner</span> onRetry={onRetry} /&gt;;</code><span class="f1-caret"></span></div>
               <div class="f1-codeline"><span class="f1-ln">25</span><code> </code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">26</span><code><span class="tk-c">// agent — wiring one-tap retry into PaymentForm…</span></code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">26</span><code><span class="tk-c">// agent: wiring one-tap retry into PaymentForm…</span></code><span class="f1-caret"></span></div>
             </div>
             <div class="f1-status"><span>agent session 00:41</span><span>problems 0</span><span class="sk-spacer"></span><span>utf-8 · lf · ts 5.4</span></div>
           </div>
