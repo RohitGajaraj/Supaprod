@@ -100,3 +100,78 @@ Walk the eight beats silently, signed in as `harbor@supaprod.ai`, before recordi
 - [`yc/demo-video-one-journey.md`](./yc/demo-video-one-journey.md) — the source runsheet, 8 beats at 2:30. Superseded for counts, current for shot order, the say-this-not-that table and the encode recipe.
 - [`launch-assets.md`](./launch-assets.md) — the listing copy this video's close must agree with.
 - [`demo-script.md`](./demo-script.md) — the doctrine that the error path is the highest-trust moment, which is what §5 is built on.
+
+---
+
+# The 2026-08-11 question: mock it up, or wait for the real product?
+
+> _Founder, 2026-08-11: "Can you create some mock-ups or real-time mock-ups that feel real? Would it be good enough? Or should we wait for a real product to be built in terms of look and feel?"_
+
+## The answer: neither. Film the real product, and use the AI tools for production, not for screens.
+
+**You do not need mockups and you do not need to wait.** The product has more filmable surface than the story needs. Counted 2026-08-11 from `src/routes/`:
+
+| | |
+| --- | --- |
+| **25 substantial screens** | `decide` · `ship` · `plan.spec` · `brain` · `today` · `learn` · `crew` · `boundary` · `runs` · `threads` · `traces` · `plan.index` · `build.index` · `settings` · `design` and the admin set |
+| 7 medium | mostly admin: invites, landing, routing, proof, costs |
+| 49 stubs under 3KB | **and these are redirects, not empty pages.** Spot-checked: `observe` → `/engine-room`, `artifacts` → `/brain`, `govern` and `opportunities` both redirect. They are aliases, not holes. |
+
+**The seven-station story maps onto screens that already exist.** The gap is polish, which the UI lane is closing, not substance.
+
+## Why not mockups, and this is the same argument as the numbers
+
+A mockup is a claim. **The application hands YC a working demo login.** A trailer that shows a product better than the one behind that login creates exactly the gap a partner discovers in the first ninety seconds, and it is the visual version of the seeded-metrics failure: checkable, and wrong. The cost of being caught is not "the video was aspirational", it is that **every other claim now gets checked too.**
+
+There is one legitimate exception and it is worth using. **Abstract and stylised footage is not a mockup.** Typography, motion graphics, a concept shot, an animated diagram of the loop: these make no claim about a UI and every serious launch video uses them. The line is exact:
+
+> **Never show a UI that does not exist, and never show a real UI doing something the product cannot do.** Everything else is fair.
+
+## Where the AI tools belong
+
+Use them for the **production layer**, where they are genuinely better than doing it by hand and where they add no claims:
+
+- pacing, cuts and timing
+- titles, captions and kinetic type
+- motion graphics for the loop diagram and the station model
+- music, sound design, voiceover cleanup
+- b-roll and abstract transitions between real screens
+
+**Do not use them to generate product screens, invent data, or animate a flow the product does not perform.**
+
+## The one trap specific to us, and it is not obvious
+
+**The demo workspace is seeded data.** That is completely fine to film. It is a labelled sample workspace and that is what sample workspaces are for.
+
+**What is not fine is narrating it as usage.** The old application field said the homepage numbers "are that real usage" and it was false. The same sentence in a voiceover is the same lie with a bigger audience. So:
+
+- **Show** the sample workspace freely.
+- **Say** "this is a sample workspace" once, early, in one clause. It costs two seconds and it removes the entire risk.
+- **Never** put a usage number, a user count, or an accumulated-learning claim in the voiceover. The loop is wired and proven; it begins accruing on first real use.
+
+## The path, in order
+
+| Step | What | Who | Blocking? |
+| --- | --- | --- | --- |
+| **1** | Screen cleanup and revamp lands | UI lane | **Yes, everything waits on this** |
+| **2** | **Filmability pass:** walk all 25 substantial screens signed in as the demo account and record, per screen, whether it is camera-ready, thin, or embarrassing. Output is a go/no-go list, not opinions. | Lane 0, one pass, same day as step 1 | Yes |
+| **3** | Seed the demo workspace so every filmed screen has believable content in it, and label it as sample | Lane 1 | Yes |
+| **4** | Shot list against the go-list, timed to the three-layer order: door, body, brain | Lane 0 | No |
+| **5** | Record real screens, one clean take per shot, no narration yet | Founder | No |
+| **6** | AI production pass: pacing, titles, motion, music | Founder + tools | No |
+| **7** | Voiceover last, written against what the footage actually shows | Founder | No |
+
+**Step 7 last is deliberate.** Writing the script first is how a video ends up claiming what the footage does not support, because the words get committed before anyone checks the pictures.
+
+## Two videos, not one, and this matters for length
+
+They have different jobs and different audiences, and one asset cannot do both.
+
+| | YC demo video | Launch teaser |
+| --- | --- | --- |
+| **Length** | **Under 2:15, ideally 90 seconds** | Under 3 minutes as the founder specified, and 90 seconds would still be better |
+| **Register** | Plain, fast, your voice, real screens, no music bed | Produced, stylised, motion graphics welcome |
+| **Job** | Prove it works and you built it | Make a stranger want it |
+| **Rule** | Product doing something visible inside 30 seconds | Abstract is allowed; false is not |
+
+**Partners watch 60 to 90 seconds.** A 3-minute cut submitted to YC is not a longer pitch, it is an unwatched one. Shoot the master once and cut it twice, which is what the top of this file already prescribes.

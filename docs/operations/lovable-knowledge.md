@@ -22,7 +22,7 @@ The product is **Supaprod**. Lowercase `supaprod` for domains, handles and slugs
 
 **It shipped as _Cadence_ until the rename executed on 2026-07-17. That name is retired and must never appear in code, copy, database, env or APIs.** Read any stray `Cadence` token as `Supaprod`. Two narrow exceptions: the generic English word ("release cadence", the DB `cadence` schedule-frequency column) was never the brand, and dated historical narrative stays accurate to what the product was called at the time.
 
-**What it is, in one sentence:** Supaprod is the agent-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and **learns from it, so next time it guides the call instead of waiting to be asked.**
+**What it is, in one sentence:** Supaprod is where product decisions live when agents do the work. It tells you what to build, builds it, ships it, checks what actually happened, and **learns from it, so next time it guides the call instead of waiting to be asked.**
 
 **The last verb is load-bearing. It learns and guides; it never "remembers", "stores", or "logs".** Remembering describes a filing cabinet and is not defensible. Learning compounds, because it needs the customer's own outcomes labelled over time. So in any copy you generate: never write "where the record lives", "stores your decisions", or "searchable history". Write that it compounds, that it guides the next call, and that it warns before you repeat what was wrong.
 

@@ -283,12 +283,12 @@ type Spec = {
 const HERO = "Supaprod";
 
 // AGENTIC-first, not agent-first. The live /brief and /investors pages both run
-// "THE AI-NATIVE, AGENTIC-FIRST OPERATING SYSTEM FOR PRODUCT TEAMS" as a mono
+// "FOR PRODUCT MANAGERS WHO SHIP WITH AGENTS" as a mono
 // caps kicker above the wordmark, and "agentic-first" is the phrase used in
 // eight places across src/. The kit had taken "agent-first" from README.md line
 // 8, which is the one place that still says it. What a visitor has just read on
 // the site wins over a line in a document they will never open.
-const KICKER = "The AI-native, agentic-first operating system for product teams";
+const KICKER = "For product managers who ship with agents";
 
 // The subhead follows the live hero's shape, with one deliberate difference.
 // The site currently reads "agents that know what to build, ship it, and

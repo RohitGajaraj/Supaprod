@@ -2,7 +2,7 @@
   <img src="./docs/growth/branding/social/x-header-dark-1500x500@2x.png" alt="Supaprod — Agents that own outcomes. Not just output." width="100%">
 </p>
 
-<h3 align="center">The agentic-first operating system for product teams</h3>
+<h3 align="center">For product managers who ship with agents</h3>
 
 <p align="center">
   <a href="https://supaprod.ai"><b>supaprod.ai</b></a>
@@ -18,9 +18,9 @@
 
 Evidence: [`docs/research/lennys-corpus-sweep-2026-08.md`](./docs/research/lennys-corpus-sweep-2026-08.md) · outside test [`docs/research/market-validation-2026-08.md`](./docs/research/market-validation-2026-08.md) · the pain in customers' own words [`docs/research/customer-voice.md`](./docs/research/customer-voice.md). Canon: [`docs/strategy/positioning-locked-2026-08.md`](./docs/strategy/positioning-locked-2026-08.md). **What is in flight is not here** — status lives in [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) and nowhere else.
 
-**Supaprod is the agentic-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked. Wired end to end, from signal to learning and back again.**
+**Supaprod is where product decisions live when agents do the work. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked. Wired end to end, from signal to learning and back again.**
 
-> **How to say it to a human (2026-08-10, grounded in a full read of the market — canon: [`docs/strategy/positioning-locked-2026-08.md`](./docs/strategy/positioning-locked-2026-08.md)).** The sentence above is the internal definition. It is **not** the opening line for a landing page, a pitch or a cold conversation: "operating system" is a platform word that reads as meaningless to buyers, and across 5.9M words of the market's own writing **nobody names a lifecycle or an operating system.** Lead with the three beats instead, which are the operator's language, not ours:
+> **How to say it to a human (updated 2026-08-11, founder ruling).** The sentence above **used to open "Supaprod is the agentic-first operating system for product teams."** That phrasing is now **retired everywhere, not merely demoted**: April Dunford's work on ~200 B2B positioning engagements finds platform-class words read as meaningless to buyers, and across 5.9M words of this market's own writing **nobody names a lifecycle or an operating system.** The public line for a stranger is now **"For product managers who ship with agents"** — narrow on purpose, because **nobody self-identifies as a team**, and because the land motion is a person who can start without procurement. Lead with the three beats, which are the practitioner's language, not ours:
 >
 > **1.** The half of the job that was doing the reps is going to agents.
 > **2.** What doesn't compress: **deciding what's worth doing, defining what good looks like, and catching when the system is confidently wrong.**

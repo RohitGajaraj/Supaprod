@@ -90,7 +90,7 @@ Refresh these against the live database the morning of any conversation. **A sta
 ## 3. What is it, and why does it exist
 
 **"What does Supaprod do?"**
-*Supaprod is the agent-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked.* Stop there. Let them pick which part to dig into.
+*Supaprod is where product decisions live when agents do the work. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked.* Stop there. Let them pick which part to dig into.
 
 **"Explain it like I am not technical."**
 *A product manager's job is to decide what to build, get it built, and find out if it worked. That is spread across fifteen tools and the person is the glue. Supaprod is one system where agents do the work and the human sets the boundaries. And it remembers how every call turned out, so the next call is better than the last.*

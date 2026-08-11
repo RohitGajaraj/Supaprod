@@ -67,11 +67,15 @@ function mockSupabase(config: {
   themesErr?: { code?: string; message?: string } | null;
   /** Refuse the insert, e.g. the unique index or a missing column. */
   insertErr?: { code?: string; message?: string } | null;
+  /** Refuse the post-promotion status write, which must never fail the sweep. */
+  statusErr?: { code?: string; message?: string } | null;
 }) {
   const inserted: Array<Record<string, unknown>> = [];
+  const statusMarked: Array<{ id: string; status: string }> = [];
 
   const client = {
     __inserted: inserted,
+    __statusMarked: statusMarked,
     from: (table: string) => {
       if (table === "spine_tracks") {
         return {
@@ -117,6 +121,23 @@ function mockSupabase(config: {
       }
       if (table === "themes") {
         return {
+          /**
+           * The status write the sweep makes after a track starts, so the theme
+           * it acted on says so.
+           *
+           * Recorded into `statusMarked` rather than discarded, because the
+           * whole reason this write exists is that the autonomous path used to
+           * leave no mark and two separate investigations then read
+           * `themes.status` and concluded the sweep was broken. A stub that
+           * swallows it would let that regress silently, which is the exact
+           * shape of defect this file's own header is about.
+           */
+          update: (patch: Record<string, unknown>) => ({
+            eq: async (_c: string, id: unknown) => {
+              statusMarked.push({ id: String(id), status: String(patch.status ?? "") });
+              return { error: config.statusErr ?? null };
+            },
+          }),
           select: (_cols: string) => ({
             eq: (_c: string, _v: unknown) => ({
               gte: (_c2: string, _v2: unknown) => ({
@@ -139,7 +160,10 @@ function mockSupabase(config: {
     },
   };
 
-  return client as unknown as SupabaseClient & { __inserted: typeof inserted };
+  return client as unknown as SupabaseClient & {
+    __inserted: typeof inserted;
+    __statusMarked: typeof statusMarked;
+  };
 }
 
 describe("promoteClustersOnce tells its zeroes apart", () => {
@@ -156,6 +180,35 @@ describe("promoteClustersOnce tells its zeroes apart", () => {
     expect(sweep.outcomes).toEqual([]);
     // It must not have attempted a write it could not possibly complete.
     expect(db.__inserted).toHaveLength(0);
+  });
+
+  it("a refused status write does not fail the promotion that succeeded", async () => {
+    // The track IS the promotion. Marking the theme is how the promotion becomes
+    // legible, and legibility must never be able to undo the thing it describes
+    // — the same fail-soft rule every provenance stamp in this repo follows.
+    const db = mockSupabase({
+      themes: [strong()],
+      statusErr: { message: "permission denied for table themes" },
+    });
+    const sweep = await promoteClustersOnce(db, "user-1");
+
+    expect(sweep.blocked).toBeNull();
+    expect(sweep.outcomes[0].why).toBe("started");
+    expect(sweep.outcomes[0].trackId).toBe("track-for-theme-1");
+  });
+
+  it("marks nothing when the track was REFUSED, because a refusal is not a promotion", async () => {
+    // The inverse error, and the easier one to write by accident: marking the
+    // theme before checking whether the track actually started would leave a row
+    // claiming it became work when nothing did.
+    const db = mockSupabase({
+      themes: [strong()],
+      insertErr: { message: "duplicate key value violates unique constraint" },
+    });
+    const sweep = await promoteClustersOnce(db, "user-1");
+
+    expect(sweep.outcomes[0].trackId).toBeNull();
+    expect(db.__statusMarked).toEqual([]);
   });
 
   it("names a failed themes read rather than swallowing it", async () => {
@@ -193,6 +246,22 @@ describe("promoteClustersOnce tells its zeroes apart", () => {
     // dropped it would re-promote the same cluster every ten minutes forever,
     // each track spending against its own ceiling.
     expect(db.__inserted[0].theme_id).toBe("theme-1");
+
+    /**
+     * AND THE THEME ITSELF SAYS SO, which it did not until 2026-08-11.
+     *
+     * The link above makes a repeated sweep safe. It does NOT make the promotion
+     * legible: `spine_tracks.theme_id` answers "did this become work" only if
+     * you already know to look there. Everyone asks `themes.status` instead,
+     * including the manual Gate, which writes it.
+     *
+     * Two promotion paths writing two different records of the same event
+     * produced two false alarms on one day — "the bar is mathematically
+     * unreachable" and "seven themes clear the bar and sit unpromoted". Both
+     * were investigated as defects. Both were this sweep working correctly and
+     * saying nothing on the row it acted upon.
+     */
+    expect(db.__statusMarked).toEqual([{ id: "theme-1", status: "promoted" }]);
   });
 
   it("never re-promotes a cluster that already became work", async () => {

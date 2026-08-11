@@ -26,7 +26,7 @@ import { mkdirSync } from "node:fs";
 const OUT = join(import.meta.dir, "messaging-options");
 mkdirSync(OUT, { recursive: true });
 
-const CATEGORY = "The agentic-first operating system for product teams";
+const CATEGORY = "For product managers who ship with agents";
 
 /** Emphasis helpers. The USP words carry the argument, so they carry the weight. */
 const hi = (t: string) => `<span style="font-weight:600;color:${P.bone}">${t}</span>`;

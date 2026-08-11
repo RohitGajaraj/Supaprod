@@ -71,7 +71,7 @@ Not the record — the record is backfillable and was backfilled twice on the re
 
 > **The arrow that appears nowhere in 5.9M words of the market's own writing, we built — and it already carries more real traffic than the link it competes with.**
 
-Measured on production lineage, demo workspaces excluded: 36 real `learning → decision` edges, and Decide's single largest inbound source is Learn, by 4× over opportunities.
+⚠️ **RETRACTED 2026-08-11.** This sentence read *"Measured on production lineage, demo workspaces excluded: 36 real `learning → decision` edges"*. **The exclusion did not work.** It matched on the shape of a workspace id, and the sample-workspace function issues ordinary ids, so seeded rows counted as production. All 71 such edges are seeded; **zero have `seeded = false`**. Any conclusion below that rests on this number is unsupported until requeried.
 
 **Binding honesty constraints on both claims** (see the sweep doc §2 and §4):
 - The arrow moves **learnings, not outcomes** — `agent_memory` holds zero `kind='outcome'` rows. Say *"informed by what we learned from earlier decisions,"* never *"informed by measured outcomes."*
@@ -210,7 +210,7 @@ Beat 2 is verbatim from an operator (Bal Sieber, 2026-06-27). Those three jobs *
 1. **Why now, with a number.** Build cost collapsed; the bottleneck moved. Not our claim — a practitioner's: *"AI can accelerate delivery fast enough that the bottleneck moves… PMs got faster at shipping but didn't get better at defending why. **The judgment gap got exposed.**"* And 82% of the market reports AI already makes them measurably more productive, while burnout rose 44.7% → 55.7% and the #1 fear is *"expected to do more for the same pay."* **Speed is solved. Judgment is not.**
 2. **The wedge, and why it is not "a better folder."** Every DIY success in the corpus is single-operator. Every DIY failure is multi-person or multi-agent governance. **We sell at the transition** — the second person, or the first fleet of agents. Proof: an operator who tried Obsidian, abandoned it, built his own, and still could not solve *who changed what · what is trustworthy vs polluted · why they changed it · preventing changes.*
 3. **The moat, stated so it survives a query.** Not the record — that is backfillable and was backfilled twice on the record. **The forecast captured at decision time**: what a team believed would happen, recorded before the outcome was known. It is not an artifact; it leaves no trace unless something captured it at the moment of the call.
-4. **The proof line.** *The arrow that appears nowhere in 5.9M words of the market's own writing, we built — and it already carries more real traffic than the link it competes with.* (36 real `learning → decision` edges; Learn outfeeds opportunities 4:1.)
+4. **The proof line.** *The arrow that appears nowhere in 5.9M words of the market's own writing, we built, and it runs on a live path.* **⚠️ Corrected 2026-08-11: the parenthetical that used to sit here, "36 real `learning → decision` edges", was seed data.** All 71 such edges are seeded, none has `seeded = false`, and the `prd → learning` writer had never fired. **Never restore a count to this beat.** The proof is that the arrow exists and is wired, and it begins accruing on first real use. See [`../pitch/verified-numbers.md`](../pitch/verified-numbers.md).
 5. **The metric, which is also the answer to "is this vitamin or painkiller."** **Rework, not speed** — clarification loops, reopened tickets, first-pass acceptance. **Rework is unpaid work**, so cutting it is relief, not more throughput.
 
 **The honest beat, said before they ask:** the loop is **wired and proven, and empty by design until used.** First-pass acceptance began capturing 2026-08-10. *"Wired, proven, accrues on first real use"* survives diligence; *"we learn from your corrections"* does not survive one query.
@@ -233,7 +233,11 @@ Beat 2 is verbatim from an operator (Bal Sieber, 2026-06-27). Those three jobs *
 
 > **Agents do the reps now. What doesn't compress: deciding what's worth doing, defining what good looks like, and catching when the system is confidently wrong. Supaprod runs those three, and records what you expected before you found out.**
 
-**Where the retired line still belongs.** *"The agentic-first operating system for product teams"* stays as the **internal definition** and on **machine-readable surfaces** (`llms.txt`, `agents.txt`, the A2A card). An answer engine wants a precise categorical definition; a human buyer hears a platform word. **Same register split as the vocabulary rule** — it is not wrong, it is wrong for humans.
+**⚠️ SUPERSEDED 2026-08-11, founder ruling: the line is retired EVERYWHERE, including machine-readable surfaces.** This paragraph used to carve out an exception, keeping *"the agentic-first operating system for product teams"* as the internal definition and on `llms.txt`, `agents.txt` and the A2A card, on the reasoning that an answer engine wants a precise categorical definition. **That carve-out is gone.** His instruction: *"make sure everywhere it is replaced."*
+
+**The reasoning behind dropping the exception is stronger than the reasoning that created it.** An answer engine does want a categorical definition, but it does not need a *platform-word* one, and a machine-readable surface is the one place a phrase propagates without a human choosing to repeat it. An LLM asked "what is Supaprod" would have answered with the exact phrase the founder finds vague, at scale.
+
+**So machine surfaces get the approved definition instead**, which is categorical and still a noun a stranger can hold: **"Supaprod is where product decisions live when agents do the work."** Human surfaces get the tagline: **"For product managers who ship with agents."**
 
 ### Binding rule for every outward application, from 2026-08-10 forward
 
@@ -347,3 +351,44 @@ Both came out of [`../research/market-validation-2026-08.md`](../research/market
 **Two things it buys us and one it costs.** It gives the layer a name someone else coined, at a credible ring, recently enough that we are not late. It is outside the corpus this positioning was built from, which answers the generalisation question. **And it omits forecasts from its own enumeration**, which is either the gap we occupy or evidence nobody wants that part; §8.5 of the market validation argues the former, and the Google record is the reason to hold the claim carefully.
 
 **What we do NOT do: claim "decision intelligence".** It is a real Gartner category with an inaugural Magic Quadrant in January 2026, and its Leaders are FICO, SAS, IBM, Quantexa, ACTICO and Aera, selling automated high-volume operational decisioning to credit-risk, fraud, pricing and supply-chain buyers. Claiming the name puts us in a bake-off on decision throughput and latency against companies that do nothing else. **That is worse than having no category.**
+
+---
+
+## §5L. The "audit trail" question, resolved 2026-08-11
+
+**Raised against myself.** `AGENTS.md` rule 3 puts **audit trail** on the KEEP list "because practitioners say it unprompted." **The measured table in the corpus sweep rates it 0.2 per million and marks it dead**, the same score as *ledger*. I then used it roughly 170 times across the repo as the replacement for *receipts*. Two canonical files disagreed and I was the one who put them there.
+
+### What the evidence actually says
+
+**In the corpus: one occurrence in 5,935,025 words.** A 2023 newsletter about Palantir, a government and enterprise data company, in a sentence about not "neglecting the audit trail." The 0.2/M figure is confirmed, and **where** it occurs is the finding: exactly the register you would predict.
+
+**The KEEP claim rested on a single quote**, Brian Kim in a community thread: *"the audit trail as to why should be clear."* One practitioner. Against a measured near-zero. **That was too thin a basis and I should not have written it as settled.**
+
+**And practitioners have no noun for this concept at all.** *Paper trail* appears twice, both in Nan Yu of Linear, and **both are negative**: people "leaving behind this crazy paper trail" of abandoned drafts. *Traceability* does not appear. When practitioners describe the need, they use **questions, not a category noun** (Aaron Nichols, 2026-06-20): *who changed what · which notes to trust · why they changed · how to stop the ones that shouldn't.*
+
+### The resolution, and why it is not the retired register split
+
+**The DROP list is not a frequency list. It is a list of words we invented.** *Receipts, ledger, trust ledger, unattended, first run, decision layer* are all ours. **Frequency was the detector, never the criterion**, and reading it as the criterion is what produced this contradiction.
+
+> **`audit trail` is not our invention.** It is the industry's standard term, it has a legally meaningful sense, and it is the **native vocabulary of AI governance platforms**, the category §5K.1 just adopted as our entry vector: an inaugural Gartner Magic Quadrant on 2026-06-16, a Forrester Wave, an IDC MarketScape, $492M in 2026 at 45.3% CAGR. A word that is central to the market we are entering is not dead because a PM podcast does not use it.
+
+**So the test is not who is reading. It is what the word is doing in the sentence.**
+
+| The word is | Use | Why |
+| --- | --- | --- |
+| **Naming the artifact or the control** | ✅ **`audit trail`** | It is the precise, industry-standard, checkable name for the thing. "Every agent action lands in an audit trail." |
+| **Naming what an enterprise buys** | ✅ **`audit trail`** | Their word, their budget line. "Where the audit trail is the thing they actually budget for." |
+| **Trying to make someone care** | ❌ never `audit trail` | Use their questions: *who changed what, why, and is it still true.* Or **evidence** (50.9/M) and **history** (103.3/M) |
+| **A headline, hero or eyebrow** | ❌ never | It names a control. Controls do not earn attention |
+
+**This is not the register split returning.** That split asked *"is the reader public or in-product"* and gave the same word two verdicts. This asks *"is the word naming a thing or earning belief"*, which is a property of the sentence, and gives one verdict per job. A word can name the artifact in one sentence and be wrong in the next, to the same reader.
+
+### What changes
+
+**Nothing in the 170 existing uses needs reverting.** Spot-checked the highest-stakes file: both instances in the YC application are naming uses, one of the artifact and one of the enterprise budget line. The sweep landed correctly by instinct; this ruling makes it deliberate.
+
+**Corrections applied:** `AGENTS.md` rule 3 no longer claims practitioners say it unprompted. The corpus sweep's "❌ dead" verdict is annotated, because the measurement is right and the verdict was drawn from the wrong criterion.
+
+**The generalisable rule, and it is the one to keep:**
+
+> **Drop the words we invented. Keep the industry's words even when our buyer's peers do not say them. And never let an industry word do the work of making someone care.**
