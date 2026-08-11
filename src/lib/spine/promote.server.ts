@@ -197,6 +197,49 @@ export async function promoteClustersOnce(
       workspaceId: full?.workspace_id ?? null,
       themeId: theme.id,
     });
+    /**
+     * SAY SO ON THE THEME. The autonomous path used to leave no mark on the row
+     * it acted upon.
+     *
+     * `startTrackCore` writes `spine_tracks.theme_id` and nothing else, and this
+     * function never touched `themes.status`. The manual Gate does
+     * (`discovery.functions.ts`), so the product had TWO promotion paths writing
+     * TWO different records of the same event: 2 themes carrying
+     * `status = 'promoted'` from the Gate, and 42 promoted by this sweep
+     * carrying no mark at all.
+     *
+     * ANYONE ASKING THE OBVIOUS QUESTION GOT THE WRONG ANSWER. "Was this theme
+     * promoted?" reads `themes.status`, and for everything this sweep did the
+     * answer was no. That has now produced the same false alarm twice on the
+     * same day: first "the promotion bar is mathematically unreachable", then
+     * "seven themes clear the bar and sit unpromoted". Both were investigated as
+     * defects. Both were the sweep working correctly and saying nothing. The gap
+     * was already known and written down in `brain/insights.functions.ts`, which
+     * is the part worth noticing: a documented gap is not a closed one.
+     *
+     * Fail-soft and after the fact, matching the Gate: the track is the real
+     * outcome and a status write must never fail a promotion that succeeded.
+     * Only on a track that actually started, because a refusal is not a
+     * promotion.
+     *
+     * THE EXISTING 42 ARE DELIBERATELY NOT BACKFILLED. Most sit in `active`,
+     * `at_risk` or `confirmed` — Discover's own escalation states — and
+     * overwriting those destroys a signal a person put there to answer a
+     * different question. Forward-only is the honest fix; the historical rows
+     * are readable through `spine_tracks.theme_id`, which is where they were
+     * recorded at the time.
+     */
+    if (result.track) {
+      const { error: statusErr } = await supabase
+        .from("themes")
+        .update({ status: "promoted" })
+        .eq("id", theme.id);
+      if (statusErr) {
+        console.error(
+          `[promote] track ${result.track.id} started but theme ${theme.id} status not marked: ${statusErr.message}`,
+        );
+      }
+    }
     done.push({
       themeId: theme.id,
       title: theme.title ?? "",
