@@ -6,7 +6,7 @@ import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { overallFromChecks, type CiCheckLite } from "@/lib/ai/studio-ci";
 import { fetchFailingCiDetail } from "@/lib/ai/studio-ci-logs.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
-import { generateReleaseNotesCore } from "@/lib/studio.functions";
+import { generateReleaseNotesCore, stampSpecShippedOnStudioMerge } from "@/lib/studio.functions";
 import { captureDeploymentsCore } from "@/lib/deployments.functions";
 import {
   collectRepoFiles,
@@ -22,6 +22,15 @@ import {
  * MergeBlocked reason. Every 2 minutes this tick:
  *
  *   1. Reads CI on every open studio PR (status 'pr_open').
+ *   1a. ALREADY MERGED (GitHub answers merged:true) -> ADOPTS it: writes
+ *      status 'merged' on the changeset and stamps the spec shipped, exactly
+ *      as the product's own merge button does. studio.pr.merge was the only
+ *      writer of that status anywhere and no trigger writes it, so a PR merged
+ *      from the GitHub UI, by auto-merge or by a bot sat at 'pr_open' forever
+ *      and steps 4 / 4b below -- plus the changelog trigger, promote and revert
+ *      -- never fired for it, while this tick read `merged` off the PR and threw
+ *      it away. Guarded on the old status, so the transition happens once and
+ *      re-polling a merged PR re-fires nothing.
  *   1.5. RED -> FIRST checks whether the base branch moved since this PR was
  *      opened/last synced (another PR merged first, so the CI run here is
  *      against a stale base) and, if so, autonomously syncs the PR branch
@@ -237,6 +246,7 @@ export async function runCiPollTick() {
     let exhausted = 0;
     let previewsDeployed = 0;
     let deploysCaptured = 0;
+    let mergesAdopted = 0;
     const failures: string[] = [];
 
     for (const cs of (rows ?? []) as unknown as ChangesetLite[]) {
@@ -338,9 +348,16 @@ export async function runCiPollTick() {
               d.provider !== "deno" && d.environment === "production" && d.status === "success",
           );
 
-          // updated_at is the merge stamp in practice: the merge handler's
-          // status write is the last thing to touch the row, and capture never
-          // writes to studio_changesets, so this does not drift.
+          // updated_at is the merge stamp in practice: the merge write -- the
+          // button's, or this tick's own adoption of an external merge below --
+          // is the last thing to touch the row, and capture never writes to
+          // studio_changesets, so this does not drift. An adopted merge stamps
+          // NOW rather than GitHub's merged_at deliberately: a changeset that
+          // merged outside the product days ago would otherwise be written in
+          // already past both this window and the 7-day sweep filter, and be
+          // dropped again the moment it was finally noticed. prds.shipped_at,
+          // which is the record the learn loop measures from, does carry the
+          // real merged_at.
           const mergedAtMs = Date.parse(cs.updated_at ?? "");
           const nowMs = Date.now();
           const withinCaptureWindow =
@@ -620,9 +637,81 @@ export async function runCiPollTick() {
           // this PR was created/last synced", i.e. a stale check.
           base: { ref: string; sha: string };
           merged: boolean;
+          merged_at: string | null;
+          merge_commit_sha: string | null;
           state: string;
         };
-        if (pr.merged || pr.state !== "open") continue;
+        // EXTERNAL MERGES ARE ADOPTED HERE, and until this existed they were
+        // read and then thrown away. `pr.merged` came back true and a bare
+        // `continue` dropped it, because this branch only ever asked "is there
+        // still CI to chase". The consequence was not cosmetic: studio.pr.merge
+        // (registry.server.ts) was the ONLY writer of status 'merged' anywhere
+        // in the codebase and no trigger writes it either, so a PR merged from
+        // the GitHub UI, by auto-merge, or by a bot left its changeset at
+        // 'pr_open' forever and every station keyed off 'merged' never fired for
+        // it: this tick's own preview/capture branch above, the
+        // studio_changeset_to_changelog trigger, promote, revert, and the spec
+        // ship stamp. GitHub had already told us; nothing wrote it down.
+        //
+        // IDEMPOTENT BY THE GUARD, NOT BY LUCK. `.eq("status", "pr_open")` in
+        // the WHERE means the transition lands exactly once: a re-poll of an
+        // adopted changeset never reaches here (it takes the merged branch at
+        // the top of the loop), and a merge-button write racing this one leaves
+        // no row for us, so the bookkeeping below runs for whichever writer
+        // actually moved the row and never twice.
+        //
+        // FAIL SOFT, like every other write in this sweep: a refused status
+        // write is named in `failures` and this changeset is skipped for this
+        // tick only; the next one, two minutes later, asks again.
+        if (pr.merged) {
+          const { data: adopted, error: adoptErr } = await supabaseAdmin
+            .from("studio_changesets")
+            .update({ status: "merged", updated_at: new Date().toISOString() })
+            .eq("id", cs.id)
+            .eq("status", "pr_open")
+            .select("id");
+          if (adoptErr) {
+            failures.push(`${cs.id.slice(0, 8)}: adopt-merge ${adoptErr.message}`);
+            continue;
+          }
+          if (!adopted || adopted.length === 0) continue;
+          mergesAdopted++;
+          // The merge tool's own best-effort ship stamp, for the merges it did
+          // not perform. Merge is the honest ship trigger on a repo Supaprod
+          // does not host (the reasoning is in stampSpecShippedOnStudioMerge's
+          // header), and an external merge is the same event as the button's --
+          // withholding the stamp here would leave the loop broken for exactly
+          // the merges that happen outside the product. The decision refuses
+          // unless GitHub confirms a commit onto the DEFAULT branch, so a
+          // stacked branch or a release train's integration branch never records
+          // as a ship, and it never overwrites an existing shipped_at.
+          //
+          // STAMPED AT GitHub's merged_at, NOT AT NOW: a changeset adopted out
+          // of the backlog merged days ago, and the learn loop measures from
+          // when it shipped, not from when we noticed.
+          try {
+            const repoInfoRes = await fetch(`https://api.github.com/repos/${repo}`, { headers });
+            const defaultBranch = repoInfoRes.ok
+              ? (((await repoInfoRes.json()) as { default_branch?: string }).default_branch ?? null)
+              : null;
+            await stampSpecShippedOnStudioMerge(supabaseAdmin, {
+              changesetId: cs.id,
+              userId: cs.user_id,
+              mergeConfirmed: true,
+              mergeSha: pr.merge_commit_sha,
+              baseBranch: pr.base?.ref ?? null,
+              defaultBranch,
+              mergedAt: pr.merged_at ?? undefined,
+            });
+          } catch (e) {
+            console.error(`ship stamp on adopted merge failed (non-fatal) for ${cs.id}:`, e);
+          }
+          continue;
+        }
+        // Closed without merging is deliberately left alone: 'abandoned' is a
+        // different claim about what a person decided, and nothing here can
+        // tell a give-up from a supersede.
+        if (pr.state !== "open") continue;
         const headSha = pr.head.sha;
 
         const [checksRes, statusRes] = await Promise.all([
@@ -906,6 +995,7 @@ export async function runCiPollTick() {
       exhausted,
       previewsDeployed,
       deploysCaptured,
+      mergesAdopted,
       failures,
     };
   });
