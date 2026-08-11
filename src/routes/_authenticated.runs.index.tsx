@@ -1062,8 +1062,17 @@ function BuildPage() {
             Open the run
           </Button>
           {waiting.length > 1 ? (
+            /* NAME THE NOUN HERE TOO. `waiting.length` counts RUNS in a gate
+               state, and the line three rows above it counts CALLS on the one
+               run being shown. A reader just told "3 calls to settle" read a
+               bare "Settle all 5" as five calls, and then landed on /approvals,
+               which counts calls and shows a third number again. The headline
+               above already had this collision named and fixed (see the comment
+               on `headline`); the button was missed. It says "all" rather than
+               "the other" on purpose: the destination queue holds every waiting
+               run including the one on screen. */
             <Button variant="ghost" onClick={() => navigate({ to: "/approvals" })}>
-              Settle all {waiting.length}
+              Settle all {waiting.length} runs
             </Button>
           ) : null}
         </Gate>
@@ -1114,7 +1123,17 @@ function BuildPage() {
           more={rows.length > VISIBLE ? (showAll ? "Show fewer" : `All ${rows.length}`) : undefined}
           onMore={() => setShowAll((v) => !v)}
         >
-          {firstLoad ? null : sessions.isError ? (
+          {/* A COLD LOAD SAYS SO, in the list exactly as it does on the board.
+              This arm used to be `null`, so on a first load the Block printed
+              its "Runs" heading over an empty body: a heading standing over
+              nothing, which a person reads as "there is nothing here" rather
+              than "we have not read it yet". The board branch above answers the
+              SAME `firstLoad` flag with this same Loading line, so pressing
+              Board made the surface speak and pressing List made it go silent,
+              off one variable. Fixed 2026-08-11. */}
+          {firstLoad ? (
+            <Loading>Reading the record.</Loading>
+          ) : sessions.isError ? (
             // "Nothing here" and "we could not find out" are different facts and
             // a person acts differently on each, so they never share a shape.
             <Failed onRetry={() => void sessions.refetch()}>
@@ -1197,28 +1216,17 @@ function BuildPage() {
               // Managing turns the row from a link into a shelf: it stops being a
               // button, so its two actions can live inside it without one control
               // nested in another.
+              //
+              // "Archived" is the LAST thing that goes into `sub`, because `sub`
+              // is the fact line and holds nothing but facts. The two Manage
+              // controls used to be pushed into this same array, so an archived
+              // row's second line rendered "Engineer finished · 3 files ·
+              // Verified · Archived · Restore · Delete": three states and two
+              // commands in one rhythm, with the one irreversible act on this
+              // surface a middot away from a file count in a line people read as
+              // status. They live in the Row's own `action` slot now, which is
+              // exactly what that slot is for. Fixed 2026-08-11.
               if (s.archived) sub.push("Archived");
-              if (managing) {
-                sub.push(
-                  <button
-                    type="button"
-                    className="sp-block-more"
-                    disabled={archive.isPending}
-                    onClick={() =>
-                      archive.mutate({ missionId: s.mission_id, archived: !s.archived })
-                    }
-                  >
-                    {s.archived ? "Restore" : "Archive"}
-                  </button>,
-                  <button
-                    type="button"
-                    className="sp-block-more"
-                    onClick={() => setDeleteTarget(s)}
-                  >
-                    Delete
-                  </button>,
-                );
-              }
 
               return (
                 <Row
@@ -1231,6 +1239,38 @@ function BuildPage() {
                   sub={<Meta parts={sub} />}
                   time={ago(s.updated_at)}
                   onClick={managing ? undefined : () => openRun(s.mission_id)}
+                  action={
+                    managing ? (
+                      /* A fragment, not a wrapper: `.sp-row-action` is already
+                         the flex row with the gap. These stay quiet text buttons
+                         rather than the Button primitive, because a 38px control
+                         would double the height of a `tight` row. */
+                      <>
+                        <button
+                          type="button"
+                          className="sp-block-more"
+                          disabled={archive.isPending}
+                          onClick={() =>
+                            archive.mutate({ missionId: s.mission_id, archived: !s.archived })
+                          }
+                        >
+                          {s.archived ? "Restore" : "Archive"}
+                        </button>
+                        {/* Separated by DISTANCE rather than by colour, the same
+                            rule the Actions primitive's `trailing` slot carries:
+                            the interface is monochrome, red means status, and
+                            Delete is the one act here that cannot be undone. */}
+                        <button
+                          type="button"
+                          className="sp-block-more"
+                          style={{ marginLeft: "var(--sp-space-3)" }}
+                          onClick={() => setDeleteTarget(s)}
+                        >
+                          Delete
+                        </button>
+                      </>
+                    ) : undefined
+                  }
                 />
               );
             })

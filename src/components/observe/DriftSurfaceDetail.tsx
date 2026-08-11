@@ -454,12 +454,23 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
             sub={
               <>
                 Past its threshold since <Num>{fmtWhen(worst.detected_at)}</Num>.
+                {/* INCIDENTS, and the noun matters. This counts openIncidents,
+                    and the Incidents block below states the reason they are not
+                    the same set as metrics: each incident is keyed to a single
+                    model AND a single metric, so latency drifting on gpt-4 and
+                    on claude is two incidents carrying one metric name. It read
+                    "1 other metric is open" until 2026-08-10, so a person who
+                    scrolled down expecting a second metric found Latency listed
+                    twice and stopped trusting the count. If the metric count is
+                    ever the fact wanted here, DERIVE it from the incidents
+                    (new Set(openIncidents.map((i) => i.metric)).size - 1) rather
+                    than relabelling this one. */}
                 {openIncidents.length > 1 ? (
                   <>
                     {" "}
                     <Num>{openIncidents.length - 1}</Num> other{" "}
-                    {openIncidents.length === 2 ? "metric is" : "metrics are"} open on this surface
-                    too.
+                    {openIncidents.length === 2 ? "incident is" : "incidents are"} open on this
+                    surface too.
                   </>
                 ) : null}
               </>
@@ -519,11 +530,18 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
         title="Incidents"
         sub="Open and recently resolved. Each one is keyed to a single model and a single metric, so one surface can carry several."
       >
+        {/* The empty state may claim no more than this block read. `incidents`
+            is openIncidents plus recentIncidents, and the second of those is a
+            RECENT list by its own name, so an empty one means nothing is open
+            and nothing resolved lately. It said "no incident has ever opened"
+            until 2026-08-10, which let a person whose only incident resolved
+            outside that window read a clean-history claim off a recent-window
+            read and stop looking for the drift they came to check. */}
         {incidents.length === 0 ? (
           <Empty>
-            No incident has ever opened on this surface. The detector compares the last{" "}
-            <Num>{windowDays}</Num> days against a <Num>{baselineDays}</Num> day baseline every time
-            it runs.
+            No incident is open on this surface, and none has been resolved recently. The detector
+            compares the last <Num>{windowDays}</Num> days against a <Num>{baselineDays}</Num> day
+            baseline every time it runs.
           </Empty>
         ) : (
           incidents.map((inc) => {

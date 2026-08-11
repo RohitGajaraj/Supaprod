@@ -115,6 +115,21 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
     return m;
   }, [agents]);
 
+  // WHETHER THE RECORD IS IN HAND AT ALL, which two different things below both
+  // hang off.
+  //
+  // `hud` got a full error arm and `trustQ` got neither an error nor a loading
+  // one, so a failed trust read fell back to `[]` and every row printed "No
+  // record yet": thirteen agents each stating, as a fact, that they have earned
+  // nothing, on the surface an operator uses to decide whether an agent has
+  // earned more room. A read that failed is not a record of zero.
+  //
+  // The same failure quietly destroyed the ordering. The sort below scores
+  // every agent -1 when trust is missing, so "most-trusted first" collapses to
+  // catalog order while the panel goes on presenting itself as a ranking. The
+  // census says which of the two the reader is actually looking at.
+  const ranked = !trustQ.isError && !trustQ.isLoading;
+
   // Most-trusted first, so the ranking itself is information. An agent with no
   // record sorts to the bottom rather than being given a score it has not
   // earned.
@@ -171,7 +186,13 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
             , <Num>{off.length}</Num> are switched off
           </>
         ) : null}
-        . Open one to change what it is allowed to do.
+        .{" "}
+        {ranked
+          ? "Most-trusted first."
+          : trustQ.isError
+            ? "The record did not load, so this is catalog order and not a ranking."
+            : "Still reading the record, so this is catalog order for now."}{" "}
+        Open one to change what it is allowed to do.
       </>
     );
 
@@ -210,6 +231,12 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
                 // record, never a restatement of the rung the lead already
                 // shows. A score over fewer than three signals is not evidence,
                 // so it is not drawn as one.
+                //
+                // "No record yet" is a CLAIM about this agent and it may only be
+                // made off a trust read that landed. When the read failed or is
+                // still in flight, `t` is undefined for every agent alike, and
+                // saying "no record" thirteen times would be inventing thirteen
+                // facts out of one missing answer.
                 sub={
                   !a.enabled ? (
                     "Switched off. Nothing dispatches it."
@@ -222,6 +249,10 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
                         </>
                       ) : null}
                     </>
+                  ) : trustQ.isError ? (
+                    "Its record did not load, so this line is not its record."
+                  ) : trustQ.isLoading ? (
+                    "Reading its record."
                   ) : t && t.breakdown.samples >= 3 ? (
                     <>
                       <Num>{t.score}</Num> out of <Num>100</Num>, from{" "}

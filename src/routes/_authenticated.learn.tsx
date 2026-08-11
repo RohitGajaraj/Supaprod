@@ -499,10 +499,30 @@ function Learn() {
           // A different fact from the row, not a restatement of it (hard ban
           // 10): the row is one verdict, this is how much record it landed on
           // top of. Exact, because both numbers are now the same workspace.
+          //
+          // ONE WORD MUST NOT NAME TWO SETS ON ONE SCREEN (found 2026-08-10).
+          // This read "N settled before it" off `outcomes.total`, while the
+          // headline a few hundred pixels above defines settling narrowly and
+          // deliberately: `decisive = validated + missed`, said as "3 of the 5
+          // that settled paid off", precisely because an outcome can be real
+          // and not have settled either way. With total 8 and decisive 5 the
+          // page said five settled at the top and seven settled below, off one
+          // fetch, on the one surface whose whole job is reporting whether the
+          // product works.
+          //
+          // THE NOUN CHANGED RATHER THAN THE NUMBER, and not for the easier
+          // life: `decisive - 1` would be the wrong count here. `lastSettled`
+          // comes from listLearnings and its verdict may be `mixed`, which is
+          // a real verdict on the record (see verdict-words.ts, three keys and
+          // no fourth) and is NOT in `decisive`. Subtracting it from a set it
+          // was never in would make this line wrong in exactly the cases it is
+          // most needed. `total - 1` is the true count of what the record held
+          // before this verdict, so it keeps its number and gets the noun that
+          // fits it. Do not put "settled" back.
           sub={
             outcomes && outcomes.total > 1 ? (
               <>
-                <Num>{outcomes.total - 1}</Num> settled before it
+                <Num>{outcomes.total - 1}</Num> on the record before it
               </>
             ) : null
           }
