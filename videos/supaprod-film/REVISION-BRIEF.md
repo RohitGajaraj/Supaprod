@@ -38,6 +38,11 @@
    fromTo, no CSS transitions/repeat/random, cqw/cqh sizing, top-83% keep-out, locked durations.
 6. Fonts: frame.md @font-face verbatim. Tokens: frame.md §"Product screen tokens".
 
+## v5 duration table (LOCKED — build your frame to THIS duration; Vesper VO + breathing air)
+
+F1 10.6 · F2 9.6 · F3 14.6 · F4 11.0 · F5 7.6 · F6 7.8 · F7 7.5 · F8 18.8 · F9 11.4 · F10 12.3 ·
+F11 11.0 · F12 4.4 · F13 9.4 — film total 136.0s. STORYBOARD durations already match.
+
 ## Frame-specific notes (one agent per frame, sequential)
 
 - **04-supaprod** (fidelity anchor — FULL REBUILD of the opening): the founder ruled the logo-draw +
