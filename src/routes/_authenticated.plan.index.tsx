@@ -894,14 +894,21 @@ function PlanPage() {
         specs (measured 2026-08-06) that it has none. That is the /discover
         first-frame defect again, on the second of this station's two lists.
 
-        `!specs.isError` IS LOAD-BEARING AND IS NOT BELT AND BRACES.
-        `stillWaiting` is `isPending || data === undefined`
-        (src/lib/query-state.ts:51-53), which is TRUE for a failed query, so
-        without this clause the <Failed> branch inside the Block would be
-        unreachable and a failed read would sit under a permanent wait with no
-        retry on it. RoadmapColumns solves the same collision by ordering its
-        <Failed> above its skeleton; here the error branch lives INSIDE the
-        block below, so the exclusion is written into the wait instead. */}
+        `!specs.isError` WAS LOAD-BEARING AND IS NOW BELT AND BRACES, and it is
+        staying. Until 2026-08-11 `stillWaiting` was
+        `isPending || data === undefined`, which is TRUE for ever after a cold
+        failure, so without this clause the <Failed> branch inside the Block was
+        unreachable and a failed read sat under a permanent wait with no retry on
+        it. The helper now stands down on a failed read, so the clause no longer
+        does that work by itself.
+
+        IT IS NOT TIDIED AWAY BECAUSE IT COSTS NOTHING AND THE ALTERNATIVE COSTS
+        A SURFACE. Deleting it makes this wait's correctness depend entirely on
+        a helper in another file continuing to behave a particular way, and that
+        helper's behaviour has now changed once. RoadmapColumns solves the same
+        collision by ordering its <Failed> above its skeleton; here the error
+        branch lives INSIDE the block below, so the exclusion is written into the
+        wait instead. */}
       {!specs.isError && stillWaiting(specs) ? (
         <Loading>Reading the specs.</Loading>
       ) : (

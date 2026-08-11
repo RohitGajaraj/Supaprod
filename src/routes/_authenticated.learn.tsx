@@ -584,10 +584,12 @@ function Learn() {
               paused, offline, or the instant a fetch resolves. `data` is
               undefined there, this block fell through to "Nothing has come back
               yet", and on the station that IS the record that sentence is the
-              worst available lie. `stillWaiting` is `isPending || data ===
-              undefined`, which closes the gap. The error branch stays first,
-              because a failed read also leaves `data` undefined and would
-              otherwise wait here forever instead of saying what broke. Last of
+              worst available lie. `stillWaiting` closes the gap. The error
+              branch stays first, and until 2026-08-11 it had to: the helper was
+              `isPending || data === undefined`, a failed read also leaves `data`
+              undefined, and this would have waited here forever instead of
+              saying what broke. The helper now stands down on a failed read, so
+              the order is kept on its own merits rather than out of need. Last of
               the two surfaces the budget in
               an-empty-read-is-not-an-empty-workspace.test.ts allowed; that
               constant reaches 0 in the same commit. */

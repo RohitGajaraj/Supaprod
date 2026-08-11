@@ -1808,18 +1808,31 @@ function Ship() {
    * paused with no network is pending WITHOUT fetching, so `isLoading` is false
    * there too and only `stillWaiting` still says wait.
    *
-   * AND WHY THAT THIRD CLAUSE IS CONJOINED WITH `!changelog.isError`, WHICH IS
-   * NOT DECORATION. `stillWaiting` is `q.isPending || q.data === undefined`
-   * (src/lib/query-state.ts:52), and react-query leaves `data` undefined after
-   * a read that failed with nothing cached -- so a cold failure satisfies it
-   * for ever. Both consumers below ("What shipped" and "The release document")
-   * test `docReading` BEFORE `changelog.isError`, so without this clause the
-   * two sections sat on "Reading the release notes." / "Reading what has
-   * shipped." once react-query had exhausted its retries, and neither the
-   * Failed sentence nor its refetch button was reachable. A permanent spinner
-   * in place of a retry is worse than the false empty state this flag exists to
-   * prevent: the empty state at least ends. The error branch owns the errored
-   * case, this flag owns the unanswered one, and they must not both claim it.
+   * AND WHY THAT THIRD CLAUSE IS CONJOINED WITH `!changelog.isError`. This was
+   * the workaround, and it is now the belt beside a fixed brace.
+   *
+   * `stillWaiting` USED TO BE `q.isPending || q.data === undefined`, and
+   * react-query leaves `data` undefined after a read that failed with nothing
+   * cached, so a cold failure satisfied it for ever. Both consumers below ("What
+   * shipped" and "The release document") test `docReading` BEFORE
+   * `changelog.isError`, so without this clause the two sections sat on "Reading
+   * the release notes." / "Reading what has shipped." once react-query had
+   * exhausted its retries, and neither the Failed sentence nor its refetch
+   * button was reachable. A permanent spinner in place of a retry is worse than
+   * the false empty state this flag exists to prevent: the empty state at least
+   * ends.
+   *
+   * THIS FILE WAS THE ONLY PLACE THAT HAD WORKED AROUND IT, and that was the
+   * tell. Two other call sites hit the same hole head-on and hung, which is what
+   * a wrong SHAPE looks like from outside: a workaround repeated at every call
+   * site is a defect that has learned to look like a convention. The helper was
+   * fixed on 2026-08-11 to stand down on a failed read, so this clause is now
+   * redundant. It stays because two tests pin it and because removing it would
+   * make this surface's correctness depend on a helper elsewhere continuing to
+   * behave a particular way, which it has now stopped doing once.
+   *
+   * The error branch owns the errored case, this flag owns the unanswered one,
+   * and they must not both claim it.
    *
    * A picked id that has since left the list falls back to the newest rather
    * than to nothing, because a release document that vanishes on a background
