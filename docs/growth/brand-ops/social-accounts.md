@@ -123,11 +123,11 @@ Every line below is cut from ratified canon, aimed at whoever actually walks in 
 >
 > **Every bio states the category, then what the product DOES, in plain verbs:**
 >
-> > The agentic-first operating system for product teams. Tells you what to build, builds and ships it, then learns what actually worked.
+> > For product managers who ship with agents. Tells you what to build, builds and ships it, then learns what actually worked.
 >
 > That is the same three layers — director, operating system, company brain — but as things that happen *for the reader* rather than labels on our own map. The station names belong in product surfaces and in the diagram on the banners, where they are drawn and therefore self-explaining. They never appear as a bare list in prose.
 
-> **Corrected 2026-08-05: it is "agentic-first", not "agent-first".** The live `/brief` and `/investors` heroes both run `THE AI-NATIVE, AGENTIC-FIRST OPERATING SYSTEM FOR PRODUCT TEAMS`, and `agentic-first` is the phrase used in eight places across `src/`.
+> **Corrected 2026-08-05: it is "agentic-first", not "agent-first".** The live `/brief` and `/investors` heroes both run `FOR PRODUCT MANAGERS WHO SHIP WITH AGENTS`, and `agentic-first` is the phrase used in eight places across `src/`.
 >
 > **Where it had actually leaked, checked live 2026-08-05.** This note previously said `README.md` line 8 was "the last holdout". That was stale: `README.md` has zero occurrences of the old form. The two places still carrying it were both on GitHub itself, where nobody thinks to grep:
 >
@@ -148,13 +148,13 @@ Every line below is cut from ratified canon, aimed at whoever actually walks in 
 
 ### X, `@supaprodhq` — aimed at the user, the developer, the press
 
-> The agentic-first operating system for product teams. It tells you what to build, ships it, then learns what actually worked. Say it with an A: SOO-pa-prod.
+> For product managers who ship with agents. It tells you what to build, ships it, then learns what actually worked. Say it with an A: SOO-pa-prod.
 
 ### LinkedIn, `company/supaprod` — aimed at the investor, the candidate, procurement
 
 Tagline:
 
-> The agentic-first operating system for product teams
+> For product managers who ship with agents
 
 About:
 
@@ -174,7 +174,7 @@ About:
 
 ### GitHub org, `supaprod` — aimed at the developer and the candidate
 
-> The agentic-first operating system for product teams. Tells you what to build, builds and ships it, then learns what actually worked.
+> For product managers who ship with agents. Tells you what to build, builds and ships it, then learns what actually worked.
 
 132 characters. **Corrected 2026-08-05** from a version that ended "Discover, decide, plan, design, build, ship, learn" — see the station-name rule above.
 
@@ -190,7 +190,7 @@ About:
 
 Channel description:
 
-> Supaprod is the agentic-first operating system for product teams.
+> Supaprod is where product decisions live when agents do the work.
 >
 > It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so the next call comes with evidence instead of a blank page.
 >
@@ -202,7 +202,7 @@ Channel description:
 
 ### Instagram, `@supaprodhq` — aimed at the broad first impression
 
-> The agentic-first operating system for product teams. Tells you what to build, ships it, learns what worked.
+> For product managers who ship with agents. Tells you what to build, ships it, learns what worked.
 
 ### Threads — created from the Instagram account
 
@@ -214,11 +214,11 @@ Same bio as Instagram. Same avatar. Nothing new to write.
 
 ### Bluesky, `supaprod.bsky.social` — the exact name is free here
 
-> The agentic-first operating system for product teams. It tells you what to build, ships it, then learns what actually worked, so the next call arrives with evidence. SOO-pa-prod, with an A.
+> For product managers who ship with agents. It tells you what to build, ships it, then learns what actually worked, so the next call arrives with evidence. SOO-pa-prod, with an A.
 
 ### Mastodon, `@supaprodhq`
 
-> The agentic-first operating system for product teams.
+> For product managers who ship with agents.
 >
 > It tells you what to build, builds and ships it, then learns what actually worked. Agents do the product work end to end, you make the calls, and the next call is not a blank page.
 >
@@ -240,11 +240,11 @@ Description:
 
 ### Crunchbase — aimed at the investor and procurement
 
-> Supaprod is the agentic-first operating system for product teams. It tells you what to build, builds and ships it, then learns what actually worked, with agents doing the product work end to end and the human making every call. Its compounding asset is the join between a team's own decisions and its own outcomes, labelled over time, which turns past judgement into forward guidance.
+> Supaprod is where product decisions live when agents do the work. It tells you what to build, builds and ships it, then learns what actually worked, with agents doing the product work end to end and the human making every call. Its compounding asset is the join between a team's own decisions and its own outcomes, labelled over time, which turns past judgement into forward guidance.
 
 ### npm and PyPI
 
-> The agentic-first operating system for product teams.
+> For product managers who ship with agents.
 
 ---
 
@@ -647,7 +647,7 @@ Status values: `Not started` → `Claimed` (handle held, profile empty) → `Pro
 
 Checked against the live GitHub API this session, not against this document.
 
-> **Status 2026-08-07: the description defect below is CLOSED.** `api.github.com/orgs/supaprod` now returns "The agentic-first operating system for product teams. Tells you what to build, builds and ships it, then learns what actually worked." The `location` field is still empty, which remains minor.
+> **Status 2026-08-07: the description defect below is CLOSED.** `api.github.com/orgs/supaprod` now returns "For product managers who ship with agents. Tells you what to build, builds and ships it, then learns what actually worked." The `location` field is still empty, which remains minor.
 
 | Where | What is live | What it should be | Severity |
 | --- | --- | --- | --- |

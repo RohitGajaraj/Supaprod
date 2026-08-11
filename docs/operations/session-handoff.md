@@ -271,7 +271,7 @@ In two of the three, the guard written alongside the original fix read only the 
 **Landing page (`9ebaf0a9`, `6fb20d0c`, `f03b92f2`)**
 
 - The hero said "For product managers **who ship with agents**" while the next beat says "Product is still waiting for its own." It also gated out the Transform motion.
-- The hero now opens with the category: **"The agentic-first operating system for product teams"**, blue on `agentic-first` (the machine), ember on `product teams` (the humans), which is the page's own colour language.
+- ⚠️ **SUPERSEDED 2026-08-11.** This bullet described the hero opening with the category line, and that line is now retired everywhere. The eyebrow is **"For product managers who ship with agents"**, amber on *product managers*, blue on *agents*. Kept below as the record of what it was: ~~the hero opens with the category, **"The agentic-first operating system for product teams"**~~, blue on `agentic-first` (the machine), ember on `product teams` (the humans), which is the page's own colour language.
 - Headline's last verb `gets sharper` → **`guides the next call`**, matching the title, meta description, `llms.txt` and the card.
 - CTA `Request access` → **`Join the beta`** in nav and hero, matching what the form's own submit button and `MACHINE_CONTENT` always said.
 - Removed under the CTA: the Critic offer paragraph and the invite-code link. Three asks under one button.

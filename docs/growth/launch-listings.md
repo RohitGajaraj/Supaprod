@@ -93,7 +93,7 @@ Tells you what to build, then grades the call
 `45 characters. The plainest verb-first reading of the loop. Best if the audience skews product rather than technical.`
 
 ```
-The agentic-first operating system for product teams
+For product managers who ship with agents
 ```
 
 `52 characters. The category line. Safest, least differentiated, and the right pick only if the description is doing the work.`
@@ -851,7 +851,7 @@ Zero outside users so far. The demo is my own workspace, deliberately. Tell me w
 **Mastodon, 484 characters against a 500 limit.** One or two hashtags maximum, and only if the instance culture uses them.
 
 ```
-Supaprod is the agentic-first operating system for product teams. It tells you what to build, builds and ships it, then learns what actually worked, so the next call arrives with evidence.
+Supaprod is where product decisions live when agents do the work. It tells you what to build, builds and ships it, then learns what actually worked, so the next call arrives with evidence.
 
 Two things you can try now, no account needed:
 

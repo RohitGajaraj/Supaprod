@@ -233,7 +233,11 @@ Beat 2 is verbatim from an operator (Bal Sieber, 2026-06-27). Those three jobs *
 
 > **Agents do the reps now. What doesn't compress: deciding what's worth doing, defining what good looks like, and catching when the system is confidently wrong. Supaprod runs those three, and records what you expected before you found out.**
 
-**Where the retired line still belongs.** *"The agentic-first operating system for product teams"* stays as the **internal definition** and on **machine-readable surfaces** (`llms.txt`, `agents.txt`, the A2A card). An answer engine wants a precise categorical definition; a human buyer hears a platform word. **Same register split as the vocabulary rule** — it is not wrong, it is wrong for humans.
+**⚠️ SUPERSEDED 2026-08-11, founder ruling: the line is retired EVERYWHERE, including machine-readable surfaces.** This paragraph used to carve out an exception, keeping *"the agentic-first operating system for product teams"* as the internal definition and on `llms.txt`, `agents.txt` and the A2A card, on the reasoning that an answer engine wants a precise categorical definition. **That carve-out is gone.** His instruction: *"make sure everywhere it is replaced."*
+
+**The reasoning behind dropping the exception is stronger than the reasoning that created it.** An answer engine does want a categorical definition, but it does not need a *platform-word* one, and a machine-readable surface is the one place a phrase propagates without a human choosing to repeat it. An LLM asked "what is Supaprod" would have answered with the exact phrase the founder finds vague, at scale.
+
+**So machine surfaces get the approved definition instead**, which is categorical and still a noun a stranger can hold: **"Supaprod is where product decisions live when agents do the work."** Human surfaces get the tagline: **"For product managers who ship with agents."**
 
 ### Binding rule for every outward application, from 2026-08-10 forward
 

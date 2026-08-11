@@ -4,7 +4,7 @@
 //
 //   Agents that own outcomes.
 //   Not just output.
-//   The agentic-first operating system for product teams
+//   For product managers who ship with agents
 //
 // The brief is to spotlight `Agents`, `outcomes` and `product teams`. The trap
 // is that three equal spotlights are no spotlight, so each level gets a
