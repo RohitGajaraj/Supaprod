@@ -167,7 +167,7 @@
 
 /* ————— lower-third (kit — mono kicker + one sentence-case line, lower-left, never centered) ————— */
 .sk-lowerthird{
-  position:absolute;left:5.5cqw;bottom:7cqh;
+  position:absolute;left:5.5cqw;bottom:18cqh;   /* clears the 83% caption keep-out band */
   display:flex;flex-direction:column;gap:0.55cqh;
   text-shadow:0 2px 30px rgba(0,0,0,.6);
 }
@@ -199,9 +199,20 @@
 .wb-name{font:400 0.73cqw/1.35 var(--sk-ui);color:var(--sk-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .wb-rowmeta{margin-top:0.18cqw;font:400 0.6cqw/1.3 var(--sk-ui);color:var(--sk-muted);}
 
+/* the agent working the release tool (agent-presence law) — a live row above the shipped wall */
+.wb-agent{display:flex;align-items:center;gap:0.34cqw;font:400 0.58cqw/1.3 var(--sk-mono);color:var(--sk-accent);letter-spacing:0.02em;}
+.wb-agent-dot{width:0.28cqw;height:0.28cqw;flex:none;border-radius:50%;background:var(--sk-accent);}
+
 /* activation chart */
 .wb-chartbody{position:relative;}
-.wb-plot{position:absolute;top:1.4cqw;right:4.6cqw;bottom:3.1cqw;left:3.4cqw;}
+.wb-plot{position:absolute;top:1.4cqw;right:4.6cqw;bottom:3.1cqw;left:4.4cqw;}
+/* the axis caption: names the measure so the flat line cannot read as decoration */
+.wb-yaxis{
+  position:absolute;left:1.05cqw;top:50%;
+  transform:translate(-50%,-50%) rotate(-90deg);transform-origin:50% 50%;
+  font:500 0.58cqw/1 var(--sk-mono);color:var(--sk-faint);
+  letter-spacing:0.12em;text-transform:uppercase;white-space:nowrap;
+}
 .wb-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;display:block;}
 .wb-ylab{position:absolute;right:calc(100% + 0.5cqw);transform:translateY(-50%);font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-faint);font-variant-numeric:tabular-nums;}
 .wb-xlab{position:absolute;top:calc(100% + 0.55cqw);transform:translateX(-50%);font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.06em;text-transform:uppercase;}
@@ -209,13 +220,13 @@
 .wb-enddot{position:absolute;left:calc(100% - 0.22cqw);top:45.7%;transform:translateY(-50%);width:0.44cqw;height:0.44cqw;border-radius:50%;background:var(--sk-build);}
 </style>
 
-<div id="root" data-composition-id="02-worth-building" data-width="1920" data-height="1080">
+<div id="root" data-composition-id="02-worth-building" data-width="1920" data-height="1080" data-duration="12.5">
 
   <!-- full-bleed ground — a clip layer, never a background on #root -->
-  <div id="wb-bg" class="clip" data-start="0" data-duration="8.5" data-track-index="0"></div>
+  <div id="wb-bg" class="clip" data-start="0" data-duration="12.5" data-track-index="0"></div>
 
   <!-- the world: perspective stage + screen, wrapped by ONE camera element -->
-  <div id="wb-world" class="clip" data-start="0" data-duration="8.5" data-track-index="1" data-layout-allow-overflow="">
+  <div id="wb-world" class="clip" data-start="0" data-duration="12.5" data-track-index="1" data-layout-allow-overflow="">
 
     <svg width="0" height="0" aria-hidden="true" style="position:absolute">
       <defs>
@@ -251,8 +262,8 @@
                 <span class="sk-spacer"></span>
                 <span class="sk-chip is-on">all 31</span>
                 <span class="sk-chip">features 18</span>
-                <span class="sk-chip">fixes 9</span>
-                <span class="sk-chip">polish 4</span>
+                <span class="sk-chip">polish 9</span>
+                <span class="sk-chip">fixes 4</span>
               </div>
 
               <!-- changelog — the wall of shipped features (DoF near plane) -->
@@ -264,6 +275,14 @@
                   <span class="sk-label" style="font-size:0.55cqw;">newest first</span>
                 </header>
                 <div class="sk-panel-body">
+                  <!-- the agent is already writing the next one: the world runs on agents -->
+                  <div class="wb-row" id="wb-agentrow">
+                    <div class="wb-rowmain">
+                      <p class="wb-name">v2.4.0 release notes</p>
+                      <p class="wb-rowmeta wb-agent"><span class="wb-agent-dot" id="wb-agent-dot"></span>agent · drafting release notes</p>
+                    </div>
+                    <span class="sk-chip is-on">in progress</span>
+                  </div>
                   <div class="wb-row">
                     <div class="wb-rowmain"><p class="wb-name">storefront theme refresh</p><p class="wb-rowmeta">maya r. · v2.3.9 · aug 8</p></div>
                     <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
@@ -316,7 +335,7 @@
               <section class="sk-pane wb-plane" id="wb-ana">
                 <header class="sk-pane-hd">
                   <h2 class="sk-panel-title">Activation</h2>
-                  <span class="sk-meta" style="font-size:0.62cqw;">weekly · last 12 weeks</span>
+                  <span class="sk-meta" style="font-size:0.62cqw;">last 12 weeks · each tick is a release</span>
                   <span class="sk-spacer"></span>
                   <span class="sk-chip sk-chip--warn" id="wb-nochange"><span class="sk-dot-inline"></span>period: no change</span>
                 </header>
@@ -328,34 +347,35 @@
                       <line x1="0" y1="280" x2="1000" y2="280" stroke="#26262A" stroke-width="1" vector-effect="non-scaling-stroke" />
                       <line x1="0" y1="470" x2="1000" y2="470" stroke="#26262A" stroke-width="1" vector-effect="non-scaling-stroke" />
                       <line x1="0" y1="560" x2="1000" y2="560" stroke="#26262A" stroke-width="1" vector-effect="non-scaling-stroke" />
-                      <!-- release markers along the axis (tick per shipped row, jun 12 → aug 8) -->
-                      <line class="wb-rmk" x1="298" y1="520" x2="298" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
-                      <line class="wb-rmk" x1="381" y1="520" x2="381" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
-                      <line class="wb-rmk" x1="464" y1="520" x2="464" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
-                      <line class="wb-rmk" x1="548" y1="520" x2="548" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
-                      <line class="wb-rmk" x1="643" y1="520" x2="643" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
-                      <line class="wb-rmk" x1="726" y1="520" x2="726" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
-                      <line class="wb-rmk" x1="798" y1="520" x2="798" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
-                      <line class="wb-rmk" x1="869" y1="520" x2="869" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
-                      <line class="wb-rmk" x1="940" y1="520" x2="940" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
-                      <line class="wb-rmk" x1="976" y1="520" x2="976" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <!-- release markers on the axis, one per shipped row, placed on its real date
+                           (12-week window ends aug 8: x = 1000 - days_before * 11.905) -->
+                      <line class="wb-rmk" x1="321.4" y1="516" x2="321.4" y2="552" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line class="wb-rmk" x1="404.8" y1="516" x2="404.8" y2="552" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line class="wb-rmk" x1="488.1" y1="516" x2="488.1" y2="552" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line class="wb-rmk" x1="571.4" y1="516" x2="571.4" y2="552" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line class="wb-rmk" x1="666.7" y1="516" x2="666.7" y2="552" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line class="wb-rmk" x1="750" y1="516" x2="750" y2="552" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line class="wb-rmk" x1="821.4" y1="516" x2="821.4" y2="552" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line class="wb-rmk" x1="892.9" y1="516" x2="892.9" y2="552" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line class="wb-rmk" x1="964.3" y1="516" x2="964.3" y2="552" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line class="wb-rmk" x1="1000" y1="516" x2="1000" y2="552" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
                       <!-- the flat activation line — svg-path-draw -->
                       <path id="wb-line" d="M 0 258 L 83.3 252 L 166.7 257 L 250 250 L 333.3 256 L 416.7 249 L 500 255 L 583.3 250 L 666.7 254 L 750 248 L 833.3 255 L 916.7 250 L 1000 256" fill="none" stroke="#6D97C2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
                     </svg>
                     <span class="wb-ylab" style="top:16.07%;">40%</span>
                     <span class="wb-ylab" style="top:50%;">30%</span>
                     <span class="wb-ylab" style="top:83.93%;">20%</span>
-                    <span class="wb-xlab" style="left:16.7%;">jun</span>
-                    <span class="wb-xlab" style="left:52.4%;">jul</span>
-                    <span class="wb-xlab" style="left:89.3%;">aug</span>
+                    <span class="wb-xlab" style="left:19.1%;">jun</span>
+                    <span class="wb-xlab" style="left:54.8%;">jul</span>
+                    <span class="wb-xlab" style="left:91.7%;">aug</span>
                     <span class="wb-enddot" id="wb-enddot"></span>
                     <span class="wb-val" id="wb-val">31.3%</span>
                   </div>
+                  <span class="wb-yaxis">activation rate</span>
                 </div>
                 <footer class="sk-panel-ft">
-                  <span class="sk-label" style="font-size:0.55cqw;">release markers on axis</span>
                   <span class="sk-spacer"></span>
-                  <span class="sk-meta" style="font-size:0.6cqw;">activation 31.3% · +0.1 pts in 12 weeks</span>
+                  <span class="sk-meta" style="font-size:0.6cqw;">31 releases · activation 31.3% · +0.1 pts in 12 weeks</span>
                 </footer>
               </section>
 
@@ -367,7 +387,7 @@
   </div>
 
   <!-- film overlay — lower-third, rides the frame, outside the camera -->
-  <div id="wb-lt" class="clip" data-start="0" data-duration="8.5" data-track-index="2">
+  <div id="wb-lt" class="clip" data-start="0" data-duration="12.5" data-track-index="2">
     <div class="sk-lowerthird">
       <span class="sk-lt-kicker wb-lt-kicker">the blind spot</span>
       <span class="sk-lt-line wb-lt-line">knowing <em class="wb-ember">what to build</em> is the hard part now.</span>
@@ -392,8 +412,11 @@
        Pose A (t0):    s 2.40, T(1060, 288)  → close-up on the changelog's upper rows
        Scene 1 pan:    T.y 288 → −288        → the camera rides down the list as rows land
        Scene 2 pull:   → s 1.0, T(0,0)       → whole screen revealed (motion-blur streak at peak velocity)
-       Scene 3 push:   → s 1.45, T(−255,−9)  → slow push onto the flat line (right panel fills frame)
-       Drift: Lissajous sine (freq ratio 1.35) added on top for the entire 8.5 s.            */
+       Scene 2 creep:  → s 1.08              → never sleeps while the line draws itself flat
+       Scene 3 push:   → s 1.28, T(−255,−45) → slow push onto the flat line; the pane fills the frame
+                                                but its "31 releases · +0.1 pts" footer stays readable
+       All camera motion is over by 10.4 s: the last 1.7 s is a settled read-hold, drift only.
+       Drift: Lissajous sine (freq ratio 1.35) added on top for the entire 12.1 s.           */
     var cam = { s: 2.4, x: 1060, y: 288 };
     var drift = { p: 0 };
     function applyCam() {
@@ -403,52 +426,68 @@
     }
     applyCam(); /* seed frame 0 */
 
-    tl.fromTo(cam, { y: 288 }, { y: -288, duration: 3.0, ease: "power1.inOut", onUpdate: applyCam }, 0);
-    tl.to(cam, { s: 1.0, x: 0, y: 0, duration: 1.6, ease: "power2.inOut", onUpdate: applyCam }, 3.0);
-    tl.to(cam, { s: 1.45, x: -255, y: -9, duration: 2.3, ease: "power1.inOut", onUpdate: applyCam }, 6.2);
-    tl.to(drift, { p: Math.PI * 2 * 2, duration: 8.5, ease: "none", onUpdate: applyCam }, 0);
+    tl.fromTo(cam, { y: 288 }, { y: -288, duration: 4.2, ease: "power1.inOut", onUpdate: applyCam }, 0);
+    tl.to(cam, { s: 1.0, x: 0, y: 0, duration: 1.8, ease: "power2.inOut", onUpdate: applyCam }, 4.2);
+    tl.to(cam, { s: 1.08, x: -46, y: -3, duration: 2.4, ease: "sine.inOut", onUpdate: applyCam }, 6.0);
+    tl.to(cam, { s: 1.28, x: -255, y: -45, duration: 2.0, ease: "power1.inOut", onUpdate: applyCam }, 8.4);
+    tl.to(drift, { p: Math.PI * 2 * 2, duration: 12.1, ease: "none", onUpdate: applyCam }, 0);
 
     /* ── motion-blur streak (Path A) — envelope peaks with the pull-back's peak velocity ── */
     var mbNode = ROOT.querySelector("#wb-mb-blur");
     var mb = { v: 0 };
     function writeMb() { mbNode.setAttribute("stdDeviation", mb.v + " 0"); }
     writeMb(); /* seed: sharp at rest */
-    tl.to(mb, { v: 12, duration: 0.8, ease: "power2.in", onUpdate: writeMb }, 3.0);
-    tl.to(mb, { v: 0, duration: 0.8, ease: "power2.out", onUpdate: writeMb }, 3.8);
+    tl.to(mb, { v: 12, duration: 0.88, ease: "power2.in", onUpdate: writeMb }, 4.2);
+    tl.to(mb, { v: 0, duration: 0.88, ease: "power2.out", onUpdate: writeMb }, 5.12);
 
-    /* ── Scene 1 (0–3.0) — rows land down the list while the camera pans with them ── */
+    /* ── Scene 1 (0–4.2) — VO "but what to build, nobody cracks that call":
+          rows land down the list while the camera pans with them ── */
     ROOT.querySelectorAll(".wb-row-in").forEach(function (r, i) {
-      tl.fromTo(r, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" }, 0.45 + i * 0.3);
+      tl.fromTo(r, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" }, 0.5 + i * 0.42);
     });
 
-    /* lower-third — kicker then line, on the VO's opening clause */
-    tl.fromTo(ROOT.querySelector(".wb-lt-kicker"), { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.8);
-    tl.fromTo(ROOT.querySelector(".wb-lt-line"), { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 1.1);
+    /* the agent is working the release tool — the live row settles, then its dot breathes twice */
+    tl.fromTo(ROOT.querySelector("#wb-agentrow"), { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.35);
+    var adot = ROOT.querySelector("#wb-agent-dot");
+    tl.to(adot, { opacity: 0.3, duration: 0.45, ease: "sine.inOut" }, 0.95);
+    tl.to(adot, { opacity: 1, duration: 0.45, ease: "sine.inOut" }, 1.5);
+    tl.to(adot, { opacity: 0.3, duration: 0.45, ease: "sine.inOut" }, 2.15);
+    tl.to(adot, { opacity: 1, duration: 0.45, ease: "sine.inOut" }, 2.7);
 
-    /* ── Scene 2 (3.0–6.0) — rack focus onto the analytics plane (depth-of-field-blur) ── */
+    /* lower-third — kicker then line, on the VO's opening clause */
+    tl.fromTo(ROOT.querySelector(".wb-lt-kicker"), { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.9);
+    tl.fromTo(ROOT.querySelector(".wb-lt-line"), { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 1.3);
+
+    /* ── Scene 2 (4.2–8.4) — VO "so teams build the wrong features, beautifully…":
+          rack focus onto the analytics plane (depth-of-field-blur) ── */
     var rel = ROOT.querySelector("#wb-rel");
     var ana = ROOT.querySelector("#wb-ana");
-    tl.fromTo(ana, { "--dof": "7px", opacity: 0.75 }, { "--dof": "0px", opacity: 1, duration: 1.3, ease: "power2.inOut" }, 3.2);
-    tl.fromTo(rel, { "--dof": "0px", opacity: 1 }, { "--dof": "2.2px", opacity: 0.94, duration: 1.3, ease: "power2.inOut" }, 3.2);
+    tl.fromTo(ana, { "--dof": "7px", opacity: 0.75 }, { "--dof": "0px", opacity: 1, duration: 1.4, ease: "power2.inOut" }, 4.6);
+    tl.fromTo(rel, { "--dof": "0px", opacity: 1 }, { "--dof": "2.2px", opacity: 0.94, duration: 1.4, ease: "power2.inOut" }, 4.6);
 
     /* the activation line draws itself FLAT (svg-path-draw, constant pen speed) */
     var line = ROOT.querySelector("#wb-line");
     var len = line.getTotalLength();
     line.style.strokeDasharray = String(len);
     line.style.strokeDashoffset = String(len);
-    tl.fromTo(line, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: 2.1, ease: "none" }, 3.9);
+    /* the pen lands exactly on the VO's "and miss what mattered" */
+    tl.fromTo(line, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: 2.8, ease: "none" }, 5.6);
 
     /* release markers tick along the axis while the line refuses to move */
     ROOT.querySelectorAll(".wb-rmk").forEach(function (m, i) {
-      tl.fromTo(m, { opacity: 0 }, { opacity: 0.85, duration: 0.3, ease: "power1.out" }, 3.95 + i * 0.17);
+      tl.fromTo(m, { opacity: 0 }, { opacity: 0.85, duration: 0.3, ease: "power1.out" }, 5.7 + i * 0.24);
     });
 
-    /* ── Scene 3 (6.0–8.5) — "and miss." ── */
-    tl.fromTo(ROOT.querySelector("#wb-enddot"), { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 5.9);
-    tl.fromTo(ROOT.querySelector("#wb-val"), { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 5.95);
-    tl.fromTo(ROOT.querySelector("#wb-nochange"), { opacity: 0, scale: 0.92, y: 6 }, { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "power3.out" }, 6.0);
+    /* ── Scene 3 (8.4–10.4) — VO "and miss what mattered… that's the judgment gap" ── */
+    tl.fromTo(ROOT.querySelector("#wb-enddot"), { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 8.45);
+    tl.fromTo(ROOT.querySelector("#wb-val"), { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 8.55);
+    /* the verdict chip lands on "that's the judgment gap" — last text on screen, 2.3 s before the cut */
+    tl.fromTo(ROOT.querySelector("#wb-nochange"), { opacity: 0, scale: 0.92, y: 6 }, { opacity: 1, scale: 1, y: 0, duration: 0.55, ease: "power3.out" }, 9.25);
     /* the shipped wall dims — chained from the rack's resting values (immediateRender:false) */
-    tl.fromTo(rel, { "--dof": "2.2px", opacity: 0.94 }, { "--dof": "5px", opacity: 0.45, duration: 0.9, ease: "power2.inOut", immediateRender: false }, 6.0);
+    tl.fromTo(rel, { "--dof": "2.2px", opacity: 0.94 }, { "--dof": "5px", opacity: 0.45, duration: 0.9, ease: "power2.inOut", immediateRender: false }, 9.25);
+
+    /* settled read-hold: nothing but micro-drift from 10.4 to 12.1 — the anchor pins the length */
+    tl.to({}, { duration: 12.1 }, 0);
 
     window.__timelines["02-worth-building"] = tl;
   })();
