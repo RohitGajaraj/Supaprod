@@ -1,362 +1,460 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <!-- Frame 2 — Worth building · 8.5s · 1920x1080 · dark register (Broadside)
-         Blueprint: kinetic-type-beats (Reproduce). Rules: discrete-text-sequence,
-         asr-keyword-glow, scale-swap-transition.
-         VO cue map (8.5s): "What nobody tells you" 0.0-1.3 · "is what's worth
-         building." 1.3-2.9 ("worth" ~2.05-2.65) · pause · "So teams polish the
-         prettiest idea…" 3.4-5.8 · "and miss." 6.3-7.1 · held read to 8.5.
-         Head is metadata only — everything the runtime needs is inside <template>. -->
-  </head>
-  <body>
-    <template>
-      <style>
-        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
-        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
-        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>F2 — Worth building (sub-composition; runtime reads only the template)</title>
+</head>
+<body>
+<template>
+<style>
+/* ————— fonts (kit block — project-root path + standalone-preview fallback) ————— */
+@font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2"),url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
 
-        /* Root styled via #root only — never a class on the composition root. */
-        #root {
-          position: absolute;
-          inset: 0;
-          overflow: hidden;
-          container-type: size;
-          font-family: "Mona Sans", sans-serif;
-        }
+/* ————— root — tokens live HERE (a `:root` rule would be scoped away at assembly) ————— */
+#root{
+  position:absolute;inset:0;overflow:hidden;
+  container-type:size;                    /* the container law — everything below is cqw/cqh */
+  color:var(--sk-text);
+  font-family:var(--sk-ui);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  /* surfaces (frame.md §Product screen tokens v3) */
+  --sk-ground:#0A0A0B;
+  --sk-panel:#141416;
+  --sk-raised:#1A1A1D;
+  --sk-hairline:#26262A;
+  --sk-text:#F2EFE9;
+  --sk-muted:#A8A29A;
+  --sk-faint:#6B6660;
+  /* stage colors */
+  --sk-discover:#6FA9A0;
+  --sk-decide:#C39A5E;
+  --sk-plan:#8FA464;
+  --sk-design:#AB7FA0;
+  --sk-build:#6D97C2;
+  --sk-ship:#BD8092;
+  --sk-learn:#A89F66;
+  --sk-pass:#4FC47A;
+  --sk-fail:#EF6A5F;
+  --sk-warn:#E8B44C;
+  --sk-ember:#FF6B2C;
+  --sk-accent:var(--sk-build);
+  /* radii */
+  --sk-r-chip:7px;
+  --sk-r-control:8px;
+  --sk-r-row:9px;
+  --sk-r-card:10px;
+  --sk-r-panel:12px;
+  --sk-r-pane:16px;
+  /* faces */
+  --sk-ui:"Mona Sans",system-ui,sans-serif;
+  --sk-mono:"IBM Plex Mono",ui-monospace,monospace;
+  /* the only two shadows that exist */
+  --sk-ring:0 0 0 1px var(--sk-hairline);
+  --sk-ambient:0 24px 80px rgba(0,0,0,.5);
+}
+#root *,#root *::before,#root *::after{box-sizing:border-box;margin:0;padding:0;}
 
-        /* ---- full-bleed ground (its own clip, never a bg on #root) ---- */
-        .ground {
-          position: absolute;
-          inset: 0;
-          background: #0a0a0b; /* ink-black */
-          z-index: 0;
-        }
+/* ————— clip layers ————— */
+#wb-bg{position:absolute;inset:0;z-index:0;background:var(--sk-ground);}
+#wb-world{position:absolute;inset:0;z-index:1;}
+#wb-lt{position:absolute;inset:0;z-index:5;pointer-events:none;}
 
-        /* ---- carried card texture (from F1), dims then topples ---- */
-        .cards-layer {
-          position: absolute;
-          inset: 0;
-          z-index: 1;
-        }
-        .cards-field {
-          position: absolute;
-          inset: 0;
-          opacity: 0.55; /* carried in at 55%, dims to 30% in Scene 1 */
-        }
-        .card {
-          position: absolute;
-          width: 17cqw;
-          padding: 1.15cqw;
-          background: #141416; /* ink-black-alt */
-          border: 1px solid #26262a; /* border-dark hairline */
-          display: flex;
-          flex-direction: column;
-          gap: 0.55cqw;
-          will-change: transform, opacity;
-        }
-        .card .stub {
-          width: 1.9cqw;
-          height: 2px; /* frame.md rule stub — hairline-scale, px by spec */
-          background: #ff6b2c; /* fire-orange */
-          margin-bottom: 0.35cqw;
-        }
-        .card .bar {
-          height: 0.42cqw;
-          background: #6b6660; /* cream-hint skeleton */
-        }
-        .card .bar.t {
-          height: 0.62cqw;
-          background: #a8a29a; /* cream-muted title bar */
-          width: 62%;
-        }
-        .card .bar.b1 { width: 88%; }
-        .card .bar.b2 { width: 55%; }
-        #c2 .bar.t { width: 48%; }
-        #c3 .bar.t { width: 70%; }
-        #c4 .bar.b2 { width: 40%; }
-        #c5 .bar.t { width: 55%; }
-        #c6 .bar.b1 { width: 78%; }
-        #c7 .bar.t { width: 66%; }
-        #c1 { left: 9cqw;  top: 21cqh; opacity: 0.7; }
-        #c2 { left: 65cqw; top: 19cqh; opacity: 0.7; }
-        #c3 { left: 19cqw; top: 43cqh; opacity: 0.85; }
-        #c4 { left: 60cqw; top: 45cqh; opacity: 0.85; }
-        #c5 { left: 5cqw;  top: 49cqh; opacity: 1; }
-        #c6 { left: 72cqw; top: 51cqh; opacity: 1; }
-        #c7 { left: 40cqw; top: 14cqh; opacity: 0.85; }
+/* ————— camera (multi-phase-camera + viewport-change: ONE world wrapper) ————— */
+#wb-cam{
+  position:absolute;inset:0;
+  transform-origin:50% 50%;
+  will-change:transform,filter;
+  filter:url(#wb-mb);                     /* motion-blur-streak rides the camera; stdDeviation 0 at rest */
+}
 
-        /* ---- type layer ---- */
-        .type-layer {
-          position: absolute;
-          inset: 0;
-          z-index: 2;
-        }
-        .headline-block {
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: 33cqh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 1.6cqh;
-          text-align: center;
-        }
-        .kicker {
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.72cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #ff6b2c; /* fire-orange kicker on dark */
-          opacity: 0;
-          will-change: transform, opacity;
-        }
-        .headline {
-          font-size: 4.5cqw; /* h2 role */
-          font-weight: 700;
-          line-height: 1.1;
-          letter-spacing: -0.02em;
-          color: #f2efe9; /* cream */
-          white-space: nowrap;
-        }
-        .headline .w {
-          display: inline-block; /* required for transform on spans */
-          opacity: 0; /* driven by the discrete-state driver every frame */
-        }
-        .headline .w + .w {
-          margin-left: 1.05cqw;
-        }
-        #w-worth {
-          transform-origin: 50% 60%;
-          will-change: transform, text-shadow, color;
-        }
-        #w-q {
-          display: inline-block;
-          opacity: 0;
-          margin-left: 0;
-        }
-        .miss {
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: 68cqh; /* lower-third, above the 83% keep-out */
-          text-align: center;
-          font-size: 2.8cqw; /* h3 role — small and alone against the h2 */
-          font-weight: 600;
-          line-height: 1.2;
-          letter-spacing: -0.02em;
-          color: #f2efe9;
-          opacity: 0;
-          transform-origin: 50% 50%;
-          will-change: transform, opacity;
-        }
-      </style>
+/* ————— perspective stage + screen (kit) ————— */
+.sk-stage{
+  position:absolute;inset:0;display:grid;place-items:center;
+  perspective:var(--sk-persp,2200px);
+  perspective-origin:50% 42%;
+}
+.sk-screen{
+  position:relative;
+  width:var(--sk-w,88cqw);height:var(--sk-h,86cqh);
+  transform:rotateX(var(--sk-rx,1.8deg)) rotateY(var(--sk-ry,-2.4deg));
+  transform-style:preserve-3d;
+  background:var(--sk-ground);
+  border-radius:var(--sk-r-pane);
+  box-shadow:var(--sk-ring),var(--sk-ambient);
+  overflow:hidden;
+}
 
-      <div id="root" data-composition-id="02-worth-building" data-width="1920" data-height="1080" data-duration="8.9">
-        <!-- ground -->
-        <div id="bg" class="clip ground" data-start="0" data-duration="8.5" data-track-index="0"></div>
+/* ————— shell — this pre-Supaprod frame is the TEAM's own release tool: topbar + content, no station sidebar ————— */
+.wb-shell{
+  display:grid;height:100%;
+  grid-template-rows:3.2cqh minmax(0,1fr);
+}
 
-        <!-- carried card texture — dims (S1), topples down-frame (S2) -->
-        <div id="cards-layer" class="clip cards-layer" data-start="0" data-duration="8.5" data-track-index="1">
-          <div class="cards-field" id="cards-field" data-layout-allow-overflow>
-            <div class="card" id="c1"><span class="stub"></span><span class="bar t"></span><span class="bar b1"></span><span class="bar b2"></span></div>
-            <div class="card" id="c2"><span class="stub"></span><span class="bar t"></span><span class="bar b1"></span><span class="bar b2"></span></div>
-            <div class="card" id="c3"><span class="stub"></span><span class="bar t"></span><span class="bar b1"></span><span class="bar b2"></span></div>
-            <div class="card" id="c4"><span class="stub"></span><span class="bar t"></span><span class="bar b1"></span><span class="bar b2"></span></div>
-            <div class="card" id="c5"><span class="stub"></span><span class="bar t"></span><span class="bar b1"></span><span class="bar b2"></span></div>
-            <div class="card" id="c6"><span class="stub"></span><span class="bar t"></span><span class="bar b1"></span><span class="bar b2"></span></div>
-            <div class="card" id="c7"><span class="stub"></span><span class="bar t"></span><span class="bar b1"></span><span class="bar b2"></span></div>
+/* ————— top bar (kit, grid-area removed for the row shell) ————— */
+.sk-topbar{
+  display:flex;align-items:center;gap:0.9cqw;
+  padding:0 1cqw;border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
+}
+.sk-crumb{display:flex;align-items:center;font:400 0.62cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;}
+.sk-crumb-sep{padding:0 0.35cqw;color:var(--sk-faint);}
+.sk-crumb-here{color:var(--sk-text);}
+.sk-ask{
+  display:flex;align-items:center;gap:0.5cqw;flex:0 1 20cqw;height:2.1cqh;
+  padding:0 0.4cqw 0 0.65cqw;background:var(--sk-panel);
+  border:1px solid var(--sk-hairline);border-radius:var(--sk-r-control);
+  font:400 0.66cqw/1 var(--sk-ui);color:var(--sk-faint);
+}
+.sk-ask svg{width:0.68cqw;height:0.68cqw;flex:none;stroke:var(--sk-faint);fill:none;stroke-width:1.6;}
+.sk-kbd{
+  margin-left:auto;padding:0.1cqw 0.32cqw;
+  font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-faint);
+  background:var(--sk-ground);border:1px solid var(--sk-hairline);border-radius:5px;
+}
+.sk-spacer{flex:1;}
+.sk-avatar{
+  width:1.25cqw;height:1.25cqw;flex:none;display:grid;place-items:center;
+  background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:50%;
+  font:600 0.5cqw/1 var(--sk-ui);color:var(--sk-muted);letter-spacing:0.05em;
+}
+
+/* ————— true-UI type (kit) ————— */
+.sk-title{font:600 1.3cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
+.sk-meta{font:400 0.68cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+.sk-label{font:500 0.65cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.10em;text-transform:uppercase;}
+
+/* ————— panels · panes (kit) ————— */
+.sk-panel{
+  background:var(--sk-panel);border:1px solid var(--sk-hairline);
+  border-radius:var(--sk-r-panel);overflow:hidden;min-height:0;
+  display:flex;flex-direction:column;
+}
+.sk-pane{
+  background:var(--sk-panel);border:1px solid var(--sk-hairline);
+  border-radius:var(--sk-r-pane);overflow:hidden;min-height:0;
+  display:flex;flex-direction:column;
+}
+.sk-panel-hd,.sk-pane-hd{
+  display:flex;align-items:center;gap:0.6cqw;flex:none;
+  padding:0.75cqw 1cqw;border-bottom:1px solid var(--sk-hairline);
+}
+.sk-panel-title{font:600 0.83cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+.sk-panel-body,.sk-pane-body{flex:1;min-height:0;overflow:hidden;}
+.sk-panel-ft{
+  display:flex;align-items:center;gap:0.6cqw;flex:none;
+  padding:0.6cqw 1cqw;border-top:1px solid var(--sk-hairline);
+  background:var(--sk-panel);
+}
+
+/* ————— chips · badges (kit) ————— */
+.sk-chip{
+  display:inline-flex;align-items:center;gap:0.3cqw;
+  padding:0.22cqw 0.45cqw;border:1px solid var(--sk-hairline);
+  border-radius:var(--sk-r-chip);background:rgba(255,255,255,0.02);
+  font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
+  white-space:nowrap;
+}
+.sk-chip.is-on{color:var(--sk-accent);border-color:color-mix(in srgb,var(--sk-accent) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-accent) 8%,transparent);}
+.sk-chip--pass{color:var(--sk-pass);border-color:color-mix(in srgb,var(--sk-pass) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-pass) 8%,transparent);}
+.sk-chip--warn{color:var(--sk-warn);border-color:color-mix(in srgb,var(--sk-warn) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-warn) 8%,transparent);}
+.sk-dot-inline{width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;background:currentColor;}
+.sk-badge{
+  display:inline-flex;align-items:center;padding:0.22cqw 0.45cqw;
+  background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:var(--sk-r-chip);
+  font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);font-variant-numeric:tabular-nums;
+}
+
+/* ————— lower-third (kit — mono kicker + one sentence-case line, lower-left, never centered) ————— */
+.sk-lowerthird{
+  position:absolute;left:5.5cqw;bottom:7cqh;
+  display:flex;flex-direction:column;gap:0.55cqh;
+  text-shadow:0 2px 30px rgba(0,0,0,.6);
+}
+.sk-lt-kicker{
+  font:500 0.72cqw/1 var(--sk-mono);letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--sk-ember);                  /* film-token kicker: fire-orange on dark */
+}
+.sk-lt-line{font:600 2.6cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
+.wb-ember{color:var(--sk-ember);font-style:normal;}
+
+/* ————— frame content — releases / changelog + activation analytics ————— */
+.wb-main{
+  position:relative;display:grid;min-height:0;
+  grid-template-columns:34cqw minmax(0,1fr);
+  grid-template-rows:auto minmax(0,1fr);
+  gap:1cqw;padding:1.1cqw;
+}
+.wb-pagehead{grid-column:1/-1;display:flex;align-items:baseline;gap:0.8cqw;}
+
+/* depth-of-field planes — --dof drives blur; tweened on the timeline, never a CSS transition */
+.wb-plane{filter:blur(var(--dof));will-change:filter;}
+#wb-rel{--dof:0px;}
+#wb-ana{--dof:7px;opacity:0.75;}          /* pre-blurred far plane; the rack brings it into focus */
+
+/* changelog rows */
+.wb-row{display:flex;align-items:center;gap:0.8cqw;padding:0.6cqw 1cqw;}
+.wb-row + .wb-row{border-top:1px solid var(--sk-hairline);}
+.wb-rowmain{flex:1;min-width:0;}
+.wb-name{font:400 0.73cqw/1.35 var(--sk-ui);color:var(--sk-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wb-rowmeta{margin-top:0.18cqw;font:400 0.6cqw/1.3 var(--sk-ui);color:var(--sk-muted);}
+
+/* activation chart */
+.wb-chartbody{position:relative;}
+.wb-plot{position:absolute;top:1.4cqw;right:4.6cqw;bottom:3.1cqw;left:3.4cqw;}
+.wb-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;display:block;}
+.wb-ylab{position:absolute;right:calc(100% + 0.5cqw);transform:translateY(-50%);font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-faint);font-variant-numeric:tabular-nums;}
+.wb-xlab{position:absolute;top:calc(100% + 0.55cqw);transform:translateX(-50%);font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.06em;text-transform:uppercase;}
+.wb-val{position:absolute;left:calc(100% + 0.55cqw);top:45.7%;transform:translateY(-50%);font:500 0.68cqw/1 var(--sk-mono);color:var(--sk-text);font-variant-numeric:tabular-nums;}
+.wb-enddot{position:absolute;left:calc(100% - 0.22cqw);top:45.7%;transform:translateY(-50%);width:0.44cqw;height:0.44cqw;border-radius:50%;background:var(--sk-build);}
+</style>
+
+<div id="root" data-composition-id="02-worth-building" data-width="1920" data-height="1080">
+
+  <!-- full-bleed ground — a clip layer, never a background on #root -->
+  <div id="wb-bg" class="clip" data-start="0" data-duration="8.5" data-track-index="0"></div>
+
+  <!-- the world: perspective stage + screen, wrapped by ONE camera element -->
+  <div id="wb-world" class="clip" data-start="0" data-duration="8.5" data-track-index="1" data-layout-allow-overflow>
+
+    <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+      <defs>
+        <filter id="wb-mb" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+          <feGaussianBlur id="wb-mb-blur" in="SourceGraphic" stdDeviation="0 0"/>
+        </filter>
+      </defs>
+    </svg>
+
+    <div id="wb-cam">
+      <div class="sk-stage">
+        <div class="sk-screen" style="--sk-accent:var(--sk-build)">
+          <div class="wb-shell">
+
+            <!-- top bar — the team's release tool, pre-Supaprod -->
+            <header class="sk-topbar">
+              <div class="sk-crumb"><span>product</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">releases</span></div>
+              <div class="sk-ask">
+                <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>
+                search releases…
+                <span class="sk-kbd">⌘K</span>
+              </div>
+              <span class="sk-spacer"></span>
+              <span class="sk-badge">v2.3.9 · latest</span>
+              <div class="sk-avatar">MR</div>
+            </header>
+
+            <main class="wb-main">
+
+              <div class="wb-pagehead">
+                <h1 class="sk-title">Releases</h1>
+                <span class="sk-meta">31 shipped this quarter · last release 2d ago</span>
+                <span class="sk-spacer"></span>
+                <span class="sk-chip is-on">all 31</span>
+                <span class="sk-chip">features 18</span>
+                <span class="sk-chip">fixes 9</span>
+                <span class="sk-chip">polish 4</span>
+              </div>
+
+              <!-- changelog — the wall of shipped features (DoF near plane) -->
+              <section class="sk-panel wb-plane" id="wb-rel">
+                <header class="sk-panel-hd">
+                  <h2 class="sk-panel-title">Changelog</h2>
+                  <span class="sk-badge">31</span>
+                  <span class="sk-spacer"></span>
+                  <span class="sk-label" style="font-size:0.55cqw;">newest first</span>
+                </header>
+                <div class="sk-panel-body">
+                  <div class="wb-row">
+                    <div class="wb-rowmain"><p class="wb-name">storefront theme refresh</p><p class="wb-rowmeta">maya r. · v2.3.9 · aug 8</p></div>
+                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  </div>
+                  <div class="wb-row">
+                    <div class="wb-rowmain"><p class="wb-name">animated onboarding tour</p><p class="wb-rowmeta">jonah t. · v2.3.8 · aug 5</p></div>
+                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  </div>
+                  <div class="wb-row">
+                    <div class="wb-rowmain"><p class="wb-name">dark mode</p><p class="wb-rowmeta">priya s. · v2.3.7 · jul 30</p></div>
+                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  </div>
+                  <div class="wb-row wb-row-in">
+                    <div class="wb-rowmain"><p class="wb-name">custom email templates</p><p class="wb-rowmeta">maya r. · v2.3.6 · jul 24</p></div>
+                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  </div>
+                  <div class="wb-row wb-row-in">
+                    <div class="wb-rowmain"><p class="wb-name">refreshed icon set</p><p class="wb-rowmeta">jonah t. · v2.3.5 · jul 18</p></div>
+                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  </div>
+                  <div class="wb-row wb-row-in">
+                    <div class="wb-rowmain"><p class="wb-name">new marketing pages</p><p class="wb-rowmeta">priya s. · v2.3.4 · jul 11</p></div>
+                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  </div>
+                  <div class="wb-row wb-row-in">
+                    <div class="wb-rowmain"><p class="wb-name">polished empty states</p><p class="wb-rowmeta">maya r. · v2.3.3 · jul 3</p></div>
+                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  </div>
+                  <div class="wb-row wb-row-in">
+                    <div class="wb-rowmain"><p class="wb-name">redesigned settings</p><p class="wb-rowmeta">jonah t. · v2.3.2 · jun 26</p></div>
+                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  </div>
+                  <div class="wb-row wb-row-in">
+                    <div class="wb-rowmain"><p class="wb-name">animated cart badge</p><p class="wb-rowmeta">priya s. · v2.3.1 · jun 19</p></div>
+                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  </div>
+                  <div class="wb-row wb-row-in">
+                    <div class="wb-rowmain"><p class="wb-name">confetti on signup</p><p class="wb-rowmeta">maya r. · v2.3.0 · jun 12</p></div>
+                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  </div>
+                </div>
+                <footer class="sk-panel-ft">
+                  <span class="sk-meta" style="font-size:0.6cqw;">1 – 10 of 31 · updated 2d ago</span>
+                  <span class="sk-spacer"></span>
+                  <span class="sk-meta" style="font-size:0.6cqw;">velocity 1.6× vs last quarter</span>
+                </footer>
+              </section>
+
+              <!-- activation — the flat line (DoF far plane, racked into focus) -->
+              <section class="sk-pane wb-plane" id="wb-ana">
+                <header class="sk-pane-hd">
+                  <h2 class="sk-panel-title">Activation</h2>
+                  <span class="sk-meta" style="font-size:0.62cqw;">weekly · last 12 weeks</span>
+                  <span class="sk-spacer"></span>
+                  <span class="sk-chip sk-chip--warn" id="wb-nochange"><span class="sk-dot-inline"></span>period: no change</span>
+                </header>
+                <div class="sk-pane-body wb-chartbody">
+                  <div class="wb-plot">
+                    <svg viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true">
+                      <!-- grid -->
+                      <line x1="0" y1="90"  x2="1000" y2="90"  stroke="#26262A" stroke-width="1" vector-effect="non-scaling-stroke"/>
+                      <line x1="0" y1="280" x2="1000" y2="280" stroke="#26262A" stroke-width="1" vector-effect="non-scaling-stroke"/>
+                      <line x1="0" y1="470" x2="1000" y2="470" stroke="#26262A" stroke-width="1" vector-effect="non-scaling-stroke"/>
+                      <line x1="0" y1="560" x2="1000" y2="560" stroke="#26262A" stroke-width="1" vector-effect="non-scaling-stroke"/>
+                      <!-- release markers along the axis (tick per shipped row, jun 12 → aug 8) -->
+                      <line class="wb-rmk" x1="298" y1="520" x2="298" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                      <line class="wb-rmk" x1="381" y1="520" x2="381" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                      <line class="wb-rmk" x1="464" y1="520" x2="464" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                      <line class="wb-rmk" x1="548" y1="520" x2="548" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                      <line class="wb-rmk" x1="643" y1="520" x2="643" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                      <line class="wb-rmk" x1="726" y1="520" x2="726" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                      <line class="wb-rmk" x1="798" y1="520" x2="798" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                      <line class="wb-rmk" x1="869" y1="520" x2="869" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                      <line class="wb-rmk" x1="940" y1="520" x2="940" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                      <line class="wb-rmk" x1="976" y1="520" x2="976" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                      <!-- the flat activation line — svg-path-draw -->
+                      <path id="wb-line"
+                        d="M 0 258 L 83.3 252 L 166.7 257 L 250 250 L 333.3 256 L 416.7 249 L 500 255 L 583.3 250 L 666.7 254 L 750 248 L 833.3 255 L 916.7 250 L 1000 256"
+                        fill="none" stroke="#6D97C2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"
+                        vector-effect="non-scaling-stroke"/>
+                    </svg>
+                    <span class="wb-ylab" style="top:16.07%;">40%</span>
+                    <span class="wb-ylab" style="top:50%;">30%</span>
+                    <span class="wb-ylab" style="top:83.93%;">20%</span>
+                    <span class="wb-xlab" style="left:16.7%;">jun</span>
+                    <span class="wb-xlab" style="left:52.4%;">jul</span>
+                    <span class="wb-xlab" style="left:89.3%;">aug</span>
+                    <span class="wb-enddot" id="wb-enddot"></span>
+                    <span class="wb-val" id="wb-val">31.3%</span>
+                  </div>
+                </div>
+                <footer class="sk-panel-ft">
+                  <span class="sk-label" style="font-size:0.55cqw;">release markers on axis</span>
+                  <span class="sk-spacer"></span>
+                  <span class="sk-meta" style="font-size:0.6cqw;">activation 31.3% · +0.1 pts in 12 weeks</span>
+                </footer>
+              </section>
+
+            </main>
           </div>
-        </div>
-
-        <!-- type layer — the statement, then the small "miss." stamp -->
-        <div id="type-layer" class="clip type-layer" data-start="0" data-duration="8.5" data-track-index="2">
-          <div class="headline-block" id="headline-block">
-            <div class="kicker" id="kicker">the part nobody solved</div>
-            <div class="headline" id="headline">
-              <span class="w" id="w1">what's</span><span class="w" id="w-worth">worth</span><span class="w" id="w2">building<span id="w-q">?</span></span>
-            </div>
-          </div>
-          <div class="miss" id="miss">miss.</div>
         </div>
       </div>
+    </div>
+  </div>
 
-      <script
-        src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
-        integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
-        crossorigin="anonymous"
-      ></script>
-      <script>
-        window.__timelines = window.__timelines || {};
-        const tl = gsap.timeline({ paused: true });
-        const DUR = 8.5;
+  <!-- film overlay — lower-third, rides the frame, outside the camera -->
+  <div id="wb-lt" class="clip" data-start="0" data-duration="8.5" data-track-index="2">
+    <div class="sk-lowerthird">
+      <span class="sk-lt-kicker wb-lt-kicker">the blind spot</span>
+      <span class="sk-lt-line wb-lt-line">knowing <em class="wb-ember">what to build</em> — that's the hard part now.</span>
+    </div>
+  </div>
 
-        /* =========================================================
-           Scene 1 (0–3.19) — carried texture dims; the statement
-           hard-cuts in; ember keyword glow on "worth".
-           ========================================================= */
+</div>
 
-        // Carried card texture dims 55% -> 30% as the frame opens.
-        tl.fromTo(
-          "#cards-field",
-          { opacity: 0.55 },
-          { opacity: 0.3, duration: 1.0, ease: "power2.out" },
-          0
-        );
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
+<script>
+  window.__timelines = window.__timelines || {};
+  (function () {
+    var ROOT = document.querySelector('[data-composition-id="02-worth-building"]');
+    var camEl = ROOT.querySelector("#wb-cam");
 
-        // Mono kicker settles in early — context before the statement.
-        tl.fromTo(
-          "#kicker",
-          { opacity: 0, yPercent: 60 },
-          { opacity: 1, yPercent: 0, duration: 0.6, ease: "power3.out" },
-          0.4
-        );
+    var tl = gsap.timeline({ paused: true });
 
-        /* discrete-text-sequence — whole-line hard-cut states at time
-           thresholds (instant, no fade), plus a final punctuation snap.
-           All spans occupy layout from t=0 (opacity-toggled) so the
-           centered line never reflows. */
-        const STATES = [
-          { t: 0.0, s: 0 },   // empty slot
-          { t: 1.5, s: 1 },   // hard cut: "what's worth building" — on the VO
-          { t: 2.78, s: 2 },  // punctuation snap: "?" lands as the VO finishes
-        ];
-        function stateAt(time) {
-          for (let i = STATES.length - 1; i >= 0; i--) {
-            if (time >= STATES[i].t) return STATES[i].s;
-          }
-          return 0;
-        }
+    /* ───────────────── camera — one world wrapper, multi-phase + micro-drift ─────────────────
+       Composite transform: translate(x,y) scale(s) → a world point at offset o from
+       viewport center (960,540) lands at s·o + T, so T = −offset·scale (viewport-change math).
+       Pose A (t0):    s 2.40, T(1060, 288)  → close-up on the changelog's upper rows
+       Scene 1 pan:    T.y 288 → −288        → the camera rides down the list as rows land
+       Scene 2 pull:   → s 1.0, T(0,0)       → whole screen revealed (motion-blur streak at peak velocity)
+       Scene 3 push:   → s 1.45, T(−255,−9)  → slow push onto the flat line (right panel fills frame)
+       Drift: Lissajous sine (freq ratio 1.35) added on top for the entire 8.5 s.            */
+    var cam = { s: 2.4, x: 1060, y: 288 };
+    var drift = { p: 0 };
+    function applyCam() {
+      var dx = Math.sin(drift.p) * 5;
+      var dy = Math.sin(drift.p * 1.35) * 3;
+      camEl.style.transform = "translate(" + (cam.x + dx) + "px, " + (cam.y + dy) + "px) scale(" + cam.s + ")";
+    }
+    applyCam(); /* seed frame 0 */
 
-        /* asr-keyword-glow — attack/sustain/release envelope on "worth",
-           synced to the spoken word (~2.05–2.65). Rest level keeps an
-           ember breadcrumb on the word for the rest of the frame. */
-        const KW = { start: 2.05, end: 2.65 };
-        const ATTACK_DUR = 0.18;
-        const RELEASE = 0.45;
-        const REST_LEVEL = 0.3;
-        const MAX_BLUR_CQW = 1.15;
-        const MAX_SCALE_BOOST = 0.09;
-        function envelope(time, start, end) {
-          const releaseEnd = end + RELEASE;
-          if (time < start) return 0;
-          if (time < end) return Math.min((time - start) / ATTACK_DUR, 1);
-          if (time < releaseEnd) {
-            const decay = (time - end) / RELEASE;
-            return 1 - decay * (1 - REST_LEVEL);
-          }
-          return REST_LEVEL;
-        }
-        const REST_RGB = { r: 242, g: 239, b: 233 };   // cream
-        const EMBER_RGB = { r: 255, g: 107, b: 44 };   // fire-orange
-        function lerpChannel(a, b, t) {
-          return Math.round(a + (b - a) * t);
-        }
+    tl.fromTo(cam, { y: 288 }, { y: -288, duration: 3.0, ease: "power1.inOut", onUpdate: applyCam }, 0);
+    tl.to(cam, { s: 1.0, x: 0, y: 0, duration: 1.6, ease: "power2.inOut", onUpdate: applyCam }, 3.0);
+    tl.to(cam, { s: 1.45, x: -255, y: -9, duration: 2.3, ease: "power1.inOut", onUpdate: applyCam }, 6.2);
+    tl.to(drift, { p: Math.PI * 2 * 2, duration: 8.5, ease: "none", onUpdate: applyCam }, 0);
 
-        const w1El = document.getElementById("w1");
-        const wWorthEl = document.getElementById("w-worth");
-        const w2El = document.getElementById("w2");
-        const wQEl = document.getElementById("w-q");
+    /* ── motion-blur streak (Path A) — envelope peaks with the pull-back's peak velocity ── */
+    var mbNode = ROOT.querySelector("#wb-mb-blur");
+    var mb = { v: 0 };
+    function writeMb() { mbNode.setAttribute("stdDeviation", mb.v + " 0"); }
+    writeMb(); /* seed: sharp at rest */
+    tl.to(mb, { v: 12, duration: 0.8, ease: "power2.in", onUpdate: writeMb }, 3.0);
+    tl.to(mb, { v: 0, duration: 0.8, ease: "power2.out", onUpdate: writeMb }, 3.8);
 
-        // Single linear driver — discrete states + glow are pure functions of t.
-        const driver = { t: 0 };
-        tl.to(
-          driver,
-          {
-            t: DUR,
-            duration: DUR,
-            ease: "none",
-            onUpdate: () => {
-              const s = stateAt(driver.t);
-              const line = s >= 1 ? "1" : "0";
-              w1El.style.opacity = line;
-              wWorthEl.style.opacity = line;
-              w2El.style.opacity = line;
-              wQEl.style.opacity = s >= 2 ? "1" : "0";
+    /* ── Scene 1 (0–3.0) — rows land down the list while the camera pans with them ── */
+    ROOT.querySelectorAll(".wb-row-in").forEach(function (r, i) {
+      tl.fromTo(r, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" }, 0.45 + i * 0.3);
+    });
 
-              const env = envelope(driver.t, KW.start, KW.end);
-              const blur = MAX_BLUR_CQW * env;
-              wWorthEl.style.transform = "scale(" + (1 + MAX_SCALE_BOOST * env) + ")";
-              wWorthEl.style.textShadow =
-                "0 0 " + blur.toFixed(3) + "cqw rgba(255,107,44," + (0.15 + env * 0.5).toFixed(3) + ")";
-              wWorthEl.style.color =
-                "rgb(" +
-                lerpChannel(REST_RGB.r, EMBER_RGB.r, env) + "," +
-                lerpChannel(REST_RGB.g, EMBER_RGB.g, env) + "," +
-                lerpChannel(REST_RGB.b, EMBER_RGB.b, env) + ")";
-            },
-          },
-          0
-        );
+    /* lower-third — kicker then line, on the VO's opening clause */
+    tl.fromTo(ROOT.querySelector(".wb-lt-kicker"), { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.8);
+    tl.fromTo(ROOT.querySelector(".wb-lt-line"), { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 1.1);
 
-        /* =========================================================
-           Scene 2 (3.19–6.37) — "polish the prettiest idea": the
-           cards tilt further and slide down-frame out of relevance.
-           scale-swap-transition, outgoing half: shrink + fade on
-           power2.in (rushing away), staggered card by card. Smooth
-           recede — no bounce anywhere (film grammar).
-           ========================================================= */
-        const CARDS = [
-          { sel: "#c1", r0: -7, s0: 0.8, o0: 0.7, dr: -8 },
-          { sel: "#c2", r0: 6, s0: 0.8, o0: 0.7, dr: 7 },
-          { sel: "#c3", r0: 5, s0: 0.9, o0: 0.85, dr: 6 },
-          { sel: "#c4", r0: -6, s0: 0.9, o0: 0.85, dr: -8 },
-          { sel: "#c5", r0: 3, s0: 1, o0: 1, dr: 5 },
-          { sel: "#c6", r0: -4, s0: 1, o0: 1, dr: -6 },
-          { sel: "#c7", r0: -3, s0: 0.88, o0: 0.85, dr: -5 },
-        ];
-        // Static tilt/scale from t=0 (set synchronously at build — these
-        // clips are in the DOM at page load; no CSS transform, so no
-        // gsap/css transform conflict).
-        CARDS.forEach((c) => {
-          gsap.set(c.sel, { rotation: c.r0, scale: c.s0 });
-        });
-        const EXIT_SCALE = 0.82;
-        CARDS.forEach((c, i) => {
-          tl.fromTo(
-            c.sel,
-            { rotation: c.r0, scale: c.s0, yPercent: 0, opacity: c.o0 },
-            {
-              rotation: c.r0 + c.dr,
-              scale: c.s0 * EXIT_SCALE,
-              yPercent: 138,
-              opacity: 0,
-              duration: 1.35,
-              ease: "power2.in",
-            },
-            3.5 + i * 0.22
-          );
-        });
+    /* ── Scene 2 (3.0–6.0) — rack focus onto the analytics plane (depth-of-field-blur) ── */
+    var rel = ROOT.querySelector("#wb-rel");
+    var ana = ROOT.querySelector("#wb-ana");
+    tl.fromTo(ana, { "--dof": "7px", opacity: 0.75 }, { "--dof": "0px", opacity: 1, duration: 1.3, ease: "power2.inOut" }, 3.2);
+    tl.fromTo(rel, { "--dof": "0px", opacity: 1 }, { "--dof": "2.2px", opacity: 0.94, duration: 1.3, ease: "power2.inOut" }, 3.2);
 
-        /* =========================================================
-           Scene 3 (6.37–8.5) — "and miss.": the field goes
-           near-empty; "miss." stamps small and alone, lower-third.
-           Held read, completely still, to the end.
-           ========================================================= */
-        tl.to(
-          "#headline-block",
-          { opacity: 0.32, duration: 0.6, ease: "power2.inOut" },
-          6.45
-        );
-        tl.fromTo(
-          "#miss",
-          { opacity: 0, scale: 1.35 },
-          { opacity: 1, scale: 1, duration: 0.32, ease: "power3.out" },
-          6.6
-        );
+    /* the activation line draws itself FLAT (svg-path-draw, constant pen speed) */
+    var line = ROOT.querySelector("#wb-line");
+    var len = line.getTotalLength();
+    line.style.strokeDasharray = String(len);
+    line.style.strokeDashoffset = String(len);
+    tl.fromTo(line, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: 2.1, ease: "none" }, 3.9);
 
-        window.__timelines["02-worth-building"] = tl;
-      </script>
-    </template>
-  </body>
+    /* release markers tick along the axis while the line refuses to move */
+    ROOT.querySelectorAll(".wb-rmk").forEach(function (m, i) {
+      tl.fromTo(m, { opacity: 0 }, { opacity: 0.85, duration: 0.3, ease: "power1.out" }, 3.95 + i * 0.17);
+    });
+
+    /* ── Scene 3 (6.0–8.5) — "and miss." ── */
+    tl.fromTo(ROOT.querySelector("#wb-enddot"), { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 5.9);
+    tl.fromTo(ROOT.querySelector("#wb-val"), { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 5.95);
+    tl.fromTo(ROOT.querySelector("#wb-nochange"), { opacity: 0, scale: 0.92, y: 6 }, { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "power3.out" }, 6.0);
+    /* the shipped wall dims — chained from the rack's resting values (immediateRender:false) */
+    tl.fromTo(rel, { "--dof": "2.2px", opacity: 0.94 }, { "--dof": "5px", opacity: 0.45, duration: 0.9, ease: "power2.inOut", immediateRender: false }, 6.0);
+
+    window.__timelines["02-worth-building"] = tl;
+  })();
+</script>
+</template>
+</body>
 </html>

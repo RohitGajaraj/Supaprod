@@ -1,748 +1,878 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Frame 8 — The route. 18.2s, 1920x1080, dark register.
-         One oversized world, three working stations (plan / build / ship),
-         one virtual camera: open on PLAN, pan to BUILD, pan to SHIP, pull wide.
-         All render-critical nodes live inside <template>. -->
+    <!-- F8 · The route — one traveling shot across Plan, Build, Ship, then the seven-station route. 18.2s. Everything the runtime needs lives inside <template>. -->
   </head>
   <body>
     <template>
       <style>
-        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
-        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
-        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+        /* ————— fonts (kit copy of frame.md block, dual-path src) ————— */
+        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2"),url("assets/fonts/Geist-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2"),url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2"),url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
 
-        /* ————— root ————— */
-        #root {
-          position: absolute;
-          inset: 0;
-          overflow: hidden;
-          container-type: size;
-          font-family: "Mona Sans", sans-serif;
-          color: #f2efe9;
+        /* ————— tokens — on #root (never :root; scoping drops :root) ————— */
+        #root{
+          --sk-ground:#0A0A0B;
+          --sk-panel:#141416;
+          --sk-raised:#1A1A1D;
+          --sk-hairline:#26262A;
+          --sk-text:#F2EFE9;
+          --sk-muted:#A8A29A;
+          --sk-faint:#6B6660;
+          --sk-discover:#6FA9A0;
+          --sk-decide:#C39A5E;
+          --sk-plan:#8FA464;
+          --sk-design:#AB7FA0;
+          --sk-build:#6D97C2;
+          --sk-ship:#BD8092;
+          --sk-learn:#A89F66;
+          --sk-pass:#4FC47A;
+          --sk-fail:#EF6A5F;
+          --sk-warn:#E8B44C;
+          --sk-ember:#FF6B2C;
+          --sk-accent:var(--sk-plan);
+          --sk-r-chip:7px;
+          --sk-r-control:8px;
+          --sk-r-row:9px;
+          --sk-r-card:10px;
+          --sk-r-panel:12px;
+          --sk-r-pane:16px;
+          --sk-ui:"Mona Sans",system-ui,sans-serif;
+          --sk-mono:"IBM Plex Mono",ui-monospace,monospace;
+          --sk-ring:0 0 0 1px var(--sk-hairline);
+          --sk-ambient:0 24px 80px rgba(0,0,0,.5);
         }
+        #root{position:absolute;inset:0;overflow:hidden;font-family:var(--sk-ui);}
 
-        /* full-bleed ground — a clip, never the root */
-        .r8-bg {
-          position: absolute;
-          inset: 0;
-          background: #0a0a0b;
+        /* ————— frame ground (kit) ————— */
+        .sk-frame{
+          position:absolute;inset:0;overflow:hidden;
+          container-type:size;
+          background:var(--sk-ground);
+          color:var(--sk-text);
+          font-family:var(--sk-ui);
+          -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
         }
+        .sk-frame *,.sk-frame *::before,.sk-frame *::after{box-sizing:border-box;margin:0;padding:0;}
 
-        /* ————— stage (camera viewport) ————— */
-        .r8-stage {
-          position: absolute;
-          inset: 0;
-          overflow: hidden;
+        /* ————— F8 world · three screens + route strip on one oversized canvas ————— */
+        #f8cam{
+          position:absolute;inset:0;
+          transform-origin:50% 50%;
+          will-change:transform;
         }
+        .f8-stage{position:absolute;inset:0;}
+        .f8-grid{
+          position:absolute;left:-50cqw;top:-10cqh;width:200cqw;height:220cqh;
+          background-image:radial-gradient(circle at 50% 50%, #26262A 1px, transparent 1.4px);
+          background-size:4cqw 4cqw;
+          opacity:0.35;
+        }
+        .sk-screen{
+          position:absolute;top:4cqh;
+          width:80cqw;height:76cqh;
+          transform:perspective(2400px) rotateX(1.6deg) rotateY(-2.2deg);
+          background:var(--sk-ground);
+          border-radius:var(--sk-r-pane);
+          box-shadow:var(--sk-ring),var(--sk-ambient);
+          overflow:hidden;
+        }
+        #f8-scr-plan{left:-80cqw;--sk-accent:var(--sk-plan);}
+        #f8-scr-build{left:10cqw;--sk-accent:var(--sk-build);}
+        #f8-scr-ship{left:100cqw;--sk-accent:var(--sk-ship);}
+        .f8-dof{--dof:0px;filter:blur(var(--dof));will-change:filter;}
+        #f8-scr-build.f8-dof{--dof:3px;opacity:0.9;}
+        #f8-scr-ship.f8-dof{--dof:3px;opacity:0.9;}
 
-        /* ————— world (oversized canvas the camera traverses) ————— */
-        .r8-world {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 300cqw;
-          height: 100cqh;
-          transform-origin: 0 0;
-          will-change: transform;
-          filter: url(#r8-panblur);
+        /* ————— app shell (kit) ————— */
+        .sk-shell{
+          display:grid;height:100%;
+          grid-template-columns:12.5cqw minmax(0,1fr);
+          grid-template-rows:3.2cqh minmax(0,1fr);
+          grid-template-areas:"side top" "side main";
         }
-
-        /* route line threading the stations (world space) */
-        .r8-route-svg {
-          position: absolute;
-          left: 0;
-          top: 44.5cqh;
-          width: 300cqw;
-          height: 1cqh;
-          overflow: visible;
+        .sk-sidebar{
+          grid-area:side;display:flex;flex-direction:column;min-height:0;
+          background:var(--sk-ground);border-right:1px solid var(--sk-hairline);
         }
-        .r8-route-base {
-          fill: none;
-          stroke: #26262a;
-          stroke-width: 2;
-          vector-effect: non-scaling-stroke;
+        .sk-ws{display:flex;align-items:center;gap:0.55cqw;padding:1cqw 1cqw 0.8cqw;}
+        .sk-ws-mark{
+          width:0.72cqw;height:0.72cqw;flex:none;border-radius:50%;
+          border:1px solid var(--sk-ember);
+          background:radial-gradient(circle at 50% 50%,var(--sk-ember) 0 28%,transparent 30%);
         }
-        .r8-route-draw {
-          fill: none;
-          stroke: #ff6b2c;
-          stroke-width: 2.5;
-          stroke-linecap: round;
-          vector-effect: non-scaling-stroke;
+        .sk-ws-name{font:600 0.82cqw/1 var(--sk-ui);color:var(--sk-text);letter-spacing:0.01em;}
+        .sk-ws-caret{margin-left:auto;font:400 0.6cqw/1 var(--sk-mono);color:var(--sk-faint);}
+        .sk-nav{display:flex;flex-direction:column;gap:0.12cqh;padding:0.3cqw 0.5cqw;}
+        .sk-navrow{
+          display:flex;align-items:center;gap:0.55cqw;
+          padding:0.42cqw 0.6cqw;border-radius:var(--sk-r-row);
+          font:400 0.73cqw/1 var(--sk-ui);color:var(--sk-muted);
         }
-
-        /* ————— stations ————— */
-        .r8-station {
-          position: absolute;
+        .sk-navrow .sk-dot{
+          width:0.3cqw;height:0.3cqw;flex:none;border-radius:50%;
+          background:var(--dot,var(--sk-faint));
         }
-        .r8-st-plan  { left: 31cqw;  top: 15cqh; width: 38cqw; }
-        .r8-st-build { left: 130cqw; top: 13cqh; width: 40cqw; }
-        .r8-st-ship  { left: 222cqw; top: 13cqh; width: 56cqw; }
-
-        .r8-st-rule {
-          width: 1.9cqw;
-          height: 2px;
-          background: #ff6b2c;
-          margin-bottom: 1.3cqh;
+        .sk-navcount{margin-left:auto;font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-faint);}
+        .sk-navrow.is-active{background:var(--sk-raised);color:var(--sk-text);}
+        .sk-navrow.is-active .sk-dot{box-shadow:0 0 0.45cqw 0 var(--dot,var(--sk-accent));}
+        .sk-navrow.is-active .sk-navcount{color:var(--sk-muted);}
+        .sk-side-foot{
+          margin-top:auto;display:flex;align-items:center;gap:0.45cqw;
+          padding:0.85cqw 1cqw;border-top:1px solid var(--sk-hairline);
+          font:400 0.57cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.03em;
         }
-        .r8-st-name {
-          font-family: "Mona Sans", sans-serif;
-          font-weight: 700;
-          font-size: 3.2cqw;
-          line-height: 1;
-          letter-spacing: -0.02em;
-          text-transform: lowercase;
-          color: #f2efe9;
-          margin-bottom: 2.4cqh;
+        .sk-livedot{
+          width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;
+          background:var(--sk-pass);box-shadow:0 0 0.4cqw var(--sk-pass);
         }
-
-        .r8-card {
-          background: #141416;
-          border: 1px solid #26262a;
-          padding: 1.8cqw 2cqw;
-          box-sizing: border-box;
+        .sk-topbar{
+          grid-area:top;display:flex;align-items:center;gap:0.9cqw;
+          padding:0 1cqw;border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
         }
-        .r8-kicker {
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.72cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #ff6b2c;
+        .sk-crumb{display:flex;align-items:center;font:400 0.62cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;}
+        .sk-crumb-sep{padding:0 0.35cqw;color:var(--sk-faint);}
+        .sk-crumb-here{color:var(--sk-text);}
+        .sk-ask{
+          display:flex;align-items:center;gap:0.5cqw;flex:0 1 20cqw;height:2.1cqh;
+          padding:0 0.4cqw 0 0.65cqw;background:var(--sk-panel);
+          border:1px solid var(--sk-hairline);border-radius:var(--sk-r-control);
+          font:400 0.66cqw/1 var(--sk-ui);color:var(--sk-faint);
         }
-        .r8-microlabel {
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.72cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #6b6660;
+        .sk-ask svg{width:0.68cqw;height:0.68cqw;flex:none;stroke:var(--sk-faint);fill:none;stroke-width:1.6;}
+        .sk-kbd{
+          margin-left:auto;padding:0.1cqw 0.32cqw;
+          font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-faint);
+          background:var(--sk-ground);border:1px solid var(--sk-hairline);border-radius:5px;
         }
-
-        /* — PLAN: spec doc typing itself — */
-        .r8-spec-titlerow {
-          display: flex;
-          align-items: center;
-          margin-top: 1.6cqh;
-          min-height: 2.1cqw;
-          white-space: nowrap;
-        }
-        .r8-spec-text {
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 400;
-          font-size: 1.45cqw;
-          color: #f2efe9;
-        }
-        .r8-caret {
-          display: inline-block;
-          width: 0.55cqw;
-          height: 1.7cqw;
-          margin-left: 0.25cqw;
-          background: #ff6b2c;
-        }
-        .r8-req-label {
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.85cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #6b6660;
-          margin-top: 2.2cqh;
-          opacity: 0;
-        }
-        .r8-spec-bullets {
-          list-style: none;
-          margin: 1.1cqh 0 0;
-          padding: 0;
-        }
-        .r8-spec-bullets li {
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 400;
-          font-size: 1.05cqw;
-          line-height: 1.9;
-          color: #a8a29a;
-          opacity: 0;
-        }
-        .r8-slash {
-          color: #ff6b2c;
-          margin-right: 0.7cqw;
+        .sk-avatar{
+          width:1.25cqw;height:1.25cqw;flex:none;display:grid;place-items:center;
+          background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:50%;
+          font:600 0.5cqw/1 var(--sk-ui);color:var(--sk-muted);letter-spacing:0.05em;
         }
 
-        /* — BUILD: diff inside your boundaries — */
-        .r8-build-wrap {
-          position: relative;
-          padding: 1.5cqw;
+        /* ————— true-UI type (kit) ————— */
+        .sk-title{font:600 1.3cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
+        .sk-body{font:400 0.73cqw/1.45 var(--sk-ui);color:var(--sk-text);}
+        .sk-prose{font:400 0.70cqw/1.65 var(--sk-ui);color:var(--sk-text);}
+        .sk-meta{font:400 0.68cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+        .sk-label{font:500 0.65cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.10em;text-transform:uppercase;}
+        .sk-data{font:400 0.62cqw/1.5 var(--sk-mono);color:var(--sk-text);font-variant-numeric:tabular-nums;}
+        .sk-spacer{flex:1;}
+
+        /* ————— panels · rows (kit) ————— */
+        .sk-panel{
+          background:var(--sk-panel);border:1px solid var(--sk-hairline);
+          border-radius:var(--sk-r-panel);overflow:hidden;min-height:0;
+          display:flex;flex-direction:column;
         }
-        .r8-bframe {
-          position: absolute;
-          inset: 0;
-          border: 1px solid rgba(255, 107, 44, 0.55);
-          opacity: 0;
+        .sk-pane{
+          background:var(--sk-panel);border:1px solid var(--sk-hairline);
+          border-radius:var(--sk-r-pane);overflow:hidden;min-height:0;
+          display:flex;flex-direction:column;
         }
-        .r8-btag {
-          position: absolute;
-          top: -0.65cqw;
-          left: 1.6cqw;
-          padding: 0 0.6cqw;
-          background: #0a0a0b;
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.72cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #ff6b2c;
+        .sk-panel-hd,.sk-pane-hd{
+          display:flex;align-items:center;gap:0.6cqw;flex:none;
+          padding:0.75cqw 1cqw;border-bottom:1px solid var(--sk-hairline);
         }
-        .r8-diff-head {
-          border-bottom: 1px solid #26262a;
-          padding-bottom: 1.1cqh;
-          margin-bottom: 1.1cqh;
+        .sk-panel-title{font:600 0.83cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+        .sk-panel-body,.sk-pane-body{flex:1;min-height:0;overflow:hidden;}
+        .sk-panel-ft{
+          display:flex;align-items:center;gap:0.6cqw;flex:none;
+          padding:0.6cqw 1cqw;border-top:1px solid var(--sk-hairline);
+          background:var(--sk-panel);
         }
-        .r8-diff-row {
-          display: flex;
-          gap: 0.9cqw;
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 400;
-          font-size: 1cqw;
-          line-height: 2.05;
-          opacity: 0;
+        .sk-row{padding:0.7cqw 1cqw;}
+        .sk-row + .sk-row{border-top:1px solid var(--sk-hairline);}
+
+        /* ————— chips · badges (kit) ————— */
+        .sk-chip{
+          display:inline-flex;align-items:center;gap:0.3cqw;
+          padding:0.22cqw 0.45cqw;border:1px solid var(--sk-hairline);
+          border-radius:var(--sk-r-chip);background:rgba(255,255,255,0.02);
+          font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
+          white-space:nowrap;
         }
-        .r8-sign { width: 1cqw; }
-        .r8-row-add .r8-sign { color: #ff6b2c; }
-        .r8-row-add .r8-code { color: #f2efe9; }
-        .r8-row-del .r8-sign { color: #6b6660; }
-        .r8-row-del .r8-code {
-          color: #6b6660;
-          text-decoration: line-through;
+        .sk-chip--accent{color:var(--sk-accent);border-color:color-mix(in srgb,var(--sk-accent) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-accent) 8%,transparent);}
+        .sk-chip--pass{color:var(--sk-pass);border-color:color-mix(in srgb,var(--sk-pass) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-pass) 8%,transparent);}
+        .sk-chip--warn{color:var(--sk-warn);border-color:color-mix(in srgb,var(--sk-warn) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-warn) 8%,transparent);}
+        .sk-chip--ember{color:var(--sk-ember);border-color:color-mix(in srgb,var(--sk-ember) 45%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-ember) 9%,transparent);}
+        .sk-dot-inline{width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;background:currentColor;}
+        .sk-badge{
+          display:inline-flex;align-items:center;padding:0.22cqw 0.45cqw;
+          background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:var(--sk-r-chip);
+          font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);font-variant-numeric:tabular-nums;
+        }
+        .sk-tick{color:var(--sk-pass);font-family:var(--sk-mono);}
+
+        /* ————— doc — spec editor with TOC (kit) ————— */
+        .sk-doc{display:grid;grid-template-columns:9cqw minmax(0,1fr);}
+        .sk-doc-toc{border-right:1px solid var(--sk-hairline);padding:1cqw 0;}
+        .sk-doc-toc .sk-label{display:block;padding:0 1cqw 0.55cqw;}
+        .sk-doc-tocrow{font:400 0.68cqw/1.4 var(--sk-ui);color:var(--sk-muted);padding:0.32cqw 1cqw;}
+        .sk-doc-tocrow.is-active{color:var(--sk-text);box-shadow:inset 2px 0 0 var(--sk-accent);}
+        .sk-doc-body{padding:1.3cqw 1.8cqw;max-width:36cqw;}
+        .sk-doc-kicker{display:flex;align-items:center;gap:0.6cqw;margin-bottom:0.9cqw;}
+        .sk-doc-title{font:600 1.1cqw/1.25 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;margin-bottom:0.9cqw;}
+        .sk-doc-h{font:600 0.78cqw/1.3 var(--sk-ui);color:var(--sk-text);margin:0.9cqw 0 0.4cqw;}
+        .sk-doc-body .sk-prose{margin-bottom:0.6cqw;}
+        .sk-caret{
+          display:inline-block;width:0.08cqw;height:0.95em;margin-left:0.08cqw;
+          background:var(--sk-accent);vertical-align:-0.12em;
         }
 
-        /* — SHIP: release notes + go-to-market kit — */
-        .r8-ship-cluster {
-          display: flex;
-          gap: 2cqw;
-          align-items: flex-start;
+        /* ————— console — agent run log (kit) ————— */
+        .sk-console-hd{
+          display:flex;align-items:center;gap:0.6cqw;flex:none;
+          padding:0.65cqw 1cqw;border-bottom:1px solid var(--sk-hairline);
         }
-        .r8-rnotes { width: 30cqw; }
-        .r8-rn-title {
-          font-family: "Mona Sans", sans-serif;
-          font-weight: 600;
-          font-size: 1.6cqw;
-          line-height: 1.25;
-          letter-spacing: -0.02em;
-          text-transform: lowercase;
-          color: #f2efe9;
-          margin-top: 1.5cqh;
-          opacity: 0;
+        .sk-console-body{padding:0.4cqw 0;}
+        .sk-logline{
+          display:grid;grid-template-columns:3.4cqw 1cqw minmax(0,1fr);gap:0.5cqw;align-items:baseline;
+          padding:0.26cqw 1cqw;font:400 0.62cqw/1.5 var(--sk-mono);color:var(--sk-muted);
+          font-variant-numeric:tabular-nums;
         }
-        .r8-rn-line {
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 400;
-          font-size: 1cqw;
-          line-height: 2.1;
-          color: #a8a29a;
-          opacity: 0;
+        .sk-log-t{color:var(--sk-faint);}
+        .sk-logline .sk-tick{text-align:center;}
+        .sk-run{color:var(--sk-accent);text-align:center;}
+        .sk-logline.is-run{background:color-mix(in srgb,var(--sk-accent) 5%,transparent);color:var(--sk-text);}
+
+        /* ————— diff (kit) ————— */
+        .sk-diff{font:400 0.62cqw/1.6 var(--sk-mono);padding:0.4cqw 0;}
+        .sk-diff-row{display:grid;grid-template-columns:2cqw 1cqw minmax(0,1fr);gap:0.5cqw;padding:0.16cqw 0.9cqw;}
+        .sk-diff-ln{color:var(--sk-faint);text-align:right;font-variant-numeric:tabular-nums;}
+        .sk-diff-sign{text-align:center;}
+        .sk-diff-row code{font:inherit;color:var(--sk-muted);white-space:pre;}
+        .sk-diff-row.is-add{background:color-mix(in srgb,var(--sk-pass) 7%,transparent);}
+        .sk-diff-row.is-add .sk-diff-sign{color:var(--sk-pass);}
+        .sk-diff-row.is-add code{color:var(--sk-text);}
+        .sk-diff-row.is-del{background:color-mix(in srgb,var(--sk-fail) 7%,transparent);}
+        .sk-diff-row.is-del .sk-diff-sign{color:var(--sk-fail);}
+
+        /* ————— checklist (kit) ————— */
+        .sk-checklist{list-style:none;display:flex;flex-direction:column;}
+        .sk-check{display:flex;align-items:center;gap:0.55cqw;padding:0.38cqw 0;font:400 0.73cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+        .sk-tickbox{
+          position:relative;
+          width:0.85cqw;height:0.85cqw;flex:none;display:grid;place-items:center;
+          border:1px solid var(--sk-hairline);border-radius:5px;
+          font:500 0.5cqw/1 var(--sk-mono);color:transparent;
         }
-        .r8-rn-lines { margin-top: 1.3cqh; }
-        .r8-gtm {
-          width: 22cqw;
-          opacity: 0;
-        }
-        .r8-gtm-rows { margin-top: 1.6cqh; }
-        .r8-gtm-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 1cqw;
-          padding: 0.9cqh 0;
-        }
-        .r8-gtm-label {
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 400;
-          font-size: 1cqw;
-          color: #f2efe9;
-          white-space: nowrap;
-        }
-        .r8-tick-right {
-          display: flex;
-          align-items: center;
-          gap: 0.7cqw;
-        }
-        .r8-tick-track {
-          display: block;
-          width: 4.5cqw;
-          height: 2px;
-          background: #26262a;
-        }
-        .r8-tick-fill {
-          display: block;
-          width: 100%;
-          height: 100%;
-          background: #ff6b2c;
-          transform: scaleX(0);
-          transform-origin: left center;
-        }
-        .r8-chk {
-          width: 1.1cqw;
-          height: 1.1cqw;
-          overflow: visible;
-        }
-        .r8-chk path {
-          fill: none;
-          stroke: #ff6b2c;
-          stroke-width: 2;
-          stroke-linecap: round;
-          stroke-linejoin: round;
+        .f8-tickfill{
+          position:absolute;inset:-1px;display:grid;place-items:center;
+          background:color-mix(in srgb,var(--sk-pass) 14%,var(--sk-panel));
+          border:1px solid color-mix(in srgb,var(--sk-pass) 50%,var(--sk-hairline));
+          border-radius:5px;color:var(--sk-pass);
+          font:500 0.5cqw/1 var(--sk-mono);
+          opacity:0;
         }
 
-        /* ————— screen-space overlay ————— */
-        .r8-overlay {
-          position: absolute;
-          inset: 0;
-          z-index: 5;
-          pointer-events: none;
+        /* ————— sealed record row (kit) ————— */
+        .sk-record{
+          display:flex;align-items:center;gap:0.7cqw;
+          padding:0.7cqw 1cqw;background:var(--sk-panel);
+          border:1px solid var(--sk-hairline);border-radius:var(--sk-r-row);
         }
-        .r8-wayfinder {
-          position: absolute;
-          left: 5.5cqw;
-          top: 5.2cqh;
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.72cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #6b6660;
-          opacity: 0;
+        .sk-record .sk-body{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+        /* ————— F8 · boundary banner (ember, thin, across the Build content top) ————— */
+        .f8-boundary{
+          grid-column:1/-1;display:flex;align-items:center;gap:0.6cqw;
+          padding:0.4cqw 0.9cqw;
+          border:1px solid color-mix(in srgb,var(--sk-ember) 35%,var(--sk-hairline));
+          border-radius:var(--sk-r-row);
+          background:color-mix(in srgb,var(--sk-ember) 6%,transparent);
+          font:500 0.6cqw/1.3 var(--sk-mono);color:var(--sk-ember);letter-spacing:0.06em;
         }
-        .r8-wayfinder .r8-wp-on { color: #ff6b2c; }
-        .r8-wp-sep { margin: 0 0.55cqw; }
-        .r8-headline {
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: 10cqh;
-          text-align: center;
-          font-family: "Mona Sans", sans-serif;
-          font-weight: 700;
-          font-size: 4.5cqw;
-          line-height: 1.1;
-          letter-spacing: -0.02em;
-          text-transform: lowercase;
-          color: #f2efe9;
-          opacity: 0;
+        .f8-boundary svg{width:0.7cqw;height:0.7cqw;flex:none;stroke:currentColor;fill:none;stroke-width:1.4;}
+        .f8-boundary .sk-meta{letter-spacing:normal;}
+
+        /* ————— F8 · ship deploy swap ————— */
+        .f8-depwrap{position:relative;display:inline-flex;}
+        #f8-dep-live{position:absolute;left:0;top:0;opacity:0;}
+
+        /* ————— F8 · route strip — seven mini stations + spine ————— */
+        .f8-spine{position:absolute;left:-30.5cqw;top:94cqh;width:161cqw;height:22cqh;z-index:0;}
+        .f8-spine svg{display:block;width:100%;height:100%;overflow:visible;}
+        .f8-strip{position:absolute;left:-30.5cqw;top:94cqh;width:161cqw;height:22cqh;display:flex;gap:7cqw;z-index:1;}
+        .f8-mini{
+          position:relative;flex:none;width:17cqw;height:22cqh;
+          background:var(--sk-panel);
+          border:1px solid var(--sk-hairline);border-top:2px solid var(--mc);
+          border-radius:var(--sk-r-card);
+          box-shadow:var(--sk-ring),var(--sk-ambient);
+          padding:0.75cqw 0.9cqw;
+          display:flex;flex-direction:column;gap:0.55cqh;
         }
-        .r8-headline .r8-dot { color: #ff6b2c; }
-        .r8-strip {
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: 71cqh;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 1.4cqw;
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.95cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #a8a29a;
+        .f8-mini-hd{
+          display:flex;align-items:center;gap:0.4cqw;
+          font:500 0.55cqw/1 var(--sk-mono);color:var(--mc);
+          letter-spacing:0.08em;text-transform:uppercase;
         }
-        .r8-strip .r8-tok { opacity: 0; }
-        .r8-tok-learning { color: #ff6b2c; }
-        .r8-arr {
-          width: 1.5cqw;
-          height: 0.65cqw;
-          overflow: visible;
+        .f8-mini-hd .sk-dot-inline{color:var(--mc);}
+        .f8-mini-row{font:400 0.52cqw/1.35 var(--sk-ui);color:var(--sk-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .f8-mini-row.is-bright{color:var(--sk-text);font-weight:600;}
+        .f8-mini-row.is-mono{font:400 0.5cqw/1.35 var(--sk-mono);color:var(--sk-muted);}
+        .f8-mini-row .sk-tick{font-size:0.5cqw;}
+        .f8-mini-canvas{flex:1;display:flex;gap:0.35cqw;min-height:0;}
+        .f8-mini-canvas i{display:block;flex:1;border:1px solid var(--sk-hairline);border-radius:5px;background:var(--sk-raised);}
+
+        /* ————— F8 · route flow label (lands with the wide) ————— */
+        .f8-flow{
+          position:absolute;left:-30.5cqw;top:118.5cqh;width:161cqw;
+          display:flex;justify-content:center;align-items:baseline;gap:1.1cqw;
         }
-        .r8-arr path {
-          fill: none;
-          stroke: #ff6b2c;
-          stroke-width: 1.6;
-          stroke-linecap: round;
-          stroke-linejoin: round;
+        .f8-flow-tok{
+          font:500 1.7cqw/1 var(--sk-mono);color:var(--sk-text);
+          letter-spacing:0.1em;text-transform:uppercase;opacity:0;
         }
+        .f8-flow-tok.is-arrow{color:var(--sk-faint);}
+
+        /* ————— lower-third (kit, lifted above the caption keep-out) ————— */
+        .sk-lowerthird{
+          position:absolute;left:5.5cqw;bottom:18cqh;z-index:60;
+          display:flex;flex-direction:column;gap:0.55cqh;
+          text-shadow:0 2px 30px rgba(0,0,0,.6);
+        }
+        .f8-kickers{position:relative;height:0.8cqw;}
+        .f8-kickers span{
+          position:absolute;left:0;top:0;white-space:nowrap;
+          font:500 0.72cqw/1 var(--sk-mono);letter-spacing:0.14em;text-transform:uppercase;
+          opacity:0;
+        }
+        #f8-k1{color:#8FA464;}
+        #f8-k2{color:#6D97C2;}
+        #f8-k3{color:#BD8092;}
+        #f8-k4{color:#FF6B2C;}
+        .sk-lt-line{font:600 2.6cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;opacity:0;}
       </style>
 
       <div id="root" data-composition-id="08-the-route" data-width="1920" data-height="1080" data-duration="18.6">
-        <!-- ground: full-bleed clip on the lowest track -->
-        <div id="r8-bg" class="clip r8-bg" data-start="0" data-duration="18.2" data-track-index="0"></div>
 
-        <!-- the shot -->
-        <div id="r8-stage" class="clip r8-stage" data-start="0" data-duration="18.2" data-track-index="1">
-          <!-- directional pan-blur filter (motion-blur-streak, path A) -->
-          <svg width="0" height="0" aria-hidden="true" style="position: absolute">
+        <!-- ground + world · full-bleed ink field carrying the three-screen route; camera rig inside -->
+        <div id="f8-world" class="clip sk-frame" data-start="0" data-duration="18.2" data-track-index="0" data-layout-allow-overflow>
+
+          <svg width="0" height="0" aria-hidden="true" style="position:absolute">
             <defs>
-              <filter id="r8-panblur" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur id="r8-blur" in="SourceGraphic" stdDeviation="0 0" />
+              <filter id="f8-streak" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur id="f8-streak-blur" in="SourceGraphic" stdDeviation="0 0" />
               </filter>
             </defs>
           </svg>
 
-          <div class="r8-world" id="r8-world">
-            <!-- route line threading the three stations -->
-            <svg class="r8-route-svg" viewBox="0 0 3000 10" preserveAspectRatio="none" aria-hidden="true">
-              <path id="r8-route-base" class="r8-route-base" d="M 260 5 H 2840" />
-              <path id="r8-route-draw" class="r8-route-draw" d="M 260 5 H 2840" />
-            </svg>
+          <div id="f8cam">
+            <div class="f8-stage">
+              <div class="f8-grid"></div>
 
-            <!-- STATION 1 — PLAN: the spec writes itself -->
-            <div class="r8-station r8-st-plan">
-              <div class="r8-st-rule"></div>
-              <div class="r8-st-name">plan</div>
-              <div class="r8-card">
-                <div class="r8-kicker">spec &middot; draft</div>
-                <div class="r8-spec-titlerow">
-                  <span class="r8-spec-text" id="r8-spec-text"></span>
-                  <span class="r8-caret" id="r8-caret"></span>
-                </div>
-                <div class="r8-req-label" id="r8-req-label">requirements &mdash;</div>
-                <ul class="r8-spec-bullets">
-                  <li class="r8-bullet"><span class="r8-slash">/</span>one-screen guest checkout</li>
-                  <li class="r8-bullet"><span class="r8-slash">/</span>save card for returning buyers</li>
-                  <li class="r8-bullet"><span class="r8-slash">/</span>clear errors at payment step</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- STATION 2 — BUILD: the diff, inside your boundaries -->
-            <div class="r8-station r8-st-build">
-              <div class="r8-st-rule"></div>
-              <div class="r8-st-name">build</div>
-              <div class="r8-build-wrap">
-                <div class="r8-bframe" id="r8-bframe">
-                  <span class="r8-btag">your boundaries</span>
-                </div>
-                <div class="r8-card">
-                  <div class="r8-diff-head"><span class="r8-microlabel">diff &middot; checkout</span></div>
-                  <div class="r8-diff-row r8-row-del"><span class="r8-sign">&minus;</span><span class="r8-code">checkout.flow: three_steps</span></div>
-                  <div class="r8-diff-row r8-row-add"><span class="r8-sign">+</span><span class="r8-code">checkout.flow: single_screen</span></div>
-                  <div class="r8-diff-row r8-row-del"><span class="r8-sign">&minus;</span><span class="r8-code">shipping.page: separate</span></div>
-                  <div class="r8-diff-row r8-row-add"><span class="r8-sign">+</span><span class="r8-code">payments.retry: on_timeout</span></div>
-                  <div class="r8-diff-row r8-row-add"><span class="r8-sign">+</span><span class="r8-code">cards.save: returning_buyers</span></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- STATION 3 — SHIP: release notes + go-to-market kit -->
-            <div class="r8-station r8-st-ship">
-              <div class="r8-st-rule"></div>
-              <div class="r8-st-name">ship</div>
-              <div class="r8-ship-cluster">
-                <div class="r8-card r8-rnotes">
-                  <div class="r8-kicker">release notes</div>
-                  <div class="r8-rn-title" id="r8-rn-title">v2.4 &mdash; checkout, rebuilt</div>
-                  <div class="r8-rn-lines">
-                    <div class="r8-rn-line">guest checkout, one screen</div>
-                    <div class="r8-rn-line">cards saved for next time</div>
-                    <div class="r8-rn-line">payment errors, made clear</div>
-                  </div>
-                </div>
-                <div class="r8-card r8-gtm" id="r8-gtm">
-                  <div class="r8-kicker">go-to-market</div>
-                  <div class="r8-gtm-rows">
-                    <div class="r8-gtm-row">
-                      <span class="r8-gtm-label">release notes</span>
-                      <span class="r8-tick-right">
-                        <span class="r8-tick-track"><span class="r8-tick-fill"></span></span>
-                        <svg class="r8-chk" viewBox="0 0 14 14" aria-hidden="true"><path class="r8-chk-path" d="M 2 7.5 L 5.5 11 L 12 3.5" /></svg>
-                      </span>
+              <!-- ══════════ 03 · PLAN — the spec writes itself ══════════ -->
+              <div class="sk-screen f8-dof" id="f8-scr-plan">
+                <div class="sk-shell">
+                  <aside class="sk-sidebar">
+                    <div class="sk-ws">
+                      <span class="sk-ws-mark"></span>
+                      <span class="sk-ws-name">harbor</span>
+                      <span class="sk-ws-caret">⌄</span>
                     </div>
-                    <div class="r8-gtm-row">
-                      <span class="r8-gtm-label">announcement</span>
-                      <span class="r8-tick-right">
-                        <span class="r8-tick-track"><span class="r8-tick-fill"></span></span>
-                        <svg class="r8-chk" viewBox="0 0 14 14" aria-hidden="true"><path class="r8-chk-path" d="M 2 7.5 L 5.5 11 L 12 3.5" /></svg>
-                      </span>
+                    <nav class="sk-nav">
+                      <div class="sk-navrow" style="--dot:var(--sk-text)"><span class="sk-dot"></span>Today<span class="sk-navcount">3</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-discover)"><span class="sk-dot"></span>Discover<span class="sk-navcount">24</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-decide)"><span class="sk-dot"></span>Decide<span class="sk-navcount">3</span></div>
+                      <div class="sk-navrow is-active" style="--dot:var(--sk-plan)"><span class="sk-dot"></span>Plan<span class="sk-navcount">1</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-design)"><span class="sk-dot"></span>Design</div>
+                      <div class="sk-navrow" style="--dot:var(--sk-build)"><span class="sk-dot"></span>Build<span class="sk-navcount">2</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-ship)"><span class="sk-dot"></span>Ship</div>
+                      <div class="sk-navrow" style="--dot:var(--sk-learn)"><span class="sk-dot"></span>Learn<span class="sk-navcount">1</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-ember)"><span class="sk-dot"></span>Brain</div>
+                    </nav>
+                    <div class="sk-side-foot"><span class="sk-livedot"></span>3 agents running</div>
+                  </aside>
+                  <header class="sk-topbar">
+                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span>plan</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">checkout-fix</span></div>
+                    <div class="sk-ask">
+                      <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>
+                      ask supaprod…
+                      <span class="sk-kbd">⌘K</span>
                     </div>
-                    <div class="r8-gtm-row">
-                      <span class="r8-gtm-label">changelog</span>
-                      <span class="r8-tick-right">
-                        <span class="r8-tick-track"><span class="r8-tick-fill"></span></span>
-                        <svg class="r8-chk" viewBox="0 0 14 14" aria-hidden="true"><path class="r8-chk-path" d="M 2 7.5 L 5.5 11 L 12 3.5" /></svg>
-                      </span>
+                    <span class="sk-spacer"></span>
+                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>synced 2m ago</span>
+                    <div class="sk-avatar">MR</div>
+                  </header>
+                  <main style="grid-area:main;position:relative;display:grid;grid-template-columns:minmax(0,1fr) 16cqw;gap:1cqw;padding:1.1cqw;min-height:0;">
+
+                    <!-- spec editor · doc types itself -->
+                    <section class="sk-panel sk-doc">
+                      <aside class="sk-doc-toc">
+                        <span class="sk-label">spec</span>
+                        <div class="sk-doc-tocrow is-active" id="f8-toc-problem">problem</div>
+                        <div class="sk-doc-tocrow" id="f8-toc-approach">approach</div>
+                        <div class="sk-doc-tocrow">requirements</div>
+                        <div class="sk-doc-tocrow">rollout</div>
+                      </aside>
+                      <div class="sk-doc-body">
+                        <div class="sk-doc-kicker">
+                          <span class="sk-chip sk-chip--accent"><span class="sk-dot-inline"></span>agent · drafting…</span>
+                          <span class="sk-meta" style="font-size:0.6cqw;">plan / specs / checkout-fix</span>
+                        </div>
+                        <h1 class="sk-doc-title">Fix checkout drop-off</h1>
+                        <h2 class="sk-doc-h">problem</h2>
+                        <p class="sk-prose">41% of shoppers abandon between payment and confirmation. The card form clears every field on a declined card and the decline reason is never surfaced — 19 signals across 6 sources point at the same step.</p>
+                        <h2 class="sk-doc-h">approach</h2>
+                        <p class="sk-prose"><span id="f8-type"></span><span class="sk-caret" id="f8-caret"></span></p>
+                      </div>
+                    </section>
+
+                    <!-- right rail · linked decision + acceptance checks -->
+                    <div style="display:flex;flex-direction:column;gap:1cqw;min-height:0;">
+                      <div class="sk-record" style="flex-direction:column;align-items:flex-start;gap:0.45cqw;">
+                        <span class="sk-label" style="font-size:0.55cqw;">linked decision</span>
+                        <span class="sk-chip sk-chip--ember"><svg width="9" height="9" viewBox="0 0 12 12" style="stroke:currentColor;fill:none;stroke-width:1.4;"><rect x="2" y="5" width="8" height="5.5" rx="1.2"/><path d="M4 5 V3.6 a2 2 0 0 1 4 0 V5"/></svg>sealed</span>
+                        <span class="sk-body" style="font-size:0.66cqw;white-space:normal;">“If we fix checkout first, activation rises.”</span>
+                        <span class="sk-meta" style="font-size:0.57cqw;">maya r. · at decision time</span>
+                      </div>
+                      <section class="sk-panel" style="flex:1;">
+                        <header class="sk-panel-hd" style="padding:0.6cqw 0.9cqw;">
+                          <h2 class="sk-panel-title" style="font-size:0.73cqw;">Acceptance checks</h2>
+                          <span class="sk-spacer"></span>
+                          <span class="sk-badge">1/3</span>
+                        </header>
+                        <div style="padding:0.5cqw 0.9cqw;">
+                          <ul class="sk-checklist">
+                            <li class="sk-check" style="color:var(--sk-text);"><span class="sk-tickbox"><span class="f8-tickfill" style="opacity:1;">✓</span></span>form state preserved on error</li>
+                            <li class="sk-check"><span class="sk-tickbox"></span>decline reason surfaced inline</li>
+                            <li class="sk-check"><span class="sk-tickbox"></span>retry without a full reload</li>
+                          </ul>
+                        </div>
+                        <footer class="sk-panel-ft" style="padding:0.5cqw 0.9cqw;">
+                          <span class="sk-meta" style="font-size:0.57cqw;">from 19 signals · 6 sources</span>
+                        </footer>
+                      </section>
                     </div>
-                  </div>
+
+                  </main>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- screen-space overlay: wayfinder chrome, landing headline, lifecycle strip -->
-          <div class="r8-overlay">
-            <div class="r8-wayfinder" id="r8-wayfinder">
-              <span id="r8-wp-plan" class="r8-wp-on">plan</span><span class="r8-wp-sep">&middot;</span><span id="r8-wp-build">build</span><span class="r8-wp-sep">&middot;</span><span id="r8-wp-ship">ship</span>
-            </div>
-            <div class="r8-headline" id="r8-headline">one platform<span class="r8-dot">.</span></div>
-            <div class="r8-strip" id="r8-strip">
-              <span class="r8-tok">signal</span>
-              <svg class="r8-arr r8-tok" viewBox="0 0 24 10" aria-hidden="true"><path d="M 1 5 H 20 M 16.5 1.5 L 21 5 L 16.5 8.5" /></svg>
-              <span class="r8-tok">decision</span>
-              <svg class="r8-arr r8-tok" viewBox="0 0 24 10" aria-hidden="true"><path d="M 1 5 H 20 M 16.5 1.5 L 21 5 L 16.5 8.5" /></svg>
-              <span class="r8-tok">spec</span>
-              <svg class="r8-arr r8-tok" viewBox="0 0 24 10" aria-hidden="true"><path d="M 1 5 H 20 M 16.5 1.5 L 21 5 L 16.5 8.5" /></svg>
-              <span class="r8-tok">build</span>
-              <svg class="r8-arr r8-tok" viewBox="0 0 24 10" aria-hidden="true"><path d="M 1 5 H 20 M 16.5 1.5 L 21 5 L 16.5 8.5" /></svg>
-              <span class="r8-tok">ship</span>
-              <svg class="r8-arr r8-tok" viewBox="0 0 24 10" aria-hidden="true"><path d="M 1 5 H 20 M 16.5 1.5 L 21 5 L 16.5 8.5" /></svg>
-              <span class="r8-tok r8-tok-learning">learning</span>
+              <!-- ══════════ 05 · BUILD — agent run inside boundaries ══════════ -->
+              <div class="sk-screen f8-dof" id="f8-scr-build">
+                <div class="sk-shell">
+                  <aside class="sk-sidebar">
+                    <div class="sk-ws">
+                      <span class="sk-ws-mark"></span>
+                      <span class="sk-ws-name">harbor</span>
+                      <span class="sk-ws-caret">⌄</span>
+                    </div>
+                    <nav class="sk-nav">
+                      <div class="sk-navrow" style="--dot:var(--sk-text)"><span class="sk-dot"></span>Today<span class="sk-navcount">3</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-discover)"><span class="sk-dot"></span>Discover<span class="sk-navcount">24</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-decide)"><span class="sk-dot"></span>Decide<span class="sk-navcount">3</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-plan)"><span class="sk-dot"></span>Plan<span class="sk-navcount">1</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-design)"><span class="sk-dot"></span>Design</div>
+                      <div class="sk-navrow is-active" style="--dot:var(--sk-build)"><span class="sk-dot"></span>Build<span class="sk-navcount">2</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-ship)"><span class="sk-dot"></span>Ship</div>
+                      <div class="sk-navrow" style="--dot:var(--sk-learn)"><span class="sk-dot"></span>Learn<span class="sk-navcount">1</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-ember)"><span class="sk-dot"></span>Brain</div>
+                    </nav>
+                    <div class="sk-side-foot"><span class="sk-livedot"></span>3 agents running</div>
+                  </aside>
+                  <header class="sk-topbar">
+                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span>build</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">fix/checkout-dropoff</span></div>
+                    <div class="sk-ask">
+                      <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>
+                      ask supaprod…
+                      <span class="sk-kbd">⌘K</span>
+                    </div>
+                    <span class="sk-spacer"></span>
+                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>synced 2m ago</span>
+                    <div class="sk-avatar">MR</div>
+                  </header>
+                  <main style="grid-area:main;position:relative;display:grid;grid-template-columns:26cqw minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:1cqw;padding:1.1cqw;min-height:0;">
+
+                    <!-- boundary banner · thin ember strip across the top -->
+                    <div class="f8-boundary">
+                      <svg viewBox="0 0 12 12"><rect x="2" y="5" width="8" height="5.5" rx="1.2"/><path d="M4 5 V3.6 a2 2 0 0 1 4 0 V5"/></svg>
+                      boundary: no schema drops · no prod writes
+                      <span class="sk-spacer"></span>
+                      <span class="sk-meta" style="font-size:0.55cqw;">enforced on every run</span>
+                    </div>
+
+                    <!-- agent run console -->
+                    <section class="sk-panel">
+                      <header class="sk-console-hd">
+                        <span class="sk-label">agent run · build</span>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-chip">fix/checkout-dropoff</span>
+                      </header>
+                      <div class="sk-console-body">
+                        <div class="sk-logline"><span class="sk-log-t">14:02:11</span><span class="sk-tick">✓</span><span>branch created — fix/checkout-dropoff</span></div>
+                        <div class="sk-logline"><span class="sk-log-t">14:02:38</span><span class="sk-tick">✓</span><span>migration written — payment_attempts</span></div>
+                        <div class="sk-logline"><span class="sk-log-t">14:03:04</span><span class="sk-tick">✓</span><span>tests 214 passing</span></div>
+                        <div class="sk-logline"><span class="sk-log-t">14:03:19</span><span class="sk-run">▸</span><span>writing retry handler…</span></div>
+                        <div class="sk-logline" id="f8-log5"><span class="sk-log-t">14:03:41</span><span class="sk-tick">✓</span><span>retry handler wired — 3 files</span></div>
+                        <div class="sk-logline" id="f8-log6"><span class="sk-log-t">14:03:58</span><span class="sk-tick">✓</span><span>form state preserved on decline</span></div>
+                        <div class="sk-logline is-run" id="f8-log7"><span class="sk-log-t">14:04:12</span><span class="sk-run">▸</span><span>running integration suite…</span></div>
+                      </div>
+                      <footer class="sk-panel-ft">
+                        <span class="sk-meta" style="font-size:0.6cqw;">run 41 · started 2m ago · maya r. watching</span>
+                      </footer>
+                    </section>
+
+                    <!-- diff pane · rows stream in -->
+                    <section class="sk-panel">
+                      <header class="sk-panel-hd" style="padding:0.65cqw 1cqw;">
+                        <h2 class="sk-panel-title" style="font-size:0.75cqw;">payment-form.ts</h2>
+                        <span class="sk-badge" style="color:var(--sk-pass);">+2</span>
+                        <span class="sk-badge" style="color:var(--sk-fail);">−1</span>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-chip sk-chip--accent">agent editing</span>
+                      </header>
+                      <div class="sk-diff">
+                        <div class="sk-diff-row"><span class="sk-diff-ln">39</span><span class="sk-diff-sign"></span><code>const decline = await charge(card)</code></div>
+                        <div class="sk-diff-row"><span class="sk-diff-ln">40</span><span class="sk-diff-sign"></span><code>if (decline) {</code></div>
+                        <div class="sk-diff-row is-del" id="f8-diff1"><span class="sk-diff-ln">41</span><span class="sk-diff-sign">−</span><code>  form.reset()</code></div>
+                        <div class="sk-diff-row is-add" id="f8-diff2"><span class="sk-diff-ln">41</span><span class="sk-diff-sign">+</span><code>  preserveFields(form, { except: ["cvc"] })</code></div>
+                        <div class="sk-diff-row is-add" id="f8-diff3"><span class="sk-diff-ln">42</span><span class="sk-diff-sign">+</span><code>  surfaceError(decline.reason)</code></div>
+                        <div class="sk-diff-row"><span class="sk-diff-ln">43</span><span class="sk-diff-sign"></span><code>}</code></div>
+                      </div>
+                      <footer class="sk-panel-ft" style="margin-top:auto;">
+                        <span class="sk-meta" style="font-size:0.6cqw;">3 files · payment-form.ts · retry.ts · decline-banner.tsx</span>
+                      </footer>
+                    </section>
+
+                  </main>
+                </div>
+              </div>
+
+              <!-- ══════════ 06 · SHIP — release notes + GTM, done ══════════ -->
+              <div class="sk-screen f8-dof" id="f8-scr-ship">
+                <div class="sk-shell">
+                  <aside class="sk-sidebar">
+                    <div class="sk-ws">
+                      <span class="sk-ws-mark"></span>
+                      <span class="sk-ws-name">harbor</span>
+                      <span class="sk-ws-caret">⌄</span>
+                    </div>
+                    <nav class="sk-nav">
+                      <div class="sk-navrow" style="--dot:var(--sk-text)"><span class="sk-dot"></span>Today<span class="sk-navcount">3</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-discover)"><span class="sk-dot"></span>Discover<span class="sk-navcount">24</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-decide)"><span class="sk-dot"></span>Decide<span class="sk-navcount">3</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-plan)"><span class="sk-dot"></span>Plan<span class="sk-navcount">1</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-design)"><span class="sk-dot"></span>Design</div>
+                      <div class="sk-navrow" style="--dot:var(--sk-build)"><span class="sk-dot"></span>Build<span class="sk-navcount">2</span></div>
+                      <div class="sk-navrow is-active" style="--dot:var(--sk-ship)"><span class="sk-dot"></span>Ship<span class="sk-navcount">1</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-learn)"><span class="sk-dot"></span>Learn<span class="sk-navcount">1</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-ember)"><span class="sk-dot"></span>Brain</div>
+                    </nav>
+                    <div class="sk-side-foot"><span class="sk-livedot"></span>3 agents running</div>
+                  </aside>
+                  <header class="sk-topbar">
+                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span>ship</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">v2.4</span></div>
+                    <div class="sk-ask">
+                      <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>
+                      ask supaprod…
+                      <span class="sk-kbd">⌘K</span>
+                    </div>
+                    <span class="sk-spacer"></span>
+                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>synced 2m ago</span>
+                    <div class="sk-avatar">MR</div>
+                  </header>
+                  <main style="grid-area:main;position:relative;display:grid;grid-template-columns:minmax(0,1fr) 16cqw;gap:1cqw;padding:1.1cqw;min-height:0;">
+
+                    <!-- release surface · notes unfurl, deploy flips live -->
+                    <section class="sk-pane">
+                      <header class="sk-pane-hd">
+                        <h2 class="sk-panel-title">v2.4 — checkout, rebuilt</h2>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-chip sk-chip--accent">release</span>
+                        <span class="sk-badge">draft 3</span>
+                      </header>
+                      <div class="sk-pane-body" style="padding:1cqw 1.2cqw;display:flex;flex-direction:column;gap:0.55cqw;">
+                        <span class="sk-meta" style="font-size:0.62cqw;">drafted by agent · edited by maya r. · 2m ago</span>
+                        <p class="sk-prose" id="f8-note1">Card errors now keep your details — the form no longer clears on a decline.</p>
+                        <p class="sk-prose" id="f8-note2">Decline reasons appear inline, with a one-tap retry.</p>
+                        <p class="sk-prose" id="f8-note3">Payment retries no longer reload the page.</p>
+                        <div style="display:flex;gap:0.5cqw;margin-top:0.3cqw;">
+                          <span class="sk-chip">fix/checkout-dropoff</span>
+                          <span class="sk-chip">tests 214 passing</span>
+                          <span class="sk-chip sk-chip--ember">boundary respected</span>
+                        </div>
+                      </div>
+                      <footer class="sk-panel-ft">
+                        <span class="sk-label" style="font-size:0.55cqw;">deploy</span>
+                        <span class="f8-depwrap">
+                          <span class="sk-chip sk-chip--warn" id="f8-dep-warn"><span class="sk-dot-inline"></span>deploying → production</span>
+                          <span class="sk-chip sk-chip--pass" id="f8-dep-live"><span class="sk-dot-inline"></span>live · production</span>
+                        </span>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-meta" style="font-size:0.6cqw;">release v2.4 · just now</span>
+                      </footer>
+                    </section>
+
+                    <!-- GTM checklist · ticks on the VO -->
+                    <section class="sk-panel">
+                      <header class="sk-panel-hd" style="padding:0.6cqw 0.9cqw;">
+                        <h2 class="sk-panel-title" style="font-size:0.73cqw;">Go-to-market</h2>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-badge">3/5</span>
+                      </header>
+                      <div style="padding:0.5cqw 0.9cqw;">
+                        <ul class="sk-checklist">
+                          <li class="sk-check" id="f8-chk1"><span class="sk-tickbox"><span class="f8-tickfill" id="f8-tk1">✓</span></span>release notes</li>
+                          <li class="sk-check" id="f8-chk2"><span class="sk-tickbox"><span class="f8-tickfill" id="f8-tk2">✓</span></span>announcement draft</li>
+                          <li class="sk-check" id="f8-chk3"><span class="sk-tickbox"><span class="f8-tickfill" id="f8-tk3">✓</span></span>changelog</li>
+                          <li class="sk-check"><span class="sk-tickbox"></span>status page update</li>
+                          <li class="sk-check"><span class="sk-tickbox"></span>customer email</li>
+                        </ul>
+                      </div>
+                      <footer class="sk-panel-ft" style="margin-top:auto;padding:0.5cqw 0.9cqw;">
+                        <span class="sk-meta" style="font-size:0.57cqw;">assembled by agent · 4m ago</span>
+                      </footer>
+                    </section>
+
+                  </main>
+                </div>
+              </div>
+
+              <!-- ══════════ the route strip — seven stations, one spine ══════════ -->
+              <div class="f8-spine">
+                <svg viewBox="0 0 3091.2 237.6" preserveAspectRatio="none">
+                  <path id="f8-spinepath" d="M 0 118.8 H 3091.2" fill="none" stroke="#FF6B2C" stroke-width="2" stroke-linecap="round" opacity="0.75"/>
+                  <circle class="f8-node" cx="393.6"  cy="118.8" r="5" fill="#FF6B2C"/>
+                  <circle class="f8-node" cx="854.4"  cy="118.8" r="5" fill="#FF6B2C"/>
+                  <circle class="f8-node" cx="1315.2" cy="118.8" r="5" fill="#FF6B2C"/>
+                  <circle class="f8-node" cx="1776.0" cy="118.8" r="5" fill="#FF6B2C"/>
+                  <circle class="f8-node" cx="2236.8" cy="118.8" r="5" fill="#FF6B2C"/>
+                  <circle class="f8-node" cx="2697.6" cy="118.8" r="5" fill="#FF6B2C"/>
+                </svg>
+              </div>
+              <div class="f8-strip">
+                <div class="f8-mini" style="--mc:var(--sk-discover)">
+                  <div class="f8-mini-hd"><span class="sk-dot-inline"></span>01 · discover</div>
+                  <div class="f8-mini-row is-bright">“I gave up at the payment step.”</div>
+                  <div class="f8-mini-row is-mono">drop-off 41% · step 3 → 4</div>
+                  <div class="f8-mini-row is-mono">24 signals · 6 sources</div>
+                </div>
+                <div class="f8-mini" style="--mc:var(--sk-decide)">
+                  <div class="f8-mini-hd"><span class="sk-dot-inline"></span>02 · decide</div>
+                  <div class="f8-mini-row is-bright">fix checkout drop-off</div>
+                  <div class="f8-mini-row is-mono">composite 8.0 · committed</div>
+                  <div class="f8-mini-row is-mono">forecast sealed · maya r.</div>
+                </div>
+                <div class="f8-mini" style="--mc:var(--sk-plan)">
+                  <div class="f8-mini-hd"><span class="sk-dot-inline"></span>03 · plan</div>
+                  <div class="f8-mini-row is-bright">spec · checkout-fix</div>
+                  <div class="f8-mini-row is-mono">problem · approach · rollout</div>
+                  <div class="f8-mini-row is-mono">agent · drafted</div>
+                </div>
+                <div class="f8-mini" style="--mc:var(--sk-design)">
+                  <div class="f8-mini-hd"><span class="sk-dot-inline"></span>04 · design</div>
+                  <div class="f8-mini-row is-bright">prototype · checkout</div>
+                  <div class="f8-mini-canvas"><i></i><i></i></div>
+                  <div class="f8-mini-row is-mono">2 screens · in review</div>
+                </div>
+                <div class="f8-mini" style="--mc:var(--sk-build)">
+                  <div class="f8-mini-hd"><span class="sk-dot-inline"></span>05 · build</div>
+                  <div class="f8-mini-row is-bright">fix/checkout-dropoff</div>
+                  <div class="f8-mini-row is-mono">tests 214 passing <span class="sk-tick">✓</span></div>
+                  <div class="f8-mini-row is-mono">boundary respected</div>
+                </div>
+                <div class="f8-mini" style="--mc:var(--sk-ship)">
+                  <div class="f8-mini-hd"><span class="sk-dot-inline"></span>06 · ship</div>
+                  <div class="f8-mini-row is-bright">v2.4 — checkout, rebuilt</div>
+                  <div class="f8-mini-row is-mono">live · production</div>
+                  <div class="f8-mini-row is-mono">notes · changelog <span class="sk-tick">✓</span></div>
+                </div>
+                <div class="f8-mini" style="--mc:var(--sk-learn)">
+                  <div class="f8-mini-hd"><span class="sk-dot-inline"></span>07 · learn</div>
+                  <div class="f8-mini-row is-bright">forecast: right <span class="sk-tick">✓</span></div>
+                  <div class="f8-mini-row is-mono">activation ↑ · 30 days</div>
+                  <div class="f8-mini-row is-mono">ranking updated</div>
+                </div>
+              </div>
+              <div class="f8-flow">
+                <span class="f8-flow-tok">signal</span><span class="f8-flow-tok is-arrow">→</span>
+                <span class="f8-flow-tok">decision</span><span class="f8-flow-tok is-arrow">→</span>
+                <span class="f8-flow-tok">spec</span><span class="f8-flow-tok is-arrow">→</span>
+                <span class="f8-flow-tok">build</span><span class="f8-flow-tok is-arrow">→</span>
+                <span class="f8-flow-tok">ship</span><span class="f8-flow-tok is-arrow">→</span>
+                <span class="f8-flow-tok">learning</span>
+              </div>
+
             </div>
           </div>
         </div>
+
+        <!-- film overlay · lower-third rides outside the camera -->
+        <div id="f8-lt" class="clip" data-start="0" data-duration="18.2" data-track-index="1">
+          <div class="sk-lowerthird">
+            <div class="f8-kickers">
+              <span id="f8-k1">03 · Plan</span>
+              <span id="f8-k2">05 · Build</span>
+              <span id="f8-k3">06 · Ship</span>
+              <span id="f8-k4">01–07 · the route</span>
+            </div>
+            <span class="sk-lt-line" id="f8-ltl">seven stations, one connected route.</span>
+          </div>
+        </div>
+
       </div>
 
       <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
       <script>
         window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
 
-        (function () {
-          // Scope every lookup to THIS composition — sibling frames share the document.
-          var ROOT = document.querySelector('[data-composition-id="08-the-route"]');
-          var q = function (s) { return ROOT.querySelectorAll(s); };
-          var q1 = function (s) { return ROOT.querySelector(s); };
+        const DUR = 18.2;
+        const camEl = document.getElementById("f8cam");
 
-          var W = ROOT.clientWidth || 1920;
-          var H = ROOT.clientHeight || 1080;
-          var U = W / 100; // 1cqw in px
-          var V = H / 100; // 1cqh in px
+        /* ── macro camera (multi-phase-camera + viewport-change, PAN mode) ──
+           World geometry (px at 1920×1080): screen centers at ox = −1728 / 0 / +1728,
+           oy = −86.4; strip stations at ox = (i−3)·460.8, oy = +594.
+           Single cam object is the source of truth; screen = (S·ox + x, S·oy + y),
+           so centering a target means x = −ox·S, y = −oy·S. One driver tween
+           (registered last) writes transform every frame with sine micro-drift. */
+        const cam = { s: 1.32, x: 2149, y: 61 };            // t=0 · tight on the typing doc body
 
-          var ORANGE = "#FF6B2C";
-          var HINT = "#6B6660";
+        /* Scene 1 · PLAN — widen off the doc, then a slow push (camera never sleeps) */
+        tl.to(cam, { s: 1.14, x: 1970,  y: 98,  duration: 2.0,  ease: "power1.inOut" }, 0.25);
+        tl.to(cam, { s: 1.19, x: 2056,  y: 103, duration: 1.6,  ease: "power1.inOut" }, 2.45);
+        /* Scene 2 · pan to BUILD (blur streak rides this pan) */
+        tl.to(cam, { s: 1.16, x: 0,     y: 100, duration: 0.95, ease: "power2.inOut" }, 4.2);
+        tl.to(cam, { s: 1.12, x: 60,    y: 96,  duration: 1.1,  ease: "power1.inOut" }, 5.3);
+        tl.to(cam, { s: 1.24, x: 434,   y: 51,  duration: 1.7,  ease: "power1.inOut" }, 6.6);
+        /* Scene 3 · pan to SHIP */
+        tl.to(cam, { s: 1.16, x: -2005, y: 100, duration: 0.95, ease: "power2.inOut" }, 8.6);
+        tl.to(cam, { s: 1.13, x: -1955, y: 96,  duration: 1.2,  ease: "power1.inOut" }, 9.7);
+        tl.to(cam, { s: 1.24, x: -2676, y: 58,  duration: 1.7,  ease: "power1.inOut" }, 11.1);
+        /* Scene 4 · pull + dive to the route strip, then dolly the seven stations */
+        tl.to(cam, { s: 2.05, x: 2834,  y: -1218, duration: 0.55, ease: "power2.inOut" }, 13.0);
+        const HOP = 944.64;                                  // station pitch × dolly scale
+        for (let i = 1; i <= 6; i++) {
+          tl.to(cam, { x: 2834 - i * HOP, duration: 0.3, ease: "power1.inOut" }, 13.55 + (i - 1) * 0.35);
+        }
+        /* Scene 5 · settle WIDE on the whole route, then breathe */
+        tl.to(cam, { s: 0.56,  x: 0, y: -363, duration: 1.0,  ease: "power2.inOut" }, 15.9);
+        tl.to(cam, { s: 0.578,       y: -373, duration: 1.25, ease: "power1.inOut" }, 16.95);
 
-          // ————— virtual camera (viewport-change, single-wrapper composite) —————
-          // world point (ox, oy) lands on screen at (S*ox + x, S*oy + y)  →  T = -offset * S
-          var world = q1("#r8-world");
-          var cam = { x: 0, y: 0, s: 1 };
-          function applyCamera() {
-            world.style.transform =
-              "translate(" + cam.x + "px, " + cam.y + "px) scale(" + cam.s + ")";
-          }
-          applyCamera();
+        /* ── motion-blur streak (path A, horizontal; peaks at peak pan velocity) ── */
+        const blurNode = document.getElementById("f8-streak-blur");
+        const blurProxy = { v: 0 };
+        const writeBlur = () => {
+          blurNode.setAttribute("stdDeviation", blurProxy.v.toFixed(2) + " 0");
+          camEl.style.filter = blurProxy.v < 0.02 ? "none" : "url(#f8-streak)";
+        };
+        writeBlur(); // seed frame 0
+        tl.to(blurProxy, { v: 12, duration: 0.45, ease: "power2.in",    onUpdate: writeBlur }, 4.2);
+        tl.to(blurProxy, { v: 0,  duration: 0.55, ease: "power2.out",   onUpdate: writeBlur }, 4.65);
+        tl.to(blurProxy, { v: 12, duration: 0.45, ease: "power2.in",    onUpdate: writeBlur }, 8.6);
+        tl.to(blurProxy, { v: 0,  duration: 0.55, ease: "power2.out",   onUpdate: writeBlur }, 9.05);
+        tl.to(blurProxy, { v: 9,  duration: 0.5,  ease: "power2.in",    onUpdate: writeBlur }, 13.0);
+        tl.to(blurProxy, { v: 5,  duration: 2.0,  ease: "power1.inOut", onUpdate: writeBlur }, 13.55);
+        tl.to(blurProxy, { v: 0,  duration: 0.8,  ease: "power2.out",   onUpdate: writeBlur }, 15.75);
 
-          // station centers in world px
-          var CX_PLAN = 50 * U, CX_BUILD = 150 * U, CX_SHIP = 250 * U;
-          // camera x that centers a station at scale 1
-          var X_PLAN = W / 2 - CX_PLAN;   // = 0
-          var X_BUILD = W / 2 - CX_BUILD; // = -100U
-          var X_SHIP = W / 2 - CX_SHIP;   // = -200U
+        /* ── depth-of-field rack focus between the three screens ──
+           (CSS seeds build/ship at 3px blur + 0.9 dim; plan starts sharp) */
+        tl.to("#f8-scr-plan",  { "--dof": "3px",   opacity: 0.9,  duration: 0.9, ease: "power2.inOut" }, 4.2);
+        tl.to("#f8-scr-build", { "--dof": "0px",   opacity: 1,    duration: 0.9, ease: "power2.inOut" }, 4.2);
+        tl.to("#f8-scr-build", { "--dof": "3px",   opacity: 0.9,  duration: 0.9, ease: "power2.inOut" }, 8.6);
+        tl.to("#f8-scr-ship",  { "--dof": "0px",   opacity: 1,    duration: 0.9, ease: "power2.inOut" }, 8.6);
+        tl.to("#f8-scr-plan",  { "--dof": "2.2px", opacity: 0.94, duration: 0.8, ease: "power2.inOut" }, 13.0);
+        tl.to("#f8-scr-build", { "--dof": "2.2px", opacity: 0.94, duration: 0.8, ease: "power2.inOut" }, 13.0);
+        tl.to("#f8-scr-ship",  { "--dof": "2.2px", opacity: 0.94, duration: 0.8, ease: "power2.inOut" }, 13.0);
+        tl.to("#f8-scr-plan",  { "--dof": "1.2px", opacity: 1,    duration: 1.0, ease: "power2.inOut" }, 15.9);
+        tl.to("#f8-scr-build", { "--dof": "1.2px", opacity: 1,    duration: 1.0, ease: "power2.inOut" }, 15.9);
+        tl.to("#f8-scr-ship",  { "--dof": "1.2px", opacity: 1,    duration: 1.0, ease: "power2.inOut" }, 15.9);
 
-          // wide landing: fit world span [26cqw .. 284cqw], center 155cqw, route y 45cqh → screen 46cqh
-          var S_WIDE = 0.335;
-          var X_WIDE = 50 * U - S_WIDE * 155 * U;
-          var Y_WIDE = 46 * V - S_WIDE * 45 * V;
+        /* ── Scene 1 · the spec writes itself (discrete-text-sequence, smooth slice) ── */
+        const FULL = "Preserve form state on error, surface the decline reason inline, and retry tokenization without a full reload.";
+        const typeEl = document.getElementById("f8-type");
+        const len = { v: 0 };
+        tl.to(len, {
+          v: FULL.length, duration: 3.0, ease: "power1.inOut",
+          onUpdate: () => { typeEl.textContent = FULL.substring(0, Math.floor(len.v)); },
+        }, 0.9);
+        /* TOC focus follows the doc: approach becomes the active section mid-type */
+        tl.to("#f8-toc-problem",  { color: "#A8A29A", boxShadow: "inset 0 0 0 0 rgba(0,0,0,0)", duration: 0.35, ease: "power1.out" }, 2.6);
+        tl.to("#f8-toc-approach", { color: "#F2EFE9", boxShadow: "inset 2px 0 0 #8FA464",       duration: 0.35, ease: "power1.out" }, 2.6);
 
-          // ————— pan blur (motion-blur-streak path A: proxy → setAttribute) —————
-          var blurNode = q1("#r8-blur") || document.getElementById("r8-blur");
-          var blurProxy = { v: 0 };
-          function writeBlur() {
-            blurNode.setAttribute("stdDeviation", blurProxy.v + " 0");
-          }
-          writeBlur(); // seed frame 0
+        /* ── Scene 2 · console ticks live + diff rows stream ── */
+        tl.fromTo("#f8-diff1", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 5.0);
+        tl.fromTo("#f8-log5",  { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 5.4);
+        tl.fromTo("#f8-diff2", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 5.7);
+        tl.fromTo("#f8-log6",  { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 6.3);
+        tl.fromTo("#f8-diff3", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 6.5);
+        tl.fromTo("#f8-log7",  { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 7.2);
 
-          // ————— route draw (svg-path-draw: measured dash) —————
-          var routeDraw = q1("#r8-route-draw");
-          var routeLen = 0;
-          try { routeLen = routeDraw.getTotalLength(); } catch (e) { routeLen = 0; }
-          if (!routeLen || !isFinite(routeLen)) routeLen = 2580;
-          routeDraw.style.strokeDasharray = String(routeLen);
-          routeDraw.style.strokeDashoffset = String(routeLen);
+        /* ── Scene 3 · release notes unfurl · GTM ticks on the VO · deploy flips live ── */
+        tl.fromTo("#f8-note1", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 8.85);
+        tl.fromTo("#f8-note2", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 9.1);
+        tl.fromTo("#f8-note3", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 9.35);
+        const TICKS = [["#f8-tk1", "#f8-chk1", 9.9], ["#f8-tk2", "#f8-chk2", 10.6], ["#f8-tk3", "#f8-chk3", 11.3]];
+        TICKS.forEach(([tick, row, at]) => {
+          tl.fromTo(tick, { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.6)" }, at);
+          tl.to(row, { color: "#F2EFE9", duration: 0.3, ease: "power1.out" }, at);
+        });
+        tl.to("#f8-dep-warn",  { opacity: 0, y: -5, duration: 0.3, ease: "power1.in" }, 12.15);
+        tl.fromTo("#f8-dep-live", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 12.25);
 
-          // checklist check marks (svg-path-draw, measured per path)
-          var chkPaths = [];
-          q(".r8-chk-path").forEach(function (p) {
-            var len = 0;
-            try { len = p.getTotalLength(); } catch (e) { len = 0; }
-            if (!len || !isFinite(len)) len = 16;
-            p.style.strokeDasharray = String(len);
-            p.style.strokeDashoffset = String(len);
-            chkPaths.push(p);
-          });
+        /* ── Scene 4 · spine draws through the stations as the camera passes ── */
+        const spine = document.getElementById("f8-spinepath");
+        const spineLen = spine.getTotalLength();
+        spine.style.strokeDasharray = String(spineLen);
+        spine.style.strokeDashoffset = String(spineLen);
+        tl.to(spine, { strokeDashoffset: 0, duration: 2.35, ease: "none" }, 13.35);
+        /* node dots pop as the pen crosses each gap */
+        gsap.utils.toArray(".f8-node").forEach((node, i) => {
+          tl.fromTo(node, { scale: 0, transformOrigin: "50% 50%" },
+            { scale: 1, duration: 0.3, ease: "back.out(2)" }, 13.62 + i * 0.35);
+        });
+        /* each station gets a tap pulse on its camera hit */
+        gsap.utils.toArray(".f8-mini").forEach((card, i) => {
+          const at = 13.55 + i * 0.35;
+          tl.to(card, { scale: 1.05, duration: 0.13, ease: "power2.out" }, at);
+          tl.to(card, { scale: 1,    duration: 0.22, ease: "power2.in"  }, at + 0.13);
+        });
 
-          // ————— typed spec title (discrete-text-sequence) —————
-          var SEQUENCE = [
-            { t: 0.0, text: "" },
-            { t: 0.62, text: "c" },
-            { t: 0.74, text: "che" },
-            { t: 0.86, text: "check" },
-            { t: 0.98, text: "checko" },
-            { t: 1.08, text: "checkout" },
-            { t: 1.24, text: "checkout d" },
-            { t: 1.34, text: "checkout dro" },
-            { t: 1.44, text: "checkout drop-" },
-            { t: 1.54, text: "checkout drop-off" },
-            { t: 1.72, text: "checkout drop-off f" },
-            { t: 1.82, text: "checkout drop-off fix" },
-            { t: 2.0, text: "checkout drop-off fix — spec" },
-          ];
-          function textAt(time) {
-            for (var i = SEQUENCE.length - 1; i >= 0; i--) {
-              if (time >= SEQUENCE[i].t) return SEQUENCE[i].text;
-            }
-            return "";
-          }
-          var specText = q1("#r8-spec-text");
-          var caret = q1("#r8-caret");
+        /* ── Scene 5 · the strip completes: signal → … → learning ── */
+        tl.fromTo(".f8-flow-tok", { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.4, ease: "power2.out", stagger: 0.07 }, 16.2);
 
-          // ————— the one timeline —————
-          var tl = gsap.timeline({ paused: true });
+        /* ── lower-third · kicker relay follows the camera, line lands on the wide ── */
+        tl.fromTo("#f8-k1", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.85);
+        tl.to("#f8-k1", { opacity: 0, y: -8, duration: 0.3, ease: "power1.in" }, 4.3);
+        tl.fromTo("#f8-k2", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 4.55);
+        tl.to("#f8-k2", { opacity: 0, y: -8, duration: 0.3, ease: "power1.in" }, 8.7);
+        tl.fromTo("#f8-k3", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 8.95);
+        tl.to("#f8-k3", { opacity: 0, y: -8, duration: 0.3, ease: "power1.in" }, 15.85);
+        tl.fromTo("#f8-k4", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 16.1);
+        tl.fromTo("#f8-ltl", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 16.55);
 
-          /* Scene 1 (0.0–3.1) — camera opens on PLAN; the spec writes itself.
-             Gentle opening settle anchored on the PLAN station (no bounce). */
-          var settle = { s: 1.03 };
-          tl.fromTo(
-            settle,
-            { s: 1.03 },
-            {
-              s: 1,
-              duration: 1.6,
-              ease: "power2.out",
-              onUpdate: function () {
-                cam.s = settle.s;
-                cam.x = 50 * U * (1 - settle.s);
-                cam.y = 45 * V * (1 - settle.s);
-                applyCamera();
-              },
-            },
-            0
-          );
+        /* ── single deterministic driver: micro-drift + caret blink ── */
+        const caretEl = document.getElementById("f8-caret");
+        const DRIFT_CYCLES = 2.2, AMP_X = 6, AMP_Y = 3, FREQ_RATIO = 1.3;
+        const driver = { t: 0 };
+        const apply = () => {
+          const p = (driver.t / DUR) * Math.PI * 2 * DRIFT_CYCLES;
+          const dx = Math.sin(p) * AMP_X;
+          const dy = Math.sin(p * FREQ_RATIO) * AMP_Y;
+          camEl.style.transform =
+            "translate(" + (cam.x + dx).toFixed(2) + "px," + (cam.y + dy).toFixed(2) + "px) scale(" + cam.s.toFixed(4) + ")";
+          caretEl.style.opacity = Math.sin(driver.t * Math.PI * 2 / 0.9) > 0 ? "1" : "0.1";
+        };
 
-          // wayfinder chrome fades in
-          tl.fromTo(q1("#r8-wayfinder"), { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.35);
+        /* driver registered LAST so it reads each frame's settled cam values */
+        tl.to(driver, { t: DUR, duration: DUR, ease: "none", onUpdate: apply }, 0);
+        apply(); // seed t=0
 
-          // typing driver — discrete states, instant jumps
-          var driver = { t: 0 };
-          tl.to(
-            driver,
-            {
-              t: 2.2,
-              duration: 2.2,
-              ease: "none",
-              onUpdate: function () {
-                specText.textContent = textAt(driver.t);
-              },
-            },
-            0
-          );
-
-          // caret blink — deterministic sin, active only while the doc is being drafted
-          var blink = { p: 0 };
-          tl.to(
-            blink,
-            {
-              p: Math.PI * 2 * 5.3,
-              duration: 3.45,
-              ease: "none",
-              onUpdate: function () {
-                caret.style.opacity = Math.sin(blink.p) > -0.2 ? "1" : "0";
-              },
-            },
-            0
-          );
-          tl.set(caret, { opacity: 0 }, 3.46);
-
-          // requirements label + ticking bullets
-          tl.fromTo(q1("#r8-req-label"), { opacity: 0, y: 0.5 * V }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }, 2.08);
-          var bullets = q(".r8-bullet");
-          bullets.forEach(function (li, i) {
-            tl.fromTo(
-              li,
-              { opacity: 0, x: -0.5 * U },
-              { opacity: 1, x: 0, duration: 0.22, ease: "power2.out" },
-              2.32 + i * 0.29
-            );
-          });
-
-          /* Pan 1 (3.10–4.25) — PLAN → BUILD, matched-velocity lateral pan
-             with a directional blur envelope peaking at max speed. */
-          tl.fromTo(cam, { x: X_PLAN }, { x: X_BUILD, duration: 1.15, ease: "power3.inOut", onUpdate: applyCamera }, 3.1);
-          tl.fromTo(blurProxy, { v: 0 }, { v: 12, duration: 0.575, ease: "power2.in", onUpdate: writeBlur }, 3.1);
-          tl.fromTo(blurProxy, { v: 12 }, { v: 0, duration: 0.575, ease: "power2.out", onUpdate: writeBlur }, 3.675);
-
-          // wayfinder hands off to build
-          tl.to(q1("#r8-wp-plan"), { color: HINT, duration: 0.25, ease: "power1.out" }, 4.1);
-          tl.to(q1("#r8-wp-build"), { color: ORANGE, duration: 0.25, ease: "power1.out" }, 4.1);
-
-          /* Scene 2 (4.25–7.0) — BUILD: boundary frame, then the diff staggers in. */
-          tl.fromTo(q1("#r8-bframe"), { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 4.35);
-          var diffRows = q(".r8-diff-row");
-          diffRows.forEach(function (row, i) {
-            tl.fromTo(
-              row,
-              { opacity: 0, x: -0.7 * U },
-              { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" },
-              4.68 + i * 0.32
-            );
-          });
-
-          /* Pan 2 (7.00–8.15) — BUILD → SHIP, same velocity + blur envelope. */
-          tl.fromTo(cam, { x: X_BUILD }, { x: X_SHIP, duration: 1.15, ease: "power3.inOut", onUpdate: applyCamera }, 7.0);
-          tl.fromTo(blurProxy, { v: 0 }, { v: 12, duration: 0.575, ease: "power2.in", onUpdate: writeBlur }, 7.0);
-          tl.fromTo(blurProxy, { v: 12 }, { v: 0, duration: 0.575, ease: "power2.out", onUpdate: writeBlur }, 7.575);
-
-          tl.to(q1("#r8-wp-build"), { color: HINT, duration: 0.25, ease: "power1.out" }, 8.05);
-          tl.to(q1("#r8-wp-ship"), { color: ORANGE, duration: 0.25, ease: "power1.out" }, 8.05);
-
-          /* Scene 3 (8.15–12.0) — SHIP: release notes unfurl, then the
-             go-to-market checklist ticks item by item on the VO. */
-          tl.fromTo(q1("#r8-rn-title"), { opacity: 0, y: 0.8 * V }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 8.35);
-          var rnLines = q(".r8-rn-line");
-          rnLines.forEach(function (line, i) {
-            tl.fromTo(
-              line,
-              { opacity: 0, y: 0.7 * V },
-              { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" },
-              8.75 + i * 0.35
-            );
-          });
-          tl.fromTo(q1("#r8-gtm"), { opacity: 0, x: 0.8 * U }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 9.7);
-
-          // ticks: fill wipes (stat-bars-and-fills — scaleX, left origin) + drawn check
-          var fills = q(".r8-tick-fill");
-          var TICK_AT = [10.1, 10.7, 11.3];
-          fills.forEach(function (fill, i) {
-            tl.fromTo(fill, { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power2.out" }, TICK_AT[i]);
-          });
-          chkPaths.forEach(function (p, i) {
-            tl.to(p, { strokeDashoffset: 0, duration: 0.28, ease: "power2.out" }, TICK_AT[i] + 0.32);
-          });
-
-          /* Scene 4 (12.05–15.4) — one pull wide (multi-phase-camera, single move):
-             all three stations on the one route line; the route draws through them. */
-          tl.fromTo(cam, { s: 1 }, { s: S_WIDE, duration: 1.6, ease: "power3.inOut", onUpdate: applyCamera }, 12.05);
-          tl.fromTo(cam, { x: X_SHIP }, { x: X_WIDE, duration: 1.6, ease: "power3.inOut", onUpdate: applyCamera }, 12.05);
-          tl.fromTo(cam, { y: 0 }, { y: Y_WIDE, duration: 1.6, ease: "power3.inOut", onUpdate: applyCamera }, 12.05);
-
-          // the route line draws through the stations (svg-path-draw)
-          tl.to(routeDraw, { strokeDashoffset: 0, duration: 2.0, ease: "power2.out" }, 12.35);
-
-          // the whole route is one — wayfinder unifies
-          tl.to(q1("#r8-wp-plan"), { color: ORANGE, duration: 0.3, ease: "power1.out" }, 13.3);
-          tl.to(q1("#r8-wp-build"), { color: ORANGE, duration: 0.3, ease: "power1.out" }, 13.3);
-
-          // landing statement
-          tl.fromTo(q1("#r8-headline"), { opacity: 0, y: 1.6 * V }, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 13.75);
-
-          /* Scene 5 (15.4–18.2) — mono lifecycle strip stamps beneath the route;
-             held wide, still, to the end (no exit — the root transition owns it). */
-          var toks = q(".r8-tok");
-          toks.forEach(function (tok, i) {
-            tl.fromTo(
-              tok,
-              { opacity: 0, y: 0.6 * V },
-              { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" },
-              15.45 + i * 0.08
-            );
-          });
-
-          window.__timelines["08-the-route"] = tl;
-        })();
+        window.__timelines["08-the-route"] = tl;
       </script>
     </template>
   </body>

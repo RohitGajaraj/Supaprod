@@ -1,431 +1,597 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Frame 06 — It disagrees</title>
-    <!-- head is metadata only; the runtime clones ONLY the <template> contents -->
-  </head>
-  <body>
-    <template>
-      <style>
-        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
-        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
-        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- F6 · It disagrees — Decide screen scores both bets; the exciting one loses and is passed.
+       Head is metadata only; the runtime clones ONLY the <template> below. -->
+</head>
+<body>
+<template>
+  <style>
+    /* ————— fonts (screen kit, dual-path src) ————— */
+    @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2"),url("assets/fonts/Geist-Regular.woff2") format("woff2");}
+    @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2"),url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
+    @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
+    @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+    @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2"),url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
 
-        /* Root styled via #root only — never a class (scoper drops root classes). */
-        #root {
-          position: absolute;
-          inset: 0;
-          overflow: hidden;
-          container-type: size;
-          --ink: #0a0a0b;
-          --ink2: #141416;
-          --orange: #ff6b2c;
-          --cream: #f2efe9;
-          --muted: #a8a29a;
-          --hint: #6b6660;
-          --line: #26262a;
-          -webkit-font-smoothing: antialiased;
-        }
+    /* ————— tokens (screen kit v3 — declared on #root, inherit down; :root breaks under scoping) ————— */
+    #root{
+      --sk-ground:#0A0A0B;
+      --sk-panel:#141416;
+      --sk-raised:#1A1A1D;
+      --sk-hairline:#26262A;
+      --sk-text:#F2EFE9;
+      --sk-muted:#A8A29A;
+      --sk-faint:#6B6660;
+      --sk-discover:#6FA9A0;
+      --sk-decide:#C39A5E;
+      --sk-plan:#8FA464;
+      --sk-design:#AB7FA0;
+      --sk-build:#6D97C2;
+      --sk-ship:#BD8092;
+      --sk-learn:#A89F66;
+      --sk-pass:#4FC47A;
+      --sk-fail:#EF6A5F;
+      --sk-warn:#E8B44C;
+      --sk-ember:#FF6B2C;
+      --sk-accent:var(--sk-decide);
+      --sk-r-chip:7px;
+      --sk-r-control:8px;
+      --sk-r-row:9px;
+      --sk-r-card:10px;
+      --sk-r-panel:12px;
+      --sk-r-pane:16px;
+      --sk-ui:"Mona Sans",system-ui,sans-serif;
+      --sk-mono:"IBM Plex Mono",ui-monospace,monospace;
+      --sk-ring:0 0 0 1px var(--sk-hairline);
+      --sk-ambient:0 24px 80px rgba(0,0,0,.5);
+      position:absolute;inset:0;width:100%;height:100%;overflow:hidden;
+    }
 
-        /* Full-bleed ground lives on a dedicated clip, never on #root. */
-        .bg {
-          position: absolute;
-          inset: 0;
-          background: var(--ink);
-        }
+    /* ————— ground clip (track 0) — the dependable full-bleed ink ————— */
+    .f6-ground{position:absolute;inset:0;background:#0A0A0B;}
 
-        .stage {
-          position: absolute;
-          inset: 0;
-        }
+    /* ————— world clip (track 1) — kit frame + camera rig ————— */
+    .f6-world{position:absolute;inset:0;}
+    .sk-frame{
+      position:relative;width:100%;height:100%;overflow:hidden;
+      container-type:size;
+      background:var(--sk-ground);
+      color:var(--sk-text);
+      font-family:var(--sk-ui);
+      -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+    }
+    .sk-frame *,.sk-frame *::before,.sk-frame *::after{box-sizing:border-box;margin:0;padding:0;}
+    /* camera wrapper — single world transform (multi-phase-camera + viewport-change) */
+    .f6-cam{
+      position:absolute;inset:0;
+      transform-origin:50% 50%;
+      will-change:transform,filter;
+      filter:url(#f6-pushblur);
+    }
+    .sk-stage{
+      position:absolute;inset:0;display:grid;place-items:center;
+      perspective:2200px;
+      perspective-origin:50% 42%;
+    }
+    .sk-screen{
+      position:relative;
+      width:88cqw;height:86cqh;
+      transform:rotateX(2.7deg) rotateY(-4.2deg);
+      transform-style:preserve-3d;
+      background:var(--sk-ground);
+      border-radius:var(--sk-r-pane);
+      box-shadow:var(--sk-ring),var(--sk-ambient);
+      overflow:hidden;
+      will-change:transform;
+    }
 
-        .mono {
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          text-transform: uppercase;
-          letter-spacing: 0.14em;
-        }
+    /* ————— app shell ————— */
+    .sk-shell{
+      display:grid;height:100%;
+      grid-template-columns:12.5cqw minmax(0,1fr);
+      grid-template-rows:3.2cqh minmax(0,1fr);
+      grid-template-areas:"side top" "side main";
+    }
+    .sk-sidebar{
+      grid-area:side;display:flex;flex-direction:column;min-height:0;
+      background:var(--sk-ground);border-right:1px solid var(--sk-hairline);
+    }
+    .sk-ws{display:flex;align-items:center;gap:0.55cqw;padding:1cqw 1cqw 0.8cqw;}
+    .sk-ws-mark{
+      width:0.72cqw;height:0.72cqw;flex:none;border-radius:50%;
+      border:1px solid var(--sk-ember);
+      background:radial-gradient(circle at 50% 50%,var(--sk-ember) 0 28%,transparent 30%);
+    }
+    .sk-ws-name{font:600 0.82cqw/1 var(--sk-ui);color:var(--sk-text);letter-spacing:0.01em;}
+    .sk-ws-caret{margin-left:auto;font:400 0.6cqw/1 var(--sk-mono);color:var(--sk-faint);}
+    .sk-nav{display:flex;flex-direction:column;gap:0.12cqh;padding:0.3cqw 0.5cqw;}
+    .sk-navrow{
+      display:flex;align-items:center;gap:0.55cqw;
+      padding:0.42cqw 0.6cqw;border-radius:var(--sk-r-row);
+      font:400 0.73cqw/1 var(--sk-ui);color:var(--sk-muted);
+    }
+    .sk-navrow .sk-dot{
+      width:0.3cqw;height:0.3cqw;flex:none;border-radius:50%;
+      background:var(--dot,var(--sk-faint));
+    }
+    .sk-navcount{margin-left:auto;font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-faint);}
+    .sk-navrow.is-active{background:var(--sk-raised);color:var(--sk-text);}
+    .sk-navrow.is-active .sk-dot{box-shadow:0 0 0.45cqw 0 var(--dot,var(--sk-accent));}
+    .sk-navrow.is-active .sk-navcount{color:var(--sk-muted);}
+    .sk-side-foot{
+      margin-top:auto;display:flex;align-items:center;gap:0.45cqw;
+      padding:0.85cqw 1cqw;border-top:1px solid var(--sk-hairline);
+      font:400 0.57cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.03em;
+    }
+    .sk-livedot{
+      width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;
+      background:var(--sk-pass);box-shadow:0 0 0.4cqw var(--sk-pass);
+    }
+    .sk-topbar{
+      grid-area:top;display:flex;align-items:center;gap:0.9cqw;
+      padding:0 1cqw;border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
+    }
+    .sk-crumb{display:flex;align-items:center;font:400 0.62cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;}
+    .sk-crumb-sep{padding:0 0.35cqw;color:var(--sk-faint);}
+    .sk-crumb-here{color:var(--sk-text);}
+    .sk-ask{
+      display:flex;align-items:center;gap:0.5cqw;flex:0 1 20cqw;height:2.1cqh;
+      padding:0 0.4cqw 0 0.65cqw;background:var(--sk-panel);
+      border:1px solid var(--sk-hairline);border-radius:var(--sk-r-control);
+      font:400 0.66cqw/1 var(--sk-ui);color:var(--sk-faint);
+    }
+    .sk-ask svg{width:0.68cqw;height:0.68cqw;flex:none;stroke:var(--sk-faint);fill:none;stroke-width:1.6;}
+    .sk-kbd{
+      margin-left:auto;padding:0.1cqw 0.32cqw;
+      font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-faint);
+      background:var(--sk-ground);border:1px solid var(--sk-hairline);border-radius:5px;
+    }
+    .sk-avatar{
+      width:1.25cqw;height:1.25cqw;flex:none;display:grid;place-items:center;
+      background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:50%;
+      font:600 0.5cqw/1 var(--sk-ui);color:var(--sk-muted);letter-spacing:0.05em;
+    }
 
-        /* ── slide chrome (top only — bottom band is caption keep-out) ── */
-        .chrome {
-          position: absolute;
-          top: 4.2cqh;
-          left: 5.5cqw;
-          right: 5.5cqw;
-          display: flex;
-          justify-content: space-between;
-          font-size: 0.75cqw;
-        }
-        .kicker {
-          color: var(--orange);
-        }
-        .cat {
-          color: var(--hint);
-        }
-        .chrome-rule {
-          position: absolute;
-          top: 8cqh;
-          left: 5.5cqw;
-          right: 5.5cqw;
-          height: 1px;
-          background: var(--line);
-          transform-origin: left center;
-        }
+    /* ————— type + primitives ————— */
+    .sk-title{font:600 1.3cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
+    .sk-body{font:400 0.73cqw/1.45 var(--sk-ui);color:var(--sk-text);}
+    .sk-meta{font:400 0.68cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+    .sk-label{font:500 0.65cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.10em;text-transform:uppercase;}
+    .sk-spacer{flex:1;}
+    .sk-panel{
+      background:var(--sk-panel);border:1px solid var(--sk-hairline);
+      border-radius:var(--sk-r-panel);overflow:hidden;min-height:0;
+      display:flex;flex-direction:column;
+    }
+    .sk-panel-hd{
+      display:flex;align-items:center;gap:0.6cqw;flex:none;
+      padding:0.75cqw 1cqw;border-bottom:1px solid var(--sk-hairline);
+    }
+    .sk-panel-title{font:600 0.83cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+    .sk-panel-body{flex:1;min-height:0;overflow:hidden;}
+    .sk-row{padding:0.7cqw 1cqw;}
+    .sk-row + .sk-row{border-top:1px solid var(--sk-hairline);}
+    .sk-chip{
+      display:inline-flex;align-items:center;gap:0.3cqw;
+      padding:0.22cqw 0.45cqw;border:1px solid var(--sk-hairline);
+      border-radius:var(--sk-r-chip);background:rgba(255,255,255,0.02);
+      font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
+      white-space:nowrap;
+    }
+    .sk-chip.is-on,
+    .sk-chip--accent{color:var(--sk-accent);border-color:color-mix(in srgb,var(--sk-accent) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-accent) 8%,transparent);}
+    .sk-chip--pass{color:var(--sk-pass);border-color:color-mix(in srgb,var(--sk-pass) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-pass) 8%,transparent);}
+    .sk-chip--ember{color:var(--sk-ember);border-color:color-mix(in srgb,var(--sk-ember) 45%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-ember) 9%,transparent);}
+    .sk-dot-inline{width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;background:currentColor;}
+    .sk-badge{
+      display:inline-flex;align-items:center;padding:0.22cqw 0.45cqw;
+      background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:var(--sk-r-chip);
+      font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);font-variant-numeric:tabular-nums;
+    }
 
-        /* ── the duel: two bet cards under one shared perspective ── */
-        .duel {
-          position: absolute;
-          left: 20.5cqw;
-          top: 26cqh;
-          width: 59cqw;
-          height: 36cqh;
-          perspective: 1600px;
-        }
-        .side {
-          position: absolute;
-          top: 0;
-          width: 27cqw;
-          height: 100%;
-          transform-style: preserve-3d;
-          will-change: transform;
-        }
-        .side-l {
-          left: 0;
-        }
-        .side-r {
-          right: 0;
-        }
+    /* ————— composite score with sub-bars ————— */
+    .sk-score{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.1cqw;align-items:center;margin-top:0.7cqw;}
+    .sk-score-main{display:flex;flex-direction:column;align-items:flex-start;gap:0.15cqw;}
+    .sk-score-num{
+      font:500 1.5cqw/1 var(--sk-mono);color:var(--sk-accent);
+      letter-spacing:-0.03em;font-variant-numeric:tabular-nums;
+    }
+    .sk-score-cap{font:500 0.5cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.08em;text-transform:uppercase;}
+    .sk-score-bars{display:flex;flex-direction:column;gap:0.45cqw;}
+    .sk-subbar{display:grid;grid-template-columns:4.6cqw minmax(0,1fr) 1.9cqw;gap:0.55cqw;align-items:center;}
+    .sk-subbar-name{font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.04em;}
+    .sk-subbar-track{display:block;height:0.18cqw;background:var(--sk-hairline);border-radius:2px;overflow:hidden;}
+    .sk-subbar-track i{display:block;height:100%;background:var(--sk-accent);border-radius:inherit;will-change:transform;}
+    .sk-subbar-val{font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-muted);text-align:right;font-variant-numeric:tabular-nums;}
+    .sk-score--dim .sk-subbar-track i{background:#4B4B51;}
+    .sk-score--dim .sk-subbar-name,.sk-score--dim .sk-subbar-val{color:var(--sk-faint);}
 
-        .card {
-          position: absolute;
-          inset: 0;
-          z-index: 1;
-          box-sizing: border-box;
-          background: var(--ink2);
-          border: 1px solid var(--line);
-          padding: 2.6cqh 2.2cqw;
-          display: flex;
-          flex-direction: column;
-          will-change: transform;
-          backface-visibility: hidden;
-        }
-        .tag {
-          font-size: 0.78cqw;
-          color: var(--muted);
-        }
-        .headline {
-          font-family: "Mona Sans", sans-serif;
-          font-weight: 600;
-          font-size: 2.6cqw;
-          line-height: 1.18;
-          letter-spacing: -0.01em;
-          color: var(--cream);
-          margin-top: 1.6cqh;
-          max-width: 21cqw;
-        }
-        .spacer {
-          flex: 1;
-        }
-        .meta {
-          font-size: 0.72cqw;
-          color: var(--hint);
-        }
-        .meta-r {
-          align-self: flex-end;
-        }
-        .sl {
-          color: var(--orange);
-        }
+    /* ————— bet detail cards ————— */
+    .sk-betcard{
+      flex:none;padding:1.1cqw 1.2cqw;background:var(--sk-raised);
+      border:1px solid var(--sk-hairline);border-radius:var(--sk-r-card);
+    }
+    .sk-betcard-hd{display:flex;align-items:center;gap:0.6cqw;}
+    .sk-betcard-title{font:600 0.95cqw/1.25 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+    .sk-betcard .sk-meta{margin-top:0.3cqw;font-size:0.62cqw;}
+    .sk-betnote{
+      display:flex;gap:0.45cqw;margin-top:0.8cqw;padding-top:0.65cqw;
+      border-top:1px solid var(--sk-hairline);
+      font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
+    }
+    .sk-betnote span{color:var(--sk-accent);}
 
-        /* strike — svg hairline drawn across the losing card (rides its plane) */
-        .strike {
-          position: absolute;
-          left: -4%;
-          top: 0;
-          width: 108%;
-          height: 100%;
-          overflow: visible;
-          pointer-events: none;
-        }
-        .strike line {
-          stroke: var(--orange);
-          stroke-width: 6;
-          stroke-linecap: butt;
-          fill: none;
-        }
+    /* ————— cursor (kit) ————— */
+    .sk-cursor{position:absolute;z-index:90;width:1.05cqw;height:1.05cqw;pointer-events:none;left:52cqw;top:44cqh;opacity:0;will-change:transform,opacity;}
+    .sk-cursor svg{display:block;width:100%;height:100%;overflow:visible;}
+    .sk-cursor svg path{fill:var(--sk-text);stroke:var(--sk-ground);stroke-width:1.1;stroke-linejoin:round;}
 
-        /* ember edge-glow behind the winning card (dedicated layer, no box-shadow) */
-        .glow {
-          position: absolute;
-          inset: -20% -24%;
-          z-index: 0;
-          background: radial-gradient(
-            closest-side,
-            rgba(255, 107, 44, 0.45) 0%,
-            rgba(255, 107, 44, 0.14) 48%,
-            rgba(255, 107, 44, 0) 74%
-          );
-          opacity: 0;
-          transform-origin: 50% 50%;
-          pointer-events: none;
-          will-change: transform, opacity;
-        }
-        .edge {
-          position: absolute;
-          inset: -1px;
-          border: 1px solid var(--orange);
-          opacity: 0;
-          pointer-events: none;
-        }
+    /* ————— frame-6 specifics ————— */
+    .f6-content{
+      grid-area:main;position:relative;display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr) 15.5cqw;
+      grid-template-rows:auto minmax(0,1fr);
+      gap:1cqw;padding:1.1cqw;min-height:0;
+    }
+    .f6-head{grid-column:1/-1;display:flex;align-items:baseline;gap:0.8cqw;}
+    .f6-cell{position:relative;align-self:start;min-height:0;}
+    .f6-card{--dof:0px;filter:blur(var(--dof));will-change:filter,transform,opacity;position:relative;}
+    .f6-slot{
+      position:absolute;inset:0;display:grid;place-items:center;
+      border:1px dashed var(--sk-hairline);border-radius:var(--sk-r-card);
+      opacity:0;pointer-events:none;
+    }
+    .f6-ring{
+      position:absolute;inset:0;border:1px solid var(--sk-ember);border-radius:var(--sk-r-card);
+      box-shadow:0 0 1cqw rgba(255,107,44,0.22);
+      opacity:0;pointer-events:none;
+    }
+    .f6-advance{opacity:0;}
+    .f6-note{opacity:0;will-change:transform,opacity;}
+    .f6-val{opacity:0;}
+    .f6-rail{align-self:stretch;}
+    .f6-rail-body{position:relative;flex:1;min-height:0;overflow:hidden;}
+    .f6-passrow-title{font:400 0.73cqw/1.35 var(--sk-ui);color:var(--sk-muted);}
+    .f6-passrow-title s{color:var(--sk-faint);}
+    .f6-passrow-meta{margin-top:0.2cqw;font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-faint);font-variant-numeric:tabular-nums;}
+    .f6-shiftrow{will-change:transform;}
+    .f6-incoming{
+      position:absolute;top:0.5cqw;left:0.6cqw;right:0.6cqw;z-index:5;
+      padding:0.6cqw 0.8cqw;background:var(--sk-raised);
+      border:1px solid var(--sk-hairline);border-radius:var(--sk-r-row);
+      opacity:0;transform-origin:50% 50%;will-change:transform,opacity;
+    }
+    .f6-badge{display:inline-grid;}
+    .f6-badge span{grid-area:1/1;text-align:center;}
+    .f6-b3{opacity:0;}
+    .f6-ghost{
+      position:absolute;left:12cqw;top:9.6cqh;width:16cqw;z-index:80;
+      padding:0.7cqw 0.9cqw;background:var(--sk-raised);
+      border:1px solid var(--sk-hairline);border-radius:var(--sk-r-card);
+      box-shadow:var(--sk-ring),var(--sk-ambient);
+      opacity:0;transform-origin:50% 50%;will-change:transform,opacity;
+    }
+    .f6-ghost-hd{display:flex;align-items:center;gap:0.5cqw;}
+    .f6-ghost-title{font:600 0.8cqw/1.2 var(--sk-ui);color:var(--sk-text);}
+    .f6-ripple{
+      position:absolute;left:16cqw;top:10.8cqh;width:2.2cqw;height:2.2cqw;
+      margin:-1.1cqw 0 0 -1.1cqw;border:1px solid var(--sk-text);border-radius:50%;
+      opacity:0;z-index:85;pointer-events:none;transform-origin:50% 50%;will-change:transform,opacity;
+    }
 
-        /* score badges — land at each card's inner edge, facing off across the gap */
-        .badge {
-          position: absolute;
-          bottom: 1.2cqh;
-          width: 11.5cqw;
-          box-sizing: border-box;
-          z-index: 2;
-          background: var(--ink);
-          border: 1px solid var(--line);
-          padding: 1.4cqh 1.2cqw 1.6cqh;
-          will-change: transform;
-        }
-        .badge-l {
-          right: -2cqw;
-          transform-origin: 30% 62%;
-        }
-        .badge-r {
-          left: -2cqw;
-          transform-origin: 70% 62%;
-        }
-        .badge-label {
-          font-size: 0.68cqw;
-          color: var(--hint);
-        }
-        .badge-num {
-          font-family: "Mona Sans", sans-serif;
-          font-weight: 700;
-          font-size: 4.6cqw;
-          line-height: 1.05;
-          letter-spacing: -0.04em;
-          margin-top: 0.6cqh;
-        }
-        .num-l {
-          color: var(--cream);
-        }
-        .num-r {
-          color: var(--orange);
-        }
-        .badge-bar {
-          margin-top: 1.4cqh;
-          height: 0.6cqh;
-          background: var(--line);
-          overflow: hidden;
-        }
-        /* width:100% REQUIRED — a widthless fill scales from 0px and renders invisible */
-        .fill {
-          width: 100%;
-          height: 100%;
-          transform-origin: left center;
-          will-change: transform;
-        }
-        .fill-l {
-          background: var(--hint);
-        }
-        .fill-r {
-          background: var(--orange);
-        }
+    /* ————— overlay clip (track 2) — lower-third, kept above the caption keep-out ————— */
+    .f6-overlay{position:absolute;inset:0;container-type:size;pointer-events:none;}
+    .sk-lowerthird{
+      position:absolute;left:5.5cqw;bottom:18.5cqh;z-index:60;
+      display:flex;flex-direction:column;gap:0.55cqh;
+      text-shadow:0 2px 30px rgba(0,0,0,.6);
+      font-family:var(--sk-ui);
+    }
+    .sk-lt-kicker{
+      font:500 0.72cqw/1 var(--sk-mono);letter-spacing:0.14em;text-transform:uppercase;
+      color:var(--sk-decide);opacity:0;will-change:transform,opacity;
+    }
+    .sk-lt-line{font:600 2.6cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;opacity:0;will-change:transform,opacity;}
+  </style>
 
-        /* final punctuation chip under the winner */
-        .verdict {
-          position: absolute;
-          left: -2cqw;
-          bottom: -4.8cqh;
-          font-size: 0.85cqw;
-          color: var(--orange);
-        }
-      </style>
+  <div id="root" data-composition-id="06-it-disagrees" data-width="1920" data-height="1080" data-duration="8.8">
 
-      <div id="root" data-composition-id="06-it-disagrees" data-width="1920" data-height="1080">
-        <div id="bg" class="clip bg" data-start="0" data-duration="8.3" data-track-index="0"></div>
+    <!-- track 0 · full-bleed ink ground -->
+    <div id="f6-bg" class="clip f6-ground" data-start="0" data-duration="8.3" data-track-index="0"></div>
 
-        <div id="stage" class="clip stage" data-start="0" data-duration="8.3" data-track-index="1">
-          <div class="chrome mono" id="chrome">
-            <div class="kicker"><span class="sl">/</span>&nbsp;SCORING</div>
-            <div class="cat">NO. 06</div>
-          </div>
-          <div class="chrome-rule" id="chrome-rule"></div>
+    <!-- track 1 · the world: kit frame + camera rig + Decide screen -->
+    <div id="f6-world" class="clip f6-world" data-start="0" data-duration="8.3" data-track-index="1" data-layout-allow-overflow>
+      <div class="sk-frame" id="f6-frame">
 
-          <div class="duel" data-layout-allow-overflow>
-            <!-- LEFT — the exciting one, 4.0, struck in act three -->
-            <div class="side side-l" id="side-l">
-              <div class="card card-left">
-                <div class="tag mono rev-l" id="tag-l">THE EXCITING ONE</div>
-                <div class="headline rev-l">redesign the app</div>
-                <div class="spacer"></div>
-                <div class="meta mono rev-l"><span class="sl">/</span>&nbsp;BET 01</div>
-                <svg class="strike" viewBox="0 0 1000 750" preserveAspectRatio="none">
-                  <line id="strike-line" x1="12" y1="318" x2="988" y2="428" />
-                </svg>
+        <!-- push-blur filter (motion-blur-streak, push-through variation: symmetric smear) -->
+        <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+          <defs>
+            <filter id="f6-pushblur" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur id="f6-pushblur-std" in="SourceGraphic" stdDeviation="0 0" />
+            </filter>
+          </defs>
+        </svg>
+
+        <div class="f6-cam" id="f6-cam">
+          <div class="sk-stage">
+            <div class="sk-screen" id="f6-screen" style="--sk-accent:var(--sk-decide)">
+              <div class="sk-shell">
+
+                <!-- sidebar · harbor · Decide active -->
+                <aside class="sk-sidebar">
+                  <div class="sk-ws">
+                    <span class="sk-ws-mark"></span>
+                    <span class="sk-ws-name">harbor</span>
+                    <span class="sk-ws-caret">⌄</span>
+                  </div>
+                  <nav class="sk-nav">
+                    <div class="sk-navrow" style="--dot:var(--sk-text)"><span class="sk-dot"></span>Today<span class="sk-navcount">3</span></div>
+                    <div class="sk-navrow" style="--dot:var(--sk-discover)"><span class="sk-dot"></span>Discover<span class="sk-navcount">24</span></div>
+                    <div class="sk-navrow is-active" style="--dot:var(--sk-decide)"><span class="sk-dot"></span>Decide<span class="sk-navcount">3</span></div>
+                    <div class="sk-navrow" style="--dot:var(--sk-plan)"><span class="sk-dot"></span>Plan</div>
+                    <div class="sk-navrow" style="--dot:var(--sk-design)"><span class="sk-dot"></span>Design</div>
+                    <div class="sk-navrow" style="--dot:var(--sk-build)"><span class="sk-dot"></span>Build<span class="sk-navcount">2</span></div>
+                    <div class="sk-navrow" style="--dot:var(--sk-ship)"><span class="sk-dot"></span>Ship</div>
+                    <div class="sk-navrow" style="--dot:var(--sk-learn)"><span class="sk-dot"></span>Learn<span class="sk-navcount">1</span></div>
+                    <div class="sk-navrow" style="--dot:var(--sk-ember)"><span class="sk-dot"></span>Brain</div>
+                  </nav>
+                  <div class="sk-side-foot"><span class="sk-livedot"></span>3 agents running</div>
+                </aside>
+
+                <!-- top bar -->
+                <header class="sk-topbar">
+                  <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">decide</span></div>
+                  <div class="sk-ask">
+                    <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>
+                    ask supaprod…
+                    <span class="sk-kbd">⌘K</span>
+                  </div>
+                  <span class="sk-spacer"></span>
+                  <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>synced 2m ago</span>
+                  <div class="sk-avatar">MR</div>
+                </header>
+
+                <!-- content · two bets head-to-head + passed rail -->
+                <main class="f6-content">
+
+                  <div class="f6-head" id="f6-head">
+                    <h1 class="sk-title">Decide</h1>
+                    <span class="sk-meta f6-headmeta" style="font-size:0.62cqw;">2 bets in review · re-scored 2m ago</span>
+                    <span class="sk-spacer"></span>
+                    <span class="sk-chip is-on f6-headchip">by composite</span>
+                    <span class="sk-chip f6-headchip">impact</span>
+                    <span class="sk-chip f6-headchip">confidence</span>
+                    <span class="sk-chip f6-headchip">effort</span>
+                  </div>
+
+                  <!-- left · the exciting one -->
+                  <div class="f6-cell">
+                    <div class="f6-slot" id="f6-slot">
+                      <span class="sk-meta" style="font-size:0.62cqw;color:var(--sk-faint);">moved to passed · just now</span>
+                    </div>
+                    <article class="sk-betcard f6-card" id="f6-card-l">
+                      <header class="sk-betcard-hd">
+                        <h3 class="sk-betcard-title">redesign the app</h3>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-chip">the exciting one</span>
+                      </header>
+                      <p class="sk-meta">opened from exec note · 4 signals · 2 sources · updated 1h ago</p>
+                      <div class="sk-score sk-score--dim">
+                        <div class="sk-score-main">
+                          <span class="sk-score-num" id="f6-num-l" style="color:#6B6660;">0.0</span>
+                          <span class="sk-score-cap">composite</span>
+                        </div>
+                        <div class="sk-score-bars">
+                          <div class="sk-subbar"><span class="sk-subbar-name">impact</span><span class="sk-subbar-track"><i class="f6-bar" style="width:78%"></i></span><span class="sk-subbar-val f6-val">7.8</span></div>
+                          <div class="sk-subbar"><span class="sk-subbar-name">confidence</span><span class="sk-subbar-track"><i class="f6-bar" style="width:29%"></i></span><span class="sk-subbar-val f6-val">2.9</span></div>
+                          <div class="sk-subbar"><span class="sk-subbar-name">effort</span><span class="sk-subbar-track"><i class="f6-bar" style="width:84%"></i></span><span class="sk-subbar-val f6-val">8.4</span></div>
+                        </div>
+                      </div>
+                      <p class="sk-betnote f6-note" id="f6-note-l"><span>agent</span>thin evidence — 4 signals, none direct</p>
+                    </article>
+                  </div>
+
+                  <!-- right · the boring one that pays -->
+                  <div class="f6-cell">
+                    <article class="sk-betcard f6-card" id="f6-card-r">
+                      <div class="f6-ring" id="f6-ring"></div>
+                      <header class="sk-betcard-hd">
+                        <h3 class="sk-betcard-title">fix checkout drop-off</h3>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-chip sk-chip--ember f6-advance" id="f6-advance">→ log the decision</span>
+                        <span class="sk-chip">the boring one</span>
+                      </header>
+                      <p class="sk-meta">opened by maya r. · 19 signals · 6 sources · updated 2m ago</p>
+                      <div class="sk-score">
+                        <div class="sk-score-main">
+                          <span class="sk-score-num" id="f6-num-r" style="color:#6B6660;">0.0</span>
+                          <span class="sk-score-cap">composite</span>
+                        </div>
+                        <div class="sk-score-bars">
+                          <div class="sk-subbar"><span class="sk-subbar-name">impact</span><span class="sk-subbar-track"><i class="f6-bar" style="width:86%"></i></span><span class="sk-subbar-val f6-val">8.6</span></div>
+                          <div class="sk-subbar"><span class="sk-subbar-name">confidence</span><span class="sk-subbar-track"><i class="f6-bar" style="width:82%"></i></span><span class="sk-subbar-val f6-val">8.2</span></div>
+                          <div class="sk-subbar"><span class="sk-subbar-name">effort</span><span class="sk-subbar-track"><i class="f6-bar" style="width:31%"></i></span><span class="sk-subbar-val f6-val">3.1</span></div>
+                        </div>
+                      </div>
+                      <p class="sk-betnote f6-note" id="f6-note-r"><span>agent</span>recommends: smaller bet, direct evidence, faster payback</p>
+                    </article>
+                  </div>
+
+                  <!-- passed rail -->
+                  <section class="sk-panel f6-rail">
+                    <header class="sk-panel-hd">
+                      <h2 class="sk-panel-title" style="font-size:0.78cqw;">Passed</h2>
+                      <span class="sk-spacer"></span>
+                      <span class="sk-badge f6-badge"><span id="f6-b2">2</span><span class="f6-b3" id="f6-b3">3</span></span>
+                    </header>
+                    <div class="sk-panel-body f6-rail-body">
+                      <!-- incoming struck row (scale-swap target) -->
+                      <div class="f6-incoming" id="f6-incoming">
+                        <p class="f6-passrow-title"><s>redesign the app</s></p>
+                        <p class="f6-passrow-meta">scored 4.0 · passed just now</p>
+                      </div>
+                      <div class="sk-row f6-shiftrow f6-pr" id="f6-pr1">
+                        <p class="f6-passrow-title"><s>add AI to everything</s></p>
+                        <p class="f6-passrow-meta">scored 3.1 · 3w ago</p>
+                      </div>
+                      <div class="sk-row f6-shiftrow f6-pr" id="f6-pr2">
+                        <p class="f6-passrow-title"><s>rewrite in the new stack</s></p>
+                        <p class="f6-passrow-meta">scored 2.8 · 5w ago</p>
+                      </div>
+                    </div>
+                  </section>
+
+                </main>
               </div>
-              <div class="badge badge-l" id="badge-l">
-                <div class="badge-label mono">SCORE</div>
-                <div class="badge-num num-l">4.0</div>
-                <div class="badge-bar"><div class="fill fill-l" id="fill-l"></div></div>
-              </div>
-            </div>
 
-            <!-- RIGHT — the boring one that pays, 8.0, advances -->
-            <div class="side side-r" id="side-r">
-              <div class="glow" id="glow"></div>
-              <div class="card card-right">
-                <div class="tag mono rev-r" id="tag-r">THE BORING ONE</div>
-                <div class="headline rev-r">fix checkout drop-off</div>
-                <div class="spacer"></div>
-                <div class="meta mono meta-r rev-r"><span class="sl">/</span>&nbsp;BET 02</div>
-                <div class="edge" id="edge"></div>
+              <!-- drag ghost · ripple · cursor (ride the screen tilt) -->
+              <div class="f6-ghost" id="f6-ghost">
+                <div class="f6-ghost-hd">
+                  <span class="f6-ghost-title">redesign the app</span>
+                  <span class="sk-spacer"></span>
+                  <span class="sk-badge">4.0</span>
+                </div>
               </div>
-              <div class="badge badge-r" id="badge-r">
-                <div class="badge-label mono">SCORE</div>
-                <div class="badge-num num-r">8.0</div>
-                <div class="badge-bar"><div class="fill fill-r" id="fill-r"></div></div>
+              <div class="f6-ripple" id="f6-ripple"></div>
+              <div class="sk-cursor" id="f6-cursor">
+                <svg viewBox="0 0 24 24"><path d="M5.5 3.2 L5.5 18.6 L9.3 15.1 L11.8 20.6 L14.4 19.4 L11.9 14 L17 13.5 Z"/></svg>
               </div>
-              <div class="verdict mono" id="verdict"><span class="sl">/</span>&nbsp;PAYS</div>
+
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <script
-        src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
-        integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
-        crossorigin="anonymous"
-      ></script>
-      <script>
-        window.__timelines = window.__timelines || {};
+    <!-- track 2 · film overlay — lower-third, above the caption keep-out -->
+    <div id="f6-overlay" class="clip f6-overlay" data-start="0" data-duration="8.3" data-track-index="2">
+      <div class="sk-lowerthird">
+        <span class="sk-lt-kicker" id="f6-lt-k">02 · Decide</span>
+        <span class="sk-lt-line" id="f6-lt-l">it can say no — and show why.</span>
+      </div>
+    </div>
 
-        // svg-path-draw: measure the strike, don't hard-code its length
-        const strikeLine = document.getElementById("strike-line");
-        const strikeLen = strikeLine.getTotalLength();
-        strikeLine.style.strokeDasharray = String(strikeLen);
-        strikeLine.style.strokeDashoffset = String(strikeLen);
+  </div>
 
-        const tl = gsap.timeline({ paused: true });
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({ paused: true });
 
-        /* ── Scene 1 (0.0–2.2s) — "It scores each bet."
-           split-tilt-cards signature: opposite-wing entry, mirrored book-open
-           rotateY (+12 / −12), overshoot tilt pivoting into place, power3 settle. */
-        tl.fromTo(
-          "#chrome",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.5, ease: "power1.out" },
-          0.15,
-        );
-        tl.fromTo(
-          "#chrome-rule",
-          { scaleX: 0 },
-          { scaleX: 1, duration: 0.8, ease: "power2.out" },
-          0.2,
-        );
-        tl.fromTo(
-          ".card-left",
-          { xPercent: -85, rotateY: 22, opacity: 0 },
-          { xPercent: 0, rotateY: 12, opacity: 1, duration: 0.95, ease: "power3.out" },
-          0.05,
-        );
-        tl.fromTo(
-          ".card-right",
-          { xPercent: 85, rotateY: -22, opacity: 0 },
-          { xPercent: 0, rotateY: -12, opacity: 1, duration: 0.95, ease: "power3.out" },
-          0.28,
-        );
-        // copy reveals overlap the entry tail so the arrival reads as ONE beat
-        tl.fromTo(
-          ".rev-l",
-          { opacity: 0, yPercent: 38 },
-          { opacity: 1, yPercent: 0, duration: 0.55, ease: "power2.out", stagger: 0.08 },
-          0.6,
-        );
-        tl.fromTo(
-          ".rev-r",
-          { opacity: 0, yPercent: 38 },
-          { opacity: 1, yPercent: 0, duration: 0.55, ease: "power2.out", stagger: 0.08 },
-          0.82,
-        );
+    /* ───────────────────────── camera rig (multi-phase-camera + viewport-change) ───────────────────────── */
+    const camEl = document.getElementById("f6-cam");
+    const screenEl = document.getElementById("f6-screen");
+    const cam = { scale: 0.945, x: 20, y: 0 };          // phase state
+    const drift = { p: 0 };                              // continuous micro-drift
+    let dx = 0, dy = 0;
+    function applyCamera() {
+      dx = Math.sin(drift.p) * 5;
+      dy = Math.sin(drift.p * 1.31) * 3;
+      camEl.style.transform = `translate(${cam.x + dx}px, ${cam.y + dy}px) scale(${cam.scale})`;
+    }
+    const tilt = { rx: 2.7, ry: -4.2 };                  // the arc around the pair, in perspective
+    function applyTilt() {
+      screenEl.style.transform = `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`;
+    }
+    applyCamera(); applyTilt();
 
-        /* ── Scene 2 (2.2–5.0s) — the score lands on each bet.
-           spring-pop-entrance (smooth register — power3.out, zero overshoot),
-           origin anchored at the on-card side so each badge grows out of its
-           card's inner edge; stat-bars-and-fills sweeps each bar to its level. */
-        tl.fromTo(
-          "#badge-l",
-          { scale: 0, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.55, ease: "power3.out" },
-          2.1,
-        );
-        tl.fromTo(
-          "#badge-r",
-          { scale: 0, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.55, ease: "power3.out" },
-          2.42,
-        );
-        tl.fromTo(
-          "#fill-l",
-          { scaleX: 0 },
-          { scaleX: 0.4, duration: 0.85, ease: "power2.out" },
-          2.65,
-        );
-        tl.fromTo(
-          "#fill-r",
-          { scaleX: 0 },
-          { scaleX: 0.8, duration: 0.85, ease: "power2.out" },
-          2.95,
-        );
-        // "the exciting idea" — the left tag sharpens as the VO names it
-        tl.to("#tag-l", { color: "#f2efe9", duration: 0.4, ease: "power2.out" }, 3.9);
+    /* push-blur (motion-blur-streak, push-through "B B" smear) — seeded at 0 */
+    const blurNode = document.getElementById("f6-pushblur-std");
+    const blurProxy = { v: 0 };
+    const writeBlur = () => blurNode.setAttribute("stdDeviation", `${blurProxy.v} ${blurProxy.v}`);
+    writeBlur();
 
-        /* ── Scene 3 (5.0–8.3s) — "loses…"
-           svg-path-draw strike across the exciting bet; scale-swap-transition
-           recede/advance (smooth eases, no back.out — film bans overshoot);
-           ambient-glow-bloom (bloom-and-hold form) embers behind the winner. */
-        tl.to(
-          "#strike-line",
-          { strokeDashoffset: 0, duration: 0.55, ease: "power2.out" },
-          5.02,
-        );
-        tl.to(
-          "#side-l",
-          { scale: 0.93, opacity: 0.45, duration: 0.95, ease: "power3.inOut" },
-          5.35,
-        );
-        tl.to(".card-left", { rotateY: 15, duration: 0.95, ease: "power3.inOut" }, 5.35);
-        tl.to("#side-r", { scale: 1.05, duration: 1.05, ease: "power3.out" }, 5.5);
-        tl.to(".card-right", { rotateY: -8, duration: 1.05, ease: "power3.out" }, 5.5);
-        tl.fromTo(
-          "#glow",
-          { opacity: 0, scale: 0.85 },
-          { opacity: 0.32, scale: 1, duration: 1.05, ease: "power2.out" },
-          5.55,
-        );
-        tl.fromTo("#edge", { opacity: 0 }, { opacity: 0.9, duration: 0.6, ease: "power2.out" }, 5.7);
-        // "…that pays." — final punctuation, then a held read to 8.3s (no exit)
-        tl.fromTo(
-          "#verdict",
-          { opacity: 0, yPercent: 45 },
-          { opacity: 1, yPercent: 0, duration: 0.5, ease: "power3.out" },
-          6.75,
-        );
+    /* ── Scene 1 (0.0–2.4) · arrival: settle + arc, chrome reveals ── */
+    tl.fromTo("#f6-frame", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power1.out" }, 0.01);
+    tl.to(cam, { scale: 1, x: 0, duration: 2.3, ease: "power2.out", onUpdate: applyCamera }, 0);
+    tl.to(tilt, { rx: 1.5, ry: -2.0, duration: 2.4, ease: "power2.out", onUpdate: applyTilt }, 0);
+    tl.fromTo("#f6-lt-k", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.55);
+    tl.fromTo("#f6-lt-l", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 0.72);
+    tl.fromTo(".f6-headmeta", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 0.65);
+    tl.fromTo(".f6-headchip", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out", stagger: 0.06 }, 0.8);
+    tl.fromTo(".f6-pr", { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out", stagger: 0.12 }, 0.95);
 
-        window.__timelines["06-it-disagrees"] = tl;
-      </script>
-    </template>
-  </body>
+    /* ── Scene 2 (2.4–5.2) · "it scores each bet": bars fill + counts, then the rack-focus disagreement ── */
+    // sub-bars fill as a chord (stat fill, transform-only)
+    tl.fromTo(".f6-bar", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 1.15, ease: "power3.out" }, 2.5);
+    tl.fromTo(".f6-val", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.out" }, 3.35);
+
+    // composite scores count up (counting-dynamic-scale, small UI register: value + font-size in one tween)
+    const numL = document.getElementById("f6-num-l");
+    const numR = document.getElementById("f6-num-r");
+    const scoreL = { v: 0, fs: 1.05 };
+    const scoreR = { v: 0, fs: 1.05 };
+    const writeL = () => { numL.textContent = scoreL.v.toFixed(1); numL.style.fontSize = scoreL.fs.toFixed(3) + "cqw"; };
+    const writeR = () => { numR.textContent = scoreR.v.toFixed(1); numR.style.fontSize = scoreR.fs.toFixed(3) + "cqw"; };
+    writeL(); writeR();
+    tl.to(scoreL, { v: 4.0, fs: 1.5, duration: 1.3, ease: "power3.out", onUpdate: writeL }, 2.55);
+    tl.to(scoreR, { v: 8.0, fs: 1.5, duration: 1.3, ease: "power3.out", onUpdate: writeR }, 2.55);
+    tl.to(numL, { color: "#F2EFE9", duration: 1.3, ease: "power2.out" }, 2.55);
+    tl.to(numR, { color: "#C39A5E", duration: 1.3, ease: "power2.out" }, 2.55);
+
+    // left card's own agent line lands with its low score
+    tl.fromTo("#f6-note-l", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 4.0);
+
+    // rack focus (depth-of-field-blur): look at the exciting one… then the boring one that pays
+    tl.to(cam, { x: 38, duration: 0.55, ease: "power2.inOut", onUpdate: applyCamera }, 3.75);
+    tl.to("#f6-card-r", { "--dof": "2.2px", opacity: 0.86, duration: 0.55, ease: "power2.inOut" }, 3.75);
+    tl.to(cam, { x: -55, duration: 0.6, ease: "power2.inOut", onUpdate: applyCamera }, 4.45);
+    tl.to("#f6-card-r", { "--dof": "0px", opacity: 1, duration: 0.6, ease: "power2.inOut" }, 4.45);
+    tl.to("#f6-card-l", { "--dof": "2.4px", opacity: 0.82, duration: 0.6, ease: "power2.inOut" }, 4.45);
+
+    // the dissent note slides under the right card
+    tl.fromTo("#f6-note-r", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 4.55);
+
+    /* ── Scene 3 (5.2–8.3) · "loses": drag to passed (scale-swap), winner takes the ember edge, push ── */
+    // cursor arrives and travels to the exciting card (cursor-click-ripple: move → settle → click)
+    tl.fromTo("#f6-cursor", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, 4.65);
+    tl.to("#f6-cursor", { x: -690, y: -358, duration: 0.85, ease: "power2.inOut" }, 4.75);
+    tl.to("#f6-cursor", { scale: 0.86, duration: 0.08, ease: "power2.in", yoyo: true, repeat: 1 }, 5.3);
+    tl.fromTo("#f6-ripple",
+      { scale: 0.2, opacity: 0.55 },
+      { scale: 2.6, opacity: 0, duration: 0.6, ease: "power2.out", immediateRender: false }, 5.34);
+
+    // grab: real card lifts to a ghost that follows the cursor
+    tl.to("#f6-card-l", { opacity: 0.3, duration: 0.2, ease: "power2.out" }, 5.42);
+    tl.fromTo("#f6-ghost",
+      { opacity: 0, scale: 0.85, rotation: 2 },
+      { opacity: 1, scale: 1, rotation: 2, duration: 0.28, ease: "back.out(1.5)" }, 5.4);
+    tl.to("#f6-cursor", { x: 490, y: -322, duration: 0.7, ease: "power2.inOut" }, 5.55);
+    tl.to("#f6-ghost", { x: 1180, y: 36, duration: 0.7, ease: "power2.inOut" }, 5.55);
+    tl.to("#f6-cursor", { scale: 0.86, duration: 0.08, ease: "power2.in", yoyo: true, repeat: 1 }, 6.27);
+
+    // the drop — scale-swap-transition: ghost shrinks out, struck row pops into the rail
+    tl.to("#f6-ghost", { scale: 0.68, opacity: 0, duration: 0.3, ease: "power2.in" }, 6.3);
+    tl.fromTo("#f6-incoming",
+      { scale: 0.72, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.6)" }, 6.45);
+    tl.to(".f6-shiftrow", { y: 52, duration: 0.45, ease: "power3.out" }, 6.3);
+    tl.to("#f6-b2", { opacity: 0, duration: 0.25, ease: "power1.inOut" }, 6.4);
+    tl.to("#f6-b3", { opacity: 1, duration: 0.25, ease: "power1.inOut" }, 6.4);
+
+    // the vacated slot admits it
+    tl.to("#f6-card-l", { opacity: 0, duration: 0.35, ease: "power2.in" }, 6.3);
+    tl.fromTo("#f6-slot", { opacity: 0 }, { opacity: 0.7, duration: 0.4, ease: "power2.out" }, 6.55);
+
+    // the winner advances — ember edge (the winner's edge is an ember moment)
+    tl.fromTo("#f6-ring", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power2.out" }, 6.6);
+    tl.to("#f6-card-r", { scale: 1.015, duration: 0.5, ease: "power2.out" }, 6.6);
+    tl.fromTo("#f6-advance", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 6.75);
+    tl.to("#f6-cursor", { x: -140, y: -268, duration: 0.9, ease: "power2.inOut" }, 6.6);
+
+    // camera pushes on the winner, streaking at peak velocity, settling sharp
+    tl.to(cam, { scale: 1.09, x: -160, y: 10, duration: 1.3, ease: "power2.inOut", onUpdate: applyCamera }, 6.5);
+    tl.to(tilt, { rx: 1.1, ry: -1.2, duration: 1.3, ease: "power2.inOut", onUpdate: applyTilt }, 6.5);
+    tl.to(blurProxy, { v: 4.5, duration: 0.65, ease: "power2.in", onUpdate: writeBlur }, 6.5);
+    tl.to(blurProxy, { v: 0, duration: 0.62, ease: "power2.out", onUpdate: writeBlur }, 7.15);
+
+    /* drift driver — inserted LAST so it reads final cam state each frame; spans the whole shot */
+    tl.to(drift, { p: Math.PI * 2 * 2, duration: 8.3, ease: "none", onUpdate: applyCamera }, 0);
+
+    window.__timelines["06-it-disagrees"] = tl;
+  </script>
+</template>
+</body>
 </html>

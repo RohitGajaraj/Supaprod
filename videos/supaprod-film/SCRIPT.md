@@ -53,7 +53,7 @@
 **Time:** 52.0 – 60.0s
 **Delivery:** Slow down. This is the quiet center. Weight on "before".
 
-    Then — the part nobody else has. It writes down what you believe will happen. Before you find out.
+    And at the moment you commit — it writes down what you believe will happen. Before you find out.
 
 ## Line 8 — The route (Frame 8)
 
@@ -81,7 +81,7 @@
 **Time:** 93.0 – 101.0s
 **Delivery:** Plain statement of fact; the sentence does the work.
 
-    Anyone can dig up what happened. Only Supaprod keeps what you believed — before you found out.
+    Supaprod keeps the one thing nobody can rebuild — what you believed. And guides your next call.
 
 ## Line 12 — The promise (Frame 12)
 

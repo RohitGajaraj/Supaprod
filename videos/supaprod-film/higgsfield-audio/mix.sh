@@ -21,8 +21,8 @@ $FF -y \
 [7:a]adelay=66000|66000[v7];\
 [8:a]adelay=84200|84200[v8];\
 [9:a]adelay=95000|95000[v9];\
-[10:a]adelay=107300|107300[v10];\
-[11:a]adelay=114500|114500[v11];\
+[10:a]adelay=107000|107000[v10];\
+[11:a]adelay=114900|114900[v11];\
 [12:a]adelay=118500|118500[v12];\
 [v0][v1][v2][v3][v4][v5][v6][v7][v8][v9][v10][v11][v12]amix=inputs=13:normalize=0,dynaudnorm=g=7:m=4.0,volume=1.0[vo];\
 [13:a]atempo=0.9262,volume=0.34,afade=t=in:d=2.0,afade=t=out:st=123.4:d=4.0[mus];\

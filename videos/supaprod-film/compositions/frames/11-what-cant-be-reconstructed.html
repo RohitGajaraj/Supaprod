@@ -1,300 +1,520 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <!-- Frame 11 — What can't be reconstructed · 7.2s · dark register · kinetic-type-beats -->
-  </head>
-  <body>
-    <template>
-      <style>
-        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
-        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
-        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- F11 · What can't be reconstructed — the decision record close-up: artifacts (reconstructable)
+       vs the sealed forecast (not). The camera does the arguing via a rack focus.
+       Head is metadata only; the runtime clones ONLY the <template> below. -->
+</head>
+<body>
+<template>
+  <style>
+    /* ————— fonts (screen kit, dual-path src) ————— */
+    @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2"),url("assets/fonts/Geist-Regular.woff2") format("woff2");}
+    @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2"),url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
+    @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
+    @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+    @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2"),url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
 
-        /* Root styled via #root only (never a class on the composition root). */
-        #root {
-          position: absolute;
-          inset: 0;
-          overflow: hidden;
-          container-type: size;
-          font-family: "Mona Sans", sans-serif;
-        }
-        .clip {
-          position: absolute;
-          inset: 0;
-        }
-        /* Full-bleed ground lives on a clip, never on #root. Dark register: ink-black. */
-        #bg {
-          background: #0a0a0b;
-        }
-        /* Both lines center inside the top 83% (caption keep-out honored even with
-           captions disabled) — landscape centering at ~41.5% height. */
-        .line-wrap {
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: 0;
-          height: 83cqh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        /* Line A — the concession, h3 ramp: what anyone can reconstruct. */
-        #line-a {
-          font-size: 2.8cqw;
-          font-weight: 600;
-          line-height: 1.2;
-          color: #f2efe9;
-          text-align: center;
-          max-width: 78cqw;
-          will-change: transform, filter, opacity;
-        }
-        /* Line B — the counter-line, h2 ramp, larger: lands harder and holds. */
-        #line-b {
-          font-size: 4.5cqw;
-          font-weight: 700;
-          letter-spacing: -0.02em;
-          line-height: 1.15;
-          color: #f2efe9;
-          text-align: center;
-          max-width: 78cqw;
-          will-change: transform;
-        }
-        #line-b .row {
-          display: block;
-        }
-        /* inline-block so transforms apply to word spans */
-        .word {
-          display: inline-block;
-          will-change: transform, opacity, filter;
-        }
-        /* Keyword ember gets its own inner span: the outer word span carries the
-           entrance tween, this one carries the glow driver — no transform conflict. */
-        #kw {
-          display: inline-block;
-          transform-origin: 50% 62%;
-          will-change: transform, text-shadow, color;
-        }
-      </style>
+    /* ————— tokens (screen kit v3 — declared on #root, inherit down; :root breaks under scoping) ————— */
+    #root{
+      --sk-ground:#0A0A0B;
+      --sk-panel:#141416;
+      --sk-raised:#1A1A1D;
+      --sk-hairline:#26262A;
+      --sk-text:#F2EFE9;
+      --sk-muted:#A8A29A;
+      --sk-faint:#6B6660;
+      --sk-discover:#6FA9A0;
+      --sk-decide:#C39A5E;
+      --sk-plan:#8FA464;
+      --sk-design:#AB7FA0;
+      --sk-build:#6D97C2;
+      --sk-ship:#BD8092;
+      --sk-learn:#A89F66;
+      --sk-pass:#4FC47A;
+      --sk-fail:#EF6A5F;
+      --sk-warn:#E8B44C;
+      --sk-ember:#FF6B2C;
+      --sk-accent:var(--sk-decide);
+      --sk-r-chip:7px;
+      --sk-r-control:8px;
+      --sk-r-row:9px;
+      --sk-r-card:10px;
+      --sk-r-panel:12px;
+      --sk-r-pane:16px;
+      --sk-ui:"Mona Sans",system-ui,sans-serif;
+      --sk-mono:"IBM Plex Mono",ui-monospace,monospace;
+      --sk-ring:0 0 0 1px var(--sk-hairline);
+      --sk-ambient:0 24px 80px rgba(0,0,0,.5);
+      position:absolute;inset:0;width:100%;height:100%;overflow:hidden;
+    }
 
-      <div
-        id="root"
-        data-composition-id="11-what-cant-be-reconstructed"
-        data-width="1920"
-        data-height="1080"
-        data-duration="7.7"
-      >
-        <div id="bg" class="clip" data-start="0" data-duration="7.2" data-track-index="0"></div>
+    /* ————— ground clip (track 0) — the dependable full-bleed ink ————— */
+    .f11-ground{position:absolute;inset:0;background:#0A0A0B;}
 
-        <div id="stage" class="clip" data-start="0" data-duration="7.2" data-track-index="1">
-          <div class="line-wrap">
-            <div id="line-a">
-              <span class="word">anyone</span> <span class="word">can</span>
-              <span class="word">dig</span> <span class="word">up</span>
-              <span class="word">what</span> <span class="word">happened.</span>
-            </div>
-          </div>
-          <div class="line-wrap">
-            <div id="line-b">
-              <div class="row">
-                <span class="word" id="w-only">only</span>
-                <span class="word" id="w-supaprod">supaprod</span>
-                <span class="word" id="w-keeps">keeps</span>
-              </div>
-              <div class="row">
-                <span class="word" id="w-what">what</span>
-                <span class="word" id="w-you1">you</span>
-                <span class="word" id="w-believed"><span id="kw">believed</span></span>
-                <span class="word" id="w-dash">&#8212;</span>
-              </div>
-              <div class="row">
-                <span class="word" id="w-before">before</span>
-                <span class="word" id="w-you2">you</span>
-                <span class="word" id="w-found">found</span>
-                <span class="word" id="w-out">out.</span>
+    /* ————— world clip (track 1) — kit frame + camera rig ————— */
+    .f11-world{position:absolute;inset:0;}
+    .sk-frame{
+      position:relative;width:100%;height:100%;overflow:hidden;
+      container-type:size;
+      background:var(--sk-ground);
+      color:var(--sk-text);
+      font-family:var(--sk-ui);
+      -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+    }
+    .sk-frame *,.sk-frame *::before,.sk-frame *::after{box-sizing:border-box;margin:0;padding:0;}
+    /* camera wrapper — single world transform (multi-phase-camera + viewport-change),
+       horizontal pan streak rides the directional filter (motion-blur-streak, "X 0") */
+    .f11-cam{
+      position:absolute;inset:0;
+      transform-origin:50% 50%;
+      will-change:transform,filter;
+      filter:url(#f11-panblur);
+    }
+    .sk-stage{
+      position:absolute;inset:0;display:grid;place-items:center;
+      perspective:2200px;
+      perspective-origin:50% 42%;
+    }
+    .sk-screen{
+      position:relative;
+      width:88cqw;height:86cqh;
+      transform:rotateX(2.6deg) rotateY(-4deg);
+      transform-style:preserve-3d;
+      background:var(--sk-ground);
+      border-radius:var(--sk-r-pane);
+      box-shadow:var(--sk-ring),var(--sk-ambient);
+      overflow:hidden;
+      will-change:transform;
+    }
+
+    /* ————— app shell ————— */
+    .sk-shell{
+      display:grid;height:100%;
+      grid-template-columns:12.5cqw minmax(0,1fr);
+      grid-template-rows:3.2cqh minmax(0,1fr);
+      grid-template-areas:"side top" "side main";
+    }
+    .sk-sidebar{
+      grid-area:side;display:flex;flex-direction:column;min-height:0;
+      background:var(--sk-ground);border-right:1px solid var(--sk-hairline);
+    }
+    .sk-ws{display:flex;align-items:center;gap:0.55cqw;padding:1cqw 1cqw 0.8cqw;}
+    .sk-ws-mark{
+      width:0.72cqw;height:0.72cqw;flex:none;border-radius:50%;
+      border:1px solid var(--sk-ember);
+      background:radial-gradient(circle at 50% 50%,var(--sk-ember) 0 28%,transparent 30%);
+    }
+    .sk-ws-name{font:600 0.82cqw/1 var(--sk-ui);color:var(--sk-text);letter-spacing:0.01em;}
+    .sk-ws-caret{margin-left:auto;font:400 0.6cqw/1 var(--sk-mono);color:var(--sk-faint);}
+    .sk-nav{display:flex;flex-direction:column;gap:0.12cqh;padding:0.3cqw 0.5cqw;}
+    .sk-navrow{
+      display:flex;align-items:center;gap:0.55cqw;
+      padding:0.42cqw 0.6cqw;border-radius:var(--sk-r-row);
+      font:400 0.73cqw/1 var(--sk-ui);color:var(--sk-muted);
+    }
+    .sk-navrow .sk-dot{
+      width:0.3cqw;height:0.3cqw;flex:none;border-radius:50%;
+      background:var(--dot,var(--sk-faint));
+    }
+    .sk-navcount{margin-left:auto;font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-faint);}
+    .sk-navrow.is-active{background:var(--sk-raised);color:var(--sk-text);}
+    .sk-navrow.is-active .sk-dot{box-shadow:0 0 0.45cqw 0 var(--dot,var(--sk-accent));}
+    .sk-navrow.is-active .sk-navcount{color:var(--sk-muted);}
+    .sk-side-foot{
+      margin-top:auto;display:flex;align-items:center;gap:0.45cqw;
+      padding:0.85cqw 1cqw;border-top:1px solid var(--sk-hairline);
+      font:400 0.57cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.03em;
+    }
+    .sk-livedot{
+      width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;
+      background:var(--sk-pass);box-shadow:0 0 0.4cqw var(--sk-pass);
+    }
+    .sk-topbar{
+      grid-area:top;display:flex;align-items:center;gap:0.9cqw;
+      padding:0 1cqw;border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
+    }
+    .sk-crumb{display:flex;align-items:center;font:400 0.62cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;}
+    .sk-crumb-sep{padding:0 0.35cqw;color:var(--sk-faint);}
+    .sk-crumb-here{color:var(--sk-text);}
+    .sk-ask{
+      display:flex;align-items:center;gap:0.5cqw;flex:0 1 20cqw;height:2.1cqh;
+      padding:0 0.4cqw 0 0.65cqw;background:var(--sk-panel);
+      border:1px solid var(--sk-hairline);border-radius:var(--sk-r-control);
+      font:400 0.66cqw/1 var(--sk-ui);color:var(--sk-faint);
+    }
+    .sk-ask svg{width:0.68cqw;height:0.68cqw;flex:none;stroke:var(--sk-faint);fill:none;stroke-width:1.6;}
+    .sk-kbd{
+      margin-left:auto;padding:0.1cqw 0.32cqw;
+      font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-faint);
+      background:var(--sk-ground);border:1px solid var(--sk-hairline);border-radius:5px;
+    }
+    .sk-avatar{
+      width:1.25cqw;height:1.25cqw;flex:none;display:grid;place-items:center;
+      background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:50%;
+      font:600 0.5cqw/1 var(--sk-ui);color:var(--sk-muted);letter-spacing:0.05em;
+    }
+
+    /* ————— type + primitives ————— */
+    .sk-title{font:600 1.3cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
+    .sk-body{font:400 0.73cqw/1.45 var(--sk-ui);color:var(--sk-text);}
+    .sk-meta{font:400 0.68cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+    .sk-label{font:500 0.65cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.10em;text-transform:uppercase;}
+    .sk-spacer{flex:1;}
+    .sk-panel{
+      background:var(--sk-panel);border:1px solid var(--sk-hairline);
+      border-radius:var(--sk-r-panel);overflow:hidden;min-height:0;
+      display:flex;flex-direction:column;
+    }
+    .sk-panel-hd{
+      display:flex;align-items:center;gap:0.6cqw;flex:none;
+      padding:0.75cqw 1cqw;border-bottom:1px solid var(--sk-hairline);
+    }
+    .sk-panel-title{font:600 0.83cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+    .sk-panel-body{flex:1;min-height:0;overflow:hidden;}
+    .sk-panel-ft{
+      display:flex;align-items:center;gap:0.6cqw;flex:none;
+      padding:0.6cqw 1cqw;border-top:1px solid var(--sk-hairline);
+      background:var(--sk-panel);
+    }
+    .sk-row{padding:0.7cqw 1cqw;}
+    .sk-row + .sk-row{border-top:1px solid var(--sk-hairline);}
+    .sk-chip{
+      display:inline-flex;align-items:center;gap:0.3cqw;
+      padding:0.22cqw 0.45cqw;border:1px solid var(--sk-hairline);
+      border-radius:var(--sk-r-chip);background:rgba(255,255,255,0.02);
+      font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
+      white-space:nowrap;
+    }
+    .sk-chip--pass{color:var(--sk-pass);border-color:color-mix(in srgb,var(--sk-pass) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-pass) 8%,transparent);}
+    .sk-chip--ember{color:var(--sk-ember);border-color:color-mix(in srgb,var(--sk-ember) 45%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-ember) 9%,transparent);}
+    .sk-dot-inline{width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;background:currentColor;}
+    .sk-badge{
+      display:inline-flex;align-items:center;padding:0.22cqw 0.45cqw;
+      background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:var(--sk-r-chip);
+      font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);font-variant-numeric:tabular-nums;
+    }
+
+    /* ————— frame-11 specifics ————— */
+    .f11-content{
+      grid-area:main;position:relative;display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+      grid-template-rows:auto minmax(0,1fr);
+      gap:1cqw;padding:1.1cqw;min-height:0;
+    }
+    .f11-head{grid-column:1/-1;display:flex;align-items:center;gap:0.7cqw;}
+    .f11-head .sk-title{font-size:1.05cqw;}
+    .f11-headbit{will-change:transform,opacity;}
+
+    /* the two focus planes (depth-of-field-blur — rack focus between them) */
+    .f11-plane{--dof:0px;filter:blur(var(--dof));will-change:filter,opacity;}
+    #f11-right{--dof:2.6px;opacity:0.72;}   /* pre-blurred plane B — rack setup, no pop at the rack */
+
+    /* left · artifact rows */
+    .f11-arow{background-color:rgba(242,239,233,0);will-change:transform,opacity;}
+    .f11-arow-hd{display:flex;align-items:baseline;gap:0.5cqw;}
+    .f11-srcdot{width:0.28cqw;height:0.28cqw;flex:none;align-self:center;border-radius:50%;background:var(--c,var(--sk-faint));}
+    .f11-tag{font-size:0.52cqw;}
+    .f11-time{font:400 0.57cqw/1 var(--sk-mono);color:var(--sk-faint);font-variant-numeric:tabular-nums;}
+    .f11-abody{margin-top:0.25cqw;font:400 0.7cqw/1.4 var(--sk-ui);color:var(--sk-text);}
+    .f11-ameta{margin-top:0.2cqw;font:400 0.6cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+
+    /* right · the sealed forecast */
+    .f11-rbody{
+      display:flex;flex-direction:column;justify-content:center;gap:0.75cqw;
+      padding:1.2cqw 1.5cqw 1.2cqw 1.2cqw;
+    }
+    .f11-record{
+      position:relative;display:flex;align-items:center;gap:0.8cqw;
+      padding:0.95cqw 1cqw;background:var(--sk-raised);
+      border:1px solid color-mix(in srgb,var(--sk-ember) 28%,var(--sk-hairline));
+      border-radius:var(--sk-r-row);
+    }
+    .f11-quote{font:600 0.92cqw/1.45 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+    .f11-glow{
+      position:absolute;left:1.9cqw;top:50%;width:7cqw;height:7cqw;margin:-3.5cqw 0 0 -3.5cqw;
+      border-radius:50%;pointer-events:none;opacity:0;
+      background:radial-gradient(circle,rgba(255,107,44,0.45) 0%,rgba(255,107,44,0) 65%);
+      will-change:transform,opacity;
+    }
+    #f11-sealchip{will-change:transform;}
+    .f11-recmeta{font:400 0.6cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;font-variant-numeric:tabular-nums;}
+    .f11-div{height:1px;background:var(--sk-hairline);margin:0.3cqw 0;flex:none;}
+    .f11-field{display:grid;grid-template-columns:8.5cqw minmax(0,1fr);align-items:baseline;gap:0.8cqw;will-change:transform,opacity;}
+    .f11-field .sk-label{font-size:0.55cqw;}
+    .f11-fval{font:400 0.73cqw/1.4 var(--sk-ui);color:var(--sk-text);}
+    .f11-guide{display:flex;align-items:center;gap:0.6cqw;will-change:transform,opacity;}
+
+    /* ————— overlay clip (track 2) — lower-third, above the caption keep-out ————— */
+    .f11-overlay{position:absolute;inset:0;container-type:size;pointer-events:none;}
+    .sk-lowerthird{
+      position:absolute;left:5.5cqw;bottom:18.5cqh;z-index:60;
+      display:flex;flex-direction:column;gap:0.55cqh;
+      text-shadow:0 2px 30px rgba(0,0,0,.6);
+      font-family:var(--sk-ui);
+    }
+    .sk-lt-kicker{
+      font:500 0.72cqw/1 var(--sk-mono);letter-spacing:0.14em;text-transform:uppercase;
+      color:var(--sk-decide);opacity:0;will-change:transform,opacity;
+    }
+    .f11-lt-swap{display:grid;}
+    .sk-lt-line{
+      grid-area:1/1;justify-self:start;
+      font:600 2.6cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;
+      opacity:0;will-change:transform,opacity;white-space:nowrap;
+    }
+  </style>
+
+  <div id="root" data-composition-id="11-what-cant-be-reconstructed" data-width="1920" data-height="1080" data-duration="7.7">
+
+    <!-- track 0 · full-bleed ink ground -->
+    <div id="f11-bg" class="clip f11-ground" data-start="0" data-duration="7.2" data-track-index="0"></div>
+
+    <!-- track 1 · the world: kit frame + camera rig + the decision record -->
+    <div id="f11-world" class="clip f11-world" data-start="0" data-duration="7.2" data-track-index="1" data-layout-allow-overflow>
+      <div class="sk-frame" id="f11-frame">
+
+        <!-- pan-streak filter (motion-blur-streak, horizontal "X 0" smear at peak pan velocity) -->
+        <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+          <defs>
+            <filter id="f11-panblur" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur id="f11-panblur-std" in="SourceGraphic" stdDeviation="0 0" />
+            </filter>
+          </defs>
+        </svg>
+
+        <div class="f11-cam" id="f11-cam">
+          <div class="sk-stage">
+            <div class="sk-screen" id="f11-screen" style="--sk-accent:var(--sk-decide)">
+              <div class="sk-shell">
+
+                <!-- sidebar · harbor · Decide active -->
+                <aside class="sk-sidebar">
+                  <div class="sk-ws">
+                    <span class="sk-ws-mark"></span>
+                    <span class="sk-ws-name">harbor</span>
+                    <span class="sk-ws-caret">⌄</span>
+                  </div>
+                  <nav class="sk-nav">
+                    <div class="sk-navrow" style="--dot:var(--sk-text)"><span class="sk-dot"></span>Today<span class="sk-navcount">3</span></div>
+                    <div class="sk-navrow" style="--dot:var(--sk-discover)"><span class="sk-dot"></span>Discover<span class="sk-navcount">24</span></div>
+                    <div class="sk-navrow is-active" style="--dot:var(--sk-decide)"><span class="sk-dot"></span>Decide<span class="sk-navcount">3</span></div>
+                    <div class="sk-navrow" style="--dot:var(--sk-plan)"><span class="sk-dot"></span>Plan</div>
+                    <div class="sk-navrow" style="--dot:var(--sk-design)"><span class="sk-dot"></span>Design</div>
+                    <div class="sk-navrow" style="--dot:var(--sk-build)"><span class="sk-dot"></span>Build<span class="sk-navcount">2</span></div>
+                    <div class="sk-navrow" style="--dot:var(--sk-ship)"><span class="sk-dot"></span>Ship</div>
+                    <div class="sk-navrow" style="--dot:var(--sk-learn)"><span class="sk-dot"></span>Learn<span class="sk-navcount">1</span></div>
+                    <div class="sk-navrow" style="--dot:var(--sk-ember)"><span class="sk-dot"></span>Brain</div>
+                  </nav>
+                  <div class="sk-side-foot"><span class="sk-livedot"></span>3 agents running</div>
+                </aside>
+
+                <!-- top bar -->
+                <header class="sk-topbar">
+                  <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span>decide</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">record</span></div>
+                  <div class="sk-ask">
+                    <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>
+                    ask supaprod…
+                    <span class="sk-kbd">⌘K</span>
+                  </div>
+                  <span class="sk-spacer"></span>
+                  <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>synced 2m ago</span>
+                  <div class="sk-avatar">MR</div>
+                </header>
+
+                <!-- content · the decision record, two planes -->
+                <main class="f11-content">
+
+                  <div class="f11-head">
+                    <h1 class="sk-title">Fix checkout drop-off first</h1>
+                    <span class="sk-chip f11-headbit">bet 01</span>
+                    <span class="sk-badge f11-headbit">score 8.0</span>
+                    <span class="sk-chip sk-chip--pass f11-headbit"><span class="sk-dot-inline"></span>outcome applied</span>
+                    <span class="sk-spacer"></span>
+                    <span class="sk-meta f11-headbit" style="font-size:0.62cqw;">decision record · logged by maya r. · 6w ago</span>
+                  </div>
+
+                  <!-- plane A · what happened — the artifacts anyone can dig up -->
+                  <section class="sk-panel f11-plane" id="f11-left">
+                    <header class="sk-panel-hd">
+                      <h2 class="sk-panel-title">What happened</h2>
+                      <span class="sk-badge">7 artifacts</span>
+                      <span class="sk-spacer"></span>
+                      <span class="sk-label" style="font-size:0.55cqw;">reconstructable</span>
+                    </header>
+                    <div class="sk-panel-body">
+                      <div class="sk-row f11-arow">
+                        <div class="f11-arow-hd"><span class="f11-srcdot" style="--c:var(--sk-discover)"></span><span class="sk-label f11-tag">interview</span><span class="sk-spacer"></span><span class="f11-time">6w ago</span></div>
+                        <p class="f11-abody">“I gave up at the payment step.”</p>
+                        <p class="f11-ameta">call recording · maya r. · 04:12</p>
+                      </div>
+                      <div class="sk-row f11-arow">
+                        <div class="f11-arow-hd"><span class="f11-srcdot" style="--c:var(--sk-discover)"></span><span class="sk-label f11-tag">metric</span><span class="sk-spacer"></span><span class="f11-time">6w ago</span></div>
+                        <p class="f11-abody">checkout drop-off at 41% — funnel, step 3 → 4</p>
+                        <p class="f11-ameta">analytics · 6-week window</p>
+                      </div>
+                      <div class="sk-row f11-arow">
+                        <div class="f11-arow-hd"><span class="f11-srcdot" style="--c:var(--sk-text)"></span><span class="sk-label f11-tag">thread</span><span class="sk-spacer"></span><span class="f11-time">6w ago</span></div>
+                        <p class="f11-abody">#payments — checkout errors, 34 messages</p>
+                        <p class="f11-ameta">chat · jonah t. + 5 others</p>
+                      </div>
+                      <div class="sk-row f11-arow">
+                        <div class="f11-arow-hd"><span class="f11-srcdot" style="--c:var(--sk-discover)"></span><span class="sk-label f11-tag">ticket</span><span class="sk-spacer"></span><span class="f11-time">7w ago</span></div>
+                        <p class="f11-abody">SUP-291 · card declined but no error shown</p>
+                        <p class="f11-ameta">support · 2 linked tickets</p>
+                      </div>
+                      <div class="sk-row f11-arow">
+                        <div class="f11-arow-hd"><span class="f11-srcdot" style="--c:var(--sk-plan)"></span><span class="sk-label f11-tag">doc</span><span class="sk-spacer"></span><span class="f11-time">5w ago</span></div>
+                        <p class="f11-abody">spec — fix checkout drop-off</p>
+                        <p class="f11-ameta">plan / specs · 4 sections</p>
+                      </div>
+                      <div class="sk-row f11-arow">
+                        <div class="f11-arow-hd"><span class="f11-srcdot" style="--c:var(--sk-build)"></span><span class="sk-label f11-tag">commit</span><span class="sk-spacer"></span><span class="f11-time">5w ago</span></div>
+                        <p class="f11-abody">a41f2c9 — preserve form state on decline</p>
+                        <p class="f11-ameta">fix/checkout-dropoff · tests 214 passing</p>
+                      </div>
+                      <div class="sk-row f11-arow">
+                        <div class="f11-arow-hd"><span class="f11-srcdot" style="--c:var(--sk-ship)"></span><span class="sk-label f11-tag">release</span><span class="sk-spacer"></span><span class="f11-time">4w ago</span></div>
+                        <p class="f11-abody">v2.4 — checkout, rebuilt</p>
+                        <p class="f11-ameta">ship · release notes attached</p>
+                      </div>
+                    </div>
+                    <footer class="sk-panel-ft"><span class="sk-meta" style="font-size:0.6cqw;">threads · commits · calls · tickets — pulled from connected tools</span></footer>
+                  </section>
+
+                  <!-- plane B · what you believed — sealed, pre-blurred until the rack -->
+                  <section class="sk-panel f11-plane" id="f11-right">
+                    <header class="sk-panel-hd">
+                      <h2 class="sk-panel-title">What you believed</h2>
+                      <span class="sk-spacer"></span>
+                      <span class="sk-label" style="font-size:0.55cqw;color:var(--sk-ember);">not reconstructable</span>
+                    </header>
+                    <div class="sk-panel-body f11-rbody">
+                      <span class="sk-label" style="font-size:0.55cqw;">the forecast — sealed at decision time</span>
+                      <div class="f11-record" id="f11-record">
+                        <div class="f11-glow" id="f11-glow"></div>
+                        <span class="sk-chip sk-chip--ember" id="f11-sealchip"><svg width="9" height="9" viewBox="0 0 12 12" style="stroke:currentColor;fill:none;stroke-width:1.4;"><rect x="2" y="5" width="8" height="5.5" rx="1.2"/><path d="M4 5 V3.6 a2 2 0 0 1 4 0 V5"/></svg>sealed</span>
+                        <p class="f11-quote">“If we fix checkout first, activation rises.”</p>
+                      </div>
+                      <p class="f11-recmeta">maya r. · at decision time · before the outcome was known · immutable</p>
+                      <div class="f11-div"></div>
+                      <div class="f11-field f11-belief"><span class="sk-label">how we'll know</span><span class="f11-fval">activation rate</span></div>
+                      <div class="f11-field f11-belief"><span class="sk-label">horizon</span><span class="f11-fval">30 days</span></div>
+                      <div class="f11-field f11-belief"><span class="sk-label">status</span><span class="f11-fval" style="color:var(--sk-pass);">outcome applied · ranking updated</span></div>
+                      <div class="f11-guide" id="f11-guide">
+                        <span class="sk-chip sk-chip--ember"><span class="sk-dot-inline"></span>informs 2 upcoming decisions</span>
+                        <span class="sk-meta" style="font-size:0.6cqw;">2 drafts open in decide</span>
+                      </div>
+                    </div>
+                    <footer class="sk-panel-ft">
+                      <span class="sk-meta" style="font-size:0.6cqw;">captured at the moment of the call</span>
+                      <span class="sk-spacer"></span>
+                      <span class="sk-meta" style="font-size:0.6cqw;color:var(--sk-decide);">view linked decisions →</span>
+                    </footer>
+                  </section>
+
+                </main>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <script
-        src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
-        integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
-        crossorigin="anonymous"
-      ></script>
-      <script>
-        window.__timelines = window.__timelines || {};
-        const tl = gsap.timeline({ paused: true });
+    <!-- track 2 · film overlay — lower-third, above the caption keep-out -->
+    <div id="f11-overlay" class="clip f11-overlay" data-start="0" data-duration="7.2" data-track-index="2">
+      <div class="sk-lowerthird">
+        <span class="sk-lt-kicker" id="f11-lt-k">the record</span>
+        <span class="f11-lt-swap">
+          <span class="sk-lt-line" id="f11-lt-l1">anyone can dig this up.</span>
+          <span class="sk-lt-line" id="f11-lt-l2">the record of every call — and what you believed.</span>
+        </span>
+      </div>
+    </div>
 
-        /* ------------------------------------------------------------------
-         * Frame 11 — 7.2s (Scene windows scaled from the 8.0s spec by 0.9):
-         *   Scene 1  0.00–2.50  line A per-word staggered reveal, settle, dim
-         *   seam     2.30–2.50  inverse zoom-through exit (cut catalog)
-         *   Scene 2  2.50–5.60  counter-line per-word, VO-paced; ember on
-         *                       "believed"; the deep hit lands with "only"
-         *   Scene 3  5.75–7.20  held read, subtle jitter only (no exit)
-         * ------------------------------------------------------------------ */
+  </div>
 
-        const aWords = gsap.utils.toArray("#line-a .word");
-        const bWords = gsap.utils.toArray("#line-b .word").filter((el) => el.id !== "w-only");
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({ paused: true });
 
-        // Build-time pre-set of every word's from-state (cut-catalog rule:
-        // immediateRender:false alone leaves un-started words visible).
-        gsap.set(aWords, { opacity: 0, yPercent: 60, filter: "blur(8px)" });
-        gsap.set(bWords, { opacity: 0, yPercent: 45, filter: "blur(6px)" });
-        gsap.set("#w-only", { opacity: 0, scale: 1.25, filter: "blur(10px)" });
+    /* ───────── camera rig (multi-phase-camera + viewport-change; tilt via onUpdate, never GSAP transform props) ───────── */
+    const camEl = document.getElementById("f11-cam");
+    const screenEl = document.getElementById("f11-screen");
+    const cam = { scale: 1.45, x: 255, y: 70 };          // extreme close-up on the artifacts plane
+    const drift = { p: 0 };                               // continuous micro-drift — the camera never sleeps
+    function applyCamera() {
+      const dx = Math.sin(drift.p) * 5;
+      const dy = Math.sin(drift.p * 1.31) * 3;
+      camEl.style.transform = `translate(${cam.x + dx}px, ${cam.y + dy}px) scale(${cam.scale})`;
+    }
+    const tilt = { rx: 2.6, ry: -4.0 };
+    function applyTilt() {
+      screenEl.style.transform = `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`;
+    }
+    applyCamera(); applyTilt();
 
-        // ---- Scene 1 — "anyone can dig up what happened." per-word staggered
-        // reveal (blur + fade + rise, power3 long-tail settle, zero overshoot).
-        const A_TIMES = [0.14, 0.28, 0.42, 0.56, 0.7, 0.84];
-        aWords.forEach((el, i) => {
-          tl.fromTo(
-            el,
-            { opacity: 0, yPercent: 60, filter: "blur(8px)" },
-            {
-              opacity: 1,
-              yPercent: 0,
-              filter: "blur(0px)",
-              duration: 0.6,
-              ease: "power3.out",
-              immediateRender: false,
-            },
-            A_TIMES[i],
-          );
-        });
+    /* pan streak (motion-blur-streak, directional "X 0") — proxy tween, seeded at 0 */
+    const blurNode = document.getElementById("f11-panblur-std");
+    const blurProxy = { v: 0 };
+    const writeBlur = () => blurNode.setAttribute("stdDeviation", `${blurProxy.v} 0`);
+    writeBlur();
 
-        // Settles, then dims to muted — the line becomes the past.
-        tl.to("#line-a", { color: "rgb(168,162,154)", duration: 0.5, ease: "power2.inOut" }, 1.85);
+    /* ── Scene 1 (0.0–2.8) · extreme close-up slides across the artifact rows, softly lit ── */
+    tl.fromTo("#f11-frame", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power1.out" }, 0.01);
+    tl.to(cam, { x: 195, y: 55, duration: 2.75, ease: "power1.inOut", onUpdate: applyCamera }, 0.05);
+    tl.to(tilt, { rx: 2.0, ry: -2.8, duration: 2.75, ease: "power1.inOut", onUpdate: applyTilt }, 0.05);
 
-        // ---- Seam — hard-cut swap as an inverse zoom-through (arrival beat):
-        // line A recedes away from the viewer, 10px text-scale blur on the
-        // WRAPPER, opacity on its own linear tween; hard cut at peak blur.
-        tl.fromTo(
-          "#line-a",
-          { scale: 1, filter: "blur(0px)" },
-          { scale: 0.8, filter: "blur(10px)", duration: 0.2, ease: "power3.in", immediateRender: false },
-          2.3,
-        );
-        tl.fromTo(
-          "#line-a",
-          { opacity: 1 },
-          { opacity: 0.15, duration: 0.2, ease: "none", immediateRender: false },
-          2.3,
-        );
-        tl.set("#line-a", { opacity: 0 }, 2.5);
+    tl.fromTo(".f11-headbit", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out", stagger: 0.07 }, 0.35);
+    tl.fromTo(".f11-arow", { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out", stagger: 0.09 }, 0.25);
+    // a soft light passes row to row as the camera tracks across them (finite yoyo, deterministic)
+    gsap.utils.toArray(".f11-arow").forEach((row, i) => {
+      tl.to(row, { backgroundColor: "rgba(242,239,233,0.05)", duration: 0.22, ease: "power1.inOut", yoyo: true, repeat: 1 }, 0.6 + i * 0.27);
+    });
 
-        // "only" arrives oversized from behind the camera and retracts into the
-        // focal plane — matched blur/opacity at the cut; the deep hit lands here.
-        tl.fromTo(
-          "#w-only",
-          { opacity: 0.15, scale: 1.25, filter: "blur(10px)" },
-          {
-            opacity: 1,
-            scale: 1,
-            filter: "blur(0px)",
-            duration: 0.5,
-            ease: "expo.out",
-            immediateRender: false,
-          },
-          2.5,
-        );
+    tl.fromTo("#f11-lt-k", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.5);
+    tl.fromTo("#f11-lt-l1", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 0.66);
 
-        // ---- Scene 2 — the rest of the counter-line reveals per word, paced
-        // to the VO, weighted into the back half of the shot.
-        const B_TIMES = {
-          "w-supaprod": 2.88,
-          "w-keeps": 3.26,
-          "w-what": 3.54,
-          "w-you1": 3.72,
-          "w-believed": 3.94,
-          "w-dash": 4.34,
-          "w-before": 4.74,
-          "w-you2": 4.98,
-          "w-found": 5.18,
-          "w-out": 5.38,
-        };
-        bWords.forEach((el) => {
-          tl.fromTo(
-            el,
-            { opacity: 0, yPercent: 45, filter: "blur(6px)" },
-            {
-              opacity: 1,
-              yPercent: 0,
-              filter: "blur(0px)",
-              duration: 0.55,
-              ease: "power3.out",
-              immediateRender: false,
-            },
-            B_TIMES[el.id],
-          );
-        });
+    /* ── Scene 2 (2.8–5.4) · "Supaprod keeps" — rack focus to the sealed forecast, pan with streak ── */
+    // rack (depth-of-field-blur): plane A defocuses exactly as pre-blurred plane B snaps sharp
+    tl.to("#f11-left",  { "--dof": "3px",  opacity: 0.62, duration: 0.7, ease: "power2.inOut" }, 2.8);
+    tl.to("#f11-right", { "--dof": "0px",  opacity: 1,    duration: 0.7, ease: "power2.inOut" }, 2.8);
+    // camera pans right (world left), streak peaks at mid-pan velocity
+    tl.to(cam, { scale: 1.32, x: -110, duration: 0.85, ease: "power2.inOut", onUpdate: applyCamera }, 2.8);
+    tl.to(tilt, { rx: 1.5, ry: -1.8, duration: 0.85, ease: "power2.inOut", onUpdate: applyTilt }, 2.8);
+    tl.to(blurProxy, { v: 6, duration: 0.42, ease: "power2.in", onUpdate: writeBlur }, 2.8);
+    tl.to(blurProxy, { v: 0, duration: 0.46, ease: "power2.out", onUpdate: writeBlur }, 3.22);
 
-        // ---- Keyword ember on "believed" — attack/sustain/release envelope
-        // (asr-keyword-glow): color ignites fire-orange and STAYS (the one
-        // orange clause of the statement); the glow decays to a faint rest
-        // ember; scale returns exactly to 1 so the hold is clean.
-        const kw = document.getElementById("kw");
-        const KW_START = 3.98;
-        const KW_END = 4.62;
-        const ATTACK = 0.22;
-        const RELEASE = 0.5;
-        const REST = 0.28;
-        function kwEnv(t) {
-          if (t < KW_START) return 0;
-          if (t < KW_END) return Math.min((t - KW_START) / ATTACK, 1);
-          if (t < KW_END + RELEASE) return 1 - ((t - KW_END) / RELEASE) * (1 - REST);
-          return REST;
-        }
-        const lerp = (a, b, t) => Math.round(a + (b - a) * t);
-        const drv = { t: 0 };
-        tl.to(
-          drv,
-          {
-            t: 7.2,
-            duration: 7.2,
-            ease: "none",
-            onUpdate: () => {
-              const e = kwEnv(drv.t);
-              const c = Math.max(0, Math.min((drv.t - KW_START) / ATTACK, 1));
-              const s = Math.max(0, (e - REST) / (1 - REST));
-              kw.style.color =
-                "rgb(" + lerp(242, 255, c) + "," + lerp(239, 107, c) + "," + lerp(233, 44, c) + ")";
-              kw.style.textShadow =
-                "0 0 " + (28 * e).toFixed(2) + "px rgba(255,107,44," + (0.65 * e).toFixed(3) + ")";
-              kw.style.transform = "scale(" + (1 + 0.055 * s).toFixed(4) + ")";
-            },
-          },
-          0,
-        );
+    // lower-third swap (cut-the-curve, whole-line): exit rips left, entry continues leftward
+    tl.to("#f11-lt-l1", { x: -230, duration: 0.34, ease: "power4.in" }, 2.9);
+    tl.to("#f11-lt-l1", { opacity: 0, duration: 0.3, ease: "power1.in" }, 2.92);
+    tl.fromTo("#f11-lt-l2",
+      { x: 230, opacity: 0.35 },
+      { x: 0, opacity: 1, duration: 0.3, ease: "power4.out", immediateRender: false }, 3.26);
 
-        // ---- Scene 3 — held read, subtle jitter only (sine-wave-loop at the
-        // LOW end: ±1.6px y on the settled stack, sin(0)=0 so no jump; no exit
-        // — the root transition owns the exit).
-        const lineB = document.getElementById("line-b");
-        const jig = { p: 0 };
-        tl.to(
-          jig,
-          {
-            p: Math.PI * 2 * 0.55,
-            duration: 1.45,
-            ease: "none",
-            onUpdate: () => {
-              lineB.style.transform = "translateY(" + (Math.sin(jig.p) * 1.6).toFixed(2) + "px)";
-            },
-          },
-          5.75,
-        );
+    // the lock glints ember — the deep hit lands here
+    tl.fromTo("#f11-glow", { opacity: 0, scale: 0.5 }, { opacity: 0.85, scale: 1.25, duration: 0.3, ease: "power2.out" }, 3.3);
+    tl.to("#f11-glow", { opacity: 0, duration: 0.55, ease: "power2.out" }, 3.62);
+    tl.to("#f11-sealchip", { scale: 1.09, duration: 0.13, ease: "power2.in", yoyo: true, repeat: 1 }, 3.3);
+    tl.to("#f11-record", { borderColor: "rgba(255,107,44,0.55)", duration: 0.5, ease: "power2.out" }, 3.3);
 
-        window.__timelines["11-what-cant-be-reconstructed"] = tl;
-      </script>
-    </template>
-  </body>
+    // "what you believed" — the belief fields land under the sealed row
+    tl.fromTo(".f11-belief", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", stagger: 0.16 }, 3.9);
+
+    /* ── Scene 3 (5.4–7.2) · "guides your next call" — guidance chip, slow push on the sealed row ── */
+    tl.fromTo("#f11-guide", { opacity: 0, x: 46 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 5.45);
+    tl.to(cam, { scale: 1.44, x: -200, y: -70, duration: 1.55, ease: "power2.inOut", onUpdate: applyCamera }, 5.6);
+    tl.to(tilt, { rx: 1.05, ry: -1.1, duration: 1.55, ease: "power2.inOut", onUpdate: applyTilt }, 5.6);
+    // quiet second breath of the seal under the push — the record is alive
+    tl.to("#f11-glow", { opacity: 0.3, duration: 0.5, ease: "power1.inOut", yoyo: true, repeat: 1 }, 6.15);
+
+    /* drift driver — inserted LAST so it reads final cam state each frame; spans the whole shot */
+    tl.to(drift, { p: Math.PI * 2 * 2, duration: 7.2, ease: "none", onUpdate: applyCamera }, 0);
+
+    window.__timelines["11-what-cant-be-reconstructed"] = tl;
+  </script>
+</template>
+</body>
 </html>

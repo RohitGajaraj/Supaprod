@@ -1,121 +1,146 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <!-- Frame 12 — The promise. The film's single orange-register frame.
-         Six words on a fire-orange field; two half-lines arrive on their
-         spoken cues, then hold completely still. Stillness is the beat. -->
-  </head>
-  <body>
-    <template>
-      <style>
-        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
-        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
-        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>F12 — The promise (sub-composition; runtime reads only the template)</title>
+</head>
+<body>
+<template>
+<style>
+/* ————— fonts (kit block — project-root path + standalone-preview fallback) ————— */
+@font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2"),url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
 
-        /* Root — never carries the ground; container for all cqw/cqh sizing. */
-        #root {
-          position: absolute;
-          inset: 0;
-          overflow: hidden;
-          container-type: size;
-        }
+/* ————— root — tokens live HERE (a `:root` rule would be scoped away at assembly) ————— */
+#root{
+  position:absolute;inset:0;overflow:hidden;
+  container-type:size;                    /* the container law — everything below is cqw/cqh */
+  font-family:var(--sk-ui);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  /* film tokens (frame.md — orange register: ink on fire, absolute) */
+  --sk-ember:#FF6B2C;
+  --sk-ink:#0A0A0B;
+  --sk-ink-near:rgba(17,17,17,0.88);
+  --sk-ui:"Mona Sans",system-ui,sans-serif;
+  --sk-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+#root *,#root *::before,#root *::after{box-sizing:border-box;margin:0;padding:0;}
 
-        /* Full-bleed fire-orange ground — a dedicated full-duration clip layer. */
-        #bg {
-          position: absolute;
-          inset: 0;
-          background: #ff6b2c;
-        }
+/* ————— clip layers ————— */
+/* track 0 — the ground: the film's single palette flip, full-bleed fire-orange */
+#tp-bg{position:absolute;inset:0;z-index:0;background:var(--sk-ember);}
 
-        /* The promise stack — dead-center, optical center lifted to ~0.44 × height,
-           clear of the bottom 17% keep-out band. */
-        #promise {
-          position: absolute;
-          inset: 0;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          row-gap: 1.6cqw;
-          padding-bottom: 12cqh;
-          text-align: center;
-        }
+/* track 1 — the world (camera lives inside this clip, never the clip itself) */
+#tp-world{position:absolute;inset:0;z-index:1;overflow:hidden;}
+#tp-cam{
+  position:absolute;inset:0;
+  transform-origin:24% 65%;               /* the title block's optical center — push grows into the words */
+  will-change:transform;
+}
 
-        .line {
-          font-family: "Mona Sans", sans-serif;
-          font-size: 7.5cqw; /* h1 role — 3-word line, fit-to-measure */
-          line-height: 0.95;
-          color: #0a0a0b; /* near-ink on fire — absolute */
-          white-space: nowrap;
-          will-change: transform, opacity;
-        }
-        .line-1 {
-          font-weight: 400;
-          letter-spacing: -0.02em;
-        }
-        .line-2 {
-          font-weight: 700;
-          letter-spacing: -0.03em;
-        }
-      </style>
+/* the title block — lower-left third, a film title, NOT centered poster type */
+.tp-title{
+  position:absolute;left:5.5cqw;top:58cqh;    /* block bottom ≈ 72cqh — inside the 83% keep-out at full push */
+  display:flex;flex-direction:column;align-items:flex-start;
+}
+.tp-rule{
+  display:block;width:1.9cqw;height:2px;      /* the 36×2 ink rule stub — the system's only ornament */
+  background:var(--sk-ink);
+  transform-origin:left center;
+  margin-bottom:2.2cqh;
+}
+.tp-line{
+  font:600 3.4cqw/1.18 var(--sk-ui);
+  letter-spacing:-0.01em;
+  color:var(--sk-ink-near);
+  white-space:nowrap;
+}
+.tp-line--promise{
+  font-weight:700;
+  color:var(--sk-ink);
+  margin-top:0.9cqh;
+}
 
-      <div
-        id="root"
-        data-composition-id="12-the-promise"
-        data-width="1920"
-        data-height="1080"
-        data-duration="4.5"
-      >
-        <div id="bg" class="clip" data-start="0" data-duration="4" data-track-index="0"></div>
+/* track 2 — grain: lens emulsion, full-frame, above the world, does not ride the camera */
+#tp-grain{
+  position:absolute;inset:0;z-index:2;pointer-events:none;
+  opacity:0.07;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat:repeat;
+}
+</style>
 
-        <div id="promise" class="clip" data-start="0" data-duration="4" data-track-index="1">
-          <div class="line line-1" id="line1">you stop guessing.</div>
-          <div class="line line-2" id="line2">you start deciding.</div>
-        </div>
+<div id="root" data-composition-id="12-the-promise" data-width="1920" data-height="1080">
+
+  <!-- track 0 · the ground — full-duration orange field on its own clip layer -->
+  <div id="tp-bg" class="clip" data-start="0" data-duration="4" data-track-index="0"></div>
+
+  <!-- track 1 · the world — camera wrapper inside the clip -->
+  <div id="tp-world" class="clip" data-start="0" data-duration="4" data-track-index="1">
+    <div id="tp-cam">
+      <div class="tp-title">
+        <span class="tp-rule" id="tp-rule"></span>
+        <span class="tp-line" id="tp-l1">you stop guessing.</span>
+        <span class="tp-line tp-line--promise" id="tp-l2">you start deciding.</span>
       </div>
+    </div>
+  </div>
 
-      <script
-        src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
-        integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
-        crossorigin="anonymous"
-      ></script>
-      <script>
-        window.__timelines = window.__timelines || {};
-        const tl = gsap.timeline({ paused: true });
+  <!-- track 2 · grain — keeps the field alive through the hold -->
+  <div id="tp-grain" class="clip" data-start="0" data-duration="4" data-track-index="2"></div>
 
-        /* Scene 1 (0–1.44s) — "you stop guessing." slides up in a single
-           crossfade: translate-up + fade, one long-tail power3 settle.
-           Lands as the VO speaks it. */
-        tl.fromTo(
-          "#line1",
-          { yPercent: 45, opacity: 0 },
-          { yPercent: 0, opacity: 1, duration: 1.1, ease: "power3.out" },
-          0
-        );
+</div>
 
-        /* Scene 2 (1.44–4.0s) — on its spoken cue, "you start deciding."
-           joins beneath at heavier weight; same restrained gesture. */
-        tl.fromTo(
-          "#line2",
-          { yPercent: 50, opacity: 0 },
-          { yPercent: 0, opacity: 1, duration: 1.0, ease: "power3.out" },
-          1.5
-        );
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
+<script>
+  window.__timelines = window.__timelines || {};
+  (function () {
+    var ROOT = document.querySelector('[data-composition-id="12-the-promise"]');
+    var camEl = ROOT.querySelector("#tp-cam");
+    var grainEl = ROOT.querySelector("#tp-grain");
 
-        /* 2.5s → 4.0s: both lines hold dead-center, completely still —
-           the stillness against the orange is the beat. No exit; the root
-           transition owns the seam. */
+    var tl = gsap.timeline({ paused: true });
 
-        window.__timelines["12-the-promise"] = tl;
-      </script>
-    </template>
-  </body>
+    /* ───────────── camera — barely-perceptible slow push, whole 4 s (multi-phase-camera, single phase) ─────────────
+       titlecard-reveal Adapt: the hold IS the deliverable — the camera breathes under it.
+       scale 1.00 → 1.06 over the full duration, origin at the title block's optical center,
+       plus a continuous Lissajous micro-drift (freq ratio 1.35) so no frame is ever static.  */
+    var cam = { s: 1 };
+    var drift = { p: 0 };
+    function applyCam() {
+      var dx = Math.sin(drift.p) * 4;
+      var dy = Math.sin(drift.p * 1.35) * 2.6;
+      camEl.style.transform = "translate(" + dx + "px, " + dy + "px) scale(" + cam.s + ")";
+    }
+    applyCam(); /* seed frame 0 */
+
+    tl.to(cam, { s: 1.06, duration: 4.0, ease: "power1.inOut", onUpdate: applyCam }, 0);
+    tl.to(drift, { p: Math.PI * 2 * 1.5, duration: 4.0, ease: "none", onUpdate: applyCam }, 0);
+
+    /* ── grain — fine emulsion flicker: stepped jitter through a FIXED offset table (deterministic) ── */
+    var GRAIN_STEPS = [
+      [0, 0], [97, 33], [41, 151], [180, 74],
+      [23, 199], [133, 12], [201, 141], [66, 88]
+    ];
+    var gr = { t: 0 };
+    function applyGrain() {
+      var o = GRAIN_STEPS[Math.floor(gr.t * 8) % GRAIN_STEPS.length];
+      grainEl.style.backgroundPosition = o[0] + "px " + o[1] + "px";
+    }
+    applyGrain(); /* seed frame 0 */
+    tl.to(gr, { t: 4.0, duration: 4.0, ease: "none", onUpdate: applyGrain }, 0);
+
+    /* ── Scene 1 (0.0–1.6 s) — the ink rule stub wipes in, then "you stop guessing." slides up ── */
+    tl.fromTo("#tp-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, 0.12);
+    tl.fromTo("#tp-l1", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.85, ease: "power3.out" }, 0.3);
+
+    /* ── Scene 2 (1.6–4.0 s) — "you start deciding." joins beneath at 700; both hold under the push ── */
+    tl.fromTo("#tp-l2", { y: 26, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 1.7);
+
+    window.__timelines["12-the-promise"] = tl;
+  })();
+</script>
+</template>
+</body>
 </html>

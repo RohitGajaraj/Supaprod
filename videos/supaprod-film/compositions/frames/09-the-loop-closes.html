@@ -1,666 +1,838 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Frame 09 — the loop closes</title>
-    <!-- head is metadata only; the runtime clones ONLY the <template> contents -->
+    <!-- F9 · The loop closes — Learn scores the outcome against the sealed call; Discover re-ranks. 10.8s.
+         One world, two screens (Learn left · Discover right) on one perspective stage; a single macro
+         camera pushes on the verdict, tracks to the sealed record, whip-pans (cut-the-curve seam, blur
+         peaks at the cut) to the re-ranking, then pulls wide to both panes joined by the ember thread.
+         Everything the runtime needs lives inside <template>. -->
   </head>
   <body>
     <template>
       <style>
-      @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
-      @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
-      @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
-      @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
-      @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
-      @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
-      @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
-      @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
-      @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
-      @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+        /* ————— fonts (kit copy of frame.md block, dual-path src) ————— */
+        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2"),url("assets/fonts/Geist-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2"),url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2"),url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+
+        /* ————— tokens — declared on #root (the doc-root selector gets scoped away in the composited render) ————— */
+        #root{
+          --sk-ground:#0A0A0B;
+          --sk-panel:#141416;
+          --sk-raised:#1A1A1D;
+          --sk-hairline:#26262A;
+          --sk-text:#F2EFE9;
+          --sk-muted:#A8A29A;
+          --sk-faint:#6B6660;
+          --sk-discover:#6FA9A0;
+          --sk-decide:#C39A5E;
+          --sk-plan:#8FA464;
+          --sk-design:#AB7FA0;
+          --sk-build:#6D97C2;
+          --sk-ship:#BD8092;
+          --sk-learn:#A89F66;
+          --sk-pass:#4FC47A;
+          --sk-fail:#EF6A5F;
+          --sk-warn:#E8B44C;
+          --sk-ember:#FF6B2C;
+          --sk-accent:var(--sk-learn);
+          --sk-r-chip:7px;
+          --sk-r-control:8px;
+          --sk-r-row:9px;
+          --sk-r-card:10px;
+          --sk-r-panel:12px;
+          --sk-r-pane:16px;
+          --sk-ui:"Mona Sans",system-ui,sans-serif;
+          --sk-mono:"IBM Plex Mono",ui-monospace,monospace;
+          --sk-ring:0 0 0 1px var(--sk-hairline);
+          --sk-ambient:0 24px 80px rgba(0,0,0,.5);
+        }
+        #root{position:absolute;inset:0;overflow:hidden;font-family:var(--sk-ui);}
+
+        /* ————— frame ground & perspective stage (kit) ————— */
+        .sk-frame{
+          position:absolute;inset:0;overflow:hidden;
+          container-type:size;
+          background:var(--sk-ground);
+          color:var(--sk-text);
+          font-family:var(--sk-ui);
+          -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+        }
+        .sk-frame *,.sk-frame *::before,.sk-frame *::after{box-sizing:border-box;margin:0;padding:0;}
+        .sk-screen{
+          position:relative;flex:none;
+          width:var(--sk-w,88cqw);height:var(--sk-h,86cqh);
+          transform:rotateX(var(--sk-rx,1.8deg)) rotateY(var(--sk-ry,-2.4deg));
+          transform-style:preserve-3d;
+          background:var(--sk-ground);
+          border-radius:var(--sk-r-pane);
+          box-shadow:var(--sk-ring),var(--sk-ambient);
+          overflow:hidden;
+        }
+
+        /* ————— app shell (kit) ————— */
+        .sk-shell{
+          display:grid;height:100%;
+          grid-template-columns:12.5cqw minmax(0,1fr);
+          grid-template-rows:3.2cqh minmax(0,1fr);
+          grid-template-areas:"side top" "side main";
+        }
+        .sk-sidebar{
+          grid-area:side;display:flex;flex-direction:column;min-height:0;
+          background:var(--sk-ground);border-right:1px solid var(--sk-hairline);
+        }
+        .sk-ws{display:flex;align-items:center;gap:0.55cqw;padding:1cqw 1cqw 0.8cqw;}
+        .sk-ws-mark{
+          width:0.72cqw;height:0.72cqw;flex:none;border-radius:50%;
+          border:1px solid var(--sk-ember);
+          background:radial-gradient(circle at 50% 50%,var(--sk-ember) 0 28%,transparent 30%);
+        }
+        .sk-ws-name{font:600 0.82cqw/1 var(--sk-ui);color:var(--sk-text);letter-spacing:0.01em;}
+        .sk-ws-caret{margin-left:auto;font:400 0.6cqw/1 var(--sk-mono);color:var(--sk-faint);}
+        .sk-nav{display:flex;flex-direction:column;gap:0.12cqh;padding:0.3cqw 0.5cqw;}
+        .sk-navrow{
+          display:flex;align-items:center;gap:0.55cqw;
+          padding:0.42cqw 0.6cqw;border-radius:var(--sk-r-row);
+          font:400 0.73cqw/1 var(--sk-ui);color:var(--sk-muted);
+        }
+        .sk-navrow .sk-dot{
+          width:0.3cqw;height:0.3cqw;flex:none;border-radius:50%;
+          background:var(--dot,var(--sk-faint));
+        }
+        .sk-navcount{margin-left:auto;font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-faint);}
+        .sk-navrow.is-active{background:var(--sk-raised);color:var(--sk-text);}
+        .sk-navrow.is-active .sk-dot{box-shadow:0 0 0.45cqw 0 var(--dot,var(--sk-accent));}
+        .sk-navrow.is-active .sk-navcount{color:var(--sk-muted);}
+        .sk-side-foot{
+          margin-top:auto;display:flex;align-items:center;gap:0.45cqw;
+          padding:0.85cqw 1cqw;border-top:1px solid var(--sk-hairline);
+          font:400 0.57cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.03em;
+        }
+        .sk-livedot{
+          width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;
+          background:var(--sk-pass);box-shadow:0 0 0.4cqw var(--sk-pass);
+        }
+        .sk-topbar{
+          grid-area:top;display:flex;align-items:center;gap:0.9cqw;
+          padding:0 1cqw;border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
+        }
+        .sk-crumb{display:flex;align-items:center;font:400 0.62cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;}
+        .sk-crumb-sep{padding:0 0.35cqw;color:var(--sk-faint);}
+        .sk-crumb-here{color:var(--sk-text);}
+        .sk-ask{
+          display:flex;align-items:center;gap:0.5cqw;flex:0 1 16cqw;height:2.1cqh;
+          padding:0 0.4cqw 0 0.65cqw;background:var(--sk-panel);
+          border:1px solid var(--sk-hairline);border-radius:var(--sk-r-control);
+          font:400 0.66cqw/1 var(--sk-ui);color:var(--sk-faint);
+        }
+        .sk-ask svg{width:0.68cqw;height:0.68cqw;flex:none;stroke:var(--sk-faint);fill:none;stroke-width:1.6;}
+        .sk-kbd{
+          margin-left:auto;padding:0.1cqw 0.32cqw;
+          font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-faint);
+          background:var(--sk-ground);border:1px solid var(--sk-hairline);border-radius:5px;
+        }
+        .sk-avatar{
+          width:1.25cqw;height:1.25cqw;flex:none;display:grid;place-items:center;
+          background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:50%;
+          font:600 0.5cqw/1 var(--sk-ui);color:var(--sk-muted);letter-spacing:0.05em;
+        }
+
+        /* ————— true-UI type (kit) ————— */
+        .sk-title{font:600 1.3cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
+        .sk-body{font:400 0.73cqw/1.45 var(--sk-ui);color:var(--sk-text);}
+        .sk-meta{font:400 0.68cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+        .sk-label{font:500 0.65cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.10em;text-transform:uppercase;}
+        .sk-spacer{flex:1;}
+
+        /* ————— panels · rows (kit) ————— */
+        .sk-panel{
+          background:var(--sk-panel);border:1px solid var(--sk-hairline);
+          border-radius:var(--sk-r-panel);overflow:hidden;min-height:0;
+          display:flex;flex-direction:column;
+        }
+        .sk-pane{
+          background:var(--sk-panel);border:1px solid var(--sk-hairline);
+          border-radius:var(--sk-r-pane);overflow:hidden;min-height:0;
+          display:flex;flex-direction:column;
+        }
+        .sk-panel-hd,.sk-pane-hd{
+          display:flex;align-items:center;gap:0.6cqw;flex:none;
+          padding:0.75cqw 1cqw;border-bottom:1px solid var(--sk-hairline);
+        }
+        .sk-panel-title{font:600 0.83cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+        .sk-panel-body,.sk-pane-body{flex:1;min-height:0;overflow:hidden;}
+        .sk-panel-ft{
+          display:flex;align-items:center;gap:0.6cqw;flex:none;
+          padding:0.6cqw 1cqw;border-top:1px solid var(--sk-hairline);
+          background:var(--sk-panel);
+        }
+        .sk-row{padding:0.7cqw 1cqw;}
+        .sk-row + .sk-row{border-top:1px solid var(--sk-hairline);}
+
+        /* ————— chips · badges (kit) ————— */
+        .sk-chip{
+          display:inline-flex;align-items:center;gap:0.3cqw;
+          padding:0.22cqw 0.45cqw;border:1px solid var(--sk-hairline);
+          border-radius:var(--sk-r-chip);background:rgba(255,255,255,0.02);
+          font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
+          white-space:nowrap;
+        }
+        .sk-chip.is-on,
+        .sk-chip--accent{color:var(--sk-accent);border-color:color-mix(in srgb,var(--sk-accent) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-accent) 8%,transparent);}
+        .sk-chip--pass{color:var(--sk-pass);border-color:color-mix(in srgb,var(--sk-pass) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-pass) 8%,transparent);}
+        .sk-chip--ember{color:var(--sk-ember);border-color:color-mix(in srgb,var(--sk-ember) 45%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-ember) 9%,transparent);}
+        .sk-dot-inline{width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;background:currentColor;}
+        .sk-badge{
+          display:inline-flex;align-items:center;padding:0.22cqw 0.45cqw;
+          background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:var(--sk-r-chip);
+          font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);font-variant-numeric:tabular-nums;
+        }
+        .sk-tick{color:var(--sk-pass);font-family:var(--sk-mono);}
+
+        /* ————— score + sub-bars (kit) ————— */
+        .sk-score{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.1cqw;align-items:center;margin-top:0.55cqw;}
+        .sk-score-main{display:flex;flex-direction:column;align-items:flex-start;gap:0.15cqw;}
+        .sk-score-num{
+          font:500 1.5cqw/1 var(--sk-mono);color:var(--sk-accent);
+          letter-spacing:-0.03em;font-variant-numeric:tabular-nums;
+        }
+        .sk-score-cap{font:500 0.5cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.08em;text-transform:uppercase;}
+        .sk-score-bars{display:flex;flex-direction:column;gap:0.45cqw;}
+        .sk-subbar{display:grid;grid-template-columns:4.6cqw minmax(0,1fr) 1.9cqw;gap:0.55cqw;align-items:center;}
+        .sk-subbar-name{font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.04em;}
+        .sk-subbar-track{display:block;height:0.18cqw;background:var(--sk-hairline);border-radius:2px;overflow:hidden;}
+        .sk-subbar-track i{display:block;height:100%;background:var(--sk-accent);border-radius:inherit;}
+        .sk-subbar-val{font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-muted);text-align:right;font-variant-numeric:tabular-nums;}
+        .sk-score--dim .sk-score-num{color:var(--sk-text);}
+        .sk-score--dim .sk-subbar-track i{background:#4B4B51;}
+        .sk-score--dim .sk-subbar-name,.sk-score--dim .sk-subbar-val{color:var(--sk-faint);}
+
+        /* ————— bet card (kit) ————— */
+        .sk-betcard{
+          padding:0.85cqw 1.05cqw;background:var(--sk-raised);
+          border:1px solid var(--sk-hairline);border-radius:var(--sk-r-card);
+        }
+        .sk-betcard-hd{display:flex;align-items:center;gap:0.6cqw;}
+        .sk-rank{font:500 0.62cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.06em;}
+        .sk-betcard-title{font:600 0.85cqw/1.25 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+        .sk-betcard .sk-meta{margin-top:0.3cqw;}
+        .sk-betcard.is-lead{
+          border-color:color-mix(in srgb,var(--sk-accent) 45%,var(--sk-hairline));
+          background:color-mix(in srgb,var(--sk-accent) 4%,var(--sk-raised));
+        }
+        .sk-betcard.is-lead .sk-rank{color:var(--sk-accent);}
+        .sk-betnote{
+          display:flex;gap:0.45cqw;margin-top:0.6cqw;padding-top:0.55cqw;
+          border-top:1px solid var(--sk-hairline);
+          font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
+        }
+        .sk-betnote span{color:var(--sk-accent);}
+        .sk-agentline{
+          display:flex;align-items:center;gap:0.5cqw;
+          padding:0.6cqw 0.8cqw;background:var(--sk-raised);
+          border:1px solid var(--sk-hairline);border-radius:var(--sk-r-row);
+          font:400 0.62cqw/1.3 var(--sk-mono);color:var(--sk-muted);
+        }
+        .sk-run{color:var(--sk-accent);text-align:center;}
+
+        /* ————— sealed record row (kit) ————— */
+        .sk-record{
+          display:flex;align-items:center;gap:0.7cqw;
+          padding:0.7cqw 1cqw;background:var(--sk-panel);
+          border:1px solid var(--sk-hairline);border-radius:var(--sk-r-row);
+        }
+        .sk-record .sk-body{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+        /* ————— toast (kit, lifted to stay inside the shot's keep-out) ————— */
+        .sk-toast{
+          position:absolute;right:1.2cqw;bottom:19cqh;z-index:40;
+          display:inline-flex;align-items:center;gap:0.5cqw;
+          padding:0.55cqw 0.8cqw;background:var(--sk-raised);
+          border:1px solid var(--sk-hairline);border-radius:var(--sk-r-card);
+          box-shadow:var(--sk-ring),var(--sk-ambient);
+          font:400 0.68cqw/1.3 var(--sk-ui);color:var(--sk-text);
+        }
+        .sk-toast .sk-meta{color:var(--sk-faint);}
+
+        /* ————— lower-third (kit, above the caption keep-out) ————— */
+        .sk-lowerthird{
+          position:absolute;left:5.5cqw;bottom:18cqh;z-index:60;
+          display:flex;flex-direction:column;gap:0.55cqh;
+          text-shadow:0 2px 30px rgba(0,0,0,.6);
+        }
+        .sk-lt-kicker{
+          font:500 0.72cqw/1 var(--sk-mono);letter-spacing:0.14em;text-transform:uppercase;
+          color:var(--sk-accent);
+        }
+        .sk-lt-line{font:600 2.6cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
+
+        /* ————— F9-specific ————— */
+        #f9cam{
+          position:absolute;inset:0;
+          transform-origin:50% 50%;
+          will-change:transform;
+        }
+        /* the two-screen stage — one space, two panes; perspective gives the camera depth */
+        .f9-stage{
+          position:absolute;inset:0;
+          display:flex;align-items:center;justify-content:center;gap:6cqw;
+          padding-bottom:8cqh;
+          perspective:2400px;
+          perspective-origin:50% 42%;
+        }
+        .f9-dofA{--dof:0px;filter:blur(var(--dof));will-change:filter;}
+
+        /* Learn — outcome surfaces */
+        .f9-learnmain{
+          grid-area:main;position:relative;min-height:0;
+          display:grid;grid-template-columns:minmax(0,1.32fr) minmax(0,1fr);
+          grid-template-rows:auto minmax(0,1fr);gap:1cqw;padding:1.1cqw;
+        }
+        .f9-leftcol{display:flex;flex-direction:column;gap:0.85cqw;min-height:0;}
+        .f9-leftcol > .sk-panel{flex:1;}
+        .f9-orow{display:flex;flex-direction:column;gap:0.35cqw;padding:0.8cqw 1cqw;}
+        .f9-orow + .f9-orow{border-top:1px solid var(--sk-hairline);}
+        .f9-orow-hd{display:flex;align-items:baseline;gap:0.5cqw;}
+        .f9-orow-hd .sk-label{font-size:0.52cqw;}
+        .f9-orow-hd .sk-label.is-accent{color:var(--sk-accent);}
+        .f9-orow-hd .sk-meta{font-size:0.6cqw;}
+        .f9-forecastline{display:flex;align-items:center;gap:0.6cqw;}
+        .f9-spark{display:flex;align-items:center;gap:0.9cqw;}
+        .f9-spark svg{display:block;width:12cqw;height:3.4cqh;flex:none;overflow:visible;}
+        .f9-sparkbase{stroke:var(--sk-hairline);stroke-width:1;}
+        .f9-shipmark{stroke:var(--sk-faint);stroke-width:1;stroke-dasharray:2 3;}
+        #f9-sparkline{fill:none;stroke:var(--sk-accent);stroke-width:2;stroke-linecap:round;}
+        #f9-sparkdot{fill:var(--sk-pass);opacity:0;}
+        .f9-measured{display:flex;flex-direction:column;gap:0.25cqw;min-width:0;}
+        .f9-measured-val{font:600 0.95cqw/1.2 var(--sk-ui);color:var(--sk-pass);letter-spacing:-0.005em;}
+        .f9-verdictline{position:relative;display:flex;align-items:center;gap:0.6cqw;}
+        .f9-verdict{
+          display:inline-flex;align-items:center;gap:0.45cqw;
+          padding:0.4cqw 0.75cqw;border-radius:var(--sk-r-control);
+          font:500 0.8cqw/1.2 var(--sk-mono);letter-spacing:0.02em;color:var(--sk-pass);
+          border:1px solid color-mix(in srgb,var(--sk-pass) 45%,var(--sk-hairline));
+          background:color-mix(in srgb,var(--sk-pass) 10%,transparent);
+        }
+        #f9-ring{
+          position:absolute;left:-0.4cqw;top:-0.35cqh;width:10.5cqw;height:3.6cqh;
+          border:1px solid var(--sk-pass);border-radius:var(--sk-r-control);
+          opacity:0;pointer-events:none;
+        }
+        #f9-outchip,#f9-verdict,#f9-scored,#f9-agentlearn,#f9-toast{opacity:0;}
+        .f9-lrow{padding:0.62cqw 1cqw;}
+        .f9-lrow + .f9-lrow{border-top:1px solid var(--sk-hairline);}
+        .f9-lrow-hd{display:flex;align-items:baseline;gap:0.5cqw;}
+        .f9-lrow-name{font:400 0.7cqw/1.4 var(--sk-ui);color:var(--sk-text);}
+        .f9-lrow-time{font:400 0.55cqw/1.4 var(--sk-ui);color:var(--sk-faint);}
+        .f9-lrow-meta{margin-top:0.15cqw;font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;}
+        .f9-v{font:500 0.55cqw/1.3 var(--sk-mono);letter-spacing:0.04em;}
+        .f9-v--pass{color:var(--sk-pass);}
+        .f9-v--fail{color:var(--sk-fail);}
+        .f9-v--warn{color:var(--sk-warn);}
+
+        /* Discover — re-ranking surfaces (slotted absolute so rows can swap on transforms only) */
+        .f9-discmain{grid-area:main;display:flex;flex-direction:column;gap:0.9cqw;padding:1.1cqw;min-height:0;}
+        .f9-betsbody{position:relative;flex:1;min-height:0;overflow:hidden;}
+        .f9-betsbody > .sk-betcard,.f9-shiprow{position:absolute;left:0.9cqw;right:0.9cqw;}
+        .f9-slotA{top:0.9cqw;}
+        .f9-slotB{top:calc(0.9cqw + 17.4cqh);}
+        .f9-slotC{top:calc(0.9cqw + 34.8cqh);}
+        .f9-shiprow{
+          display:flex;align-items:center;gap:0.6cqw;opacity:0;
+          padding:0.55cqw 0.9cqw;background:var(--sk-panel);
+          border:1px solid color-mix(in srgb,var(--sk-pass) 30%,var(--sk-hairline));
+          border-radius:var(--sk-r-row);
+          font:400 0.66cqw/1.3 var(--sk-ui);color:var(--sk-muted);
+        }
+        .f9-shiprow b{font-weight:600;color:var(--sk-text);}
+        #f9-agentdisc{position:absolute;left:0.9cqw;right:0.9cqw;bottom:0.9cqw;opacity:0;}
+
+        /* text swaps — stacked spans, crossfade on the timeline (chips renumber, counts change) */
+        .f9-swap{position:relative;display:inline-block;white-space:nowrap;}
+        .f9-swap .f9-a{display:inline-block;}
+        .f9-swap .f9-b{position:absolute;left:0;top:0;opacity:0;}
+
+        /* ember thread — the loop made visible, drawn over the world */
+        #f9-thread{position:absolute;inset:0;z-index:70;pointer-events:none;}
+        #f9-thread svg{display:block;width:100%;height:100%;overflow:visible;}
+        .f9-threadpath{
+          fill:none;stroke:var(--sk-ember);stroke-width:2.6;stroke-linecap:round;
+          filter:drop-shadow(0 0 6px rgba(255,107,44,.5));
+        }
+        .f9-threaddot{fill:var(--sk-ember);opacity:0;}
+
+        /* lower-third clip wrapper */
+        #f9-lt{position:absolute;inset:0;container-type:size;pointer-events:none;}
+        #f9-lt .sk-lt-kicker,#f9-lt .sk-lt-line{opacity:0;}
       </style>
-      <style>
-        /* ============ Broadside dark register — frame 09 ============ */
-        #root {
-          position: absolute;
-          inset: 0;
-          overflow: hidden;
-          container-type: size;
-          font-family: "Mona Sans", sans-serif;
-          color: #f2efe9;
-        }
-        .clip {
-          position: absolute;
-          inset: 0;
-        }
-        /* full-bleed ground lives on the lowest clip, never on #root */
-        .ground {
-          background: #0a0a0b;
-        }
 
-        /* ---- mono chrome ---- */
-        .kicker,
-        .cat-num {
-          position: absolute;
-          top: 5cqh;
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.72cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #a8a29a;
-        }
-        .kicker {
-          left: 5.5cqw;
-        }
-        .cat-num {
-          right: 5.5cqw;
-        }
+      <div id="root" data-composition-id="09-the-loop-closes" data-width="1920" data-height="1080" data-duration="11.3">
 
-        /* ---- Act A — the loop diagram ---- */
-        #f9-actA-inner {
-          position: absolute;
-          inset: 0;
-          will-change: transform, opacity;
-        }
-        #f9-arc-svg {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          z-index: 1;
-        }
-        #f9-arc-ghost {
-          fill: none;
-          stroke: #6b6660;
-          stroke-width: 2;
-          stroke-linecap: round;
-          stroke-dasharray: 3 11;
-          opacity: 0;
-        }
-        #f9-arc-draw {
-          fill: none;
-          stroke: #ff6b2c;
-          stroke-width: 3;
-          stroke-linecap: round;
-        }
-        #f9-arc-end {
-          fill: #ff6b2c;
-          opacity: 0;
-        }
-        .card {
-          position: absolute;
-          z-index: 2;
-          background: #141416;
-          border-top: 1px solid #26262a;
-          padding: 1.5cqw 1.7cqw;
-          box-sizing: border-box;
-          will-change: transform, opacity;
-        }
-        .card-tag {
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.72cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #a8a29a;
-          margin-bottom: 1cqh;
-        }
-        .card-title {
-          font-family: "Mona Sans", sans-serif;
-          font-weight: 600;
-          font-size: 2.4cqw;
-          line-height: 1.15;
-          letter-spacing: -0.02em;
-          text-transform: lowercase;
-          color: #f2efe9;
-        }
-        .card-title.small {
-          font-size: 1.8cqw;
-        }
-        .card-meta {
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.72cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #ff6b2c;
-          margin-top: 1.2cqh;
-        }
-        #f9-shipped-card {
-          left: 54%;
-          top: 30%;
-          width: 26cqw;
-        }
-        #f9-decision-card {
-          left: 8%;
-          top: 40%;
-          width: 20cqw;
-        }
-        .ember-line {
-          position: absolute;
-          top: -1px;
-          left: 0;
-          width: 100%;
-          height: 1px;
-          background: #ff6b2c;
-          opacity: 0;
-        }
-        .chip-outcome {
-          position: absolute;
-          top: -1.7cqh;
-          right: -1.2cqw;
-          z-index: 3;
-          background: #ff6b2c;
-          color: #111111;
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.72cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          padding: 0.9cqh 0.9cqw;
-          will-change: transform, opacity;
-          transform-origin: 50% 0%;
-        }
+        <!-- ground + world · full-bleed ink field carrying BOTH product screens; camera rig inside -->
+        <div id="f9-world" class="clip sk-frame" data-start="0" data-duration="10.8" data-track-index="0" data-layout-allow-overflow>
 
-        /* ---- Act B — the ranked list from F5 ---- */
-        #f9-list-inner {
-          position: absolute;
-          inset: 0;
-          will-change: transform, opacity;
-        }
-        #f9-list {
-          position: absolute;
-          left: 55%;
-          top: 24%;
-          width: 34cqw;
-          display: flex;
-          flex-direction: column;
-          gap: 2cqh;
-        }
-        .bet-row {
-          position: relative;
-          display: flex;
-          align-items: center;
-          gap: 1.4cqw;
-          height: 8.2cqh;
-          padding: 0 1.4cqw;
-          box-sizing: border-box;
-          background: #141416;
-          border-top: 1px solid #26262a;
-          will-change: transform, opacity;
-        }
-        #f9-row-checkout {
-          z-index: 1;
-        }
-        #f9-row-billing {
-          z-index: 2;
-        }
-        .rank-chip {
-          position: relative;
-          flex: none;
-          width: 2.5cqw;
-          height: 4.4cqh;
-          border: 1px solid #26262a;
-          box-sizing: border-box;
-        }
-        .rank-chip .num {
-          position: absolute;
-          inset: 0;
-          display: grid;
-          place-items: center;
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.9cqw;
-          letter-spacing: 0.06em;
-          color: #f2efe9;
-          will-change: transform, opacity;
-        }
-        .rank-chip .num-new {
-          opacity: 0;
-        }
-        .rank-chip .num-dim {
-          color: #a8a29a;
-        }
-        .rank-chip .num-ember {
-          color: #ff6b2c;
-        }
-        .bet-title {
-          font-family: "Mona Sans", sans-serif;
-          font-weight: 600;
-          font-size: 1.75cqw;
-          line-height: 1.1;
-          letter-spacing: -0.02em;
-          text-transform: lowercase;
-          color: #f2efe9;
-          white-space: nowrap;
-        }
-        .row-tag {
-          margin-left: auto;
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.65cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #ff6b2c;
-          opacity: 0;
-        }
-        .edge-accent {
-          position: absolute;
-          left: 0;
-          top: 0;
-          bottom: 0;
-          width: 0.16cqw;
-          background: #ff6b2c;
-          opacity: 0;
-        }
+          <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+            <defs>
+              <filter id="f9-streak" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur id="f9-streak-blur" in="SourceGraphic" stdDeviation="0 0" />
+              </filter>
+            </defs>
+          </svg>
 
-        /* ---- verdict words beneath the list ---- */
-        #f9-verdict {
-          position: absolute;
-          left: 55%;
-          top: 57%;
-          width: 34cqw;
-          display: flex;
-          gap: 3cqw;
-        }
-        .verdict-word {
-          display: flex;
-          align-items: baseline;
-          gap: 0.7cqw;
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 1.6cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          opacity: 0;
-          will-change: transform, opacity;
-          transform-origin: 50% 50%;
-        }
-        .verdict-word .slash {
-          color: #ff6b2c;
-        }
-        .glow-word {
-          display: inline-block;
-          color: #f2efe9;
-          will-change: transform, text-shadow;
-        }
-      </style>
+          <div id="f9cam">
+            <div class="f9-stage">
 
-      <div
-        id="root"
-        data-composition-id="09-the-loop-closes"
-        data-width="1920"
-        data-height="1080"
-        data-duration="11.3"
-      >
-        <!-- track 0 — full-bleed ink ground + persistent mono chrome -->
-        <div id="f9-bg" class="clip ground" data-start="0" data-duration="10.8" data-track-index="0">
-          <div class="kicker" id="f9-kicker">THE LOOP</div>
-          <div class="cat-num" id="f9-cat-num">09</div>
-        </div>
+              <!-- ══════════ LEFT PANE · LEARN (olive) — the outcome scored against the call ══════════ -->
+              <div class="sk-screen" style="--sk-accent:var(--sk-learn);--sk-w:74cqw;--sk-h:78cqh;--sk-rx:1.7deg;--sk-ry:-2.1deg;">
+                <div class="sk-shell">
 
-        <!-- track 1 — Act A: shipped outcome arcs back to the call (dies at the 6.0s cut) -->
-        <div id="f9-actA" class="clip" data-start="0" data-duration="6" data-track-index="1">
-          <div id="f9-actA-inner">
-            <!-- depth layer 1: ghost route + live ember arc (svg-path-draw) -->
-            <svg id="f9-arc-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
-              <path id="f9-arc-ghost" d="M 1400 468 C 1340 740, 860 810, 535 640" />
-              <path id="f9-arc-draw" d="M 1400 468 C 1340 740, 860 810, 535 640" />
-              <rect id="f9-arc-end" x="527" y="632" width="16" height="16" />
-            </svg>
-            <!-- depth layer 2: the two cards -->
-            <div class="card" id="f9-shipped-card">
-              <div class="card-tag">SHIPPED</div>
-              <div class="card-title">checkout fix</div>
-              <!-- depth layer 3: the outcome chip drops onto the card -->
-              <div class="chip-outcome" id="f9-chip-outcome" data-layout-allow-overflow="true">
-                OUTCOME · LANDED
+                  <aside class="sk-sidebar f9-dofA">
+                    <div class="sk-ws">
+                      <span class="sk-ws-mark"></span>
+                      <span class="sk-ws-name">harbor</span>
+                      <span class="sk-ws-caret">⌄</span>
+                    </div>
+                    <nav class="sk-nav">
+                      <div class="sk-navrow" style="--dot:var(--sk-text)"><span class="sk-dot"></span>Today<span class="sk-navcount">3</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-discover)"><span class="sk-dot"></span>Discover<span class="sk-navcount">24</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-decide)"><span class="sk-dot"></span>Decide<span class="sk-navcount">3</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-plan)"><span class="sk-dot"></span>Plan</div>
+                      <div class="sk-navrow" style="--dot:var(--sk-design)"><span class="sk-dot"></span>Design</div>
+                      <div class="sk-navrow" style="--dot:var(--sk-build)"><span class="sk-dot"></span>Build<span class="sk-navcount">2</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-ship)"><span class="sk-dot"></span>Ship</div>
+                      <div class="sk-navrow is-active" style="--dot:var(--sk-learn)"><span class="sk-dot"></span>Learn<span class="sk-navcount">1</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-ember)"><span class="sk-dot"></span>Brain</div>
+                    </nav>
+                    <div class="sk-side-foot"><span class="sk-livedot"></span>3 agents running</div>
+                  </aside>
+
+                  <header class="sk-topbar f9-dofA">
+                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">learn</span></div>
+                    <div class="sk-ask">
+                      <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>
+                      ask supaprod…
+                      <span class="sk-kbd">⌘K</span>
+                    </div>
+                    <span class="sk-spacer"></span>
+                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>synced 2m ago</span>
+                    <div class="sk-avatar">MR</div>
+                  </header>
+
+                  <main class="f9-learnmain">
+
+                    <div class="f9-dofA" style="grid-column:1/-1;display:flex;align-items:baseline;gap:0.8cqw;">
+                      <h1 class="sk-title">Learn</h1>
+                      <span class="sk-meta">1 outcome scoring · day 14 of 30</span>
+                      <span class="sk-spacer"></span>
+                      <span class="sk-chip is-on">outcomes</span>
+                      <span class="sk-chip">forecasts 5</span>
+                      <span class="sk-chip">lessons 3</span>
+                    </div>
+
+                    <!-- outcome card + the sealed call beneath it -->
+                    <div class="f9-leftcol">
+                      <section class="sk-panel">
+                        <header class="sk-panel-hd">
+                          <h2 class="sk-panel-title">Outcome</h2>
+                          <span class="sk-chip sk-chip--accent">fix checkout drop-off</span>
+                          <span class="sk-spacer"></span>
+                          <span class="sk-meta" style="font-size:0.62cqw;">shipped v2.4 · 14 days ago</span>
+                        </header>
+                        <div class="sk-panel-body">
+                          <div class="f9-orow">
+                            <div class="f9-orow-hd"><span class="sk-label is-accent">forecast</span><span class="sk-spacer"></span><span class="sk-meta">sealed at decision time</span></div>
+                            <div class="f9-forecastline">
+                              <p class="sk-body">“If we fix checkout first, activation rises.”</p>
+                              <span class="sk-chip sk-chip--ember"><svg width="9" height="9" viewBox="0 0 12 12" style="stroke:currentColor;fill:none;stroke-width:1.4;"><rect x="2" y="5" width="8" height="5.5" rx="1.2"/><path d="M4 5 V3.6 a2 2 0 0 1 4 0 V5"/></svg>sealed</span>
+                            </div>
+                            <p class="sk-meta" style="font-size:0.6cqw;">how we'll know: activation rate · horizon: 30 days</p>
+                          </div>
+                          <div class="f9-orow">
+                            <div class="f9-orow-hd"><span class="sk-label">measured</span><span class="sk-spacer"></span><span class="sk-meta">activation rate · daily</span></div>
+                            <div class="f9-spark">
+                              <svg viewBox="0 0 220 60" preserveAspectRatio="none" aria-hidden="true">
+                                <line class="f9-sparkbase" x1="4" y1="50" x2="216" y2="50"/>
+                                <line class="f9-shipmark" x1="96" y1="8" x2="96" y2="52"/>
+                                <path id="f9-sparkline" d="M 4 44 C 40 43 70 41 96 38 C 130 33 168 20 210 10"/>
+                                <circle id="f9-sparkdot" cx="210" cy="10" r="4"/>
+                              </svg>
+                              <div class="f9-measured">
+                                <span class="f9-measured-val">activation ↑ above forecast</span>
+                                <span class="sk-meta" style="font-size:0.6cqw;">trend clear since ship · step 3 → 4 recovering</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="f9-orow">
+                            <div class="f9-orow-hd"><span class="sk-label">verdict</span><span class="sk-spacer"></span><span class="sk-meta">written to the record</span></div>
+                            <div class="f9-verdictline">
+                              <span id="f9-ring"></span>
+                              <span class="sk-chip sk-chip--pass" id="f9-outchip"><span class="sk-dot-inline"></span>outcome: activation ↑</span>
+                              <span class="f9-verdict" id="f9-verdict"><span class="sk-tick">✓</span>forecast: right</span>
+                              <span class="sk-meta" style="font-size:0.6cqw;">scored just now · maya r.</span>
+                            </div>
+                          </div>
+                        </div>
+                        <footer class="sk-panel-ft"><span class="sk-meta" style="font-size:0.6cqw;">outcome linked to decision d-041 · audit trail</span></footer>
+                      </section>
+
+                      <!-- the sealed call from the commit (F7) — the thread lands here -->
+                      <div class="sk-record" id="f9-record">
+                        <span class="sk-chip sk-chip--ember" id="f9-lock"><svg width="9" height="9" viewBox="0 0 12 12" style="stroke:currentColor;fill:none;stroke-width:1.4;"><rect x="2" y="5" width="8" height="5.5" rx="1.2"/><path d="M4 5 V3.6 a2 2 0 0 1 4 0 V5"/></svg>sealed</span>
+                        <span class="sk-body">“If we fix checkout first, activation rises.”</span>
+                        <span class="sk-chip sk-chip--pass" id="f9-scored"><span class="sk-tick">✓</span>scored</span>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-meta" style="font-size:0.6cqw;">maya r. · at decision time · immutable</span>
+                      </div>
+
+                      <div class="sk-agentline" id="f9-agentlearn"><span class="sk-livedot"></span><span class="sk-run">▸</span>agent · applying outcome to the discover ranking…<span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">just now</span></div>
+                    </div>
+
+                    <!-- outcomes history — density rail -->
+                    <section class="sk-panel f9-dofA">
+                      <header class="sk-panel-hd">
+                        <h2 class="sk-panel-title">Outcomes</h2>
+                        <span class="sk-badge">5 scored</span>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-meta" style="font-size:0.6cqw;">this quarter</span>
+                      </header>
+                      <div class="sk-panel-body">
+                        <div class="f9-lrow" style="box-shadow:inset 2px 0 0 var(--sk-accent);">
+                          <div class="f9-lrow-hd"><span class="f9-lrow-name">fix checkout drop-off</span><span class="sk-spacer"></span><span class="f9-lrow-time">now</span></div>
+                          <p class="f9-lrow-meta">verdict landing · forecast held</p>
+                        </div>
+                        <div class="f9-lrow">
+                          <div class="f9-lrow-hd"><span class="f9-lrow-name">one-tap retry</span><span class="sk-spacer"></span><span class="f9-lrow-time">6w ago</span></div>
+                          <p class="f9-lrow-meta">forecast: <span class="f9-v f9-v--pass">right ✓</span> · retries recovered 1 in 3</p>
+                        </div>
+                        <div class="f9-lrow">
+                          <div class="f9-lrow-hd"><span class="f9-lrow-name">promo field relocate</span><span class="sk-spacer"></span><span class="f9-lrow-time">last month</span></div>
+                          <p class="f9-lrow-meta">forecast: <span class="f9-v f9-v--pass">right ✓</span> · mobile use doubled</p>
+                        </div>
+                        <div class="f9-lrow">
+                          <div class="f9-lrow-hd"><span class="f9-lrow-name">invoice email dedupe</span><span class="sk-spacer"></span><span class="f9-lrow-time">2 months ago</span></div>
+                          <p class="f9-lrow-meta">forecast: <span class="f9-v f9-v--fail">wrong ✗</span> · lesson noted</p>
+                        </div>
+                        <div class="f9-lrow">
+                          <div class="f9-lrow-hd"><span class="f9-lrow-name">onboarding tips</span><span class="sk-spacer"></span><span class="f9-lrow-time">3 months ago</span></div>
+                          <p class="f9-lrow-meta">forecast: <span class="f9-v f9-v--warn">partial ~</span> · completion flat</p>
+                        </div>
+                        <div class="f9-lrow">
+                          <div class="f9-lrow-hd"><span class="f9-lrow-name">unify billing alerts</span><span class="sk-spacer"></span><span class="f9-lrow-time">open</span></div>
+                          <p class="f9-lrow-meta">forecast pending · bet still ranked</p>
+                        </div>
+                      </div>
+                      <footer class="sk-panel-ft"><span class="sk-meta" style="font-size:0.6cqw;">5 scored · 3 held · every verdict feeds the ranking</span></footer>
+                    </section>
+
+                  </main>
+                </div>
               </div>
+
+              <!-- ══════════ RIGHT PANE · DISCOVER (teal) — the ranking that re-ranks itself ══════════ -->
+              <div class="sk-screen" style="--sk-accent:var(--sk-discover);--sk-w:52cqw;--sk-h:78cqh;--sk-rx:1.7deg;--sk-ry:2.3deg;">
+                <div class="sk-shell">
+
+                  <aside class="sk-sidebar">
+                    <div class="sk-ws">
+                      <span class="sk-ws-mark"></span>
+                      <span class="sk-ws-name">harbor</span>
+                      <span class="sk-ws-caret">⌄</span>
+                    </div>
+                    <nav class="sk-nav">
+                      <div class="sk-navrow" style="--dot:var(--sk-text)"><span class="sk-dot"></span>Today<span class="sk-navcount">3</span></div>
+                      <div class="sk-navrow is-active" style="--dot:var(--sk-discover)"><span class="sk-dot"></span>Discover<span class="sk-navcount">24</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-decide)"><span class="sk-dot"></span>Decide<span class="sk-navcount">3</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-plan)"><span class="sk-dot"></span>Plan</div>
+                      <div class="sk-navrow" style="--dot:var(--sk-design)"><span class="sk-dot"></span>Design</div>
+                      <div class="sk-navrow" style="--dot:var(--sk-build)"><span class="sk-dot"></span>Build<span class="sk-navcount">2</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-ship)"><span class="sk-dot"></span>Ship</div>
+                      <div class="sk-navrow" style="--dot:var(--sk-learn)"><span class="sk-dot"></span>Learn<span class="sk-navcount">1</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-ember)"><span class="sk-dot"></span>Brain</div>
+                    </nav>
+                    <div class="sk-side-foot"><span class="sk-livedot"></span>3 agents running</div>
+                  </aside>
+
+                  <header class="sk-topbar">
+                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">discover</span></div>
+                    <span class="sk-spacer"></span>
+                    <span class="sk-chip sk-chip--accent"><span class="sk-dot-inline"></span><span class="f9-swap"><span class="f9-a" id="f9-syncA">applying outcome…</span><span class="f9-b" id="f9-syncB">re-ranked just now</span></span></span>
+                    <div class="sk-avatar">MR</div>
+                  </header>
+
+                  <main class="f9-discmain">
+
+                    <div style="display:flex;align-items:baseline;gap:0.8cqw;">
+                      <h1 class="sk-title">Discover</h1>
+                      <span class="sk-meta">1 outcome incoming from learn</span>
+                    </div>
+
+                    <section class="sk-pane" style="flex:1;">
+                      <header class="sk-pane-hd">
+                        <h2 class="sk-panel-title">Ranked bets</h2>
+                        <span class="sk-chip">by score</span>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-badge"><span class="f9-swap"><span class="f9-a" id="f9-openA">3 open</span><span class="f9-b" id="f9-openB">2 open</span></span></span>
+                      </header>
+                      <div class="f9-betsbody">
+
+                        <!-- the shipped bet collapses into this strip as the ranking reorders -->
+                        <div class="f9-shiprow f9-slotA" id="f9-shiprow">
+                          <span class="sk-chip sk-chip--pass"><span class="sk-tick">✓</span>shipped</span>
+                          <b>fix checkout drop-off</b>
+                          <span class="sk-meta" style="font-size:0.6cqw;">v2.4 · forecast right · scored</span>
+                        </div>
+
+                        <article class="sk-betcard is-lead f9-slotA" id="f9-betold">
+                          <header class="sk-betcard-hd">
+                            <span class="sk-rank">01</span>
+                            <h3 class="sk-betcard-title">fix checkout drop-off</h3>
+                            <span class="sk-spacer"></span>
+                            <span class="sk-chip sk-chip--pass"><span class="sk-tick">✓</span>shipped</span>
+                            <span class="sk-chip">19 signals</span>
+                          </header>
+                          <p class="sk-meta" style="font-size:0.62cqw;">opened by maya r. · outcome landed — scoring in learn</p>
+                          <div class="sk-score">
+                            <div class="sk-score-main"><span class="sk-score-num">8.0</span><span class="sk-score-cap">composite</span></div>
+                            <div class="sk-score-bars">
+                              <div class="sk-subbar"><span class="sk-subbar-name">impact</span><span class="sk-subbar-track"><i style="width:86%"></i></span><span class="sk-subbar-val">8.6</span></div>
+                              <div class="sk-subbar"><span class="sk-subbar-name">confidence</span><span class="sk-subbar-track"><i style="width:82%"></i></span><span class="sk-subbar-val">8.2</span></div>
+                              <div class="sk-subbar"><span class="sk-subbar-name">effort</span><span class="sk-subbar-track"><i style="width:31%"></i></span><span class="sk-subbar-val">3.1</span></div>
+                            </div>
+                          </div>
+                          <p class="sk-betnote"><span>agent</span>forecast held — verdict feeding the ranking</p>
+                        </article>
+
+                        <article class="sk-betcard f9-slotB" id="f9-betunify">
+                          <header class="sk-betcard-hd">
+                            <span class="sk-rank"><span class="f9-swap"><span class="f9-a" id="f9-rankUA">02</span><span class="f9-b" id="f9-rankUB">01</span></span></span>
+                            <h3 class="sk-betcard-title">unify billing alerts</h3>
+                            <span class="sk-spacer"></span>
+                            <span class="sk-chip">11 signals</span>
+                            <span class="sk-chip">4 sources</span>
+                          </header>
+                          <p class="sk-meta" style="font-size:0.62cqw;">opened by priya s. · updated 1h ago</p>
+                          <div class="sk-score sk-score--dim" id="f9-scoreunify">
+                            <div class="sk-score-main"><span class="sk-score-num" id="f9-scorenum">6.4</span><span class="sk-score-cap">composite</span></div>
+                            <div class="sk-score-bars">
+                              <div class="sk-subbar"><span class="sk-subbar-name">impact</span><span class="sk-subbar-track"><i class="f9-ubar" style="width:64%"></i></span><span class="sk-subbar-val">6.4</span></div>
+                              <div class="sk-subbar"><span class="sk-subbar-name">confidence</span><span class="sk-subbar-track"><i class="f9-ubar f9-confbar" id="f9-confbar" style="width:71%"></i></span><span class="sk-subbar-val"><span class="f9-swap"><span class="f9-a" id="f9-confA">7.1</span><span class="f9-b" id="f9-confB">7.8</span></span></span></div>
+                              <div class="sk-subbar"><span class="sk-subbar-name">effort</span><span class="sk-subbar-track"><i class="f9-ubar" style="width:52%"></i></span><span class="sk-subbar-val">5.2</span></div>
+                            </div>
+                          </div>
+                          <p class="sk-betnote"><span>agent</span><span class="f9-swap" style="flex:1;"><span class="f9-a" id="f9-noteA">recurring billing complaints across 4 accounts</span><span class="f9-b" id="f9-noteB">outcome applied · checkout forecast held — confidence up</span></span></p>
+                        </article>
+
+                        <article class="sk-betcard f9-slotC" id="f9-betonboard">
+                          <header class="sk-betcard-hd">
+                            <span class="sk-rank"><span class="f9-swap"><span class="f9-a" id="f9-rankOA">03</span><span class="f9-b" id="f9-rankOB">02</span></span></span>
+                            <h3 class="sk-betcard-title">redesign onboarding</h3>
+                            <span class="sk-spacer"></span>
+                            <span class="sk-chip">7 signals</span>
+                            <span class="sk-chip">3 sources</span>
+                          </header>
+                          <p class="sk-meta" style="font-size:0.62cqw;">opened by jonah t. · updated yesterday</p>
+                          <div class="sk-score sk-score--dim">
+                            <div class="sk-score-main"><span class="sk-score-num">5.1</span><span class="sk-score-cap">composite</span></div>
+                            <div class="sk-score-bars">
+                              <div class="sk-subbar"><span class="sk-subbar-name">impact</span><span class="sk-subbar-track"><i style="width:58%"></i></span><span class="sk-subbar-val">5.8</span></div>
+                              <div class="sk-subbar"><span class="sk-subbar-name">confidence</span><span class="sk-subbar-track"><i style="width:47%"></i></span><span class="sk-subbar-val">4.7</span></div>
+                              <div class="sk-subbar"><span class="sk-subbar-name">effort</span><span class="sk-subbar-track"><i style="width:72%"></i></span><span class="sk-subbar-val">7.2</span></div>
+                            </div>
+                          </div>
+                          <p class="sk-betnote"><span>agent</span>signal volume low — needs discovery interviews</p>
+                        </article>
+
+                        <div class="sk-agentline" id="f9-agentdisc"><span class="sk-livedot"></span><span class="sk-run">▸</span>agent · applying outcome — re-ranking 2 bets<span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">just now</span></div>
+
+                      </div>
+                      <footer class="sk-panel-ft">
+                        <span class="sk-label" style="font-size:0.55cqw;">passed</span>
+                        <span class="sk-meta" style="font-size:0.62cqw;"><s>redesign the app</s> · scored 4.0 · struck</span>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-meta" style="font-size:0.6cqw;color:var(--sk-accent);">view the record →</span>
+                      </footer>
+                    </section>
+
+                  </main>
+                </div>
+
+                <!-- toast · lands as the reorder settles -->
+                <div class="sk-toast" id="f9-toast"><span class="sk-tick">✓</span>ranking updated — 1 outcome applied<span class="sk-meta">just now</span></div>
+              </div>
+
             </div>
-            <div class="card" id="f9-decision-card">
-              <div class="ember-line" id="f9-decision-ember"></div>
-              <div class="card-tag">THE CALL</div>
-              <div class="card-title small">fix checkout drop-off</div>
-              <div class="card-meta">SCORED 8.0</div>
+
+            <!-- ember thread · verdict → sealed call → next bet (world space, rides the camera) -->
+            <div id="f9-thread">
+              <svg viewBox="0 0 1920 1080" preserveAspectRatio="none" aria-hidden="true">
+                <path class="f9-threadpath" id="f9-th1" d="M 330 505 C 250 560 160 600 66 626"/>
+                <path class="f9-threadpath" id="f9-th2" d="M 66 626 C 500 800 1150 700 1502 318"/>
+                <circle class="f9-threaddot" id="f9-dot1" cx="330" cy="505" r="4.5"/>
+                <circle class="f9-threaddot" id="f9-dot2" cx="66" cy="626" r="4.5"/>
+                <circle class="f9-threaddot" id="f9-dot3" cx="1502" cy="318" r="4.5"/>
+              </svg>
             </div>
           </div>
         </div>
 
-        <!-- track 2 — Act B: the ranked list born in F5, re-ranking itself -->
-        <div id="f9-actB" class="clip" data-start="6" data-duration="4.8" data-track-index="2">
-          <div id="f9-list-inner">
-            <div id="f9-list">
-              <div class="bet-row" id="f9-row-checkout">
-                <div class="rank-chip">
-                  <span class="num num-old">01</span>
-                  <span class="num num-new num-dim">02</span>
-                </div>
-                <div class="bet-title">fix checkout drop-off</div>
-                <div class="row-tag" id="f9-tag-shipped">SHIPPED</div>
-              </div>
-              <div class="bet-row" id="f9-row-billing">
-                <div class="edge-accent" id="f9-billing-edge"></div>
-                <div class="rank-chip">
-                  <span class="num num-old">02</span>
-                  <span class="num num-new num-ember">01</span>
-                </div>
-                <div class="bet-title">unify billing alerts</div>
-              </div>
-              <div class="bet-row" id="f9-row-onboarding">
-                <div class="rank-chip">
-                  <span class="num num-old">03</span>
-                </div>
-                <div class="bet-title">redesign onboarding</div>
-              </div>
-            </div>
-          </div>
-          <div id="f9-verdict">
-            <div class="verdict-word" id="f9-word-learns">
-              <span class="slash">/</span>
-              <span class="glow-word" id="f9-glow-learns">LEARNS</span>
-            </div>
-            <div class="verdict-word" id="f9-word-guides">
-              <span class="slash">/</span>
-              <span class="glow-word" id="f9-glow-guides">GUIDES</span>
-            </div>
+        <!-- film overlay · lower-third rides outside the camera -->
+        <div id="f9-lt" class="clip" data-start="0" data-duration="10.8" data-track-index="1">
+          <div class="sk-lowerthird" style="--sk-accent:#A89F66;">
+            <span class="sk-lt-kicker" id="f9-ltk">07 · Learn</span>
+            <span class="sk-lt-line" id="f9-ltl">the loop closes.</span>
           </div>
         </div>
+
       </div>
 
-      <script
-        src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
-        integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
-        crossorigin="anonymous"
-      ></script>
+      <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
       <script>
         window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
 
-        /* --- svg-path-draw setup: measure the arc, hide it via dash offset --- */
-        var f9Draw = document.getElementById("f9-arc-draw");
-        var f9Len = f9Draw.getTotalLength() * 1.02;
-        f9Draw.style.strokeDasharray = String(f9Len);
-        f9Draw.style.strokeDashoffset = String(f9Len);
+        const DUR = 10.8;
+        const camEl = document.getElementById("f9cam");
 
-        var tl = gsap.timeline({ paused: true });
+        /* ── macro camera (multi-phase-camera + viewport-change) ───────────
+           Single world wrapper; cam is the one source of truth; the driver
+           tween writes transform every frame (phase moves + sine micro-drift).
+           World-point → screen: (S·(p−center) + center + t); T = −offset × S. */
+        const cam = { s: 1.16, x: 646, y: 30 };            // t=0 · framed on the Learn screen, slightly high
 
-        /* ================= chrome ================= */
-        tl.fromTo(
-          "#f9-kicker",
-          { opacity: 0, yPercent: -40 },
-          { opacity: 1, yPercent: 0, duration: 0.5, ease: "power3.out" },
-          0.3
-        );
-        tl.fromTo(
-          "#f9-cat-num",
-          { opacity: 0, yPercent: -40 },
-          { opacity: 1, yPercent: 0, duration: 0.5, ease: "power3.out" },
-          0.38
-        );
+        /* ── motion-blur streak (path A, horizontal, peak at the whip's cut point) ── */
+        const blurNode = document.getElementById("f9-streak-blur");
+        const blurProxy = { v: 0 };
+        const writeBlur = () => {
+          blurNode.setAttribute("stdDeviation", blurProxy.v.toFixed(2) + " 0");
+          camEl.style.filter = blurProxy.v < 0.02 ? "none" : "url(#f9-streak)";
+        };
+        writeBlur(); // seed frame 0
 
-        /* ============ Scene 1 (0–2.8) — results land ============ */
-        /* shipped card settles in early — hero visible well before t=0.5s */
-        tl.fromTo(
-          "#f9-shipped-card",
-          { opacity: 0, yPercent: 14 },
-          { opacity: 1, yPercent: 0, duration: 0.65, ease: "power3.out" },
-          0.1
-        );
-        /* spring-pop-entrance (smooth): the outcome chip drops onto the card on "results land" */
-        tl.fromTo(
-          "#f9-chip-outcome",
-          { opacity: 0, yPercent: -80, scale: 0.5 },
-          { opacity: 1, yPercent: 0, scale: 1, duration: 0.55, ease: "power3.out" },
-          1.05
-        );
+        /* ── svg-path-draw setup: ember thread (2 segments) + measured sparkline ── */
+        const th1 = document.getElementById("f9-th1");
+        const th2 = document.getElementById("f9-th2");
+        const spark = document.getElementById("f9-sparkline");
+        [th1, th2, spark].forEach((p) => {
+          const len = p.getTotalLength() * 1.02;
+          p.style.strokeDasharray = len;
+          p.style.strokeDashoffset = len;
+        });
 
-        /* ===== Scene 2 (2.8–5.8) — scored against the call that caused it ===== */
-        tl.fromTo(
-          "#f9-decision-card",
-          { opacity: 0, xPercent: -6 },
-          { opacity: 1, xPercent: 0, duration: 0.6, ease: "power3.out" },
-          2.9
-        );
-        tl.fromTo(
-          "#f9-arc-ghost",
-          { opacity: 0 },
-          { opacity: 0.18, duration: 0.45, ease: "power2.out" },
-          3.05
-        );
-        /* svg-path-draw: ember arc traces leftward, outcome back to decision */
-        tl.to(
-          "#f9-arc-draw",
-          { strokeDashoffset: 0, duration: 1.5, ease: "power2.out" },
-          3.3
-        );
-        tl.fromTo(
-          "#f9-arc-end",
-          { opacity: 0, scale: 0, transformOrigin: "50% 50%" },
-          { opacity: 1, scale: 1, duration: 0.3, ease: "power3.out" },
-          4.7
-        );
-        tl.fromTo(
-          "#f9-decision-ember",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.55, ease: "power2.out" },
-          4.75
-        );
+        /* ── single deterministic driver: micro-drift over the phase transform ── */
+        const DRIFT_CYCLES = 1.8, AMP_X = 6, AMP_Y = 3, FREQ_RATIO = 1.3;
+        const driver = { t: 0 };
+        const apply = () => {
+          const p = (driver.t / DUR) * Math.PI * 2 * DRIFT_CYCLES;
+          const dx = Math.sin(p) * AMP_X;
+          const dy = Math.sin(p * FREQ_RATIO) * AMP_Y;
+          camEl.style.transform =
+            "translate(" + (cam.x + dx).toFixed(2) + "px," + (cam.y + dy).toFixed(2) + "px) scale(" + cam.s.toFixed(4) + ")";
+        };
 
-        /* ===== Scene 3 seam — cut-the-curve, leftward, cut at t=6.0 ===== */
-        /* exit: whole-line variant — motion power4.in, fade ends ~0.02s before the cut */
-        tl.fromTo(
-          "#f9-actA-inner",
-          { xPercent: 0 },
-          { xPercent: -12, duration: 0.3, ease: "power4.in", immediateRender: false },
-          5.7
-        );
-        tl.fromTo(
-          "#f9-actA-inner",
-          { opacity: 1 },
-          { opacity: 0, duration: 0.28, ease: "power1.in", immediateRender: false },
-          5.7
-        );
-        tl.set("#f9-actA-inner", { opacity: 0 }, 6.0);
-        /* entry: mirrored back half — same direction, matched velocity, decelerating */
-        tl.fromTo(
-          "#f9-list-inner",
-          { xPercent: 12, opacity: 0.35 },
-          { xPercent: 0, opacity: 1, duration: 0.34, ease: "power4.out" },
-          6.0
-        );
+        /* Camera phases — every cam tween carries onUpdate:apply (seek-safe). */
+        // Scene 1 · settle-creep, then push onto the outcome card as the verdict stamps
+        tl.to(cam, { s: 1.18, duration: 0.7,  ease: "power1.inOut", onUpdate: apply }, 0.15);
+        tl.to(cam, { s: 1.34, x: 890,  y: 240, duration: 1.9,  ease: "power2.inOut", onUpdate: apply }, 0.95);
+        // Scene 2 · track down-left to hold verdict + sealed record in one frame (thread draws)
+        tl.to(cam, { s: 1.24, x: 744,  y: -6,  duration: 1.2,  ease: "power2.inOut", onUpdate: apply }, 3.05);
+        // Breathe · slow creep between cues (camera never sleeps)
+        tl.to(cam, { s: 1.27, x: 770,  y: 10,  duration: 0.95, ease: "power1.inOut", onUpdate: apply }, 4.6);
+        // Scene 3 · whip-pan to Discover — cut-the-curve seam: accelerate in, matched decelerate out,
+        // blur peaks exactly at the seam (18px full-frame per the cut catalog)
+        tl.to(cam, { s: 1.36, x: -204,  y: 50,  duration: 0.4, ease: "power3.in",  onUpdate: apply }, 5.7);
+        tl.to(cam, { s: 1.5,  x: -1152, y: 108, duration: 0.4, ease: "power3.out", onUpdate: apply }, 6.1);
+        tl.to(blurProxy, { v: 18, duration: 0.4, ease: "power3.in",  onUpdate: writeBlur }, 5.7);
+        tl.to(blurProxy, { v: 0,  duration: 0.4, ease: "power3.out", onUpdate: writeBlur }, 6.1);
+        // Scene 3 · slow push while the ranking reorders
+        tl.to(cam, { s: 1.56, x: -1198, y: 112, duration: 1.35, ease: "power1.inOut", onUpdate: apply }, 6.6);
+        // Scene 4 · pull WIDE — Learn + Discover as two panes of one space
+        tl.to(cam, { s: 0.68, x: 0, y: 18, duration: 1.65, ease: "power2.inOut", onUpdate: apply }, 8.05);
+        // Scene 4 · final slow push; micro-drift carries the hold
+        tl.to(cam, { s: 0.715, x: 0, y: 19, duration: 1.1, ease: "power1.inOut", onUpdate: apply }, 9.7);
 
-        /* ===== Scene 3 (5.8–8.2) — the next bet re-ranks itself ===== */
-        /* scale-swap-transition adapted to a positional swap on smooth arcs:
-           rows trade slots (yPercent = (8.2+2)/8.2 row pitch), bulging outward
-           with a slight scale dip/lift; the rank chips do the literal
-           shrink-out / grow-in number swap with a 0.1s overlap. Zero bounce. */
-        var SW = 6.85;
-        var HD = 0.45;
-        var PITCH = 124.39;
+        /* ── depth-of-field: chrome falls out of focus during the verdict push, refocuses for the thread ── */
+        tl.to(".f9-dofA", { "--dof": "2.4px", opacity: 0.86, duration: 1.1, ease: "power2.inOut" }, 0.95);
+        tl.to(".f9-dofA", { "--dof": "0px",  opacity: 1,     duration: 0.9, ease: "power2.inOut" }, 3.05);
 
-        tl.fromTo(
-          "#f9-row-checkout",
-          { yPercent: 0 },
-          { yPercent: PITCH, duration: 2 * HD, ease: "power2.inOut" },
-          SW
-        );
-        tl.fromTo(
-          "#f9-row-billing",
-          { yPercent: 0 },
-          { yPercent: -PITCH, duration: 2 * HD, ease: "power2.inOut" },
-          SW
-        );
-        /* arc bulge out… */
-        tl.fromTo(
-          "#f9-row-checkout",
-          { xPercent: 0 },
-          { xPercent: 6, duration: HD, ease: "power2.out", immediateRender: false },
-          SW
-        );
-        tl.fromTo(
-          "#f9-row-billing",
-          { xPercent: 0 },
-          { xPercent: -6, duration: HD, ease: "power2.out", immediateRender: false },
-          SW
-        );
-        /* …and back in */
-        tl.fromTo(
-          "#f9-row-checkout",
-          { xPercent: 6 },
-          { xPercent: 0, duration: HD, ease: "power2.in", immediateRender: false },
-          SW + HD
-        );
-        tl.fromTo(
-          "#f9-row-billing",
-          { xPercent: -6 },
-          { xPercent: 0, duration: HD, ease: "power2.in", immediateRender: false },
-          SW + HD
-        );
-        /* scale-swap flavor: descending row shrinks slightly, rising row grows slightly */
-        tl.fromTo(
-          "#f9-row-checkout",
-          { scale: 1 },
-          { scale: 0.96, duration: HD, ease: "power2.out", immediateRender: false },
-          SW
-        );
-        tl.fromTo(
-          "#f9-row-checkout",
-          { scale: 0.96 },
-          { scale: 1, duration: HD, ease: "power2.in", immediateRender: false },
-          SW + HD
-        );
-        tl.fromTo(
-          "#f9-row-billing",
-          { scale: 1 },
-          { scale: 1.04, duration: HD, ease: "power2.out", immediateRender: false },
-          SW
-        );
-        tl.fromTo(
-          "#f9-row-billing",
-          { scale: 1.04 },
-          { scale: 1, duration: HD, ease: "power2.in", immediateRender: false },
-          SW + HD
-        );
-        /* rank chips renumber mid-swap — outgoing digit shrinks out fast,
-           incoming digit grows in smooth, 0.1s overlap */
-        tl.fromTo(
-          "#f9-row-checkout .num-old",
-          { scale: 1, opacity: 1 },
-          { scale: 0.7, opacity: 0, duration: 0.18, ease: "power2.in", immediateRender: false },
-          7.1
-        );
-        tl.fromTo(
-          "#f9-row-checkout .num-new",
-          { scale: 0.7, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.3, ease: "power3.out" },
-          7.2
-        );
-        tl.fromTo(
-          "#f9-row-billing .num-old",
-          { scale: 1, opacity: 1 },
-          { scale: 0.7, opacity: 0, duration: 0.18, ease: "power2.in", immediateRender: false },
-          7.1
-        );
-        tl.fromTo(
-          "#f9-row-billing .num-new",
-          { scale: 0.7, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.3, ease: "power3.out" },
-          7.2
-        );
-        /* post-swap: the new 01 takes the ember edge; the shipped bet steps back */
-        tl.fromTo(
-          "#f9-billing-edge",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.5, ease: "power2.out" },
-          7.85
-        );
-        tl.fromTo(
-          "#f9-row-checkout",
-          { opacity: 1 },
-          { opacity: 0.6, duration: 0.45, ease: "power2.out", immediateRender: false },
-          7.9
-        );
-        tl.fromTo(
-          "#f9-tag-shipped",
-          { opacity: 0 },
-          { opacity: 0.85, duration: 0.4, ease: "power2.out" },
-          7.95
-        );
+        /* ── lower-third · Scene 1 ── */
+        tl.fromTo("#f9-ltk", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5,  ease: "power2.out" }, 0.85);
+        tl.fromTo("#f9-ltl", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 1.05);
 
-        /* ===== Scene 4 (8.2–10.8) — "It learns. Then it guides." ===== */
-        tl.fromTo(
-          "#f9-word-learns",
-          { opacity: 0, scale: 1.28 },
-          { opacity: 1, scale: 1, duration: 0.38, ease: "power4.out" },
-          8.45
-        );
-        tl.fromTo(
-          "#f9-word-guides",
-          { opacity: 0, scale: 1.28 },
-          { opacity: 1, scale: 1, duration: 0.38, ease: "power4.out" },
-          9.55
-        );
+        /* ── Scene 1 · results land: the measured line draws, then the verdict stamps ── */
+        tl.fromTo(spark, { strokeDashoffset: () => spark.getTotalLength() * 1.02 },
+                         { strokeDashoffset: 0, duration: 1.1, ease: "power2.out" }, 0.7);
+        tl.fromTo("#f9-sparkdot", { opacity: 0, scale: 0.4, transformOrigin: "50% 50%" },
+                                  { opacity: 1, scale: 1, duration: 0.35, ease: "power3.out" }, 1.6);
+        tl.fromTo("#f9-outchip", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 1.5);
+        tl.fromTo("#f9-verdict", { opacity: 0, scale: 1.45 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power4.out" }, 1.95);
+        tl.fromTo("#f9-ring", { opacity: 0.55, scale: 0.9 }, { opacity: 0, scale: 1.3, duration: 0.6, ease: "power2.out" }, 2.05);
 
-        /* asr-keyword-glow: single linear driver, attack–sustain–release envelope
-           driving text-shadow + scale + color lerp on each word's inner span.
-           The stamp tween owns the wrapper; the envelope owns the inner span —
-           no two writers on one transform. Runs to 10.8 so the held read ends
-           on the rest-glow breadcrumb. */
-        var ATTACK = 0.18;
-        var RELEASE = 0.45;
-        var REST_LEVEL = 0.3;
-        var MAX_BLUR = 22;
-        var MAX_SCALE_BOOST = 0.07;
-        var REST_RGB = { r: 242, g: 239, b: 233 };
-        var PEAK_RGB = { r: 255, g: 107, b: 44 };
-        var GLOW_WORDS = [
-          { el: document.getElementById("f9-glow-learns"), start: 8.5, end: 9.25 },
-          { el: document.getElementById("f9-glow-guides"), start: 9.6, end: 10.35 }
-        ];
+        /* ── Scene 2 · scored against the call: ember thread draws back to the sealed record ── */
+        tl.fromTo("#f9-dot1", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, 3.15);
+        tl.fromTo(th1, { strokeDashoffset: () => th1.getTotalLength() * 1.02 },
+                       { strokeDashoffset: 0, duration: 1.25, ease: "power2.out" }, 3.2);
+        tl.fromTo("#f9-dot2", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, 4.35);
+        // lock chip glints as the thread arrives
+        tl.to("#f9-lock", { filter: "brightness(1.9)", duration: 0.22, ease: "power2.in"  }, 4.55);
+        tl.to("#f9-lock", { filter: "brightness(1)",   duration: 0.32, ease: "power2.out" }, 4.77);
+        tl.fromTo("#f9-scored", { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 4.95);
+        // agent line foreshadows the pan — the outcome is heading to discover
+        tl.fromTo("#f9-agentlearn", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 5.15);
 
-        function f9Envelope(time, start, end) {
-          var releaseEnd = end + RELEASE;
-          if (time < start) return 0;
-          if (time < end) return Math.min((time - start) / ATTACK, 1);
-          if (time < releaseEnd) {
-            var decay = (time - end) / RELEASE;
-            return 1 - decay * (1 - REST_LEVEL);
-          }
-          return REST_LEVEL;
-        }
-        function f9Lerp(a, b, t) {
-          return Math.round(a + (b - a) * t);
-        }
+        /* ── Scene 3 · the ranking re-ranks itself (arrival state is the OLD order) ── */
+        // the shipped bet collapses into a slim strip…
+        tl.to("#f9-betold", { opacity: 0, y: -14, scale: 0.985, duration: 0.32, ease: "power2.in" }, 6.7);
+        tl.fromTo("#f9-shiprow", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 6.78);
+        // …and the next bets rise into their new slots
+        tl.to("#f9-betunify",   { y: -134, duration: 0.75, ease: "power3.inOut" }, 6.85);
+        tl.to("#f9-betonboard", { y: -134, duration: 0.7,  ease: "power3.inOut" }, 7.0);
+        // chips renumber (02→01, 03→02) — small same-direction crossfades
+        const swap = (a, b, at) => {
+          tl.to(a, { opacity: 0, y: -5, duration: 0.22, ease: "power2.in" }, at);
+          tl.fromTo(b, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, at + 0.1);
+        };
+        swap("#f9-rankUA", "#f9-rankUB", 7.05);
+        swap("#f9-rankOA", "#f9-rankOB", 7.25);
+        swap("#f9-openA",  "#f9-openB",  7.35);
+        swap("#f9-confA",  "#f9-confB",  7.3);
+        swap("#f9-noteA",  "#f9-noteB",  7.3);
+        swap("#f9-syncA",  "#f9-syncB",  7.6);
+        // re-score: composite counts 6.4 → 7.2, confidence bar extends, card takes the lead accent
+        const scoreEl = document.getElementById("f9-scorenum");
+        const score = { v: 6.4 };
+        tl.fromTo(score, { v: 6.4 }, {
+          v: 7.2, duration: 0.6, ease: "power2.out",
+          onUpdate: () => { scoreEl.textContent = score.v.toFixed(1); },
+        }, 7.1);
+        tl.fromTo("#f9-confbar", { scaleX: 1, transformOrigin: "0 50%" },
+                                 { scaleX: 1.0986, duration: 0.5, ease: "power2.out" }, 7.1);
+        tl.to("#f9-scorenum", { color: "#6FA9A0", duration: 0.45, ease: "power2.out" }, 7.1);
+        tl.to("#f9-betunify .f9-ubar", { backgroundColor: "#6FA9A0", duration: 0.45, ease: "power2.out" }, 7.1);
+        tl.to("#f9-betunify", { borderColor: "#47615F", backgroundColor: "#1D2022", duration: 0.5, ease: "power2.out" }, 7.05);
+        tl.to("#f9-betunify .sk-rank", { color: "#6FA9A0", duration: 0.4, ease: "power2.out" }, 7.05);
+        // agent line + toast confirm the reorder
+        tl.fromTo("#f9-agentdisc", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 6.9);
+        tl.fromTo("#f9-toast", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 7.55);
 
-        var f9Driver = { t: 0 };
-        tl.to(
-          f9Driver,
-          {
-            t: 10.8,
-            duration: 10.8,
-            ease: "none",
-            onUpdate: function () {
-              for (var i = 0; i < GLOW_WORDS.length; i++) {
-                var w = GLOW_WORDS[i];
-                var env = f9Envelope(f9Driver.t, w.start, w.end);
-                var blur = MAX_BLUR * env;
-                var alpha = 0.15 + 0.65 * env;
-                w.el.style.textShadow =
-                  "0 0 " + blur.toFixed(2) + "px rgba(255,107,44," + alpha.toFixed(3) + ")";
-                w.el.style.transform = "scale(" + (1 + MAX_SCALE_BOOST * env).toFixed(4) + ")";
-                w.el.style.color =
-                  "rgb(" +
-                  f9Lerp(REST_RGB.r, PEAK_RGB.r, env) +
-                  "," +
-                  f9Lerp(REST_RGB.g, PEAK_RGB.g, env) +
-                  "," +
-                  f9Lerp(REST_RGB.b, PEAK_RGB.b, env) +
-                  ")";
-              }
-            }
-          },
-          0
-        );
+        /* ── Scene 4 · the loop as one space: the thread crosses to the next bet ── */
+        tl.fromTo(th2, { strokeDashoffset: () => th2.getTotalLength() * 1.02 },
+                       { strokeDashoffset: 0, duration: 1.3, ease: "power2.out" }, 8.25);
+        tl.fromTo("#f9-dot3", { opacity: 0, scale: 0.4, transformOrigin: "50% 50%" },
+                              { opacity: 1, scale: 1, duration: 0.35, ease: "power3.out" }, 9.45);
+        // quiet emphasis on the closed loop during the hold — never a new element, just light
+        tl.fromTo("#f9-thread", { opacity: 0.82 }, { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 9.8);
+
+        /* driver registered LAST so it reads each frame's settled cam values */
+        tl.to(driver, { t: DUR, duration: DUR, ease: "none", onUpdate: apply }, 0);
+        apply(); // seed t=0
 
         window.__timelines["09-the-loop-closes"] = tl;
       </script>

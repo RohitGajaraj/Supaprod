@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Supaprod — shared screen kit (reference library)</title>
+
+<!-- ============================================================================
+  SUPAPROD FILM · SHARED SCREEN KIT  (v3 — the system-demo cut)
+  ============================================================================
+
+  WHAT THIS IS
+  A reference library, NOT a runtime composition. Nothing links to this file.
+  Frame workers COPY what they need inline into their own frame's <template>:
+
+    1. Copy the entire <style> block below into your frame (or the parts you
+       use — fonts + tokens + stage + shell + sidebar + topbar are the floor
+       for any product frame; component sections are opt-in).
+    2. Copy the component MARKUP you need. The <body> of this file is a fully
+       assembled Discover screen — your density target. Below it, an HTML
+       comment ("MARKUP LIBRARY") holds copy-paste snippets for every other
+       component (doc, console, diff, modal, toast, checklist, record row).
+    3. Delete nothing from your copy that you don't understand first — the
+       hairlines, the paddings and the muted-vs-bright text steps ARE the
+       premium look. Blockiness comes from removing them.
+
+  All kit classes are prefixed  sk-  and collide with nothing.
+
+  THE CONTAINER LAW
+  Every size in this kit is cqw/cqh (1px hairlines excepted; radii are px per
+  the captured tokens). Your frame ground MUST set  container-type: size  —
+  the .sk-frame class does this. Never use vw/vh inside a frame.
+
+  SETTING THE ACTIVE STATION
+  One CSS variable drives the whole screen's accent:
+
+      <div class="sk-screen" style="--sk-accent: var(--sk-decide)">
+
+  Station variables: --sk-discover · --sk-decide · --sk-plan · --sk-design ·
+  --sk-build · --sk-ship · --sk-learn, plus --sk-pass / --sk-warn / --sk-fail
+  and --sk-ember (brand + gate moments ONLY — commits, seals, boundaries,
+  the winner's edge). Then mark the matching sidebar row  .is-active  and
+  give each nav row its own dot color via  style="--dot: var(--sk-plan)".
+  Each screen leads with ITS station color; ember is punctuation, not paint.
+
+  THE STAGE
+  .sk-stage wraps the screen in perspective (2000–2600px). Tilt lives in two
+  variables on .sk-screen —  --sk-rx / --sk-ry  — keep both ≤ 4deg. Size via
+  --sk-w / --sk-h. The camera rig (multi-phase-camera etc.) is YOUR frame's
+  job; the kit only provides the depth for it to work in.
+
+  HARBOR — THE ONE STORY WORLD (use these, invent nothing new)
+  Workspace: "harbor". Primary author: "maya r." (avatar MR). Teammates:
+  "jonah t.", "priya s.". The world is the checkout drop-off bet:
+    · signature quote: "I gave up at the payment step." — interview · 04:12
+    · the metric: checkout drop-off 41% (funnel, step 3 → 4)
+    · ranked bets: 01 fix checkout drop-off (8.0) · 02 unify billing alerts
+      (6.4) · 03 redesign onboarding (5.1) · struck: redesign the app (4.0)
+    · the forecast: "If we fix checkout first, activation rises."
+      how we'll know: activation rate · horizon: 30 days
+    · build: branch fix/checkout-dropoff · tests 214 passing · boundary:
+      no schema drops · no prod writes
+    · ship: "v2.4 — checkout, rebuilt"
+  Timestamps are small and recent ("2m ago", "yesterday"). Lists show ≥5
+  rows, docs show real prose, consoles show real log lines, counts appear
+  everywhere. No lorem. No third-party logos — named text chips only.
+  Product copy is sentence-case / lowercase-friendly; never SHOUTY.
+
+  SHADOW LAW
+  Exactly two shadows exist: the hairline ring (0 0 0 1px hairline) and the
+  faint large ambient (0 24px 80px rgba(0,0,0,.5)) on floating surfaces
+  (screen, popover, modal, toast). Nothing else. No glows except a station
+  dot's tiny halo and the ember seal.
+
+  FONTS
+  @font-face src carries a fallback chain — "assets/fonts/…" resolves when
+  the frame is inlined by the player (document base = project root) and
+  "assets/fonts/…" resolves when a frame is previewed standalone from
+  compositions/frames/. Copy the declarations as they are.
+============================================================================ -->
+
+<style>
+/* ————— 1 · fonts (from frame.md, with standalone-preview fallback path) ————— */
+@font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2"),url("assets/fonts/Geist-Regular.woff2") format("woff2");}
+@font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2"),url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
+@font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
+@font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
+@font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
+@font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
+@font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+@font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2"),url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+
+/* ————— 2 · tokens (captured from the live product — frame.md §Product screen tokens v3) ————— */
+:root{
+  /* surfaces */
+  --sk-ground:#0A0A0B;
+  --sk-panel:#141416;
+  --sk-raised:#1A1A1D;
+  --sk-hairline:#26262A;
+  --sk-text:#F2EFE9;
+  --sk-muted:#A8A29A;
+  --sk-faint:#6B6660;
+  /* stage colors — each station leads with its own */
+  --sk-discover:#6FA9A0;
+  --sk-decide:#C39A5E;
+  --sk-plan:#8FA464;
+  --sk-design:#AB7FA0;
+  --sk-build:#6D97C2;
+  --sk-ship:#BD8092;
+  --sk-learn:#A89F66;
+  --sk-pass:#4FC47A;
+  --sk-fail:#EF6A5F;
+  --sk-warn:#E8B44C;
+  --sk-ember:#FF6B2C;               /* gate / brand — punctuation, not paint */
+  --sk-accent:var(--sk-discover);   /* override per frame on .sk-screen */
+  /* radii (px per captured tokens — the product is soft-cornered) */
+  --sk-r-chip:7px;
+  --sk-r-control:8px;
+  --sk-r-row:9px;
+  --sk-r-card:10px;
+  --sk-r-panel:12px;
+  --sk-r-pane:16px;
+  /* faces */
+  --sk-ui:"Mona Sans",system-ui,sans-serif;
+  --sk-mono:"IBM Plex Mono",ui-monospace,monospace;
+  /* the only two shadows that exist */
+  --sk-ring:0 0 0 1px var(--sk-hairline);
+  --sk-ambient:0 24px 80px rgba(0,0,0,.5);
+}
+
+/* ————— 3 · frame ground & perspective stage ————— */
+.sk-frame{
+  position:relative;width:100%;height:100%;overflow:hidden;
+  container-type:size;                 /* the container law — everything below is cqw/cqh */
+  background:var(--sk-ground);
+  color:var(--sk-text);
+  font-family:var(--sk-ui);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+.sk-frame *,.sk-frame *::before,.sk-frame *::after{box-sizing:border-box;margin:0;padding:0;}
+.sk-stage{
+  position:absolute;inset:0;display:grid;place-items:center;
+  perspective:var(--sk-persp,2200px);  /* 2000–2600px */
+  perspective-origin:50% 42%;
+}
+.sk-screen{
+  position:relative;
+  width:var(--sk-w,88cqw);height:var(--sk-h,86cqh);
+  transform:rotateX(var(--sk-rx,1.8deg)) rotateY(var(--sk-ry,-2.4deg));
+  transform-style:preserve-3d;
+  background:var(--sk-ground);
+  border-radius:var(--sk-r-pane);
+  box-shadow:var(--sk-ring),var(--sk-ambient);
+  overflow:hidden;
+}
+
+/* ————— 4 · app shell grid — sidebar 12.5cqw / topbar 3.2cqh / content ————— */
+.sk-shell{
+  display:grid;height:100%;
+  grid-template-columns:12.5cqw minmax(0,1fr);
+  grid-template-rows:3.2cqh minmax(0,1fr);
+  grid-template-areas:"side top" "side main";
+}
+
+/* ————— 5 · sidebar — workspace "harbor" + 9 nav rows, station dots ————— */
+.sk-sidebar{
+  grid-area:side;display:flex;flex-direction:column;min-height:0;
+  background:var(--sk-ground);border-right:1px solid var(--sk-hairline);
+}
+.sk-ws{display:flex;align-items:center;gap:0.55cqw;padding:1cqw 1cqw 0.8cqw;}
+.sk-ws-mark{
+  width:0.72cqw;height:0.72cqw;flex:none;border-radius:50%;
+  border:1px solid var(--sk-ember);
+  background:radial-gradient(circle at 50% 50%,var(--sk-ember) 0 28%,transparent 30%);
+}
+.sk-ws-name{font:600 0.82cqw/1 var(--sk-ui);color:var(--sk-text);letter-spacing:0.01em;}
+.sk-ws-caret{margin-left:auto;font:400 0.6cqw/1 var(--sk-mono);color:var(--sk-faint);}
+.sk-nav{display:flex;flex-direction:column;gap:0.12cqh;padding:0.3cqw 0.5cqw;}
+.sk-navrow{
+  display:flex;align-items:center;gap:0.55cqw;
+  padding:0.42cqw 0.6cqw;border-radius:var(--sk-r-row);
+  font:400 0.73cqw/1 var(--sk-ui);color:var(--sk-muted);
+}
+.sk-navrow .sk-dot{
+  width:0.3cqw;height:0.3cqw;flex:none;border-radius:50%;
+  background:var(--dot,var(--sk-faint));
+}
+.sk-navcount{margin-left:auto;font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-faint);}
+.sk-navrow.is-active{background:var(--sk-raised);color:var(--sk-text);}
+.sk-navrow.is-active .sk-dot{box-shadow:0 0 0.45cqw 0 var(--dot,var(--sk-accent));}
+.sk-navrow.is-active .sk-navcount{color:var(--sk-muted);}
+.sk-side-foot{
+  margin-top:auto;display:flex;align-items:center;gap:0.45cqw;
+  padding:0.85cqw 1cqw;border-top:1px solid var(--sk-hairline);
+  font:400 0.57cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.03em;
+}
+.sk-livedot{
+  width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;
+  background:var(--sk-pass);box-shadow:0 0 0.4cqw var(--sk-pass);
+}
+
+/* ————— 6 · top bar — breadcrumb · ask field · status · avatar ————— */
+.sk-topbar{
+  grid-area:top;display:flex;align-items:center;gap:0.9cqw;
+  padding:0 1cqw;border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
+}
+.sk-crumb{display:flex;align-items:center;font:400 0.62cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;}
+.sk-crumb-sep{padding:0 0.35cqw;color:var(--sk-faint);}
+.sk-crumb-here{color:var(--sk-text);}
+.sk-ask{
+  display:flex;align-items:center;gap:0.5cqw;flex:0 1 20cqw;height:2.1cqh;
+  padding:0 0.4cqw 0 0.65cqw;background:var(--sk-panel);
+  border:1px solid var(--sk-hairline);border-radius:var(--sk-r-control);
+  font:400 0.66cqw/1 var(--sk-ui);color:var(--sk-faint);
+}
+.sk-ask svg{width:0.68cqw;height:0.68cqw;flex:none;stroke:var(--sk-faint);fill:none;stroke-width:1.6;}
+.sk-kbd{
+  margin-left:auto;padding:0.1cqw 0.32cqw;
+  font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-faint);
+  background:var(--sk-ground);border:1px solid var(--sk-hairline);border-radius:5px;
+}
+.sk-topbar .sk-spacer{flex:1;}
+.sk-avatar{
+  width:1.25cqw;height:1.25cqw;flex:none;display:grid;place-items:center;
+  background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:50%;
+  font:600 0.5cqw/1 var(--sk-ui);color:var(--sk-muted);letter-spacing:0.05em;
+}
+
+/* ————— 7 · true-UI type scale (ui-type tokens) ————— */
+.sk-greet{font:600 1.55cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
+.sk-title{font:600 1.3cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}   /* panel-title */
+.sk-body{font:400 0.73cqw/1.45 var(--sk-ui);color:var(--sk-text);}
+.sk-prose{font:400 0.70cqw/1.65 var(--sk-ui);color:var(--sk-text);}
+.sk-meta{font:400 0.68cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+.sk-label{font:500 0.65cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.10em;text-transform:uppercase;}
+.sk-data{font:400 0.62cqw/1.5 var(--sk-mono);color:var(--sk-text);font-variant-numeric:tabular-nums;}
+.sk-spacer{flex:1;}
+
+/* ————— 8 · panels · panes · rows ————— */
+.sk-panel{
+  background:var(--sk-panel);border:1px solid var(--sk-hairline);
+  border-radius:var(--sk-r-panel);overflow:hidden;min-height:0;
+  display:flex;flex-direction:column;
+}
+.sk-pane{
+  background:var(--sk-panel);border:1px solid var(--sk-hairline);
+  border-radius:var(--sk-r-pane);overflow:hidden;min-height:0;
+  display:flex;flex-direction:column;
+}
+.sk-panel-hd,.sk-pane-hd{
+  display:flex;align-items:center;gap:0.6cqw;flex:none;
+  padding:0.75cqw 1cqw;border-bottom:1px solid var(--sk-hairline);
+}
+.sk-panel-title{font:600 0.83cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+.sk-panel-body,.sk-pane-body{flex:1;min-height:0;overflow:hidden;}
+.sk-panel-ft{
+  display:flex;align-items:center;gap:0.6cqw;flex:none;
+  padding:0.6cqw 1cqw;border-top:1px solid var(--sk-hairline);
+  background:var(--sk-panel);
+}
+.sk-row{padding:0.7cqw 1cqw;}
+.sk-row + .sk-row{border-top:1px solid var(--sk-hairline);}
+.sk-row.is-hover{background:var(--sk-raised);}
+
+/* ————— 9 · chips · badges ————— */
+.sk-chip{
+  display:inline-flex;align-items:center;gap:0.3cqw;
+  padding:0.22cqw 0.45cqw;border:1px solid var(--sk-hairline);
+  border-radius:var(--sk-r-chip);background:rgba(255,255,255,0.02);
+  font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
+  white-space:nowrap;
+}
+.sk-chip.is-on,
+.sk-chip--accent{color:var(--sk-accent);border-color:color-mix(in srgb,var(--sk-accent) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-accent) 8%,transparent);}
+.sk-chip--pass{color:var(--sk-pass);border-color:color-mix(in srgb,var(--sk-pass) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-pass) 8%,transparent);}
+.sk-chip--warn{color:var(--sk-warn);border-color:color-mix(in srgb,var(--sk-warn) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-warn) 8%,transparent);}
+.sk-chip--fail{color:var(--sk-fail);border-color:color-mix(in srgb,var(--sk-fail) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-fail) 8%,transparent);}
+.sk-chip--ember{color:var(--sk-ember);border-color:color-mix(in srgb,var(--sk-ember) 45%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-ember) 9%,transparent);}
+.sk-dot-inline{width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;background:currentColor;}
+.sk-badge{
+  display:inline-flex;align-items:center;padding:0.22cqw 0.45cqw;
+  background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:var(--sk-r-chip);
+  font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);font-variant-numeric:tabular-nums;
+}
+.sk-tick{color:var(--sk-pass);font-family:var(--sk-mono);}
+
+/* ————— 10 · composite score with sub-bars ————— */
+.sk-score{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.1cqw;align-items:center;margin-top:0.7cqw;}
+.sk-score-main{display:flex;flex-direction:column;align-items:flex-start;gap:0.15cqw;}
+.sk-score-num{
+  font:500 1.5cqw/1 var(--sk-mono);color:var(--sk-accent);
+  letter-spacing:-0.03em;font-variant-numeric:tabular-nums;
+}
+.sk-score-cap{font:500 0.5cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.08em;text-transform:uppercase;}
+.sk-score-bars{display:flex;flex-direction:column;gap:0.45cqw;}
+.sk-subbar{display:grid;grid-template-columns:4.6cqw minmax(0,1fr) 1.9cqw;gap:0.55cqw;align-items:center;}
+.sk-subbar-name{font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.04em;}
+.sk-subbar-track{display:block;height:0.18cqw;background:var(--sk-hairline);border-radius:2px;overflow:hidden;}
+.sk-subbar-track i{display:block;height:100%;background:var(--sk-accent);border-radius:inherit;}
+.sk-subbar-val{font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-muted);text-align:right;font-variant-numeric:tabular-nums;}
+.sk-score--dim .sk-score-num{color:var(--sk-text);}
+.sk-score--dim .sk-subbar-track i{background:#4B4B51;}
+.sk-score--dim .sk-subbar-name,.sk-score--dim .sk-subbar-val{color:var(--sk-faint);}
+
+/* ————— 11 · bet card ————— */
+.sk-betcard{
+  flex:none;padding:1cqw 1.1cqw;background:var(--sk-raised);
+  border:1px solid var(--sk-hairline);border-radius:var(--sk-r-card);
+}
+.sk-betcard-hd{display:flex;align-items:center;gap:0.6cqw;}
+.sk-rank{font:500 0.62cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.06em;}
+.sk-betcard-title{font:600 0.85cqw/1.25 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+.sk-betcard .sk-meta{margin-top:0.3cqw;}
+.sk-betcard.is-lead{
+  border-color:color-mix(in srgb,var(--sk-accent) 45%,var(--sk-hairline));
+  background:color-mix(in srgb,var(--sk-accent) 4%,var(--sk-raised));
+}
+.sk-betcard.is-lead .sk-rank{color:var(--sk-accent);}
+.sk-betcard.is-struck{opacity:0.55;}
+.sk-betcard.is-struck .sk-betcard-title{text-decoration:line-through;color:var(--sk-muted);}
+.sk-betnote{
+  display:flex;gap:0.45cqw;margin-top:0.7cqw;padding-top:0.6cqw;
+  border-top:1px solid var(--sk-hairline);
+  font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
+}
+.sk-betnote span{color:var(--sk-accent);}
+.sk-agentline{
+  margin-top:auto;display:flex;align-items:center;gap:0.5cqw;
+  padding:0.6cqw 0.8cqw;background:var(--sk-raised);
+  border:1px solid var(--sk-hairline);border-radius:var(--sk-r-row);
+  font:400 0.62cqw/1.3 var(--sk-mono);color:var(--sk-muted);
+}
+
+/* ————— 12 · doc — spec editor with TOC ————— */
+.sk-doc{display:grid;grid-template-columns:9cqw minmax(0,1fr);}
+.sk-doc-toc{border-right:1px solid var(--sk-hairline);padding:1cqw 0;}
+.sk-doc-toc .sk-label{display:block;padding:0 1cqw 0.55cqw;}
+.sk-doc-tocrow{font:400 0.68cqw/1.4 var(--sk-ui);color:var(--sk-muted);padding:0.32cqw 1cqw;}
+.sk-doc-tocrow.is-active{color:var(--sk-text);box-shadow:inset 2px 0 0 var(--sk-accent);}
+.sk-doc-body{padding:1.3cqw 1.8cqw;max-width:36cqw;}
+.sk-doc-kicker{display:flex;align-items:center;gap:0.6cqw;margin-bottom:0.9cqw;}
+.sk-doc-title{font:600 1.1cqw/1.25 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;margin-bottom:0.9cqw;}
+.sk-doc-h{font:600 0.78cqw/1.3 var(--sk-ui);color:var(--sk-text);margin:0.9cqw 0 0.4cqw;}
+.sk-doc-body .sk-prose{margin-bottom:0.6cqw;}
+.sk-caret{
+  display:inline-block;width:0.08cqw;height:0.95em;margin-left:0.08cqw;
+  background:var(--sk-accent);vertical-align:-0.12em;
+}
+
+/* ————— 13 · console — agent run log ————— */
+.sk-console-hd{
+  display:flex;align-items:center;gap:0.6cqw;flex:none;
+  padding:0.65cqw 1cqw;border-bottom:1px solid var(--sk-hairline);
+}
+.sk-console-body{padding:0.4cqw 0;}
+.sk-logline{
+  display:grid;grid-template-columns:3.4cqw 1cqw minmax(0,1fr);gap:0.5cqw;align-items:baseline;
+  padding:0.26cqw 1cqw;font:400 0.62cqw/1.5 var(--sk-mono);color:var(--sk-muted);
+  font-variant-numeric:tabular-nums;
+}
+.sk-log-t{color:var(--sk-faint);}
+.sk-logline .sk-tick{text-align:center;}
+.sk-run{color:var(--sk-accent);text-align:center;}
+.sk-logline.is-run{background:color-mix(in srgb,var(--sk-accent) 5%,transparent);color:var(--sk-text);}
+
+/* ————— 14 · diff — added / removed rows ————— */
+.sk-diff{font:400 0.62cqw/1.6 var(--sk-mono);}
+.sk-diff-row{display:grid;grid-template-columns:2cqw 1cqw minmax(0,1fr);gap:0.5cqw;padding:0.16cqw 0.9cqw;}
+.sk-diff-ln{color:var(--sk-faint);text-align:right;font-variant-numeric:tabular-nums;}
+.sk-diff-sign{text-align:center;}
+.sk-diff-row code{font:inherit;color:var(--sk-muted);white-space:pre;}
+.sk-diff-row.is-add{background:color-mix(in srgb,var(--sk-pass) 7%,transparent);}
+.sk-diff-row.is-add .sk-diff-sign{color:var(--sk-pass);}
+.sk-diff-row.is-add code{color:var(--sk-text);}
+.sk-diff-row.is-del{background:color-mix(in srgb,var(--sk-fail) 7%,transparent);}
+.sk-diff-row.is-del .sk-diff-sign{color:var(--sk-fail);}
+
+/* ————— 15 · modal · fields · buttons (the commit form) ————— */
+.sk-scrim{position:absolute;inset:0;background:rgba(10,10,11,0.55);backdrop-filter:blur(6px);}
+.sk-modal{
+  position:relative;width:34cqw;background:var(--sk-panel);
+  border:1px solid var(--sk-hairline);border-radius:var(--sk-r-pane);
+  box-shadow:var(--sk-ring),var(--sk-ambient);overflow:hidden;
+}
+.sk-modal-hd{display:flex;align-items:baseline;gap:0.7cqw;padding:1cqw 1.2cqw;border-bottom:1px solid var(--sk-hairline);}
+.sk-modal-title{font:600 0.95cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+.sk-modal-body{display:flex;flex-direction:column;gap:0.9cqw;padding:1.1cqw 1.2cqw;}
+.sk-field-row{display:grid;grid-template-columns:1fr 1fr;gap:0.8cqw;}
+.sk-field .sk-label{display:block;margin-bottom:0.35cqw;}
+.sk-input{
+  min-height:2.2cqh;display:flex;align-items:center;
+  padding:0.5cqw 0.7cqw;background:var(--sk-ground);
+  border:1px solid var(--sk-hairline);border-radius:var(--sk-r-control);
+  font:400 0.73cqw/1.45 var(--sk-ui);color:var(--sk-text);
+}
+.sk-modal-ft{display:flex;align-items:center;gap:0.6cqw;padding:0.9cqw 1.2cqw;border-top:1px solid var(--sk-hairline);}
+.sk-btn{
+  display:inline-flex;align-items:center;gap:0.4cqw;
+  padding:0.45cqw 0.95cqw;background:var(--sk-raised);
+  border:1px solid var(--sk-hairline);border-radius:var(--sk-r-control);
+  font:500 0.66cqw/1 var(--sk-ui);color:var(--sk-text);
+}
+.sk-btn--primary{background:var(--sk-accent);border-color:transparent;color:#0A0A0B;font-weight:600;}
+.sk-btn--ember{background:var(--sk-ember);border-color:transparent;color:#0A0A0B;font-weight:600;}
+
+/* ————— 16 · toast ————— */
+.sk-toast{
+  position:absolute;right:1.4cqw;bottom:1.6cqh;z-index:40;
+  display:inline-flex;align-items:center;gap:0.5cqw;
+  padding:0.55cqw 0.8cqw;background:var(--sk-raised);
+  border:1px solid var(--sk-hairline);border-radius:var(--sk-r-card);
+  box-shadow:var(--sk-ring),var(--sk-ambient);
+  font:400 0.68cqw/1.3 var(--sk-ui);color:var(--sk-text);
+}
+.sk-toast .sk-meta{color:var(--sk-faint);}
+
+/* ————— 17 · popover — evidence quote + source ————— */
+.sk-popover{
+  position:absolute;z-index:30;width:17cqw;
+  padding:0.9cqw 1cqw;background:var(--sk-raised);
+  border:1px solid color-mix(in srgb,var(--sk-accent) 35%,var(--sk-hairline));
+  border-radius:var(--sk-r-card);
+  box-shadow:var(--sk-ambient);
+}
+.sk-popover::before{                 /* caret notch, points left at its anchor */
+  content:"";position:absolute;left:-0.26cqw;top:1.1cqw;
+  width:0.45cqw;height:0.45cqw;transform:rotate(45deg);
+  background:var(--sk-raised);
+  border-left:1px solid color-mix(in srgb,var(--sk-accent) 35%,var(--sk-hairline));
+  border-bottom:1px solid color-mix(in srgb,var(--sk-accent) 35%,var(--sk-hairline));
+}
+.sk-popover-quote{font:400 0.78cqw/1.5 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.002em;}
+.sk-popover-src{display:flex;align-items:center;gap:0.45cqw;margin-top:0.6cqw;font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);}
+.sk-popover-src .sk-dot-inline{color:var(--sk-accent);}
+.sk-popover-ft{
+  display:flex;align-items:center;gap:0.5cqw;margin-top:0.7cqw;padding-top:0.6cqw;
+  border-top:1px solid var(--sk-hairline);
+  font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-faint);
+}
+.sk-popover-link{color:var(--sk-accent);}
+
+/* ————— 18 · cursor — small cream dot-arrow ————— */
+.sk-cursor{position:absolute;z-index:90;width:1.05cqw;height:1.05cqw;pointer-events:none;}
+.sk-cursor svg{display:block;width:100%;height:100%;overflow:visible;}
+.sk-cursor svg path{fill:var(--sk-text);stroke:var(--sk-ground);stroke-width:1.1;stroke-linejoin:round;}
+.sk-cursor.is-click::after{
+  content:"";position:absolute;left:-0.32cqw;top:-0.32cqw;
+  width:1cqw;height:1cqw;border-radius:50%;
+  border:1px solid var(--sk-text);opacity:0.45;
+}
+
+/* ————— 19 · lower-third — mono kicker + one sentence-case line ————— */
+.sk-lowerthird{
+  position:absolute;left:5.5cqw;bottom:7cqh;z-index:60;
+  display:flex;flex-direction:column;gap:0.55cqh;
+  text-shadow:0 2px 30px rgba(0,0,0,.6);
+}
+.sk-lt-kicker{
+  font:500 0.72cqw/1 var(--sk-mono);letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--sk-accent);
+}
+.sk-lt-line{font:600 2.6cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
+
+/* ————— 20 · checklist ————— */
+.sk-checklist{list-style:none;display:flex;flex-direction:column;}
+.sk-check{display:flex;align-items:center;gap:0.55cqw;padding:0.38cqw 0;font:400 0.73cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+.sk-tickbox{
+  width:0.85cqw;height:0.85cqw;flex:none;display:grid;place-items:center;
+  border:1px solid var(--sk-hairline);border-radius:5px;
+  font:500 0.5cqw/1 var(--sk-mono);color:transparent;
+}
+.sk-check.is-done{color:var(--sk-text);}
+.sk-check.is-done .sk-tickbox{
+  color:var(--sk-pass);
+  border-color:color-mix(in srgb,var(--sk-pass) 50%,var(--sk-hairline));
+  background:color-mix(in srgb,var(--sk-pass) 14%,transparent);
+}
+
+/* ————— 21 · sealed record row (forecast at decision time) ————— */
+.sk-record{
+  display:flex;align-items:center;gap:0.7cqw;
+  padding:0.7cqw 1cqw;background:var(--sk-panel);
+  border:1px solid var(--sk-hairline);border-radius:var(--sk-r-row);
+}
+.sk-record .sk-body{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* ————— demo scaffolding (standalone preview only — do not copy) ————— */
+html,body{height:100%;}
+body{margin:0;background:#000;display:grid;place-items:center;}
+#root{width:min(100vw,177.78vh);aspect-ratio:16/9;}
+</style>
+</head>
+
+<body>
+<!-- ==========================================================================
+  ASSEMBLED DEMO — one full Discover screen (F5's world), built ONLY from kit
+  classes. This is the density target: if your frame is emptier than this,
+  it is not done. Screenshot-believable: workspace harbor, 24 live signals,
+  three ranked bets, evidence popover open on bet 01, cursor mid-hover,
+  lower-third riding the frame. All content is the checkout story world.
+=========================================================================== -->
+<div id="root" data-composition-id="_screen-kit" data-width="1920" data-height="1080">
+<div class="sk-frame">
+  <div class="sk-stage">
+    <div class="sk-screen" style="--sk-accent:var(--sk-discover)">
+      <div class="sk-shell">
+
+        <!-- sidebar · workspace "harbor" · 9 rows · Discover active -->
+        <aside class="sk-sidebar">
+          <div class="sk-ws">
+            <span class="sk-ws-mark"></span>
+            <span class="sk-ws-name">harbor</span>
+            <span class="sk-ws-caret">⌄</span>
+          </div>
+          <nav class="sk-nav">
+            <div class="sk-navrow" style="--dot:var(--sk-text)"><span class="sk-dot"></span>Today<span class="sk-navcount">3</span></div>
+            <div class="sk-navrow is-active" style="--dot:var(--sk-discover)"><span class="sk-dot"></span>Discover<span class="sk-navcount">24</span></div>
+            <div class="sk-navrow" style="--dot:var(--sk-decide)"><span class="sk-dot"></span>Decide<span class="sk-navcount">3</span></div>
+            <div class="sk-navrow" style="--dot:var(--sk-plan)"><span class="sk-dot"></span>Plan</div>
+            <div class="sk-navrow" style="--dot:var(--sk-design)"><span class="sk-dot"></span>Design</div>
+            <div class="sk-navrow" style="--dot:var(--sk-build)"><span class="sk-dot"></span>Build<span class="sk-navcount">2</span></div>
+            <div class="sk-navrow" style="--dot:var(--sk-ship)"><span class="sk-dot"></span>Ship</div>
+            <div class="sk-navrow" style="--dot:var(--sk-learn)"><span class="sk-dot"></span>Learn<span class="sk-navcount">1</span></div>
+            <div class="sk-navrow" style="--dot:var(--sk-ember)"><span class="sk-dot"></span>Brain</div>
+          </nav>
+          <div class="sk-side-foot"><span class="sk-livedot"></span>3 agents running</div>
+        </aside>
+
+        <!-- top bar · breadcrumb · ask field · sync status · avatar -->
+        <header class="sk-topbar">
+          <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">discover</span></div>
+          <div class="sk-ask">
+            <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>
+            ask supaprod…
+            <span class="sk-kbd">⌘K</span>
+          </div>
+          <span class="sk-spacer"></span>
+          <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>synced 2m ago</span>
+          <div class="sk-avatar">MR</div>
+        </header>
+
+        <!-- content · signals rail + ranked bets -->
+        <main class="sk-content" style="grid-area:main;position:relative;display:grid;grid-template-columns:23cqw minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:1cqw;padding:1.1cqw;min-height:0;">
+
+          <div style="grid-column:1/-1;display:flex;align-items:baseline;gap:0.8cqw;">
+            <h1 class="sk-title">Discover</h1>
+            <span class="sk-meta">24 new signals this week · re-ranked 2m ago</span>
+            <span class="sk-spacer"></span>
+            <span class="sk-chip is-on">all sources</span>
+            <span class="sk-chip">interviews 6</span>
+            <span class="sk-chip">tickets 9</span>
+            <span class="sk-chip">metrics 5</span>
+            <span class="sk-chip">notes 4</span>
+          </div>
+
+          <!-- signals rail — 8 live rows, hairline-separated -->
+          <section class="sk-panel">
+            <header class="sk-panel-hd">
+              <h2 class="sk-panel-title">Signals</h2>
+              <span class="sk-badge">24 new</span>
+              <span class="sk-spacer"></span>
+              <span class="sk-label" style="display:flex;align-items:center;gap:0.35cqw;"><span class="sk-livedot"></span>live</span>
+            </header>
+            <div class="sk-panel-body">
+              <div class="sk-row" style="box-shadow:inset 2px 0 0 var(--sk-accent);">
+                <div style="display:flex;align-items:baseline;gap:0.5cqw;"><span class="sk-label" style="font-size:0.52cqw;color:var(--sk-accent);">quote</span><span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">2m ago</span></div>
+                <p class="sk-body" style="margin-top:0.25cqw;">“I gave up at the payment step.”</p>
+                <p class="sk-meta" style="margin-top:0.2cqw;font-size:0.6cqw;">interview · maya r. · 04:12</p>
+              </div>
+              <div class="sk-row" style="box-shadow:inset 2px 0 0 var(--sk-accent);">
+                <div style="display:flex;align-items:baseline;gap:0.5cqw;"><span class="sk-label" style="font-size:0.52cqw;color:var(--sk-accent);">metric</span><span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">9m ago</span></div>
+                <p class="sk-body" style="margin-top:0.25cqw;">checkout drop-off at 41% — funnel alert</p>
+                <p class="sk-meta" style="margin-top:0.2cqw;font-size:0.6cqw;">analytics · step 3 → 4</p>
+              </div>
+              <div class="sk-row">
+                <div style="display:flex;align-items:baseline;gap:0.5cqw;"><span class="sk-label" style="font-size:0.52cqw;">ticket</span><span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">18m ago</span></div>
+                <p class="sk-body" style="margin-top:0.25cqw;">SUP-291 · card declined but no error shown</p>
+                <p class="sk-meta" style="margin-top:0.2cqw;font-size:0.6cqw;">support · 2 linked tickets</p>
+              </div>
+              <div class="sk-row">
+                <div style="display:flex;align-items:baseline;gap:0.5cqw;"><span class="sk-label" style="font-size:0.52cqw;">quote</span><span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">1h ago</span></div>
+                <p class="sk-body" style="margin-top:0.25cqw;">“the promo field is impossible to find on mobile”</p>
+                <p class="sk-meta" style="margin-top:0.2cqw;font-size:0.6cqw;">interview · jonah t. · 11:40</p>
+              </div>
+              <div class="sk-row">
+                <div style="display:flex;align-items:baseline;gap:0.5cqw;"><span class="sk-label" style="font-size:0.52cqw;">ticket</span><span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">3h ago</span></div>
+                <p class="sk-body" style="margin-top:0.25cqw;">SUP-287 · duplicate invoice emails to owners</p>
+                <p class="sk-meta" style="margin-top:0.2cqw;font-size:0.6cqw;">support · 4 linked tickets</p>
+              </div>
+              <div class="sk-row">
+                <div style="display:flex;align-items:baseline;gap:0.5cqw;"><span class="sk-label" style="font-size:0.52cqw;">metric</span><span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">yesterday</span></div>
+                <p class="sk-body" style="margin-top:0.25cqw;">onboarding completion flat at 62%</p>
+                <p class="sk-meta" style="margin-top:0.2cqw;font-size:0.6cqw;">analytics · 6-week window</p>
+              </div>
+              <div class="sk-row">
+                <div style="display:flex;align-items:baseline;gap:0.5cqw;"><span class="sk-label" style="font-size:0.52cqw;">note</span><span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">yesterday</span></div>
+                <p class="sk-body" style="margin-top:0.25cqw;">3 churn calls named invoices this month</p>
+                <p class="sk-meta" style="margin-top:0.2cqw;font-size:0.6cqw;">hunch · priya s.</p>
+              </div>
+              <div class="sk-row">
+                <div style="display:flex;align-items:baseline;gap:0.5cqw;"><span class="sk-label" style="font-size:0.52cqw;">metric</span><span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">2d ago</span></div>
+                <p class="sk-body" style="margin-top:0.25cqw;">refund requests up 18% week over week</p>
+                <p class="sk-meta" style="margin-top:0.2cqw;font-size:0.6cqw;">analytics · billing</p>
+              </div>
+            </div>
+            <footer class="sk-panel-ft"><span class="sk-meta" style="font-size:0.6cqw;">132 total · all sources synced 2m ago</span></footer>
+          </section>
+
+          <!-- ranked bets — 3 cards, lead accented, passed strip below -->
+          <section class="sk-pane">
+            <header class="sk-pane-hd">
+              <h2 class="sk-panel-title">Ranked bets</h2>
+              <span class="sk-meta" style="font-size:0.62cqw;">re-ranked 2m ago</span>
+              <span class="sk-spacer"></span>
+              <span class="sk-chip">by score</span>
+              <span class="sk-badge">3 open</span>
+            </header>
+            <div class="sk-pane-body" style="display:flex;flex-direction:column;gap:0.8cqw;padding:0.9cqw;">
+
+              <article class="sk-betcard is-lead">
+                <header class="sk-betcard-hd">
+                  <span class="sk-rank">01</span>
+                  <h3 class="sk-betcard-title">fix checkout drop-off</h3>
+                  <span class="sk-spacer"></span>
+                  <span class="sk-chip sk-chip--accent">19 signals</span>
+                  <span class="sk-chip">6 sources</span>
+                </header>
+                <p class="sk-meta" style="font-size:0.62cqw;">opened by maya r. · updated 2m ago · direct evidence</p>
+                <div class="sk-score">
+                  <div class="sk-score-main"><span class="sk-score-num">8.0</span><span class="sk-score-cap">composite</span></div>
+                  <div class="sk-score-bars">
+                    <div class="sk-subbar"><span class="sk-subbar-name">impact</span><span class="sk-subbar-track"><i style="width:86%"></i></span><span class="sk-subbar-val">8.6</span></div>
+                    <div class="sk-subbar"><span class="sk-subbar-name">confidence</span><span class="sk-subbar-track"><i style="width:82%"></i></span><span class="sk-subbar-val">8.2</span></div>
+                    <div class="sk-subbar"><span class="sk-subbar-name">effort</span><span class="sk-subbar-track"><i style="width:31%"></i></span><span class="sk-subbar-val">3.1</span></div>
+                  </div>
+                </div>
+                <p class="sk-betnote"><span>agent</span>smaller bet, direct evidence, faster payback</p>
+              </article>
+
+              <article class="sk-betcard">
+                <header class="sk-betcard-hd">
+                  <span class="sk-rank">02</span>
+                  <h3 class="sk-betcard-title">unify billing alerts</h3>
+                  <span class="sk-spacer"></span>
+                  <span class="sk-chip">11 signals</span>
+                  <span class="sk-chip">4 sources</span>
+                </header>
+                <p class="sk-meta" style="font-size:0.62cqw;">opened by priya s. · updated 1h ago</p>
+                <div class="sk-score sk-score--dim">
+                  <div class="sk-score-main"><span class="sk-score-num">6.4</span><span class="sk-score-cap">composite</span></div>
+                  <div class="sk-score-bars">
+                    <div class="sk-subbar"><span class="sk-subbar-name">impact</span><span class="sk-subbar-track"><i style="width:64%"></i></span><span class="sk-subbar-val">6.4</span></div>
+                    <div class="sk-subbar"><span class="sk-subbar-name">confidence</span><span class="sk-subbar-track"><i style="width:71%"></i></span><span class="sk-subbar-val">7.1</span></div>
+                    <div class="sk-subbar"><span class="sk-subbar-name">effort</span><span class="sk-subbar-track"><i style="width:52%"></i></span><span class="sk-subbar-val">5.2</span></div>
+                  </div>
+                </div>
+                <p class="sk-betnote"><span>agent</span>recurring billing complaints across 4 accounts</p>
+              </article>
+
+              <article class="sk-betcard">
+                <header class="sk-betcard-hd">
+                  <span class="sk-rank">03</span>
+                  <h3 class="sk-betcard-title">redesign onboarding</h3>
+                  <span class="sk-spacer"></span>
+                  <span class="sk-chip">7 signals</span>
+                  <span class="sk-chip">3 sources</span>
+                </header>
+                <p class="sk-meta" style="font-size:0.62cqw;">opened by jonah t. · updated yesterday</p>
+                <div class="sk-score sk-score--dim">
+                  <div class="sk-score-main"><span class="sk-score-num">5.1</span><span class="sk-score-cap">composite</span></div>
+                  <div class="sk-score-bars">
+                    <div class="sk-subbar"><span class="sk-subbar-name">impact</span><span class="sk-subbar-track"><i style="width:58%"></i></span><span class="sk-subbar-val">5.8</span></div>
+                    <div class="sk-subbar"><span class="sk-subbar-name">confidence</span><span class="sk-subbar-track"><i style="width:47%"></i></span><span class="sk-subbar-val">4.7</span></div>
+                    <div class="sk-subbar"><span class="sk-subbar-name">effort</span><span class="sk-subbar-track"><i style="width:72%"></i></span><span class="sk-subbar-val">7.2</span></div>
+                  </div>
+                </div>
+                <p class="sk-betnote"><span>agent</span>signal volume low — needs discovery interviews</p>
+              </article>
+
+              <div class="sk-agentline"><span class="sk-livedot"></span><span class="sk-run">▸</span>agent · drafting brief for bet 01 — fix checkout drop-off<span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">just now</span></div>
+
+            </div>
+            <footer class="sk-panel-ft">
+              <span class="sk-label" style="font-size:0.55cqw;">passed</span>
+              <span class="sk-meta" style="font-size:0.62cqw;"><s>redesign the app</s> · scored 4.0 · struck last year</span>
+              <span class="sk-spacer"></span>
+              <span class="sk-meta" style="font-size:0.6cqw;color:var(--sk-accent);">view the record →</span>
+            </footer>
+          </section>
+
+          <!-- evidence popover, open on bet 01 -->
+          <aside class="sk-popover" style="top:8.6cqh;right:2.6cqw;">
+            <p class="sk-popover-quote">“I gave up at the payment step. The card form cleared everything when it errored.”</p>
+            <div class="sk-popover-src"><span class="sk-dot-inline"></span>interview · maya r. · 04:12<span class="sk-spacer"></span>2m ago</div>
+            <div class="sk-popover-ft">evidence 1 of 19<span class="sk-spacer"></span><span class="sk-popover-link">open thread →</span></div>
+          </aside>
+
+          <!-- cursor, mid-hover on the evidence chip -->
+          <div class="sk-cursor" style="right:20.2cqw;top:9.4cqh;">
+            <svg viewBox="0 0 24 24"><path d="M5.5 3.2 L5.5 18.6 L9.3 15.1 L11.8 20.6 L14.4 19.4 L11.9 14 L17 13.5 Z"/></svg>
+          </div>
+
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <!-- film overlay — lower-third (kicker + one line, lower-left, never centered) -->
+  <div class="sk-lowerthird">
+    <span class="sk-lt-kicker">01 · Discover</span>
+    <span class="sk-lt-line">ranked bets, evidence attached.</span>
+  </div>
+</div>
+</div>
+
+<!-- ==========================================================================
+  MARKUP LIBRARY — copy-paste snippets for components not in the demo above.
+  Every snippet drops into .sk-content (or over .sk-screen for scrim/modal/
+  toast) and inherits the frame's --sk-accent.
+
+  ── doc · spec editor with TOC (F8 Plan · accent: var(1sk1plan) style) ──
+
+    <section class="sk-panel sk-doc">
+      <aside class="sk-doc-toc">
+        <span class="sk-label">spec</span>
+        <div class="sk-doc-tocrow is-active">problem</div>
+        <div class="sk-doc-tocrow">approach</div>
+        <div class="sk-doc-tocrow">requirements</div>
+        <div class="sk-doc-tocrow">rollout</div>
+      </aside>
+      <div class="sk-doc-body">
+        <div class="sk-doc-kicker">
+          <span class="sk-chip sk-chip--accent">agent · drafting…</span>
+          <span class="sk-meta" style="font-size:0.6cqw;">plan / specs / checkout-fix</span>
+        </div>
+        <h1 class="sk-doc-title">Fix checkout drop-off</h1>
+        <h2 class="sk-doc-h">problem</h2>
+        <p class="sk-prose">41% of shoppers abandon between payment and
+        confirmation. The card form clears every field on a declined card and
+        the decline reason is never surfaced — 19 signals across 6 sources
+        point at the same step.</p>
+        <h2 class="sk-doc-h">approach</h2>
+        <p class="sk-prose">Preserve form state on error, surface the decline
+        reason inline, and retry tokenization without a full
+        reload.<span class="sk-caret"></span></p>
+      </div>
+    </section>
+
+  ── console · agent run log (F8 Build) ──
+
+    <section class="sk-panel">
+      <header class="sk-console-hd">
+        <span class="sk-label">agent run · build</span>
+        <span class="sk-spacer"></span>
+        <span class="sk-chip sk-chip--ember">boundary: no schema drops · no prod writes</span>
+      </header>
+      <div class="sk-console-body">
+        <div class="sk-logline"><span class="sk-log-t">14:02:11</span><span class="sk-tick">✓</span><span>branch created — fix/checkout-dropoff</span></div>
+        <div class="sk-logline"><span class="sk-log-t">14:02:38</span><span class="sk-tick">✓</span><span>migration written — payment_attempts</span></div>
+        <div class="sk-logline"><span class="sk-log-t">14:03:04</span><span class="sk-tick">✓</span><span>tests 214 passing</span></div>
+        <div class="sk-logline is-run"><span class="sk-log-t">14:03:19</span><span class="sk-run">▸</span><span>writing retry handler…</span></div>
+      </div>
+    </section>
+
+  ── diff · added / removed rows (F8 Build, beside the console) ──
+
+    <div class="sk-diff">
+      <div class="sk-diff-row is-del"><span class="sk-diff-ln">41</span><span class="sk-diff-sign">−</span><code>form.reset()</code></div>
+      <div class="sk-diff-row is-add"><span class="sk-diff-ln">41</span><span class="sk-diff-sign">+</span><code>preserveFields(form, { except: ["cvc"] })</code></div>
+      <div class="sk-diff-row is-add"><span class="sk-diff-ln">42</span><span class="sk-diff-sign">+</span><code>surfaceError(decline.reason)</code></div>
+    </div>
+
+  ── modal + fields · the commit form (F7 — ember button: this is a gate) ──
+
+    <div class="sk-scrim"></div>
+    <section class="sk-modal" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);">
+      <header class="sk-modal-hd"><h3 class="sk-modal-title">Log the decision</h3><span class="sk-meta" style="font-size:0.62cqw;">decide / commit</span></header>
+      <div class="sk-modal-body">
+        <div class="sk-field"><span class="sk-label">decision</span><div class="sk-input">Fix checkout drop-off first</div></div>
+        <div class="sk-field"><span class="sk-label">forecast — what you believe will happen</span><div class="sk-input">“If we fix checkout first, activation rises.”<span class="sk-caret"></span></div></div>
+        <div class="sk-field-row">
+          <div class="sk-field"><span class="sk-label">how we'll know</span><div class="sk-input">activation rate</div></div>
+          <div class="sk-field"><span class="sk-label">horizon</span><div class="sk-input">30 days</div></div>
+        </div>
+      </div>
+      <footer class="sk-modal-ft">
+        <span class="sk-meta" style="font-size:0.6cqw;">sealed at decision time — before the outcome</span>
+        <span class="sk-spacer"></span>
+        <span class="sk-btn">cancel</span>
+        <span class="sk-btn sk-btn--ember">Commit</span>
+      </footer>
+    </section>
+
+  ── sealed record row (F7 close · F11 rack focus) ──
+
+    <div class="sk-record">
+      <span class="sk-chip sk-chip--ember"><svg width="9" height="9" viewBox="0 0 12 12" style="stroke:currentColor;fill:none;stroke-width:1.4;"><rect x="2" y="5" width="8" height="5.5" rx="1.2"/><path d="M4 5 V3.6 a2 2 0 0 1 4 0 V5"/></svg>sealed</span>
+      <span class="sk-body">“If we fix checkout first, activation rises.”</span>
+      <span class="sk-spacer"></span>
+      <span class="sk-meta" style="font-size:0.6cqw;">maya r. · at decision time · immutable</span>
+    </div>
+
+  ── toast (F9 · sits inside .sk-screen) ──
+
+    <div class="sk-toast"><span class="sk-tick">✓</span>ranking updated — 1 outcome applied<span class="sk-meta">just now</span></div>
+
+  ── checklist · GTM (F8 Ship) ──
+
+    <ul class="sk-checklist">
+      <li class="sk-check is-done"><span class="sk-tickbox">✓</span>release notes</li>
+      <li class="sk-check is-done"><span class="sk-tickbox">✓</span>announcement draft</li>
+      <li class="sk-check is-done"><span class="sk-tickbox">✓</span>changelog</li>
+      <li class="sk-check"><span class="sk-tickbox"></span>status page update</li>
+      <li class="sk-check"><span class="sk-tickbox"></span>customer email</li>
+    </ul>
+
+  ── cursor, clicking (ripple ring shows the press) ──
+
+    <div class="sk-cursor is-click" style="left:41cqw;top:52cqh;">
+      <svg viewBox="0 0 24 24"><path d="M5.5 3.2 L5.5 18.6 L9.3 15.1 L11.8 20.6 L14.4 19.4 L11.9 14 L17 13.5 Z"/></svg>
+    </div>
+
+  (Note: the "var(1sk1plan)" above is written that way only because a literal
+  double-hyphen cannot appear safely everywhere inside an HTML comment; in
+  real code it is the plan station variable with the usual two leading
+  hyphens, exactly as used throughout the <style> block.)
+=========================================================================== -->
+
+<!-- ==========================================================================
+  PER-STATION ACCENT ASSIGNMENTS (set on .sk-screen via the accent variable)
+    discover  #6FA9A0   F5 · signals → ranked bets
+    decide    #C39A5E   F6, F7, F10 · scoring, the commit, the precedent
+    plan      #8FA464   F8 scene 1 · the spec writes itself
+    build     #6D97C2   F8 scene 2 · agent run console + diff
+    ship      #BD8092   F8 scene 3 · release notes + GTM checklist
+    learn     #A89F66   F9 · outcome scored against the call
+    ember     #FF6B2C   brand / gate moments ONLY — the seal, the boundary
+                        banner, the winner's edge, F12's field, F13's core
+    (design   #AB7FA0   exists in the sidebar; no frame leads with it)
+  Support colors: pass #4FC47A · warn #E8B44C · fail #EF6A5F — verdicts,
+  ticks and alerts only, never a screen's lead.
+=========================================================================== -->
+</body>
+</html>

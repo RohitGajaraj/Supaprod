@@ -1,461 +1,660 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Frame 5 — Signals become bets · 7.3s · 1920x1080 · dark register -->
+    <!-- F5 · Signals become bets — Discover screen, 7.3s. Everything the runtime needs lives inside <template>. -->
   </head>
   <body>
     <template>
       <style>
-        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
-        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
-        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+        /* ————— fonts (kit copy of frame.md block, dual-path src) ————— */
+        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2"),url("assets/fonts/Geist-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2"),url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2"),url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2"),url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
 
-        #root {
-          position: absolute;
-          inset: 0;
-          overflow: hidden;
-          container-type: size;
+        /* ————— tokens — declared on #root (the doc-root selector gets scoped away in the composited render) ————— */
+        #root{
+          --sk-ground:#0A0A0B;
+          --sk-panel:#141416;
+          --sk-raised:#1A1A1D;
+          --sk-hairline:#26262A;
+          --sk-text:#F2EFE9;
+          --sk-muted:#A8A29A;
+          --sk-faint:#6B6660;
+          --sk-discover:#6FA9A0;
+          --sk-decide:#C39A5E;
+          --sk-plan:#8FA464;
+          --sk-design:#AB7FA0;
+          --sk-build:#6D97C2;
+          --sk-ship:#BD8092;
+          --sk-learn:#A89F66;
+          --sk-pass:#4FC47A;
+          --sk-fail:#EF6A5F;
+          --sk-warn:#E8B44C;
+          --sk-ember:#FF6B2C;
+          --sk-accent:var(--sk-discover);
+          --sk-r-chip:7px;
+          --sk-r-control:8px;
+          --sk-r-row:9px;
+          --sk-r-card:10px;
+          --sk-r-panel:12px;
+          --sk-r-pane:16px;
+          --sk-ui:"Mona Sans",system-ui,sans-serif;
+          --sk-mono:"IBM Plex Mono",ui-monospace,monospace;
+          --sk-ring:0 0 0 1px var(--sk-hairline);
+          --sk-ambient:0 24px 80px rgba(0,0,0,.5);
+        }
+        #root{position:absolute;inset:0;overflow:hidden;font-family:var(--sk-ui);}
+
+        /* ————— frame ground & perspective stage (kit) ————— */
+        .sk-frame{
+          position:absolute;inset:0;overflow:hidden;
+          container-type:size;
+          background:var(--sk-ground);
+          color:var(--sk-text);
+          font-family:var(--sk-ui);
+          -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+        }
+        .sk-frame *,.sk-frame *::before,.sk-frame *::after{box-sizing:border-box;margin:0;padding:0;}
+        .sk-stage{
+          position:absolute;inset:0;display:grid;place-items:center;
+          padding-bottom:10cqh;
+          perspective:2200px;
+          perspective-origin:50% 42%;
+        }
+        .sk-screen{
+          position:relative;
+          width:84cqw;height:82cqh;
+          transform:rotateX(1.8deg) rotateY(-2.4deg);
+          transform-style:preserve-3d;
+          background:var(--sk-ground);
+          border-radius:var(--sk-r-pane);
+          box-shadow:var(--sk-ring),var(--sk-ambient);
+          overflow:hidden;
         }
 
-        /* ---- full-bleed ground (clip, lowest track — never on #root) ---- */
-        .f5-bg {
-          position: absolute;
-          inset: 0;
-          background: #0a0a0b;
+        /* ————— app shell (kit) ————— */
+        .sk-shell{
+          display:grid;height:100%;
+          grid-template-columns:12.5cqw minmax(0,1fr);
+          grid-template-rows:3.2cqh minmax(0,1fr);
+          grid-template-areas:"side top" "side main";
+        }
+        .sk-sidebar{
+          grid-area:side;display:flex;flex-direction:column;min-height:0;
+          background:var(--sk-ground);border-right:1px solid var(--sk-hairline);
+        }
+        .sk-ws{display:flex;align-items:center;gap:0.55cqw;padding:1cqw 1cqw 0.8cqw;}
+        .sk-ws-mark{
+          width:0.72cqw;height:0.72cqw;flex:none;border-radius:50%;
+          border:1px solid var(--sk-ember);
+          background:radial-gradient(circle at 50% 50%,var(--sk-ember) 0 28%,transparent 30%);
+        }
+        .sk-ws-name{font:600 0.82cqw/1 var(--sk-ui);color:var(--sk-text);letter-spacing:0.01em;}
+        .sk-ws-caret{margin-left:auto;font:400 0.6cqw/1 var(--sk-mono);color:var(--sk-faint);}
+        .sk-nav{display:flex;flex-direction:column;gap:0.12cqh;padding:0.3cqw 0.5cqw;}
+        .sk-navrow{
+          display:flex;align-items:center;gap:0.55cqw;
+          padding:0.42cqw 0.6cqw;border-radius:var(--sk-r-row);
+          font:400 0.73cqw/1 var(--sk-ui);color:var(--sk-muted);
+        }
+        .sk-navrow .sk-dot{
+          width:0.3cqw;height:0.3cqw;flex:none;border-radius:50%;
+          background:var(--dot,var(--sk-faint));
+        }
+        .sk-navcount{margin-left:auto;font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-faint);}
+        .sk-navrow.is-active{background:var(--sk-raised);color:var(--sk-text);}
+        .sk-navrow.is-active .sk-dot{box-shadow:0 0 0.45cqw 0 var(--dot,var(--sk-accent));}
+        .sk-navrow.is-active .sk-navcount{color:var(--sk-muted);}
+        .sk-side-foot{
+          margin-top:auto;display:flex;align-items:center;gap:0.45cqw;
+          padding:0.85cqw 1cqw;border-top:1px solid var(--sk-hairline);
+          font:400 0.57cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.03em;
+        }
+        .sk-livedot{
+          width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;
+          background:var(--sk-pass);box-shadow:0 0 0.4cqw var(--sk-pass);
+        }
+        .sk-topbar{
+          grid-area:top;display:flex;align-items:center;gap:0.9cqw;
+          padding:0 1cqw;border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
+        }
+        .sk-crumb{display:flex;align-items:center;font:400 0.62cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;}
+        .sk-crumb-sep{padding:0 0.35cqw;color:var(--sk-faint);}
+        .sk-crumb-here{color:var(--sk-text);}
+        .sk-ask{
+          display:flex;align-items:center;gap:0.5cqw;flex:0 1 20cqw;height:2.1cqh;
+          padding:0 0.4cqw 0 0.65cqw;background:var(--sk-panel);
+          border:1px solid var(--sk-hairline);border-radius:var(--sk-r-control);
+          font:400 0.66cqw/1 var(--sk-ui);color:var(--sk-faint);
+        }
+        .sk-ask svg{width:0.68cqw;height:0.68cqw;flex:none;stroke:var(--sk-faint);fill:none;stroke-width:1.6;}
+        .sk-kbd{
+          margin-left:auto;padding:0.1cqw 0.32cqw;
+          font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-faint);
+          background:var(--sk-ground);border:1px solid var(--sk-hairline);border-radius:5px;
+        }
+        .sk-avatar{
+          width:1.25cqw;height:1.25cqw;flex:none;display:grid;place-items:center;
+          background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:50%;
+          font:600 0.5cqw/1 var(--sk-ui);color:var(--sk-muted);letter-spacing:0.05em;
         }
 
-        /* ---- stage (single content clip; all reveals are timeline-driven) ---- */
-        .f5-stage {
-          position: absolute;
-          inset: 0;
-          perspective: 1400px; /* required for the depth cloud */
-        }
+        /* ————— true-UI type (kit) ————— */
+        .sk-title{font:600 1.3cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
+        .sk-body{font:400 0.73cqw/1.45 var(--sk-ui);color:var(--sk-text);}
+        .sk-meta{font:400 0.68cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+        .sk-label{font:500 0.65cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.10em;text-transform:uppercase;}
+        .sk-spacer{flex:1;}
 
-        /* ---- Scene 1 · signal depth-cloud ---- */
-        .cloud-stage {
-          position: absolute;
-          inset: 0;
-          z-index: 3;
-          transform-style: preserve-3d;
-          will-change: transform;
-          pointer-events: none;
+        /* ————— panels · rows (kit) ————— */
+        .sk-panel{
+          background:var(--sk-panel);border:1px solid var(--sk-hairline);
+          border-radius:var(--sk-r-panel);overflow:hidden;min-height:0;
+          display:flex;flex-direction:column;
         }
-        .frag {
-          position: absolute;
-          top: 44%;
-          left: 50%;
-          white-space: nowrap;
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 400;
-          transform-style: preserve-3d;
-          backface-visibility: hidden;
-          will-change: transform, opacity;
+        .sk-pane{
+          background:var(--sk-panel);border:1px solid var(--sk-hairline);
+          border-radius:var(--sk-r-pane);overflow:hidden;min-height:0;
+          display:flex;flex-direction:column;
         }
-        .f-tag {
-          text-transform: uppercase;
-          letter-spacing: 0.14em;
-          font-weight: 500;
+        .sk-panel-hd,.sk-pane-hd{
+          display:flex;align-items:center;gap:0.6cqw;flex:none;
+          padding:0.75cqw 1cqw;border-bottom:1px solid var(--sk-hairline);
         }
-        .l0 { font-size: 1.05cqw; color: #a8a29a; }
-        .l1 { font-size: 0.9cqw;  color: #a8a29a; }
-        .l2 { font-size: 0.78cqw; color: #6b6660; }
+        .sk-panel-title{font:600 0.83cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+        .sk-panel-body,.sk-pane-body{flex:1;min-height:0;overflow:hidden;}
+        .sk-panel-ft{
+          display:flex;align-items:center;gap:0.6cqw;flex:none;
+          padding:0.6cqw 1cqw;border-top:1px solid var(--sk-hairline);
+          background:var(--sk-panel);
+        }
+        .sk-row{padding:0.7cqw 1cqw;}
+        .sk-row + .sk-row{border-top:1px solid var(--sk-hairline);}
 
-        /* ---- left column (40%) · rule stub + kicker + headline ---- */
-        .left-col {
-          position: absolute;
-          left: 5.5cqw;
-          top: 36cqh;
-          width: 34cqw;
-          z-index: 2;
+        /* ————— chips · badges (kit) ————— */
+        .sk-chip{
+          display:inline-flex;align-items:center;gap:0.3cqw;
+          padding:0.22cqw 0.45cqw;border:1px solid var(--sk-hairline);
+          border-radius:var(--sk-r-chip);background:rgba(255,255,255,0.02);
+          font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
+          white-space:nowrap;
         }
-        .rule-stub {
-          width: 1.9cqw;
-          height: 2px;
-          background: #ff6b2c;
-          transform-origin: left center;
-          will-change: transform;
+        .sk-chip.is-on,
+        .sk-chip--accent{color:var(--sk-accent);border-color:color-mix(in srgb,var(--sk-accent) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-accent) 8%,transparent);}
+        .sk-chip--pass{color:var(--sk-pass);border-color:color-mix(in srgb,var(--sk-pass) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-pass) 8%,transparent);}
+        .sk-dot-inline{width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;background:currentColor;}
+        .sk-badge{
+          display:inline-flex;align-items:center;padding:0.22cqw 0.45cqw;
+          background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:var(--sk-r-chip);
+          font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);font-variant-numeric:tabular-nums;
         }
-        .kicker {
-          margin-top: 2cqh;
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.72cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #ff6b2c;
-          will-change: transform, opacity;
-        }
-        .headline {
-          margin-top: 2.6cqh;
-          font-family: "Mona Sans", sans-serif;
-          font-weight: 700;
-          font-size: 4.5cqw;
-          line-height: 1.1;
-          letter-spacing: -0.02em;
-          color: #f2efe9;
-        }
-        .hl-line {
-          will-change: transform, opacity;
-        }
-        .hl-accent { color: #ff6b2c; }
+        .sk-tick{color:var(--sk-pass);font-family:var(--sk-mono);}
 
-        /* ---- ranked bet cards (60%) ---- */
-        .cards-layer {
-          position: absolute;
-          inset: 0;
-          z-index: 2;
+        /* ————— score + sub-bars (kit) ————— */
+        .sk-score{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.1cqw;align-items:center;margin-top:0.55cqw;}
+        .sk-score-main{display:flex;flex-direction:column;align-items:flex-start;gap:0.15cqw;}
+        .sk-score-num{
+          font:500 1.5cqw/1 var(--sk-mono);color:var(--sk-accent);
+          letter-spacing:-0.03em;font-variant-numeric:tabular-nums;
         }
-        .bet-card {
-          position: absolute;
-          left: 46cqw;
-          right: 5.5cqw;
-          box-sizing: border-box;
-          background: #141416;
-          border: 1px solid #26262a;
-          padding: 1.5cqw 1.7cqw;
-          display: flex;
-          align-items: flex-start;
-          gap: 1.4cqw;
-          will-change: transform, opacity;
-        }
-        .card-1 { top: 17cqh;   height: 20cqh; }
-        .card-2 { top: 39.2cqh; height: 11.5cqh; }
-        .card-3 { top: 52.9cqh; height: 11.5cqh; }
-        .rank-chip {
-          flex: none;
-          width: 2.7cqw;
-          height: 2.7cqw;
-          border: 1px solid #26262a;
-          display: grid;
-          place-items: center;
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.85cqw;
-          letter-spacing: 0.08em;
-          color: #ff6b2c;
-          will-change: transform, opacity;
-        }
-        .card-body { flex: 1; min-width: 0; }
-        .card-title {
-          font-family: "Mona Sans", sans-serif;
-          font-weight: 600;
-          font-size: 2cqw;
-          line-height: 1.2;
-          letter-spacing: -0.01em;
-          color: #f2efe9;
-        }
-        .card-1 .card-title { font-size: 2.3cqw; }
+        .sk-score-cap{font:500 0.5cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.08em;text-transform:uppercase;}
+        .sk-score-bars{display:flex;flex-direction:column;gap:0.45cqw;}
+        .sk-subbar{display:grid;grid-template-columns:4.6cqw minmax(0,1fr) 1.9cqw;gap:0.55cqw;align-items:center;}
+        .sk-subbar-name{font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.04em;}
+        .sk-subbar-track{display:block;height:0.18cqw;background:var(--sk-hairline);border-radius:2px;overflow:hidden;}
+        .sk-subbar-track i{display:block;height:100%;background:var(--sk-accent);border-radius:inherit;}
+        .sk-subbar-val{font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-muted);text-align:right;font-variant-numeric:tabular-nums;}
+        .sk-score--dim .sk-score-num{color:var(--sk-text);}
+        .sk-score--dim .sk-subbar-track i{background:#4B4B51;}
+        .sk-score--dim .sk-subbar-name,.sk-score--dim .sk-subbar-val{color:var(--sk-faint);}
 
-        /* ---- Scene 3 · evidence quote inside card 01 ---- */
-        .quote-row {
-          margin-top: 2cqh;
-          display: flex;
-          align-items: baseline;
-          gap: 0.9cqw;
-          will-change: transform, opacity;
+        /* ————— bet card (kit) ————— */
+        .sk-betcard{
+          flex:none;padding:0.85cqw 1.05cqw;background:var(--sk-raised);
+          border:1px solid var(--sk-hairline);border-radius:var(--sk-r-card);
         }
-        .qmark {
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 1.2cqw;
-          color: #ff6b2c;
+        .sk-betcard-hd{display:flex;align-items:center;gap:0.6cqw;}
+        .sk-rank{font:500 0.62cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.06em;}
+        .sk-betcard-title{font:600 0.85cqw/1.25 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+        .sk-betcard .sk-meta{margin-top:0.3cqw;}
+        .sk-betcard.is-lead{
+          border-color:color-mix(in srgb,var(--sk-accent) 45%,var(--sk-hairline));
+          background:color-mix(in srgb,var(--sk-accent) 4%,var(--sk-raised));
         }
-        .quote {
-          font-family: "Mona Sans", sans-serif;
-          font-weight: 400;
-          font-size: 1.5cqw;
-          line-height: 1.45;
-          color: #a8a29a;
+        .sk-betcard.is-lead .sk-rank{color:var(--sk-accent);}
+        .sk-betnote{
+          display:flex;gap:0.45cqw;margin-top:0.6cqw;padding-top:0.55cqw;
+          border-top:1px solid var(--sk-hairline);
+          font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
         }
-        .qw {
-          display: inline-block;
-          transform-origin: 50% 50%;
-          will-change: transform, text-shadow, color;
+        .sk-betnote span{color:var(--sk-accent);}
+        .sk-agentline{
+          display:flex;align-items:center;gap:0.5cqw;
+          padding:0.6cqw 0.8cqw;background:var(--sk-raised);
+          border:1px solid var(--sk-hairline);border-radius:var(--sk-r-row);
+          font:400 0.62cqw/1.3 var(--sk-mono);color:var(--sk-muted);
         }
-        .src-tag {
-          margin-left: 1.2cqw;
-          border: 1px solid #26262a;
-          padding: 0.5cqh 0.7cqw;
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.62cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #6b6660;
-          white-space: nowrap;
-          will-change: transform, opacity;
+        .sk-run{color:var(--sk-accent);text-align:center;}
+
+        /* ————— popover (kit) ————— */
+        .sk-popover{
+          position:absolute;z-index:30;width:17cqw;
+          padding:0.9cqw 1cqw;background:var(--sk-raised);
+          border:1px solid color-mix(in srgb,var(--sk-accent) 35%,var(--sk-hairline));
+          border-radius:var(--sk-r-card);
+          box-shadow:var(--sk-ambient);
         }
+        .sk-popover::before{
+          content:"";position:absolute;left:-0.26cqw;top:1.1cqw;
+          width:0.45cqw;height:0.45cqw;transform:rotate(45deg);
+          background:var(--sk-raised);
+          border-left:1px solid color-mix(in srgb,var(--sk-accent) 35%,var(--sk-hairline));
+          border-bottom:1px solid color-mix(in srgb,var(--sk-accent) 35%,var(--sk-hairline));
+        }
+        .sk-popover-quote{font:400 0.78cqw/1.5 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.002em;}
+        .sk-popover-src{display:flex;align-items:center;gap:0.45cqw;margin-top:0.6cqw;font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);}
+        .sk-popover-src .sk-dot-inline{color:var(--sk-accent);}
+        .sk-popover-ft{
+          display:flex;align-items:center;gap:0.5cqw;margin-top:0.7cqw;padding-top:0.6cqw;
+          border-top:1px solid var(--sk-hairline);
+          font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-faint);
+        }
+        .sk-popover-link{color:var(--sk-accent);}
+
+        /* ————— cursor (kit) ————— */
+        .sk-cursor{position:absolute;z-index:90;width:1.05cqw;height:1.05cqw;pointer-events:none;}
+        .sk-cursor svg{display:block;width:100%;height:100%;overflow:visible;}
+        .sk-cursor svg path{fill:var(--sk-text);stroke:var(--sk-ground);stroke-width:1.1;stroke-linejoin:round;}
+
+        /* ————— lower-third (kit, lifted above the caption keep-out) ————— */
+        .sk-lowerthird{
+          position:absolute;left:5.5cqw;bottom:18cqh;z-index:60;
+          display:flex;flex-direction:column;gap:0.55cqh;
+          text-shadow:0 2px 30px rgba(0,0,0,.6);
+        }
+        .sk-lt-kicker{
+          font:500 0.72cqw/1 var(--sk-mono);letter-spacing:0.14em;text-transform:uppercase;
+          color:var(--sk-accent);
+        }
+        .sk-lt-line{font:600 2.6cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
+
+        /* ————— F5-specific ————— */
+        #f5cam{
+          position:absolute;inset:0;
+          transform-origin:50% 50%;
+          will-change:transform;
+        }
+        .f5-dof{--dof:0px;filter:blur(var(--dof));will-change:filter;}
+        .f5-sig .sk-siglabel{font:500 0.52cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.10em;text-transform:uppercase;}
+        .f5-sig .sk-siglabel.is-accent{color:var(--sk-accent);}
+        .f5-sig .f5-sigtime{font:400 0.57cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+        .f5-sig .f5-sigbody{margin-top:0.25cqw;font:400 0.73cqw/1.45 var(--sk-ui);color:var(--sk-text);}
+        .f5-sig .f5-sigmeta{margin-top:0.2cqw;font:400 0.6cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+        .f5-sighd{display:flex;align-items:baseline;gap:0.5cqw;}
+        .f5-betsbody{position:relative;display:flex;flex-direction:column;gap:0.7cqw;padding:0.8cqw;flex:1;min-height:0;overflow:hidden;}
+        .f5-card-in{opacity:0;}
+        .f5-grow{transform:scaleX(0);transform-origin:0 50%;}
+        #f5-cluster{
+          position:absolute;inset:0;z-index:5;
+          display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.9cqh;
+          pointer-events:none;
+        }
+        .f5-clusterline{font:400 0.62cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.03em;}
+        .f5-clusterline b{font-weight:400;color:var(--sk-accent);}
+        #f5-clustertrack{display:block;width:12cqw;height:0.18cqw;background:var(--sk-hairline);border-radius:2px;overflow:hidden;}
+        #f5-clusterfill{display:block;width:100%;height:100%;background:var(--sk-accent);border-radius:inherit;transform:scaleX(0.08);transform-origin:0 50%;}
+        .f5-agentwrap{position:relative;margin-top:auto;flex:none;}
+        #f5-agentB{position:absolute;inset:0;opacity:0;}
+        #f5-pop{opacity:0;}
+        #f5-cursor{opacity:0;}
+        #f5-lt{position:absolute;inset:0;container-type:size;pointer-events:none;}
+        #f5-lt .sk-lt-kicker,#f5-lt .sk-lt-line{opacity:0;}
       </style>
 
-      <div id="root" data-composition-id="05-signals-become-bets" data-width="1920" data-height="1080">
-        <!-- full-bleed ground: dedicated clip on the lowest track -->
-        <div id="f5-bg" class="clip f5-bg" data-start="0" data-duration="7.3" data-track-index="0"></div>
+      <div id="root" data-composition-id="05-signals-become-bets" data-width="1920" data-height="1080" data-duration="7.8">
 
-        <!-- one content clip; every reveal below is GSAP-paced to the VO -->
-        <div id="f5-stage" class="clip f5-stage" data-start="0" data-duration="7.3" data-track-index="1">
-          <!-- Scene 1 · scattered raw-signal depth cloud (decorative, converges away) -->
-          <div class="cloud-stage" data-layout-allow-overflow>
-            <span class="frag l0">&ldquo;gave up at payment&rdquo;</span>
-            <span class="frag l1 f-tag">interview</span>
-            <span class="frag l2">checkout drop-off</span>
-            <span class="frag l0">&ldquo;invoices twice?&rdquo;</span>
-            <span class="frag l1 f-tag">ticket &middot; billing</span>
-            <span class="frag l2">alert fatigue</span>
-            <span class="frag l0 f-tag">dashboard</span>
-            <span class="frag l1">&ldquo;where do I even start&rdquo;</span>
-            <span class="frag l2">onboarding stall</span>
-            <span class="frag l0 f-tag">support thread</span>
-            <span class="frag l1">&ldquo;too many steps&rdquo;</span>
-            <span class="frag l2 f-tag">hunch</span>
-            <span class="frag l0">churn risk</span>
-            <span class="frag l1 f-tag">call note</span>
-          </div>
+        <!-- ground + world · full-bleed ink field carrying the product screen; camera rig inside -->
+        <div id="f5-world" class="clip sk-frame" data-start="0" data-duration="7.3" data-track-index="0" data-layout-allow-overflow>
 
-          <!-- left 40% · statement column -->
-          <div class="left-col">
-            <div class="rule-stub" id="f5-rule"></div>
-            <div class="kicker" id="f5-kicker">the director</div>
-            <div class="headline">
-              <div class="hl-line" id="f5-hl1">signals</div>
-              <div class="hl-line" id="f5-hl2">become <span class="hl-accent">bets</span></div>
-            </div>
-          </div>
+          <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+            <defs>
+              <filter id="f5-streak" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur id="f5-streak-blur" in="SourceGraphic" stdDeviation="0 0" />
+              </filter>
+            </defs>
+          </svg>
 
-          <!-- right 60% · ranked bet cards -->
-          <div class="cards-layer">
-            <div class="bet-card card-1" id="f5-card1">
-              <div class="rank-chip" id="f5-chip1">01</div>
-              <div class="card-body">
-                <div class="card-title">fix checkout drop-off</div>
-                <div class="quote-row" id="f5-quote-row">
-                  <span class="qmark">/</span>
-                  <span class="quote" id="f5-quote">
-                    <span class="qw">&ldquo;I</span>
-                    <span class="qw">gave</span>
-                    <span class="qw">up</span>
-                    <span class="qw">at</span>
-                    <span class="qw">the</span>
-                    <span class="qw">payment</span>
-                    <span class="qw">step&rdquo;</span>
-                  </span>
-                  <span class="src-tag" id="f5-srctag">interview &middot; 04:12</span>
+          <div id="f5cam">
+            <div class="sk-stage">
+              <div class="sk-screen" style="--sk-accent:var(--sk-discover)">
+                <div class="sk-shell">
+
+                  <!-- sidebar · workspace "harbor" · Discover active -->
+                  <aside class="sk-sidebar f5-dof">
+                    <div class="sk-ws">
+                      <span class="sk-ws-mark"></span>
+                      <span class="sk-ws-name">harbor</span>
+                      <span class="sk-ws-caret">⌄</span>
+                    </div>
+                    <nav class="sk-nav">
+                      <div class="sk-navrow" style="--dot:var(--sk-text)"><span class="sk-dot"></span>Today<span class="sk-navcount">3</span></div>
+                      <div class="sk-navrow is-active" style="--dot:var(--sk-discover)"><span class="sk-dot"></span>Discover<span class="sk-navcount">24</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-decide)"><span class="sk-dot"></span>Decide<span class="sk-navcount">3</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-plan)"><span class="sk-dot"></span>Plan</div>
+                      <div class="sk-navrow" style="--dot:var(--sk-design)"><span class="sk-dot"></span>Design</div>
+                      <div class="sk-navrow" style="--dot:var(--sk-build)"><span class="sk-dot"></span>Build<span class="sk-navcount">2</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-ship)"><span class="sk-dot"></span>Ship</div>
+                      <div class="sk-navrow" style="--dot:var(--sk-learn)"><span class="sk-dot"></span>Learn<span class="sk-navcount">1</span></div>
+                      <div class="sk-navrow" style="--dot:var(--sk-ember)"><span class="sk-dot"></span>Brain</div>
+                    </nav>
+                    <div class="sk-side-foot"><span class="sk-livedot"></span>3 agents running</div>
+                  </aside>
+
+                  <!-- top bar -->
+                  <header class="sk-topbar f5-dof">
+                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">discover</span></div>
+                    <div class="sk-ask">
+                      <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>
+                      ask supaprod…
+                      <span class="sk-kbd">⌘K</span>
+                    </div>
+                    <span class="sk-spacer"></span>
+                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>synced 2m ago</span>
+                    <div class="sk-avatar">MR</div>
+                  </header>
+
+                  <!-- content · pain-point inbox + ranked bets -->
+                  <main class="sk-content" style="grid-area:main;position:relative;display:grid;grid-template-columns:23cqw minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:1cqw;padding:1.1cqw;min-height:0;">
+
+                    <!-- header strip · title + connector strip of source chips feeding the inbox -->
+                    <div class="f5-dof" id="f5-hdr" style="grid-column:1/-1;display:flex;align-items:baseline;gap:0.8cqw;">
+                      <h1 class="sk-title">Discover</h1>
+                      <span class="sk-meta">24 new signals this week</span>
+                      <span class="sk-spacer"></span>
+                      <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>connected</span>
+                      <span class="sk-chip">calls</span>
+                      <span class="sk-chip">interviews</span>
+                      <span class="sk-chip">support</span>
+                      <span class="sk-chip">tickets</span>
+                      <span class="sk-chip">analytics</span>
+                      <span class="sk-chip">surveys</span>
+                      <span class="sk-chip">+ more</span>
+                    </div>
+
+                    <!-- pain-point inbox · 6 live rows, reading sweep lights them -->
+                    <section class="sk-panel f5-dof" id="f5-signals">
+                      <header class="sk-panel-hd">
+                        <h2 class="sk-panel-title">Pain points</h2>
+                        <span class="sk-badge">9 customers</span>
+                        <span class="sk-meta" style="font-size:0.6cqw;">this week</span>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-label" style="display:flex;align-items:center;gap:0.35cqw;"><span class="sk-livedot"></span>live</span>
+                      </header>
+                      <div class="sk-panel-body">
+                        <div class="sk-row f5-sig">
+                          <div class="f5-sighd"><span class="sk-siglabel">ticket</span><span class="sk-spacer"></span><span class="f5-sigtime">12m ago</span></div>
+                          <p class="f5-sigbody">checkout takes too long — 4 customers</p>
+                          <p class="f5-sigmeta">support · this week</p>
+                        </div>
+                        <div class="sk-row f5-sig">
+                          <div class="f5-sighd"><span class="sk-siglabel">note</span><span class="sk-spacer"></span><span class="f5-sigtime">26m ago</span></div>
+                          <p class="f5-sigbody">community thread: pricing page confusion</p>
+                          <p class="f5-sigmeta">community · 12 replies</p>
+                        </div>
+                        <div class="sk-row f5-sig">
+                          <div class="f5-sighd"><span class="sk-siglabel is-accent">quote</span><span class="sk-spacer"></span><span class="f5-sigtime">1h ago</span></div>
+                          <p class="f5-sigbody">“I gave up at the payment step.”</p>
+                          <p class="f5-sigmeta">interview · maya r. · 04:12</p>
+                        </div>
+                        <div class="sk-row f5-sig">
+                          <div class="f5-sighd"><span class="sk-siglabel">ticket</span><span class="sk-spacer"></span><span class="f5-sigtime">2h ago</span></div>
+                          <p class="f5-sigbody">refund flow dead-end</p>
+                          <p class="f5-sigmeta">support · 3 tickets</p>
+                        </div>
+                        <div class="sk-row f5-sig">
+                          <div class="f5-sighd"><span class="sk-siglabel">metric</span><span class="sk-spacer"></span><span class="f5-sigtime">5h ago</span></div>
+                          <p class="f5-sigbody">activation dip flagged</p>
+                          <p class="f5-sigmeta">analytics · weekly review</p>
+                        </div>
+                        <div class="sk-row f5-sig">
+                          <div class="f5-sighd"><span class="sk-siglabel">metric</span><span class="sk-spacer"></span><span class="f5-sigtime">yesterday</span></div>
+                          <p class="f5-sigbody">checkout drop-off at 41% — funnel alert</p>
+                          <p class="f5-sigmeta">analytics · step 3 → 4</p>
+                        </div>
+                      </div>
+                      <footer class="sk-panel-ft"><span class="sk-meta" style="font-size:0.6cqw;">132 total · all sources synced 2m ago</span></footer>
+                    </section>
+
+                    <!-- ranked bets · cards cluster in on the VO -->
+                    <section class="sk-pane" id="f5-bets">
+                      <header class="sk-pane-hd">
+                        <h2 class="sk-panel-title">Ranked bets</h2>
+                        <span class="sk-meta" style="font-size:0.62cqw;">re-ranked just now</span>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-chip">by score</span>
+                        <span class="sk-badge">3 open</span>
+                      </header>
+                      <div class="f5-betsbody">
+
+                        <div id="f5-cluster">
+                          <span class="f5-clusterline"><b>▸</b> clustering 24 signals → 3 candidate bets</span>
+                          <span id="f5-clustertrack"><i id="f5-clusterfill"></i></span>
+                        </div>
+
+                        <article class="sk-betcard is-lead f5-card-in" id="f5-bet1">
+                          <header class="sk-betcard-hd">
+                            <span class="sk-rank">01</span>
+                            <h3 class="sk-betcard-title">fix checkout drop-off</h3>
+                            <span class="sk-spacer"></span>
+                            <span class="sk-chip sk-chip--accent">19 signals</span>
+                            <span class="sk-chip">6 sources</span>
+                          </header>
+                          <p class="sk-meta" style="font-size:0.62cqw;">opened by maya r. · updated 2m ago · direct evidence</p>
+                          <div class="sk-score">
+                            <div class="sk-score-main"><span class="sk-score-num">8.0</span><span class="sk-score-cap">composite</span></div>
+                            <div class="sk-score-bars">
+                              <div class="sk-subbar"><span class="sk-subbar-name">impact</span><span class="sk-subbar-track"><i class="f5-grow" style="width:86%"></i></span><span class="sk-subbar-val">8.6</span></div>
+                              <div class="sk-subbar"><span class="sk-subbar-name">confidence</span><span class="sk-subbar-track"><i class="f5-grow" style="width:82%"></i></span><span class="sk-subbar-val">8.2</span></div>
+                              <div class="sk-subbar"><span class="sk-subbar-name">effort</span><span class="sk-subbar-track"><i class="f5-grow" style="width:31%"></i></span><span class="sk-subbar-val">3.1</span></div>
+                            </div>
+                          </div>
+                          <p class="sk-betnote"><span>agent</span>smaller bet, direct evidence, faster payback</p>
+                        </article>
+
+                        <article class="sk-betcard f5-card-in" id="f5-bet2">
+                          <header class="sk-betcard-hd">
+                            <span class="sk-rank">02</span>
+                            <h3 class="sk-betcard-title">unify billing alerts</h3>
+                            <span class="sk-spacer"></span>
+                            <span class="sk-chip">11 signals</span>
+                            <span class="sk-chip">4 sources</span>
+                          </header>
+                          <p class="sk-meta" style="font-size:0.62cqw;">opened by priya s. · updated 1h ago</p>
+                          <div class="sk-score sk-score--dim">
+                            <div class="sk-score-main"><span class="sk-score-num">6.4</span><span class="sk-score-cap">composite</span></div>
+                            <div class="sk-score-bars">
+                              <div class="sk-subbar"><span class="sk-subbar-name">impact</span><span class="sk-subbar-track"><i class="f5-grow" style="width:64%"></i></span><span class="sk-subbar-val">6.4</span></div>
+                              <div class="sk-subbar"><span class="sk-subbar-name">confidence</span><span class="sk-subbar-track"><i class="f5-grow" style="width:71%"></i></span><span class="sk-subbar-val">7.1</span></div>
+                              <div class="sk-subbar"><span class="sk-subbar-name">effort</span><span class="sk-subbar-track"><i class="f5-grow" style="width:52%"></i></span><span class="sk-subbar-val">5.2</span></div>
+                            </div>
+                          </div>
+                          <p class="sk-betnote"><span>agent</span>recurring billing complaints across 4 accounts</p>
+                        </article>
+
+                        <article class="sk-betcard f5-card-in" id="f5-bet3">
+                          <header class="sk-betcard-hd">
+                            <span class="sk-rank">03</span>
+                            <h3 class="sk-betcard-title">redesign onboarding</h3>
+                            <span class="sk-spacer"></span>
+                            <span class="sk-chip">7 signals</span>
+                            <span class="sk-chip">3 sources</span>
+                          </header>
+                          <p class="sk-meta" style="font-size:0.62cqw;">opened by jonah t. · updated yesterday</p>
+                          <div class="sk-score sk-score--dim">
+                            <div class="sk-score-main"><span class="sk-score-num">5.1</span><span class="sk-score-cap">composite</span></div>
+                            <div class="sk-score-bars">
+                              <div class="sk-subbar"><span class="sk-subbar-name">impact</span><span class="sk-subbar-track"><i class="f5-grow" style="width:58%"></i></span><span class="sk-subbar-val">5.8</span></div>
+                              <div class="sk-subbar"><span class="sk-subbar-name">confidence</span><span class="sk-subbar-track"><i class="f5-grow" style="width:47%"></i></span><span class="sk-subbar-val">4.7</span></div>
+                              <div class="sk-subbar"><span class="sk-subbar-name">effort</span><span class="sk-subbar-track"><i class="f5-grow" style="width:72%"></i></span><span class="sk-subbar-val">7.2</span></div>
+                            </div>
+                          </div>
+                          <p class="sk-betnote"><span>agent</span>signal volume low — needs discovery interviews</p>
+                        </article>
+
+                        <div class="f5-agentwrap">
+                          <div class="sk-agentline" id="f5-agentA"><span class="sk-livedot"></span><span class="sk-run">▸</span>agent · reading 24 new signals…<span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">now</span></div>
+                          <div class="sk-agentline" id="f5-agentB"><span class="sk-livedot"></span><span class="sk-run">▸</span>agent · drafting brief for bet 01 — fix checkout drop-off<span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">just now</span></div>
+                        </div>
+
+                      </div>
+                      <footer class="sk-panel-ft">
+                        <span class="sk-label" style="font-size:0.55cqw;">passed</span>
+                        <span class="sk-meta" style="font-size:0.62cqw;"><s>redesign the app</s> · scored 4.0</span>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-meta" style="font-size:0.6cqw;color:var(--sk-accent);">view the record →</span>
+                      </footer>
+                    </section>
+
+                    <!-- evidence popover · opens on the cursor's hover of bet 01 -->
+                    <aside class="sk-popover" id="f5-pop" style="top:8.6cqh;right:2.6cqw;">
+                      <p class="sk-popover-quote">“I gave up at the payment step. The card form cleared everything when it errored.”</p>
+                      <div class="sk-popover-src"><span class="sk-dot-inline"></span>interview · maya r. · 04:12<span class="sk-spacer"></span>1h ago</div>
+                      <div class="sk-popover-ft">evidence 1 of 19<span class="sk-spacer"></span><span class="sk-popover-link">open thread →</span></div>
+                    </aside>
+
+                    <!-- cursor · arcs in and hovers bet 01's evidence chip -->
+                    <div class="sk-cursor" id="f5-cursor" style="right:20.2cqw;top:9.4cqh;">
+                      <svg viewBox="0 0 24 24"><path d="M5.5 3.2 L5.5 18.6 L9.3 15.1 L11.8 20.6 L14.4 19.4 L11.9 14 L17 13.5 Z"/></svg>
+                    </div>
+
+                  </main>
                 </div>
-              </div>
-            </div>
-            <div class="bet-card card-2" id="f5-card2">
-              <div class="rank-chip" id="f5-chip2">02</div>
-              <div class="card-body">
-                <div class="card-title">unify billing alerts</div>
-              </div>
-            </div>
-            <div class="bet-card card-3" id="f5-card3">
-              <div class="rank-chip" id="f5-chip3">03</div>
-              <div class="card-body">
-                <div class="card-title">redesign onboarding</div>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- film overlay · lower-third rides outside the camera -->
+        <div id="f5-lt" class="clip" data-start="0" data-duration="7.3" data-track-index="1">
+          <div class="sk-lowerthird" style="--sk-accent:#6FA9A0;">
+            <span class="sk-lt-kicker" id="f5-ltk">01 · Discover</span>
+            <span class="sk-lt-line" id="f5-ltl">signals become bets.</span>
+          </div>
+        </div>
+
       </div>
 
       <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
       <script>
         window.__timelines = window.__timelines || {};
-        (function () {
-          var root = document.querySelector('[data-composition-id="05-signals-become-bets"]');
-          var tl = gsap.timeline({ paused: true });
+        const tl = gsap.timeline({ paused: true });
 
-          // Resolution scale for GSAP px travel (layout itself is cqw/cqh).
-          var rw = root.getBoundingClientRect().width;
-          var S = rw > 100 ? rw / 1920 : 1;
+        const DUR = 7.3;
+        const camEl = document.getElementById("f5cam");
 
-          // ============================================================
-          // Scene 1 (0–1.83s) — depth-scatter cloud, resting state
-          // depth-scatter-assemble: index-derived golden-angle scatter,
-          // 3 discrete depth layers, deterministic (no Math.random).
-          // ============================================================
-          var frags = Array.prototype.slice.call(root.querySelectorAll(".frag"));
-          var n = frags.length;
-          var GOLDEN = Math.PI * (3 - Math.sqrt(5)); // ~2.39943
-          var RX = 640 * S, RY = 310 * S;
-          var LAYER_Z = [240, -60, -330];       // front / mid / back (px, scaled below)
-          var LAYER_OP = [0.62, 0.46, 0.32];    // dim resting opacities
-          var TUMBLE_X = 26, TUMBLE_Y = 30;     // modest tumble — premium, not chaotic
+        /* ── macro camera (multi-phase-camera + viewport-change) ───────────
+           Single world wrapper; cam is the one source of truth; one driver
+           tween writes transform every frame (phase moves + sine micro-drift).
+           World-point → screen: (S·ox + x, S·oy + y); T = -offset × S. */
+        const cam = { s: 1.28, x: -140, y: -55 };         // t=0 · framed on the rail top, screen edge at frame edge
 
-          // Card-column convergence targets (offsets from cloud origin 50%/44%):
-          // column center x = 70.25cqw -> +389px; card centers y: 27 / 44.95 / 58.65cqh
-          var CARD_DX = 389 * S;
-          var CARD_DY = [-183 * S, 11 * S, 158 * S];
+        /* ── motion-blur streak (path A, horizontal, peak at max pan velocity) ── */
+        const blurNode = document.getElementById("f5-streak-blur");
+        const blurProxy = { v: 0 };
+        const writeBlur = () => {
+          blurNode.setAttribute("stdDeviation", blurProxy.v.toFixed(2) + " 0");
+          camEl.style.filter = blurProxy.v < 0.02 ? "none" : "url(#f5-streak)";
+        };
+        writeBlur(); // seed frame 0
+        tl.to(blurProxy, { v: 13, duration: 0.55, ease: "power2.in",  onUpdate: writeBlur }, 3.25);
+        tl.to(blurProxy, { v: 0,  duration: 0.55, ease: "power2.out", onUpdate: writeBlur }, 3.80);
 
-          var scatter = frags.map(function (el, i) {
-            var a = i * GOLDEN;
-            var fr = (i * 0.6180339887) % 1;   // deterministic per-index variation
-            var fr2 = (i * 0.3819660113) % 1;
-            var r = 0.5 + 0.5 * fr;
-            var L = i % 3;
-            return {
-              L: L,
-              x: Math.cos(a) * RX * r,
-              y: Math.sin(a) * RY * r,
-              z: LAYER_Z[L] * S,
-              rotationX: Math.sin(a) * TUMBLE_X,
-              rotationY: Math.cos(a) * TUMBLE_Y,
-              tx: CARD_DX + (fr - 0.5) * 200 * S,
-              ty: CARD_DY[L] + (fr2 - 0.5) * 70 * S
-            };
+        /* ── reading sweep (asr-keyword-glow envelope, adapted to inbox rows) ── */
+        const rows = gsap.utils.toArray(".f5-sig");
+        const SWEEP_START = 2.05, SWEEP_STEP = 0.165, SWEEP_HOLD = 0.22;
+        const ATTACK = 0.12, RELEASE = 0.4, REST = 0.3;
+        function envelope(t, start, end) {
+          if (t < start) return 0;
+          if (t < end) return Math.min((t - start) / ATTACK, 1);
+          const releaseEnd = end + RELEASE;
+          if (t < releaseEnd) return 1 - ((t - end) / RELEASE) * (1 - REST);
+          return REST;
+        }
+
+        /* ── single deterministic driver: micro-drift + row envelopes ── */
+        const DRIFT_CYCLES = 1.7, AMP_X = 6, AMP_Y = 3, FREQ_RATIO = 1.3;
+        const driver = { t: 0 };
+        const apply = () => {
+          const p = (driver.t / DUR) * Math.PI * 2 * DRIFT_CYCLES;
+          const dx = Math.sin(p) * AMP_X;
+          const dy = Math.sin(p * FREQ_RATIO) * AMP_Y;
+          camEl.style.transform =
+            "translate(" + (cam.x + dx).toFixed(2) + "px," + (cam.y + dy).toFixed(2) + "px) scale(" + cam.s.toFixed(4) + ")";
+          rows.forEach((row, i) => {
+            const start = SWEEP_START + i * SWEEP_STEP;
+            const env = envelope(driver.t, start, start + SWEEP_HOLD);
+            row.style.backgroundColor = "rgba(111,169,160," + (env * 0.085).toFixed(3) + ")";
+            row.style.boxShadow = "inset 2px 0 0 rgba(111,169,160," + Math.min(1, env * 0.95).toFixed(3) + ")";
           });
+        };
 
-          // Park every fragment in the cloud BEFORE any tween fires.
-          frags.forEach(function (el, i) {
-            var s = scatter[i];
-            gsap.set(el, {
-              xPercent: -50, yPercent: -50,
-              x: s.x, y: s.y - 70 * S, z: s.z,
-              rotationX: s.rotationX, rotationY: s.rotationY,
-              opacity: 0
-            });
-          });
+        /* Camera phases — every cam tween carries onUpdate:apply so the DOM
+           write always happens from fully-updated state within a tick,
+           whatever order the renderer visits the tweens (seek-safe). */
+        // Phase 1 · track DOWN the pain-point rail while VO: "your signals pour in"
+        tl.to(cam, { y: -260, duration: 1.9, ease: "power1.inOut", onUpdate: apply }, 0.15);
+        // Phase 2 · pull back to the whole screen as the reading sweep starts
+        tl.to(cam, { s: 1.07, x: 0, y: 0, duration: 1.05, ease: "power2.inOut", onUpdate: apply }, 2.05);
+        // Phase 3 · pan RIGHT to the ranking (motion-blur streak rides this pan)
+        tl.to(cam, { s: 1.16, x: -169, y: 39, duration: 1.1, ease: "power2.inOut", onUpdate: apply }, 3.25);
+        // Breathe · slow creep between cues (camera never sleeps)
+        tl.to(cam, { s: 1.185, duration: 1.15, ease: "power1.inOut", onUpdate: apply }, 4.35);
+        // Phase 4 · push on the evidence popover (right-third framing, screen edge held at frame edge)
+        tl.to(cam, { s: 1.26, x: -365, y: 128, duration: 1.4, ease: "power2.inOut", onUpdate: apply }, 5.5);
 
-          var cloudStage = root.querySelector(".cloud-stage");
+        /* ── lower-third · Scene 1 ── */
+        tl.fromTo("#f5-ltk", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5,  ease: "power2.out" }, 0.9);
+        tl.fromTo("#f5-ltl", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 1.1);
 
-          // Subtle cloud drift for life, then back to flat before convergence lands.
-          tl.to(cloudStage, { rotationY: 9, duration: 2.5, ease: "power1.out" }, 0);
-          tl.to(cloudStage, { rotationY: 0, duration: 1.2, ease: "power2.inOut" }, 2.5);
+        /* ── clustering state → agent line swap · Scene 2 seam (within-scene) ── */
+        tl.fromTo("#f5-clusterfill", { scaleX: 0.08 }, { scaleX: 0.92, duration: 2.8, ease: "power1.inOut" }, 0.3);
+        tl.to("#f5-cluster", { opacity: 0, duration: 0.3, ease: "power1.out" }, 3.15);
+        tl.to("#f5-agentA", { opacity: 0, duration: 0.3, ease: "power1.out" }, 3.0);
+        tl.fromTo("#f5-agentB", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 3.05);
 
-          // "Your signals pour in" — fragments drift down into their scatter points.
-          frags.forEach(function (el, i) {
-            var s = scatter[i];
-            tl.fromTo(el,
-              { x: s.x, y: s.y - 70 * S, z: s.z, rotationX: s.rotationX, rotationY: s.rotationY, opacity: 0 },
-              { y: s.y, opacity: LAYER_OP[s.L], duration: 0.7, ease: "power2.out" },
-              0.05 + i * 0.055
-            );
-          });
+        /* ── bet cards cluster in, ranks 01/02/03 · sub-bars fill after each lands ── */
+        tl.fromTo("#f5-bet1", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 3.35);
+        tl.fromTo("#f5-bet1 .f5-grow", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.out", stagger: 0.07 }, 3.55);
+        tl.fromTo("#f5-bet2", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 3.75);
+        tl.fromTo("#f5-bet2 .f5-grow", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.out", stagger: 0.07 }, 3.95);
+        tl.fromTo("#f5-bet3", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 4.15);
+        tl.fromTo("#f5-bet3 .f5-grow", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.out", stagger: 0.07 }, 4.35);
 
-          // ============================================================
-          // Scene 2 (1.83–4.93s)
-          // ============================================================
-          // "It reads every one" — a staggered brighten-pulse scans the cloud.
-          frags.forEach(function (el, i) {
-            var s = scatter[i];
-            var at = 1.9 + i * 0.042;
-            tl.to(el, { opacity: Math.min(LAYER_OP[s.L] + 0.45, 1), duration: 0.15, ease: "power1.inOut" }, at);
-            tl.to(el, { opacity: LAYER_OP[s.L], duration: 0.28, ease: "power1.out" }, at + 0.15);
-          });
+        /* ── cursor arcs to bet 01 (human-paced, curved: x and y on different eases) ── */
+        tl.set("#f5-cursor", { x: -170, y: 210 }, 0);
+        tl.fromTo("#f5-cursor", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "none" }, 4.55);
+        tl.to("#f5-cursor", { x: 0, duration: 0.85, ease: "power1.inOut" }, 4.7);
+        tl.to("#f5-cursor", { y: 0, duration: 0.85, ease: "power2.out" }, 4.7);
 
-          // Fragments stream inward to the card column and dissolve (z->0, tumble->0).
-          frags.forEach(function (el, i) {
-            var s = scatter[i];
-            var at = 2.55 + i * 0.06;
-            tl.to(el, {
-              x: s.tx, y: s.ty, z: 0, rotationX: 0, rotationY: 0,
-              duration: 1.0, ease: "power2.inOut"
-            }, at);
-            tl.to(el, { opacity: 0, duration: 0.45, ease: "power1.in" }, at + 0.55);
-          });
+        /* ── evidence popover opens on hover · Scene 3 ── */
+        tl.fromTo("#f5-pop", { opacity: 0, y: 12, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "power3.out" }, 5.55);
 
-          // Bet cards stagger-assemble top-to-bottom (grid-card-assemble signature:
-          // fade + short slide directly into slot, low drama, dim-by-position).
-          var cards = [root.querySelector("#f5-card1"), root.querySelector("#f5-card2"), root.querySelector("#f5-card3")];
-          var CARD_OP = [1, 0.88, 0.76];
-          var CARD_AT = [2.85, 3.3, 3.75];
-          cards.forEach(function (el, i) {
-            tl.fromTo(el,
-              { y: 44 * S, scale: 0.975, opacity: 0 },
-              { y: 0, scale: 1, opacity: CARD_OP[i], duration: 0.8, ease: "power3.out" },
-              CARD_AT[i]
-            );
-          });
+        /* ── depth-of-field: the rest of the screen falls out of focus on the push ── */
+        tl.to(".f5-dof", { "--dof": "2.6px", opacity: 0.8, duration: 1.0, ease: "power2.inOut" }, 5.5);
 
-          // Rank chips 01 · 02 · 03 pop in sequence (spring-pop-entrance,
-          // smooth power3 settle — no overshoot, per motion doctrine).
-          var chips = [root.querySelector("#f5-chip1"), root.querySelector("#f5-chip2"), root.querySelector("#f5-chip3")];
-          var CHIP_AT = [3.8, 4.08, 4.36];
-          chips.forEach(function (el, i) {
-            tl.fromTo(el,
-              { scale: 0, opacity: 0 },
-              { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
-              CHIP_AT[i]
-            );
-          });
+        /* driver registered LAST so it reads each frame's settled cam values */
+        tl.to(driver, { t: DUR, duration: DUR, ease: "none", onUpdate: apply }, 0);
+        apply(); // seed t=0
 
-          // Left column lands on "ranked bets".
-          tl.fromTo(root.querySelector("#f5-rule"), { scaleX: 0 }, { scaleX: 1, duration: 0.55, ease: "power3.out" }, 3.1);
-          tl.fromTo(root.querySelector("#f5-kicker"),
-            { y: 14 * S, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 3.25);
-          tl.fromTo(root.querySelector("#f5-hl1"),
-            { y: 30 * S, opacity: 0 }, { y: 0, opacity: 1, duration: 0.75, ease: "power3.out" }, 3.45);
-          tl.fromTo(root.querySelector("#f5-hl2"),
-            { y: 30 * S, opacity: 0 }, { y: 0, opacity: 1, duration: 0.75, ease: "power3.out" }, 3.6);
-
-          // ============================================================
-          // Scene 3 (4.93–7.3s) — "evidence attached"
-          // ============================================================
-          // Quote line reveals inside card 01…
-          tl.fromTo(root.querySelector("#f5-quote-row"),
-            { y: 14 * S, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 4.95);
-
-          // …source tag slides in beside it.
-          tl.fromTo(root.querySelector("#f5-srctag"),
-            { x: -26 * S, opacity: 0 }, { x: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 5.8);
-
-          // Keyword glow (asr-keyword-glow): single linear driver, per-word
-          // attack/sustain/release envelope; "payment" is the brand word.
-          var words = Array.prototype.slice.call(root.querySelectorAll(".qw"));
-          var TIMINGS = [
-            { start: 5.10, end: 5.22, brand: false }, // "I
-            { start: 5.26, end: 5.46, brand: false }, // gave
-            { start: 5.50, end: 5.64, brand: false }, // up
-            { start: 5.68, end: 5.78, brand: false }, // at
-            { start: 5.82, end: 5.94, brand: false }, // the
-            { start: 5.98, end: 6.40, brand: true },  // payment (sustained)
-            { start: 6.46, end: 6.66, brand: false }  // step"
-          ];
-          var ATTACK = 0.09, RELEASE = 0.32, REST_LEVEL = 0.28;
-          var REST = [168, 162, 154];    // cream-muted
-          var ACTIVE = [242, 239, 233];  // cream
-          var BRAND = [255, 107, 44];    // fire-orange
-          var MAX_BLUR_CQW = 0.8, MAX_SCALE = 0.06, GLOW_A = 0.55;
-
-          function envelope(t, w) {
-            var releaseEnd = w.end + RELEASE;
-            if (t < w.start) return 0;
-            if (t < w.end) return Math.min((t - w.start) / ATTACK, 1);
-            if (t < releaseEnd) return 1 - ((t - w.end) / RELEASE) * (1 - REST_LEVEL);
-            return REST_LEVEL;
-          }
-          function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
-
-          // Single driver 0 -> 7.3 also fixes the timeline's total length.
-          var driver = { t: 0 };
-          tl.to(driver, {
-            t: 7.3, duration: 7.3, ease: "none",
-            onUpdate: function () {
-              for (var i = 0; i < words.length; i++) {
-                var w = TIMINGS[i];
-                if (!w) continue;
-                var env = envelope(driver.t, w);
-                var target = w.brand ? BRAND : ACTIVE;
-                var el = words[i];
-                el.style.color = "rgb(" + lerp(REST[0], target[0], env) + "," + lerp(REST[1], target[1], env) + "," + lerp(REST[2], target[2], env) + ")";
-                el.style.textShadow = "0 0 " + (MAX_BLUR_CQW * env).toFixed(3) + "cqw rgba(255,107,44," + (GLOW_A * env).toFixed(3) + ")";
-                el.style.transform = "scale(" + (1 + MAX_SCALE * env).toFixed(4) + ")";
-              }
-            }
-          }, 0);
-
-          // Held read from ~6.7s to 7.3s — no exit (non-final frame).
-
-          window.__timelines["05-signals-become-bets"] = tl;
-        })();
+        window.__timelines["05-signals-become-bets"] = tl;
       </script>
     </template>
   </body>

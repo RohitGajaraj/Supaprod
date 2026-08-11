@@ -311,3 +311,46 @@ The brand font ships as local files in `assets/fonts/` — do NOT link Google Fo
 @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
 </style>
 ```
+
+---
+
+## Product screen tokens (v3 — the system-demo cut; captured from the live supaprod.ai product)
+
+These are the REAL product's design tokens. Product-screen frames use THESE for everything inside a screen; the film tokens above still govern overlays (kickers, lower-thirds) and F12/F13.
+
+surfaces:
+  app-ground: "#0A0A0B"
+  panel: "#141416"
+  panel-raised: "#1A1A1D"
+  hairline: "#26262A"
+  text: "#F2EFE9"
+  text-muted: "#A8A29A"
+  text-faint: "#6B6660"
+
+stage-colors (each station leads with its own):
+  discover: "#6FA9A0"
+  decide: "#C39A5E"
+  plan: "#8FA464"
+  design: "#AB7FA0"
+  build: "#6D97C2"
+  ship: "#BD8092"
+  learn: "#A89F66"
+  pass: "#4FC47A"
+  fail: "#EF6A5F"
+  warn: "#E8B44C"
+  gate/brand-ember: "#FF6B2C"
+
+radii (the product is soft-cornered, unlike the film's poster frames):
+  chip: 7px · control: 8px · row: 9px · card: 10px · panel: 12px · pane: 16px
+
+ui-type (true UI scale — this is what makes screens read as product, not slides):
+  greet: 1.55cqw/600 · panel-title: 1.3cqw/600 · body: 0.73cqw/400 · prose: 0.70cqw/400
+  meta: 0.68cqw/400 muted · label: 0.65cqw/500 mono uppercase 0.10em · data: 0.62cqw/400 mono
+  kbd/chips: 0.57cqw mono · All in Mona Sans except label/data/kbd in IBM Plex Mono.
+
+screen-craft laws:
+  - Sidebar: 12–13cqw wide, workspace name "harbor", nav rows for Today · Discover · Decide · Plan · Design · Build · Ship · Learn · Brain, each with its station-color dot; active row gets a soft panel fill.
+  - Top bar: 3.2cqh, ask/search field center-left, breadcrumb, small avatar chip right.
+  - Content density: lists ≥5 rows, docs with real prose, consoles with real log lines. Timestamps ("2m ago", "yesterday"), authors ("maya r."), counts everywhere.
+  - Hairline borders everywhere panels meet; soft 1px inner strokes, NO drop shadows heavier than 0 0 0 1px hairline + a faint large ambient (0 24px 80px rgba(0,0,0,.5)).
+  - Perspective stage: screens sit on a subtle 3D stage (perspective 2000–2600px, rotateX/Y ≤ 4°) so the camera has depth to work with.

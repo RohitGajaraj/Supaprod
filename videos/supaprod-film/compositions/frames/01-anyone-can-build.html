@@ -1,322 +1,491 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <!-- Frame 1 — Anyone can build · 8.2s · dark register · kinetic-type-beats (Adapt) -->
-    <!-- head is metadata only; the runtime clones ONLY the <template> contents -->
-  </head>
-  <body>
-    <template>
-      <style>
-        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
-        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
-        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
-        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+<head>
+<meta charset="utf-8">
+<!-- F1 · Anyone can build — 8.2s · system-demo cut (v3)
+     Shot: an agent writes a checkout-retry feature in a live editor, the camera
+     pans right on a motion-blur streak to the deploy panel, pipeline ticks green,
+     three artifact cards land, deploy flips to "live", slow push on the promote row.
+     Camera: multi-phase (drift-right close-up → blurred pan → settle → climax push)
+     with continuous sine micro-drift under the whole frame. -->
+</head>
+<body>
+<template>
+<style>
+/* ————— fonts (frame.md @font-face, kit fallback-chain form) ————— */
+@font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2"),url("assets/fonts/Geist-Regular.woff2") format("woff2");}
+@font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2"),url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+@font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2"),url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
 
-        /* Root — styled via #root only (scoper drops root classes). Container law:
-           container-type: size so every cqw/cqh resolves against this frame. */
-        #root {
-          position: absolute;
-          inset: 0;
-          overflow: hidden;
-          container-type: size;
-        }
+/* ————— tokens on #root (never :root — the render scoper drops :root rules) ————— */
+#root{
+  /* surfaces */
+  --sk-ground:#0A0A0B;
+  --sk-panel:#141416;
+  --sk-raised:#1A1A1D;
+  --sk-hairline:#26262A;
+  --sk-text:#F2EFE9;
+  --sk-muted:#A8A29A;
+  --sk-faint:#6B6660;
+  /* stage colors */
+  --sk-discover:#6FA9A0;
+  --sk-decide:#C39A5E;
+  --sk-plan:#8FA464;
+  --sk-design:#AB7FA0;
+  --sk-build:#6D97C2;
+  --sk-ship:#BD8092;
+  --sk-learn:#A89F66;
+  --sk-pass:#4FC47A;
+  --sk-fail:#EF6A5F;
+  --sk-warn:#E8B44C;
+  --sk-ember:#FF6B2C;
+  --sk-accent:var(--sk-build);      /* this frame leads with build blue */
+  /* radii */
+  --sk-r-chip:7px;
+  --sk-r-control:8px;
+  --sk-r-row:9px;
+  --sk-r-card:10px;
+  --sk-r-panel:12px;
+  --sk-r-pane:16px;
+  /* faces */
+  --sk-ui:"Mona Sans",system-ui,sans-serif;
+  --sk-mono:"IBM Plex Mono",ui-monospace,monospace;
+  /* the only two shadows */
+  --sk-ring:0 0 0 1px var(--sk-hairline);
+  --sk-ambient:0 24px 80px rgba(0,0,0,.5);
 
-        /* Full-bleed ground lives on a clip, never on #root */
-        #f01-bg {
-          position: absolute;
-          inset: 0;
-          background: #0a0a0b; /* ink-black */
-          z-index: 0;
-        }
+  position:absolute;inset:0;overflow:hidden;
+  container-type:size;               /* the container law — all sizing below is cqw/cqh */
+  color:var(--sk-text);
+  font-family:var(--sk-ui);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 
-        #f01-stage {
-          position: absolute;
-          inset: 0;
-          z-index: 1;
-        }
+/* ————— ground clip (track 0) — flat ink; env tone lives inside the world ————— */
+.f1-groundclip{position:absolute;inset:0;background:#0A0A0B;}
 
-        /* ——— Scene 1 · hero line (h1 role: 7.5cqw / 0.9 / -0.03em / lowercase) ——— */
-        .hero {
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: 36.5cqh;
-          text-align: center;
-          font-family: "Mona Sans", sans-serif;
-          font-weight: 700;
-          font-size: 7.5cqw;
-          line-height: 0.9;
-          letter-spacing: -0.03em;
-          color: #f2efe9; /* cream */
-          z-index: 10;
-        }
-        .w {
-          display: inline-block; /* transforms need block-level */
-        }
-        #f01-w3 {
-          color: #ff6b2c; /* fire-orange — the frame's one inked clause */
-        }
+/* ————— shot clip (track 1) ————— */
+.f1-shotclip{position:absolute;inset:0;overflow:hidden;}
+.f1-stage{position:absolute;inset:0;overflow:hidden;display:grid;place-items:center;}
 
-        /* ——— Scene 2 · feature-card fan (3 depth layers, dimmed supporting) ——— */
-        .card {
-          position: absolute;
-          width: 16.5cqw;
-          background: #141416; /* ink-black-alt */
-          border: 1px solid #26262a; /* 1px hairline — px by design */
-          padding: 1.1cqw;
-        }
-        .card.a {
-          width: 15cqw;
-          filter: blur(1.5px); /* static depth cue, never animated */
-          z-index: 2;
-        }
-        .card.b {
-          z-index: 3;
-        }
-        .card.c {
-          z-index: 4;
-        }
-        .tag {
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 0.72cqw;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #6b6660; /* cream-hint */
-        }
-        .ttl {
-          font-family: "Mona Sans", sans-serif;
-          font-weight: 600;
-          font-size: 1.5cqw;
-          line-height: 1.2;
-          color: #f2efe9;
-          margin-top: 0.7cqh;
-        }
-        .bar {
-          height: 0.65cqh;
-          background: #26262a;
-          margin-top: 1cqh;
-        }
+/* world — the single camera wrapper (translate+scale written by GSAP only) */
+.f1-world{
+  position:absolute;inset:0;display:grid;place-items:center;
+  transform-origin:50% 50%;
+  will-change:transform,filter;
+  filter:url(#f1-streak);            /* pan-velocity blur, stdDeviation driven 0→16→0 */
+}
+/* environment ground — moves WITH the world so the pan has parallax; oversized so
+   no camera phase (max scale 1.6, |Tx| ≤ 1244, |Ty| ≤ 227 + drift) reveals its edge */
+.f1-env{
+  position:absolute;inset:-18cqh -38cqw;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.015) 1px, transparent 1.4px),
+    radial-gradient(90cqw 60cqh at 38% 42%, #121214 0%, #0A0A0B 62%);
+  background-size:2.4cqw 2.4cqw, 100% 100%;
+}
+/* the tilted desk plane both app windows sit on — perspective is local to the
+   transform so the world's filter/2D camera never flattens it */
+.f1-plane{
+  position:relative;width:132cqw;height:92cqh;
+  transform:perspective(2200px) rotateX(1.5deg) rotateY(-2.1deg);
+}
+.f1-win{
+  position:absolute;top:0;height:92cqh;
+  background:var(--sk-ground);
+  border-radius:var(--sk-r-pane);
+  box-shadow:var(--sk-ring),var(--sk-ambient);
+  overflow:hidden;
+}
 
-        /* ——— Scene 3 · shipped chip (discrete-text-sequence) ———
-           Fixed min-width mono container so ticks append without box jitter. */
-        #f01-chip {
-          position: absolute;
-          left: 60cqw;
-          top: 51.5cqh;
-          background: #141416;
-          border: 1px solid #ff6b2c;
-          padding: 0.9cqh 0.9cqw;
-          z-index: 11;
-        }
-        #f01-chip-text {
-          display: block;
-          font-family: "IBM Plex Mono", monospace;
-          font-weight: 500;
-          font-size: 1.05cqw;
-          letter-spacing: 0.14em;
-          color: #ff6b2c;
-          white-space: nowrap;
-          min-width: 21.2cqw;
-          text-align: left;
-        }
-      </style>
+/* ————— kit type + chrome (copied from _screen-kit.html, trimmed to use) ————— */
+.sk-spacer{flex:1;}
+.sk-body{font:400 0.73cqw/1.45 var(--sk-ui);color:var(--sk-text);}
+.sk-meta{font:400 0.68cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+.sk-label{font:500 0.65cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.10em;text-transform:uppercase;}
+.sk-crumb{display:flex;align-items:center;font:400 0.62cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;}
+.sk-crumb-sep{padding:0 0.35cqw;color:var(--sk-faint);}
+.sk-crumb-here{color:var(--sk-text);}
+.sk-panel{background:var(--sk-panel);border:1px solid var(--sk-hairline);border-radius:var(--sk-r-panel);overflow:hidden;min-height:0;display:flex;flex-direction:column;}
+.sk-panel-hd{display:flex;align-items:center;gap:0.6cqw;flex:none;padding:0.75cqw 1cqw;border-bottom:1px solid var(--sk-hairline);}
+.sk-panel-title{font:600 0.83cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+.sk-panel-body{flex:1;min-height:0;overflow:hidden;}
+.sk-chip{display:inline-flex;align-items:center;gap:0.3cqw;padding:0.22cqw 0.45cqw;border:1px solid var(--sk-hairline);border-radius:var(--sk-r-chip);background:rgba(255,255,255,0.02);font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;white-space:nowrap;}
+.sk-chip--accent{color:var(--sk-accent);border-color:color-mix(in srgb,var(--sk-accent) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-accent) 8%,transparent);}
+.sk-chip--pass{color:var(--sk-pass);border-color:color-mix(in srgb,var(--sk-pass) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-pass) 8%,transparent);}
+.sk-badge{display:inline-flex;align-items:center;padding:0.22cqw 0.45cqw;background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:var(--sk-r-chip);font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);font-variant-numeric:tabular-nums;}
+.sk-dot-inline{width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;background:currentColor;}
+.sk-livedot{width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;background:var(--sk-pass);box-shadow:0 0 0.4cqw var(--sk-pass);}
+.sk-tick{color:var(--sk-pass);font-family:var(--sk-mono);}
+.sk-run{color:var(--sk-accent);font-family:var(--sk-mono);}
+.sk-logline{display:grid;grid-template-columns:3.4cqw 1cqw minmax(0,1fr);gap:0.5cqw;align-items:baseline;padding:0.32cqw 1cqw;font:400 0.62cqw/1.5 var(--sk-mono);color:var(--sk-muted);font-variant-numeric:tabular-nums;}
+.sk-log-t{color:var(--sk-faint);}
 
-      <div id="root" data-composition-id="01-anyone-can-build" data-width="1920" data-height="1080">
-        <!-- ground -->
-        <div id="f01-bg" class="clip" data-start="0" data-duration="8.2" data-track-index="0"></div>
+/* ————— editor window (left, 78cqw) ————— */
+.f1-editor{
+  left:0;width:78cqw;
+  --dof:0px;                          /* depth-of-field-blur — tweened in scene 3 */
+  filter:blur(var(--dof));
+  will-change:filter;
+  display:grid;
+  grid-template-columns:10cqw minmax(0,1fr);
+  grid-template-rows:3.2cqh minmax(0,1fr) 2.6cqh;
+  grid-template-areas:"rail tabs" "rail code" "rail status";
+}
+.f1-rail{grid-area:rail;display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--sk-hairline);padding:0.9cqw 0;}
+.f1-rail .sk-label{padding:0 1cqw 0.6cqw;font-size:0.55cqw;}
+.f1-filerow{font:400 0.66cqw/1.5 var(--sk-mono);color:var(--sk-muted);padding:0.3cqw 1cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.f1-filerow.is-active{color:var(--sk-text);box-shadow:inset 2px 0 0 var(--sk-accent);background:var(--sk-raised);}
+.f1-railfoot{margin-top:auto;padding:0.7cqw 1cqw 0;border-top:1px solid var(--sk-hairline);font:400 0.55cqw/1.6 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.03em;}
+.f1-tabs{grid-area:tabs;display:flex;align-items:stretch;gap:0;border-bottom:1px solid var(--sk-hairline);}
+.f1-tab{display:flex;align-items:center;padding:0 0.95cqw;border-right:1px solid var(--sk-hairline);font:400 0.62cqw/1 var(--sk-mono);color:var(--sk-faint);white-space:nowrap;}
+.f1-tab.is-active{color:var(--sk-text);box-shadow:inset 0 -2px 0 var(--sk-accent);}
+.f1-tabs-meta{display:flex;align-items:center;gap:0.7cqw;padding:0 0.9cqw;}
+.f1-tabs-meta .sk-meta{font-size:0.57cqw;font-family:var(--sk-mono);}
+.f1-code{grid-area:code;min-height:0;overflow:hidden;padding:0.9cqw 0;}
+.f1-codeline{display:flex;align-items:baseline;gap:0.85cqw;padding:0 1.2cqw;opacity:0;}
+.f1-ln{flex:none;width:2cqw;text-align:right;font:400 0.62cqw/1.72 var(--sk-mono);color:var(--sk-faint);font-variant-numeric:tabular-nums;}
+.f1-codeline code{white-space:pre;font:400 0.72cqw/1.72 var(--sk-mono);color:var(--sk-text);}
+.f1-caret{display:inline-block;flex:none;width:0.42cqw;height:0.95cqw;margin-left:0.12cqw;background:var(--sk-accent);opacity:0;align-self:center;}
+/* syntax tones — station colors as the palette, one system */
+.tk-k{color:var(--sk-build);}
+.tk-f{color:var(--sk-text);}
+.tk-s{color:var(--sk-decide);}
+.tk-t{color:var(--sk-discover);}
+.tk-c{color:var(--sk-faint);}
+.tk-n{color:var(--sk-warn);}
+.f1-status{grid-area:status;display:flex;align-items:center;gap:1cqw;padding:0 1.2cqw;border-top:1px solid var(--sk-hairline);font:400 0.57cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.03em;}
 
-        <!-- stage -->
-        <div id="f01-stage" class="clip" data-start="0" data-duration="8.2" data-track-index="1">
-          <!-- Scene 2 · card fan — back layer -->
-          <div class="card a" id="f01-card-a1" style="left: 11cqw; top: 50cqh">
-            <div class="tag">feature</div>
-            <div class="ttl">dark mode</div>
-            <div class="bar" style="width: 88%"></div>
-            <div class="bar" style="width: 62%"></div>
+/* ————— deploy window (right, 51cqw) ————— */
+.f1-deploy{left:81cqw;width:51cqw;display:flex;flex-direction:column;}
+.f1-dep-hd{flex:none;display:flex;align-items:center;gap:0.9cqw;height:3.2cqh;padding:0 1.2cqw;border-bottom:1px solid var(--sk-hairline);}
+.f1-flipzone{position:relative;display:flex;align-items:center;}
+.f1-flipzone .f1-flip-live{position:absolute;right:0;top:50%;margin-top:-0.62cqw;opacity:0;}
+.f1-dep-body{flex:1;min-height:0;display:flex;flex-direction:column;gap:0.85cqw;padding:1.2cqw;overflow:hidden;}
+.f1-promote{padding:0.55cqw 1cqw 0.8cqw;background:color-mix(in srgb,var(--sk-accent) 5%,transparent);}
+.f1-promote-row{display:grid;grid-template-columns:3.4cqw 1cqw minmax(0,1fr) auto;gap:0.5cqw;align-items:center;font:400 0.62cqw/1.5 var(--sk-mono);color:var(--sk-text);font-variant-numeric:tabular-nums;}
+.f1-glyphcell{position:relative;height:1cqw;}
+.f1-glyphcell span{position:absolute;inset:0;display:grid;place-items:center;font:400 0.62cqw/1 var(--sk-mono);}
+.f1-glyphcell .f1-pend{color:var(--sk-faint);}
+.f1-glyphcell .f1-done{color:var(--sk-pass);opacity:0;}
+.f1-bar{margin-top:0.55cqw;height:0.32cqw;background:var(--sk-hairline);border-radius:2px;overflow:hidden;}
+.f1-fill{display:block;width:100%;height:100%;background:#6D97C2;border-radius:inherit;transform-origin:left center;}
+.f1-arts{flex:none;}
+.f1-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:0.8cqw;padding:0.9cqw;}
+.f1-card{background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:var(--sk-r-card);padding:0.85cqw 0.9cqw;min-height:9.6cqh;display:flex;flex-direction:column;gap:0.42cqw;}
+.f1-card-kind{display:flex;align-items:baseline;gap:0.5cqw;}
+.f1-card-kind .sk-label{font-size:0.5cqw;color:var(--sk-accent);}
+.f1-card-kind .sk-meta{font-size:0.55cqw;}
+.f1-card-title{font:600 0.76cqw/1.25 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+.f1-thumb{display:flex;flex-direction:column;gap:0.28cqw;margin-top:0.15cqw;}
+.f1-thumb i{display:block;height:0.3cqw;border-radius:2px;background:#2A2A2E;}
+.f1-thumb i.is-a{background:color-mix(in srgb,var(--sk-accent) 55%,#2A2A2E);}
+.f1-endpoint{display:flex;align-items:center;gap:0.5cqw;font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-muted);}
+.f1-endpoint b{font-weight:500;color:var(--sk-accent);}
+.f1-flagrow{display:flex;align-items:center;gap:0.5cqw;font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-muted);}
+.f1-toggle{position:relative;width:1.55cqw;height:0.85cqw;border-radius:999px;background:color-mix(in srgb,var(--sk-pass) 22%,var(--sk-panel));border:1px solid color-mix(in srgb,var(--sk-pass) 45%,var(--sk-hairline));}
+.f1-toggle::after{content:"";position:absolute;top:0.1cqw;right:0.1cqw;width:0.55cqw;height:0.55cqw;border-radius:50%;background:var(--sk-pass);}
+.f1-card .f1-author{margin-top:auto;font:400 0.55cqw/1.3 var(--sk-mono);color:var(--sk-faint);}
+.f1-recent{flex:1;min-height:0;}
+.f1-shiprow{display:flex;align-items:center;gap:0.55cqw;padding:0.52cqw 1cqw;font:400 0.66cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+.f1-shiprow + .f1-shiprow{border-top:1px solid var(--sk-hairline);}
+.f1-shiprow b{font-weight:400;color:var(--sk-text);}
+.f1-shiprow .sk-meta{font-size:0.57cqw;font-family:var(--sk-mono);}
+
+/* ————— film overlay — lower-third (kicker + one line, lower-left) ————— */
+.sk-lowerthird{
+  position:absolute;left:5.5cqw;bottom:18cqh;z-index:60;   /* bottom raised: 83% keep-out */
+  display:flex;flex-direction:column;gap:0.55cqh;
+  text-shadow:0 2px 30px rgba(0,0,0,.6);
+}
+.sk-lt-kicker{font:500 0.72cqw/1 var(--sk-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--sk-ember);}
+.sk-lt-line{font:600 2.6cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
+</style>
+
+<div id="root" data-composition-id="01-anyone-can-build" data-width="1920" data-height="1080" data-duration="8.7" data-layout-allow-overflow>
+
+  <!-- track 0 · full-bleed ground -->
+  <div id="f1-ground" class="clip f1-groundclip" data-start="0" data-duration="8.2" data-track-index="0"></div>
+
+  <!-- track 1 · the shot -->
+  <div id="f1-shot" class="clip f1-shotclip" data-start="0" data-duration="8.2" data-track-index="1" data-layout-allow-overflow>
+
+    <!-- directional pan-blur filter (motion-blur-streak, path A) -->
+    <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+      <defs>
+        <filter id="f1-streak" x="-25%" y="-25%" width="150%" height="150%">
+          <feGaussianBlur id="f1-streak-blur" in="SourceGraphic" stdDeviation="0 0"/>
+        </filter>
+      </defs>
+    </svg>
+
+    <div class="f1-stage">
+      <div class="f1-world" id="f1-world">
+        <div class="f1-env"></div>
+        <div class="f1-plane">
+
+          <!-- ═══ editor window ═══ -->
+          <div class="f1-win f1-editor" id="f1-editor">
+            <aside class="f1-rail">
+              <span class="sk-label">checkout</span>
+              <div class="f1-filerow">PaymentForm.tsx</div>
+              <div class="f1-filerow is-active">retry.ts</div>
+              <div class="f1-filerow">api/payments.ts</div>
+              <div class="f1-filerow">RetryBanner.tsx</div>
+              <div class="f1-filerow">retry.test.ts</div>
+              <div class="f1-railfoot">fix/checkout-dropoff<br>214 tests passing</div>
+            </aside>
+            <div class="f1-tabs">
+              <div class="f1-tab">PaymentForm.tsx</div>
+              <div class="f1-tab is-active">retry.ts</div>
+              <div class="f1-tab">api/payments.ts</div>
+              <span class="sk-spacer"></span>
+              <div class="f1-tabs-meta">
+                <span class="sk-meta">ts · strict</span>
+                <span class="sk-chip sk-chip--accent"><span class="sk-dot-inline" id="f1-badge-dot"></span>agent · building</span>
+              </div>
+            </div>
+            <div class="f1-code" id="f1-code">
+              <div class="f1-codeline"><span class="f1-ln">1</span><code><span class="tk-k">import</span> { preserveFields, surfaceError } <span class="tk-k">from</span> <span class="tk-s">"@checkout/form"</span>;</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">2</span><code><span class="tk-k">import</span> { tokenize } <span class="tk-k">from</span> <span class="tk-s">"@payments/client"</span>;</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">3</span><code> </code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">4</span><code><span class="tk-c">// one-tap retry — keep state on a declined card</span></code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">5</span><code><span class="tk-k">export async function</span> <span class="tk-f">retryPayment</span>(form: <span class="tk-t">CheckoutForm</span>) {</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">6</span><code>  <span class="tk-k">const</span> attempt = <span class="tk-k">await</span> <span class="tk-f">tokenize</span>(form.card);</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">7</span><code> </code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">8</span><code>  <span class="tk-k">if</span> (attempt.status === <span class="tk-s">"declined"</span>) {</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">9</span><code>    <span class="tk-f">preserveFields</span>(form, { except: [<span class="tk-s">"cvc"</span>] });</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">10</span><code>    <span class="tk-f">surfaceError</span>(attempt.decline.reason);</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">11</span><code>    <span class="tk-k">return</span> retry.<span class="tk-f">schedule</span>(form, { after: <span class="tk-n">1200</span> });</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">12</span><code>  }</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">13</span><code> </code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">14</span><code>  <span class="tk-k">return</span> <span class="tk-f">confirm</span>(attempt);</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">15</span><code>}</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">16</span><code> </code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">17</span><code><span class="tk-k">export function</span> <span class="tk-f">onRetry</span>(form: <span class="tk-t">CheckoutForm</span>) {</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">18</span><code>  <span class="tk-f">track</span>(<span class="tk-s">"checkout.retry.tapped"</span>);</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">19</span><code>  <span class="tk-k">return</span> <span class="tk-f">retryPayment</span>(form);</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">20</span><code>}</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">21</span><code> </code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">22</span><code><span class="tk-c">// surface the decline inline, never clear the form</span></code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">23</span><code><span class="tk-k">const</span> retry = <span class="tk-f">createRetryQueue</span>({ max: <span class="tk-n">3</span> });</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">24</span><code><span class="tk-k">export const</span> view = &lt;<span class="tk-t">RetryBanner</span> onRetry={onRetry} /&gt;;</code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">25</span><code> </code><span class="f1-caret"></span></div>
+              <div class="f1-codeline"><span class="f1-ln">26</span><code><span class="tk-c">// agent — wiring one-tap retry into PaymentForm…</span></code><span class="f1-caret"></span></div>
+            </div>
+            <div class="f1-status"><span>agent session 00:41</span><span>problems 0</span><span class="sk-spacer"></span><span>utf-8 · lf · ts 5.4</span></div>
           </div>
-          <div class="card a" id="f01-card-a2" style="left: 74cqw; top: 49.5cqh">
-            <div class="tag">mobile</div>
-            <div class="ttl">activity feed</div>
-            <div class="bar" style="width: 84%"></div>
-            <div class="bar" style="width: 58%"></div>
+
+          <!-- ═══ deploy window ═══ -->
+          <div class="f1-win f1-deploy" id="f1-deploy">
+            <header class="f1-dep-hd">
+              <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span>deploys</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">one-tap-retry</span></div>
+              <span class="sk-spacer"></span>
+              <div class="f1-flipzone">
+                <span class="sk-chip sk-chip--accent" id="f1-dep-pend"><span class="sk-run">▸</span>deploying</span>
+                <span class="sk-chip sk-chip--pass f1-flip-live" id="f1-dep-live"><span class="sk-livedot"></span>live</span>
+              </div>
+            </header>
+            <div class="f1-dep-body">
+
+              <!-- pipeline -->
+              <section class="sk-panel">
+                <header class="sk-panel-hd">
+                  <h2 class="sk-panel-title">deploy · one-tap-retry</h2>
+                  <span class="sk-spacer"></span>
+                  <span class="sk-chip">fix/checkout-dropoff</span>
+                </header>
+                <div class="sk-panel-body f1-pip">
+                  <div class="sk-logline"><span class="sk-log-t">14:02:11</span><span class="f1-glyphcell"><span class="f1-pend">○</span><span class="f1-done">✓</span></span><span>install · 12s</span></div>
+                  <div class="sk-logline"><span class="sk-log-t">14:02:23</span><span class="f1-glyphcell"><span class="f1-pend">○</span><span class="f1-done">✓</span></span><span>typecheck · 8s</span></div>
+                  <div class="sk-logline"><span class="sk-log-t">14:02:31</span><span class="f1-glyphcell"><span class="f1-pend">○</span><span class="f1-done">✓</span></span><span>tests · 214 passing</span></div>
+                  <div class="sk-logline"><span class="sk-log-t">14:03:12</span><span class="f1-glyphcell"><span class="f1-pend">○</span><span class="f1-done">✓</span></span><span>build · 19s</span></div>
+                  <div class="f1-promote">
+                    <div class="f1-promote-row">
+                      <span class="sk-log-t" style="font:400 0.62cqw/1.5 var(--sk-mono);">14:03:19</span>
+                      <span class="f1-glyphcell"><span class="f1-pend" id="f1-pr-run" style="color:var(--sk-accent);">▸</span><span class="f1-done" id="f1-pr-done">✓</span></span>
+                      <span>promote · preview → production</span>
+                      <span class="f1-flipzone" style="min-width:6.4cqw;justify-content:flex-end;">
+                        <span class="sk-chip" id="f1-row-pend">promoting…</span>
+                        <span class="sk-chip sk-chip--pass f1-flip-live" id="f1-row-live"><span class="sk-livedot"></span>live · production</span>
+                      </span>
+                    </div>
+                    <div class="f1-bar"><i class="f1-fill" id="f1-fill"></i></div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- artifacts — the era's output made specific -->
+              <section class="sk-panel f1-arts">
+                <header class="sk-panel-hd">
+                  <h2 class="sk-panel-title">artifacts · this week</h2>
+                  <span class="sk-badge">3 new</span>
+                  <span class="sk-spacer"></span>
+                  <span class="sk-label" style="font-size:0.55cqw;display:flex;align-items:center;gap:0.35cqw;"><span class="sk-livedot"></span>live</span>
+                </header>
+                <div class="f1-cards">
+                  <article class="f1-card f1-art-card">
+                    <div class="f1-card-kind"><span class="sk-label">ui</span><span class="sk-spacer"></span><span class="sk-meta">2m ago</span></div>
+                    <h3 class="f1-card-title">checkout redesign</h3>
+                    <div class="f1-thumb"><i style="width:72%"></i><i style="width:46%"></i><i class="is-a" style="width:58%"></i></div>
+                    <p class="f1-author">maya r. · 4 screens</p>
+                  </article>
+                  <article class="f1-card f1-art-card">
+                    <div class="f1-card-kind"><span class="sk-label">api</span><span class="sk-spacer"></span><span class="sk-meta">today</span></div>
+                    <h3 class="f1-card-title">/v2/payments</h3>
+                    <div class="f1-endpoint"><b>POST</b>/v2/payments<span class="sk-badge">201</span></div>
+                    <p class="f1-author">jonah t. · 12 routes</p>
+                  </article>
+                  <article class="f1-card f1-art-card">
+                    <div class="f1-card-kind"><span class="sk-label">feature</span><span class="sk-spacer"></span><span class="sk-meta">just now</span></div>
+                    <h3 class="f1-card-title">one-tap retry</h3>
+                    <div class="f1-flagrow"><span class="f1-toggle"></span>flag · on</div>
+                    <p class="f1-author">agent · behind flag</p>
+                  </article>
+                </div>
+              </section>
+
+              <!-- recent ships — the era keeps shipping -->
+              <section class="sk-panel f1-recent">
+                <header class="sk-panel-hd">
+                  <h2 class="sk-panel-title">shipped this week</h2>
+                  <span class="sk-badge">6</span>
+                </header>
+                <div class="sk-panel-body">
+                  <div class="f1-shiprow"><span class="sk-livedot"></span><b>checkout copy pass</b><span class="sk-spacer"></span><span class="sk-meta">maya r. · 2h ago</span></div>
+                  <div class="f1-shiprow"><span class="sk-livedot"></span><b>invoice email deduper</b><span class="sk-spacer"></span><span class="sk-meta">priya s. · yesterday</span></div>
+                  <div class="f1-shiprow"><span class="sk-livedot"></span><b>promo field mobile fix</b><span class="sk-spacer"></span><span class="sk-meta">jonah t. · yesterday</span></div>
+                  <div class="f1-shiprow"><span class="sk-livedot"></span><b>onboarding tooltips</b><span class="sk-spacer"></span><span class="sk-meta">agent · 2d ago</span></div>
+                </div>
+              </section>
+
+            </div>
           </div>
 
-          <!-- mid layer -->
-          <div class="card b" id="f01-card-b1" style="left: 22cqw; top: 60cqh">
-            <div class="tag">flow</div>
-            <div class="ttl">onboarding</div>
-            <div class="bar" style="width: 90%"></div>
-            <div class="bar" style="width: 55%"></div>
-          </div>
-          <div class="card b" id="f01-card-b2" style="left: 62cqw; top: 61cqh">
-            <div class="tag">api</div>
-            <div class="ttl">smart search</div>
-            <div class="bar" style="width: 86%"></div>
-            <div class="bar" style="width: 64%"></div>
-          </div>
-
-          <!-- front layer -->
-          <div class="card c" id="f01-card-c1" style="left: 35.5cqw; top: 66cqh">
-            <div class="tag">ui</div>
-            <div class="ttl">checkout flow</div>
-            <div class="bar" style="width: 92%"></div>
-            <div class="bar" style="width: 60%"></div>
-          </div>
-          <div class="card c" id="f01-card-c2" style="left: 49cqw; top: 69cqh">
-            <div class="tag">web</div>
-            <div class="ttl">team billing</div>
-            <div class="bar" style="width: 88%"></div>
-            <div class="bar" style="width: 66%"></div>
-          </div>
-
-          <!-- Scene 1 · hero -->
-          <div class="hero" id="f01-hero">
-            <span class="w" id="f01-w1">anyone</span>
-            <span class="w" id="f01-w2">can</span>
-            <span class="w" id="f01-w3">build.</span>
-          </div>
-
-          <!-- Scene 3 · shipped chip -->
-          <div id="f01-chip"><span id="f01-chip-text"></span></div>
         </div>
       </div>
+    </div>
 
-      <script
-        src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
-        integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
-        crossorigin="anonymous"
-      ></script>
-      <script>
-        window.__timelines = window.__timelines || {};
-        (function () {
-          const tl = gsap.timeline({ paused: true });
-          const EASE = "power3.out"; // film default — long-tail settle, zero overshoot
-          const TOTAL = 8.2;
+    <!-- film overlay — lower-third -->
+    <div class="sk-lowerthird">
+      <span class="sk-lt-kicker" id="f1-lt-k">The era</span>
+      <span class="sk-lt-line" id="f1-lt-l">anyone can build now.</span>
+    </div>
 
-          /* ————— discrete-text-sequence · "shipped" ticks —————
-             Whole-string states swapped at thresholds; reverse-search per frame;
-             DOM write only on transition (lastText guard). The driver also pins
-             the timeline to the full 8.2s so the frame ends on a held read. */
-          const SEQ = [
-            { t: 0.0, text: "" },
-            { t: 5.4, text: "SHIPPED" },
-            { t: 5.78, text: "SHIPPED · SHIPPED" },
-            { t: 6.16, text: "SHIPPED · SHIPPED · SHIPPED" },
-          ];
-          function textAt(time) {
-            for (let i = SEQ.length - 1; i >= 0; i--) {
-              if (time >= SEQ[i].t) return SEQ[i].text;
-            }
-            return "";
-          }
-          const chipTextEl = document.getElementById("f01-chip-text");
-          let lastText = null;
-          const driver = { t: 0 };
-          tl.to(
-            driver,
-            {
-              t: TOTAL,
-              duration: TOTAL,
-              ease: "none",
-              onUpdate: function () {
-                const s = textAt(driver.t);
-                if (s !== lastText) {
-                  chipTextEl.textContent = s;
-                  lastText = s;
-                }
-              },
-            },
-            0,
-          );
+  </div>
+</div>
 
-          /* ————— Scene 1 (0.0–2.5s) · per-word staggered reveal —————
-             dynamic-content-sequencing mechanics: each word's window is computed
-             from its length (BASE + chars × SEC_PER_CHAR), starts pre-computed
-             once — longer words hold the beat longer. Lands on "anyone can build". */
-          const WORDS = [
-            { sel: "#f01-w1", len: 6 },
-            { sel: "#f01-w2", len: 3 },
-            { sel: "#f01-w3", len: 6 },
-          ];
-          const WORD_BASE = 0.28;
-          const SEC_PER_CHAR = 0.037;
-          let cursor = 0.35;
-          WORDS.forEach(function (w) {
-            tl.fromTo(
-              w.sel,
-              { opacity: 0, yPercent: 40, scale: 0.985 },
-              {
-                opacity: 1,
-                yPercent: 0,
-                scale: 1,
-                duration: 0.75,
-                ease: EASE,
-                immediateRender: true,
-              },
-              cursor,
-            );
-            cursor += WORD_BASE + w.len * SEC_PER_CHAR;
-          });
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    window.__timelines = window.__timelines || {};
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      var $ = function (id) { return document.getElementById(id); };
+      var world = $("f1-world");
 
-          /* ————— Scene 2 (2.5–5.3s) · card cascade —————
-             grid-card-assemble signature: each card fades + slides/scales a short
-             distance directly into its slot, staggered back→front, low drama —
-             no scatter, no bounce. Cards settle dimmed to their depth layer. */
-          const CARDS = [
-            { sel: "#f01-card-a1", rot: -7, o: 0.4, at: 2.55 },
-            { sel: "#f01-card-a2", rot: 6, o: 0.4, at: 2.88 },
-            { sel: "#f01-card-b1", rot: -4, o: 0.62, at: 3.22 },
-            { sel: "#f01-card-b2", rot: 4, o: 0.62, at: 3.58 },
-            { sel: "#f01-card-c1", rot: -3, o: 0.85, at: 3.95 },
-            { sel: "#f01-card-c2", rot: 2, o: 0.85, at: 4.35 },
-          ];
-          CARDS.forEach(function (c) {
-            tl.fromTo(
-              c.sel,
-              { opacity: 0, yPercent: 50, scale: 0.955, rotation: c.rot * 1.6 },
-              {
-                opacity: c.o,
-                yPercent: 0,
-                scale: 1,
-                rotation: c.rot,
-                duration: 0.9,
-                ease: EASE,
-                immediateRender: true,
-              },
-              c.at,
-            );
-          });
+      /* ── macro camera — multi-phase (viewport-change composite form) + micro-drift.
+         Single source of truth; one writer. World layout math (plane 132×92cq,
+         editor ox −1267…230, deploy ox 288…1267): T = target − offset × S. */
+      var cam = { s: 1.32, x: 684, y: 53 };          /* phase 1 — close on the editor */
+      var drift = { p: 0, dx: 0, dy: 0 };
+      function applyCamera() {
+        world.style.transform =
+          "translate(" + (cam.x + drift.dx) + "px, " + (cam.y + drift.dy) + "px) scale(" + cam.s + ")";
+      }
+      applyCamera();
+      /* phase 1 · 0–2.6 — slow drift right + breath-in while the agent types */
+      tl.to(cam, { x: 648, y: 40, s: 1.345, duration: 2.6, ease: "sine.inOut", onUpdate: applyCamera }, 0);
+      /* phase 2 · 2.6–3.5 — fast pan right to the deploy panel */
+      tl.to(cam, { x: -606, y: 0, s: 1.22, duration: 0.9, ease: "power2.inOut", onUpdate: applyCamera }, 2.6);
+      /* phase 3 · 3.5–5.6 — settle back from the pan's overshoot, slow breath-in
+         (S 1.24 puts the deploy window's right edge past the frame edge → full bleed) */
+      tl.to(cam, { x: -580, s: 1.24, duration: 2.1, ease: "sine.inOut", onUpdate: applyCamera }, 3.5);
+      /* phase 4 · 5.6–8.2 — climax push onto the promote row / live chip
+         (x −1055 keeps the window edge outside frame at max drift, no env sliver) */
+      tl.to(cam, { x: -1950, y: 250, s: 1.82, duration: 2.6, ease: "power2.inOut", onUpdate: applyCamera }, 5.6);
+      /* continuous micro-drift — 2 Lissajous cycles across the shot */
+      tl.to(drift, {
+        p: Math.PI * 2 * 2, duration: 8.2, ease: "none",
+        onUpdate: function () {
+          drift.dx = Math.sin(drift.p) * 5;
+          drift.dy = Math.sin(drift.p * 1.35) * 3;
+          applyCamera();
+        }
+      }, 0);
 
-          /* ————— Scene 3 (5.3–7.2s) · chip stamps, three ticks —————
-             Stamp-in on "shipped in days"; each later tick lands with a small
-             smooth pulse (no overlap between scale tweens). Held read to 8.2s. */
-          tl.fromTo(
-            "#f01-chip",
-            { opacity: 0, scale: 0.94, yPercent: 30 },
-            {
-              opacity: 1,
-              scale: 1,
-              yPercent: 0,
-              duration: 0.34,
-              ease: EASE,
-              immediateRender: true,
-            },
-            5.4,
-          );
-          tl.fromTo("#f01-chip", { scale: 1.025 }, { scale: 1, duration: 0.22, ease: "power2.out" }, 5.78);
-          tl.fromTo("#f01-chip", { scale: 1.025 }, { scale: 1, duration: 0.22, ease: "power2.out" }, 6.16);
+      /* ── pan velocity blur (motion-blur-streak, path A — proxy → stdDeviation).
+         Peaks at the pan's midpoint (3.05s), resolves to 0 as the camera settles. */
+      var blurNode = $("f1-streak-blur");
+      var blurP = { v: 0 };
+      function writeBlur() { blurNode.setAttribute("stdDeviation", blurP.v + " 0"); }
+      writeBlur(); /* seed frame 0 */
+      tl.to(blurP, { v: 16, duration: 0.45, ease: "power2.in", onUpdate: writeBlur }, 2.6);
+      tl.to(blurP, { v: 0, duration: 0.45, ease: "power2.out", onUpdate: writeBlur }, 3.05);
 
-          window.__timelines["01-anyone-can-build"] = tl;
-        })();
-      </script>
-    </template>
-  </body>
+      /* ── the agent writes the code (discrete-text-sequence — whole-line states
+         at thresholds, burst cadence; caret + badge pulse on the same driver) */
+      var lines = Array.prototype.slice.call(document.querySelectorAll(".f1-codeline"));
+      var carets = lines.map(function (l) { return l.querySelector(".f1-caret"); });
+      var badgeDot = $("f1-badge-dot");
+      var COUNTS = [[0, 2], [0.35, 4], [0.7, 5], [0.95, 6], [1.25, 8], [1.55, 9], [1.8, 10],
+                    [2.1, 12], [2.45, 14], [2.8, 15], [3.2, 17], [3.55, 18], [3.85, 20],
+                    [4.25, 22], [4.7, 23], [5.05, 24], [5.4, 26]];
+      function renderSeq(t) {
+        var n = 2, i;
+        for (i = 0; i < COUNTS.length; i++) { if (t >= COUNTS[i][0]) { n = COUNTS[i][1]; } else { break; } }
+        var blinkOn = Math.sin(t * Math.PI * 2 / 0.64) > -0.1;
+        for (i = 0; i < lines.length; i++) {
+          lines[i].style.opacity = i < n ? "1" : "0";
+          carets[i].style.opacity = (i === n - 1 && blinkOn) ? "1" : "0";
+        }
+        badgeDot.style.opacity = String(0.55 + 0.45 * Math.sin(t * Math.PI * 2 / 1.15));
+      }
+      renderSeq(0); /* seed frame 0 */
+      var drv = { t: 0 };
+      tl.to(drv, { t: 8.2, duration: 8.2, ease: "none", onUpdate: function () { renderSeq(drv.t); } }, 0);
+
+      /* ── lower-third rises during scene 1 (film overlay, never centered) */
+      tl.fromTo("#f1-lt-k", { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.95);
+      tl.fromTo("#f1-lt-l", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 1.2);
+
+      /* ── scene 2 — pipeline ticks green (staggered pending→done flips) */
+      var FLIPS = [3.3, 3.7, 4.05, 4.4];
+      var pends = document.querySelectorAll(".f1-pip .sk-logline .f1-pend");
+      var dones = document.querySelectorAll(".f1-pip .sk-logline .f1-done");
+      var k;
+      for (k = 0; k < 4; k++) {
+        tl.to(pends[k], { opacity: 0, duration: 0.18, ease: "power1.in" }, FLIPS[k]);
+        tl.fromTo(dones[k], { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, FLIPS[k]);
+      }
+
+      /* ── preview → production progress (stat-bars-and-fills — scaleX, left origin) */
+      tl.fromTo("#f1-fill", { scaleX: 0.12 }, { scaleX: 1, duration: 2.55, ease: "power1.inOut" }, 3.0);
+      tl.to("#f1-fill", { backgroundColor: "#4FC47A", duration: 0.35, ease: "power2.out" }, 5.8);
+
+      /* ── on "beautiful features" — three artifact cards slide up, staggered */
+      var cards = document.querySelectorAll(".f1-art-card");
+      for (k = 0; k < cards.length; k++) {
+        tl.fromTo(cards[k], { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 4.5 + k * 0.16);
+      }
+
+      /* ── scene 3 — on "shipped in days", the deploy flips live */
+      tl.to("#f1-pr-run", { opacity: 0, duration: 0.15, ease: "power1.in" }, 5.75);
+      tl.fromTo("#f1-pr-done", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, 5.75);
+      tl.to("#f1-row-pend", { opacity: 0, duration: 0.22, ease: "power1.in" }, 5.85);
+      tl.fromTo("#f1-row-live", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.7)" }, 5.85);
+      tl.to("#f1-dep-pend", { opacity: 0, duration: 0.22, ease: "power1.in" }, 5.85);
+      tl.fromTo("#f1-dep-live", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.7)" }, 5.85);
+
+      /* ── depth-of-field — the editor falls out of focus behind the push
+         (--dof var tween; caret keeps blinking behind the blur) */
+      tl.to("#f1-editor", { "--dof": "3.6px", opacity: 0.82, duration: 1.0, ease: "power2.inOut" }, 5.8);
+
+      window.__timelines["01-anyone-can-build"] = tl;
+    })();
+  </script>
+</template>
+</body>
 </html>
