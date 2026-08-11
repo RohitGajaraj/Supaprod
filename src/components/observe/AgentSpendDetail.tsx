@@ -137,19 +137,10 @@ export function AgentSpendDetail({ id }: { id: string }) {
   // Three distinct facts, three distinct states. A read in flight is not an
   // empty account, and a read that failed is neither. All three carry the way
   // back: a drill you cannot leave because the read failed is a trap.
-  if (q.isLoading) {
-    return (
-      <Block
-        title={agentDisplayName(id)}
-        sub={`What this one spent over the last ${DAYS} days.`}
-        more={BACK}
-        onMore={onBack}
-      >
-        <Loading>Reading what this one spent.</Loading>
-      </Block>
-    );
-  }
-
+  //
+  // The failed read is tested FIRST, which is what lets the state below it be
+  // read off the data alone. In the other order a read that had failed would
+  // wear a loading state's clothes.
   if (q.error) {
     return (
       <Block
@@ -164,7 +155,31 @@ export function AgentSpendDetail({ id }: { id: string }) {
   }
 
   const d = q.data;
-  if (!d) return null;
+  // EVERY way a read can have no answer yet, not only the flag for a first
+  // fetch in flight. An audit on 2026-08-10 found this drill rendering an empty
+  // rectangle: the app's QueryClient (src/router.tsx) sets no networkMode, so
+  // TanStack's default "online" mode PAUSES a query while the browser is
+  // offline. status stays pending while fetchStatus goes "paused", which leaves
+  // isLoading false, error null and data undefined, and this file fell past all
+  // of its states to a bare `return null`. The Engine Room still drew its h1 and
+  // the Block that wraps a room body, so what a person got after opening an
+  // agent from the spend rollup was a bordered box with no agent name, no
+  // explanation and no control back: the browser's back button was the only way
+  // out, which is exactly the trap this file's header rules out. Reading it off
+  // `!d` rather than off a list of query flags means the same holds for any
+  // other state that has not answered, the first server render included.
+  if (q.isLoading || !d) {
+    return (
+      <Block
+        title={agentDisplayName(id)}
+        sub={`What this one spent over the last ${DAYS} days.`}
+        more={BACK}
+        onMore={onBack}
+      >
+        <Loading>Reading what this one spent.</Loading>
+      </Block>
+    );
+  }
 
   // A reference with nothing behind it. Genuinely empty, not a failed read: the
   // query answered, and the answer was that no call was ever recorded here.

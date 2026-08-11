@@ -330,7 +330,14 @@ export function ApprovalsPanel() {
           title="Waiting behind it"
           sub={
             <>
-              <Num>{pending.length}</Num> waiting
+              {/* `behind`, not `pending`. This counted `pending`, which INCLUDES
+                  the call already drawn as the Gate above, so four pending calls
+                  read as one Gate, three rows, and the words "4 waiting". The
+                  same queue seen from Settings > Controls subtracts the Gate
+                  before it counts, so the two views of one queue disagreed about
+                  how many calls were outstanding. A count under a heading counts
+                  the thing the heading names. */}
+              <Num>{behind.length}</Num> waiting
               {median != null ? (
                 <>
                   , and you usually answer in <Num>{fmtMedian(median)}</Num>

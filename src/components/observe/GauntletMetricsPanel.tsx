@@ -362,8 +362,16 @@ export function GauntletMetricsPanel() {
         )}
       </Block>
 
+      {/* A NOUN PHRASE, like its three siblings above it on this surface. This
+          was "Learning compounds" until 2026-08-10, the only heading here that
+          was a sentence, so the eye read it as a claim rather than a section
+          name, and on a workspace with no recall yet it sat directly on top of
+          its own empty state saying nothing had been learned. It also broke the
+          rule CLAUDE.md states by name: never claim accumulated learning in the
+          present tense. The compounding argument is not lost, it moved to the
+          sub, where it is argued off the number instead of asserted above it. */}
       <Block
-        title="Learning compounds"
+        title="Learning recall"
         sub="Of what the loop learned, the share it has read back at least once. Learning it reopens is a moat; learning it never reopens is a log. Net dollar retention is deliberately absent: it needs recurring revenue, so it lands once billing ships."
       >
         {memQ.isLoading ? (

@@ -466,14 +466,25 @@ function TraceHop({
         <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>
           {agentDisplayName(h.agent_slug, h.agent_name)}
         </span>
+        {/* THE ROW HAS TO REACH ITS RIGHT EDGE. The bar used to be `flex: 1`
+            with `maxWidth: 160`, which made it the only growable item in a
+            100%-wide button and then froze it at 160px, so every hop row inside
+            this 980px card ended with roughly 450px of free space redistributed
+            to nobody. Two things came off that: the status badge never touched a
+            right edge, and its x position slid row to row with the length of the
+            agent name above it, so the badges read as a ragged column rather
+            than a scannable one. A fixed width plus an auto left margin on the
+            duration puts the growth into the GAP instead of into the bar, which
+            is the same thing `justifyContent: "space-between"` does for the
+            section headers in this file. Fixed 2026-08-11. */}
         <span
           style={{
-            flex: 1,
+            width: 160,
+            flexShrink: 1,
             height: 3,
             borderRadius: 99,
             background: "var(--raised)",
             overflow: "hidden",
-            maxWidth: 160,
           }}
         >
           <span
@@ -485,7 +496,7 @@ function TraceHop({
             }}
           ></span>
         </span>
-        <span className="mono-label tabular-nums" style={{}}>
+        <span className="mono-label tabular-nums" style={{ marginLeft: "auto" }}>
           {fmtDuration(hopElapsedMs(h))}
         </span>
         <StatusBadge status={badgeStatus(h.status)} />
@@ -1390,7 +1401,19 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             marginBottom: 14,
           }}
         >
-          <MonoLabel icon={GitBranch}>Plan · {planRows.length} specialists</MonoLabel>
+          {/* STEPS, not specialists. `planRows` is one row per mission STEP, or
+              one per HOP in the fallback, and several steps routinely carry the
+              same agent_slug: a three-step plan run by Chief of Staff twice and
+              Engineer once was counting three specialists when two people were
+              on it. This same card already calls this same collection by its
+              real noun twenty lines down ("No steps yet"), so an unplanned
+              mission read "Plan · 0 specialists" directly above it. If crew size
+              is ever wanted here it is a SECOND number and it is
+              `new Set(planRows.map((r) => r.agent)).size`, not this one.
+              Fixed 2026-08-11. */}
+          <MonoLabel icon={GitBranch}>
+            Plan · {planRows.length} {planRows.length === 1 ? "step" : "steps"}
+          </MonoLabel>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {canAdvance ? (
               <button

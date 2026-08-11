@@ -457,12 +457,33 @@ export function ArtifactsView() {
           }`}
         >
           {/* THE BYLINE. Every artifact says who made it and what it came from,
-              or honestly refuses. Never a guess. */}
+              or honestly refuses. Never a guess.
+
+              A FAILED READ MUST NOT CONVICT AN ARTIFACT OF HAVING NO AUTHOR.
+              Found 2026-08-10: `unattributed` was reachable from a lineage read
+              that ERRORED. On a failure `isLoading` goes false and `makerSlug`
+              stays null, so the row printed the deliberately ugly word over
+              "Nothing recorded who made this one." -- a POSITIVE claim that the
+              record holds no maker, made from a read that never came back.
+
+              The sibling region below, off the SAME query, already had a real
+              error arm with a retry. So one screen said the network failed in
+              one place and quietly convicted the artifact in the place above
+              it, which is the worse of the two lies: a false refusal costs
+              exactly what a false byline costs, because after one of them the
+              reader stops believing the word means anything (R12, and the
+              header's rule that provenance is either shown or honestly
+              refused).
+
+              KEEP THE isError ARM ABOVE THE makerSlug BRANCH. `unattributed` is
+              reachable only from a read that RETURNED and named no agent. */}
           <Row
             marks={makerSlug ? <AgentMark slug={makerSlug} state="quiet" /> : undefined}
             lead={
               lineage.isLoading ? (
                 "Reading who made it."
+              ) : lineage.isError ? (
+                "Could not read who made this one."
               ) : makerSlug ? (
                 <>
                   <Who>{agentDisplayName(makerSlug)}</Who> made this.
@@ -474,13 +495,22 @@ export function ArtifactsView() {
             sub={
               lineage.isLoading
                 ? undefined
-                : !lineageKind
-                  ? "Docs do not record a maker yet."
-                  : makerSlug
-                    ? cameFrom
-                      ? `From ${cameFrom}`
-                      : "No recorded source."
-                    : "Nothing recorded who made this one."
+                : lineage.isError
+                  ? "Unknown rather than absent. The read did not come back."
+                  : !lineageKind
+                    ? "Docs do not record a maker yet."
+                    : makerSlug
+                      ? cameFrom
+                        ? `From ${cameFrom}`
+                        : "No recorded source."
+                      : "Nothing recorded who made this one."
+            }
+            action={
+              lineage.isError ? (
+                <Button variant="ghost" onClick={() => void lineage.refetch()}>
+                  Try again
+                </Button>
+              ) : undefined
             }
           />
 

@@ -171,15 +171,51 @@ export async function ensureScreenshotDir(subDir?: string) {
 }
 
 export async function login(page: Page): Promise<boolean> {
-  // RESOLVED BEFORE THE BROWSER OPENS A PAGE, deliberately.
-  //
-  // `demoPassword()` throws when `E2E_DEMO_PASSWORD` is unset. Calling it here
-  // means that throw lands with no page loaded, so Playwright has no DOM to
-  // snapshot and writes no failure artifact at all. Calling it at the fill site
-  // below would throw on a rendered /login page, which IS a capture point.
-  const password = demoPassword();
-
   await page.goto("/login", { waitUntil: "networkidle" });
+
+  /**
+   * ALREADY SIGNED IN IS A SUCCESS, AND IT USED TO BE A TEN-SECOND TIMEOUT.
+   *
+   * Every project except `01-auth.spec.ts` now starts from `storageState`, so
+   * `/login` redirects straight to the app and there is no form on the page.
+   * The nine other spec files still call this helper 51 times between them --
+   * in `beforeAll`, and again per test -- and each of those calls sat waiting
+   * for an email input that could not appear, failed at 10s, and took its test
+   * with it.
+   *
+   * That produced the most misleading failure list this suite has ever written.
+   * Twelve assertions across six files all reported themselves as `/today`
+   * defects -- layout, icons, aria labels, keyboard nav, theme tokens,
+   * elevation -- and `/today` was fine. The page snapshot beside every one of
+   * them showed the signed-in app rendered correctly behind the timeout. One
+   * broken precondition wearing twelve different surfaces' names.
+   *
+   * Returning early is also what the specs meant all along: `storageState`
+   * exists so a spec about typography does not spend ten seconds at a login
+   * form. Fixing it here rather than deleting 51 call sites keeps
+   * `01-auth.spec.ts` honest -- that file opts out of the shared session, so it
+   * still lands on a real `/login` and still exercises the real form.
+   */
+  if (!page.url().includes("/login")) return true;
+
+  /**
+   * RESOLVED AFTER THE REDIRECT CHECK, and the earlier ordering is worth
+   * recording because it was deliberate and it is now wrong.
+   *
+   * `demoPassword()` throws when `E2E_DEMO_PASSWORD` is unset, and it used to
+   * be called before `goto` so the throw landed with no page loaded and
+   * Playwright wrote no artifact at all. It cannot stay there: the early return
+   * above needs a loaded page to read `page.url()` from, so the resolve has to
+   * come after it.
+   *
+   * The property that mattered survives anyway. The throw now happens on a
+   * rendered `/login`, which IS a capture point -- but the password field is
+   * still EMPTY, because we have not reached the fill. An `error-context.md`
+   * written here holds a blank form, and the source it embeds is
+   * `demoPassword()` itself, which does not quote the value for exactly this
+   * reason. The cost is one artifact directory, not a credential.
+   */
+  const password = demoPassword();
 
   // Wait for the login form
   const emailInput = page

@@ -89,13 +89,18 @@ const KNOWN: ReadonlyArray<string> = [
   "components/shell/AppFrame.tsx",
   "components/product/ProductAnalyticsPanel.tsx",
   "components/governance/TrustGraduations.tsx",
-  // Three the design lane's grep did not reach, because it searched
+  // Two the design lane's grep did not reach, because it searched
   // `isLoading ? null` and these use `isPending` or `&& null`. Worth noting on
   // its own: the same defect wearing two other spellings is why this guard
   // matches a shape rather than a string.
   "components/build/ReadyToBuild.tsx",
   "components/engine-room/rooms/ReceiptsPanel.tsx",
-  "components/governance/ControlsPanel.tsx",
+  // PAID OFF 2026-08-11: `components/governance/ControlsPanel.tsx`. Its
+  // `if (overview.isLoading) return null` was the whole body of both Settings >
+  // Controls and the Engine Room's Safety room, so it was the textbook case
+  // this guard was written for: a heading the person navigated to, and a blank
+  // rectangle under it. It now says it is reading. The entry is deleted rather
+  // than left as a stale allowance, so reinstating that line fails this test.
 ];
 
 describe("a region a person is waiting on says so", () => {

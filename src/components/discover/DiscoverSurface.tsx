@@ -417,10 +417,21 @@ type NoveltyRead = {
 const NOVELTY_BASIS =
   "Scored when this cluster was built, against your settled decisions and every earlier cluster. Open it to see what it resembles.";
 
+/**
+ * ALL THREE CLAIMS ARE VERB PHRASES, and that is a constraint rather than a
+ * preference. The top bucket used to read "unlike anything on the record",
+ * which is an adjective phrase, while the other two were verb phrases -- so no
+ * single connective could carry the set. The Gate joined them with "and it is",
+ * which reads correctly on the top bucket and produces "and it is partly
+ * resembles the record" on the other two, i.e. on the common case.
+ *
+ * Anything added here has to fit "…and it ___." and "· ___" both, because the
+ * Gate and the row render the same string in two different frames.
+ */
 function noveltyRead(novelty: number | null | undefined): NoveltyRead | null {
   if (typeof novelty !== "number") return null;
   if (novelty >= 0.75)
-    return { claim: "unlike anything on the record", fill: "full", basis: NOVELTY_BASIS };
+    return { claim: "resembles nothing on the record", fill: "full", basis: NOVELTY_BASIS };
   if (novelty >= 0.4)
     return { claim: "partly resembles the record", fill: "part", basis: NOVELTY_BASIS };
   return { claim: "closely resembles the record", fill: "empty", basis: NOVELTY_BASIS };
@@ -1622,9 +1633,21 @@ export function DiscoverSurface({
      ... : null}`); this does it the same way, with one flag per section so the
      condition here can never drift from what the section actually renders. */
   const fleetFailed = fleet.isError;
+  /* A FAILED COVERAGE READ IS NOT AN INTAKE WITH NOTHING IN IT, and until now
+     the two were the same pixel. `fleet` six lines up has carried an error arm
+     since it was written, with a comment stating the principle -- two different
+     facts, and a person acts differently on each -- while `coverage` had none.
+     When `getSenseCoverage` failed, `cov` was undefined, `hasCoverage` went
+     false, and the whole "What is feeding this" section left the rail silently,
+     taking the quiet-source warning with it. The rest of the column still drew,
+     so the reader saw an intact context rail with no warning in it and
+     concluded their intake was healthy -- which is the exact outcome that
+     section exists to prevent, per its own note: a source that has gone quiet
+     is invisible unless something says so. */
+  const coverageFailed = coverage.isError;
   const hasCoverage = !!cov && cov.sources.length > 0;
   const hasEvidence = !!focused && focusedMembers.length > 0;
-  const hasContext = !!watcher || fleetFailed || hasCoverage || hasEvidence;
+  const hasContext = !!watcher || fleetFailed || coverageFailed || hasCoverage || hasEvidence;
 
   return (
     <Surface
@@ -1680,7 +1703,19 @@ export function DiscoverSurface({
             Reads `hasCoverage` rather than restating the test, so the flag that
             decides whether the aside is drawn at all and the test that decides
             whether this section renders are the same expression. */}
-            {hasCoverage && cov ? (
+            {coverageFailed ? (
+              /* The same rule the fleet branch above states, applied to the read
+                 that carries the quiet-source warning. A silent section here is
+                 read as "your intake is fine", which is the most reassuring
+                 possible rendering of a read that produced no information. */
+              <>
+                <CtxHead>What is feeding this</CtxHead>
+                <Failed onRetry={() => void coverage.refetch()}>
+                  What is feeding this desk did not load, so nothing here would name a source that
+                  has gone quiet.
+                </Failed>
+              </>
+            ) : hasCoverage && cov ? (
               <>
                 <CtxHead>What is feeding this</CtxHead>
                 {cov.sources.slice(0, SOURCES_IN_CONTEXT).map((s) => (
@@ -1759,7 +1794,7 @@ export function DiscoverSurface({
                     name={
                       <>
                         <Num>{cov.quietCount}</Num> source{plural(cov.quietCount)} used to deliver
-                        and has not this week
+                        and {cov.quietCount === 1 ? "has" : "have"} not this week
                       </>
                     }
                     sub={cov.sources
@@ -2080,7 +2115,7 @@ export function DiscoverSurface({
                     actually named something, the recess below carries the name
                     and the door, and this line says so instead of leaving the
                     reader to notice a second block further down. */}
-                {claim ? `, and it is ${claim}` : ""}
+                {claim ? `, and it ${claim.claim}` : ""}
                 {claim && precedentNamed ? ", named below" : ""}.
               </span>,
               focused.theme.summary ? <span key="sum">{focused.theme.summary}</span> : null,
@@ -2174,7 +2209,7 @@ export function DiscoverSurface({
           <Row
             tight
             marks={
-              <StatusRing small fill="full" label="Illustration: unlike anything on the record" />
+              <StatusRing small fill="full" label="Illustration: resembles nothing on the record" />
             }
             lead="Address re-confirm loses people at checkout"
             sub={
@@ -2184,7 +2219,8 @@ export function DiscoverSurface({
                 <Num>#1</Num>
                 {" · "}
                 <ScoreMeter value={72} ceiling={100} what="Severity, recency and novelty" />
-                {" · "}7 signals · Support inbox (4), Sales call (3) · unlike anything on the record
+                {" · "}7 signals · Support inbox (4), Sales call (3) · resembles nothing on the
+                record
               </>
             }
             time="2h ago"
@@ -2368,24 +2404,49 @@ export function DiscoverSurface({
                 title:
                   "Still waiting on a judgment. Declined, merged and promoted ones are under Settled.",
               },
+              /* EVERY LABEL CARRIES ITS OWN SUBJECT, because the entry above it
+                 may not be drawn. These three used to read "unlike anything on
+                 the record" / "partly resemble it" / "closely resemble it", and
+                 the "it" in the last two pointed at "the record" in the first.
+                 A bucket at zero is dropped -- the rule stated at the top of
+                 this Block and again at line 204 -- so on any workspace where
+                 nothing scores >= 0.75, which is a mature workspace's ordinary
+                 state, the header read "12 clusters open · 3 partly resemble it
+                 · 9 closely resemble it" and the only noun left for "it" was
+                 "clusters". The reader was told three clusters resemble the
+                 clusters.
+
+                 The verb also agrees with the count now. "1 partly resemble it"
+                 was wrong in the old copy too, and is easy to miss because the
+                 one-cluster case is rare after the first week. */
               {
                 n: spread.fresh,
-                label: "unlike anything on the record",
+                label:
+                  spread.fresh === 1
+                    ? "resembles nothing on the record"
+                    : "resemble nothing on the record",
                 title: "Scored furthest from your settled decisions and every earlier cluster.",
               },
               {
                 n: spread.partial,
-                label: "partly resemble it",
+                label:
+                  spread.partial === 1
+                    ? "partly resembles the record"
+                    : "partly resemble the record",
               },
               {
                 n: spread.seen,
-                label: "closely resemble it",
+                label:
+                  spread.seen === 1
+                    ? "closely resembles the record"
+                    : "closely resemble the record",
                 title:
                   "Worth killing here: a repeat caught as a cluster costs nothing, and the same repeat caught on Decide has already spent a Critic run.",
               },
               {
                 n: spread.unscored,
-                label: "carry no novelty score",
+                label:
+                  spread.unscored === 1 ? "carries no novelty score" : "carry no novelty score",
                 title:
                   "Clustered before the brain scored novelty, or scored while it was unavailable. Not the same as resembling nothing.",
               },
