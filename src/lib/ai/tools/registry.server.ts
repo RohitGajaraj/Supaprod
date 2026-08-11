@@ -3428,7 +3428,7 @@ const prdDraft = def({
 const prdRevise = def({
   name: "prd.revise",
   description:
-    "Revise an existing spec in place from a revision instruction. Reads the current spec body, applies ONLY the requested change, and overwrites it -- capturing the prior body so the owner can one-key Rewind this edit (the rewind also lands on the Trust Ledger). Use to fold in feedback or update an existing spec; use prd.draft to create a new one.",
+    "Revise an existing spec in place from a revision instruction. Reads the current spec body, applies ONLY the requested change, and overwrites it -- capturing the prior body so the owner can one-key Rewind this edit (the rewind also lands on the audit trail). Use to fold in feedback or update an existing spec; use prd.draft to create a new one.",
   category: "write",
   argsSchema: z.object({
     prd_id: z.string().uuid(),
@@ -3505,7 +3505,7 @@ const prdRevise = def({
 const decisionRevise = def({
   name: "decision.revise",
   description:
-    "Revise an existing decision's rationale in place from a revision instruction (e.g. to fold in new evidence). Reads the current rationale, applies ONLY the requested change, and overwrites it -- capturing the prior rationale so the owner can one-key Rewind this edit (the rewind also lands on the Trust Ledger). Does not change the decision's status.",
+    "Revise an existing decision's rationale in place from a revision instruction (e.g. to fold in new evidence). Reads the current rationale, applies ONLY the requested change, and overwrites it -- capturing the prior rationale so the owner can one-key Rewind this edit (the rewind also lands on the audit trail). Does not change the decision's status.",
   category: "write",
   argsSchema: z.object({
     decision_id: z.string().uuid(),
@@ -4119,7 +4119,7 @@ const releasePublish = def({
 const roadmapMove = def({
   name: "roadmap.move",
   description:
-    "Move an opportunity to a Now/Next/Later roadmap bucket (or back to the backlog with bucket=null). A Now/Next/Later commitment must carry a declared outcome AND measure. Captures the prior placement so the move can be one-key Rewound, and attributes it to you so a rewind lands on the Trust Ledger. Use to commit a researched, ranked opportunity to the roadmap.",
+    "Move an opportunity to a Now/Next/Later roadmap bucket (or back to the backlog with bucket=null). A Now/Next/Later commitment must carry a declared outcome AND measure. Captures the prior placement so the move can be one-key Rewound, and attributes it to you so a rewind lands on the audit trail. Use to commit a researched, ranked opportunity to the roadmap.",
   category: "write",
   argsSchema: z.object({
     opportunity_id: z.string().uuid(),

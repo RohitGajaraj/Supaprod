@@ -1071,7 +1071,7 @@ export async function promoteChangesetToProductionCore(
       const reason = e instanceof Error ? e.message : String(e);
       console.error("promote receipt failed (non-fatal):", reason);
       warnings.push(
-        `The deploy is live, but no receipt for it reached the Trust Ledger (${reason}). This production deploy will not appear in the record of decided calls.`,
+        `The deploy is live, but no evidence for it reached the audit trail (${reason}). This production deploy will not appear in the record of decided calls.`,
       );
     }
 

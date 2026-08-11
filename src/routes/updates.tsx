@@ -47,7 +47,7 @@ const ENTRIES: { date: string; title: string; body: string; fromPulse?: boolean 
   {
     date: "2026-08-07",
     title: "Our public scorecard now counts only real calls",
-    body: "The Ledger was computing its score partly from sample workspaces, which meant it was grading fixtures. It now counts real decisions in real workspaces only. That is why it currently shows an honest zero rather than a number, and it fills in as outcomes land.",
+    body: "The track record was computing its score partly from sample workspaces, which meant it was grading fixtures. It now counts real decisions in real workspaces only. That is why it currently shows an honest zero rather than a number, and it fills in as outcomes land.",
   },
   {
     date: "2026-08-06",
@@ -86,7 +86,7 @@ const ENTRIES: { date: string; title: string; body: string; fromPulse?: boolean 
   },
   {
     date: "2026-06-25",
-    title: "The Ledger",
+    title: "The track record",
     body: "Every call Supaprod makes is now recorded with the evidence behind it, then graded once the outcome lands. Right or wrong, it becomes precedent the next call reads from.",
   },
 ];

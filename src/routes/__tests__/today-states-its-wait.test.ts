@@ -248,10 +248,9 @@ describe("Today never prints a claim it has not read yet", () => {
       // returns a STRING closes that: a branch that hands a failed read to the
       // counter cannot also be a literal sentence.
       const guards = new RegExp(`if \\([^)]*${read.replace(".", "\\.")}[^)]*\\)\\s*return "`);
-      expect(
-        body,
-        `${read} is consulted but not in a guard that returns a sentence`,
-      ).toMatch(guards);
+      expect(body, `${read} is consulted but not in a guard that returns a sentence`).toMatch(
+        guards,
+      );
     }
   });
 });

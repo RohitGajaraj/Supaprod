@@ -104,7 +104,7 @@ export function buildStakeholderUpdate(s: StakeholderSnapshot): StakeholderUpdat
       : out === 100
         ? "every reviewed bet held up"
         : `${out}% of reviewed bets held up`;
-  const autonomyPhrase = auto == null ? null : `the loop ran ${auto}% of the work unattended`;
+  const autonomyPhrase = auto == null ? null : `the loop ran ${auto}% of the work on its own`;
 
   // Lede: signal first. The one line that carries the gist before any detail.
   const ledeParts: string[] = [];
@@ -215,5 +215,5 @@ export function buildOutcomeReceipt(s: OutcomeReceiptSnapshot): string | null {
   }
 
   if (lines.length === 0) return null;
-  return ["**Receipts**", ...lines].join("\n");
+  return ["**Evidence**", ...lines].join("\n");
 }

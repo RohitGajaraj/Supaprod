@@ -192,7 +192,7 @@ export function GauntletMetricsPanel() {
     ) : (
       <>
         Of the actions with a side effect, the share the loop carried on its own instead of stopping
-        to ask. <Num>{c.unattended}</Num> ran unattended, <Num>{c.gated}</Num> came to you over the
+        to ask. <Num>{c.unattended}</Num> ran on its own, <Num>{c.gated}</Num> came to you over the
         last <Num>14</Num> days
         {c.priorRatio != null && c.ratio != null
           ? `, ${TREND_WORD[c.trend]} against the 7 days before.`

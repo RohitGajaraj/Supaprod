@@ -18,7 +18,7 @@ export type CatalogEntry = {
 export const CATALOG: CatalogEntry[] = [
   {
     id: "challenge-belief",
-    pitch: "Tear down a belief with receipts",
+    pitch: "Tear down a belief with evidence",
     kind: "BELIEF",
     run: { to: "/discover", search: { tab: "opportunities" } },
   },
@@ -86,7 +86,7 @@ export const CATALOG: CatalogEntry[] = [
   },
   {
     id: "trust-ledger",
-    pitch: "Verify the Ledger integrity fingerprint",
+    pitch: "Verify the audit trail integrity fingerprint",
     run: { to: "/engine-room", search: { room: "record" } },
   },
   {

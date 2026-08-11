@@ -815,7 +815,7 @@ export async function maybeCompleteMission(
             missionId: updated.id,
             workspaceId: updated.workspace_id,
             createdByAgent: lastRun?.agent_slug ?? null,
-            rationale: "The mission this completion receipt was filed against",
+            rationale: "The mission this completion record was filed against",
           });
           if (gate.action === "auto_approve") {
             /* supabaseAdmin rather than the caller's client on purpose:

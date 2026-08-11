@@ -36,7 +36,7 @@ export function IntentVsBuiltReceipt({ prdId }: { prdId: string }) {
       <div className="rounded-lg border hairline bg-card/60 p-6">
         <div className="mono-label mb-3">Intent vs built</div>
         <p className="text-xs text-destructive">
-          {q.error instanceof Error ? q.error.message : "Could not build the receipt."}
+          {q.error instanceof Error ? q.error.message : "Could not build the comparison."}
         </p>
       </div>
     );
@@ -50,7 +50,7 @@ export function IntentVsBuiltReceipt({ prdId }: { prdId: string }) {
         <Receipt className="h-5 w-5 text-muted-foreground mx-auto mb-2" />
         <p className="text-sm text-muted-foreground mb-1">No shipped build yet.</p>
         <p className="text-xs text-muted-foreground">
-          Once a changeset ships for this spec, this receipt compares what shipped against the
+          Once a changeset ships for this spec, this comparison checks what shipped against the
           stated intent.
         </p>
       </div>

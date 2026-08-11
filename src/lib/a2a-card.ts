@@ -19,7 +19,7 @@ export function buildAgentCard(origin: string): Record<string, unknown> {
     // less than the product delivers. It also listed six departments and never
     // reached the verb that compounds.
     description:
-      "The agentic-first operating system for product teams. Supaprod tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call. Seven stations (Discover, Decide, Plan, Design, Build, Ship, Learn) that agents walk unattended inside boundaries a human sets in advance. A settled outcome is written back against the decision that caused it and re-ranks what surfaces next, which is the part that compounds. Nothing merges, ships, or takes an irreversible outward action without a human approval.",
+      "The agentic-first operating system for product teams. Supaprod tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call. Seven stations (Discover, Decide, Plan, Design, Build, Ship, Learn) that agents walk on their own inside boundaries a human sets in advance. A settled outcome is written back against the decision that caused it and re-ranks what surfaces next, which is the part that compounds. Nothing merges, ships, or takes an irreversible outward action without a human approval.",
     provider: { organization: "Supaprod", url: origin },
     documentation_url: `${origin}/integrations`,
     discovery_url: `${origin}/.well-known/agent.json`,

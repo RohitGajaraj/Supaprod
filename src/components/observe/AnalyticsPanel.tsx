@@ -230,10 +230,10 @@ export function AnalyticsPanel() {
           compared against each other. */}
       <Block title="What it cost">
         {overview.isLoading ? (
-          <Loading>Reading the AI event ledger.</Loading>
+          <Loading>Reading the AI event history.</Loading>
         ) : overview.isError ? (
           <Failed onRetry={() => void overview.refetch()}>
-            The event ledger did not load, so nothing here is a claim about what you spent.{" "}
+            The event history did not load, so nothing here is a claim about what you spent.{" "}
             {errText(overview.error)}
           </Failed>
         ) : runs === 0 ? (
@@ -364,7 +364,7 @@ export function AnalyticsPanel() {
         sub="Share is of agent spend, not of everything above. Open one for its runs and missions."
       >
         {byAgentQ.isLoading ? (
-          <Loading>Reading the agent ledger.</Loading>
+          <Loading>Reading the agent history.</Loading>
         ) : byAgentQ.isError ? (
           <Failed onRetry={() => void byAgentQ.refetch()}>
             Agent spend did not load, so this is not a claim that no agent ran.{" "}
@@ -416,12 +416,12 @@ export function AnalyticsPanel() {
       {unitQ.isError ? (
         <Block title="What each outcome cost">
           <Failed onRetry={() => void unitQ.refetch()}>
-            The outcome ledger did not load. {errText(unitQ.error)}
+            The outcome history did not load. {errText(unitQ.error)}
           </Failed>
         </Block>
       ) : unitQ.isLoading ? (
         <Block title="What each outcome cost">
-          <Loading>Reading the outcome ledger.</Loading>
+          <Loading>Reading the outcome history.</Loading>
         </Block>
       ) : ue && ue.outcomes > 0 ? (
         <Block title="What each outcome cost">
@@ -439,7 +439,7 @@ export function AnalyticsPanel() {
           </Line>
           <Line
             label="Agent spend"
-            sub="From the agent runs ledger, which counts only model calls tied to a run. It will not match the spend above, and that disagreement is real."
+            sub="From the agent runs history, which counts only model calls tied to a run. It will not match the spend above, and that disagreement is real."
           >
             <Value>
               <Num>{fmtUsd(ue.totalSpendUsd)}</Num>
@@ -504,10 +504,10 @@ export function AnalyticsPanel() {
 
           {section === "models" ? (
             overview.isLoading ? (
-              <Loading>Reading the AI event ledger.</Loading>
+              <Loading>Reading the AI event history.</Loading>
             ) : overview.isError ? (
               <Failed onRetry={() => void overview.refetch()}>
-                The event ledger did not load, so this is not a claim that no model ran.
+                The event history did not load, so this is not a claim that no model ran.
               </Failed>
             ) : byModel.length === 0 ? (
               <Empty>No AI calls in this window, so no model has a line yet.</Empty>

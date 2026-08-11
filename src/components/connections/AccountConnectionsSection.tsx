@@ -1038,7 +1038,7 @@ export function ConnectorDetail({
         {back}
         <PageHead
           title={titled}
-          sub={`${spec.description} Connect it once and what it syncs starts feeding the company brain.`}
+          sub={`${spec.description} Connect it once and what it syncs starts feeding the shared brain.`}
         />
         <Actions>
           <Button variant="primary" disabled={busy} onClick={() => setShowTrust(true)}>

@@ -38,7 +38,7 @@ export const Route = createFileRoute("/p/teardown")({
       {
         name: "description",
         content:
-          "Paste a PRD or a product bet and get a sharp, honest, receipted teardown from Supaprod's Critic. No signup, no setup.",
+          "Paste a PRD or a product bet and get a sharp, honest, evidence-backed teardown from Supaprod's Critic. No signup, no setup.",
       },
     ],
     links: [{ rel: "canonical", href: `${SITE}/p/teardown` }],
@@ -132,7 +132,7 @@ function TeardownPage() {
         setState({
           kind: "error",
           message:
-            "The Critic read your document but could not produce a receipt for it. Your text is still in the box. A longer spec, with the problem and the plan in it, usually gives it more to work with.",
+            "The Critic read your document but could not produce a teardown for it. Your text is still in the box. A longer spec, with the problem and the plan in it, usually gives it more to work with.",
         });
         return;
       }
@@ -189,7 +189,7 @@ function TeardownPage() {
               color: "var(--text-primary)",
             }}
           >
-            Paste a PRD. Get a receipted teardown.
+            Paste a PRD. Get an evidence-backed teardown.
           </h1>
           <p
             style={{
@@ -201,7 +201,7 @@ function TeardownPage() {
             }}
           >
             No signup. No setup. Supaprod's Critic reads what you paste and hands back a sharp,
-            honest receipt, usually in under a minute.
+            honest teardown, usually in under a minute.
           </p>
         </header>
 
@@ -402,8 +402,8 @@ function TeardownPage() {
             marginTop: 32,
           }}
         >
-          Your text is sent once to Supaprod's Critic to write this receipt. Nothing is stored to an
-          account until you make one.
+          Your text is sent once to Supaprod's Critic to write this teardown. Nothing is stored to
+          an account until you make one.
         </p>
       </div>
     </div>

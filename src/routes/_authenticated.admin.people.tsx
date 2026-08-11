@@ -713,7 +713,7 @@ function PersonInFocus({ userId }: { userId: string }) {
                 id="admin-credit-reason"
                 value={grantReason}
                 onChange={(e) => setGrantReason(e.target.value)}
-                placeholder="Recorded on the account and in the ledger."
+                placeholder="Recorded on the account and in the audit trail."
               />
             </Field>
             <Actions

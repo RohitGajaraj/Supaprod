@@ -452,7 +452,7 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
           "Up to 8 agents running in parallel",
           "Unlimited products and workspaces",
           "Shared playbook library",
-          "Receipts covering every member's runs, not only your own",
+          "Evidence covering every member's runs, not only your own",
           "Centralized billing and usage view",
           "Onboarding session with our team",
           "Chat support, same-business-day SLA",

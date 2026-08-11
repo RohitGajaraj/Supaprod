@@ -368,10 +368,13 @@ describe("every line traces to a row", () => {
     expect(gaps).not.toContain("No design gate was decided");
   });
 
-  test("the missing test receipt is named on every release, settled or not", () => {
+  test("the missing test evidence is named on every release, settled or not", () => {
     for (const overrides of [{}, { prd: null }, { deployments: [] as DeploySource[] }]) {
       const doc = assembleReleaseDoc(sources(overrides as Partial<ReleaseSources>));
-      expect(doc.gaps.some((g) => g.text.startsWith("No test receipt"))).toBe(true);
+      /* Asserts the claim, not the noun: the gap must say that nothing records
+         which tests ran. The leading noun is copy and has been reworded once
+         already, which is what made the old startsWith() assertion brittle. */
+      expect(doc.gaps.some((g) => g.text.includes("Nothing records which tests ran"))).toBe(true);
     }
   });
 });
@@ -423,7 +426,7 @@ describe("the rendered document", () => {
     expect(screen.getByText("validated")).toBeTruthy();
     expect(screen.getByText("Design approved")).toBeTruthy();
     expect(screen.getByText("9 files changed")).toBeTruthy();
-    expect(screen.getByText(/No test receipt/)).toBeTruthy();
+    expect(screen.getByText(/Nothing records which tests ran/)).toBeTruthy();
   });
 
   test("no uuid reaches the screen", () => {

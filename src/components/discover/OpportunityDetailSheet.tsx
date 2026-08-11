@@ -1301,7 +1301,7 @@ export function OpportunityDetailSheet({
                 }
                 sub={
                   opportunity.critic_review?.summary ??
-                  "Challenge it and the teardown lands on the record, with its receipts attached."
+                  "Challenge it and the teardown lands on the record, with its evidence attached."
                 }
               />
               {opportunity.critic_review?.summary ? (

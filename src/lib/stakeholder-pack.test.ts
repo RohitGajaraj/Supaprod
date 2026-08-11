@@ -127,7 +127,7 @@ describe("RPT-12 — claim-level citations survive export", () => {
 
   it("cites each evidence item as a numbered [n] marker in the provenance line", () => {
     const p = composeStakeholderPack(brief({ evidenceItems: items }), "eng");
-    const provenance = p.sections.find((s) => s.heading === "Provenance")?.body ?? "";
+    const provenance = p.sections.find((s) => s.heading === "Evidence")?.body ?? "";
     expect(provenance).toContain("[1]");
     expect(provenance).toContain("[2]");
   });
@@ -149,7 +149,7 @@ describe("RPT-12 — claim-level citations survive export", () => {
     // A count without walkable items (evidenceItems undefined) must not
     // fabricate citation markers it cannot back up.
     const p = composeStakeholderPack(brief(), "eng");
-    const provenance = p.sections.find((s) => s.heading === "Provenance")?.body ?? "";
+    const provenance = p.sections.find((s) => s.heading === "Evidence")?.body ?? "";
     expect(provenance).not.toContain("[1]");
     expect(p.citations).toEqual([]);
   });

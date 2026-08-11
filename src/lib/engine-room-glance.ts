@@ -281,9 +281,9 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
       // room, so its old deep links land on this front tab.
       id: "receipts",
       label: "Paper trail",
-      technical: "Ledger",
+      technical: "Audit trail",
       descriptor:
-        "Every decision and action as a receipt, with its evidence, share controls, and the tamper seal.",
+        "Every decision and action on the record, with its evidence, share controls, and the tamper seal.",
     },
     {
       id: "traces",
@@ -962,7 +962,7 @@ export function buildRecordGlance(input: RecordGlanceInput): RoomGlance {
      */
     const sealCapped = input.sealCapped === true;
     figures.push({
-      label: "receipts sealed",
+      label: "records sealed",
       value: `${fmtCount(input.sealCount)}${sealCapped ? "+" : ""}`,
       note: !input.ledgerVerifies
         ? "fingerprint did not compute"
@@ -980,7 +980,7 @@ export function buildRecordGlance(input: RecordGlanceInput): RoomGlance {
     question: ROOM_QUESTIONS.record,
     // Record is always healthy when the ledger verifies (extensions §5); a
     // broken fingerprint is a Call on Today, never a silent room state.
-    verdict: `${traceLabel} run${input.traceCount === 1 ? "" : "s"} this week · ${input.ledgerVerifies ? "ledger intact" : "ledger unverified"}`,
+    verdict: `${traceLabel} run${input.traceCount === 1 ? "" : "s"} this week · ${input.ledgerVerifies ? "audit trail intact" : "audit trail unverified"}`,
     state: "healthy",
     figures,
     latest: newestName ? { what: newestName, at: newest?.last_at ?? null } : undefined,

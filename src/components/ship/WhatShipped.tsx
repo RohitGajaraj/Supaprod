@@ -560,7 +560,7 @@ export function assembleReleaseDoc(s: ReleaseSources): ReleaseDoc {
     // product cannot answer at all. Constant on purpose: a hole that appears and
     // disappears reads as a per-release finding rather than a product gap.
     fact(
-      "No test receipt. Nothing records which tests ran for this release, so this document does not claim any did.",
+      "No test evidence. Nothing records which tests ran for this release, so this document does not claim any did.",
       "no substrate (see trust-chain.functions.ts)",
     ),
     !entry.prd_id
@@ -811,7 +811,7 @@ export function ReleaseDocument({
       ) : null}
 
       {doc.receipts.length ? (
-        <Block title="The receipts" sub="Every line above traces to one of these rows.">
+        <Block title="The evidence" sub="Every line above traces to one of these rows.">
           {doc.receipts.map((f, i) => (
             <FactRow key={`receipt-${i}`} f={f} onOpen={onOpen} />
           ))}

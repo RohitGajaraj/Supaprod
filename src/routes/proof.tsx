@@ -29,13 +29,13 @@ export const Route = createFileRoute("/proof")({
   },
   head: () => ({
     meta: [
-      { title: "The Ledger · Supaprod" },
+      { title: "The track record · Supaprod" },
       {
         name: "description",
         content:
-          "Supaprod's own calibration score and public decision receipts. Published, including the misses.",
+          "Supaprod's own calibration score and public decision history. Published, including the misses.",
       },
-      { property: "og:title", content: "The Ledger" },
+      { property: "og:title", content: "The track record" },
       {
         property: "og:description",
         content: "We publish our own calibration score. Including the misses.",
@@ -43,7 +43,7 @@ export const Route = createFileRoute("/proof")({
       { property: "og:type", content: "website" },
       { property: "og:image", content: OG_IMAGE },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "The Ledger · Supaprod" },
+      { name: "twitter:title", content: "The track record · Supaprod" },
       { name: "twitter:image", content: OG_IMAGE },
     ],
     links: [{ rel: "canonical", href: `${SITE}/proof` }],
@@ -91,7 +91,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           <SupaprodWordmark tier="public" />
         </Link>
         <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
-          the ledger
+          the track record
         </span>
       </header>
 

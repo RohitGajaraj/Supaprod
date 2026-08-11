@@ -215,34 +215,46 @@ export function BriefDeck() {
           </header>
 
           <section aria-labelledby="director-heading" style={briefSectionStyle}>
-            <p aria-hidden="true" style={briefNumberStyle}>01</p>
+            <p aria-hidden="true" style={briefNumberStyle}>
+              01
+            </p>
             <div>
-              <h2 id="director-heading" style={briefHeadingStyle}>The director tells you what to build.</h2>
+              <h2 id="director-heading" style={briefHeadingStyle}>
+                The director tells you what to build.
+              </h2>
               <p style={briefBodyStyle}>
-                Supaprod reads customer signals, product data, competitors, and the outcomes of
-                past calls. It ranks the opportunities worth attention and shows the evidence
-                behind them, so the first decision is what deserves to exist.
+                Supaprod reads customer signals, product data, competitors, and the outcomes of past
+                calls. It ranks the opportunities worth attention and shows the evidence behind
+                them, so the first decision is what deserves to exist.
               </p>
             </div>
           </section>
 
           <section aria-labelledby="operating-system-heading" style={briefSectionStyle}>
-            <p aria-hidden="true" style={briefNumberStyle}>02</p>
+            <p aria-hidden="true" style={briefNumberStyle}>
+              02
+            </p>
             <div>
-              <h2 id="operating-system-heading" style={briefHeadingStyle}>The operating system runs the whole lifecycle.</h2>
+              <h2 id="operating-system-heading" style={briefHeadingStyle}>
+                The operating system runs the whole lifecycle.
+              </h2>
               <p style={briefBodyStyle}>
                 Discover, Decide, Plan, Design, Build, Ship, and Learn run as one governed route.
                 Work enters where it needs to, skips what it does not, and runs inside boundaries
-                your team sets in advance. You meet the result and its receipt, not the prompts,
+                your team sets in advance. You meet the result and its evidence, not the prompts,
                 traces, or model wiring.
               </p>
             </div>
           </section>
 
           <section aria-labelledby="company-brain-heading" style={briefSectionStyle}>
-            <p aria-hidden="true" style={briefNumberStyle}>03</p>
+            <p aria-hidden="true" style={briefNumberStyle}>
+              03
+            </p>
             <div>
-              <h2 id="company-brain-heading" style={briefHeadingStyle}>The company brain learns, then guides.</h2>
+              <h2 id="company-brain-heading" style={briefHeadingStyle}>
+                The shared brain learns, then guides.
+              </h2>
               <p style={briefBodyStyle}>
                 Learn settles a shipped outcome with a verdict and writes it back against the
                 decision that caused it. That evidence re-ranks what Discover and Decide surface

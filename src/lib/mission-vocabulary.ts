@@ -144,7 +144,7 @@ export const STAGE_DECKS: Record<MissionStage, readonly string[]> = {
     "watching the first minutes live",
     "confirming the flags are set",
     "closing out the release",
-    "putting the receipt on record",
+    "putting the evidence on record",
   ],
   // 07 Learn
   learn: [

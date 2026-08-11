@@ -79,7 +79,7 @@ export const MCP_TOOLS: McpTool[] = [
   {
     name: "search_decisions",
     description:
-      "Search the decision memory: decisions by keyword, each tagged with its provenance outcome (still stands vs superseded). Answers 'what did this team decide, and did it hold up?'",
+      "Search the decision memory: decisions by keyword, each tagged with its outcome history (still stands vs superseded). Answers 'what did this team decide, and did it hold up?'",
     inputSchema: {
       type: "object",
       properties: {
@@ -232,7 +232,7 @@ export const MCP_WRITE_TOOLS: McpTool[] = [
   {
     name: "record_decision",
     description:
-      "Record a decision on this workspace's ledger (governed write). Requires the write:decision scope and the workspace's outward-write gate. Lands at status 'pending' for a human to approve; an agent never lands a decision already approved. Text is injection-screened before storage.",
+      "Record a decision in this workspace's audit trail (governed write). Requires the write:decision scope and the workspace's outward-write gate. Lands at status 'pending' for a human to approve; an agent never lands a decision already approved. Text is injection-screened before storage.",
     inputSchema: {
       type: "object",
       properties: {
