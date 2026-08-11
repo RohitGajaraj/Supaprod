@@ -265,14 +265,51 @@ export async function login(page: Page): Promise<boolean> {
    * written here holds a blank form, and the source it embeds is
    * `demoPassword()` itself, which does not quote the value for exactly this
    * reason. The cost is one artifact directory, not a credential.
+   *
+   * It sits below the form check as well as below the redirect check, because
+   * both are ways of learning we do not need it. A valid session with the env
+   * var unset is a working run, and it should not be failed for lacking a
+   * credential it was never going to type.
    */
+
+  /**
+   * THE URL IS SAMPLED TWICE, AND THE SECOND SAMPLE IS THE POINT.
+   *
+   * The check above is a single instant. On a loaded machine the redirect off
+   * `/login` for an already-signed-in session is still in flight at that
+   * microsecond, so it reads `/login`, concludes a sign-in is needed, and waits
+   * ten seconds for a form that is in the middle of being unmounted.
+   *
+   * That is exactly how the full suite failed on 2026-08-11, on a test named
+   * "design-system color tokens resolve on :root". The tokens were fine, all six
+   * were defined. `error-context.md` showed the fully authenticated app rendered
+   * in the page snapshot while the call log said `waiting for
+   * input[type="email"]`. One test out of 141, and only under enough load for
+   * the redirect to lose a race it normally wins. The fourth time in one day a
+   * failure wore the name of a test that had nothing wrong with it.
+   *
+   * So the absence of a form is no longer treated as an answer. It is a reason
+   * to look at the URL AGAIN, ten seconds later, by which time any redirect has
+   * certainly committed. Only a page still on `/login` with no form is a real
+   * failure, and it now says that by name rather than throwing on an unfillable
+   * input four lines down.
+   */
+  const formAppeared = await emailInput
+    .waitFor({ state: "visible", timeout: 10000 })
+    .then(() => true)
+    .catch(() => false);
+
+  if (!formAppeared) {
+    if (!page.url().includes("/login")) return true;
+    throw new Error(
+      `[e2e] Still on ${page.url()} after 10s with no sign-in form rendered. ` +
+        `This is not a credential problem: the page neither bounced to the app ` +
+        `nor drew a form.`,
+    );
+  }
+
   const password = demoPassword();
 
-  // Wait for the login form. Kept even though the race above usually satisfies
-  // it already: if BOTH branches of that race timed out we are still on
-  // `/login` with no form, and this is the line that says so by name rather
-  // than failing four lines later on an unfillable input.
-  await emailInput.waitFor({ state: "visible", timeout: 10000 });
   await emailInput.fill(DEMO_EMAIL);
   await passwordInput.fill(password);
 
