@@ -25,7 +25,7 @@ import { waitForFocusToLand, waitForLayoutToSettle } from "./helpers/waits";
 // see the header of `helpers/auth.ts`.
 //
 // Both now come from one place, and the absence of the env var throws by name.
-import { DEMO_EMAIL, demoPassword, BASE_URL, waitForShell } from "./helpers/auth";
+import { BASE_URL, login, waitForShell } from "./helpers/auth";
 
 /**
  * The comment above this list said "All 14 authenticated surfaces" and the list
@@ -87,19 +87,31 @@ test.describe("Waves 1-2 QA: Design System Verification", () => {
   test.beforeAll(async ({ browser }) => {
     page = await browser.newPage();
 
-    // Log in with demo credentials
-    await page.goto(`${BASE_URL}/login`, { waitUntil: "domcontentloaded" });
-    await page.fill('input[type="email"]', DEMO_EMAIL);
-    await page.fill('input[type="password"]', demoPassword());
-    await page.click('button[type="submit"]');
-
-    // Wait for redirect to authenticated route
-    await page.waitForURL(
-      /\/(today|discover|plan|build|brain|engine-room|settings|guardrails|agents|evals|traces|drift)/,
-      {
-        timeout: 10000,
-      },
-    );
+    /**
+     * THE SHARED HELPER, NOT A SECOND COPY OF THE LOGIN.
+     *
+     * This block used to type the credentials itself, and on 2026-08-11 it
+     * failed with `page.fill: Timeout 15000ms exceeded` on the password field.
+     * The page arrives already signed in from `storageState`, so `/login`
+     * redirects away and there is no password input to fill.
+     *
+     * WHAT MADE IT EXPENSIVE TO READ was not the failure, it was the name on
+     * it. A `beforeAll` failure is attributed to the first test in the describe,
+     * so the whole run reported a single failure called "/today @ mobile
+     * (320x640): no horizontal scroll" and then "35 did not run". That test had
+     * nothing wrong with it, `/today` at 320 was clean, and I spent four
+     * measurements proving a defect that was not there before opening the
+     * error. The same trap as the twelve `/today` failures earlier the same
+     * day: a test name says what it INTENDED to check, never what it reached.
+     *
+     * `login()` handles both states and returns true when the page never lands
+     * on `/login`. Keeping a private copy of an auth flow means every fix to
+     * the real one has to be remembered here too, and this is the second time
+     * that has cost a run.
+     */
+    const ok = await login(page);
+    expect(ok, "could not reach an authenticated route").toBe(true);
+    await waitForShell(page);
   });
 
   test.afterAll(async () => {
