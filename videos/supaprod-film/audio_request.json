@@ -1,0 +1,64 @@
+{
+  "provider": "auto",
+  "speed": 1,
+  "lines": [
+    {
+      "id": "01",
+      "text": "These days, anyone can build. Agents write the code — beautiful features, shipped in days."
+    },
+    {
+      "id": "02",
+      "text": "What nobody tells you is what's worth building. So teams polish the prettiest idea… and miss."
+    },
+    {
+      "id": "03",
+      "text": "You know the feeling. Signals everywhere — interviews, tickets, dashboards, hunches. The loudest voice wins the roadmap. And six months later, someone asks — why did we build this?"
+    },
+    {
+      "id": "04",
+      "text": "Supaprod. One place where agents run the work — and you make the calls. Agents that know what to build, ship it, and guide the next call."
+    },
+    {
+      "id": "05",
+      "text": "Your signals pour in. It reads every one — and hands you ranked bets, evidence attached."
+    },
+    {
+      "id": "06",
+      "text": "It scores each bet. And it will disagree with you — the exciting idea loses to the boring one that pays."
+    },
+    {
+      "id": "07",
+      "text": "Then — the part nobody else has. It writes down what you believe will happen. Before you find out."
+    },
+    {
+      "id": "08",
+      "text": "From there, agents take it. In Plan, the spec writes itself. In Build, the work happens right inside. And Ship isn't just launch day — release notes, go-to-market, done. One platform. The whole lifecycle."
+    },
+    {
+      "id": "09",
+      "text": "When results land, they're scored against the call that caused them — and your next bet re-ranks itself. It learns. Then it guides."
+    },
+    {
+      "id": "10",
+      "text": "So the next time you're about to repeat a mistake, it stops you. You made this call last year. Here's what happened. Your own record, guiding the next move."
+    },
+    {
+      "id": "11",
+      "text": "Anyone can dig up what happened. Only Supaprod keeps what you believed — before you found out."
+    },
+    {
+      "id": "12",
+      "text": "You stop guessing. You start deciding."
+    },
+    {
+      "id": "13",
+      "text": "Supaprod. Build what matters. The demo is live at supaprod dot ai — no login needed."
+    }
+  ],
+  "bgm": {
+    "mode": "retrieve",
+    "query": "minimal cinematic pulse — restrained electronic with a warm analog undertone, slow build, quiet confident resolve, no drop",
+    "blob": "Agents that know what to build, ship it, and guide the next call.",
+    "arc": "Decide-first narrative — build-is-easy hook → worth-building tension → your-week pain → intro → loop (signals→bets→disagree→forecast→route→learn) → the warning → moat → promise → CTA"
+  }
+}

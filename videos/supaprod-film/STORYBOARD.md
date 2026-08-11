@@ -23,8 +23,8 @@ music: "minimal cinematic pulse — restrained electronic with a warm analog und
 ## Frame 1 — Anyone can build
 
 - scene: An agent builds and ships a feature in seconds — an editor writes itself, a deploy goes green
-- voiceover: "These days, anyone can build. Claude Code, Codex — agents write the code. Beautiful features, shipped in days."
-- duration: 10.6s
+- voiceover: "These days, anyone can build. Agents write the code — beautiful features, shipped in days."
+- duration: 8.4s
 - transition_in: cut
 - status: animated
 - src: compositions/frames/01-anyone-can-build.html
@@ -44,8 +44,8 @@ Scene 3 (5.6–8.2s): on "shipped in days", the deploy status flips to a green "
 ## Frame 2 — Worth building
 
 - scene: A wall of shipped features over a flat adoption chart — lots built, nothing moved
-- voiceover: "Nobody answers the real question: what's worth building. Months go into the wrong bets. That's the judgment gap."
-- duration: 9.6s
+- voiceover: "What nobody tells you is what's worth building. Teams polish the prettiest idea — and miss. That's the judgment gap."
+- duration: 10.0s
 - transition_in: crossfade
 - status: animated
 - src: compositions/frames/02-worth-building.html
@@ -175,8 +175,8 @@ Scene 3 (5.6–8.0s): close-up hold on the sealed row (timestamp, author, immuta
 ## Frame 8 — The route
 
 - scene: One traveling shot across Plan, Build, Ship — the spec writes, agents build inside boundaries, the ship kit assembles — landing wide on the whole route
-- voiceover: "From there, agents take it. In Plan, the spec writes itself. In Build, the work happens right inside. And Ship isn't just launch day — the announcement, the changelog, the customer email. Done. One platform. The whole lifecycle."
-- duration: 18.8s
+- voiceover: "From there, agents take it. In Plan, the spec writes itself. In Design, the prototype takes shape. In Build, the work happens right inside. And Ship isn't just launch day — the announcement, the changelog, the customer email. Done. One platform. The whole lifecycle."
+- duration: 21.2s
 - transition_in: push-slide LEFT
 - status: animated
 - src: compositions/frames/08-the-route.html
