@@ -666,25 +666,27 @@ function Today() {
    * "Reading..." — a headline describing the fetch is the surface talking about
    * itself, and the lanes underneath already say what is being read.
    *
-   * `missions.isError` IS TESTED HERE AND IT IS NOT SYMMETRY FOR ITS OWN SAKE.
-   * Two of the three counts below — `stuck` and `shipped` — come from `missions`,
-   * and `stateSentence` reads a zero as "nothing happened" rather than as "not
-   * known". Until 2026-08-11 nothing guarded it and nothing needed to, by
+   * EVERY READ THE SENTENCE COUNTS IS ANSWERED FOR BEFORE IT COUNTS, and that is
+   * the whole rule. `stateSentence` takes three numbers and cannot tell a zero it
+   * read from a zero it never got. Two of them -- `stuck` and `shipped` -- come
+   * from `missions` and the third from `queue`, so a failure in either has to be
+   * dealt with above the call or the surface states it as fact.
+   *
+   * `missions` went unguarded until 2026-08-11 and nothing needed it to be, by
    * accident: `stillWaiting` never stood down on a failed read, so `loading`
    * stayed true for ever and the headline sat on the harmless "Today". Fixing
-   * that helper removed the accident. Without this clause a cold `missions`
-   * failure now falls through with `stuck: 0, shipped: 0` and prints "Nothing is
-   * ready for your review. Nothing is stuck." — which is exactly the claim the
-   * paragraph above forbids, made from a read that refused.
+   * that helper removed the accident, and a cold `missions` failure began
+   * printing "Nothing is ready for your review. Nothing is stuck." from a read
+   * that refused.
    *
-   * EACH FAILED READ NOW NAMES ITSELF, which is the copy decision that was left
-   * open above. "Today" is what the surface says while it is still counting; it
-   * is the wrong answer once a read has come back refused, because the person is
-   * looking at a page that will never fill in and nothing tells them why. The
-   * two reads carry different halves of the morning -- `queue` is what needs a
-   * decision from you, `missions` is what the crew did overnight -- so which one
-   * died changes what you do next, and the both-failed case says so rather than
-   * picking a winner and hiding the other.
+   * EACH FAILED READ NAMES ITSELF rather than sheltering under the surface's own
+   * name. "Today" is right while it is still counting and wrong once a read has
+   * come back refused, because the person is then looking at a page that will
+   * never fill in and nothing tells them why. The two reads carry different
+   * halves of the morning -- `queue` is what needs a decision from you,
+   * `missions` is what the crew did overnight -- so which one died changes what
+   * you do next. The both-failed case says so rather than picking a winner and
+   * hiding the other.
    */
   const headline = React.useMemo(() => {
     if (loading) return "Today";

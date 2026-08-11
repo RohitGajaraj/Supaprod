@@ -240,9 +240,40 @@ describe("Today never prints a claim it has not read yet", () => {
         guardAt,
         `${read} is consulted only after stateSentence has already counted it`,
       ).toBeLessThan(sentenceAt);
+
+      // TEXTUAL PRECEDENCE IS NOT CONTROL-FLOW PRECEDENCE, so position alone is
+      // not enough. `return missions.isError ? stateSentence({...}) : "..."`
+      // mentions the symbol before the call and is exactly backwards, and the
+      // index check above passes it. Requiring the guard to be an `if` that
+      // returns a STRING closes that: a branch that hands a failed read to the
+      // counter cannot also be a literal sentence.
+      const guards = new RegExp(`if \\([^)]*${read.replace(".", "\\.")}[^)]*\\)\\s*return "`);
+      expect(
+        body,
+        `${read} is consulted but not in a guard that returns a sentence`,
+      ).toMatch(guards);
     }
   });
 });
+
+/**
+ * WHAT THE TEST ABOVE STILL CANNOT SEE, written down rather than left implicit.
+ *
+ * It reads source text, so it is a proxy, and it is the third proxy in this
+ * spot: a string pin, then a branch pin, now an order-and-shape pin. Each broke
+ * on a change that enforced the rule harder than before, and each replacement
+ * was chosen because it was harder to break for the wrong reason -- not because
+ * it became a measurement of behaviour. It did not.
+ *
+ * The gap is that no arrangement of regexes can prove which branch RUNS. The
+ * thing that would is rendering this component with a failed `missions` query
+ * and asserting the headline is not a count. That does not belong in this file,
+ * which is a source-text suite by design and has no renderer; it is a new file
+ * and a real piece of work rather than a tweak.
+ *
+ * Deliberately deferred, and recorded here so the next person does not read the
+ * assertions above as stronger than they are.
+ */
 
 /**
  * THE SAME RULE, ACROSS THE WHOLE SPINE.
