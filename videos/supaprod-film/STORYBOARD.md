@@ -23,7 +23,7 @@ music: "minimal cinematic pulse — restrained electronic with a warm analog und
 ## Frame 1 — Anyone can build
 
 - scene: An agent builds and ships a feature in seconds — an editor writes itself, a deploy goes green
-- voiceover: "These days, anyone can build. Agents write the code — beautiful features, shipped in days."
+- voiceover: "These days, anyone can build. Devs got coding agents — beautiful features, shipped in days."
 - duration: 8.4s
 - transition_in: cut
 - status: animated
@@ -44,8 +44,8 @@ Scene 3 (5.6–8.2s): on "shipped in days", the deploy status flips to a green "
 ## Frame 2 — Worth building
 
 - scene: A wall of shipped features over a flat adoption chart — lots built, nothing moved
-- voiceover: "What nobody tells you is what's worth building. Teams polish the prettiest idea — and miss. That's the judgment gap."
-- duration: 10.0s
+- voiceover: "Product managers got chatbots. So the wrong things still ship — beautifully. Knowing what's worth building — that's the judgment gap."
+- duration: 10.6s
 - transition_in: crossfade
 - status: animated
 - src: compositions/frames/02-worth-building.html
@@ -199,8 +199,8 @@ Scene 5 (16.0–18.2s): the camera settles WIDE on the whole connected route —
 ## Frame 9 — The loop closes
 
 - scene: The Learn screen scores the outcome against the call; Discover's ranking visibly reorders
-- voiceover: "When results land, they're scored against the call that caused them — and your next bet re-ranks itself. It learns. Then it guides."
-- duration: 11.4s
+- voiceover: "When results land, Learn scores them — what worked, what didn't, and why. That lands in the brain, feeds your next signals — and the next bet re-ranks itself."
+- duration: 12.0s
 - transition_in: zoom-through
 - status: animated
 - src: compositions/frames/09-the-loop-closes.html

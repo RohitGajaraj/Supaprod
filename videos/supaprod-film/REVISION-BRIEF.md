@@ -40,8 +40,8 @@
 
 ## v5 duration table (LOCKED — build your frame to THIS duration; Vesper VO + breathing air)
 
-F1 8.4 · F2 10.0 · F3 14.6 · F4 11.0 · F5 7.6 · F6 7.8 · F7 7.5 · F8 21.2 · F9 11.4 · F10 12.3 ·
-F11 11.0 · F12 4.4 · F13 9.4 — film total 136.6s. STORYBOARD durations already match.
+F1 8.4 · F2 10.6 · F3 14.6 · F4 11.0 · F5 7.6 · F6 7.8 · F7 7.5 · F8 21.2 · F9 12.0 · F10 12.3 ·
+F11 11.0 · F12 4.4 · F13 9.4 — film total 137.8s. STORYBOARD durations already match.
 
 ## Frame-specific notes (one agent per frame, sequential)
 

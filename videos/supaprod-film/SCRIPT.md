@@ -12,14 +12,14 @@
 **Time:** 0.0 – 7.0s
 **Delivery:** Light, almost admiring. No dread yet.
 
-    These days, anyone can build. Agents write the code — beautiful features, shipped in days.
+    These days, anyone can build. Devs got coding agents — beautiful features, shipped in days.
 
 ## Line 2 — Worth building (Frame 2)
 
 **Time:** 7.0 – 15.0s
 **Delivery:** The turn. Slower on "worth". A beat before "and miss."
 
-    What nobody tells you is what's worth building. Teams polish the prettiest idea — and miss. That's the judgment gap.
+    Product managers got chatbots. So the wrong things still ship — beautifully. Knowing what's worth building — that's the judgment gap.
 
 ## Line 3 — You know the feeling (Frame 3)
 
@@ -68,7 +68,7 @@
 **Time:** 73.0 – 83.0s
 **Delivery:** The mechanism crescendo, delivered by slowing, not shouting. Real pauses at "It learns. Then it guides."
 
-    When results land, they're scored against the call that caused them — and your next bet re-ranks itself. It learns. Then it guides.
+    When results land, Learn scores them — what worked, what didn't, and why. That lands in the brain, feeds your next signals — and the next bet re-ranks itself.
 
 ## Line 10 — It stops you (Frame 10)
 
