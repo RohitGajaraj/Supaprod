@@ -52,7 +52,7 @@ Allow-authenticated: /today
 Allow-authenticated: /missions
 Allow-authenticated: /build
 Allow-authenticated: /knowledge
-Allow-authenticated: /trust-ledger
+Allow-authenticated: /track-record
 Allow-authenticated: /govern
 Allow-authenticated: /discover
 

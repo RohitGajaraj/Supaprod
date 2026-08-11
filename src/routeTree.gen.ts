@@ -40,6 +40,7 @@ import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ApiMcpRouteImport } from './routes/api/mcp'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedTrustLedgerRouteImport } from './routes/_authenticated.trust-ledger'
+import { Route as AuthenticatedTrackRecordRouteImport } from './routes/_authenticated.track-record'
 import { Route as AuthenticatedTracesRouteImport } from './routes/_authenticated.traces'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated.today'
 import { Route as AuthenticatedThreadsRouteImport } from './routes/_authenticated.threads'
@@ -344,6 +345,12 @@ const AuthenticatedTrustLedgerRoute =
   AuthenticatedTrustLedgerRouteImport.update({
     id: '/trust-ledger',
     path: '/trust-ledger',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedTrackRecordRoute =
+  AuthenticatedTrackRecordRouteImport.update({
+    id: '/track-record',
+    path: '/track-record',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedTracesRoute = AuthenticatedTracesRouteImport.update({
@@ -1247,6 +1254,7 @@ export interface FileRoutesByFullPath {
   '/threads': typeof AuthenticatedThreadsRoute
   '/today': typeof AuthenticatedTodayRoute
   '/traces': typeof AuthenticatedTracesRouteWithChildren
+  '/track-record': typeof AuthenticatedTrackRecordRoute
   '/trust-ledger': typeof AuthenticatedTrustLedgerRoute
   '/api/chat': typeof ApiChatRoute
   '/api/mcp': typeof ApiMcpRoute
@@ -1427,6 +1435,7 @@ export interface FileRoutesByTo {
   '/threads': typeof AuthenticatedThreadsRoute
   '/today': typeof AuthenticatedTodayRoute
   '/traces': typeof AuthenticatedTracesRouteWithChildren
+  '/track-record': typeof AuthenticatedTrackRecordRoute
   '/trust-ledger': typeof AuthenticatedTrustLedgerRoute
   '/api/chat': typeof ApiChatRoute
   '/api/mcp': typeof ApiMcpRoute
@@ -1611,6 +1620,7 @@ export interface FileRoutesById {
   '/_authenticated/threads': typeof AuthenticatedThreadsRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/traces': typeof AuthenticatedTracesRouteWithChildren
+  '/_authenticated/track-record': typeof AuthenticatedTrackRecordRoute
   '/_authenticated/trust-ledger': typeof AuthenticatedTrustLedgerRoute
   '/api/chat': typeof ApiChatRoute
   '/api/mcp': typeof ApiMcpRoute
@@ -1795,6 +1805,7 @@ export interface FileRouteTypes {
     | '/threads'
     | '/today'
     | '/traces'
+    | '/track-record'
     | '/trust-ledger'
     | '/api/chat'
     | '/api/mcp'
@@ -1975,6 +1986,7 @@ export interface FileRouteTypes {
     | '/threads'
     | '/today'
     | '/traces'
+    | '/track-record'
     | '/trust-ledger'
     | '/api/chat'
     | '/api/mcp'
@@ -2158,6 +2170,7 @@ export interface FileRouteTypes {
     | '/_authenticated/threads'
     | '/_authenticated/today'
     | '/_authenticated/traces'
+    | '/_authenticated/track-record'
     | '/_authenticated/trust-ledger'
     | '/api/chat'
     | '/api/mcp'
@@ -2584,6 +2597,13 @@ declare module '@tanstack/react-router' {
       path: '/trust-ledger'
       fullPath: '/trust-ledger'
       preLoaderRoute: typeof AuthenticatedTrustLedgerRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/track-record': {
+      id: '/_authenticated/track-record'
+      path: '/track-record'
+      fullPath: '/track-record'
+      preLoaderRoute: typeof AuthenticatedTrackRecordRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/traces': {
@@ -3760,6 +3780,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedThreadsRoute: typeof AuthenticatedThreadsRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedTracesRoute: typeof AuthenticatedTracesRouteWithChildren
+  AuthenticatedTrackRecordRoute: typeof AuthenticatedTrackRecordRoute
   AuthenticatedTrustLedgerRoute: typeof AuthenticatedTrustLedgerRoute
   AuthenticatedWorkspaceSlugProductSlugRoute: typeof AuthenticatedWorkspaceSlugProductSlugRoute
   AuthenticatedBuildMissionIdRoute: typeof AuthenticatedBuildMissionIdRoute
@@ -3829,6 +3850,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedThreadsRoute: AuthenticatedThreadsRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedTracesRoute: AuthenticatedTracesRouteWithChildren,
+  AuthenticatedTrackRecordRoute: AuthenticatedTrackRecordRoute,
   AuthenticatedTrustLedgerRoute: AuthenticatedTrustLedgerRoute,
   AuthenticatedWorkspaceSlugProductSlugRoute:
     AuthenticatedWorkspaceSlugProductSlugRoute,

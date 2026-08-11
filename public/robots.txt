@@ -4,6 +4,7 @@ Disallow: /today
 Disallow: /missions
 Disallow: /build/
 Disallow: /knowledge
+Disallow: /track-record
 Disallow: /trust-ledger
 Disallow: /discover
 Disallow: /settings
