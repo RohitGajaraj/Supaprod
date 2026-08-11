@@ -116,6 +116,41 @@ const STUCK = new Set(["failed", "halted", "cancelled", "blocked"]);
    and "Still running" would then be claiming work that has not started. */
 const WORKING = new Set(["running", "in_progress"]);
 
+/**
+ * HOW MANY ROWS A LANE DRAWS, AND THE DOOR THAT ACCOUNTS FOR THE REST.
+ *
+ * Measured in a browser on 2026-08-11 at 1280: the Shipped lane printed
+ * "4 live and waiting on nobody" over exactly THREE rows, under a door
+ * labelled only "Open Runs". Every lane does the same thing -- the subtitle
+ * counts the whole set and the body renders `slice(0, 3)` -- so the count and
+ * the list disagreed on screen and nothing on the surface reconciled them. A
+ * reader either reads three and distrusts the four, or reads four and hunts
+ * for the row that is not there.
+ *
+ * The cap stays, because the lane is a scan band and not a list. What changes
+ * is that the door says what it holds that the lane does not show, which is
+ * the one fact the reader was missing and the one place it costs no space.
+ */
+const LANE_ROWS = 3;
+const laneDoor = (total: number): string =>
+  total > LANE_ROWS ? `Open Runs · ${total - LANE_ROWS} more` : "Open Runs";
+
+/**
+ * THE HEADING NAMES THE ROW ON SCREEN, NOT THE SIZE OF THE RECORD.
+ *
+ * It read "It learned one thing" over `learnings[0]`, which is the newest of
+ * however many there are. On the demo workspace the record holds eight, so the
+ * one surface a visitor meets first was undercounting the record by seven and
+ * making the brain sound thinner than it is -- the exact opposite of the claim
+ * this station carries. It is also the arm the failed read did not share, so
+ * the section changed its name depending on how the fetch went.
+ *
+ * The honest version is a superlative rather than a count: true at one
+ * learning, true at eight hundred, and it never has to be re-checked against
+ * what `listLearnings` happens to return.
+ */
+const LEARNING_BLOCK = "The last thing it learned";
+
 const VERDICT_LABEL: Record<string, string> = { ship: "Ship", revise: "Revise", kill: "Kill" };
 const VERDICT_TONE: Record<string, "pass" | "warn" | "fail"> = {
   ship: "pass",
@@ -761,7 +796,7 @@ function Today() {
               ),
             )}
             quiet={shipped.length === 0 && runsState === "ready"}
-            more={shipped.length > 0 ? "Open Runs" : undefined}
+            more={shipped.length > 0 ? laneDoor(shipped.length) : undefined}
             onMore={() => navigate({ to: "/runs" })}
           >
             {/* THE ONE LIVE REGION FOR THE RUN RECORD. Three lanes are fed by
@@ -775,7 +810,7 @@ function Today() {
                 The run record did not load, so this cannot say what went live.
               </Failed>
             ) : (
-              shipped.slice(0, 3).map((mission) => (
+              shipped.slice(0, LANE_ROWS).map((mission) => (
                 <Row
                   key={mission.id}
                   tight
@@ -899,10 +934,10 @@ function Today() {
               ),
             )}
             quiet={stuck.length === 0}
-            more={stuck.length > 0 ? "Open Runs" : undefined}
+            more={stuck.length > 0 ? laneDoor(stuck.length) : undefined}
             onMore={() => navigate({ to: "/runs" })}
           >
-            {stuck.slice(0, 3).map((mission) => (
+            {stuck.slice(0, LANE_ROWS).map((mission) => (
               <Row
                 key={mission.id}
                 tight
@@ -941,10 +976,10 @@ function Today() {
               ),
             )}
             quiet={running.length === 0}
-            more={running.length > 0 ? "Open Runs" : undefined}
+            more={running.length > 0 ? laneDoor(running.length) : undefined}
             onMore={() => navigate({ to: "/runs" })}
           >
-            {running.slice(0, 3).map((mission) => {
+            {running.slice(0, LANE_ROWS).map((mission) => {
               const agent = mission.current_agent_slug
                 ? agentDisplayName(mission.current_agent_slug)
                 : "The crew";
@@ -974,13 +1009,17 @@ function Today() {
         {stillWaiting(learnings) ? (
           <Loading>Reading what it learned.</Loading>
         ) : learnings.isError ? (
-          <Block title="Latest learning">
+          /* SAME BLOCK, SAME NAME, WHICHEVER WAY THE READ WENT. The failed arm
+             called itself "Latest learning" and the loaded arm "It learned one
+             thing", so the section changed its name depending on whether the
+             fetch worked. */
+          <Block title={LEARNING_BLOCK}>
             <Failed onRetry={() => void learnings.refetch()}>
               The outcome record did not load, so this cannot show what changed next.
             </Failed>
           </Block>
         ) : learning?.summary ? (
-          <Block title="It learned one thing">
+          <Block title={LEARNING_BLOCK}>
             <RecordRecess
               title="Open this outcome in the record"
               onClick={() =>
