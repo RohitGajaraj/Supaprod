@@ -15,6 +15,7 @@ import { recordStageEvent } from "@/lib/stage-events.server";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { decideDecisionReview, DECISION_RECORD_EFFECT } from "@/lib/decision-gate";
 import { recordAutoApproval } from "@/lib/decision-gate.server";
+import { recordDecisionOrigins } from "@/lib/lineage.functions";
 
 /**
  * AMBIENT-TRIGGER (v11 #4) + SF-AUTOTRIGGER (Phase 3) trigger-tick.
@@ -410,6 +411,33 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
         actor: p.agentSlug ?? "strategist",
         workspaceId,
         userId: ownerId,
+      });
+      /**
+       * THE LARGEST DECISION DOOR IN THE PRODUCT, AND IT STAMPED NOTHING.
+       *
+       * Measured 2026-08-10: 105 of 154 real decisions carry
+       * `source_kind='mission'` and not one had an edge saying WHICH mission. 84
+       * of those come through here, so the graph could not answer "what produced
+       * this call" for the majority of calls the product makes.
+       *
+       * The guard that exists to catch exactly this could not see it. It holds a
+       * hardcoded list of four caller files and this route is not among them, so
+       * it was green over the biggest gap it was written to find — a list of
+       * known doors can only ever prove the doors somebody already thought of.
+       *
+       * `recordDecisionOrigins` rather than an inline `recordLineageSafe`,
+       * because the workspace rule is the whole point: `artifact_lineage
+       * .workspace_id` defaults to the CALLER'S default workspace, not the one
+       * the artifacts live in, and a fifth copy of that reasoning is a fifth
+       * chance to get WM-F1 wrong. It is fail-soft, so a transport failure on a
+       * provenance stamp can never fail the trigger that produced the decision.
+       */
+      await recordDecisionOrigins(supabaseAdmin, ownerId, {
+        decisionId,
+        missionId,
+        workspaceId,
+        createdByAgent: p.agentSlug ?? "strategist",
+        rationale: "The mission this trigger receipt was raised for",
       });
       if (gate.action === "auto_approve") {
         // The trail for a receipt the founder will never be shown. Written
