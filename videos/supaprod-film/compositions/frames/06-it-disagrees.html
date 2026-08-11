@@ -622,7 +622,7 @@
        ink wanted ABOVE the screen; the vertical translate is derived from it
        (y = 496.8·s − 540 + ly) so the shell stays framed at every scale, and
        |x| ≤ 844.8·s − 960 keeps the side edges past the frame edges. */
-    const cam = { s: 1.10, x: 0, ly: 53 };
+    const cam = { s: 1.10, x: -16, ly: 53 };
     const tilt = { rx: 1.8, ry: -2.4 };
     const applyTilt = () => { screenEl.style.transform = "rotateX(" + tilt.rx.toFixed(3) + "deg) rotateY(" + tilt.ry.toFixed(3) + "deg)"; };
     applyTilt();
@@ -651,14 +651,14 @@
     /* ═════════ Scene 1 (0.0–2.4) · "It scores each bet." ═════════ */
     tl.fromTo("#f6-frame", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 0.01);
     // arrival settle, then a slow push across the pair while the scoring runs
-    tl.to(cam, { s: 1.155, x: -6, ly: 30, duration: 2.25, ease: "power2.out", onUpdate: apply }, 0.1);
+    tl.to(cam, { s: 1.155, x: -18, ly: 30, duration: 2.25, ease: "power2.out", onUpdate: apply }, 0.1);
     tl.to(tilt, { rx: 1.2, ry: -1.7, duration: 2.25, ease: "power2.out", onUpdate: applyTilt }, 0.1);
 
     tl.fromTo("#f6-lt-k", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5,  ease: "power3.out" }, 0.5);
     tl.fromTo("#f6-lt-l", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 0.68);
     tl.fromTo(".f6-headmeta", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 0.35);
     tl.fromTo(".f6-headchip", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out", stagger: 0.06 }, 0.45);
-    tl.fromTo(".f6-pr", { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out", stagger: 0.12 }, 0.6);
+    tl.fromTo(".f6-pr", { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out", stagger: 0.09 }, 0.35);
 
     // agent presence · the working indicator runs the whole score fill
     tl.fromTo("#f6-agentA", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.25);
@@ -731,7 +731,7 @@
     tl.to("#f6-cursor", { x: 800, y: -455, duration: 0.85, ease: "power2.inOut" }, 7.15);
     tl.to("#f6-ghost", { x: 1279, y: 66, duration: 0.85, ease: "power2.inOut" }, 7.15);
     // camera follows the drag, streaking at peak velocity
-    tl.to(cam, { s: 1.24, x: -70, ly: 8, duration: 1.05, ease: "power2.inOut", onUpdate: apply }, 7.05);
+    tl.to(cam, { s: 1.18, x: -20, ly: 18, duration: 1.05, ease: "power2.inOut", onUpdate: apply }, 7.05);
     tl.to(blurProxy, { v: 7, duration: 0.5, ease: "power2.in",  onUpdate: writeBlur }, 7.15);
     tl.to(blurProxy, { v: 0, duration: 0.5, ease: "power2.out", onUpdate: writeBlur }, 7.65);
 
@@ -761,9 +761,9 @@
     tl.to("#f6-cursor", { x: 594, y: -512, duration: 0.9, ease: "power2.inOut" }, 8.5);
 
     // push onto the winner, then a settled held read (10.07–10.9 absorbs the slack)
-    tl.to(cam, { s: 1.34, x: -150, ly: 0, duration: 1.35, ease: "power2.inOut", onUpdate: apply }, 8.2);
+    tl.to(cam, { s: 1.34, x: -150, ly: -28, duration: 1.35, ease: "power2.inOut", onUpdate: apply }, 8.2);
     tl.to(tilt, { rx: 1.0, ry: -1.1, duration: 1.35, ease: "power2.inOut", onUpdate: applyTilt }, 8.2);
-    tl.to(cam, { s: 1.355, x: -156, duration: 1.35, ease: "power1.inOut", onUpdate: apply }, 9.55);
+    tl.to(cam, { s: 1.355, x: -156, ly: -34, duration: 1.35, ease: "power1.inOut", onUpdate: apply }, 9.55);
 
     /* driver registered LAST so it reads each frame's settled cam values */
     tl.to(driver, { t: DUR, duration: DUR, ease: "none", onUpdate: apply }, 0);
