@@ -12,7 +12,7 @@ The founder's stated ambition: a few million waitlist signups inside a week. Her
 
 - **No B2B product-team tool has ever done millions in a week.** The most viral launches in our reference class — Cursor, Devin, Linear — produced tens of thousands of signups in their best week, off years of audience or a $21M-funded demo video. Superhuman took 3 years to build a ~180k waitlist — and the person who ran that waitlist later published the punchline: waitlist signups converted to paying at ~3% (decaying with cohort age) versus ~10% for direct live signups ("The Waitlist Delusion", Gaurav Vohra). Millions in week one is consumer-social territory (and even there, it takes celebrity fuel).
 - **10,000 qualified product people beat 1,000,000 tourists** for every goal this launch actually has: paying customers, design partners, retention curves, the YC narrative. Waitlist size is a vanity metric the moment it stops converting (v13's ground-truth mandate; the metrics doc, [`04`](./04-growth-engine-metrics-and-experiments.md), separates vanity from pull).
-- **So the plan does both:** it designs for breakout virality (the stunts in [`05`](./05-viral-and-guerrilla-playbook.md) each have genuine six-to-seven-figure-impressions upside) while measuring success on the tiers below. If a breakout hits, everything downstream absorbs it. If it doesn't, the week still produces the thing that compounds: real users, real quotes, real receipts.
+- **So the plan does both:** it designs for breakout virality (the stunts in [`05`](./05-viral-and-guerrilla-playbook.md) each have genuine six-to-seven-figure-impressions upside) while measuring success on the tiers below. If a breakout hits, everything downstream absorbs it. If it doesn't, the week still produces the thing that compounds: real users, real quotes, real evidence.
 
 **The week's tiered targets (measure against these, not hope):**
 
@@ -30,9 +30,9 @@ If we're below Floor on day 4, the decision framework in §6 forces a pivot, not
 
 **The wedge audience:** senior/founding PMs and heads of product at seed-to-Series-B companies, plus the rising product engineer / solo founder who runs the whole loop alone (v13 §3, §6). They are reachable this week through LinkedIn, X, PM communities, and each other.
 
-**The story we tell (the only story):** engineers got agents; product people got chatbots. Supaprod is Claude Code for the product lifecycle — agents do the product work end to end, you make the calls, and the ledger proves what worked. The emotional hook is _engineer envy_; the trust hook is _receipts, including for our mistakes_.
+**The story we tell (the only story):** engineers got agents; product people got chatbots. Supaprod is Claude Code for the product lifecycle — agents do the product work end to end, you make the calls, and the track record proves what worked. The emotional hook is _engineer envy_; the trust hook is _receipts, including for our mistakes_.
 
-**The single viral thesis:** Supaprod's shareable objects are its _receipts_ — Critic teardowns, the Trust Ledger, the "Supaprod built part of itself" PR. Every campaign this week ships a receipt, not an adjective. (Full mechanics: [`05`](./05-viral-and-guerrilla-playbook.md).)
+**The single viral thesis:** Supaprod's shareable objects are its _receipts_ — Critic teardowns, the Track record, the "Supaprod built part of itself" PR. Every campaign this week ships evidence, not an adjective. (Full mechanics: [`05`](./05-viral-and-guerrilla-playbook.md).)
 
 **The sequencing rule (binding):** the Show HN and Product Hunt cards are played ONCE. They fire in week 2–3, after the no-signup demo (PC-04) is live and 2–3 real beta stories exist — the drafted posts in [`pitch/launch-assets.md`](../pitch/launch-assets.md) say so themselves. This week's wave builds the waitlist, the beta pipeline, and the audience those listings will land on. Burning HN with no demo link and zero users would spend our best card on our weakest day. (Fast-track escape hatch: §6.)
 
@@ -84,7 +84,7 @@ Each day: theme → founder actions (~time) → agent-lane actions → success c
 
 **Theme: the honest inversion story nobody else can tell.**
 
-- **The centerpiece (X thread + LinkedIn long-form, morning US time):** "We spent 13 months building the engine and never opened the doors. 133 missions, 72 decisions, 2,162 governed AI calls — all on our own product. Today we open them. Here's the ledger, including what we got wrong." Radical honesty IS the differentiation — every AI launch screams; a launch that shows its own receipts and its own mistakes is the pattern-break. Waitlist link in the reply, not the post.
+- **The centerpiece (X thread + LinkedIn long-form, morning US time):** "We spent 13 months building the engine and never opened the doors. 133 missions, 72 decisions, 2,162 governed AI calls — all on our own product. Today we open them. Here's the track record, including what we got wrong." Radical honesty IS the differentiation — every AI launch screams; a launch that shows its own evidence and its own mistakes is the pattern-break. Waitlist link in the reply, not the post.
 - **Founder (2–3h):** post, then live in the replies all day; DM wave 1 goes out (25 hand-personalized, gift-first: "saw your post on X — want the Critic to red-team your top bet? Takes us 48h, no strings").
 - **Agent lanes:** monitor everything (mentions, comments, referrers); log every reply into the capture system ([`03`](./03-customer-discovery-and-validation.md) §capture); draft Day 4's post from what resonates TODAY — the wave adapts daily.
 - **Done when:** the story is live, 25 DMs out, the first waitlist cohort is in.
@@ -93,7 +93,7 @@ Each day: theme → founder actions (~time) → agent-lane actions → success c
 
 **Theme: the claim no competitor can copy-paste.**
 
-- **The centerpiece:** the "Supaprod built part of itself" receipts post — a real PR merged through the product's own gated path, shown as the actual trace: signal → decision → spec → PR → human gate → merge → outcome recorded [PROVEN]. Screenshots of the ledger, link to the commit. Engineers will check; that's the point.
+- **The centerpiece:** the "Supaprod built part of itself" evidence post — a real PR merged through the product's own gated path, shown as the actual trace: signal → decision → spec → PR → human gate → merge → outcome recorded [PROVEN]. Screenshots of the track record, link to the commit. Engineers will check; that's the point.
 - **Founder (2–3h):** post + replies; first community value-posts in the builder-friendly venues only (r/SideProject, r/microsaas, the r/AI_Agents weekly thread, Indie Hackers, the Lovable Discord showcase — verified rules per venue in [`01`](./01-channel-playbooks.md); the strict PM subs wait for aged accounts and the Friday Show-and-Tell format); 10 newsletter/podcast pitches go out.
 - **Agent lanes:** DM wave 2 prep (next 25, warmed by two days of content); teardown queue triage (waitlist bet submissions → the best 10 get scheduled).
 - **Decision checkpoint (end of day):** trajectory vs Floor tier. Below pace → §6 pivot rules engage.
@@ -111,7 +111,7 @@ Each day: theme → founder actions (~time) → agent-lane actions → success c
 
 **Theme: attention becomes named humans on calendars.**
 
-- **Founder (3–4h):** X Space / AMA ("agents ran my product org for 13 months — the receipts, the failures, the ledger"); first 10 design-partner sessions booked from waitlist + DM replies (sessions double as discovery interviews — the exact 30-minute script is in [`03`](./03-customer-discovery-and-validation.md)); "what the agents did while I slept" receipts post (the morning brief as a public artifact).
+- **Founder (3–4h):** X Space / AMA ("agents ran my product org for 13 months — the evidence, the failures, the track record"); first 10 design-partner sessions booked from waitlist + DM replies (sessions double as discovery interviews — the exact 30-minute script is in [`03`](./03-customer-discovery-and-validation.md)); "what the agents did while I slept" evidence post (the morning brief as a public artifact).
 - **Agent lanes:** score the waitlist (the paying-likelihood rubric in [`03`](./03-customer-discovery-and-validation.md)); rank DP candidates; prep week-2 beta onboarding slots.
 - **Done when:** ≥10 sessions on the calendar with named, qualified humans.
 
@@ -120,7 +120,7 @@ Each day: theme → founder actions (~time) → agent-lane actions → success c
 **Theme: the week's own outcome gets recorded — in Supaprod.**
 
 - **Founder (2h):** the weekly review (agenda in [`04`](./04-growth-engine-metrics-and-experiments.md)): tier hit? which channel drove qualified signups per hour spent? kill/scale each experiment; approve the week-2 plan (beta wave → 2–3 usage stories → Show HN + Product Hunt the same week, per v13).
-- **The meta-post:** publish the week's own Launch Ledger — "we launched a launch through our own product; here's what worked, what didn't, what we recorded." The transparency arc continues and becomes the on-ramp to the listing week.
+- **The meta-post:** publish the week's own Launch Track record — "we launched a launch through our own product; here's what worked, what didn't, what we recorded." The transparency arc continues and becomes the on-ramp to the listing week.
 - **Agent lanes:** full metrics pack; quote vault update; the week's learnings recorded as outcomes in the founder's workspace (dogfood — this data IS the demo).
 
 ---
@@ -160,10 +160,10 @@ Each day: theme → founder actions (~time) → agent-lane actions → success c
 | Day | X | LinkedIn | Communities | Direct |
 | --- | --- | --- | --- | --- |
 | 3 Tue | founder story thread | long-form version | — (observe) | DM wave 1 (25) |
-| 4 Wed | "built itself" receipts | receipts, eng-lead angle | first value-posts | pitches ×10 |
+| 4 Wed | "built itself" evidence | evidence, eng-lead angle | first value-posts | pitches ×10 |
 | 5 Thu | public teardown #1 + challenge | teardown essay | challenge mention where allowed | DM wave 2 (25) + teardown deliveries |
 | 6 Fri | AMA/Space + while-you-sleep post | "what I learned opening the doors" | AMA invite | DP session booking |
-| 7 Sat | Launch Ledger recap | week recap | — | — |
+| 7 Sat | Launch Track record recap | week recap | — | — |
 
 Timing: post 8–10am ET; founder in replies for 2h after every post (the algorithm and the audience both reward presence). Every post's link goes in the first reply, not the body.
 
@@ -185,12 +185,12 @@ Timing: post 8–10am ET; founder in replies for 2h after every post (the algori
 | --- | --- | --- |
 | Wave lands flat (no breakout) | Medium-high | Floor tier is achievable on DMs + teardown gifts alone; the plan converts attention it doesn't need virality to book 10 sessions |
 | A viral moment before the product can absorb it | Low | waitlist gates access; teardown delivery scales through the dogfood workspace; beta stays invite-paced |
-| Skeptics attack the agentic claims | Medium | receipts-first posture; the failure-path GIF; honest-limitations list; never argue, always show the ledger |
+| Skeptics attack the agentic claims | Medium | evidence-first posture; the failure-path GIF; honest-limitations list; never argue, always show the track record |
 | Founder time overload (posting + DMs + sessions) | High | agent lanes draft/monitor/synthesize everything; founder's day is capped at ~4h of GTM in the calendar |
 | Google verification not cleared for beta | Medium | gate Google tiles "request access" (documented trap, plan §4); Linear/Notion connectors carry onboarding |
 | Community bans for self-promo | Medium | per-community etiquette in [`01`](./01-channel-playbooks.md); value-first posts; links only where allowed |
 | Waitlist fills with tourists | Medium | the bet-submission mechanic self-qualifies; scoring rubric separates buyers from browsers ([`03`](./03-customer-discovery-and-validation.md)) |
-| Positioning collision with fresh entrants (Samepage Signals, $4.85M raise, Jun 2026; Brief/briefhq.ai) | Medium | read their PH threads before copy freeze; lead with what they don't have — the closed decide→build→outcome loop with receipts; the one-liner and ledger framing are already differentiated ([`01`](./01-channel-playbooks.md)) |
+| Positioning collision with fresh entrants (Samepage Signals, $4.85M raise, Jun 2026; Brief/briefhq.ai) | Medium | read their PH threads before copy freeze; lead with what they don't have — the closed decide→build→outcome loop with the evidence; the one-liner and track record framing are already differentiated ([`01`](./01-channel-playbooks.md)) |
 
 ---
 

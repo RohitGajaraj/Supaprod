@@ -169,7 +169,7 @@ made on, and where a similar call was made before, what happened that time.
 [FOUNDER: attach 3 to 5 screenshots. Recommended, in this order:
  1. The approval queue with live pending decisions
  2. A single decision opened to its evidence and prior-outcome record
- 3. An agent run trace / receipt view
+ 3. An agent run trace / evidence view
  4. The roadmap or mission board
  5. A real pull request opened by an agent behind the merge gate
 Take them on the compass@ workspace so they match what a reviewer sees.]
@@ -222,7 +222,7 @@ fallback and feature gates all live at that one seam. Two consequences. First,
 the system is genuinely model-agnostic: Claude, GPT, Gemini, DeepSeek or a
 local model plug in, and a frontier release is a same-day drop-in at zero
 engineering cost. Second, every agent action and every model call produces a
-receipt by construction rather than by instrumentation, which is what makes
+evidence by construction rather than by instrumentation, which is what makes
 the accountability layer real instead of aspirational.
 
 The agent loop is a planning loop with a tool registry, capped steps, and
@@ -268,7 +268,7 @@ with time.
 
 I also do not compete on code generation. That layer is a knife fight and the
 models keep absorbing it. I own the harness instead: the loop, the gates, the
-receipts, the rollback, the outcome feed. The best model plugs into every job
+evidence, the rollback, the outcome feed. The best model plugs into every job
 in the lifecycle. When a better one ships, Supaprod gets better the same day.
 ```
 

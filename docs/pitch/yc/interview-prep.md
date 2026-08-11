@@ -33,7 +33,7 @@
 ## 3. The top questions (spoken answers, one breath each)
 
 **"What does Supaprod do?"**
-"It's Cursor for product managers. AI agents run the product lifecycle — read your customer signals, rank what's worth building, write the spec with evidence, hand the build to coding agents — and every action leaves a receipt, so you can always answer why a call was made and whether it was right."
+"It's Cursor for product managers. AI agents run the product lifecycle — read your customer signals, rank what's worth building, write the spec with evidence, hand the build to coding agents — and every action lands in the audit trail, so you can always answer why a call was made and whether it was right."
 
 **"How many users? Revenue?"**
 "[N] beta users since [date], zero revenue — pricing tests start with the paid tier. [If launched: 'Public since [date]; here's the week-over-week since.' If not: 'Beta now, public listing within days.']" _(Whatever is true that morning. Nothing else.)_
@@ -53,7 +53,7 @@
 "Discovery calls first — [M] of them. The ones who said 'can I have this today' became the beta. Then the public launch: Show HN and Product Hunt."
 
 **"Retention?"**
-"Too early to claim; the metric I watch is week-2 return. Right now it's [X] of [Y] users. The wedge feature — asking 'why did we decide X' and getting the receipt — is what brings people back."
+"Too early to claim; the metric I watch is week-2 return. Right now it's [X] of [Y] users. The wedge feature — asking 'why did we decide X' and getting the evidence — is what brings people back."
 
 **"How do you make money?"**
 "Workspace subscription plus usage credits for agent runs, so revenue scales with how much work the agents do, not headcount. Free tier is real but small. Pricing is my current experiment and I'll have data by [date]."
@@ -62,7 +62,7 @@
 "Two things changed. Agents got good enough to actually do the work, not draft it — that's 18 months old. And once building got cheap, deciding what to build became the bottleneck. The record-keeping part nobody did because nobody wants to publish their misses; that's exactly why it's defensible."
 
 **"What's the biggest risk?"**
-"Distribution. I've proven I can build; the next 90 days prove I can get users. That's why everything since July 10 is launch: beta first, the public listing right behind it, and the register stays public so people can check the receipts."
+"Distribution. I've proven I can build; the next 90 days prove I can get users. That's why everything since July 10 is launch: beta first, the public listing right behind it, and the register stays public so people can check the evidence."
 
 **"Who exactly is the user?"**
 "The person whose name is on the decision — a PM or founder running product on a small team, living across five tools. First beta users: [one true concrete example, e.g. 'a solo founder running two products']."
@@ -92,10 +92,10 @@
 "[FILL from live cost tracking: average agent run ≈ $X in model spend, sold as Y credits ≈ $Z — gross margin ~N%.] Caching and model routing are already in the chokepoint, so margin improves as usage grows."
 
 **"How do you handle hallucination?"**
-"Receipts by design. Every claim links to its source signal, a critic agent argues against weak bets before commit, builds must pass gates a human controls, everything has one-key rollback — and Supaprod records its own hit rate instead of hiding it. Ask any other AI tool for its miss record."
+"Evidence by design. Every claim links to its source signal, a critic agent argues against weak bets before commit, builds must pass gates a human controls, everything has one-key rollback — and Supaprod records its own hit rate instead of hiding it. Ask any other AI tool for its miss record."
 
 **"Why not charge 10x more?"**
-"Enterprises will pay 10x for the audit trail — that's the expand motion. I start where adoption needs no procurement, because I need usage and outcomes on the ledger more than I need early revenue."
+"Enterprises will pay 10x for the audit trail — that's the expand motion. I start where adoption needs no procurement, because I need usage and outcomes on the track record more than I need early revenue."
 
 **"Convince me this isn't a feature."**
 "A feature of what? To do it you have to own the loop from signal to outcome, and be willing to publish miss records. Linear won't do that to its own roadmap product; a suite can't be the neutral judge of its own tools. Owning that loop IS the company."
@@ -115,7 +115,7 @@
    "She proved the demand — huge respect. A PRD is where her loop ends and mine starts: the decision behind the doc, the build after it, and the outcome after that. Documents don't compound; the decision record does."
 
 4. **"If 'PM is dead' and teams collapse into builders, who's your buyer in three years?"**
-   "Whoever is left holding the decisions. If the title dies, one person runs product with a fleet — that person needs receipts more than a PM in a big org does. I'm building for the survivor of that collapse; I'm literally that user today."
+   "Whoever is left holding the decisions. If the title dies, one person runs product with a fleet — that person needs evidence more than a PM in a big org does. I'm building for the survivor of that collapse; I'm literally that user today."
 
 5. **"Scott AI is building your layer from the engineering side. Why do you win?"**
    "They plan work for coding agents — engineering-inward. I start from customer evidence and the decision, and I keep the outcome record. If we both succeed we meet at the tracker; the one who owns the judgment history owns the account."
@@ -129,8 +129,8 @@
 8. **"Next model release plans, decides, and dispatches natively. Then what?"**
    "Then my agents get better that same day — keys are bring-your-own and every call goes through one chokepoint. The model is capability. The cross-tool permissions, the trust ramp, and your accumulated decision record are the product, and a lab won't own those."
 
-9. **"Your moat is an outcome ledger and you have zero users, so zero outcomes. Cold start?"**
-   "The ledger pays from day one — it answers 'why did we decide X' with receipts from your first week of usage. The learning loop compounds on top. And I don't ship empty: Supaprod's own ledger, running Supaprod, is in the product as proof."
+9. **"Your moat is an track record and you have zero users, so zero outcomes. Cold start?"**
+   "The track record pays from day one — it answers 'why did we decide X' with the evidence from your first week of usage. The learning loop compounds on top. And I don't ship empty: Supaprod's own track record, running Supaprod, is in the product as proof."
 
 10. **"45 days building alone. Why couldn't you convince one engineer to join you?"**
     "I didn't ask anyone to quit for a pitch. I built the proof first — that's how I've made every move in my career. Recruiting on a working product with users is a different conversation, and I'm having it from a position of strength now."
@@ -155,7 +155,7 @@ YC's guide: "the best way to get an edge is to work hard and have your startup i
 > _⚠️ 2026-07-23: this path references the old Today-view IA. The app moved — no Today view on login, and a design (prototype) stage now sits between plan and build. Re-walk the live app and rewrite these five beats to the current screens before any interview; the same two gaps are logged at the top of [`video-scripts.md`](./video-scripts.md)._
 
 1. **Today view** — "This is my morning: the fleet worked overnight; these are the calls waiting for me." (10s)
-2. **The wedge** — ask "why did we decide [X]?" → the answer with receipts. "This is the question every PM gets asked and can't answer. Supaprod answers it in seconds." (25s)
+2. **The wedge** — ask "why did we decide [X]?" → the answer with the evidence. "This is the question every PM gets asked and can't answer. Supaprod answers it in seconds." (25s)
 3. **A decision** — open the top call, show the critic's argument and evidence, approve it. "Recorded, with what I saw when I decided." (25s)
 4. **Build + the gate** — the spec becomes tasks, a real PR opens. "No agent can merge — that's a hard floor." (15s)
 5. **The miss** — show the outcome check on a past decision that was wrong + one-key rollback. "It keeps score on itself. That's the whole company in one screen." (15s)

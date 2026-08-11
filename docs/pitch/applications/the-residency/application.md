@@ -294,7 +294,7 @@ Every one of them stops one step short. They surface signals, or draft documents
 
 That is the difference between a tool that remembers and one that learns. Storing decisions is easy and worth almost nothing on its own. The value is a system that can say: you are about to make a call you have made before, and here is how it went. Nobody gets there without owning the whole loop first, which is why it cannot be bolted onto a tracker afterward, and it cannot be copied quickly, because it only accumulates with time.
 
-The other thing: I do not compete on generating code. That layer is a knife fight and the models keep absorbing it. I own the harness instead, the gates and receipts and rollback, and plug the best model into it. When a better model ships, this gets better the same day and I do nothing.
+The other thing: I do not compete on generating code. That layer is a knife fight and the models keep absorbing it. I own the harness instead, the gates and evidence and rollback, and plug the best model into it. When a better model ships, this gets better the same day and I do nothing.
 ```
 
 > 🔴 **Falsified 2026-08-10 — see §2 of the correction block at the top.** *"Cannot be bolted onto a tracker… cannot be copied quickly… only accumulates with time"* does not hold. The reasons behind a decision survive in Slack and call recordings and have been rebuilt with a two-day agent. **Say instead:** the record can be rebuilt, but what a team expected before the outcome landed cannot, because almost nobody writes it down. Everything else in this answer stands.

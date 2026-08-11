@@ -52,7 +52,7 @@ All three carry the same claim and can be used interchangeably. **Do not mix the
 
 ### 100 words
 
-> Supaprod is the agentic-first operating system for product teams, and it works in three layers. The director reads your signals, your product data, your competitors and your own past calls, and ranks what is worth doing next. The operating system runs the whole lifecycle across seven stations that agents walk unattended, inside boundaries a human sets in advance. The company brain learns from what actually happened and then guides: a settled outcome is written back against the decision that caused it, and that re-ranks what you are shown next. Supaprod is pre-launch today, with public availability planned for mid-September 2026.
+> Supaprod is the agentic-first operating system for product teams, and it works in three layers. The director reads your signals, your product data, your competitors and your own past calls, and ranks what is worth doing next. The operating system runs the whole lifecycle across seven stations that agents walk on their own, inside boundaries a human sets in advance. The company brain learns from what actually happened and then guides: a settled outcome is written back against the decision that caused it, and that re-ranks what you are shown next. Supaprod is pre-launch today, with public availability planned for mid-September 2026.
 
 **The one line to lead with if a piece has room for only one:**
 
@@ -92,7 +92,7 @@ Told in this order, always, and never all three in one headline: **door, then bo
 | | Layer | What it does |
 | --- | --- | --- |
 | **01** | The director | Tells you what to build. Reads your signals, product data, competitors and your own past calls, and ranks what is worth doing next. |
-| **02** | The operating system | Runs the whole lifecycle. Seven stations that agents walk unattended, inside boundaries a human sets in advance. |
+| **02** | The operating system | Runs the whole lifecycle. Seven stations that agents walk on their own, inside boundaries a human sets in advance. |
 | **03** | The company brain | Learns, and then guides. A settled outcome re-ranks what you are shown next. |
 
 **Two things worth getting right in a technical piece.** The seven stations are a **route, not a conveyor**: work visits only the stations it needs and can enter at any of them, and a skipped station is recorded with its reason. And the build engine is **ours**, running frontier models through one governed chokepoint in the customer's own repository. We do not subcontract work to other coding tools, and a piece saying we do is wrong.

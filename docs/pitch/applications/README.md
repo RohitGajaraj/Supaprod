@@ -12,7 +12,7 @@
 
 | ❌ Never say | ✅ Say instead |
 | --- | --- |
-| the record / ledger "cannot be backfilled", "cannot be copied quickly", "only accumulates with time" | **the forecast** cannot be backfilled — causes survive in Slack and call recordings and have been rebuilt with an agent made in two days |
+| the record / track record "cannot be backfilled", "cannot be copied quickly", "only accumulates with time" | **the forecast** cannot be backfilled — causes survive in Slack and call recordings and have been rebuilt with an agent made in two days |
 | "the labs decline this vertical" | they could not build it **securely** across someone else's tools; an independent has no such restriction |
 | "single-suite incumbents cannot be neutral" | the threat is **DIY** — the folder, and the belief that simpler tools are more agent-friendly |
 | "90–95% agentic" | graduated autonomy with gates, which is what we built and what the field wants |
@@ -47,7 +47,7 @@ This rule was learned the hard way — the same claim escaped six separate sweep
 | File | What it is |
 | --- | --- |
 | [`answer-bank.md`](./answer-bank.md) | Every reusable answer, at every length. Pull from here, never write from scratch. |
-| [`positioning-doctrine.md`](./positioning-doctrine.md) | How we get **selected**, not just how we apply. Asset ledger, the counters to every objection, the per-program positioning axis, and the quality gate. |
+| [`positioning-doctrine.md`](./positioning-doctrine.md) | How we get **selected**, not just how we apply. Asset track record, the counters to every objection, the per-program positioning axis, and the quality gate. |
 | `<program>/positioning.md` | What that specific program selects for, and our angle into it. |
 | `<program>/application.md` | The drafted answers, ready to paste. |
 | `<program>/how-to-apply.md` | Step by step submission. |

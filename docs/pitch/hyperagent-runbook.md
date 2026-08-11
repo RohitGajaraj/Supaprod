@@ -1,6 +1,6 @@
 # HyperAgent $20k deployment — the arm's-length GTM rig runbook
 
-> _Created: 2026-07-10 (Lane D, PC-26). Status: **account verified live (founder logged in via Chrome, 2026-07-10) — the grant terms below are receipts, not estimates. Execution not yet started; the $200/yr subscription decision is the founder's, and no task has been run.**_
+> _Created: 2026-07-10 (Lane D, PC-26). Status: **account verified live (founder logged in via Chrome, 2026-07-10) — the grant terms below are evidence, not estimates. Execution not yet started; the $200/yr subscription decision is the founder's, and no task has been run.**_
 
 ## The grant, verified live (2026-07-10, hyperagent.com/settings/billing)
 
@@ -10,7 +10,7 @@
 
 **The founder-gated decision this surfaces (his call, not mine):** subscribe for $200/year to unlock the $20,000 Founding 500 credit (a real purchase — I have not done this and will not without explicit go-ahead), or run the GTM ops engine on the existing $1,000 credit first and decide on the $200/yr once there's a week of real usage data to judge it against. Either way the $1,000 already covers meaningful first-week work per the cost data below.
 
-**Live cost data (from HyperAgent's own example gallery, hyperagent.com/threads/new, 2026-07-10):** comparable multi-step research/outreach tasks cost $3.88-$24.79 and run 8-30 minutes each — in the same range the plan's own §6 estimate assumed ($10-25/run for research, $50-100/week for the ops engine), now receipt-verified rather than guessed. A "Personalized prospect outreach" template exists natively in the product (find prospects, draft outreach, build a pitch deck) — directly relevant to PC-13, worth trying once execution is greenlit.
+**Live cost data (from HyperAgent's own example gallery, hyperagent.com/threads/new, 2026-07-10):** comparable multi-step research/outreach tasks cost $3.88-$24.79 and run 8-30 minutes each — in the same range the plan's own §6 estimate assumed ($10-25/run for research, $50-100/week for the ops engine), now evidence-verified rather than guessed. A "Personalized prospect outreach" template exists natively in the product (find prospects, draft outreach, build a pitch deck) — directly relevant to PC-13, worth trying once execution is greenlit.
 
 ## The posture (non-negotiable, plan §6)
 
@@ -20,7 +20,7 @@
 
 ### 1. GTM ops engine (spend first — feeds PC-13 + PC-14 directly)
 
-**What it does:** prospect/community research to widen and verify the PC-13 design-partner list beyond the 25 already hand-picked from the r/ProductManagement thread (see [`design-partner-kit.md`](./design-partner-kit.md)); launch-day monitoring across HN/PH/Reddit for the PC-14 listing (mentions, sentiment, questions the founder should answer live); outreach-cadence tracking (who was contacted, when, reply status — a lightweight CRM view over the same 25 targets, never a system of record — Supaprod's own ledger stays the system of record for everything that matters).
+**What it does:** prospect/community research to widen and verify the PC-13 design-partner list beyond the 25 already hand-picked from the r/ProductManagement thread (see [`design-partner-kit.md`](./design-partner-kit.md)); launch-day monitoring across HN/PH/Reddit for the PC-14 listing (mentions, sentiment, questions the founder should answer live); outreach-cadence tracking (who was contacted, when, reply status — a lightweight CRM view over the same 25 targets, never a system of record — Supaprod's own track record stays the system of record for everything that matters).
 
 **Budget:** ~$50-100/week, ongoing through the Launch Month.
 

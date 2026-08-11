@@ -206,7 +206,7 @@ is contained. The strategy exposure is not.
 
 ## What carries the "is he a builder" weight instead
 
-Nothing on GitHub, and that is fine, because you have three stronger receipts:
+Nothing on GitHub, and that is fine, because you have three stronger evidence:
 
 - **The Paxel builder report**, already connected to your YC account and set to auto-attach. This is YC's own
   instrument for exactly this question, and it beats any repo link.
@@ -236,7 +236,7 @@ ISRO, and a product you have built solo where no non-founder has touched the cod
 This is a position YC has stated publicly this cycle: Garry Tan has said you can tell a great deal about
 whether someone can build from how they prompt agents, and Harj Taggar has said the Parker Conrad of today is
 in Claude Code. **Your Paxel builder report is already connected and attached, which is the strongest possible
-receipt for exactly this question.** Leave the auto-attach box ticked.
+evidence for exactly this question.** Leave the auto-attach box ticked.
 
 ---
 

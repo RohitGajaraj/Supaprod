@@ -6,7 +6,7 @@
 >
 > **1. `.ai` is canonical, not `.com`.** §3 and the whole of §7 build the email scheme on `@supaprod.com`. The founder ruled the opposite on **2026-07-17**, one day after this was written: `supaprod.ai` is the canonical domain and `.com` exists only to 301 to it. Live email runs on **`@supaprod.ai`** with seven role addresses; `supaprod.com` has no MX record at all. See [`../../operations/domain-and-email-setup.md`](../../operations/domain-and-email-setup.md), which is the live state. §7's address scheme below is stale and kept only for its reasoning.
 >
-> **2. Claiming the handles is now an executable runbook.** §6 decided the convention; [`social-accounts.md`](./social-accounts.md) is what you actually work from, with availability re-verified 2026-08-05, the copy pack, the asset map and the ledger.
+> **2. Claiming the handles is now an executable runbook.** §6 decided the convention; [`social-accounts.md`](./social-accounts.md) is what you actually work from, with availability re-verified 2026-08-05, the copy pack, the asset map and the track record.
 >
 > **The in-product rename executed 2026-07-17** — code, DB, envs, and UI now operate as "Supaprod." This document governs the outward brand (domains, handles, email, trademark, launch identity) for the name **Supaprod**, founder-locked 2026-07-16 after a five-round, ~30-agent, ~680-live-check naming study. The full evidence chain for all evaluated names lives in [`pitch/naming-decision-supaprod.md`](../../pitch/naming-decision-supaprod.md).
 >
@@ -40,7 +40,7 @@
 | **What "prod" carries** | Double meaning, both true of the product: **prod**uct (the domain: PM chief-of-staff, discovery, PRD, roadmap, decision memory) **and** production — the autonomous engine literally **ships to prod** |
 | **Pronunciation** | SOO-pa-prod (three syllables) |
 | **Spoken rule** | Say **"Supaprod, with an A"** once in every spoken pitch, podcast, and demo. The only systematic leak in the name is spelling (supa → super), and it is coachable. |
-| **Tagline candidate** | **"Ships to prod, with receipts."** — makes the production reading deliberate and pre-empts the "lol it tests in prod" joke before Twitter writes it for us |
+| **Tagline candidate** | **"Ships to prod, with the evidence."** — makes the production reading deliberate and pre-empts the "lol it tests in prod" joke before Twitter writes it for us |
 | **Wordmark** | Lowercase single word — `supaprod` — set in the Tempo design contract (`docs/design/archive/tempo-v5.md`) type system. **Never camel-case "SupaProd"**: the capital D visually amputates and amplifies "Prod", and the risk analysis flagged camel-casing as the styling that makes the wrong parse loudest. |
 
 ### The three accepted taxes (decided with eyes open, 2026-07-16)
@@ -55,7 +55,7 @@ These were surfaced by the adversarial (kill) and risk agents. The founder accep
 
 ### Known wrinkles that are NOT taxes (assessed and de-escalated)
 
-- **"Supaprod broke prod" / "tests in prod" jokes** — double-edged: guaranteed on the first public incident, but the same vocabulary gives the name dev-culture fluency. Owned via the tagline. Net asset **if** the receipts/verification story stays strong.
+- **"Supaprod broke prod" / "tests in prod" jokes** — double-edged: guaranteed on the first public incident, but the same vocabulary gives the name dev-culture fluency. Owned via the tagline. Net asset **if** the evidence/verification story stays strong.
 - **"Prod" as Northern Ireland sectarian slang** (documented: PSNI language guidance lists capital-P "Prod" alongside "Taig") — near-invisible inside "Supaprod" for a US-first software brand; a known wrinkle for future UK/Ireland hiring or press, nothing more.
 - **French "la prod"** = the production/the beat — neutral-to-positive, though it reinforces the music-producer reading in France (see §2 handles).
 - **Cattle-prod echo** — the adversarial agent searched for and found **no** real-world case of a product attacked over "prod" naming; scored speculative.
@@ -214,7 +214,7 @@ Reasoning, including alternatives considered:
 
 ### Claim list — the runbook now lives in its own file
 
-**Execute from [`social-accounts.md`](./social-accounts.md), not from here.** It carries availability re-verified live on 2026-08-05, the claim order and its one hard dependency (Instagram before Threads), the per-platform copy pack inside each real character limit, which generated asset goes where, and the ledger of what actually exists. Re-check with `bash scripts/check-handles.sh` before claiming.
+**Execute from [`social-accounts.md`](./social-accounts.md), not from here.** It carries availability re-verified live on 2026-08-05, the claim order and its one hard dependency (Instagram before Threads), the per-platform copy pack inside each real character limit, which generated asset goes where, and the track record of what actually exists. Re-check with `bash scripts/check-handles.sh` before claiming.
 
 Two corrections to what this section used to say:
 
@@ -355,7 +355,7 @@ SUPAPROD vs SUPERPROD are **phonetically near-identical** ("supa" is the standar
 - [ ] **No public use of the name before the US ITU filing is in** (§8). No teaser tweets, no bio changes, no "something new is coming" with the name visible.
 - [ ] **Day-one SERP capture** (the week the name goes public, all under the exact string "supaprod"): launch post on the company blog, Crunchbase profile, LinkedIn company page, GitHub org made public, Product Hunt page — so Google's "did you mean superprod" correction has a better target within days.
 - [ ] **Spoken-pitch rule** in every demo, podcast, and the YC video: say "Supaprod — with an A" once; always show the wordmark on screen while saying it.
-- [ ] **Press-kit line:** pronunciation (SOO-pa-prod) + the one-line name story ("super + product — and it ships to prod, with receipts").
+- [ ] **Press-kit line:** pronunciation (SOO-pa-prod) + the one-line name story ("super + product — and it ships to prod, with the evidence").
 - [ ] **Email posture for outreach:** investor/customer outreach only after Phase 2 email (Workspace DKIM) is live — pre-launch correspondence may use Phase 1 send-as (§7).
 - [x] **Rename-execution dependency:** the in-product rename (code, DB identifiers, envs, Lovable project, `CLAUDE.md` product-name ruling, brand assets, app UI) is **DONE — executed 2026-07-17**, clearing the way for public demos under the new name.
 

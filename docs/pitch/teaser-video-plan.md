@@ -82,7 +82,7 @@ Verified on this machine: `hyperframes` 0.7.98 runs, `ffmpeg` is at `/opt/homebr
 | **Screen Studio, $29, one month** — not the $229 lifetime | Auto-zoom on cursor actions is the direct fix for the failure every runsheet warns about: 11px mono text smearing at the bitrate a 100MB cap forces. |
 | **ElevenLabs Starter, $5** | The script is ~1,300 characters, so 30k credits is about twenty full takes with variants. |
 | Skip Descript | The repo's own `embedded-captions` skill plus ffmpeg burns the PH captions for nothing, and keeps caption styling under the same design control as the site. |
-| **Skip AI b-roll entirely** | Not on cost, on signal. Generated stock motion on a product whose whole argument is receipts reads as the opposite of the claim. |
+| **Skip AI b-roll entirely** | Not on cost, on signal. Generated stock motion on a product whose whole argument is evidence reads as the opposite of the claim. |
 
 Use HyperFrames **only** for the six-second B8 insert, and declare that project silent so it skips audio: its voice and music engines both report missing Python dependencies, and the insert sits under the master's voiceover anyway. That sidesteps both with zero installs.
 

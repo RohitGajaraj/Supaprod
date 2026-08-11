@@ -8,9 +8,9 @@
 
 **The intersection claim (the earned insight, for applications and decks):** YC has now asked for this company three times, in three pieces — a "Cursor for product managers" (Spring 2026), an "AI operating system for companies" (Summer 2026), a "company brain" (Summer 2026). They are one product: you can't be the company brain without owning the loop that generates the outcomes, and you can't run the loop without being the operating system. The product org is where that loop is tightest, so that's where we started. Told always door → body → brain, one headline per surface, brain as the crescendo.
 
-**One line (the instant anchor):** _"Supaprod is Claude Code for the product lifecycle — agents do the product work end to end, you make the calls, and the ledger proves what worked."_
+**One line (the instant anchor):** _"Supaprod is Claude Code for the product lifecycle — agents do the product work end to end, you make the calls, and the track record proves what worked."_
 
-**One paragraph (the story):** Engineers got agents — Cursor, Claude Code — and shipping became 10x cheaper. Product decisions became the bottleneck, and the product side got chatbots that draft and wait. Supaprod gives product teams what engineering got: governed agents that run the whole lifecycle — sense signals, rank the bets, red-team them, write the specs, build to PR, ship, and record what actually happened. Plus the thing engineering never needed: an **outcome ledger** — because code has a compiler and product judgment doesn't. **The ledger is the compiler for judgment.** Its feedback arrives in weeks, not seconds — which is exactly why this layer doesn't commoditize, and why owning it compounds.
+**One paragraph (the story):** Engineers got agents — Cursor, Claude Code — and shipping became 10x cheaper. Product decisions became the bottleneck, and the product side got chatbots that draft and wait. Supaprod gives product teams what engineering got: governed agents that run the whole lifecycle — sense signals, rank the bets, red-team them, write the specs, build to PR, ship, and record what actually happened. Plus the thing engineering never needed: an **track record** — because code has a compiler and product judgment doesn't. **The track record is the compiler for judgment.** Its feedback arrives in weeks, not seconds — which is exactly why this layer doesn't commoditize, and why owning it compounds.
 
 ## The thesis that makes us different
 
@@ -20,8 +20,8 @@
 
 **The three deliberately controversial moves:**
 
-1. **The artifact is dead; the enemy is productivity theater.** Roadmaps, PRDs, status decks — projections with no source of truth behind them ("Jira is optimized for productivity theater" — the community's own words). Our posture: _receipts or it didn't happen._ Artifacts are generated from the ledger on demand, drift-stamped — outputs, never sources.
-2. **We publish our own misses.** Every AI product hides its failure rate. We invert it: calibration on our own dogfood ledger, a demo that rehearses the wrong path on purpose, "Supaprod called N of the last M" as a first-class surface. A published miss record takes months of honesty to build and one faked number to destroy — that's why it's a moat, not a feature.
+1. **The artifact is dead; the enemy is productivity theater.** Roadmaps, PRDs, status decks — projections with no source of truth behind them ("Jira is optimized for productivity theater" — the community's own words). Our posture: _receipts or it didn't happen._ Artifacts are generated from the track record on demand, drift-stamped — outputs, never sources.
+2. **We publish our own misses.** Every AI product hides its failure rate. We invert it: calibration on our own dogfood track record, a demo that rehearses the wrong path on purpose, "Supaprod called N of the last M" as a first-class surface. A published miss record takes months of honesty to build and one faked number to destroy — that's why it's a moat, not a feature.
 3. **We sell to the accountable individual, not the workflow.** The person whose name is on the decision — the senior/founding PM today, the one-person product runner as orgs collapse (Coinbase runs "one-person teams… managing fleets of agents" — a public company's org experiment). Amplifier, never replacement.
 
 **Why nobody can call it a copy:** their demo says "look what the AI did." Ours says **"look what we can prove."** And every frontier model release makes this stronger — more agent work means more to answer for; BYOK absorbs the release.
@@ -34,7 +34,7 @@
 - **[PROVEN] Real build-to-PR.** The spine merged a real PR through its own gated path, produced a real preview deploy and production promote with auto release notes.
 - **[PROVEN] The self-report survives audit.** The 97%-complete register was independently code-audited and held — we grade our own homework and then invite the re-grade (that's the accountability thesis, applied to ourselves).
 - **[WIRING] "Supaprod runs on Supaprod."** The self-improvement loop (agents reading their own traces, proposing changes as receipted build-spine changesets) is designed and partially wired (RPT-50) — **we do not say it publicly until it demonstrably runs.**
-- **[ROADMAP] The felt agent layer** (named cast with visible receipts on every surface — PC-29), the Brand-Kit-driven Prototype station (PC-31), skills-with-receipts (PC-30). Say "shipping in the launch sprint," not "shipped."
+- **[ROADMAP] The felt agent layer** (named cast with visible evidence on every surface — PC-29), the Brand-Kit-driven Prototype station (PC-31), skills-with-evidence (PC-30). Say "shipping in the launch sprint," not "shipped."
 
 **The honest state (never hide it, it's our credibility):** the engine is finished and independently verified; organic external users as of 2026-07-10: zero — we built the OS before opening the doors, deliberately, and the Launch Month (< 25 days to public listing) opens them. Traction numbers get added here weekly once beta starts.
 
@@ -56,13 +56,13 @@ PM software ~$8B (2026) + AI dev-agents ~$10–11B → ~$18B combined, ~$40–50
 - "An AI product team you can actually hold accountable."
 - **"The product-staff seat. Instagram replaced its ~13-person canonical team with pods of four to six engineers led by a new role it calls _product staff_ — one PM absorbing design, data and research (Mosseri, 2026-07-09). Supaprod is the console for that seat."** [RPT-35]
   > _Corrected 2026-08-10 (Lane 0 quote audit). The prior version read "One PM directing a fleet of 20 agents across a 4–6 person pod (Mosseri). 1.2 humans + 20 agents = 10-human output (Lemkin)." **Mosseri never says "agents"** — his pod is four to six *engineers* plus a product staff, a core of "six or seven," and he partly credits smaller teams rather than agent leverage. The Lemkin arithmetic describes a **sales/GTM** function, not a product pod, and could not be corroborated anywhere in the 679-document paid archive. The two were spliced into a sentence neither source states. Only Mosseri survives, and he is verified verbatim. Full audit: [`../research/lennys-quote-verification.md`](../research/lennys-quote-verification.md)._
-- "Your product org, running itself — with a ledger that proves what worked."
+- "Your product org, running itself — with a track record that proves what worked."
 
 **The original bank:**
 
 - "Agents do the work. You answer for it. Supaprod is how you answer."
-- "The ledger is the compiler for judgment."
-- "Receipts or it didn't happen."
+- "The track record is the compiler for judgment."
+- "Evidence or it didn't happen."
 - "Their demo shows what the AI did. Ours shows what we can prove."
 - "Lovable builds you the wrong feature, beautifully, in ten minutes. Supaprod stops you from building the wrong thing — and proves which thing was right."
 

@@ -51,11 +51,11 @@ The order matters: a partner discounts 3–6 without 1–2. Everything below in 
 | 1 | **The switched-from** | "I stopped doing X in [tool] because Supaprod…" | Proves displacement, not addition — budget comes from somewhere |
 | 2 | **The pay quote** | "Can I pay you?" / "what does the paid tier get me?" — unprompted | The only pricing validation that matters pre-revenue |
 | 3 | **The retention quote** | "It's part of my Monday now" / evidence of a ritual formed | Retention narrated by the user beats a chart at this scale |
-| 4 | **The wrong-then-recovered** | "It ranked X wrong, I reverted, and the ledger showed me why — that's when I trusted it" | THE Supaprod-specific quote: the trust thesis in a customer's mouth. Hunt this one hardest. |
+| 4 | **The wrong-then-recovered** | "It ranked X wrong, I reverted, and the track record showed me why — that's when I trusted it" | THE Supaprod-specific quote: the trust thesis in a customer's mouth. Hunt this one hardest. |
 | 5 | **The time-saved-with-a-number** | "The Monday brief saves me ~2 hours of Slack archaeology" | Numbers in quotes survive diligence; adjectives don't |
-| 6 | **The upset-if-it-died** | "Don't kill this / what happens to my ledger if you shut down?" | YC's literal live-wire test, verbatim |
-| 7 | **The unprompted share** | Screenshot of them sending a teardown/ledger link to a colleague | Word-of-mouth caught in the act — attach the artifact |
-| 8 | **The accountable-exec** | "I showed the decision ledger to my CEO/board" | The enterprise expansion story, one sentence long |
+| 6 | **The upset-if-it-died** | "Don't kill this / what happens to my track record if you shut down?" | YC's literal live-wire test, verbatim |
+| 7 | **The unprompted share** | Screenshot of them sending a teardown/track record link to a colleague | Word-of-mouth caught in the act — attach the artifact |
+| 8 | **The accountable-exec** | "I showed the decision record to my CEO/board" | The enterprise expansion story, one sentence long |
 
 **Why/impact/effort:** near-zero effort (a capture habit + one file), highest leverage per minute of any GTM activity in this manual. **Success metric:** ≥1 quote in archetypes 2, 4, and 6 by July 25; ≥5 archetypes filled by G-BETA. **Next action:** create the `quote-vault` tag and file template during sprint day 1; add the permission-ask line to the beta session script (file 03).
 
@@ -70,7 +70,7 @@ Zero-base honesty is the constraint and the asset: every number starts at zero o
 3. **Week-2 return rate** of activated workspaces — the first honest retention signal available inside the window.
 4. **Paying workspaces + first dollars** — 3 paying at $49 beats 3,000 free signups in every serious room. Report the absolute number and the ask-to-close story.
 5. **Activation rate** (signup → first receipted value moment, the G-SPRINT definition) — proves the product, not the marketing.
-6. **Unprompted share events** (teardown/ledger links sent outward) — the organic-pull proxy; each one is also a quote-vault candidate (§2.7).
+6. **Unprompted share events** (teardown/track record links sent outward) — the organic-pull proxy; each one is also a quote-vault candidate (§2.7).
 
 **Explicit vanity list — never lead with these, cap them to one context line:** waitlist size (intent without friction is noise — see file 04's waitlist-qualification design for how we make ours _partially_ honest), social impressions/followers, HN points/PH rank (report what they _converted to_), GitHub stars, demo-video views, "pipeline." The internal rule extends the repo's claim discipline: **a metric may be reported only with its conversion to the next real step attached** ("2,400 waitlist → 310 activated → 41 week-2 active" is a story; "2,400 waitlist" alone is theater).
 
@@ -86,12 +86,12 @@ Each launch experiment below is designed twice: once to learn (primary), once be
 | --- | --- | --- | --- |
 | **Paid-pilot conversion** | Offer every design partner a paid pilot at the end of week 2 (real price, real card, founder discount allowed and disclosed) | WTP proof + the pay-quote (§2.2) + conversion % from engaged-free to paid | ≥2 of 10 partners convert |
 | **Concierge WTP test** | Before the feature exists, sell the outcome manually ("I'll run your signal triage this week — $X") to 5 non-partner prospects | Demand for the _job_ separated from the product's polish; a number for "what is the job worth" | ≥1 accepts at a non-trivial price |
-| **Unprompted-share rate** | Instrument teardown/ledger share links; count shares not prompted by the founder | The organic-pull metric + screenshot artifacts (§2.7) | ≥10% of active workspaces share within 2 weeks |
+| **Unprompted-share rate** | Instrument teardown/track record share links; count shares not prompted by the founder | The organic-pull metric + screenshot artifacts (§2.7) | ≥10% of active workspaces share within 2 weeks |
 | **Week-2 retention cohort** | Cohort every launch-week activation; measure return in week 2 without any founder nudge that week (nudge-free by design, or the number lies) | The first honest retention curve | ≥40% week-2 return of activated workspaces |
 | **The design-partner renewal decision** | At day 30, each partner explicitly decides: continue (paid or committed), pause, or stop — forced, recorded, with reason | Churn-with-reasons at n=10 — the densest learning artifact per user available at this stage | ≥6 of 10 continue; every "stop" has a verbatim reason filed |
 | **Pricing-page honesty test** | Publish real prices from day 1 (no "contact us"); measure tier-click → checkout-start → completion | The pricing-validation curve + where hesitation lives | Checkout-start rate measured (any value); ≥1 completion |
 
-**Why this framing matters:** at the YC interview, "we ran six pre-registered experiments; here are the numbers, including the two that failed" is a formidability signal no polished deck matches — it demonstrates learning rate (rank-3 signal, §1) with receipts.
+**Why this framing matters:** at the YC interview, "we ran six pre-registered experiments; here are the numbers, including the two that failed" is a formidability signal no polished deck matches — it demonstrates learning rate (rank-3 signal, §1) with the evidence.
 
 ---
 
@@ -121,7 +121,7 @@ The anti-pattern list, each with the discipline that prevents it (most are alrea
 4. **Guru citations.** Artifacts and companies only (Pitch Room rule 2). "A 480-point r/ProductManagement thread says X" survives probing; "[influencer] says X" invites an eye-roll.
 5. **Hiding the engine-first history.** Thirteen months building with zero external users is a _liability if concealed and a story if framed_: the strategy corpus predicted the shape (capability before showcase), an independent audit confirmed the build, and the doors opened on [date] — then show the curve. Partners respect a named risk with a mechanism; they reject a gap they find themselves.
 6. **Manufactured urgency or agreement theater.** The Garry Tan tension (full-autonomy vs our human-accountable design) is _named and answered_ in application-strategy.md §2 — keep it named. A reasoned disagreement is a formidability signal.
-7. **Solo-founder evasiveness.** The bar is higher solo; the answer is the product's own story — one person shipping like a team through governed agent lanes, receipts public in the repo. Lean in; don't apologize.
+7. **Solo-founder evasiveness.** The bar is higher solo; the answer is the product's own story — one person shipping like a team through governed agent lanes, evidence public in the repo. Lean in; don't apologize.
 8. **Submitting a plan instead of a wire.** If July 25 arrives and the §0 criteria fail, the strongest move may be NOT submitting the weak version — a burned first read costs more than a later application with a delta. Make the call on the criteria, not on sunk feeling.
 
 ---
@@ -134,7 +134,7 @@ The ritual (in Supaprod itself — the evidence workflow IS a dogfood workflow):
 
 1. **Metrics pack refresh (5 min):** the six §3 metrics pulled from the live DB into the investor one-pager view. Numbers that don't trace to the DB don't ship.
 2. **Quote vault filing (5 min):** the week's captures filed with date/name/permission status; archetype coverage checked (§2 table — which of the eight are still empty?).
-3. **Learning ledger (5 min):** one line each — _what we believed Monday, what we learned, what we changed_. This is the learning-rate evidence (§1 rank 3) and it cannot be reconstructed later; three weeks of these lines is an interview answer no one else has.
+3. **Learning track record (5 min):** one line each — _what we believed Monday, what we learned, what we changed_. This is the learning-rate evidence (§1 rank 3) and it cannot be reconstructed later; three weeks of these lines is an interview answer no one else has.
 4. **Distill outward (5 min):** anything that changes public positioning routes into `docs/pitch/` in place (one-pager honest numbers, qa-bank answers that got sharper from a real objection this week).
 
 **Success metric for the ritual itself:** zero skipped Fridays; by the July 25 YC checkpoint the pack shows two completed cycles; by any investor conversation the founder opens the pack, not a memory. **Next action:** schedule the Friday block now; create the metrics-pack view during sprint day 2 (paired with the funnel instrumentation work, PC-06, so it's one wiring job, not two).

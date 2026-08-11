@@ -75,7 +75,7 @@
 | ✅ | **whitlock** | surname: reads wit + lock — judgment + nothing ever lost |
 | ✅ | **merwin** | surname: sea + friend; one vowel from Merlin, the counselor |
 | ✅ | **beckwith** | surname: at your beck + with you |
-| ✅ | **rutledge** | statesman surname; "-ledge" echoes ledger |
+| ✅ | **rutledge** | statesman surname; "-ledge" echoes track record |
 | ✅ | **soames** | Churchill's right hand; maximum butler energy, one syllable |
 | ✅ | **bramley** | warm English village/apple — friendly fallback |
 | ✅ | **marden** | quiet village-surname coin — "ask Marden" |
@@ -175,7 +175,7 @@
 | ✅ | **bakshi** | BUK-shee | the Mughal paymaster who kept every roll and record |
 | ✅ | **mohur** | MO-her | the seal-stamped gold coin — the mark that makes a decision official (proof) |
 | ⛔ | lehra | LEH-rah | verified available again in this lane, but **remains killed** — Leera AI is an AI product-management platform |
-| ✗ | sachiv, munim, bahi, naib, diwan, sakha, sutradhar, karta, panji, mantri, vakil, sakshi, rahbar, amanat | — | the minister / the merchant-house record-keeper / the generational ledger / deputy / the friend-counselor — all squatted |
+| ✗ | sachiv, munim, bahi, naib, diwan, sakha, sutradhar, karta, panji, mantri, vakil, sakshi, rahbar, amanat | — | the minister / the merchant-house record-keeper / the generational track record / deputy / the friend-counselor — all squatted |
 
 ## 17. Mythological & historical counselors (Indian literature)
 

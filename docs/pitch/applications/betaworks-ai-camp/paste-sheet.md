@@ -98,7 +98,7 @@ Take on `compass@`, in this order:
 
 1. The approval queue with live pending decisions
 2. A single decision opened to its evidence and prior-outcome record
-3. An agent run trace or receipt view
+3. An agent run trace or evidence view
 4. The roadmap or mission board
 5. A real pull request opened by an agent behind the merge gate
 
@@ -145,7 +145,7 @@ Launch where the argument already happens. Public launch is September, on X, Hac
 ```
 The product. TypeScript end to end. TanStack Start (React 19) on the front, server functions in the same app, deployed to Cloudflare Workers at the edge. Supabase Postgres with row-level security, pgvector for retrieval, pg_cron driving the autonomous engine. PostHog and Sentry for product analytics and failure capture.
 
-The architectural choice that matters most: every AI call goes through a single runtime chokepoint. Budget, cache, guardrails, tracing, fallback and feature gates all live at that one seam. Two consequences. The system is genuinely model-agnostic, so Claude, GPT, Gemini, DeepSeek or a local model plug in and a frontier release is a same-day drop-in at zero engineering cost. And every agent action and model call produces a receipt by construction rather than by instrumentation, which is what makes the accountability layer real instead of aspirational.
+The architectural choice that matters most: every AI call goes through a single runtime chokepoint. Budget, cache, guardrails, tracing, fallback and feature gates all live at that one seam. Two consequences. The system is genuinely model-agnostic, so Claude, GPT, Gemini, DeepSeek or a local model plug in and a frontier release is a same-day drop-in at zero engineering cost. And every agent action and model call lands in the audit trail by construction rather than by instrumentation, which is what makes the accountability layer real instead of aspirational.
 
 The agent loop is a planning loop with a tool registry, capped steps, and per-tool approval modes of auto, confirm or review. Agents earn autonomy from their own track record, graduating from review to confirm to auto, with hard floors they never cross no matter how good that record gets: merge, revert and delegate stay human. Anything an agent produces rolls back with one key.
 
@@ -163,7 +163,7 @@ The space is moving fast. Samepage raised a $4.85M seed to surface signals for p
 
 What I understand that they do not: every one of them stops one step short. They surface, draft, remember, or dispatch. None checks the shipped outcome against the decision that caused it and feeds that back into the next recommendation. That is the difference between a tool that remembers and one that learns, and it is the only step that compounds. It cannot be bolted onto a tracker afterward, and it cannot be copied quickly, because it only accumulates with time.
 
-I also do not compete on code generation. That layer is a knife fight and the models keep absorbing it. I own the harness instead: the loop, the gates, the receipts, the rollback, the outcome feed. The best model plugs into every job in the lifecycle, and when a better one ships, Supaprod gets better the same day.
+I also do not compete on code generation. That layer is a knife fight and the models keep absorbing it. I own the harness instead: the loop, the gates, the evidence, the rollback, the outcome feed. The best model plugs into every job in the lifecycle, and when a better one ships, Supaprod gets better the same day.
 ```
 
 ## 14. What is another startup or founder that you admire? — **YOU** (taste question)

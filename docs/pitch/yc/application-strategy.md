@@ -16,8 +16,8 @@ Partners read hundreds per day at 60–90 seconds each. They are pattern-matchin
 ## 2. The positioning for THIS application (the ladder — lead with line 1)
 
 1. **The hook:** _"What Cursor did for writing code, Supaprod does for deciding what to build."_
-2. **The category:** an AI product team — agents that discover, decide, build, and ship — governed by one human who gets the receipts.
-3. **The secret (the earned insight):** everyone is selling capability; capability commoditizes at open-source speed. The collapsed resource is trust — so we built the accountability layer: every agent act has a receipt, every decision an outcome record, and the system publishes its own hit-rate. **Agents do the work. You answer for it. Supaprod is how you answer.**
+2. **The category:** an AI product team — agents that discover, decide, build, and ship — governed by one human who gets the evidence.
+3. **The secret (the earned insight):** everyone is selling capability; capability commoditizes at open-source speed. The collapsed resource is trust — so we built the accountability layer: every agent act lands in the audit trail, every decision an outcome record, and the system publishes its own hit-rate. **Agents do the work. You answer for it. Supaprod is how you answer.**
 4. **The tailwind (their words, not ours):** YC's own Summer-2026 RFS asks for a "Company Brain" and "AI Operating System for Companies" — this application answers their request with a working system. Coinbase already runs "one-person teams managing fleets of agents"; we're the instrument that role needs.
 5. **The proof:** built solo by running the product's own method — parallel agent lanes, every change receipted; the completeness register survived an independent code audit; [traction numbers slot here at application time].
 
@@ -25,9 +25,9 @@ Partners read hundreds per day at 60–90 seconds each. They are pattern-matchin
 
 ## 3. The application, field by field (patterns + anti-patterns)
 
-- **"What does your company do?" (50 words):** the hook + one concrete beat. Pattern: plain words, zero adjectives. Anti-pattern: "revolutionizing product management with agentic AI." Draft: _"Supaprod runs product work end to end with AI agents — it reads your customer signals, ranks what's worth building, red-teams the bet, writes the spec, builds to a pull request, and records whether the call was right. One PM governs it all and gets receipts for everything."_
+- **"What does your company do?" (50 words):** the hook + one concrete beat. Pattern: plain words, zero adjectives. Anti-pattern: "revolutionizing product management with agentic AI." Draft: _"Supaprod runs product work end to end with AI agents — it reads your customer signals, ranks what's worth building, red-teams the bet, writes the spec, builds to a pull request, and records whether the call was right. One PM governs it all and gets evidence for everything."_
 - **"Why did you pick this idea? What's your insight?"** — the accountability secret (§2.3) + the lived version: you built with agent fleets and hit the wall yourself — the more agents did, the more you had to answer for with nothing to answer FROM. That's the earned insight; tell it as the story it is.
-- **"Who are your competitors / what do you understand that others don't?"** — don't list logos first; state the structural gap: every prioritization tool scores with a static formula and forgets; every agent platform sells capability without receipts. Nobody connects decisions → outcomes → learned ranking (measured empty in our 2026 sweep — cite the survey, artifacts not gurus). Then the absorb pattern (Cycle→Atlassian, Kraftful→Amplitude) as evidence the incumbents buy features, not the layer.
+- **"Who are your competitors / what do you understand that others don't?"** — don't list logos first; state the structural gap: every prioritization tool scores with a static formula and forgets; every agent platform sells capability without evidence. Nobody connects decisions → outcomes → learned ranking (measured empty in our 2026 sweep — cite the survey, artifacts not gurus). Then the absorb pattern (Cycle→Atlassian, Kraftful→Amplitude) as evidence the incumbents buy features, not the layer.
 - **"How do or will you make money?"** — credits price **closed decision loops** (the value event), 4-tier ladder, teardown free as the wedge. One sentence on why not seats: we grow as agents do more, not as headcount does.
 - **"How far along are you?"** — the honesty pattern: launched [date], N workspaces, M weekly-active, the week-over-week curve, first paying teams; PLUS the unusual proof: the register + outside audit + "the product built itself through its own governed lanes." Never a run-rate multiplication.
 - **"Who writes code / equity split / progress velocity":** solo + agent fleet; show the commit cadence (it's public in the repo history — hundreds of receipted ships in weeks).
@@ -41,7 +41,7 @@ Partners interrupt fast and probe the weakest joint. Rehearse one-breath answers
 - "Show me." → the 3-minute narrative demo, live account, failure path included.
 - "Why won't OpenAI kill you?" → labs ship capability, walk away from accountability (they removed the audit trails); every model release makes us stronger via BYOK.
 - "Who's using it TODAY and what do they do daily?" → named beta stories, the "why did we decide X" moment.
-- "Why are you the one?" → I ran the problem: fleets without receipts; I built the receipts. Solo + fleet = the demo of the thesis.
+- "Why are you the one?" → I ran the problem: fleets without evidence; I built the evidence. Solo + fleet = the demo of the thesis.
 - "What's the number that worries you?" → answer honestly (e.g., week-2 return rate) + the mechanism addressing it. Honesty is the brand; use it.
 - "Pricing pushback / seat decay?" → closed loops, not seats; expansion follows agent workload.
 
@@ -58,5 +58,5 @@ The existing bank stands in [`../one-pager.md`](../one-pager.md). New candidates
 2. **"Cursor for product managers — except it also proves which decisions were right."** (the familiar frame + the twist that is the moat)
 3. **"Every engineer got an AI pair. The person deciding what they build got a chatbot. We fixed that."** (the injustice frame — very Show-HN)
 4. **"An AI product team you can actually hold accountable."** (shortest full-truth line)
-5. **"One PM. Five products. A fleet that works while you sleep — and shows its receipts every morning."** (the day-in-the-life frame; pairs with PC-33's portfolio demo beat)
-6. **"Your product org, running itself — with a ledger that proves what worked."**
+5. **"One PM. Five products. A fleet that works while you sleep — and shows its evidence every morning."** (the day-in-the-life frame; pairs with PC-33's portfolio demo beat)
+6. **"Your product org, running itself — with a track record that proves what worked."**

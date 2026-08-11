@@ -90,7 +90,7 @@ Maya read none of them. She was in planning all week.
 
 They were clustered overnight into one theme, and it was waiting for her on Monday with the agent that did it signed against each line.
 
-> _"She did not find this. She was told about it, with the receipts."_
+> _"She did not find this. She was told about it, with the evidence."_
 
 **Prop picked up:** connected sources, ambient clustering, agent bylines.
 
@@ -215,4 +215,4 @@ Four stages carry weight; three compress into a single breath. The design stage 
 - Never show an empty panel. An empty panel says this company is not real.
 - Never skip Beat 4.
 - Never claim the self-improvement loop beyond what is wired. Workspace-level learning is the claimable line.
-- If something breaks live: that is Beat 4 happening for real. Roll it back on camera, show the receipt, keep going.
+- If something breaks live: that is Beat 4 happening for real. Roll it back on camera, show the evidence, keep going.

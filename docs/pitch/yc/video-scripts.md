@@ -123,7 +123,7 @@ screen just sits there being calm while you do it, which is itself the argument:
 like now.
 
 **TRAPS** Say **twenty-three**, never twenty-seven. The number 23 is on screen in five places at once and a
-mismatch is caught inside ten seconds. Do not rest on the briefing's receipt list: it repeats "Signals
+mismatch is caught inside ten seconds. Do not rest on the briefing's evidence list: it repeats "Signals
 clustered into themes 19 hours ago" three times, and the same frame says both "1 agent run is in flight now"
 and "Nothing running". Read the summary and the `19 at Decide, 2 at Build, 2 at Learn` line, then move.
 
@@ -173,7 +173,7 @@ steps..."*
 minute.
 
 **TRAPS** The `[n]` citation markers are 9px and **inert** — no tooltip, no panel, no navigation. Hovering
-them shows the viewer that nothing happens. The PRODUCT MEMORY line is the receipt for "it reads everything"
+them shows the viewer that nothing happens. The PRODUCT MEMORY line is the evidence for "it reads everything"
 and it survives video compression far better than a 9px glyph.
 
 ---
@@ -404,7 +404,7 @@ writes to workspace memory, and workspace memory is what the Ask reads.
 # PART E — still cut, do not reopen
 
 `/build` itself · the merge-gate revival (its arguments name a PR that 404s) · the rollback beat · the agent
-byline · the automatic re-ranking claim · the receipt hover on the ask · **any live build run on camera**
+byline · the automatic re-ranking claim · the evidence hover on the ask · **any live build run on camera**
 (38% of builder runs since 2026-07-08 finished clean, median 215 seconds, no graceful abort) ·
 **the 04 Design beat** (added 2026-07-27, `prototype_files` empty everywhere) · **the `GATE · MEASURE` card**
 (added 2026-07-27, it never existed in the product).
