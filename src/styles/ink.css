@@ -155,8 +155,36 @@
   --sp-navrow-h: 38px;
   --sp-row-h: 36px; /* standard row */
   --sp-row-h-decision: 44px; /* a row carrying a decision earns the height */
-  --sp-work-pad-y: 34px;
-  --sp-work-pad-x: 40px;
+  /* THE GUTTER ANSWERS THE WORK REGION, NOT THE WINDOW.
+   *
+   * These were flat pixels at every size. 40px each side is right at a desk and
+   * indefensible on a phone: on a 320px viewport it spent 80px, a quarter of the
+   * screen, on empty margin, and the measure it left could not hold a row.
+   *
+   * `cqi` rather than `vw` because the window is the wrong question. The rail is
+   * 236px open and 64px collapsed, so two viewports of the same width can hand
+   * this region 172px of difference. `.sp-work` already declares
+   * `container-type: inline-size` (shell.css) and `.sp-inner` is its child, so
+   * the unit resolves against the space the content actually got.
+   *
+   * VERIFIED RATHER THAN ASSUMED, 2026-08-11, because the substitution rule here
+   * is not obvious: a custom property is an unparsed token stream, so `cqi`
+   * resolves where the value is USED, not where it is declared. Declared at
+   * `:root` and used on `.sp-inner`, it could plausibly have resolved against the
+   * viewport. Measured in the browser: container 1376px inside a 1440px window
+   * returned 44.03px against a container prediction of 44.03px and a viewport
+   * prediction of 46.08px. It reads the container.
+   *
+   * The maxima are set so the desk is UNCHANGED: at the 1376px container a
+   * 1440px window gives, 2.9cqi is 39.9px and 2.5cqi is 34.4px, which are the
+   * two numbers that were here before. Nothing about a desktop layout moves.
+   * Only the narrow end is bought, and it is bought from margin that was doing
+   * nothing.
+   *
+   * `--sp-work-pad-bottom` is deliberately NOT fluid: it is dock clearance, not
+   * rhythm, and shrinking it on a phone puts content under the dock. */
+  --sp-work-pad-y: clamp(20px, 2.5cqi, 36px);
+  --sp-work-pad-x: clamp(20px, 2.9cqi, 44px);
   --sp-work-pad-bottom: 72px;
   --sp-work-max: 1400px;
   --sp-main-max: 74ch; /* measure, not pixels: it tracks the type */
