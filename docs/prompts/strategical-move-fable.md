@@ -16,7 +16,7 @@ Design every missing capability completely, including Brain architecture, long-t
 
 Think beyond today's terminology. Reinvent concepts where appropriate. Replace user journeys with agent journeys, PRDs with Agentic Requirement Documents, workflows with autonomous loops, and introduce new abstractions wherever they create a fundamentally better product.
 
-This is an **agent-first platform**, not simply software using AI. The finished application must itself provide autonomous multi-agent capabilities to end users. Agents should own planning, execution, verification, coordination, recovery, memory, learning, and intelligent handoffs with minimal human intervention.
+This is an **agent-operated platform**, not simply software using AI. The finished application must itself provide autonomous multi-agent capabilities to end users. Agents should own planning, execution, verification, coordination, recovery, memory, learning, and intelligent handoffs with minimal human intervention.
 
 Use real implementations, real data, and truthful system behavior. No placeholders. No fake logic. No UI polish. Founder authority overrides any previous doctrine, design principle, architecture, or documentation that prevents the right product decision. Correctness, tenant safety, and honesty remain non-negotiable.
 

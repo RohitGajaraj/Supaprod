@@ -7,6 +7,7 @@ import {
   displayWho,
   type DecisionRow,
 } from "../decisions-shared";
+import { DECISION_SOURCES } from "@/lib/decisions.functions";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SOURCE_LABEL - Decision source to display label mapping
@@ -35,8 +36,24 @@ describe("SOURCE_LABEL", () => {
     expect(SOURCE_LABEL.manual).toBe("Manual");
   });
 
-  test("has exactly 4 source labels", () => {
-    expect(Object.keys(SOURCE_LABEL).length).toBe(4);
+  /**
+   * THIS TEST USED TO READ `expect(Object.keys(SOURCE_LABEL).length).toBe(4)`
+   * and it was worse than no test at all.
+   *
+   * A count is not the claim. The claim is "every origin a decision can carry
+   * has a label", and a hard-coded 4 asserts the opposite of that: it PINS the
+   * map to a size the database had already outgrown by five values, so the
+   * correct fix — adding the missing labels — would have turned this test red.
+   * A guard that fails when the bug is fixed is a guard defending the bug.
+   *
+   * It is now the exhaustiveness check it was always trying to be. It reads the
+   * origins from the same const the type is derived from, so it cannot be
+   * satisfied by a stale literal and cannot go stale itself.
+   */
+  test("labels every origin a decision can actually carry", () => {
+    const missing = DECISION_SOURCES.filter((s) => !SOURCE_LABEL[s]);
+    expect(missing).toEqual([]);
+    expect(Object.keys(SOURCE_LABEL).sort()).toEqual([...DECISION_SOURCES].sort());
   });
 
   test("all labels are capitalized", () => {

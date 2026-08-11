@@ -75,8 +75,8 @@ Refresh these against the live database the morning of any conversation. **A sta
 | Users | 8, all founder / internal / test. **Zero organic external users.** |
 | Revenue | None. Billing is built and deliberately dormant. |
 | Public launch | **mid-September 2026** |
-| Build scale | ~1,440 source files · 79 authenticated routes · 151 server-function modules · 462 migrations · 402 test files · 7,159 tests passing |
-| Engine warmth (founder data) | 133 missions · 72 decisions · 49 learnings · outcome-reinforced ranking live |
+| Build scale | ~1,440 source files · 79 authenticated routes · 151 server-function modules · 512 migrations · 402 test files · 7,159 tests passing |
+| Production data | **6 workspaces, all founder or test accounts. No customer data at all.** 18 missions · 5 decisions · **0 learnings · 0 learning citations.** The loop is wired and proven; it begins accruing on first real use. Query: `production_workspace_ids()`. |
 | TAM | $300B+/yr, the PM work budget (2.6M PMs x ~$115K loaded) |
 | SAM | $2B to $12B/yr, launch pricing to value pricing |
 | SOM | ~$47M ARR, the agent-native tenth at launch pricing |

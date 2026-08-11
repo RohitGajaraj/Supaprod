@@ -85,7 +85,7 @@ personal investment.
 > Every tool I've used helps with **one** step. /
 > This runs all of them, / and the loop actually **closes**. //
 >
-> **Third**, / and this is the one I care about **most**. / The **company brain**. /
+> **Third**, / and this is the one I care about **most**. / The **brain**. /
 > Everything gets remembered. /
 > Every decision, / every outcome, / in one place. / So it learns your **taste**. /
 > And next time you're about to repeat something you already got wrong, /
@@ -180,9 +180,9 @@ Claim check on the new layer two: `one-pager.md:34` tags "Real build-to-PR" as [
 merged a real PR through its own gated path, with a real preview deploy and production promote),
 and the merge gate is a non-overridable floor. Both halves are safe to say.
 
-**Layer three now names the company brain out loud**, immediately after the personal line, so the
+**Layer three now names the brain out loud**, immediately after the personal line, so the
 emphasis lands on the brand term rather than on the sentiment: _"and this is the one I care about
-most. The company brain."_
+most. The brain."_
 
 ## What I imported from the coffee version, and why each one earns its place
 
@@ -363,7 +363,7 @@ away and back · **bold** = the one word you punch · `(down)` = voice drops.
 > **Two.** / It runs the whole **lifecycle**. / Discovery, / design, / build, / ship. /
 > Then it **grades** what shipped, / and tells you where you went **wrong**. //
 >
-> **Three.** / And this is the part that **compounds**. / The **company brain**. /
+> **Three.** / And this is the part that **compounds**. / The **brain**. /
 > Every decision, / every outcome, / in one place. / It learns your **taste**. /
 > So it warns you before you repeat what did **not** work. ///
 >
@@ -384,7 +384,7 @@ company needs to exist at all. It is now 36 words and it does three things in or
    hard twice on purpose is what makes the turn land.
 3. **It names both halves of the real problem.** "Knowing **what** to build. And whether the call
    was **right**." That second half is new and it is load-bearing: it is what makes Beat 5's
-   grading and the company brain feel inevitable rather than bolted on.
+   grading and the brain feel inevitable rather than bolted on.
 
 **What paid for it.** Beat 5's layer three used to end "it tells you what worked, and warns you
 before you repeat what did not". The "what worked" half is now covered upstream by Beat 4, so the
@@ -432,7 +432,7 @@ minutes, but it is close and it is yours.
 3. **WHAT DO WE BUILD NEXT?**
 4. **Every PM wakes up to it. Nobody answers it well. Reasoning is real but scattered. No system keeps it.**
 5. **AI changed the equation. Building used to be hard. Now agents do it in minutes. Only hard part left: knowing WHAT to build, and whether the call was RIGHT.**
-6. **THREE THINGS. One: what to build. Reads your users, your data, your market. Comes back with the call and the evidence. Two: the whole lifecycle. Discovery, design, build, ship. Then grades it and tells you where you went wrong. Three: the company brain. Compounds. Every decision, every outcome, one place. Learns your taste. Warns you before you repeat what did not work.**
+6. **THREE THINGS. One: what to build. Reads your users, your data, your market. Comes back with the call and the evidence. Two: the whole lifecycle. Discovery, design, build, ship. Then grades it and tells you where you went wrong. Three: the brain. Compounds. Every decision, every outcome, one place. Learns your taste. Warns you before you repeat what did not work.**
 7. **Agents do the work. You answer for it. Supaprod is how you answer.**
 8. **(smile) That's Supaprod. I always wanted this to exist. And now I get to build it.**
 
@@ -530,7 +530,7 @@ look away and back · **bold** = the one word you punch · `(down)` = voice drop
 > **Two.** / It runs the whole **lifecycle**. / Discovery, / design, / build, / ship. /
 > Then it **grades** what shipped, / and tells you where you went **wrong**. //
 >
-> **Three.** / And this is the part that **compounds**. / The **company brain**. /
+> **Three.** / And this is the part that **compounds**. / The **brain**. /
 > Every decision, / every outcome, / in one place. / It learns your **taste**. /
 > So it warns you before you repeat what did **not** work. ///
 
@@ -556,7 +556,7 @@ Tape it under the lens. Glance, never read.
 3. **WHAT DO WE BUILD NEXT?**
 4. **Every PM wakes up to it. Nobody answers it well. The reasoning is real but scattered. No system keeps it.**
 5. **AI changed the equation. Building used to be hard. Now agents do it in minutes. Only hard part left: knowing WHAT to build, and whether the call was RIGHT.**
-6. **THREE THINGS. One: what to build, with the evidence. Two: the whole lifecycle, then grades it and tells you where you went wrong. Three: the company brain, compounds, learns your taste, warns you.**
+6. **THREE THINGS. One: what to build, with the evidence. Two: the whole lifecycle, then grades it and tells you where you went wrong. Three: the brain, compounds, learns your taste, warns you.**
 7. **Agents do the work. You answer for it. Supaprod is how you answer.**
 8. **(smile) That's Supaprod. I always wanted this to exist. And now I get to build it.**
 
@@ -678,7 +678,7 @@ first person would reintroduce exactly the projection problem you flagged._
 > **Two.** / It runs the whole **lifecycle**. / Discovery, / design, / build, / ship. /
 > Then it **grades** what shipped. //
 >
-> **Three.** / And this is the part that **compounds**. / The **company brain**. /
+> **Three.** / And this is the part that **compounds**. / The **brain**. /
 > It learns your **taste**, / and warns you before you repeat what did **not** work. ///
 
 ### Beat 6 · the close, with more life in it (1:29 to 1:40)
@@ -802,7 +802,7 @@ me"** is your own experience, needs no hierarchy, and is true of every product p
 > **Two.** / It runs the whole **lifecycle**. / Discovery, / design, / build, / ship. /
 > Then it **grades** what shipped, / and tells you where you went **wrong**. //
 >
-> **Three.** / And this is the part that **compounds**. / The **company brain**. /
+> **Three.** / And this is the part that **compounds**. / The **brain**. /
 > Every decision, / every outcome, / in one place. / It learns your **taste**. /
 > So it warns you before you repeat what did **not** work. ///
 
@@ -910,11 +910,11 @@ pain read as competence being wasted, not as someone being disorganised._
 > **Two.** / It runs the whole **lifecycle**. / Discovery, / shipping, / grading what shipped, /
 > and telling you where you went **wrong**. //
 >
-> **Three.** / The **company brain**. / It remembers, / and it **guides**. ///
+> **Three.** / The **brain**. / It remembers, / and it **guides**. ///
 
 _This is the crisp close you asked for, in the order you named, and it matches the website
 exactly. `ThreeLayers.tsx` publishes: 01 the director "It tells you what to build" · 02 the
-loop "It runs the whole lifecycle" · 03 the company brain "It remembers, and it guides."
+loop "It runs the whole lifecycle" · 03 the brain "It remembers, and it guides."
 Saying **One, Two, Three** out loud is what makes a viewer able to repeat your company back
 after one watch, which is the actual test a partner runs._
 
@@ -945,11 +945,7 @@ seconds.
 inside "you stay accountable for it" in Beat 1, which is doing the same work earlier and in
 fewer words.
 
-**One note on "company brain".** It is on the live site as the name of layer 03, so it is
-already your published vocabulary and I have used it. Worth knowing why the caution existed:
-`repositioning-2026-07-22.md` treats it as a phrase to quote and attribute rather than claim as
-brand identity. Saying it as the name of your third layer, as the site does, is fine. Saying
-"we are a company brain" as the whole positioning is the thing to avoid.
+**⚠️ **Corrected 2026-08-11: layer 03 is now "the brain", not "the company brain", on every surface including the live site.** The note that stood here said the compound was live on the site and should therefore be spoken; it is not, and saying it on camera would put the video out of step with the page behind it. **YC's "Company Brain" RFS phrase stays quotable and attributed; it is never our name for the layer.**
 
 ---
 
@@ -961,7 +957,7 @@ Tape this under the lens. Glance, never read.
 2. **Close to a decade in product. Same question every Monday: what do we build next?**
 3. **Your VP asks why. The reasons are real. You cannot find them.**
 4. **AI made building cheap. Deciding got harder. Agents did more, I explained less.**
-5. **THREE THINGS. One: tells you what to build. Two: runs the whole lifecycle, and tells you where you went wrong. Three: the company brain, remembers and guides.**
+5. **THREE THINGS. One: tells you what to build. Two: runs the whole lifecycle, and tells you where you went wrong. Three: the brain, remembers and guides.**
 6. **Live. Launch September.**
 7. **Agents do the work. You answer for it. Supaprod is how you answer.** _(smile) Thanks for watching._
 
@@ -1150,7 +1146,7 @@ Everything in v1's fact table still binds. These are the ones that changed with 
 | "Before that, space systems" | **"Space systems, then semiconductors, then banking and finance"** | The decade contains all three. |
 | "ISRO", "Intellect", any employer | nothing, or the domain | Your ruling. The work is the credential. |
 | "TUM School of Management" | **"an MBA in Germany"**, or cut it | The school name buys nothing spoken. |
-| "the company brain" | **"and it remembers"** | Not our phrase to claim as identity. Describe the mechanism. |
+| "the brain" | **"and it remembers"** | Not our phrase to claim as identity. Describe the mechanism. |
 | "where the record lives" | **"it tells you what worked"** | Banned framing. Storage is not the product. |
 | anything implying users | **"It is live."** | Zero outside users exist on the database. |
 | "Supaprod is building Supaprod on its own" | **"one person directing agents"** | Claim-gated until it demonstrably runs. |

@@ -1,5 +1,7 @@
 # The YC application — Fall 2026 (previous vs new, field by field)
 
+> ⛔ **NOT THE PASTE SOURCE (2026-08-11).** Paste from [`APPLICATION-FINAL.md`](./APPLICATION-FINAL.md). **This file keeps the reasoning, the audit history and every superseded draft**, and those drafts still contain retired numbers (401/362 register counts, 133 missions, 3,979 commits, 387 migrations) and older phrasings on purpose, as the record of what was corrected. **Nothing in this file may be copied to the form.**
+
 > **⭐ NOT YET SUBMITTED (founder, 2026-07-24) — apply the deck-session canon in the pre-submit pass.** Every text surface below is still editable; nothing is locked. Before pasting any column into the portal, sweep it against the 2026-07-24 canon (full version: [`../repositioning-2026-07-22.md`](../repositioning-2026-07-22.md) §0; deck: [`../investor-deck/`](../investor-deck/README.md)):
 >
 > 1. **Launch date: September 2026** everywhere forward-looking (supersedes August / "weeks away").

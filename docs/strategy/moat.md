@@ -14,7 +14,7 @@
 > | --- | --- | --- |
 > | **01 the director** (tells you what to build) | **No.** | Ranking is a capability, not an asset. A frontier model plus the same signals gets close, and closer each release. It is the door: it earns the first ten minutes. |
 > | **02 the operating system** (runs the lifecycle) | **Partly, for quarters.** | The loop, gates, tenancy and track record are real engineering and genuinely hard, but buildable by a funded incumbent with distribution. Its job is to be the precondition for 03. |
-> | **03 the company brain** (learns, then guides) | **Yes, and only this one.** | It needs the customer's decisions joined to their outcomes, labelled over time, produced **by running the loop**. Unbuyable, unscrapable, unsynthesisable. It gets MORE valuable as models commoditize, because when reasoning is equal the differentiator is whose context is better. |
+> | **03 the brain** (learns, then guides) | **Yes, and only this one.** | It needs the customer's decisions joined to their outcomes, labelled over time, produced **by running the loop**. Unbuyable, unscrapable, unsynthesisable. It gets MORE valuable as models commoditize, because when reasoning is equal the differentiator is whose context is better. |
 >
 > **So "the decision-and-outcome layer" IS layer 03, and the reason it holds is the ordering.** A competitor must own the loop before they can accumulate the record, and by then the record favours whoever ran it longer. Everything in the body about the no-fast-oracle asymmetry, outcome-labelled judgment, and system-of-record is the argument for 03; read it that way.
 >
@@ -34,7 +34,7 @@
 
 ## 1. The one-line thesis
 
-**Supaprod is the decision and outcome operating system for product teams: it runs the whole product lifecycle (sense to decide to define to build to ship to learn) as one governed, self-initiating loop, an AI operating system that owns the loop and an action system where the work is done, not an AI feature or a chatbot. Its moat is the decision-and-outcome layer over three pillars: own the loop, sense continuously, and keep the evidence (the auditable, compounding record of what was decided and whether it was right). Vibe-coding tools own one station (the build); Supaprod owns the whole loop and orchestrates them under its governance rather than out-building them.**
+**Supaprod is where product decisions live when agents do the work: it runs the whole product lifecycle (sense to decide to define to build to ship to learn) as one governed, self-initiating loop, an AI operating system that owns the loop and an action system where the work is done, not an AI feature or a chatbot. Its moat is the decision-and-outcome layer over three pillars: own the loop, sense continuously, and keep the evidence (the auditable, compounding record of what was decided and whether it was right). Vibe-coding tools own one station (the build); Supaprod owns the whole loop and orchestrates them under its governance rather than out-building them.**
 
 The PM does not lack a builder. They lack a decision system. Lovable will build you the wrong feature, beautifully, in ten minutes. Supaprod stops you from building the wrong thing, and proves which thing was right.
 

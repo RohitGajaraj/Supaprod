@@ -2,7 +2,7 @@
 //
 // WHAT v2 GOT WRONG. It lit station 07 and called that the moat. The README is
 // explicit that the product is THREE LAYERS, each the precondition for the next
-// (01 the director, 02 the operating system, 03 the company brain), and that the
+// (01 the director, 02 the operating system, 03 the brain), and that the
 // mechanism is a RETURN PATH, not an endpoint:
 //
 //   "A shipped outcome is settled at Learn with a verdict, that verdict is

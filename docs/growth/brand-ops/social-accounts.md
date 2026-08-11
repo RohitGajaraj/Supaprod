@@ -125,7 +125,7 @@ Every line below is cut from ratified canon, aimed at whoever actually walks in 
 >
 > > For product managers who ship with agents. Tells you what to build, builds and ships it, then learns what actually worked.
 >
-> That is the same three layers — director, operating system, company brain — but as things that happen *for the reader* rather than labels on our own map. The station names belong in product surfaces and in the diagram on the banners, where they are drawn and therefore self-explaining. They never appear as a bare list in prose.
+> That is the same three layers — director, operating system, brain — but as things that happen *for the reader* rather than labels on our own map. The station names belong in product surfaces and in the diagram on the banners, where they are drawn and therefore self-explaining. They never appear as a bare list in prose.
 
 > **Corrected 2026-08-05: it is "agentic-first", not "agent-first".** The live `/brief` and `/investors` heroes both run `FOR PRODUCT MANAGERS WHO SHIP WITH AGENTS`, and `agentic-first` is the phrase used in eight places across `src/`.
 >
@@ -210,7 +210,7 @@ Same bio as Instagram. Same avatar. Nothing new to write.
 
 ### TikTok, `@supaprodhq`
 
-> Agents that own outcomes, not just output. The agentic-first OS for product teams.
+> Agents that own outcomes, not just output. For product managers who ship with agents.
 
 ### Bluesky, `supaprod.bsky.social` — the exact name is free here
 
@@ -236,7 +236,7 @@ Description:
 
 ### Discord
 
-> Agents that own outcomes, not just output. The agentic-first OS for product teams.
+> Agents that own outcomes, not just output. For product managers who ship with agents.
 
 ### Crunchbase — aimed at the investor and procurement
 

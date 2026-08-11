@@ -5,11 +5,40 @@
 import type { DecisionRow, DecisionSource } from "@/lib/decisions.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 
+/**
+ * Where the call came from, in the words a practitioner would use.
+ *
+ * EXHAUSTIVE BY CONSTRUCTION. `DecisionSource` is derived from
+ * `DECISION_SOURCES`, so this Record fails to compile the moment an origin is
+ * added without a label — which is exactly what did not happen the last three
+ * times. This map held four keys while the database permitted nine, and the
+ * cast at DecisionDetail.tsx:278 hid it from tsc, so 50 of 296 rows rendered
+ * `undefined` here: a Line with no label and a filter option that did not exist.
+ *
+ * The six added on 2026-08-11 are the six that were already in the data.
+ */
 export const SOURCE_LABEL: Record<DecisionSource, string> = {
   mission: "Mission",
   prd: "Spec",
   meeting: "Meeting",
   manual: "Manual",
+  roadmap: "Roadmap",
+  retrospective: "Retro",
+  critic: "Critic",
+  opportunity: "Opportunity",
+  /* Two different agent origins, and the labels have to carry the difference
+   * themselves. These read "Agent API" and "Agent" until Lane 2 pointed out
+   * the obvious: a reader seeing both assumes it is one thing written twice,
+   * because neither word says WHOSE agent. The load-bearing fact is that one
+   * of them belongs to somebody else — it arrived over the network under a
+   * scoped token — and the other is this product's own Decide hand running
+   * inside a mission. Those carry different trust and different blast radius,
+   * so the distinction stays and the wording changed to state it.
+   *
+   * "Peer agent" is the product's own existing word for an outside caller
+   * (a2a-card.ts, mcp.functions.ts), not a new coinage. */
+  mcp: "Peer agent",
+  agent: "Agent",
 };
 
 /** The outcome in plain words, and the one class that carries it.

@@ -57,8 +57,8 @@ const HOOK_FLAT = `Agents that own ${hi("outcomes")}. Not just ${dim("output")}.
 /** Category line. `product teams` lifted by COLOUR only, so it never competes
  *  with the headline's weight contrast. */
 const CATEGORY =
-  `The <span style="color:${P.bone};opacity:.8">agentic-first</span> operating system for ` +
-  `<span style="color:${P.bone};font-weight:500">product teams</span>`;
+  `For <span style="color:${P.bone};font-weight:500">product managers</span> who ship with ` +
+  `<span style="color:${P.bone};opacity:.8">agents</span>`;
 
 /**
  * Headline leading, set to the reference the founder approved: 1.08.
@@ -488,7 +488,7 @@ function strip(w: number, h: number, id: string) {
  * visitor who reads category plus claim still does not know what gets built.
  *
  * The lifted word is `guide the next call` and not an arbitrary one: per
- * CLAUDE.md the company brain is the only layer defensible on its own, and it is
+ * CLAUDE.md the brain is the only layer defensible on its own, and it is
  * the beat the instrument's lit return path from 07 LEARN actually draws.
  */
 const HOOK_BLOCK = (D: number) => `
@@ -513,7 +513,7 @@ const HOOK_BLOCK = (D: number) => `
 //
 // Three beats, 49 characters, and both ends of the loop survive: knows what to
 // build is the director, ships it is the operating system, learns what worked is
-// the company brain. `Learns what worked` takes the weight because it is the
+// the brain. `Learns what worked` takes the weight because it is the
 // only one of the three a competitor cannot also claim.
 const SPINE_BLOCK = (D: number) => `
   <div style="width:${(34 * D).toFixed(0)}px;height:${(2.6 * D).toFixed(1)}px;background:${P.ember}"></div>
@@ -531,7 +531,9 @@ const SPINE_BLOCK = (D: number) => `
  *
  *   SUBJECT RETURNS. B dropped "Agents" because LinkedIn supplies the subject
  *   beneath the cover. He wants it back, and it does buy the sentence its
- *   agentic-first framing rather than leaving it a list of verbs.
+ *   agent-operated framing rather than leaving it a list of verbs. (The word
+ *   "agentic-first" was retired 2026-08-11; "agentic" survives as a descriptor
+ *   in technical and investor material, never in a kicker.)
  *
  *   PIXEL AS EMPHASIS. The lockup docblock says Pixel "appears HERE and nowhere
  *   else: one Pixel word per asset". This asset carries no lockup, so nothing

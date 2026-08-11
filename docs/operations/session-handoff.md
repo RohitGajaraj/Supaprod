@@ -2,6 +2,60 @@
 
 > _Created: 2026-08-07 · Last updated: 2026-08-11_
 
+## ✅ LANE 0 SESSION CLOSED — 2026-08-11. Everything is on `main`, tree clean, zero divergence.
+
+**What this lane was:** positioning, market research, claim integrity. **What it found:** the product was fine; almost everything we *said* about it was not.
+
+### 🔴 THE THREE THINGS THE FOUNDER MUST DO
+
+| | | |
+| --- | --- | --- |
+| **1** | **Review [`../pitch/yc/APPLICATION-FINAL.md`](../pitch/yc/APPLICATION-FINAL.md).** He read it once and was not happy; his objections are recorded at the top of that file, in his words, with what was done about each. **That file is the only paste source.** [`fall-2026-application.md`](../pitch/yc/fall-2026-application.md) now opens with a NOT-THE-PASTE-SOURCE banner. |
+| **2** | **Three `[YOU]` fields.** The demo video (under 2:15; the 11:46 one on the form is unwatchable for a partner), the `[N]` discovery-call count in 9a, and **3b/3c on the founder profile, both still blank** — ISRO belongs in 3b, and two empty fields read as incuriosity. |
+| **3** | ✅ **RULED 2026-08-11: the compound dies, the adjective lives.** `agentic-first` and `agent-first` are dropped in our own voice; **`agentic` survives** in technical, investor and analyst material and never in a hero or eyebrow. Measured: *agentic* appears in **53 corpus documents** against 1 for *audit trail*, so it is the market's word; but Gartner's 2026 Hype Cycle puts agentic AI at the **Peak of Inflated Expectations**, so leading with it invites a discount. Canon: [`../strategy/positioning-locked-2026-08.md`](../strategy/positioning-locked-2026-08.md) §5M. |
+
+### What changed, and why it mattered
+
+**Three metrics presented as proof in the YC application were seed data.** 119 lessons, 38 self-decided, 36 decisions from an earlier lesson. Every `learnings` row sat in a seeded workspace, 37 predated the repo's first commit, and the `prd → learning` edge had never fired. **The root cause is one line:** every census told demo from real by matching **the shape of a workspace id**, and `seed_sample_workspace()` issues ordinary ids. Lane 1 shipped a `seeded` column, then an ownership function, and the honest set fell twice: **6 workspaces, all founder or test accounts, 18 missions, 5 decisions, 0 learnings. No customer data at all.**
+
+**The falsified moat claim was still in five paste-able places**, including the block the application titles THE SUBMIT SHEET, 500 lines below a note saying that answer needed rewriting. **A correction block above a passage does not stop the passage shipping.**
+
+**"13 months" was false in 26 places** across six files, against a repo whose first commit is `2026-06-02`. Ten weeks. Founder-confirmed.
+
+**"The agentic-first operating system for product teams" is retired everywhere**, including machine-readable surfaces. The eyebrow is now **"For product managers who ship with agents"**, amber on *product managers*, blue on *agents*. Narrow on purpose: **nobody self-identifies as a team.**
+
+### The two rules this session bought, and they are the durable output
+
+> **1. A number quoted outward carries its query, or it does not go.** Canonical file: [`../pitch/verified-numbers.md`](../pitch/verified-numbers.md). Every figure with the command that reproduces it, the honest set, and the retired list.
+
+> **2. Measure what writes, not what looks right.** Three wrong numbers in one day, all one shape: *the thing we measured was not the thing that changes.* An id that *looks* seeded, against a `seeded` column. An `is_sample` flag, against **who owns it**. A `themes.status` column, against `spine_tracks.theme_id`, which the code writes and never touches `status`. **A status field no writer sets is not stale, it is fiction.**
+
+**And the blind spot two audits share** (named with Lane 1, [`../pitch/verified-numbers.md`](../pitch/verified-numbers.md) §5): a **phrase** sweep catches a retired claim in any wording and misses **a number carrying the same claim**; a **mechanism** sweep catches a missing writer and misses **prose asserting the mechanism exists**. Anything appearing only as a sentence is invisible to both. **A documented gap reads as a handled one.**
+
+### ⚠️ Two things the next session should not repeat
+
+**I broke links with a blind regex and the gate could not see it.** The vocabulary sweep replaced *ledger* inside **filenames**, producing links to `trust-track record.md`. `docs-doctor`'s link pattern was `[^) ]+`, which excludes spaces, so a target containing one was never extracted. **Both the links and the gate are fixed** (`scripts/docs-doctor.sh:78`). Never run a word-level regex across link targets.
+
+**I told the founder my bucket was clean and it was not.** A five-lane audit with adversarial verification then found **38 confirmed defects, two of them blockers**, in files I had edited hours earlier. The blockers were retired numbers on the investor-conversation card and on the one-pager, tagged `[PROVEN]`. **Assert nothing about your own work without re-checking it.**
+
+### ⚠️ ROUTED TO LANE 2 BUT THE MESSAGE TIMED OUT — recorded here so it cannot be lost
+
+**`public/brief.html:744`** still reads `<div class="zl">Built agent-first</div>`. The identical string in the investor deck is already changed to **`Built for agents to run`**, which keeps the meaning and drops the retired compound. **Same fix applies.** It sits inside a text node, so parsing the tag stream before and after should show an identical stream; that check exists because an earlier edit to that file introduced an entity two greps could not see.
+
+**The `agentic-first` instances under `src/` are code comments and should be LEFT.** `Hero.tsx:53/187/273`, `a2a-card.ts:23`, `decision-gate.ts:8`, `spine/driver.ts:24` and the rest are internal reasoning, and several are dated records of why a decision was made. Same call Lane 1 and I made for `getProvenance`: **the ruling governs the words we say to buyers, not the words engineers read.**
+
+### Open, routed, not blocked
+
+- **Filmability pass**, waiting on Lane 2's screen cleanup. Method and the seven screens that matter are in [`../pitch/teaser-video-plan.md`](../pitch/teaser-video-plan.md). 25 substantial screens exist; the 49 stubs under 3KB are redirects, not holes. **Film the real product; use AI tooling for pacing, titles and motion, never for generating screens.**
+- **Eleven eyebrow and definition strings** in `public/` and `src/`, routed to Lane 2 with exact strings and colours.
+- **`docs/planning/rebuild-2026-07/**`** still carries retired vocabulary and was deliberately left alone as dated design exploration, like `archive/`. Same for `session-decisions.md` and `strategic-inputs-log.md`, which the strategy index describes as preserved in original form.
+
+### First outcome on an application
+
+**South Park Commons rejected 2026-08-11, "not the right fit."** Recorded in [`../pitch/applications/README.md`](../pitch/applications/README.md) with the caveat that matters: a single boilerplate rejection is **not** evidence the positioning is wrong, and reading it that way is how a good thesis gets abandoned on noise. But that application went out **before** the corrections and closed on the falsified moat claim. **The lesson is sequencing: an application sent before its evidence was checked cannot be un-sent.**
+
+---
+
 ## 🛑 LANE 0, 2026-08-11 — READ THIS BEFORE THE YC APPLICATION OR THE HOMEPAGE
 
 **The three numbers that proved the product worked were seed data. They are out of the application. The same rows are still live on the public homepage.**
@@ -11,7 +65,7 @@
 | | Decision | Default already applied |
 | --- | --- | --- |
 | **1** | **The replacement YC copy is outward-facing and needs his eyes.** The three product numbers are gone and a second admission paragraph is in, naming the workspace-id-shape cause and the column that fixes it. | Written and in the file. Nothing sends without him, so this waits, it does not block. |
-| **2** | **Stop leading with the forecast as the moat.** This touches the category, which is his call, so it is a recommendation and the canon is unchanged. | **Not applied.** Reasoning in [`../research/market-validation-2026-08.md`](../research/market-validation-2026-08.md) §8.5. |
+| **2** | **Stop leading with the forecast as the moat.** | ✅ **RULED AND APPLIED 2026-08-11.** Canon: [`../strategy/positioning-locked-2026-08.md`](../strategy/positioning-locked-2026-08.md) §5K.1. Lead with the governed record; the forecast is a byproduct of the work whose first consumer is the next agent, never a scoreboard. |
 | **3** | **"The company brain" became "the brain".** Decided under the autonomy directive rather than escalated. | Applied everywhere. YC's "Company Brain" stays quoted and attributed at `README.md:47`. |
 
 ### The finding, so nobody re-derives it

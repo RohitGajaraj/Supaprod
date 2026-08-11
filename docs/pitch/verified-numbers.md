@@ -51,7 +51,7 @@
 | --- | --- |
 | Lineage edges written by the product itself | **120** of 1,121 rows (360 seeded, 446 from the 2026-08-03 repair backfill, 195 from a mission backfill) |
 | Lineage edges `learning → decision` that are not seeded | **0** of 71 |
-| Lineage edges `prd → learning` | **0**, and the writer had never fired before 2026-08-11 |
+| Lineage edges `prd → learning` | **14, all in demo workspaces. Production is 0.** Corrected 2026-08-11: this row read "0, and the writer had never fired". Lane 1 then settled 14 shipped specs into Learn through the product's own write sequence, producing the first `prd → learning` edges ever written. **The writer exists, it has now fired once, and no production row exists yet.** |
 
 ```sql
 -- the compounding claim, both halves
@@ -62,6 +62,8 @@ select count(*) from artifact_lineage
 ```
 
 > **The zeros are the point, and they are not a problem to hide.** The loop is wired and proven, and it begins accruing on first real use. That is the form `CLAUDE.md` prescribes and it is the honest one. **Do not substitute a smaller number for a falsified one**: a smaller number is still queryable and still zero.
+
+> **A third state exists and it is worth naming, because we hit it within hours of writing the first two.** *A writer that does not exist* is a hole. *A writer that exists and has never run* is a product waiting for a user. **And a writer that has now run once, in a demo workspace, with production still at zero, is a third thing again** — it proves the path executes end to end, which the second state cannot, while still claiming nothing about usage. `prd → learning` moved from the second to the third on 2026-08-11. **Say which state a claim is in; the three are not interchangeable.**
 
 ---
 

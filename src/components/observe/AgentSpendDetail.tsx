@@ -402,10 +402,32 @@ export function AgentSpendDetail({ id }: { id: string }) {
                       ) : (
                         "no cost tied to this run"
                       )}
+                      {/*
+                        AFD-06 / INSTRUMENT: a stored 0 is NOT a measurement.
+                        This read used to be `!= null`, which admitted the
+                        hardcoded `duration_ms: 0` that `finalize` wrote for
+                        every run before 2026-08-10 and rendered it as the
+                        confident measurement "0ms" — an instantaneous run,
+                        which no run is. Measured 2026-08-11: 913 of 1,272
+                        agent_runs rows still carry that literal zero, 826 of
+                        them inside this panel's own 30-day window.
+
+                        Zero is now spelled out as unmeasured rather than
+                        dropped, because silence here is ambiguous with "this
+                        row has no duration column at all" and a reader who
+                        sees nothing assumes nobody looked. `run-analytics.ts`
+                        already applies exactly this rule server-side
+                        (`duration_ms > 0`); this brings the only surface that
+                        renders the column into line with it.
+                      */}
                       {r.duration_ms != null ? (
                         <>
                           {" · "}
-                          <Num>{fmtMs(r.duration_ms)}</Num>
+                          {r.duration_ms > 0 ? (
+                            <Num>{fmtMs(r.duration_ms)}</Num>
+                          ) : (
+                            "duration not measured"
+                          )}
                         </>
                       ) : null}
                       {r.tokens_used ? (

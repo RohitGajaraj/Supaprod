@@ -75,7 +75,7 @@ BROKEN_LIST=""
 while IFS= read -r mdfile; do
   [ -z "$mdfile" ] && continue
   d="$(dirname "$mdfile")"
-  links="$(grep -oE '\]\([^) ]+\.md[^) ]*\)' "$mdfile" 2>/dev/null | sed -E 's/^\]\(//; s/\)$//; s/#.*$//')"
+  links="$(grep -oE '\]\([^)]+\.md[^)]*\)' "$mdfile" 2>/dev/null | sed -E 's/^\]\(//; s/\)$//; s/#.*$//')"
   while IFS= read -r link; do
     case "$link" in ""|http*|/*|mailto:*) continue ;; esac
     # Markdown percent-encodes spaces. A link like "docs/some%20folder/x.md" is VALID
