@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>F4 — Supaprod (mark draws → push through the core → the app's home)</title>
+  <title>F4 — Supaprod (the home out of focus → rack focus in → the product introduces itself)</title>
 </head>
 <body>
 <template>
@@ -64,13 +64,13 @@
 .sk-frame *,.sk-frame *::before,.sk-frame *::after{box-sizing:border-box;margin:0;padding:0;}
 .sk-stage{
   position:absolute;inset:0;display:grid;place-items:center;
-  perspective:var(--sk-persp,2200px);
-  perspective-origin:50% 42%;
+  perspective:var(--sk-persp,2400px);
+  perspective-origin:50% 44%;
 }
 .sk-screen{
   position:relative;
-  width:var(--sk-w,88cqw);height:var(--sk-h,86cqh);
-  transform:translateY(-2.6cqh) rotateX(var(--sk-rx,1.8deg)) rotateY(var(--sk-ry,-2.4deg));
+  width:var(--sk-w,96cqw);height:var(--sk-h,94cqh);
+  transform:rotateX(var(--sk-rx,1.2deg)) rotateY(var(--sk-ry,-1.5deg));
   transform-style:preserve-3d;
   background:var(--sk-ground);
   border-radius:var(--sk-r-pane);
@@ -78,169 +78,117 @@
   overflow:hidden;
 }
 
-/* ————— app shell grid (kit) ————— */
+/* ————— app shell · the REAL product shell —————
+   Full-width top bar → full-width seven-station strip → narrow icon rail beside
+   the content. The stations never live in the left nav; the rail is its own axis. */
 .sk-shell{
   display:grid;height:100%;
-  grid-template-columns:12.5cqw minmax(0,1fr);
-  grid-template-rows:3.2cqh minmax(0,1fr);
-  grid-template-areas:"side top" "side main";
+  grid-template-columns:2.9cqw minmax(0,1fr);
+  grid-template-rows:4.0cqh 7.2cqh minmax(0,1fr);
+  grid-template-areas:"top top" "spine spine" "rail main";
 }
 
-/* ————— sidebar (kit) ————— */
-.sk-sidebar{
-  grid-area:side;display:flex;flex-direction:column;min-height:0;
-  background:var(--sk-ground);border-right:1px solid var(--sk-hairline);
-}
-.sk-ws{display:flex;align-items:center;gap:0.55cqw;padding:1cqw 1cqw 0.8cqw;}
-.sk-ws-mark{
-  width:0.72cqw;height:0.72cqw;flex:none;border-radius:50%;
-  border:1px solid var(--sk-ember);
-  background:radial-gradient(circle at 50% 50%,var(--sk-ember) 0 28%,transparent 30%);
-}
-.sk-ws-name{font:600 0.82cqw/1 var(--sk-ui);color:var(--sk-text);letter-spacing:0.01em;}
-.sk-ws-caret{margin-left:auto;font:400 0.6cqw/1 var(--sk-mono);color:var(--sk-faint);}
-.sk-nav{display:flex;flex-direction:column;gap:0.12cqh;padding:0.3cqw 0.5cqw;}
-.sk-navrow{
-  display:flex;align-items:center;gap:0.55cqw;
-  padding:0.42cqw 0.6cqw;border-radius:var(--sk-r-row);
-  font:400 0.73cqw/1 var(--sk-ui);color:var(--sk-muted);
-}
-.sk-navrow .sk-dot{
-  width:0.3cqw;height:0.3cqw;flex:none;border-radius:50%;
-  background:var(--dot,var(--sk-faint));
-}
-.sk-navcount{margin-left:auto;font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-faint);}
-.sk-navrow.is-active{background:var(--sk-raised);color:var(--sk-text);}
-.sk-navrow.is-active .sk-dot{box-shadow:0 0 0.45cqw 0 var(--dot,var(--sk-accent));}
-.sk-navrow.is-active .sk-navcount{color:var(--sk-muted);}
-.sk-side-foot{
-  margin-top:auto;display:flex;align-items:center;gap:0.45cqw;
-  padding:0.85cqw 1cqw;border-top:1px solid var(--sk-hairline);
-  font:400 0.57cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.03em;
-}
-.sk-livedot{
-  width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;
-  background:var(--sk-pass);box-shadow:0 0 0.4cqw var(--sk-pass);
-}
-
-/* ————— top bar (kit) ————— */
+/* top bar · bare mark + wordmark · breadcrumb · centred notification strip · ask + avatar */
 .sk-topbar{
-  grid-area:top;display:flex;align-items:center;gap:0.9cqw;
-  padding:0 1cqw;border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
+  grid-area:top;display:grid;align-items:center;
+  grid-template-columns:auto minmax(0,1fr) auto;gap:1cqw;
+  padding:0 1.1cqw;border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
 }
-.sk-crumb{display:flex;align-items:center;font:400 0.62cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;}
-.sk-crumb-sep{padding:0 0.35cqw;color:var(--sk-faint);}
+.sk-topleft{display:flex;align-items:center;gap:0.75cqw;min-width:0;}
+.sk-brand{display:flex;align-items:center;gap:0.45cqw;}
+.sk-brand-mark{width:1.2cqw;height:1.2cqw;flex:none;display:block;}
+.sk-brand-name{font:600 0.92cqw/1.25 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+.sk-topdiv{width:1px;height:1.7cqh;flex:none;background:var(--sk-hairline);}
+.sk-crumb{
+  display:flex;align-items:center;gap:0.32cqw;white-space:nowrap;
+  font:400 0.78cqw/1 var(--sk-ui);color:var(--sk-muted);
+}
+.sk-crumb-sep{color:var(--sk-faint);}
 .sk-crumb-here{color:var(--sk-text);}
+.sk-crumb-caret{font:400 0.62cqw/1 var(--sk-mono);color:var(--sk-faint);}
+.sk-notify{justify-self:center;display:flex;align-items:center;gap:0.5cqw;min-width:0;white-space:nowrap;}
+.sk-notify-gl{display:flex;align-items:center;gap:0.28cqw;flex:none;}
+.sk-notify-gl svg{width:0.76cqw;height:0.76cqw;display:block;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+.sk-notify-lead{font:500 0.72cqw/1.2 var(--sk-ui);color:var(--sk-text);flex:none;}
+.sk-notify-sub{font:400 0.72cqw/1.2 var(--sk-ui);color:var(--sk-faint);min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.sk-notify-time{font:400 0.64cqw/1.2 var(--sk-ui);color:var(--sk-faint);flex:none;}
+.sk-topright{display:flex;align-items:center;gap:0.62cqw;}
 .sk-ask{
-  display:flex;align-items:center;gap:0.5cqw;flex:0 1 20cqw;height:2.1cqh;
-  padding:0 0.4cqw 0 0.65cqw;background:var(--sk-panel);
-  border:1px solid var(--sk-hairline);border-radius:var(--sk-r-control);
-  font:400 0.66cqw/1 var(--sk-ui);color:var(--sk-faint);
+  display:flex;align-items:center;gap:0.4cqw;height:2.6cqh;flex:none;
+  padding:0 0.68cqw;background:var(--sk-panel);
+  border:1px solid var(--sk-hairline);border-radius:999px;
+  font:400 0.76cqw/1 var(--sk-ui);color:var(--sk-text);
 }
-.sk-ask svg{width:0.68cqw;height:0.68cqw;flex:none;stroke:var(--sk-faint);fill:none;stroke-width:1.6;}
-.sk-kbd{
-  margin-left:auto;padding:0.1cqw 0.32cqw;
-  font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-faint);
-  background:var(--sk-ground);border:1px solid var(--sk-hairline);border-radius:5px;
-}
+.sk-ask svg{width:0.78cqw;height:0.78cqw;flex:none;stroke:var(--sk-muted);fill:none;stroke-width:1.5;stroke-linejoin:round;}
+.sk-kbd{font:400 0.66cqw/1 var(--sk-mono);color:var(--sk-faint);}
 .sk-avatar{
-  width:1.25cqw;height:1.25cqw;flex:none;display:grid;place-items:center;
+  width:1.6cqw;height:1.6cqw;flex:none;display:grid;place-items:center;
   background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:50%;
-  font:600 0.5cqw/1 var(--sk-ui);color:var(--sk-muted);letter-spacing:0.05em;
+  font:600 0.58cqw/1 var(--sk-ui);color:var(--sk-muted);letter-spacing:0.03em;
 }
 
-/* ————— true-UI type scale (kit) ————— */
-.sk-greet{font:600 1.55cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
-.sk-title{font:600 1.3cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
-.sk-body{font:400 0.73cqw/1.45 var(--sk-ui);color:var(--sk-text);}
-.sk-meta{font:400 0.68cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
-.sk-label{font:500 0.65cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.10em;text-transform:uppercase;}
-.sk-data{font:400 0.62cqw/1.5 var(--sk-mono);color:var(--sk-text);font-variant-numeric:tabular-nums;}
-.sk-spacer{flex:1;}
+/* ————— station strip · seven numbered cells, full width, under the top bar —————
+   Today is not a station, so nothing is "here"; Discover and Build carry the
+   ember status sublines the screenshots use for work that is waiting on you. */
+.sk-spine{
+  grid-area:spine;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
+  border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
+}
+.sk-stn{
+  position:relative;display:grid;grid-template-rows:1.1cqh 1.8cqh 1.25cqh;gap:0.3cqh;
+  align-content:center;padding:0 1cqw;min-width:0;
+}
+.sk-stn + .sk-stn{border-left:1px solid var(--sk-hairline);}
+.sk-stn-n{font:400 0.54cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.08em;}
+.sk-stn-name{font:400 0.92cqw/1.1 var(--sk-ui);color:var(--sk-muted);letter-spacing:-0.005em;white-space:nowrap;}
+.sk-stn-sub{font:400 0.62cqw/1.1 var(--sk-ui);color:var(--sk-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sk-stn.is-waiting .sk-stn-name{font-weight:600;color:var(--sk-text);}
+.sk-stn.is-waiting .sk-stn-sub{color:var(--sk-ember);}
+.sk-stn.has-work .sk-stn-name{color:color-mix(in srgb,var(--sk-text) 82%,var(--sk-muted));}
+.sk-stn-dot{
+  position:absolute;right:0.95cqw;top:1.3cqh;width:0.32cqw;height:0.32cqw;border-radius:50%;
+  background:var(--sk-ember);box-shadow:0 0 0.5cqw color-mix(in srgb,var(--sk-ember) 62%,transparent);
+}
 
-/* ————— panels · rows (kit) ————— */
-.sk-panel{
-  background:var(--sk-panel);border:1px solid var(--sk-hairline);
-  border-radius:var(--sk-r-panel);overflow:hidden;min-height:0;
-  display:flex;flex-direction:column;
+/* ————— narrow icon rail · Today active · Runs · Brain · Crew · Engine room ————— */
+.sk-rail{
+  grid-area:rail;display:flex;flex-direction:column;align-items:center;min-height:0;
+  padding:1cqh 0 1.2cqh;background:var(--sk-ground);border-right:1px solid var(--sk-hairline);
 }
-.sk-panel-hd{
-  display:flex;align-items:center;gap:0.6cqw;flex:none;
-  padding:0.75cqw 1cqw;border-bottom:1px solid var(--sk-hairline);
+.sk-railtop{display:flex;flex-direction:column;align-items:center;gap:0.5cqh;}
+.sk-railfoot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:0.34cqh;}
+.sk-glyph{
+  position:relative;width:2cqw;height:2cqw;flex:none;
+  display:grid;place-items:center;border-radius:var(--sk-r-control);color:var(--sk-faint);
 }
-.sk-panel-title{font:600 0.83cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
-.sk-panel-body{flex:1;min-height:0;overflow:hidden;}
-.sk-panel-ft{
-  display:flex;align-items:center;gap:0.6cqw;flex:none;
-  padding:0.6cqw 1cqw;border-top:1px solid var(--sk-hairline);
-  background:var(--sk-panel);
+.sk-glyph svg{
+  width:1.05cqw;height:1.05cqw;display:block;fill:none;stroke:currentColor;
+  stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;
+}
+.sk-glyph.is-active{background:var(--sk-raised);color:var(--sk-text);box-shadow:inset 0 0 0 1px var(--sk-hairline);}
+.sk-railfoot .sk-glyph{width:1.72cqw;height:1.72cqw;}
+.sk-railfoot .sk-glyph svg{width:0.92cqw;height:0.92cqw;}
+.sk-livedot{
+  width:0.28cqw;height:0.28cqw;flex:none;border-radius:50%;
+  background:var(--sk-pass);box-shadow:0 0 0.42cqw var(--sk-pass);
 }
 
 /* ————— chips · badges (kit) ————— */
+.sk-spacer{flex:1;}
 .sk-chip{
-  display:inline-flex;align-items:center;gap:0.3cqw;
-  padding:0.22cqw 0.45cqw;border:1px solid var(--sk-hairline);
+  display:inline-flex;align-items:center;gap:0.32cqw;
+  padding:0.26cqw 0.5cqw;border:1px solid var(--sk-hairline);
   border-radius:var(--sk-r-chip);background:rgba(255,255,255,0.02);
-  font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
+  font:400 0.62cqw/1.3 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
   white-space:nowrap;
 }
-.sk-chip--accent{color:var(--sk-accent);border-color:color-mix(in srgb,var(--sk-accent) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-accent) 8%,transparent);}
 .sk-chip--pass{color:var(--sk-pass);border-color:color-mix(in srgb,var(--sk-pass) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-pass) 8%,transparent);}
 .sk-chip--ember{color:var(--sk-ember);border-color:color-mix(in srgb,var(--sk-ember) 45%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-ember) 9%,transparent);}
-.sk-dot-inline{width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;background:currentColor;}
-.sk-badge{
-  display:inline-flex;align-items:center;padding:0.22cqw 0.45cqw;
-  background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:var(--sk-r-chip);
-  font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);font-variant-numeric:tabular-nums;
-}
-.sk-tick{color:var(--sk-pass);font-family:var(--sk-mono);}
-
-/* ————— bet card (kit — reused as the decision-queue card) ————— */
-.sk-betcard{
-  flex:none;padding:1cqw 1.1cqw;background:var(--sk-raised);
-  border:1px solid var(--sk-hairline);border-radius:var(--sk-r-card);
-}
-.sk-betcard-hd{display:flex;align-items:center;gap:0.6cqw;}
-.sk-rank{font:500 0.62cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.06em;}
-.sk-betcard-title{font:600 0.85cqw/1.25 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
-.sk-betcard .sk-meta{margin-top:0.3cqw;}
-.sk-betcard.is-lead{
-  border-color:color-mix(in srgb,var(--sk-accent) 45%,var(--sk-hairline));
-  background:color-mix(in srgb,var(--sk-accent) 4%,var(--sk-raised));
-}
-.sk-betcard.is-lead .sk-rank{color:var(--sk-accent);}
-.sk-betnote{
-  display:flex;gap:0.45cqw;margin-top:0.7cqw;padding-top:0.6cqw;
-  border-top:1px solid var(--sk-hairline);
-  font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
-}
-.sk-betnote span{color:var(--sk-accent);}
-.sk-agentline{
-  margin-top:auto;display:flex;align-items:center;gap:0.5cqw;
-  padding:0.6cqw 0.8cqw;background:var(--sk-raised);
-  border:1px solid var(--sk-hairline);border-radius:var(--sk-r-row);
-  font:400 0.62cqw/1.3 var(--sk-mono);color:var(--sk-muted);
-}
-.sk-run{color:var(--sk-accent);text-align:center;}
-
-/* ————— console — agent activity feed (kit) ————— */
-.sk-console-hd{
-  display:flex;align-items:center;gap:0.6cqw;flex:none;
-  padding:0.65cqw 1cqw;border-bottom:1px solid var(--sk-hairline);
-}
-.sk-console-body{padding:0.4cqw 0;}
-.sk-logline{
-  display:grid;grid-template-columns:3.4cqw 1cqw minmax(0,1fr);gap:0.5cqw;align-items:baseline;
-  padding:0.26cqw 1cqw;font:400 0.62cqw/1.5 var(--sk-mono);color:var(--sk-muted);
-  font-variant-numeric:tabular-nums;
-}
-.sk-log-t{color:var(--sk-faint);}
-.sk-logline .sk-tick{text-align:center;}
-.sk-logline.is-run{background:color-mix(in srgb,var(--sk-accent) 5%,transparent);color:var(--sk-text);}
+.sk-dot-inline{width:0.28cqw;height:0.28cqw;flex:none;border-radius:50%;background:currentColor;}
 
 /* ————— lower-third (kit — film overlay, lower-left, never centered) ————— */
 .sk-lowerthird{
-  position:absolute;left:5.5cqw;bottom:7cqh;z-index:60;
+  position:absolute;left:5.5cqw;bottom:7cqh;z-index:70;
   display:flex;flex-direction:column;gap:0.55cqh;
   text-shadow:0 2px 30px rgba(0,0,0,.6);
 }
@@ -249,256 +197,294 @@
   color:var(--sk-accent);
 }
 .sk-lt-line{font:600 2.6cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
+/* frame-0 hidden states live in CSS, never in a zero-duration set at position 0 */
+#sp4-ltk,#sp4-ltl{opacity:0;}
 
-/* ═════ frame-specific — the macro camera, the two shots, the seam ═════ */
+/* ═════ frame-specific — the home, the focus pull, the film title ═════ */
 
-/* ground clip — the ink field with a faint center lift (never on #root) */
+/* ground clip — the ink field the screen sits on */
 #sp4-ground{
   position:absolute;inset:0;
-  background:radial-gradient(ellipse 62% 55% at 50% 44%, #101013 0%, #0A0A0B 68%);
+  background:radial-gradient(ellipse 64% 56% at 50% 44%, #101013 0%, #0A0A0B 70%);
 }
 #sp4-world{position:absolute;inset:0;}
 
-/* the one camera — everything in the world rides it */
+/* the one camera — the product surface rides it; the titles do not */
 #sp4-cam{
   position:absolute;inset:0;
   transform-origin:50% 50%;
   will-change:transform;
 }
 
-/* ————— shot A · the mark on the ink field ————— */
-#sp4-logo-shot{
-  position:absolute;inset:0;z-index:2;
-  display:grid;place-items:center;
-  filter:url(#sp4-streak);
-  will-change:transform,filter,opacity;
+/* the app's home · Today — already on screen at frame 0, deeply out of focus.
+   --sp4dof is the depth-of-field radius the rack focus resolves to 0. */
+#sp4-app{
+  position:absolute;inset:0;z-index:1;
+  /* --sp4dof is the depth-of-field radius; the lum/sat pair keeps the lights
+     readable while the surface is defocused, then resolves to neutral. */
+  --sp4dof:20px;
+  --sp4lum:1.7;
+  --sp4sat:1.42;
+  filter:blur(var(--sp4dof)) brightness(var(--sp4lum)) saturate(var(--sp4sat));
+  will-change:filter;
 }
-#sp4-glow{
-  position:absolute;left:50%;top:50%;z-index:1;
-  width:58cqh;height:58cqh;margin-left:-29cqh;margin-top:-29cqh;
-  border-radius:50%;
-  background:radial-gradient(circle at 50% 50%, rgba(255,107,44,0.34) 0%, rgba(255,107,44,0.10) 42%, transparent 70%);
+
+/* ————— content column · the screenshots' grammar, almost literally ————— */
+.sp4-main{
+  grid-area:main;position:relative;min-height:0;overflow:hidden;
+  padding:1.5cqh 3.4cqw 0 3.2cqw;
+}
+.sp4-greet{font:400 0.85cqw/1.3 var(--sk-ui);color:var(--sk-muted);}
+.sp4-head{margin-top:0.7cqh;font:600 1.82cqw/1.16 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.02em;}
+.sp4-headmeta{margin-top:0.7cqh;font:400 0.82cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+.sp4-underline{border-bottom:1px solid var(--sk-hairline);padding-bottom:0.14cqh;}
+/* the work still running under the calls — agent activity, kept slim and high */
+.sp4-live{
+  display:flex;align-items:center;gap:0.5cqw;margin-top:0.75cqh;
+  font:400 0.66cqw/1.3 var(--sk-mono);color:var(--sk-muted);
+}
+.sp4-run{color:var(--sk-ember);}
+.sp4-live-sep{color:var(--sk-faint);}
+.sp4-rule{margin-top:1.5cqh;height:1px;background:var(--sk-hairline);}
+
+.sp4-sec{margin-top:1.5cqh;}
+.sp4-sec-hd{display:flex;align-items:baseline;gap:0.8cqw;}
+.sp4-sec-t{font:600 0.95cqw/1.2 var(--sk-ui);color:var(--sk-text);}
+.sp4-sec-link{margin-left:auto;font:400 0.78cqw/1.2 var(--sk-ui);color:var(--sk-muted);border-bottom:1px solid var(--sk-hairline);}
+.sp4-sec-note{margin-top:0.6cqh;font:400 0.8cqw/1.4 var(--sk-ui);color:var(--sk-faint);}
+
+.sp4-row{
+  display:grid;grid-template-columns:2.1cqw minmax(0,1fr) auto;align-items:center;gap:0.7cqw;
+  padding:0.72cqh 0;border-top:1px solid var(--sk-hairline);
+}
+.sp4-sec-rows{margin-top:0.6cqh;}
+.sp4-rowicon{display:grid;place-items:center;width:1.2cqw;height:1.2cqw;}
+.sp4-rowicon svg{width:1.05cqw;height:1.05cqw;display:block;fill:none;stroke:var(--sk-pass);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;}
+.sp4-rowmain{display:flex;flex-direction:column;gap:0.2cqh;min-width:0;}
+.sp4-rowtitle{font:600 0.88cqw/1.25 var(--sk-ui);color:var(--sk-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sp4-rowstate{font:400 0.76cqw/1.2 var(--sk-ui);color:var(--sk-pass);}
+.sp4-rowtime{font:400 0.76cqw/1.2 var(--sk-ui);color:var(--sk-faint);font-variant-numeric:tabular-nums;}
+
+.sp4-card{
+  margin-top:0.9cqh;background:var(--sk-panel);
+  border:1px solid var(--sk-hairline);border-radius:var(--sk-r-card);
+  padding:0.95cqh 1.1cqw;
+}
+.sp4-card-hd{display:flex;align-items:center;gap:0.42cqw;}
+.sp4-card-hd svg{width:0.86cqw;height:0.86cqw;flex:none;fill:none;stroke:var(--sk-ember);stroke-width:1.5;stroke-linecap:round;}
+.sp4-card-kind{font:500 0.78cqw/1.2 var(--sk-ui);color:var(--sk-ember);}
+.sp4-card-sep{font:400 0.78cqw/1.2 var(--sk-ui);color:var(--sk-faint);}
+.sp4-card-scope{font:400 0.78cqw/1.2 var(--sk-ui);color:var(--sk-muted);}
+.sp4-card-idx{margin-left:auto;font:400 0.76cqw/1.2 var(--sk-ui);color:var(--sk-faint);font-variant-numeric:tabular-nums;}
+.sp4-card-t{margin-top:0.7cqh;font:600 1.05cqw/1.25 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.008em;}
+.sp4-card-m{margin-top:0.5cqh;font:400 0.76cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
+.sp4-card-ft{display:flex;align-items:center;gap:0.45cqw;margin-top:0.85cqh;}
+/* the gate chip carries its own ember ring so the pulse is a light, not a jump */
+#sp4-gatewrap{position:relative;display:inline-flex;}
+#sp4-gateglow{
+  position:absolute;inset:-0.22cqw;border-radius:var(--sk-r-chip);
+  box-shadow:0 0 1.1cqw 0.12cqw color-mix(in srgb,var(--sk-ember) 55%,transparent);
+  opacity:0;pointer-events:none;
+}
+
+/* ————— the film scrim · lets the titles sit on the picture ————— */
+#sp4-scrim{
+  position:absolute;left:0;right:0;bottom:0;height:46cqh;z-index:50;
+  background:linear-gradient(to top,
+    rgba(10,10,11,0.94) 0%,
+    rgba(10,10,11,0.86) 22%,
+    rgba(10,10,11,0.52) 52%,
+    rgba(10,10,11,0) 100%);
+  opacity:0.46;pointer-events:none;
+}
+
+/* ————— the film title · quiet, lower-left, over the working product ————— */
+#sp4-lock{
+  position:absolute;left:5.5cqw;top:73.4cqh;z-index:62;
+  display:flex;align-items:center;gap:0.78cqw;
+  transform-origin:0% 0%;
+  text-shadow:0 2px 30px rgba(0,0,0,.65);
   opacity:0;
   will-change:transform,opacity;
 }
-.sp4-lockup{position:absolute;inset:0;z-index:2;}
-#sp4-spin{
-  position:absolute;left:50%;top:50%;
-  width:30cqh;height:30cqh;margin-left:-15cqh;margin-top:-15cqh;
-  will-change:transform;
-}
-#sp4-spin svg{display:block;width:100%;height:100%;overflow:visible;}
+#sp4-mark{width:2.35cqw;height:2.35cqw;flex:none;display:block;}
+#sp4-mark svg{display:block;width:100%;height:100%;overflow:visible;}
 #sp4-core{opacity:0;}
 #sp4-word{
-  position:absolute;left:0;right:0;top:calc(50% + 16.6cqh);
-  text-align:center;
-  font:600 4.6cqw/1 var(--sk-ui);letter-spacing:-0.03em;color:var(--sk-text);
+  font:600 2.9cqw/1 var(--sk-ui);letter-spacing:-0.035em;color:var(--sk-text);
   text-transform:lowercase;
   opacity:0;
   will-change:transform,opacity;
 }
-
-/* ————— the ember flood — the core filling the frame at the seam ————— */
-#sp4-flood{
-  position:absolute;left:50%;top:50%;z-index:4;
-  width:52cqh;height:52cqh;margin-left:-26cqh;margin-top:-26cqh;
-  border-radius:50%;
-  background:radial-gradient(circle at 46% 42%,
-    color-mix(in oklab, #fff 55%, #FF6B2C) 0%,
-    #FF6B2C 34%,
-    color-mix(in oklab, #FF6B2C 75%, #000) 62%,
-    transparent 76%);
+#sp4-thesis{
+  position:absolute;left:5.6cqw;top:80.2cqh;z-index:62;
+  display:flex;align-items:center;gap:0.55cqw;
+}
+.sp4-th{
+  display:inline-flex;align-items:center;gap:0.4cqw;
+  padding:0.3cqw 0.58cqw;border-radius:var(--sk-r-chip);
+  border:1px solid color-mix(in srgb,var(--sk-text) 14%,transparent);
+  background:rgba(20,20,22,0.62);
+  font:400 0.72cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:0.005em;
+  white-space:nowrap;
   opacity:0;
-  pointer-events:none;
-  will-change:transform,opacity;
+}
+.sp4-th i{
+  width:0.3cqw;height:0.3cqw;flex:none;border-radius:50%;background:var(--sk-ember);
+  box-shadow:0 0 0.45cqw color-mix(in srgb,var(--sk-ember) 62%,transparent);
 }
 
-/* ————— shot B · the app's home (Today) ————— */
-#sp4-app{
-  position:absolute;inset:0;z-index:3;
-  --sp4dof:14px;
-  filter:blur(var(--sp4dof));
-  opacity:0;
-  will-change:transform,filter,opacity;
+/* ————— the pointer · one honest interaction on the gate ————— */
+#sp4-cursor{
+  position:absolute;left:0;top:0;z-index:40;width:1.35cqw;height:1.35cqw;
+  opacity:0;pointer-events:none;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.65));
 }
-.sp4-main{
-  grid-area:main;position:relative;
-  display:grid;grid-template-columns:minmax(0,1fr) 23.5cqw;
-  grid-template-rows:auto minmax(0,1fr);
-  gap:1cqw;padding:1.1cqw;min-height:0;
-}
-.sp4-greetrow{grid-column:1/-1;display:flex;align-items:baseline;gap:0.9cqw;}
-.sp4-queue-body{display:flex;flex-direction:column;gap:0.8cqw;padding:0.9cqw;flex:1;min-height:0;overflow:hidden;}
-
-/* v4 identity: real product mark + workspace label */
-.sk-ws-mark{background:none !important;border-radius:0 !important;padding:0.08cqw;box-sizing:border-box;}
-.sk-ws-space{font:400 0.62cqw/1 var(--sk-mono, "IBM Plex Mono", monospace);color:var(--sk-text-muted, #A8A29A);margin-left:0.45cqw;padding:0.16cqw 0.38cqw;border:1px solid var(--sk-hairline, #26262A);border-radius:6px;}
+#sp4-cursor svg{display:block;width:100%;height:100%;}
 </style>
 
-<div id="root" data-composition-id="04-supaprod" data-width="1920" data-height="1080">
+<div id="root" data-composition-id="04-supaprod" data-width="1920" data-height="1080" data-duration="11.0">
 
   <!-- full-bleed ground on its own clip layer (track 0) -->
-  <div id="sp4-ground" class="clip" data-start="0" data-duration="10.8" data-track-index="0"></div>
+  <div id="sp4-ground" class="clip" data-start="0" data-duration="11.0" data-track-index="0"></div>
 
-  <!-- the world (track 1) — layered shots under one camera; layout-box union
-       overflows by design (seam layers + camera scale), so opt out at construction -->
-  <div id="sp4-world" class="clip" data-start="0" data-duration="10.8" data-track-index="1" data-layout-allow-overflow>
+  <!-- the world (track 1) — the product surface under one camera, plus screen-space
+       film titles. The camera scales past the frame edge by design, so opt out of
+       the layout-box union at construction. -->
+  <div id="sp4-world" class="clip" data-start="0" data-duration="11.0" data-track-index="1" data-layout-allow-overflow>
     <div class="sk-frame">
-
-      <!-- directional/depth blur filter for the push (motion-blur-streak, path A) -->
-      <svg width="0" height="0" aria-hidden="true" style="position:absolute">
-        <defs>
-          <filter id="sp4-streak" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur id="sp4-streak-blur" in="SourceGraphic" stdDeviation="0 0" />
-          </filter>
-        </defs>
-      </svg>
 
       <div id="sp4-cam">
 
-        <!-- ── SHOT A · the mark draws itself, revolving, core blooms ── -->
-        <div id="sp4-logo-shot">
-          <div id="sp4-glow"></div>
-          <div class="sp4-lockup">
-            <div id="sp4-spin">
-              <!-- assets/logo-3b38dcfd.svg — paths verbatim, gradient ids namespaced sp4 -->
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" style="overflow:visible">
-                <defs>
-                  <linearGradient id="pet-sp4" x1="15%" y1="0%" x2="85%" y2="100%"><stop offset="0%" stop-color="var(--text-primary, #f2f0ed)"></stop><stop offset="52%" stop-color="var(--text-subtle, #7d786f)"></stop><stop offset="100%" stop-color="var(--text-primary, #f2f0ed)"></stop></linearGradient>
-                  <radialGradient id="core-sp4" cx="42%" cy="36%" r="72%"><stop offset="0%" stop-color="color-mix(in oklab, #fff 60%, var(--ember, #ff6b2c))"></stop><stop offset="56%" stop-color="var(--ember, #ff6b2c)"></stop><stop offset="100%" stop-color="color-mix(in oklab, var(--ember, #ff6b2c) 82%, #000)"></stop></radialGradient>
-                </defs>
-                <g style="transform-box:fill-box;transform-origin:center;filter:drop-shadow(0 0 3.5px color-mix(in oklab, #fff 24%, transparent))">
-                  <path id="sp4-loop" d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="var(--text-primary, #f2f0ed)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path>
-                </g>
-                <g id="sp4-core" style="transform-box:fill-box;transform-origin:center;filter:drop-shadow(0 0 4px color-mix(in oklab, var(--ember, #ff6b2c) 55%, transparent))">
-                  <circle cx="50" cy="50" r="6.2" fill="url(#core-sp4)"></circle>
-                  <circle cx="50" cy="50" r="2.15" fill="var(--marigold, #e8b44c)" style="filter:drop-shadow(0 0 2px color-mix(in oklab, var(--marigold, #e8b44c) 70%, transparent))"></circle>
-                </g>
-              </svg>
-            </div>
-            <div id="sp4-word">supaprod</div>
-          </div>
-        </div>
-
-        <!-- ── SHOT B · the app's home — Today, workspace harbor ── -->
+        <!-- ══ the app's home · Today, workspace harbor — on screen from frame 0 ══ -->
         <div id="sp4-app">
           <div class="sk-stage">
-            <div class="sk-screen" style="--sk-accent:var(--sk-decide); --sk-w:88cqw; --sk-h:84cqh; --sk-rx:1.6deg; --sk-ry:-2.2deg">
+            <div class="sk-screen" style="--sk-accent:var(--sk-ember); --sk-w:96cqw; --sk-h:94cqh; --sk-rx:1.2deg; --sk-ry:-1.5deg">
               <div class="sk-shell">
 
-                <!-- sidebar · workspace "harbor" · nine rows, station dots · Today active -->
-                <aside class="sk-sidebar">
-                  <div class="sk-ws">
-                    <span class="sk-ws-mark"><svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block;overflow:visible"><path d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="5.5" fill="none" stroke-linecap="round"/><circle cx="50" cy="50" r="8.5" fill="#FF6B2C"/></svg></span>
-                    <span class="sk-ws-name">supaprod</span><span class="sk-ws-space">harbor</span>
-                    <span class="sk-ws-caret">⌄</span>
-                  </div>
-                  <nav class="sk-nav">
-                    <div class="sk-navrow is-active" style="--dot:var(--sk-text)"><span class="sk-dot"></span>Today<span class="sk-navcount">3</span></div>
-                    <div class="sk-navrow" style="--dot:var(--sk-discover)"><span class="sk-dot"></span>Discover<span class="sk-navcount">24</span></div>
-                    <div class="sk-navrow" style="--dot:var(--sk-decide)"><span class="sk-dot"></span>Decide<span class="sk-navcount">3</span></div>
-                    <div class="sk-navrow" style="--dot:var(--sk-plan)"><span class="sk-dot"></span>Plan</div>
-                    <div class="sk-navrow" style="--dot:var(--sk-design)"><span class="sk-dot"></span>Design</div>
-                    <div class="sk-navrow" style="--dot:var(--sk-build)"><span class="sk-dot"></span>Build<span class="sk-navcount">2</span></div>
-                    <div class="sk-navrow" style="--dot:var(--sk-ship)"><span class="sk-dot"></span>Ship</div>
-                    <div class="sk-navrow" style="--dot:var(--sk-learn)"><span class="sk-dot"></span>Learn<span class="sk-navcount">1</span></div>
-                    <div class="sk-navrow" style="--dot:var(--sk-ember)"><span class="sk-dot"></span>Brain</div>
-                  </nav>
-                  <div class="sk-side-foot"><span class="sk-livedot"></span>3 agents running</div>
-                </aside>
-
-                <!-- top bar -->
+                <!-- top bar · bare mark + Supaprod · breadcrumb · notification strip · Ask ⌘K · avatar -->
                 <header class="sk-topbar">
-                  <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">today</span></div>
-                  <div class="sk-ask">
-                    <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>
-                    ask supaprod…
-                    <span class="sk-kbd">⌘K</span>
+                  <div class="sk-topleft">
+                    <span class="sk-brand">
+                      <span class="sk-brand-mark"><svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block;overflow:visible"><path d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="5.5" fill="none" stroke-linecap="round"/><circle cx="50" cy="50" r="8.5" fill="#FF6B2C"/></svg></span>
+                      <span class="sk-brand-name">Supaprod</span>
+                    </span>
+                    <span class="sk-topdiv"></span>
+                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">checkout</span><span class="sk-crumb-caret">⌄</span></div>
                   </div>
-                  <span class="sk-spacer"></span>
-                  <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>synced 2m ago</span>
-                  <div class="sk-avatar">MR</div>
+                  <div class="sk-notify">
+                    <span class="sk-notify-gl">
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><circle cx="7.6" cy="7.6" r="4.3"/><path d="M10.9 10.9L14.3 14.3"/></svg>
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-faint)"><path d="M3 5.2h12M3 9h8M3 12.8h10"/></svg>
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><path d="M3 12.4l4-4 3 3 5-5.6"/><path d="M15 5.8h-3.3M15 5.8v3.3"/></svg>
+                    </span>
+                    <span class="sk-notify-lead">3 calls are ready for you</span>
+                    <span class="sk-notify-sub">checkout fix · agents finished overnight</span>
+                    <span class="sk-notify-time">12m ago</span>
+                  </div>
+                  <div class="sk-topright">
+                    <div class="sk-ask"><svg viewBox="0 0 18 18"><path d="M15.2 10.4a2.4 2.4 0 0 1-2.4 2.4H6.4L3.2 15.4V5a2.4 2.4 0 0 1 2.4-2.4h7.2A2.4 2.4 0 0 1 15.2 5Z"/></svg>Ask<span class="sk-kbd">⌘K</span></div>
+                    <div class="sk-avatar">MR</div>
+                  </div>
                 </header>
 
-                <!-- content · greeting + decision queue + agent activity -->
+                <!-- the seven-station strip · full width; Today is not a station, so nothing is "here" -->
+                <div class="sk-spine">
+                  <div class="sk-stn is-waiting"><i class="sk-stn-dot"></i><span class="sk-stn-n">01</span><span class="sk-stn-name">Discover</span><span class="sk-stn-sub">24 signals waiting on you</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">02</span><span class="sk-stn-name">Decide</span><span class="sk-stn-sub">3 calls</span></div>
+                  <div class="sk-stn"><span class="sk-stn-n">03</span><span class="sk-stn-name">Plan</span><span class="sk-stn-sub">7 runs</span></div>
+                  <div class="sk-stn"><span class="sk-stn-n">04</span><span class="sk-stn-name">Design</span><span class="sk-stn-sub"></span></div>
+                  <div class="sk-stn is-waiting"><i class="sk-stn-dot"></i><span class="sk-stn-n">05</span><span class="sk-stn-name">Build</span><span class="sk-stn-sub">2 runs waiting on you</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">06</span><span class="sk-stn-name">Ship</span><span class="sk-stn-sub">v2.4 live</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">07</span><span class="sk-stn-name">Learn</span><span class="sk-stn-sub">day 6 of 30</span></div>
+                </div>
+
+                <!-- narrow icon rail · Today active · a separate axis from the stations -->
+                <aside class="sk-rail">
+                  <div class="sk-railtop">
+                    <span class="sk-glyph is-active"><svg viewBox="0 0 20 20"><path d="M3 6h14M3 10h9M3 14h11"/></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M2 10h3.3l2.2-5.2 3.3 10.4 2.2-5.2H18"/></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><circle cx="5.2" cy="4.8" r="1.9"/><circle cx="14.8" cy="10" r="1.9"/><circle cx="5.2" cy="15.2" r="1.9"/><path d="M5.2 6.7v6.6M7.1 4.8h3.7a2 2 0 0 1 2 2v1.3M7.1 15.2h3.7a2 2 0 0 0 2-2v-1.3"/></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="6.6" y="6.6" width="6.8" height="6.8" rx="1.6"/><path d="M10 2.4v4.2M10 13.4v4.2M2.4 10h4.2M13.4 10h4.2"/></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M3 6.2h4.2M11.6 6.2H17M3 13.8h7.4M14.8 13.8H17"/><circle cx="9.4" cy="6.2" r="1.9"/><circle cx="12.9" cy="13.8" r="1.9"/></svg></span>
+                  </div>
+                  <div class="sk-railfoot">
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="3" y="4.4" width="14" height="11.2" rx="1.6"/><path d="M7.7 4.4v11.2M12.4 4.4v11.2"/></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M15.4 11.9A6.1 6.1 0 0 1 8.1 4.6 6.3 6.3 0 1 0 15.4 11.9Z"/></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.5"/><path d="M10 2.6v2.1M10 15.3v2.1M2.6 10h2.1M15.3 10h2.1M4.8 4.8l1.5 1.5M13.7 13.7l1.5 1.5M15.2 4.8l-1.5 1.5M6.3 13.7l-1.5 1.5"/></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="3" y="4.4" width="14" height="11.2" rx="1.6"/><path d="M8 4.4v11.2"/></svg></span>
+                  </div>
+                </aside>
+
+                <!-- content · greeting, the one statement, Shipped, the call waiting on you -->
                 <main class="sp4-main">
 
-                  <div class="sp4-greetrow">
-                    <h1 class="sk-greet" id="sp4-greet">Tuesday — 3 calls waiting</h1>
-                    <span class="sk-meta" id="sp4-hdchip" style="font-size:0.66cqw;">agents ran overnight · 7 tasks moved · nothing shipped without you</span>
-                    <span class="sk-spacer"></span>
-                    <span class="sk-chip" id="sp4-hdchip2">queue re-ranked 4m ago</span>
-                  </div>
+                  <p class="sp4-greet">Good morning.</p>
+                  <h1 class="sp4-head">3 calls waiting on you.</h1>
+                  <p class="sp4-headmeta">In the last 24 hours · <span class="sp4-underline">17 days on the record</span></p>
+                  <p class="sp4-live"><span class="sk-livedot"></span><span class="sp4-run">▸</span>agent · drafting the release notes for v2.4<span class="sp4-live-sep">·</span>7 runs today<span class="sp4-live-sep">·</span>0 boundaries crossed</p>
 
-                  <!-- your calls — the decision queue -->
-                  <section class="sk-panel">
-                    <header class="sk-panel-hd">
-                      <h2 class="sk-panel-title">Your calls</h2>
-                      <span class="sk-badge">3 waiting</span>
-                      <span class="sk-spacer"></span>
-                      <span class="sk-label" style="font-size:0.55cqw;">ranked by urgency</span>
-                    </header>
-                    <div class="sp4-queue-body">
+                  <div class="sp4-rule"></div>
 
-                      <article class="sk-betcard is-lead" id="sp4-card1">
-                        <header class="sk-betcard-hd">
-                          <span class="sk-rank">01</span>
-                          <h3 class="sk-betcard-title">Approve the merge — checkout fix</h3>
-                          <span class="sk-spacer"></span>
-                          <span class="sk-chip sk-chip--ember" id="sp4-gate"><span class="sk-dot-inline"></span>gate · your call</span>
-                        </header>
-                        <p class="sk-meta" style="font-size:0.62cqw;">fix/checkout-dropoff · 214 tests passing · boundary held: no schema drops</p>
-                        <p class="sk-betnote"><span>agent</span>ready to merge — waiting on you · finished 12m ago</p>
-                      </article>
-
-                      <article class="sk-betcard" id="sp4-card2">
-                        <header class="sk-betcard-hd">
-                          <span class="sk-rank">02</span>
-                          <h3 class="sk-betcard-title">Choose the next bet</h3>
-                          <span class="sk-spacer"></span>
-                          <span class="sk-chip sk-chip--accent" id="sp4-c2chip">2 bets scored</span>
-                        </header>
-                        <p class="sk-meta" style="font-size:0.62cqw;">fix checkout drop-off 8.0 · unify billing alerts 6.4 · opened by maya r. · 34m ago</p>
-                      </article>
-
-                      <article class="sk-betcard" id="sp4-card3">
-                        <header class="sk-betcard-hd">
-                          <span class="sk-rank">03</span>
-                          <h3 class="sk-betcard-title">Review the v2.4 outcome</h3>
-                          <span class="sk-spacer"></span>
-                          <span class="sk-chip">day 6 of 30</span>
-                        </header>
-                        <p class="sk-meta" style="font-size:0.62cqw;">activation watch · forecast sealed at decision time · yesterday</p>
-                      </article>
-
-                      <div class="sk-agentline" id="sp4-agentline"><span class="sk-livedot"></span><span class="sk-run">▸</span>agent · drafting release notes for v2.4<span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">just now</span></div>
-
+                  <section class="sp4-sec">
+                    <div class="sp4-sec-hd">
+                      <h2 class="sp4-sec-t">Shipped</h2>
+                      <span class="sp4-sec-link">Open runs · 1 more</span>
                     </div>
-                    <footer class="sk-panel-ft">
-                      <span class="sk-label" style="font-size:0.55cqw;">cleared</span>
-                      <span class="sk-meta" style="font-size:0.62cqw;">2 this morning · copy fix approved · bets re-ranked</span>
-                      <span class="sk-spacer"></span>
-                      <span class="sk-meta" style="font-size:0.6cqw;color:var(--sk-accent);">open the queue →</span>
-                    </footer>
+                    <p class="sp4-sec-note">4 live and waiting on nobody. Undoing one costs a rollback.</p>
+                    <div class="sp4-sec-rows">
+                      <div class="sp4-row">
+                        <span class="sp4-rowicon"><svg viewBox="0 0 20 20"><circle cx="10" cy="4.6" r="1.8"/><circle cx="4.8" cy="15.4" r="1.8"/><circle cx="15.2" cy="15.4" r="1.8"/><path d="M10 6.4v3.4M4.8 13.6v-2a1.8 1.8 0 0 1 1.8-1.8h6.8a1.8 1.8 0 0 1 1.8 1.8v2"/></svg></span>
+                        <span class="sp4-rowmain">
+                          <span class="sp4-rowtitle">Retry the abandoned payment step on the checkout</span>
+                          <span class="sp4-rowstate">done</span>
+                        </span>
+                        <span class="sp4-rowtime">14h</span>
+                      </div>
+                      <div class="sp4-row">
+                        <span class="sp4-rowicon"><svg viewBox="0 0 20 20"><circle cx="10" cy="4.6" r="1.8"/><circle cx="4.8" cy="15.4" r="1.8"/><circle cx="15.2" cy="15.4" r="1.8"/><path d="M10 6.4v3.4M4.8 13.6v-2a1.8 1.8 0 0 1 1.8-1.8h6.8a1.8 1.8 0 0 1 1.8 1.8v2"/></svg></span>
+                        <span class="sp4-rowmain">
+                          <span class="sp4-rowtitle">Unify the billing alert thresholds across workspaces</span>
+                          <span class="sp4-rowstate">done</span>
+                        </span>
+                        <span class="sp4-rowtime">15h</span>
+                      </div>
+                      <div class="sp4-row">
+                        <span class="sp4-rowicon"><svg viewBox="0 0 20 20"><circle cx="10" cy="4.6" r="1.8"/><circle cx="4.8" cy="15.4" r="1.8"/><circle cx="15.2" cy="15.4" r="1.8"/><path d="M10 6.4v3.4M4.8 13.6v-2a1.8 1.8 0 0 1 1.8-1.8h6.8a1.8 1.8 0 0 1 1.8 1.8v2"/></svg></span>
+                        <span class="sp4-rowmain">
+                          <span class="sp4-rowtitle">Resolve the "Offline-Sync Data Loss and Overwrite" cluster</span>
+                          <span class="sp4-rowstate">done</span>
+                        </span>
+                        <span class="sp4-rowtime">20h</span>
+                      </div>
+                    </div>
                   </section>
 
-                  <!-- agent activity — the feed streaming on the right -->
-                  <section class="sk-panel">
-                    <header class="sk-console-hd">
-                      <span class="sk-label">agent activity</span>
-                      <span class="sk-spacer"></span>
-                      <span class="sk-label" style="display:flex;align-items:center;gap:0.35cqw;font-size:0.55cqw;"><span class="sk-livedot"></span>live</span>
-                    </header>
-                    <div class="sk-console-body">
-                      <div class="sk-logline" id="sp4-l1"><span class="sk-log-t">09:41</span><span class="sk-tick">✓</span><span>discover · 24 signals ranked into 3 bets</span></div>
-                      <div class="sk-logline" id="sp4-l2"><span class="sk-log-t">09:47</span><span class="sk-tick">✓</span><span>plan · spec drafted — checkout-fix</span></div>
-                      <div class="sk-logline" id="sp4-l3"><span class="sk-log-t">09:52</span><span class="sk-tick">✓</span><span>build · branch fix/checkout-dropoff opened</span></div>
-                      <div class="sk-logline" id="sp4-l4"><span class="sk-log-t">09:58</span><span class="sk-tick">✓</span><span>build · tests 214 passing</span></div>
-                      <div class="sk-logline" id="sp4-l5"><span class="sk-log-t">10:03</span><span class="sk-tick">✓</span><span>ship · release notes drafted — v2.4</span></div>
-                      <div class="sk-logline is-run" id="sp4-l6"><span class="sk-log-t">10:06</span><span class="sk-run">▸</span><span>learn · watching activation — day 6 of 30</span></div>
-                      <div class="sk-logline is-run" id="sp4-l7"><span class="sk-log-t">10:07</span><span class="sk-run">▸</span><span>brain · precedent attached to call 01</span></div>
+                  <section class="sp4-sec">
+                    <div class="sp4-sec-hd">
+                      <h2 class="sp4-sec-t">Ready for your review</h2>
+                      <span class="sp4-sec-link">Open the queue</span>
                     </div>
-                    <footer class="sk-panel-ft"><span class="sk-meta" style="font-size:0.6cqw;">7 runs today · 0 boundaries crossed</span></footer>
+                    <p class="sp4-sec-note">3 waiting on you. Nothing has happened yet, so undo is free.</p>
+
+                    <article class="sp4-card" id="sp4-card">
+                      <header class="sp4-card-hd">
+                        <svg viewBox="0 0 18 18"><circle cx="7.6" cy="7.6" r="4.3"/><path d="M10.9 10.9L14.3 14.3"/></svg>
+                        <span class="sp4-card-kind">Decide</span>
+                        <span class="sp4-card-sep">·</span><span class="sp4-card-scope">This workspace</span>
+                        <span class="sp4-card-sep">·</span><span class="sp4-card-scope">low risk</span>
+                        <span class="sp4-card-idx">1 of 3</span>
+                      </header>
+                      <h3 class="sp4-card-t">Approve the merge — checkout fix</h3>
+                      <p class="sp4-card-m">fix/checkout-dropoff · 214 tests passing · boundary held: no schema drops</p>
+                      <div class="sp4-card-ft">
+                        <span id="sp4-gatewrap"><span id="sp4-gateglow"></span><span class="sk-chip sk-chip--ember" id="sp4-gate"><i class="sk-dot-inline"></i>gate · your call</span></span>
+                        <span class="sk-chip sk-chip--pass"><i class="sk-dot-inline"></i>tests green</span>
+                        <span class="sk-chip">the agent's take · ready to merge</span>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-chip">12m ago</span>
+                      </div>
+                    </article>
                   </section>
 
                 </main>
@@ -507,13 +493,46 @@
           </div>
         </div>
 
-        <!-- the ember flood riding the seam, above both shots -->
-        <div id="sp4-flood"></div>
+        <!-- the pointer rides the surface — it belongs to the screen, not to the film -->
+        <div id="sp4-cursor" data-layout-allow-overlap>
+          <svg viewBox="0 0 24 24"><path d="M4 2.4 L18.6 12.1 L11.7 12.9 L8.4 19.3 Z" fill="#F2EFE9" stroke="#0A0A0B" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        </div>
 
       </div>
 
-      <!-- film overlay — lower-third, outside the camera (screen space) -->
-      <div class="sk-lowerthird" style="--sk-accent:var(--sk-ember)">
+      <!-- ══ film layer · screen space, outside the camera ══ -->
+
+      <div id="sp4-scrim" data-layout-allow-overlap></div>
+
+      <!-- the quiet lower-left title: bare mark + wordmark -->
+      <div id="sp4-lock" data-layout-allow-overlap>
+        <span id="sp4-mark">
+          <!-- assets/logo-3b38dcfd.svg — paths verbatim, gradient ids namespaced sp4 -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" style="overflow:visible">
+            <defs>
+              <radialGradient id="core-sp4" cx="42%" cy="36%" r="72%"><stop offset="0%" stop-color="color-mix(in oklab, #fff 60%, var(--sk-ember, #ff6b2c))"></stop><stop offset="56%" stop-color="var(--sk-ember, #ff6b2c)"></stop><stop offset="100%" stop-color="color-mix(in oklab, var(--sk-ember, #ff6b2c) 82%, #000)"></stop></radialGradient>
+            </defs>
+            <g style="transform-box:fill-box;transform-origin:center">
+              <path id="sp4-loop" d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"></path>
+            </g>
+            <g id="sp4-core" style="transform-box:fill-box;transform-origin:center">
+              <circle cx="50" cy="50" r="6.2" fill="url(#core-sp4)"></circle>
+              <circle cx="50" cy="50" r="2.15" fill="#E8B44C"></circle>
+            </g>
+          </svg>
+        </span>
+        <span id="sp4-word">supaprod</span>
+      </div>
+
+      <!-- the three thesis chips, under the title, on their VO cues -->
+      <div id="sp4-thesis" data-layout-allow-overlap>
+        <span class="sp4-th" id="sp4-th1"><i></i>knows what to build</span>
+        <span class="sp4-th" id="sp4-th2"><i></i>runs the lifecycle</span>
+        <span class="sp4-th" id="sp4-th3"><i></i>learns and guides</span>
+      </div>
+
+      <!-- film overlay — lower-third, lower-left, screen space -->
+      <div class="sk-lowerthird" style="--sk-accent:var(--sk-ember)" data-layout-allow-overlap>
         <span class="sk-lt-kicker" id="sp4-ltk">SUPAPROD · FOR PRODUCT MANAGERS WHO SHIP WITH AGENTS</span>
         <span class="sk-lt-line" id="sp4-ltl">agents run the work — you make the calls.</span>
       </div>
@@ -529,30 +548,21 @@
   (function () {
     // Scope every query to THIS frame — kit classes repeat across sibling frames.
     var sp4Root = document.querySelector('[data-composition-id="04-supaprod"]');
-    var $  = function (sel) { return sp4Root.querySelector(sel); };
-    var $$ = function (sel) { return Array.prototype.slice.call(sp4Root.querySelectorAll(sel)); };
+    var $ = function (sel) { return sp4Root.querySelector(sel); };
 
     var tl = gsap.timeline({ paused: true });
 
-    /* ── svg-path-draw setup — measure the loop, dash it out ─────────── */
+    /* ── svg-path-draw setup — measured synchronously at build time ───── */
     var loop = $("#sp4-loop");
     var len = loop.getTotalLength() * 1.02; // slight overestimate per the recipe
     loop.style.strokeDasharray = String(len);
     loop.style.strokeDashoffset = String(len);
 
-    /* ── motion-blur-streak setup — proxy → stdDeviation (depth push: B B) ── */
-    var blurNode = $("#sp4-streak-blur");
-    var blurP = { v: 0 };
-    var writeBlur = function () {
-      blurNode.setAttribute("stdDeviation", blurP.v + " " + blurP.v);
-    };
-    writeBlur(); // seed frame 0 sharp
-
-    /* ── the one camera (multi-phase-camera + viewport-change pan) ───── */
+    /* ── the one camera (multi-phase-camera) — the product surface rides it ── */
     var camEl = $("#sp4-cam");
-    var cam = { s: 0.97, x: 0, y: 0 };
+    var cam = { s: 1.018, x: 0, y: 0 };
     var drift = { p: 0 };
-    var DRIFT_AMP_X = 4.2, DRIFT_AMP_Y = 2.4, DRIFT_FREQ_RATIO = 1.35;
+    var DRIFT_AMP_X = 3.6, DRIFT_AMP_Y = 2.0, DRIFT_FREQ_RATIO = 1.35;
     var applyCam = function () {
       var dx = Math.sin(drift.p) * DRIFT_AMP_X;
       var dy = Math.sin(drift.p * DRIFT_FREQ_RATIO) * DRIFT_AMP_Y;
@@ -561,101 +571,92 @@
     };
     applyCam(); // seed frame 0
 
-    /* ═══ SCENE 1 (0.0–2.6s) · the mark draws itself, revolving ═══════ */
+    /* ── seek-safe baselines ──
+       Every hidden-at-frame-0 element carries its hidden state in CSS (a
+       zero-duration set at position 0 does not render while the playhead sits
+       exactly at 0). These sets only seed the resting geometry the tweens
+       hand off between. */
+    // fixed composition coordinates — the pointer rides the same transformed space
+    // as the gate chip, so matching layout coords lands it under any camera state.
+    var CUR_FROM = { x: 620, y: 905 };
+    var CUR_TO   = { x: 245, y: 742 };
+    gsap.set("#sp4-cursor", CUR_FROM);
+    gsap.set("#sp4-word", { y: 20 });
+    gsap.set(["#sp4-th1", "#sp4-th2", "#sp4-th3"], { y: 12 });
+    gsap.set(["#sp4-ltk", "#sp4-ltl"], { y: 14 });
 
-    // the loader motif — the mark revolves as it completes
-    tl.fromTo("#sp4-spin", { rotation: -52 }, { rotation: 0, duration: 2.45, ease: "power2.out" }, 0.05);
-    // stroke draw (pen trace — power2.out, no bounce)
-    tl.to(loop, { strokeDashoffset: 0, duration: 1.75, ease: "power2.out" }, 0.12);
-    // ambient-glow-bloom behind the mark (bloom-and-hold — flood follows soon)
-    tl.fromTo("#sp4-glow", { opacity: 0, scale: 0.85 },
-      { opacity: 0.30, scale: 1, duration: 0.7, ease: "power2.out" }, 1.55);
-    // the ember core blooms as the loop closes
-    tl.fromTo("#sp4-core", { opacity: 0 }, { opacity: 1, duration: 0.55, ease: "power2.out" }, 1.62);
-    // wordmark rises beneath
-    tl.fromTo("#sp4-word", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 1.9);
-    // camera phase 1 — slow approach on the mark
-    tl.to(cam, { s: 1.045, duration: 2.5, ease: "power2.inOut" }, 0);
+    /* ═══ SCENE 1 (0.0–2.2s) · the home is ALREADY here, deeply out of focus.
+       The name arrives as a quiet lower-left film title — no ceremony. ═══ */
 
-    /* ═══ SCENE 2 (2.6–5.4s) · push THROUGH the ember core into the app ═
-       zoom-through seam per the cut catalog: outgoing accelerates toward
-       the viewer, blur + flood peak at the hard cut, incoming continues
-       forward and decelerates into the focal plane. */
+    // the camera is breathing before the first word
+    tl.to(cam, { s: 1.030, duration: 2.2, ease: "power1.inOut" }, 0);
 
-    // camera hard push into the core
-    tl.to(cam, { s: 1.24, duration: 0.48, ease: "power3.in" }, 2.6);
-    // outgoing mark: scale toward viewer + depth blur peaks at the cut
-    tl.to("#sp4-logo-shot", { scale: 2.4, duration: 0.48, ease: "power3.in" }, 2.6);
-    tl.to(blurP, { v: 16, duration: 0.48, ease: "power3.in", onUpdate: writeBlur }, 2.6);
-    tl.to("#sp4-logo-shot", { opacity: 0.15, duration: 0.46, ease: "none" }, 2.6); // linear dim, separate tween
-    // the core glow floods the frame
-    tl.fromTo("#sp4-flood", { opacity: 0, scale: 0.5 },
-      { opacity: 0.96, scale: 7, duration: 0.5, ease: "power3.in" }, 2.58);
+    // the title block appears; the bare mark draws quickly, the core lands, the word rises
+    tl.fromTo("#sp4-lock", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.35);
+    tl.fromTo(loop, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: 0.55, ease: "power2.out" }, 0.45);
+    tl.fromTo("#sp4-core", { opacity: 0, scale: 0.55 }, { opacity: 1, scale: 1, duration: 0.35, ease: "power2.out" }, 0.92);
+    tl.fromTo("#sp4-word", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 1.02);
 
-    // HARD CUT at peak velocity + peak flood
-    tl.set("#sp4-logo-shot", { opacity: 0 }, 3.08);
+    /* ═══ SCENE 2 (2.2–5.8s) · the reveal IS the focus pull —
+       a slow rack focus into the working home while the camera pushes gently.
+       The three thesis chips land under the title on their VO cues. ═══ */
 
-    // incoming app: continues forward (0.8→1), blur resolves, expo.out
-    tl.set("#sp4-app", { opacity: 0, scale: 0.8, "--sp4dof": "14px" }, 0); // baseline for any seek
-    tl.set("#sp4-app", { opacity: 0.15 }, 3.06);
-    tl.to("#sp4-app", { opacity: 1, scale: 1, "--sp4dof": "0px", duration: 0.7, ease: "expo.out" }, 3.08);
-    // flood resolves away as the home appears
-    tl.to("#sp4-flood", { opacity: 0, scale: 9, duration: 0.75, ease: "power2.out" }, 3.12);
-    // camera settles out of the push
-    tl.to(cam, { s: 1.0, duration: 2.0, ease: "power3.out" }, 3.1);
+    // depth-of-field-blur, mechanic 1: the whole surface resolves from defocus to sharp.
+    // The lum/sat lift rides the same window so the out-of-focus lights read, then neutralises.
+    tl.fromTo("#sp4-app",
+      { "--sp4dof": "20px", "--sp4lum": 1.7, "--sp4sat": 1.42 },
+      { "--sp4dof": "0px", "--sp4lum": 1, "--sp4sat": 1, duration: 2.2, ease: "power2.inOut" }, 2.25);
+    // the push runs on the same window so "we come into focus" and "we move in" read as one
+    tl.to(cam, { s: 1.072, duration: 3.5, ease: "power2.out" }, 2.25);
 
-    /* the home populates as "agents run the work" plays — reveals ride VO */
-    var reveals = [
-      ["#sp4-greet",     3.45],
-      ["#sp4-hdchip",    3.58],
-      ["#sp4-hdchip2",   3.7 ],
-      ["#sp4-card1",     3.62],
-      ["#sp4-l1",        3.95],
-      ["#sp4-card2",     4.2 ],
-      ["#sp4-l2",        4.4 ],
-      ["#sp4-card3",     4.8 ],
-      ["#sp4-agentline", 5.05],
-      /* back half — the tagline sentence keeps landing content */
-      ["#sp4-l3",        6.5 ],   // "know what to build" → the build thread
-      ["#sp4-l4",        7.3 ],
-      ["#sp4-l5",        8.2 ],   // "ship it" → release notes drafted
-      ["#sp4-l6",        9.1 ],
-      ["#sp4-l7",        9.85]    // "guide the next call" → precedent attached
-    ];
-    reveals.forEach(function (r) {
-      var el = $(r[0]);
-      tl.set(el, { opacity: 0, y: 14 }, 0);
-      tl.to(el, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, r[1]);
-    });
-    // c2chip lands later than its card — "2 bets scored" arrives on the cue
-    tl.set("#sp4-c2chip", { opacity: 0 }, 0);
-    tl.to("#sp4-c2chip", { opacity: 1, duration: 0.45, ease: "power2.out" }, 6.8);
-    // sidebar rows cascade in with the resolve — the stations light up
-    $$(".sk-navrow").forEach(function (row, i) {
-      tl.set(row, { opacity: 0, x: -8 }, 0);
-      tl.to(row, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 3.5 + i * 0.06);
-    });
+    tl.fromTo("#sp4-th1", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 3.40);
+    tl.fromTo("#sp4-th2", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 4.40);
+    tl.fromTo("#sp4-th3", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 5.20);
 
-    /* ═══ SCENE 3 (5.4–10.8s) · slow pan across the home, always breathing ═ */
+    /* ═══ SCENE 3 (5.8–11.0s) · sharp and alive. The camera pans across the home,
+       the gate pulses on "you make the calls", the title recedes to a corner mark. ═══ */
+
+    // the slow lateral pan across the working surface
+    tl.to(cam, { x: -34, s: 1.052, duration: 3.15, ease: "power1.inOut" }, 5.82);
+
+    // the film grade deepens as the titles take the lower-left
+    tl.fromTo("#sp4-scrim", { opacity: 0.46 }, { opacity: 0.9, duration: 1.2, ease: "power2.inOut" }, 5.95);
+
+    // the title recedes: chips clear, the lockup shrinks into a small corner mark
+    tl.fromTo("#sp4-thesis", { opacity: 1, y: 0 },
+      { opacity: 0, y: -10, duration: 0.5, ease: "power2.in", immediateRender: false }, 6.20);
+    tl.fromTo("#sp4-lock", { scale: 1, opacity: 1 },
+      { scale: 0.42, opacity: 0.82, duration: 1.0, ease: "power2.inOut", immediateRender: false }, 6.25);
+
+    // one honest interaction: the pointer settles on the gate that is waiting on you
+    tl.fromTo("#sp4-cursor", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 6.55);
+    tl.fromTo("#sp4-cursor", CUR_FROM,
+      { x: CUR_TO.x, y: CUR_TO.y, duration: 0.6, ease: "power2.inOut" }, 6.75);
 
     // "you make the calls" — the gate chip pulses ember once
-    tl.to("#sp4-gate", { scale: 1.16, duration: 0.2, ease: "power2.out" }, 5.55);
-    tl.to("#sp4-gate", { scale: 1, duration: 0.4, ease: "power2.inOut" }, 5.75);
-    // lower-third arrives, lower-left, quiet
-    tl.set("#sp4-ltk", { opacity: 0, y: 12 }, 0);
-    tl.set("#sp4-ltl", { opacity: 0, y: 12 }, 0);
-    tl.to("#sp4-ltk", { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 5.7);
-    tl.to("#sp4-ltl", { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 5.82);
-    // cinematic pan across the home while the tagline plays
-    tl.to(cam, { x: -34, s: 1.06, duration: 3.1, ease: "power1.inOut" }, 5.4);
-    // settle into a gentle push — the camera never sleeps
-    tl.to(cam, { x: -10, s: 1.115, duration: 2.2, ease: "power2.inOut" }, 8.55);
+    tl.fromTo("#sp4-gate", { scale: 1 },
+      { scale: 1.13, duration: 0.18, ease: "power2.out", immediateRender: false }, 7.20);
+    tl.fromTo("#sp4-gate", { scale: 1.13 },
+      { scale: 1, duration: 0.44, ease: "power2.inOut", immediateRender: false }, 7.40);
+    tl.fromTo("#sp4-gateglow", { opacity: 0 },
+      { opacity: 0.95, duration: 0.2, ease: "power2.out", immediateRender: false }, 7.20);
+    tl.fromTo("#sp4-gateglow", { opacity: 0.95 },
+      { opacity: 0, duration: 0.72, ease: "power2.inOut", immediateRender: false }, 7.44);
 
-    /* drift — continuous micro-motion the whole 10.8s. Added LAST so every
+    // the audience line, lower-left, under the receded mark
+    tl.fromTo("#sp4-ltk", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 8.50);
+    tl.fromTo("#sp4-ltl", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 8.62);
+
+    // settled breathing hold — the camera never sleeps, but it stops travelling
+    tl.to(cam, { x: -21, s: 1.066, duration: 1.85, ease: "power2.inOut" }, 9.10);
+    tl.fromTo("#sp4-cursor", { opacity: 1 },
+      { opacity: 0, duration: 0.5, ease: "power2.inOut", immediateRender: false }, 9.95);
+
+    /* drift — continuous micro-motion across the whole 11.0s. Added LAST so every
        cam tween has updated before applyCam composes the transform. */
     tl.to(drift, {
       p: Math.PI * 2 * 2,
-      duration: 10.8,
+      duration: 11.0,
       ease: "none",
       onUpdate: applyCam
     }, 0);
