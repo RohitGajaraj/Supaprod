@@ -375,10 +375,18 @@ export function DriftPanel() {
                   <Num>{d.delta}</Num>
                   {" · "}
                   {d.moved}
+                  {/* Say the noun. This is the same figure the drill prints
+                      (DriftSurfaceDetail), and while this row read "2 more
+                      open" the drill read "2 other metrics", so one number wore
+                      two different nouns across one click and neither was
+                      checkable. It is incidents: alsoOpen is open.length - 1,
+                      and an incident is keyed to one model and one metric, so
+                      several of them can carry the same metric name. */}
                   {d.alsoOpen > 0 ? (
                     <>
                       {" · "}
-                      <Num>{d.alsoOpen}</Num> more open
+                      <Num>{d.alsoOpen}</Num> more {d.alsoOpen === 1 ? "incident" : "incidents"}{" "}
+                      open
                     </>
                   ) : null}
                 </>
