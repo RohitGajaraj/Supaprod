@@ -136,8 +136,26 @@ export function EvalsPanel() {
   return (
     <>
       {/* Coverage. Silent at full coverage: the summary is "" and the whole
-          region stays away rather than congratulating you. */}
-      {coverageSummary ? (
+          region stays away rather than congratulating you.
+
+          WHICH IS PRECISELY WHY A FAILED READ MAY NOT BE SILENT HERE. The
+          `?? ""` above collapses a coverage read that never landed into the
+          exact value a fully-guarded account produces, and by the convention in
+          the line above, that silence TELLS the reader every surface is guarded
+          and the floor is met. An unguarded prompt and a failed read rendered
+          identically, and the failed one rendered as all clear - on the region
+          whose whole job is to say what has nothing watching it.
+
+          So the error arm is checked BEFORE the summary. Only an empty summary
+          from a read that SUCCEEDED is allowed to say nothing. */}
+      {coverageQ.isError ? (
+        <Block title="What has a guard on it">
+          <Failed onRetry={() => void coverageQ.refetch()}>
+            The coverage read did not land. The silence here does not mean every surface is guarded,
+            it means we could not find out which ones are.
+          </Failed>
+        </Block>
+      ) : coverageSummary ? (
         <Block title="What has a guard on it" sub={coverageSummary}>
           {coverageFloor?.configured && !coverageFloor.pass ? (
             <Line label="The floor you set" sub={coverageFloor.reasons.join(". ")}>

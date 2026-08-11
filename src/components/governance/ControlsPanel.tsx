@@ -414,9 +414,27 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
     );
   }
 
-  // A surface holds its shape while it reads. Nothing is drawn rather than a
-  // frame that will be replaced a beat later.
-  if (overview.isLoading) return null;
+  /*
+   * A SURFACE HOLDS ITS SHAPE WHILE IT READS, and for a while this line said so
+   * and then did the opposite. It was `if (overview.isLoading) return null`,
+   * which does not hold the shape, it drops the shape.
+   *
+   * This component is the whole body of Settings > Controls AND of the Engine
+   * Room's Safety room, so a person who clicked in to answer "what may my crew
+   * do without me" got the section heading they navigated to and then a blank
+   * rectangle under it until one query landed: no kill switch, no pipelines, no
+   * boundary counts, and no reactor Gate, which is the one thing on this
+   * surface with an agent stopped mid-run waiting on a human.
+   *
+   * It was also hiding regions whose data was already in hand. `boundaryQ`
+   * reads under the same key /boundary uses, so arriving from that surface you
+   * stared at nothing while the counts sat warm in the cache.
+   *
+   * Every region below guards its own query independently, so only the
+   * Boundaries block has anything to wait for, and it now says it is reading in
+   * the same shape the boundary block a few hundred lines down already used.
+   * Do not reinstate an early return here.
+   */
 
   /** What the pause switch currently lets through, or why it is locked.
    *
@@ -433,45 +451,51 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
   return (
     <>
       <Block title="Boundaries">
-        <Line label="Agents may run" sub={pauseSub}>
-          <Switch
-            checked={!killed}
-            disabled={killDisabled}
-            label="Agents may run"
-            onChange={() => pauseMut.mutate(!ks?.workspace_paused)}
-          />
-        </Line>
-        <Field label={killed ? "Why you are resuming" : "Why you are pausing"}>
-          <Input
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            disabled={killDisabled}
-            placeholder="Optional. It lands in the audit log."
-          />
-        </Field>
-        {ks?.reason ? <div style={NOTE}>On record: {ks.reason}</div> : null}
+        {overview.isLoading ? (
+          <Loading>Reading the boundaries this workspace runs inside.</Loading>
+        ) : (
+          <>
+            <Line label="Agents may run" sub={pauseSub}>
+              <Switch
+                checked={!killed}
+                disabled={killDisabled}
+                label="Agents may run"
+                onChange={() => pauseMut.mutate(!ks?.workspace_paused)}
+              />
+            </Line>
+            <Field label={killed ? "Why you are resuming" : "Why you are pausing"}>
+              <Input
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                disabled={killDisabled}
+                placeholder="Optional. It lands in the audit log."
+              />
+            </Field>
+            {ks?.reason ? <div style={NOTE}>On record: {ks.reason}</div> : null}
 
-        <Line label="Missions at once" sub="New goals queue when the mesh is at capacity.">
-          <Num>{MISSION_CONCURRENCY_CAP}</Num>
-        </Line>
-        <Line
-          label="Approvals past their deadline"
-          sub={
-            stuck > 0
-              ? "Nobody settled these in time. They are still waiting on you."
-              : "Nothing has aged out."
-          }
-        >
-          {/* Ember marks the one thing waiting on you, and only when something is. */}
-          <span style={{ color: stuck > 0 ? "var(--sp-gate)" : undefined }}>
-            <Num>{stuck}</Num>
-          </span>
-          {onOpenQueue ? (
-            <Button variant="ghost" onClick={onOpenQueue}>
-              Open the queue
-            </Button>
-          ) : null}
-        </Line>
+            <Line label="Missions at once" sub="New goals queue when the mesh is at capacity.">
+              <Num>{MISSION_CONCURRENCY_CAP}</Num>
+            </Line>
+            <Line
+              label="Approvals past their deadline"
+              sub={
+                stuck > 0
+                  ? "Nobody settled these in time. They are still waiting on you."
+                  : "Nothing has aged out."
+              }
+            >
+              {/* Ember marks the one thing waiting on you, and only when something is. */}
+              <span style={{ color: stuck > 0 ? "var(--sp-gate)" : undefined }}>
+                <Num>{stuck}</Num>
+              </span>
+              {onOpenQueue ? (
+                <Button variant="ghost" onClick={onOpenQueue}>
+                  Open the queue
+                </Button>
+              ) : null}
+            </Line>
+          </>
+        )}
       </Block>
 
       <Block
@@ -706,9 +730,27 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
       {/* The SAME tools the three counts above are drawn from, grouped by blast
           radius with the trust-ladder default posture per class. Consent is a
           per-class idea, not a per-tool one; this states what each class
-          defaults to, and the boundary is where a specific tool moves. */}
+          defaults to, and the boundary is where a specific tool moves.
+
+          THE SAME QUERY MEANS THE SAME ARMS. This block used to open straight
+          on `reachable.length === 0`, and `reachable` is built off `bd`, which
+          is undefined whenever the boundary read fails. So a failed read landed
+          on the Empty and told a person, as a fact, that no tool is switched on
+          and therefore no blast-radius class holds anything - the single most
+          reassuring reading available of a read that produced no information,
+          on the one surface where the answer is about consent.
+
+          It also put the two blocks in open contradiction on one screen: the
+          block above already says the boundary did not load. Same query, same
+          arms, and the Empty is reachable only after a read that SUCCEEDED. */}
       <Block title="Consent by consequence" sub={CONSENT_PHILOSOPHY}>
-        {reachable.length === 0 ? (
+        {boundaryQ.isError ? (
+          <Failed onRetry={() => void boundaryQ.refetch()}>
+            The boundary did not load, so nothing here would be the real reach of any class.
+          </Failed>
+        ) : boundaryQ.isLoading ? (
+          <Loading>Reading which tools your crew can reach.</Loading>
+        ) : reachable.length === 0 ? (
           <Empty>No tools enabled yet, so no class has anything in it.</Empty>
         ) : (
           groupToolsByConsequenceClass(reachable, (t) => t.name)
