@@ -1,8 +1,9 @@
 # SCRIPT — supaprod-film (v2 — founder notes folded in)
 
-**Voice:** af_heart (Kokoro, local)
-**Voice settings:** speed 0.95
-**Voice direction:** Warm, human, storytelling — a founder telling you what happened, not an announcer selling. Conversational gravity. Let full stops breathe.
+**Voice:** Vesper (Higgsfield · Qwen Audio 3.0 TTS, 48kHz) — founder-ruled 2026-08-12
+**Voice settings:** per-line `instruction` carries each delivery note below
+**Pronunciation:** the product name is always written "Soopah-prod" in TTS prompts (renders SOO-PA-PROD — founder-ruled, take 2)
+**Voice direction:** Warm, confident, human storytelling — a founder speaking plainly, never an announcer. Natural pauses at full stops.
 
 ---
 

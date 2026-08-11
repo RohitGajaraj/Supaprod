@@ -67,9 +67,13 @@
 - **09-the-loop-closes**: (already revised once) shell correction + keep the labeled thread work; the verdict visibly flows INTO the Brain icon on the rail (glyph pulses, count ticks — the shared memory absorbing it); agent note labeled "the agent's take".
 - **10-it-stops-you**: shell correction; Decide active; precedent panel stays; the precedent panel opens as GUIDANCE ("similar calls · 3 on the record · what worked / what didn't") and escalates to the stop; card body carries "Q3 last year · shipped · missed" precisely; one real interaction: cursor hovers "view the
   record".
-- **11-what-cant-be-reconstructed**: shell correction if the shell is visible (close-up frame — may
-  be exempt); the two-plane record stays; right plane title becomes "What you believed · what worked
-  · what didn't — and why" to match the new VO; a small "shared brain" mono chip.
+- **11-what-cant-be-reconstructed**: THE ASK PAYOFF (founder-ruled): the frame OPENS with Supaprod's
+  Ask bar (the ⌘K pill expanded) and the caret typing the film's oldest question — "why did we build
+  this?" (F3's exact words, same caret motif) — and THIS time the record answers: the two-plane
+  record surfaces beneath as the response. Left plane "What happened", right plane retitled "What
+  you believed · what worked · what didn't — and why" (matches the new VO); a small "shared brain"
+  mono chip; rack-focus argument stays. Shell correction if the shell is visible. Ask is shown as
+  the door to the brain — never as a feature tour.
 - **03-you-know-the-feeling**: NOT a Supaprod screen (the pain desktop) — no shell. Swap window
   identities to the new-age cast with glyphs from assets/logos/: Linear board (linear.svg), Intercom
   inbox (intercom.svg), interview notes (no glyph), analytics dashboard (googleanalytics.svg),
