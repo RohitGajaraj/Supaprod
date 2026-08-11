@@ -23,21 +23,9 @@ node "$SKILL/assemble-index.mjs" --storyboard ./STORYBOARD.md --hyperframes . | 
 node "$SKILL/transitions.mjs" inject --storyboard ./STORYBOARD.md --hyperframes . | tail -2
 node "$SKILL/transitions.mjs" verify --storyboard ./STORYBOARD.md --index ./index.html | tail -2
 
-# root-level Seedance b-roll (must be a direct child of the index root; re-applied after every assemble)
-python3 - <<'PYEOF'
-s = open('index.html').read()
-tag = '<video id="broll-f4" class="clip" muted playsinline preload="auto" src="assets/f4-ember-broll.mp4" data-start="33.95" data-duration="1.33" data-track-index="12" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:60;pointer-events:none;"></video>'
-s = s.replace('background: #F2EFE9;', 'background: #0A0A0B;')
-if 'broll-f4' not in s:
-    import re
-    m = re.search(r'(<div[^>]*id="root"[^>]*>)', s)
-    assert m, 'index root not found'
-    s = s.replace(m.group(1), m.group(1) + '\n  ' + tag, 1)
-    open('index.html','w').write(s)
-    print('broll injected at root')
-else:
-    print('broll already present')
-PYEOF
+
+# enforce the ink base ground (the cream canvas caused white flashes at every seam)
+python3 -c "s=open('index.html').read();open('index.html','w').write(s.replace('background: #F2EFE9;','background: #0A0A0B;'))"
 
 npx hyperframes lint 2>&1 | tail -6
 npx hyperframes validate 2>&1 | tail -5

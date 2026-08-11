@@ -40,9 +40,17 @@
 
 ## Frame-specific notes (one agent per frame, sequential)
 
-- **04-supaprod** (fidelity anchor): under the tagline, three thesis chips fade on their cues: "knows what to build · runs the lifecycle · learns and guides"; rebuild the revealed home screen to match the screenshots'
-  surface almost literally — greeting, "3 calls waiting on you." headline, Shipped section, review
-  card — plus the shell above. Keep the logo-draw/punch-through opening untouched. Lower-third stays.
+- **04-supaprod** (fidelity anchor — FULL REBUILD of the opening): the founder ruled the logo-draw +
+  ember punch-through reads as a TV commercial, not an enterprise teaser. NEW shape — introduce the
+  product THROUGH the product: Scene 1 (0–2.2s) the app home already on screen, deeply out of focus;
+  the bare ✻ mark + "supaprod" wordmark rise as a QUIET lower-left film title as the VO says the
+  name (no center ceremony, no fire ring, no Seedance clip). Scene 2 (2.2–5.4s) a slow rack focus
+  INTO the working home screen (the reveal IS the focus pull), while three thesis chips land under
+  the lockup on their VO cues: "knows what to build · runs the lifecycle · learns and guides".
+  Scene 3 (5.4–10.8s) the home pan as designed (calls queue, gate chip pulse on "you make the
+  calls") with the title lockup receding to a small corner mark. Home screen matches the
+  screenshots' surface almost literally — greeting, "3 calls waiting on you." headline, Shipped
+  section, review card — plus the real shell. Lower-third audience line stays.
 - **05-signals-become-bets**: shell correction; Discover station active with "24 new signals" status;
   keep pain-point inbox + wide connector categories; sources include product data AND market
   analysis AND insights (breadth); one real interaction: cursor opens the evidence popover (already

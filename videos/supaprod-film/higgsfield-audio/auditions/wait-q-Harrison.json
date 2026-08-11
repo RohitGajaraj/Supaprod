@@ -1,0 +1,39 @@
+{
+  "created_at": "2026-08-11T19:12:45.247489Z",
+  "display_name": "Qwen Audio 3.0 TTS Flash",
+  "id": "a24ee2fc-e759-42c4-97e7-ef06c44f4667",
+  "job_type": "qwen_audio_tts",
+  "min_result_url": null,
+  "params": {
+    "batch_size": 1,
+    "format": "mp3",
+    "instruction": "Warm, confident, human storytelling - a founder speaking plainly, not an announcer. Natural pauses at full stops.",
+    "language": "en",
+    "pitch_rate": 1,
+    "prompt": "Supa-prod. And the next time you're deciding, it's beside you - what worked, what didn't, and why. You make the calls. And every call makes the next one sharper.",
+    "sample_rate": 48000,
+    "seed": 0,
+    "speech_rate": 1,
+    "voice": {
+      "age": "young",
+      "gender": "male",
+      "id": "573e5163-59b3-4926-aab1-951ef2985f81",
+      "name": "Harrison",
+      "source": "https://d1xarpci4ikg0w.cloudfront.net/audio_voice_preset/preview/725aa234-8c64-4a87-8f5e-220aca1375f7.mp3",
+      "supported_models": [
+        "elevenlabs",
+        "minimax",
+        "seed_speech",
+        "qwen_audio"
+      ],
+      "thumbnail_url": "https://d1xarpci4ikg0w.cloudfront.net/audio_voice/thumbnail/36e3919a-08f5-44b1-b1d8-3f4d18a46378.webp",
+      "type": "preset",
+      "waveform_url": "https://d1xarpci4ikg0w.cloudfront.net/waveform/d8139797-ec25-4762-ad09-ea4ba9722696.json"
+    },
+    "voice_id": "573e5163-59b3-4926-aab1-951ef2985f81",
+    "voice_type": "preset",
+    "volume": 50
+  },
+  "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3GrM9hprJ3PH4vVtwjOom6boQVj/hf_20260811_191245_a24ee2fc-e759-42c4-97e7-ef06c44f4667.mp3",
+  "status": "completed"
+}
