@@ -47,10 +47,12 @@ import type { LandingStats } from "@/lib/landing.functions";
  * re-add an illustrative table to fill the space: that is the exact loop this
  * ruling closes, and Receipts.test.ts now fails if those rows come back.
  *
- * KEPT at founder request, 2026-08-09: the "On the ledger" capability list.
- * Two of its four items (graded verdicts, real decisions) have nothing behind
- * them today. It stays because it names what the ledger holds, which is a
- * description of the product, not a count of what we have already collected.
+ * KEPT at founder request, 2026-08-09: the capability list, relabelled "On the
+ * record" by the 2026-08-11 vocabulary ruling (it read "On the ledger" until
+ * then; neither replacement noun takes the preposition). Two of its four items
+ * (graded verdicts, real decisions) have nothing behind them today. It stays
+ * because it names what the record holds, which is a description of the
+ * product, not a count of what we have already collected.
  */
 export function Receipts(_props: { stats?: LandingStats | null }) {
   // Only destinations a stranger can check without an account, and only ones
@@ -78,7 +80,7 @@ export function Receipts(_props: { stats?: LandingStats | null }) {
               className="text-4xl md:text-5xl font-semibold mb-4 text-white"
               style={{ letterSpacing: "-0.02em" }}
             >
-              Receipts,
+              Evidence,
               <br />
               not claims.
             </h2>
@@ -95,7 +97,7 @@ export function Receipts(_props: { stats?: LandingStats | null }) {
               since June 2026.
             </p>
             <div className="cap-scrim hidden md:flex flex-col gap-2.5 mt-12 py-6 px-8 -mx-8">
-              <span className="font-mono text-[11px] text-zinc-600 mb-1.5">On the ledger</span>
+              <span className="font-mono text-[11px] text-zinc-600 mb-1.5">On the record</span>
               {["graded verdicts", "real decisions", "public teardowns", "dated shipping log"].map(
                 (f) => (
                   <span

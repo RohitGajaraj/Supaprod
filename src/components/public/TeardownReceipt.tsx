@@ -71,7 +71,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
     <div
       className="material-medium fade-up"
       style={{ padding: "var(--geist-gap)", textAlign: "left", width: "100%" }}
-      aria-label="Supaprod Critic teardown receipt"
+      aria-label="Supaprod Critic teardown"
     >
       {/* Receipt header: mono kicker + verdict chip. */}
       <div
@@ -84,7 +84,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
         }}
       >
         <div className="mono-label" style={{ color: "var(--text-subtle)" }}>
-          Supaprod Critic · receipt
+          Supaprod Critic · evidence
         </div>
         <div
           style={{

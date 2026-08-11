@@ -35,7 +35,16 @@ describe("the public brief parent is readable", () => {
     expect(summary.match(/<h2/g)).toHaveLength(3);
     expect(summary).toContain("The director tells you what to build.");
     expect(summary).toContain("The operating system runs the whole lifecycle.");
-    expect(summary).toContain("The company brain learns, then guides.");
+    // PINS THE IDEA, NOT THE SPELLING (2026-08-11). This read
+    // toContain("The company brain learns, then guides.") until the
+    // practitioner-vocabulary ruling retired "company brain"
+    // (docs/growth/vocabulary-change-list-2026-08.md), at which point a guard
+    // written to protect INDEXABILITY was instead blocking a rename it has no
+    // opinion about. What this test exists to prove is that layer 03 is present
+    // in the parent document as real semantic text rather than living only in
+    // the iframe. The layer's claim is that it learns and then guides; which
+    // adjective sits in front of "brain" is positioning's call, not this file's.
+    expect(summary).toMatch(/brain learns, then guides\./);
   });
 
   it("keeps the semantic summary visible instead of hiding SEO copy", () => {

@@ -2293,10 +2293,13 @@ export function DiscoverSurface({
               had not happened, on the frame a person is most likely to see.
               An errored read produced exactly the same sentence, forever.
 
-              `stillWaiting` is `isPending || data === undefined`, which covers
-              both. The error branch has to come FIRST, because a failed read
-              also leaves `data` undefined and would otherwise spin here rather
-              than ever saying what went wrong. Same order Ship uses.
+              `stillWaiting` answers the not-yet case. The error branch comes
+              FIRST, and until 2026-08-11 it had to: the helper was
+              `isPending || data === undefined`, and react-query leaves `data`
+              undefined after a cold failure, so a failed read spun here for ever
+              instead of ever saying what went wrong. The helper now stands down
+              on a failed read, so that necessity is gone and the order is kept
+              on its own merits. Same order Ship uses.
 
               This was the second of the two surfaces the budget in
               an-empty-read-is-not-an-empty-workspace.test.ts still allowed;

@@ -120,7 +120,7 @@ const LAYERS: Layer[] = [
   },
   {
     n: "03",
-    name: "the company brain",
+    name: "the shared brain",
     // A filing cabinet remembers. What is actually being sold is that the last
     // outcome changes the next call, which is the verb pair the whole product
     // is bound to: it learns and it guides, it never remembers, stores or logs.

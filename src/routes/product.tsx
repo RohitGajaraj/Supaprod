@@ -17,7 +17,7 @@ import { FramedVisual } from "@/components/landing/FramedVisual";
 const SITE = "https://supaprod.ai";
 const TITLE = "How Supaprod Builds Your Product · Supaprod";
 const DESC =
-  "Discover signals, decide what matters, define specs, build with agents, ship to production, then learn from outcomes. All in one loop, all receipts.";
+  "Discover signals, decide what matters, define specs, build with agents, ship to production, then learn from outcomes. All in one loop, all evidence.";
 
 export const Route = createFileRoute("/product")({
   ssr: true,
@@ -62,7 +62,7 @@ function ProductPage() {
       station: "Decide",
       headline: "Rank what actually matters",
       body: "Signals become bets. The Critic red-teams them. Past outcomes re-weight the score. You make the call. Every decision is recorded.",
-      capabilities: ["ICE RANKING", "CRITIC TEARDOWN", "OUTCOME WEIGHTS", "PROOF LEDGER"],
+      capabilities: ["ICE RANKING", "CRITIC TEARDOWN", "OUTCOME WEIGHTS", "TRACK RECORD"],
       imagePath: "/images/decide.png",
       imageAlt: "The Decide surface: ICE-ranked bets and Critic teardowns",
     },
@@ -76,9 +76,9 @@ function ProductPage() {
     },
     {
       station: "Build",
-      headline: "Agents that code with receipts",
-      body: "Specs compile to test plans. Agents write, debug, and merge PRs through your gates. CI is a receipt. Every line traces to the spec.",
-      capabilities: ["SPEC COMPILATION", "AGENT BUILD LOOP", "CI RECEIPTS", "MERGE GATES"],
+      headline: "Agents that code with evidence",
+      body: "Specs compile to test plans. Agents write, debug, and merge PRs through your gates. CI is the evidence. Every line traces to the spec.",
+      capabilities: ["SPEC COMPILATION", "AGENT BUILD LOOP", "CI EVIDENCE", "MERGE GATES"],
       imagePath: "/images/build.png",
       imageAlt: "The Build surface: mission trace with agent runs and CI status",
     },
@@ -96,7 +96,7 @@ function ProductPage() {
       body: "D+7 and D+14 windows grade the call. Learnings re-rank next bets. Playbooks write themselves from precedent. Your team gets smarter.",
       capabilities: ["OUTCOME WINDOWS", "LEARNING RECORDS", "PLAYBOOK GEN", "REINFORCED RANKING"],
       imagePath: "/images/learn.png",
-      imageAlt: "The Learn surface: outcome ledger and playbook generation",
+      imageAlt: "The Learn surface: outcome history and playbook generation",
     },
   ];
 
@@ -167,7 +167,7 @@ function ProductPage() {
             }}
           >
             From market signal to shipped outcome, every step runs end-to-end. Agents handle the
-            grunt. You handle the gates. Ledger records both.
+            grunt. You handle the gates. The audit trail records both.
           </p>
         </section>
 

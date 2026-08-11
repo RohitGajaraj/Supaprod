@@ -107,7 +107,7 @@ const CLASSES: Record<ConsequenceClassId, ConsequenceClass> = {
       posture: "always-gate",
       mode: "review",
       label: "Always gate",
-      rationale: "These never run unattended. You review and release each one.",
+      rationale: "These never run on their own. You review and release each one.",
     },
   },
 };

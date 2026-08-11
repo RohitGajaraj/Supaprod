@@ -56,7 +56,7 @@ export function buildSkillsMarkdown(input: {
     `Generated ${fmtDate(generatedAt)} by Supaprod. Mount this file as project context for ` +
       "Claude Code, Codex, or any AI agent fleet so it inherits this workspace's decisions, " +
       "outcomes, and standing rules instead of relearning them from scratch. Regenerate any " +
-      "time from Settings - Export; this file is never the source of truth, the ledger is.",
+      "time from Settings - Export; this file is never the source of truth, the audit trail is.",
   );
   lines.push("");
 

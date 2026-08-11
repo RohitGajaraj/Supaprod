@@ -131,12 +131,12 @@ describe("engine-room-glance builders (LOOM honesty law: real numbers or none)",
   it("reports Record as healthy when the ledger verifies, window named", () => {
     const record = buildRecordGlance({ traceCount: 1284, ledgerVerifies: true });
     expect(record.state).toBe("healthy");
-    expect(record.verdict).toBe("1,284 runs this week · ledger intact");
+    expect(record.verdict).toBe("1,284 runs this week · audit trail intact");
   });
 
   it("surfaces an unverified ledger honestly without changing room state", () => {
     const record = buildRecordGlance({ traceCount: 3, ledgerVerifies: false });
-    expect(record.verdict).toBe("3 runs this week · ledger unverified");
+    expect(record.verdict).toBe("3 runs this week · audit trail unverified");
   });
 });
 
@@ -523,9 +523,9 @@ describe("The volumes on the door (facts the reads already returned)", () => {
     // 15,000 AI events a week, so the Record verdict was printing that ceiling
     // as an exact total.
     const record = buildRecordGlance({ traceCount: 200, ledgerVerifies: true, traceLimit: 200 });
-    expect(record.verdict).toBe("200+ runs this week · ledger intact");
+    expect(record.verdict).toBe("200+ runs this week · audit trail intact");
     const under = buildRecordGlance({ traceCount: 34, ledgerVerifies: true, traceLimit: 200 });
-    expect(under.verdict).toBe("34 runs this week · ledger intact");
+    expect(under.verdict).toBe("34 runs this week · audit trail intact");
   });
 
   it("carries Record's step count, failed runs, sealed receipts and newest run", () => {
@@ -555,7 +555,7 @@ describe("The volumes on the door (facts the reads already returned)", () => {
     // before it was fixed.
     expect(figure(record, "run that hit an error")?.value).toBe("1");
     expect(figure(record, "runs that hit an error")).toBeUndefined();
-    expect(figure(record, "receipts sealed")?.value).toBe("412");
+    expect(figure(record, "records sealed")?.value).toBe("412");
     expect(record.latest).toEqual({
       what: "Ship the pricing page",
       at: "2026-08-05T12:00:00Z",
@@ -618,7 +618,7 @@ describe("a capped read says it is a floor", () => {
       ledgerVerifies: true,
       sealCapped: true,
     } as never);
-    const seal = capped.figures.find((f) => f.label === "receipts sealed");
+    const seal = capped.figures.find((f) => f.label === "records sealed");
     expect(seal?.value).toContain("+");
     expect(seal?.note).toBe("the newest are covered by the fingerprint");
   });
@@ -629,7 +629,7 @@ describe("a capped read says it is a floor", () => {
       sealCount: 92,
       ledgerVerifies: true,
     } as never);
-    const seal = whole.figures.find((f) => f.label === "receipts sealed");
+    const seal = whole.figures.find((f) => f.label === "records sealed");
     expect(seal?.value).not.toContain("+");
     expect(seal?.note).toBe("covered by the fingerprint");
   });
@@ -643,7 +643,7 @@ describe("a capped read says it is a floor", () => {
       ledgerVerifies: false,
       sealCapped: true,
     } as never);
-    expect(broken.figures.find((f) => f.label === "receipts sealed")?.note).toBe(
+    expect(broken.figures.find((f) => f.label === "records sealed")?.note).toBe(
       "fingerprint did not compute",
     );
   });

@@ -468,13 +468,23 @@ export function RoadmapColumns() {
   // A read that failed is not an empty state. "Nothing is committed" and "we
   // could not find out" are different facts and a person acts differently on each.
   //
-  // TESTED BEFORE THE WAIT, AND THE ORDER IS NOW LOAD-BEARING. It used to sit
-  // below the skeleton, which was harmless while the skeleton asked
+  // TESTED BEFORE THE WAIT. The order has been right for three different
+  // reasons now, which is worth recording because the reason keeps expiring and
+  // the order keeps not needing to change.
+  //
+  // It first sat BELOW the skeleton, harmless while the skeleton asked
   // `roadmap.isLoading`, because v5's `isLoading` is `isPending && isFetching`
-  // and an errored query is neither. The wait below now asks `stillWaiting`,
-  // which is true for ANY query holding no `data` — an errored one included — so
-  // with the old order a failed read would sit under a skeleton for ever and
-  // this branch, with the retry on it, would be unreachable.
+  // and an errored query is neither. It moved above when the wait became
+  // `stillWaiting`, which at the time was `isPending || data === undefined` and
+  // so was true for an errored query too: with the old order a failed read sat
+  // under a skeleton for ever and this branch, carrying the retry, was
+  // unreachable.
+  //
+  // `stillWaiting` STANDS DOWN ON A FAILED READ AS OF 2026-08-11, so that second
+  // reason is spent and this is no longer load-bearing against it. It stays
+  // first because it is the right order on its own terms: the strongest known
+  // fact is stated first, and "we could not find out" outranks "still looking".
+  // Do not move it back down on the grounds that it is now safe there.
   if (roadmap.isError) {
     return (
       <Failed onRetry={() => void roadmap.refetch()}>
@@ -491,9 +501,13 @@ export function RoadmapColumns() {
    * flight (paused with no network, or not yet started). In that state the
    * skeleton stood down and the branch below announced "No bets on the roadmap
    * yet." to a workspace whose bets had simply not arrived. `stillWaiting` is the
-   * shared guard written for exactly this (src/lib/query-state.ts) and it also
-   * covers the error path, which is why the <Failed> branch above had to move
-   * ahead of it.
+   * shared guard written for exactly this (src/lib/query-state.ts).
+   *
+   * IT NO LONGER COVERS THE ERROR PATH, and this comment said it did until
+   * 2026-08-11. The helper used to answer "true" for ever after a cold failure,
+   * which is what forced the <Failed> branch above to sit ahead of it. It now
+   * stands down when a read has failed, so a failure falls through this wait on
+   * its own. The branch above still comes first, for the reason written there.
    */
   if (stillWaiting(roadmap)) {
     return (

@@ -203,7 +203,7 @@ export async function verifyReceipts(
       reason =
         typeof seal.count === "number" && seal.count !== recomputed.count
           ? "the number of records changed since the seal"
-          : "the ledger content changed since the saved fingerprint";
+          : "the record content changed since the saved fingerprint";
     }
   }
 

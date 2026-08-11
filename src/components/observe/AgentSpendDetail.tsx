@@ -246,8 +246,8 @@ export function AgentSpendDetail({ id }: { id: string }) {
             />
             <span>
               {resolved
-                ? `${d.agent?.role ? `${d.agent.role}. ` : ""}Read over the last ${DAYS} days from the per-call ledger, which counts every model call this one made whether or not a run was tied to it.`
-                : `Not an agent in the catalog. These are the calls recorded against this reference over the last ${DAYS} days, from the per-call ledger.`}
+                ? `${d.agent?.role ? `${d.agent.role}. ` : ""}Read over the last ${DAYS} days from the per-call history, which counts every model call this one made whether or not a run was tied to it.`
+                : `Not an agent in the catalog. These are the calls recorded against this reference over the last ${DAYS} days, from the per-call history.`}
             </span>
           </span>
         }
@@ -267,7 +267,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
           </Value>
         </Line>
 
-        <Line label="Tokens" sub="Prompt and completion together, as the ledger recorded them.">
+        <Line label="Tokens" sub="Prompt and completion together, as they were recorded.">
           <Value>
             <Num>{fmtNum(d.stats.tokens)}</Num>
           </Value>
@@ -363,7 +363,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
       {resolved ? (
         <Block
           title="The last runs"
-          sub="Cost on a run only counts calls tied to a run id, which the loop has recorded since 3 June 2026. These will not add up to the spend above, and the per-call ledger is the authority on money."
+          sub="Cost on a run only counts calls tied to a run id, which the loop has recorded since 3 June 2026. These will not add up to the spend above, and the per-call history is the authority on money."
         >
           {d.recentRuns.length === 0 ? (
             <Empty>

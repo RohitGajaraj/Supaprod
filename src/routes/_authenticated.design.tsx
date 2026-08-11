@@ -298,7 +298,7 @@ function Grounding({ prdId }: { prdId: string }) {
     rules.map((g, i) => (
       <React.Fragment key={g.id}>
         {i > 0 ? ", " : null}
-        <Door onClick={openLedger} title="Open this rule in the brand ledger">
+        <Door onClick={openLedger} title="Open this rule in Brand settings">
           {g.title}
         </Door>
       </React.Fragment>

@@ -88,7 +88,7 @@ export function studioVerdict(
  * the real step-by-step detail lives one layer deeper, in the slide-over.
  * Every phrase still derives purely from the 5-bucket status. */
 export const MISSION_ROW_STEP_LABEL: Record<MissionRowStatus, string> = {
-  working: "RUNNING UNATTENDED",
+  working: "RUNNING ON ITS OWN",
   gate: "ONE ANSWER UNBLOCKS IT",
   // RPT-09 (amplifier voice): the legwork is done and prepared for your call.
   // A bare "FINISHED" over-claimed autonomous completion for the common

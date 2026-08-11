@@ -247,7 +247,7 @@ export function assembleChain(
       detail = "Design stage is off for this workspace.";
     } else if (i < reachedIndex) {
       status = "missing";
-      detail = "No receipt for this link - a gap in the chain.";
+      detail = "No evidence for this link - a gap in the chain.";
     } else {
       status = "pending";
       detail = "Not yet reached.";

@@ -82,7 +82,7 @@ const ORG_LD = {
   // that does not exist, a find-and-replace casualty of the 2026-07-17 rename
   // that was shipping nonsense as structured data (landing audit 2026-07-25).
   disambiguatingDescription:
-    "Supaprod is an AI product team for product managers: agents that discover, decide, build, and ship, governed by one human who gets the receipts.",
+    "Supaprod is an AI product team for product managers: agents that discover, decide, build, and ship, governed by one human who gets the evidence.",
   // These pointed at the FOUNDER'S PERSONAL accounts, which is what a solo repo
   // starts with and nobody revisits. Organisation schema `sameAs` is how a
   // search engine ties the brand to its official profiles, so naming a personal
@@ -143,8 +143,8 @@ For product managers. ${TAGLINE} Nothing irreversible happens without you.
 
 ## The three layers
 1. The director: tells you what to build. Ranks your signals, product data, competitors and past calls.
-2. The operating system: runs the whole lifecycle. Seven stations agents walk unattended, inside boundaries a human sets in advance.
-3. The company brain: learns, and then guides. Tells you what is right next time, and warns before you repeat what was wrong.
+2. The operating system: runs the whole lifecycle. Seven stations agents walk on their own, inside boundaries a human sets in advance.
+3. The shared brain: learns, and then guides. Tells you what is right next time, and warns before you repeat what was wrong.
 
 Each layer is the precondition for the next. Ship any one alone and it is a feature, not a company.
 
@@ -152,10 +152,10 @@ Each layer is the precondition for the next. Ship any one alone and it is a feat
 The compounding, not the record. Any vendor can store decisions. A settled outcome is written back against the decision that caused it and re-ranks what Discover and Decide surface next, which needs your outcomes labelled over time and no model ships with those. The loop does not end in a report; it ends by changing what you are shown.
 
 Seven stations: Discover, Decide, Plan, Design, Build, Ship, Learn. One governed engine.
-When a build breaks, Supaprod diagnoses the failure, revises its own spec, rebuilds, and drives the checks back to green. That loop runs unattended and is bounded: two corrections per track, three verify cycles per mission, then it stops and hands one person the specific thing only they can supply. On a cap it reports the failure rather than a silent green. The fixed floor is the merge gate: nothing merges, ships, or takes an irreversible outward action without a human approval.
+When a build breaks, Supaprod diagnoses the failure, revises its own spec, rebuilds, and drives the checks back to green. That loop runs on its own and is bounded: two corrections per track, three verify cycles per mission, then it stops and hands one person the specific thing only they can supply. On a cap it reports the failure rather than a silent green. The fixed floor is the merge gate: nothing merges, ships, or takes an irreversible outward action without a human approval.
 
 ## Live proof
-- Trust ledger: /proof (publishes our calibration score live, including an honest zero until outcomes land)
+- Track record: /proof (publishes our calibration score live, including an honest zero until outcomes land)
 - Public teardown (no signup): /p/teardown
 - Shipping log: /updates
 

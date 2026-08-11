@@ -87,7 +87,16 @@ describe("Receipts beat, truthfulness invariants", () => {
   });
 
   it("keeps the argument the removed table was propping up (ratchet)", () => {
-    expect(CODE).toContain("Receipts,");
+    // PINS THE IDEA, NOT THE SPELLING (2026-08-11). This line read
+    // expect(CODE).toContain("Receipts,") until the practitioner-vocabulary
+    // ruling retired that noun, at which point the guard and the copy could not
+    // both be right and the cheapest way to pass was to delete the guard. That
+    // is the failure mode of pinning a WORD: it makes a rename cost more than
+    // leaving the wrong word in, and it protects the spelling while the claim
+    // walks away. What is load-bearing here was never the noun. It is the
+    // CONTRAST: this beat leads with something a stranger can go and check
+    // INSTEAD of an assertion. So the shape is pinned and the noun is free.
+    expect(CODE).toMatch(/\w+,\s*<br \/>\s*not claims\./);
     // The moat. This is the beat's actual claim and the only one on the landing
     // page that README names as defensible. It survived the table; it must
     // survive whatever comes next.

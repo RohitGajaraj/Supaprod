@@ -313,114 +313,43 @@ type Pending = { file: string; id: string; why: string };
 
 const PENDING: Pending[] = [
   // ---- Rule A, landing page and its components -------------------------
-  {
-    file: "src/routes/index.tsx",
-    id: "receipts",
-    why: "JSON-LD disambiguatingDescription, 'governed by one human who gets the receipts'. Structured data feeds answer engines, so the replacement has to be the ratified identity sentence, not an ad-lib.",
-  },
-  {
-    file: "src/components/landing/Receipts.tsx",
-    id: "receipts",
-    why: "The 'Receipts, not claims.' headline. Receipts.test.ts PINS it (expect(CODE).toContain('Receipts,')) as the ratchet that stopped the invented ledger table coming back, so removing it here breaks a guard that exists for a good reason. Retire both together or neither.",
-  },
-  {
-    file: "src/components/landing/Receipts.tsx",
-    id: "ledger",
-    why: "The 'On the ledger' capability list, KEPT at founder request 2026-08-09 with the reason written into the file header. Overriding a named ruling is not a lint fix.",
-  },
-  {
-    file: "src/components/landing/ThreeLayers.tsx",
-    id: "company brain",
-    why: "Layer 03 is called 'the company brain' in CLAUDE.md and README.md. The vocabulary table bans it in public. Two halves of the canon disagree and only positioning can settle which one moves.",
-  },
-
-  // ---- Rule A, other public routes --------------------------------------
-  {
-    file: "src/routes/product.tsx",
-    id: "receipts",
-    why: "Marketing page: 'all receipts', 'Agents that code with receipts', the CI RECEIPTS label. Squarely the banned public register, and squarely a copy rewrite.",
-  },
-  {
-    file: "src/routes/product.tsx",
-    id: "ledger",
-    why: "'PROOF LEDGER', 'Ledger records both', 'outcome ledger'. Same page, same rewrite.",
-  },
-  {
-    file: "src/routes/proof.tsx",
-    id: "ledger",
-    why: "The page is NAMED The Ledger, in its title, its h1 and its og tags. LandingFooter already links it as 'Track record' with a note explaining why, so the rename is half done and the other half needs a ruling.",
-  },
-  {
-    file: "src/routes/proof.tsx",
-    id: "receipts",
-    why: "Meta description: 'public decision receipts'. Renaming the page renames this too.",
-  },
-  {
-    file: "src/routes/demo.tsx",
-    id: "ledger",
-    why: "The demo walks a visitor through in-product surfaces, where the word is correct, on a public URL, where it is not. That boundary is a positioning question and the answer decides four strings at once.",
-  },
-  {
-    file: "src/routes/updates.tsx",
-    id: "ledger",
-    why: "A dated changelog naming the product surface as it was called on the day. Rewriting shipped history is worse than the off-register word.",
-  },
-
+  //
+  // EMPTIED 2026-08-11 by the practitioner-vocabulary ruling, which is what a
+  // PENDING row is for: every row here said "the fix is a positioning call and
+  // positioning has not made it". Positioning made it
+  // (docs/growth/vocabulary-change-list-2026-08.md), the copy moved, and the
+  // rows went with it in the same pass. Ten rows across the marketing routes
+  // and the landing components: index.tsx, Receipts.tsx (twice),
+  // ThreeLayers.tsx, product.tsx (twice), proof.tsx (twice), demo.tsx and
+  // updates.tsx. Do not re-add one without a live string behind it; the stale
+  // ratchet below will reject it.
   // ---- Rule A, static public files ---------------------------------------
-  {
-    file: "public/llms.txt",
-    id: "unattended",
-    why: "Answer-engine copy, mirrors index.tsx MACHINE_CONTENT verbatim. The two must change in the same commit or they drift, which is the exact failure this file exists to catch.",
-  },
-  {
-    file: "public/llms.txt",
-    id: "company brain",
-    why: "Same mirror. Blocked on the layer-03 naming call above.",
-  },
-  {
-    file: "public/llms.txt",
-    id: "receipts",
-    why: "'paste a spec and get it argued against, with receipts'.",
-  },
-  {
-    file: "public/llms.txt",
-    id: "audit trail",
-    why: "Route table row for the trust ledger surface. In-product register leaking into a public file.",
-  },
-  {
-    file: "public/llms-full.txt",
-    id: "unattended",
-    why: "The long form of llms.txt. Every llms.txt row above has a twin here, which is how one fix comes to look finished while half of it is still live.",
-  },
-  { file: "public/llms-full.txt", id: "company brain", why: "Twin of the llms.txt row." },
-  { file: "public/llms-full.txt", id: "receipts", why: "Twin of the llms.txt row." },
-  { file: "public/llms-full.txt", id: "ledger", why: "Twin of the llms.txt row." },
-  { file: "public/llms-full.txt", id: "audit trail", why: "Twin of the llms.txt row." },
-  {
-    file: "public/agents.txt",
-    id: "unattended",
-    why: "Policy preamble describing the loop. Same sentence as llms.txt, third copy.",
-  },
-  {
-    file: "public/brief.html",
-    id: "company brain",
-    why: "The brief is named in the canon as a public surface. Section 06 is titled 'The moat, the company brain'. Blocked on the same layer-03 call.",
-  },
-  {
-    file: "public/brief.html",
-    id: "ledger",
-    why: "Five separate slides. The brief is founder-approved as authored and re-cutting it is a deck revision, not a lint pass.",
-  },
-  {
-    file: "public/brief.html",
-    id: "receipts",
-    why: "'keep the receipts', one of the three pillars on the moat slide.",
-  },
-  {
-    file: "public/brief.html",
-    id: "audit trail",
-    why: "'Governance is what enterprises pay for; the ledger is the audit trail.'",
-  },
+  //
+  // ALSO EMPTIED 2026-08-11, by the same ruling and in the same pass. Eleven
+  // rows: llms.txt (three), llms-full.txt (four), agents.txt (one) and
+  // brief.html (three).
+  //
+  // TWO OF THE REASONS THESE ROWS GAVE ARE WORTH KEEPING, because both were
+  // honest at the time and both turned out to be the wrong shape of blocker.
+  //
+  // The llms-full.txt rows all read "Twin of the llms.txt row", and that was the
+  // real finding: every string in the short crawler file has a duplicate in the
+  // long one, so fixing one file looks finished while half of it is still live.
+  // Both files moved together this time, and the change list flagged the
+  // coupling explicitly so the next person does not have to rediscover it.
+  //
+  // The brief.html rows said the deck is founder-approved as authored and
+  // re-cutting it is a deck revision rather than a lint pass. That was right,
+  // and the resolution was not to overrule it: the founder ruled, and the edits
+  // then landed as a deck revision with his approval. A PENDING row waiting on a
+  // decision is discharged by the decision arriving, not by someone deciding the
+  // row was too cautious.
+  //
+  // THE LIST IS NOW EMPTY AND THAT IS THE POINT OF IT. It is not decoration and
+  // it is not permanently empty by design: add a row when a live string cannot
+  // be fixed yet, with the reason and who owns the call. The two guards below
+  // still bite in both directions, so a new hit with no row fails, and a row
+  // with no live string behind it fails too.
 ];
 
 function excused(h: Hit): boolean {
@@ -435,16 +364,25 @@ function excused(h: Hit): boolean {
  * Measured across 5.9M words of the market's own writing: each of these scores
  * at or near zero. "receipts" appears 3.0 times per million and "trust ledger"
  * never. They are our words for our thing, not the buyer's words for their
- * problem. In-product they are correct and should be used.
+ * problem.
+ *
+ * THE REGISTER SPLIT IS RETIRED (founder ruling, 2026-08-11;
+ * docs/growth/vocabulary-change-list-2026-08.md). The sentence that used to end
+ * this comment read "In-product they are correct and should be used". That is
+ * no longer the doctrine: practitioner language applies EVERYWHERE now, so this
+ * list is a plain ban rather than the public half of a split. The file header
+ * above still describes the split and is stale in that respect; correcting it
+ * belongs with whoever retires the in-product half.
+ *
+ * "audit trail" LEFT THIS LIST in the same ruling, and is the one word here that
+ * changed direction rather than scope. It is a KEEP: a real practitioner used it
+ * unprompted, so it is the buyer's word for the thing and not ours. It is now
+ * the prescribed REPLACEMENT on public surfaces (product.tsx and brief.html both
+ * gain it), which means leaving it as a probe would have failed the very copy the
+ * ruling ordered. AuditTag.tsx, named in the header as the case that proves the
+ * old split, needs no special pleading any more: its string was always right.
  */
-const RULE_A = [
-  "receipts",
-  "ledger",
-  "audit trail",
-  "company brain",
-  "unattended",
-  "first run",
-].map(phrase);
+const RULE_A = ["receipts", "ledger", "company brain", "unattended", "first run"].map(phrase);
 
 describe("Rule A: public surfaces use the buyer's vocabulary", () => {
   it("ships no banned public word that PENDING has not already accounted for", () => {
@@ -732,6 +670,18 @@ describe("PENDING is a shrinking list, not a permanent one", () => {
       console.log(`  ${p.file} [${p.id}] lines ${lines}`);
       console.log(`      ${p.why}`);
     }
-    expect(PENDING.length).toBeGreaterThan(0);
+    // THE BACKLOG REACHED ZERO on 2026-08-11, and this line used to read
+    // expect(PENDING.length).toBeGreaterThan(0), which meant the guard FAILED
+    // the moment it succeeded. That assertion was written when a non-empty
+    // backlog was the only state anyone had seen, and it quietly encoded "there
+    // will always be excuses" into a file whose whole thesis is that the list
+    // can only shrink. It shrank to nothing. So the ratchet now pins the end
+    // state instead of the starting one: no public surface carries an excused
+    // violation, and there is no excuse left to inherit.
+    //
+    // A NEW ROW IS NOT A FIX. If a real one is ever needed, adding it here also
+    // means deleting this assertion, on purpose, with the reason written down,
+    // which is the argument this file wants had out loud rather than silently.
+    expect(PENDING).toEqual([]);
   });
 });

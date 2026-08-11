@@ -107,7 +107,7 @@ function sampleMemories(workspaceId: string, userId: string): Record<string, unk
   return [
     {
       content:
-        "This workspace was created by the founding team. The core focus is shipping the AI brief and decision layer before expanding to full agentic execution.",
+        "This workspace was created by the founding team. The core focus is shipping the AI brief and the decision record before expanding to full agentic execution.",
       kind: "fact",
       scope: "workspace",
       importance: 6,

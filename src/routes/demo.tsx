@@ -34,7 +34,7 @@ import { trackActivation } from "@/lib/activation.functions";
 const SITE = "https://supaprod.ai";
 const TITLE = "Try a real Supaprod demo workspace. No signup.";
 const DESC =
-  "Walk through a real teardown, a real decision ledger, and a real mission trace. No account needed.";
+  "Walk through a real teardown, a real decision history, and a real mission trace. No account needed.";
 
 // The three-voice grammar from the landing: agents speak blue, the human
 // ask is the page's one ember object, verdicts keep their status tones.
@@ -281,7 +281,7 @@ function LedgerSection({ ledger }: { ledger: DemoLedgerRow[] }) {
   return (
     <section className="px-6 pb-14">
       <div className="max-w-5xl mx-auto">
-        <Eyebrow>The ledger</Eyebrow>
+        <Eyebrow>The track record</Eyebrow>
         <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
           Every call, on the record.
         </h2>
@@ -321,7 +321,7 @@ function LedgerSection({ ledger }: { ledger: DemoLedgerRow[] }) {
             </div>
           ))}
         </div>
-        <ArtifactLink href="/proof">The whole trust ledger, wins and misses</ArtifactLink>
+        <ArtifactLink href="/proof">The whole track record, wins and misses</ArtifactLink>
       </div>
     </section>
   );
@@ -460,7 +460,7 @@ function DemoPage() {
               style={{ maxWidth: "58ch" }}
             >
               No login, nothing to set up. Everything below is live data from a seeded demo
-              workspace: a real teardown, a real decision ledger, a real mission trace. You cannot
+              workspace: a real teardown, a real decision history, a real mission trace. You cannot
               break anything, so look around.
             </p>
           </div>

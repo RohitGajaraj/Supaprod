@@ -48,7 +48,7 @@ export function stageMeaning(stage: AutonomyStage): string {
     case "observing":
       return "Most side-effecting work still comes to you for a call. This is where every workspace starts.";
     case "proving":
-      return "The loop now runs some reversible work unattended; the rest still comes to you.";
+      return "The loop now runs some reversible work on its own; the rest still comes to you.";
     case "trusted":
       return "The loop carries most of the reversible work itself; you still make the calls that matter.";
   }

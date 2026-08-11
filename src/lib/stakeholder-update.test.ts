@@ -69,7 +69,7 @@ describe("buildStakeholderUpdate", () => {
     const text = health.bullets.join(" ");
     expect(text).toContain("you approved every call");
     expect(text).toContain("every reviewed bet held up");
-    expect(text).toContain("50% of the work unattended");
+    expect(text).toContain("50% of the work on its own");
     expect(text).toContain("$0.05 spent");
   });
 
@@ -143,7 +143,7 @@ describe("buildStakeholderUpdate", () => {
     const text = health.bullets.join(" ");
     expect(text).toContain("you approved every call");
     expect(text).not.toContain("null");
-    expect(text).not.toContain("unattended"); // autonomy was null -> omitted
+    expect(text).not.toContain("of the work"); // autonomy was null -> the whole phrase is omitted
   });
 
   test("HUMANIZED: no em/en dashes, no invisibles, no banned buzzwords", () => {

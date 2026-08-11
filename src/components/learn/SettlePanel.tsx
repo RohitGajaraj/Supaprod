@@ -730,7 +730,7 @@ export function SettlePanel({
             id="settle-metric-label"
             value={metricLabel}
             maxLength={200}
-            placeholder="Weekly active users, support tickets, time to first run"
+            placeholder="Weekly active users, support tickets, time to get started"
             onChange={(e) => {
               setDirty(true);
               setMetricLabel(e.target.value);
