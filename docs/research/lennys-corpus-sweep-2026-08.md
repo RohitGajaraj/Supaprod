@@ -424,7 +424,9 @@ Teresa Torres published our exact doctrine in **2022**, four years early: *"they
 
 Lane 1 queried production lineage with demo workspaces excluded (`docs/planning/launch-audit/station-chain-audit.md`, commit `e5624805`). The result converts the corpus finding above from an opportunity into a position:
 
-**The Learn→Discover write-back arrow is our healthiest cross-station link.** 36 real `learning → decision` edges and 4 real `learning → opportunity` edges. **Decide's single largest inbound source is Learn — by four times over opportunities.**
+**⚠️ RETRACTED 2026-08-11: the edge counts in this paragraph are seed data.** The census separating demo from real matched a workspace-id shape and the sample-workspace function issues ordinary ids. All 71 `learning → decision` edges are seeded. The qualitative point, that the write-back arrow exists and is wired, stands; every number attached to it does not.
+
+~~**The Learn→Discover write-back arrow is our healthiest cross-station link.**~~ 36 real `learning → decision` edges and 4 real `learning → opportunity` edges. **Decide's single largest inbound source is Learn — by four times over opportunities.**
 
 So the claim available to us is narrow, specific and verifiable: **the arrow that appears zero times in 679 documents and 5.9M words, we built, and it already carries more real traffic than the link it competes with.** That is a far stronger sentence than "we own the loop," and unlike "we own the loop" it survives a query.
 

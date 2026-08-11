@@ -22,7 +22,7 @@ Replaces the category-line opening. **The category line is not deleted; it is de
 
 > **Less operator, more director.**
 
-**Category line — keep, demote.** *"The agentic-first operating system for product teams"* moves below the fold or into the page's own explanation of itself. It stays on `llms.txt`, `agents.txt` and the A2A card unchanged: an answer engine wants a precise categorical definition, a human hears a platform word.
+**Category line — keep, demote.** *"For product managers who ship with agents"* moves below the fold or into the page's own explanation of itself. It stays on `llms.txt`, `agents.txt` and the A2A card unchanged: an answer engine wants a precise categorical definition, a human hears a platform word.
 
 **Under test as an alternative opener** (founder-approved to test, not to swap): *"There is no GitHub for product decisions."*
 

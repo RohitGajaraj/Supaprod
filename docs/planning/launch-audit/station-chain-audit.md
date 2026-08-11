@@ -1,5 +1,15 @@
 # The seven stations, measured against production
 
+> # 🛑 EVERY EDGE COUNT IN THIS AUDIT IS SEED DATA. RETRACTED 2026-08-11.
+>
+> This document separated real lineage from demo lineage by **matching the shape of a workspace id**. `seed_sample_workspace()` gives its workspace an ordinary random id, so **seeded rows counted as production and the test was wrong in both directions.**
+>
+> **What is actually true, requeried against the `seeded` column:** all **71** `learning → decision` edges are seeded, **zero** are real. `prd → learning` returns **zero rows**; that writer had never fired. Of 1,121 `artifact_lineage` rows, **120** were written by the product itself.
+>
+> **So the "36" that this audit calls "the healthiest cross-station edge in the product" does not exist**, and neither does the 4:1 ratio derived from it. The structural findings about which writers exist and which do not are still worth reading. **No number in this file may be cited.**
+>
+> Correct figures and their queries: [`../../pitch/verified-numbers.md`](../../pitch/verified-numbers.md).
+
 > _Created: 2026-08-10 · Lane 1 (function / gaps / ship) · Every number below is a query against the live database, not a code reading._
 >
 > _Revised 2026-08-10: the `decision → prd` row is **struck**. It was an error in this audit, not a gap in the product. What replaced it is a new P1 pointing the other way, and a correction to the generalizable lesson at the foot of this page._

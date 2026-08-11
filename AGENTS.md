@@ -12,7 +12,7 @@ For what the product is and where every other document lives, read [`README.md`]
 
 ## What you are building
 
-**Supaprod is the agent-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked.**
+**Supaprod is where product decisions live when agents do the work. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked.**
 
 **The product is three layers, always told door then body then brain:**
 

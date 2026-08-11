@@ -44,15 +44,15 @@ All three carry the same claim and can be used interchangeably. **Do not mix the
 
 ### 25 words
 
-> The agentic-first operating system for product teams. Supaprod tells you what to build, builds and ships it, learns what worked, then guides your next call.
+> For product managers who ship with agents. Supaprod tells you what to build, builds and ships it, learns what worked, then guides your next call.
 
 ### 50 words
 
-> Supaprod is the agentic-first operating system for product teams. Agents run the product lifecycle end to end, from the first signal to shipped code, inside boundaries a human sets in advance. Every settled outcome is written back against the decision that caused it, so the next call arrives carrying evidence.
+> Supaprod is where product decisions live when agents do the work. Agents run the product lifecycle end to end, from the first signal to shipped code, inside boundaries a human sets in advance. Every settled outcome is written back against the decision that caused it, so the next call arrives carrying evidence.
 
 ### 100 words
 
-> Supaprod is the agentic-first operating system for product teams, and it works in three layers. The director reads your signals, your product data, your competitors and your own past calls, and ranks what is worth doing next. The operating system runs the whole lifecycle across seven stations that agents walk on their own, inside boundaries a human sets in advance. The company brain learns from what actually happened and then guides: a settled outcome is written back against the decision that caused it, and that re-ranks what you are shown next. Supaprod is pre-launch today, with public availability planned for mid-September 2026.
+> Supaprod is where product decisions live when agents do the work, and it works in three layers. The director reads your signals, your product data, your competitors and your own past calls, and ranks what is worth doing next. The operating system runs the whole lifecycle across seven stations that agents walk on their own, inside boundaries a human sets in advance. The company brain learns from what actually happened and then guides: a settled outcome is written back against the decision that caused it, and that re-ranks what you are shown next. Supaprod is pre-launch today, with public availability planned for mid-September 2026.
 
 **The one line to lead with if a piece has room for only one:**
 
@@ -68,7 +68,7 @@ All three carry the same claim and can be used interchangeably. **Do not mix the
 | --- | --- |
 | Name | **Supaprod**. `Supaprod` in prose, `supaprod` in domains, handles and slugs, `SUPAPROD` in legal contexts only. **Never** `SupaProd`. |
 | Pronunciation | SOO-pa-prod. Say it with an A. |
-| Category | The agentic-first operating system for product teams |
+| Category | For product managers who ship with agents |
 | Founded | 2026. Work on the current product began June 2026. **No legal entity is incorporated yet**, so there is no incorporation date and no registered jurisdiction to print. |
 | Headquarters | Remote. US-primary. |
 | Team size | One. Rohit Gajaraj, solo founder and CEO. |

@@ -71,7 +71,7 @@ Not the record — the record is backfillable and was backfilled twice on the re
 
 > **The arrow that appears nowhere in 5.9M words of the market's own writing, we built — and it already carries more real traffic than the link it competes with.**
 
-Measured on production lineage, demo workspaces excluded: 36 real `learning → decision` edges, and Decide's single largest inbound source is Learn, by 4× over opportunities.
+⚠️ **RETRACTED 2026-08-11.** This sentence read *"Measured on production lineage, demo workspaces excluded: 36 real `learning → decision` edges"*. **The exclusion did not work.** It matched on the shape of a workspace id, and the sample-workspace function issues ordinary ids, so seeded rows counted as production. All 71 such edges are seeded; **zero have `seeded = false`**. Any conclusion below that rests on this number is unsupported until requeried.
 
 **Binding honesty constraints on both claims** (see the sweep doc §2 and §4):
 - The arrow moves **learnings, not outcomes** — `agent_memory` holds zero `kind='outcome'` rows. Say *"informed by what we learned from earlier decisions,"* never *"informed by measured outcomes."*
@@ -210,7 +210,7 @@ Beat 2 is verbatim from an operator (Bal Sieber, 2026-06-27). Those three jobs *
 1. **Why now, with a number.** Build cost collapsed; the bottleneck moved. Not our claim — a practitioner's: *"AI can accelerate delivery fast enough that the bottleneck moves… PMs got faster at shipping but didn't get better at defending why. **The judgment gap got exposed.**"* And 82% of the market reports AI already makes them measurably more productive, while burnout rose 44.7% → 55.7% and the #1 fear is *"expected to do more for the same pay."* **Speed is solved. Judgment is not.**
 2. **The wedge, and why it is not "a better folder."** Every DIY success in the corpus is single-operator. Every DIY failure is multi-person or multi-agent governance. **We sell at the transition** — the second person, or the first fleet of agents. Proof: an operator who tried Obsidian, abandoned it, built his own, and still could not solve *who changed what · what is trustworthy vs polluted · why they changed it · preventing changes.*
 3. **The moat, stated so it survives a query.** Not the record — that is backfillable and was backfilled twice on the record. **The forecast captured at decision time**: what a team believed would happen, recorded before the outcome was known. It is not an artifact; it leaves no trace unless something captured it at the moment of the call.
-4. **The proof line.** *The arrow that appears nowhere in 5.9M words of the market's own writing, we built — and it already carries more real traffic than the link it competes with.* (36 real `learning → decision` edges; Learn outfeeds opportunities 4:1.)
+4. **The proof line.** *The arrow that appears nowhere in 5.9M words of the market's own writing, we built, and it runs on a live path.* **⚠️ Corrected 2026-08-11: the parenthetical that used to sit here, "36 real `learning → decision` edges", was seed data.** All 71 such edges are seeded, none has `seeded = false`, and the `prd → learning` writer had never fired. **Never restore a count to this beat.** The proof is that the arrow exists and is wired, and it begins accruing on first real use. See [`../pitch/verified-numbers.md`](../pitch/verified-numbers.md).
 5. **The metric, which is also the answer to "is this vitamin or painkiller."** **Rework, not speed** — clarification loops, reopened tickets, first-pass acceptance. **Rework is unpaid work**, so cutting it is relief, not more throughput.
 
 **The honest beat, said before they ask:** the loop is **wired and proven, and empty by design until used.** First-pass acceptance began capturing 2026-08-10. *"Wired, proven, accrues on first real use"* survives diligence; *"we learn from your corrections"* does not survive one query.
@@ -233,7 +233,11 @@ Beat 2 is verbatim from an operator (Bal Sieber, 2026-06-27). Those three jobs *
 
 > **Agents do the reps now. What doesn't compress: deciding what's worth doing, defining what good looks like, and catching when the system is confidently wrong. Supaprod runs those three, and records what you expected before you found out.**
 
-**Where the retired line still belongs.** *"The agentic-first operating system for product teams"* stays as the **internal definition** and on **machine-readable surfaces** (`llms.txt`, `agents.txt`, the A2A card). An answer engine wants a precise categorical definition; a human buyer hears a platform word. **Same register split as the vocabulary rule** — it is not wrong, it is wrong for humans.
+**⚠️ SUPERSEDED 2026-08-11, founder ruling: the line is retired EVERYWHERE, including machine-readable surfaces.** This paragraph used to carve out an exception, keeping *"the agentic-first operating system for product teams"* as the internal definition and on `llms.txt`, `agents.txt` and the A2A card, on the reasoning that an answer engine wants a precise categorical definition. **That carve-out is gone.** His instruction: *"make sure everywhere it is replaced."*
+
+**The reasoning behind dropping the exception is stronger than the reasoning that created it.** An answer engine does want a categorical definition, but it does not need a *platform-word* one, and a machine-readable surface is the one place a phrase propagates without a human choosing to repeat it. An LLM asked "what is Supaprod" would have answered with the exact phrase the founder finds vague, at scale.
+
+**So machine surfaces get the approved definition instead**, which is categorical and still a noun a stranger can hold: **"Supaprod is where product decisions live when agents do the work."** Human surfaces get the tagline: **"For product managers who ship with agents."**
 
 ### Binding rule for every outward application, from 2026-08-10 forward
 

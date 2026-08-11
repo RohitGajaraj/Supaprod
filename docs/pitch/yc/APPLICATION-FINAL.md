@@ -2,12 +2,29 @@
 
 > _Created: 2026-08-11 · Last updated: 2026-08-11 · **This is the only file to paste from.** Every field below is final text. [`fall-2026-application.md`](./fall-2026-application.md) is the reasoning, the history and the audit trail behind it; this is the output. Where they differ, this file wins._
 
+> # 🛑 THE FOUNDER REVIEWED THIS ON 2026-08-11 AND IS NOT HAPPY. DO NOT PASTE YET.
+>
+> **A review session is scheduled with him. His objections are below, in his words, with what I did about each one immediately and what is still open.** The two outright false claims are already removed, because a false claim does not wait for a meeting.
+>
+> | # | His objection | Status |
+> | --- | --- | --- |
+> | **1** | *"'Now I'm putting people in it.' What are you putting people in? I do not have any people to put work on it."* | **REMOVED.** It was false. 8a now carries a `[FOUNDER]` placeholder instead of a claim, because what comes next is his call, not mine. |
+> | **2** | *"The 370 register features shipped, those things are very outdated... we lost track of maintaining the features. Now I assume we would have built double the size of that till now."* | **REMOVED, and he is right.** Last touched `2026-08-04`, roughly 450 commits ago, so it **understates** the build and cannot be defended if a partner asks how it is kept current. **Correction to my own wording:** I first called it *abandoned*. He corrected that, and the distinction matters. It was **deliberately deprioritised** because maintaining the documentation cost more than it returned, so the team went straight to building. That is a trade-off, not a lapse, and describing it the other way would have been unfair in exactly the way I have been asking others not to be. |
+> | **3** | *"I don't want to say everything was built by AI."* | **PARTLY ACTED ON, needs his ruling.** I removed *"its agents built most of it"* from 8e, which was the strongest form and also the least supportable given the loop's real state. **What remains is 8c, which is unavoidable**: YC's question explicitly asks which AI models and AI coding tools you use, and answering it evasively is worse than answering it plainly. **Open question for the review: how far do you want the AI-built framing pulled back elsewhere?** My view is that 8c stays exactly as it is and every *other* mention goes, because the tech-stack field is the one place it is asked for and the one place it cannot be read as a boast. |
+> | **4** | *"Everything needs to be detailed and thought through."* | **Open.** Read as: the rebuild moved too fast over fields that needed his judgment rather than my inference. The `[YOU]` markers are the ones I already knew about; objections 1 and 2 were ones I should have caught and did not. |
+>
+> **What I got wrong, plainly.** I checked every *number* against the database and did not check every *sentence* against his situation. "Now I'm putting people in it" is not a data error, it is a claim about the world that I inherited from an older draft and carried forward without asking whether it was true. The register number is worse: I verified the count was accurate and never asked whether the source was still maintained. **An accurate count from an abandoned register is a false claim with a correct number in it**, which is exactly the failure mode this rebuild was supposed to end.
+>
+> **Still unresolved and worth deciding at the review:** with the register gone, the only build-size evidence left is commits and migrations. That is honest but thin, and "4,900 commits" invites *"commits are not a unit of work."* Options are to leave it thin, to re-derive a defensible feature count from the codebase rather than the register, or to drop volume claims and let the working product carry it. **My recommendation is the third**, because the demo login is stronger evidence than any count and it cannot be argued with.
+
+---
+
 ## Read this before you paste, it is four lines
 
 1. **Every number here reproduces from a command or a query.** They are listed in §0 with how to re-run them. Two move daily. **Re-run those two on the morning you submit.**
 2. **Three claims were removed because they were false, not because they were weak.** What replaced them is in §0.
 3. **Nothing here claims accumulated learning in the present tense.** The loop is wired and proven; it begins accruing on first real use. That is both the honest form and the stronger one.
-4. **Two fields need something only you have**, marked `[YOU]`. They are the discovery-call count and the demo video. Everything else is ready.
+4. **Three fields need something only you have**, marked `[YOU]`: the discovery-call count, the demo video, and what actually comes next in 8a.
 
 ---
 
@@ -30,7 +47,7 @@
 | Commits | **4,969** ← *moves daily* | `git rev-list --count HEAD` |
 | Migrations | **512** ← *moves* | `ls supabase/migrations/*.sql \| wc -l` |
 | Weeks | **ten** | First real commit `2026-06-02`. One template commit dated 2025-01-01 is scaffold, not work. |
-| Build register, shipped | **370** | `grep -cE '^\\| *[0-9]+ *\\| *✅' docs/planning/archive/shipped-register.md` |
+| ~~Build register~~ | **DO NOT USE** | **Not abandoned, deliberately deprioritised** (founder, 2026-08-11): keeping it current cost more than it returned, so the team went straight to building. It is accurate up to `2026-08-04` and carries nothing from the last two to three weeks, roughly 450 commits. So it **understates** the build. Do not cite it, and do not describe it as neglected; the reason it is stale is a defensible trade-off, not a lapse. |
 | Outside users | **zero** | Stated once, in 8e, where the form asks. |
 | Revenue | **none** | |
 
@@ -118,9 +135,6 @@ one-key rollback on anything they produce; and a decision record where a
 shipped spec gets checked against what actually happened, and that verdict
 re-ranks what to build next.
 
-I track the build in a register: 370 features shipped. I had an outside AI
-code auditor review the codebase against that register and it held.
-
 I also found something in my own numbers this month that is worth telling you.
 I had been reporting how many decisions the system had made from earlier
 lessons. Re-verifying it, the query that separated my demo data from real data
@@ -129,7 +143,9 @@ sample workspaces gives them ordinary ids. The real count was zero. The
 machine is built and proven on a live path; the record it accrues starts when
 someone runs real work through it. That is where I am, exactly.
 
-Everything until now was building the machine. Now I am putting people in it.
+[FOUNDER: this field needs your call on what comes next. The previous draft
+said "now I'm putting people in it", which is not true; there is nobody in it
+yet. Say what is actually next, in one sentence.]
 ```
 _The admission is the strongest paragraph in the application. YC weights updating on evidence more heavily than being right the first time, and this one has a mechanism, a root cause and a fix._
 
@@ -164,7 +180,7 @@ _Do not add "users can bring their own keys." The question asks what **we** use.
 ```
 Not outside users yet. I am opening the first access now, to the PMs and
 founders from my discovery calls. The daily user is me: I run Supaprod's own
-roadmap inside Supaprod, and its agents built most of it. That proves the
+roadmap inside Supaprod. That proves the
 product functions end to end before I ask anyone to trust it, which is
 different from proving anyone wants it, and I am not going to blur the two.
 Anyone can try it today through the demo login above.
@@ -188,8 +204,7 @@ Same idea, one batch later. Since the last application the product went from
 an early spine to working end to end: the autonomous engine runs, agents open
 real pull requests behind human gates, a shipped spec now gets checked against
 what happened and that verdict re-ranks what to build next, an outside AI code
-audit of the build register held up, and the public launch is set for
-September. 4,900 commits and 512 migrations in ten weeks.
+audit of the codebase held up, and the public launch is set for September. 4,900 commits and 512 migrations in ten weeks.
 
 I also corrected two things I had been claiming. I had said a competitor
 cannot rebuild your decision history. That is not true; you can reconstruct
