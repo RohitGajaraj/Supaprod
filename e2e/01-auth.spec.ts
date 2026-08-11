@@ -5,6 +5,22 @@
 import { test, expect } from "@playwright/test";
 import { login, takeScreenshot, waitForShell } from "./helpers/auth";
 
+/**
+ * THIS FILE RUNS SIGNED OUT, and it is the only one that does.
+ *
+ * The `setup` project signs in once and every other project inherits that
+ * session through `storageState`, which is the whole point: a spec about the
+ * Brain should not spend ten seconds at a login form. But this file's subject
+ * IS the login form. Inheriting the session made `/login` redirect straight to
+ * `/today`, so every assertion here failed looking for an email input on a
+ * dashboard.
+ *
+ * That was a real regression introduced by wiring `storageState`, not a stale
+ * assertion: these three tests were correct before and correct after, and the
+ * harness underneath them changed. An empty state opts this file back out.
+ */
+test.use({ storageState: { cookies: [], origins: [] } });
+
 test.describe("Authentication", () => {
   test("login page renders correctly", async ({ page }) => {
     await page.goto("/login", { waitUntil: "networkidle" });

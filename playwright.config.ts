@@ -1,6 +1,41 @@
+import * as fs from "fs";
+import * as path from "path";
+
 import { defineConfig, devices } from "@playwright/test";
 
-import { STORAGE_STATE } from "./e2e/helpers/auth";
+import { STORAGE_STATE, findRepoRoot } from "./e2e/helpers/auth";
+
+/**
+ * READ `.env` SO NOBODY HAS TO EXPORT ANYTHING BY HAND.
+ *
+ * `E2E_DEMO_PASSWORD` is the one secret the suite needs, and requiring an
+ * `export` before every run is how a working harness becomes an unused one: it
+ * fails for the next person in a way that looks like the suite is broken rather
+ * than unconfigured. `.env` is already this repo's home for secrets and is
+ * gitignored, so the credential can live there and never reach git.
+ *
+ * Parsed by hand rather than adding a dotenv dependency for four lines, and it
+ * never OVERWRITES a variable already set, so an explicit export still wins for
+ * a one-off run against another account.
+ */
+function loadEnvFile(): void {
+  const file = path.join(findRepoRoot(), ".env");
+  if (!fs.existsSync(file)) return;
+  for (const raw of fs.readFileSync(file, "utf8").split("\n")) {
+    const line = raw.trim();
+    if (!line || line.startsWith("#")) continue;
+    const eq = line.indexOf("=");
+    if (eq < 1) continue;
+    const key = line.slice(0, eq).trim();
+    if (process.env[key] !== undefined) continue;
+    process.env[key] = line
+      .slice(eq + 1)
+      .trim()
+      .replace(/^["']|["']$/g, "");
+  }
+}
+
+loadEnvFile();
 
 export default defineConfig({
   testDir: "./e2e",
