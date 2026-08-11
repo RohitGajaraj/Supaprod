@@ -38,6 +38,12 @@
 
 **I told the founder my bucket was clean and it was not.** A five-lane audit with adversarial verification then found **38 confirmed defects, two of them blockers**, in files I had edited hours earlier. The blockers were retired numbers on the investor-conversation card and on the one-pager, tagged `[PROVEN]`. **Assert nothing about your own work without re-checking it.**
 
+### ⚠️ ROUTED TO LANE 2 BUT THE MESSAGE TIMED OUT — recorded here so it cannot be lost
+
+**`public/brief.html:744`** still reads `<div class="zl">Built agent-first</div>`. The identical string in the investor deck is already changed to **`Built for agents to run`**, which keeps the meaning and drops the retired compound. **Same fix applies.** It sits inside a text node, so parsing the tag stream before and after should show an identical stream; that check exists because an earlier edit to that file introduced an entity two greps could not see.
+
+**The `agentic-first` instances under `src/` are code comments and should be LEFT.** `Hero.tsx:53/187/273`, `a2a-card.ts:23`, `decision-gate.ts:8`, `spine/driver.ts:24` and the rest are internal reasoning, and several are dated records of why a decision was made. Same call Lane 1 and I made for `getProvenance`: **the ruling governs the words we say to buyers, not the words engineers read.**
+
 ### Open, routed, not blocked
 
 - **Filmability pass**, waiting on Lane 2's screen cleanup. Method and the seven screens that matter are in [`../pitch/teaser-video-plan.md`](../pitch/teaser-video-plan.md). 25 substantial screens exist; the 49 stubs under 3KB are redirects, not holes. **Film the real product; use AI tooling for pacing, titles and motion, never for generating screens.**
