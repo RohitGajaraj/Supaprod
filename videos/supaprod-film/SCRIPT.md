@@ -19,7 +19,7 @@
 **Time:** 7.0 – 15.0s
 **Delivery:** The turn. Slower on "worth". A beat before "and miss."
 
-    What nobody tells you is what's worth building. Teams polish the prettiest idea — and miss. That's the judgment gap.
+    But what to build — nobody cracks that call. So teams build the wrong features, beautifully… and miss what mattered. That's the judgment gap.
 
 ## Line 3 — You know the feeling (Frame 3)
 

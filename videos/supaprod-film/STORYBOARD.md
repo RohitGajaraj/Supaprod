@@ -44,7 +44,7 @@ Scene 3 (5.6–8.2s): on "shipped in days", the deploy status flips to a green "
 ## Frame 2 — Worth building
 
 - scene: A wall of shipped features over a flat adoption chart — lots built, nothing moved
-- voiceover: "What nobody tells you is what's worth building. Teams polish the prettiest idea — and miss. That's the judgment gap."
+- voiceover: "But what to build — nobody cracks that call. So teams build the wrong features, beautifully… and miss what mattered. That's the judgment gap."
 - duration: 10.8s
 - transition_in: crossfade
 - status: animated
