@@ -4,10 +4,13 @@
  * This trap has now sprung three times, which is why it gets a guard rather
  * than a third comment.
  *
- *   2026-07-25  `demo@redcadence.app` / its password were found in a public v4
- *               README. `docs/pitch/yc/founder-profile-answers.md` lists it in
- *               a table of things exposed publicly. The password was rotated
- *               and the account suspended. THE ROTATION WAS THE CONTAINMENT.
+ *   2026-07-25  A `redcadence.app` demo login and its password were found in a
+ *               public v4 README. `docs/pitch/yc/founder-profile-answers.md`
+ *               lists it in a table of things exposed publicly. The password was
+ *               rotated and the account suspended. THE ROTATION WAS THE
+ *               CONTAINMENT. The address is not written here because the same
+ *               doc that retires it says it "must not be used or quoted
+ *               anywhere", and the check below enforces that.
  *   2026-08-03  An agent followed the password documented in
  *               `docs/operations/demo-credentials.md`, failed twice, and burned
  *               a chunk of a session on it. That doc now opens with a warning
@@ -122,6 +125,32 @@ export function credentialShapedLiteralsIn(source: string): string[] {
   return [...source.matchAll(CREDENTIAL_SHAPED)].map((m) => m[2]).filter(looksLikeACredential);
 }
 
+/**
+ * THE OTHER HALF OF THE FIXTURE, AND IT FAILS QUIETLY WHERE THE PASSWORD FAILS
+ * LOUDLY.
+ *
+ * `docs/operations/demo-credentials.md` retires the two `redcadence.app` demo
+ * logins: disabled, `profiles.suspended = true`, and in its own words "must not
+ * be used or quoted anywhere". `harbor@supaprod.ai` replaces them for all
+ * internal use.
+ *
+ * `DEMO_EMAIL` defaulted to one of the retired addresses for a day after the
+ * password beside it was made to throw by name — and the pairing made things
+ * worse, not better. Set the correct harbor password against a dead email and
+ * Supabase answers "that email or password isn't right", which is exactly what a
+ * wrong password looks like. The next person re-investigates the half that was
+ * already fixed. A loud failure next to a silent one is not half a fix; it
+ * points at the wrong half.
+ *
+ * Matched on the retired DOMAIN rather than on either address, so this guard
+ * does not quote what it exists to keep unquoted.
+ */
+const RETIRED_LOGIN = /[A-Za-z0-9._%+-]+@redcadence\.app/g;
+
+export function retiredLoginsIn(source: string): string[] {
+  return [...source.matchAll(RETIRED_LOGIN)].map((m) => m[0]);
+}
+
 describe("the browser suite reads its credential from the environment", () => {
   const files = e2eFiles(E2E);
 
@@ -180,6 +209,38 @@ describe("the browser suite reads its credential from the environment", () => {
     ).toEqual([]);
   });
 
+  it("no file in e2e/ names a RETIRED login, in code or in a comment", () => {
+    const scanned = [
+      ...files,
+      join(import.meta.dir, "the-browser-suite-cannot-carry-a-password.test.ts"),
+    ];
+    const offenders = scanned
+      .map((f) => ({
+        rel: f.slice(f.includes("__tests__") ? f.lastIndexOf("/") + 1 : E2E.length + 1),
+        hits: retiredLoginsIn(readFileSync(f, "utf8")),
+      }))
+      .filter((r) => r.hits.length > 0)
+      .map((r) => r.rel);
+
+    expect(
+      offenders,
+      "docs/operations/demo-credentials.md retires the redcadence.app demo " +
+        "logins: disabled, suspended, and 'must not be used or quoted anywhere'. " +
+        "harbor@supaprod.ai replaces them for all internal use and is the " +
+        "default in e2e/helpers/auth.ts. A retired address here fails as 'that " +
+        "email or password isn't right', which is what a wrong PASSWORD looks " +
+        "like, so it sends the next person to the wrong half of the fixture.",
+    ).toEqual([]);
+  });
+
+  it("the email default names the documented testing account", () => {
+    // Asserted on the value, not on the absence of the old one, because those
+    // are different claims: deleting the retired address would satisfy the check
+    // above while leaving the default undefined and every login unauthenticated.
+    const auth = readFileSync(join(E2E, "helpers", "auth.ts"), "utf8");
+    expect(auth).toMatch(/E2E_DEMO_EMAIL\s*\?\?\s*"harbor@supaprod\.ai"/);
+  });
+
   it("there is exactly one place that resolves the password", () => {
     // The 2026-08-11 near-miss was caused by a SECOND copy: `waves-1-2-qa.spec.ts`
     // declared its own constant instead of importing the helper, so fixing the
@@ -235,6 +296,14 @@ describe("the detector actually detects", () => {
   it("does not fire on a password SELECTOR, which is not a value", () => {
     expect(hardcodedSecretsIn(`page.fill('input[type="password"]', demoPassword());`)).toEqual([]);
     expect(hardcodedSecretsIn(`page.locator('[data-testid="password-input"]')`)).toEqual([]);
+  });
+
+  it("the retired-login check sees both the code default and a comment", () => {
+    // Assembled so this file never contains either retired address.
+    const retired = "demo" + "@redcadence.app";
+    expect(retiredLoginsIn(`const DEMO_EMAIL = env ?? "${retired}";`)).toEqual([retired]);
+    expect(retiredLoginsIn(` * the ${retired} account, per the seed`)).toEqual([retired]);
+    expect(retiredLoginsIn(`const DEMO_EMAIL = env ?? "harbor@supaprod.ai";`)).toEqual([]);
   });
 
   it("the comment-inclusive pass catches what the code-only pass cannot", () => {

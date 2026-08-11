@@ -24,23 +24,20 @@ import * as path from "path";
 import * as fs from "fs";
 
 /**
- * THE DEFAULT POINTED AT A DISABLED ACCOUNT until 2026-08-11.
+ * The account `docs/operations/demo-credentials.md` designates as "the account
+ * any agent uses for testing". It is not a secret and it is in a tracked doc, so
+ * a default is right here in a way it is not for the password below: a default
+ * that names the documented testing account is the entire point of having one.
  *
- * It was `demo@redcadence.app`, and `docs/operations/demo-credentials.md:69`
- * says that login and its twin are "disabled and must not be used or quoted
- * anywhere", and that "harbor@supaprod.ai replaces them for all internal use".
- * Line 40 of the same file calls harbor "the account any agent uses for
- * testing".
- *
- * Leaving the old default was the more dangerous half of the credential
- * problem, because the password now fails loudly by name when unset while the
- * email failed silently. Someone exporting the correct harbor password would
- * have got "That email or password isn't right" and had nothing pointing at
- * the email. That is a harder version of the trap that has already cost two
- * agents a session.
- *
- * The address is not a secret; it is in a tracked doc. Only the password comes
- * from the environment.
+ * THIS DEFAULT USED TO BE A DISABLED ACCOUNT. It pointed at a `redcadence.app`
+ * login that the same doc says is "disabled and must not be used or quoted
+ * anywhere" — rotated, `profiles.suspended = true`, since 2026-07-25. The
+ * password beside it had already been made to fail loudly when unset, which
+ * made this worse rather than better: set the correct password against the dead
+ * email and the suite reports "that email or password isn't right", which is
+ * indistinguishable from a wrong password and sends the next person hunting the
+ * thing that was already fixed. A guard now refuses either retired address
+ * anywhere in this folder.
  */
 export const DEMO_EMAIL = process.env.E2E_DEMO_EMAIL ?? "harbor@supaprod.ai";
 
