@@ -286,6 +286,76 @@ export async function recordDecisionOrigins(
   }
 }
 
+/**
+ * THE ONLY HOP THAT LEAVES A LEARNING, and until 2026-08-11 there was none.
+ *
+ * Every edge INTO an outcome was written and not one edge OUT of one ever had
+ * been: `grep -rn 'parent_kind: "learning"' src/` returned hits in tests only. A
+ * learning was a permanent leaf, so nothing could trace forward from evidence to
+ * the call it changed — which is the entire claim the product is sold on. The 71
+ * `learning -> *` rows in production are seed; none is newer than 2026-07-23,
+ * and four workspaces hold exactly ten each.
+ *
+ * WHY `informs` AND WHY THIS DIRECTION. `learning_citations` records that a
+ * learning was cited as PRECEDENT while a decision was being made
+ * (`decision-judgment.functions.ts`, `cited_by: "decision-precedent"`,
+ * `trace_id: "decision:<id>"`). That is forward in time and forward in meaning:
+ * the learning already existed, then it shaped a later call. 98 real rows, one
+ * live writer. `informs` is a registered relation family, so the graph reads
+ * "informed" from the learning and "was informed by" from the decision rather
+ * than falling through to the generic "links to".
+ *
+ * THE OBVIOUS PARENT COLUMN IS A TRAP AND IS DELIBERATELY NOT USED HERE. An
+ * audit proposed emitting `learning -> opportunity` from `learnings.
+ * opportunity_id`. That column is set to `prd.opportunity_id`
+ * (`outcome.functions.ts`), so it names the opportunity the work DESCENDED
+ * FROM — an ancestor. Writing that edge would assert a learning produced the
+ * opportunity that produced it, and since provenance walks parents only, it
+ * would put a cycle in the graph. It is the same defect the seeded
+ * `learning -> prd` rows carry, which are being struck in the same cycle. An
+ * ancestor column cannot be reused as a descendant edge just because both ends
+ * are present.
+ *
+ * A LOOP IS CORRECT HERE, unlike in `recordDecisionOrigins` above. That one
+ * refuses to loop because a loop over a PARENTS array hides the KIND from every
+ * grep and from the chain guard, which reads source text. Here both kinds are
+ * constants spelled out in the object below; only the id varies. The guard can
+ * still read the hop.
+ */
+export const LEARNING_PRECEDENT_RELATION = "informs";
+
+export async function recordLearningPrecedents(
+  supabase: SupabaseClient,
+  userId: string,
+  input: {
+    /** The decision that cited them, AFTER its citations have landed. */
+    decisionId: string;
+    /** The learnings cited as precedent for it. Empty is a no-op, not an error. */
+    learningIds: readonly string[];
+    /**
+     * The workspace the ARTIFACTS live in, not the writer's. Required for the
+     * same WM-F1 reason `recordDecisionOrigins` states above.
+     */
+    workspaceId: string | null;
+    createdByAgent?: string | null;
+  },
+): Promise<void> {
+  if (!input.decisionId || input.learningIds.length === 0) return;
+  for (const learningId of input.learningIds) {
+    if (!learningId) continue;
+    await recordLineageSafe(supabase, userId, {
+      parent_kind: "learning",
+      parent_id: learningId,
+      child_kind: "decision",
+      child_id: input.decisionId,
+      relation: LEARNING_PRECEDENT_RELATION,
+      rationale: "Cited as precedent when this call was made",
+      created_by_agent: input.createdByAgent ?? "learn",
+      workspace_id: input.workspaceId,
+    });
+  }
+}
+
 type LineageEdge = {
   id: string;
   parent_kind: ArtifactKind;
