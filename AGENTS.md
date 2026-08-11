@@ -20,7 +20,7 @@ For what the product is and where every other document lives, read [`README.md`]
 | --- | --- | --- |
 | **01** | the director | tells you what to build |
 | **02** | the operating system | runs the whole lifecycle, seven stations |
-| **03** | the shared brain | **learns, then guides.** Never "stores" or "remembers". |
+| **03** | the company brain | **learns, then guides.** Never "stores" or "remembers". |
 
 They are one product because each is the precondition for the next: you cannot be the brain without the loop that generates outcomes, and you cannot run the loop without being the OS. **Layer 03 is the only one defensible alone**, because it needs the customer's own outcomes labelled over time, which no model has. Ship any one alone and it is a feature.
 
@@ -31,7 +31,7 @@ They are one product because each is the precondition for the next: you cannot b
 **Three rules that follow, binding on every surface:**
 1. **Never claim accumulated learning in the present tense.** Not *"we learn from your corrections."* The honest and stronger form is *the loop is wired and proven, and it begins accruing on first real use.*
 2. **Never imply an unbroken signal → shipped → learned chain.** It is broken in two places: Discover promotes 3 of 86 themes, and Build writes no changeset or deployment edges. Demo the Discover → Decide → Learn half, which is real.
-3. **Vocabulary is practitioner language everywhere, and the register split is retired** (ruled 2026-08-11). Every surface avoids *receipts · ledger · company brain · decision layer · unattended · first run · provenance*, all at or near zero across 5.9M words. **"Audit trail" and "shared brain" stay everywhere**; a practitioner reached for the first unprompted, which is the test the whole list is scored against. **"Approve" is settled by what the control does**: keep it where a click unblocks something, use *review* where it only shows you something. The audit that killed the split found we drifted worst in the shop window, not in the product, which is why this rule no longer has a public half and an in-product half.
+3. **Vocabulary is a register split, not a ban.** Public surfaces avoid *receipts · ledger · audit trail · company brain · unattended* (all at or near zero across 5.9M words). In-product surfaces use the operator's own words: *context governance · drift · gate · memory life cycle · audit trail*.
 
 Full canon and evidence: [`docs/strategy/positioning-locked-2026-08.md`](./docs/strategy/positioning-locked-2026-08.md) · [`docs/research/lennys-corpus-sweep-2026-08.md`](./docs/research/lennys-corpus-sweep-2026-08.md).
 
