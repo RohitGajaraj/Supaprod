@@ -645,7 +645,14 @@ export function recordHeadline(
   const clauses: string[] = [];
   if (calls) clauses.push(calls === 1 ? "one call" : `${calls} calls`);
   if (learnings) clauses.push(learnings === 1 ? "one learning" : `${learnings} learnings`);
-  if (clauses.length === 0) return "Nothing is on the record yet.";
+  if (clauses.length === 0) {
+    // "Nothing is on the record yet" is a claim about the whole record, so it
+    // needs BOTH halves read. With one of them still null the pile is not known
+    // to be empty, only unmeasured, and the page admits the read instead of
+    // asserting an empty workspace it never confirmed.
+    if (calls === null || learnings === null) return loading ? "Brain" : "The record did not load.";
+    return "Nothing is on the record yet.";
+  }
   const verb = clauses.length === 1 && clauses[0].startsWith("one ") ? "is" : "are";
   /**
    * "NOTHING HAS COME BACK" AND "NOTHING HAS RE-SCORED" ARE DIFFERENT FACTS.
@@ -659,9 +666,29 @@ export function recordHeadline(
    * not outcomes that exist. With learnings on the record, "nothing has come back"
    * is simply false, and it undersells the product's own claim: the outcomes are
    * there, they have not yet changed a ranking. Say that instead.
+   *
+   * AND THE SECOND HALF OF THE SAME CLAUSE, FOUND 2026-08-10. `learnings` is
+   * `stats.data?.learnings ?? null`, so a getCompanyBrainStats read that FAILED
+   * arrived here indistinguishable from a workspace with zero outcomes, and both
+   * fell to the else: the largest sentence on the page told a workspace with 49
+   * outcomes on it that nothing had come back, off one dead read. It fired on
+   * every ordinary staggered load too, because the reads land one at a time and
+   * `loading` is consulted only in the both-null branch above.
+   *
+   * So the tail is now gated on the read having RESOLVED. A KNOWN zero still
+   * says "nothing has come back yet", which is the honest and useful line for a
+   * young workspace. A null says nothing at all, and the sentence simply ends
+   * after the size: the rule this file states at the second line ("a failed read
+   * contributes no clause and never a zero") applied to the tail as well.
    */
-  const tail = learnings ? "and none has re-scored a call yet." : "and nothing has come back yet.";
-  const sentence = `${clauses.join(" and ")} ${verb} on the record, ${tail}`;
+  const tail = learnings
+    ? "and none has re-scored a call yet."
+    : learnings === 0
+      ? "and nothing has come back yet."
+      : null;
+  const sentence = tail
+    ? `${clauses.join(" and ")} ${verb} on the record, ${tail}`
+    : `${clauses.join(" and ")} ${verb} on the record.`;
   return sentence.charAt(0).toUpperCase() + sentence.slice(1);
 }
 
@@ -1057,7 +1084,16 @@ function MemoryPage() {
   const summary = compounding.data?.summary ?? null;
   const recall = standing.data?.recall ?? null;
   const countsLoading = brain.isLoading || stats.isLoading;
-  const countsFailed = (brain.isError || stats.isError) && !counts && learningCount === null;
+  // A HALF-DEAD READ IS STILL A DEAD READ, AND USED TO BE SILENT (2026-08-10).
+  // This was `(brain.isError || stats.isError) && !counts && learningCount ===
+  // null`, which required BOTH reads to have produced nothing. So when
+  // getBrainStatus succeeded and getCompanyBrainStats died, `counts` was truthy,
+  // the banner never drew, and the only thing on screen about the outcomes was
+  // the headline speaking confidently for a number nobody had. The whole reason
+  // `Failed` exists is that "nothing here" and "we could not find out" are
+  // different facts, and the reader could not tell which one they were looking
+  // at. Either read failing draws it, and the sentence below names which half.
+  const countsFailed = brain.isError || stats.isError;
   // `standing.isLoading` joins the loading flag so the head holds on "Brain"
   // until the recall rung is decidable. Without it the title would settle on
   // the manifest and then jump to the recall claim a moment later, which reads
@@ -1258,7 +1294,15 @@ function MemoryPage() {
           below still worked, and nothing told the reader that the counts they
           could not see were counts we could not read. `Failed` is the primitive
           for exactly this, and its whole reason for existing is that "nothing
-          here" and "we could not find out" are different facts. */}
+          here" and "we could not find out" are different facts.
+
+          AND IT NAMES WHICH HALF DIED. Two reads feed the head: getBrainStatus
+          carries the calls and the docs, getCompanyBrainStats carries what has
+          come back. Losing one of them is the common case and it used to draw
+          nothing at all, which left the reader with a head that had quietly
+          stopped counting one half without saying so. A banner that says "the
+          size of the record did not load" while half the size is rendered two
+          lines above it is its own small lie, so each half is named. */}
       {countsFailed ? (
         <Failed
           onRetry={() => {
@@ -1266,8 +1310,11 @@ function MemoryPage() {
             void stats.refetch();
           }}
         >
-          The size of the record did not load. Everything it holds is still behind the five doors
-          below.
+          {brain.isError && stats.isError
+            ? "The size of the record did not load. Everything it holds is still behind the five doors below."
+            : brain.isError
+              ? "The count of calls and docs did not load, so the line above leaves them out. Both are still behind the doors below."
+              : "The count of what has come back did not load, so the line above leaves it out. Every outcome is still behind the Outcomes door below."}
         </Failed>
       ) : null}
 
