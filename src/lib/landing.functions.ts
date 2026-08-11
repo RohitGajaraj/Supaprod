@@ -66,11 +66,27 @@ export const getLandingStats = createServerFn({ method: "GET" }).handler(
        *     with NO ROW in that table at all, fifteen of them dated before this
        *     repo's first commit. They passed too.
        *
-       * Together that was every single "outcome graded" on the public
-       * homepage — 49 of 49 — plus roughly 110 missions and 126 decisions. The
+       * Together that was every single "outcome graded" this function would
+       * report — 49 of 49 — plus roughly 110 missions and 126 decisions. The
        * old comment claimed a null `workspace_id` "errs in the same safe
        * direction", and for a null it does; the case it missed is an id that is
        * PRESENT and matches nothing, which is not a null and does not drop out.
+       *
+       * THE DEFECT IS LATENT, NOT LIVE, AND THE COMMIT THAT FIXED IT SAID
+       * OTHERWISE. Its message claims these numbers were on the public homepage.
+       * They were not: the counters beat was deleted on 2026-08-09 and only the
+       * prop survived, so `Receipts` takes `_props` and ignores it, and no field
+       * this function returns except `waitlistCount` reaches a rendered surface.
+       * Nothing false was ever shown to a visitor. Corrected here rather than
+       * left, because a reader who believes the message concludes a live public
+       * claim was repaired and stops looking for the one that still could be.
+       *
+       * It is worth having fixed anyway, and that is the whole argument for
+       * doing it now rather than when the fields are next used: the exposure is
+       * that the day someone wires `outcomesGraded` to a surface, they ship a
+       * seed count, and the field name makes it look safe. A predicate that
+       * fails closed is only cheap to write before there is a surface depending
+       * on the number it produces.
        *
        * So the shape is inverted. Read the workspaces that are provably NOT
        * samples and count only those, with `.in`. An unknown, orphaned or
