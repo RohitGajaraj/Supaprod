@@ -18,8 +18,27 @@ export function buildAgentCard(origin: string): Record<string, unknown> {
     // describing us as the place they sit gives away the argument and claims
     // less than the product delivers. It also listed six departments and never
     // reached the verb that compounds.
+    /**
+     * THE OPENING CLAUSE IS THE CATEGORY, AND IT CHANGED ON 2026-08-11 BY
+     * FOUNDER RULING. It read "The agentic-first operating system for product
+     * teams", which was retired as the lead on 2026-08-10 and retired
+     * EVERYWHERE the following day, machine-readable surfaces included.
+     *
+     * The exception this card might have claimed is the reason it does not get
+     * one. An answer engine genuinely does want a precise categorical
+     * definition, so the instinct is that a machine surface should keep the
+     * crispest phrase available. But a machine surface is the one place a
+     * sentence propagates WITHOUT a human choosing to repeat it: an LLM asked
+     * "what is Supaprod" reads this and answers with it, at scale, forever. The
+     * phrase the founder finds vague is the last one that should be handed to
+     * the surface that repeats itself.
+     *
+     * The replacement is the approved sub-50-word opener and is still
+     * CATEGORICAL, which is what this card needs. It just is not a platform
+     * word.
+     */
     description:
-      "The agentic-first operating system for product teams. Supaprod tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call. Seven stations (Discover, Decide, Plan, Design, Build, Ship, Learn) that agents walk on their own inside boundaries a human sets in advance. A settled outcome is written back against the decision that caused it and re-ranks what surfaces next, which is the part that compounds. Nothing merges, ships, or takes an irreversible outward action without a human approval.",
+      "Supaprod is where product decisions live when agents do the work. Supaprod tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call. Seven stations (Discover, Decide, Plan, Design, Build, Ship, Learn) that agents walk on their own inside boundaries a human sets in advance. A settled outcome is written back against the decision that caused it and re-ranks what surfaces next, which is the part that compounds. Nothing merges, ships, or takes an irreversible outward action without a human approval.",
     provider: { organization: "Supaprod", url: origin },
     documentation_url: `${origin}/integrations`,
     discovery_url: `${origin}/.well-known/agent.json`,
