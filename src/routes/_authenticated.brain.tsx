@@ -628,15 +628,38 @@ export function recordHeadline(
       ? "A real outcome has re-scored one call."
       : `Real outcomes have re-scored ${rescored} calls.`;
   }
-  // `memoriesReached` comes from last_used_at and is true whether or not the
-  // recall log can be read, so it is what qualifies the rung; `events` only
-  // supplies the number. A log we could not read contributes no number rather
-  // than a zero, and the claim still stands without one.
+  /**
+   * `memoriesReached` comes from last_used_at and is true whether or not the
+   * recall log can be read, so it is what qualifies the rung. The rung no
+   * longer carries a NUMBER, and both reasons are worth keeping.
+   *
+   * THE NUMBER WAS WRONG, MEASURED 2026-08-11. `events` is
+   * `memory_recall_log.select("id", {head, count})` -- a plain ROW count, and
+   * memory_recall_log takes one row per MEMORY pulled, not one per read. On the
+   * demo workspace that is 587 rows across 146 distinct `trace_id`s, roughly
+   * four memories per run. So "read this record before acting 587 times"
+   * overstated the thing it names by about 4x: the crew read the record 146
+   * times. The comment above this rung asserted the opposite ("counts moments
+   * the crew read the record BEFORE it acted, not rows it kept") and the data
+   * does not support it. Counting reads instead of rows means counting distinct
+   * traces, which is a change to brain-standing.functions.ts, not to a sentence
+   * here -- so this stops printing a number it cannot stand behind.
+   *
+   * AND A COUNT MUST NEVER BE THE PROOF. The standing rule in CLAUDE.md and
+   * AGENTS.md is that accumulated learning is never claimed in the present
+   * tense and a count is never presented as evidence the loop has been running;
+   * the honest form is that the loop is wired and proven and begins accruing on
+   * first real use. "...before acting 587 times" is that banned shape exactly,
+   * in the largest sentence on the surface that carries the product's central
+   * claim. It also flattered itself twice over: 576 of those 587 pulls carry
+   * outcome 'ignored', and only 10 'used'.
+   *
+   * What survives is the mechanism, which is true, checkable and the actual
+   * claim: the crew reads this record before it acts. The size of the record
+   * still sits in the sub beneath it, where a count is a description rather
+   * than an argument.
+   */
   if (recall && recall.memoriesReached > 0) {
-    if (recall.events === 1) return "The crew has read this record before acting once.";
-    if (recall.events > 1) {
-      return `The crew has read this record before acting ${recall.events} times.`;
-    }
     return "The crew has read this record before acting.";
   }
   if (calls === null && learnings === null) {
@@ -764,9 +787,25 @@ export function guidanceLines(args: {
   const out: GuidanceLine[] = [];
   const showRecall = recall !== null && !recallSaidBelow;
 
-  // 1. READ BACK. The mechanism that is firing today. A memory is pulled at
-  //    recall time and written into the system prompt, so this counts moments
-  //    the crew read the record BEFORE it acted, not rows it kept.
+  /**
+   * 1. READ BACK. The mechanism that is firing today. A memory is pulled at
+   *    recall time and written into the system prompt, so a memory carrying
+   *    `last_used_at` is one the crew reached for before it acted.
+   *
+   *    "THINGS THE RECORD HAS LEARNED" WAS THE BANNED SENTENCE, FIXED
+   *    2026-08-11. AGENTS.md §"Never claim accumulated learning in the present
+   *    tense" names this shape by example -- "the brain has learned N things"
+   *    offered as evidence the loop works -- and this line was that sentence
+   *    with the count rendered in `Num` on either side of it. The numbers
+   *    themselves are sound (133 rows in agent_memory, 118 of them with
+   *    `last_used_at` set, verified against the database on 2026-08-11); it is
+   *    the verb that overclaims. Nothing here LEARNED anything: a run or a
+   *    person wrote a lesson to the record and a later run read it back.
+   *
+   *    So the count stays and the claim goes. A number describing the size of
+   *    the pile is allowed on this surface; a number offered as proof the
+   *    product has been learning is not, and the difference is the verb.
+   */
   if (showRecall && recall.memoriesTotal > 0) {
     out.push(
       recall.memoriesReached > 0
@@ -774,15 +813,15 @@ export function guidanceLines(args: {
             key: "read-back",
             lead: (
               <>
-                <Num>{recall.memoriesReached}</Num> of <Num>{recall.memoriesTotal}</Num> things the
-                record has learned have gone back into a later run.
+                <Num>{recall.memoriesReached}</Num> of <Num>{recall.memoriesTotal}</Num> lessons on
+                the record have gone back into a later run.
               </>
             ),
             sub: "Each one is written into the agent's prompt before it acts, not looked up afterwards.",
           }
         : {
             key: "read-back",
-            lead: "Nothing the record has learned has gone into a run yet.",
+            lead: "No lesson on the record has gone into a run yet.",
             sub: "The next run over the same ground reads it first. That is the whole mechanism, and it needs one more run.",
           },
     );

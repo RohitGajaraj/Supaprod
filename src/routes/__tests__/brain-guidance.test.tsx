@@ -88,18 +88,39 @@ describe("Brain headline: guidance outranks the manifest", () => {
     // THE DEFECT: with no re-score, every workspace fell straight through to the
     // manifest no matter how hard its record was working.
     const head = recordHeadline(summary(), recall(), 49, 8, false);
-    expect(head).toBe("The crew has read this record before acting 3115 times.");
+    expect(head).toBe("The crew has read this record before acting.");
     expect(head).not.toMatch(/on the record/);
     expect(head).not.toMatch(/\d+ calls and/);
   });
 
-  it("makes the claim without a number when the recall log cannot be read", () => {
-    // last_used_at and memory_recall_log are different columns on different
-    // tables. The first still proves the crew reached for it; the second
-    // supplies the count. A 0 from an unreadable log must never be printed.
-    const head = recordHeadline(summary(), recall({ events: 0, logReady: false }), 49, 8, false);
-    expect(head).toBe("The crew has read this record before acting.");
-    expect(head).not.toMatch(/\b0\b/);
+  /**
+   * THE RUNG CARRIES NO NUMBER AT ALL, CHANGED 2026-08-11, and this test used to
+   * assert the opposite for a good reason that turned out to rest on a wrong
+   * premise. `events` counts ROWS in memory_recall_log, and that table takes one
+   * row per memory pulled rather than one per read: 587 rows across 146 distinct
+   * traces on the demo workspace, so the sentence overstated its own subject by
+   * about 4x. It was also a count offered as proof the loop had been running,
+   * which AGENTS.md forbids outright on this surface.
+   *
+   * Both of those are properties of every event count, not of an unreadable log,
+   * so the assertion is now that NO number reaches this sentence from any input.
+   * A headline that cannot print a number cannot print a wrong one.
+   */
+  it("never puts an event count in the headline, readable log or not", () => {
+    const readable = recordHeadline(summary(), recall(), 49, 8, false);
+    const unreadable = recordHeadline(
+      summary(),
+      recall({ events: 0, logReady: false }),
+      49,
+      8,
+      false,
+    );
+    expect(readable).toBe("The crew has read this record before acting.");
+    expect(unreadable).toBe("The crew has read this record before acting.");
+    // No digit survives into the claim, so neither a stale count nor a zero
+    // from a dead read can be read as evidence.
+    expect(readable).not.toMatch(/\d/);
+    expect(unreadable).not.toMatch(/\d/);
   });
 
   it("falls back to the honest manifest for a workspace that has not compounded", () => {
@@ -130,8 +151,11 @@ describe("Brain guidance: what is firing", () => {
     const read = lineByKey(lines, "read-back");
     expect(read).toBeDefined();
     expect(text(read!.lead)).toBe(
-      "694 of 846 things the record has learned have gone back into a later run.",
+      "694 of 846 lessons on the record have gone back into a later run.",
     );
+    // The count describes the pile; it must not be dressed as the record
+    // having learned something. See AGENTS.md on present-tense learning claims.
+    expect(text(read!.lead)).not.toMatch(/has learned|have learned/);
   });
 
   it("names the outcome of the mechanism, never the table behind it", () => {
@@ -223,7 +247,7 @@ describe("Brain guidance: a young record sharpens, and never reads as broken", (
       recallSaidBelow: false,
     });
     const read = lineByKey(lines, "read-back")!;
-    expect(text(read.lead)).toBe("Nothing the record has learned has gone into a run yet.");
+    expect(text(read.lead)).toBe("No lesson on the record has gone into a run yet.");
     expect(text(read.sub)).toContain("next run");
     // Not a failure word anywhere.
     expect(allCopy(lines).toLowerCase()).not.toMatch(/broken|unavailable|error|failed|disabled/);

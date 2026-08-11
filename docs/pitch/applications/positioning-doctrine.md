@@ -15,7 +15,7 @@ Every reviewer, at every program, is answering four questions in this order. Kno
 
 ### What we win on (lead with these, always)
 
-**A. The build story is genuinely rare.** Nine weeks. 4917 commits. 508 migrations. 401 features specced, 362 shipped. A working end-to-end system, solo. Most applicants to most programs have a Figma file and a waitlist. This is the single strongest card and it is verifiable in thirty seconds.
+**A. The build story is genuinely rare.** Ten weeks. ~4,990 commits. 512 migrations, both reproducible from one command. **No feature-register count**: it has not been maintained since 2026-08-04 and understates the build. A working end-to-end system, solo. Most applicants to most programs have a Figma file and a waitlist. This is the single strongest card and it is verifiable in thirty seconds.
 
 **B. The founder is the product's own thesis, demonstrated.** Supaprod claims one person directing a fleet of agents can do what a team used to do. Rohit is the existence proof of his own claim. This converts the biggest apparent weakness (solo) into the proof of the pitch. No competitor's founder can say this about their own product.
 
@@ -93,7 +93,7 @@ The canon already carried this and it was under-used. Two lines to reach for:
 
 **Rule 5: three layers, in order, every time. The brain is never storage (founder correction, 2026-07-31).**
 
-> _"We are not just building the record part. It is those three things. One is telling what to build, that is the main thing. Second is the entire loop of the product lifecycle. Third is the company brain so that we learn. Maintaining it as a record is a wrong positioning."_
+> _"We are not just building the record part. It is those three things. One is telling what to build, that is the main thing. Second is the entire loop of the product lifecycle. Third is the brain so that we learn. Maintaining it as a record is a wrong positioning."_
 
 **This rule exists because the empathy rewrite of The Residency application broke it.** Writing warmly about "the person who has to answer for the work" quietly collapsed a three-layer product into an accountability track record, which is the one framing the canon explicitly bans. The canon was correct the whole time; the application drifted away from it.
 
@@ -103,7 +103,7 @@ The canon already carried this and it was under-used. Two lines to reach for:
 | --- | --- | --- | --- |
 | **01** | **The director** | Tells you what to build, from your feedback, product data, competitors and market, with evidence attached. **This is the sharpest claim.** | Almost everyone has shipped something that mattered to nobody. Not from carelessness; nobody could see the whole picture at once. |
 | **02** | **The operating system** | Runs the whole lifecycle as one governed loop: sense, decide, define, build, ship, learn. | The glue work between five tools is invisible and it grinds people down. |
-| **03** | **The company brain** | Remembers **and guides**: tells you what worked, warns before you repeat what did not, re-ranks the next bets. | Your judgment stops living in one person's head and stops walking out when they leave. |
+| **03** | **The brain** | Remembers **and guides**: tells you what worked, warns before you repeat what did not, re-ranks the next bets. | Your judgment stops living in one person's head and stops walking out when they leave. |
 
 **Door then body then brain. One headline per surface. The brain is the crescendo, never the opening.**
 
@@ -136,7 +136,7 @@ Not lines typed. **Throughput directed and reviewed.** Stated that way the numbe
 | **The Residency** | **No** | A house of engineers who know commit counts inflate trivially, and five questions asking you to be concise. Shipped-feature count is the better number. |
 | **Investor decks** | **Never** | On the deck-only never list already. |
 
-**The stronger number in almost every case:** *401 features specced, 362 shipped, register independently audited against the code and it held.* Shipped beats committed, and "audited and it held" is the part nobody can fake. Re-pull with `bash scripts/dashboard-tally.sh`.
+**⚠️ Corrected 2026-08-11: do not use a register count.** It has not been maintained since 2026-08-04 and the script named for verifying it does not exist. The founder's ruling is to drop volume claims and let the working demo login carry it. ~~*401 features specced, 362 shipped, register independently audited against the code and it held.* Shipped beats committed, and "audited and it held" is the part nobody can fake. Re-pull with `bash scripts/dashboard-tally.sh`.
 
 ---
 

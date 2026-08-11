@@ -6,7 +6,34 @@
 >
 > **What is actually true, requeried against the `seeded` column:** all **71** `learning → decision` edges are seeded, **zero** are real. `prd → learning` returns **zero rows**; that writer had never fired. Of 1,121 `artifact_lineage` rows, **120** were written by the product itself.
 >
-> **So the "36" that this audit calls "the healthiest cross-station edge in the product" does not exist**, and neither does the 4:1 ratio derived from it. The structural findings about which writers exist and which do not are still worth reading. **No number in this file may be cited.**
+> **So the "36" that this audit calls "the healthiest cross-station edge in the product" does not exist**, and neither does the 4:1 ratio derived from it. **No number in this file may be cited.**
+>
+> **AND THE STRUCTURAL HALF IS SUSPECT TOO. This retraction first said the writer-existence findings still stood; that was too generous and Lane 1 was right to push back.** Those findings were derived by asking *which hop types had rows*, which is the same census, so a hop whose only rows sat in a mis-classified workspace read as "no writer exists". At least two were wrong that way: `design_memory -> prd_scaffold` and `prd -> design_memory` both have live writers and had written rows.
+>
+> **Writer existence must be derived from the code, never from row counts.** Done 2026-08-11 by grepping every `artifact_lineage` insert plus every call to `recordLineage`, `recordLineageSafe`, `recordDecisionOrigins` and `recordLearningPrecedents`: **12 direct write sites, 18 helper call sites.** The pairs that genuinely have a writer in `src/`:
+>
+> | Writer exists | Where |
+> | --- | --- |
+> | `signal -> opportunity` | `discovery.functions.ts:943`, `:3909` |
+> | `signal -> theme` | `ai/cluster.server.ts:433` |
+> | `theme -> opportunity` | `discovery.functions.ts:927` |
+> | `opportunity -> decision` | `discovery.functions.ts:1774` |
+> | `opportunity -> prd` | `discovery.functions.ts:3733` |
+> | `prd -> mission` | `studio.functions.ts:405` |
+> | `prd -> prd_flow` | `flows.functions.ts:158` |
+> | `prd -> prototype` | `prototypes.functions.ts:121` |
+> | **`prd -> learning`** | **`outcome.functions.ts:632`** |
+> | `prd_flow -> prd_scaffold` | `design-scaffold.functions.ts:596` |
+> | `design_memory -> prd_scaffold` | `design-scaffold.functions.ts:640` |
+> | `mission -> decision` | `test-station.functions.ts:238` |
+> | `mission -> prd` | `design-parity.functions.ts:217` |
+> | `mission -> changeset` | `ai/tools/registry.server.ts:1739` |
+> | `changeset -> deployment` | `deployments.functions.ts:993` |
+> | `capability_change -> decision` | `capabilities.functions.ts:665` |
+> | `decision -> decision` | `contradiction-auditor.functions.ts:77` |
+> | `house_rule -> house_rule` | `house-rules.functions.ts:430` |
+>
+> **The distinction this makes, and it is the honest version of our own claim:** `prd -> learning` **has a writer and has never fired.** Zero rows. That is a very different statement from "the loop is not built", and it is the true one. **A writer that exists and has not run is a product waiting for a user. A hop with no writer is a hole.** Only the code can tell them apart, and the row count cannot.
 >
 > Correct figures and their queries: [`../../pitch/verified-numbers.md`](../../pitch/verified-numbers.md).
 

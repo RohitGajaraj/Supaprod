@@ -152,7 +152,7 @@ The three layers land without ever being named, because Maya needs them in this 
 | --- | --- | --- |
 | 1 and 2 | **01 the director** | "it tells her what to build, and it pushes back" |
 | 3 | **02 the operating system** | "it actually ships, and she stays in control" |
-| 4 and 5 | **03 the company brain** | "and it remembers, so it compounds" |
+| 4 and 5 | **03 the brain** | "and it remembers, so it compounds" |
 
 **Never open on the brain.** It is meaningless until the audience has watched Maya make one decision and live with the result. It is the crescendo, not the intro.
 

@@ -23,7 +23,7 @@
 
 - "The biggest blocker to AI automation of companies is no longer the models — they just got so good so quickly. Now the blocker is domain knowledge."
 - "A system that pulls knowledge out of fragmented sources, structures it, keeps it current, and turns it into an executable skills file for AI. This isn't company-wide search or a chatbot over documents. It's a living map of how a company works."
-- "The company brain becomes the missing layer between raw company data and reliable AI automation. Every company in the world will need one."
+- "The brain becomes the missing layer between raw company data and reliable AI automation. Every company in the world will need one."
 
 **"Software for Agents" — Aaron Epstein (verbatim, key sentences):**
 

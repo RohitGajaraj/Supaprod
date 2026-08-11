@@ -21,8 +21,22 @@
  * one short taxonomy rather than as four empty rooms.
  * =================================================================== */
 
+/* `--today-section-gap`: ONE GAP BETWEEN SECTIONS, AND THERE WERE TWO
+ * (2026-08-11, measured at 1280 in a browser).
+ *
+ * Walking the rendered page top to bottom, the space above each sibling section
+ * went 36, 40, 40, 36, 40. The lanes and "The last thing it learned" are
+ * `.sp-block`s and take that primitive's own 36px; this sheet's own sections
+ * took `--sp-space-9`, which ink.css documents as the WORK REGION GUTTER rather
+ * than as a gap between groups. Wrong token, and the page paid for it in a
+ * rhythm that changed every other section.
+ *
+ * It resolves toward 36 rather than 40 because `.sp-block` is the shared
+ * primitive and draws the majority of the sections here: matching it is a
+ * change to this surface, moving it would be a change to every station. */
 .today-page {
   --today-quiet: var(--sp-mute);
+  --today-section-gap: 36px;
   width: 100%;
   max-width: 1120px;
 }
@@ -319,7 +333,7 @@
  * for is the workspace's own record. */
 
 .today-example {
-  margin-top: var(--sp-space-9);
+  margin-top: var(--today-section-gap);
   padding: var(--sp-space-6);
   background: var(--sp-sink);
   /* Mixed from the metadata ink, not from --sp-line. The edge token measures
@@ -421,7 +435,7 @@
 
 .today-director {
   min-width: 0;
-  margin-top: var(--sp-space-9);
+  margin-top: var(--today-section-gap);
   padding: var(--sp-space-6);
   background: var(--sp-sink);
   border: 1px solid var(--sp-line-soft);
@@ -518,7 +532,7 @@
   grid-template-columns: minmax(220px, 0.45fr) minmax(0, 1fr);
   gap: var(--sp-space-6);
   align-items: center;
-  margin-top: var(--sp-space-9);
+  margin-top: var(--today-section-gap);
   padding: var(--sp-space-5) 0;
   border-top: 1px solid var(--sp-line-soft);
   border-bottom: 1px solid var(--sp-line-soft);
@@ -557,7 +571,7 @@
 /* ---- what changed (pushed insights) ------------------------------- */
 
 .today-notices {
-  margin-top: var(--sp-space-9);
+  margin-top: var(--today-section-gap);
 }
 
 .today-notices-head {
@@ -693,7 +707,7 @@
 /* ---- the onboarding handoff --------------------------------------- */
 
 .today-critic {
-  margin-top: var(--sp-space-9);
+  margin-top: var(--today-section-gap);
   padding: var(--sp-space-6);
   background: var(--sp-float);
   border: 1px solid var(--sp-line);

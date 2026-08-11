@@ -39,7 +39,7 @@ const FAQ: FaqEntry[] = [
   {
     q: "What is Supaprod?",
     a: [
-      "Supaprod is the agentic-first operating system for product teams. It tells you what to build, builds and ships it, then learns what actually worked. Agents do the product work end to end and you make the calls. Nothing irreversible happens without your approval.",
+      "Supaprod is where product decisions live when agents do the work. It tells you what to build, builds and ships it, then learns what actually worked. Agents do the product work end to end and you make the calls. Nothing irreversible happens without your approval.",
     ],
   },
   {

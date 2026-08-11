@@ -4,7 +4,7 @@
 
 > ## ⭐ RECONCILED 2026-08-04 with the three-layer structure
 >
-> This document's thesis, that the moat is the **decision-and-outcome layer**, is intact. What it predates is where that layer sits in the product. Every outward surface now leads with three named layers: **01 the director** (tells you what to build), **02 the operating system** (runs the seven-station lifecycle), **03 the company brain** (**learns, then guides**).
+> This document's thesis, that the moat is the **decision-and-outcome layer**, is intact. What it predates is where that layer sits in the product. Every outward surface now leads with three named layers: **01 the director** (tells you what to build), **02 the operating system** (runs the seven-station lifecycle), **03 the brain** (**learns, then guides**).
 >
 > **The decision-and-outcome layer IS layer 03**, and only 03 is defensible alone: 01 is a capability a frontier model narrows every release, and 02 buys quarters rather than a position. The defence is the ordering, because a competitor must own the loop before they can accumulate the record. Everything below about the no-fast-oracle asymmetry and outcome-labelled judgment is the argument for 03; read it that way.
 >
@@ -69,7 +69,7 @@ On 2026-06-23 the founder asked for a brutally honest, outsider strategic teardo
 
 **The build doctrine for the pitch window (15 to 20 days):** do not add surface area (that is what makes it _feel_ fragmented). **Light up and fuel the engine you already built, then make the Track record the hero, then stitch and design it to consumer-grade.** The journey is build → stitch → wire → design → ship, and the rich showcase content comes last (founder ruling). The v11 build front is ranked #1-18 in the dashboard, capabilities-first.
 
-**One sentence for the pitch:** _Supaprod is the decision and outcome operating system for product teams: it senses what is happening, decides what is worth building, executes the work autonomously, keeps a trustworthy record of every call and whether it was right, and gets smarter about your product with every outcome, in the one layer frontier models and single-suite incumbents structurally will not own._
+**One sentence for the pitch:** _Supaprod is where product decisions live when agents do the work: it senses what is happening, decides what is worth building, executes the work autonomously, keeps a trustworthy record of every call and whether it was right, and gets smarter about your product with every outcome, in the one layer frontier models and single-suite incumbents structurally will not own._
 
 ---
 

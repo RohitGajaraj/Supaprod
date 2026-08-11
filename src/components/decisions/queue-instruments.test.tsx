@@ -120,6 +120,59 @@ describe("the score meter states its ceiling and never invents a movement", () =
     down.unmount();
   });
 
+  /**
+   * COLOUR IS THE SECOND CHANNEL AND NEVER THE ONLY ONE.
+   *
+   * The ramp was added on 2026-08-11 because a grey bar has to be MEASURED to
+   * be read, which costs a fixation per row on a ranked queue, and the founder
+   * put it plainly: "everything is a grey tone, the user cannot really pick
+   * until he clearly focuses on the score."
+   *
+   * These assertions pin BOTH halves, because the hue is only defensible while
+   * the redundant channel survives. If someone later drops the width or the
+   * numeral and keeps the colour, this fails, which is the point: that version
+   * would be unreadable in greyscale and to a reader who cannot separate red
+   * from green.
+   */
+  test("the band is carried by hue AND by the two channels that survive greyscale", () => {
+    const strong = render(<ScoreMeter value={9} ceiling={10} decimals={1} what="ICE" />);
+    expect(strong.container.innerHTML).toContain("--sp-score-strong");
+    expect(strong.container.innerHTML).toContain("width: 90%");
+    expect(strong.container.textContent).toContain("9.0");
+    strong.unmount();
+
+    const fair = render(<ScoreMeter value={5} ceiling={10} decimals={1} what="ICE" />);
+    expect(fair.container.innerHTML).toContain("--sp-score-fair");
+    fair.unmount();
+
+    const weak = render(<ScoreMeter value={2} ceiling={10} decimals={1} what="ICE" />);
+    expect(weak.container.innerHTML).toContain("--sp-score-weak");
+    weak.unmount();
+  });
+
+  test("the band reads the same at ceiling 100 as at ceiling 10", () => {
+    // The meter is used with both. A threshold in points would mean two
+    // different things on two surfaces, so the band is a fraction.
+    const ten = render(<ScoreMeter value={8} ceiling={10} what="ICE" />);
+    const hundred = render(<ScoreMeter value={80} ceiling={100} what="severity" />);
+    expect(ten.container.innerHTML).toContain("--sp-score-strong");
+    expect(hundred.container.innerHTML).toContain("--sp-score-strong");
+    ten.unmount();
+    hundred.unmount();
+  });
+
+  test("movement says which way in colour as well as in the glyph", () => {
+    const up = render(<ScoreMeter value={7.3} ceiling={10} decimals={1} delta={2} what="ICE" />);
+    expect(up.container.innerHTML).toContain("--sp-move-up");
+    up.unmount();
+
+    const down = render(
+      <ScoreMeter value={4.1} ceiling={10} decimals={1} delta={-1.5} what="ICE" />,
+    );
+    expect(down.container.innerHTML).toContain("--sp-move-down");
+    down.unmount();
+  });
+
   test("the bar is drawn against the stated ceiling and cannot overflow it", () => {
     const { container, unmount } = render(<ScoreMeter value={99} ceiling={10} what="ICE" />);
     expect(container.innerHTML).toContain("width: 100%");

@@ -1,6 +1,6 @@
 # Supaprod
 
-Supaprod is the agentic-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked. Wired end to end, from signal to learning and back again.
+Supaprod is where product decisions live when agents do the work. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked. Wired end to end, from signal to learning and back again.
 
 You remain in control: no irreversible action happens without your approval.
 
@@ -18,7 +18,7 @@ You cannot be the shared brain without owning the loop that generates the outcom
 
 ## What is Supaprod?
 
-An agentic-first operating system for product managers, product leads and founders. Seven stations, one governed route:
+Where product decisions live when agents do the work. For product managers, product leads and founders. Seven stations, one governed route:
 
 - **Discover** what to build: monitor signals (support patterns, analytics, competitor moves) and surface what warrants attention
 - **Decide** on bets: capture the evidence, the alternatives weighed against it, the approval chain, and whether the call was later proven right or superseded

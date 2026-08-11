@@ -55,6 +55,30 @@
 
 ---
 
+## §0b. The sentence-by-sentence pass, run 2026-08-11
+
+**Every load-bearing claim in this application, the thing that would make it true, and the result of running it.** This is the pass that was missing when the rebuild was written, and it is the reason two claims below changed after the founder's review rather than before it.
+
+| Claim | Checked against | Verdict |
+| --- | --- | --- |
+| "advances product missions on its own every minute" | `cron.job`: `resume-runs` is `* * * * *`, active, and imports `advanceMissionCore` | ✅ **True.** 37 cron jobs active. I nearly flagged this as false by reading `loop-tick` (`*/10`) and stopping |
+| "agents that open real pull requests" | `studio_changesets` **44**, `deployments` **42**, `mission→changeset` lineage **21**, `changeset→deployment` **14** | ✅ **True** |
+| "behind a merge gate no agent can cross" | `agent_approvals` **289 rows**; `approvals-tick` cron active every minute | ✅ **True.** The gate has fired 289 times |
+| "one-key rollback on anything they produce" | `src/components/prds/RewindButton.tsx`, `src/lib/studio-rollbacks.ts` | ✅ **True** |
+| **"permissions agents earn from their track record"** | `src/lib/ai/trust-ramp.ts` exists and is careful: it *proposes* graduation, a human accepts, and an agent with a recent missed outcome gets no proposals. **But `capability_changes` = 0.** | ⚠️ **CHANGED.** The mechanism is real and has **never fired.** No agent has earned anything. Reworded to the mechanism, not the history |
+| **"connect the tools where your product signals already live"** | `src/lib/connectors/providers/index.server.ts`: **11 providers are `stubAdapter`**, including **Linear, Notion, Jira, Figma, Gmail, Google Docs** | ⚠️ **CHANGED.** Real: Slack, Intercom, Zendesk, Canny, Productboard, Salesforce, HubSpot, Stripe, GitHub, GitLab. **The named ones are now named, because a PM reading "the tools where your signals live" assumes Linear and Jira, and those are stubs** |
+| "a shipped spec gets checked against what happened" | `prd → learning` writer at `outcome.functions.ts:632` | ✅ **Exists**, and has **never fired** (0 rows). Already stated that way |
+| "argue against the weak bets before you see them" | `src/lib/ai/persona-critic.ts` | ✅ **True** |
+| "4,900+ commits, 512 migrations, ten weeks" | `git rev-list --count HEAD`, `ls supabase/migrations/*.sql`, first commit `2026-06-02` | ✅ **True and reproducible** |
+| "Notion shipped Ship OS free in July" / "Atlassian launched Product Collection in May" | `market-validation-2026-08.md` §3.2 and §8.4, both dated and sourced | ✅ **True** |
+| Zero outside users, no revenue | `production_workspace_ids()`: **6 workspaces, all founder or test accounts** | ✅ **True.** There is no customer data at all |
+
+> **The rule this pass exists to enforce:** a phrase sweep catches a retired claim in any wording and misses a number carrying the same claim; a mechanism sweep catches a missing writer and misses prose asserting the mechanism exists. **Anything that appears only as a sentence is invisible to both.** So the third pass is: take each load-bearing sentence, find the code or query that would make it true, and run it. Not "is this worded right", not "does this mechanism exist", but **"is this specific sentence true right now."**
+
+**The distinction that did the most work here, and it is worth carrying into the interview:** *a writer that exists and has not run is a product waiting for a user; a hop with no writer is a hole.* Two claims in this application are the first kind, and both now say so plainly. **That is a much better answer to "is it actually built" than any number**, because it is checkable in the code rather than in a database that is honestly still empty.
+
+---
+
 ## 7. Company
 
 ### 7a. Company name
@@ -90,8 +114,10 @@ _Signup closed 2026-08-07; the invite code is the way in and is reserved for YC.
 ```
 Supaprod is where a product org runs when AI agents do the work. The shortest
 way to say it: Cursor for product managers, but it is one system for the whole
-lifecycle rather than a copilot bolted onto one step. You connect the tools
-where your product signals already live and the agents take it from there.
+lifecycle rather than a copilot bolted onto one step. You connect the places
+your product signals already live, Slack, Intercom, Zendesk, Canny,
+Productboard, Salesforce, HubSpot, Stripe and GitHub today, and the agents
+take it from there.
 They read the signals, cluster them into opportunities, argue against the weak
 bets before you see them, write the spec with the evidence attached, plan the
 work, and hand builds to coding agents. You approve the calls that matter.
@@ -130,7 +156,9 @@ _Keep your existing relocation paragraph; it reads fine._
 The product works end to end today and the login above is live. Ten weeks,
 solo: an engine that advances product missions on its own every minute; agents
 that open real pull requests behind a merge gate no agent can cross;
-permissions agents earn from their track record rather than being granted;
+a trust ramp that proposes graduating an agent's permissions after a run of
+clean approvals, and blocks proposals entirely for an agent with a recent
+missed outcome, though no agent has earned a graduation yet;
 one-key rollback on anything they produce; and a decision record where a
 shipped spec gets checked against what actually happened, and that verdict
 re-ranks what to build next.

@@ -242,15 +242,14 @@ export function Hero() {
                   with, so the site now agrees with the canon instead of
                   avoiding its own words.
 
-                  It also carries the audience. The line it replaced named the
-                  reader ("product managers who answer for what ships"); this
-                  one names the reader as the team and the category in the same
-                  breath, which is the trade the founder asked for.
-
-                  EMBER MOVES TO "AGENTIC-FIRST" and the one-accent rule is
-                  intact. The accent still marks the new information; the new
-                  information is no longer who it is for but what it is, and
-                  the differentiating word is the one everything is about. */}
+                  It also carries the audience, and that has now moved twice.
+                  It named the reader ("product managers who answer for what
+                  ships"), then named the team and the category together, and on
+                  2026-08-11 it came back to naming the reader. The round trip
+                  is not indecision: the middle version was chosen to buy a
+                  wider arena and was retired once the ICP was re-locked to the
+                  individual PM. A line that names a market outlives its welcome
+                  faster than one that names a person. */}
               {/* TWO ACCENTS ON THIS LINE (founder 2026-08-10), and they are the
                   page's own colour language rather than decoration. The note at
                   the top of this file records the rule as ONE ember word, and
@@ -258,21 +257,41 @@ export function Hero() {
 
                   It is defensible on the page's own terms. Blue is the machine
                   here (the replay, the 80% stat, layer 02) and ember is the
-                  human (layer 01, the CTA). "Agentic-first" is the machine half
-                  of the category and "product teams" is who the humans are, so
-                  the line teaches the palette before the headline arrives: blue
-                  is what runs it, ember is who answers for it. That is exactly
-                  what the earlier two-colour version of this line did, for the
-                  same stated reason.
+                  human (layer 01, the CTA), which is the same law the whole
+                  product runs on: ember marks the person, never the machine.
+                  This line teaches that palette before the headline arrives.
 
                   What keeps it from being the everything-is-important failure
                   the one-accent rule was written against: both accents are 12px
                   inside one short line and they mark the two nouns of a single
                   sentence, not four unrelated objects competing across a
                   viewport. The headline stays the only white object and the
-                  only large one. */}
-              The <span className="font-medium text-[#6cb0f5]">agentic-first</span> operating system
-              for <span className="font-medium text-[#FF6B2C]">product teams</span>
+                  only large one.
+
+                  REWRITTEN 2026-08-11, founder ruling, and BOTH HALVES CHANGED.
+
+                  The line said "The agentic-first operating system for product
+                  teams". "Operating system" is retired everywhere rather than
+                  demoted, in his words because it "sounds like a cliche and
+                  vague, where people do not want to get into that". It had been
+                  on the retirements list as the LEAD since 2026-08-10 and this
+                  page never got the memo.
+
+                  "Product teams" became "product managers" because NOBODY
+                  SELF-IDENTIFIES AS A TEAM. An eyebrow works by recognition,
+                  and "product team" is how a vendor describes a market rather
+                  than how a person describes themselves. It is the same failure
+                  as "operators". It also matches the locked ICP, the individual
+                  PM or founding PM, and a team noun signals procurement when
+                  the land motion is a person who can start without asking
+                  anyone.
+
+                  The colours swapped ends with the nouns and the LAW did not
+                  move: ember is still on the human, blue is still on the
+                  machine. It reads as an inversion and is the opposite, which
+                  is why this paragraph exists. */}
+              For <span className="font-medium text-[#FF6B2C]">product managers</span> who ship with{" "}
+              <span className="font-medium text-[#6cb0f5]">agents</span>
             </p>
 
             <h1

@@ -125,7 +125,7 @@ Every line below is cut from ratified canon, aimed at whoever actually walks in 
 >
 > > For product managers who ship with agents. Tells you what to build, builds and ships it, then learns what actually worked.
 >
-> That is the same three layers — director, operating system, company brain — but as things that happen *for the reader* rather than labels on our own map. The station names belong in product surfaces and in the diagram on the banners, where they are drawn and therefore self-explaining. They never appear as a bare list in prose.
+> That is the same three layers — director, operating system, brain — but as things that happen *for the reader* rather than labels on our own map. The station names belong in product surfaces and in the diagram on the banners, where they are drawn and therefore self-explaining. They never appear as a bare list in prose.
 
 > **Corrected 2026-08-05: it is "agentic-first", not "agent-first".** The live `/brief` and `/investors` heroes both run `FOR PRODUCT MANAGERS WHO SHIP WITH AGENTS`, and `agentic-first` is the phrase used in eight places across `src/`.
 >

@@ -11,7 +11,7 @@
 | | Decision | Default already applied |
 | --- | --- | --- |
 | **1** | **The replacement YC copy is outward-facing and needs his eyes.** The three product numbers are gone and a second admission paragraph is in, naming the workspace-id-shape cause and the column that fixes it. | Written and in the file. Nothing sends without him, so this waits, it does not block. |
-| **2** | **Stop leading with the forecast as the moat.** This touches the category, which is his call, so it is a recommendation and the canon is unchanged. | **Not applied.** Reasoning in [`../research/market-validation-2026-08.md`](../research/market-validation-2026-08.md) §8.5. |
+| **2** | **Stop leading with the forecast as the moat.** | ✅ **RULED AND APPLIED 2026-08-11.** Canon: [`../strategy/positioning-locked-2026-08.md`](../strategy/positioning-locked-2026-08.md) §5K.1. Lead with the governed record; the forecast is a byproduct of the work whose first consumer is the next agent, never a scoreboard. |
 | **3** | **"The company brain" became "the brain".** Decided under the autonomy directive rather than escalated. | Applied everywhere. YC's "Company Brain" stays quoted and attributed at `README.md:47`. |
 
 ### The finding, so nobody re-derives it

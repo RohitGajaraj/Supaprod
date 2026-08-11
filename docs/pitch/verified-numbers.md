@@ -99,6 +99,21 @@ Every wrong number found on 2026-08-11 has the same shape, and naming it is wort
 
 **And prefer failing closed.** `production_workspace_ids()` is a function that excludes anything it cannot positively attribute. Every version that tried to *detect* seeded data by pattern was wrong in both directions; the version that *asserts* ownership is not.
 
+### The blind spot two different audits share, named 2026-08-11
+
+Two lanes swept the same defect all day from opposite ends and both missed the middle.
+
+| Sweep style | Catches | **Misses** |
+| --- | --- | --- |
+| **By phrase** (docs lane) | A retired claim in any of its wordings | **A number carrying the same claim.** "36 real edges" asserts the compounding moat without using one banned word |
+| **By mechanism** (code lane) | A writer that does not exist, a query that is wrong | **Prose asserting the mechanism exists.** `brain/insights.functions.ts` had this exact defect written down in detail, with counts, as a documented gap |
+
+> **Anything that appears only as prose asserting a fact is invisible to both, and a documented gap reads as a handled one.** That file described the defect accurately for weeks while nothing closed it, and the description is what made it look closed.
+
+**So a third pass is required and it belongs to whoever owns the claim:** take each load-bearing assertion, find the code or query that would make it true, and run it. Not "is this claim worded correctly" and not "does this mechanism exist", but **"is this specific sentence true right now."**
+
+**And when a false alarm resolves, check what it was hiding before closing the investigation.** The `themes.status` false alarm was concealing 42 already-promoted clusters still being offered to a human for a decision on work already being built. The instinct after disproving an alarm is to move on; twice today the real defect was underneath it.
+
 ---
 
 ## 6. How this happened, so it does not happen again

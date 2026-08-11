@@ -337,7 +337,7 @@ export default {
           {
             name: "Supaprod",
             description:
-              "The agentic-first operating system for product teams. Tells you what to build, builds and ships it, then learns what actually worked.",
+              "Supaprod is where product decisions live when agents do the work. Tells you what to build, builds and ships it, then learns what actually worked.",
             // /mcp, NOT /api/mcp. The agent card advertised /api/mcp, which
             // serves the SPA shell; /mcp is the endpoint that actually answers.
             // Both are fixed, and this is the reason they disagreed.

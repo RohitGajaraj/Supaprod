@@ -1,4 +1,4 @@
-# Brain: Perplexity-grade research + the company brain, one surface (`F-CHAT-V2` → `F-RESEARCH` → `F-BRAIN`)
+# Brain: Perplexity-grade research + the brain, one surface (`F-CHAT-V2` → `F-RESEARCH` → `F-BRAIN`)
 
 > _Created: 2026-06-12 · Last updated: 2026-06-19_
 
