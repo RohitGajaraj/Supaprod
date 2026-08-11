@@ -40,7 +40,7 @@
 
 ## Frame-specific notes (one agent per frame, sequential)
 
-- **04-supaprod** (fidelity anchor): rebuild the revealed home screen to match the screenshots'
+- **04-supaprod** (fidelity anchor): under the tagline, three thesis chips fade on their cues: "knows what to build · runs the lifecycle · learns and guides"; rebuild the revealed home screen to match the screenshots'
   surface almost literally — greeting, "3 calls waiting on you." headline, Shipped section, review
   card — plus the shell above. Keep the logo-draw/punch-through opening untouched. Lower-third stays.
 - **05-signals-become-bets**: shell correction; Discover station active with "24 new signals" status;
@@ -50,15 +50,14 @@
 - **06-it-disagrees**: shell correction; Decide active; keep the 4.0/8.0 kill; the pass/kill moment
   gets fail-red strike + pass-green advance (real accept/reject states).
 - **07-the-forecast**: shell correction (dimmed behind the modal); keep the commit form beat intact.
-- **08-the-route**: shell correction on all three station screens (Plan/Design?/Build/Ship); DEEPEN:
+- **08-the-route**: Build shows its INPUT ("from spec 03 · checkout-fix" chip — interconnection visible) and a subtle tests line ("tests · writing themselves · 214 passing"); agent notes labeled "the agent's take"; shell correction on all three station screens (Plan/Design?/Build/Ship); DEEPEN:
   Build shows an agent run console with steps ticking, a real diff, tests passing, one boundary
   refusal ("schema drop — blocked · outside boundary" in fail red) = governed depth; ADD a Design
   station moment (the 7-hit flyover already passes it — give Design a real mini-surface: a prototype
   canvas with frames + a comment pin); Ship keeps release notes + GTM ticks. The wide gets
   lower-third "the complete product lifecycle — one platform."
-- **09-the-loop-closes**: (already revised once) shell correction + keep the labeled thread work.
-- **10-it-stops-you**: shell correction; Decide active; precedent panel stays; add "Q3 last year"
-  wording to the precedent card body (matches new VO); one real interaction: cursor hovers "view the
+- **09-the-loop-closes**: (already revised once) shell correction + keep the labeled thread work; the verdict visibly flows INTO the Brain icon on the rail (glyph pulses, count ticks — the shared memory absorbing it); agent note labeled "the agent's take".
+- **10-it-stops-you**: shell correction; Decide active; precedent panel stays; the precedent panel opens as GUIDANCE ("similar calls · 3 on the record · what worked / what didn't") and escalates to the stop; card body carries "Q3 last year · shipped · missed" precisely; one real interaction: cursor hovers "view the
   record".
 - **11-what-cant-be-reconstructed**: shell correction if the shell is visible (close-up frame — may
   be exempt); the two-plane record stays; right plane title becomes "What you believed · what worked

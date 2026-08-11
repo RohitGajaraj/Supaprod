@@ -23,7 +23,7 @@ music: "minimal cinematic pulse — restrained electronic with a warm analog und
 ## Frame 1 — Anyone can build
 
 - scene: An agent builds and ships a feature in seconds — an editor writes itself, a deploy goes green
-- voiceover: "These days, anyone can build. Agents write the code — beautiful features, shipped in days."
+- voiceover: "These days, anyone can build. Claude Code, Codex — agents write the code. Beautiful features, shipped in days."
 - duration: 8.2s
 - transition_in: cut
 - status: animated
@@ -44,7 +44,7 @@ Scene 3 (5.6–8.2s): on "shipped in days", the deploy status flips to a green "
 ## Frame 2 — Worth building
 
 - scene: A wall of shipped features over a flat adoption chart — lots built, nothing moved
-- voiceover: "But nobody tells you what's worth building. Teams ship the wrong features — beautifully. That's the judgment gap."
+- voiceover: "Nobody answers the real question: what's worth building. Months go into the wrong bets. That's the judgment gap."
 - duration: 8.5s
 - transition_in: crossfade
 - status: animated
@@ -175,7 +175,7 @@ Scene 3 (5.6–8.0s): close-up hold on the sealed row (timestamp, author, immuta
 ## Frame 8 — The route
 
 - scene: One traveling shot across Plan, Build, Ship — the spec writes, agents build inside boundaries, the ship kit assembles — landing wide on the whole route
-- voiceover: "From there, agents take it. In Plan, the spec writes itself. In Build, the work happens right inside. And Ship isn't just launch day — release notes, go-to-market, done. One platform. The whole lifecycle."
+- voiceover: "From there, agents take it. In Plan, the spec writes itself. In Build, the work happens right inside. And Ship isn't just launch day — the announcement, the changelog, the customer email. Done. One platform. The whole lifecycle."
 - duration: 18.2s
 - transition_in: push-slide LEFT
 - status: animated
@@ -221,7 +221,7 @@ Scene 4 (8.0–10.8s): on "It learns. Then it guides.", the camera pulls to show
 ## Frame 10 — It stops you
 
 - scene: Mid-draft, the product interrupts: you've made this call before — with the record to prove it
-- voiceover: "So the next time you're about to repeat a mistake, it stops you. Q3 last year — same call, shipped, missed."
+- voiceover: "And the next time you're deciding, it's beside you — similar calls, what worked, what didn't. About to repeat a mistake? It stops you."
 - duration: 12.3s
 - transition_in: crossfade
 - status: animated

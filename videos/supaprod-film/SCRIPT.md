@@ -11,14 +11,14 @@
 **Time:** 0.0 – 7.0s
 **Delivery:** Light, almost admiring. No dread yet.
 
-    These days, anyone can build. Agents write the code — beautiful features, shipped in days.
+    These days, anyone can build. Claude Code, Codex — agents write the code. Beautiful features, shipped in days.
 
 ## Line 2 — Worth building (Frame 2)
 
 **Time:** 7.0 – 15.0s
 **Delivery:** The turn. Slower on "worth". A beat before "and miss."
 
-    But nobody tells you what's worth building. Teams ship the wrong features — beautifully. That's the judgment gap.
+    Nobody answers the real question: what's worth building. Months go into the wrong bets. That's the judgment gap.
 
 ## Line 3 — You know the feeling (Frame 3)
 
@@ -60,7 +60,7 @@
 **Time:** 60.0 – 73.0s
 **Delivery:** Confident tour pace. "Plan", "Build", "Ship" each get their own beat. "One platform" lands as the point.
 
-    From there, agents take it. In Plan, the spec writes itself. In Build, the work happens right inside. And Ship isn't just launch day — release notes, go-to-market, done. One platform. The whole lifecycle.
+    From there, agents take it. In Plan, the spec writes itself. In Build, the work happens right inside. And Ship isn't just launch day — the announcement, the changelog, the customer email. Done. One platform. The whole lifecycle.
 
 ## Line 9 — The loop closes (Frame 9)
 
@@ -74,7 +74,7 @@
 **Time:** 83.0 – 93.0s
 **Delivery:** The aha. The quoted warning spoken like the product is speaking — calm, plain. Then back to the narrator for the last line.
 
-    So the next time you're about to repeat a mistake, it stops you. Q3 last year — same call, shipped, missed.
+    And the next time you're deciding, it's beside you — similar calls, what worked, what didn't. About to repeat a mistake? It stops you.
 
 ## Line 11 — What can't be reconstructed (Frame 11)
 
