@@ -758,7 +758,19 @@ function PlanPage() {
               ? "What does success look like for this bet?"
               : `What does success look like for these ${undeclared.length} bets?`
           }
-          linesLabel="Committed, with no outcome and no measure. Until one is named, a bet is only a task, and nothing can tell you later whether it worked."
+          /* THE STAKE STAYS ABOVE THE LIST AND STOPS SHOUTING (2026-08-11, same
+             day as the note above).
+             `sp-gate-what-label` is a CAPTION: mono, uppercase, letter-spaced
+             (primitives.css). Two sentences and 132 characters in that slot wrap
+             to two full-width lines of capitals directly under the question, and
+             measured at the filming width they outweighed the bet name they are
+             a caption for, which is the one object in this Gate a person has to
+             read. The fix is the sentence, not the slot: the middle clause
+             ("until one is named, a bet is only a task") restates the first
+             clause in other words, so cutting it loses no fact and takes the
+             caption to one line. Both halves of the point survive: the state,
+             and what the state costs. */
+          linesLabel="Committed, with no outcome and no measure. Nothing can tell you later whether it worked."
           lines={undeclared.slice(0, 3).map((b) => (
             <span key={b.id}>{stripAutoPrefix(b.title)}</span>
           ))}
@@ -1025,7 +1037,32 @@ function PlanPage() {
               </Empty>
             ) : (
               shownSpecs.map((spec) => {
-                const bet = spec.opportunity_id ? betTitleById.get(spec.opportunity_id) : null;
+                const specTitle = stripAutoPrefix(spec.title);
+                /**
+                 * THE JOIN IS ONLY A FACT WHEN IT NAMES SOMETHING THE LEAD DOES
+                 * NOT.
+                 *
+                 * `generatePrd` titles a spec from the bet it was written for,
+                 * so the two strings are frequently the same one. The row then
+                 * read "Skip the address re-confirm when nothing changed" on the
+                 * lead and "Approved · serves Skip the address re-confirm when
+                 * nothing changed" underneath it: the title printed twice, one
+                 * line apart, which reads as a rendering fault rather than as a
+                 * relationship. This file's own rule for a row is "its title
+                 * plus one DIFFERENT fact", and a restatement is not one.
+                 *
+                 * Compared case-insensitively and trimmed because the two
+                 * strings travel through different writers (`stripAutoPrefix`
+                 * here, the model's own casing there) and an incidental capital
+                 * is not a different bet. When they genuinely differ the suffix
+                 * is unchanged, which is every row where it was earning its
+                 * place.
+                 */
+                const betTitle = spec.opportunity_id ? betTitleById.get(spec.opportunity_id) : null;
+                const bet =
+                  betTitle && betTitle.trim().toLowerCase() !== specTitle.trim().toLowerCase()
+                    ? betTitle
+                    : null;
                 const settled = spec.status === "approved" || spec.status === "shipped";
                 /**
                  * THE DESIGN SUFFIX REPORTS A ROW OR IT SAYS NOTHING.
@@ -1135,7 +1172,7 @@ function PlanPage() {
                     // Dim means settled, normal means still moving. The station's
                     // agent, monochrome: ember is reserved for what wants you.
                     marks={<AgentMark slug="prd-writer" state={settled ? "quiet" : "idle"} />}
-                    lead={stripAutoPrefix(spec.title)}
+                    lead={specTitle}
                     // One line, one different fact: where the spec has got to,
                     // which bet it is, and - only when some row says so - what
                     // happened at the design gate.

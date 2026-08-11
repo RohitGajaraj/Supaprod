@@ -1863,6 +1863,15 @@ function Ship() {
         <>
           <Num>{untold}</Num> {word} since the last one went out.
         </>
+      ) : untold === 1 ? (
+        /* "none of them" OVER A COUNT OF ONE. The plural pronoun was written
+           for the many case and the singular branch fell through to it, so the
+           demo workspace's one unannounced release read "1 release on the
+           record, none of them announced." The fact is the same; only the
+           agreement changes. */
+        <>
+          <Num>1</Num> release on the record, and it has not been announced.
+        </>
       ) : (
         <>
           <Num>{untold}</Num> {word} on the record, none of them announced.
@@ -2598,8 +2607,15 @@ function Ship() {
                     // string built from a value nobody checked. The bare "live"
                     // is the honest fallback, since being in production is a
                     // fact we hold even when the clock on it is not.
+                    // AND THE "on" COMES OFF THE FRONT OF IT. `since` answers
+                    // "5d ago" inside a week and "on Jul 9" outside one, and
+                    // only the first half of that reads as a phrase after
+                    // "live since": every release older than a week printed
+                    // "live since on Jul 9". Stripping the preposition leaves
+                    // "live since Jul 9" and "live since 5d ago", both of which
+                    // are sentences.
                     s.productionAt && since(s.productionAt)
-                      ? `live since ${since(s.productionAt)}`
+                      ? `live since ${(since(s.productionAt) as string).replace(/^on /, "")}`
                       : "live",
                     // A pull request number with no URL behind it is still a
                     // fact worth stating; it just is not a door, so it stays
@@ -2841,7 +2857,11 @@ function Ship() {
                   The named columns are exactly the ones the entry copies from
                   the changeset. */}
               {docEntry.changeset_id
-                ? ' If a line here is behind the change itself -- most often the spec, which a promote links after this entry was written -- "Refresh it from the change" re-reads the changeset and brings the title, the notes, the pull request and that link back into the entry.'
+                ? /* NO BARE DOUBLE HYPHENS IN A SENTENCE A CAMERA READS. The
+                     pair that stood here rendered as two hyphens either side of
+                     a clause, which looks like a markdown artefact rather than
+                     punctuation; commas carry the same aside. */
+                  ' If a line here is behind the change itself, most often the spec, which a promote links after this entry was written, "Refresh it from the change" re-reads the changeset and brings the title, the notes, the pull request and that link back into the entry.'
                 : null}
             </p>
           </Prose>

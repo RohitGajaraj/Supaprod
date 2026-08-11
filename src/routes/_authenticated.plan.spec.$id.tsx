@@ -1538,9 +1538,23 @@ function SpecEditorPage() {
 
             The helper is `specStateWords` in plan/format.ts now, and both
             surfaces read it, so the word cannot drift again. */}
+        {/* AND THE DATE WAS THE RAW LOCALE DEFAULT, which is the same defect
+            one field along. `toLocaleDateString()` with no options renders
+            "7/17/2026" here while every other date this station shows a reader
+            is "17 Jul" (/ship's `onDate`, the route line 400 lines below, the
+            release document). A numeric slash-date is the format a database
+            prints, not the one a document is dated in, and it sat in the
+            second-highest line on the largest surface in the product. Same
+            options as `onDate`, so the two stations date a thing the same way. */}
         <div className="sp-subtitle">
           {specStateWords(prd.status)} · saved{" "}
-          <Num>{savedAt ?? new Date(prd.updated_at).toLocaleDateString()}</Num>
+          <Num>
+            {savedAt ??
+              new Date(prd.updated_at).toLocaleDateString(undefined, {
+                day: "numeric",
+                month: "short",
+              })}
+          </Num>
         </div>
 
         {/* The record, in one region, and now ABOVE the actions rather than
