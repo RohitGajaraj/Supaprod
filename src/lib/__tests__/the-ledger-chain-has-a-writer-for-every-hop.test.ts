@@ -107,6 +107,20 @@ const REQUIRED_PAIRS: ReadonlyArray<{ parent: string; child: string; where: stri
   // below, so "written in one place" cannot decay into "called from nowhere".
   { parent: "mission", child: "decision", where: "lib/lineage.functions.ts" },
   { parent: "prd", child: "decision", where: "lib/lineage.functions.ts" },
+  /**
+   * THE ONLY HOP THAT LEAVES A LEARNING, and the reason this guard exists at all.
+   *
+   * Every pair above enters an artifact. This is the first that leaves one. Until
+   * 2026-08-11 no production path had ever written `parent_kind: "learning"` — a
+   * learning was a permanent leaf, so the record could show what produced an
+   * outcome and never what the outcome changed. The product is sold on "learns,
+   * then guides the next call", and the guiding half was unwritten.
+   *
+   * It survived every sweep because 71 seeded `learning -> *` rows made the loop
+   * look closed, and the census that would have caught them split demo from real
+   * on a workspace-id PATTERN that the sample seed does not match.
+   */
+  { parent: "learning", child: "decision", where: "lib/lineage.functions.ts" },
 ];
 
 /**
@@ -135,6 +149,29 @@ describe("every door that files a decision against a parent stamps the edge", ()
       );
     });
   }
+
+  it("the learning precedent hop is CALLED, not merely defined", () => {
+    /**
+     * The lesson this guard already learned once, applied to the new pair before
+     * it can be learned again: a hop written in one place and called from nowhere
+     * satisfies a source-text check for `parent_kind: "learning"` while writing
+     * nothing at all. That is the shape found six times in this repo.
+     *
+     * `learning_citations` is the only table recording evidence shaping a later
+     * call, so its writer is the only door this hop can come from. If the citation
+     * writer moves, this assertion moves with it rather than being deleted.
+     */
+    const judgment = codeOf(
+      readFileSync(join(SRC, "lib", "decision-judgment.functions.ts"), "utf8"),
+    );
+    expect(
+      judgment,
+      "decision-judgment writes learning_citations but never stamps the edge",
+    ).toContain("recordLearningPrecedents(");
+    expect(judgment, "the stamp must sit with the citation insert it records").toContain(
+      "learning_citations",
+    );
+  });
 
   it("the writer takes a workspace as a REQUIRED argument and forwards it", () => {
     // `artifact_lineage.workspace_id` defaults to

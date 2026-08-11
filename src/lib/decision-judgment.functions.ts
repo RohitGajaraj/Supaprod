@@ -20,6 +20,7 @@ import {
   type DecisionAlternativeRow,
   type JudgmentPrecedent,
 } from "@/lib/decision-judgment";
+import { recordLearningPrecedents } from "@/lib/lineage.functions";
 
 export type DecisionCriticSummary = {
   verdict: "ship" | "revise" | "kill";
@@ -308,6 +309,25 @@ async function recordPrecedentCitations(
         trace_id: trace,
       })),
     );
+    /**
+     * THE ONE HOP THAT LEAVES A LEARNING, stamped where the citation is made.
+     *
+     * This citation row is the only place in the product that records evidence
+     * shaping a LATER call, and until 2026-08-11 it stopped here — the fact was
+     * in `learning_citations` and never in the graph, so `getProvenance` could
+     * walk into a learning and never out of it. A product sold on "learns, then
+     * guides the next call" could not show the guiding.
+     *
+     * After the insert and fail-soft, for the reason every provenance stamp in
+     * this repo is: the citation is the durable record and a transport failure
+     * on the edge must never fail the judgment the user just asked for.
+     */
+    await recordLearningPrecedents(db, args.userId, {
+      decisionId: args.decisionId,
+      learningIds: plan.citeLearningIds,
+      workspaceId: args.workspaceId,
+      createdByAgent: "decision-precedent",
+    });
   }
   // Parallelize RPC calls: bump all decision IDs concurrently
   await Promise.all(
