@@ -38,7 +38,9 @@ const RecordSchema = z.object({
   toolName: z.string().max(100).nullish(),
   verdict: z.string().max(60).nullish(),
   diffSummary: z.string().max(2000).nullish(),
-  workspaceId: z.string().uuid().nullish(),
+  // Required key, nullable value, matching HumanGateEventInput: a caller that
+  // forgets the workspace must be told, not silently given a row nobody reads.
+  workspaceId: z.string().uuid().nullable(),
 });
 
 /** Externally-callable capture (e.g. a client-side edit/override gate). Best-effort. */

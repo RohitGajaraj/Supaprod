@@ -38,7 +38,15 @@ export type HumanGateEventInput = {
   verdict?: string | null;
   /** Short human-readable summary of what the human changed. */
   diffSummary?: string | null;
-  workspaceId?: string | null;
+  /** Which workspace the gate belongs to. REQUIRED, because every reader of
+   *  `human_gate_events` scopes by workspace_id and self-improve's
+   *  `readAgentSignals` scopes by it with no fallback - a row written without
+   *  one is stored, counted in no rate, and read by nobody. Still nullable, and
+   *  the null must be passed on purpose: `trust_graduation_proposals` predates
+   *  workspace tenancy and has no workspace to name (GATE_SOURCE
+   *  .trust_graduation.hasWorkspace === false), so null is a real answer there
+   *  rather than a forgotten one. */
+  workspaceId: string | null;
 };
 
 /** The insert shape for the `human_gate_events` table (snake_case columns). */

@@ -2318,7 +2318,7 @@ export const supersedeContractClause = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { data: prd, error } = await supabase
       .from("prds")
-      .select("contract")
+      .select("contract,workspace_id")
       .eq("id", data.id)
       .single();
     if (error || !prd) throw new Error(error?.message ?? "Spec not found");
@@ -2360,6 +2360,10 @@ export const supersedeContractClause = createServerFn({ method: "POST" })
         agentSlug: "metric:contract-clause",
         verdict: "edited",
         diffSummary: `${data.section}: ${data.new_text}`.slice(0, 500),
+        // prds.workspace_id is NOT NULL, so this always names a real
+        // workspace. Omitting it filed the edit under no workspace, where
+        // loadFlagEvidence could never read the clause text back.
+        workspaceId: prd.workspace_id,
       });
     }
     return { contract: updatedContract };
