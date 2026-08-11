@@ -36,9 +36,22 @@
  * empty read treated as a fact about the world rather than as "not known yet".
  */
 
-/** The shape this needs from a react-query result. Structural on purpose, so it
- *  works with useQuery, useSuspenseQuery and a hand-rolled stub in a test. */
-export type AnswerableQuery = { isPending: boolean; data: unknown };
+/**
+ * The shape this needs from a react-query result. Structural on purpose, so it
+ * works with useQuery, useSuspenseQuery and a hand-rolled stub in a test.
+ *
+ * `isError` IS OPTIONAL, AND ITS ABSENCE USED TO MAKE THE RIGHT ANSWER
+ * UNREPRESENTABLE. Without it the type cannot tell "the read FAILED" from "the
+ * answer has not arrived": both are `isPending: false, data: undefined`. That is
+ * not a missing convenience, it is the reason every call site had to reach around
+ * this helper — and two of them did not, and hung.
+ *
+ * Optional rather than required so the hand-rolled stubs below and in
+ * `an-empty-read-is-not-an-empty-workspace.test.ts` keep compiling and keep
+ * meaning what they meant: an omitted `isError` is falsy, so every existing
+ * assertion in that file returns exactly what it returned before.
+ */
+export type AnswerableQuery = { isPending: boolean; data: unknown; isError?: boolean };
 
 /**
  * True while ANY of the given queries has yet to produce an answer.
@@ -47,7 +60,32 @@ export type AnswerableQuery = { isPending: boolean; data: unknown };
  * fewer is the bug this function exists to prevent: a headline that counts one
  * dataset while branching on another can still claim "none" the moment the
  * dataset it did NOT wait for is undefined.
+ *
+ * AN ERROR IS AN ANSWER, and until 2026-08-11 this function disagreed.
+ *
+ * react-query v5 settles a query that fails with NO cached data into
+ * `status: 'error'` — so `isPending` goes false while `data` STAYS undefined.
+ * The old body was `isPending || data === undefined`, which therefore returned
+ * true FOREVER after a cold failure. Every call site that asked this before its
+ * error arm rendered a permanent skeleton, its `<Failed>` sentence and retry
+ * became unreachable dead code, and any `refetchInterval` on the query kept
+ * failing silently behind the spinner. Two surfaces hit it independently
+ * (`build.index.tsx`, `HeldClaims.tsx`), and `ship.tsx` had already worked around
+ * it locally at its `docReading` line — three encounters with one defect, which
+ * is what a wrong SHAPE looks like from the outside. A workaround repeated at
+ * every call site is a defect that has learned to look like a convention.
+ *
+ * WHY THIS IS NOT SIMPLY "RETURN FALSE ON ERROR AND MOVE ON". The change is only
+ * safe where an error arm is reachable. At a surface shaped
+ * `waiting → empty → content`, making the wait end on failure renders the EMPTY
+ * state — telling a user with data that they have none, which is the exact
+ * production defect at the top of this file. So this landed with every call site
+ * audited for a reachable error arm, not on the strength of the helper alone.
+ *
+ * The local `&& !q.isError` guards that predate this (ship.tsx, plan.index.tsx)
+ * are now redundant. They are also still correct, and left in place deliberately:
+ * removing them is a separate, wider edit than the one that fixes the defect.
  */
 export function stillWaiting(...queries: AnswerableQuery[]): boolean {
-  return queries.some((q) => q.isPending || q.data === undefined);
+  return queries.some((q) => !q.isError && (q.isPending || q.data === undefined));
 }

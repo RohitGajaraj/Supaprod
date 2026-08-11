@@ -200,7 +200,25 @@ describe("Today never prints a claim it has not read yet", () => {
     // The one region that legitimately says nothing about reading. A headline
     // reading "Reading..." is the surface talking about itself, and the date is a
     // true fact the person came in already holding.
-    expect(offenders(src, /if \(loading\) return "Today";/)).toHaveLength(1);
+    //
+    // ASSERTED AS A RULE RATHER THAN AS A CHARACTER SEQUENCE, because the literal
+    // pin `/if \(loading\) return "Today";/` broke on 2026-08-11 for a change that
+    // STRENGTHENED the very property it was protecting. `stillWaiting` was fixed
+    // to stand down on a failed read; that removed the accident by which a cold
+    // `missions` failure had kept `loading` true for ever, so the guard had to
+    // widen to keep the headline off a count it could not make. A test that fails
+    // when its own rule is better enforced is measuring the spelling.
+    const branch = src.match(/if \(([^)]*)\) return "Today";/);
+    expect(branch, 'the headline no longer opens with a branch returning "Today"').not.toBeNull();
+
+    // `loading` covers "has not answered yet".
+    expect(branch![1]).toContain("loading");
+
+    // `missions.isError` covers "answered with a failure". Two of the three
+    // counts in `stateSentence` — stuck and shipped — come from `missions`, and
+    // a zero there reads as "nothing happened" rather than as "not known". Drop
+    // this and a failed read prints "Nothing is stuck." as a fact.
+    expect(branch![1]).toContain("missions.isError");
   });
 });
 
