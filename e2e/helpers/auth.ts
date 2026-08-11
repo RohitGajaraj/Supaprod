@@ -160,7 +160,7 @@ export const SCREENSHOT_DIR = path.join(findRepoRoot(), "docs", "screenshots", "
  * localStorage, so the cookie replay this file's header describes could never
  * have carried it.
  */
-export const STORAGE_STATE = path.join(findRepoRoot(), "test-results", "storage-state.json");
+export const STORAGE_STATE = path.join(findRepoRoot(), "playwright", ".auth", "storage-state.json");
 
 export async function ensureScreenshotDir(subDir?: string) {
   const dir = subDir ? path.join(SCREENSHOT_DIR, subDir) : SCREENSHOT_DIR;
