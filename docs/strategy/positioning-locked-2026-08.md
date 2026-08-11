@@ -264,6 +264,36 @@ Beat 2 is verbatim from an operator (Bal Sieber, 2026-06-27). Those three jobs *
 
 **This also answers the founder's own objection** — why an agentic-first product hands a human 172 pending decisions and 50 tool gates. The honest answer is that the mechanism to reduce them exists, is proven, and is plumbed into one station. That is a roadmap item with evidence behind it, not a defect.
 
+## 5J. Four corrections to this document, 2026-08-11 — founder challenge
+
+The founder pushed on the evidence rather than accepting it. Three of the four challenges landed.
+
+### ① One lab, not two. I overstated it.
+
+**Krieger holds and is the whole argument.** Anthropic's CPO, 2025-06-05, verbatim: *"I started the year by writing a doc that was effectively how do we do product today and where is Claude not showing up yet that it should? And I think that **upstream part is the next one to go**… **Can Claude be a partner in figuring out what to build? What the market size is…? What the user needs are…?**"* He names our layer, calls it next, and mentions ChatPRD in the same breath.
+
+**Embiricos does NOT hold.** His actual words are that Codex *"participates early on in the ideation and planning phases **of writing software**."* That is the **software-engineering** lifecycle, upstream of code rather than upstream of product decisions. §2 compressed this into "both labs, on record", which is **wrong**. Corrected: **one lab**. The conclusion survives on Krieger alone, but the evidence is thinner than first stated and anyone repeating it should say one, not two.
+
+### ② The DIY finding is nine clusters, not six PMs — and it has a real ceiling
+
+The six-PM thread is one cluster of nine spanning four years: Tolga (four tools → folder) · Roemer · Laak · Milko (dated shift *away* from buying) · Nichols (built his own, failed on governance) · Abouelnagah (shipped a competing memory-lifecycle tool) · Grosser · Vo · a Series E staffing a PM to build it — plus ~95 *How I AI* episodes and every pre-AI lifecycle being hand-run.
+
+**But the ceiling is real and must be stated whenever this finding is used: it is all ONE ecosystem.** Lenny's world is PM-adjacent, US-centric, early-adopter-skewed, and self-selects for people who enjoy building their own tools. **A corpus of tinkerers over-reports tinkering.**
+
+**Standing rule: this finding is strong enough to change how we talk, not yet strong enough to change what we build.** That is exactly what was done — positioning moved, the roadmap did not. Validating it properly needs a second independent source (analyst data, competitor traction, job postings) and five conversations with buyers outside that community.
+
+### ③ OKF was overstated as strategy. It is optionality.
+
+**Nobody is on OKF** — it shipped in July 2026. The real move is **"read whatever they already have"**: Notion, Google Docs, Slack, Confluence, markdown in repos, which we already have connectors for. Onboarding a non-OKF team is not a problem to solve, it is the normal path — *point us at your existing mess, we read it, we add governance on top; nothing to migrate.*
+
+**OKF is one more importer, worth supporting because being compatible with a forming standard beats fighting it.** For a team already on it, we can ingest losslessly **and export back**, which makes us additive rather than lock-in — and that directly answers the DIY objection.
+
+### ④ The register split is retired. Practitioner language everywhere.
+
+**Founder ruling: use what practitioners say on every surface, in-product as well as public.** Drop what we invented (*receipts · ledger · company brain · decision layer · unattended · first run · provenance*). Keep what they say (*audit trail · shared brain · evidence · history · track record · drift · gate · context governance*).
+
+**The audit's headline finding inverts the assumption the register split rested on:** we drifted worst on **public** surfaces, not in-product — 4 public files gave 31 changes from 15 surfaces, while **305 in-product surfaces gave 26**. The invented vocabulary concentrated exactly where we were trying hardest to sound differentiated. Exact strings: [`../growth/vocabulary-change-list-2026-08.md`](../growth/vocabulary-change-list-2026-08.md).
+
 ## 6. Routed to the lanes
 
 **Lane 1 (function/gaps):** forecast capture at decision time is the priority build — it is the only un-backfillable asset and it is one feature. Then confidence grades on outcome labels (30–40% of lift-showing experiments show no long-term lift; a p<0.05 result is wrong ~1 in 4). Intervention logging is wired but starved and begins accruing now.
