@@ -1,0 +1,431 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frame 06 — It disagrees</title>
+    <!-- head is metadata only; the runtime clones ONLY the <template> contents -->
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+
+        /* Root styled via #root only — never a class (scoper drops root classes). */
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          --ink: #0a0a0b;
+          --ink2: #141416;
+          --orange: #ff6b2c;
+          --cream: #f2efe9;
+          --muted: #a8a29a;
+          --hint: #6b6660;
+          --line: #26262a;
+          -webkit-font-smoothing: antialiased;
+        }
+
+        /* Full-bleed ground lives on a dedicated clip, never on #root. */
+        .bg {
+          position: absolute;
+          inset: 0;
+          background: var(--ink);
+        }
+
+        .stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        .mono {
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.14em;
+        }
+
+        /* ── slide chrome (top only — bottom band is caption keep-out) ── */
+        .chrome {
+          position: absolute;
+          top: 4.2cqh;
+          left: 5.5cqw;
+          right: 5.5cqw;
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.75cqw;
+        }
+        .kicker {
+          color: var(--orange);
+        }
+        .cat {
+          color: var(--hint);
+        }
+        .chrome-rule {
+          position: absolute;
+          top: 8cqh;
+          left: 5.5cqw;
+          right: 5.5cqw;
+          height: 1px;
+          background: var(--line);
+          transform-origin: left center;
+        }
+
+        /* ── the duel: two bet cards under one shared perspective ── */
+        .duel {
+          position: absolute;
+          left: 20.5cqw;
+          top: 26cqh;
+          width: 59cqw;
+          height: 36cqh;
+          perspective: 1600px;
+        }
+        .side {
+          position: absolute;
+          top: 0;
+          width: 27cqw;
+          height: 100%;
+          transform-style: preserve-3d;
+          will-change: transform;
+        }
+        .side-l {
+          left: 0;
+        }
+        .side-r {
+          right: 0;
+        }
+
+        .card {
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+          box-sizing: border-box;
+          background: var(--ink2);
+          border: 1px solid var(--line);
+          padding: 2.6cqh 2.2cqw;
+          display: flex;
+          flex-direction: column;
+          will-change: transform;
+          backface-visibility: hidden;
+        }
+        .tag {
+          font-size: 0.78cqw;
+          color: var(--muted);
+        }
+        .headline {
+          font-family: "Mona Sans", sans-serif;
+          font-weight: 600;
+          font-size: 2.6cqw;
+          line-height: 1.18;
+          letter-spacing: -0.01em;
+          color: var(--cream);
+          margin-top: 1.6cqh;
+          max-width: 21cqw;
+        }
+        .spacer {
+          flex: 1;
+        }
+        .meta {
+          font-size: 0.72cqw;
+          color: var(--hint);
+        }
+        .meta-r {
+          align-self: flex-end;
+        }
+        .sl {
+          color: var(--orange);
+        }
+
+        /* strike — svg hairline drawn across the losing card (rides its plane) */
+        .strike {
+          position: absolute;
+          left: -4%;
+          top: 0;
+          width: 108%;
+          height: 100%;
+          overflow: visible;
+          pointer-events: none;
+        }
+        .strike line {
+          stroke: var(--orange);
+          stroke-width: 6;
+          stroke-linecap: butt;
+          fill: none;
+        }
+
+        /* ember edge-glow behind the winning card (dedicated layer, no box-shadow) */
+        .glow {
+          position: absolute;
+          inset: -20% -24%;
+          z-index: 0;
+          background: radial-gradient(
+            closest-side,
+            rgba(255, 107, 44, 0.45) 0%,
+            rgba(255, 107, 44, 0.14) 48%,
+            rgba(255, 107, 44, 0) 74%
+          );
+          opacity: 0;
+          transform-origin: 50% 50%;
+          pointer-events: none;
+          will-change: transform, opacity;
+        }
+        .edge {
+          position: absolute;
+          inset: -1px;
+          border: 1px solid var(--orange);
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        /* score badges — land at each card's inner edge, facing off across the gap */
+        .badge {
+          position: absolute;
+          bottom: 1.2cqh;
+          width: 11.5cqw;
+          box-sizing: border-box;
+          z-index: 2;
+          background: var(--ink);
+          border: 1px solid var(--line);
+          padding: 1.4cqh 1.2cqw 1.6cqh;
+          will-change: transform;
+        }
+        .badge-l {
+          right: -2cqw;
+          transform-origin: 30% 62%;
+        }
+        .badge-r {
+          left: -2cqw;
+          transform-origin: 70% 62%;
+        }
+        .badge-label {
+          font-size: 0.68cqw;
+          color: var(--hint);
+        }
+        .badge-num {
+          font-family: "Mona Sans", sans-serif;
+          font-weight: 700;
+          font-size: 4.6cqw;
+          line-height: 1.05;
+          letter-spacing: -0.04em;
+          margin-top: 0.6cqh;
+        }
+        .num-l {
+          color: var(--cream);
+        }
+        .num-r {
+          color: var(--orange);
+        }
+        .badge-bar {
+          margin-top: 1.4cqh;
+          height: 0.6cqh;
+          background: var(--line);
+          overflow: hidden;
+        }
+        /* width:100% REQUIRED — a widthless fill scales from 0px and renders invisible */
+        .fill {
+          width: 100%;
+          height: 100%;
+          transform-origin: left center;
+          will-change: transform;
+        }
+        .fill-l {
+          background: var(--hint);
+        }
+        .fill-r {
+          background: var(--orange);
+        }
+
+        /* final punctuation chip under the winner */
+        .verdict {
+          position: absolute;
+          left: -2cqw;
+          bottom: -4.8cqh;
+          font-size: 0.85cqw;
+          color: var(--orange);
+        }
+      </style>
+
+      <div id="root" data-composition-id="06-it-disagrees" data-width="1920" data-height="1080">
+        <div id="bg" class="clip bg" data-start="0" data-duration="8.3" data-track-index="0"></div>
+
+        <div id="stage" class="clip stage" data-start="0" data-duration="8.3" data-track-index="1">
+          <div class="chrome mono" id="chrome">
+            <div class="kicker"><span class="sl">/</span>&nbsp;SCORING</div>
+            <div class="cat">NO. 06</div>
+          </div>
+          <div class="chrome-rule" id="chrome-rule"></div>
+
+          <div class="duel" data-layout-allow-overflow>
+            <!-- LEFT — the exciting one, 4.0, struck in act three -->
+            <div class="side side-l" id="side-l">
+              <div class="card card-left">
+                <div class="tag mono rev-l" id="tag-l">THE EXCITING ONE</div>
+                <div class="headline rev-l">redesign the app</div>
+                <div class="spacer"></div>
+                <div class="meta mono rev-l"><span class="sl">/</span>&nbsp;BET 01</div>
+                <svg class="strike" viewBox="0 0 1000 750" preserveAspectRatio="none">
+                  <line id="strike-line" x1="12" y1="318" x2="988" y2="428" />
+                </svg>
+              </div>
+              <div class="badge badge-l" id="badge-l">
+                <div class="badge-label mono">SCORE</div>
+                <div class="badge-num num-l">4.0</div>
+                <div class="badge-bar"><div class="fill fill-l" id="fill-l"></div></div>
+              </div>
+            </div>
+
+            <!-- RIGHT — the boring one that pays, 8.0, advances -->
+            <div class="side side-r" id="side-r">
+              <div class="glow" id="glow"></div>
+              <div class="card card-right">
+                <div class="tag mono rev-r" id="tag-r">THE BORING ONE</div>
+                <div class="headline rev-r">fix checkout drop-off</div>
+                <div class="spacer"></div>
+                <div class="meta mono meta-r rev-r"><span class="sl">/</span>&nbsp;BET 02</div>
+                <div class="edge" id="edge"></div>
+              </div>
+              <div class="badge badge-r" id="badge-r">
+                <div class="badge-label mono">SCORE</div>
+                <div class="badge-num num-r">8.0</div>
+                <div class="badge-bar"><div class="fill fill-r" id="fill-r"></div></div>
+              </div>
+              <div class="verdict mono" id="verdict"><span class="sl">/</span>&nbsp;PAYS</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script
+        src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
+        integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
+        crossorigin="anonymous"
+      ></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+
+        // svg-path-draw: measure the strike, don't hard-code its length
+        const strikeLine = document.getElementById("strike-line");
+        const strikeLen = strikeLine.getTotalLength();
+        strikeLine.style.strokeDasharray = String(strikeLen);
+        strikeLine.style.strokeDashoffset = String(strikeLen);
+
+        const tl = gsap.timeline({ paused: true });
+
+        /* ── Scene 1 (0.0–2.2s) — "It scores each bet."
+           split-tilt-cards signature: opposite-wing entry, mirrored book-open
+           rotateY (+12 / −12), overshoot tilt pivoting into place, power3 settle. */
+        tl.fromTo(
+          "#chrome",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.5, ease: "power1.out" },
+          0.15,
+        );
+        tl.fromTo(
+          "#chrome-rule",
+          { scaleX: 0 },
+          { scaleX: 1, duration: 0.8, ease: "power2.out" },
+          0.2,
+        );
+        tl.fromTo(
+          ".card-left",
+          { xPercent: -85, rotateY: 22, opacity: 0 },
+          { xPercent: 0, rotateY: 12, opacity: 1, duration: 0.95, ease: "power3.out" },
+          0.05,
+        );
+        tl.fromTo(
+          ".card-right",
+          { xPercent: 85, rotateY: -22, opacity: 0 },
+          { xPercent: 0, rotateY: -12, opacity: 1, duration: 0.95, ease: "power3.out" },
+          0.28,
+        );
+        // copy reveals overlap the entry tail so the arrival reads as ONE beat
+        tl.fromTo(
+          ".rev-l",
+          { opacity: 0, yPercent: 38 },
+          { opacity: 1, yPercent: 0, duration: 0.55, ease: "power2.out", stagger: 0.08 },
+          0.6,
+        );
+        tl.fromTo(
+          ".rev-r",
+          { opacity: 0, yPercent: 38 },
+          { opacity: 1, yPercent: 0, duration: 0.55, ease: "power2.out", stagger: 0.08 },
+          0.82,
+        );
+
+        /* ── Scene 2 (2.2–5.0s) — the score lands on each bet.
+           spring-pop-entrance (smooth register — power3.out, zero overshoot),
+           origin anchored at the on-card side so each badge grows out of its
+           card's inner edge; stat-bars-and-fills sweeps each bar to its level. */
+        tl.fromTo(
+          "#badge-l",
+          { scale: 0, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.55, ease: "power3.out" },
+          2.1,
+        );
+        tl.fromTo(
+          "#badge-r",
+          { scale: 0, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.55, ease: "power3.out" },
+          2.42,
+        );
+        tl.fromTo(
+          "#fill-l",
+          { scaleX: 0 },
+          { scaleX: 0.4, duration: 0.85, ease: "power2.out" },
+          2.65,
+        );
+        tl.fromTo(
+          "#fill-r",
+          { scaleX: 0 },
+          { scaleX: 0.8, duration: 0.85, ease: "power2.out" },
+          2.95,
+        );
+        // "the exciting idea" — the left tag sharpens as the VO names it
+        tl.to("#tag-l", { color: "#f2efe9", duration: 0.4, ease: "power2.out" }, 3.9);
+
+        /* ── Scene 3 (5.0–8.3s) — "loses…"
+           svg-path-draw strike across the exciting bet; scale-swap-transition
+           recede/advance (smooth eases, no back.out — film bans overshoot);
+           ambient-glow-bloom (bloom-and-hold form) embers behind the winner. */
+        tl.to(
+          "#strike-line",
+          { strokeDashoffset: 0, duration: 0.55, ease: "power2.out" },
+          5.02,
+        );
+        tl.to(
+          "#side-l",
+          { scale: 0.93, opacity: 0.45, duration: 0.95, ease: "power3.inOut" },
+          5.35,
+        );
+        tl.to(".card-left", { rotateY: 15, duration: 0.95, ease: "power3.inOut" }, 5.35);
+        tl.to("#side-r", { scale: 1.05, duration: 1.05, ease: "power3.out" }, 5.5);
+        tl.to(".card-right", { rotateY: -8, duration: 1.05, ease: "power3.out" }, 5.5);
+        tl.fromTo(
+          "#glow",
+          { opacity: 0, scale: 0.85 },
+          { opacity: 0.32, scale: 1, duration: 1.05, ease: "power2.out" },
+          5.55,
+        );
+        tl.fromTo("#edge", { opacity: 0 }, { opacity: 0.9, duration: 0.6, ease: "power2.out" }, 5.7);
+        // "…that pays." — final punctuation, then a held read to 8.3s (no exit)
+        tl.fromTo(
+          "#verdict",
+          { opacity: 0, yPercent: 45 },
+          { opacity: 1, yPercent: 0, duration: 0.5, ease: "power3.out" },
+          6.75,
+        );
+
+        window.__timelines["06-it-disagrees"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

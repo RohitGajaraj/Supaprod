@@ -1,0 +1,407 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Frame 3 — You know the feeling · overwhelm-surround (Adapt) · 14.5s · dark register -->
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+      </style>
+      <style>
+        /* Root — styled via #root only (scoper special-case); no background here. */
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+        }
+
+        /* Full-bleed ground lives on its own lowest-track clip, never on #root. */
+        .f3-bg {
+          position: absolute;
+          inset: 0;
+          background: #0a0a0b; /* ink-black */
+        }
+
+        .f3-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        /* ---- the pile ---- */
+        .f3-chip-field {
+          position: absolute;
+          inset: 0;
+          transform-origin: 50% 44%;
+          will-change: transform, opacity;
+        }
+        .sig-chip {
+          position: absolute;
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          white-space: nowrap;
+          background: #141416; /* ink-black-alt */
+          border: 1px solid #26262a; /* border-dark hairline */
+          padding: 0.5em 0.95em;
+          will-change: transform, opacity;
+        }
+        /* three depth layers — opacity ladder echoes the system's fadelist */
+        .sig-chip.l1 { font-size: 1cqw;    color: #f2efe9; z-index: 4; }
+        .sig-chip.l2 { font-size: 0.84cqw; color: #a8a29a; z-index: 2; }
+        .sig-chip.l3 { font-size: 0.7cqw;  color: #6b6660; z-index: 1; }
+
+        /* ---- the "you" marker ---- */
+        .f3-you-wrap {
+          position: absolute;
+          left: 50%;
+          top: 44%;
+          transform: translate(-50%, -50%); /* wrap is never GSAP-transformed */
+          z-index: 3;
+        }
+        .f3-you-chip {
+          position: relative;
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 1.1cqw;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          white-space: nowrap;
+          color: #f2efe9; /* cream */
+          background: #141416;
+          border: 1px solid #26262a;
+          padding: 0.7em 1.25em;
+          will-change: transform, opacity;
+        }
+        .f3-you-chip .dot { color: #ff6b2c; } /* fire-orange separator */
+        .f3-you-outline,
+        .f3-you-ping {
+          position: absolute;
+          inset: -0.55cqw;
+          border: 1px solid #ff6b2c; /* ember outline */
+          pointer-events: none;
+          will-change: transform, opacity;
+        }
+
+        /* ---- the loudest voice ---- */
+        .f3-slam-wrap {
+          position: absolute;
+          left: 50%;
+          top: 40%;
+          transform: translate(-50%, -50%); /* wrap is never GSAP-transformed */
+          z-index: 10;
+        }
+        .f3-slam {
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 3.4cqw;
+          letter-spacing: 0.13em;
+          text-transform: uppercase;
+          white-space: nowrap;
+          color: #0a0a0b; /* ink on fire — absolute */
+          background: #ff6b2c; /* fire-orange, the frame's one accent surface */
+          padding: 0.62em 1.15em;
+          will-change: transform, opacity, filter;
+        }
+
+        /* ---- the typed question (the frame's single display moment) ---- */
+        .f3-q-wrap {
+          position: absolute;
+          left: 23cqw;
+          top: 14cqh;
+          width: 60cqw;
+          display: flex;
+          align-items: baseline;
+          z-index: 20;
+          will-change: transform, opacity;
+        }
+        .f3-q-text {
+          font-family: "Mona Sans", sans-serif;
+          font-weight: 700;
+          font-size: 4.5cqw; /* h2 role */
+          line-height: 1.1;
+          letter-spacing: -0.02em;
+          color: #f2efe9;
+          white-space: pre; /* preserve trailing spaces so the caret sits after them */
+        }
+        .f3-q-caret {
+          display: inline-block;
+          width: 0.5cqw;
+          height: 3.6cqw;
+          margin-left: 0.38cqw;
+          position: relative;
+          top: 0.35cqw; /* dip just below the baseline like a text caret */
+          background: #6b6660; /* segment default — driven per-frame from the timeline */
+        }
+      </style>
+
+      <div
+        id="root"
+        data-composition-id="03-you-know-the-feeling"
+        data-width="1920"
+        data-height="1080"
+        data-duration="14.9"
+      >
+        <div id="f3-bg" class="clip f3-bg" data-start="0" data-duration="14.5" data-track-index="0"></div>
+
+        <div id="f3-stage" class="clip f3-stage" data-start="0" data-duration="14.5" data-track-index="1">
+          <div id="f3-chip-field" class="f3-chip-field" data-layout-allow-overflow>
+            <!-- signal chips are generated deterministically by the script below -->
+            <div class="f3-you-wrap">
+              <div id="f3-you-ping" class="f3-you-ping"></div>
+              <div id="f3-you-outline" class="f3-you-outline"></div>
+              <div id="f3-you-chip" class="f3-you-chip">YOU <span class="dot">&middot;</span> PRODUCT</div>
+            </div>
+          </div>
+
+          <div class="f3-slam-wrap">
+            <div id="f3-slam" class="f3-slam">THE LOUDEST VOICE</div>
+          </div>
+
+          <div id="f3-q-wrap" class="f3-q-wrap">
+            <span id="f3-q-text" class="f3-q-text"></span><span id="f3-q-caret" class="f3-q-caret"></span>
+          </div>
+        </div>
+      </div>
+
+      <script
+        src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
+        integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
+        crossorigin="anonymous"
+      ></script>
+      <script>
+        (function () {
+          window.__timelines = window.__timelines || {};
+          var tl = gsap.timeline({ paused: true });
+          var DUR = 14.5;
+
+          /* One beat spine — every entrance, accent and state change reads from here.
+             Scene windows scaled from the 12s draft to the final 14.5s VO. */
+          var CUE = {
+            youIn: 0.15,   // S1 — "You know the feeling"
+            ember: 0.85,   //      faint ember outline on the you-chip
+            ping: 2.3,     //      "Signals everywhere —" ripple
+            tighten: 6.15, // S2 tail — the pile contracts inward (close-in signature)
+            slam: 7.1,     // S3 — "The loudest voice"
+            assert: 8.25,  //      "…wins the roadmap"
+            dim: 10.0,     // S4 — pile recedes
+            caret: 10.15,  //      "someone asks —" caret appears, idle blink
+            type: 11.35    //      "why did we build this?" typing begins
+          };
+
+          /* ------- Scene 1 — the "you" marker (spring-pop, smooth settle) ------- */
+          tl.fromTo(
+            "#f3-you-chip",
+            { scale: 0.9, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.6, ease: "power3.out" },
+            CUE.youIn
+          );
+          tl.fromTo(
+            "#f3-you-outline",
+            { opacity: 0 },
+            { opacity: 0.9, duration: 0.5, ease: "power2.out" },
+            CUE.ember
+          );
+          /* "signals everywhere" — one emanating ring, then gone */
+          tl.fromTo(
+            "#f3-you-ping",
+            { scale: 1, opacity: 0.55 },
+            { scale: 2.1, opacity: 0, duration: 0.9, ease: "power2.out" },
+            CUE.ping
+          );
+
+          /* ------- Scene 2 — four clusters cascade in from all four edges ------- */
+          /* Radial close-in per overwhelm-surround: positions pre-baked, travel via
+             xPercent/yPercent (container-relative motion survives the 4K upscale),
+             entries per spring-pop-entrance (power3.out, capped stagger). */
+          var CLUSTERS = [
+            { t: 3.05, dx: -450, dy: 0,   s: 0.07  }, // INTERVIEWS — from left
+            { t: 4.05, dx: 0,    dy: -750, s: 0.07 }, // TICKETS — from top
+            { t: 4.95, dx: 450,  dy: 0,   s: 0.065 }, // DASHBOARDS — from right
+            { t: 5.85, dx: 0,    dy: 750, s: 0.055 }  // HUNCHES — from bottom (densest)
+          ];
+          /* Hand-baked resting spots (chip centers, % of frame). Within each cluster,
+             later entries rest closer to the you-chip — the crowd closes in.
+             All rest below y=76% — the caption keep-out band stays clear. */
+          var CHIPS = [
+            { w: "INTERVIEWS", c: 0, x: 18,   y: 30,   r: -7, L: 1 },
+            { w: "INTERVIEWS", c: 0, x: 9,    y: 55,   r: 5,  L: 2 },
+            { w: "INTERVIEWS", c: 0, x: 26,   y: 67,   r: -4, L: 2 },
+            { w: "INTERVIEWS", c: 0, x: 31,   y: 19,   r: 3,  L: 3 },
+            { w: "INTERVIEWS", c: 0, x: 14,   y: 74,   r: 8,  L: 3 },
+            { w: "INTERVIEWS", c: 0, x: 36,   y: 47,   r: -9, L: 1 },
+            { w: "TICKETS",    c: 1, x: 63,   y: 11,   r: 6,  L: 2 },
+            { w: "TICKETS",    c: 1, x: 44,   y: 8,    r: -5, L: 3 },
+            { w: "TICKETS",    c: 1, x: 77,   y: 21,   r: -8, L: 1 },
+            { w: "TICKETS",    c: 1, x: 54,   y: 23,   r: 4,  L: 2 },
+            { w: "TICKETS",    c: 1, x: 38,   y: 30,   r: -3, L: 3 },
+            { w: "TICKETS",    c: 1, x: 57,   y: 35,   r: -6, L: 1 },
+            { w: "DASHBOARDS", c: 2, x: 89,   y: 38,   r: 7,  L: 2 },
+            { w: "DASHBOARDS", c: 2, x: 93,   y: 61,   r: -6, L: 3 },
+            { w: "DASHBOARDS", c: 2, x: 82,   y: 13,   r: 4,  L: 3 },
+            { w: "DASHBOARDS", c: 2, x: 85,   y: 52,   r: -9, L: 1 },
+            { w: "DASHBOARDS", c: 2, x: 71,   y: 65,   r: 5,  L: 2 },
+            { w: "DASHBOARDS", c: 2, x: 75,   y: 29,   r: -4, L: 1 },
+            { w: "DASHBOARDS", c: 2, x: 66,   y: 48,   r: 8,  L: 1 },
+            { w: "HUNCHES",    c: 3, x: 29,   y: 75,   r: -6, L: 2 },
+            { w: "HUNCHES",    c: 3, x: 52,   y: 76,   r: 5,  L: 1 },
+            { w: "HUNCHES",    c: 3, x: 68,   y: 74,   r: -8, L: 2 },
+            { w: "HUNCHES",    c: 3, x: 43,   y: 70,   r: 9,  L: 3 },
+            { w: "HUNCHES",    c: 3, x: 60,   y: 62,   r: -5, L: 1 },
+            { w: "HUNCHES",    c: 3, x: 40,   y: 57,   r: 6,  L: 1 },
+            { w: "HUNCHES",    c: 3, x: 47,   y: 52,   r: -7, L: 2 },
+            { w: "HUNCHES",    c: 3, x: 44.5, y: 47.5, r: 4,  L: 2 },
+            { w: "HUNCHES",    c: 3, x: 55.5, y: 43.5, r: -5, L: 3 }
+          ];
+          var REST_OP = { 1: 1, 2: 0.55, 3: 0.28 };
+
+          var field = document.getElementById("f3-chip-field");
+          var counts = [0, 0, 0, 0];
+          CHIPS.forEach(function (spec) {
+            var el = document.createElement("div");
+            el.className = "sig-chip l" + spec.L;
+            el.textContent = spec.w;
+            el.style.left = spec.x + "%";
+            el.style.top = spec.y + "%";
+            field.appendChild(el);
+
+            var cl = CLUSTERS[spec.c];
+            var i = counts[spec.c]++;
+            var drift = i % 2 ? 60 : -60; // deterministic, index-derived cross-axis drift
+            var fx = cl.dx !== 0 ? cl.dx : drift;
+            var fy = cl.dy !== 0 ? cl.dy : Math.round(drift * 0.8);
+            tl.fromTo(
+              el,
+              {
+                xPercent: -50 + fx,
+                yPercent: -50 + fy,
+                rotation: spec.r * 2.2,
+                opacity: 0
+              },
+              {
+                xPercent: -50,
+                yPercent: -50,
+                rotation: spec.r,
+                opacity: REST_OP[spec.L],
+                duration: 0.72,
+                ease: "power3.out"
+              },
+              cl.t + i * cl.s
+            );
+          });
+
+          /* Close-in signature: the whole pile contracts toward the subject.
+             Camera stays static — the world crowds in, the frame does not push. */
+          tl.to(
+            "#f3-chip-field",
+            { scale: 0.95, duration: 0.95, ease: "power2.inOut" },
+            CUE.tighten
+          );
+
+          /* ------- Scene 3 — THE LOUDEST VOICE (kinetic-beat-slam, smooth register) ------- */
+          tl.fromTo(
+            "#f3-slam",
+            { scale: 1.6, rotation: -5, opacity: 0, filter: "blur(16px)" },
+            {
+              scale: 1,
+              rotation: -2.5,
+              opacity: 1,
+              filter: "blur(0px)",
+              duration: 0.55,
+              ease: "power4.out"
+            },
+            CUE.slam
+          );
+          /* "…wins the roadmap" — the loud voice asserts, the pile recedes a step */
+          tl.to("#f3-slam", { scale: 1.045, duration: 0.6, ease: "power2.inOut" }, CUE.assert);
+          tl.to(
+            "#f3-chip-field",
+            { opacity: 0.8, duration: 0.6, ease: "power2.inOut" },
+            CUE.assert + 0.1
+          );
+
+          /* ------- Scene 4 — the pile dims; the dreaded question types itself ------- */
+          tl.to(
+            "#f3-chip-field",
+            { opacity: 0.35, duration: 0.7, ease: "power2.inOut" },
+            CUE.dim
+          );
+          tl.to("#f3-slam", { opacity: 0.32, duration: 0.7, ease: "power2.inOut" }, CUE.dim);
+          tl.fromTo(
+            "#f3-q-wrap",
+            { opacity: 0, y: 14 },
+            { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+            CUE.caret
+          );
+
+          /* discrete-text-sequence — human-rhythm keystrokes: fast runs inside words,
+             a thinking gap after each space. Built once, synchronously, deterministic. */
+          var Q = "why did we build this?";
+          var CHAR_GAPS = [0.082, 0.104, 0.068]; // index-derived micro-variation
+          var SEQ = [];
+          var t = CUE.type;
+          var s = "";
+          for (var i = 0; i < Q.length; i++) {
+            s += Q[i];
+            SEQ.push({ t: t, text: s, em: s.length > 17 }); // "this?" = emphasis segment
+            t += Q[i] === " " ? 0.22 : CHAR_GAPS[i % 3];
+          }
+          var TYPE_END = SEQ[SEQ.length - 1].t; // ≈13.8 — last char lands with the spoken word
+          var GRACE = 0.25; // caret stays solid while keystrokes are landing
+
+          /* context-sensitive-cursor — caret color + height follow the active segment;
+             blink is derived purely from time (no accumulated state → seek-safe). */
+          var qText = document.getElementById("f3-q-text");
+          var qCaret = document.getElementById("f3-q-caret");
+          var drv = { t: 0 };
+          tl.to(
+            drv,
+            {
+              t: DUR,
+              duration: DUR,
+              ease: "none",
+              onUpdate: function () {
+                var now = drv.t;
+                var entry = null;
+                for (var k = SEQ.length - 1; k >= 0; k--) {
+                  if (now >= SEQ[k].t) {
+                    entry = SEQ[k];
+                    break;
+                  }
+                }
+                qText.textContent = entry ? entry.text : "";
+                /* segments: idle (pre-typing) → question (typing/done) */
+                qCaret.style.background = entry ? "#FF6B2C" : "#6B6660";
+                qCaret.style.height = entry && entry.em ? "4.1cqw" : "3.6cqw";
+                var typing = entry !== null && now - entry.t < GRACE;
+                var on = 1;
+                if (!typing) {
+                  var anchor = entry ? TYPE_END + GRACE : CUE.caret;
+                  var ph = (now - anchor) % 1.0; // 1.0s period, 62% duty — ends ON
+                  on = ph < 0.62 ? 1 : 0;
+                }
+                qCaret.style.opacity = on;
+              }
+            },
+            0
+          );
+
+          /* No exit — the root transition owns it; the frame ends on a held read. */
+          window.__timelines["03-you-know-the-feeling"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,300 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Frame 11 — What can't be reconstructed · 7.2s · dark register · kinetic-type-beats -->
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+
+        /* Root styled via #root only (never a class on the composition root). */
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: "Mona Sans", sans-serif;
+        }
+        .clip {
+          position: absolute;
+          inset: 0;
+        }
+        /* Full-bleed ground lives on a clip, never on #root. Dark register: ink-black. */
+        #bg {
+          background: #0a0a0b;
+        }
+        /* Both lines center inside the top 83% (caption keep-out honored even with
+           captions disabled) — landscape centering at ~41.5% height. */
+        .line-wrap {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 0;
+          height: 83cqh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        /* Line A — the concession, h3 ramp: what anyone can reconstruct. */
+        #line-a {
+          font-size: 2.8cqw;
+          font-weight: 600;
+          line-height: 1.2;
+          color: #f2efe9;
+          text-align: center;
+          max-width: 78cqw;
+          will-change: transform, filter, opacity;
+        }
+        /* Line B — the counter-line, h2 ramp, larger: lands harder and holds. */
+        #line-b {
+          font-size: 4.5cqw;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          line-height: 1.15;
+          color: #f2efe9;
+          text-align: center;
+          max-width: 78cqw;
+          will-change: transform;
+        }
+        #line-b .row {
+          display: block;
+        }
+        /* inline-block so transforms apply to word spans */
+        .word {
+          display: inline-block;
+          will-change: transform, opacity, filter;
+        }
+        /* Keyword ember gets its own inner span: the outer word span carries the
+           entrance tween, this one carries the glow driver — no transform conflict. */
+        #kw {
+          display: inline-block;
+          transform-origin: 50% 62%;
+          will-change: transform, text-shadow, color;
+        }
+      </style>
+
+      <div
+        id="root"
+        data-composition-id="11-what-cant-be-reconstructed"
+        data-width="1920"
+        data-height="1080"
+        data-duration="7.7"
+      >
+        <div id="bg" class="clip" data-start="0" data-duration="7.2" data-track-index="0"></div>
+
+        <div id="stage" class="clip" data-start="0" data-duration="7.2" data-track-index="1">
+          <div class="line-wrap">
+            <div id="line-a">
+              <span class="word">anyone</span> <span class="word">can</span>
+              <span class="word">dig</span> <span class="word">up</span>
+              <span class="word">what</span> <span class="word">happened.</span>
+            </div>
+          </div>
+          <div class="line-wrap">
+            <div id="line-b">
+              <div class="row">
+                <span class="word" id="w-only">only</span>
+                <span class="word" id="w-supaprod">supaprod</span>
+                <span class="word" id="w-keeps">keeps</span>
+              </div>
+              <div class="row">
+                <span class="word" id="w-what">what</span>
+                <span class="word" id="w-you1">you</span>
+                <span class="word" id="w-believed"><span id="kw">believed</span></span>
+                <span class="word" id="w-dash">&#8212;</span>
+              </div>
+              <div class="row">
+                <span class="word" id="w-before">before</span>
+                <span class="word" id="w-you2">you</span>
+                <span class="word" id="w-found">found</span>
+                <span class="word" id="w-out">out.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script
+        src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
+        integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
+        crossorigin="anonymous"
+      ></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        /* ------------------------------------------------------------------
+         * Frame 11 — 7.2s (Scene windows scaled from the 8.0s spec by 0.9):
+         *   Scene 1  0.00–2.50  line A per-word staggered reveal, settle, dim
+         *   seam     2.30–2.50  inverse zoom-through exit (cut catalog)
+         *   Scene 2  2.50–5.60  counter-line per-word, VO-paced; ember on
+         *                       "believed"; the deep hit lands with "only"
+         *   Scene 3  5.75–7.20  held read, subtle jitter only (no exit)
+         * ------------------------------------------------------------------ */
+
+        const aWords = gsap.utils.toArray("#line-a .word");
+        const bWords = gsap.utils.toArray("#line-b .word").filter((el) => el.id !== "w-only");
+
+        // Build-time pre-set of every word's from-state (cut-catalog rule:
+        // immediateRender:false alone leaves un-started words visible).
+        gsap.set(aWords, { opacity: 0, yPercent: 60, filter: "blur(8px)" });
+        gsap.set(bWords, { opacity: 0, yPercent: 45, filter: "blur(6px)" });
+        gsap.set("#w-only", { opacity: 0, scale: 1.25, filter: "blur(10px)" });
+
+        // ---- Scene 1 — "anyone can dig up what happened." per-word staggered
+        // reveal (blur + fade + rise, power3 long-tail settle, zero overshoot).
+        const A_TIMES = [0.14, 0.28, 0.42, 0.56, 0.7, 0.84];
+        aWords.forEach((el, i) => {
+          tl.fromTo(
+            el,
+            { opacity: 0, yPercent: 60, filter: "blur(8px)" },
+            {
+              opacity: 1,
+              yPercent: 0,
+              filter: "blur(0px)",
+              duration: 0.6,
+              ease: "power3.out",
+              immediateRender: false,
+            },
+            A_TIMES[i],
+          );
+        });
+
+        // Settles, then dims to muted — the line becomes the past.
+        tl.to("#line-a", { color: "rgb(168,162,154)", duration: 0.5, ease: "power2.inOut" }, 1.85);
+
+        // ---- Seam — hard-cut swap as an inverse zoom-through (arrival beat):
+        // line A recedes away from the viewer, 10px text-scale blur on the
+        // WRAPPER, opacity on its own linear tween; hard cut at peak blur.
+        tl.fromTo(
+          "#line-a",
+          { scale: 1, filter: "blur(0px)" },
+          { scale: 0.8, filter: "blur(10px)", duration: 0.2, ease: "power3.in", immediateRender: false },
+          2.3,
+        );
+        tl.fromTo(
+          "#line-a",
+          { opacity: 1 },
+          { opacity: 0.15, duration: 0.2, ease: "none", immediateRender: false },
+          2.3,
+        );
+        tl.set("#line-a", { opacity: 0 }, 2.5);
+
+        // "only" arrives oversized from behind the camera and retracts into the
+        // focal plane — matched blur/opacity at the cut; the deep hit lands here.
+        tl.fromTo(
+          "#w-only",
+          { opacity: 0.15, scale: 1.25, filter: "blur(10px)" },
+          {
+            opacity: 1,
+            scale: 1,
+            filter: "blur(0px)",
+            duration: 0.5,
+            ease: "expo.out",
+            immediateRender: false,
+          },
+          2.5,
+        );
+
+        // ---- Scene 2 — the rest of the counter-line reveals per word, paced
+        // to the VO, weighted into the back half of the shot.
+        const B_TIMES = {
+          "w-supaprod": 2.88,
+          "w-keeps": 3.26,
+          "w-what": 3.54,
+          "w-you1": 3.72,
+          "w-believed": 3.94,
+          "w-dash": 4.34,
+          "w-before": 4.74,
+          "w-you2": 4.98,
+          "w-found": 5.18,
+          "w-out": 5.38,
+        };
+        bWords.forEach((el) => {
+          tl.fromTo(
+            el,
+            { opacity: 0, yPercent: 45, filter: "blur(6px)" },
+            {
+              opacity: 1,
+              yPercent: 0,
+              filter: "blur(0px)",
+              duration: 0.55,
+              ease: "power3.out",
+              immediateRender: false,
+            },
+            B_TIMES[el.id],
+          );
+        });
+
+        // ---- Keyword ember on "believed" — attack/sustain/release envelope
+        // (asr-keyword-glow): color ignites fire-orange and STAYS (the one
+        // orange clause of the statement); the glow decays to a faint rest
+        // ember; scale returns exactly to 1 so the hold is clean.
+        const kw = document.getElementById("kw");
+        const KW_START = 3.98;
+        const KW_END = 4.62;
+        const ATTACK = 0.22;
+        const RELEASE = 0.5;
+        const REST = 0.28;
+        function kwEnv(t) {
+          if (t < KW_START) return 0;
+          if (t < KW_END) return Math.min((t - KW_START) / ATTACK, 1);
+          if (t < KW_END + RELEASE) return 1 - ((t - KW_END) / RELEASE) * (1 - REST);
+          return REST;
+        }
+        const lerp = (a, b, t) => Math.round(a + (b - a) * t);
+        const drv = { t: 0 };
+        tl.to(
+          drv,
+          {
+            t: 7.2,
+            duration: 7.2,
+            ease: "none",
+            onUpdate: () => {
+              const e = kwEnv(drv.t);
+              const c = Math.max(0, Math.min((drv.t - KW_START) / ATTACK, 1));
+              const s = Math.max(0, (e - REST) / (1 - REST));
+              kw.style.color =
+                "rgb(" + lerp(242, 255, c) + "," + lerp(239, 107, c) + "," + lerp(233, 44, c) + ")";
+              kw.style.textShadow =
+                "0 0 " + (28 * e).toFixed(2) + "px rgba(255,107,44," + (0.65 * e).toFixed(3) + ")";
+              kw.style.transform = "scale(" + (1 + 0.055 * s).toFixed(4) + ")";
+            },
+          },
+          0,
+        );
+
+        // ---- Scene 3 — held read, subtle jitter only (sine-wave-loop at the
+        // LOW end: ±1.6px y on the settled stack, sin(0)=0 so no jump; no exit
+        // — the root transition owns the exit).
+        const lineB = document.getElementById("line-b");
+        const jig = { p: 0 };
+        tl.to(
+          jig,
+          {
+            p: Math.PI * 2 * 0.55,
+            duration: 1.45,
+            ease: "none",
+            onUpdate: () => {
+              lineB.style.transform = "translateY(" + (Math.sin(jig.p) * 1.6).toFixed(2) + "px)";
+            },
+          },
+          5.75,
+        );
+
+        window.__timelines["11-what-cant-be-reconstructed"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

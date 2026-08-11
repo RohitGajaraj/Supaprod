@@ -1,0 +1,248 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Frame 7 — The forecast · 8.0s · titlecard-reveal (Adapt) · dark register breather -->
+  </head>
+  <body>
+    <template>
+      <style>
+      @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
+      @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
+      @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
+      @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
+      @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
+      @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
+      @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
+      @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
+      @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+      @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+      </style>
+
+      <style>
+        /* Root — styled via #root only (never a class on the composition root). */
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+        }
+
+        /* Full-bleed ground lives on a clip, never on #root. Flat ink field —
+           no gradient, no vignette (frame.md depth ceiling). */
+        #f7-bg {
+          position: absolute;
+          inset: 0;
+          background: #0a0a0b;
+        }
+
+        #f7-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        /* Jitter wrapper — the only element the Scene-3 sine writes transforms to.
+           No CSS transform here, so GSAP xPercent/yPercent cannot conflict. */
+        #f7-jitter {
+          position: absolute;
+          inset: 0;
+          will-change: transform;
+        }
+
+        /* Content block — margin-centered (no transform centering), optical
+           center ~0.44 × height, everything far above the 83% keep-out. */
+        #f7-block {
+          position: absolute;
+          left: 50%;
+          top: 27cqh;
+          width: 64cqw;
+          margin-left: -32cqw;
+        }
+
+        /* The sealed artifact: statement + the hairline that draws around it. */
+        #f7-sealbox {
+          position: relative;
+          padding: 3.2cqw 4cqw;
+          box-sizing: border-box;
+        }
+
+        #f7-seal {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+          overflow: visible;
+          pointer-events: none;
+        }
+        #f7-seal path {
+          fill: none;
+          stroke: #ff6b2c;
+          stroke-width: 1;
+          vector-effect: non-scaling-stroke;
+          stroke-linecap: butt; /* sharp system — no rounded endpoints */
+          stroke-linejoin: miter;
+        }
+
+        /* quote-text role: Mona Sans 3.8cqw · 700 · lh 1.15 · -0.02em · lowercase */
+        #f7-statement {
+          position: relative;
+          font-family: "Mona Sans", sans-serif;
+          font-weight: 700;
+          font-size: 3.8cqw;
+          line-height: 1.15;
+          letter-spacing: -0.02em;
+          color: #f2efe9;
+          text-align: center;
+          will-change: transform, opacity;
+        }
+        .f7-line {
+          display: block; /* deliberate two-line display title, no <br> */
+        }
+
+        /* Mono meta line — chrome, uppercase, tracked; sized just above the
+           label floor for legibility since it carries the frame's qualifier. */
+        #f7-meta {
+          margin-top: 2.4cqw;
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 0.95cqw;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #a8a29a;
+          text-align: center;
+          will-change: transform, opacity;
+        }
+
+        .f7-orange {
+          color: #ff6b2c;
+        }
+
+        /* Seal chip — stamps the bottom-right corner of the drawn hairline,
+           ink ground punching a gap in the line. Sharp rectangle, 0 radius. */
+        #f7-chip {
+          position: absolute;
+          right: 2.8cqw;
+          bottom: -0.95cqw;
+          background: #0a0a0b;
+          border: 1px solid #26262a;
+          padding: 0.55cqw 1cqw;
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 0.72cqw;
+          line-height: 1;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #f2efe9;
+          white-space: nowrap;
+          will-change: transform, opacity;
+        }
+      </style>
+
+      <div id="root" data-composition-id="07-the-forecast" data-width="1920" data-height="1080">
+        <!-- full-bleed ground clip (track 0) -->
+        <div id="f7-bg" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
+
+        <!-- content clip (track 1) -->
+        <div id="f7-stage" class="clip" data-start="0" data-duration="8" data-track-index="1">
+          <div id="f7-jitter">
+            <div id="f7-block">
+              <div id="f7-sealbox">
+                <!-- hairline seal: single pen, starts top-center, closes clockwise.
+                     viewBox aspect matches the sealbox (64cqw × 15.14cqw). -->
+                <svg id="f7-seal" viewBox="0 0 640 151.4" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                  <path id="f7-seal-path" d="M 320 0.5 H 639.5 V 150.9 H 0.5 V 0.5 H 320" />
+                </svg>
+                <div id="f7-statement">
+                  <span class="f7-line">if we fix checkout first,</span>
+                  <span class="f7-line">activation rises.</span>
+                </div>
+                <div id="f7-chip"><span class="f7-orange">/</span>&#160;sealed at decision time</div>
+              </div>
+              <div id="f7-meta">your forecast <span class="f7-orange">&#183;</span> written before the outcome</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script
+        src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
+        integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
+        crossorigin="anonymous"
+      ></script>
+      <script>
+        (() => {
+          window.__timelines = window.__timelines || {};
+
+          // svg-path-draw setup: dasharray/dashoffset = measured path length
+          // (viewBox user units; geometry-derived, deterministic).
+          const sealPath = document.querySelector("#f7-seal-path");
+          let sealLen = 1610; // perimeter fallback, slight overestimate is safe
+          try {
+            const m = sealPath.getTotalLength();
+            if (m && isFinite(m) && m > 0) sealLen = m * 1.02;
+          } catch (e) {}
+          sealPath.style.strokeDasharray = `${sealLen}`;
+          sealPath.style.strokeDashoffset = `${sealLen}`;
+
+          const tl = gsap.timeline({ paused: true });
+
+          // ---- Scene 1 (0.0–3.0s) — the belief statement slides up in a
+          // single crossfade (the blueprint's ONE restrained move); the mono
+          // meta line follows as the VO reaches "writes down what you believe".
+          tl.fromTo(
+            "#f7-statement",
+            { opacity: 0, yPercent: 26 },
+            { opacity: 1, yPercent: 0, duration: 1.65, ease: "power3.out" },
+            0.15,
+          );
+          tl.fromTo(
+            "#f7-meta",
+            { opacity: 0, yPercent: 60 },
+            { opacity: 1, yPercent: 0, duration: 0.9, ease: "power3.out" },
+            2.15,
+          );
+
+          // ---- Scene 2 (3.0–5.4s) — on "before you find out": the hairline
+          // draws itself around the statement (power2.out — a pen lifting,
+          // never bouncing), then the seal chip stamps the corner.
+          tl.to(
+            sealPath,
+            { strokeDashoffset: 0, duration: 1.5, ease: "power2.out" },
+            3.35,
+          );
+          tl.fromTo(
+            "#f7-chip",
+            { opacity: 0, scale: 1.05 },
+            { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out", transformOrigin: "50% 50%" },
+            4.95,
+          );
+
+          // ---- Scene 3 (5.4–8.0s) — held read. Subtle jitter only
+          // (sine-wave-loop at the LOW end): integer sine frequencies so the
+          // offset is exactly 0 at both ends — no jump in, at rest at 8.0s.
+          // Amplitudes are element-relative (xPercent/yPercent of the
+          // full-stage wrapper): ~±1px x, ~±2px y at 1080p, scale-safe at 4K.
+          const ph = { p: 0 };
+          tl.to(
+            ph,
+            {
+              p: Math.PI * 2,
+              duration: 2.6,
+              ease: "none",
+              onUpdate: () => {
+                const w = ph.p;
+                const yP = Math.sin(w) * 0.16 + Math.sin(w * 3) * 0.04;
+                const xP = Math.sin(w * 2) * 0.05;
+                gsap.set("#f7-jitter", { xPercent: xP, yPercent: yP });
+              },
+            },
+            5.4,
+          );
+
+          window.__timelines["07-the-forecast"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

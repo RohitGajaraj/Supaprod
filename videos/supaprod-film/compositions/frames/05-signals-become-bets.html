@@ -1,0 +1,462 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Frame 5 — Signals become bets · 7.3s · 1920x1080 · dark register -->
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+        }
+
+        /* ---- full-bleed ground (clip, lowest track — never on #root) ---- */
+        .f5-bg {
+          position: absolute;
+          inset: 0;
+          background: #0a0a0b;
+        }
+
+        /* ---- stage (single content clip; all reveals are timeline-driven) ---- */
+        .f5-stage {
+          position: absolute;
+          inset: 0;
+          perspective: 1400px; /* required for the depth cloud */
+        }
+
+        /* ---- Scene 1 · signal depth-cloud ---- */
+        .cloud-stage {
+          position: absolute;
+          inset: 0;
+          z-index: 3;
+          transform-style: preserve-3d;
+          will-change: transform;
+          pointer-events: none;
+        }
+        .frag {
+          position: absolute;
+          top: 44%;
+          left: 50%;
+          white-space: nowrap;
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 400;
+          transform-style: preserve-3d;
+          backface-visibility: hidden;
+          will-change: transform, opacity;
+        }
+        .f-tag {
+          text-transform: uppercase;
+          letter-spacing: 0.14em;
+          font-weight: 500;
+        }
+        .l0 { font-size: 1.05cqw; color: #a8a29a; }
+        .l1 { font-size: 0.9cqw;  color: #a8a29a; }
+        .l2 { font-size: 0.78cqw; color: #6b6660; }
+
+        /* ---- left column (40%) · rule stub + kicker + headline ---- */
+        .left-col {
+          position: absolute;
+          left: 5.5cqw;
+          top: 36cqh;
+          width: 34cqw;
+          z-index: 2;
+        }
+        .rule-stub {
+          width: 1.9cqw;
+          height: 2px;
+          background: #ff6b2c;
+          transform-origin: left center;
+          will-change: transform;
+        }
+        .kicker {
+          margin-top: 2cqh;
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 0.72cqw;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #ff6b2c;
+          will-change: transform, opacity;
+        }
+        .headline {
+          margin-top: 2.6cqh;
+          font-family: "Mona Sans", sans-serif;
+          font-weight: 700;
+          font-size: 4.5cqw;
+          line-height: 1.1;
+          letter-spacing: -0.02em;
+          color: #f2efe9;
+        }
+        .hl-line {
+          will-change: transform, opacity;
+        }
+        .hl-accent { color: #ff6b2c; }
+
+        /* ---- ranked bet cards (60%) ---- */
+        .cards-layer {
+          position: absolute;
+          inset: 0;
+          z-index: 2;
+        }
+        .bet-card {
+          position: absolute;
+          left: 46cqw;
+          right: 5.5cqw;
+          box-sizing: border-box;
+          background: #141416;
+          border: 1px solid #26262a;
+          padding: 1.5cqw 1.7cqw;
+          display: flex;
+          align-items: flex-start;
+          gap: 1.4cqw;
+          will-change: transform, opacity;
+        }
+        .card-1 { top: 17cqh;   height: 20cqh; }
+        .card-2 { top: 39.2cqh; height: 11.5cqh; }
+        .card-3 { top: 52.9cqh; height: 11.5cqh; }
+        .rank-chip {
+          flex: none;
+          width: 2.7cqw;
+          height: 2.7cqw;
+          border: 1px solid #26262a;
+          display: grid;
+          place-items: center;
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 0.85cqw;
+          letter-spacing: 0.08em;
+          color: #ff6b2c;
+          will-change: transform, opacity;
+        }
+        .card-body { flex: 1; min-width: 0; }
+        .card-title {
+          font-family: "Mona Sans", sans-serif;
+          font-weight: 600;
+          font-size: 2cqw;
+          line-height: 1.2;
+          letter-spacing: -0.01em;
+          color: #f2efe9;
+        }
+        .card-1 .card-title { font-size: 2.3cqw; }
+
+        /* ---- Scene 3 · evidence quote inside card 01 ---- */
+        .quote-row {
+          margin-top: 2cqh;
+          display: flex;
+          align-items: baseline;
+          gap: 0.9cqw;
+          will-change: transform, opacity;
+        }
+        .qmark {
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 1.2cqw;
+          color: #ff6b2c;
+        }
+        .quote {
+          font-family: "Mona Sans", sans-serif;
+          font-weight: 400;
+          font-size: 1.5cqw;
+          line-height: 1.45;
+          color: #a8a29a;
+        }
+        .qw {
+          display: inline-block;
+          transform-origin: 50% 50%;
+          will-change: transform, text-shadow, color;
+        }
+        .src-tag {
+          margin-left: 1.2cqw;
+          border: 1px solid #26262a;
+          padding: 0.5cqh 0.7cqw;
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 0.62cqw;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #6b6660;
+          white-space: nowrap;
+          will-change: transform, opacity;
+        }
+      </style>
+
+      <div id="root" data-composition-id="05-signals-become-bets" data-width="1920" data-height="1080">
+        <!-- full-bleed ground: dedicated clip on the lowest track -->
+        <div id="f5-bg" class="clip f5-bg" data-start="0" data-duration="7.3" data-track-index="0"></div>
+
+        <!-- one content clip; every reveal below is GSAP-paced to the VO -->
+        <div id="f5-stage" class="clip f5-stage" data-start="0" data-duration="7.3" data-track-index="1">
+          <!-- Scene 1 · scattered raw-signal depth cloud (decorative, converges away) -->
+          <div class="cloud-stage" data-layout-allow-overflow>
+            <span class="frag l0">&ldquo;gave up at payment&rdquo;</span>
+            <span class="frag l1 f-tag">interview</span>
+            <span class="frag l2">checkout drop-off</span>
+            <span class="frag l0">&ldquo;invoices twice?&rdquo;</span>
+            <span class="frag l1 f-tag">ticket &middot; billing</span>
+            <span class="frag l2">alert fatigue</span>
+            <span class="frag l0 f-tag">dashboard</span>
+            <span class="frag l1">&ldquo;where do I even start&rdquo;</span>
+            <span class="frag l2">onboarding stall</span>
+            <span class="frag l0 f-tag">support thread</span>
+            <span class="frag l1">&ldquo;too many steps&rdquo;</span>
+            <span class="frag l2 f-tag">hunch</span>
+            <span class="frag l0">churn risk</span>
+            <span class="frag l1 f-tag">call note</span>
+          </div>
+
+          <!-- left 40% · statement column -->
+          <div class="left-col">
+            <div class="rule-stub" id="f5-rule"></div>
+            <div class="kicker" id="f5-kicker">the director</div>
+            <div class="headline">
+              <div class="hl-line" id="f5-hl1">signals</div>
+              <div class="hl-line" id="f5-hl2">become <span class="hl-accent">bets</span></div>
+            </div>
+          </div>
+
+          <!-- right 60% · ranked bet cards -->
+          <div class="cards-layer">
+            <div class="bet-card card-1" id="f5-card1">
+              <div class="rank-chip" id="f5-chip1">01</div>
+              <div class="card-body">
+                <div class="card-title">fix checkout drop-off</div>
+                <div class="quote-row" id="f5-quote-row">
+                  <span class="qmark">/</span>
+                  <span class="quote" id="f5-quote">
+                    <span class="qw">&ldquo;I</span>
+                    <span class="qw">gave</span>
+                    <span class="qw">up</span>
+                    <span class="qw">at</span>
+                    <span class="qw">the</span>
+                    <span class="qw">payment</span>
+                    <span class="qw">step&rdquo;</span>
+                  </span>
+                  <span class="src-tag" id="f5-srctag">interview &middot; 04:12</span>
+                </div>
+              </div>
+            </div>
+            <div class="bet-card card-2" id="f5-card2">
+              <div class="rank-chip" id="f5-chip2">02</div>
+              <div class="card-body">
+                <div class="card-title">unify billing alerts</div>
+              </div>
+            </div>
+            <div class="bet-card card-3" id="f5-card3">
+              <div class="rank-chip" id="f5-chip3">03</div>
+              <div class="card-body">
+                <div class="card-title">redesign onboarding</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        (function () {
+          var root = document.querySelector('[data-composition-id="05-signals-become-bets"]');
+          var tl = gsap.timeline({ paused: true });
+
+          // Resolution scale for GSAP px travel (layout itself is cqw/cqh).
+          var rw = root.getBoundingClientRect().width;
+          var S = rw > 100 ? rw / 1920 : 1;
+
+          // ============================================================
+          // Scene 1 (0–1.83s) — depth-scatter cloud, resting state
+          // depth-scatter-assemble: index-derived golden-angle scatter,
+          // 3 discrete depth layers, deterministic (no Math.random).
+          // ============================================================
+          var frags = Array.prototype.slice.call(root.querySelectorAll(".frag"));
+          var n = frags.length;
+          var GOLDEN = Math.PI * (3 - Math.sqrt(5)); // ~2.39943
+          var RX = 640 * S, RY = 310 * S;
+          var LAYER_Z = [240, -60, -330];       // front / mid / back (px, scaled below)
+          var LAYER_OP = [0.62, 0.46, 0.32];    // dim resting opacities
+          var TUMBLE_X = 26, TUMBLE_Y = 30;     // modest tumble — premium, not chaotic
+
+          // Card-column convergence targets (offsets from cloud origin 50%/44%):
+          // column center x = 70.25cqw -> +389px; card centers y: 27 / 44.95 / 58.65cqh
+          var CARD_DX = 389 * S;
+          var CARD_DY = [-183 * S, 11 * S, 158 * S];
+
+          var scatter = frags.map(function (el, i) {
+            var a = i * GOLDEN;
+            var fr = (i * 0.6180339887) % 1;   // deterministic per-index variation
+            var fr2 = (i * 0.3819660113) % 1;
+            var r = 0.5 + 0.5 * fr;
+            var L = i % 3;
+            return {
+              L: L,
+              x: Math.cos(a) * RX * r,
+              y: Math.sin(a) * RY * r,
+              z: LAYER_Z[L] * S,
+              rotationX: Math.sin(a) * TUMBLE_X,
+              rotationY: Math.cos(a) * TUMBLE_Y,
+              tx: CARD_DX + (fr - 0.5) * 200 * S,
+              ty: CARD_DY[L] + (fr2 - 0.5) * 70 * S
+            };
+          });
+
+          // Park every fragment in the cloud BEFORE any tween fires.
+          frags.forEach(function (el, i) {
+            var s = scatter[i];
+            gsap.set(el, {
+              xPercent: -50, yPercent: -50,
+              x: s.x, y: s.y - 70 * S, z: s.z,
+              rotationX: s.rotationX, rotationY: s.rotationY,
+              opacity: 0
+            });
+          });
+
+          var cloudStage = root.querySelector(".cloud-stage");
+
+          // Subtle cloud drift for life, then back to flat before convergence lands.
+          tl.to(cloudStage, { rotationY: 9, duration: 2.5, ease: "power1.out" }, 0);
+          tl.to(cloudStage, { rotationY: 0, duration: 1.2, ease: "power2.inOut" }, 2.5);
+
+          // "Your signals pour in" — fragments drift down into their scatter points.
+          frags.forEach(function (el, i) {
+            var s = scatter[i];
+            tl.fromTo(el,
+              { x: s.x, y: s.y - 70 * S, z: s.z, rotationX: s.rotationX, rotationY: s.rotationY, opacity: 0 },
+              { y: s.y, opacity: LAYER_OP[s.L], duration: 0.7, ease: "power2.out" },
+              0.05 + i * 0.055
+            );
+          });
+
+          // ============================================================
+          // Scene 2 (1.83–4.93s)
+          // ============================================================
+          // "It reads every one" — a staggered brighten-pulse scans the cloud.
+          frags.forEach(function (el, i) {
+            var s = scatter[i];
+            var at = 1.9 + i * 0.042;
+            tl.to(el, { opacity: Math.min(LAYER_OP[s.L] + 0.45, 1), duration: 0.15, ease: "power1.inOut" }, at);
+            tl.to(el, { opacity: LAYER_OP[s.L], duration: 0.28, ease: "power1.out" }, at + 0.15);
+          });
+
+          // Fragments stream inward to the card column and dissolve (z->0, tumble->0).
+          frags.forEach(function (el, i) {
+            var s = scatter[i];
+            var at = 2.55 + i * 0.06;
+            tl.to(el, {
+              x: s.tx, y: s.ty, z: 0, rotationX: 0, rotationY: 0,
+              duration: 1.0, ease: "power2.inOut"
+            }, at);
+            tl.to(el, { opacity: 0, duration: 0.45, ease: "power1.in" }, at + 0.55);
+          });
+
+          // Bet cards stagger-assemble top-to-bottom (grid-card-assemble signature:
+          // fade + short slide directly into slot, low drama, dim-by-position).
+          var cards = [root.querySelector("#f5-card1"), root.querySelector("#f5-card2"), root.querySelector("#f5-card3")];
+          var CARD_OP = [1, 0.88, 0.76];
+          var CARD_AT = [2.85, 3.3, 3.75];
+          cards.forEach(function (el, i) {
+            tl.fromTo(el,
+              { y: 44 * S, scale: 0.975, opacity: 0 },
+              { y: 0, scale: 1, opacity: CARD_OP[i], duration: 0.8, ease: "power3.out" },
+              CARD_AT[i]
+            );
+          });
+
+          // Rank chips 01 · 02 · 03 pop in sequence (spring-pop-entrance,
+          // smooth power3 settle — no overshoot, per motion doctrine).
+          var chips = [root.querySelector("#f5-chip1"), root.querySelector("#f5-chip2"), root.querySelector("#f5-chip3")];
+          var CHIP_AT = [3.8, 4.08, 4.36];
+          chips.forEach(function (el, i) {
+            tl.fromTo(el,
+              { scale: 0, opacity: 0 },
+              { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
+              CHIP_AT[i]
+            );
+          });
+
+          // Left column lands on "ranked bets".
+          tl.fromTo(root.querySelector("#f5-rule"), { scaleX: 0 }, { scaleX: 1, duration: 0.55, ease: "power3.out" }, 3.1);
+          tl.fromTo(root.querySelector("#f5-kicker"),
+            { y: 14 * S, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 3.25);
+          tl.fromTo(root.querySelector("#f5-hl1"),
+            { y: 30 * S, opacity: 0 }, { y: 0, opacity: 1, duration: 0.75, ease: "power3.out" }, 3.45);
+          tl.fromTo(root.querySelector("#f5-hl2"),
+            { y: 30 * S, opacity: 0 }, { y: 0, opacity: 1, duration: 0.75, ease: "power3.out" }, 3.6);
+
+          // ============================================================
+          // Scene 3 (4.93–7.3s) — "evidence attached"
+          // ============================================================
+          // Quote line reveals inside card 01…
+          tl.fromTo(root.querySelector("#f5-quote-row"),
+            { y: 14 * S, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 4.95);
+
+          // …source tag slides in beside it.
+          tl.fromTo(root.querySelector("#f5-srctag"),
+            { x: -26 * S, opacity: 0 }, { x: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 5.8);
+
+          // Keyword glow (asr-keyword-glow): single linear driver, per-word
+          // attack/sustain/release envelope; "payment" is the brand word.
+          var words = Array.prototype.slice.call(root.querySelectorAll(".qw"));
+          var TIMINGS = [
+            { start: 5.10, end: 5.22, brand: false }, // "I
+            { start: 5.26, end: 5.46, brand: false }, // gave
+            { start: 5.50, end: 5.64, brand: false }, // up
+            { start: 5.68, end: 5.78, brand: false }, // at
+            { start: 5.82, end: 5.94, brand: false }, // the
+            { start: 5.98, end: 6.40, brand: true },  // payment (sustained)
+            { start: 6.46, end: 6.66, brand: false }  // step"
+          ];
+          var ATTACK = 0.09, RELEASE = 0.32, REST_LEVEL = 0.28;
+          var REST = [168, 162, 154];    // cream-muted
+          var ACTIVE = [242, 239, 233];  // cream
+          var BRAND = [255, 107, 44];    // fire-orange
+          var MAX_BLUR_CQW = 0.8, MAX_SCALE = 0.06, GLOW_A = 0.55;
+
+          function envelope(t, w) {
+            var releaseEnd = w.end + RELEASE;
+            if (t < w.start) return 0;
+            if (t < w.end) return Math.min((t - w.start) / ATTACK, 1);
+            if (t < releaseEnd) return 1 - ((t - w.end) / RELEASE) * (1 - REST_LEVEL);
+            return REST_LEVEL;
+          }
+          function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
+
+          // Single driver 0 -> 7.3 also fixes the timeline's total length.
+          var driver = { t: 0 };
+          tl.to(driver, {
+            t: 7.3, duration: 7.3, ease: "none",
+            onUpdate: function () {
+              for (var i = 0; i < words.length; i++) {
+                var w = TIMINGS[i];
+                if (!w) continue;
+                var env = envelope(driver.t, w);
+                var target = w.brand ? BRAND : ACTIVE;
+                var el = words[i];
+                el.style.color = "rgb(" + lerp(REST[0], target[0], env) + "," + lerp(REST[1], target[1], env) + "," + lerp(REST[2], target[2], env) + ")";
+                el.style.textShadow = "0 0 " + (MAX_BLUR_CQW * env).toFixed(3) + "cqw rgba(255,107,44," + (GLOW_A * env).toFixed(3) + ")";
+                el.style.transform = "scale(" + (1 + MAX_SCALE * env).toFixed(4) + ")";
+              }
+            }
+          }, 0);
+
+          // Held read from ~6.7s to 7.3s — no exit (non-final frame).
+
+          window.__timelines["05-signals-become-bets"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

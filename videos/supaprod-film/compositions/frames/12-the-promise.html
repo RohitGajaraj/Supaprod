@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Frame 12 — The promise. The film's single orange-register frame.
+         Six words on a fire-orange field; two half-lines arrive on their
+         spoken cues, then hold completely still. Stillness is the beat. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+
+        /* Root — never carries the ground; container for all cqw/cqh sizing. */
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+        }
+
+        /* Full-bleed fire-orange ground — a dedicated full-duration clip layer. */
+        #bg {
+          position: absolute;
+          inset: 0;
+          background: #ff6b2c;
+        }
+
+        /* The promise stack — dead-center, optical center lifted to ~0.44 × height,
+           clear of the bottom 17% keep-out band. */
+        #promise {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          row-gap: 1.6cqw;
+          padding-bottom: 12cqh;
+          text-align: center;
+        }
+
+        .line {
+          font-family: "Mona Sans", sans-serif;
+          font-size: 7.5cqw; /* h1 role — 3-word line, fit-to-measure */
+          line-height: 0.95;
+          color: #0a0a0b; /* near-ink on fire — absolute */
+          white-space: nowrap;
+          will-change: transform, opacity;
+        }
+        .line-1 {
+          font-weight: 400;
+          letter-spacing: -0.02em;
+        }
+        .line-2 {
+          font-weight: 700;
+          letter-spacing: -0.03em;
+        }
+      </style>
+
+      <div
+        id="root"
+        data-composition-id="12-the-promise"
+        data-width="1920"
+        data-height="1080"
+        data-duration="4.5"
+      >
+        <div id="bg" class="clip" data-start="0" data-duration="4" data-track-index="0"></div>
+
+        <div id="promise" class="clip" data-start="0" data-duration="4" data-track-index="1">
+          <div class="line line-1" id="line1">you stop guessing.</div>
+          <div class="line line-2" id="line2">you start deciding.</div>
+        </div>
+      </div>
+
+      <script
+        src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
+        integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
+        crossorigin="anonymous"
+      ></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        /* Scene 1 (0–1.44s) — "you stop guessing." slides up in a single
+           crossfade: translate-up + fade, one long-tail power3 settle.
+           Lands as the VO speaks it. */
+        tl.fromTo(
+          "#line1",
+          { yPercent: 45, opacity: 0 },
+          { yPercent: 0, opacity: 1, duration: 1.1, ease: "power3.out" },
+          0
+        );
+
+        /* Scene 2 (1.44–4.0s) — on its spoken cue, "you start deciding."
+           joins beneath at heavier weight; same restrained gesture. */
+        tl.fromTo(
+          "#line2",
+          { yPercent: 50, opacity: 0 },
+          { yPercent: 0, opacity: 1, duration: 1.0, ease: "power3.out" },
+          1.5
+        );
+
+        /* 2.5s → 4.0s: both lines hold dead-center, completely still —
+           the stillness against the orange is the beat. No exit; the root
+           transition owns the seam. */
+
+        window.__timelines["12-the-promise"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

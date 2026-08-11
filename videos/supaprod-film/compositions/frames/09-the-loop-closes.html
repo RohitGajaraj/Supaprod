@@ -1,0 +1,669 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frame 09 — the loop closes</title>
+    <!-- head is metadata only; the runtime clones ONLY the <template> contents -->
+  </head>
+  <body>
+    <template>
+      <style>
+      @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
+      @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
+      @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
+      @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
+      @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
+      @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
+      @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
+      @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
+      @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+      @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+      </style>
+      <style>
+        /* ============ Broadside dark register — frame 09 ============ */
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: "Mona Sans", sans-serif;
+          color: #f2efe9;
+        }
+        .clip {
+          position: absolute;
+          inset: 0;
+        }
+        /* full-bleed ground lives on the lowest clip, never on #root */
+        .ground {
+          background: #0a0a0b;
+        }
+
+        /* ---- mono chrome ---- */
+        .kicker,
+        .cat-num {
+          position: absolute;
+          top: 5cqh;
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 0.72cqw;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #a8a29a;
+        }
+        .kicker {
+          left: 5.5cqw;
+        }
+        .cat-num {
+          right: 5.5cqw;
+        }
+
+        /* ---- Act A — the loop diagram ---- */
+        #f9-actA-inner {
+          position: absolute;
+          inset: 0;
+          will-change: transform, opacity;
+        }
+        #f9-arc-svg {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 1;
+        }
+        #f9-arc-ghost {
+          fill: none;
+          stroke: #6b6660;
+          stroke-width: 2;
+          stroke-linecap: round;
+          stroke-dasharray: 3 11;
+          opacity: 0;
+        }
+        #f9-arc-draw {
+          fill: none;
+          stroke: #ff6b2c;
+          stroke-width: 3;
+          stroke-linecap: round;
+        }
+        #f9-arc-end {
+          fill: #ff6b2c;
+          opacity: 0;
+        }
+        .card {
+          position: absolute;
+          z-index: 2;
+          background: #141416;
+          border-top: 1px solid #26262a;
+          padding: 1.5cqw 1.7cqw;
+          box-sizing: border-box;
+          will-change: transform, opacity;
+        }
+        .card-tag {
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 0.72cqw;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #a8a29a;
+          margin-bottom: 1cqh;
+        }
+        .card-title {
+          font-family: "Mona Sans", sans-serif;
+          font-weight: 600;
+          font-size: 2.4cqw;
+          line-height: 1.15;
+          letter-spacing: -0.02em;
+          text-transform: lowercase;
+          color: #f2efe9;
+        }
+        .card-title.small {
+          font-size: 1.8cqw;
+        }
+        .card-meta {
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 0.72cqw;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #ff6b2c;
+          margin-top: 1.2cqh;
+        }
+        #f9-shipped-card {
+          left: 54%;
+          top: 30%;
+          width: 26cqw;
+        }
+        #f9-decision-card {
+          left: 8%;
+          top: 40%;
+          width: 20cqw;
+        }
+        .ember-line {
+          position: absolute;
+          top: -1px;
+          left: 0;
+          width: 100%;
+          height: 1px;
+          background: #ff6b2c;
+          opacity: 0;
+        }
+        .chip-outcome {
+          position: absolute;
+          top: -1.7cqh;
+          right: -1.2cqw;
+          z-index: 3;
+          background: #ff6b2c;
+          color: #111111;
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 0.72cqw;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          padding: 0.9cqh 0.9cqw;
+          will-change: transform, opacity;
+          transform-origin: 50% 0%;
+        }
+
+        /* ---- Act B — the ranked list from F5 ---- */
+        #f9-list-inner {
+          position: absolute;
+          inset: 0;
+          will-change: transform, opacity;
+        }
+        #f9-list {
+          position: absolute;
+          left: 55%;
+          top: 24%;
+          width: 34cqw;
+          display: flex;
+          flex-direction: column;
+          gap: 2cqh;
+        }
+        .bet-row {
+          position: relative;
+          display: flex;
+          align-items: center;
+          gap: 1.4cqw;
+          height: 8.2cqh;
+          padding: 0 1.4cqw;
+          box-sizing: border-box;
+          background: #141416;
+          border-top: 1px solid #26262a;
+          will-change: transform, opacity;
+        }
+        #f9-row-checkout {
+          z-index: 1;
+        }
+        #f9-row-billing {
+          z-index: 2;
+        }
+        .rank-chip {
+          position: relative;
+          flex: none;
+          width: 2.5cqw;
+          height: 4.4cqh;
+          border: 1px solid #26262a;
+          box-sizing: border-box;
+        }
+        .rank-chip .num {
+          position: absolute;
+          inset: 0;
+          display: grid;
+          place-items: center;
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 0.9cqw;
+          letter-spacing: 0.06em;
+          color: #f2efe9;
+          will-change: transform, opacity;
+        }
+        .rank-chip .num-new {
+          opacity: 0;
+        }
+        .rank-chip .num-dim {
+          color: #a8a29a;
+        }
+        .rank-chip .num-ember {
+          color: #ff6b2c;
+        }
+        .bet-title {
+          font-family: "Mona Sans", sans-serif;
+          font-weight: 600;
+          font-size: 1.75cqw;
+          line-height: 1.1;
+          letter-spacing: -0.02em;
+          text-transform: lowercase;
+          color: #f2efe9;
+          white-space: nowrap;
+        }
+        .row-tag {
+          margin-left: auto;
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 0.65cqw;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #ff6b2c;
+          opacity: 0;
+        }
+        .edge-accent {
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 0.16cqw;
+          background: #ff6b2c;
+          opacity: 0;
+        }
+
+        /* ---- verdict words beneath the list ---- */
+        #f9-verdict {
+          position: absolute;
+          left: 55%;
+          top: 57%;
+          width: 34cqw;
+          display: flex;
+          gap: 3cqw;
+        }
+        .verdict-word {
+          display: flex;
+          align-items: baseline;
+          gap: 0.7cqw;
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 1.6cqw;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          opacity: 0;
+          will-change: transform, opacity;
+          transform-origin: 50% 50%;
+        }
+        .verdict-word .slash {
+          color: #ff6b2c;
+        }
+        .glow-word {
+          display: inline-block;
+          color: #f2efe9;
+          will-change: transform, text-shadow;
+        }
+      </style>
+
+      <div
+        id="root"
+        data-composition-id="09-the-loop-closes"
+        data-width="1920"
+        data-height="1080"
+        data-duration="11.3"
+      >
+        <!-- track 0 — full-bleed ink ground + persistent mono chrome -->
+        <div id="f9-bg" class="clip ground" data-start="0" data-duration="10.8" data-track-index="0">
+          <div class="kicker" id="f9-kicker">THE LOOP</div>
+          <div class="cat-num" id="f9-cat-num">09</div>
+        </div>
+
+        <!-- track 1 — Act A: shipped outcome arcs back to the call (dies at the 6.0s cut) -->
+        <div id="f9-actA" class="clip" data-start="0" data-duration="6" data-track-index="1">
+          <div id="f9-actA-inner">
+            <!-- depth layer 1: ghost route + live ember arc (svg-path-draw) -->
+            <svg id="f9-arc-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+              <path id="f9-arc-ghost" d="M 1400 468 C 1340 740, 860 810, 535 640" />
+              <path id="f9-arc-draw" d="M 1400 468 C 1340 740, 860 810, 535 640" />
+              <rect id="f9-arc-end" x="527" y="632" width="16" height="16" />
+            </svg>
+            <!-- depth layer 2: the two cards -->
+            <div class="card" id="f9-shipped-card">
+              <div class="card-tag">SHIPPED</div>
+              <div class="card-title">checkout fix</div>
+              <!-- depth layer 3: the outcome chip drops onto the card -->
+              <div class="chip-outcome" id="f9-chip-outcome" data-layout-allow-overflow="true">
+                OUTCOME · LANDED
+              </div>
+            </div>
+            <div class="card" id="f9-decision-card">
+              <div class="ember-line" id="f9-decision-ember"></div>
+              <div class="card-tag">THE CALL</div>
+              <div class="card-title small">fix checkout drop-off</div>
+              <div class="card-meta">SCORED 8.0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- track 2 — Act B: the ranked list born in F5, re-ranking itself -->
+        <div id="f9-actB" class="clip" data-start="6" data-duration="4.8" data-track-index="2">
+          <div id="f9-list-inner">
+            <div id="f9-list">
+              <div class="bet-row" id="f9-row-checkout">
+                <div class="rank-chip">
+                  <span class="num num-old">01</span>
+                  <span class="num num-new num-dim">02</span>
+                </div>
+                <div class="bet-title">fix checkout drop-off</div>
+                <div class="row-tag" id="f9-tag-shipped">SHIPPED</div>
+              </div>
+              <div class="bet-row" id="f9-row-billing">
+                <div class="edge-accent" id="f9-billing-edge"></div>
+                <div class="rank-chip">
+                  <span class="num num-old">02</span>
+                  <span class="num num-new num-ember">01</span>
+                </div>
+                <div class="bet-title">unify billing alerts</div>
+              </div>
+              <div class="bet-row" id="f9-row-onboarding">
+                <div class="rank-chip">
+                  <span class="num num-old">03</span>
+                </div>
+                <div class="bet-title">redesign onboarding</div>
+              </div>
+            </div>
+          </div>
+          <div id="f9-verdict">
+            <div class="verdict-word" id="f9-word-learns">
+              <span class="slash">/</span>
+              <span class="glow-word" id="f9-glow-learns">LEARNS</span>
+            </div>
+            <div class="verdict-word" id="f9-word-guides">
+              <span class="slash">/</span>
+              <span class="glow-word" id="f9-glow-guides">GUIDES</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script
+        src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
+        integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
+        crossorigin="anonymous"
+      ></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+
+        /* --- svg-path-draw setup: measure the arc, hide it via dash offset --- */
+        var f9Draw = document.getElementById("f9-arc-draw");
+        var f9Len = f9Draw.getTotalLength() * 1.02;
+        f9Draw.style.strokeDasharray = String(f9Len);
+        f9Draw.style.strokeDashoffset = String(f9Len);
+
+        var tl = gsap.timeline({ paused: true });
+
+        /* ================= chrome ================= */
+        tl.fromTo(
+          "#f9-kicker",
+          { opacity: 0, yPercent: -40 },
+          { opacity: 1, yPercent: 0, duration: 0.5, ease: "power3.out" },
+          0.3
+        );
+        tl.fromTo(
+          "#f9-cat-num",
+          { opacity: 0, yPercent: -40 },
+          { opacity: 1, yPercent: 0, duration: 0.5, ease: "power3.out" },
+          0.38
+        );
+
+        /* ============ Scene 1 (0–2.8) — results land ============ */
+        /* shipped card settles in early — hero visible well before t=0.5s */
+        tl.fromTo(
+          "#f9-shipped-card",
+          { opacity: 0, yPercent: 14 },
+          { opacity: 1, yPercent: 0, duration: 0.65, ease: "power3.out" },
+          0.1
+        );
+        /* spring-pop-entrance (smooth): the outcome chip drops onto the card on "results land" */
+        tl.fromTo(
+          "#f9-chip-outcome",
+          { opacity: 0, yPercent: -80, scale: 0.5 },
+          { opacity: 1, yPercent: 0, scale: 1, duration: 0.55, ease: "power3.out" },
+          1.05
+        );
+
+        /* ===== Scene 2 (2.8–5.8) — scored against the call that caused it ===== */
+        tl.fromTo(
+          "#f9-decision-card",
+          { opacity: 0, xPercent: -6 },
+          { opacity: 1, xPercent: 0, duration: 0.6, ease: "power3.out" },
+          2.9
+        );
+        tl.fromTo(
+          "#f9-arc-ghost",
+          { opacity: 0 },
+          { opacity: 0.18, duration: 0.45, ease: "power2.out" },
+          3.05
+        );
+        /* svg-path-draw: ember arc traces leftward, outcome back to decision */
+        tl.to(
+          "#f9-arc-draw",
+          { strokeDashoffset: 0, duration: 1.5, ease: "power2.out" },
+          3.3
+        );
+        tl.fromTo(
+          "#f9-arc-end",
+          { opacity: 0, scale: 0, transformOrigin: "50% 50%" },
+          { opacity: 1, scale: 1, duration: 0.3, ease: "power3.out" },
+          4.7
+        );
+        tl.fromTo(
+          "#f9-decision-ember",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.55, ease: "power2.out" },
+          4.75
+        );
+
+        /* ===== Scene 3 seam — cut-the-curve, leftward, cut at t=6.0 ===== */
+        /* exit: whole-line variant — motion power4.in, fade ends ~0.02s before the cut */
+        tl.fromTo(
+          "#f9-actA-inner",
+          { xPercent: 0 },
+          { xPercent: -12, duration: 0.3, ease: "power4.in", immediateRender: false },
+          5.7
+        );
+        tl.fromTo(
+          "#f9-actA-inner",
+          { opacity: 1 },
+          { opacity: 0, duration: 0.28, ease: "power1.in", immediateRender: false },
+          5.7
+        );
+        tl.set("#f9-actA-inner", { opacity: 0 }, 6.0);
+        /* entry: mirrored back half — same direction, matched velocity, decelerating */
+        tl.fromTo(
+          "#f9-list-inner",
+          { xPercent: 12, opacity: 0.35 },
+          { xPercent: 0, opacity: 1, duration: 0.34, ease: "power4.out" },
+          6.0
+        );
+
+        /* ===== Scene 3 (5.8–8.2) — the next bet re-ranks itself ===== */
+        /* scale-swap-transition adapted to a positional swap on smooth arcs:
+           rows trade slots (yPercent = (8.2+2)/8.2 row pitch), bulging outward
+           with a slight scale dip/lift; the rank chips do the literal
+           shrink-out / grow-in number swap with a 0.1s overlap. Zero bounce. */
+        var SW = 6.85;
+        var HD = 0.45;
+        var PITCH = 124.39;
+
+        tl.fromTo(
+          "#f9-row-checkout",
+          { yPercent: 0 },
+          { yPercent: PITCH, duration: 2 * HD, ease: "power2.inOut" },
+          SW
+        );
+        tl.fromTo(
+          "#f9-row-billing",
+          { yPercent: 0 },
+          { yPercent: -PITCH, duration: 2 * HD, ease: "power2.inOut" },
+          SW
+        );
+        /* arc bulge out… */
+        tl.fromTo(
+          "#f9-row-checkout",
+          { xPercent: 0 },
+          { xPercent: 6, duration: HD, ease: "power2.out", immediateRender: false },
+          SW
+        );
+        tl.fromTo(
+          "#f9-row-billing",
+          { xPercent: 0 },
+          { xPercent: -6, duration: HD, ease: "power2.out", immediateRender: false },
+          SW
+        );
+        /* …and back in */
+        tl.fromTo(
+          "#f9-row-checkout",
+          { xPercent: 6 },
+          { xPercent: 0, duration: HD, ease: "power2.in", immediateRender: false },
+          SW + HD
+        );
+        tl.fromTo(
+          "#f9-row-billing",
+          { xPercent: -6 },
+          { xPercent: 0, duration: HD, ease: "power2.in", immediateRender: false },
+          SW + HD
+        );
+        /* scale-swap flavor: descending row shrinks slightly, rising row grows slightly */
+        tl.fromTo(
+          "#f9-row-checkout",
+          { scale: 1 },
+          { scale: 0.96, duration: HD, ease: "power2.out", immediateRender: false },
+          SW
+        );
+        tl.fromTo(
+          "#f9-row-checkout",
+          { scale: 0.96 },
+          { scale: 1, duration: HD, ease: "power2.in", immediateRender: false },
+          SW + HD
+        );
+        tl.fromTo(
+          "#f9-row-billing",
+          { scale: 1 },
+          { scale: 1.04, duration: HD, ease: "power2.out", immediateRender: false },
+          SW
+        );
+        tl.fromTo(
+          "#f9-row-billing",
+          { scale: 1.04 },
+          { scale: 1, duration: HD, ease: "power2.in", immediateRender: false },
+          SW + HD
+        );
+        /* rank chips renumber mid-swap — outgoing digit shrinks out fast,
+           incoming digit grows in smooth, 0.1s overlap */
+        tl.fromTo(
+          "#f9-row-checkout .num-old",
+          { scale: 1, opacity: 1 },
+          { scale: 0.7, opacity: 0, duration: 0.18, ease: "power2.in", immediateRender: false },
+          7.1
+        );
+        tl.fromTo(
+          "#f9-row-checkout .num-new",
+          { scale: 0.7, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.3, ease: "power3.out" },
+          7.2
+        );
+        tl.fromTo(
+          "#f9-row-billing .num-old",
+          { scale: 1, opacity: 1 },
+          { scale: 0.7, opacity: 0, duration: 0.18, ease: "power2.in", immediateRender: false },
+          7.1
+        );
+        tl.fromTo(
+          "#f9-row-billing .num-new",
+          { scale: 0.7, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.3, ease: "power3.out" },
+          7.2
+        );
+        /* post-swap: the new 01 takes the ember edge; the shipped bet steps back */
+        tl.fromTo(
+          "#f9-billing-edge",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.5, ease: "power2.out" },
+          7.85
+        );
+        tl.fromTo(
+          "#f9-row-checkout",
+          { opacity: 1 },
+          { opacity: 0.6, duration: 0.45, ease: "power2.out", immediateRender: false },
+          7.9
+        );
+        tl.fromTo(
+          "#f9-tag-shipped",
+          { opacity: 0 },
+          { opacity: 0.85, duration: 0.4, ease: "power2.out" },
+          7.95
+        );
+
+        /* ===== Scene 4 (8.2–10.8) — "It learns. Then it guides." ===== */
+        tl.fromTo(
+          "#f9-word-learns",
+          { opacity: 0, scale: 1.28 },
+          { opacity: 1, scale: 1, duration: 0.38, ease: "power4.out" },
+          8.45
+        );
+        tl.fromTo(
+          "#f9-word-guides",
+          { opacity: 0, scale: 1.28 },
+          { opacity: 1, scale: 1, duration: 0.38, ease: "power4.out" },
+          9.55
+        );
+
+        /* asr-keyword-glow: single linear driver, attack–sustain–release envelope
+           driving text-shadow + scale + color lerp on each word's inner span.
+           The stamp tween owns the wrapper; the envelope owns the inner span —
+           no two writers on one transform. Runs to 10.8 so the held read ends
+           on the rest-glow breadcrumb. */
+        var ATTACK = 0.18;
+        var RELEASE = 0.45;
+        var REST_LEVEL = 0.3;
+        var MAX_BLUR = 22;
+        var MAX_SCALE_BOOST = 0.07;
+        var REST_RGB = { r: 242, g: 239, b: 233 };
+        var PEAK_RGB = { r: 255, g: 107, b: 44 };
+        var GLOW_WORDS = [
+          { el: document.getElementById("f9-glow-learns"), start: 8.5, end: 9.25 },
+          { el: document.getElementById("f9-glow-guides"), start: 9.6, end: 10.35 }
+        ];
+
+        function f9Envelope(time, start, end) {
+          var releaseEnd = end + RELEASE;
+          if (time < start) return 0;
+          if (time < end) return Math.min((time - start) / ATTACK, 1);
+          if (time < releaseEnd) {
+            var decay = (time - end) / RELEASE;
+            return 1 - decay * (1 - REST_LEVEL);
+          }
+          return REST_LEVEL;
+        }
+        function f9Lerp(a, b, t) {
+          return Math.round(a + (b - a) * t);
+        }
+
+        var f9Driver = { t: 0 };
+        tl.to(
+          f9Driver,
+          {
+            t: 10.8,
+            duration: 10.8,
+            ease: "none",
+            onUpdate: function () {
+              for (var i = 0; i < GLOW_WORDS.length; i++) {
+                var w = GLOW_WORDS[i];
+                var env = f9Envelope(f9Driver.t, w.start, w.end);
+                var blur = MAX_BLUR * env;
+                var alpha = 0.15 + 0.65 * env;
+                w.el.style.textShadow =
+                  "0 0 " + blur.toFixed(2) + "px rgba(255,107,44," + alpha.toFixed(3) + ")";
+                w.el.style.transform = "scale(" + (1 + MAX_SCALE_BOOST * env).toFixed(4) + ")";
+                w.el.style.color =
+                  "rgb(" +
+                  f9Lerp(REST_RGB.r, PEAK_RGB.r, env) +
+                  "," +
+                  f9Lerp(REST_RGB.g, PEAK_RGB.g, env) +
+                  "," +
+                  f9Lerp(REST_RGB.b, PEAK_RGB.b, env) +
+                  ")";
+              }
+            }
+          },
+          0
+        );
+
+        window.__timelines["09-the-loop-closes"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

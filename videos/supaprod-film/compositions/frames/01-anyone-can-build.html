@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Frame 1 — Anyone can build · 8.2s · dark register · kinetic-type-beats (Adapt) -->
+    <!-- head is metadata only; the runtime clones ONLY the <template> contents -->
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Circle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelCircle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Grid";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelGrid-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Line";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelLine-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Square";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelSquare-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Geist Pixel Triangle";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistPixelTriangle-Regular.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
+        @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
+        @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
+
+        /* Root — styled via #root only (scoper drops root classes). Container law:
+           container-type: size so every cqw/cqh resolves against this frame. */
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+        }
+
+        /* Full-bleed ground lives on a clip, never on #root */
+        #f01-bg {
+          position: absolute;
+          inset: 0;
+          background: #0a0a0b; /* ink-black */
+          z-index: 0;
+        }
+
+        #f01-stage {
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+        }
+
+        /* ——— Scene 1 · hero line (h1 role: 7.5cqw / 0.9 / -0.03em / lowercase) ——— */
+        .hero {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 36.5cqh;
+          text-align: center;
+          font-family: "Mona Sans", sans-serif;
+          font-weight: 700;
+          font-size: 7.5cqw;
+          line-height: 0.9;
+          letter-spacing: -0.03em;
+          color: #f2efe9; /* cream */
+          z-index: 10;
+        }
+        .w {
+          display: inline-block; /* transforms need block-level */
+        }
+        #f01-w3 {
+          color: #ff6b2c; /* fire-orange — the frame's one inked clause */
+        }
+
+        /* ——— Scene 2 · feature-card fan (3 depth layers, dimmed supporting) ——— */
+        .card {
+          position: absolute;
+          width: 16.5cqw;
+          background: #141416; /* ink-black-alt */
+          border: 1px solid #26262a; /* 1px hairline — px by design */
+          padding: 1.1cqw;
+        }
+        .card.a {
+          width: 15cqw;
+          filter: blur(1.5px); /* static depth cue, never animated */
+          z-index: 2;
+        }
+        .card.b {
+          z-index: 3;
+        }
+        .card.c {
+          z-index: 4;
+        }
+        .tag {
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 0.72cqw;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #6b6660; /* cream-hint */
+        }
+        .ttl {
+          font-family: "Mona Sans", sans-serif;
+          font-weight: 600;
+          font-size: 1.5cqw;
+          line-height: 1.2;
+          color: #f2efe9;
+          margin-top: 0.7cqh;
+        }
+        .bar {
+          height: 0.65cqh;
+          background: #26262a;
+          margin-top: 1cqh;
+        }
+
+        /* ——— Scene 3 · shipped chip (discrete-text-sequence) ———
+           Fixed min-width mono container so ticks append without box jitter. */
+        #f01-chip {
+          position: absolute;
+          left: 60cqw;
+          top: 51.5cqh;
+          background: #141416;
+          border: 1px solid #ff6b2c;
+          padding: 0.9cqh 0.9cqw;
+          z-index: 11;
+        }
+        #f01-chip-text {
+          display: block;
+          font-family: "IBM Plex Mono", monospace;
+          font-weight: 500;
+          font-size: 1.05cqw;
+          letter-spacing: 0.14em;
+          color: #ff6b2c;
+          white-space: nowrap;
+          min-width: 21.2cqw;
+          text-align: left;
+        }
+      </style>
+
+      <div id="root" data-composition-id="01-anyone-can-build" data-width="1920" data-height="1080">
+        <!-- ground -->
+        <div id="f01-bg" class="clip" data-start="0" data-duration="8.2" data-track-index="0"></div>
+
+        <!-- stage -->
+        <div id="f01-stage" class="clip" data-start="0" data-duration="8.2" data-track-index="1">
+          <!-- Scene 2 · card fan — back layer -->
+          <div class="card a" id="f01-card-a1" style="left: 11cqw; top: 50cqh">
+            <div class="tag">feature</div>
+            <div class="ttl">dark mode</div>
+            <div class="bar" style="width: 88%"></div>
+            <div class="bar" style="width: 62%"></div>
+          </div>
+          <div class="card a" id="f01-card-a2" style="left: 74cqw; top: 49.5cqh">
+            <div class="tag">mobile</div>
+            <div class="ttl">activity feed</div>
+            <div class="bar" style="width: 84%"></div>
+            <div class="bar" style="width: 58%"></div>
+          </div>
+
+          <!-- mid layer -->
+          <div class="card b" id="f01-card-b1" style="left: 22cqw; top: 60cqh">
+            <div class="tag">flow</div>
+            <div class="ttl">onboarding</div>
+            <div class="bar" style="width: 90%"></div>
+            <div class="bar" style="width: 55%"></div>
+          </div>
+          <div class="card b" id="f01-card-b2" style="left: 62cqw; top: 61cqh">
+            <div class="tag">api</div>
+            <div class="ttl">smart search</div>
+            <div class="bar" style="width: 86%"></div>
+            <div class="bar" style="width: 64%"></div>
+          </div>
+
+          <!-- front layer -->
+          <div class="card c" id="f01-card-c1" style="left: 35.5cqw; top: 66cqh">
+            <div class="tag">ui</div>
+            <div class="ttl">checkout flow</div>
+            <div class="bar" style="width: 92%"></div>
+            <div class="bar" style="width: 60%"></div>
+          </div>
+          <div class="card c" id="f01-card-c2" style="left: 49cqw; top: 69cqh">
+            <div class="tag">web</div>
+            <div class="ttl">team billing</div>
+            <div class="bar" style="width: 88%"></div>
+            <div class="bar" style="width: 66%"></div>
+          </div>
+
+          <!-- Scene 1 · hero -->
+          <div class="hero" id="f01-hero">
+            <span class="w" id="f01-w1">anyone</span>
+            <span class="w" id="f01-w2">can</span>
+            <span class="w" id="f01-w3">build.</span>
+          </div>
+
+          <!-- Scene 3 · shipped chip -->
+          <div id="f01-chip"><span id="f01-chip-text"></span></div>
+        </div>
+      </div>
+
+      <script
+        src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
+        integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
+        crossorigin="anonymous"
+      ></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+          const EASE = "power3.out"; // film default — long-tail settle, zero overshoot
+          const TOTAL = 8.2;
+
+          /* ————— discrete-text-sequence · "shipped" ticks —————
+             Whole-string states swapped at thresholds; reverse-search per frame;
+             DOM write only on transition (lastText guard). The driver also pins
+             the timeline to the full 8.2s so the frame ends on a held read. */
+          const SEQ = [
+            { t: 0.0, text: "" },
+            { t: 5.4, text: "SHIPPED" },
+            { t: 5.78, text: "SHIPPED · SHIPPED" },
+            { t: 6.16, text: "SHIPPED · SHIPPED · SHIPPED" },
+          ];
+          function textAt(time) {
+            for (let i = SEQ.length - 1; i >= 0; i--) {
+              if (time >= SEQ[i].t) return SEQ[i].text;
+            }
+            return "";
+          }
+          const chipTextEl = document.getElementById("f01-chip-text");
+          let lastText = null;
+          const driver = { t: 0 };
+          tl.to(
+            driver,
+            {
+              t: TOTAL,
+              duration: TOTAL,
+              ease: "none",
+              onUpdate: function () {
+                const s = textAt(driver.t);
+                if (s !== lastText) {
+                  chipTextEl.textContent = s;
+                  lastText = s;
+                }
+              },
+            },
+            0,
+          );
+
+          /* ————— Scene 1 (0.0–2.5s) · per-word staggered reveal —————
+             dynamic-content-sequencing mechanics: each word's window is computed
+             from its length (BASE + chars × SEC_PER_CHAR), starts pre-computed
+             once — longer words hold the beat longer. Lands on "anyone can build". */
+          const WORDS = [
+            { sel: "#f01-w1", len: 6 },
+            { sel: "#f01-w2", len: 3 },
+            { sel: "#f01-w3", len: 6 },
+          ];
+          const WORD_BASE = 0.28;
+          const SEC_PER_CHAR = 0.037;
+          let cursor = 0.35;
+          WORDS.forEach(function (w) {
+            tl.fromTo(
+              w.sel,
+              { opacity: 0, yPercent: 40, scale: 0.985 },
+              {
+                opacity: 1,
+                yPercent: 0,
+                scale: 1,
+                duration: 0.75,
+                ease: EASE,
+                immediateRender: true,
+              },
+              cursor,
+            );
+            cursor += WORD_BASE + w.len * SEC_PER_CHAR;
+          });
+
+          /* ————— Scene 2 (2.5–5.3s) · card cascade —————
+             grid-card-assemble signature: each card fades + slides/scales a short
+             distance directly into its slot, staggered back→front, low drama —
+             no scatter, no bounce. Cards settle dimmed to their depth layer. */
+          const CARDS = [
+            { sel: "#f01-card-a1", rot: -7, o: 0.4, at: 2.55 },
+            { sel: "#f01-card-a2", rot: 6, o: 0.4, at: 2.88 },
+            { sel: "#f01-card-b1", rot: -4, o: 0.62, at: 3.22 },
+            { sel: "#f01-card-b2", rot: 4, o: 0.62, at: 3.58 },
+            { sel: "#f01-card-c1", rot: -3, o: 0.85, at: 3.95 },
+            { sel: "#f01-card-c2", rot: 2, o: 0.85, at: 4.35 },
+          ];
+          CARDS.forEach(function (c) {
+            tl.fromTo(
+              c.sel,
+              { opacity: 0, yPercent: 50, scale: 0.955, rotation: c.rot * 1.6 },
+              {
+                opacity: c.o,
+                yPercent: 0,
+                scale: 1,
+                rotation: c.rot,
+                duration: 0.9,
+                ease: EASE,
+                immediateRender: true,
+              },
+              c.at,
+            );
+          });
+
+          /* ————— Scene 3 (5.3–7.2s) · chip stamps, three ticks —————
+             Stamp-in on "shipped in days"; each later tick lands with a small
+             smooth pulse (no overlap between scale tweens). Held read to 8.2s. */
+          tl.fromTo(
+            "#f01-chip",
+            { opacity: 0, scale: 0.94, yPercent: 30 },
+            {
+              opacity: 1,
+              scale: 1,
+              yPercent: 0,
+              duration: 0.34,
+              ease: EASE,
+              immediateRender: true,
+            },
+            5.4,
+          );
+          tl.fromTo("#f01-chip", { scale: 1.025 }, { scale: 1, duration: 0.22, ease: "power2.out" }, 5.78);
+          tl.fromTo("#f01-chip", { scale: 1.025 }, { scale: 1, duration: 0.22, ease: "power2.out" }, 6.16);
+
+          window.__timelines["01-anyone-can-build"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>
