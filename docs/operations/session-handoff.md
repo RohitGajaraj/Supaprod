@@ -2,6 +2,50 @@
 
 > _Created: 2026-08-07 · Last updated: 2026-08-11_
 
+## 🛑 LANE 0, 2026-08-11 — READ THIS BEFORE THE YC APPLICATION OR THE HOMEPAGE
+
+**The three numbers that proved the product worked were seed data. They are out of the application. The same rows are still live on the public homepage.**
+
+### What the founder needs to decide, nothing is blocked on him
+
+| | Decision | Default already applied |
+| --- | --- | --- |
+| **1** | **The replacement YC copy is outward-facing and needs his eyes.** The three product numbers are gone and a second admission paragraph is in, naming the workspace-id-shape cause and the column that fixes it. | Written and in the file. Nothing sends without him, so this waits, it does not block. |
+| **2** | **Stop leading with the forecast as the moat.** This touches the category, which is his call, so it is a recommendation and the canon is unchanged. | **Not applied.** Reasoning in [`../research/market-validation-2026-08.md`](../research/market-validation-2026-08.md) §8.5. |
+| **3** | **"The company brain" became "the brain".** Decided under the autonomy directive rather than escalated. | Applied everywhere. YC's "Company Brain" stays quoted and attributed at `README.md:47`. |
+
+### The finding, so nobody re-derives it
+
+The application said *119 lessons recorded, 38 where it decided the verdict itself, 36 times a new decision was made from an older lesson*, and its own annotation called the last one "the only number that proves the core idea works". Two lanes queried the live database independently and agreed:
+
+- **All 119 `learnings` rows sit in seeded workspaces.** Real count **zero**.
+- **37 of the 119 are dated before `2026-06-02`**, the repo's first commit. Earliest **2025-12-05**, six months before the product existed.
+- **One workspace holding 16 of them has no row in `workspaces` at all.**
+- **`38` is arithmetic on the fixture.** Seven workspaces named "Helio Labs" hold exactly 38 between them.
+- **`36` is `artifact_lineage` learning→decision: 71 rows, 0 with `seeded = false`.**
+- **`prd → learning` returns zero rows.** That is the edge written when a shipped spec gets its verdict. It has never fired.
+
+**Root cause, and it is one line:** every census in this repo told demo from real by matching the **shape of a workspace id**, and `seed_sample_workspace()` gives its workspace an ordinary random id. Wrong in both directions. Lane 1 has shipped a `seeded` column so it cannot recur.
+
+### Still open, and it is public
+
+**`src/lib/landing.functions.ts` excludes only `is_sample = true` or the names "Sample workspace" and "Demo workspace".** Six of the seven "Helio Labs" fixtures have `is_sample = false`, and an orphaned `workspace_id` cannot be excluded by a list built from `workspaces`. So the live counters read:
+
+    public_missions 233 · public_decisions 181 · public_outcomes 49
+
+**All 49 "outcomes graded" on supaprod.ai are fixture or orphan rows.** The comment above that query states the law it breaks: *"Undercounting is acceptable; inflating never is."* Routed to Lane 1, who owns `src/lib/**`. **After the fix the outcomes counter should read zero, and that is correct and should ship.**
+
+### The two rules this establishes
+
+1. **A number quoted outward carries its query, or it does not go.** None of the three had recorded SQL anywhere in the repo, which is why the file could tell the founder to "confirm them the same morning" and give him no way to do it.
+2. **Assume any number in `docs/` is suspect if it separates demo from real by the shape of an id.** The pattern is `_0000000-0000-4000-8000-000000000000`.
+
+**Also corrected:** the commit figures were stale again in five places and the note above them saying "eight weeks" was wrong arithmetic. Live is **4,950 commits and 510 migrations over ten weeks** from 2026-06-02.
+
+**Also landed:** [`../research/market-validation-2026-08.md`](../research/market-validation-2026-08.md) is complete, all five lanes, 11,900 words. §8 is the one to read: decision intelligence is a real Gartner category as of January 2026 and the wrong one; ThoughtWorks named our layer 03 "context graph" at Assess in April 2026 and left forecasts out of it; corporate prediction markets beat expert forecasts by 25 percent and died anyway because the people who could buy them were the people they exposed.
+
+---
+
 ## UI/UX SESSION CLOSED — 2026-08-11 01:05. Everything is on `main` at `c69b2464`.
 
 **Nothing in flight, no agent running, tree clean, `HEAD` and `origin/main` identical.** `tsc` 0 errors, `bun test` **8730 pass / 0 fail**.
