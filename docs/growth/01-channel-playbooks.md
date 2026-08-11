@@ -174,7 +174,7 @@ Day 0 actions with lead times longer than the wave:
 | Subreddit | Rule (verbatim-based) | Our play |
 | --- | --- | --- |
 | r/ProductManagement | "No Self-Promotion or spam." ONLY exception: **Friday Show and Tell thread** | Friday thread in listing week; before that, product-nameless discussion posts (e.g. "why outcome tracking dies in every PM tool") — product named only in comments if asked |
-| r/SaaS | "No Direct Sales Or Non-Productive Self-Promotion"; blog links only if the ideas are IN the post. Unconfirmed Apr 2026 change: 60-day self-promo cap + AutoMod URL blacklist — **behave as if true** | Metrics-forward lessons post ("what 13 months of dogfooding an agent engine taught us"), product incidental |
+| r/SaaS | "No Direct Sales Or Non-Productive Self-Promotion"; blog links only if the ideas are IN the post. Unconfirmed Apr 2026 change: 60-day self-promo cap + AutoMod URL blacklist — **behave as if true** | Metrics-forward lessons post ("what ten weeks of dogfooding an agent engine taught us"), product incidental |
 | r/startups | No promotion except the **Share Your Startup** sticky; general posts must not name/link your project; feedback → weekly Feedback Thread (weekly reposting explicitly invited) | Both designated threads, weekly, every week |
 | r/SideProject | No self-promo ban; required title: `[Project name] - [Short description]` | Best fit for the straight launch post |
 | r/microsaas | 3 rules: on-topic, respectful, no spam; founder posts are the norm | Direct launch post; verify activity first |

@@ -53,14 +53,15 @@ Most work here is an accelerator, incubator, residency or grant application. The
 | [`applications/README.md`](./applications/README.md) | Picking a program, or logging a submission. 144 researched, with deadlines and fit. |
 | [`applications/positioning-doctrine.md`](./applications/positioning-doctrine.md) | Working out how to get selected by a specific program. |
 | [`applications/answer-bank.md`](./applications/answer-bank.md) | Writing any answer. Pull, do not compose. |
-| [**`verified-numbers.md`**](./verified-numbers.md) | **Quoting any number outward. Read it before you type a figure.** Every number with the query that reproduces it, the honest set excluding seeded workspaces, and the retired list. **Three numbers presented as proof in the YC application were seed data and a fourth set claimed thirteen months against ten weeks; none had a recorded query.** The rule: a number carries its query or it does not go. |
+| [**`verified-numbers.md`**](./verified-numbers.md) | **Quoting any number outward. Read it before you type a figure.** Every number with the query that reproduces it, the honest set excluding seeded workspaces, and the retired list. **Three numbers presented as proof in the YC application were seed data and a fourth set claimed ten weeks against ten weeks; none had a recorded query.** The rule: a number carries its query or it does not go. |
 | `applications/<program>/` | Per-program: `positioning.md`, `application.md`, `how-to-apply.md`. Currently Betaworks AI Camp, EF The Bridge SF, South Park Commons, The Residency. |
 
 ### YC specifically
 
 | File | Open it when |
 | --- | --- |
-| [`yc/fall-2026-application.md`](./yc/fall-2026-application.md) | The live application, field by field, with paste-ready blocks. |
+| [**`yc/APPLICATION-FINAL.md`**](./yc/APPLICATION-FINAL.md) | **PASTE FROM HERE. The finished Fall 2026 application, every field, nothing but final text.** Rebuilt 2026-08-11 after three claims on the form were found to be false: three product metrics that were seed data, a thirteen-month timeline against ten weeks of commits, and the falsified moat claim still sitting in the submit sheet. Every number in it reproduces from a command. Two fields marked `[YOU]` need something only the founder has. |
+| [`yc/fall-2026-application.md`](./yc/fall-2026-application.md) | The reasoning, the audit history and every superseded draft behind the file above. **Not the paste source any more.** |
 | [`yc/research-findings.md`](./yc/research-findings.md) | You need the evidence behind a choice. YC's own rules, the seven deadly sins, language forensics, every claim sourced. |
 | [`yc/interview-prep.md`](./yc/interview-prep.md) | The interview lands. Numbers card, spoken answers to the top 25 plus the 12 brutal ones, the 90-second screen-share. |
 | [`yc/application-strategy.md`](./yc/application-strategy.md) | Thinking about positioning. Partner psychology and the positioning ladder. |

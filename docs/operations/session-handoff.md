@@ -416,8 +416,24 @@ estimate. It needs live counts and the Lovable MCP has returned
 `499 request_cancelled` on every query since roughly 09:25. Retry before doing
 anything else with it.
 
-The call is already made, so whoever picks it up does not need to re-decide it:
-**approve only the reconstructible subset, never a blanket sweep.** Gate 6's input
+**THE CALL CHANGED ONCE THE NUMBERS ARRIVED, 10:58 IST. Do not mass-approve.**
+
+The earlier plan here was "approve the reconstructible subset". Running it down
+against real counts kills it. A mission still `proposed` establishes only that
+`launchesNow` is false; gate 6's other term, `!p.reversible`, is a per-proposal
+signal NO column preserves. Approving anyway means assuming `reversible = true`,
+which is a fail-open assumption on a gate -- the exact defect closed in Gate 4 the
+same morning. It would write 141 approvals imitating gate decisions nobody made,
+which is what `decision-gate.server.ts` exists to prevent.
+
+**It is a read-side question, not a write-side one.** Of 175 pending, only 47 are
+in real workspaces (40 auto-origin, 7 manual); the other 128 are demo. The
+approvals queue ALREADY hides decisions whose mission is still `proposed`, so the
+machinery for not showing non-actionable rows exists. Before anything is written,
+find which surface produced the founder's "83" and count what it actually renders.
+
+Superseded plan, kept because the reasoning is still the right shape for any
+future backfill: Gate 6's input
 is `launchesNow || !p.reversible`, a per-proposal signal no column on `decisions`
 preserves, so a blanket `WHERE auto_origin IS TRUE` approves rows the live gate
 would have queued. The reconstructible half is "the mission is still proposed".
