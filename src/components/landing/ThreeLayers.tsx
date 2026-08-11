@@ -64,9 +64,16 @@ const LAYERS: Layer[] = [
   },
   {
     n: "02",
-    // STILL "the loop" after 2026-08-10, and that is not an oversight now that
-    // the hero says "the agentic-first operating system for product teams" one
-    // screen above. The two rulings are about different jobs and both hold.
+    // STILL "the loop", and that is not an oversight. The hero no longer says
+    // "operating system" at all: it was retired as a self-description on
+    // 2026-08-11 for sounding like a vague platform word, and the eyebrow one
+    // screen above now reads "For product managers who ship with agents".
+    //
+    // LAYER 02 KEEPS THE NAME ANYWAY, which is the distinction a sweep would
+    // have destroyed. "The operating system" is retired as what we CALL
+    // OURSELVES and kept as what this LAYER is, because the three-layer model
+    // is canon and the middle layer is the thing that runs the lifecycle. The
+    // two rulings are about different jobs and both hold.
     //
     // The hero's job is the CATEGORY: a first-time visitor has to be able to
     // file what this is, and README opens with that exact sentence, so the site
@@ -97,13 +104,26 @@ const LAYERS: Layer[] = [
      * This read "Discover to ship to learn, one governed pass", which draws a
      * line with a beginning. Two things are wrong with that.
      *
-     * FIRST, OUR OWN DATABASE CONTRADICTS IT. Measured on production lineage
-     * with demo workspaces excluded, Decide's single largest inbound source is
-     * already LEARN -- 36 real edges against 9 from opportunities. The end of
-     * the line feeds its start four to one. So the picture implies a beginning
-     * that mostly is not used, and a reader who arrives with a hypothesis they
-     * want to test cheaply is told, wrongly, that the product wants them to go
-     * and do discovery first.
+     * FIRST, THE LINE IS NOT HOW THE PRODUCT IS ENTERED. This paragraph used
+     * to prove that with a number: "36 real edges against 9 from
+     * opportunities", said to be measured on production lineage with demo
+     * workspaces excluded.
+     *
+     * THAT NUMBER WAS SEED DATA AND THE ARGUMENT SURVIVES WITHOUT IT.
+     * Established 2026-08-11: every `learning -> decision` edge in the database
+     * is seeded, zero were written by the product, and the exclusion that was
+     * supposed to strip demo workspaces matched on the SHAPE of a workspace id
+     * while the seeder assigns ordinary random ones. So the filter excluded
+     * nothing and the ratio described the fixture.
+     *
+     * The claim it was supporting is a claim about DESIGN rather than usage:
+     * a reader who arrives with a hypothesis they want to test cheaply should
+     * not be told the product wants them to go and do discovery first. That is
+     * true whether or not anyone has walked the loop yet, and it is the honest
+     * version, because with 120 product-written lineage rows in existence there
+     * is no usage pattern to appeal to. The number is gone rather than
+     * refreshed: see docs/pitch/verified-numbers.md, which exists because this
+     * exact mistake was made three times in one day.
      *
      * SECOND, A HEAVILY-STAGED LIFECYCLE DIAGRAM IS THE VISUAL SIGNATURE OF
      * SAFe, and this exact buyer is in the middle of tearing that out. We were

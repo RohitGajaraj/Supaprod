@@ -199,7 +199,7 @@ export function BriefDeck() {
           >
             <div style={{ flex: "1 1 520px" }}>
               <p style={briefLabelStyle}>Supaprod brief</p>
-              <h1 style={briefTitleStyle}>The agentic-first operating system for product teams.</h1>
+              <h1 style={briefTitleStyle}>For product managers who ship with agents.</h1>
             </div>
             <div style={{ flex: "1 1 280px", maxWidth: 440 }}>
               <p style={{ ...briefBodyStyle, fontSize: "clamp(17px, 2vw, 21px)" }}>

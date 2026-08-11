@@ -1,7 +1,7 @@
 {
   "name": "Supaprod",
   "short_name": "Supaprod",
-  "description": "The agentic-first operating system for product teams. Tells you what to build, builds and ships it, then learns what actually worked.",
+  "description": "Supaprod is where product decisions live when agents do the work. Tells you what to build, builds and ships it, then learns what actually worked.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

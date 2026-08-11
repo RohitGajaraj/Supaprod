@@ -29,7 +29,7 @@ import { BriefDeck } from "@/components/supaprod/BriefDeck";
 const SITE = "https://supaprod.ai";
 const TITLE = "The Supaprod Brief · What we're building";
 const DESC =
-  "The Supaprod brief: the AI-native, agentic-first operating system for product teams. Agents that discover, decide, design, build, ship, and learn. Problem, product, market, team.";
+  "The Supaprod brief: for product managers who ship with agents. Agents that discover, decide, design, build, ship, and learn. Problem, product, market, team.";
 
 export const Route = createFileRoute("/investors")({
   ssr: true,

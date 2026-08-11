@@ -3,7 +3,7 @@
 # This file declares Supaprod's policy for autonomous AI agents interacting with
 # this platform. It is the robots.txt equivalent for the agentic era.
 #
-# Supaprod is the agentic-first operating system for product teams. It tells you
+# Supaprod is where product decisions live when agents do the work. It tells you
 # what to build, builds it, ships it, checks what actually happened, and learns
 # from it, so next time it guides the call. Seven stations that agents walk
 # on their own, inside boundaries a human sets in advance. A settled outcome is
