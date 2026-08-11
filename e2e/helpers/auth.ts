@@ -23,7 +23,23 @@ import { expect, type Page } from "@playwright/test";
 import * as path from "path";
 import * as fs from "fs";
 
-export const DEMO_EMAIL = process.env.E2E_DEMO_EMAIL ?? "demo@redcadence.app";
+/**
+ * The account `docs/operations/demo-credentials.md` designates as "the account
+ * any agent uses for testing". It is not a secret and it is in a tracked doc, so
+ * a default is right here in a way it is not for the password below: a default
+ * that names the documented testing account is the entire point of having one.
+ *
+ * THIS DEFAULT USED TO BE A DISABLED ACCOUNT. It pointed at a `redcadence.app`
+ * login that the same doc says is "disabled and must not be used or quoted
+ * anywhere" — rotated, `profiles.suspended = true`, since 2026-07-25. The
+ * password beside it had already been made to fail loudly when unset, which
+ * made this worse rather than better: set the correct password against the dead
+ * email and the suite reports "that email or password isn't right", which is
+ * indistinguishable from a wrong password and sends the next person hunting the
+ * thing that was already fixed. A guard now refuses either retired address
+ * anywhere in this folder.
+ */
+export const DEMO_EMAIL = process.env.E2E_DEMO_EMAIL ?? "harbor@supaprod.ai";
 
 /**
  * THE PASSWORD IS NOT IN THIS FILE, AND IT USED TO BE.

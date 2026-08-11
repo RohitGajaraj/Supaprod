@@ -1,8 +1,19 @@
 /**
  * PC-04: the no-signup demo. Read-only server functions scoped to ONE fixed
- * demo workspace id (the public demo@redcadence.app account, per
- * docs/operations/demo-credentials.md: "These accounts are public knowledge
- * by design"). Every query below is a plain SELECT with no input parameters
+ * demo workspace id — Helio Labs, the master template every other demo
+ * workspace is cloned from.
+ *
+ * This comment used to name the `redcadence.app` login as "the public …
+ * account" and quote the credentials doc calling such accounts "public
+ * knowledge by design". Both halves went stale on 2026-07-25: that login was
+ * disabled and suspended after leaking in a public README, and the same doc now
+ * says it "must not be used or quoted anywhere". It still OWNS this workspace,
+ * which is exactly why it was disabled rather than deleted — 45 of the 65
+ * foreign keys into `auth.users` cascade, so removing the row would take Helio
+ * Labs and every clone with it. Ownership is not access, and nothing here
+ * authenticates as anyone.
+ *
+ * Every query below is a plain SELECT with no input parameters
  * and no write path. There is nothing here for a demoGuard to reject,
  * because nothing here can mutate anything. Uses the service-role admin
  * client since there is no user session to authenticate as; never returns
