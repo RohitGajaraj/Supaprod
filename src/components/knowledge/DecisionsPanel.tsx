@@ -230,7 +230,13 @@ export function DecisionsPanel() {
     ]);
 
   const create = useMutation({
-    mutationFn: (vars: { title: string; rationale?: string }) => fCreate({ data: vars }),
+    mutationFn: (vars: {
+      title: string;
+      rationale?: string;
+      forecast_claim?: string;
+      forecast_how_we_will_know?: string;
+      forecast_horizon_date?: string;
+    }) => fCreate({ data: vars }),
     onSuccess: (_res, vars) => {
       qc.invalidateQueries({ queryKey: ["decisions"] });
       // What it CAUSED, not that the click registered: a logged call is read by
@@ -339,7 +345,15 @@ export function DecisionsPanel() {
         <LogDecision
           id="decisions-composer"
           onCancel={() => setOpen(false)}
-          onSubmit={(t, r) => create.mutate({ title: t, rationale: r || undefined })}
+          onSubmit={(v) =>
+            create.mutate({
+              title: v.title,
+              rationale: v.rationale || undefined,
+              forecast_claim: v.forecast?.claim,
+              forecast_how_we_will_know: v.forecast?.howWeWillKnow,
+              forecast_horizon_date: v.forecast?.horizonISO,
+            })
+          }
           submitting={create.isPending}
         />
       ) : null}
@@ -445,11 +459,46 @@ function LogDecision({
 }: {
   id: string;
   onCancel: () => void;
-  onSubmit: (title: string, rationale: string) => void;
+  onSubmit: (v: {
+    title: string;
+    rationale: string;
+    forecast?: { claim: string; howWeWillKnow: string; horizonISO: string };
+  }) => void;
   submitting: boolean;
 }) {
   const [title, setTitle] = useState("");
   const [rationale, setRationale] = useState("");
+
+  /**
+   * FC-01: the forecast, and this is the only place a person can record one.
+   *
+   * WHY IT IS OPTIONAL AND STAYS OPTIONAL. The server refuses a partial
+   * forecast, never an absent one, and that asymmetry is the whole design. Make
+   * the field required and people type "it will go well" to get past it, which
+   * is a forecast-shaped object that settles nothing and then poisons the
+   * calibration record it feeds. An empty forecast is honest. A vacuous one is
+   * worse than nothing.
+   *
+   * WHY IT IS ON THIS FORM RATHER THAN A LATER EDIT. Migration 20260810180000
+   * says capture at the moment the decision is committed, and the immutability
+   * trigger freezes all three the instant they are set. A forecast added
+   * afterwards, once anything is known, is a retrospective wearing a timestamp.
+   * This is the one moment we can be sure the outcome is not yet available.
+   */
+  const [claim, setClaim] = useState("");
+  const [howWeWillKnow, setHowWeWillKnow] = useState("");
+  const [horizon, setHorizon] = useState("");
+
+  const filled = [claim.trim(), howWeWillKnow.trim(), horizon].filter(Boolean).length;
+  // All three or none, checked here as well as on the server. The server is the
+  // authority; this exists so the person is told before they lose the form.
+  const partial = filled > 0 && filled < 3;
+
+  // `min` is tomorrow rather than today, because a horizon expiring within the
+  // day is not one anybody can still be wrong about, and the server refuses any
+  // horizon at or before now.
+  const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+
   return (
     <div id={id}>
       <Block
@@ -475,6 +524,47 @@ function LogDecision({
             maxLength={2000}
           />
         </Field>
+
+        <Field label="What do you expect to happen (optional)" htmlFor="decision-forecast-claim">
+          <Textarea
+            id="decision-forecast-claim"
+            value={claim}
+            onChange={(e) => setClaim(e.target.value)}
+            rows={2}
+            maxLength={500}
+          />
+        </Field>
+        {/* Said once, above the two fields it governs, rather than repeated on
+            each. The lock is the surprising part and the person should meet it
+            before they type, not after they try to edit. */}
+        <p className="text-[12px] text-zinc-400">
+          Recorded before the outcome is known, and locked once saved. This is the part nobody can
+          reconstruct afterwards.
+        </p>
+        <Field label="How will you know" htmlFor="decision-forecast-signal">
+          <Input
+            id="decision-forecast-signal"
+            value={howWeWillKnow}
+            onChange={(e) => setHowWeWillKnow(e.target.value)}
+            maxLength={500}
+          />
+        </Field>
+        <Field label="By when" htmlFor="decision-forecast-horizon">
+          <Input
+            id="decision-forecast-horizon"
+            type="date"
+            min={tomorrow}
+            value={horizon}
+            onChange={(e) => setHorizon(e.target.value)}
+          />
+        </Field>
+        {partial ? (
+          <p role="alert" className="text-[12px] text-zinc-400">
+            A forecast needs all three: what you expect, how you will know, and by when. Without the
+            signal it cannot be settled, and without a date it never comes due.
+          </p>
+        ) : null}
+
         <Actions
           trailing={
             <Button variant="ghost" onClick={onCancel} disabled={submitting}>
@@ -484,8 +574,26 @@ function LogDecision({
         >
           <Button
             variant="primary"
-            disabled={!title.trim() || submitting}
-            onClick={() => onSubmit(title.trim(), rationale.trim())}
+            disabled={!title.trim() || submitting || partial}
+            onClick={() =>
+              onSubmit({
+                title: title.trim(),
+                rationale: rationale.trim(),
+                forecast:
+                  filled === 3
+                    ? {
+                        claim: claim.trim(),
+                        howWeWillKnow: howWeWillKnow.trim(),
+                        // The date control yields YYYY-MM-DD with no time. Read
+                        // as the END of that day in the person's own timezone,
+                        // which is what "by the 20th" means to whoever typed it.
+                        // Taking midnight instead would silently shorten every
+                        // horizon by a day.
+                        horizonISO: new Date(`${horizon}T23:59:59`).toISOString(),
+                      }
+                    : undefined,
+              })
+            }
           >
             {submitting ? "Logging" : "Log decision"}
           </Button>
