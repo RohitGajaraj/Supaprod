@@ -44,7 +44,7 @@ Scene 3 (5.6–8.2s): on "shipped in days", the deploy status flips to a green "
 ## Frame 2 — Worth building
 
 - scene: A wall of shipped features over a flat adoption chart — lots built, nothing moved
-- voiceover: "What nobody tells you is what's worth building. So teams polish the prettiest idea… and miss."
+- voiceover: "But nobody tells you what's worth building. Teams ship the wrong features — beautifully. That's the judgment gap."
 - duration: 8.5s
 - transition_in: crossfade
 - status: animated
@@ -221,7 +221,7 @@ Scene 4 (8.0–10.8s): on "It learns. Then it guides.", the camera pulls to show
 ## Frame 10 — It stops you
 
 - scene: Mid-draft, the product interrupts: you've made this call before — with the record to prove it
-- voiceover: "So the next time you're about to repeat a mistake, it stops you. You made this call last year. Here's what happened. Your own record, guiding the next move."
+- voiceover: "So the next time you're about to repeat a mistake, it stops you. Q3 last year — same call, shipped, missed."
 - duration: 12.3s
 - transition_in: crossfade
 - status: animated
@@ -243,7 +243,7 @@ Scene 4 (9.4–12.3s): on "guiding the next move", the panel settles to a calm e
 ## Frame 11 — What can't be reconstructed
 
 - scene: The decision record close-up: artifacts on one side, the sealed belief on the other
-- voiceover: "Supaprod keeps the one thing nobody can rebuild — what you believed. And guides your next call."
+- voiceover: "What you believed. What worked. What didn't — and why. Your shared brain, guiding the next call."
 - duration: 7.2s
 - transition_in: blur-crossfade
 - status: animated
@@ -285,7 +285,7 @@ Scene 2 (1.6–4.0s): "you start deciding." joins beneath at 700; both hold as t
 ## Frame 13 — Close
 
 - scene: The app recedes into the dark; the mark draws; the caret types the address
-- voiceover: "Supaprod. Build what matters. The demo is live at supaprod dot ai — no login needed."
+- voiceover: "Supaprod. Agents run the work. You make the calls — and every call makes the next one sharper."
 - duration: 9.3s
 - transition_in: crossfade
 - status: animated

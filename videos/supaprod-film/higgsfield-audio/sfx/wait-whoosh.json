@@ -1,0 +1,20 @@
+{
+  "created_at": "2026-08-11T17:26:26.557485Z",
+  "display_name": "Seed Audio 1.0",
+  "id": "e6ed1a53-5aa8-46ae-aa62-06ce9ba3b61e",
+  "job_type": "seed_audio",
+  "min_result_url": null,
+  "params": {
+    "batch_size": 1,
+    "expression_intensity": 5,
+    "format": "wav",
+    "loudness_rate": 0,
+    "mood": 0,
+    "pitch_rate": 0,
+    "prompt": "Short cinematic air whoosh for a fast camera pan, smooth swish, half a second, subtle and airy, no impact, isolated on silence",
+    "sample_rate": 24000,
+    "speech_rate": 0
+  },
+  "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3GrM9hprJ3PH4vVtwjOom6boQVj/hf_20260811_172626_e6ed1a53-5aa8-46ae-aa62-06ce9ba3b61e.wav",
+  "status": "completed"
+}

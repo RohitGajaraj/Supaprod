@@ -1,0 +1,38 @@
+{
+  "created_at": "2026-08-11T12:34:36.683073Z",
+  "display_name": "Text to Speech V2",
+  "id": "668523f4-75fb-49cc-9f04-ec4107289294",
+  "job_type": "text2speech_v2",
+  "min_result_url": null,
+  "params": {
+    "batch_size": 1,
+    "format": "mp3",
+    "language_boost": "auto",
+    "model": "minimax",
+    "pitch": 0,
+    "prompt": "So the next time you're about to repeat a mistake, it stops you. You made this call last year. Here's what happened. Your own record, guiding the next move.",
+    "sample_rate": 32000,
+    "speed": 1,
+    "text_normalization": false,
+    "voice": {
+      "age": "middle_aged",
+      "gender": "male",
+      "id": "e2a2d2e6-9ed2-59cd-82af-feaa27f8a678",
+      "name": "Grady",
+      "source": "https://d1xarpci4ikg0w.cloudfront.net/audio_voice/e2a2d2e6-9ed2-59cd-82af-feaa27f8a678/preview-c07e730034d0926d.mp3",
+      "supported_models": [
+        "elevenlabs",
+        "minimax",
+        "seed_speech"
+      ],
+      "thumbnail_url": "https://d1xarpci4ikg0w.cloudfront.net/audio_voice/e2a2d2e6-9ed2-59cd-82af-feaa27f8a678/thumbnail-42a7c60501e92f87.webp",
+      "type": "preset",
+      "waveform_url": "https://d1xarpci4ikg0w.cloudfront.net/waveform/3e6474b7-1c47-4ad7-b773-a735babf17ad.json"
+    },
+    "voice_id": "e2a2d2e6-9ed2-59cd-82af-feaa27f8a678",
+    "voice_type": "preset",
+    "volume": 1
+  },
+  "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3GrM9hprJ3PH4vVtwjOom6boQVj/hf_20260811_123436_668523f4-75fb-49cc-9f04-ec4107289294.mp3",
+  "status": "completed"
+}

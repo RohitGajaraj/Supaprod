@@ -18,7 +18,7 @@
 **Time:** 7.0 – 15.0s
 **Delivery:** The turn. Slower on "worth". A beat before "and miss."
 
-    What nobody tells you is what's worth building. So teams polish the prettiest idea… and miss.
+    But nobody tells you what's worth building. Teams ship the wrong features — beautifully. That's the judgment gap.
 
 ## Line 3 — You know the feeling (Frame 3)
 
@@ -74,14 +74,14 @@
 **Time:** 83.0 – 93.0s
 **Delivery:** The aha. The quoted warning spoken like the product is speaking — calm, plain. Then back to the narrator for the last line.
 
-    So the next time you're about to repeat a mistake, it stops you. You made this call last year. Here's what happened. Your own record, guiding the next move.
+    So the next time you're about to repeat a mistake, it stops you. Q3 last year — same call, shipped, missed.
 
 ## Line 11 — What can't be reconstructed (Frame 11)
 
 **Time:** 93.0 – 101.0s
 **Delivery:** Plain statement of fact; the sentence does the work.
 
-    Supaprod keeps the one thing nobody can rebuild — what you believed. And guides your next call.
+    What you believed. What worked. What didn't — and why. Your shared brain, guiding the next call.
 
 ## Line 12 — The promise (Frame 12)
 
@@ -95,4 +95,4 @@
 **Time:** 106.0 – 114.0s
 **Delivery:** Settled, warm. The URL spoken like an address, not an ad.
 
-    Supaprod. Build what matters. The demo is live at supaprod dot ai — no login needed.
+    Supaprod. Agents run the work. You make the calls — and every call makes the next one sharper.

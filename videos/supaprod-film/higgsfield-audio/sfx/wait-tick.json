@@ -1,0 +1,20 @@
+{
+  "created_at": "2026-08-11T17:30:59.788836Z",
+  "display_name": "Seed Audio 1.0",
+  "id": "64e407a3-878b-44d2-967e-3552412cdbb8",
+  "job_type": "seed_audio",
+  "min_result_url": null,
+  "params": {
+    "batch_size": 1,
+    "expression_intensity": 5,
+    "format": "wav",
+    "loudness_rate": 0,
+    "mood": 0,
+    "pitch_rate": 0,
+    "prompt": "Single tiny soft tick pop, small UI element settling into place, very short, subtle, isolated on silence",
+    "sample_rate": 24000,
+    "speech_rate": 0
+  },
+  "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3GrM9hprJ3PH4vVtwjOom6boQVj/hf_20260811_173059_64e407a3-878b-44d2-967e-3552412cdbb8.wav",
+  "status": "completed"
+}

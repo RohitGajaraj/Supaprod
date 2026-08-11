@@ -1,0 +1,20 @@
+{
+  "created_at": "2026-08-11T17:31:22.342622Z",
+  "display_name": "Seed Audio 1.0",
+  "id": "e90ceb61-2082-42ed-82e5-0bea1ce12e06",
+  "job_type": "seed_audio",
+  "min_result_url": null,
+  "params": {
+    "batch_size": 1,
+    "expression_intensity": 5,
+    "format": "wav",
+    "loudness_rate": 0,
+    "mood": 0,
+    "pitch_rate": 0,
+    "prompt": "Warm cinematic swell rising gently for two seconds, soft analog synth pad bloom, hopeful and premium, no percussion, fades in",
+    "sample_rate": 24000,
+    "speech_rate": 0
+  },
+  "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3GrM9hprJ3PH4vVtwjOom6boQVj/hf_20260811_173122_e90ceb61-2082-42ed-82e5-0bea1ce12e06.wav",
+  "status": "completed"
+}

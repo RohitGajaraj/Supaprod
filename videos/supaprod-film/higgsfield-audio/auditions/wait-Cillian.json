@@ -1,0 +1,32 @@
+{
+  "created_at": "2026-08-11T12:30:53.254277Z",
+  "display_name": "Text to Speech V2",
+  "id": "e7e60b5b-d086-4a5f-af6f-72c07dec3f01",
+  "job_type": "text2speech_v2",
+  "min_result_url": null,
+  "params": {
+    "batch_size": 1,
+    "model": "elevenlabs",
+    "prompt": "So the next time you're about to repeat a mistake, it stops you. You made this call last year. Here's what happened. Your own record, guiding the next move.",
+    "voice": {
+      "age": "middle_aged",
+      "gender": "male",
+      "id": "d8ba9f14-8a24-44db-932b-99e16c45bd32",
+      "name": "Cillian",
+      "source": "https://d1xarpci4ikg0w.cloudfront.net/audio_voice_preset/preview/0641e334-cdc1-427c-9957-6d0677fb79fd.mp3",
+      "supported_models": [
+        "elevenlabs",
+        "minimax",
+        "seed_speech",
+        "qwen_audio"
+      ],
+      "thumbnail_url": "https://d1xarpci4ikg0w.cloudfront.net/audio_voice/thumbnail/c6c6b39a-adbc-4691-b2ac-25efef59d61d.webp",
+      "type": "preset",
+      "waveform_url": "https://d1xarpci4ikg0w.cloudfront.net/waveform/cada6f6d-5846-46c7-8daf-462333dc64ea.json"
+    },
+    "voice_id": "d8ba9f14-8a24-44db-932b-99e16c45bd32",
+    "voice_type": "preset"
+  },
+  "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3GrM9hprJ3PH4vVtwjOom6boQVj/hf_20260811_123053_e7e60b5b-d086-4a5f-af6f-72c07dec3f01.mp3",
+  "status": "completed"
+}

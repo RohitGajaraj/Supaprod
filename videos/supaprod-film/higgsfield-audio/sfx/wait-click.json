@@ -1,0 +1,20 @@
+{
+  "created_at": "2026-08-11T17:26:25.019302Z",
+  "display_name": "Seed Audio 1.0",
+  "id": "19737f87-1a3d-4977-aaec-3f4d9d71e8ae",
+  "job_type": "seed_audio",
+  "min_result_url": null,
+  "params": {
+    "batch_size": 1,
+    "expression_intensity": 5,
+    "format": "wav",
+    "loudness_rate": 0,
+    "mood": 0,
+    "pitch_rate": 0,
+    "prompt": "Single soft premium UI click, one short tactile tap, clean digital interface sound, subtle, no reverb tail, isolated on silence",
+    "sample_rate": 24000,
+    "speech_rate": 0
+  },
+  "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3GrM9hprJ3PH4vVtwjOom6boQVj/hf_20260811_172625_19737f87-1a3d-4977-aaec-3f4d9d71e8ae.wav",
+  "status": "completed"
+}

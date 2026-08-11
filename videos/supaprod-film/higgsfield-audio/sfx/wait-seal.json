@@ -1,0 +1,20 @@
+{
+  "created_at": "2026-08-11T17:30:13.318437Z",
+  "display_name": "Seed Audio 1.0",
+  "id": "9d381a71-d05f-41be-b624-0e36a403236f",
+  "job_type": "seed_audio",
+  "min_result_url": null,
+  "params": {
+    "batch_size": 1,
+    "expression_intensity": 5,
+    "format": "wav",
+    "loudness_rate": 0,
+    "mood": 0,
+    "pitch_rate": 0,
+    "prompt": "Single soft mechanical lock click with a faint warm resonance, like a wax seal pressed then a latch, short, isolated on silence",
+    "sample_rate": 24000,
+    "speech_rate": 0
+  },
+  "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3GrM9hprJ3PH4vVtwjOom6boQVj/hf_20260811_173013_9d381a71-d05f-41be-b624-0e36a403236f.wav",
+  "status": "completed"
+}

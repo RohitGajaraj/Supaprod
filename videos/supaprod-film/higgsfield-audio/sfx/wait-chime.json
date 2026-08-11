@@ -1,0 +1,20 @@
+{
+  "created_at": "2026-08-11T17:29:56.028173Z",
+  "display_name": "Seed Audio 1.0",
+  "id": "dcb72718-de83-4c78-b1f8-00a025f1f58e",
+  "job_type": "seed_audio",
+  "min_result_url": null,
+  "params": {
+    "batch_size": 1,
+    "expression_intensity": 5,
+    "format": "wav",
+    "loudness_rate": 0,
+    "mood": 0,
+    "pitch_rate": 0,
+    "prompt": "Single warm success chime, soft two-note marimba-like ding, premium product notification, short, isolated on silence",
+    "sample_rate": 24000,
+    "speech_rate": 0
+  },
+  "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3GrM9hprJ3PH4vVtwjOom6boQVj/hf_20260811_172956_dcb72718-de83-4c78-b1f8-00a025f1f58e.wav",
+  "status": "completed"
+}
