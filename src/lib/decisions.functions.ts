@@ -80,6 +80,64 @@ export type DecisionRow = {
   auto_origin?: boolean | null;
 };
 
+/**
+ * FC-01: the two ways a forecast can be malformed, in one place.
+ *
+ * PURE AND EXPORTED so it can be tested directly. Both callers below live
+ * inside `createServerFn(...).inputValidator(...)`, which is not reachable from
+ * a unit test without standing up a request, and this rule is the part worth
+ * pinning: it is what stops an unresolvable forecast being counted as one.
+ *
+ * Returns the refusal in the words the person should read, or null when the
+ * shape is fine. `null` for "no forecast at all" is deliberate and is not the
+ * same as invalid: a decision with no forecast is ordinary, and the moment we
+ * make the field mandatory people write "it will go well" to get past it, which
+ * is a forecast-shaped object that settles nothing.
+ */
+export function forecastRefusal(input: {
+  forecast_claim?: string | null;
+  forecast_how_we_will_know?: string | null;
+  forecast_horizon_date?: string | null;
+  now?: number;
+}): { path: "forecast_claim" | "forecast_horizon_date"; message: string } | null {
+  const given = [
+    input.forecast_claim,
+    input.forecast_how_we_will_know,
+    input.forecast_horizon_date,
+  ].filter((p) => p != null).length;
+
+  // ALL THREE OR NONE. The three fields are one artifact and each missing piece
+  // breaks it differently. A claim with no observable reads as a forecast and
+  // resolves as an argument. A claim with no horizon is never due, so the
+  // calibrator's partial index (idx_decisions_forecast_due) never surfaces it
+  // and it silently never resolves. Either shape makes a decision look
+  // forecast-bearing while being ungradeable, which is worse than carrying no
+  // forecast, because the count would then overstate what can ever be settled.
+  if (given > 0 && given < 3) {
+    return {
+      path: "forecast_claim",
+      message:
+        "A forecast needs all three parts: what you expect, how you will know, and by when. Without the observable it cannot be settled, and without the horizon it never comes due.",
+    };
+  }
+
+  // A HORIZON THAT HAS ALREADY PASSED is being written with the answer
+  // available. The immutability trigger cannot catch this one: it fires BEFORE
+  // UPDATE and this arrives on an insert, so it is refused here or not at all.
+  if (
+    input.forecast_horizon_date &&
+    Date.parse(input.forecast_horizon_date) <= (input.now ?? Date.now())
+  ) {
+    return {
+      path: "forecast_horizon_date",
+      message:
+        "The horizon has already passed, so this would be recorded with the answer available. A forecast is only a forecast before the outcome is known.",
+    };
+  }
+
+  return null;
+}
+
 export const listDecisions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
@@ -189,6 +247,32 @@ export const createDecision = createServerFn({ method: "POST" })
           .array(z.object({ title: z.string().max(280), reason_rejected: z.string().max(500) }))
           .max(8)
           .optional(),
+
+        /**
+         * FC-01: the forecast, captured at the moment the decision is committed.
+         *
+         * This is the door the whole moat argument depends on, and until now it
+         * did not exist. Migration 20260810180000 shipped the columns, the
+         * resolution constraint and the immutability trigger on 2026-08-10 under
+         * a founder ruling that reads "Build now, P0", and no application code
+         * ever referenced any of them. A schema with a guard and no writer
+         * captures nothing.
+         *
+         * Why it belongs on the INSERT rather than on a later edit: a forecast
+         * recorded after the fact is a retrospective. The trigger enforces that
+         * from below by freezing these three once set, and the honest place to
+         * write them is the one moment we know the outcome is not yet known.
+         */
+        forecast_claim: z.string().min(1).max(500).optional(),
+        forecast_how_we_will_know: z.string().min(1).max(500).optional(),
+        forecast_horizon_date: z.string().datetime({ offset: true }).optional(),
+      })
+      // All three or none, and a horizon that has not already passed. Both
+      // rules and the reasoning behind them live in `forecastRefusal`.
+      .superRefine((v, ctx) => {
+        const bad = forecastRefusal(v);
+        if (bad)
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: [bad.path], message: bad.message });
       })
       .parse(input),
   )
@@ -307,6 +391,91 @@ export const createDecision = createServerFn({ method: "POST" })
     }
 
     return { decision: row };
+  });
+
+/**
+ * FC-01: attach a forecast to a decision that does not have one yet.
+ *
+ * WHY THIS EXISTS ALONGSIDE THE INSERT PATH. `createDecision` is not the only
+ * door: decisions are also written by the meeting extractor, the discovery
+ * pipeline, the MCP surface, the tool registry and the trigger tick. A person
+ * who wants to record what they expect from a call an agent captured for them
+ * has no insert to attach it to, and telling them to delete and re-create the
+ * decision would destroy its lineage to say one sentence about the future.
+ *
+ * SET-ONCE HERE, MIRRORING THE TRIGGER RATHER THAN TRUSTING IT. The database
+ * already refuses to change a forecast that exists (`enforce_forecast_immutable`
+ * raises `check_violation`), so this could be written as a bare update and let
+ * the trigger fail it. Two reasons it is not. The trigger's message is written
+ * for whoever reads the logs, not for the person at the keyboard, and a raised
+ * `check_violation` surfaces as a generic write failure that reads like an
+ * outage rather than a refusal. And a caller with `service_role` is exempt from
+ * the trigger entirely, so any future server-side path would silently overwrite
+ * a belief. The guard belongs in both places.
+ *
+ * The WHERE clauses repeat the read rather than trusting it, so a row that
+ * gains a forecast between the check and the write is refused by the database
+ * rather than by a check that raced, and `.select("id")` makes an empty result
+ * an error instead of a silent success. Same shape as `extendApprovalTtl`.
+ *
+ * It deliberately does NOT touch `forecast_resolution` or `forecast_resolved_at`.
+ * Those are written after the horizon passes, by the calibrator or a human, and
+ * re-scoring on better evidence is legitimate. What must not move is what was
+ * believed beforehand.
+ */
+export const setDecisionForecast = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        decisionId: z.string().uuid(),
+        forecast_claim: z.string().min(1).max(500),
+        forecast_how_we_will_know: z.string().min(1).max(500),
+        forecast_horizon_date: z.string().datetime({ offset: true }),
+      })
+      // All three are required by the object above, so only the horizon rule
+      // can fire here. Shared with the insert path rather than restated.
+      .superRefine((v, ctx) => {
+        const bad = forecastRefusal(v);
+        if (bad)
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: [bad.path], message: bad.message });
+      })
+      .parse(input),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+
+    const { data: row } = await supabase
+      .from("decisions")
+      .select("id,forecast_claim")
+      .eq("id", data.decisionId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!row) throw new Error("We could not find that decision, so nothing changed.");
+    if (row.forecast_claim != null) {
+      throw new Error(
+        "This decision already records what you expected to happen, and that cannot be rewritten. A forecast you can edit after the outcome is known is a retrospective.",
+      );
+    }
+
+    const { data: written, error } = await supabase
+      .from("decisions")
+      .update({
+        forecast_claim: data.forecast_claim,
+        forecast_how_we_will_know: data.forecast_how_we_will_know,
+        forecast_horizon_date: data.forecast_horizon_date,
+      })
+      .eq("id", data.decisionId)
+      .eq("user_id", userId)
+      .is("forecast_claim", null)
+      .select("id");
+    if (error) throw new Error(error.message);
+    if (!written || written.length === 0) {
+      throw new Error(
+        "We could not confirm that the forecast was recorded, so treat it as not recorded.",
+      );
+    }
+    return { ok: true as const, decisionId: data.decisionId };
   });
 
 export const updateDecision = createServerFn({ method: "POST" })
