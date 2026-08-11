@@ -1,8 +1,8 @@
 # References
 
-> _Created: 2026-08-04 · Last updated: 2026-08-10_
+> _Created: 2026-08-04 · Last updated: 2026-08-11_
 
-**Evidence, kept in original form.** Thirteen documents of primary-source research: what the market does, what operators say, what investors reward. This folder is deliberately raw. The distilled conclusions live in [`../strategy/`](../strategy/README.md); this is what they were drawn from.
+**Evidence, kept in original form.** Twenty documents of primary-source research: what the market does, what product managers say, what investors reward. This folder is deliberately raw. The distilled conclusions live in [`../strategy/`](../strategy/README.md); this is what they were drawn from.
 
 **Two standing rules that make this folder usable:**
 
@@ -20,8 +20,9 @@ Nothing here is superseded by age. A 2026-06 competitor sweep is still true abou
 | [`competitive-landscape.md`](./competitive-landscape.md) | The competitor grid, pricing, and the ranked threats. |
 | [`launch-research-briefs.md`](./launch-research-briefs.md) | Four sourced briefs from 2026-07-10: competitive landscape, frontier-agent UX patterns, the TAM/SAM/SOM arithmetic, and the HyperAgent grant terms. **The market ladder in every application traces here.** |
 | [`external-strategy-synthesis.md`](./external-strategy-synthesis.md) | An outside read of the strategy. |
+| [`market-validation-2026-08.md`](./market-validation-2026-08.md) | **The test of whether the Lenny findings generalise.** Four lanes run entirely outside that ecosystem: what the frontier labs shipped since Krieger named this layer, where the money went, what employers put in requisitions, and what engineers do instead of buying. **Confirms the problem, confirms the DIY default, contradicts the business.** Read it for the two findings that hurt: Notion shipped a free version of the lifecycle framing on 2026-07-09, and engineering wrote down the forecast-at-decision-time practice a decade ago and never tooled it. **A fifth lane on the category and the analysts is still missing**; the file says so at the top. |
 
-## What operators and PMs actually say
+## What product managers actually say
 
 | File | What it holds |
 | --- | --- |
@@ -33,6 +34,7 @@ Nothing here is superseded by age. A 2026-06 competitor sweep is still true abou
 | [`lennys-data-archive.md`](./lennys-data-archive.md) | **Pointer, not content.** The paid 679-document Lenny archive: what it holds, how any agent on any machine gets it, and the licence that forbids committing a byte of it. **Read before quoting the corpus.** |
 | [`podcast-corpus-aakash.md`](./podcast-corpus-aakash.md) | Aakash Gupta's channel, guest quotes via transcript extraction. |
 | [`podcast-corpus-frontier.md`](./podcast-corpus-frontier.md) | Frontier voices on agents and the shape of the era. |
+| [`lane0-cycle1-findings.md`](./lane0-cycle1-findings.md) | ⚠️ **SUPERSEDED 2026-08-11, kept only so a decision can be traced.** The first-cycle read, before the full corpus. Its ICP widening and its "decision memory + receipts" wedge were both overturned; its own header names exactly what it got wrong. **Do not cite it for positioning.** Its governance finding survived and was independently confirmed from outside. |
 | [`research-references-aakash-gupta.md`](./research-references-aakash-gupta.md) | 139 KB the founder gathered and pasted in, kept raw on purpose. Different method and date from the podcast corpus above; neither supersedes the other. |
 
 ## Investors and the funding lens
