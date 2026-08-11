@@ -270,7 +270,7 @@ Beat 2 is verbatim from an operator (Bal Sieber, 2026-06-27). Those three jobs *
 
 **Binding scope, and say it exactly this way:** *one station, 32%, on the evidence model that got it there.* **Do not claim it platform-wide until the generalization lands** — six of seven stations have no path off the gate today. The correction-rate corpus that would let it graduate further **began filling 2026-08-10 and has no history**, so §5D's present-tense discipline applies here too.
 
-**This also answers the founder's own objection** — why an agentic-first product hands a human 172 pending decisions and 50 tool gates. The honest answer is that the mechanism to reduce them exists, is proven, and is plumbed into one station. That is a roadmap item with evidence behind it, not a defect.
+**This also answers the founder's own objection** — why an agent-operated product hands a human 172 pending decisions and 50 tool gates. The honest answer is that the mechanism to reduce them exists, is proven, and is plumbed into one station. That is a roadmap item with evidence behind it, not a defect.
 
 ## 5J. Four corrections to this document, 2026-08-11 — founder challenge
 
@@ -392,3 +392,35 @@ Both came out of [`../research/market-validation-2026-08.md`](../research/market
 **The generalisable rule, and it is the one to keep:**
 
 > **Drop the words we invented. Keep the industry's words even when our buyer's peers do not say them. And never let an industry word do the work of making someone care.**
+
+
+---
+
+## §5M. "agentic-first" retired, "agentic" kept — founder ruling 2026-08-11
+
+**The question:** with *operating system* retired, does **agentic-first** survive? **Answer: the compound dies, the adjective lives.**
+
+### Measured, not asserted
+
+| Term | Corpus presence | Read |
+| --- | --- | --- |
+| **agentic** | **53 documents** of 679 | **Live market vocabulary.** Compare *audit trail* at 1 document and *paper trail* at 1. It is not our invention, so it passes the same not-invented test that kept *audit trail* |
+| **agentic-first** | our construction | **`X-first` is a category-claim shape.** "We are an agentic-first company" does exactly what "operating system" did, and the compound is ours rather than the market's |
+
+### But how the market uses it is the finding
+
+The corpus talks about *agentic* **sceptically**: *"actual adoption of agentic platforms in 2025 has been slow"*, *"the state of agentic AI: promise outpaces practice"*, and 92.4% of respondents reporting at least one significant downside. And **Gartner's 2026 Hype Cycle places agentic AI at the Peak of Inflated Expectations** (§8.2 of the market validation).
+
+> **Leading with the word plants us on the peak of a hype cycle.** A sceptical reader applies the discount before reading the second sentence.
+
+### The ruling
+
+| | |
+| --- | --- |
+| **Keep `agentic`** | Technical docs, `AGENTS.md`, investor and analyst material, the AI-governance framing. **"Agentic AI" is Gartner's own term**; in that room it buys legibility |
+| **Never `agentic`** | Hero, eyebrow, kicker, the 50-character line, cold outreach. Anywhere a stranger meets us first |
+| **Kill `agentic-first` and `agent-first`** | Everywhere in our own voice. Third-party quotes and dated records keep it |
+
+**The eyebrow already solved this without the word.** *"For product managers who ship with agents"* uses the concrete noun: no teaching, no category claim, no hype-cycle discount. **"Agents" is what the reader already does; "agentic" is what an analyst calls it.**
+
+**The design rule survived, only its name changed.** `AGENTS.md` and `README.md` used to open a principle with *"Agentic-first, not agent-assisted."* It now reads **"Agents run it, they do not assist with it."** Same rule, no compound.

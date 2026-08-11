@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | **1** | **Review [`../pitch/yc/APPLICATION-FINAL.md`](../pitch/yc/APPLICATION-FINAL.md).** He read it once and was not happy; his objections are recorded at the top of that file, in his words, with what was done about each. **That file is the only paste source.** [`fall-2026-application.md`](../pitch/yc/fall-2026-application.md) now opens with a NOT-THE-PASTE-SOURCE banner. |
 | **2** | **Three `[YOU]` fields.** The demo video (under 2:15; the 11:46 one on the form is unwatchable for a partner), the `[N]` discovery-call count in 9a, and **3b/3c on the founder profile, both still blank** — ISRO belongs in 3b, and two empty fields read as incuriosity. |
-| **3** | **One unanswered question:** does **"agentic-first"** survive now that "operating system" is retired? It is our coinage too. Nobody has ruled. |
+| **3** | ✅ **RULED 2026-08-11: the compound dies, the adjective lives.** `agentic-first` and `agent-first` are dropped in our own voice; **`agentic` survives** in technical, investor and analyst material and never in a hero or eyebrow. Measured: *agentic* appears in **53 corpus documents** against 1 for *audit trail*, so it is the market's word; but Gartner's 2026 Hype Cycle puts agentic AI at the **Peak of Inflated Expectations**, so leading with it invites a discount. Canon: [`../strategy/positioning-locked-2026-08.md`](../strategy/positioning-locked-2026-08.md) §5M. |
 
 ### What changed, and why it mattered
 

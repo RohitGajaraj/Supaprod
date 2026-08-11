@@ -43,8 +43,8 @@ const TREATMENTS: Treatment[] = [
       <span style="font-weight:500">Agents</span> ${glue("that own")}
       <span style="font-weight:650">outcomes</span>.<br>
       ${glue("Not just")} <span style="color:#5A5C63;font-weight:300">output</span>.`,
-    sub: () => `${glue("The")} <span style="color:${P.bone};opacity:.72">agentic-first</span>
-      ${glue("operating system for")} <span style="color:${P.bone};font-weight:500">product teams</span>`,
+    sub: () => `${glue("For")} <span style="color:${P.bone};font-weight:500">product managers</span>
+      ${glue("who ship with")} <span style="color:${P.bone};opacity:.72">agents</span>`,
   },
   {
     key: "H2",
@@ -56,8 +56,8 @@ const TREATMENTS: Treatment[] = [
         background-size:100% 3px;background-repeat:no-repeat;background-position:0 100%;
         padding-bottom:6px">outcomes</span>.<br>
       ${glue("Not just")} <span style="color:#5A5C63;font-weight:300">output</span>.`,
-    sub: () => `${glue("The")} <span style="color:${P.bone};opacity:.72">agentic-first</span>
-      ${glue("operating system for")} <span style="color:${P.bone};font-weight:500">product teams</span>`,
+    sub: () => `${glue("For")} <span style="color:${P.bone};font-weight:500">product managers</span>
+      ${glue("who ship with")} <span style="color:${P.bone};opacity:.72">agents</span>`,
   },
   {
     key: "H3",
@@ -71,8 +71,8 @@ const TREATMENTS: Treatment[] = [
       <span style="font-weight:650;color:#FFF6EF;
         text-shadow:0 0 22px rgba(255,107,44,.55), 0 0 46px rgba(255,107,44,.28)">outcomes</span>.<br>
       ${glue("Not just")} <span style="color:#5A5C63;font-weight:300">output</span>.`,
-    sub: () => `${glue("The")} <span style="color:${P.bone};opacity:.72">agentic-first</span>
-      ${glue("operating system for")} <span style="color:${P.bone};font-weight:500">product teams</span>`,
+    sub: () => `${glue("For")} <span style="color:${P.bone};font-weight:500">product managers</span>
+      ${glue("who ship with")} <span style="color:${P.bone};opacity:.72">agents</span>`,
   },
 ];
 
