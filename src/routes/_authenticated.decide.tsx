@@ -296,6 +296,7 @@ import { AgentPulse } from "@/components/shell/AgentPulse";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { CrewWorking } from "@/components/shell/CrewWorking";
 import { stillWaiting } from "@/lib/query-state";
+import "@/styles/decide.css";
 
 /** The agent that red-teams a call, named from the one catalog so this page
  *  never hard-codes a display name that the catalog can rename. */
@@ -2107,8 +2108,12 @@ function DecideSurface() {
   return (
     <Surface
       context={
+        /* A WRAPPER WITH ONE JOB: carry the measure when this column stacks
+           under the work column instead of standing beside it. See the single
+           rule in styles/decide.css for the numbers that made it necessary.
+           A fragment here would have nothing for that rule to reach. */
         activeOpp ? (
-          <>
+          <div className="decide-ctx">
             {/* THE SCORE COMES FIRST, AND IT WAS FIFTH.
                 This column carried, in order: who touched it, why it ranks here,
                 what it resembles, what people said, what backs it, and only THEN
@@ -2286,7 +2291,7 @@ function DecideSurface() {
                 View the evidence
               </Button>
             </CtxBody>
-          </>
+          </div>
         ) : null
       }
     >

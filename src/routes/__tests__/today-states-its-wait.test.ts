@@ -37,9 +37,9 @@ import { join } from "node:path";
  *      "Reading what needs you." is a fact. "Just a moment", a percentage or a
  *      seconds count are all the surface talking about itself.
  *
- *   4. A CLAIM NEVER PRINTS BEFORE ITS READ LANDS. "It learned one thing" is a
- *      block title that asserts a learning exists, so it may not be drawn over a
- *      wait that does not yet know whether one does.
+ *   4. A CLAIM NEVER PRINTS BEFORE ITS READ LANDS. "The last thing it learned"
+ *      is a block title that asserts a learning exists, so it may not be drawn
+ *      over a wait that does not yet know whether one does.
  *
  * Modelled on run-evidence-holds.test.ts and no-fabricated-agent-steps.test.ts:
  * scan the source as TEXT and strip comments first, because the fixed file
@@ -185,15 +185,25 @@ describe("Today's wait copy is honest", () => {
 });
 
 describe("Today never prints a claim it has not read yet", () => {
-  it("holds back 'It learned one thing' until the learning is in hand", () => {
-    const titleAt = jsx.indexOf('<Block title="It learned one thing">');
+  it("holds back the learning block's title until the learning is in hand", () => {
+    // ASSERTED BY POSITION, NOT BY THE WORDS (2026-08-11). This pinned the
+    // literal `<Block title="It learned one thing">`, and that title was wrong
+    // for a reason this test could never have caught: it counted the row on
+    // screen, not the record behind it, over a workspace holding eight
+    // learnings. Renaming it broke a test whose subject is ORDER, which is the
+    // same lesson the headline test three cases down has already had to learn
+    // twice. The property is that the wait comes first and the titled branch is
+    // reached only through `learning?.summary`, and neither depends on the copy.
     const waitAt = jsx.indexOf("<Loading>Reading what it learned.</Loading>");
-    expect(titleAt).toBeGreaterThan(-1);
+    const guardAt = jsx.search(/learning\?\.summary\s*\?/);
+    const titleAt = jsx.indexOf("<Block title", guardAt);
     expect(waitAt).toBeGreaterThan(-1);
+    expect(guardAt).toBeGreaterThan(-1);
+    expect(titleAt).toBeGreaterThan(-1);
     // Siblings in one ternary chain, never the wait nested under the claim: the
     // branch carrying the title is guarded by the learning itself existing.
-    expect(waitAt).toBeLessThan(titleAt);
-    expect(jsx.slice(waitAt, titleAt)).toMatch(/learning\?\.summary\s*\?/);
+    expect(waitAt).toBeLessThan(guardAt);
+    expect(guardAt).toBeLessThan(titleAt);
   });
 
   it("the headline shows the date while it counts, rather than a number it lacks", () => {
