@@ -27,6 +27,7 @@ node "$SKILL/transitions.mjs" verify --storyboard ./STORYBOARD.md --index ./inde
 python3 - <<'PYEOF'
 s = open('index.html').read()
 tag = '<video id="broll-f4" class="clip" muted playsinline preload="auto" src="assets/f4-ember-broll.mp4" data-start="33.95" data-duration="1.33" data-track-index="12" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:60;pointer-events:none;"></video>'
+s = s.replace('background: #F2EFE9;', 'background: #0A0A0B;')
 if 'broll-f4' not in s:
     import re
     m = re.search(r'(<div[^>]*id="root"[^>]*>)', s)
