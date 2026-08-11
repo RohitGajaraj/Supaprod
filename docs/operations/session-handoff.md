@@ -4,14 +4,16 @@
 
 ## ✅ LANE 1 SESSION CLOSED — 2026-08-12. Everything is on `main`. Nothing is stranded.
 
-**Git state at close, verified by reading the refs back rather than assuming the push worked:**
+**Git state at close, verified by reading the refs back rather than assuming the push worked.** No SHA is quoted here on purpose: a commit cannot contain its own hash, so any value written into this file is permanently one commit stale and would read as drift. **The invariant is the claim, and it carries the command that reproduces it:**
 
+```bash
+git fetch origin
+git rev-parse HEAD origin/main origin/parallel/lane-1-fresh   # all three identical
+git rev-list --left-right --count origin/main...HEAD          # 0   0
+git status --short                                            # only ?? .remember/
 ```
-HEAD  ==  origin/main  ==  origin/parallel/lane-1-fresh   9b347316
-ahead / behind main                                       0 / 0
-working tree                                              clean
-tsc --noEmit · bun test · docs:check  (on the MERGED tree) 0 · 8723 pass 0 fail · 0
-```
+
+`.remember/` is untracked **by design** and must never be committed; the plugin injects it at SessionStart and clears it as it reads. Gates at close, run on the **merged** tree rather than this lane's own: `tsc --noEmit` **0** · `bun test` **8723 pass, 0 fail** · `docs:check` **0**.
 
 ### 🎯 START HERE, whichever lane you are
 
