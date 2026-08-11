@@ -27,13 +27,19 @@ The application said *119 lessons recorded, 38 where it decided the verdict itse
 
 **Root cause, and it is one line:** every census in this repo told demo from real by matching the **shape of a workspace id**, and `seed_sample_workspace()` gives its workspace an ordinary random id. Wrong in both directions. Lane 1 has shipped a `seeded` column so it cannot recur.
 
-### Still open, and it is public
+### Still open, and it is latent rather than live
 
-**`src/lib/landing.functions.ts` excludes only `is_sample = true` or the names "Sample workspace" and "Demo workspace".** Six of the seven "Helio Labs" fixtures have `is_sample = false`, and an orphaned `workspace_id` cannot be excluded by a list built from `workspaces`. So the live counters read:
+**`src/lib/landing.functions.ts` excludes only `is_sample = true` or the names "Sample workspace" and "Demo workspace".** Six of the seven "Helio Labs" fixtures have `is_sample = false`, and an orphaned `workspace_id` cannot be excluded by a list built from `workspaces`. Applying the exact predicate the code applies:
 
     public_missions 233 · public_decisions 181 · public_outcomes 49
 
-**All 49 "outcomes graded" on supaprod.ai are fixture or orphan rows.** The comment above that query states the law it breaks: *"Undercounting is acceptable; inflating never is."* Routed to Lane 1, who owns `src/lib/**`. **After the fix the outcomes counter should read zero, and that is correct and should ship.**
+**All 49 would-be "outcomes graded" are fixture or orphan rows.** The comment above that query states the law it breaks: *"Undercounting is acceptable; inflating never is."*
+
+> **Correction, 2026-08-11, and it matters.** Lane 0 first wrote that these numbers were live on supaprod.ai. **They are not, and nothing renders them.** Verified independently rather than taken on report: `missionsRun`, `decisionsRecorded`, `outcomesGraded` and `aiCallsGoverned` appear nowhere in `src/` outside `landing.functions.ts`, and `index.tsx:297` passes the whole stats object to `<Receipts stats={stats} />` where `Receipts(_props: …)` deliberately ignores it. The counters beat was deleted on 2026-08-09 and the prop was left behind.
+>
+> **The defect is real and different.** `index.tsx:173` runs `getLandingStats()` in the route loader, firing six database queries, of which five feed fields nothing displays. `/` is server-rendered on the login and signup paths too, so this runs on the three hottest public routes to compute numbers that are thrown away. **The exposure is latent: the day someone wires those fields to a surface they ship seed counts, and the field names will make it look safe.** Lane 2 is narrowing the loader and dropping the dead prop.
+>
+> **What this does not change:** pulling the three numbers from the YC application was right and is unaffected, because that document quoted them from a database query rather than from the page.
 
 ### The two rules this establishes
 
