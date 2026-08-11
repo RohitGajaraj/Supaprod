@@ -44,7 +44,7 @@ https://supaprod.ai.
 Where it is now: it runs end to end. Signals come in from the tools a
 team already uses, it argues against the weak ideas before I see them,
 agents write the code and open pull requests, and nothing merges without
-me. 4,872 commits and 508 database migrations in eight weeks.
+me. 4917 commits and 508 database migrations in nine weeks.
 
 The part I most wanted to work is working. It has recorded 119 lessons
 from things that actually shipped. For 38 of those it decided the verdict
@@ -351,7 +351,7 @@ loop.
 - **PASTE THIS:**
 
 ```
-Eight weeks on this build, seven days a week; the repo shows 4,872
+Nine weeks on this build, seven days a week; the repo shows 4917
 commits and 508 database migrations over that stretch, and a month of
 nights and weekends on the prototype before that. Completely full-time: I
 am on a break from my product role, and leaving it for good is already
