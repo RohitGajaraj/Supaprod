@@ -33,7 +33,7 @@
 > | `decision -> decision` | `contradiction-auditor.functions.ts:77` |
 > | `house_rule -> house_rule` | `house-rules.functions.ts:430` |
 >
-> **The distinction this makes, and it is the honest version of our own claim:** `prd -> learning` **has a writer and has never fired.** Zero rows. That is a very different statement from "the loop is not built", and it is the true one. **A writer that exists and has not run is a product waiting for a user. A hop with no writer is a hole.** Only the code can tell them apart, and the row count cannot.
+> **The distinction this makes, and it is the honest version of our own claim:** `prd -> learning` **has a writer, and as of 2026-08-11 it has fired.** 14 rows, all in demo workspaces, production still 0. It read "never fired" until Lane 1 settled 14 shipped specs through the product's own write sequence. That is a very different statement from "the loop is not built", and it is the true one. **A writer that exists and has not run is a product waiting for a user. A hop with no writer is a hole.** Only the code can tell them apart, and the row count cannot.
 >
 > Correct figures and their queries: [`../../pitch/verified-numbers.md`](../../pitch/verified-numbers.md).
 
