@@ -149,7 +149,7 @@ These gaps _are_ the two bets. Wiring map:
 | `O1` knowledge graph + query | Partial (provenance only) | H1 | **REPOSITION + elevate** P2 to moat-tier; becomes the typed decision graph. |
 | `O3` fact drift + skill packs | Pending | H1 | **ABSORB** into H1 (freshness/provenance + MCP export). |
 | Brain surface (`brain.functions.ts`, `brain.md`) | Status dashboard | H1 | **REPOSITION** into a navigable decision graph (Glean "trace why" + Guru governing-decision retrieval). |
-| Critic (`critic.server.ts`, the wedge, G2) | Spec-only, context-blind | H1 | **MODIFY:** read the graph for multi-hop "what contradicts this / what happened last time." Upgrades the launch wedge's receipts. |
+| Critic (`critic.server.ts`, the wedge, G2) | Spec-only, context-blind | H1 | **MODIFY:** read the graph for multi-hop "what contradicts this / what happened last time." Upgrades the launch wedge's evidence. |
 | MCP (G6 Interop, Lane F) | Read-only | H1 | **BRING FORWARD:** the graph becomes the neutral brain external agents query and write outcomes to; populate A2A `memory_refs` from it. |
 | Loop legibility / mission cockpit (G7) | Inline cooking banner | H2 | **BUILD:** the preview/canvas pane (the valuable half first). |
 | `CommandPalette.tsx` (`⌘K`, nav-only) | Navigation | H2 | **MODIFY:** elevate to an NL intent bar (Raycast pattern); preserve the GUI fallback. |
@@ -158,7 +158,7 @@ These gaps _are_ the two bets. Wiring map:
 
 **On-track verdict.** H1 is not a new lane bolted on. It is the **completion of Lane B (LEARN) and the M-B milestone gate** ("compounding memory surfaced; gauntlet shows rising numbers"), which today cannot be proven because the loop is stubbed. The `WM-*` monetization work continues untouched in parallel (file-disjoint). H2 is genuinely additive and lower priority; sequence its preview pane alongside the agent-execution and cockpit surfaces, and defer the full intent bar until power-user demand is evidenced.
 
-**The connectivity that makes the product durable.** The Decision Brain is the **one substrate every pillar draws from**: the Critic's receipts, the loop's recall and handoff threading, the Brain surface, the MCP export, and the outcome-accuracy metric all read the same graph. The Command Canvas is the **legible governed front** that makes all of it visible and approvable. One graph in, one canvas out is the interoperability that compounds, and it is exactly what an incumbent's bolt-on cannot replicate.
+**The connectivity that makes the product durable.** The Decision Brain is the **one substrate every pillar draws from**: the Critic's evidence, the loop's recall and handoff threading, the Brain surface, the MCP export, and the outcome-accuracy metric all read the same graph. The Command Canvas is the **legible governed front** that makes all of it visible and approvable. One graph in, one canvas out is the interoperability that compounds, and it is exactly what an incumbent's bolt-on cannot replicate.
 
 ---
 
@@ -168,10 +168,10 @@ These gaps _are_ the two bets. Wiring map:
 | --- | --- | --- |
 | **Founder** | Completes the moat already claimed; turns "memory moat" from a slogan into an enforced data structure. | A power-feel front; sequence behind H1. |
 | **Investor** | The check-writing metric (outcome-accuracy lift per PM as memory grows) becomes measurable and un-backfillable; "context graph as moat" is the funded thesis (Atlassian, Glean). | UX delight, not defensibility; do not pitch as the moat. |
-| **Incubator / YC** | Sharpens the wedge story with receipts; "why now" (the vector-to-graph memory shift) is current and citable. | Demo-able wow, but a side-note in the narrative. |
+| **Incubator / YC** | Sharpens the wedge story with the evidence; "why now" (the vector-to-graph memory shift) is current and citable. | Demo-able wow, but a side-note in the narrative. |
 | **End-customer PM** | "It remembers what we decided, why, and whether it worked." The Critic stops being vibes. | Faster for keyboard-native PMs; must never force syntax on the rest. |
 | **Power user** | Multi-hop queries ("what contradicts this assumption") are the senior-PM superpower. | The CLI altitude they want: frecency, shortcuts, omnipotence principle. |
-| **Marketer** | Shareable artifact equals the Critic teardown with graph-cited receipts ("watch the AI demolish my pet feature with our own history"). | A striking, screenshot-able surface for build-in-public. |
+| **Marketer** | Shareable artifact equals the Critic teardown with graph-cited evidence ("watch the AI demolish my pet feature with our own history"). | A striking, screenshot-able surface for build-in-public. |
 | **Evangelist** | "Decision #10,001 is smarter than #10,000," the institutional-memory narrative. | "Command your product org," memorable but secondary. |
 | **Business / monetization** | Graph depth is retention gravity (an export cannot take the tuned linked judgment); rides the account-level credit pool (more workspaces equals a deeper graph). | No direct monetization; a tier differentiator at most. |
 | **Incumbent / competitor (the threat)** | Biggest risk: Atlassian (150B-object Teamwork Graph, opened via MCP) or Notion/Glean add an outcome-labeled decision schema. Defense: win on the decision/outcome ontology, the adversarial Critic (incumbents will not tell customers they are wrong), and cross-tool neutrality. | Copyable UX; not a defense. |

@@ -292,7 +292,7 @@ Named ones, and the space is moving quickly: Samepage raised a seed to surface s
 ```text
 Every one of them stops one step short. They surface signals, or draft documents, or dispatch work. Not one closes the circle by checking what shipped against the decision that caused it and using that to make the next recommendation better.
 
-That is the difference between a tool that remembers and one that learns. Storing decisions is easy and worth almost nothing on its own. The value is a system that can say: you are about to make a call you have made before, and here is how it went. Nobody gets there without owning the whole loop first, which is why it cannot be bolted onto a tracker afterward, and it cannot be copied quickly, because it only accumulates with time.
+That is the difference between a tool that remembers and one that learns. Storing decisions is easy and worth almost nothing on its own. The value is a system that can say: you are about to make a call you have made before, and here is how it went. Nobody gets there without owning the whole loop first. And the part a competitor cannot rebuild is what you believed would happen before you found out: everything else about a decision survives in chat logs and call recordings, and an agent can reconstruct it in an afternoon. A forecast leaves no trace unless something captured it at the moment of the call.
 
 The other thing: I do not compete on generating code. That layer is a knife fight and the models keep absorbing it. I own the harness instead, the gates and evidence and rollback, and plug the best model into it. When a better model ships, this gets better the same day and I do nothing.
 ```
