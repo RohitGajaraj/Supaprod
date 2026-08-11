@@ -20,7 +20,7 @@ For what the product is and where every other document lives, read [`README.md`]
 | --- | --- | --- |
 | **01** | the director | tells you what to build |
 | **02** | the operating system | runs the whole lifecycle, seven stations |
-| **03** | the company brain | **learns, then guides.** Never "stores" or "remembers". |
+| **03** | the brain | **learns, then guides.** Never "stores" or "remembers". |
 
 They are one product because each is the precondition for the next: you cannot be the brain without the loop that generates outcomes, and you cannot run the loop without being the OS. **Layer 03 is the only one defensible alone**, because it needs the customer's own outcomes labelled over time, which no model has. Ship any one alone and it is a feature.
 
@@ -31,7 +31,12 @@ They are one product because each is the precondition for the next: you cannot b
 **Three rules that follow, binding on every surface:**
 1. **Never claim accumulated learning in the present tense.** Not *"we learn from your corrections."* The honest and stronger form is *the loop is wired and proven, and it begins accruing on first real use.*
 2. **Never imply an unbroken signal → shipped → learned chain.** It is broken in two places: Discover promotes 3 of 86 themes, and Build writes no changeset or deployment edges. Demo the Discover → Decide → Learn half, which is real.
-3. **Vocabulary is a register split, not a ban.** Public surfaces avoid *receipts · ledger · audit trail · company brain · unattended* (all at or near zero across 5.9M words). In-product surfaces use the operator's own words: *context governance · drift · gate · memory life cycle · audit trail*.
+3. **Use practitioner language everywhere — in-product as well as public** (founder ruling 2026-08-11; **this replaces the register split, which is retired**).
+   - **DROP, we invented these** (rate per million across 5,721,291 words of this market's own writing): *receipts* 3.0 → **evidence** 50.9 or **history** 103.3 · *ledger* 0.2, *trust ledger* **zero** → **track record** · *unattended* 0.2 → **ran on its own** 12.4 or **overnight** 14.3 · *first run* 0.2 → **get started** 42.1 · *provenance* 0.3 → **history** · *decision layer* → say what it does.
+   - **KEEP, practitioners say these unprompted:** **audit trail** · **shared brain** · *evidence · history · track record · decisions* 562.8 · *review* 232.1 · *ready* 160.3 · *stuck* 95.8 (beats "blocked" 11.7 by 8×) · *judgment* (never "judgement") · *drift · gate · context governance · source of truth · what good looks like*.
+   - **approve vs review:** keep **approve** where it names a **gate action** (something is blocked pending the click); use **review** where it means **looking at something**. The test is whether clicking it unblocks anything.
+   - **Never use "context" alone on a marketing surface** — it means the LLM context window here and reads as jargon.
+   - Exact strings for every remaining instance: [`docs/growth/vocabulary-change-list-2026-08.md`](./docs/growth/vocabulary-change-list-2026-08.md).
 
 Full canon and evidence: [`docs/strategy/positioning-locked-2026-08.md`](./docs/strategy/positioning-locked-2026-08.md) · [`docs/research/lennys-corpus-sweep-2026-08.md`](./docs/research/lennys-corpus-sweep-2026-08.md).
 
@@ -91,7 +96,7 @@ Five rules that constrain *what gets designed*, not just how it is coded. Every 
 
 > We are not building for today's problem. Every solution is designed for where the industry will be **six months from the current date**, and it must also close the pain the user carried from the past.
 
-1. **Assume the model layer commoditizes.** If one frontier release could absorb this feature, it is not a moat. Build the loop, the gates and the ledger *around* the model, never the thin layer on top.
+1. **Assume the model layer commoditizes.** If one frontier release could absorb this feature, it is not a moat. Build the loop, the gates and the record *around* the model, never the thin layer on top.
 2. **Assume a large vendor ships our vertical next quarter.** Name what we still have that they do not. If the answer is "nothing", the design is wrong and gets redone.
 3. **Agentic-first, not agent-assisted.** A surface an autonomous agent cannot run end to end under policy is legacy the day it ships.
 4. **Solve backwards and forwards.** Close the past pain, serve today's job, leave the seam for the six-month job.

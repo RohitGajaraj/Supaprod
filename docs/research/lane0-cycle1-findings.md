@@ -1,4 +1,18 @@
-# Lane 0 Cycle 1 Findings — Market Analysis Complete (2026-08-10)
+# Lane 0 Cycle 1 Findings (2026-08-10) — SUPERSEDED, kept for traceability
+
+> ⚠️ **SUPERSEDED 2026-08-11. Do not cite this file for positioning.** It was written from a partial read and two of its locked conclusions were overturned by the full 679-document read and the outside-evidence test that followed.
+>
+> **What it got wrong, named so nobody re-derives it:**
+> 1. **The ICP.** It widened the archetype from "individual PM" to a fleet-managing operator running 2 to 20 agents, on the strength of one podcast anecdote and one company example. The front door is the **individual PM or founding PM**. Corrected in [`../strategy/positioning-locked-2026-08.md`](../strategy/positioning-locked-2026-08.md) and in [`../../README.md`](../../README.md).
+> 2. **The wedge, and the word for it.** "Decision memory + receipts" is retired twice over: *receipts* scores 3.0 per million against *evidence* at 50.9 in this market's own writing, and the memory claim itself was narrowed, because the record is backfillable. The wedge is **the transition point**, the moment a folder stops working because a second person or a fleet of agents touches it. The moat is the **forecast captured at decision time**.
+> 3. **The Lemkin evidence.** The quoted figure does not appear in the official transcript body. See [`lennys-quote-verification.md`](./lennys-quote-verification.md); it may not be cited.
+>
+> **What still stands:** the governance finding, that graduated autonomy earned per capability is load-bearing rather than decorative, which the outside test independently confirmed from employer requisitions in [`market-validation-2026-08.md`](./market-validation-2026-08.md) §4.4.
+
+## Original document, unedited below this line
+
+---
+
 
 **State:** Analysis complete. Positioning locked. Gaps routed to Lanes 1 & 2. Three founder-level calls pending.
 

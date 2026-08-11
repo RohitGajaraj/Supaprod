@@ -14,7 +14,9 @@
 
 > _Last updated: 2026-08-10_
 
-🚨 **LANE 0 CYCLE 1 COMPLETE (2026-08-10).** Market analysis of Lenny's Data (679 docs) is done. **Lenny's Data found:** the wedge is decision memory + receipts (not agent autonomy); governance via capabilities is load-bearing; buyer is fleet-managing operator (not solo PM). Eight actionable gaps routed to Lanes 1 & 2. Three founder calls pending (Lemkin quote, memory expiry, billing tiers). See [`docs/operations/session-handoff.md` §Lane 0 Cycle 1](./docs/operations/session-handoff.md) for execution directives, [`docs/planning/SOURCE-OF-TRUTH.md` rows 96–103](./docs/planning/SOURCE-OF-TRUTH.md) for gaps with acceptance criteria, [`docs/research/lane0-cycle1-findings.md`](./docs/research/lane0-cycle1-findings.md) for full analysis. **Lanes 1 & 2: priority reorder and hero reframe now unblocked; WM-M15 (governance) escalated above mission breadth.**
+**Market read complete, 2026-08-11.** The full archive was read, all 679 documents and 5,935,025 words, and then tested a second time against funding, hiring, analyst and engineering evidence from entirely outside it. **Three things changed and they are already applied below:** the moat narrowed from *the record compounds* to **the forecast captured at decision time**, because the record turned out to be backfillable and has been backfilled twice on the record; the words changed to the ones practitioners actually use, because *receipts*, *ledger* and *unattended* score at or near zero in this market's own writing; and the front door stayed the **individual PM or founding PM**, which an earlier cycle had briefly widened.
+
+Evidence: [`docs/research/lennys-corpus-sweep-2026-08.md`](./docs/research/lennys-corpus-sweep-2026-08.md) · outside test [`docs/research/market-validation-2026-08.md`](./docs/research/market-validation-2026-08.md) · the pain in customers' own words [`docs/research/customer-voice.md`](./docs/research/customer-voice.md). Canon: [`docs/strategy/positioning-locked-2026-08.md`](./docs/strategy/positioning-locked-2026-08.md). **What is in flight is not here** — status lives in [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) and nowhere else.
 
 **Supaprod is the agentic-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked. Wired end to end, from signal to learning and back again.**
 
@@ -37,14 +39,14 @@ This file is the front door: what the product is, why it holds, and where every 
 | | Layer | What it does | The word for it |
 | --- | --- | --- | --- |
 | **01** | **The director** | Tells you what to build. Reads your signals, your product data, your competitors and your own past calls, and ranks what is worth doing next. | *marigold* `#e8b44c` |
-| **02** | **The operating system** | Runs the whole lifecycle. Seven stations that agents walk unattended, inside boundaries a human sets in advance. | *blue* |
-| **03** | **The company brain** | Learns, and then guides. Not where the record lives: it compounds, tells you what is right next time, and warns before you repeat what was wrong. | *green* |
+| **02** | **The operating system** | Runs the whole lifecycle. Seven stations that agents walk on their own, inside boundaries a human sets in advance. | *blue* |
+| **03** | **The brain** | Learns, and then guides. Not where the record lives: it compounds, tells you what is right next time, and warns before you repeat what was wrong. | *green* |
 
 **Why the order is not arbitrary.** The door is who it is for, so it earns attention. The body is what it does, so it earns belief. The brain is why it wins, so it earns the close. Leading with the brain sounds like a database; leading with the door and never reaching the brain sounds like a workflow tool.
 
 **Why all three have to be one product**, which is the earned insight and the answer to "isn't this three companies": *you cannot be the company brain without owning the loop that generates outcomes, and you cannot run the loop without being the operating system.* Each layer is the precondition for the next. Ship any one alone and it is a feature.
 
-This maps onto YC's own three Requests for Startups, which is confirmation rather than strategy: "Cursor for Product Managers" (the door), "The AI Operating System for Companies" (the body), "Company Brain" (the brain). **"Company brain" is YC's phrase, quoted and attributed, never our brand identity.** Our owned words are the outcome ledger, the decision brain, the receipts. Canonical memo: [`docs/pitch/repositioning-2026-07-22.md`](./docs/pitch/repositioning-2026-07-22.md).
+This maps onto YC's own three Requests for Startups, which is confirmation rather than strategy: "Cursor for Product Managers" (the door), "The AI Operating System for Companies" (the body), "Company Brain" (the brain). **"Company brain" is YC's phrase, quoted and attributed, never our brand identity.** Our owned words are the forecast captured at decision time, the decision brain, and the evidence behind every call. _(Corrected 2026-08-11: this line previously claimed "the outcome ledger" and "the receipts" as owned words. Both are retired — they score 0.2 and 3.0 per million in this market's own writing, and the ledger claim was falsified separately. The "Company brain" sentence before this one is a deliberate quotation of YC and stays.)_ Canonical memo: [`docs/pitch/repositioning-2026-07-22.md`](./docs/pitch/repositioning-2026-07-22.md).
 
 ---
 
@@ -79,7 +81,7 @@ So lead with the claim everywhere, in this repo and on every surface:
 
 ## The three things that are true about it
 
-**One loop, not seven tools.** Discover, Decide, Plan, Design, Build, Ship and Learn run as one governed route that agents walk unattended, inside boundaries a human sets in advance. A recorded outcome re-ranks the next bet rather than ending in a report.
+**One loop, not seven tools.** Discover, Decide, Plan, Design, Build, Ship and Learn run as one governed route that agents walk on their own, inside boundaries a human sets in advance. A recorded outcome re-ranks the next bet rather than ending in a report.
 
 **Product judgment compounds, and it is portable across people.** Every decision, the alternatives weighed against it, and what actually happened stay in the workspace record, which is membership scoped. When a product manager leaves, the next person inherits it instead of starting cold. That is the enterprise reason to buy: continuity, audit, onboarding.
 
@@ -125,7 +127,7 @@ A skipped station is **a decision on the record with a reason**, never a silent 
 
 ## Who it is for
 
-**Front door: the individual PM or founding PM**, drowning in the low-judgment half of the job. Entry is the **Critic teardown**: point Supaprod at a feature you believe in and get an evidence-backed red-team with receipts.
+**Front door: the individual PM or founding PM**, drowning in the low-judgment half of the job. Entry is the **Critic teardown**: point Supaprod at a feature you believe in and get an evidence-backed red-team, with the evidence behind every call attached.
 
 **Expansion: the product team.** The decision system of record: governance, audit, shared compounding memory. The conversion happens when a VP wants visibility over what the team decided and whether it paid off.
 
@@ -141,7 +143,7 @@ A skipped station is **a decision on the record with a reason**, never a silent 
 
 Five tests, all of which a design passes before it is built:
 
-1. **Assume the model layer commoditizes.** Anything one frontier release could absorb is not a moat. Build the loop, the gates and the ledger *around* the model, never the thin layer on top of it.
+1. **Assume the model layer commoditizes.** Anything one frontier release could absorb is not a moat. Build the loop, the gates and the record *around* the model, never the thin layer on top of it.
 2. **Assume a large vendor ships our vertical next quarter.** Name what we still have that they do not. The answer is the **forecast captured at decision time** — what the team believed would happen, recorded before the outcome was known. Everything else about a decision can be reconstructed afterwards from Slack and call recordings; a forecast leaves no trace unless something wrote it down at the moment of the call. If the answer is "nothing", the design is wrong and gets redone. _(Corrected 2026-08-10: this previously read "the compounding decision-and-outcome record", which the full-corpus sweep falsified — [`docs/research/lennys-corpus-sweep-2026-08.md`](./docs/research/lennys-corpus-sweep-2026-08.md) §2.)_
 3. **Agentic-first, not agent-assisted.** A surface an autonomous agent cannot run end to end under policy is one we expect to replace, and we design the seam for it now. _(Softened 2026-08-10 from "legacy the day it ships". The bet we are making is on a bottleneck documented in 2021 with no AI present, not on a platform shift. The most credentialed post of its era called web3 "risky and inevitable" and told readers to buy tokens on FTX nine months before it collapsed; inevitability language is how that class of call goes wrong. Note also that "90–95% agentic" is retired — it is contradicted by everyone shipping agents, and graduated autonomy with gates is both what we built and the empirically winning pattern.)_
 4. **Solve backwards and forwards.** Close the past pain, serve today's job, leave the seam for the six-month job.
@@ -164,7 +166,7 @@ The moat is not one thing, it is **the third layer resting on the first two**. E
 | Layer | Defensible alone? | Why, in detail |
 | --- | --- | --- |
 | **01 The director** | **No, and we should say so.** | Ranking what to build is a *capability*, not an asset. A frontier model plus a well-written prompt plus access to the same signals gets most of the way there, and gets closer with every model release. **Anyone can rank; the question is whether the ranking is any good, and that is answered by outcomes rather than by the ranker.** Which is why 01 is a door, not a moat: it is what earns the first ten minutes, and it is the layer we would lose first if we tried to defend it. |
-| **02 The operating system** | **Partly, and only for a while.** | The loop, the gates, the tenancy model and the tamper-evident ledger are genuine engineering: months of it, and the reason autonomy is safe enough to sell. But it is *buildable*. A well-funded incumbent with distribution can construct the same route, and Notion has already shipped copy describing part of it. So the honest read is that 02 buys a lead measured in quarters, not a permanent position. **Its real job is to be the precondition for 03.** |
+| **02 The operating system** | **Partly, and only for a while.** | The loop, the gates, the tenancy model and the tamper-evident record are genuine engineering: months of it, and the reason autonomy is safe enough to sell. But it is *buildable*. A well-funded incumbent with distribution can construct the same route, and Notion has already shipped copy describing part of it. So the honest read is that 02 buys a lead measured in quarters, not a permanent position. **Its real job is to be the precondition for 03.** |
 | **03 The company brain** | **Yes, and it is the only one.** | It requires **your** decisions, joined to **your** outcomes, labelled over time. That data does not exist anywhere to be bought, cannot be scraped, and cannot be synthesised, because it is *produced as a byproduct of running the loop*. A competitor cannot acquire it, a model release cannot absorb it, and a customer who has run six months of decisions through it holds something their competitor does not. It also gets **more** valuable as the model layer commoditizes, because when everyone has the same reasoning, the differentiator is whose context is better. |
 
 **Read the table as one sentence:** we are honest that two of our three layers are copyable, because that is what makes the claim about the third one credible.
