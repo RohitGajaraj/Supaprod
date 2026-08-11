@@ -30,11 +30,7 @@ export function LandingNav() {
    * and the layout is identical from 640 up. */
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-3 px-4 sm:px-6 py-3 bg-[#0a0a0a]/75 backdrop-blur-md border-b border-white/[0.06]">
-      <Link
-        to="/"
-        className="flex min-w-0 items-center text-white"
-        aria-label="Supaprod home"
-      >
+      <Link to="/" className="flex min-w-0 items-center text-white" aria-label="Supaprod home">
         <SupaprodWordmark tier="public" />
       </Link>
 
@@ -104,7 +100,7 @@ export function LandingNav() {
           title={isMachineView ? "Switch to human view" : "Switch to machine-readable view"}
           aria-label="Machine-readable view"
           aria-pressed={isMachineView}
-          className="text-xs font-mono text-zinc-600 hover:text-zinc-300 border border-white/10 rounded px-1.5 py-0.5 transition-colors"
+          className="text-xs font-mono text-zinc-400 hover:text-zinc-300 border border-white/10 rounded px-1.5 py-0.5 transition-colors"
           onClick={toggle}
         >
           M

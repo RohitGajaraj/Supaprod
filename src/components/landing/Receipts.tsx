@@ -97,7 +97,7 @@ export function Receipts(_props: { stats?: LandingStats | null }) {
               since June 2026.
             </p>
             <div className="cap-scrim hidden md:flex flex-col gap-2.5 mt-12 py-6 px-8 -mx-8">
-              <span className="font-mono text-[11px] text-zinc-600 mb-1.5">On the record</span>
+              <span className="font-mono text-[11px] text-zinc-400 mb-1.5">On the record</span>
               {["graded verdicts", "real decisions", "public teardowns", "dated shipping log"].map(
                 (f) => (
                   <span
@@ -123,7 +123,7 @@ export function Receipts(_props: { stats?: LandingStats | null }) {
                 className="group flex items-baseline justify-between gap-4 py-3 border-b border-white/[0.07] text-sm text-zinc-300 hover:text-white transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
               >
                 <span>{a.label}</span>
-                <span className="text-zinc-600 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
+                <span className="text-zinc-400 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
                   &rarr;
                 </span>
               </a>

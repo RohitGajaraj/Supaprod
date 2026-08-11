@@ -135,7 +135,7 @@ export function LandingFooter() {
           {columns.map((col) => (
             <div key={col.heading}>
               <h4
-                className="font-mono text-[10px] uppercase text-zinc-600 mb-4"
+                className="font-mono text-[10px] uppercase text-zinc-400 mb-4"
                 style={{ letterSpacing: "0.2em" }}
               >
                 {col.heading}
@@ -153,7 +153,7 @@ export function LandingFooter() {
                   </li>
                 ))}
                 {col.heading === "company" && (
-                  <li className="text-zinc-600">Built in public since May 2026</li>
+                  <li className="text-zinc-400">Built in public since May 2026</li>
                 )}
               </ul>
             </div>
@@ -163,7 +163,7 @@ export function LandingFooter() {
         {/* Bottom divider: copyright on one side, the machine-view toggle on
             the other. Agents get a stateful, labeled control (aria-pressed);
             the M key remains as the keyboard entry point. */}
-        <div className="border-t border-white/[0.07] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-600">
+        <div className="border-t border-white/[0.07] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
           <p>&copy; 2026 Supaprod. All rights reserved.</p>
           <MachineViewToggle />
         </div>

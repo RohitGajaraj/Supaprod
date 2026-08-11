@@ -168,7 +168,7 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@company.com"
           aria-label="Work email"
-          className="flex-1 h-12 px-4 rounded-full bg-[#0d0d0e] border border-white/10 text-white text-sm placeholder:text-zinc-600 outline-none focus-visible:border-white/30 transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
+          className="flex-1 h-12 px-4 rounded-full bg-[#0d0d0e] border border-white/10 text-white text-sm placeholder:text-zinc-400 outline-none focus-visible:border-white/30 transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
         />
         <button
           type="submit"
@@ -202,7 +202,7 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
           maxLength={2000}
           placeholder="The product bet you are least sure about"
           aria-label="The product bet you are least sure about (optional)"
-          className="w-full px-4 py-3 mb-5 rounded-xl bg-[#0d0d0e] border border-white/10 text-white text-sm placeholder:text-zinc-600 outline-none focus-visible:border-white/30 transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] resize-none"
+          className="w-full px-4 py-3 mb-5 rounded-xl bg-[#0d0d0e] border border-white/10 text-white text-sm placeholder:text-zinc-400 outline-none focus-visible:border-white/30 transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] resize-none"
         />
       ) : (
         <button
@@ -222,13 +222,13 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
 
       {/* The offer, stated once, in the metadata voice: what the first hundred
           get, not how few are left. Mono, 11px, zinc-600 (founder 2026-07-25). */}
-      <p className="text-[11px] leading-relaxed text-zinc-600 font-mono">
+      <p className="text-[11px] leading-relaxed text-zinc-400 font-mono">
         First 100 get the Critic: our red-team agent tears your riskiest bet apart before you spend
         a sprint on it.
       </p>
 
       {waitlistCount != null && waitlistCount >= WAITLIST_NUDGE_FLOOR && (
-        <p className="mt-2 text-[11px] font-mono text-zinc-600">
+        <p className="mt-2 text-[11px] font-mono text-zinc-400">
           <span className="text-zinc-400" style={{ fontVariantNumeric: "tabular-nums" }}>
             {waitlistCount.toLocaleString()}
           </span>{" "}
