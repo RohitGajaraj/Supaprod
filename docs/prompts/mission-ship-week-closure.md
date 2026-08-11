@@ -30,7 +30,7 @@ Design every missing capability completely, including Brain architecture, long-t
 
 Think beyond today's terminology. Reinvent concepts where appropriate. Replace user journeys with agent journeys, PRDs with Agentic Requirement Documents, workflows with autonomous loops, and introduce new abstractions wherever they create a fundamentally better product.
 
-This is an **agent-first platform**, not simply software using AI. The finished application must itself provide autonomous multi-agent capabilities to end users. Agents should own planning, execution, verification, coordination, recovery, memory, learning, intelligent handoffs, and autonomous decision making with minimal human intervention.
+This is an **agent-operated platform**, not simply software using AI. The finished application must itself provide autonomous multi-agent capabilities to end users. Agents should own planning, execution, verification, coordination, recovery, memory, learning, intelligent handoffs, and autonomous decision making with minimal human intervention.
 
 Use real implementations, real data, and truthful system behavior. No placeholders. No fake logic. No UI polish. Founder authority overrides any previous doctrine, design principle, architecture, or documentation that prevents the right product decision. Correctness, tenant safety, and honesty remain non-negotiable.
 
@@ -150,7 +150,7 @@ Work the stages roughly in the order below (dependencies noted). Each stage list
 **Build:** an insight-push channel: the highest-signal Brain events (a supersession that flips a live decision's ground, a precedent that contradicts a bet currently ranked "best bet", a calibration miss on a watched assumption) surface as items in Today's "needs your judgment" lane (3.11) with one-click actions, throttled hard (max 2 to 3 a day, digest the rest). This is the v12 detect-investigate-recommend doctrine, pointed at the PM.
 **DONE-WHEN:** seeding a contradicting outcome against a currently-ranked bet demonstrably produces a pushed insight in Today with a working one-click action, and the throttle provably caps the volume.
 
-### 3.10 AUTONOMY: goal mode, loop mode, and the trust ramp (the "agentic-first" proof)
+### 3.10 AUTONOMY: goal mode, loop mode, and the trust ramp (the agent-operated proof)
 
 This is the founder's "how do we bring Claude Code's loop/goal mode into PM" ask, and the week's signature capability.
 **Build three things:**

@@ -8,7 +8,7 @@ import { PixelStat } from "@/components/supaprod/PixelStat";
  */
 const EXHIBIT_LABEL = "mb-4 block font-mono text-[11px] uppercase text-zinc-500";
 const EXHIBIT_LABEL_STYLE = { letterSpacing: "0.2em" } as const;
-const EXHIBIT_SOURCE = "not-italic mt-4 block font-mono text-[10.5px] uppercase text-zinc-600";
+const EXHIBIT_SOURCE = "not-italic mt-4 block font-mono text-[10.5px] uppercase text-zinc-400";
 const EXHIBIT_SOURCE_STYLE = { letterSpacing: "0.12em" } as const;
 
 const TYPED_WORD = "Devs";
@@ -436,7 +436,16 @@ export function TheGap() {
                 </span>
                 <span
                   className="col-start-2 font-mono text-[9.5px] uppercase sm:col-start-3 sm:text-right"
-                  style={{ letterSpacing: "0.12em", color: missing ? "#FF6B2C" : "#52525b" }}
+                  /* #52525b (zinc-600) until 2026-08-11, which measures 2.56:1 on this
+                     ground: below the AA floor of 4.5 and below even the 3.0 allowed for
+                     LARGE decorative text. These are not decoration. "agent-run" versus
+                     "agent-assisted" is the distinction the whole governance argument
+                     rests on, and it was the least legible text in the table.
+                     The recession stays where it belongs, in the 9.5px mono uppercase
+                     with wide tracking, rather than in the contrast. #a1a1aa measures
+                     7.76:1. Written inline, which is why the class-level sweep of
+                     text-zinc-600 could not see it. */
+                  style={{ letterSpacing: "0.12em", color: missing ? "#FF6B2C" : "#a1a1aa" }}
                 >
                   {row.status}
                 </span>

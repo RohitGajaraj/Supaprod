@@ -113,7 +113,7 @@ export function SectionAlternate({
                 fontWeight: 500,
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
-                color: highlightCapability === idx ? "#FF6B2C" : "#71717a", // zinc-600
+                color: highlightCapability === idx ? "#FF6B2C" : "#a1a1aa", // zinc-400: #71717a measured 4.07:1, under the AA floor
                 transition: "color 0.25s ease",
                 cursor: "default",
               }}

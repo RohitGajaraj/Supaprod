@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | **1** | **Review [`../pitch/yc/APPLICATION-FINAL.md`](../pitch/yc/APPLICATION-FINAL.md).** He read it once and was not happy; his objections are recorded at the top of that file, in his words, with what was done about each. **That file is the only paste source.** [`fall-2026-application.md`](../pitch/yc/fall-2026-application.md) now opens with a NOT-THE-PASTE-SOURCE banner. |
 | **2** | **Three `[YOU]` fields.** The demo video (under 2:15; the 11:46 one on the form is unwatchable for a partner), the `[N]` discovery-call count in 9a, and **3b/3c on the founder profile, both still blank** — ISRO belongs in 3b, and two empty fields read as incuriosity. |
-| **3** | **One unanswered question:** does **"agentic-first"** survive now that "operating system" is retired? It is our coinage too. Nobody has ruled. |
+| **3** | ✅ **RULED 2026-08-11: the compound dies, the adjective lives.** `agentic-first` and `agent-first` are dropped in our own voice; **`agentic` survives** in technical, investor and analyst material and never in a hero or eyebrow. Measured: *agentic* appears in **53 corpus documents** against 1 for *audit trail*, so it is the market's word; but Gartner's 2026 Hype Cycle puts agentic AI at the **Peak of Inflated Expectations**, so leading with it invites a discount. Canon: [`../strategy/positioning-locked-2026-08.md`](../strategy/positioning-locked-2026-08.md) §5M. |
 
 ### What changed, and why it mattered
 
@@ -37,6 +37,12 @@
 **I broke links with a blind regex and the gate could not see it.** The vocabulary sweep replaced *ledger* inside **filenames**, producing links to `trust-track record.md`. `docs-doctor`'s link pattern was `[^) ]+`, which excludes spaces, so a target containing one was never extracted. **Both the links and the gate are fixed** (`scripts/docs-doctor.sh:78`). Never run a word-level regex across link targets.
 
 **I told the founder my bucket was clean and it was not.** A five-lane audit with adversarial verification then found **38 confirmed defects, two of them blockers**, in files I had edited hours earlier. The blockers were retired numbers on the investor-conversation card and on the one-pager, tagged `[PROVEN]`. **Assert nothing about your own work without re-checking it.**
+
+### ⚠️ ROUTED TO LANE 2 BUT THE MESSAGE TIMED OUT — recorded here so it cannot be lost
+
+**`public/brief.html:744`** still reads `<div class="zl">Built agent-first</div>`. The identical string in the investor deck is already changed to **`Built for agents to run`**, which keeps the meaning and drops the retired compound. **Same fix applies.** It sits inside a text node, so parsing the tag stream before and after should show an identical stream; that check exists because an earlier edit to that file introduced an entity two greps could not see.
+
+**The `agentic-first` instances under `src/` are code comments and should be LEFT.** `Hero.tsx:53/187/273`, `a2a-card.ts:23`, `decision-gate.ts:8`, `spine/driver.ts:24` and the rest are internal reasoning, and several are dated records of why a decision was made. Same call Lane 1 and I made for `getProvenance`: **the ruling governs the words we say to buyers, not the words engineers read.**
 
 ### Open, routed, not blocked
 

@@ -231,3 +231,9 @@ design-reference/Latest Design System - v3 /
 # turn, not a document anybody reads later. `.lovable/project.json` and
 # `.lovable/mcp/manifest.json` stay TRACKED - those are real project config.
 /.lovable/plan/
+
+# The one signed-in session every lane shares. Deliberately NOT under
+# test-results/, which is playwright.config.ts outputDir and is DELETED at the
+# start of every run (2026-08-11: one lane running any spec silently bricked
+# browser verification for all the others).
+playwright/.auth/

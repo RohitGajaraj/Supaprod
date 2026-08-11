@@ -58,7 +58,7 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
             /security for the full answers. Founder 2026-07-25: this block
             looks clean, leave it. Untouched except for the margin arithmetic
             below, which produced the same gap by two opposing numbers. */}
-        <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-4">
+        <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-4">
           the rules the agents cannot break
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
@@ -70,7 +70,7 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
               <p.icon
                 size={16}
                 strokeWidth={1.5}
-                className="text-zinc-600 group-hover:text-zinc-200 transition-colors duration-200 mb-3"
+                className="text-zinc-400 group-hover:text-zinc-200 transition-colors duration-200 mb-3"
                 aria-hidden
               />
               <p className="text-sm text-zinc-200 font-medium mb-1.5">{p.label}</p>
@@ -80,7 +80,7 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
         </div>
         {/* Was `mb-20` on the grid plus `-mt-16` here, which collapsed to the
             same 16px. Same result, stated once (2026-07-25 craft pass). */}
-        <p className="text-xs text-zinc-600 mb-24">
+        <p className="text-xs text-zinc-400 mb-24">
           The full answers, stated plainly:{" "}
           <a
             href="/security"

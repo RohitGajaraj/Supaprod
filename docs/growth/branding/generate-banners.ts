@@ -57,8 +57,8 @@ const HOOK_FLAT = `Agents that own ${hi("outcomes")}. Not just ${dim("output")}.
 /** Category line. `product teams` lifted by COLOUR only, so it never competes
  *  with the headline's weight contrast. */
 const CATEGORY =
-  `The <span style="color:${P.bone};opacity:.8">agentic-first</span> operating system for ` +
-  `<span style="color:${P.bone};font-weight:500">product teams</span>`;
+  `For <span style="color:${P.bone};font-weight:500">product managers</span> who ship with ` +
+  `<span style="color:${P.bone};opacity:.8">agents</span>`;
 
 /**
  * Headline leading, set to the reference the founder approved: 1.08.
@@ -531,7 +531,9 @@ const SPINE_BLOCK = (D: number) => `
  *
  *   SUBJECT RETURNS. B dropped "Agents" because LinkedIn supplies the subject
  *   beneath the cover. He wants it back, and it does buy the sentence its
- *   agentic-first framing rather than leaving it a list of verbs.
+ *   agent-operated framing rather than leaving it a list of verbs. (The word
+ *   "agentic-first" was retired 2026-08-11; "agentic" survives as a descriptor
+ *   in technical and investor material, never in a kicker.)
  *
  *   PIXEL AS EMPHASIS. The lockup docblock says Pixel "appears HERE and nowhere
  *   else: one Pixel word per asset". This asset carries no lockup, so nothing

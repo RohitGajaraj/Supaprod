@@ -282,13 +282,13 @@ type Spec = {
 // it. Handles are lowercase; the wordmark in prose is not.
 const HERO = "Supaprod";
 
-// AGENTIC-first, not agent-first. The live /brief and /investors pages both run
-// "FOR PRODUCT MANAGERS WHO SHIP WITH AGENTS" as a mono
-// caps kicker above the wordmark, and "agentic-first" is the phrase used in
-// eight places across src/. The kit had taken "agent-first" from README.md line
-// 8, which is the one place that still says it. What a visitor has just read on
-// the site wins over a line in a document they will never open.
-const KICKER = "For product managers who ship with agents";
+// RETIRED 2026-08-11 (founder ruling). This block used to enforce "agentic-first"
+// over "agent-first". Both compounds are now dropped in our own voice: "-first" is a
+// category-claim construction and it does the same job "operating system" did.
+// "agentic" survives as a DESCRIPTOR in technical, investor and analyst material,
+// where it is the native word; it never appears in a hero, kicker or eyebrow.
+// The ruled line is: "For product managers who ship with agents".
+
 
 // The subhead follows the live hero's shape, with one deliberate difference.
 // The site currently reads "agents that know what to build, ship it, and

@@ -210,7 +210,7 @@ Same bio as Instagram. Same avatar. Nothing new to write.
 
 ### TikTok, `@supaprodhq`
 
-> Agents that own outcomes, not just output. The agentic-first OS for product teams.
+> Agents that own outcomes, not just output. For product managers who ship with agents.
 
 ### Bluesky, `supaprod.bsky.social` — the exact name is free here
 
@@ -236,7 +236,7 @@ Description:
 
 ### Discord
 
-> Agents that own outcomes, not just output. The agentic-first OS for product teams.
+> Agents that own outcomes, not just output. For product managers who ship with agents.
 
 ### Crunchbase — aimed at the investor and procurement
 

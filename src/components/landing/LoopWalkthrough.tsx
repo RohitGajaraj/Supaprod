@@ -228,7 +228,7 @@ export function LoopWalkthrough() {
             system described at two zoom levels. */}
         <div className="mt-14">
           <span
-            className="mb-5 block font-mono text-[11px] uppercase text-zinc-600"
+            className="mb-5 block font-mono text-[11px] uppercase text-zinc-400"
             style={{ letterSpacing: "0.12em" }}
           >
             In every run
