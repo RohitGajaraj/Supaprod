@@ -21,7 +21,11 @@
 >
 > **Rules baked into every word:** humanized output (no em or en dashes, no AI-cliche phrasing), sharp plain-words PM voice, short sentences, specifics over adjectives. Claims follow [`pitch/one-pager.md`](../pitch/one-pager.md) tags: PROVEN facts speak in present tense; WIRING is "coming" or absent; the phrase "AI PM tool" never appears. On X, the link always goes in the first reply, never the post body.
 >
-> **Numbers marked [refresh]:** the figures shown are 2026-07-10 live-DB values (133 missions, 129 agent runs, 72 decisions, 49 learnings, 2,162 AI events). Pull the current numbers the morning each asset posts. Never estimate.
+> ⛔ **THE [refresh] NUMBERS ARE RETIRED, NOT STALE (corrected 2026-08-11).** This note used to read "the figures shown are 2026-07-10 live-DB values (133 missions, 129 agent runs, 72 decisions, 49 learnings, 2,162 AI events); pull the current numbers the morning each asset posts." **That instruction is the defect**, not a safeguard: it tells the writer these are good numbers that have merely aged, so refreshing them feels like diligence. They are on the retired list in [`../pitch/verified-numbers.md`](../pitch/verified-numbers.md) §4. **No workspace has ever held them** — the largest is a seeded fixture named "Helio Labs" at 94 missions and 85 decisions, and total AI calls across every workspace is 34,686, not 2,162.
+>
+> **What to say instead** is in [`../pitch/verified-numbers.md`](../pitch/verified-numbers.md), which is the canonical file and carries the query behind every figure. Deliberately not restated here: a count copied into a second file is a count that will drift out of the first, and that is how the retired numbers above survived as long as they did.
+>
+> **The rule, which does not need a number:** every asset below that leads with a count is blocked until its figure has an evidence basis that survives the demo/real split — `is_sample` on the workspace and `seeded` on the row, both of which now exist. **Do not substitute a fresh count for a retired one**; that repeats the disease with a newer date on it. A number quoted outward carries its query, or it does not go.
 >
 > **Slotting note:** slots below follow the spine's calendar ([`00`](./00-launch-operating-manual.md) §5): story day 3, evidence day 4, teardown day 5. The viral playbook ([`05`](./05-viral-and-guerrilla-playbook.md) §6) prefers evidence first. Both work; the founder picks on day 2 and the slots swap cleanly.
 
@@ -32,8 +36,10 @@
 **Slot:** Day 3, 8-10am ET, X. **Goal:** open the wave; establish the evidence-first voice; first waitlist cohort. **Success metric:** 10x the account's median post engagement; 100+ waitlist signups attributed day 3. **Founder approval: [ ]**
 
 ```
-1/ Ten weeks. 133 missions [refresh]. 72 recorded decisions [refresh].
-2,162 governed AI calls [refresh]. Zero external users.
+1/ Ten weeks. [RETIRED FIGURES REMOVED 2026-08-11 — see the header note.
+133 missions / 72 recorded decisions / 2,162 governed AI calls were seed
+and match no workspace. Do not refresh them; replace the opening with an
+evidence basis that survives the demo/real split.] Zero external users.
 
 On purpose.
 
