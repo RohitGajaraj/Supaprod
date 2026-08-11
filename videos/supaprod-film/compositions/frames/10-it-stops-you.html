@@ -89,42 +89,94 @@
     }
 
     /* ————— app shell ————— */
-    .sk-shell{
+        .sk-shell{
       display:grid;height:100%;
-      grid-template-columns:12.5cqw minmax(0,1fr);
-      grid-template-rows:3.2cqh minmax(0,1fr);
-      grid-template-areas:"side top" "side main";
+      grid-template-columns:2.9cqw minmax(0,1fr);
+      grid-template-rows:4cqh 7cqh minmax(0,1fr);
+      grid-template-areas:"top top" "spine spine" "rail main";
     }
-    .sk-sidebar{
-      grid-area:side;display:flex;flex-direction:column;min-height:0;
-      background:var(--sk-ground);border-right:1px solid var(--sk-hairline);
+
+    /* top bar · bare mark + wordmark · breadcrumb · centred notification strip · ask + avatar */
+    .sk-topbar{
+      grid-area:top;display:grid;align-items:center;
+      grid-template-columns:auto minmax(0,1fr) auto;gap:0.9cqw;
+      padding:0 1cqw;border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
     }
-    .sk-ws{display:flex;align-items:center;gap:0.55cqw;padding:1cqw 1cqw 0.8cqw;}
-    .sk-ws-mark{
-      width:0.72cqw;height:0.72cqw;flex:none;border-radius:50%;
-      border:1px solid var(--sk-ember);
-      background:radial-gradient(circle at 50% 50%,var(--sk-ember) 0 28%,transparent 30%);
+    .sk-topleft{display:flex;align-items:center;gap:0.7cqw;min-width:0;}
+    .sk-brand{display:flex;align-items:center;gap:0.42cqw;}
+    .sk-brand-mark{width:1.15cqw;height:1.15cqw;flex:none;display:block;}
+    .sk-brand-name{font:600 0.86cqw/1.25 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+    .sk-topdiv{width:1px;height:1.5cqh;flex:none;background:var(--sk-hairline);}
+    .sk-crumb{
+      display:flex;align-items:center;gap:0.3cqw;white-space:nowrap;
+      font:400 0.72cqw/1 var(--sk-ui);color:var(--sk-muted);
     }
-    .sk-ws-name{font:600 0.82cqw/1 var(--sk-ui);color:var(--sk-text);letter-spacing:0.01em;}
-    .sk-ws-caret{margin-left:auto;font:400 0.6cqw/1 var(--sk-mono);color:var(--sk-faint);}
-    .sk-nav{display:flex;flex-direction:column;gap:0.12cqh;padding:0.3cqw 0.5cqw;}
-    .sk-navrow{
-      display:flex;align-items:center;gap:0.55cqw;
-      padding:0.42cqw 0.6cqw;border-radius:var(--sk-r-row);
-      font:400 0.73cqw/1 var(--sk-ui);color:var(--sk-muted);
+    .sk-crumb-sep{color:var(--sk-faint);}
+    .sk-crumb-here{color:var(--sk-text);}
+    .sk-crumb-caret{font:400 0.6cqw/1 var(--sk-mono);color:var(--sk-faint);}
+    .sk-notify{justify-self:center;display:flex;align-items:center;gap:0.45cqw;min-width:0;white-space:nowrap;}
+    .sk-notify-gl{display:flex;align-items:center;gap:0.26cqw;flex:none;}
+    .sk-notify-gl svg{width:0.72cqw;height:0.72cqw;display:block;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+    .sk-notify-lead{font:500 0.66cqw/1.2 var(--sk-ui);color:var(--sk-text);flex:none;}
+    .sk-notify-sub{font:400 0.66cqw/1.2 var(--sk-ui);color:var(--sk-faint);min-width:0;overflow:hidden;text-overflow:ellipsis;}
+    .sk-notify-time{font:400 0.6cqw/1.2 var(--sk-ui);color:var(--sk-faint);flex:none;}
+    .sk-topright{display:flex;align-items:center;gap:0.6cqw;}
+    .sk-ask{
+      display:flex;align-items:center;gap:0.38cqw;height:2.3cqh;flex:none;
+      padding:0 0.6cqw;background:var(--sk-panel);
+      border:1px solid var(--sk-hairline);border-radius:999px;
+      font:400 0.7cqw/1 var(--sk-ui);color:var(--sk-text);
     }
-    .sk-navrow .sk-dot{
-      width:0.3cqw;height:0.3cqw;flex:none;border-radius:50%;
-      background:var(--dot,var(--sk-faint));
+    .sk-ask svg{width:0.72cqw;height:0.72cqw;flex:none;stroke:var(--sk-muted);fill:none;stroke-width:1.5;stroke-linejoin:round;}
+    .sk-kbd{font:400 0.62cqw/1 var(--sk-mono);color:var(--sk-faint);}
+    .sk-avatar{
+      width:1.5cqw;height:1.5cqw;flex:none;display:grid;place-items:center;
+      background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:50%;
+      font:600 0.55cqw/1 var(--sk-ui);color:var(--sk-muted);letter-spacing:0.03em;
     }
-    .sk-navcount{margin-left:auto;font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-faint);}
-    .sk-navrow.is-active{background:var(--sk-raised);color:var(--sk-text);}
-    .sk-navrow.is-active .sk-dot{box-shadow:0 0 0.45cqw 0 var(--dot,var(--sk-accent));}
-    .sk-navrow.is-active .sk-navcount{color:var(--sk-muted);}
-    .sk-side-foot{
-      margin-top:auto;display:flex;align-items:center;gap:0.45cqw;
-      padding:0.85cqw 1cqw;border-top:1px solid var(--sk-hairline);
-      font:400 0.57cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.03em;
+
+    /* ————— station strip · seven numbered cells, full width, straight under the top bar ————— */
+    .sk-spine{
+      grid-area:spine;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
+      border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
+    }
+    .sk-stn{
+      position:relative;display:grid;grid-template-rows:1.05cqh 1.75cqh 1.2cqh;gap:0.3cqh;
+      align-content:center;padding:0 0.9cqw;min-width:0;
+    }
+    .sk-stn + .sk-stn{border-left:1px solid var(--sk-hairline);}
+    .sk-stn-n{font:400 0.5cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.08em;}
+    .sk-stn-name{font:400 0.84cqw/1.1 var(--sk-ui);color:var(--sk-muted);letter-spacing:-0.005em;white-space:nowrap;}
+    .sk-stn-sub{font:400 0.56cqw/1.1 var(--sk-ui);color:var(--sk-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .sk-stn.is-here .sk-stn-name{font-weight:600;color:var(--sk-text);}
+    .sk-stn.is-here .sk-stn-sub{color:var(--sk-ember);}
+    .sk-stn.has-work .sk-stn-name{color:color-mix(in srgb,var(--sk-text) 82%,var(--sk-muted));}
+    .sk-stn-dot{
+      position:absolute;right:0.85cqw;top:1.15cqh;width:0.3cqw;height:0.3cqw;border-radius:50%;
+      background:var(--sk-ember);box-shadow:0 0 0.5cqw color-mix(in srgb,var(--sk-ember) 62%,transparent);
+    }
+
+    /* ————— narrow icon rail · Today · Runs · Brain · Crew · Engine room ————— */
+    .sk-rail{
+      grid-area:rail;display:flex;flex-direction:column;align-items:center;min-height:0;
+      padding:0.85cqh 0;background:var(--sk-ground);border-right:1px solid var(--sk-hairline);
+    }
+    .sk-railtop{display:flex;flex-direction:column;align-items:center;gap:0.42cqh;}
+    .sk-railfoot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:0.3cqh;}
+    .sk-glyph{
+      position:relative;width:1.95cqw;height:1.95cqw;flex:none;
+      display:grid;place-items:center;border-radius:var(--sk-r-control);color:var(--sk-faint);
+    }
+    .sk-glyph svg{
+      width:1.02cqw;height:1.02cqw;display:block;fill:none;stroke:currentColor;
+      stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;
+    }
+    .sk-glyph.is-active{background:var(--sk-raised);color:var(--sk-text);box-shadow:inset 0 0 0 1px var(--sk-hairline);}
+    .sk-railfoot .sk-glyph{width:1.7cqw;height:1.7cqw;}
+    .sk-railfoot .sk-glyph svg{width:0.9cqw;height:0.9cqw;}
+    .sk-livedot{
+      width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;
+      background:var(--sk-pass);box-shadow:0 0 0.4cqw var(--sk-pass);
     }
     .sk-livedot{
       width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;
@@ -379,38 +431,56 @@
               <div class="sk-shell">
 
                 <!-- sidebar · harbor · Decide active -->
-                <aside class="sk-sidebar f10-dof f10-ctx">
-                  <div class="sk-ws">
-                    <span class="sk-ws-mark"><svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block;overflow:visible"><path d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="5.5" fill="none" stroke-linecap="round" /><circle cx="50" cy="50" r="8.5" fill="#FF6B2C" /></svg></span>
-                    <span class="sk-ws-name">supaprod</span><span class="sk-ws-space">harbor</span>
-                    <span class="sk-ws-caret">⌄</span>
-                  </div>
-                  <nav class="sk-nav">
-                    <div class="sk-navrow" style="--dot:var(--sk-text)"><span class="sk-dot"></span>Today<span class="sk-navcount">3</span></div>
-                    <div class="sk-navrow" style="--dot:var(--sk-discover)"><span class="sk-dot"></span>Discover<span class="sk-navcount">24</span></div>
-                    <div class="sk-navrow is-active" style="--dot:var(--sk-decide)"><span class="sk-dot"></span>Decide<span class="sk-navcount">3</span></div>
-                    <div class="sk-navrow" style="--dot:var(--sk-plan)"><span class="sk-dot"></span>Plan</div>
-                    <div class="sk-navrow" style="--dot:var(--sk-design)"><span class="sk-dot"></span>Design</div>
-                    <div class="sk-navrow" style="--dot:var(--sk-build)"><span class="sk-dot"></span>Build<span class="sk-navcount">2</span></div>
-                    <div class="sk-navrow" style="--dot:var(--sk-ship)"><span class="sk-dot"></span>Ship</div>
-                    <div class="sk-navrow" style="--dot:var(--sk-learn)"><span class="sk-dot"></span>Learn<span class="sk-navcount">1</span></div>
-                    <div class="sk-navrow" style="--dot:var(--sk-ember)"><span class="sk-dot"></span>Brain</div>
-                  </nav>
-                  <div class="sk-side-foot"><span class="sk-livedot"></span>3 agents running</div>
-                </aside>
-
-                <!-- top bar -->
                 <header class="sk-topbar f10-dof f10-ctx">
-                  <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span>decide</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">new bet</span></div>
-                  <div class="sk-ask">
-                    <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5" /><line x1="10.5" y1="10.5" x2="14" y2="14" /></svg>
-                    ask supaprod…
-                    <span class="sk-kbd">⌘K</span>
+                  <div class="sk-topleft">
+                    <span class="sk-brand">
+                    <span class="sk-brand-mark"><svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block;overflow:visible"><path d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="5.5" fill="none" stroke-linecap="round" /><circle cx="50" cy="50" r="8.5" fill="#FF6B2C" /></svg></span>
+                    <span class="sk-brand-name">Supaprod</span>
+                    </span>
+                    <span class="sk-topdiv"></span>
+                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span>decide</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">commit</span><span class="sk-crumb-caret">⌄</span></div>
                   </div>
-                  <span class="sk-spacer"></span>
-                  <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>synced 2m ago</span>
-                  <div class="sk-avatar">MR</div>
+                  <div class="sk-notify">
+                    <span class="sk-notify-gl">
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><circle cx="7.6" cy="7.6" r="4.3" /><path d="M10.9 10.9L14.3 14.3" /></svg>
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-faint)"><path d="M3 5.2h12M3 9h8M3 12.8h10" /></svg>
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><path d="M3 12.4l4-4 3 3 5-5.6" /><path d="M15 5.8h-3.3M15 5.8v3.3" /></svg>
+                    </span>
+                    <span class="sk-notify-lead">a new bet is drafting</span>
+                    <span class="sk-notify-sub">redesign the app · the record is being checked</span>
+                    <span class="sk-notify-time">now</span>
+                  </div>
+                  <div class="sk-topright">
+                    <div class="sk-ask"><svg viewBox="0 0 18 18"><path d="M15.2 10.4a2.4 2.4 0 0 1-2.4 2.4H6.4L3.2 15.4V5a2.4 2.4 0 0 1 2.4-2.4h7.2A2.4 2.4 0 0 1 15.2 5Z" /></svg>Ask<span class="sk-kbd">⌘K</span></div>
+                    <div class="sk-avatar">MR</div>
+                  </div>
                 </header>
+
+                <div class="sk-spine f10-dof f10-ctx">
+                  <div class="sk-stn has-work"><span class="sk-stn-n">01</span><span class="sk-stn-name">Discover</span><span class="sk-stn-sub">24 signals</span></div>
+                  <div class="sk-stn is-here"><i class="sk-stn-dot"></i><span class="sk-stn-n">02</span><span class="sk-stn-name">Decide</span><span class="sk-stn-sub">1 bet drafting</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">03</span><span class="sk-stn-name">Plan</span><span class="sk-stn-sub">7 runs</span></div>
+                  <div class="sk-stn"><span class="sk-stn-n">04</span><span class="sk-stn-name">Design</span><span class="sk-stn-sub"></span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">05</span><span class="sk-stn-name">Build</span><span class="sk-stn-sub">2 runs</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">06</span><span class="sk-stn-name">Ship</span><span class="sk-stn-sub">v2.4 live</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">07</span><span class="sk-stn-name">Learn</span><span class="sk-stn-sub">day 6 of 30</span></div>
+                </div>
+
+                <aside class="sk-rail f10-dof f10-ctx">
+                  <div class="sk-railtop">
+                    <span class="sk-glyph is-active"><svg viewBox="0 0 20 20"><path d="M3 6h14M3 10h9M3 14h11" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M2 10h3.3l2.2-5.2 3.3 10.4 2.2-5.2H18" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><circle cx="5.2" cy="4.8" r="1.9" /><circle cx="14.8" cy="10" r="1.9" /><circle cx="5.2" cy="15.2" r="1.9" /><path d="M5.2 6.7v6.6M7.1 4.8h3.7a2 2 0 0 1 2 2v1.3M7.1 15.2h3.7a2 2 0 0 0 2-2v-1.3" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="6.6" y="6.6" width="6.8" height="6.8" rx="1.6" /><path d="M10 2.4v4.2M10 13.4v4.2M2.4 10h4.2M13.4 10h4.2" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M3 6.2h4.2M11.6 6.2H17M3 13.8h7.4M14.8 13.8H17" /><circle cx="9.4" cy="6.2" r="1.9" /><circle cx="12.9" cy="13.8" r="1.9" /></svg></span>
+                  </div>
+                  <div class="sk-railfoot">
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="3" y="4.4" width="14" height="11.2" rx="1.6" /><path d="M7.7 4.4v11.2M12.4 4.4v11.2" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M15.4 11.9A6.1 6.1 0 0 1 8.1 4.6 6.3 6.3 0 1 0 15.4 11.9Z" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.5" /><path d="M10 2.6v2.1M10 15.3v2.1M2.6 10h2.1M15.3 10h2.1M4.8 4.8l1.5 1.5M13.7 13.7l1.5 1.5M15.2 4.8l-1.5 1.5M6.3 13.7l-1.5 1.5" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="3" y="4.4" width="14" height="11.2" rx="1.6" /><path d="M8 4.4v11.2" /></svg></span>
+                  </div>
+                </aside>
 
                 <!-- content · draft + in-review + passed rail; the precedent sheet slides over -->
                 <main class="f10-content">
@@ -452,7 +522,7 @@
                       </div>
                       <p class="sk-betnote f10-note" id="f10-note"><span>agent</span>precedent applied: confidence cut, see the record</p>
                     </article>
-                    <div class="sk-agentline f10-agentline f10-dof" id="f10-agentline"><span class="sk-livedot"></span><span class="sk-run">▸</span>agent · checking your record for precedents…<span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">just now</span></div>
+                    <div class="sk-agentline f10-agentline f10-dof" id="f10-agentline"><span class="sk-livedot"></span><span class="sk-run">▸</span>the agent's take · checking your record for precedents…<span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">just now</span></div>
                   </div>
 
                   <!-- middle · in review (the world after F9's re-rank) -->
@@ -485,7 +555,7 @@
                     <div class="sk-panel-body">
                       <div class="sk-row">
                         <p class="f10-passrow-title"><s>redesign the app</s></p>
-                        <p class="f10-passrow-meta">scored 4.0 · last year</p>
+                        <p class="f10-passrow-meta">scored 4.0 · Q3 last quarter</p>
                       </div>
                       <div class="sk-row">
                         <p class="f10-passrow-title"><s>add AI to everything</s></p>
@@ -513,7 +583,7 @@
                           <span class="sk-spacer"></span>
                           <span class="sk-badge">4.0</span>
                         </div>
-                        <p class="f10-past-meta">decided last year · struck in review</p>
+                        <p class="f10-past-meta">decided last quarter · struck in review</p>
                         <p class="f10-past-meta">4 signals · none direct · effort 8.4</p>
                       </article>
                       <div class="f10-sec f10-dr2">
