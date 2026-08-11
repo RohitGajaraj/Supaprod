@@ -134,6 +134,7 @@
   }
 }
 
+
 .sp-scope {
   display: flex;
   align-items: center;
@@ -820,6 +821,70 @@
  *
  * It also leaves "Discover" about 17px of slack, and if a longer name ever
  * arrives it truncates with the ellipsis that is already there. */
+/**
+ * THE HEADER OVERFLOWED THE PHONE, AND IT WAS THE ONE ROW THAT COULD NOT.
+ *
+ * Found 2026-08-11 by the browser suite on its first run that could actually
+ * reach a page: `/today` at 320px failed `hasHorizontalScroll === false`.
+ * Measured rather than guessed: the page is 387px inside a 320px viewport, and
+ * the unclipped offender is `.sp-tools`, 125px wide starting at x=262, so the
+ * Ask control and the avatar hang 67px off the right edge.
+ *
+ * WHY IT HAD TO OVERFLOW RATHER THAN COMPRESS. `.sp-top` is a flex row of four
+ * things and TWO of them refuse to shrink: `.sp-scope` and `.sp-tools` are both
+ * `flex: none`. Only `.sp-live` gives, and it can only give what it has. At
+ * 320px the padding and gaps leave about 242px for a brand mark, a workspace
+ * name of ARBITRARY length, and a control pair. `flex: none` on the name means
+ * a long workspace pushes the row past the viewport instead of eliding, so the
+ * width of the header became a property of the customer's account name.
+ *
+ * WHAT GOES, AND WHY IT IS THE LIVE LINE. It is the only one of the four that
+ * is not a control or an identity: the brand is the way home, the scope is
+ * which workspace you are in, Ask is the primary action. The live line is a
+ * status sentence, duplicated by the page headline on the surface it matters
+ * most on. A phone header showing where you are and what you can do beats one
+ * showing all four badly.
+ *
+ * IT LIVES DOWN HERE, AND THE FIRST ATTEMPT DID NOT. Written directly under the
+ * 900px wordmark rule near the top of the file, it did nothing at all, because
+ * `.sp-scope`, `.sp-live` and `.sp-tools` are all declared BELOW that point and
+ * a media query adds no specificity. Same selector, same weight, later wins:
+ * `display: flex` on `.sp-live` simply overrode `display: none`. The rule was
+ * correct and unreachable, which looks exactly like a rule that does not work.
+ * Anything narrow-viewport belongs after the base rules it answers.
+ */
+@media (max-width: 640px) {
+  .sp-top {
+    /* Every pixel here is one the workspace name does not have to give up. */
+    gap: 8px;
+    padding: 0 12px;
+  }
+  .sp-live {
+    display: none;
+  }
+  /* THE FLEX CHILD IS `.sp-scopewrap`, NOT `.sp-scope`, and getting that wrong
+   * is why the first version of this rule moved nothing. `.sp-scope` is the
+   * button INSIDE the wrapper; the wrapper is what `.sp-top` lays out, and it
+   * arrived `flex: 0 1 auto` with `min-width: auto`. A flex item with
+   * `min-width: auto` cannot shrink below its content no matter what its
+   * shrink factor says, so the row's width was the workspace name's width.
+   * Measured at 320px: brand 36, wrapper 160, tools 125, which is 353. */
+  .sp-scopewrap,
+  .sp-scope {
+    min-width: 0;
+    overflow: hidden;
+  }
+  /* Both are flex rows of their own, so the truncation has to reach the text
+   * rather than stop at the wrapper. */
+  .sp-scopewrap > *,
+  .sp-scope > * {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 640px) {
   .sp-strip {
     /* SIDEWAYS ONLY, and the pair is written the way `.sp-codediff-body` in
