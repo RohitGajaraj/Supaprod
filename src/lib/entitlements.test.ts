@@ -100,6 +100,36 @@ describe("entitlementsFor", () => {
     }
   });
 
+  it("G1.1 BLOCKER: free tier memory expiry gate must stay OFF at launch", () => {
+    /**
+     * MOAT PROTECTION. The database function `memory_expiry_enabled()` is seeded
+     * to false in migration 20260626250000 and controls whether agent_memory
+     * rows get an expires_at timestamp when inserted. As long as the gate reads
+     * false, no memory expires, and the compounding property survives.
+     *
+     * This test verifies the TypeScript-side entitlements are consistent: free
+     * tier claims finite memory (30 days retention) but that is only enforced
+     * if the database gate is ON. The gate must stay OFF for launch; turning it
+     * ON without founder approval (founder ruling 2026-08-10) would silently
+     * start deleting Free users' outcome records and break the moat.
+     *
+     * The actual gate-flip is a one-line admin call at the database level and is
+     * not testable in TypeScript, but this test fails loudly if the entitlements
+     * model for the free tier ever changes to claim memory persistence when it
+     * should not.
+     */
+    const free = entitlementsFor("free");
+    expect(free.memoryPersists).toBe(false);
+    expect(free.memoryRetentionDays).toBe(30);
+
+    // The paid tiers should persist memory (only limited by the gate being OFF).
+    for (const tier of ["pro", "max", "team", "enterprise"] as const) {
+      const paid = entitlementsFor(tier);
+      expect(paid.memoryPersists).toBe(true);
+      expect(paid.memoryRetentionDays).toBeNull();
+    }
+  });
+
   it("WM-M9: bring-your-own AI keys are enterprise-only; every other tier is credits-only", () => {
     for (const tier of PLAN_TIERS) {
       expect(entitlementsFor(tier).byokAllowed).toBe(tier === "enterprise");

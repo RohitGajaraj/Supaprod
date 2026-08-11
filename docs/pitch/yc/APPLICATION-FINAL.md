@@ -69,7 +69,7 @@
 | **"connect the tools where your product signals already live"** | `src/lib/connectors/providers/index.server.ts`: **11 providers are `stubAdapter`**, including **Linear, Notion, Jira, Figma, Gmail, Google Docs** | ⚠️ **CHANGED.** Real: Slack, Intercom, Zendesk, Canny, Productboard, Salesforce, HubSpot, Stripe, GitHub, GitLab. **The named ones are now named, because a PM reading "the tools where your signals live" assumes Linear and Jira, and those are stubs** |
 | "a shipped spec gets checked against what happened" | `prd → learning` writer at `outcome.functions.ts:632` | ✅ **Exists**, and has **never fired** (0 rows). Already stated that way |
 | "argue against the weak bets before you see them" | `src/lib/ai/persona-critic.ts` | ✅ **True** |
-| "4,900+ commits, 512 migrations, ten weeks" | `git rev-list --count HEAD`, `ls supabase/migrations/*.sql`, first commit `2026-06-02` | ✅ **True and reproducible** |
+| "5,063 commits, 519 migrations, ten weeks" | `git rev-list --count HEAD`, `ls supabase/migrations/*.sql`, first commit `2026-06-02` | ✅ **True and reproducible** |
 | "Notion shipped Ship OS free in July" / "Atlassian launched Product Collection in May" | `market-validation-2026-08.md` §3.2 and §8.4, both dated and sourced | ✅ **True** |
 | Zero outside users, no revenue | `production_workspace_ids()`: **6 workspaces, all founder or test accounts** | ✅ **True.** There is no customer data at all |
 
@@ -180,7 +180,7 @@ _The admission is the strongest paragraph in the application. YC weights updatin
 ### 8b. How long have each of you been working on this?
 ```
 Ten weeks on this build, seven days a week, roughly sixteen hours a day; the
-repo shows more than 4,900 commits and 512 database migrations over that
+repo shows 5,063 commits and 519 database migrations over that
 stretch. Before that, about a month of nights and weekends on the prototype
 that became Supaprod. I am going full-time on Supaprod regardless of anything.
 That decision is made. The batch changes where I sit, not whether I am in.
@@ -232,7 +232,7 @@ Same idea, one batch later. Since the last application the product went from
 an early spine to working end to end: the autonomous engine runs, agents open
 real pull requests behind human gates, a shipped spec now gets checked against
 what happened and that verdict re-ranks what to build next, an outside AI code
-audit of the codebase held up, and the public launch is set for September. 4,900 commits and 512 migrations in ten weeks.
+audit of the codebase held up, and the public launch is set for September. 5,063 commits and 519 migrations in ten weeks.
 
 I also corrected two things I had been claiming. I had said a competitor
 cannot rebuild your decision history. That is not true; you can reconstruct
