@@ -138,6 +138,9 @@ const DECISION_ORIGIN_CALLERS: readonly string[] = [
   "lib/discovery.functions.ts",
   // decision.record, the Decide station's agent-facing hand.
   "lib/ai/tools/registry.server.ts",
+  // The trigger door. Absent from this list until 2026-08-11, which is why the
+  // guard sat green over the largest gap it was written to find.
+  "routes/api/public/hooks/trigger-tick.ts",
 ];
 
 describe("every door that files a decision against a parent stamps the edge", () => {
