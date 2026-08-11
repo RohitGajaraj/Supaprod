@@ -2383,129 +2383,114 @@ button.sp-cell:disabled {
   text-align: right;
 }
 
-/* ---------- the suggestion marquee ----------
- * Three rows of chips that travel, alternating direction. Founder ruling
- * 2026-07-30; the reasoning, and the four rules this motion obeys, are on
- * src/components/ask/SuggestionMarquee.tsx.
+/* ---------- the suggestion rail ----------
+ * Grouped, full-width, wrapping rows. Replaces the three-row marquee of
+ * capsules on 2026-08-11; the founder's brief, the browser measurements that
+ * condemned the capsules, and the reference set behind this shape are all on
+ * src/components/ask/SuggestionRail.tsx.
  *
- * THE BOX HE ASKED FOR: a hairline enclosure with the rows inside it, so the
- * strip reads as one object rather than as three loose ribbons crossing the
- * pane. Edges fade to nothing via a mask, which is what makes a chip look like
- * it is travelling THROUGH a window instead of being clipped by a border. */
-.sp-marquee {
+ * THE ENCLOSURE SURVIVES THE REWRITE. Founder ruling 2026-07-30, "enclosed in a
+ * box and highlighted with some very thin hairline border colours": the strip
+ * has to read as ONE object sitting under the composer rather than as loose
+ * content in the pane. What is gone is the mask that faded its two ends, which
+ * existed only because capsules were travelling through it and was the thing
+ * cutting sentences mid-word. Nothing travels now, so nothing needs hiding. */
+.sp-suggest {
   margin-top: var(--sp-space-4);
-  padding: var(--sp-space-3) 0;
+  padding: var(--sp-space-2);
   display: flex;
   flex-direction: column;
-  gap: var(--sp-space-2);
-  /* A real enclosure, not two rules. Founder: "enclosed in a box and
-   * highlighted with some very thin hairline border colours." Two horizontal
-   * rules made a band that read as a page division; a bordered, rounded, very
-   * slightly sunk panel reads as ONE object that the chips are travelling
-   * inside, which is what makes the movement legible instead of loose. */
+  gap: var(--sp-space-3);
   border: 1px solid var(--sp-line-soft);
   border-radius: var(--sp-radius-panel);
   background: var(--sp-sink);
-  overflow: hidden;
 }
-.sp-marquee-row {
-  overflow: hidden;
-  /* Fade both ends. Without this the chips hard-clip at the pane edge, which
-   * reads as a layout bug rather than as motion. */
-  mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
-  -webkit-mask-image: linear-gradient(
-    90deg,
-    transparent,
-    #000 24px,
-    #000 calc(100% - 24px),
-    transparent
-  );
-}
-.sp-marquee-track {
+.sp-suggest-group {
   display: flex;
-  width: max-content;
-  animation-name: sp-marquee-ltr;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
+  flex-direction: column;
+  gap: 2px;
 }
-/* Exactly one copy of three, so the seam lands where the content repeats. */
-@keyframes sp-marquee-ltr {
-  to {
-    transform: translateX(-33.3333%);
-  }
+/* A hairline between groups, and only between them. The heading alone was not
+ * enough separation once the rows became full width: four headed lists with no
+ * rule between them read as one long list with words in it. */
+.sp-suggest-group + .sp-suggest-group {
+  padding-top: var(--sp-space-3);
+  border-top: 1px solid var(--sp-line-soft);
 }
-@keyframes sp-marquee-rtl {
-  from {
-    transform: translateX(-33.3333%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-.sp-marquee-track[data-dir="rtl"] {
-  animation-name: sp-marquee-rtl;
-}
-.sp-marquee-copy {
+.sp-suggest-head {
   display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
   gap: var(--sp-space-2);
-  padding-right: var(--sp-space-2);
+  padding: 0 var(--sp-space-2) var(--sp-space-1);
 }
-/* IT STOPS WHEN YOU REACH FOR IT. Asking someone to click a moving target is
- * the worst thing this pattern does, so hovering anywhere in the strip, or
- * tabbing into it, halts every row at once. */
-.sp-marquee:hover .sp-marquee-track,
-.sp-marquee:focus-within .sp-marquee-track {
-  animation-play-state: paused;
+.sp-suggest-label {
+  font-size: var(--sp-text-label);
+  font-weight: var(--sp-weight-medium);
+  color: var(--sp-mute);
+}
+/* The consequence, beside the heading rather than under the rows. A row that
+ * spends money says so BEFORE it is pressed. */
+.sp-suggest-note {
+  font-size: var(--sp-text-data);
+  color: var(--sp-mute);
+  opacity: 0.85;
 }
 
-/* One suggestion. A hairline capsule: thin, quiet, and it only brightens when
- * you are on it. The strip is under a composer someone is reading, so thirteen
- * of these must sum to texture rather than to thirteen buttons. */
-.sp-chip {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  max-width: 300px;
-  padding: 6px 11px;
-  border: 1px solid var(--sp-line);
-  border-radius: 999px;
-  background: var(--sp-lift);
+/* ONE SUGGESTION, AND IT IS A ROW. The whole point of the rewrite: no nowrap,
+ * no max-width, no ellipsis, no mask. A long sentence wraps and is read. */
+.sp-suggest-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-space-3);
+  width: 100%;
+  padding: 7px var(--sp-space-2);
+  border: 0;
+  border-radius: var(--sp-radius-row);
+  background: transparent;
   color: var(--sp-body);
   font: inherit;
   font-size: var(--sp-text-meta);
-  line-height: var(--sp-leading-tight);
-  white-space: nowrap;
+  line-height: var(--sp-leading-row);
+  text-align: left;
   cursor: pointer;
   transition:
-    border-color var(--sp-dur-fast) var(--sp-ease),
     background var(--sp-dur-fast) var(--sp-ease),
     color var(--sp-dur-fast) var(--sp-ease);
 }
-.sp-chip:hover {
-  border-color: var(--sp-mute);
-  background: var(--sp-float);
+.sp-suggest-row:hover {
+  background: var(--sp-lift);
   color: var(--sp-ink);
 }
-/* The subject of a grounded chip is the thing itself, so it takes the ink and
- * the question beside it stays support. Both on ONE line here: a chip is a
- * capsule, and the two-line treatment belongs to a stacked list. */
-.sp-chip-subject {
+.sp-suggest-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  /* Without this a flex child refuses to shrink below its content, and a long
+   * proper noun would push the station tag off the row instead of wrapping. */
+  min-width: 0;
+  flex: 1 1 auto;
+}
+/* The subject of a grounded row is the thing itself, so it takes the ink and
+ * the question under it stays support. `anywhere` rather than `break-word`
+ * because a mission title can be one unbroken token. */
+.sp-suggest-subject {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   color: var(--sp-ink);
   font-weight: var(--sp-weight-medium);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
-.sp-chip-q {
-  overflow: hidden;
-  text-overflow: ellipsis;
+.sp-suggest-q {
+  overflow-wrap: anywhere;
 }
-.sp-chip[data-kind="running"] .sp-chip-q {
-  color: var(--sp-mute);
-}
-/* The one dot, in the live blue the shell already uses for work in motion.
- * Static: the rows are already moving, and a pulsing dot on a travelling chip
- * would be two animations arguing inside 8px. */
+/* The one dot, in the live blue the shell already uses for work in motion, and
+ * it is the only colour a grounded row carries. Static: nothing on this surface
+ * moves any more, and a pulse here would compete with `gate`, which blinks and
+ * is still the only blink in the system. Kept under its old `sp-chip-dot` name
+ * because the pane's own opening renders it too. */
 .sp-chip-dot {
   flex: none;
   width: 6px;
@@ -2513,17 +2498,32 @@ button.sp-cell:disabled {
   border-radius: 50%;
   background: var(--sp-stage-build);
 }
+.sp-suggest-row[data-kind="running"] .sp-suggest-q,
+.sp-suggest-row[data-kind="done"] .sp-suggest-q {
+  color: var(--sp-mute);
+}
 
-/* REDUCED MOTION GETS A REAL STRIP, not a frozen one. The rows stop and become
- * ordinary horizontal scrollers, so every suggestion is still reachable by
- * anyone who asked the system to stop moving things. */
-@media (prefers-reduced-motion: reduce) {
-  .sp-marquee-track {
-    animation: none;
-  }
-  .sp-marquee-row {
-    overflow-x: auto;
-  }
+/* WHICH STATION THIS COMES OUT OF. Tinted, never filled: seven stage families
+ * must stay quieter than the four status colours, and a suggestion is not a
+ * state. `--sp-suggest-hue` is set inline from `stageHueForStation`, so the tag
+ * wears the hue its station already owns in the rail and the run strip. */
+.sp-suggest-station {
+  /* DECLARED HERE, SET INLINE PER STATION. `StationTag` writes this property
+   * from `stageHueForStation`, and a custom property that only ever exists
+   * inline is one React change away from a colourless tag. Build is the anchor,
+   * which is the same fallback `stageHueForSlug` documents for an unknown
+   * station, so the two agree rather than each having their own idea. */
+  --sp-suggest-hue: var(--sp-stage-build);
+  flex: none;
+  margin-top: 1px;
+  padding: 1px 7px;
+  border: 1px solid color-mix(in srgb, var(--sp-suggest-hue) 34%, transparent);
+  border-radius: var(--sp-radius-chip);
+  background: color-mix(in srgb, var(--sp-suggest-hue) 12%, transparent);
+  color: color-mix(in srgb, var(--sp-suggest-hue) 78%, var(--sp-ink));
+  font-size: var(--sp-text-data-sm);
+  line-height: 1.5;
+  white-space: nowrap;
 }
 
 /* ---------- agent pulse ----------
