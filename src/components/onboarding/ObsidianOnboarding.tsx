@@ -1183,6 +1183,42 @@ export function ObsidianOnboarding() {
   }, [mFinish.isPending]);
 
   // PC-02: product name → data source flow, skip track selection
+  /**
+   * THE WORKSPACE SEED RAN FROM A BRANCH NOBODY WALKS.
+   *
+   * `seedWorkspaceForTrack("solo")` had exactly one caller, inside the `product`
+   * phase, and `product` is unreachable. Read the phase machine rather than
+   * trusting this paragraph: `useState<Phase>` initialises to `"critic"`
+   * unconditionally, and the ONLY route to `arrival` is sessionStorage already
+   * holding `"arrival"` — which can only happen if you had already been in
+   * `arrival`. `arrival` is the only door to `product`, and `product` the only
+   * door to `data`, so all three died together when the one-input change landed
+   * on 2026-08-10. A comment left behind claimed those phases were "reachable
+   * from the result"; the results screen renders two controls and neither goes
+   * there.
+   *
+   * WHAT IT COST, and it is the whole first impression: a new account reached
+   * `/today` with exactly ONE row — the opportunity the teardown had just
+   * written. The positioning brief was never written, `display_name` was never
+   * captured, and two of five funnel milestones never fired, all silently,
+   * because the code that does those things typechecks and renders and is simply
+   * never reached.
+   *
+   * SO IT FIRES ON MOUNT, unconditionally, rather than being re-hung off a
+   * button. Re-adding "name your product" and "connect a source" to the results
+   * screen was the other option and it is the wrong one: the declared P0 is a
+   * real outcome in 60 seconds from one input, and the fix for a step nobody
+   * reaches is not to put the step back in front of them. A populated workspace
+   * is something the product can do for a person without asking.
+   *
+   * Guarded by a ref rather than by the mutation's own state, because
+   * `isPending` is false on the first render and StrictMode mounts twice in
+   * development — the two together are how "seed once" becomes "seed twice".
+   * `seedWorkspaceForTrack` is idempotent on the server, so this is belt and
+   * braces rather than the only thing standing between us and a double seed.
+   */
+  const seedFiredRef = useRef(false);
+
   const mSeedWorkspace = useMutation({
     mutationFn: async (track: OnboardingTrack) => {
       return fSeedTrack({ data: { track } });
@@ -1215,6 +1251,25 @@ export function ObsidianOnboarding() {
     onError: (e: Error) => toast.error(e.message || "Could not set up the workspace"),
   });
   const fSeedTrack = useServerFn(seedWorkspaceForTrack);
+
+  /**
+   * Fire it. See the block above `mSeedWorkspace` for why this is a mount effect
+   * and not a button.
+   *
+   * Deliberately NOT gated on the phase. The whole defect was a seed that only
+   * ran on one path, and re-gating it on `phase === "critic"` would rebuild that
+   * failure the next time the phases move. Whoever opens onboarding gets a
+   * populated workspace, whichever screen they land on.
+   */
+  useEffect(() => {
+    if (seedFiredRef.current) return;
+    seedFiredRef.current = true;
+    mSeedWorkspace.mutate("solo");
+    // Mount only. `mSeedWorkspace` is recreated every render, so listing it
+    // would re-run this on every render and the ref would be the only thing
+    // stopping a seed storm.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // SW-6/SW-7: returning from any full-page-redirect connect (GitHub App
   // install, or any native-OAuth/suite provider), the callback lands on
