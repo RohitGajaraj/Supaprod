@@ -15,7 +15,9 @@ same theses against funding, hiring, analyst and practitioner data from OUTSIDE 
 
 **Method and its limits.** Four research lanes returned usable findings and are labelled A to D below: **A** the frontier labs, **B** the money, **C** hiring and job descriptions, **D** engineering practitioners. None of them used Lenny's corpus. All four are still English-language and US or EU heavy. We traded PM-adjacency for engineering, investor and employer adjacency. We did not buy geographic diversity. That limitation survives this document.
 
-> **A fifth lane, E, died mid-run and is being re-run** (`gather:category-and-analysts`, killed 2026-08-11 by a dropped connection, not by a lack of evidence). It covers the one question the four surviving lanes do not touch: **whether this market has an analyst-recognised name at all**, what Gartner, Forrester, IDC and the ThoughtWorks Radar say about it, what became of Gartner's "decision intelligence" push, and whose existing budget line we come out of. **Until section 8 lands, this document cannot be cited on the category question**, and the sharpest form of that question, *"what happened the last time analysts tried to make decisions a category"*, is exactly the one an investor asks. Treat its absence as an open hole, not as a null result.
+> **The fifth lane, E, landed 2026-08-11 as §8** after its first attempt died to a dropped connection. Read it before using this document on anything category-facing; its verdict is the least comfortable in the file. The paragraph below is kept as written because the hole was real while it lasted.
+>
+> **A fifth lane, E, died mid-run and was re-run** (`gather:category-and-analysts`, killed 2026-08-11 by a dropped connection, not by a lack of evidence). It covers the one question the four surviving lanes do not touch: **whether this market has an analyst-recognised name at all**, what Gartner, Forrester, IDC and the ThoughtWorks Radar say about it, what became of Gartner's "decision intelligence" push, and whose existing budget line we come out of. **Until section 8 lands, this document cannot be cited on the category question**, and the sharpest form of that question, *"what happened the last time analysts tried to make decisions a category"*, is exactly the one an investor asks. Treat its absence as an open hole, not as a null result.
 
 ---
 
@@ -417,3 +419,106 @@ Only these, and each with its source:
 4. 46 percent of developers distrust AI accuracy and only 3 percent highly trust it, while 84 percent use it. (§6.1, Stack Overflow 2025.)
 5. Two agent-context files in a widely used open-source repository have disagreed for eleven months without anyone noticing. (§5.2, our own GitHub API measurement, 2026-08-11.)
 6. Engineering doctrine has specified recording a decision's confidence level and revisit trigger for years, and the tooling for it has not been touched since April 2024. (§5.7, Fowler, Microsoft Learn, GitHub API.)
+
+---
+
+## 8. Category and analysts: does this market have a name
+
+> _Lane E, re-run 2026-08-11 after the first attempt died mid-response. This is the lane the other four do not touch: not whether the problem is real, but whether anyone with a budget has a name for it._
+
+**Verdict: MIXED, and the mix is unfavourable in a specific way.** A category does exist outside the PM world, it is called **decision intelligence**, and it is not dying. Gartner published an **inaugural Magic Quadrant for Decision Intelligence Platforms in January 2026**, three years after the Market Guide. But that market's Leaders are **FICO, SAS, IBM, Quantexa, ACTICO and Aera Technology**, sold to credit risk, fraud, pricing and supply chain buyers. It is high-volume automated operational decisioning. It is not the product-strategy decision market we describe, and nothing in this lane suggests analysts have noticed that a product-strategy decision market exists. The layer we call the brain **has** been named independently and recently, but by ThoughtWorks rather than Gartner. Our specific moat claim, the forecast recorded before the outcome is known, has **no analyst category, no vendor category, no G2 grid and no Wave anywhere in this lane's evidence**, and its strongest historical precedent is a documented adoption failure.
+
+### 8.1 The category names, tested
+
+| Candidate | Analyst-recognised | Evidence and date | Verdict |
+| --- | --- | --- | --- |
+| **Decision intelligence** | **Yes, strongly** | Gartner Market Guide, 2024-07-18, 30 vendors (doc 5599159). **Inaugural Gartner MQ, 2026-01** (doc 7363830), confirmed by Leader announcements from SAS, FICO, Quantexa and Aera | **Real market, wrong buyer.** See §8.3 |
+| **Product operations / ProductOps** | No | No MQ, Wave or MarketScape. Pendo formalised it internally in summer 2019. ~49,000 LinkedIn profiles, up 760% 2019 to 2025 | Job title, not a market |
+| **Product decision intelligence** | No | Zero analyst hits for the exact phrase | Coinage. Nobody uses it |
+| **AI product management** | No | No guide, MQ, Wave or MarketScape under this name | A skills topic, not a market |
+| **Agentic SDLC** | Partial, as a theme | Forrester blog on "Agentic Software Development". Gartner "Delegation Framework for Agentic AI in the SDLC", 2026 (doc 7991037). **The procurement name is different:** Gartner MQ for **Enterprise AI Coding Agents**, 2026-05-20, renamed from AI Code Assistants | Theme with attention; buyers purchase "AI coding agents" |
+| **AI-native SDLC** | Partial, hype cycle only | "AI-native software engineering" debuted on the Hype Cycle for AI in Software Engineering, 2025 (doc 6606702); 2026 edition doc 8000669 | A practice on a hype cycle. No vendor market |
+| **Software delivery management** | No | Coined by CloudBees, 2019; supporting analyst work was **commissioned by CloudBees**. Gartner routed the budget to ALM/ADLM then DevOps Platforms instead | **The cleanest example of a vendor coinage nobody adopted** |
+| **Value stream management** | Semi. Market Guide, never a quadrant | Gartner Market Guides doc 3991130 and doc 4008133, plus a 2023 edition. Peer Insights market still live 2026 | Recognised but stalled. Never earned an MQ |
+| **Continuous discovery** | Forrester only, as a practice | Forrester "Continuous Product Discovery Flywheel" (RES179216) and "Getting Ready For..." (RES179701). Forrester PM Survey 2023: **83%** of PM decision-makers called it important or most important | A named practice with a model. No Wave, no market |
+| **Context graph** *(found, not on the brief)* | **Yes, ThoughtWorks, at Assess** | **Technology Radar Vol. 34, April 2026**, techniques quadrant, Assess ring | **The closest independent naming of our layer 03.** See §8.2 |
+| **AI governance** *(found, not on the brief)* | **Yes, strongly, and new** | **Inaugural Gartner MQ, 2026-06-16**, 13 vendors, Leaders IBM, ServiceNow, Truyo. Forrester Wave Q3 2025. IDC MarketScape 2025-2026, 20 vendors | **The fastest-forming adjacent category.** Small in dollars. See §8.4 |
+| **Decision provenance / decision records as a market** | **No** | Searched directly. No MQ, no Wave, no MarketScape, no G2 Grid under any name | **A real negative result** |
+| **Forecast capture at decision time** | **No** | No category, no vendor cluster, no analyst mention found | Not a category. See §8.5 |
+
+### 8.2 The single most relevant artifact is not from Gartner
+
+**Fact.** ThoughtWorks Technology Radar **Vol. 34, April 2026** introduced **context graph** at the **Assess** ring. Its description is an unusually close match to our layer 03: decisions, policies, exceptions, precedents, evidence and outcomes modelled as first-class connected nodes in a graph structured for AI consumption, where systems of record capture what happened and a context graph captures why, turning reasoning buried in chat threads and approval chains into a queryable structure, worth assessing for agentic applications needing persistent memory or traceable decision reasoning.
+
+**Inference, and it cuts both ways.** It confirms a credible independent technical authority now believes the why-layer is a distinct nameable thing worth building. It also states plainly that the raw material can be recovered from chat threads and approval chains, which is **the reconstructability finding again, from a source outside the corpus**. And the enumeration lists decisions, policies, exceptions, precedents, evidence and outcomes. **It does not list forecasts, predictions or expectations recorded before the outcome. The one thing we claim as the moat is the one thing the closest independent formulation omits.**
+
+**Fact, other Vol. 34 blips, all April 2026:** *curated shared instructions for software teams* at **Adopt**, naming `CLAUDE.md` and `AGENTS.md` as team-level engineering assets; *DORA metrics* at Adopt; *feedback flywheel* at Assess, describing spec, plan, implement plus a retrospective step that "compounds over time"; *coding throughput as a productivity measure* at **Hold**.
+
+**Fact, and disconfirming.** **Lightweight architecture decision records reached Adopt in November 2017, was last published May 2018, and has not appeared since.** Four editions total. ADRs are the closest thing to decision capture that ever reached Adopt on a credible radar, and they graduated to "obvious, no longer interesting" **without producing a software market**. Eight years later no vendor category exists. If decision capture were a product, ADRs had the best possible run-up and did not become one.
+
+**Fact, and this is the sharpest structural negative in the lane.** There is **no Gartner Magic Quadrant and no Forrester Wave for product management software.** Only a stale Market Guide (doc 3894127) listing Aha!, Pendo, ProdPad, ProductPlan and Roadmunk, plus a Peer Insights review taxonomy. Four separate search framings for a Wave covering Productboard, Aha! and Jira Product Discovery returned nothing.
+
+**Inference.** The adjacent space we most resemble by user and workflow has been commercially significant for a decade and still has no analyst market. That is not a coverage accident. **It suggests analysts do not see product management tooling as a distinct enterprise buying decision with a defensible budget line**, which is a harder problem for us than the absence of a decision-capture category.
+
+### 8.3 What happened to decision intelligence: it did not die, it narrowed
+
+- **2024-07-18** Gartner Market Guide, 30 vendors. CDAO Agenda Survey: 33% already deployed, 17% committed to pilot within six months.
+- **2025** On the Gartner AI Hype Cycle rated **transformational**, two to five years to mainstream, 5 to 20% penetration. *(Both sources are DI vendors; treat the framing as interested, the placement is corroborated across both.)*
+- **2026-01** **Inaugural Magic Quadrant.** Leaders reported as FICO, SAS, Aera, IBM, ACTICO, Quantexa.
+- **2025-03** Peak, the UK DI company, **acquired by UiPath** and folded into agentic automation as pricing and inventory agents.
+
+**Fact: the market sizing is incoherent, which is itself the finding.** For 2026 alone: Grand View $20.7B, Precedence $18.91B, Research and Markets $15.96B and $20.73B in two separate reports. CAGRs from 10.56% to 24.7%. All from second-tier publishers, none publishing methodology. **Gartner's own tightly scoped number for adjacent AI governance is $492M in 2026.** A category where independent estimates for the same year differ by 30% and CAGR differs by 2.3x is a category with no agreed boundary. The gap between ~$20B and $492M is the difference between "everything that touches a decision" and "the thing enterprises write a purchase order for".
+
+**Inference, load-bearing.** Decision intelligence survived by **narrowing**. Every Leader sells high-volume, repeatable, machine-executable operational decisions with measurable per-decision economic value. **None sells the low-volume, human, strategic, once-a-quarter product decision.** The name is available and validated; the buyer, budget and proof standard are not ours.
+
+**Opinion.** Claiming "decision intelligence" is **the most tempting and most dangerous move available**. It buys instant analyst legibility and immediately puts us in a bake-off against FICO and SAS on decision throughput, latency and auditability of automated decisions, metrics we do not compete on. **That is worse than having no category.**
+
+### 8.4 Whose budget do we come out of
+
+| Recognised category | Coverage and date | Leaders | Moving toward decision capture |
+| --- | --- | --- | --- |
+| **AI governance platforms** | **Inaugural Gartner MQ 2026-06-16**, 13 vendors. Forrester Wave Q3 2025. IDC MarketScape 2025-2026. Gartner forecast 2026-02-17: **$492M in 2026, >$1B by 2030, 45.3% CAGR** | IBM, ServiceNow, Microsoft, Credo AI, Truyo | **Yes, fast.** Traceability of AI-influenced decisions is becoming a control requirement, not a feature |
+| **Strategic portfolio management** | Gartner MQ 2025 and 2026 (doc 6807234). **Forrester Wave Q2 2026**, 13 vendors, 22 criteria | Planview, Broadcom Clarity, ServiceNow | Partially. Already owns "what did we fund and did it pay off" |
+| **GRC platforms** | **Forrester Wave Q2 2026**, 12 vendors, criteria include continuous controls monitoring and AI governance | Diligent, LogicGate, Optro, Vanta | Yes, by absorbing AI governance into the existing line |
+| **DevOps platforms** *(successor to ALM/ADLM)* | Gartner MQ **2025-09-22** (doc 6977166) | Atlassian, GitLab, Harness | Indirectly, via delivery traceability. Not decision rationale |
+| **Developer productivity insight platforms** *(renamed from SEI)* | Market Guide 2024-03; **renamed and given an inaugural MQ in 2026**. ~**$400M growing >40%/yr** | Atlassian DX, Jellyfish, LinearB | Partially. Explicitly reframed as a pillar of AI governance for engineering. Measures output, not intent |
+| **Product management software** | **No MQ. No Wave. No MarketScape.** | Atlassian, Productboard, Aha!, Pendo | **Yes, actively.** See below |
+| **Enterprise architecture tools** | Gartner MQ **2025-10-06** (doc 7015598) | SAP LeanIX, Ardoq, Bizzdesign | Somewhat, via roadmapping. Wrong buyer |
+| **BPM, now BOAT** | **First** Gartner MQ, 2025-10, 20 vendors (doc 7072898) | Pega, Appian, Camunda, ServiceNow | Toward automated execution, not human rationale |
+
+**Fact worth pinning, and it belongs with the Notion finding in §3.2.** Atlassian launched **Product Collection on 2026-05-06**, positioned as *"Built for better decisions, in the AI era"*, unifying Jira Product Discovery, Feedback and Rovo with a Pendo analytics integration so that *"every decision is grounded in real evidence"*; Jira Product Discovery's One-Click Handoff preserves *"full context and rationale"*. **On direct examination it does not capture a prediction or forecast made before the outcome is known.** It is retrospective linkage of evidence to decisions. That specific gap is open.
+
+**Inference on the squeeze.** Two credible budget lines pull in opposite directions. **AI governance** is fastest-forming and explicitly about traceability of AI-influenced decisions, with all three major firms covering it inside twelve months, but at $492M it is small, bought by risk and legal rather than product, and its incumbents are IBM, ServiceNow and Microsoft. **Strategic portfolio management** is larger and older, bought by the transformation office, and already claims "what we funded and whether it paid off". Meanwhile **the buyer nearest to us has no analyst-recognised software category at all**, and Atlassian is consolidating that ungoverned space itself.
+
+### 8.5 The finding that should change the pitch
+
+**Three independent pieces of outside evidence converge on the forecast claim, and they do not converge in our favour.**
+
+1. The closest independent formulation, ThoughtWorks' context graph, **omits forecasts** from its enumeration, and states the reasoning is recoverable from chat threads.
+2. Nothing in this lane found a category, vendor cluster, analyst mention or G2 grid for forecast capture or decision provenance as an enterprise buying decision. Searching returns sales and revenue forecasting, a different thing.
+3. **The strongest historical precedent is corporate prediction markets, and the record is a documented adoption failure.** Cowgill and Zitzewitz (*Review of Economic Studies*, 2015) found corporate prediction markets at Google, Ford and a third firm were relatively efficient and beat expert forecasts by up to a **25% reduction in mean-squared error**. Google's markets still died. Dan Schwarz's account in *Asterisk*, **November 2024**, records a Waymo VP saying cross-division metric transparency *"was counter to his division's goal to restrict information like this"*, and supply chain managers who valued accuracy but did not personally benefit from it.
+
+**Opinion, and this is the most useful thing this lane produced.** Point 3 is **not** the disconfirmation it first looks like. It says the mechanism works and gets rejected, and it names why: **forecast capture creates a legible record of who was wrong, and the people with authority to buy it are the people it exposes.** Any pitch leading with *"we record what you predicted so it can be checked later"* is selling accountability to the person who would be held accountable. That is the Google failure repeated.
+
+> **The version that survives is one where the forecast is a byproduct of doing the work rather than a submission to a scoreboard, and where the first consumer of the record is the agent doing the next piece of work rather than a reviewing executive.**
+>
+> **Keep the forecast-at-decision-time mechanism. Stop leading with it as the moat.** Lead with the governed record of agentic product work, which is a recognised control requirement with a named market and a 45.3% CAGR, and let the forecast be the thing that makes that record uniquely useful once it exists.
+
+### 8.6 The recommendation
+
+**Do not name an existing category. Do not attempt to create one. Enter through AI-governance language on the buying surface while keeping the product's own vocabulary. Confidence: medium.**
+
+**Category creation is not affordable, and the lane produced a clean natural experiment.** CloudBees coined software delivery management in 2019 with an installed base, a conference and commissioned analyst research; seven years later there is no MQ, no Wave, and Gartner routed the budget through DevOps Platforms. Product operations grew 760% as a job title over six years and still has no market. ADRs reached Adopt in 2017 and produced no vendor category in eight years. **Category creation from a seed-stage position, against that record, is a losing bet.**
+
+**Use ThoughtWorks, not Gartner, for the technical frame.** Assess is the right ring for us: credible, current, early enough that we are not late, specific enough that a technical buyer recognises it, and independent of the ecosystem this whole document was built to escape. **Being able to say the layer we built is what ThoughtWorks named at Assess in April 2026 is worth more with a CTO than any category claim we could invent.**
+
+### 8.7 Limits of this lane, stated plainly
+
+- **Every primary Gartner URL returned HTTP 403.** Document pages, newsroom releases and Peer Insights all blocked direct fetch. **Every Gartner figure above comes from vendor press releases, licensed reprints or trade reporting quoting Gartner.** Titles, dates and author lists are corroborated across at least two independent sources, but **not one Gartner report was read**.
+- **G2 blocked direct fetch.** The conclusion that Product Operations and Decision Intelligence have no G2 Grid rests on search-result absence, which is weaker than a direct check.
+- **Forrester report pages crashed on fetch.** RES179216 and RES179701 are abstracts via search snippets only, with no publication dates.
+- **The 2026 DI Magic Quadrant Leader list is second-hand.** SAS, FICO, Aera, Quantexa and IBM each published their own placement, which is strong. **ACTICO as a sixth Leader is single-sourced and should be verified before repeating.**
+- **A reported "only 17% have deployed" figure from the 2026 agentic AI hype cycle is single-sourced to a secondary blog and is not used.**
+- **The 2026 hype-cycle position of decision intelligence is unknown.** Only the 2025 placement was obtainable.
+
+**What a paid analyst subscription would answer and public search cannot.** The **exact market definition and inclusion criteria for the 2026 Decision Intelligence MQ** is the single most valuable unknown: if inclusion requires automated high-volume decision execution, the DI name is closed to us definitively; if it admits human-in-the-loop strategic decisioning, §8.6 changes. Also: the inclusion criteria for the AI Governance MQ, whether any firm has unpublished or Market-Guide-stage coverage of decision records or context graphs, and **inquiry volume on "decision provenance"**, which is the earliest real signal a category is forming and is invisible to public search.

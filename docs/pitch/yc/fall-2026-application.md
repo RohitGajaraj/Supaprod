@@ -30,7 +30,7 @@
 | --- | --- |
 | The rename line — it must stay first | **No user number anywhere.** This is the single biggest gap; it is the first thing a partner looks for |
 | "I am user zero" + roadmap-runs-inside-Supaprod | The decade/month/seven-weeks journey — that is backstory, and 9a already carries domain expertise |
-| 4,000+ commits (velocity proxy) | *"It is almost there, not finished"* — hedging that buys nothing and costs credibility |
+| 4,900+ commits (velocity proxy) | *"It is almost there, not finished"* — hedging that buys nothing and costs credibility |
 | September launch, brief link | *"feedback goes straight back in: design iterations, new roadmap items"* — vague. Name what changed, or cut it |
 | | **No product numbers at all** — and we now have three good ones |
 
@@ -44,19 +44,30 @@ https://supaprod.ai.
 Where it is now: it runs end to end. Signals come in from the tools a
 team already uses, it argues against the weak ideas before I see them,
 agents write the code and open pull requests, and nothing merges without
-me. 4917 commits and 508 database migrations in nine weeks.
+me. 4,950 commits and 510 database migrations in ten weeks.
 
-The part I most wanted to work is working. It has recorded 119 lessons
-from things that actually shipped. For 38 of those it decided the verdict
-itself instead of asking me. And 36 times, a new decision was made using
-a lesson from an older one. That last number is the whole point: the
-thing gets less wrong the longer you use it.
+The part I most wanted to work is working, and I want to be precise about
+what that means. The loop is wired end to end: a shipped spec gets a
+verdict, the verdict is written back against the decision that caused it,
+and the next decision is ranked using it. I can show you that path running
+on a live database. What I cannot show you is a long record of it, because
+that record only starts when someone runs real work through it.
 
-One thing I got wrong and fixed. I had been telling people a competitor
-can't rebuild your decision history. That isn't true. You can reconstruct
-most of it from Slack and call recordings. What you can't reconstruct is
-what someone expected to happen before it happened, because almost nobody
-writes that down. So I built that. It shipped this week.
+Two things I got wrong and fixed, and I would rather you heard both from me.
+
+I had been telling people a competitor can't rebuild your decision history.
+That isn't true. You can reconstruct most of it from Slack and call
+recordings. What you can't reconstruct is what someone expected to happen
+before it happened, because almost nobody writes that down. So I built that.
+
+The second one is more embarrassing. I had three numbers here that I was
+proud of, about lessons recorded and decisions made from earlier lessons. I
+went to re-verify them and they were all my own demo data. The query that
+told demo from real matched on the shape of a workspace id, and the function
+that creates sample workspaces gives them ordinary ids, so the sample rows
+counted as production. The true count on real work was zero. I found it, I
+shipped a column so the two can never be confused again, and I am telling
+you instead of letting you find it.
 
 Everything above was decided, specced and built inside Supaprod itself.
 That is how I know it works end to end before I ask anyone else to trust
@@ -78,13 +89,38 @@ Public launch in September. Full brief at https://supaprod.ai/brief.
 > ls supabase/migrations/*.sql | wc -l      # migrations
 > scripts/dashboard-tally.sh                # register: specced / shipped
 > ```
-> The product-side figures (**119 lessons, 38 self-decided, 36 decisions from an earlier lesson**) come from live queries, not the register — confirm them the same morning.
+> ### 🛑 THE THREE PRODUCT NUMBERS WERE SEED DATA. PULLED 2026-08-11.
+>
+> **119 lessons, 38 self-decided, 36 decisions from an earlier lesson are all removed from the copy above.** They were never real. Two lanes queried the live database independently and got the same answer, and every one of the following is checkable in about ten seconds:
+>
+> - **All 119 `learnings` rows sit in seeded workspaces.** "Sample sandbox" 17, "Sample workspace" 16 and 16, "Explore workspace" 16, seven fixture workspaces named "Helio Labs" 38, and one orphan. **Real count: zero.**
+> - **37 of the 119 are dated before 2026-06-02**, the repo's first real commit. The earliest is **2025-12-05**, six months before the product existed. They describe outcomes that could not have happened.
+> - **The orphan workspace `b13b3c2d` has no row in `workspaces` at all.** Sixteen learnings pointing at a workspace that does not exist.
+> - **`38 self-decided` is arithmetic on the fixture.** The seven "Helio Labs" workspaces hold exactly 38 learnings between them.
+> - **`36` is `artifact_lineage` where `parent_kind='learning'` and `child_kind='decision'`.** 71 rows total, **0 with `seeded = false`**. It read as 36 because the census told demo from real by matching the *shape* of a workspace id, and `seed_sample_workspace()` gives its workspace an ordinary random id. The test was wrong in both directions.
+> - **The clinching one: `parent_kind='prd'` and `child_kind='learning'` returns zero rows.** Not zero real, zero. That is the edge written when a shipped spec gets its verdict. A product that had truly recorded 119 lessons from shipped work would have 119 of them.
+>
+> ```sql
+> select count(*) filter (where not seeded) from artifact_lineage
+>   where parent_kind='learning' and child_kind='decision';   -- the 36. returns 0
+> select count(*) from artifact_lineage
+>   where parent_kind='prd' and child_kind='learning';        -- the writer that never fired
+> select count(*) from learnings where created_at < '2026-06-02';  -- 37 predate the repo
+> ```
+>
+> **The rule this establishes, and it is the expensive lesson: never present a number as proof without the query that produces it beside it.** These three had no recorded SQL anywhere in the repo. The file told the founder to "confirm them the same morning" and gave him no way to do it. Any figure quoted outward now carries its query or it does not go.
+>
+> **Assume every number in `docs/` is suspect if it separates demo from real by the shape of an id.** The pattern is `_0000000-0000-4000-8000-000000000000` and it is wrong in both directions. A `seeded` column now exists so this cannot recur.
+>
+> **The replacement claim is the mechanism, not a metric**, which is the form `CLAUDE.md` already prescribes: the loop is wired and proven, and it begins accruing on first real use. **Do not substitute a smaller number.** A smaller number is still a number a partner can query, and it would still be zero.
+>
+> _Verify the two commit-side figures the morning you paste; those are sound and reproduce from the commands below._
 >
 > **Why "I'm my own first user" is gone.** It was in the draft and it reads badly to a partner: *if you are the customer, who pays you?* The dogfooding fact is genuinely strong, but it is **proof the product functions, not proof anyone wants it** — so it now says what it actually proves and stops there. It cannot stand in for a user count, and the slot above says so explicitly.
 
 **Why it is written this way.** A partner reads hundreds of these and is pattern-matching for *is this a real problem, is this person unusually good, do people want it*. So: **no vocabulary a stranger would have to decode.** Not "the loop closes", not "evidence bar", not "the judgment gap" — every one of those is our word, not theirs. *"The thing gets less wrong the longer you use it"* says compounding without the term.
 
-**The three numbers, and why these.** *119 lessons, 38 self-decided* says the autonomy is real and measured, not aspirational. *36 decisions made from an older lesson* is the only number that proves the core idea works. *4,000 commits in seven weeks* is rate of progress, which YC weights heavily.
+**What carries the answer now that the product numbers are gone.** *4,950 commits and 510 migrations in ten weeks* is rate of progress, which YC weights heavily, and it reproduces from a one-line command. The rest of the weight moves to the **admission**, and that is not a consolation prize: the field now contains a founder catching his own false metric, naming the exact mechanism that produced it, and shipping the fix. **Do not go looking for a third number to replace the ones that were pulled.** The reason the old ones were dangerous is that they were checkable and wrong, and a partner who queries and finds zero has learned something far worse about us than that we are early.
 
 **Two hard rules on the numbers.** Say **lessons, never outcomes** — `agent_memory` holds zero `kind='outcome'` rows and a partner who checks will find it. And **no user count unless one is true** — the empty slot is more honest than a padded number, and a padded one will not survive the interview.
 
@@ -294,8 +330,8 @@ Cadence is now Supaprod. I renamed it after submitting, and the form will
 not let me change the name; same company, live at https://supaprod.ai.
 
 The journey so far: a decade of living this problem as a PM, a month of
-nights and weekends on a prototype, then seven weeks of building it for
-real, 4,000+ commits and counting. In that time it went from an early
+nights and weekends on a prototype, then ten weeks of building it for
+real, 4,900+ commits and counting. In that time it went from an early
 spine to running end to end. It
 is almost there, not finished; I am shaping the last stretch with users,
 not assumptions. The strongest proof of progress: I am user zero.
@@ -373,7 +409,7 @@ AI models: model-agnostic by design. Every AI call goes through one runtime chok
 Frontend: TanStack Start (React 19, Vite) with Tailwind and shadcn.
 Backend and data: TypeScript and Supabase Postgres with row-level security; pgvector for retrieval; pg_cron schedules the autonomous engine; Bun for builds and packages.
 Deployment: Cloudflare Workers.
-Observability: the system captures its own telemetry by design, every agent action and AI call logged as a receipt, behind one vendor-neutral facade so PostHog and Sentry drop in without the product depending on either.
+Observability: the system captures its own telemetry by design, every agent action and AI call written to the audit trail, behind one vendor-neutral facade so PostHog and Sentry drop in without the product depending on either.
 ```
 
 _(Confirm the exact Kimi model name on paste day — the live field currently says just "Kimi.")_
@@ -420,7 +456,7 @@ non-founder has touched it. And the code does not go unchecked: a separate
 Claude-based reviewer, independent of the agents that build, audits the
 codebase for security and verifies the work against my build register.
 Building this way is the whole point of Supaprod (Cadence's new name): one
-person directing a fleet of agents, with receipts for everything they did.
+person directing a fleet of agents, with an audit trail for everything they did.
 ```
 
 #### "Are you looking for a cofounder?"
@@ -477,7 +513,7 @@ before merge. Seven weeks in, this codebase has about 3,970 commits and 384
 database migrations, and when I had an outside AI code auditor review the
 codebase and my build register, the register held up. No non-founder has
 touched it. Building this way is also the whole point of Supaprod: one
-person directing a fleet of agents, with receipts for everything they did.
+person directing a fleet of agents, with an audit trail for everything they did.
 ```
 
 **§7a Company name:** `Supaprod` · **§7c Company URL:** `https://supaprod.ai`
@@ -506,7 +542,7 @@ read the signals, cluster them into opportunities, argue against the weak
 bets before you commit, write the spec with the evidence attached, plan the
 work, and hand builds to coding agents. You approve the calls that matter.
 
-The part that makes it a company: every agent action leaves a receipt, and
+The part that makes it a company: every agent action lands in the audit trail, and
 every decision gets checked later against what actually happened. Supaprod
 answers "why did we decide this" in seconds, learns which calls were right,
 and re-ranks what to build next from its own track record. Agents earn
@@ -522,7 +558,7 @@ for it. Supaprod is how you answer.
 
 ```
 The product works end to end today, and the numbers in this answer render
-live on the homepage. In seven weeks, solo: an autonomous engine that
+live on the homepage. In ten weeks, solo: an autonomous engine that
 advances product missions every minute (live right now: 145 missions run,
 81 decisions recorded, 54 outcomes graded, 4,117 AI calls through one
 audited path); agents that open real pull requests behind a merge gate no
@@ -619,7 +655,7 @@ accumulates with time.
 I also deliberately do not build the code generator. Cursor and Devin are
 in a capital knife fight there, and the models keep absorbing that layer.
 Supaprod decides what is worth building, dispatches to whichever generator
-wins, and keeps the receipts. If a frontier lab ships a "PM agent," it
+wins, and keeps the evidence. If a frontier lab ships a "PM agent," it
 ships capability. The accountability layer across your tools is the part
 they structurally will not own.
 ```
@@ -673,7 +709,7 @@ what actually happened. The closest familiar thing is Cursor, but for the
 whole product lifecycle instead of the code editor.
 
 The build lane is built in: agents deliver spec-shaped pull requests
-behind a merge gate, with a receipt on every action and one-key rollback,
+behind a merge gate, with an audit trail on every action and one-key rollback,
 plugging in whichever model is best at each job in the lifecycle:
 sensing, deciding, designing, building, researching, learning. Your team
 runs no separate coding tool for it.
@@ -693,7 +729,7 @@ The product works end to end today, and the proof is that it runs its own
 development: Supaprod plans, builds, and ships Supaprod. The numbers on
 the homepage render live from that run: 145 missions run end to end
 (multi-step agent jobs, decision to shipped change), 81 decisions
-recorded with receipts, 54 outcomes graded. Those are my numbers as its
+recorded with the evidence behind them, 54 outcomes graded. Those are my numbers as its
 first user, not customer traction, and anyone can watch them move.
 
 Underneath: agents open real pull requests behind a merge gate no agent
@@ -710,8 +746,8 @@ PMs and founders. The public launch follows in weeks, not months.
 ### 8b — "How long have you been working on this?"
 
 ```
-Seven weeks on this build, seven days a week; the repo shows nearly
-4,000 commits over that stretch, and a month of nights and weekends on the
+Ten weeks on this build, seven days a week; the repo shows more than
+4,900 commits over that stretch, and a month of nights and weekends on the
 prototype before that. Full-time in every sense but the paperwork: I
 built it alongside a product role that is winding down, and quitting is
 decided, not contingent on this application. I spent close to a decade
@@ -744,7 +780,7 @@ with the demo login above or a one-minute signup.
 ### 8h — "Did anything change since your previous application?"
 
 ```
-Same idea, one batch later: seven weeks of building, five of them since
+Same idea, one batch later: ten weeks of building, eight of them since
 that submission rolled over. In those five weeks the product got its
 name and public site, supaprod.ai. The engine went from an early spine
 to running the whole loop on its own, nights included: 145 missions, 81
@@ -797,7 +833,7 @@ accumulates with time. I built the whole system around it.
 
 On the build, I own the harness, not the model: code generation is a
 commodity you call through an API, so I built the lane once, gates,
-receipts, rollback, the outcome feed, and plug the best model into it.
+the audit trail, rollback, the outcome feed, and plug the best model into it.
 My users never buy a second coding tool, and when a better model ships,
 Supaprod gets better the same day.
 ```
@@ -928,7 +964,7 @@ initiative.
 
 **Previous:** good honest answer (AI tools write, I steer, no non-founder touched it).
 
-**New — same story, now with receipts.** YC said out loud this cycle that they evaluate exactly this: Garry Tan — "you can upload a transcript of your Codex or Claude Code making a feature… You can tell a lot about whether someone can build just from how they prompt the agents." Harj Taggar: "The Parker Conrad of today is just in Claude Code."
+**New — same story, now with the evidence attached.** YC said out loud this cycle that they evaluate exactly this: Garry Tan — "you can upload a transcript of your Codex or Claude Code making a feature… You can tell a lot about whether someone can build just from how they prompt the agents." Harj Taggar: "The Parker Conrad of today is just in Claude Code."
 
 ```
 I direct all of it; AI agents write the code. I run parallel Claude Code lanes
@@ -938,7 +974,7 @@ Seven weeks in this codebase that has produced about [3,400] commits and [320]
 database migrations, and when I had an outside AI code auditor review the
 codebase and my build register, the register held up. No non-founder has
 touched it. Building this way is also the whole point of Supaprod: one person
-directing a fleet of agents, with receipts for everything they did.
+directing a fleet of agents, with an audit trail for everything they did.
 ```
 
 _[Update the commit/migration counts on submit day: `git rev-list --count HEAD` and `ls supabase/migrations | wc -l`.]_
@@ -992,7 +1028,7 @@ _[Before submit: log in with these exact credentials yourself, re-seed the demo 
 
 ### 7f. "What is your company going to make? Please describe your product and what it does or will do."
 
-**Previous:** solid but long; some claims ahead of wiring; buries the receipts idea.
+**Previous:** solid but long; some claims ahead of wiring; buries the evidence idea.
 
 **New (~185 words — the anchor opens it, the real scope closes it):**
 
@@ -1005,7 +1041,7 @@ signals, cluster them into opportunities, argue against the weak bets before
 you commit, write the spec with the evidence attached, plan the work, and
 hand builds to coding agents. You approve the calls that matter.
 
-The part that makes it a company: every agent action leaves a receipt, and
+The part that makes it a company: every agent action lands in the audit trail, and
 every decision gets checked later against what actually happened. Supaprod
 answers "why did we decide this" in seconds, learns which calls were right,
 and gets smarter about your product with every outcome it records. Agents
@@ -1030,7 +1066,7 @@ it. Supaprod is how you answer.
 **New — the field where the rollover pays.** Everything below is true today; refresh numbers on submit day:
 
 ```
-The product works end to end today; the login above is live. In seven weeks,
+The product works end to end today; the login above is live. In ten weeks,
 solo: an engine that advances product missions on its own every minute (live
 database right now: [133] missions run, [129] agent runs, [72] decisions
 recorded); agents that open real pull requests behind a merge gate no agent can
@@ -1056,8 +1092,8 @@ _(Note the register: zero users is stated once, in 8e, where the form asks — n
 **New:**
 
 ```
-Forty-five days on this build at roughly sixteen hours a day, seven days a week;
-the repo shows nearly 4,000 commits over that stretch. Before that, about a
+Seventy days on this build at roughly sixteen hours a day, seven days a week;
+the repo shows more than 4,900 commits over that stretch. Before that, about a
 month of nights and weekends on the prototype that became Supaprod. I'm going
 full-time on Supaprod regardless of anything. That decision is made. The batch
 changes where I sit, not whether I'm in.
@@ -1110,7 +1146,7 @@ Variant A (beta users exist):
 ```
 Yes, since [date]: [N] beta users from [M] discovery calls. Too early for
 patterns; the first thing they reach for is asking "why did we decide X" and
-getting the receipt back. I use it daily myself to run Supaprod's own roadmap.
+getting the decision back with what we believed at the time. I use it daily myself to run Supaprod's own roadmap.
 ```
 
 Variant B (not yet):
@@ -1208,7 +1244,7 @@ with time.
 I also deliberately don't build the code generator. Cursor and Devin are in a
 capital knife fight there, and the models keep absorbing that layer. Supaprod
 decides what's worth building, dispatches to whichever generator wins, and
-keeps the receipts. And if a frontier lab ships a "PM agent," it ships
+keeps the evidence. And if a frontier lab ships a "PM agent," it ships
 capability; the accountability layer across your tools is the part they
 structurally won't own.
 ```
