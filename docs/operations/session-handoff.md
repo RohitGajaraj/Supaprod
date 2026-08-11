@@ -1,8 +1,26 @@
 # Pick up here
 
-> _Created: 2026-08-07 · Last updated: 2026-08-11_
+> _Created: 2026-08-07 · Last updated: 2026-08-12_
 
-## 🔴 LANE 1, 2026-08-11 — READ THIS FIRST IF ANY WORK LOOKS MISSING FROM THE PRODUCT
+## ✅ LANE 1 SESSION CLOSED — 2026-08-12. Everything is on `main`. Nothing is stranded.
+
+**Git state at close, verified by reading the refs back rather than assuming the push worked:**
+
+```
+HEAD  ==  origin/main  ==  origin/parallel/lane-1-fresh   9b347316
+ahead / behind main                                       0 / 0
+working tree                                              clean
+tsc --noEmit · bun test · docs:check  (on the MERGED tree) 0 · 8723 pass 0 fail · 0
+```
+
+### 🎯 START HERE, whichever lane you are
+
+| | Do this | Why it is next |
+| --- | --- | --- |
+| **1** | **Build the forecast RESOLUTION path: `FC-02`.** Write `decisions.forecast_resolution` (`hit` / `miss` / `inconclusive`) and `forecast_resolved_at` once `forecast_horizon_date` passes. | Capture shipped this session, grading did not. **Forecasts now accrue and nothing settles them**, so the calibration record stays empty by construction. The lookup index `idx_decisions_forecast_due` already exists for exactly this query. **Until this lands, nobody may claim a calibration record.** |
+| **2** | **Retry Lovable `query_database`, then seed the demo workspace.** | It returned `499 request_cancelled` on every call **including a bare `SELECT 1`** for this entire session, while `get_me`, `list_projects` and `get_database_status` all worked. Seeding is `teaser-video-plan.md` step 3, assigned to Lane 1 and marked blocking. **Nothing about FC-01 has been observed writing a live row**, for the same reason. |
+| **3** | **Get a founder ruling on "the operating system."** | Recorded below. It is one question and it unblocks four surfaces. **Do not sweep it without the ruling** — there is no approved replacement noun. |
+| **4** | **Confirm a publish ran.** | Being on `origin/main` is necessary, not sufficient: **Lovable deploys from GitHub**, and until a publish runs nobody can see the forecast field. This is the exact gap that made a finished commit invisible for a day, below. |
 
 ### A finished commit was invisible because it never left the machine
 
@@ -26,12 +44,28 @@ It was stranded rather than merely unpushed: local `main` was **15 behind and 1 
 | **4** | **An unattended apply read back as a call the human made.** `decisions.auto_origin` defaults to false and neither caller of `applyFixCore` passed it. `source_kind` deliberately stays `manual` until `20260811140000` is applied by Lovable, because the live constraint would refuse `agent` and the insert reads no error, so the row would silently stop being written on a cron path. A missing row is worse than a mislabelled one. |
 | **5** | **The landing loader made six round trips for a page that renders one count.** `Receipts` has ignored its `stats` prop since the counters beat was deleted on 2026-08-09, and `/` is server-rendered on the login and signup paths too. **The coupling was the worse half:** `getLandingStats` returns null if the RPC, the allowlist or any of four counters fails, and every one of those also discarded `waitlistCount`, so the close beat's nudge would vanish for a reason unrelated to the waitlist and read as the queue emptying. New `getWaitlistCount` is one unscoped query returning null rather than 0 on failure. |
 | **6** | **The Ask pane recovery above**, `724d585a`. |
+| **7** | **`FC-01`: the moat had a schema, a guard, and nothing that could write to it.** Migration `20260810180000` shipped five `forecast_*` columns on `decisions`, a resolution CHECK and the immutability trigger `trg_decisions_forecast_immutable` on 2026-08-10, under a founder ruling in its own header reading **"Build now, P0"**. **Not one line of application code ever referenced any of them**, and `grep -ci forecast` against the SSOT returned **0**. Both halves now exist: `createDecision` takes the triple at the commit moment, `setDecisionForecast` attaches one to a decision written through any of the other five doors, and the **"Log a decision" form carries the field**, so a person can record a forecast by using the product. |
 
 ### Open, and routed rather than blocked
 
 - **The filmability pass could not run, and the reason is not a bug in the product.** This checkout has no Supabase env (`.env` holds only `E2E_DEMO_PASSWORD`), so a local run cannot sign in and every authenticated route silently renders `/login`. **The first report showed 33 identical "screens" at 261 chars each, which is the login page 33 times.** The tell was that every measurement was identical; a constant across every subject means you are measuring the instrument. Against production the login hung at "Signing in" with the auth POST never returning, while Supabase itself answered `/auth/v1/health` in 0.08s. The founder confirmed a Supabase admin-user 500 that Lovable was fixing, then applied a full migration and republished. **Retry before assuming anything about screen quality.** Capture script takes `FILM_BASE`, navigates by URL only and never clicks.
 - **`teaser-video-plan.md` §0.2 is stale and reads as open.** The `/proof` seeded-data leak is **already closed**: `SEEDED_CLONE_IDS` in `proof-surface.functions.ts` lists all six Helio clones, closed 2026-08-07. §0.1, settling one real outcome, is **still unverified** because Lovable's `query_database` was returning 499 on every call including `SELECT 1`, while `get_me`, `list_projects` and `get_database_status` all worked.
-- **Video is not Lane 1's.** A judged creative panel (`wf_ccbb05a5-fa8`) produced a teaser treatment and it has been handed to the main lane, which owns the call on it.
+- **Video is not Lane 1's.** A judged creative panel (`wf_ccbb05a5-fa8`, 11 agents, **text only, zero render credits**) produced a teaser treatment, handed to the **Video Teaser** session which owns the call. Its most useful output was not the winning concept but the **kill shots**: every one of five concepts was killed on an *honesty* ground rather than a craft one, and that convergence is the finding.
+
+### The forecast, `FC-01`: what shipped, what did not, and the three design calls
+
+**Shipped.** `forecastRefusal` is pure, exported and tested, and holds the two rules the database cannot enforce.
+
+1. **All three fields or none.** They are one artifact and each missing piece breaks it differently. A claim with no observable resolves as an argument; a claim with no horizon **never comes due**, so `idx_decisions_forecast_due` never surfaces it and it silently never resolves. Either shape makes a decision look forecast-bearing while being ungradeable, which is worse than carrying none, because the count would overstate what can ever be settled.
+2. **The horizon must still be open.** A closed window is being written with the answer available. **The trigger cannot catch this one** — it fires `BEFORE UPDATE` and this arrives on an `INSERT` — so it is refused in the validator or nowhere.
+
+**Three calls made deliberately, so nobody re-litigates them by accident:**
+
+- **Optional, and it must stay optional.** The server refuses a *partial* forecast and never an *absent* one. Make the field required and people type *"it will go well"* to clear it, which is a forecast-shaped object that settles nothing and then poisons the calibration record it feeds.
+- **On the create form, not a later edit.** The migration says capture at the moment the decision is committed, and the trigger freezes all three the instant they are set. A forecast added once anything is known is a retrospective wearing a timestamp.
+- **The chosen day is read as its END in the person's timezone.** "By the 20th" means the end of the 20th; taking midnight would silently shorten every horizon by a day. The date control's `min` is tomorrow.
+
+> ⚠️ **NOT VERIFIED LIVE, and do not upgrade this claim without doing so.** No row has been observed writing to those columns, because Lovable's `query_database` was returning 499 all session. **Typechecked, unit-tested and merged is a different claim from a row landed.**
 
 ### ⚠️ NEEDS THE FOUNDER: is "the operating system" retired as the name of layer 02, or only as the lead?
 
@@ -52,6 +86,16 @@ It was stranded rather than merely unpushed: local `main` was **15 behind and 1 
 **One piece of evidence says it is a genuine miss:** [`../growth/vocabulary-change-list-2026-08.md`](../growth/vocabulary-change-list-2026-08.md) line 49 shows the sweep rewriting that exact sentence to fix *unattended* while leaving *operating system* untouched in both the before and the after. The sweep had the string in its hands.
 
 > **Checked and NOT a defect: `public/robots.txt:8` `Disallow: /trust-ledger`.** The retired-URL stub's own header names `public/*.txt` as references to clear, but that line should **stay**: the URL still resolves as a 301 and must not be indexed, and `/track-record` is already disallowed on line 7. Clearing it would let a crawler index the redirect.
+
+### ⛔ Four traps this session hit. Do not pay for them twice.
+
+**1. A constant across every measurement means you are measuring the instrument.** The filmability pass reported **33 screens at exactly 261 chars and 42 elements each**. That was `/login`, 33 times: this checkout has no Supabase env, so every authenticated route silently redirects and the capture looked like a completed audit. One varying number would have meant 33 real screens. **The capture script records `landedOn` separately from the requested route for this reason. Read that field first.** Script: `scratchpad/filmability.mjs`, takes `FILM_BASE`, navigates by URL only and never clicks (pressing a key in the approvals tray dispatches a real agent run irreversibly).
+
+**2. A pipe hides the gate's exit code.** `bunx tsc --noEmit | tail && echo $?` reports `tail`'s status. Redirect to a file and read `$?` on the command itself. Cost one false "clean" this session before it was caught.
+
+**3. Two reviewers can contradict each other and both be right.** One said no code reads or writes the forecast fields; another said "FS-01 shipped the write side". **Both were true, about different mechanisms on different tables.** FS-01 scores `insights` rows of kind `prediction`/`risk` into `insights.resolution`; `FC-01` is `decisions.forecast_*`. **Read which table a claim is about before you believe or dismiss it**, and note that only the second one is the moat, because FS-01 grades an *agent's* prediction rather than a human belief captured at the moment of a call.
+
+**4. Verify a finding is still open before acting on it.** `teaser-video-plan.md` §0.2 reads as an open blocker; the `/proof` seeded-data leak was **already closed 2026-08-07** (`SEEDED_CLONE_IDS` lists all six Helio clones). Three of that file's shot addresses have also rotted, verified in code: `/helio-labs-harbor/relay` is a deliberate redirect marked *NOT PORTED, DELIBERATELY*, `"Clustered into bets"` is not a rendered string anywhere in `src/`, and `?stage=` was removed with its component so the decide beat is at `/decide`.
 
 ---
 
