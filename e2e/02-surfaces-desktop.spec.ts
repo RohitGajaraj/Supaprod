@@ -3,7 +3,7 @@
  * Captures screenshots and verifies layout for each authenticated surface
  */
 import { test, expect, Page } from "@playwright/test";
-import { login, takeScreenshot, takeFullPageScreenshot } from "./helpers/auth";
+import { login, takeScreenshot, takeFullPageScreenshot, waitForShell } from "./helpers/auth";
 
 const SURFACES = [
   { path: "/today", name: "today", label: "Today" },
@@ -148,14 +148,35 @@ test.describe("Surface Audit - Desktop 1280px", () => {
         }
       });
 
-      await page.goto(surface.path, { waitUntil: "networkidle" });
+      /**
+       * `domcontentloaded` PLUS AN EXPLICIT READINESS WAIT, never `networkidle`.
+       *
+       * `networkidle` waits for 500ms with no in-flight requests, and this app
+       * never gives it that on some surfaces. Measured 2026-08-11: `/evals`,
+       * `/agents` and `/drift` all redirect to `/engine-room`, which loads
+       * `js.stripe.com`; Stripe keeps connections open, so `goto` sat for the
+       * full 25s and threw while THE PAGE WAS RENDERED AND CORRECT BEHIND IT
+       * (body text 1158, 3296 and 877 characters respectively).
+       *
+       * That is the failure mode worth naming: `networkidle` does not report
+       * "the page is not ready", it reports "something on this page is still
+       * talking", and the two are unrelated. Playwright discourages it for
+       * exactly this reason.
+       *
+       * `waitForShell` waits for `main` to be visible, which is the real
+       * condition every assertion below depends on, and it is both stricter
+       * about readiness and indifferent to a third-party socket.
+       */
+      await page.goto(surface.path, { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
 
       // Verify we're authenticated (not redirected to login)
       if (page.url().includes("/login")) {
         // Re-login if needed
         const loginPage = page;
         await login(loginPage);
-        await page.goto(surface.path, { waitUntil: "networkidle" });
+        await page.goto(surface.path, { waitUntil: "domcontentloaded" });
+        await waitForShell(page);
       }
 
       // Basic viewport screenshot

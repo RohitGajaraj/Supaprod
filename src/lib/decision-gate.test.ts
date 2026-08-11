@@ -105,6 +105,55 @@ describe("the refusals — each one is a fact a confident model cannot talk past
     );
   });
 
+  test("an ABSENT or unrecognised confidence asks, rather than sailing through", () => {
+    /**
+     * THE ONE GATE IN THIS MODULE THAT FAILED OPEN, and the two tests directly
+     * above are why it survived: they cover "low" and they cover the two
+     * confident tiers, so every value anyone thought to write down was checked.
+     * Nobody wrote down the value that arrives when the field is not there.
+     *
+     * `shouldGateForReview` is `tier === "low"`, which is false for "low" only —
+     * and equally false for undefined, null, "" and any tier word nobody has
+     * taught it. Every other gate here refuses on ABSENCE. This one waved it
+     * through, which on a gate that spends money unattended is the wrong
+     * direction to be wrong in.
+     *
+     * The type said it could not happen: `confidence` is `ConfidenceTier`, three
+     * words, always present. The callers are agent-shaped writers assembling
+     * this input from model output, where a missing field is ordinary. A
+     * compiler guarantee at the boundary of something that did not go through
+     * the compiler is not a guarantee, so these casts are the realistic input,
+     * not an abuse of the type.
+     */
+    const missing = { ...TRIGGER_TICK_RECEIPT, confidence: undefined } as never;
+    const nulled = { ...TRIGGER_TICK_RECEIPT, confidence: null } as never;
+    const blank = { ...TRIGGER_TICK_RECEIPT, confidence: "   " } as never;
+    const unknownTier = { ...TRIGGER_TICK_RECEIPT, confidence: "moderate" } as never;
+
+    for (const [name, input] of [
+      ["undefined", missing],
+      ["null", nulled],
+      ["blank", blank],
+      ["an unrecognised tier", unknownTier],
+    ] as const) {
+      expect({ name, action: decideDecisionReview(input).action }).toEqual({
+        name,
+        action: "ask",
+      });
+    }
+  });
+
+  test("the confident list is a closed set, so a new tier cannot widen it silently", () => {
+    // A fourth tier added by someone who does not read decision-gate.ts must
+    // land on the ASK side until they deliberately add it here. That is the
+    // direction a gate should fail when it is surprised, and it is the property
+    // the test above would still pass without if the check were written as a
+    // blocklist of unconfident words instead of an allowlist of confident ones.
+    expect(
+      decideDecisionReview({ ...TRIGGER_TICK_RECEIPT, confidence: "certain" } as never).action,
+    ).toBe("ask");
+  });
+
   test("an uncatalogued effect asks: unknown blast radius is maximal blast radius", () => {
     const d = decideDecisionReview({ ...TRIGGER_TICK_RECEIPT, effect: "some.tool.nobody.scored" });
     expect(d.action).toBe("ask");

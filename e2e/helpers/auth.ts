@@ -171,7 +171,58 @@ export async function ensureScreenshotDir(subDir?: string) {
 }
 
 export async function login(page: Page): Promise<boolean> {
-  await page.goto("/login", { waitUntil: "networkidle" });
+  /**
+   * `domcontentloaded`, AND NO SHELL WAIT. The rest of this folder dropped
+   * `networkidle` on 2026-08-11 for `domcontentloaded` plus `waitForShell`,
+   * because `networkidle` waits for 500ms of network silence that surfaces
+   * loading `js.stripe.com` never provide, so `goto` threw on pages that had
+   * rendered correctly behind it. `/login` is the exception to the second half:
+   * it renders no `<main>`, so waiting for the shell here would hang on a page
+   * that is working.
+   *
+   * IT DOES NEED A SUBSTITUTE WAIT, AND THE FIRST ATTEMPT HERE DID NOT HAVE
+   * ONE. The plan for this file said the swap was safe on its own because a
+   * `waitFor` on the email input already follows. That is only true on the
+   * signed-out path. On the signed-IN path the next thing that runs is the
+   * `page.url()` snapshot below, and `networkidle` was silently doing the work
+   * that made it correct: it did not return until the client-side redirect off
+   * `/login` had already fired.
+   *
+   * Measured, not reasoned about: with a bare `domcontentloaded` and no wait,
+   * `06-icons.spec.ts` failed in `beforeAll` at `emailInput.waitFor` after 10s,
+   * one test failed and six never ran. `domcontentloaded` returns while the
+   * router is still deciding, so the snapshot read `/login`, the early return
+   * did not fire, and the helper went hunting for a form on a page that was on
+   * its way to `/today`. See the race below, which is the wait that replaces it.
+   */
+  await page.goto("/login", { waitUntil: "domcontentloaded" });
+
+  // Declared before the redirect check because the race below needs the email
+  // locator; nothing about the selectors changed.
+  const emailInput = page
+    .locator('input[type="email"], input[name="email"], [data-testid="email-input"]')
+    .first();
+  const passwordInput = page
+    .locator('input[type="password"], input[name="password"], [data-testid="password-input"]')
+    .first();
+
+  /**
+   * THE TWO LEGAL OUTCOMES OF LOADING `/login`, RACED.
+   *
+   * Signed in, we get bounced off `/login`. Signed out, the form renders. There
+   * is no single observable covering both, and waiting for the wrong one costs
+   * the full timeout, so wait for whichever arrives first and let the code below
+   * read which it was.
+   *
+   * Both branches swallow their own rejection. `Promise.race` settles on the
+   * first, but the loser keeps running and rejects at its own timeout, and an
+   * unhandled rejection surfaces as a failure in whatever test happens to be
+   * running by then. A branch losing this race is the normal case, not an error.
+   */
+  await Promise.race([
+    page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 10000 }).catch(() => {}),
+    emailInput.waitFor({ state: "visible", timeout: 10000 }).catch(() => {}),
+  ]);
 
   /**
    * ALREADY SIGNED IN IS A SUCCESS, AND IT USED TO BE A TEN-SECOND TIMEOUT.
@@ -214,18 +265,51 @@ export async function login(page: Page): Promise<boolean> {
    * written here holds a blank form, and the source it embeds is
    * `demoPassword()` itself, which does not quote the value for exactly this
    * reason. The cost is one artifact directory, not a credential.
+   *
+   * It sits below the form check as well as below the redirect check, because
+   * both are ways of learning we do not need it. A valid session with the env
+   * var unset is a working run, and it should not be failed for lacking a
+   * credential it was never going to type.
    */
+
+  /**
+   * THE URL IS SAMPLED TWICE, AND THE SECOND SAMPLE IS THE POINT.
+   *
+   * The check above is a single instant. On a loaded machine the redirect off
+   * `/login` for an already-signed-in session is still in flight at that
+   * microsecond, so it reads `/login`, concludes a sign-in is needed, and waits
+   * ten seconds for a form that is in the middle of being unmounted.
+   *
+   * That is exactly how the full suite failed on 2026-08-11, on a test named
+   * "design-system color tokens resolve on :root". The tokens were fine, all six
+   * were defined. `error-context.md` showed the fully authenticated app rendered
+   * in the page snapshot while the call log said `waiting for
+   * input[type="email"]`. One test out of 141, and only under enough load for
+   * the redirect to lose a race it normally wins. The fourth time in one day a
+   * failure wore the name of a test that had nothing wrong with it.
+   *
+   * So the absence of a form is no longer treated as an answer. It is a reason
+   * to look at the URL AGAIN, ten seconds later, by which time any redirect has
+   * certainly committed. Only a page still on `/login` with no form is a real
+   * failure, and it now says that by name rather than throwing on an unfillable
+   * input four lines down.
+   */
+  const formAppeared = await emailInput
+    .waitFor({ state: "visible", timeout: 10000 })
+    .then(() => true)
+    .catch(() => false);
+
+  if (!formAppeared) {
+    if (!page.url().includes("/login")) return true;
+    throw new Error(
+      `[e2e] Still on ${page.url()} after 10s with no sign-in form rendered. ` +
+        `This is not a credential problem: the page neither bounced to the app ` +
+        `nor drew a form.`,
+    );
+  }
+
   const password = demoPassword();
 
-  // Wait for the login form
-  const emailInput = page
-    .locator('input[type="email"], input[name="email"], [data-testid="email-input"]')
-    .first();
-  const passwordInput = page
-    .locator('input[type="password"], input[name="password"], [data-testid="password-input"]')
-    .first();
-
-  await emailInput.waitFor({ state: "visible", timeout: 10000 });
   await emailInput.fill(DEMO_EMAIL);
   await passwordInput.fill(password);
 

@@ -292,9 +292,37 @@ export function decideDecisionReview(
     );
   }
 
-  // Gate 4. The PC-11 convention, wired for the first time. Built and left with
-  // zero callers, which is how a convention quietly becomes decoration.
-  if (shouldGateForReview(i.confidence)) {
+  /**
+   * Gate 4. The PC-11 convention, wired for the first time. Built and left with
+   * zero callers, which is how a convention quietly becomes decoration.
+   *
+   * IT WAS THE ONE GATE HERE THAT FAILED OPEN, and the asymmetry is the whole
+   * point of this module. `shouldGateForReview` is `tier === "low"`, so it
+   * answers false for "low" only — and equally false for undefined, null, an
+   * empty string, or any tier word nobody has taught it. Every other gate in
+   * this function refuses on ABSENCE: a missing agent, an uncatalogued effect
+   * and a blank rationale all stop the auto-approval. Gate 4 waved them through.
+   *
+   * `i.confidence` is typed `ConfidenceTier`, which is exactly why this was
+   * invisible. The type says the field is always one of three words; the callers
+   * are agent-shaped writers assembling this input from model output and row
+   * reads, where a field going missing is ordinary. A compiler guarantee at the
+   * boundary of something that did not go through the compiler is not a
+   * guarantee, and this repo has now been bitten by that shape more than once.
+   *
+   * So the test is INVERTED: proceed only on a tier explicitly known to be
+   * confident. Anything else — low, absent, malformed, or a fourth tier added
+   * later by someone who does not read this file — asks the human. Adding a new
+   * confident tier is then a deliberate edit here rather than a silent widening
+   * of what auto-approves, which is the correct direction for a gate to fail
+   * when it is surprised.
+   *
+   * `shouldGateForReview` itself is deliberately NOT changed. It has other
+   * callers that use it to decide what to SHOW, where "unknown" reasonably means
+   * "do not nag"; only the gate needs unknown to mean "stop".
+   */
+  const CONFIDENT_TIERS: readonly string[] = ["medium", "high"];
+  if (shouldGateForReview(i.confidence) || !CONFIDENT_TIERS.includes(clean(i.confidence) ?? "")) {
     return ask(
       "The agent is not confident this record is right, and a record we are unsure of is exactly the one you should read.",
     );

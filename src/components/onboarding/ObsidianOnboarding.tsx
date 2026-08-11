@@ -251,7 +251,7 @@ export function timeEstimateFor(id: ProviderId): string {
 // on the one thing the user brought, and everything else is offered after they
 // have a result. A step counter on a one-step flow is an admission that it is
 // not one step.
-type Phase = "arrival" | "product" | "data" | "critic" | "results";
+type Phase = "critic" | "results";
 
 // The honest Critic-run stages the AiPulse cycles through while the run is
 // live. Plain words, no theater beyond what the run actually does.
@@ -757,34 +757,18 @@ export function ObsidianOnboarding() {
   const fTriggerSeed = useServerFn(triggerWorkspaceSeed);
   const fListOpportunities = useServerFn(listOpportunities);
 
-  const connectionsQ = useQuery({
-    queryKey: ["connections"],
-    queryFn: () => fListConnections(),
-    enabled: phase === "data",
-  });
-  const suiteQ = useQuery({
-    queryKey: ["calendar-connections"],
-    queryFn: () => fSuiteList(),
-    enabled: phase === "data",
-  });
-  const seedEnabledQ = useQuery({
-    queryKey: ["demo-seed-enabled"],
-    queryFn: () => fSeedEnabled(),
-    enabled: phase === "data",
-  });
-
-  const providers = Object.values(CONNECTOR_REGISTRY).filter((s) => s.userFacing !== false);
-  function isConnected(spec: ProviderSpec): boolean {
-    const suiteSpec = SUITE_PROVIDERS[spec.id];
-    if (suiteSpec) {
-      return (suiteQ.data?.connections ?? []).some(
-        (c) => c.provider === suiteSpec.provider && c.product === suiteSpec.product,
-      );
-    }
-    return (connectionsQ.data?.connections ?? []).some(
-      (c) => c.provider === spec.id && c.status === "connected",
-    );
-  }
+  /**
+   * THREE QUERIES AND TWO HELPERS LIVED HERE AND NEVER RAN.
+   *
+   * `connectionsQ`, `suiteQ` and `seedEnabledQ` were each `enabled: phase ===
+   * "data"`, and `data` was unreachable, so react-query never fired one of them.
+   * `providers` and `isConnected` existed only to render the connector list
+   * inside that same dead branch. All five typechecked, all five were exported
+   * from nothing, and none of them had run since 2026-08-10.
+   *
+   * Removed with the branch rather than left behind it: a query that cannot run
+   * still costs every reader of this file the time to work out when it would.
+   */
 
   // Tracks the exact prefilled title so mFinish can tell "user kept the
   // suggestion" (evidence-linked critic) from "user typed their own belief"
@@ -1183,6 +1167,42 @@ export function ObsidianOnboarding() {
   }, [mFinish.isPending]);
 
   // PC-02: product name → data source flow, skip track selection
+  /**
+   * THE WORKSPACE SEED RAN FROM A BRANCH NOBODY WALKS.
+   *
+   * `seedWorkspaceForTrack("solo")` had exactly one caller, inside the `product`
+   * phase, and `product` is unreachable. Read the phase machine rather than
+   * trusting this paragraph: `useState<Phase>` initialises to `"critic"`
+   * unconditionally, and the ONLY route to `arrival` is sessionStorage already
+   * holding `"arrival"` — which can only happen if you had already been in
+   * `arrival`. `arrival` is the only door to `product`, and `product` the only
+   * door to `data`, so all three died together when the one-input change landed
+   * on 2026-08-10. A comment left behind claimed those phases were "reachable
+   * from the result"; the results screen renders two controls and neither goes
+   * there.
+   *
+   * WHAT IT COST, and it is the whole first impression: a new account reached
+   * `/today` with exactly ONE row — the opportunity the teardown had just
+   * written. The positioning brief was never written, `display_name` was never
+   * captured, and two of five funnel milestones never fired, all silently,
+   * because the code that does those things typechecks and renders and is simply
+   * never reached.
+   *
+   * SO IT FIRES ON MOUNT, unconditionally, rather than being re-hung off a
+   * button. Re-adding "name your product" and "connect a source" to the results
+   * screen was the other option and it is the wrong one: the declared P0 is a
+   * real outcome in 60 seconds from one input, and the fix for a step nobody
+   * reaches is not to put the step back in front of them. A populated workspace
+   * is something the product can do for a person without asking.
+   *
+   * Guarded by a ref rather than by the mutation's own state, because
+   * `isPending` is false on the first render and StrictMode mounts twice in
+   * development — the two together are how "seed once" becomes "seed twice".
+   * `seedWorkspaceForTrack` is idempotent on the server, so this is belt and
+   * braces rather than the only thing standing between us and a double seed.
+   */
+  const seedFiredRef = useRef(false);
+
   const mSeedWorkspace = useMutation({
     mutationFn: async (track: OnboardingTrack) => {
       return fSeedTrack({ data: { track } });
@@ -1209,12 +1229,33 @@ export function ObsidianOnboarding() {
           console.error("[PC-33] Brief pre-seed failed (non-fatal):", err);
         });
       }
-      // Move directly to data source selection, skipping explicit track choice
-      setPhase("data");
+      // NO PHASE MOVE. This used to send the person to data-source selection,
+      // which no longer exists — and since the seed now fires on mount rather
+      // than from a button, there is nobody standing on a screen waiting to be
+      // moved off it. The seed finishing is a background fact, not a step.
     },
     onError: (e: Error) => toast.error(e.message || "Could not set up the workspace"),
   });
   const fSeedTrack = useServerFn(seedWorkspaceForTrack);
+
+  /**
+   * Fire it. See the block above `mSeedWorkspace` for why this is a mount effect
+   * and not a button.
+   *
+   * Deliberately NOT gated on the phase. The whole defect was a seed that only
+   * ran on one path, and re-gating it on `phase === "critic"` would rebuild that
+   * failure the next time the phases move. Whoever opens onboarding gets a
+   * populated workspace, whichever screen they land on.
+   */
+  useEffect(() => {
+    if (seedFiredRef.current) return;
+    seedFiredRef.current = true;
+    mSeedWorkspace.mutate("solo");
+    // Mount only. `mSeedWorkspace` is recreated every render, so listing it
+    // would re-run this on every render and the ref would be the only thing
+    // stopping a seed storm.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // SW-6/SW-7: returning from any full-page-redirect connect (GitHub App
   // install, or any native-OAuth/suite provider), the callback lands on
@@ -1243,327 +1284,6 @@ export function ObsidianOnboarding() {
         </p>
       </Screen>
     );
-
-  if (phase === "arrival") {
-    return (
-      <Screen>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            textAlign: "center",
-          }}
-        >
-          <ArrivalMark />
-          {/* Geist Pixel brand moment (DESIGN-TEMPO.md SS3/SS8): the arrival
-              headline is this surface's one hero moment - a single line
-              shown once, first thing a new user sees. */}
-          <p
-            style={{
-              fontFamily: "var(--font-pixel)",
-              lineHeight: 1.15,
-              color: "var(--ds-gray-1000)",
-              marginTop: 24,
-              marginBottom: 0,
-            }}
-          >
-            Judgment, with receipts.
-          </p>
-          <p
-            className="text-copy-13"
-            style={{ color: "var(--ds-gray-900)", marginTop: 12, maxWidth: 380 }}
-          >
-            In the next 10 minutes: name your product, give Supaprod one data point, and see what it
-            thinks. Receipts included.
-          </p>
-          <div style={{ marginTop: 24 }}>
-            <Button
-              variant="accent"
-              onClick={() => {
-                setPhase("product");
-              }}
-            >
-              Start
-            </Button>
-          </div>
-        </div>
-      </Screen>
-    );
-  }
-
-  if (phase === "product") {
-    return (
-      <ProductStep
-        needsName={needsDetails}
-        busy={mSeedWorkspace.isPending}
-        onDone={(name, oneLiner) => {
-          setProductName(name);
-          setPendingOneLiner(oneLiner);
-          // Auto-seed workspace with default track ("solo") for new accounts
-          mSeedWorkspace.mutate("solo");
-        }}
-      />
-    );
-  }
-
-  if (phase === "data") {
-    const seedLive = !!seedEnabledQ.data?.enabled;
-    return (
-      <Screen>
-        <Frame eyebrow="OPTIONAL" heading="What should Supaprod read?">
-          {!showPaste ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {/* While the availability reads are in flight, say so - without
-                  this, every row rendered dimmed as "not set up", a loading
-                  state wearing a disabled state's clothes. */}
-              {connectionsQ.isLoading || suiteQ.isLoading ? (
-                <AiPulse label="Checking your sources" />
-              ) : null}
-              {/* A failed availability read is an ERROR, not an empty list of
-                  configured sources: name the cause, offer the one action. */}
-              {connectionsQ.isError || suiteQ.isError ? (
-                <div
-                  role="alert"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: "var(--geist-space-3x)",
-                    padding: "10px 12px",
-                    borderRadius: "var(--ds-radius-small)",
-                    background: "var(--ds-red-100)",
-                    border: "1px solid var(--ds-red-400)",
-                  }}
-                >
-                  <span
-                    className="text-label-12"
-                    style={{ color: "var(--ds-red-900)", lineHeight: 1.5 }}
-                  >
-                    Could not load your sources. Check your connection.
-                  </span>
-                  <Button
-                    variant="tertiary"
-                    size="sm"
-                    onClick={() => {
-                      if (connectionsQ.isError) void connectionsQ.refetch();
-                      if (suiteQ.isError) void suiteQ.refetch();
-                    }}
-                  >
-                    Try again
-                  </Button>
-                </div>
-              ) : null}
-
-              {/* DEMO DATA FIRST - Primary option for new users */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {seedLive ? (
-                  <ChoiceCard
-                    busy={mDemo.isPending}
-                    disabled={mDemo.isPending}
-                    onClick={() => {
-                      setConnectError(null);
-                      mDemo.mutate();
-                    }}
-                  >
-                    <span>
-                      <span className="text-heading-14" style={{ color: "var(--ds-gray-1000)" }}>
-                        Watch it on demo data first
-                      </span>
-                      <span
-                        className="text-label-12"
-                        style={{
-                          display: "block",
-                          color: "var(--ds-gray-600)",
-                          marginTop: 3,
-                        }}
-                      >
-                        Swap in your own sources any time.
-                      </span>
-                    </span>
-                    <span
-                      aria-hidden="true"
-                      className="text-label-12-mono"
-                      style={{ color: "var(--ds-gray-700)" }}
-                    >
-                      {mDemo.isPending ? "…" : "→"}
-                    </span>
-                  </ChoiceCard>
-                ) : null}
-
-                {/* PASTE NOTES SECOND - Alternative for users with existing docs */}
-                <ChoiceCard onClick={() => setShowPaste(true)}>
-                  <span>
-                    <span className="text-heading-14" style={{ color: "var(--ds-gray-1000)" }}>
-                      Paste your notes or a PRD
-                    </span>
-                    <span
-                      className="text-label-12"
-                      style={{
-                        display: "block",
-                        color: "var(--ds-gray-600)",
-                        marginTop: 3,
-                      }}
-                    >
-                      Supaprod will analyze it directly.
-                    </span>
-                  </span>
-                </ChoiceCard>
-              </div>
-
-              {mDemo.isPending ? (
-                <AiPulse label="Seeding demo data" style={{ marginTop: 4 }} />
-              ) : null}
-
-              {/* LIVE INTEGRATIONS - Secondary, organized below a divider */}
-              <div
-                style={{
-                  borderTop: "1px solid var(--ds-gray-alpha-400)",
-                  paddingTop: 12,
-                  marginTop: 8,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "var(--geist-space-2x)",
-                }}
-              >
-                <div
-                  className="text-label-12"
-                  style={{ color: "var(--ds-gray-600)", marginBottom: -4 }}
-                >
-                  Or connect a live source
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {providers.slice(0, 5).map((spec) => {
-                    const on = isConnected(spec);
-                    const configured =
-                      connectionsQ.data?.providerAvailability?.[spec.id]?.configured ?? false;
-                    const busy = connectingId === spec.id && mConnect.isPending;
-                    const estimate = timeEstimateFor(spec.id);
-                    return (
-                      <ChoiceCard
-                        key={spec.id}
-                        disabled={on || busy || !configured}
-                        busy={busy}
-                        dimmed={!configured && !on}
-                        title={
-                          !configured && !on
-                            ? `${spec.label} is not set up on this workspace yet`
-                            : undefined
-                        }
-                        ariaLabel={on ? `${spec.label} connected` : `Connect ${spec.label}`}
-                        onClick={() => {
-                          setConnectError(null);
-                          setConnectingId(spec.id);
-                          mConnect.mutate(spec);
-                        }}
-                      >
-                        <span>
-                          <span
-                            className="text-heading-14"
-                            style={{ color: "var(--ds-gray-1000)" }}
-                          >
-                            {spec.label}
-                          </span>
-                          <MonoLabel style={{ display: "block", marginTop: 3 }}>
-                            {estimate.toUpperCase()}
-                          </MonoLabel>
-                        </span>
-                        <span
-                          aria-hidden="true"
-                          className="text-label-12-mono"
-                          style={{ color: "var(--ds-gray-700)" }}
-                        >
-                          {on ? "✓" : busy ? "…" : "→"}
-                        </span>
-                      </ChoiceCard>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {mDemo.isPending ? (
-                <AiPulse label="Seeding demo data" style={{ marginTop: 4 }} />
-              ) : null}
-
-              {connectError ? (
-                <p
-                  role="alert"
-                  className="text-label-12"
-                  style={{ color: "var(--ds-red-900)", marginTop: 4 }}
-                >
-                  {connectError} · try a different source
-                </p>
-              ) : null}
-
-              <div style={{ marginTop: 10 }}>
-                <Button
-                  variant="tertiary"
-                  onClick={() => {
-                    void afterConnected();
-                  }}
-                >
-                  Or skip and connect later
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <textarea
-                autoFocus
-                aria-label="Paste your notes"
-                value={pasteNotes}
-                onChange={(e) => setPasteNotes(e.target.value)}
-                placeholder="Paste your product notes, PRD, or the bet you want to challenge..."
-                style={{
-                  width: "100%",
-                  minHeight: 180,
-                  background: "var(--ds-background-100)",
-                  border: "1px solid var(--ds-gray-400)",
-                  borderRadius: "var(--ds-radius-small)",
-                  padding: "10px 12px",
-                  color: "var(--ds-gray-1000)",
-                  fontFamily: "var(--font-sans)",
-                  boxSizing: "border-box",
-                  resize: "vertical",
-                }}
-              />
-              <div style={{ display: "flex", gap: "var(--geist-space-2x)", marginTop: 16 }}>
-                <Button
-                  variant="accent"
-                  disabled={!pasteNotes.trim() || mPaste.isPending}
-                  loading={mPaste.isPending}
-                  title={!pasteNotes.trim() ? "Paste some notes first" : undefined}
-                  onClick={() => {
-                    const raw = pasteNotes.trim();
-                    if (!raw || mPaste.isPending) return;
-                    const lead = beliefFromPaste(raw);
-                    setBelief(lead);
-                    seededBeliefRef.current = lead;
-                    setBeliefSource("pasted");
-                    setPasteNote(null);
-                    // Capture the whole document, then move on regardless of
-                    // how it went. `onSettled` rather than `onSuccess`: a failed
-                    // file must not strand the user on this screen, and the note
-                    // set by the handlers above tells them which happened.
-                    mPaste.mutate(raw, { onSettled: () => setPhase("critic") });
-                  }}
-                >
-                  {mPaste.isPending ? "Filing your notes…" : "Use these notes"}
-                </Button>
-                <Button
-                  variant="tertiary"
-                  disabled={mPaste.isPending}
-                  onClick={() => setShowPaste(false)}
-                >
-                  Back
-                </Button>
-              </div>
-            </div>
-          )}
-        </Frame>
-      </Screen>
-    );
-  }
 
   if (phase === "critic") {
     const running = mFinish.isPending;
