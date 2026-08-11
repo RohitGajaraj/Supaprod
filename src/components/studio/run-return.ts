@@ -163,6 +163,12 @@ export function outcomeAndAsk(input: {
   pendingCalls: number;
   changesetStatus: string | null;
   productionDeployed: boolean;
+  /** Whether `productionDeployed` is an answer at all. It is false both when
+   *  nothing is in production and when the deployment read failed or has not
+   *  come back, and only the caller can tell those apart. Optional, defaulting
+   *  to known, so a caller that has no deployment read of its own keeps the
+   *  behaviour it had. */
+  productionKnown?: boolean;
   duration: string | null;
 }): Headline {
   const d = input.duration;
@@ -198,6 +204,17 @@ export function outcomeAndAsk(input: {
   }
 
   if (input.changesetStatus === "merged") {
+    // "Merged, and not promoted yet" is a claim about production, and it was
+    // being made off a deployment read that may have failed or may not have come
+    // back. The run surface tells the same truth in its Production stage line;
+    // if this said it anyway the two halves of one screen would contradict each
+    // other, which is how the false half gets believed. Added 2026-08-11.
+    if (input.productionKnown === false) {
+      return {
+        ...span("Finished in", "Finished"),
+        ask: "Merged. We do not know yet whether it is live.",
+      };
+    }
     return input.productionDeployed
       ? { ...span("Shipped in", "Shipped"), ask: null }
       : { ...span("Finished in", "Finished"), ask: "Merged, and not promoted yet." };

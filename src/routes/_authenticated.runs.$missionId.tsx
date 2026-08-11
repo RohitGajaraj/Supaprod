@@ -485,7 +485,11 @@ function stageLines(
   runs: StudioRunDetail[],
   changeset: StudioChangesetSummary | null,
   ci: StudioCi,
-  productionDeployed: boolean,
+  /** What the deployment read actually came back with, rather than a bare
+   *  boolean. `deployed: false` is only a FACT once `answered` is true; before
+   *  that it is the absence of an answer, and the two are different things to
+   *  say to someone standing over a merge. */
+  production: { deployed: boolean; answered: boolean; failed: boolean },
 ): { name: string; state: React.ReactNode }[] {
   const live = runs.some((r) => ["queued", "running", "waiting_approval"].includes(r.status));
   const failed = runs.some((r) => r.status === "failed" || r.status === "halted");
@@ -513,12 +517,27 @@ function stageLines(
           ? "failed"
           : "not run yet";
 
+  /* A STAGE WITH NO DATUM SAYS SO. That is this function's own rule, stated in
+     its docstring, and Production was the one stage breaking it. listDeployments
+     was the only query on this surface with no error arm, and the `?? []` behind
+     `deployed` turned "we could not read it" into "there are no deployments", so
+     a failed or in-flight read came out here as the flat assertion "merged, not
+     promoted yet" under the heading "Where it stands". Someone deciding whether
+     their merged change is already live was told that it is not, and could go
+     and promote something that is already in production. Two branches now stand
+     between an unread answer and that claim, and they are kept apart from each
+     other because "we have not read it yet" resolves on its own and "we could
+     not read it" does not. Fixed 2026-08-11. */
   const shipped =
-    changeset?.status === "merged"
-      ? productionDeployed
-        ? "live"
-        : "merged, not promoted yet"
-      : "not yet";
+    changeset?.status !== "merged"
+      ? "not yet"
+      : production.failed
+        ? "merged; we could not read whether it is live"
+        : !production.answered
+          ? "merged; still reading whether it is live"
+          : production.deployed
+            ? "live"
+            : "merged, not promoted yet";
 
   return [
     { name: "The code", state: written },
@@ -690,6 +709,20 @@ function BuildRun() {
   const productionDeployed = (
     (deploymentsQ.data?.deployments ?? []) as Array<{ environment: string; status: string }>
   ).some((d) => d.environment === "production" && d.status === "success");
+  /* WHETHER THAT `false` IS A FACT. `productionDeployed` is false both when the
+     record says nothing is in production and when we never got the record, and
+     every surface reading it used to print the first meaning for both. Asking
+     whether an ANSWER IS ON HAND rather than asking a fetch state is the same
+     rule the runs list learned the hard way: `isPending` goes true again on any
+     read that starts with an empty cache entry, so a surface that has an answer
+     would keep disclaiming it. `failed` is split out from `answered` because a
+     read that will resolve on its own and a read that will not are two
+     different things to tell a person. */
+  const production = {
+    deployed: productionDeployed,
+    answered: !!deploymentsQ.data,
+    failed: deploymentsQ.isError,
+  };
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["studio-session", missionId] });
 
@@ -1073,6 +1106,7 @@ function BuildRun() {
     pendingCalls: pending.length,
     changesetStatus: changeset?.status ?? null,
     productionDeployed,
+    productionKnown: production.answered,
     duration,
   });
   const sub = mission ? (
@@ -1160,7 +1194,7 @@ function BuildRun() {
       {!isOrchestrator ? (
         <>
           <div className="sp-ctx-head">Where it stands</div>
-          {stageLines(runs, changeset, ci, productionDeployed).map((s) => (
+          {stageLines(runs, changeset, ci, production).map((s) => (
             <CtxRow key={s.name} name={s.name} sub={s.state} />
           ))}
         </>
