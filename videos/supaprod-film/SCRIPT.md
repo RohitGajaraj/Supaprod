@@ -12,14 +12,14 @@
 **Time:** 0.0 – 7.0s
 **Delivery:** Light, almost admiring. No dread yet.
 
-    These days, anyone can build. Devs got coding agents — beautiful features, shipped in days.
+    These days, anyone can build. Agents write the code — beautiful features, shipped in days.
 
 ## Line 2 — Worth building (Frame 2)
 
 **Time:** 7.0 – 15.0s
 **Delivery:** The turn. Slower on "worth". A beat before "and miss."
 
-    Product managers got chatbots. So the wrong things still ship — beautifully. Knowing what's worth building — that's the judgment gap.
+    What nobody tells you is what's worth building. Teams polish the prettiest idea — and miss. That's the judgment gap.
 
 ## Line 3 — You know the feeling (Frame 3)
 
@@ -47,7 +47,7 @@
 **Time:** 43.0 – 52.0s
 **Delivery:** A near-smile on "disagree with you". The twist lands the sentence.
 
-    It scores each bet. And it will disagree with you — the exciting idea loses to the boring one that pays.
+    It scores each bet. When the evidence says you're wrong — it disagrees. And the exciting idea loses to the boring one that pays.
 
 ## Line 7 — The forecast (Frame 7)
 
@@ -61,7 +61,7 @@
 **Time:** 60.0 – 73.0s
 **Delivery:** Confident tour pace. "Plan", "Build", "Ship" each get their own beat. "One platform" lands as the point.
 
-    From there, agents take it. In Plan, the spec writes itself. In Design, the prototype takes shape. In Build, the work happens right inside. And Ship isn't just launch day — the announcement, the changelog, the customer email. Done. One platform. The whole lifecycle.
+    Agents run every station. In Plan, the spec writes itself. In Design, the prototype takes shape. In Build, the code is written and tested — inside your boundaries. And Ship isn't just launch day — the announcement, the changelog, the customer email. Done. One platform. The whole product lifecycle.
 
 ## Line 9 — The loop closes (Frame 9)
 
@@ -89,11 +89,11 @@
 **Time:** 101.0 – 106.0s
 **Delivery:** Six words, all space.
 
-    You stop guessing. You start deciding.
+    You stop guessing. You start deciding. Build what matters.
 
 ## Line 13 — Close (Frame 13)
 
 **Time:** 106.0 – 114.0s
 **Delivery:** Settled, warm. The URL spoken like an address, not an ad.
 
-    Supaprod. Agents run the work. You make the calls — and every call makes the next one sharper.
+    Supaprod… Agents run the work. You make the calls. And every call makes the next one sharper.

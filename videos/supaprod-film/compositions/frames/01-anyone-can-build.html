@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -205,160 +205,160 @@
 .sk-lt-line{font:600 2.6cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
 </style>
 
-<div id="root" data-composition-id="01-anyone-can-build" data-width="1920" data-height="1080" data-duration="8.7" data-layout-allow-overflow>
+<div data-hf-id="hf-2jqj" id="root" data-composition-id="01-anyone-can-build" data-width="1920" data-height="1080" data-duration="8.7" data-layout-allow-overflow="">
 
   <!-- track 0 · full-bleed ground -->
-  <div id="f1-ground" class="clip f1-groundclip" data-start="0" data-duration="8.2" data-track-index="0"></div>
+  <div data-hf-id="hf-wfqs" id="f1-ground" class="clip f1-groundclip" data-start="0" data-duration="8.2" data-track-index="0"></div>
 
   <!-- track 1 · the shot -->
-  <div id="f1-shot" class="clip f1-shotclip" data-start="0" data-duration="8.2" data-track-index="1" data-layout-allow-overflow>
+  <div data-hf-id="hf-x61a" id="f1-shot" class="clip f1-shotclip" data-start="0" data-duration="8.2" data-track-index="1" data-layout-allow-overflow="">
 
     <!-- directional pan-blur filter (motion-blur-streak, path A) -->
-    <svg width="0" height="0" aria-hidden="true" style="position:absolute">
-      <defs>
-        <filter id="f1-streak" x="-25%" y="-25%" width="150%" height="150%">
-          <feGaussianBlur id="f1-streak-blur" in="SourceGraphic" stdDeviation="0 0"/>
+    <svg data-hf-id="hf-30au" width="0" height="0" aria-hidden="true" style="position:absolute">
+      <defs data-hf-id="hf-mh0t">
+        <filter data-hf-id="hf-cyi4" id="f1-streak" x="-25%" y="-25%" width="150%" height="150%">
+          <fegaussianblur data-hf-id="hf-iwip" id="f1-streak-blur" in="SourceGraphic" stdDeviation="0 0" />
         </filter>
       </defs>
     </svg>
 
-    <div class="f1-stage">
-      <div class="f1-world" id="f1-world">
-        <div class="f1-env"></div>
-        <div class="f1-plane">
+    <div data-hf-id="hf-khfa" class="f1-stage">
+      <div data-hf-id="hf-w18e" class="f1-world" id="f1-world">
+        <div data-hf-id="hf-xwex" class="f1-env"></div>
+        <div data-hf-id="hf-85m2" class="f1-plane">
 
           <!-- ═══ editor window ═══ -->
-          <div class="f1-win f1-editor" id="f1-editor">
-            <aside class="f1-rail">
-              <span class="sk-label">checkout</span>
-              <div class="f1-filerow">PaymentForm.tsx</div>
-              <div class="f1-filerow is-active">retry.ts</div>
-              <div class="f1-filerow">api/payments.ts</div>
-              <div class="f1-filerow">RetryBanner.tsx</div>
-              <div class="f1-filerow">retry.test.ts</div>
-              <div class="f1-railfoot">fix/checkout-dropoff<br>214 tests passing</div>
+          <div data-hf-id="hf-sgoi" class="f1-win f1-editor" id="f1-editor">
+            <aside data-hf-id="hf-xqpp" class="f1-rail">
+              <span data-hf-id="hf-raom" class="sk-label">checkout</span>
+              <div data-hf-id="hf-94gf" class="f1-filerow">PaymentForm.tsx</div>
+              <div data-hf-id="hf-xul8" class="f1-filerow is-active">retry.ts</div>
+              <div data-hf-id="hf-d1yf" class="f1-filerow">api/payments.ts</div>
+              <div data-hf-id="hf-a7zj" class="f1-filerow">RetryBanner.tsx</div>
+              <div data-hf-id="hf-burl" class="f1-filerow">retry.test.ts</div>
+              <div data-hf-id="hf-beks" class="f1-railfoot">fix/checkout-dropoff<br data-hf-id="hf-x5px">214 tests passing</div>
             </aside>
-            <div class="f1-tabs">
-              <div class="f1-tab">PaymentForm.tsx</div>
-              <div class="f1-tab is-active">retry.ts</div>
-              <div class="f1-tab">api/payments.ts</div>
-              <span class="sk-spacer"></span>
-              <div class="f1-tabs-meta">
-                <span class="sk-meta">ts · strict</span>
-                <span class="sk-chip sk-chip--accent"><span class="sk-dot-inline" id="f1-badge-dot"></span>agent · building</span>
+            <div data-hf-id="hf-jvso" class="f1-tabs">
+              <div data-hf-id="hf-5a8u" class="f1-tab">PaymentForm.tsx</div>
+              <div data-hf-id="hf-bn0r" class="f1-tab is-active">retry.ts</div>
+              <div data-hf-id="hf-2kxi" class="f1-tab">api/payments.ts</div>
+              <span data-hf-id="hf-5jd0" class="sk-spacer"></span>
+              <div data-hf-id="hf-5lm6" class="f1-tabs-meta">
+                <span data-hf-id="hf-lyxo" class="sk-meta">ts · strict</span>
+                <span data-hf-id="hf-l74b" class="sk-chip sk-chip--accent"><span data-hf-id="hf-jl6o" class="sk-dot-inline" id="f1-badge-dot"></span>agent · building</span>
               </div>
             </div>
-            <div class="f1-code" id="f1-code">
-              <div class="f1-codeline"><span class="f1-ln">1</span><code><span class="tk-k">import</span> { preserveFields, surfaceError } <span class="tk-k">from</span> <span class="tk-s">"@checkout/form"</span>;</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">2</span><code><span class="tk-k">import</span> { tokenize } <span class="tk-k">from</span> <span class="tk-s">"@payments/client"</span>;</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">3</span><code> </code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">4</span><code><span class="tk-c">// one-tap retry — keep state on a declined card</span></code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">5</span><code><span class="tk-k">export async function</span> <span class="tk-f">retryPayment</span>(form: <span class="tk-t">CheckoutForm</span>) {</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">6</span><code>  <span class="tk-k">const</span> attempt = <span class="tk-k">await</span> <span class="tk-f">tokenize</span>(form.card);</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">7</span><code> </code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">8</span><code>  <span class="tk-k">if</span> (attempt.status === <span class="tk-s">"declined"</span>) {</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">9</span><code>    <span class="tk-f">preserveFields</span>(form, { except: [<span class="tk-s">"cvc"</span>] });</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">10</span><code>    <span class="tk-f">surfaceError</span>(attempt.decline.reason);</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">11</span><code>    <span class="tk-k">return</span> retry.<span class="tk-f">schedule</span>(form, { after: <span class="tk-n">1200</span> });</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">12</span><code>  }</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">13</span><code> </code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">14</span><code>  <span class="tk-k">return</span> <span class="tk-f">confirm</span>(attempt);</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">15</span><code>}</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">16</span><code> </code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">17</span><code><span class="tk-k">export function</span> <span class="tk-f">onRetry</span>(form: <span class="tk-t">CheckoutForm</span>) {</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">18</span><code>  <span class="tk-f">track</span>(<span class="tk-s">"checkout.retry.tapped"</span>);</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">19</span><code>  <span class="tk-k">return</span> <span class="tk-f">retryPayment</span>(form);</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">20</span><code>}</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">21</span><code> </code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">22</span><code><span class="tk-c">// surface the decline inline, never clear the form</span></code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">23</span><code><span class="tk-k">const</span> retry = <span class="tk-f">createRetryQueue</span>({ max: <span class="tk-n">3</span> });</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">24</span><code><span class="tk-k">export const</span> view = &lt;<span class="tk-t">RetryBanner</span> onRetry={onRetry} /&gt;;</code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">25</span><code> </code><span class="f1-caret"></span></div>
-              <div class="f1-codeline"><span class="f1-ln">26</span><code><span class="tk-c">// agent — wiring one-tap retry into PaymentForm…</span></code><span class="f1-caret"></span></div>
+            <div data-hf-id="hf-du88" class="f1-code" id="f1-code">
+              <div data-hf-id="hf-n1kx" class="f1-codeline"><span data-hf-id="hf-fw7k" class="f1-ln">1</span><code data-hf-id="hf-2ccz"><span data-hf-id="hf-rn1z" class="tk-k">import</span> { preserveFields, surfaceError } <span data-hf-id="hf-977y" class="tk-k">from</span> <span data-hf-id="hf-unyr" class="tk-s">"@checkout/form"</span>;</code><span data-hf-id="hf-tyes" class="f1-caret"></span></div>
+              <div data-hf-id="hf-39hx" class="f1-codeline"><span data-hf-id="hf-epah" class="f1-ln">2</span><code data-hf-id="hf-uvwq"><span data-hf-id="hf-l3zr" class="tk-k">import</span> { tokenize } <span data-hf-id="hf-8lhu" class="tk-k">from</span> <span data-hf-id="hf-pa2n" class="tk-s">"@payments/client"</span>;</code><span data-hf-id="hf-ue18" class="f1-caret"></span></div>
+              <div data-hf-id="hf-4gf0" class="f1-codeline"><span data-hf-id="hf-f3li" class="f1-ln">3</span><code data-hf-id="hf-b1bg"> </code><span data-hf-id="hf-t745" class="f1-caret"></span></div>
+              <div data-hf-id="hf-423z" class="f1-codeline"><span data-hf-id="hf-dwof" class="f1-ln">4</span><code data-hf-id="hf-wmbo"><span data-hf-id="hf-5kvk" class="tk-c">// one-tap retry — keep state on a declined card</span></code><span data-hf-id="hf-tlf6" class="f1-caret"></span></div>
+              <div data-hf-id="hf-9b06" class="f1-codeline"><span data-hf-id="hf-eazg" class="f1-ln">5</span><code data-hf-id="hf-22pa"><span data-hf-id="hf-8v58" class="tk-k">export async function</span> <span data-hf-id="hf-gusz" class="tk-f">retryPayment</span>(form: <span data-hf-id="hf-cr9f" class="tk-t">CheckoutForm</span>) {</code><span data-hf-id="hf-vkyb" class="f1-caret"></span></div>
+              <div data-hf-id="hf-4uq1" class="f1-codeline"><span data-hf-id="hf-d42d" class="f1-ln">6</span><code data-hf-id="hf-ir2c">  <span data-hf-id="hf-5ezl" class="tk-k">const</span> attempt = <span data-hf-id="hf-2bvg" class="tk-k">await</span> <span data-hf-id="hf-1hse" class="tk-f">tokenize</span>(form.card);</code><span data-hf-id="hf-vz9c" class="f1-caret"></span></div>
+              <div data-hf-id="hf-a3m8" class="f1-codeline"><span data-hf-id="hf-dide" class="f1-ln">7</span><code data-hf-id="hf-vfel"> </code><span data-hf-id="hf-usc9" class="f1-caret"></span></div>
+              <div data-hf-id="hf-9pb7" class="f1-codeline"><span data-hf-id="hf-89h7" class="f1-ln">8</span><code data-hf-id="hf-spgs">  <span data-hf-id="hf-51kd" class="tk-k">if</span> (attempt.status === <span data-hf-id="hf-j734" class="tk-s">"declined"</span>) {</code><span data-hf-id="hf-v6na" class="f1-caret"></span></div>
+              <div data-hf-id="hf-0hcq" class="f1-codeline"><span data-hf-id="hf-8ns8" class="f1-ln">9</span><code data-hf-id="hf-qr35">    <span data-hf-id="hf-c8uq" class="tk-f">preserveFields</span>(form, { except: [<span data-hf-id="hf-261k" class="tk-s">"cvc"</span>] });</code><span data-hf-id="hf-qt9z" class="f1-caret"></span></div>
+              <div data-hf-id="hf-031p" class="f1-codeline"><span data-hf-id="hf-98yo" class="f1-ln">10</span><code data-hf-id="hf-npid">    <span data-hf-id="hf-aupw" class="tk-f">surfaceError</span>(attempt.decline.reason);</code><span data-hf-id="hf-r7l0" class="f1-caret"></span></div>
+              <div data-hf-id="hf-21dr" class="f1-codeline"><span data-hf-id="hf-8unn" class="f1-ln">11</span><code data-hf-id="hf-r0yo">    <span data-hf-id="hf-zbac" class="tk-k">return</span> retry.<span data-hf-id="hf-lyuu" class="tk-f">schedule</span>(form, { after: <span data-hf-id="hf-c4aw" class="tk-n">1200</span> });</code><span data-hf-id="hf-qjuc" class="f1-caret"></span></div>
+              <div data-hf-id="hf-2fos" class="f1-codeline"><span data-hf-id="hf-8gcm" class="f1-ln">12</span><code data-hf-id="hf-618j">  }</code><span data-hf-id="hf-q5jb" class="f1-caret"></span></div>
+              <div data-hf-id="hf-18rp" class="f1-codeline"><span data-hf-id="hf-821l" class="f1-ln">13</span><code data-hf-id="hf-vtpm"> </code><span data-hf-id="hf-pr8a" class="f1-caret"></span></div>
+              <div data-hf-id="hf-1n2q" class="f1-codeline"><span data-hf-id="hf-7nqk" class="f1-ln">14</span><code data-hf-id="hf-k0cd">  <span data-hf-id="hf-i6qk" class="tk-k">return</span> <span data-hf-id="hf-8osx" class="tk-f">confirm</span>(attempt);</code><span data-hf-id="hf-pcx9" class="f1-caret"></span></div>
+              <div data-hf-id="hf-3mlv" class="f1-codeline"><span data-hf-id="hf-79fj" class="f1-ln">15</span><code data-hf-id="hf-6k3n">}</code><span data-hf-id="hf-s52g" class="f1-caret"></span></div>
+              <div data-hf-id="hf-40ww" class="f1-codeline"><span data-hf-id="hf-6v4i" class="f1-ln">16</span><code data-hf-id="hf-xt8r"> </code><span data-hf-id="hf-rqrf" class="f1-caret"></span></div>
+              <div data-hf-id="hf-2tzt" class="f1-codeline"><span data-hf-id="hf-6gth" class="f1-ln">17</span><code data-hf-id="hf-4boy"><span data-hf-id="hf-9qe8" class="tk-k">export function</span> <span data-hf-id="hf-imkg" class="tk-f">onRetry</span>(form: <span data-hf-id="hf-icub" class="tk-t">CheckoutForm</span>) {</code><span data-hf-id="hf-rcge" class="f1-caret"></span></div>
+              <div data-hf-id="hf-38au" class="f1-codeline"><span data-hf-id="hf-62ig" class="f1-ln">18</span><code data-hf-id="hf-6898">  <span data-hf-id="hf-vl9i" class="tk-f">track</span>(<span data-hf-id="hf-0vf6" class="tk-s">"checkout.retry.tapped"</span>);</code><span data-hf-id="hf-qy5d" class="f1-caret"></span></div>
+              <div data-hf-id="hf-yuxj" class="f1-codeline"><span data-hf-id="hf-5o7f" class="f1-ln">19</span><code data-hf-id="hf-is2u">  <span data-hf-id="hf-gzth" class="tk-k">return</span> <span data-hf-id="hf-zioj" class="tk-f">retryPayment</span>(form);</code><span data-hf-id="hf-tqak" class="f1-caret"></span></div>
+              <div data-hf-id="hf-z98k" class="f1-codeline"><span data-hf-id="hf-woqj" class="f1-ln">20</span><code data-hf-id="hf-65sm">}</code><span data-hf-id="hf-tbzj" class="f1-caret"></span></div>
+              <div data-hf-id="hf-5xs4" class="f1-codeline"><span data-hf-id="hf-x31k" class="f1-ln">21</span><code data-hf-id="hf-y7js"> </code><span data-hf-id="hf-mnfz" class="f1-caret"></span></div>
+              <div data-hf-id="hf-5jh3" class="f1-codeline"><span data-hf-id="hf-ru5d" class="f1-ln">22</span><code data-hf-id="hf-x0mp"><span data-hf-id="hf-536p" class="tk-c">// surface the decline inline, never clear the form</span></code><span data-hf-id="hf-n1r0" class="f1-caret"></span></div>
+              <div data-hf-id="hf-5562" class="f1-codeline"><span data-hf-id="hf-wafi" class="f1-ln">23</span><code data-hf-id="hf-w9ih"><span data-hf-id="hf-hj5h" class="tk-k">const</span> retry = <span data-hf-id="hf-13xy" class="tk-f">createRetryQueue</span>({ max: <span data-hf-id="hf-103o" class="tk-n">3</span> });</code><span data-hf-id="hf-lutx" class="f1-caret"></span></div>
+              <div data-hf-id="hf-4qv1" class="f1-codeline"><span data-hf-id="hf-r1jb" class="f1-ln">24</span><code data-hf-id="hf-qu4p"><span data-hf-id="hf-3jff" class="tk-k">export const</span> view = &lt;<span data-hf-id="hf-g3gb" class="tk-t">RetryBanner</span> onRetry={onRetry} /&gt;;</code><span data-hf-id="hf-m94y" class="f1-caret"></span></div>
+              <div data-hf-id="hf-7j08" class="f1-codeline"><span data-hf-id="hf-rfuc" class="f1-ln">25</span><code data-hf-id="hf-xexq"> </code><span data-hf-id="hf-o8o3" class="f1-caret"></span></div>
+              <div data-hf-id="hf-74p7" class="f1-codeline"><span data-hf-id="hf-q8x9" class="f1-ln">26</span><code data-hf-id="hf-zegv"><span data-hf-id="hf-idq3" class="tk-c">// agent — wiring one-tap retry into PaymentForm…</span></code><span data-hf-id="hf-omz4" class="f1-caret"></span></div>
             </div>
-            <div class="f1-status"><span>agent session 00:41</span><span>problems 0</span><span class="sk-spacer"></span><span>utf-8 · lf · ts 5.4</span></div>
+            <div data-hf-id="hf-68lm" class="f1-status"><span data-hf-id="hf-11w3">agent session 00:41</span><span data-hf-id="hf-j4ld">problems 0</span><span data-hf-id="hf-hdvg" class="sk-spacer"></span><span data-hf-id="hf-bfeb">utf-8 · lf · ts 5.4</span></div>
           </div>
 
           <!-- ═══ deploy window ═══ -->
-          <div class="f1-win f1-deploy" id="f1-deploy">
-            <header class="f1-dep-hd">
-              <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span>deploys</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">one-tap-retry</span></div>
-              <span class="sk-spacer"></span>
-              <div class="f1-flipzone">
-                <span class="sk-chip sk-chip--accent" id="f1-dep-pend"><span class="sk-run">▸</span>deploying</span>
-                <span class="sk-chip sk-chip--pass f1-flip-live" id="f1-dep-live"><span class="sk-livedot"></span>live</span>
+          <div data-hf-id="hf-1kqu" class="f1-win f1-deploy" id="f1-deploy">
+            <header data-hf-id="hf-kito" class="f1-dep-hd">
+              <div data-hf-id="hf-5wuw" class="sk-crumb"><span data-hf-id="hf-nafj">harbor</span><span data-hf-id="hf-l3jz" class="sk-crumb-sep">/</span><span data-hf-id="hf-wpi3">deploys</span><span data-hf-id="hf-2fr3" class="sk-crumb-sep">/</span><span data-hf-id="hf-fdzb" class="sk-crumb-here">one-tap-retry</span></div>
+              <span data-hf-id="hf-g6yd" class="sk-spacer"></span>
+              <div data-hf-id="hf-mgjr" class="f1-flipzone">
+                <span data-hf-id="hf-n115" class="sk-chip sk-chip--accent" id="f1-dep-pend"><span data-hf-id="hf-3fb9" class="sk-run">▸</span>deploying</span>
+                <span data-hf-id="hf-x1k8" class="sk-chip sk-chip--pass f1-flip-live" id="f1-dep-live"><span data-hf-id="hf-yc43" class="sk-livedot"></span>live</span>
               </div>
             </header>
-            <div class="f1-dep-body">
+            <div data-hf-id="hf-awzo" class="f1-dep-body">
 
               <!-- pipeline -->
-              <section class="sk-panel">
-                <header class="sk-panel-hd">
-                  <h2 class="sk-panel-title">deploy · one-tap-retry</h2>
-                  <span class="sk-spacer"></span>
-                  <span class="sk-chip">fix/checkout-dropoff</span>
+              <section data-hf-id="hf-jd4v" class="sk-panel">
+                <header data-hf-id="hf-krk0" class="sk-panel-hd">
+                  <h2 data-hf-id="hf-zbl8" class="sk-panel-title">deploy · one-tap-retry</h2>
+                  <span data-hf-id="hf-gl9e" class="sk-spacer"></span>
+                  <span data-hf-id="hf-s6qt" class="sk-chip">fix/checkout-dropoff</span>
                 </header>
-                <div class="sk-panel-body f1-pip">
-                  <div class="sk-logline"><span class="sk-log-t">14:02:11</span><span class="f1-glyphcell"><span class="f1-pend">○</span><span class="f1-done">✓</span></span><span>install · 12s</span></div>
-                  <div class="sk-logline"><span class="sk-log-t">14:02:23</span><span class="f1-glyphcell"><span class="f1-pend">○</span><span class="f1-done">✓</span></span><span>typecheck · 8s</span></div>
-                  <div class="sk-logline"><span class="sk-log-t">14:02:31</span><span class="f1-glyphcell"><span class="f1-pend">○</span><span class="f1-done">✓</span></span><span>tests · 214 passing</span></div>
-                  <div class="sk-logline"><span class="sk-log-t">14:03:12</span><span class="f1-glyphcell"><span class="f1-pend">○</span><span class="f1-done">✓</span></span><span>build · 19s</span></div>
-                  <div class="f1-promote">
-                    <div class="f1-promote-row">
-                      <span class="sk-log-t" style="font:400 0.62cqw/1.5 var(--sk-mono);">14:03:19</span>
-                      <span class="f1-glyphcell"><span class="f1-pend" id="f1-pr-run" style="color:var(--sk-accent);">▸</span><span class="f1-done" id="f1-pr-done">✓</span></span>
-                      <span>promote · preview → production</span>
-                      <span class="f1-flipzone" style="min-width:6.4cqw;justify-content:flex-end;">
-                        <span class="sk-chip" id="f1-row-pend">promoting…</span>
-                        <span class="sk-chip sk-chip--pass f1-flip-live" id="f1-row-live"><span class="sk-livedot"></span>live · production</span>
+                <div data-hf-id="hf-lwbz" class="sk-panel-body f1-pip">
+                  <div data-hf-id="hf-xxbx" class="sk-logline"><span data-hf-id="hf-hi14" class="sk-log-t">14:02:11</span><span data-hf-id="hf-d49f" class="f1-glyphcell"><span data-hf-id="hf-v8jt" class="f1-pend">○</span><span data-hf-id="hf-4fms" class="f1-done">✓</span></span><span data-hf-id="hf-mjvx">install · 12s</span></div>
+                  <div data-hf-id="hf-8ob5" class="sk-logline"><span data-hf-id="hf-sh15" class="sk-log-t">14:02:23</span><span data-hf-id="hf-1zxv" class="f1-glyphcell"><span data-hf-id="hf-75dp" class="f1-pend">○</span><span data-hf-id="hf-zmqk" class="f1-done">✓</span></span><span data-hf-id="hf-q1l7">typecheck · 8s</span></div>
+                  <div data-hf-id="hf-9v88" class="sk-logline"><span data-hf-id="hf-fypi" class="sk-log-t">14:02:31</span><span data-hf-id="hf-1lmu" class="f1-glyphcell"><span data-hf-id="hf-8cas" class="f1-pend">○</span><span data-hf-id="hf-yfth" class="f1-done">✓</span></span><span data-hf-id="hf-zw0v">tests · 214 passing</span></div>
+                  <div data-hf-id="hf-9gx7" class="sk-logline"><span data-hf-id="hf-xknc" class="sk-log-t">14:03:12</span><span data-hf-id="hf-17bt" class="f1-glyphcell"><span data-hf-id="hf-7xzr" class="f1-pend">○</span><span data-hf-id="hf-yu4i" class="f1-done">✓</span></span><span data-hf-id="hf-t2rl">build · 19s</span></div>
+                  <div data-hf-id="hf-j6s8" class="f1-promote">
+                    <div data-hf-id="hf-pxqf" class="f1-promote-row">
+                      <span data-hf-id="hf-x2rv" class="sk-log-t" style="font:400 0.62cqw/1.5 var(--sk-mono);">14:03:19</span>
+                      <span data-hf-id="hf-0t0s" class="f1-glyphcell"><span data-hf-id="hf-7hdl" class="f1-pend" id="f1-pr-run" style="color:var(--sk-accent);">▸</span><span data-hf-id="hf-083n" class="f1-done" id="f1-pr-done">✓</span></span>
+                      <span data-hf-id="hf-2kv7">promote · preview → production</span>
+                      <span data-hf-id="hf-wldr" class="f1-flipzone" style="min-width:6.4cqw;justify-content:flex-end;">
+                        <span data-hf-id="hf-p1el" class="sk-chip" id="f1-row-pend">promoting…</span>
+                        <span data-hf-id="hf-qluf" class="sk-chip sk-chip--pass f1-flip-live" id="f1-row-live"><span data-hf-id="hf-qtkj" class="sk-livedot"></span>live · production</span>
                       </span>
                     </div>
-                    <div class="f1-bar"><i class="f1-fill" id="f1-fill"></i></div>
+                    <div data-hf-id="hf-hyjf" class="f1-bar"><i data-hf-id="hf-ytho" class="f1-fill" id="f1-fill"></i></div>
                   </div>
                 </div>
               </section>
 
               <!-- artifacts — the era's output made specific -->
-              <section class="sk-panel f1-arts">
-                <header class="sk-panel-hd">
-                  <h2 class="sk-panel-title">artifacts · this week</h2>
-                  <span class="sk-badge">3 new</span>
-                  <span class="sk-spacer"></span>
-                  <span class="sk-label" style="font-size:0.55cqw;display:flex;align-items:center;gap:0.35cqw;"><span class="sk-livedot"></span>live</span>
+              <section data-hf-id="hf-rlvh" class="sk-panel f1-arts">
+                <header data-hf-id="hf-gxh4" class="sk-panel-hd">
+                  <h2 data-hf-id="hf-hzh1" class="sk-panel-title">artifacts · this week</h2>
+                  <span data-hf-id="hf-57rw" class="sk-badge">3 new</span>
+                  <span data-hf-id="hf-iksj" class="sk-spacer"></span>
+                  <span data-hf-id="hf-j39z" class="sk-label" style="font-size:0.55cqw;display:flex;align-items:center;gap:0.35cqw;"><span data-hf-id="hf-qf9i" class="sk-livedot"></span>live</span>
                 </header>
-                <div class="f1-cards">
-                  <article class="f1-card f1-art-card">
-                    <div class="f1-card-kind"><span class="sk-label">ui</span><span class="sk-spacer"></span><span class="sk-meta">2m ago</span></div>
-                    <h3 class="f1-card-title">checkout redesign</h3>
-                    <div class="f1-thumb"><i style="width:72%"></i><i style="width:46%"></i><i class="is-a" style="width:58%"></i></div>
-                    <p class="f1-author">maya r. · 4 screens</p>
+                <div data-hf-id="hf-lcip" class="f1-cards">
+                  <article data-hf-id="hf-cvl7" class="f1-card f1-art-card">
+                    <div data-hf-id="hf-qcv5" class="f1-card-kind"><span data-hf-id="hf-4c9g" class="sk-label">ui</span><span data-hf-id="hf-iz3k" class="sk-spacer"></span><span data-hf-id="hf-7ap3" class="sk-meta">2m ago</span></div>
+                    <h3 data-hf-id="hf-re62" class="f1-card-title">checkout redesign</h3>
+                    <div data-hf-id="hf-hqj8" class="f1-thumb"><i data-hf-id="hf-vowx" style="width:72%"></i><i data-hf-id="hf-rtyi" style="width:46%"></i><i data-hf-id="hf-a2e4" class="is-a" style="width:58%"></i></div>
+                    <p data-hf-id="hf-83as" class="f1-author">maya r. · 4 screens</p>
                   </article>
-                  <article class="f1-card f1-art-card">
-                    <div class="f1-card-kind"><span class="sk-label">api</span><span class="sk-spacer"></span><span class="sk-meta">today</span></div>
-                    <h3 class="f1-card-title">/v2/payments</h3>
-                    <div class="f1-endpoint"><b>POST</b>/v2/payments<span class="sk-badge">201</span></div>
-                    <p class="f1-author">jonah t. · 12 routes</p>
+                  <article data-hf-id="hf-mggb" class="f1-card f1-art-card">
+                    <div data-hf-id="hf-0kad" class="f1-card-kind"><span data-hf-id="hf-t1t2" class="sk-label">api</span><span data-hf-id="hf-hs6h" class="sk-spacer"></span><span data-hf-id="hf-vigo" class="sk-meta">today</span></div>
+                    <h3 data-hf-id="hf-tvha" class="f1-card-title">/v2/payments</h3>
+                    <div data-hf-id="hf-xnwm" class="f1-endpoint"><b data-hf-id="hf-omcn">POST</b>/v2/payments<span data-hf-id="hf-qemm" class="sk-badge">201</span></div>
+                    <p data-hf-id="hf-s2su" class="f1-author">jonah t. · 12 routes</p>
                   </article>
-                  <article class="f1-card f1-art-card">
-                    <div class="f1-card-kind"><span class="sk-label">feature</span><span class="sk-spacer"></span><span class="sk-meta">just now</span></div>
-                    <h3 class="f1-card-title">one-tap retry</h3>
-                    <div class="f1-flagrow"><span class="f1-toggle"></span>flag · on</div>
-                    <p class="f1-author">agent · behind flag</p>
+                  <article data-hf-id="hf-m25a" class="f1-card f1-art-card">
+                    <div data-hf-id="hf-1r7g" class="f1-card-kind"><span data-hf-id="hf-zg5w" class="sk-label">feature</span><span data-hf-id="hf-i6hi" class="sk-spacer"></span><span data-hf-id="hf-jxsl" class="sk-meta">just now</span></div>
+                    <h3 data-hf-id="hf-yu9r" class="f1-card-title">one-tap retry</h3>
+                    <div data-hf-id="hf-m12q" class="f1-flagrow"><span data-hf-id="hf-2hj7" class="f1-toggle"></span>flag · on</div>
+                    <p data-hf-id="hf-nl4y" class="f1-author">agent · behind flag</p>
                   </article>
                 </div>
               </section>
 
               <!-- recent ships — the era keeps shipping -->
-              <section class="sk-panel f1-recent">
-                <header class="sk-panel-hd">
-                  <h2 class="sk-panel-title">shipped this week</h2>
-                  <span class="sk-badge">6</span>
+              <section data-hf-id="hf-zaxa" class="sk-panel f1-recent">
+                <header data-hf-id="hf-fqk1" class="sk-panel-hd">
+                  <h2 data-hf-id="hf-wk7o" class="sk-panel-title">shipped this week</h2>
+                  <span data-hf-id="hf-rl7p" class="sk-badge">6</span>
                 </header>
-                <div class="sk-panel-body">
-                  <div class="f1-shiprow"><span class="sk-livedot"></span><b>checkout copy pass</b><span class="sk-spacer"></span><span class="sk-meta">maya r. · 2h ago</span></div>
-                  <div class="f1-shiprow"><span class="sk-livedot"></span><b>invoice email deduper</b><span class="sk-spacer"></span><span class="sk-meta">priya s. · yesterday</span></div>
-                  <div class="f1-shiprow"><span class="sk-livedot"></span><b>promo field mobile fix</b><span class="sk-spacer"></span><span class="sk-meta">jonah t. · yesterday</span></div>
-                  <div class="f1-shiprow"><span class="sk-livedot"></span><b>onboarding tooltips</b><span class="sk-spacer"></span><span class="sk-meta">agent · 2d ago</span></div>
+                <div data-hf-id="hf-fd9c" class="sk-panel-body">
+                  <div data-hf-id="hf-o8ta" class="f1-shiprow"><span data-hf-id="hf-q0yh" class="sk-livedot"></span><b data-hf-id="hf-vvh3">checkout copy pass</b><span data-hf-id="hf-dt47" class="sk-spacer"></span><span data-hf-id="hf-pkn3" class="sk-meta">maya r. · 2h ago</span></div>
+                  <div data-hf-id="hf-2lc2" class="f1-shiprow"><span data-hf-id="hf-pmng" class="sk-livedot"></span><b data-hf-id="hf-awhz">invoice email deduper</b><span data-hf-id="hf-e7f8" class="sk-spacer"></span><span data-hf-id="hf-7o6m" class="sk-meta">priya s. · yesterday</span></div>
+                  <div data-hf-id="hf-2zn3" class="f1-shiprow"><span data-hf-id="hf-p8cf" class="sk-livedot"></span><b data-hf-id="hf-527h">promo field mobile fix</b><span data-hf-id="hf-8cdg" class="sk-spacer"></span><span data-hf-id="hf-cwye" class="sk-meta">jonah t. · yesterday</span></div>
+                  <div data-hf-id="hf-3dy4" class="f1-shiprow"><span data-hf-id="hf-ou1e" class="sk-livedot"></span><b data-hf-id="hf-5y40">onboarding tooltips</b><span data-hf-id="hf-7y2f" class="sk-spacer"></span><span data-hf-id="hf-wq54" class="sk-meta">agent · 2d ago</span></div>
                 </div>
               </section>
 
@@ -370,9 +370,9 @@
     </div>
 
     <!-- film overlay — lower-third -->
-    <div class="sk-lowerthird">
-      <span class="sk-lt-kicker" id="f1-lt-k">The era</span>
-      <span class="sk-lt-line" id="f1-lt-l">anyone can build now.</span>
+    <div data-hf-id="hf-0lxp" class="sk-lowerthird">
+      <span data-hf-id="hf-55rd" class="sk-lt-kicker" id="f1-lt-k">The era</span>
+      <span data-hf-id="hf-wioi" class="sk-lt-line" id="f1-lt-l">anyone can build now.</span>
     </div>
 
   </div>

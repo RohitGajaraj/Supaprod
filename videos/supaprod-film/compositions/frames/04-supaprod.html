@@ -1,7 +1,7 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>F4 — Supaprod (the home out of focus → rack focus in → the product introduces itself)</title>
 </head>
 <body>
@@ -343,146 +343,146 @@
 #sp4-cursor svg{display:block;width:100%;height:100%;}
 </style>
 
-<div id="root" data-composition-id="04-supaprod" data-width="1920" data-height="1080" data-duration="11.0">
+<div data-hf-id="hf-qv7q" id="root" data-composition-id="04-supaprod" data-width="1920" data-height="1080" data-duration="11.0">
 
   <!-- full-bleed ground on its own clip layer (track 0) -->
-  <div id="sp4-ground" class="clip" data-start="0" data-duration="11.0" data-track-index="0"></div>
+  <div data-hf-id="hf-9f41" id="sp4-ground" class="clip" data-start="0" data-duration="11.0" data-track-index="0"></div>
 
   <!-- the world (track 1) — the product surface under one camera, plus screen-space
        film titles. The camera scales past the frame edge by design, so opt out of
        the layout-box union at construction. -->
-  <div id="sp4-world" class="clip" data-start="0" data-duration="11.0" data-track-index="1" data-layout-allow-overflow>
-    <div class="sk-frame">
+  <div data-hf-id="hf-moh4" id="sp4-world" class="clip" data-start="0" data-duration="11.0" data-track-index="1" data-layout-allow-overflow="">
+    <div data-hf-id="hf-z7h2" class="sk-frame">
 
-      <div id="sp4-cam">
+      <div data-hf-id="hf-33yq" id="sp4-cam">
 
         <!-- ══ the app's home · Today, workspace harbor — on screen from frame 0 ══ -->
-        <div id="sp4-app">
-          <div class="sk-stage">
-            <div class="sk-screen" style="--sk-accent:var(--sk-ember); --sk-w:96cqw; --sk-h:94cqh; --sk-rx:1.2deg; --sk-ry:-1.5deg">
-              <div class="sk-shell">
+        <div data-hf-id="hf-mav2" id="sp4-app">
+          <div data-hf-id="hf-at0b" class="sk-stage">
+            <div data-hf-id="hf-3hvv" class="sk-screen" style="--sk-accent:var(--sk-ember); --sk-w:96cqw; --sk-h:94cqh; --sk-rx:1.2deg; --sk-ry:-1.5deg">
+              <div data-hf-id="hf-3cvj" class="sk-shell">
 
                 <!-- top bar · bare mark + Supaprod · breadcrumb · notification strip · Ask ⌘K · avatar -->
-                <header class="sk-topbar">
-                  <div class="sk-topleft">
-                    <span class="sk-brand">
-                      <span class="sk-brand-mark"><svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block;overflow:visible"><path d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="5.5" fill="none" stroke-linecap="round"/><circle cx="50" cy="50" r="8.5" fill="#FF6B2C"/></svg></span>
-                      <span class="sk-brand-name">Supaprod</span>
+                <header data-hf-id="hf-jnan" class="sk-topbar">
+                  <div data-hf-id="hf-3qgr" class="sk-topleft">
+                    <span data-hf-id="hf-alcn" class="sk-brand">
+                      <span data-hf-id="hf-n8v7" class="sk-brand-mark"><svg data-hf-id="hf-96aw" viewBox="0 0 100 100" style="width:100%;height:100%;display:block;overflow:visible"><path data-hf-id="hf-vh80" d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="5.5" fill="none" stroke-linecap="round" /><circle data-hf-id="hf-mwp7" cx="50" cy="50" r="8.5" fill="#FF6B2C" /></svg></span>
+                      <span data-hf-id="hf-0vjf" class="sk-brand-name">Supaprod</span>
                     </span>
-                    <span class="sk-topdiv"></span>
-                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">checkout</span><span class="sk-crumb-caret">⌄</span></div>
+                    <span data-hf-id="hf-8i76" class="sk-topdiv"></span>
+                    <div data-hf-id="hf-5wuw" class="sk-crumb"><span data-hf-id="hf-nafj">harbor</span><span data-hf-id="hf-l3jz" class="sk-crumb-sep">/</span><span data-hf-id="hf-q4q8" class="sk-crumb-here">checkout</span><span data-hf-id="hf-hg3t" class="sk-crumb-caret">⌄</span></div>
                   </div>
-                  <div class="sk-notify">
-                    <span class="sk-notify-gl">
-                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><circle cx="7.6" cy="7.6" r="4.3"/><path d="M10.9 10.9L14.3 14.3"/></svg>
-                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-faint)"><path d="M3 5.2h12M3 9h8M3 12.8h10"/></svg>
-                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><path d="M3 12.4l4-4 3 3 5-5.6"/><path d="M15 5.8h-3.3M15 5.8v3.3"/></svg>
+                  <div data-hf-id="hf-118o" class="sk-notify">
+                    <span data-hf-id="hf-9xm5" class="sk-notify-gl">
+                      <svg data-hf-id="hf-ry41" viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><circle data-hf-id="hf-undr" cx="7.6" cy="7.6" r="4.3" /><path data-hf-id="hf-k55t" d="M10.9 10.9L14.3 14.3" /></svg>
+                      <svg data-hf-id="hf-h4j0" viewBox="0 0 18 18" style="stroke:var(--sk-faint)"><path data-hf-id="hf-9m1f" d="M3 5.2h12M3 9h8M3 12.8h10" /></svg>
+                      <svg data-hf-id="hf-l1t1" viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><path data-hf-id="hf-88dt" d="M3 12.4l4-4 3 3 5-5.6" /><path data-hf-id="hf-uz5d" d="M15 5.8h-3.3M15 5.8v3.3" /></svg>
                     </span>
-                    <span class="sk-notify-lead">3 calls are ready for you</span>
-                    <span class="sk-notify-sub">checkout fix · agents finished overnight</span>
-                    <span class="sk-notify-time">12m ago</span>
+                    <span data-hf-id="hf-fxrr" class="sk-notify-lead">3 calls are ready for you</span>
+                    <span data-hf-id="hf-ol08" class="sk-notify-sub">checkout fix · agents finished overnight</span>
+                    <span data-hf-id="hf-gy0q" class="sk-notify-time">12m ago</span>
                   </div>
-                  <div class="sk-topright">
-                    <div class="sk-ask"><svg viewBox="0 0 18 18"><path d="M15.2 10.4a2.4 2.4 0 0 1-2.4 2.4H6.4L3.2 15.4V5a2.4 2.4 0 0 1 2.4-2.4h7.2A2.4 2.4 0 0 1 15.2 5Z"/></svg>Ask<span class="sk-kbd">⌘K</span></div>
-                    <div class="sk-avatar">MR</div>
+                  <div data-hf-id="hf-si4m" class="sk-topright">
+                    <div data-hf-id="hf-mean" class="sk-ask"><svg data-hf-id="hf-r8z7" viewBox="0 0 18 18"><path data-hf-id="hf-hl50" d="M15.2 10.4a2.4 2.4 0 0 1-2.4 2.4H6.4L3.2 15.4V5a2.4 2.4 0 0 1 2.4-2.4h7.2A2.4 2.4 0 0 1 15.2 5Z" /></svg>Ask<span data-hf-id="hf-kff0" class="sk-kbd">⌘K</span></div>
+                    <div data-hf-id="hf-4z8v" class="sk-avatar">MR</div>
                   </div>
                 </header>
 
                 <!-- the seven-station strip · full width; Today is not a station, so nothing is "here" -->
-                <div class="sk-spine">
-                  <div class="sk-stn is-waiting"><i class="sk-stn-dot"></i><span class="sk-stn-n">01</span><span class="sk-stn-name">Discover</span><span class="sk-stn-sub">24 signals waiting on you</span></div>
-                  <div class="sk-stn has-work"><span class="sk-stn-n">02</span><span class="sk-stn-name">Decide</span><span class="sk-stn-sub">3 calls</span></div>
-                  <div class="sk-stn"><span class="sk-stn-n">03</span><span class="sk-stn-name">Plan</span><span class="sk-stn-sub">7 runs</span></div>
-                  <div class="sk-stn"><span class="sk-stn-n">04</span><span class="sk-stn-name">Design</span><span class="sk-stn-sub"></span></div>
-                  <div class="sk-stn is-waiting"><i class="sk-stn-dot"></i><span class="sk-stn-n">05</span><span class="sk-stn-name">Build</span><span class="sk-stn-sub">2 runs waiting on you</span></div>
-                  <div class="sk-stn has-work"><span class="sk-stn-n">06</span><span class="sk-stn-name">Ship</span><span class="sk-stn-sub">v2.4 live</span></div>
-                  <div class="sk-stn has-work"><span class="sk-stn-n">07</span><span class="sk-stn-name">Learn</span><span class="sk-stn-sub">day 6 of 30</span></div>
+                <div data-hf-id="hf-9c28" class="sk-spine">
+                  <div data-hf-id="hf-3vr2" class="sk-stn is-waiting"><i data-hf-id="hf-hq1e" class="sk-stn-dot"></i><span data-hf-id="hf-oyi7" class="sk-stn-n">01</span><span data-hf-id="hf-hrh4" class="sk-stn-name">Discover</span><span data-hf-id="hf-e0oe" class="sk-stn-sub">24 signals waiting on you</span></div>
+                  <div data-hf-id="hf-i81a" class="sk-stn has-work"><span data-hf-id="hf-ok76" class="sk-stn-n">02</span><span data-hf-id="hf-jl5f" class="sk-stn-name">Decide</span><span data-hf-id="hf-jg68" class="sk-stn-sub">3 calls</span></div>
+                  <div data-hf-id="hf-04pc" class="sk-stn"><span data-hf-id="hf-o5w5" class="sk-stn-n">03</span><span data-hf-id="hf-ce6c" class="sk-stn-name">Plan</span><span data-hf-id="hf-jzft" class="sk-stn-sub">7 runs</span></div>
+                  <div data-hf-id="hf-e4ko" class="sk-stn"><span data-hf-id="hf-qy1c" class="sk-stn-n">04</span><span data-hf-id="hf-mont" class="sk-stn-name">Design</span><span data-hf-id="hf-v5so" class="sk-stn-sub"></span></div>
+                  <div data-hf-id="hf-56jm" class="sk-stn is-waiting"><i data-hf-id="hf-zbkm" class="sk-stn-dot"></i><span data-hf-id="hf-qjqb" class="sk-stn-n">05</span><span data-hf-id="hf-076p" class="sk-stn-name">Build</span><span data-hf-id="hf-qhsr" class="sk-stn-sub">2 runs waiting on you</span></div>
+                  <div data-hf-id="hf-a2wi" class="sk-stn has-work"><span data-hf-id="hf-q5fa" class="sk-stn-n">06</span><span data-hf-id="hf-z3y9" class="sk-stn-name">Ship</span><span data-hf-id="hf-4ydg" class="sk-stn-sub">v2.4 live</span></div>
+                  <div data-hf-id="hf-ah7j" class="sk-stn has-work"><span data-hf-id="hf-pr49" class="sk-stn-n">07</span><span data-hf-id="hf-ld7r" class="sk-stn-name">Learn</span><span data-hf-id="hf-mtkw" class="sk-stn-sub">day 6 of 30</span></div>
                 </div>
 
                 <!-- narrow icon rail · Today active · a separate axis from the stations -->
-                <aside class="sk-rail">
-                  <div class="sk-railtop">
-                    <span class="sk-glyph is-active"><svg viewBox="0 0 20 20"><path d="M3 6h14M3 10h9M3 14h11"/></svg></span>
-                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M2 10h3.3l2.2-5.2 3.3 10.4 2.2-5.2H18"/></svg></span>
-                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><circle cx="5.2" cy="4.8" r="1.9"/><circle cx="14.8" cy="10" r="1.9"/><circle cx="5.2" cy="15.2" r="1.9"/><path d="M5.2 6.7v6.6M7.1 4.8h3.7a2 2 0 0 1 2 2v1.3M7.1 15.2h3.7a2 2 0 0 0 2-2v-1.3"/></svg></span>
-                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="6.6" y="6.6" width="6.8" height="6.8" rx="1.6"/><path d="M10 2.4v4.2M10 13.4v4.2M2.4 10h4.2M13.4 10h4.2"/></svg></span>
-                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M3 6.2h4.2M11.6 6.2H17M3 13.8h7.4M14.8 13.8H17"/><circle cx="9.4" cy="6.2" r="1.9"/><circle cx="12.9" cy="13.8" r="1.9"/></svg></span>
+                <aside data-hf-id="hf-rrma" class="sk-rail">
+                  <div data-hf-id="hf-jm4k" class="sk-railtop">
+                    <span data-hf-id="hf-vxrt" class="sk-glyph is-active"><svg data-hf-id="hf-x2eh" viewBox="0 0 20 20"><path data-hf-id="hf-3cp8" d="M3 6h14M3 10h9M3 14h11" /></svg></span>
+                    <span data-hf-id="hf-ulnu" class="sk-glyph"><svg data-hf-id="hf-7srh" viewBox="0 0 20 20"><path data-hf-id="hf-bwv2" d="M2 10h3.3l2.2-5.2 3.3 10.4 2.2-5.2H18" /></svg></span>
+                    <span data-hf-id="hf-gyy6" class="sk-glyph"><svg data-hf-id="hf-8zok" viewBox="0 0 20 20"><circle data-hf-id="hf-uh4r" cx="5.2" cy="4.8" r="1.9" /><circle data-hf-id="hf-7vra" cx="14.8" cy="10" r="1.9" /><circle data-hf-id="hf-v7gb" cx="5.2" cy="15.2" r="1.9" /><path data-hf-id="hf-7ygy" d="M5.2 6.7v6.6M7.1 4.8h3.7a2 2 0 0 1 2 2v1.3M7.1 15.2h3.7a2 2 0 0 0 2-2v-1.3" /></svg></span>
+                    <span data-hf-id="hf-hd97" class="sk-glyph"><svg data-hf-id="hf-8ldj" viewBox="0 0 20 20"><rect data-hf-id="hf-k1a2" x="6.6" y="6.6" width="6.8" height="6.8" rx="1.6" /><path data-hf-id="hf-u8w8" d="M10 2.4v4.2M10 13.4v4.2M2.4 10h4.2M13.4 10h4.2" /></svg></span>
+                    <span data-hf-id="hf-hrk8" class="sk-glyph"><svg data-hf-id="hf-9sam" viewBox="0 0 20 20"><path data-hf-id="hf-lw1s" d="M3 6.2h4.2M11.6 6.2H17M3 13.8h7.4M14.8 13.8H17" /><circle data-hf-id="hf-n4lt" cx="9.4" cy="6.2" r="1.9" /><circle data-hf-id="hf-j9f4" cx="12.9" cy="13.8" r="1.9" /></svg></span>
                   </div>
-                  <div class="sk-railfoot">
-                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="3" y="4.4" width="14" height="11.2" rx="1.6"/><path d="M7.7 4.4v11.2M12.4 4.4v11.2"/></svg></span>
-                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M15.4 11.9A6.1 6.1 0 0 1 8.1 4.6 6.3 6.3 0 1 0 15.4 11.9Z"/></svg></span>
-                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.5"/><path d="M10 2.6v2.1M10 15.3v2.1M2.6 10h2.1M15.3 10h2.1M4.8 4.8l1.5 1.5M13.7 13.7l1.5 1.5M15.2 4.8l-1.5 1.5M6.3 13.7l-1.5 1.5"/></svg></span>
-                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="3" y="4.4" width="14" height="11.2" rx="1.6"/><path d="M8 4.4v11.2"/></svg></span>
+                  <div data-hf-id="hf-4b9n" class="sk-railfoot">
+                    <span data-hf-id="hf-ezf1" class="sk-glyph"><svg data-hf-id="hf-9dzl" viewBox="0 0 20 20"><rect data-hf-id="hf-4m5c" x="3" y="4.4" width="14" height="11.2" rx="1.6" /><path data-hf-id="hf-m2zz" d="M7.7 4.4v11.2M12.4 4.4v11.2" /></svg></span>
+                    <span data-hf-id="hf-fdq2" class="sk-glyph"><svg data-hf-id="hf-akwo" viewBox="0 0 20 20"><path data-hf-id="hf-3vg1" d="M15.4 11.9A6.1 6.1 0 0 1 8.1 4.6 6.3 6.3 0 1 0 15.4 11.9Z" /></svg></span>
+                    <span data-hf-id="hf-fs13" class="sk-glyph"><svg data-hf-id="hf-a6ln" viewBox="0 0 20 20"><circle data-hf-id="hf-4qtb" cx="10" cy="10" r="2.5" /><path data-hf-id="hf-hsim" d="M10 2.6v2.1M10 15.3v2.1M2.6 10h2.1M15.3 10h2.1M4.8 4.8l1.5 1.5M13.7 13.7l1.5 1.5M15.2 4.8l-1.5 1.5M6.3 13.7l-1.5 1.5" /></svg></span>
+                    <span data-hf-id="hf-g6c4" class="sk-glyph"><svg data-hf-id="hf-bdiq" viewBox="0 0 20 20"><rect data-hf-id="hf-qdy0" x="3" y="4.4" width="14" height="11.2" rx="1.6" /><path data-hf-id="hf-hjj1" d="M8 4.4v11.2" /></svg></span>
                   </div>
                 </aside>
 
                 <!-- content · greeting, the one statement, Shipped, the call waiting on you -->
-                <main class="sp4-main">
+                <main data-hf-id="hf-fzbz" class="sp4-main">
 
-                  <p class="sp4-greet">Good morning.</p>
-                  <h1 class="sp4-head">3 calls waiting on you.</h1>
-                  <p class="sp4-headmeta">In the last 24 hours · <span class="sp4-underline">17 days on the record</span></p>
-                  <p class="sp4-live"><span class="sk-livedot"></span><span class="sp4-run">▸</span>agent · drafting the release notes for v2.4<span class="sp4-live-sep">·</span>7 runs today<span class="sp4-live-sep">·</span>0 boundaries crossed</p>
+                  <p data-hf-id="hf-yy3z" class="sp4-greet">Good morning.</p>
+                  <h1 data-hf-id="hf-5kzb" class="sp4-head">3 calls waiting on you.</h1>
+                  <p data-hf-id="hf-ktqy" class="sp4-headmeta">In the last 24 hours · <span data-hf-id="hf-4dd1" class="sp4-underline">17 days on the record</span></p>
+                  <p data-hf-id="hf-fl8p" class="sp4-live"><span data-hf-id="hf-yc43" class="sk-livedot"></span><span data-hf-id="hf-zqlk" class="sp4-run">▸</span>agent · drafting the release notes for v2.4<span data-hf-id="hf-5fbl" class="sp4-live-sep">·</span>7 runs today<span data-hf-id="hf-wa4l" class="sp4-live-sep">·</span>0 boundaries crossed</p>
 
-                  <div class="sp4-rule"></div>
+                  <div data-hf-id="hf-o5re" class="sp4-rule"></div>
 
-                  <section class="sp4-sec">
-                    <div class="sp4-sec-hd">
-                      <h2 class="sp4-sec-t">Shipped</h2>
-                      <span class="sp4-sec-link">Open runs · 1 more</span>
+                  <section data-hf-id="hf-p2qr" class="sp4-sec">
+                    <div data-hf-id="hf-uohg" class="sp4-sec-hd">
+                      <h2 data-hf-id="hf-0jpw" class="sp4-sec-t">Shipped</h2>
+                      <span data-hf-id="hf-0hv4" class="sp4-sec-link">Open runs · 1 more</span>
                     </div>
-                    <p class="sp4-sec-note">4 live and waiting on nobody. Undoing one costs a rollback.</p>
-                    <div class="sp4-sec-rows">
-                      <div class="sp4-row">
-                        <span class="sp4-rowicon"><svg viewBox="0 0 20 20"><circle cx="10" cy="4.6" r="1.8"/><circle cx="4.8" cy="15.4" r="1.8"/><circle cx="15.2" cy="15.4" r="1.8"/><path d="M10 6.4v3.4M4.8 13.6v-2a1.8 1.8 0 0 1 1.8-1.8h6.8a1.8 1.8 0 0 1 1.8 1.8v2"/></svg></span>
-                        <span class="sp4-rowmain">
-                          <span class="sp4-rowtitle">Retry the abandoned payment step on the checkout</span>
-                          <span class="sp4-rowstate">done</span>
+                    <p data-hf-id="hf-0rje" class="sp4-sec-note">4 live and waiting on nobody. Undoing one costs a rollback.</p>
+                    <div data-hf-id="hf-wn5b" class="sp4-sec-rows">
+                      <div data-hf-id="hf-7064" class="sp4-row">
+                        <span data-hf-id="hf-h8mo" class="sp4-rowicon"><svg data-hf-id="hf-az7p" viewBox="0 0 20 20"><circle data-hf-id="hf-ra2a" cx="10" cy="4.6" r="1.8" /><circle data-hf-id="hf-x4tb" cx="4.8" cy="15.4" r="1.8" /><circle data-hf-id="hf-8x73" cx="15.2" cy="15.4" r="1.8" /><path data-hf-id="hf-vvh6" d="M10 6.4v3.4M4.8 13.6v-2a1.8 1.8 0 0 1 1.8-1.8h6.8a1.8 1.8 0 0 1 1.8 1.8v2" /></svg></span>
+                        <span data-hf-id="hf-irxk" class="sp4-rowmain">
+                          <span data-hf-id="hf-7jf6" class="sp4-rowtitle">Retry the abandoned payment step on the checkout</span>
+                          <span data-hf-id="hf-zx8y" class="sp4-rowstate">done</span>
                         </span>
-                        <span class="sp4-rowtime">14h</span>
+                        <span data-hf-id="hf-wtoz" class="sp4-rowtime">14h</span>
                       </div>
-                      <div class="sp4-row">
-                        <span class="sp4-rowicon"><svg viewBox="0 0 20 20"><circle cx="10" cy="4.6" r="1.8"/><circle cx="4.8" cy="15.4" r="1.8"/><circle cx="15.2" cy="15.4" r="1.8"/><path d="M10 6.4v3.4M4.8 13.6v-2a1.8 1.8 0 0 1 1.8-1.8h6.8a1.8 1.8 0 0 1 1.8 1.8v2"/></svg></span>
-                        <span class="sp4-rowmain">
-                          <span class="sp4-rowtitle">Unify the billing alert thresholds across workspaces</span>
-                          <span class="sp4-rowstate">done</span>
+                      <div data-hf-id="hf-qnbo" class="sp4-row">
+                        <span data-hf-id="hf-qqiw" class="sp4-rowicon"><svg data-hf-id="hf-2efr" viewBox="0 0 20 20"><circle data-hf-id="hf-okty" cx="10" cy="4.6" r="1.8" /><circle data-hf-id="hf-seu7" cx="4.8" cy="15.4" r="1.8" /><circle data-hf-id="hf-gf8v" cx="15.2" cy="15.4" r="1.8" /><path data-hf-id="hf-y1xa" d="M10 6.4v3.4M4.8 13.6v-2a1.8 1.8 0 0 1 1.8-1.8h6.8a1.8 1.8 0 0 1 1.8 1.8v2" /></svg></span>
+                        <span data-hf-id="hf-8ag0" class="sp4-rowmain">
+                          <span data-hf-id="hf-eilp" class="sp4-rowtitle">Unify the billing alert thresholds across workspaces</span>
+                          <span data-hf-id="hf-2mhi" class="sp4-rowstate">done</span>
                         </span>
-                        <span class="sp4-rowtime">15h</span>
+                        <span data-hf-id="hf-czbu" class="sp4-rowtime">15h</span>
                       </div>
-                      <div class="sp4-row">
-                        <span class="sp4-rowicon"><svg viewBox="0 0 20 20"><circle cx="10" cy="4.6" r="1.8"/><circle cx="4.8" cy="15.4" r="1.8"/><circle cx="15.2" cy="15.4" r="1.8"/><path d="M10 6.4v3.4M4.8 13.6v-2a1.8 1.8 0 0 1 1.8-1.8h6.8a1.8 1.8 0 0 1 1.8 1.8v2"/></svg></span>
-                        <span class="sp4-rowmain">
-                          <span class="sp4-rowtitle">Resolve the "Offline-Sync Data Loss and Overwrite" cluster</span>
-                          <span class="sp4-rowstate">done</span>
+                      <div data-hf-id="hf-lefh" class="sp4-row">
+                        <span data-hf-id="hf-pjlt" class="sp4-rowicon"><svg data-hf-id="hf-2sqs" viewBox="0 0 20 20"><circle data-hf-id="hf-oz4z" cx="10" cy="4.6" r="1.8" /><circle data-hf-id="hf-s0j6" cx="4.8" cy="15.4" r="1.8" /><circle data-hf-id="hf-g0xu" cx="15.2" cy="15.4" r="1.8" /><path data-hf-id="hf-yg8b" d="M10 6.4v3.4M4.8 13.6v-2a1.8 1.8 0 0 1 1.8-1.8h6.8a1.8 1.8 0 0 1 1.8 1.8v2" /></svg></span>
+                        <span data-hf-id="hf-73ix" class="sp4-rowmain">
+                          <span data-hf-id="hf-yahq" class="sp4-rowtitle">Resolve the "Offline-Sync Data Loss and Overwrite" cluster</span>
+                          <span data-hf-id="hf-30sj" class="sp4-rowstate">done</span>
                         </span>
-                        <span class="sp4-rowtime">20h</span>
+                        <span data-hf-id="hf-dciq" class="sp4-rowtime">20h</span>
                       </div>
                     </div>
                   </section>
 
-                  <section class="sp4-sec">
-                    <div class="sp4-sec-hd">
-                      <h2 class="sp4-sec-t">Ready for your review</h2>
-                      <span class="sp4-sec-link">Open the queue</span>
+                  <section data-hf-id="hf-08pv" class="sp4-sec">
+                    <div data-hf-id="hf-jy4s" class="sp4-sec-hd">
+                      <h2 data-hf-id="hf-xs4i" class="sp4-sec-t">Ready for your review</h2>
+                      <span data-hf-id="hf-3qo1" class="sp4-sec-link">Open the queue</span>
                     </div>
-                    <p class="sp4-sec-note">3 waiting on you. Nothing has happened yet, so undo is free.</p>
+                    <p data-hf-id="hf-rvhl" class="sp4-sec-note">3 waiting on you. Nothing has happened yet, so undo is free.</p>
 
-                    <article class="sp4-card" id="sp4-card">
-                      <header class="sp4-card-hd">
-                        <svg viewBox="0 0 18 18"><circle cx="7.6" cy="7.6" r="4.3"/><path d="M10.9 10.9L14.3 14.3"/></svg>
-                        <span class="sp4-card-kind">Decide</span>
-                        <span class="sp4-card-sep">·</span><span class="sp4-card-scope">This workspace</span>
-                        <span class="sp4-card-sep">·</span><span class="sp4-card-scope">low risk</span>
-                        <span class="sp4-card-idx">1 of 3</span>
+                    <article data-hf-id="hf-vg7v" class="sp4-card" id="sp4-card">
+                      <header data-hf-id="hf-fcan" class="sp4-card-hd">
+                        <svg data-hf-id="hf-b3bn" viewBox="0 0 18 18"><circle data-hf-id="hf-1hzz" cx="7.6" cy="7.6" r="4.3" /><path data-hf-id="hf-f2ut" d="M10.9 10.9L14.3 14.3" /></svg>
+                        <span data-hf-id="hf-qjnq" class="sp4-card-kind">Decide</span>
+                        <span data-hf-id="hf-rnh1" class="sp4-card-sep">·</span><span data-hf-id="hf-n6td" class="sp4-card-scope">This workspace</span>
+                        <span data-hf-id="hf-5ivd" class="sp4-card-sep">·</span><span data-hf-id="hf-b6p1" class="sp4-card-scope">low risk</span>
+                        <span data-hf-id="hf-kp20" class="sp4-card-idx">1 of 3</span>
                       </header>
-                      <h3 class="sp4-card-t">Approve the merge — checkout fix</h3>
-                      <p class="sp4-card-m">fix/checkout-dropoff · 214 tests passing · boundary held: no schema drops</p>
-                      <div class="sp4-card-ft">
-                        <span id="sp4-gatewrap"><span id="sp4-gateglow"></span><span class="sk-chip sk-chip--ember" id="sp4-gate"><i class="sk-dot-inline"></i>gate · your call</span></span>
-                        <span class="sk-chip sk-chip--pass"><i class="sk-dot-inline"></i>tests green</span>
-                        <span class="sk-chip">the agent's take · ready to merge</span>
-                        <span class="sk-spacer"></span>
-                        <span class="sk-chip">12m ago</span>
+                      <h3 data-hf-id="hf-4xl8" class="sp4-card-t">Approve the merge — checkout fix</h3>
+                      <p data-hf-id="hf-f7dy" class="sp4-card-m">fix/checkout-dropoff · 214 tests passing · boundary held: no schema drops</p>
+                      <div data-hf-id="hf-5zhl" class="sp4-card-ft">
+                        <span data-hf-id="hf-20e3" id="sp4-gatewrap"><span data-hf-id="hf-0mqo" id="sp4-gateglow"></span><span data-hf-id="hf-td32" class="sk-chip sk-chip--ember" id="sp4-gate"><i data-hf-id="hf-cnk2" class="sk-dot-inline"></i>gate · your call</span></span>
+                        <span data-hf-id="hf-niio" class="sk-chip sk-chip--pass"><i data-hf-id="hf-k5nq" class="sk-dot-inline"></i>tests green</span>
+                        <span data-hf-id="hf-nzlg" class="sk-chip">the agent's take · ready to merge</span>
+                        <span data-hf-id="hf-5jd0" class="sk-spacer"></span>
+                        <span data-hf-id="hf-lsop" class="sk-chip">12m ago</span>
                       </div>
                     </article>
                   </section>
@@ -494,47 +494,47 @@
         </div>
 
         <!-- the pointer rides the surface — it belongs to the screen, not to the film -->
-        <div id="sp4-cursor" data-layout-allow-overlap>
-          <svg viewBox="0 0 24 24"><path d="M4 2.4 L18.6 12.1 L11.7 12.9 L8.4 19.3 Z" fill="#F2EFE9" stroke="#0A0A0B" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        <div data-hf-id="hf-8rbn" id="sp4-cursor" data-layout-allow-overlap="">
+          <svg data-hf-id="hf-y9f5" viewBox="0 0 24 24"><path data-hf-id="hf-lpmd" d="M4 2.4 L18.6 12.1 L11.7 12.9 L8.4 19.3 Z" fill="#F2EFE9" stroke="#0A0A0B" stroke-width="1.2" stroke-linejoin="round" /></svg>
         </div>
 
       </div>
 
       <!-- ══ film layer · screen space, outside the camera ══ -->
 
-      <div id="sp4-scrim" data-layout-allow-overlap></div>
+      <div data-hf-id="hf-lun9" id="sp4-scrim" data-layout-allow-overlap=""></div>
 
       <!-- the quiet lower-left title: bare mark + wordmark -->
-      <div id="sp4-lock" data-layout-allow-overlap>
-        <span id="sp4-mark">
+      <div data-hf-id="hf-ayq4" id="sp4-lock" data-layout-allow-overlap="">
+        <span data-hf-id="hf-jwct" id="sp4-mark">
           <!-- assets/logo-3b38dcfd.svg — paths verbatim, gradient ids namespaced sp4 -->
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" style="overflow:visible">
-            <defs>
-              <radialGradient id="core-sp4" cx="42%" cy="36%" r="72%"><stop offset="0%" stop-color="color-mix(in oklab, #fff 60%, var(--sk-ember, #ff6b2c))"></stop><stop offset="56%" stop-color="var(--sk-ember, #ff6b2c)"></stop><stop offset="100%" stop-color="color-mix(in oklab, var(--sk-ember, #ff6b2c) 82%, #000)"></stop></radialGradient>
+          <svg data-hf-id="hf-ta7x" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" style="overflow:visible">
+            <defs data-hf-id="hf-mh0t">
+              <radialgradient data-hf-id="hf-u0ij" id="core-sp4" cx="42%" cy="36%" r="72%"><stop data-hf-id="hf-yefv" offset="0%" stop-color="color-mix(in oklab, #fff 60%, var(--sk-ember, #ff6b2c))" /><stop data-hf-id="hf-nglj" offset="56%" stop-color="var(--sk-ember, #ff6b2c)" /><stop data-hf-id="hf-q8jg" offset="100%" stop-color="color-mix(in oklab, var(--sk-ember, #ff6b2c) 82%, #000)" /></radialgradient>
             </defs>
-            <g style="transform-box:fill-box;transform-origin:center">
-              <path id="sp4-loop" d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"></path>
+            <g data-hf-id="hf-l6nr" style="transform-box:fill-box;transform-origin:center">
+              <path data-hf-id="hf-t6fb" id="sp4-loop" d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" />
             </g>
-            <g id="sp4-core" style="transform-box:fill-box;transform-origin:center">
-              <circle cx="50" cy="50" r="6.2" fill="url(#core-sp4)"></circle>
-              <circle cx="50" cy="50" r="2.15" fill="#E8B44C"></circle>
+            <g data-hf-id="hf-upoq" id="sp4-core" style="transform-box:fill-box;transform-origin:center">
+              <circle data-hf-id="hf-kk98" cx="50" cy="50" r="6.2" fill="url(#core-sp4)" />
+              <circle data-hf-id="hf-hpp3" cx="50" cy="50" r="2.15" fill="#E8B44C" />
             </g>
           </svg>
         </span>
-        <span id="sp4-word">supaprod</span>
+        <span data-hf-id="hf-nk5s" id="sp4-word">supaprod</span>
       </div>
 
       <!-- the three thesis chips, under the title, on their VO cues -->
-      <div id="sp4-thesis" data-layout-allow-overlap>
-        <span class="sp4-th" id="sp4-th1"><i></i>knows what to build</span>
-        <span class="sp4-th" id="sp4-th2"><i></i>runs the lifecycle</span>
-        <span class="sp4-th" id="sp4-th3"><i></i>learns and guides</span>
+      <div data-hf-id="hf-oumh" id="sp4-thesis" data-layout-allow-overlap="">
+        <span data-hf-id="hf-5d3j" class="sp4-th" id="sp4-th1"><i data-hf-id="hf-wt6k"></i>knows what to build</span>
+        <span data-hf-id="hf-zsu2" class="sp4-th" id="sp4-th2"><i data-hf-id="hf-zeb8"></i>runs the lifecycle</span>
+        <span data-hf-id="hf-2nsh" class="sp4-th" id="sp4-th3"><i data-hf-id="hf-y7e5"></i>learns and guides</span>
       </div>
 
       <!-- film overlay — lower-third, lower-left, screen space -->
-      <div class="sk-lowerthird" style="--sk-accent:var(--sk-ember)" data-layout-allow-overlap>
-        <span class="sk-lt-kicker" id="sp4-ltk">SUPAPROD · FOR PRODUCT MANAGERS WHO SHIP WITH AGENTS</span>
-        <span class="sk-lt-line" id="sp4-ltl">agents run the work — you make the calls.</span>
+      <div data-hf-id="hf-b6y4" class="sk-lowerthird" style="--sk-accent:var(--sk-ember)" data-layout-allow-overlap="">
+        <span data-hf-id="hf-vuck" class="sk-lt-kicker" id="sp4-ltk">SUPAPROD · FOR PRODUCT MANAGERS WHO SHIP WITH AGENTS</span>
+        <span data-hf-id="hf-dzg5" class="sk-lt-line" id="sp4-ltl">agents run the work — you make the calls.</span>
       </div>
 
     </div>

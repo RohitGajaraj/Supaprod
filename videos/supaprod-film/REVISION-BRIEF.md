@@ -40,8 +40,16 @@
 
 ## v5 duration table (LOCKED — build your frame to THIS duration; Vesper VO + breathing air)
 
-F1 8.4 · F2 10.6 · F3 14.6 · F4 11.0 · F5 7.6 · F6 7.8 · F7 7.5 · F8 21.2 · F9 12.0 · F10 12.3 ·
-F11 11.0 · F12 4.4 · F13 9.4 — film total 137.8s. STORYBOARD durations already match.
+F1 9.4 · F2 10.8 · F3 14.2 · F4 10.6 · F5 7.4 · F6 10.9 · F7 6.8 · F8 23.2 · F9 11.7 · F10 12.1 ·
+F11 10.2 · F12 6.6 · F13 10.0 — film total 143.9s (v8 FINAL). STORYBOARD durations already match.
+
+## Agent presence + seam law (founder, 2026-08-12)
+
+- Every station surface shows AGENTS WORKING: small "agent · <verb>ing" live indicators, console/terminal
+  textures where natural (Build especially), steps ticking themselves. The film's world is agent-driven
+  from Discover to Learn — visible, not narrated.
+- SEAM LAW: no frame-connecting scaffolding may ever be visible in the final picture — no stray
+  connector lines, no adjacent-frame edges peeking during transitions. QA checks every seam.
 
 ## Frame-specific notes (one agent per frame, sequential)
 

@@ -1,7 +1,7 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
   <title>F2 — Worth building (sub-composition; runtime reads only the template)</title>
 </head>
 <body>
@@ -209,156 +209,153 @@
 .wb-enddot{position:absolute;left:calc(100% - 0.22cqw);top:45.7%;transform:translateY(-50%);width:0.44cqw;height:0.44cqw;border-radius:50%;background:var(--sk-build);}
 </style>
 
-<div id="root" data-composition-id="02-worth-building" data-width="1920" data-height="1080">
+<div data-hf-id="hf-o263" id="root" data-composition-id="02-worth-building" data-width="1920" data-height="1080">
 
   <!-- full-bleed ground — a clip layer, never a background on #root -->
-  <div id="wb-bg" class="clip" data-start="0" data-duration="8.5" data-track-index="0"></div>
+  <div data-hf-id="hf-tcz8" id="wb-bg" class="clip" data-start="0" data-duration="8.5" data-track-index="0"></div>
 
   <!-- the world: perspective stage + screen, wrapped by ONE camera element -->
-  <div id="wb-world" class="clip" data-start="0" data-duration="8.5" data-track-index="1" data-layout-allow-overflow>
+  <div data-hf-id="hf-xi2n" id="wb-world" class="clip" data-start="0" data-duration="8.5" data-track-index="1" data-layout-allow-overflow="">
 
-    <svg width="0" height="0" aria-hidden="true" style="position:absolute">
-      <defs>
-        <filter id="wb-mb" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
-          <feGaussianBlur id="wb-mb-blur" in="SourceGraphic" stdDeviation="0 0"/>
+    <svg data-hf-id="hf-30au" width="0" height="0" aria-hidden="true" style="position:absolute">
+      <defs data-hf-id="hf-mh0t">
+        <filter data-hf-id="hf-j1du" id="wb-mb" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+          <fegaussianblur data-hf-id="hf-jfqg" id="wb-mb-blur" in="SourceGraphic" stdDeviation="0 0" />
         </filter>
       </defs>
     </svg>
 
-    <div id="wb-cam">
-      <div class="sk-stage">
-        <div class="sk-screen" style="--sk-accent:var(--sk-build)">
-          <div class="wb-shell">
+    <div data-hf-id="hf-93a8" id="wb-cam">
+      <div data-hf-id="hf-at0b" class="sk-stage">
+        <div data-hf-id="hf-rjv5" class="sk-screen" style="--sk-accent:var(--sk-build)">
+          <div data-hf-id="hf-v0l2" class="wb-shell">
 
             <!-- top bar — the team's release tool, pre-Supaprod -->
-            <header class="sk-topbar">
-              <div class="sk-crumb"><span>product</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">releases</span></div>
-              <div class="sk-ask">
-                <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>
+            <header data-hf-id="hf-jnan" class="sk-topbar">
+              <div data-hf-id="hf-5wuw" class="sk-crumb"><span data-hf-id="hf-4kc0">product</span><span data-hf-id="hf-l3jz" class="sk-crumb-sep">/</span><span data-hf-id="hf-8qqm" class="sk-crumb-here">releases</span></div>
+              <div data-hf-id="hf-lmta" class="sk-ask">
+                <svg data-hf-id="hf-56oz" viewBox="0 0 16 16"><circle data-hf-id="hf-g1c9" cx="7" cy="7" r="4.5" /><line data-hf-id="hf-ln1i" x1="10.5" y1="10.5" x2="14" y2="14" /></svg>
                 search releases…
-                <span class="sk-kbd">⌘K</span>
+                <span data-hf-id="hf-kff0" class="sk-kbd">⌘K</span>
               </div>
-              <span class="sk-spacer"></span>
-              <span class="sk-badge">v2.3.9 · latest</span>
-              <div class="sk-avatar">MR</div>
+              <span data-hf-id="hf-5jd0" class="sk-spacer"></span>
+              <span data-hf-id="hf-z1rp" class="sk-badge">v2.3.9 · latest</span>
+              <div data-hf-id="hf-4z8v" class="sk-avatar">MR</div>
             </header>
 
-            <main class="wb-main">
+            <main data-hf-id="hf-s5qn" class="wb-main">
 
-              <div class="wb-pagehead">
-                <h1 class="sk-title">Releases</h1>
-                <span class="sk-meta">31 shipped this quarter · last release 2d ago</span>
-                <span class="sk-spacer"></span>
-                <span class="sk-chip is-on">all 31</span>
-                <span class="sk-chip">features 18</span>
-                <span class="sk-chip">fixes 9</span>
-                <span class="sk-chip">polish 4</span>
+              <div data-hf-id="hf-rcub" class="wb-pagehead">
+                <h1 data-hf-id="hf-kig7" class="sk-title">Releases</h1>
+                <span data-hf-id="hf-231l" class="sk-meta">31 shipped this quarter · last release 2d ago</span>
+                <span data-hf-id="hf-hdvg" class="sk-spacer"></span>
+                <span data-hf-id="hf-lo5p" class="sk-chip is-on">all 31</span>
+                <span data-hf-id="hf-pwjm" class="sk-chip">features 18</span>
+                <span data-hf-id="hf-2c8q" class="sk-chip">fixes 9</span>
+                <span data-hf-id="hf-82jr" class="sk-chip">polish 4</span>
               </div>
 
               <!-- changelog — the wall of shipped features (DoF near plane) -->
-              <section class="sk-panel wb-plane" id="wb-rel">
-                <header class="sk-panel-hd">
-                  <h2 class="sk-panel-title">Changelog</h2>
-                  <span class="sk-badge">31</span>
-                  <span class="sk-spacer"></span>
-                  <span class="sk-label" style="font-size:0.55cqw;">newest first</span>
+              <section data-hf-id="hf-75tc" class="sk-panel wb-plane" id="wb-rel">
+                <header data-hf-id="hf-krk0" class="sk-panel-hd">
+                  <h2 data-hf-id="hf-gw2h" class="sk-panel-title">Changelog</h2>
+                  <span data-hf-id="hf-1iz9" class="sk-badge">31</span>
+                  <span data-hf-id="hf-g6yd" class="sk-spacer"></span>
+                  <span data-hf-id="hf-zvwj" class="sk-label" style="font-size:0.55cqw;">newest first</span>
                 </header>
-                <div class="sk-panel-body">
-                  <div class="wb-row">
-                    <div class="wb-rowmain"><p class="wb-name">storefront theme refresh</p><p class="wb-rowmeta">maya r. · v2.3.9 · aug 8</p></div>
-                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                <div data-hf-id="hf-fd9c" class="sk-panel-body">
+                  <div data-hf-id="hf-idws" class="wb-row">
+                    <div data-hf-id="hf-bsej" class="wb-rowmain"><p data-hf-id="hf-08d2" class="wb-name">storefront theme refresh</p><p data-hf-id="hf-zgyj" class="wb-rowmeta">maya r. · v2.3.9 · aug 8</p></div>
+                    <span data-hf-id="hf-ygox" class="sk-chip sk-chip--pass"><span data-hf-id="hf-4gwh" class="sk-dot-inline"></span>shipped</span>
                   </div>
-                  <div class="wb-row">
-                    <div class="wb-rowmain"><p class="wb-name">animated onboarding tour</p><p class="wb-rowmeta">jonah t. · v2.3.8 · aug 5</p></div>
-                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  <div data-hf-id="hf-tw90" class="wb-row">
+                    <div data-hf-id="hf-ez8r" class="wb-rowmain"><p data-hf-id="hf-4q3c" class="wb-name">animated onboarding tour</p><p data-hf-id="hf-5cmn" class="wb-rowmeta">jonah t. · v2.3.8 · aug 5</p></div>
+                    <span data-hf-id="hf-g9w5" class="sk-chip sk-chip--pass"><span data-hf-id="hf-ad51" class="sk-dot-inline"></span>shipped</span>
                   </div>
-                  <div class="wb-row">
-                    <div class="wb-rowmain"><p class="wb-name">dark mode</p><p class="wb-rowmeta">priya s. · v2.3.7 · jul 30</p></div>
-                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  <div data-hf-id="hf-spbx" class="wb-row">
+                    <div data-hf-id="hf-ekxq" class="wb-rowmain"><p data-hf-id="hf-2w9j" class="wb-name">dark mode</p><p data-hf-id="hf-mdlg" class="wb-rowmeta">priya s. · v2.3.7 · jul 30</p></div>
+                    <span data-hf-id="hf-hgt8" class="sk-chip sk-chip--pass"><span data-hf-id="hf-bk24" class="sk-dot-inline"></span>shipped</span>
                   </div>
-                  <div class="wb-row wb-row-in">
-                    <div class="wb-rowmain"><p class="wb-name">custom email templates</p><p class="wb-rowmeta">maya r. · v2.3.6 · jul 24</p></div>
-                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  <div data-hf-id="hf-x5mk" class="wb-row wb-row-in">
+                    <div data-hf-id="hf-e6mp" class="wb-rowmain"><p data-hf-id="hf-ccxg" class="wb-name">custom email templates</p><p data-hf-id="hf-om28" class="wb-rowmeta">maya r. · v2.3.6 · jul 24</p></div>
+                    <span data-hf-id="hf-h2i7" class="sk-chip sk-chip--pass"><span data-hf-id="hf-b5r3" class="sk-dot-inline"></span>shipped</span>
                   </div>
-                  <div class="wb-row wb-row-in">
-                    <div class="wb-rowmain"><p class="wb-name">refreshed icon set</p><p class="wb-rowmeta">jonah t. · v2.3.5 · jul 18</p></div>
-                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  <div data-hf-id="hf-808k" class="wb-row wb-row-in">
+                    <div data-hf-id="hf-dsbo" class="wb-rowmain"><p data-hf-id="hf-h2p3" class="wb-name">refreshed icon set</p><p data-hf-id="hf-ppo0" class="wb-rowmeta">jonah t. · v2.3.5 · jul 18</p></div>
+                    <span data-hf-id="hf-i9fa" class="sk-chip sk-chip--pass"><span data-hf-id="hf-cco6" class="sk-dot-inline"></span>shipped</span>
                   </div>
-                  <div class="wb-row wb-row-in">
-                    <div class="wb-rowmain"><p class="wb-name">new marketing pages</p><p class="wb-rowmeta">priya s. · v2.3.4 · jul 11</p></div>
-                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  <div data-hf-id="hf-6tbh" class="wb-row wb-row-in">
+                    <div data-hf-id="hf-de0n" class="wb-rowmain"><p data-hf-id="hf-ro0m" class="wb-name">new marketing pages</p><p data-hf-id="hf-0g3e" class="wb-rowmeta">priya s. · v2.3.4 · jul 11</p></div>
+                    <span data-hf-id="hf-hv49" class="sk-chip sk-chip--pass"><span data-hf-id="hf-byd5" class="sk-dot-inline"></span>shipped</span>
                   </div>
-                  <div class="wb-row wb-row-in">
-                    <div class="wb-rowmain"><p class="wb-name">polished empty states</p><p class="wb-rowmeta">maya r. · v2.3.3 · jul 3</p></div>
-                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  <div data-hf-id="hf-77mi" class="wb-row wb-row-in">
+                    <div data-hf-id="hf-czpm" class="wb-rowmain"><p data-hf-id="hf-1dlt" class="wb-name">polished empty states</p><p data-hf-id="hf-syp0" class="wb-rowmeta">maya r. · v2.3.3 · jul 3</p></div>
+                    <span data-hf-id="hf-j21c" class="sk-chip sk-chip--pass"><span data-hf-id="hf-d5a8" class="sk-dot-inline"></span>shipped</span>
                   </div>
-                  <div class="wb-row wb-row-in">
-                    <div class="wb-rowmain"><p class="wb-name">redesigned settings</p><p class="wb-rowmeta">jonah t. · v2.3.2 · jun 26</p></div>
-                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  <div data-hf-id="hf-975n" class="wb-row wb-row-in">
+                    <div data-hf-id="hf-clel" class="wb-rowmain"><p data-hf-id="hf-nhyr" class="wb-name">redesigned settings</p><p data-hf-id="hf-n3u4" class="wb-rowmeta">jonah t. · v2.3.2 · jun 26</p></div>
+                    <span data-hf-id="hf-inqb" class="sk-chip sk-chip--pass"><span data-hf-id="hf-cqz7" class="sk-dot-inline"></span>shipped</span>
                   </div>
-                  <div class="wb-row wb-row-in">
-                    <div class="wb-rowmain"><p class="wb-name">animated cart badge</p><p class="wb-rowmeta">priya s. · v2.3.1 · jun 19</p></div>
-                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  <div data-hf-id="hf-9lgo" class="wb-row wb-row-in">
+                    <div data-hf-id="hf-ik00" class="wb-rowmain"><p data-hf-id="hf-4pva" class="wb-name">animated cart badge</p><p data-hf-id="hf-p941" class="wb-rowmeta">priya s. · v2.3.1 · jun 19</p></div>
+                    <span data-hf-id="hf-dhqy" class="sk-chip sk-chip--pass"><span data-hf-id="hf-7kzu" class="sk-dot-inline"></span>shipped</span>
                   </div>
-                  <div class="wb-row wb-row-in">
-                    <div class="wb-rowmain"><p class="wb-name">confetti on signup</p><p class="wb-rowmeta">maya r. · v2.3.0 · jun 12</p></div>
-                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>shipped</span>
+                  <div data-hf-id="hf-8ejl" class="wb-row wb-row-in">
+                    <div data-hf-id="hf-i5oz" class="wb-rowmain"><p data-hf-id="hf-ufy3" class="wb-name">confetti on signup</p><p data-hf-id="hf-oftp" class="wb-rowmeta">maya r. · v2.3.0 · jun 12</p></div>
+                    <span data-hf-id="hf-d3fx" class="sk-chip sk-chip--pass"><span data-hf-id="hf-76ot" class="sk-dot-inline"></span>shipped</span>
                   </div>
                 </div>
-                <footer class="sk-panel-ft">
-                  <span class="sk-meta" style="font-size:0.6cqw;">1 – 10 of 31 · updated 2d ago</span>
-                  <span class="sk-spacer"></span>
-                  <span class="sk-meta" style="font-size:0.6cqw;">velocity 1.6× vs last quarter</span>
+                <footer data-hf-id="hf-sv44" class="sk-panel-ft">
+                  <span data-hf-id="hf-9mtt" class="sk-meta" style="font-size:0.6cqw;">1 – 10 of 31 · updated 2d ago</span>
+                  <span data-hf-id="hf-gl9e" class="sk-spacer"></span>
+                  <span data-hf-id="hf-ionk" class="sk-meta" style="font-size:0.6cqw;">velocity 1.6× vs last quarter</span>
                 </footer>
               </section>
 
               <!-- activation — the flat line (DoF far plane, racked into focus) -->
-              <section class="sk-pane wb-plane" id="wb-ana">
-                <header class="sk-pane-hd">
-                  <h2 class="sk-panel-title">Activation</h2>
-                  <span class="sk-meta" style="font-size:0.62cqw;">weekly · last 12 weeks</span>
-                  <span class="sk-spacer"></span>
-                  <span class="sk-chip sk-chip--warn" id="wb-nochange"><span class="sk-dot-inline"></span>period: no change</span>
+              <section data-hf-id="hf-40op" class="sk-pane wb-plane" id="wb-ana">
+                <header data-hf-id="hf-mkfa" class="sk-pane-hd">
+                  <h2 data-hf-id="hf-4jod" class="sk-panel-title">Activation</h2>
+                  <span data-hf-id="hf-l45m" class="sk-meta" style="font-size:0.62cqw;">weekly · last 12 weeks</span>
+                  <span data-hf-id="hf-iksj" class="sk-spacer"></span>
+                  <span data-hf-id="hf-c65o" class="sk-chip sk-chip--warn" id="wb-nochange"><span data-hf-id="hf-dc33" class="sk-dot-inline"></span>period: no change</span>
                 </header>
-                <div class="sk-pane-body wb-chartbody">
-                  <div class="wb-plot">
-                    <svg viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true">
+                <div data-hf-id="hf-6nau" class="sk-pane-body wb-chartbody">
+                  <div data-hf-id="hf-irvh" class="wb-plot">
+                    <svg data-hf-id="hf-tste" viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true">
                       <!-- grid -->
-                      <line x1="0" y1="90"  x2="1000" y2="90"  stroke="#26262A" stroke-width="1" vector-effect="non-scaling-stroke"/>
-                      <line x1="0" y1="280" x2="1000" y2="280" stroke="#26262A" stroke-width="1" vector-effect="non-scaling-stroke"/>
-                      <line x1="0" y1="470" x2="1000" y2="470" stroke="#26262A" stroke-width="1" vector-effect="non-scaling-stroke"/>
-                      <line x1="0" y1="560" x2="1000" y2="560" stroke="#26262A" stroke-width="1" vector-effect="non-scaling-stroke"/>
+                      <line data-hf-id="hf-vfnx" x1="0" y1="90" x2="1000" y2="90" stroke="#26262A" stroke-width="1" vector-effect="non-scaling-stroke" />
+                      <line data-hf-id="hf-bo41" x1="0" y1="280" x2="1000" y2="280" stroke="#26262A" stroke-width="1" vector-effect="non-scaling-stroke" />
+                      <line data-hf-id="hf-cirv" x1="0" y1="470" x2="1000" y2="470" stroke="#26262A" stroke-width="1" vector-effect="non-scaling-stroke" />
+                      <line data-hf-id="hf-g3lr" x1="0" y1="560" x2="1000" y2="560" stroke="#26262A" stroke-width="1" vector-effect="non-scaling-stroke" />
                       <!-- release markers along the axis (tick per shipped row, jun 12 → aug 8) -->
-                      <line class="wb-rmk" x1="298" y1="520" x2="298" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
-                      <line class="wb-rmk" x1="381" y1="520" x2="381" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
-                      <line class="wb-rmk" x1="464" y1="520" x2="464" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
-                      <line class="wb-rmk" x1="548" y1="520" x2="548" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
-                      <line class="wb-rmk" x1="643" y1="520" x2="643" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
-                      <line class="wb-rmk" x1="726" y1="520" x2="726" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
-                      <line class="wb-rmk" x1="798" y1="520" x2="798" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
-                      <line class="wb-rmk" x1="869" y1="520" x2="869" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
-                      <line class="wb-rmk" x1="940" y1="520" x2="940" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
-                      <line class="wb-rmk" x1="976" y1="520" x2="976" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                      <line data-hf-id="hf-4m4i" class="wb-rmk" x1="298" y1="520" x2="298" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line data-hf-id="hf-p1do" class="wb-rmk" x1="381" y1="520" x2="381" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line data-hf-id="hf-cfh4" class="wb-rmk" x1="464" y1="520" x2="464" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line data-hf-id="hf-3us6" class="wb-rmk" x1="548" y1="520" x2="548" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line data-hf-id="hf-dezi" class="wb-rmk" x1="643" y1="520" x2="643" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line data-hf-id="hf-9oq2" class="wb-rmk" x1="726" y1="520" x2="726" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line data-hf-id="hf-8fzc" class="wb-rmk" x1="798" y1="520" x2="798" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line data-hf-id="hf-17hu" class="wb-rmk" x1="869" y1="520" x2="869" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line data-hf-id="hf-6jhi" class="wb-rmk" x1="940" y1="520" x2="940" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
+                      <line data-hf-id="hf-lhmw" class="wb-rmk" x1="976" y1="520" x2="976" y2="550" stroke="#A8A29A" stroke-width="2" vector-effect="non-scaling-stroke" />
                       <!-- the flat activation line — svg-path-draw -->
-                      <path id="wb-line"
-                        d="M 0 258 L 83.3 252 L 166.7 257 L 250 250 L 333.3 256 L 416.7 249 L 500 255 L 583.3 250 L 666.7 254 L 750 248 L 833.3 255 L 916.7 250 L 1000 256"
-                        fill="none" stroke="#6D97C2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"
-                        vector-effect="non-scaling-stroke"/>
+                      <path data-hf-id="hf-xh6w" id="wb-line" d="M 0 258 L 83.3 252 L 166.7 257 L 250 250 L 333.3 256 L 416.7 249 L 500 255 L 583.3 250 L 666.7 254 L 750 248 L 833.3 255 L 916.7 250 L 1000 256" fill="none" stroke="#6D97C2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
                     </svg>
-                    <span class="wb-ylab" style="top:16.07%;">40%</span>
-                    <span class="wb-ylab" style="top:50%;">30%</span>
-                    <span class="wb-ylab" style="top:83.93%;">20%</span>
-                    <span class="wb-xlab" style="left:16.7%;">jun</span>
-                    <span class="wb-xlab" style="left:52.4%;">jul</span>
-                    <span class="wb-xlab" style="left:89.3%;">aug</span>
-                    <span class="wb-enddot" id="wb-enddot"></span>
-                    <span class="wb-val" id="wb-val">31.3%</span>
+                    <span data-hf-id="hf-ao4j" class="wb-ylab" style="top:16.07%;">40%</span>
+                    <span data-hf-id="hf-iok9" class="wb-ylab" style="top:50%;">30%</span>
+                    <span data-hf-id="hf-rcja" class="wb-ylab" style="top:83.93%;">20%</span>
+                    <span data-hf-id="hf-hqwi" class="wb-xlab" style="left:16.7%;">jun</span>
+                    <span data-hf-id="hf-asnp" class="wb-xlab" style="left:52.4%;">jul</span>
+                    <span data-hf-id="hf-pi1s" class="wb-xlab" style="left:89.3%;">aug</span>
+                    <span data-hf-id="hf-ul8b" class="wb-enddot" id="wb-enddot"></span>
+                    <span data-hf-id="hf-26hb" class="wb-val" id="wb-val">31.3%</span>
                   </div>
                 </div>
-                <footer class="sk-panel-ft">
-                  <span class="sk-label" style="font-size:0.55cqw;">release markers on axis</span>
-                  <span class="sk-spacer"></span>
-                  <span class="sk-meta" style="font-size:0.6cqw;">activation 31.3% · +0.1 pts in 12 weeks</span>
+                <footer data-hf-id="hf-wlh8" class="sk-panel-ft">
+                  <span data-hf-id="hf-ogkt" class="sk-label" style="font-size:0.55cqw;">release markers on axis</span>
+                  <span data-hf-id="hf-iz3k" class="sk-spacer"></span>
+                  <span data-hf-id="hf-azm5" class="sk-meta" style="font-size:0.6cqw;">activation 31.3% · +0.1 pts in 12 weeks</span>
                 </footer>
               </section>
 
@@ -370,10 +367,10 @@
   </div>
 
   <!-- film overlay — lower-third, rides the frame, outside the camera -->
-  <div id="wb-lt" class="clip" data-start="0" data-duration="8.5" data-track-index="2">
-    <div class="sk-lowerthird">
-      <span class="sk-lt-kicker wb-lt-kicker">the blind spot</span>
-      <span class="sk-lt-line wb-lt-line">knowing <em class="wb-ember">what to build</em> — that's the hard part now.</span>
+  <div data-hf-id="hf-mu8v" id="wb-lt" class="clip" data-start="0" data-duration="8.5" data-track-index="2">
+    <div data-hf-id="hf-0lxp" class="sk-lowerthird">
+      <span data-hf-id="hf-gktc" class="sk-lt-kicker wb-lt-kicker">the blind spot</span>
+      <span data-hf-id="hf-p6sl" class="sk-lt-line wb-lt-line">knowing <em data-hf-id="hf-rsyp" class="wb-ember">what to build</em> — that's the hard part now.</span>
     </div>
   </div>
 
