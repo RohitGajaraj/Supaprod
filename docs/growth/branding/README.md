@@ -107,7 +107,7 @@ branding/
 
 **The moat is drawn, not asserted.** A path leaves `07 Learn`, passes *through* the core, and re-enters at `01 Discover`. That is [`../../../README.md`](../../../README.md) verbatim: the verdict is written back against the decision that caused it and re-ranks what Discover surfaces next. An earlier pass drew the orbit and omitted that one edge, which meant it drew everything except the product.
 
-**Three orbital shells are the three layers** — 01 director, 02 operating system, 03 company brain — read as architecture rather than as colour, because the layer tokens (marigold/blue/green) belong to product surfaces.
+**Three orbital shells are the three layers** — 01 director, 02 operating system, 03 the brain — read as architecture rather than as colour, because the layer tokens (marigold/blue/green) belong to product surfaces.
 
 **Platinum, not brass** (founder ruling, 2026-08-05: "premium, platinum, elite"). Warm brass linework reads as an antique instrument and drifts toward steampunk; cool platinum reads as modern precision engineering. The structure is cold and the heart is hot — platinum orbits, ember and gold only at the core and the two lit stations.
 

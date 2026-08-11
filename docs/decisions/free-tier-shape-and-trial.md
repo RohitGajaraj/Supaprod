@@ -22,7 +22,7 @@ So inside a two-to-four week window a user experiences:
 | --- | --- | --- |
 | 01 | the director | **Yes.** Signals in, ranked bets out. |
 | 02 | the operating system | **Yes.** The loop runs, code ships. |
-| 03 | the company brain | **No.** There are no settled outcomes yet to learn from. |
+| 03 | the brain | **No.** There are no settled outcomes yet to learn from. |
 
 **A trial would showcase exactly the two layers that are copyable, and expire before the one that is defensible could appear.** The prospect would evaluate us against Cursor and Linear on speed, which is the comparison we lose, instead of on compounding judgment, which is the one we win.
 

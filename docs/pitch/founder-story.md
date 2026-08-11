@@ -164,7 +164,7 @@ Say all three layers, and concede two of them. Conceding is what makes the third
 | --- | --- | --- |
 | **01 The director**, tells you what to build | **No, and we say so** | "Ranking what to build is a capability, not an asset. A frontier model with the same inputs gets most of the way there and closer with every release. It is what earns the first ten minutes." |
 | **02 The operating system**, runs the lifecycle | **Partly, and for a while** | "The loop, the gates and the track record are months of real engineering, and they are buildable. A funded incumbent with distribution can construct the same route. It buys a lead measured in quarters. Its real job is to be the precondition for the third." |
-| **03 The company brain**, learns then guides | **Yes, and it is the only one** | "It needs your decisions joined to your outcomes, labelled over time. That data cannot be bought, scraped or synthesised, because it is produced by running the loop. And it gets more valuable as models commoditize: when everyone reasons equally well, the differentiator is whose context is better." |
+| **03 The brain**, learns then guides | **Yes, and it is the only one** | "It needs your decisions joined to your outcomes, labelled over time. That data cannot be bought, scraped or synthesised, because it is produced by running the loop. And it gets more valuable as models commoditize: when everyone reasons equally well, the differentiator is whose context is better." |
 
 **The compounding claim in one sentence, and the only one to close on:** a settled outcome changes what you are shown next, so the system gets better at your judgment the longer you run it, and that is the part no vendor can copy and no model release can absorb.
 

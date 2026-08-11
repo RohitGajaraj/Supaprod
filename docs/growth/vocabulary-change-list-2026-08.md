@@ -28,17 +28,17 @@ Four auditors swept 458 user-visible surfaces across public crawler files, marke
 | File | Line | Current string | Replacement |
 | --- | --- | --- | --- |
 | `public/llms.txt` | 14 | `Seven stations that agents walk unattended, inside boundaries a human sets in advance.` | `Seven stations that agents walk on their own, inside boundaries a human sets in advance.` |
-| `public/llms.txt` | 15 | `**The company brain**: learns, and then guides.` | `**The shared brain**: learns, and then guides.` |
-| `public/llms.txt` | 17 | `You cannot be the company brain without owning the loop that generates the outcomes` | `You cannot be the shared brain without owning the loop that generates the outcomes` |
+| `public/llms.txt` | 15 | `**The brain**: learns, and then guides.` | `**The shared brain**: learns, and then guides.` |
+| `public/llms.txt` | 17 | `You cannot be the brain without owning the loop that generates the outcomes` | `You cannot be the shared brain without owning the loop that generates the outcomes` |
 | `public/llms.txt` | 21 | `one route that agents walk unattended, inside boundaries a human sets in advance.` | `one route that agents walk on their own, inside boundaries a human sets in advance.` |
 | `public/llms.txt` | 40 | `Paste a spec and get it argued against, with receipts.` | `Paste a spec and get it argued against, with evidence.` |
 | `public/llms-full.txt` | 14 | `Seven stations that agents walk unattended, inside boundaries a human sets in advance.` | `Seven stations that agents walk on their own, inside boundaries a human sets in advance.` |
-| `public/llms-full.txt` | 15 | `**The company brain**: learns, and then guides.` | `**The shared brain**: learns, and then guides.` |
-| `public/llms-full.txt` | 17 | `You cannot be the company brain without owning the loop that generates the outcomes` | `You cannot be the shared brain without owning the loop that generates the outcomes` |
+| `public/llms-full.txt` | 15 | `**The brain**: learns, and then guides.` | `**The shared brain**: learns, and then guides.` |
+| `public/llms-full.txt` | 17 | `You cannot be the brain without owning the loop that generates the outcomes` | `You cannot be the shared brain without owning the loop that generates the outcomes` |
 | `public/agents.txt` | 9 | `unattended, inside boundaries a human sets in advance.` | `on their own, inside boundaries a human sets in advance.` |
-| `public/brief.html` | 462 | `03 · The company brain` | `03 · The shared brain` |
+| `public/brief.html` | 462 | `03 · The brain` | `03 · The shared brain` |
 | `public/brief.html` | 544 | `Here is the receipt` | `Here is the evidence` |
-| `public/brief.html` | 566 | `The moat · the company brain` | `The moat · the shared brain` |
+| `public/brief.html` | 566 | `The moat · the brain` | `The moat · the shared brain` |
 | `public/brief.html` | 586 | `keep the receipts` | `keep the evidence` |
 
 ### Marketing routes
@@ -47,7 +47,7 @@ Four auditors swept 458 user-visible surfaces across public crawler files, marke
 | --- | --- | --- | --- |
 | `src/routes/index.tsx` | 85 | `"Supaprod is an AI product team for product managers: agents that discover, decide, build, and ship, governed by one human who gets the receipts.",` | `"Supaprod is an AI product team for product managers: agents that discover, decide, build, and ship, governed by one human who gets the evidence.",` |
 | `src/routes/index.tsx` | 146 | `2. The operating system: runs the whole lifecycle. Seven stations agents walk unattended, inside boundaries a human sets in advance.` | `2. The operating system: runs the whole lifecycle. Seven stations agents walk on their own, inside boundaries a human sets in advance.` |
-| `src/routes/index.tsx` | 147 | `3. The company brain: learns, and then guides. Tells you what is right next time, and warns before you repeat what was wrong.` | `3. The shared brain: learns, and then guides. Tells you what is right next time, and warns before you repeat what was wrong.` |
+| `src/routes/index.tsx` | 147 | `3. The brain: learns, and then guides. Tells you what is right next time, and warns before you repeat what was wrong.` | `3. The shared brain: learns, and then guides. Tells you what is right next time, and warns before you repeat what was wrong.` |
 | `src/routes/index.tsx` | 155 | `That loop runs unattended and is bounded:` (only this clause changes in the paragraph) | `That loop runs on its own and is bounded:` |
 | `src/routes/index.tsx` | 158 | `- Trust ledger: /proof (publishes our calibration score live, including an honest zero until outcomes land)` | `- Track record: /proof (publishes our calibration score live, including an honest zero until outcomes land)` |
 | `src/routes/demo.tsx` | 37 | `"Walk through a real teardown, a real decision ledger, and a real mission trace. No account needed.";` | `"Walk through a real teardown, a real decision history, and a real mission trace. No account needed.";` |
@@ -72,7 +72,7 @@ Four auditors swept 458 user-visible surfaces across public crawler files, marke
 | File | Line | Current string | Replacement |
 | --- | --- | --- | --- |
 | `src/components/landing/Receipts.tsx` | 81 | `Receipts,` | `Evidence,` |
-| `src/components/landing/ThreeLayers.tsx` | 123 | `the company brain` | `the shared brain` |
+| `src/components/landing/ThreeLayers.tsx` | 123 | `the brain` | `the shared brain` |
 
 > `src/components/landing/Receipts.test.ts:90` asserts the old string. Update the ratchet in the same commit.
 
@@ -94,8 +94,8 @@ Four auditors swept 458 user-visible surfaces across public crawler files, marke
 | `src/components/observe/GauntletMetricsPanel.tsx` | 195 | `ran unattended,` | `ran on its own,` |
 | `src/components/obsidian/build-status.ts` | 91 | `RUNNING UNATTENDED` | `RUNNING ON ITS OWN` |
 | `src/components/supaprod/BriefDeck.tsx` | 236 | `You meet the result and its receipt, not the prompts,` | `You meet the result and its evidence, not the prompts,` |
-| `src/components/supaprod/BriefDeck.tsx` | 245 | `The company brain learns, then guides.` | `The shared brain learns, then guides.` |
-| `src/components/connections/AccountConnectionsSection.tsx` | 1041 | `Connect it once and what it syncs starts feeding the company brain.` | `Connect it once and what it syncs starts feeding the shared brain.` |
+| `src/components/supaprod/BriefDeck.tsx` | 245 | `The brain learns, then guides.` | `The shared brain learns, then guides.` |
+| `src/components/connections/AccountConnectionsSection.tsx` | 1041 | `Connect it once and what it syncs starts feeding the brain.` | `Connect it once and what it syncs starts feeding the shared brain.` |
 | `src/components/discover/OpportunityDetailSheet.tsx` | 1304 | `Challenge it and the teardown lands on the record, with its receipts attached.` | `Challenge it and the teardown lands on the record, with its evidence attached.` |
 | `src/components/ship/WhatShipped.tsx` | 563 | `No test receipt. Nothing records which tests ran for this release, so this document does not claim any did.` | `No test evidence. Nothing records which tests ran for this release, so this document does not claim any did.` |
 | `src/components/ship/WhatShipped.tsx` | 814 | `The receipts` | `The evidence` |

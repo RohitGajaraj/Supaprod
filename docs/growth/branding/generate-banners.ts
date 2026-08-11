@@ -488,7 +488,7 @@ function strip(w: number, h: number, id: string) {
  * visitor who reads category plus claim still does not know what gets built.
  *
  * The lifted word is `guide the next call` and not an arbitrary one: per
- * CLAUDE.md the company brain is the only layer defensible on its own, and it is
+ * CLAUDE.md the brain is the only layer defensible on its own, and it is
  * the beat the instrument's lit return path from 07 LEARN actually draws.
  */
 const HOOK_BLOCK = (D: number) => `
@@ -513,7 +513,7 @@ const HOOK_BLOCK = (D: number) => `
 //
 // Three beats, 49 characters, and both ends of the loop survive: knows what to
 // build is the director, ships it is the operating system, learns what worked is
-// the company brain. `Learns what worked` takes the weight because it is the
+// the brain. `Learns what worked` takes the weight because it is the
 // only one of the three a competitor cannot also claim.
 const SPINE_BLOCK = (D: number) => `
   <div style="width:${(34 * D).toFixed(0)}px;height:${(2.6 * D).toFixed(1)}px;background:${P.ember}"></div>

@@ -179,7 +179,7 @@ paths. Move the cursor down to rest on the last one, the **migration** (`supabas
 above a **`VALIDATED`** row, both fully visible.
 
 **18. SAY**
-> "Layer three is the company brain. Completed checkouts went from fifty-nine percent to seventy-eight.
+> "Layer three is the brain. Completed checkouts went from fifty-nine percent to seventy-eight.
 >
 > And the same release on tablets barely moved, so the row above the win says needs revision. Nobody rounded
 > it up.

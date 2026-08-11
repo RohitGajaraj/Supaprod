@@ -44,7 +44,7 @@ This file is the front door: what the product is, why it holds, and where every 
 
 **Why the order is not arbitrary.** The door is who it is for, so it earns attention. The body is what it does, so it earns belief. The brain is why it wins, so it earns the close. Leading with the brain sounds like a database; leading with the door and never reaching the brain sounds like a workflow tool.
 
-**Why all three have to be one product**, which is the earned insight and the answer to "isn't this three companies": *you cannot be the company brain without owning the loop that generates outcomes, and you cannot run the loop without being the operating system.* Each layer is the precondition for the next. Ship any one alone and it is a feature.
+**Why all three have to be one product**, which is the earned insight and the answer to "isn't this three companies": *you cannot be the brain without owning the loop that generates outcomes, and you cannot run the loop without being the operating system.* Each layer is the precondition for the next. Ship any one alone and it is a feature.
 
 This maps onto YC's own three Requests for Startups, which is confirmation rather than strategy: "Cursor for Product Managers" (the door), "The AI Operating System for Companies" (the body), "Company Brain" (the brain). **"Company brain" is YC's phrase, quoted and attributed, never our brand identity.** Our owned words are the forecast captured at decision time, the decision brain, and the evidence behind every call. _(Corrected 2026-08-11: this line previously claimed "the outcome ledger" and "the receipts" as owned words. Both are retired — they score 0.2 and 3.0 per million in this market's own writing, and the ledger claim was falsified separately. The "Company brain" sentence before this one is a deliberate quotation of YC and stays.)_ Canonical memo: [`docs/pitch/repositioning-2026-07-22.md`](./docs/pitch/repositioning-2026-07-22.md).
 
@@ -173,7 +173,7 @@ The moat is not one thing, it is **the third layer resting on the first two**. E
 | --- | --- | --- |
 | **01 The director** | **No, and we should say so.** | Ranking what to build is a *capability*, not an asset. A frontier model plus a well-written prompt plus access to the same signals gets most of the way there, and gets closer with every model release. **Anyone can rank; the question is whether the ranking is any good, and that is answered by outcomes rather than by the ranker.** Which is why 01 is a door, not a moat: it is what earns the first ten minutes, and it is the layer we would lose first if we tried to defend it. |
 | **02 The operating system** | **Partly, and only for a while.** | The loop, the gates, the tenancy model and the tamper-evident record are genuine engineering: months of it, and the reason autonomy is safe enough to sell. But it is *buildable*. A well-funded incumbent with distribution can construct the same route, and Notion has already shipped copy describing part of it. So the honest read is that 02 buys a lead measured in quarters, not a permanent position. **Its real job is to be the precondition for 03.** |
-| **03 The company brain** | **Yes, and it is the only one.** | It requires **your** decisions, joined to **your** outcomes, labelled over time. That data does not exist anywhere to be bought, cannot be scraped, and cannot be synthesised, because it is *produced as a byproduct of running the loop*. A competitor cannot acquire it, a model release cannot absorb it, and a customer who has run six months of decisions through it holds something their competitor does not. It also gets **more** valuable as the model layer commoditizes, because when everyone has the same reasoning, the differentiator is whose context is better. |
+| **03 The brain** | **Yes, and it is the only one.** | It requires **your** decisions, joined to **your** outcomes, labelled over time. That data does not exist anywhere to be bought, cannot be scraped, and cannot be synthesised, because it is *produced as a byproduct of running the loop*. A competitor cannot acquire it, a model release cannot absorb it, and a customer who has run six months of decisions through it holds something their competitor does not. It also gets **more** valuable as the model layer commoditizes, because when everyone has the same reasoning, the differentiator is whose context is better. |
 
 **Read the table as one sentence:** we are honest that two of our three layers are copyable, because that is what makes the claim about the third one credible.
 
@@ -218,7 +218,7 @@ Full canon, the integrate/absorb/race/ignore reasoning per competitor, and the o
 | **Memory** | decays | persistent | shared across the team | plus governance and audit |
 | **Your tools** | **up to 3 connectors, read-only** | **unlimited connectors, read-only** | **unlimited, and writes back** | that, plus **custom connectors built for you** |
 
-**What "your tools" means, concretely.** Supaprod is only useful if it reads what you already have, so connecting a source is one OAuth click and never a key you paste into a config file. Nineteen providers ship today across the four things layer 01 needs:
+**What "your tools" means, concretely.** Supaprod is only useful if it reads what you already have, so connecting a source is one OAuth click and never a key you paste into a config file. **Ten providers have a working adapter today:** GitHub, GitLab, Slack, Intercom, Zendesk, Canny, Productboard, Salesforce, HubSpot and Stripe. **Eleven more are registered but stubbed**, including Linear, Notion, Jira, Figma and Gmail (`src/lib/connectors/providers/index.server.ts`), so do not imply they work. Across the four things layer 01 needs:
 
 | What it needs | Connects to |
 | --- | --- |
@@ -273,7 +273,7 @@ Full model, unit economics, and the BYOK stance (an advanced option from Busines
   Support line: "One agentic operating system, every call on the record."
   Journey kicker: `signal -> shipped -> remembered`.
   > **This string predates the learns-and-guides ruling above and loses to it on any public surface.** The live product already moved: the landing hero reads "Agents that own outcomes. Not just output." and `src/routes/index.tsx` carries "…ship it, and guide the next call." Restating the ratified wording across [`docs/pitch/`](./docs/pitch/README.md) is open work and needs the founder, so it is flagged here rather than silently rewritten. Until it lands, ship the guiding form.
-- **The three layers, always named and colored:** 01 the director (tells you what to build, marigold `#e8b44c`) · 02 the operating system (runs the whole lifecycle, blue) · 03 the company brain (learns, then guides, green).
+- **The three layers, always named and colored:** 01 the director (tells you what to build, marigold `#e8b44c`) · 02 the operating system (runs the whole lifecycle, blue) · 03 the brain (learns, then guides, green).
 - **The brain compounds.** Next time it tells you what is right, and warns before you repeat what was wrong. Never say "where the record lives": that framing hands away the one part of this that is defensible.
 - **Public launch date on every external surface: mid-September 2026.**
 - **Market sizing ladder:** TAM $300B+/yr (2.6M PMs x ~$115K loaded). SAM $2B to $12B/yr. SOM ~$47M ARR. Arithmetic in the deck appendix B.
@@ -295,7 +295,7 @@ Full model, unit economics, and the BYOK stance (an advanced option from Busines
 | **Public launch** | **mid-September 2026** |
 | **Built** | 1,440 source files · 79 authenticated routes · 151 server-function modules · 462 migrations · 402 test files, 7,159 passing |
 | **Open work** | 31 register rows. 371 shipped. |
-| **Engine warmth** | 133 missions · 72 decisions · 49 learnings, on founder data, with outcome-reinforced ranking live |
+| **Production data** | **6 workspaces, all founder or test accounts. No customer data at all.** 18 missions · 5 decisions · **0 learnings.** The loop is wired and proven; it begins accruing on first real use. Query: `production_workspace_ids()`. |
 | **Team** | Solo founder. No entity incorporated yet. US-primary. |
 
 **Why no users yet, said as the decision it was.** A half-built loop teaches you the wrong thing. The whole claim is that the loop *closes*, that a shipped outcome changes what you are shown next, and you cannot validate that with a partial loop; you get feedback on a demo instead of on the thesis. The loop closes now.

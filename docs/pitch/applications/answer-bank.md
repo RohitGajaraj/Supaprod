@@ -21,7 +21,7 @@
 | Commits | **4,878** _(2026-08-10 23:55)_ | `git rev-list --count origin/main` ← **origin/main, not HEAD.** HEAD counts whichever lane branch you are on and drifts from the real total |
 | Migrations | **508** _(2026-08-10)_ | `ls supabase/migrations/*.sql \| wc -l` |
 | Build duration | **9 weeks** _(founder-set start: first week of June 2026)_ | count from 2026-06-07; not derivable from git |
-| Feature register | 401 specced / 362 shipped | `scripts/dashboard-tally.sh` |
+| ~~Feature register~~ | **DO NOT USE** | The register has not been maintained since `2026-08-04`, and `scripts/dashboard-tally.sh` **does not exist in the repo**. Volume claims are dropped outward; the demo login is the evidence. |
 | Homepage counters (strict, public) | 83 missions run · 26 decisions recorded · 16 outcomes graded · 840 AI calls | render live on supaprod.ai |
 | External paying users | **0** | fact |
 | Revenue | **$0** | fact |
@@ -123,7 +123,7 @@ Agents do the work. You answer for it. Supaprod is how you answer.
 ### The three layers (name and order them, always door then body then brain)
 - **01 The director.** Tells you what to build.
 - **02 The operating system.** Runs the whole lifecycle.
-- **03 The company brain.** Remembers, and it guides.
+- **03 The brain.** Remembers, and it guides.
 
 > The brain is never storage. Banned framing: "where the record lives." It compounds; next time it tells you what is right, and warns before you repeat what was wrong.
 

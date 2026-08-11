@@ -50,7 +50,7 @@ Of 51 commits since Jul 12: zero touched a launch surface. Jul 12 evening went t
 ## 5. Standing facts every future session should carry
 
 - Production is current: all migrations applied, app published, verifier armed, `credits_enabled` ON.
-- 8 users total, all internal. Zero external. Engine warm on founder data (133 missions, 72 decisions, 2,162 governed AI calls at last count — re-pull live numbers before quoting outward).
+- **Zero external users.** **6 workspaces, all founder or test accounts. No customer data at all.** 18 missions · 5 decisions · **0 learnings.** The loop is wired and proven; it begins accruing on first real use. The earlier engine-warmth figures were seed data and are retired (`../pitch/verified-numbers.md`).
 - The demo path for strangers exists TODAY: `/demo` (read-only real workspace) + `/p/teardown` (paste-your-bet Critic teardown). The landing page's job is to route people into them.
 - No waitlist exists in code. Any copy promising queue mechanics is describing an unbuilt thing.
 - Nothing outward has been sent, posted, or published. The HN/PH cards remain unspent.

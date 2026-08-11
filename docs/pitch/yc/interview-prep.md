@@ -24,7 +24,7 @@
 ## 2. The numbers card (memorize cold; refresh the morning of)
 
 - Build: [3,400+] commits in [8] weeks · [320] DB migrations · register [385] specced / [293] shipped · outside AI code audit held
-- Engine (live DB): [133] missions · [129] agent runs · [72] decisions with outcome checks · [2,162] AI events through one chokepoint
+- **Production (ownership-derived, 2026-08-11):** **6 workspaces, all founder or test accounts. No customer data at all.** 18 missions · 5 decisions · **0 learnings.** The loop is wired and proven; it begins accruing on first real use. **Do not quote an engine-warmth number; every prior one was seed data** (`../verified-numbers.md`)
 - Users: [N] beta users since [date] · [M] discovery calls · week-2 return [X]% · launch status [true state that morning]
 - Money: revenue [$0 / first $X] · pricing: workspace subscription + usage credits · free tier 750 credits
 - Market: PM software ~$8B · AI dev tools ~$10B+ and merging · Devin $37M→$492M ARR in 12 months, Cursor $2B (why the build layer commoditizes)
