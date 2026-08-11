@@ -33,6 +33,26 @@ It was stranded rather than merely unpushed: local `main` was **15 behind and 1 
 - **`teaser-video-plan.md` §0.2 is stale and reads as open.** The `/proof` seeded-data leak is **already closed**: `SEEDED_CLONE_IDS` in `proof-surface.functions.ts` lists all six Helio clones, closed 2026-08-07. §0.1, settling one real outcome, is **still unverified** because Lovable's `query_database` was returning 499 on every call including `SELECT 1`, while `get_me`, `list_projects` and `get_database_status` all worked.
 - **Video is not Lane 1's.** A judged creative panel (`wf_ccbb05a5-fa8`) produced a teaser treatment and it has been handed to the main lane, which owns the call on it.
 
+### ⚠️ NEEDS THE FOUNDER: is "the operating system" retired as the name of layer 02, or only as the lead?
+
+**Not swept, deliberately, because sweeping it would be inventing vocabulary rather than applying a ruling.**
+
+[`../strategy/positioning-locked-2026-08.md`](../strategy/positioning-locked-2026-08.md) §203 lists **`operating system`** in the *Never* column for public surfaces, and §236 records the 2026-08-11 ruling that the line is **"retired EVERYWHERE, including machine-readable surfaces."** By that reading these are live misses:
+
+| Surface | |
+| --- | --- |
+| `public/llms.txt` and `public/llms-full.txt` | lines 14, 17, 29 in each. **These are literally the machine-readable surfaces the ruling names.** |
+| `public/brief.html` | 457 `02 · The operating system` · 537 `The operating system, live` · 755 `It is a new operating system for product.` |
+| `src/routes/index.tsx` | 146, the layer-02 line on the landing page |
+
+**But the same phrase is still the layer's name in the canon, written after the ruling:** [`../../README.md`](../../README.md) line 175 (`02 The operating system`) and line 276, which is a **design contract** instruction reading *"The three layers, always named and colored: 01 the director … 02 the operating system (runs the whole lifecycle, blue) … 03 the brain"*. `CLAUDE.md` repeats it in its own three-layer summary.
+
+**So either the layer name is an intentional survivor and the ban applies to the lead, or it is a systemic miss across the README, `CLAUDE.md`, the design contract, the landing page and both machine-readable files.** There is **no approved replacement noun** anywhere in the canon, and renaming a layer is a positioning decision rather than a cleanup.
+
+**One piece of evidence says it is a genuine miss:** [`../growth/vocabulary-change-list-2026-08.md`](../growth/vocabulary-change-list-2026-08.md) line 49 shows the sweep rewriting that exact sentence to fix *unattended* while leaving *operating system* untouched in both the before and the after. The sweep had the string in its hands.
+
+> **Checked and NOT a defect: `public/robots.txt:8` `Disallow: /trust-ledger`.** The retired-URL stub's own header names `public/*.txt` as references to clear, but that line should **stay**: the URL still resolves as a 301 and must not be indexed, and `/track-record` is already disallowed on line 7. Clearing it would let a crawler index the redirect.
+
 ---
 
 ## ✅ LANE 0 SESSION CLOSED — 2026-08-11. Everything is on `main`, tree clean, zero divergence.
