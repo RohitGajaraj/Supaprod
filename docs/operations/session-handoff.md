@@ -1,6 +1,19 @@
 # Pick up here
 
-> _Created: 2026-08-07 · Last updated: 2026-08-11_
+> _Created: 2026-08-07 · Last updated: 2026-08-12_
+
+## Current session — 2026-08-12 (resumed from context-break)
+
+**Security review completed** (12 HTML composition files in videos/supaprod-film/compositions/frames/; all cosmetic/visual changes, no security-critical paths).
+
+**YC application refresh & G1.1 blocker:**
+1. ✅ Updated moving numbers in verified-numbers.md and APPLICATION-FINAL.md: **5,063 commits, 519 migrations** (was 4,950/510)
+2. ✅ **G1.1 blocker test added** (`src/lib/entitlements.test.ts`): Ensures `memory_expiry_enabled()` gate stays OFF for Free tier at launch. Test fails loudly if flipped without founder approval. Protects moat: if gate is ON, Free users' 30-day memory expiry begins silently.
+3. 📋 Created action-item summary for founder: 5 fields need input (7d demo video <2:15, 8a what-comes-next sentence, 9a discovery call count, 3b ISRO description, 3c prior builds), 1 needs ruling (AI-built framing extent).
+
+**Next:** Founder provides demo video + fills application fields, or work proceeds to G1.4 outcome settlement on real workspace.
+
+---
 
 ## ✅ LANE 0 SESSION CLOSED — 2026-08-11. Everything is on `main`, tree clean, zero divergence.
 
