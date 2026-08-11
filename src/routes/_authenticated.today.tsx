@@ -677,13 +677,20 @@ function Today() {
    * ready for your review. Nothing is stuck." — which is exactly the claim the
    * paragraph above forbids, made from a read that refused.
    *
-   * It returns the surface's name rather than a sentence of its own, matching
-   * `queue.isError` in effect but not in voice. A dedicated line — the parallel
-   * to "Your review queue did not load." — would be better product and is a copy
-   * decision, deliberately left rather than invented here.
+   * EACH FAILED READ NOW NAMES ITSELF, which is the copy decision that was left
+   * open above. "Today" is what the surface says while it is still counting; it
+   * is the wrong answer once a read has come back refused, because the person is
+   * looking at a page that will never fill in and nothing tells them why. The
+   * two reads carry different halves of the morning -- `queue` is what needs a
+   * decision from you, `missions` is what the crew did overnight -- so which one
+   * died changes what you do next, and the both-failed case says so rather than
+   * picking a winner and hiding the other.
    */
   const headline = React.useMemo(() => {
-    if (loading || missions.isError) return "Today";
+    if (loading) return "Today";
+    if (missions.isError && queue.isError)
+      return "Neither your run record nor your review queue loaded.";
+    if (missions.isError) return "Your run record did not load.";
     if (queue.isError) return "Your review queue did not load.";
     if (justLanded && criticResult) return "Your first brief is ready.";
     return stateSentence({ ready: items.length, stuck: stuck.length, shipped: shipped.length });
@@ -805,7 +812,23 @@ function Today() {
           <Lane
             name="Ready for your review"
             waiting={
-              queue.isError ? (
+              /* THIS LINE AND THE BODY TWELVE LINES DOWN USED TO CONTRADICT EACH
+                 OTHER, on every ordinary cold load. The body has always asked
+                 all three questions in order -- reading, failed, then content --
+                 while this summary asked only two: `queue.isError`, then
+                 `items.length === 0`. An unread queue is not an error and has no
+                 items, so it fell to the second arm, and the lane rendered
+                 "Nothing is waiting on you." directly above "Reading what needs
+                 you." One lane, two adjacent elements, opposite claims, and the
+                 wrong one was the one in the larger type.
+
+                 It is null rather than a sentence of its own while the read is
+                 in flight, deliberately: the body already says what is
+                 happening, and `Block` drops a null `sub` entirely rather than
+                 leaving a gap. Repeating it here is the case its own doc calls
+                 hard ban 10 -- label, sublabel and helper all saying the same
+                 thing. */
+              stillWaiting(queue) ? null : queue.isError ? (
                 "This could not be read."
               ) : items.length === 0 ? (
                 "Nothing is waiting on you."

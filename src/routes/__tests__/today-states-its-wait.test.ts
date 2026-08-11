@@ -201,24 +201,46 @@ describe("Today never prints a claim it has not read yet", () => {
     // reading "Reading..." is the surface talking about itself, and the date is a
     // true fact the person came in already holding.
     //
-    // ASSERTED AS A RULE RATHER THAN AS A CHARACTER SEQUENCE, because the literal
-    // pin `/if \(loading\) return "Today";/` broke on 2026-08-11 for a change that
-    // STRENGTHENED the very property it was protecting. `stillWaiting` was fixed
-    // to stand down on a failed read; that removed the accident by which a cold
-    // `missions` failure had kept `loading` true for ever, so the guard had to
-    // widen to keep the headline off a count it could not make. A test that fails
-    // when its own rule is better enforced is measuring the spelling.
-    const branch = src.match(/if \(([^)]*)\) return "Today";/);
-    expect(branch, 'the headline no longer opens with a branch returning "Today"').not.toBeNull();
+    // ASSERTED AS A RULE RATHER THAN AS A CHARACTER SEQUENCE, and this test has
+    // now had to learn that lesson TWICE.
+    //
+    // The first version pinned the literal `/if \(loading\) return "Today";/`
+    // and broke on 2026-08-11 for a change that STRENGTHENED the property it
+    // protected: `stillWaiting` was fixed to stand down on a failed read, which
+    // removed the accident by which a cold `missions` failure had kept `loading`
+    // true for ever, so the guard widened to `loading || missions.isError`.
+    //
+    // Its replacement pinned `missions.isError` to the INSIDE of that same
+    // branch -- and broke the same afternoon, for the same kind of change. The
+    // headline stopped hiding a failed read under the surface's own name and
+    // started saying which read died, so `missions.isError` moved out of the
+    // "Today" branch into a sentence of its own. Better product, and the guard
+    // called it a regression. Pinning the branch was still measuring a shape.
+    //
+    // THE RULE IS ABOUT ORDER, NOT ABOUT SHAPE: whatever the headline does with
+    // a failed read, it must deal with it BEFORE reaching `stateSentence`, which
+    // counts and cannot tell a zero it read from a zero it never got.
+    const memo = src.match(/const headline = React\.useMemo\(\(\) => \{([\s\S]*?)\n {2}\}/);
+    expect(memo, "the headline is no longer a useMemo with a statement body").not.toBeNull();
+    const body = memo![1];
 
-    // `loading` covers "has not answered yet".
-    expect(branch![1]).toContain("loading");
+    // Still says the surface's name while it counts, rather than "Reading...".
+    expect(body).toMatch(/if \([^)]*loading[^)]*\) return "Today";/);
 
-    // `missions.isError` covers "answered with a failure". Two of the three
-    // counts in `stateSentence` — stuck and shipped — come from `missions`, and
-    // a zero there reads as "nothing happened" rather than as "not known". Drop
-    // this and a failed read prints "Nothing is stuck." as a fact.
-    expect(branch![1]).toContain("missions.isError");
+    // Every read the sentence counts has to be answered for first. Two of the
+    // three counts in `stateSentence` -- stuck and shipped -- come from
+    // `missions`, and the third from `queue`; a zero from either reads as
+    // "nothing happened" rather than as "not known".
+    const sentenceAt = body.indexOf("stateSentence(");
+    expect(sentenceAt).toBeGreaterThan(-1);
+    for (const read of ["missions.isError", "queue.isError"]) {
+      const guardAt = body.indexOf(read);
+      expect(guardAt, `${read} is never consulted in the headline`).toBeGreaterThan(-1);
+      expect(
+        guardAt,
+        `${read} is consulted only after stateSentence has already counted it`,
+      ).toBeLessThan(sentenceAt);
+    }
   });
 });
 
