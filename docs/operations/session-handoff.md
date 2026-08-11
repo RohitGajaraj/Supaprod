@@ -51,6 +51,14 @@ The application said *119 lessons recorded, 38 where it decided the verdict itse
 
 **Needs the founder and nothing else can resolve it:** "13 months" appears **sixteen times** and some of it is biography rather than product. *"I spent 13 months building the other thing"* reads as a previous product and may be true. The two product-runtime sentences are fixed; **the other fourteen are left alone and need his eye**, especially the subject line *"13 months of agents running a product org"* and the title *"I recorded every product decision I made for 13 months."*
 
+### What else was swept while the founder slept, 2026-08-11
+
+- **The falsified moat claim was still live in five paste-able places**, including the YC application's own SUBMIT SHEET, 500 lines below a note saying that answer needed rewriting. **A correction block above a passage does not stop the passage shipping**, and a file that greps positive for "Falsified" reads as handled and is not. All five now say the surviving thing: the part a competitor cannot rebuild is what the team believed would happen before they found out.
+- **Forty-five files in `docs/growth/` and `docs/pitch/` are off the retired vocabulary**, plus seven in `docs/strategy/` and the SSOT. The investor deck had seven instances in visible copy including a whole thesis line; rewritten and verified by comparing the parsed tag stream before and after, 1269 events, identical.
+- **`positioning-locked-2026-08.md` carried both the retired register table and the ruling that killed it.** The table listed **audit trail** under *Never* for public surfaces, and audit trail is on the keep list. Struck through, with `AGENTS.md` rule 3 named as the single source.
+- **Deliberately not swept:** `session-decisions.md`, `strategic-inputs-log.md`, everything under `archive/`, and `docs/pitch/trust-ledger-launch-plan.md`. Records of what was decided, in the words used at the time. Also **`provenance` stays in code**, per Lane 1: `getProvenance` is a contract, and the ruling is about what we say to buyers.
+- **Still open and routed to Lane 1/2: the live `/trust-ledger` route.** `src/routes/_authenticated.trust-ledger` plus the generated route tree. A URL a signed-in user reads, carrying the one term that scores **exactly zero** per million. Needs a redirect, so it is a real change rather than a sweep item.
+
 ### The two rules this establishes
 
 1. **A number quoted outward carries its query, or it does not go.** None of the three had recorded SQL anywhere in the repo, which is why the file could tell the founder to "confirm them the same morning" and give him no way to do it.
