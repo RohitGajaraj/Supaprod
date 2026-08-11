@@ -69,12 +69,92 @@ export function removeExchange(prev: AskStreamMsg[], msgId: string): AskStreamMs
 }
 
 /**
- * Hydration prepends history (never replaces) so an exchange the user
- * started before history landed is kept; stream frames patch by id, so
- * prepending under a live stream is safe.
+ * How close in time two rows must be before identical text is read as ONE
+ * message seen twice rather than as somebody asking the same thing again.
+ *
+ * Two minutes is chosen against the thing being measured: the gap between a
+ * client minting an optimistic row and the server's copy of that same row
+ * coming back through hydration. That is a network round trip plus a write, so
+ * it is seconds, and two minutes is roughly two orders of magnitude of headroom
+ * for a slow connection and a skewed clock. It is also far below the gap
+ * between a person asking one question and deciding to ask it again in the same
+ * words, which is the only case this could ever get wrong.
+ */
+const SAME_MESSAGE_WINDOW_MS = 120_000;
+
+/**
+ * HYDRATION PREPENDS HISTORY, AND SINCE 2026-08-11 IT NO LONGER PREPENDS THE
+ * MESSAGE YOU JUST SENT.
+ *
+ * THE DEFECT, in the founder's words: *"If I type anything or if the user gives
+ * an input, every input gets recorded twice in the conversation pane, and it
+ * gets displayed. It's not proper. Something is buggy."*
+ *
+ * THE RACE. `use-ask-stream` runs a hydration query gated on
+ * `messages.length === 0`, which is evaluated when the query is CREATED and does
+ * not cancel a request already in flight. So:
+ *   1. the pane opens on a stored conversation, the thread is empty, hydration
+ *      starts, and the request is on the wire;
+ *   2. before it lands, the person sends. `appendExchange` optimistically adds
+ *      their turn with a locally minted id, `u-<timestamp>`, and `/api/chat`
+ *      writes that same turn to the conversation server side;
+ *   3. hydration resolves, carrying the server's copy of the turn just written;
+ *   4. this function spliced the whole server list in front of local state and
+ *      de-duplicated nothing, so both copies survived. Their ids differ, one
+ *      local and one a uuid, so React keys never collided and both rendered.
+ *
+ * It reproduces on EVERY open, not once: the pane unmounts when closed, so
+ * `messages` and the hook's `hydratedRef` are fresh on each summon, and the
+ * whole race runs again. Anybody who types straight after pressing Cmd+K sees
+ * it; anybody who waits a second never does, which is why it looked
+ * intermittent.
+ *
+ * THE RECORD WAS NEVER WRONG. One row was written and one row exists. This is a
+ * client-side merge defect, and this function is where the merge lives.
+ *
+ * WHY NOT THE OBVIOUSLY CLEANER FIX. The right answer is for the optimistic row
+ * to ADOPT the server's id once the write returns, after which a union by id
+ * collapses the two with no inspection of content at all. `/api/chat` does not
+ * surface that id: it persists the user turn itself and its SSE response
+ * contract is locked, so the ids only ever come back through hydration. Doing it
+ * properly is a server change and belongs in its own pass. This is the correct
+ * fix available on the client today.
+ *
+ * WHY IT DROPS THE SERVER'S COPY RATHER THAN THE LOCAL ONE, which is not
+ * arbitrary. Live stream frames patch by the LOCAL id (`patchMessage` against
+ * `a-<timestamp>`), and `removeExchange` on a retry works off the same ids.
+ * Dropping the local row would strand an in-flight answer with nothing to write
+ * into. The local row is load bearing; the server's copy of it is not.
+ *
+ * WHY A TIME WINDOW AND NOT CONTENT ALONE. Asking the same question twice is a
+ * real thing people do, and matching on text alone would silently swallow the
+ * older one. Pairing text with `SAME_MESSAGE_WINDOW_MS` means the only way to
+ * lose a line is to send character-identical text twice inside two minutes
+ * across a hydration boundary. Even then nothing is destroyed: the record is
+ * untouched and reopening the conversation shows both, because by then there is
+ * no local copy to match against.
+ *
+ * MATCHED ONCE EACH. The pairing is a multiset, so a person who genuinely sent
+ * the same line twice inside the window and has two local copies keeps two.
  */
 export function prependHydrated(prev: AskStreamMsg[], hydrated: HydratedMsg[]): AskStreamMsg[] {
-  return prev.length > 0 ? [...hydrated, ...prev] : [...hydrated];
+  if (prev.length === 0) return [...hydrated];
+  // Each local row may absorb at most one server row, so `claimed` marks the
+  // local rows already spoken for.
+  const claimed = new Set<number>();
+  const history = hydrated.filter((h) => {
+    const i = prev.findIndex(
+      (p, idx) =>
+        !claimed.has(idx) &&
+        p.role === h.role &&
+        p.content === h.content &&
+        Math.abs(p.at - h.at) <= SAME_MESSAGE_WINDOW_MS,
+    );
+    if (i === -1) return true;
+    claimed.add(i);
+    return false;
+  });
+  return [...history, ...prev];
 }
 
 /** Seed the promoted-records map from hydrated rows (receipt chips survive refresh). */

@@ -144,7 +144,7 @@ import {
 } from "@/components/shell/primitives";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import { IconMic } from "@/components/shell/icons";
-import { SuggestionMarquee } from "./SuggestionMarquee";
+import { SuggestionRail } from "./SuggestionRail";
 import { AskSwitcher } from "./AskSwitcher";
 import { AskTurn, toTurns } from "./AskTurn";
 import { approvalsQueueKey, missionsKey } from "@/lib/query-keys";
@@ -193,6 +193,19 @@ function AskPaneOpen() {
     boxWrap.current?.querySelector("textarea")?.focus();
   }, []);
   const bodyRef = React.useRef<HTMLDivElement | null>(null);
+  const paneRef = React.useRef<HTMLElement | null>(null);
+  /**
+   * WHETHER THE PERSON IS ALREADY SOMEWHERE ELSE.
+   *
+   * A pane that took focus owes it back, which is what the cleanup below does.
+   * But an outside CLICK has already put the person somewhere specific, and
+   * yanking focus back to the control that opened Ask would undo the click they
+   * just made. So the restore happens for every dismissal EXCEPT that one, which
+   * is exactly the keyboard-versus-pointer split it needs to be: Escape, the
+   * Close control and a route change all return focus, and only the gesture that
+   * names its own destination does not.
+   */
+  const leftByPointer = React.useRef(false);
 
   const resume = ask.resume;
   const stream = useAskStream({
@@ -297,9 +310,76 @@ function AskPaneOpen() {
     });
     return () => {
       cancelAnimationFrame(raf);
+      if (leftByPointer.current) return;
       if (opener && document.body.contains(opener)) opener.focus();
     };
   }, [focusBox]);
+
+  /**
+   * A CLICK OUTSIDE COLLAPSES IT, WHICH IS WHAT A SIDE PANE OWES.
+   *
+   * FOUNDER RULING, 2026-08-11, and it is the half of dismissal this pane never
+   * had: *"when I click my mouse cursor somewhere outside, it should collapse if
+   * it is a left pane. If it is opening in a full-sized window or pop-up-like
+   * window, then Escape or a close button should be fine."* Until now the only
+   * ways out were Escape and the Close control, so a person who was finished
+   * with Ask and reached for the work behind it got nothing, twice, and then
+   * went looking for a button.
+   *
+   * IT IS THE MATCHING GESTURE FOR THE SHAPE WE CHOSE. This surface stayed a
+   * side pane rather than becoming a centred modal (see the geometry note on the
+   * `aside` below), and light dismissal is what a side pane trades for keeping
+   * the page behind it live. A modal earns Escape and an explicit control
+   * BECAUSE it has taken the screen; a pane that has taken nothing must let go
+   * the moment attention moves.
+   *
+   * `pointerdown` RATHER THAN `click`, and the difference is real: a click fires
+   * only if press and release land on the same element, so dragging a selection
+   * out of the pane and releasing on the page would not dismiss, and a press
+   * that lands on something the page removes never dismisses at all. Pointerdown
+   * is the moment attention moved, which is the thing being detected.
+   *
+   * WHAT IT STANDS DOWN FOR, and each of these is a real surface that would
+   * otherwise close the pane underneath itself:
+   *   · the pane, obviously, including anything it renders inline;
+   *   · the two doors that OPEN Ask. Without this the header control and the
+   *     dock row become dead: pointerdown closes the pane and the click that
+   *     follows immediately reopens it, so pressing the visible Ask button
+   *     appears to do nothing at all;
+   *   · the lineage sheet, which is summoned FROM this pane, takes its exact
+   *     geometry and covers it. Dismissing Ask on the press that traces a record
+   *     would destroy the conversation that asked for the trace;
+   *   · anything modal or floating above, which owns its own dismissal. A menu,
+   *     a popover, a dialog and a select all render outside this subtree.
+   *
+   * NOTHING IS LOST BY CLOSING. The conversation is persisted server side and
+   * the session pointer survives, so reopening comes back to it, which is the
+   * same contract Escape has had since 2026-07-30.
+   */
+  React.useEffect(() => {
+    const KEEPS_IT_OPEN = [
+      '[data-testid="ask-pane"]',
+      ".sp-askbtn",
+      '[data-testid="ask-dock"]',
+      ".sp-lineage",
+      '[role="dialog"]',
+      '[role="alertdialog"]',
+      '[role="menu"]',
+      '[role="listbox"]',
+      "[data-radix-popper-content-wrapper]",
+    ].join(", ");
+
+    const onDown = (e: PointerEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target || !document.body.contains(target)) return;
+      if (paneRef.current?.contains(target)) return;
+      if (target.closest(KEEPS_IT_OPEN)) return;
+      leftByPointer.current = true;
+      ask.close();
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [ask]);
 
   /**
    * ESCAPE CLOSES THIS PANE, AND STOPS THERE.
@@ -444,8 +524,41 @@ function AskPaneOpen() {
 
   return (
     <aside
-      // COMPLEMENTARY, not a dialog. It sits beside the work rather than over
-      // it, which is the only reason a pane exists in this system at all.
+      /**
+       * COMPLEMENTARY, NOT A DIALOG, AND THE QUESTION WAS ASKED AGAIN AND
+       * ANSWERED THE SAME WAY.
+       *
+       * Founder, 2026-08-11: *"should we also do it like a center pane when we
+       * open it, instead of the ask pane only to a certain portion from the
+       * right side."* He asked; he did not decide. The call is that it stays a
+       * pane, and the reason is this surface's job rather than a preference
+       * about shapes.
+       *
+       * WHAT THE MARKET DOES SPLITS CLEANLY ON ONE LINE, and it is not a split
+       * about screen size (Mobbin, web, 2026-08-11). Every centred surface in
+       * the reference set is a NAVIGATION palette: Magnific, Mistral, Vapi,
+       * Juicebox and StackAI all dim the page because you are LEAVING it, so
+       * hiding it costs nothing. Every surface that answers ABOUT the thing on
+       * screen docks beside it and keeps it lit: Fabric puts its assistant to
+       * the right of the note it is answering on, StackAI's agent rail sits
+       * beside the workflow it is describing. Ask is unambiguously the second
+       * kind. `chipLabel(ask.scope)` and `contextualStarters(scopeKind)` are the
+       * same fact said twice, so what this pane offers is derived from the
+       * surface behind it. A scrim would dim the evidence for its own answer.
+       *
+       * AND ONE FACT DECIDES IT OUTRIGHT: THIS PANE DRAWS GATES. Ask what is
+       * waiting on you and `gatesForAnswer` renders a real approval, settleable
+       * in place. Approving something whose context has been dimmed is the exact
+       * failure this product exists to prevent, so the surface that carries an
+       * approval may not take the screen away from it.
+       *
+       * SO THE SCRIM, THE FOCUS TRAP AND `aria-modal` STAY DELIBERATELY ABSENT,
+       * and dismissal is the pane's rather than the modal's: an outside click
+       * collapses it (the effect above), Escape closes it, Close closes it, and
+       * focus goes back to whatever opened it unless the person's own click has
+       * already said where they want to be.
+       */
+      ref={paneRef}
       role="complementary"
       aria-label="Ask"
       data-testid="ask-pane"
@@ -552,6 +665,10 @@ function AskPaneOpen() {
         ) : stream.messages.length === 0 ? (
           <Opening
             scopeLabel={scopeLabel}
+            // The SAME two inputs `contextualStarters` took, handed on so the
+            // station a suggestion wears is read off the switch that chose it
+            // rather than guessed at from its words.
+            scopeKind={ask.scope?.kinds?.[0] ?? null}
             starters={starters}
             contextual={contextual}
             loading={missions.isLoading}
@@ -811,82 +928,30 @@ function AskPaneOpen() {
  *  - where the conversation goes afterwards, because "is this a chat window or
  *    is this Threads" was the founder's actual question.
  *
- * AND ONE OFFER HOLDS STILL. Every way in used to be a chip in the marquee, and
- * a marquee is deliberately ambient: it travels, it pauses only once you have
- * already reached for it, and its capsules clip at 300px. That is right for
- * thirteen suggestions read out of the corner of an eye and wrong as the ONLY
- * offer on the screen, because it leaves a person on day one looking at a
- * blank composer with the alternatives sliding past it. So the first offer is
- * lifted out of the strip and stands still, full width, at the top: same
- * object, same press, no motion to chase. It is lifted, never copied, so
- * nothing is offered twice, and it is not chosen by this component: it is
- * whatever `starterPrompts` and `contextualStarters` already put first, which
- * is the live run when there is one and the surface's own best question when
- * there is not.
+ * AND EVERY OFFER HOLDS STILL, SINCE 2026-08-11. Every way in used to be a chip
+ * in a marquee, and a marquee is deliberately ambient: it travels, it pauses
+ * only once you have already reached for it, and its capsules are nowrap and
+ * capped at 300px. Measured in a browser that day, that cost more than polish.
+ * Half the offers were ellipsised, the strip's own edge mask cut the rest
+ * mid-word, and where a scope had only four prompts to deal into three rows the
+ * copies a seamless loop needs put the SAME suggestion on screen twice at once.
+ * The founder's verdict on the pane, that day: *"the user experience is not
+ * rendered, not fully done, and not full."*
+ *
+ * So the strip became a rail: grouped, full width, wrapping, stationary, and
+ * each row carrying the station it comes out of. What it DOES is untouched,
+ * which is the part that was never in question: the offers are the same objects
+ * from the same reads, and a press still lands the whole sentence in the
+ * composer. See SuggestionRail.tsx for the reference set behind the shape and
+ * ask-suggestions.ts for why the grouping and the station are derived rather
+ * than decided here.
  *
  * A returning user rarely sees this at all: the pane opens holding the running
  * conversation for this scope, hydrated from the same table Threads reads.
  */
-/** The quiet heading over a group. One line, one job, and it never restates
- *  what the rows under it already say. */
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        fontSize: "var(--sp-text-label)",
-        color: "var(--sp-mute)",
-        fontWeight: 500,
-        marginBottom: "var(--sp-space-2)",
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-/**
- * THE FIRST MOVE, AND IT HOLDS STILL.
- *
- * WHY IT IS A ROW AND NOT A FOURTH MARQUEE ROW. A chip is a capsule: nowrap,
- * clipped at 300px, and travelling. That is the right shape for the thirteen
- * behind it and the wrong one for the offer a person is meant to take first, so
- * this one gets the product's ordinary row instead. It wraps rather than
- * ellipsising, which means a long run title is READ here where the strip could
- * only truncate it, and the subject leads in ink with the question under it in
- * mute, which is the founder's shape ruling of 2026-07-30 ("What is the crew
- * doing on Ship SSO login for Beacon?" buries a nine-word proper noun mid
- * sentence) expressed by the primitive that already does it everywhere else.
- * A local `Suggestion` component used to hand-draw that same two-line split and
- * nothing had rendered it since the marquee landed; `Row`'s lead and sub are
- * it, so it is gone rather than kept as a second way to say one thing.
- *
- * IT IS NOT A NAVIGATION ROW, which this pane's KILL list bans and means. It
- * goes nowhere: it puts its sentence in the composer, where the person can edit
- * it before sending, exactly as a chip does. "That comes into the chat and
- * continues from there."
- *
- * THE DOT SURVIVES THE PROMOTION. A chip for work in motion carries the live
- * blue the shell uses for exactly that; being lifted out of the strip must not
- * cost it, or the stationary offer would say less than the moving one did.
- */
-function FirstMove({ starter, onPick }: { starter: Starter; onPick: (prompt: string) => void }) {
-  return (
-    <div style={{ marginTop: "var(--sp-space-4)" }}>
-      <SectionLabel>Start here</SectionLabel>
-      <Row
-        marks={
-          starter.kind === "running" ? <span className="sp-chip-dot" aria-hidden="true" /> : null
-        }
-        lead={starter.subject ?? starter.question}
-        sub={starter.subject ? starter.question : undefined}
-        onClick={() => onPick(starter.prompt)}
-      />
-    </div>
-  );
-}
-
 function Opening({
   scopeLabel,
+  scopeKind,
   starters,
   contextual,
   loading,
@@ -896,6 +961,8 @@ function Opening({
   onPick,
 }: {
   scopeLabel: string;
+  /** `scope.kinds?.[0]`, the other input `contextualStarters` took. */
+  scopeKind: string | null;
   /** Already grounded. This component never invents one and never pads. */
   starters: Starter[];
   /** The offered questions for THIS surface. Derived from the scope on every
@@ -910,11 +977,18 @@ function Opening({
   onRetry: () => void;
   onPick: (q: string) => void;
 }) {
-  // ONE LIST, AND THE FRONT OF IT STANDS STILL. Grounded prompts already come
-  // first, so lifting the head is how the stationary offer names a live run
-  // when there is one without this component ever choosing which.
+  /* ONE LIST, GROUPED BY WHAT PRESSING IT DOES. Grounded prompts come first out
+     of `starterPrompts`, and the rail keeps that order inside each group, so a
+     live run is still the first thing offered without this component ever
+     choosing which one that is.
+
+     NOTHING IS LIFTED OUT ANY MORE. A "Start here" row used to be promoted above
+     the strip for one reason: the strip moved, and asking somebody to click a
+     travelling target is the worst thing that pattern does. Nothing moves now,
+     so the promotion had become a second way to say one thing, and the group
+     heading says it better: "Work in motion" over a row that names the run beats
+     "Start here" over the same row. */
   const offers = [...starters, ...contextual];
-  const first = offers[0] ?? null;
   return (
     <>
       <div
@@ -936,82 +1010,42 @@ function Opening({
         it, and it becomes a run you watch from here.
       </div>
 
-      {/* INTENT PREVIEW. The two options, shown before anything is typed,
-          so the fork is not invisible until you commit. This is the same
-          vocabulary the footer's Choices uses, drawn as a visual label
-          rather than a control: the control appears the moment you start
-          typing, and this is what prepares you to see it. */}
-      <div
-        style={{
-          display: "flex",
-          gap: "var(--sp-space-2)",
-          marginTop: "var(--sp-space-4)",
-          marginBottom: "var(--sp-space-1)",
-        }}
-        aria-hidden="true"
-      >
-        <span
-          className="sp-btn"
-          data-variant="default"
-          style={{ pointerEvents: "none", fontSize: "var(--sp-text-label)", opacity: 0.6 }}
-        >
-          Ask
-        </span>
-        <span
-          className="sp-btn"
-          data-variant="default"
-          style={{ pointerEvents: "none", fontSize: "var(--sp-text-label)", opacity: 0.6 }}
-        >
-          Hand it over
-        </span>
-      </div>
-      <div
-        style={{
-          fontSize: "var(--sp-text-data)",
-          color: "var(--sp-mute)",
-          marginBottom: "var(--sp-space-4)",
-        }}
-      >
-        Ask gets an answer. Hand it over starts a run and spends credits.
-      </div>
+      {/* THE FORK IS SAID ONCE, WHERE IT IS ACTIONABLE, AND THE DEAD PREVIEW IS
+          GONE. Two greyed-out `sp-btn` spans used to sit here reading "Ask" and
+          "Hand it over", `aria-hidden`, `pointerEvents: none`, purely to
+          announce a control that appears further down the moment you type. They
+          cost about a hundred pixels of a 392px pane to say what the sentence
+          above already says, and they read as two broken buttons: the founder's
+          "not fully done" was partly them. The fact they carried, that one of
+          the two spends credits, is now on the rail's own "Handed to the crew"
+          heading, beside the rows that actually do it, and the footer still
+          states it at the moment of commitment. */}
 
-      {/* ONE STRIP, NOT TWO HEADED LISTS. Founder ruling 2026-07-30: "in
-          workspace you have two messages, in what you can do you have three.
-          Instead of this, can we have two or three lines maximum combining
-          everything... three rows should be good enough."
-
-          The two groups were right about CONTENT and wrong about cost: they
-          spent most of a 392px pane on five suggestions and read as a third
-          conversation stacked above the composer. Combined into three
-          travelling rows they show thirteen in a fifth of the room, and the
-          grounded ones still come first so they are dealt into the front of
-          each row. The two kinds stay distinguishable without a heading each:
-          a grounded chip names its subject and a live one carries the dot. */}
       {failed ? (
         // Never silently. A generic suggestion here would be indistinguishable
         // from a grounded one, so the honest move is to say the read broke.
-        <div style={{ marginTop: "var(--sp-space-5)" }}>
+        <div style={{ marginTop: "var(--sp-space-4)" }}>
           <Failed onRetry={onRetry}>
             We could not read what is running, so the suggestions below are general ones.
           </Failed>
         </div>
       ) : loading ? (
-        <div style={{ marginTop: "var(--sp-space-5)" }}>
+        <div style={{ marginTop: "var(--sp-space-4)" }}>
           <Loading>Reading what is running.</Loading>
         </div>
       ) : null}
 
-      {/* The offer that does not move, above the ones that do. It sits UNDER
-          the read's own verdict on purpose: where the workspace read failed,
-          "the suggestions below are general ones" has to cover this one too. */}
-      {first ? <FirstMove starter={first} onPick={onPick} /> : null}
-
-      {/* The use cases ride along even when the workspace read failed or came
-          back empty: they name nothing, so they cannot be wrong, and a person
-          on day one needs them more than anyone. Everything except the head,
-          which is standing still above: lifted, not copied, so the accessibility
-          tree and the eye each meet every suggestion exactly once. */}
-      <SuggestionMarquee items={offers.slice(1)} onPick={onPick} />
+      {/* The capability lines ride along even when the workspace read failed or
+          came back empty: they name nothing, so they cannot be wrong, and a
+          person on day one needs them more than anyone. The grounded ones are
+          the only thing a failed read costs, which is why the verdict above sits
+          over the rail rather than inside it. */}
+      <SuggestionRail
+        items={offers}
+        scopeKind={scopeKind}
+        scopeLabel={scopeLabel}
+        onPick={onPick}
+      />
 
       {knownEmpty ? (
         <div
@@ -1031,7 +1065,7 @@ function Opening({
           header now; this only has to say where the words go, once. */}
       <div
         style={{
-          marginTop: "var(--sp-space-6)",
+          marginTop: "var(--sp-space-5)",
           fontSize: "var(--sp-text-data)",
           color: "var(--sp-mute)",
         }}

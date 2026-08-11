@@ -101,6 +101,124 @@ describe("prependHydrated", () => {
   it("returns the history alone into an empty thread", () => {
     expect(prependHydrated([], history).map((m) => m.id)).toEqual([UUID_A]);
   });
+
+  /**
+   * THE DUPLICATION THE FOUNDER REPORTED, 2026-08-11: *"every input gets
+   * recorded twice in the conversation pane"*.
+   *
+   * THE ORDER IS THE TEST. This is a race, so a snapshot of the end state proves
+   * nothing about which interleaving produced it. Each case below performs the
+   * operations in the order the defect needs, appending BEFORE hydrating, which
+   * is the sequence a person creates by pressing Cmd+K and typing immediately
+   * while the hydration request is still on the wire.
+   */
+  describe("the send that lands mid-hydration", () => {
+    const SENT_AT = 1_760_000_000_000;
+    /** What `appendExchange` puts in the thread on send: a locally minted id,
+     *  and an empty assistant turn waiting for stream frames. */
+    const optimistic = () => [
+      msg({ id: `u-${SENT_AT}`, role: "user", content: "what changed?", at: SENT_AT }),
+      msg({ id: `a-${SENT_AT}`, role: "assistant", content: "", at: SENT_AT }),
+    ];
+    /** What hydration brings back: real history, plus the server's own copy of
+     *  the turn that was just written, under a uuid. */
+    const served = (over: Partial<{ at: number; content: string }> = {}) =>
+      [
+        { id: UUID_A, role: "user", content: "earlier", at: SENT_AT - 86_400_000 },
+        {
+          id: UUID_B,
+          role: "user",
+          content: over.content ?? "what changed?",
+          at: over.at ?? SENT_AT + 400,
+        },
+      ] as unknown as HydratedMsg[];
+
+    it("shows the message once, not twice", () => {
+      const thread = prependHydrated(optimistic(), served());
+      const mine = thread.filter((m) => m.role === "user" && m.content === "what changed?");
+      expect(mine).toHaveLength(1);
+    });
+
+    it("keeps the LOCAL row, because live stream frames patch by that id", () => {
+      // Dropping the local row instead would strand the in-flight answer:
+      // `patchMessage` writes deltas against `a-<timestamp>`.
+      const thread = prependHydrated(optimistic(), served());
+      expect(thread.map((m) => m.id)).toEqual([UUID_A, `u-${SENT_AT}`, `a-${SENT_AT}`]);
+    });
+
+    it("still restores the older history, which is what hydration is for", () => {
+      const thread = prependHydrated(optimistic(), served());
+      expect(thread[0].content).toBe("earlier");
+    });
+
+    it("holds under a slow round trip, where the server copy lands much later", () => {
+      const thread = prependHydrated(optimistic(), served({ at: SENT_AT + 45_000 }));
+      expect(thread.filter((m) => m.content === "what changed?")).toHaveLength(1);
+    });
+
+    // Clock skew is the reason the window is symmetric: a server clock running
+    // behind the client stamps the echo EARLIER than the optimistic row.
+    it("holds when the server clock runs behind the client's", () => {
+      const thread = prependHydrated(optimistic(), served({ at: SENT_AT - 30_000 }));
+      expect(thread.filter((m) => m.content === "what changed?")).toHaveLength(1);
+    });
+  });
+
+  /**
+   * THE OTHER HALF OF THE RULE. De-duplication that swallows a real turn is a
+   * worse defect than the one it fixes, on a surface whose whole claim is a
+   * faithful record. These pin the cases that must NOT collapse.
+   */
+  describe("it never swallows a turn that is genuinely its own", () => {
+    const NOW = 1_760_000_000_000;
+
+    it("the same question asked again hours later is still two questions", () => {
+      const live = [msg({ id: "u-now", role: "user", content: "what changed?", at: NOW })];
+      const old = [
+        { id: UUID_A, role: "user", content: "what changed?", at: NOW - 7_200_000 },
+      ] as unknown as HydratedMsg[];
+      expect(prependHydrated(live, old).map((m) => m.id)).toEqual([UUID_A, "u-now"]);
+    });
+
+    it("different text at the same instant is left alone", () => {
+      const live = [msg({ id: "u-now", role: "user", content: "what changed?", at: NOW })];
+      const other = [
+        { id: UUID_A, role: "user", content: "what shipped?", at: NOW },
+      ] as unknown as HydratedMsg[];
+      expect(prependHydrated(live, other)).toHaveLength(2);
+    });
+
+    it("the same text from the other speaker is left alone", () => {
+      const live = [msg({ id: "a-now", role: "assistant", content: "It merged.", at: NOW })];
+      const asUser = [
+        { id: UUID_A, role: "user", content: "It merged.", at: NOW },
+      ] as unknown as HydratedMsg[];
+      expect(prependHydrated(live, asUser)).toHaveLength(2);
+    });
+
+    // A multiset, not a set. Somebody who really did send one line twice inside
+    // the window has two local rows, and must keep two.
+    it("two local copies of one line absorb two server copies, not one", () => {
+      const live = [
+        msg({ id: "u-1", role: "user", content: "again", at: NOW }),
+        msg({ id: "u-2", role: "user", content: "again", at: NOW + 1000 }),
+      ];
+      const both = [
+        { id: UUID_A, role: "user", content: "again", at: NOW + 200 },
+        { id: UUID_B, role: "user", content: "again", at: NOW + 1200 },
+      ] as unknown as HydratedMsg[];
+      expect(prependHydrated(live, both).map((m) => m.id)).toEqual(["u-1", "u-2"]);
+    });
+
+    it("one local copy absorbs only one of two server copies", () => {
+      const live = [msg({ id: "u-1", role: "user", content: "again", at: NOW })];
+      const both = [
+        { id: UUID_A, role: "user", content: "again", at: NOW + 200 },
+        { id: UUID_B, role: "user", content: "again", at: NOW + 1200 },
+      ] as unknown as HydratedMsg[];
+      expect(prependHydrated(live, both)).toHaveLength(2);
+    });
+  });
 });
 
 describe("seedPromoted", () => {

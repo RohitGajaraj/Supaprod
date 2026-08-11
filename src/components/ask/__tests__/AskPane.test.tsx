@@ -736,11 +736,22 @@ describe("AskPane: the working line", () => {
 });
 
 /**
- * THE SUGGESTION STRIP. Founder ruling 2026-07-30: the two headed lists became
- * three travelling rows, "so that the user would see all the possible use
- * cases. And when he clicks, that comes into the chat and continues from there."
+ * THE SUGGESTION RAIL, which replaced the travelling strip on 2026-08-11.
+ *
+ * The capability the founder asked for is unchanged and is what these protect:
+ * *"that tells users what all you can do. With one click you can just click that
+ * and execute those actions, and it is real-time data feeding from the
+ * workspace, not randomly seeded."*
+ *
+ * What changed is that every offer can now be READ. The strip's capsules were
+ * nowrap and capped at 300px inside a 392px pane, so most sentences were
+ * ellipsised and its edge mask cut the rest mid-word; worse, where a scope had
+ * only four prompts to deal into three rows, the copies a seamless loop needs
+ * put the SAME suggestion on screen twice at once. So the assertions below are
+ * about grouping, about each offer existing exactly once, and about nothing
+ * being clipped by construction.
  */
-describe("AskPane: the suggestion marquee", () => {
+describe("AskPane: the suggestion rail", () => {
   async function openWithRuns() {
     missionRows = [{ title: "Ship SSO login for Beacon", status: "running", completed_at: null }];
     const r = mount();
@@ -751,42 +762,65 @@ describe("AskPane: the suggestion marquee", () => {
     return r;
   }
 
-  test("three rows, each one travelling, and they alternate direction", async () => {
+  test("the offers are grouped, and every heading says what a press will do", async () => {
     const r = await openWithRuns();
-    const tracks = screen
-      .getByTestId("ask-pane")
-      .querySelectorAll<HTMLElement>(".sp-marquee-track");
-    expect(tracks.length).toBe(3);
-    expect([...tracks].map((t) => t.dataset.dir)).toEqual(["ltr", "rtl", "ltr"]);
+    const pane = screen.getByTestId("ask-pane");
+    expect(pane.querySelector('[data-testid="ask-suggestions"]')).toBeTruthy();
+    // The grounded group leads, because a run in flight is what a person walks
+    // in wondering about.
+    const labels = [...pane.querySelectorAll(".sp-suggest-label")].map((n) => n.textContent);
+    expect(labels[0]).toBe("Work in motion");
+    expect(labels).toContain("Answered from the record");
     r.unmount();
   });
 
   /**
-   * THE ACCESSIBILITY TRAP a marquee sets. A seamless loop needs the content
-   * rendered several times over; every copy after the first must be hidden, or
-   * a screen reader is read thirty-nine buttons where there are thirteen.
+   * THE DEFECT THAT CONDEMNED THE MARQUEE, asserted so it cannot return. Its
+   * loop rendered the content three times over and hid two copies from the
+   * accessibility tree, which kept a screen reader honest and did nothing at all
+   * for the eye: a row holding one chip showed that chip three times across the
+   * pane. Nothing repeats now, in either channel.
    */
-  test("the loop's duplicate copies are hidden from the tree, so nothing is read twice", async () => {
+  test("no suggestion is offered twice, to the eye or to the reader", async () => {
     const r = await openWithRuns();
     const pane = screen.getByTestId("ask-pane");
-    const copies = pane.querySelectorAll(".sp-marquee-copy");
-    expect(copies.length).toBeGreaterThan(3);
-    const visible = [...copies].filter((c) => !c.hasAttribute("aria-hidden"));
-    // Exactly one visible copy per row.
-    expect(visible.length).toBe(3);
-    // And every suggestion is reachable exactly once. A ROLE query is the
-    // point of this assertion: it walks the accessibility tree and so honours
-    // the aria-hidden that a plain text query would sail straight past, which
-    // is exactly the difference a screen reader experiences.
-    //
-    // A CHIP THAT IS STILL IN THE STRIP. The head of the list is lifted out of
-    // the marquee and stands still above it (see "the first move" below), so
-    // asserting the loop's own duplication has to name something the loop is
-    // actually carrying, or it would be asserting the promotion instead.
-    const chips = screen.getAllByRole("button", {
-      name: "What is the crew working on right now?",
-    });
-    expect(chips.length).toBe(1);
+    const rows = [...pane.querySelectorAll<HTMLElement>(".sp-suggest-row")];
+    const names = rows.map((b) => b.getAttribute("aria-label"));
+    expect(names.length).toBeGreaterThan(0);
+    expect(new Set(names).size).toBe(names.length);
+    // And the tree agrees with the pixels: no aria-hidden duplicate copies.
+    expect(pane.querySelectorAll("[aria-hidden] .sp-suggest-row").length).toBe(0);
+    r.unmount();
+  });
+
+  /**
+   * LEGIBILITY IS STRUCTURAL, NOT A STYLE PREFERENCE. A capsule clipped because
+   * it was told to: nowrap, a max-width and a mask over the container's edges.
+   * A row that wraps cannot clip, so the assertion is that none of the three
+   * mechanisms is present on this surface any more.
+   */
+  test("nothing on the rail is built to clip a sentence", async () => {
+    const r = await openWithRuns();
+    const pane = screen.getByTestId("ask-pane");
+    expect(pane.querySelector(".sp-marquee")).toBe(null);
+    expect(pane.querySelector(".sp-chip")).toBe(null);
+    for (const row of pane.querySelectorAll<HTMLElement>(".sp-suggest-row")) {
+      expect(row.style.whiteSpace).not.toBe("nowrap");
+      expect(row.style.maxWidth).toBe("");
+    }
+    r.unmount();
+  });
+
+  // The founder's sentence, made visible: "here you can do everything out of
+  // those seven stations". A capability line wears the station it came out of,
+  // and the station is one of the product's own seven.
+  test("a capability row names the station it comes out of", async () => {
+    pathname = "/brain";
+    search = { decision: "d-3" };
+    const r = await openWithRuns();
+    const tags = [...screen.getByTestId("ask-pane").querySelectorAll(".sp-suggest-station")];
+    expect(tags.length).toBeGreaterThan(0);
+    expect(tags.every((t) => t.textContent === "Decide")).toBe(true);
     r.unmount();
   });
 
@@ -803,9 +837,9 @@ describe("AskPane: the suggestion marquee", () => {
     r.unmount();
   });
 
-  // The use cases name nothing, so they survive a workspace read that failed:
-  // a person on day one needs them more than anyone.
-  test("a failed workspace read still leaves the use cases standing", async () => {
+  // The capability lines name nothing, so they survive a workspace read that
+  // failed: a person on day one needs them more than anyone.
+  test("a failed workspace read still leaves the capability lines standing", async () => {
     missionsThrow = true;
     const r = mount();
     await act(async () => {
@@ -817,19 +851,26 @@ describe("AskPane: the suggestion marquee", () => {
     expect(
       screen.getAllByRole("button", { name: "What needs my call before it can move?" }).length,
     ).toBe(1);
+    // And the grounded groups are simply absent rather than filled with
+    // something invented to cover the gap.
+    const labels = [...pane.querySelectorAll(".sp-suggest-label")].map((n) => n.textContent);
+    expect(labels).not.toContain("Work in motion");
     r.unmount();
   });
 });
 
 /**
- * THE FIRST MOVE. Every way into a conversation used to be a chip in a strip
- * that travels, which leaves a person on day one looking at a blank composer
- * while the alternatives slide past it. The head of the list is lifted out and
- * stands still. These assert the three properties that make that worth doing:
- * it does not move, it is the same object rather than a copy of one, and a
- * press behaves exactly as a chip does.
+ * WHAT THE RAIL OFFERS FIRST, now that nothing has to be lifted out of a moving
+ * strip to hold still.
+ *
+ * A "Start here" row used to be promoted above the marquee for exactly one
+ * reason: asking somebody to click a travelling target is the worst thing that
+ * pattern does. Nothing travels, so the promotion became a second way of saying
+ * one thing, and the group heading says it better. These assert what the
+ * promotion was really protecting: the live run leads, it is named, and one
+ * press behaves the way it always did.
  */
-describe("AskPane: the first move stands still", () => {
+describe("AskPane: the live run leads", () => {
   async function openWith(rows: typeof missionRows) {
     missionRows = rows;
     const r = mount();
@@ -840,21 +881,21 @@ describe("AskPane: the first move stands still", () => {
     return r;
   }
 
-  // Grounded prompts come first, so where a run is genuinely in motion the
-  // stationary offer is the one that names it. Nothing here is invented: the
-  // title is the row `listMissions` returned.
-  test("it names the run that is genuinely in motion, and it is not in the strip", async () => {
+  // Grounded prompts come first, so where a run is genuinely in motion it is the
+  // first thing offered. Nothing here is invented: the title is the row
+  // `listMissions` returned.
+  test("it names the run that is genuinely in motion, and names it first", async () => {
     const r = await openWith([
       { title: "Ship SSO login for Beacon", status: "running", completed_at: null },
     ]);
-    const move = screen.getByRole("button", { name: /Ship SSO login for Beacon/ });
-    expect(move.closest(".sp-marquee")).toBe(null);
+    const first = screen.getByTestId("ask-pane").querySelector<HTMLElement>(".sp-suggest-row");
+    expect(first?.textContent).toContain("Ship SSO login for Beacon");
     r.unmount();
   });
 
-  // LIFTED, NOT COPIED. An offer standing still AND riding the strip would be
-  // read twice by a screen reader and pressed twice by nobody.
-  test("the promoted offer is not also left in the strip", async () => {
+  // OFFERED ONCE. A run standing still AND riding a strip would be read twice by
+  // a screen reader and pressed twice by nobody.
+  test("the run is offered exactly once", async () => {
     const r = await openWith([
       { title: "Ship SSO login for Beacon", status: "running", completed_at: null },
     ]);
@@ -866,8 +907,8 @@ describe("AskPane: the first move stands still", () => {
     r.unmount();
   });
 
-  // The same contract a chip has: it goes nowhere, it sends nothing, it puts
-  // the whole sentence in the box and lets the person continue from there.
+  // It goes nowhere, it sends nothing, it puts the whole sentence in the box and
+  // lets the person continue from there.
   test("a press lands the whole sentence in the composer, and does not send it", async () => {
     const r = await openWith([
       { title: "Ship SSO login for Beacon", status: "running", completed_at: null },
@@ -881,14 +922,13 @@ describe("AskPane: the first move stands still", () => {
     r.unmount();
   });
 
-  // With nothing running there is still a first move, and it is the surface's
+  // With nothing running there is still a first offer, and it is the surface's
   // own question rather than a constant. Standing on a run, it asks about the
-  // run. This is the day-one case, and the whole point of the change.
+  // run. This is the day-one case.
   test("with nothing running it is still the question for the surface you are on", async () => {
     pathname = "/runs/11111111-2222-3333-4444-555555555555";
     const r = await openWith([]);
-    const move = screen.getByRole("button", { name: "Where is this, and what is left?" });
-    expect(move.closest(".sp-marquee")).toBe(null);
+    expect(screen.getByRole("button", { name: "Where is this, and what is left?" })).toBeTruthy();
     r.unmount();
   });
 
@@ -902,6 +942,86 @@ describe("AskPane: the first move stands still", () => {
     const text = screen.getByTestId("ask-pane").textContent ?? "";
     expect(text).toContain("hand the work over");
     expect(text).toContain("becomes a run");
+    r.unmount();
+  });
+});
+
+/**
+ * DISMISSAL, AND IT MATCHES THE SHAPE THIS SURFACE CHOSE.
+ *
+ * Founder ruling 2026-08-11: *"when I click my mouse cursor somewhere outside,
+ * it should collapse if it is a left pane. If it is opening in a full-sized
+ * window or pop-up-like window, then Escape or a close button should be fine."*
+ *
+ * Ask stayed a pane rather than becoming a centred modal, so it owes the light
+ * gesture: outside click collapses, and it stands down for the two doors that
+ * open it and for anything floating above it. Without the first of those the
+ * visible Ask button becomes dead, because pointerdown would close the pane and
+ * the click that follows would reopen it.
+ */
+describe("AskPane: a click outside collapses it", () => {
+  /** A real press travels through document on its way up. Dispatching AT
+   *  window would have a propagation path of one node and reach no document
+   *  listener, which is a press no user can perform. */
+  function pressOutside(el: Element = document.body) {
+    return act(async () => {
+      el.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+      await Promise.resolve();
+    });
+  }
+
+  test("a press on the page behind it closes the pane", async () => {
+    const r = await open();
+    expect(screen.getByTestId("ask-pane")).toBeTruthy();
+    await pressOutside();
+    expect(screen.queryByTestId("ask-pane")).toBe(null);
+    r.unmount();
+  });
+
+  test("a press inside it changes nothing", async () => {
+    const r = await open();
+    await pressOutside(screen.getByTestId("ask-pane"));
+    expect(screen.queryByTestId("ask-pane")).toBeTruthy();
+    r.unmount();
+  });
+
+  /**
+   * THE DOOR STAYS ALIVE. The header control and the dock row both summon Ask
+   * on CLICK, which fires after pointerdown. A guardless handler closes on the
+   * press and the click immediately reopens, so the button appears to do
+   * nothing at all while flickering the whole pane.
+   */
+  test("a press on the control that opens it is not an outside click", async () => {
+    const r = await open();
+    const door = document.createElement("button");
+    door.className = "sp-askbtn";
+    document.body.appendChild(door);
+    await pressOutside(door);
+    expect(screen.queryByTestId("ask-pane")).toBeTruthy();
+    door.remove();
+    r.unmount();
+  });
+
+  /**
+   * THE LINEAGE SHEET IS SUMMONED FROM THIS PANE, takes its exact geometry and
+   * covers it. Closing Ask on the press that traces a record would destroy the
+   * conversation that asked for the trace.
+   */
+  test("a press in a surface layered over it is not an outside click", async () => {
+    const r = await open();
+    for (const spec of [
+      { tag: "div", cls: "sp-lineage", attrs: {} },
+      { tag: "div", cls: "", attrs: { role: "dialog" } },
+      { tag: "div", cls: "", attrs: { role: "menu" } },
+    ]) {
+      const over = document.createElement(spec.tag);
+      if (spec.cls) over.className = spec.cls;
+      for (const [k, v] of Object.entries(spec.attrs)) over.setAttribute(k, v);
+      document.body.appendChild(over);
+      await pressOutside(over);
+      expect(screen.queryByTestId("ask-pane")).toBeTruthy();
+      over.remove();
+    }
     r.unmount();
   });
 });
