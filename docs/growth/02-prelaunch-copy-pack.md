@@ -6,13 +6,13 @@
 >
 > **Numbers marked [refresh]:** the figures shown are 2026-07-10 live-DB values (133 missions, 129 agent runs, 72 decisions, 49 learnings, 2,162 AI events). Pull the current numbers the morning each asset posts. Never estimate.
 >
-> **Slotting note:** slots below follow the spine's calendar ([`00`](./00-launch-operating-manual.md) §5): story day 3, receipts day 4, teardown day 5. The viral playbook ([`05`](./05-viral-and-guerrilla-playbook.md) §6) prefers receipts first. Both work; the founder picks on day 2 and the slots swap cleanly.
+> **Slotting note:** slots below follow the spine's calendar ([`00`](./00-launch-operating-manual.md) §5): story day 3, evidence day 4, teardown day 5. The viral playbook ([`05`](./05-viral-and-guerrilla-playbook.md) §6) prefers evidence first. Both work; the founder picks on day 2 and the slots swap cleanly.
 
 ---
 
 ## 1. The founder story thread (Day 3, X)
 
-**Slot:** Day 3, 8-10am ET, X. **Goal:** open the wave; establish the receipts-first voice; first waitlist cohort. **Success metric:** 10x the account's median post engagement; 100+ waitlist signups attributed day 3. **Founder approval: [ ]**
+**Slot:** Day 3, 8-10am ET, X. **Goal:** open the wave; establish the evidence-first voice; first waitlist cohort. **Success metric:** 10x the account's median post engagement; 100+ waitlist signups attributed day 3. **Founder approval: [ ]**
 
 ```
 1/ 13 months. 133 missions [refresh]. 72 recorded decisions [refresh].
@@ -20,7 +20,7 @@
 
 On purpose.
 
-Today we open the doors. A thread with receipts, including the calls
+Today we open the doors. A thread with the evidence, including the calls
 we got wrong.
 
 2/ The backstory. Engineers got agents. Cursor, Claude Code. Shipping
@@ -37,12 +37,12 @@ Supaprod. Agents run the product loop end to end. They read your
 signals, rank the bets, red team them, write the spec, build to a PR,
 and record what actually happened.
 
-You make the calls. The ledger keeps the receipts.
+You make the calls. The track record keeps the evidence.
 
 4/ For 13 months the only user was us.
 
 The engine ran on its own product. Every mission, every decision,
-every AI call through one governed chokepoint. Each one left a receipt.
+every AI call through one governed chokepoint. Each one is in the audit trail.
 
 This is not a seeded demo account. It is the system running its own
 company.
@@ -54,18 +54,18 @@ approval, CI green, merge.
 
 Receipts tomorrow. Same time.
 
-6/ The ledger also holds our misses.
+6/ The track record also holds our misses.
 
 Bets we ranked wrong. A call the Critic flagged that I overrode and
 should not have. They stay in the record.
 
 That is the point. Code has a compiler. Product judgment has nothing.
-The ledger is the compiler for judgment.
+The track record is the compiler for judgment.
 
 7/ Why open the doors now?
 
 Because the engine is finished and proof is the only thing left to
-build. Real teams. Real outcomes. Real receipts.
+build. Real teams. Real outcomes. Real evidence.
 
 Every week of building inward from here is a week wasted.
 
@@ -90,7 +90,7 @@ Receipts or it didn't happen.
 ```
 First reply: The waitlist and the live Launch Ledger: [LINK]
 Second reply: [failure-path GIF] And here is what happens when it
-gets one wrong. One key to revert. The revert is a receipt too.
+gets one wrong. One key to revert. The revert is in the audit trail too.
 ```
 
 ## 2. The founder story, LinkedIn long-form (Day 3)
@@ -105,7 +105,7 @@ outsider touch it. Not stealth for drama. I wanted the engine finished
 before the first user walked in.
 
 The product is Supaprod. The shortest honest description: agents run
-the product work end to end, you make the calls, and a ledger proves
+the product work end to end, you make the calls, and a track record proves
 what worked.
 
 Here is the gap it closes. Engineering got agents and shipping got
@@ -119,7 +119,7 @@ For 13 months Supaprod ran on itself. The numbers from my own
 workspace: 133 missions, 72 recorded decisions, 2,162 AI calls through
 one governed pipeline [refresh]. It wrote specs, built to pull
 requests through a human gate, and recorded outcomes against its own
-bets. It also got things wrong, and the wrong calls are in the ledger
+bets. It also got things wrong, and the wrong calls are in the track record
 with their reverts. I would not trust a system that hid them.
 
 Today the doors open.
@@ -134,11 +134,11 @@ line to me, your fingerprints on the roadmap. In return I get the
 thing no amount of building can buy: the truth about where it breaks
 on someone else's product.
 
-Link in the comments. The ledger is public. Watch us launch through
+Link in the comments. The track record is public. Watch us launch through
 our own product, wrong calls included.
 ```
 
-## 3. The receipts drop: "it built part of itself" (Day 4)
+## 3. The evidence drop: "it built part of itself" (Day 4)
 
 **Slot:** Day 4, 8-10am ET, X + LinkedIn simultaneously, 60-90s trace video attached. **Goal:** the engineer-checkable proof moment; the week's most shareable claim. **Success metric:** 250+ waitlist signups across days 3-4; 5+ inbound access DMs. **Founder approval: [ ]**
 
@@ -146,15 +146,15 @@ our own product, wrong calls included.
 
 ```
 1/ Yesterday I said Supaprod shipped part of itself. Here is the
-receipt.
+evidence.
 
 [VIDEO: the uncut trace]
 
 2/ What you are watching, in order:
 
 A spec compiled from a recorded decision. An agent build. The approval
-gate (a human, me). CI green. Merge. The outcome logged back to the
-ledger.
+gate (a human, me). CI green. Merge. The outcome written back to the
+track record.
 
 One system, end to end. No cuts.
 
@@ -162,7 +162,7 @@ One system, end to end. No cuts.
 
 These are bounded changes guided by compiled specs and acceptance
 checks. It does not replace an engineering team. It closes the loop so
-small things ship with receipts instead of dying in a backlog.
+small things ship with the evidence attached instead of dying in a backlog.
 
 4/ The part I care about is not the PR. It is the trail.
 
@@ -193,7 +193,7 @@ is the gap between "we decided this" and "it shipped and here is what
 happened."
 
 If you run product or engineering at a seed to Series B company and
-this is the kind of receipt you wish your roadmap had, the waitlist
+this is the kind of evidence you wish your roadmap had, the waitlist
 link is in the comments. 25 design partner seats this month.
 ```
 
@@ -210,7 +210,7 @@ link is in the comments. 25 design partner seats this month.
 factual]. Everyone has an opinion about it in hindsight.
 
 We ran it through the Critic instead. Evidence available at the time,
-precedent, and what a decision ledger would have flagged before
+precedent, and what a decision record would have flagged before
 launch. Thread.
 
 2/ The bet, as stated then: [FROM THE PUBLIC ARTIFACT, quoted or
@@ -222,16 +222,16 @@ citable. What was knowable, not what hindsight knows.]
 4/ The precedent the Critic surfaced: [2-3 comparable cases and how
 they resolved. This is the part hot takes always skip.]
 
-5/ What a ledger would have flagged: [the specific assumption that
+5/ What a track record would have flagged: [the specific assumption that
 was never written down, the missing outcome check, the review date
 that never existed.]
 
 6/ What they got right: [genuine credit, 2-3 lines. We are not here
-to dunk. Decisions are hard without receipts. That is the whole
+to dunk. Decisions are hard without evidence. That is the whole
 point.]
 
 7/ The Critic's honest confidence score on this one: [X]. It is
-wrong sometimes. When it is, that goes in the ledger too.
+wrong sometimes. When it is, that goes in the track record too.
 
 8/ Want yours done? Submit the product bet you are least sure about.
 The best ones get a public teardown this week (with your permission).
@@ -271,19 +271,19 @@ My morning brief, unedited. While I slept my agents:
 - clustered [N] new signals into [theme]
 - drafted [artifact] against Tuesday's decision
 - flagged [real drift item] for review
-- got [ONE THING] wrong. Reverted. The revert is in the ledger.
+- got [ONE THING] wrong. Reverted. The revert is in the audit trail.
 
 This is the part no screenshot conveys: it ran. All night. With
-receipts.
+evidence.
 
-Tomorrow at [TIME] I will walk the whole ledger live and run the
+Tomorrow at [TIME] I will walk the whole track record live and run the
 Critic on one bet from the audience. Come pick the bet.
 ```
 
 **AMA promo (X + community invite):**
 
 ```
-Tomorrow, [TIME] ET: watch the ledger live.
+Tomorrow, [TIME] ET: watch the track record live.
 
 30 minutes. I walk through our launch running as a Supaprod mission
 (every decision this week, including the flops), then the Critic red
@@ -298,7 +298,7 @@ Bring the bet you argue about most. No slides. Receipts only.
 
 ```
 1/ We launched our launch through our own product 5 days ago. Here is
-the week, in receipts.
+the week, in evidence.
 
 2/ The numbers [all refresh, real]:
 - [N] waitlist signups, [N] of them submitted a real product bet
@@ -308,8 +308,8 @@ the week, in receipts.
 - [N] things we got wrong in public
 
 3/ What we got wrong, specifically: [2-3 real items from the week's
-ledger, one line each, with what changed]. These stay in the record.
-A launch that only reports wins is a pitch, not a ledger.
+track record, one line each, with what changed]. These stay in the record.
+A launch that only reports wins is a pitch, not a track record.
 
 4/ What surprised me: [1-2 genuine learnings from the week, specific].
 
@@ -324,7 +324,7 @@ post to reply to.
 ```
 
 ```
-First reply: The ledger, the waitlist, the last seats: [LINK]
+First reply: The track record, the waitlist, the last seats: [LINK]
 ```
 
 ## 7. DM sequences
@@ -370,7 +370,7 @@ Subject: intro: [FOUNDER] (Supaprod) <> [NAME]
 
 [NAME], meet [FOUNDER]. He spent 13 months building Supaprod: agents
 that run the product loop end to end (signals, ranked bets, specs,
-build to PR) with a ledger that records whether each call was right.
+build to PR) with a track record that records whether each call was right.
 The part that got my attention: it shipped part of itself through its
 own approval gate, and the trail is public.
 
@@ -456,12 +456,12 @@ product OS to outsiders. Numbers inside.
 
 I built Supaprod: agents run the product loop (signals in, ranked and
 red teamed bets, specs, build to PR through a human gate) and a
-ledger records whether each call was right.
+track record records whether each call was right.
 
 The honest numbers from running it only on itself: 133 missions, 72
 recorded decisions, 2,162 AI calls through one governed pipeline
 [refresh]. It merged a real PR through its own approval gate. It also
-made wrong calls, which stay in the ledger with their reverts.
+made wrong calls, which stay in the track record with their reverts.
 
 Zero external users until this week. That was deliberate, and it was
 also the risky part, so now I need the thing I cannot build: contact
@@ -479,7 +479,7 @@ The failure path is my favorite demo.
 
 ```
 Running a live session this [DAY]: I let agents run my product org
-for 13 months, and I am walking through the ledger in public. The
+for 13 months, and I am walking through the track record in public. The
 launch itself is running as a mission inside the product, wrong calls
 included. Second half: the Critic red teams one product bet from the
 audience, live. Bring the decision you argue about most. [TIME + LINK
@@ -498,10 +498,10 @@ Subject: the prioritization column nobody fills in
 [FIRST LINE REFERENCING THEIR RECENT PIECE.] Every prioritization
 tool scores bets with a static formula. None of them checks whether
 the score was right. I spent 13 months building the missing column:
-an outcome ledger where recorded results re-rank the next bets. It
+a track record where recorded results re-rank the next bets. It
 ran only on itself until this week (133 missions, 72 decisions, one
 PR it merged through its own gate). Now the doors are open and the
-first external teams are walking in. Happy to share the ledger
+first external teams are walking in. Happy to share the track record
 itself, the wrong calls in it, and what the first strangers do with
 it. Would that fit [NEWSLETTER/SHOW]?
 ```
@@ -509,7 +509,7 @@ it. Would that fit [NEWSLETTER/SHOW]?
 **Angle B, agents-ran-my-org (builder/founder audiences):**
 
 ```
-Subject: 13 months of agents running a product org, receipts included
+Subject: 13 months of agents running a product org, evidence included
 
 [FIRST LINE REFERENCING THEIR RECENT PIECE.] Since [DATE] my product
 org has been run by agents: they read signals, rank and red team
@@ -532,7 +532,7 @@ in public.
 tidy. Ours is backwards: 13 months of engineering, an engine that
 independently audits as finished, and zero external users. We are
 fixing that in public: the launch runs as a mission inside the
-product, every launch decision goes in a ledger, and the wrong calls
+product, every launch decision goes in a track record, and the wrong calls
 stay visible with their reverts. Week one data will be raw and real,
 whichever way it goes. If [SHOW/NEWSLETTER] ever covers launches as
 they actually happen rather than after the polish, this one is live
@@ -549,7 +549,7 @@ now.
 H1: Claude Code for the product lifecycle.
 
 Sub: Agents run the product work end to end. You make the calls. The
-ledger proves what worked.
+track record proves what worked.
 
 CTA button: Join the waitlist
 Under-button line: The first 100 get their riskiest product bet red
@@ -567,9 +567,9 @@ It shipped part of itself.
 A real PR through its own gated path: spec, agent build, human
 approval, CI, merge, outcome recorded. Watch the uncut trace.
 
-Every action leaves a receipt.
+Every action lands in the audit trail.
 Including the wrong ones. Reverts are recorded, not erased. Outcomes
-re-rank the next bets. That is the ledger, and it is the product.
+re-rank the next bets. That is the track record, and it is the product.
 ```
 
 **The bet-submission microcopy (the optional question at signup):**
@@ -653,7 +653,7 @@ You are in. Here is the deal, plainly:
 
 You get: full access free for 3 months, my direct line, first-session
 onboarding with me personally, and real influence on what gets built
-(your asks go in the ledger; you will see exactly what happened to
+(your asks go in the track record; you will see exactly what happened to
 them).
 
 We get: the truth. You run Supaprod on real work and tell us where it
