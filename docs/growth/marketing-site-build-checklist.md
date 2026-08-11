@@ -257,7 +257,7 @@ Hero + six SectionAlternate sections (Discover, Decide, Define, Build, Ship, Lea
 - [ ] Create `src/routes/features.tsx`
   - [ ] Hero section (eyebrow + headline + subheading)
   - [ ] Three feature showcase sections:
-    1. **The outcome ledger** — receipts, auditability, moat, visual: decision card screenshot
+    1. **The track record** — evidence, auditability, moat, visual: decision card screenshot
     2. **Earned autonomy** — trust ramp by track record, non-overridable gates, visual: permissions ramp UI
     3. **Self-improving judgment** — outcome-ranked playbooks, workspace learning, visual: memory trace UI
   - [ ] Each section: headline (Pixel 64px) + body (Sans 16px) + mono spec list (4 items) + FramedVisual
@@ -271,7 +271,7 @@ Hero + six SectionAlternate sections (Discover, Decide, Define, Build, Ship, Lea
 ```
 Add /features page: three deep-dive capability showcases
 
-Outcome ledger + earned autonomy + self-improving judgment, using SectionAlternate pattern. Real product screenshots, locked copy, full responsive design.
+Track record + earned autonomy + self-improving judgment, using SectionAlternate pattern. Real product screenshots, locked copy, full responsive design.
 ```
 
 ### [ ] Commit 10: /use-cases page
@@ -279,7 +279,7 @@ Outcome ledger + earned autonomy + self-improving judgment, using SectionAlterna
 - [ ] Create `src/routes/use-cases.tsx`
   - [ ] Hero section
   - [ ] Four use-case cards or sections:
-    1. **The founding PM** — "One person, 20 agents, one ledger"
+    1. **The founding PM** — "One person, 20 agents, one track record"
     2. **The product org** — "Cross-team decisions, one record"
     3. **The design + build handoff** — "Specs that stick, output that matches"
     4. **The post-launch team** — "Learn what worked, rank the next bet"

@@ -28,7 +28,7 @@ Checklist source: [`00-launch-operating-manual.md`](./00-launch-operating-manual
 
 13 ✅ done · 5 ◐ partial · 9 ⬜ open (of which most are gated on external reality, not build work).
 
-- **Done and load-bearing for launch:** PC-03 homepage, PC-04 no-signup demo, PC-07 verifier gate (armed in prod), PC-08 routines, PC-10 rewind, PC-12 fan-out (dormant behind `AGENT_FANOUT`), PC-15 feedback loop, PC-16 judgment-memory moments, PC-22 eng receipts chain, PC-26 HyperAgent rig (verified running), PC-27 YC application assembly (voice pass + submit remain founder's).
+- **Done and load-bearing for launch:** PC-03 homepage, PC-04 no-signup demo, PC-07 verifier gate (armed in prod), PC-08 routines, PC-10 rewind, PC-12 fan-out (dormant behind `AGENT_FANOUT`), PC-15 feedback loop, PC-16 judgment-memory moments, PC-22 eng evidence chain, PC-26 HyperAgent rig (verified running), PC-27 YC application assembly (voice pass + submit remain founder's).
 - **Partial:** PC-05 billing (◐ awaiting MoR/keys), PC-06 funnel (◐ ~90%, week-2 cron line remains), PC-11 confidence-gating (playbook leg live; rest gated), PC-13 design partners (kit + 25 verified targets ready; **0/25 sent** — founder-gated), PC-14 launch execution (~55%, assets drafted; needs 2-3 real beta stories).
 - **Open but honestly gated:** PC-17/18 (G-LEARN needs external users), PC-19 (G-REV needs paying workspaces), PC-09 Slack app, PC-20/21/23/24/25 post-launch gates.
 

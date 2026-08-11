@@ -171,7 +171,58 @@ export async function ensureScreenshotDir(subDir?: string) {
 }
 
 export async function login(page: Page): Promise<boolean> {
-  await page.goto("/login", { waitUntil: "networkidle" });
+  /**
+   * `domcontentloaded`, AND NO SHELL WAIT. The rest of this folder dropped
+   * `networkidle` on 2026-08-11 for `domcontentloaded` plus `waitForShell`,
+   * because `networkidle` waits for 500ms of network silence that surfaces
+   * loading `js.stripe.com` never provide, so `goto` threw on pages that had
+   * rendered correctly behind it. `/login` is the exception to the second half:
+   * it renders no `<main>`, so waiting for the shell here would hang on a page
+   * that is working.
+   *
+   * IT DOES NEED A SUBSTITUTE WAIT, AND THE FIRST ATTEMPT HERE DID NOT HAVE
+   * ONE. The plan for this file said the swap was safe on its own because a
+   * `waitFor` on the email input already follows. That is only true on the
+   * signed-out path. On the signed-IN path the next thing that runs is the
+   * `page.url()` snapshot below, and `networkidle` was silently doing the work
+   * that made it correct: it did not return until the client-side redirect off
+   * `/login` had already fired.
+   *
+   * Measured, not reasoned about: with a bare `domcontentloaded` and no wait,
+   * `06-icons.spec.ts` failed in `beforeAll` at `emailInput.waitFor` after 10s,
+   * one test failed and six never ran. `domcontentloaded` returns while the
+   * router is still deciding, so the snapshot read `/login`, the early return
+   * did not fire, and the helper went hunting for a form on a page that was on
+   * its way to `/today`. See the race below, which is the wait that replaces it.
+   */
+  await page.goto("/login", { waitUntil: "domcontentloaded" });
+
+  // Declared before the redirect check because the race below needs the email
+  // locator; nothing about the selectors changed.
+  const emailInput = page
+    .locator('input[type="email"], input[name="email"], [data-testid="email-input"]')
+    .first();
+  const passwordInput = page
+    .locator('input[type="password"], input[name="password"], [data-testid="password-input"]')
+    .first();
+
+  /**
+   * THE TWO LEGAL OUTCOMES OF LOADING `/login`, RACED.
+   *
+   * Signed in, we get bounced off `/login`. Signed out, the form renders. There
+   * is no single observable covering both, and waiting for the wrong one costs
+   * the full timeout, so wait for whichever arrives first and let the code below
+   * read which it was.
+   *
+   * Both branches swallow their own rejection. `Promise.race` settles on the
+   * first, but the loser keeps running and rejects at its own timeout, and an
+   * unhandled rejection surfaces as a failure in whatever test happens to be
+   * running by then. A branch losing this race is the normal case, not an error.
+   */
+  await Promise.race([
+    page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 10000 }).catch(() => {}),
+    emailInput.waitFor({ state: "visible", timeout: 10000 }).catch(() => {}),
+  ]);
 
   /**
    * ALREADY SIGNED IN IS A SUCCESS, AND IT USED TO BE A TEN-SECOND TIMEOUT.
@@ -217,14 +268,10 @@ export async function login(page: Page): Promise<boolean> {
    */
   const password = demoPassword();
 
-  // Wait for the login form
-  const emailInput = page
-    .locator('input[type="email"], input[name="email"], [data-testid="email-input"]')
-    .first();
-  const passwordInput = page
-    .locator('input[type="password"], input[name="password"], [data-testid="password-input"]')
-    .first();
-
+  // Wait for the login form. Kept even though the race above usually satisfies
+  // it already: if BOTH branches of that race timed out we are still on
+  // `/login` with no form, and this is the line that says so by name rather
+  // than failing four lines later on an unfillable input.
   await emailInput.waitFor({ state: "visible", timeout: 10000 });
   await emailInput.fill(DEMO_EMAIL);
   await passwordInput.fill(password);

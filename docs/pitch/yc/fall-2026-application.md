@@ -116,6 +116,8 @@ Public launch in September. Full brief at https://supaprod.ai/brief.
 >
 > _Verify the two commit-side figures the morning you paste; those are sound and reproduce from the commands below._
 >
+> **Every number in this file now routes through [`../verified-numbers.md`](../verified-numbers.md).** Read it before typing a figure anywhere. It carries the query beside each one, the honest set excluding seeded workspaces, and the retired list. **This file still contains stale vintages of the same quantities in the draft blocks further down**, including 83, 176 and 145 for missions and 384, 387, 393, 508 and 510 for migrations. The copy-paste sheet is the only authority here, and `verified-numbers.md` is the authority over that.
+>
 > **Why "I'm my own first user" is gone.** It was in the draft and it reads badly to a partner: *if you are the customer, who pays you?* The dogfooding fact is genuinely strong, but it is **proof the product functions, not proof anyone wants it** — so it now says what it actually proves and stops there. It cannot stand in for a user count, and the slot above says so explicitly.
 
 **Why it is written this way.** A partner reads hundreds of these and is pattern-matching for *is this a real problem, is this person unusually good, do people want it*. So: **no vocabulary a stranger would have to decode.** Not "the loop closes", not "evidence bar", not "the judgment gap" — every one of those is our word, not theirs. *"The thing gets less wrong the longer you use it"* says compounding without the term.
@@ -648,9 +650,11 @@ What I understand that they don't: every one of them stops one step short.
 Samepage surfaces, ChatPRD and Spark draft, Brief remembers context, Linear
 and Ship OS dispatch. Nobody checks the shipped outcome against the
 decision and feeds it back, and that last step is the only one that
-compounds. The connected record of decision, evidence, and outcome cannot
-be bolted onto a tracker, and it cannot be copied quickly, because it only
-accumulates with time.
+compounds. And the part of it a competitor cannot rebuild is what the team
+believed would happen before they found out. Everything else about a
+decision survives in chat logs and call recordings, and an agent can
+reconstruct it in an afternoon. A forecast leaves no trace unless something
+captured it at the moment of the call.
 
 I also deliberately do not build the code generator. Cursor and Devin are
 in a capital knife fight there, and the models keep absorbing that layer.
@@ -828,8 +832,8 @@ What I understand that they do not: every one of them stops one step
 short. They surface, draft, remember, or dispatch. None of them checks
 the shipped outcome against the decision that caused it and feeds that
 back, and that last step is the only one that compounds. It cannot be
-bolted onto a tracker, and it cannot be copied quickly, because it only
-accumulates with time. I built the whole system around it.
+rebuilt from chat logs afterward is what the team believed would happen
+before they found out. I built the whole system around it.
 
 On the build, I own the harness, not the model: code generation is a
 commodity you call through an API, so I built the lane once, gates,

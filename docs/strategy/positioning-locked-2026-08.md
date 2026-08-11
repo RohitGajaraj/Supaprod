@@ -194,10 +194,14 @@ Beat 2 is verbatim from an operator (Bal Sieber, 2026-06-27). Those three jobs *
 
 ### Where each claim is allowed to appear
 
-| Surface | Register | Use | Never |
+> ⚠️ **The Register column below is RETIRED.** The public/private split it encodes was replaced on 2026-08-11 by the founder ruling in §5J: **practitioner language everywhere, in-product as well as public.** The row that mattered is the one this table got wrong, and it was steering work for a day: it lists **audit trail** under *Never* for public surfaces, and **audit trail is on the keep list** because practitioners say it unprompted. It also splits *receipts* from *receipt*, when both are dropped everywhere.
+>
+> **What survives from this table** is the Surface and the Never columns read as one list, minus that error: never a present-tense compounding claim to an investor, and never deck vocabulary in a practitioner room. **For what to say, use `AGENTS.md` rule 3**, which is the single current source and carries the measured rates.
+
+| Surface | ~~Register~~ *(retired)* | Use | Never |
 | --- | --- | --- | --- |
-| **Landing page, brief, listings** | public | the three beats · *less operator, more director* · evidence · history · track record · ready/review/stuck | receipts · ledger · audit trail · company brain · operating system · unattended |
-| **In-product** | private | context governance · drift · gate · memory life cycle · audit trail · current-vs-stale | receipt · unattended (dead in both registers) |
+| **Landing page, brief, listings** | ~~public~~ | the three beats · *less operator, more director* · evidence · history · track record · ready/review/stuck | receipts · ledger · audit trail · company brain · operating system · unattended |
+| **In-product** | ~~private~~ | context governance · drift · gate · memory life cycle · audit trail · current-vs-stale | receipt · unattended (dead in both registers) |
 | **VC / accelerator** | analytical | the five below | any present-tense compounding claim |
 | **Community / Slack** | practitioner | plain problem language only | all deck vocabulary — *"'cracked' is VC BS"* was said twice in one thread |
 

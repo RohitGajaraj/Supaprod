@@ -84,7 +84,7 @@ has a reason to watch the next two minutes: they have been promised a chain, and
   1 at Build, 2 at Learn). Say **twenty-one**. The separate "23 decisions in memory" stat IS still 23, so both
   numbers are on screen at once and mixing them up is the easiest mistake in the video.
 - Counts verified today: signals 25, meetings 6, decisions 23, learnings 5.
-- Do not read the briefing's receipt list aloud — it repeats itself and contradicts its own "nothing running"
+- Do not read the briefing's evidence list aloud — it repeats itself and contradicts its own "nothing running"
   line.
 - **The Ask answer renders in the LEFT RAIL, not the canvas.** As of the 2026-07-27 fix it scrolls itself into
   view on send; you do not need to touch the scroll wheel. If you are ever on an older build, scroll the left
@@ -383,7 +383,7 @@ here, after the loop closes, it reads as the standing law rather than a detour �
 # PART E — cut, do not reopen
 
 `04 Design` · `/build` itself · the rollback beat · the agent byline · the automatic re-ranking claim · the
-receipt hover on the Ask · any live build run on camera · the `GATE · MEASURE` memory card (it never existed
+evidence hover on the Ask · any live build run on camera · the `GATE · MEASURE` memory card (it never existed
 in the product).
 
 # PART F — if something breaks mid-take

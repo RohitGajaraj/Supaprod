@@ -12,7 +12,7 @@
 >
 > **Invitations go out by 2026-08-30, so this is live.** The answers below stay exactly as filed. A full read of the market falsified one claim in Q13 and dated the numbers in Q9 and Q15.
 >
-> **1. Q13 closes on the retired moat claim.** *"Whoever owns it owns the record of how companies actually decided things, and that record is the one thing a better model cannot generate for you afterward."*
+> **1. Q13 closes on the retired moat claim.** *"Whoever owns it owns the one part of a decision that cannot be reconstructed afterward, which is what the team believed would happen before they found out things, and that record is the one thing a better model cannot generate for you afterward."*
 >
 > That is false and it is checkable. The reasons behind a decision survive — in Slack threads, in call recordings — and someone rebuilt a year of them with an agent he made in two days. A better model can generate that record for you afterward.
 >
@@ -170,7 +170,7 @@ The same layer outside product work. Anywhere agents act on a company's behalf a
 
 Software built for agents instead of for humans. When the main user of a system is an agent, the interface, the permissions and the audit trail all want to be shaped differently. Almost everything today is a human tool being retrofitted. Something gets built from the other assumption.
 
-Why it matters now: this layer gets settled in the next two years, not the next ten. Whoever owns it owns the record of how companies actually decided things, and that record is the one thing a better model cannot generate for you afterward.
+Why it matters now: this layer gets settled in the next two years, not the next ten. Whoever owns it owns the one part of a decision that cannot be reconstructed afterward, which is what the team believed would happen before they found out things, and that record is the one thing a better model cannot generate for you afterward.
 ```
 
 > 🔴 **Falsified 2026-08-10 — see §1 and §2 of the correction block at the top.** *"The one thing a better model cannot generate for you afterward"* is not true of the record. The reasons survive in Slack and call recordings and have been rebuilt with a two-day agent. It **is** true of what a team expected before the outcome landed, because almost nobody writes that down. Everything above this closing line is good and stays.

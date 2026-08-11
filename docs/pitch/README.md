@@ -10,14 +10,14 @@ Deep reasoning stays in [`../strategy/`](../strategy/README.md). This folder hol
 
 ## Writing a new application? Follow this, in order.
 
-Most work here is an accelerator, incubator, residency or grant application. There is a fixed procedure, because assembling one from memory produces a weaker application than assembling one from the ledger, and produces two applications that contradict each other.
+Most work here is an accelerator, incubator, residency or grant application. There is a fixed procedure, because assembling one from memory produces a weaker application than assembling one from the track record, and produces two applications that contradict each other.
 
 **1. Check it is worth applying to.** [`applications/README.md`](./applications/README.md) tracks 144 programs researched against their own sites. Check two blockers first, because they kill most European and Indian programs before you write a word:
 
 - **Solo founder.** Many programs require a team of two. Check the team-size bar before scoring fit.
 - **No entity exists yet**, and the founder is **US-primary**, so we deliberately do not incorporate in India. The India grant stack is a fallback only.
 
-**2. Learn what that program selects for.** [`applications/positioning-doctrine.md`](./applications/positioning-doctrine.md) is how we get **selected**, not just how we apply: the asset ledger, the counter to every standard objection, the per-program positioning axis, and the quality gate. Then read that program's own `positioning.md` if one exists.
+**2. Learn what that program selects for.** [`applications/positioning-doctrine.md`](./applications/positioning-doctrine.md) is how we get **selected**, not just how we apply: the asset track record, the counter to every standard objection, the per-program positioning axis, and the quality gate. Then read that program's own `positioning.md` if one exists.
 
 **3. Pull the answers; never write them fresh.** [`applications/answer-bank.md`](./applications/answer-bank.md) holds every reusable answer at every length.
 
@@ -53,6 +53,7 @@ Most work here is an accelerator, incubator, residency or grant application. The
 | [`applications/README.md`](./applications/README.md) | Picking a program, or logging a submission. 144 researched, with deadlines and fit. |
 | [`applications/positioning-doctrine.md`](./applications/positioning-doctrine.md) | Working out how to get selected by a specific program. |
 | [`applications/answer-bank.md`](./applications/answer-bank.md) | Writing any answer. Pull, do not compose. |
+| [**`verified-numbers.md`**](./verified-numbers.md) | **Quoting any number outward. Read it before you type a figure.** Every number with the query that reproduces it, the honest set excluding seeded workspaces, and the retired list. **Three numbers presented as proof in the YC application were seed data and a fourth set claimed thirteen months against ten weeks; none had a recorded query.** The rule: a number carries its query or it does not go. |
 | `applications/<program>/` | Per-program: `positioning.md`, `application.md`, `how-to-apply.md`. Currently Betaworks AI Camp, EF The Bridge SF, South Park Commons, The Residency. |
 
 ### YC specifically
@@ -74,7 +75,7 @@ Most work here is an accelerator, incubator, residency or grant application. The
 | [**`founder-answer-playbook.md`**](./founder-answer-playbook.md) | ⭐ **Before any investor call, accelerator interview or partner conversation.** Venue-neutral. Teaches the three postures, answer length per room, confidence calibration, the numbers card, ~50 drilled answers, and where to be flatly honest versus where to play the longer game. **A live file: it is updated after every application and every interview.** |
 | [`qa-bank.md`](./qa-bank.md) | The short objection list by audience. The playbook above supersedes it for depth. |
 | [`demo-story.md`](./demo-story.md) | **Start here before any demo.** The narrative spine. The demo tells a story; it does not tour features (founder ruling 2026-07-25). |
-| [`demo-script.md`](./demo-script.md) | The concrete walkthrough: receipts on screen, the loop closing live, the failure path shown on purpose. |
+| [`demo-script.md`](./demo-script.md) | The concrete walkthrough: evidence on screen, the loop closing live, the failure path shown on purpose. |
 | [`compounding-memory-narrative.md`](./compounding-memory-narrative.md) | You need the commercial argument for the memory layer, including the limits that are still real. |
 | [`repositioning-2026-07-22.md`](./repositioning-2026-07-22.md) | The triple-RFS intersection, per-surface vocabulary, the competitor sweep. |
 | [`investor-deck/`](./investor-deck/README.md) | The pre-seed deck, frozen 2026-07-24, print-to-PDF wired, with the brand assets vault. |
@@ -94,8 +95,8 @@ Most work here is an accelerator, incubator, residency or grant application. The
 | --- | --- |
 | [`launch-assets.md`](./launch-assets.md) | Prepping the listing: Show HN, Product Hunt, share-link copy. |
 | [`teaser-video-plan.md`](./teaser-video-plan.md) | **The teaser: one 90-second master, and Product Hunt, the site hero and the YC cut as derivations of it.** Beat sheet on named live routes, the two things that must be true before the camera rolls, what would be misrepresentation and must not appear, and a ~$34 tooling list. |
-| [`design-partner-kit.md`](./design-partner-kit.md) | Recruiting beta partners. 25 sourced targets, receipts-first templates. |
-| [`trust-ledger-launch-plan.md`](./trust-ledger-launch-plan.md) | Building the public Trust Ledger as launch material. |
+| [`design-partner-kit.md`](./design-partner-kit.md) | Recruiting beta partners. 25 sourced targets, evidence-first templates. |
+| [`trust-track record-launch-plan.md`](./trust-track record-launch-plan.md) | Building the public Track record as launch material. |
 | [`hyperagent-runbook.md`](./hyperagent-runbook.md) | Deploying the arm's-length GTM rig. Note the never-touch boundary: Airtable ships a direct competitor. |
 
 ### Brand history

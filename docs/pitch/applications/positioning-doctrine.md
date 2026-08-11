@@ -4,7 +4,7 @@
 
 ---
 
-## Part 1 — The honest asset ledger
+## Part 1 — The honest asset track record
 
 Every reviewer, at every program, is answering four questions in this order. Know which of them we win on and which we lose on, because the whole game is spending the reviewer's attention on the ones we win.
 
@@ -45,7 +45,7 @@ Every reviewer, at every program, is answering four questions in this order. Kno
 
 **D. The space looks crowded.** Notion Ship OS, Linear, Productboard Spark, Samepage, Brief all shipped in the last six months.
 
-> **The counter:** crowding is proof the seat exists, and every one of them validates the loop while missing the last step. Use asset E. Then the durability argument: no fast oracle, **the forecast cannot be backfilled** (the ledger can, and was, twice on the record — say forecast, never ledger), **the independent seat** (the labs could not build this securely across someone else's tools; an independent has no such restriction — never "suite vendors cannot be neutral", which is absent from 5.9M words), the engine is ours and models are interchangeable parts.
+> **The counter:** crowding is proof the seat exists, and every one of them validates the loop while missing the last step. Use asset E. Then the durability argument: no fast oracle, **the forecast cannot be backfilled** (the track record can, and was, twice on the record — say forecast, never track record), **the independent seat** (the labs could not build this securely across someone else's tools; an independent has no such restriction — never "suite vendors cannot be neutral", which is absent from 5.9M words), the engine is ours and models are interchangeable parts.
 
 **E. No legal entity yet.** Blocks India government grants outright, complicates several others.
 
@@ -85,7 +85,7 @@ The canon already carried this and it was under-used. Two lines to reach for:
 | Instead of | Write |
 | --- | --- |
 | "product decisions are the bottleneck" | "someone still has to stand up in a room and explain it, and usually they cannot" |
-| "the outcome ledger compounds" | "being wrong becomes something a team learns from instead of something a person carries alone" |
+| "the track record compounds" | "being wrong becomes something a team learns from instead of something a person carries alone" |
 | "we remove glue work" | "I did not start this to make anyone faster. I started it so the person answering for the work has something to answer with" |
 | "moving fast" | "moving fast without someone quietly paying for it later" |
 
@@ -95,7 +95,7 @@ The canon already carried this and it was under-used. Two lines to reach for:
 
 > _"We are not just building the record part. It is those three things. One is telling what to build, that is the main thing. Second is the entire loop of the product lifecycle. Third is the company brain so that we learn. Maintaining it as a record is a wrong positioning."_
 
-**This rule exists because the empathy rewrite of The Residency application broke it.** Writing warmly about "the person who has to answer for the work" quietly collapsed a three-layer product into an accountability ledger, which is the one framing the canon explicitly bans. The canon was correct the whole time; the application drifted away from it.
+**This rule exists because the empathy rewrite of The Residency application broke it.** Writing warmly about "the person who has to answer for the work" quietly collapsed a three-layer product into an accountability track record, which is the one framing the canon explicitly bans. The canon was correct the whole time; the application drifted away from it.
 
 **The product, in the only order it is ever told:**
 
@@ -109,7 +109,7 @@ The canon already carried this and it was under-used. Two lines to reach for:
 
 **Banned framings, all of which mean the same mistake:**
 - "where the record lives", "the system of record", "the audit trail" as the headline
-- "we keep the receipts so you can answer for it" **as the whole pitch** (it is one supporting beat inside layer 03, not the thesis)
+- "we keep the evidence so you can answer for it" **as the whole pitch** (it is one supporting beat inside layer 03, not the thesis)
 - anything that reduces the product to memory. README.md says it outright: **"Memory is one layer of the moat, not the headline."**
 
 **The line that fixes it when a draft has drifted:** _"That is the difference between a tool that remembers and one that learns. Storing decisions is easy and worth almost nothing on its own. The value is a system that can say: you are about to make a call you have made before, and here is how it went."_
@@ -147,7 +147,7 @@ Every program optimises for something different. Same facts, different order and
 | Program | What it actually selects for | We lead with | Our biggest risk there | The specific counter |
 | --- | --- | --- | --- | --- |
 | **South Park Commons** | Intellectual honesty, technical depth, people who think in public and contribute to a community. Famous for the "-1 to 0" pre-idea stage. | The earned insight, and the four versions built and thrown away. SPC rewards someone genuinely wrestling with a hard question. | We may read as **too far along** for a pre-idea fellowship, which is a real mismatch risk. | Do not pitch. Frame as a frontier question he is living inside: what does accountability look like when agents do the work and no human reviewed it. Emphasise the thrown-away versions and what each one taught. Community contribution over traction. |
-| **a16z Speedrun** | Speed, ambition, AI-native builders, raw velocity. Historically games and consumer-tech leaning. | Velocity and agent-native architecture: 4,264 commits in 8 weeks, a product built by directing agents, that itself directs agents. | B2B product-ops tooling may sit outside their stated focus, and the batch window may be closed today. | Frame as **agentic infrastructure**, not "a PM tool". The governance-and-receipts layer is what every agent company will need. Note that Brief, a direct neighbour, is already Speedrun-backed, which proves the thesis is in scope. |
+| **a16z Speedrun** | Speed, ambition, AI-native builders, raw velocity. Historically games and consumer-tech leaning. | Velocity and agent-native architecture: 4,264 commits in 8 weeks, a product built by directing agents, that itself directs agents. | B2B product-ops tooling may sit outside their stated focus, and the batch window may be closed today. | Frame as **agentic infrastructure**, not "a PM tool". The governance-and-evidence layer is what every agent company will need. Note that Brief, a direct neighbour, is already Speedrun-backed, which proves the thesis is in scope. |
 | **Techstars** | Team first, then market, then traction, then mentorability. Explicitly mentor-driven. | Domain expertise and market: a decade in product, enterprise credibility, a clearly sized market. | **Solo founder and zero traction hit hardest here.** Techstars weights team most heavily of any program on this list. | Address solo head-on and early, as the thesis proven. Show genuine hunger for mentorship, which is their actual product. Pick the right vertical program (AI or enterprise software), never the generic one. |
 | **Hub71 (Abu Dhabi)** | Strategic fit with UAE national AI and fintech ambitions, willingness to relocate and establish locally, scale-up potential. | **The BFSI card.** An AI platform used by 200+ financial institutions across 70+ countries is exactly the profile the UAE is recruiting for. Plus unconditional relocation. | Requires an ADGM entity and physical presence. | Lead with regulated-industry AI governance, not product management. Abu Dhabi wants AI infrastructure for financial services; that is genuinely who he is. Relocation willingness is a feature here, not a cost. |
 | **Station F (Paris)** | Varies sharply by program. Founders Program is competitive and cohort-based. | European ties: TUM, and product work at Infineon in Munich. He has operated in Europe. | Competitive, and some programs charge desk fees. | Pick the single best-fit program rather than applying to all of them. European operating history is the differentiator against other non-EU applicants. |

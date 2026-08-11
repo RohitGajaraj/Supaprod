@@ -20,7 +20,7 @@
 | T2: Owns outcomes alone or near-alone (PM:eng ratio 1:8+) | Ask in first reply, or team page | Solo accountability = the "why did we decide X" excavation lands on them personally. |
 | T3: Startup stage seed to Series B | Company stage | Big-co PMs hit procurement/security walls (a later segment); pre-seed founders often have no product surface yet. Seed to B has real signal volume AND freedom to adopt. |
 | T4: Tool sprawl of 5+ sources (Slack, Linear/Jira, Notion, analytics, support) | Ask; usually volunteered | The glue-cost pain scales with seams. Fewer than 4 tools = pain below purchase threshold. |
-| T5: Has shipped something that failed quietly in the last 2 quarters | Surfaces in interview Q3 | The outcome-ledger pitch only lands on someone who has recently felt "nobody checked if the call was right." |
+| T5: Has shipped something that failed quietly in the last 2 quarters | Surfaces in interview Q3 | The track-record pitch only lands on someone who has recently felt "nobody checked if the call was right." |
 
 A prospect matching T1+T2 is worth ten who match only T3. **Rank every list by T1 first.**
 
@@ -32,8 +32,8 @@ Four segments, each with a falsifiable pain hypothesis, ordered by expected will
 | --- | --- | --- | --- | --- | --- |
 | S1 | **DIY-builder PM** (built or started a Claude Code/MCP rig) | "Maintaining my hand-rolled rig costs me 2+ hrs/week and my team can't share it." | PROVEN demand shape: the 838-pt thread; commenters describing upkeep pain | High — already pays in time; Pro/Team fast | They say the rig IS the fun part (hobbyist, not buyer) |
 | S2 | **Wants-the-outcome PM** (saw the thread, said "out of my wheelhouse") | "I want signal-to-decision leverage but will not touch a terminal or MCP config." | PROVEN: multiple verbatim comments in the same thread | Medium-high — cleanest product-shaped buyer | They won't connect a single real tool (fear/IT) |
-| S3 | **Governance-blocked PM** (enterprise; Claude Code failed security review) | "I'm blocked at the IT layer, and an auditable, scoped, receipts-first layer would pass where raw agents fail." | PROVEN pain, WIRING for us as the answer (needs SSO/DPA maturity we price at Enterprise) | High later, slow now | Procurement cycle > 60 days (park for post-launch) |
-| S4 | **Product engineer / solo founder** (one person = whole product org) | "I ship fast with Cursor but decide alone with nothing; a decision layer with receipts is my missing co-founder." | Directional: the PM:eng inversion trend; needs interview confirmation | Medium — price-sensitive but fast to close | They only want build tooling, not decisions |
+| S3 | **Governance-blocked PM** (enterprise; Claude Code failed security review) | "I'm blocked at the IT layer, and an auditable, scoped, evidence-first layer would pass where raw agents fail." | PROVEN pain, WIRING for us as the answer (needs SSO/DPA maturity we price at Enterprise) | High later, slow now | Procurement cycle > 60 days (park for post-launch) |
+| S4 | **Product engineer / solo founder** (one person = whole product org) | "I ship fast with Cursor but decide alone with nothing; a decision layer with the evidence is my missing co-founder." | Directional: the PM:eng inversion trend; needs interview confirmation | Medium — price-sensitive but fast to close | They only want build tooling, not decisions |
 
 **Discovery quota per segment for the beta wave: S1×10, S2×8, S3×3 (interview only, do not onboard yet), S4×4.** The quota forces us to learn where pain is worst instead of onboarding whoever is easiest.
 
@@ -43,7 +43,7 @@ Wave 1 exists and is done: **25 verified targets** in the [design-partner kit](.
 
 | Wave | Method | Target count | Effort | Why it works | Next action |
 | --- | --- | --- | --- | --- | --- |
-| W2: More build-log threads | Search Reddit (r/ProductManagement, r/prodmgmt, r/UXDesign, r/SaaS), HN comments, and X for "Claude Code PM", "MCP product manager", "AI product workflow" posts from the last 6 months; harvest engaged commenters exactly like the kit did | +75-125 | 2-3 hrs with the HyperAgent rig (PC-26, its designated use) | Same receipts-first quality as Wave 1: every name comes with their own words as the personalization hook | Run the rig day 1; founder approves the harvested list before any drafting |
+| W2: More build-log threads | Search Reddit (r/ProductManagement, r/prodmgmt, r/UXDesign, r/SaaS), HN comments, and X for "Claude Code PM", "MCP product manager", "AI product workflow" posts from the last 6 months; harvest engaged commenters exactly like the kit did | +75-125 | 2-3 hrs with the HyperAgent rig (PC-26, its designated use) | Same evidence-first quality as Wave 1: every name comes with their own words as the personalization hook | Run the rig day 1; founder approves the harvested list before any drafting |
 | W3: Public pain-posters on LinkedIn/X | People who posted (not liked — posted) about roadmap chaos, PRD drudgery, "three versions of the same roadmap", AI tool sprawl in the last 90 days | +50-100 | 30 min/day of founder scroll + save; rig-assisted search | Self-identified pain, contactable on the platform they posted on | Start a saved list day 1; 10 adds/day |
 | W4: YC + recently-funded directories | YC startup directory (filter: B2B SaaS, 11-50 headcount) + last-6-months seed/Series-A announcements; identify the product person from the company site/launch post only | +100-200 | 3-4 hrs, rig-assisted | T3 stage filter built in; funded teams have budget and urgency | Build day 2-3; this is the EMAIL list (company emails are fair game where published) |
 | W5: Community members | Lenny's community, Mind the Product Slack, Product-Led Alliance, AI tinkerers meetups — participate first, DM only people you've genuinely interacted with | +25-50 over weeks | Ongoing | Highest trust, slowest; violating community self-promo norms would burn the channel | Join day 1, first genuine (non-promotional) contribution day 2 |
@@ -85,7 +85,7 @@ check whether the call behind it was right?
 
 I built Supaprod because that answer is almost always no. Agents run the
 product loop end to end (signals in, ranked bets, specs, a PR out) and an
-outcome ledger records what worked, so the next call is smarter than the
+track record records what worked, so the next call is smarter than the
 last one.
 
 We're opening a small beta before the public launch. 15 minutes, I show
@@ -149,7 +149,7 @@ useful thing you can be is blunt. OK to record for my notes?
 | # | Question | What it validates | Follow-up | Never ask instead |
 | --- | --- | --- | --- | --- |
 | 1 | "Walk me through the last decision your team made about what to build next. Start from where the idea came from." | The loop shape; who holds it | "What did you have open on your screen while doing that?" | "Is prioritization hard for you?" (yes/no, leading) |
-| 2 | "When did someone last ask why you decided something, and you had to go digging? What did that look like?" | The excavation pain (our wedge) | "How long did it take? What did you find?" | "Wouldn't a decision ledger help?" (pitch disguised as question) |
+| 2 | "When did someone last ask why you decided something, and you had to go digging? What did that look like?" | The excavation pain (our wedge) | "How long did it take? What did you find?" | "Wouldn't a decision record help?" (pitch disguised as question) |
 | 3 | "Of things you shipped last quarter, how do you know which ones worked?" | Outcome-tracking absence | "Who checked? When? Where does that live?" | "Do you track outcomes?" (invites aspirational lying) |
 | 4 | "What have you already tried with AI for any of this? What happened?" | Segment (S1 vs S2), tool graveyard | "What made you stop / keep going?" | "Would you use an AI agent for this?" (hypothetical) |
 | 5 | "What did that cost you — hours, a missed call, a fight?" | Pain quantification for the scorecard | "Is that typical or a bad week?" | Skipping this one (it prices the pain) |
@@ -232,7 +232,7 @@ me every week what it got right and what it got wrong. Deal?
 
 Assemble AFTER 15+ first sessions (week 3-4, not launch week — earlier = guessing at composition). **5-8 people: 2×S1, 2×S2, 1×S3, 1-2×S4, at least one vocal skeptic** (advisory groups of fans produce applause, not advice; the skeptic is the quality control).
 
-**Format:** 45-min monthly call + async Slack Connect/DM channel. Agenda fixed: 10 min "here's what we shipped because of you" (the you-said-we-changed receipt — this retention mechanic is why people stay in advisory groups), 20 min one contested roadmap decision debated live, 15 min open. **The contested decision goes through Supaprod's own Critic first and the group sees the teardown** — the advisory group experiences the product being used to run the product.
+**Format:** 45-min monthly call + async Slack Connect/DM channel. Agenda fixed: 10 min "here's what we shipped because of you" (the you-said-we-changed evidence — this retention mechanic is why people stay in advisory groups), 20 min one contested roadmap decision debated live, 15 min open. **The contested decision goes through Supaprod's own Critic first and the group sees the teardown** — the advisory group experiences the product being used to run the product.
 
 **What members get:** early features, launch-day credit ("founding advisor"), and visible influence. **Metric:** ≥6 of 8 attend month 2 (attendance decay is the honesty meter for whether WE are worth advising).
 
@@ -275,7 +275,7 @@ Score every activated user weekly. **Purpose: aim founder time at buyers, not to
 | Asked about pricing unprompted | +3 |
 | Invited a teammate | +4 |
 | Ran a decision they were personally accountable for through it | +3 |
-| Shared an artifact externally (teardown/ledger link) | +2 |
+| Shared an artifact externally (teardown/track record link) | +2 |
 | Asked for an integration by name | +2 |
 | Verbal yes on the 9b commitment test | +4 |
 | Only used sample/demo data after week 1 | −3 |

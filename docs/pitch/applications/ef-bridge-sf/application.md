@@ -48,7 +48,7 @@ The last two years I taught myself to build. I went from writing specs and waiti
 ```text
 Supaprod, which I am building now. It tells a product team what to build, builds it, and grades whether the call was right. Nine weeks, alone, 4,876 commits directed and reviewed.
 
-The interesting part is the governance layer. Every AI call routes through one runtime chokepoint carrying budget, guardrails, tracing and fallback, so the system is model-agnostic and every agent action produces a receipt by construction rather than by instrumentation. Agents earn autonomy from their own track record, with floors on merge, revert and delegate they never cross.
+The interesting part is the governance layer. Every AI call routes through one runtime chokepoint carrying budget, guardrails, tracing and fallback, so the system is model-agnostic and every agent action lands in the audit trail by construction rather than by instrumentation. Agents earn autonomy from their own track record, with floors on merge, revert and delegate they never cross.
 
 I designed it and directed the agents that wrote it.
 ```

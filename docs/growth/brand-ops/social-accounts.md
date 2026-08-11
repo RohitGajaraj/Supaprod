@@ -1,4 +1,4 @@
-# Social accounts — the claim runbook and the live ledger
+# Social accounts — the claim runbook and the live track record
 
 > _Created: 2026-08-05 · Last updated: 2026-08-05_
 
@@ -376,7 +376,7 @@ Everything you need is here. Work top to bottom. Each platform ends with the **s
 2. **Turn on 2FA**, authenticator app rather than SMS wherever offered. SMS is SIM-swappable.
 3. **Save the TOTP seed** into the same Proton Pass entry, so the vault also generates the codes.
 4. ⚠️ **Save the recovery / backup codes** into that entry's notes. These bypass 2FA entirely and are the single thing you cannot recover without.
-5. **Fill in the ledger row** in §8: URL, status, 2FA method, vault entry name, date.
+5. **Fill in the track record row** in §8: URL, status, 2FA method, vault entry name, date.
 
 Do the close-out *before* moving to the next platform. Batching it is how recovery codes get lost.
 
@@ -589,7 +589,7 @@ Both should return only rows inside the "never" table in §4.
 
 ---
 
-## 8. The ledger — MOVED TO NOTION 2026-08-07
+## 8. The track record — MOVED TO NOTION 2026-08-07
 
 > **The live state of every account now lives in [`Supaprod · Brand & Social Accounts`](https://app.notion.com/p/3b33f54c86c281b1968fdcedb5e7785d), and this file no longer keeps a second copy.**
 >
@@ -623,9 +623,9 @@ The table below is kept **only as the historical record of what this file assert
 | PyPI | `supaprod` | | Not started | `social@supaprod.ai` | | | |
 | Crunchbase | `supaprod` | | Not started | `social@supaprod.ai` | | | |
 
-Status values: `Not started` → `Claimed` (handle held, profile empty) → `Profile complete` (bio, avatar, banner, link) → `Verified` (2FA on, recovery codes in the vault, ledger row filled).
+Status values: `Not started` → `Claimed` (handle held, profile empty) → `Profile complete` (bio, avatar, banner, link) → `Verified` (2FA on, recovery codes in the vault, track record row filled).
 
-**Update this table in the same sitting as the account.** A ledger that is occasionally right is worse than one that admits it does not know.
+**Update this table in the same sitting as the account.** A track record that is occasionally right is worse than one that admits it does not know.
 
 ---
 
@@ -641,7 +641,7 @@ Status values: `Not started` → `Claimed` (handle held, profile empty) → `Pro
 >
 > **Why it drifted, and the rule that follows.** Accounts get claimed on a phone, at speed, in the same sitting as a founder decision. The nearest writable surface at that moment is Notion, not a markdown file behind a git commit. So the mirror gets the fresh fact and the canonical file goes stale, which is the exact inversion of what "canonical" is supposed to guarantee.
 >
-> Declaring a file canonical does not make it current. **Before trusting any row in §8, check the account itself.** A `curl` against the public profile settles most rows in seconds and is cheaper than acting on a wrong one. Ledger rows are claims about the world, and the world is the authority.
+> Declaring a file canonical does not make it current. **Before trusting any row in §8, check the account itself.** A `curl` against the public profile settles most rows in seconds and is cheaper than acting on a wrong one. Track record rows are claims about the world, and the world is the authority.
 
 ## 8b. Live-account defects found on inspection, 2026-08-05
 

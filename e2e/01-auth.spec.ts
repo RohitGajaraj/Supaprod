@@ -22,8 +22,26 @@ import { login, takeScreenshot, waitForShell } from "./helpers/auth";
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe("Authentication", () => {
+  /**
+   * `domcontentloaded`, NOT `networkidle`, AND NOT `waitForShell` EITHER.
+   *
+   * `networkidle` went out of this suite on 2026-08-11: it waits for 500ms of
+   * network silence, which several surfaces never give it because
+   * `/engine-room` loads `js.stripe.com` and Stripe holds the connection open,
+   * so `goto` threw on pages that were rendered and correct behind it. It never
+   * reported readiness; it reported that something was still talking.
+   *
+   * Everywhere else the replacement is `domcontentloaded` plus `waitForShell`.
+   * NOT HERE. `/login` renders no `<main>` (the shell is what you get AFTER
+   * signing in), so waiting for the shell on this page would hang until the
+   * timeout on a login form that is present and working.
+   *
+   * Nothing is added on top either: the three `toBeVisible` assertions below are
+   * web-first and retry until the form appears, so they already wait for the
+   * exact thing this test needs.
+   */
   test("login page renders correctly", async ({ page }) => {
-    await page.goto("/login", { waitUntil: "networkidle" });
+    await page.goto("/login", { waitUntil: "domcontentloaded" });
 
     // Verify key login elements exist
     await expect(page.locator('input[type="email"], input[name="email"]').first()).toBeVisible();
@@ -71,7 +89,16 @@ test.describe("Authentication", () => {
 
   test("authenticated state persists on navigation", async ({ page }) => {
     await login(page);
-    await page.goto("/today", { waitUntil: "networkidle" });
+    await page.goto("/today", { waitUntil: "domcontentloaded" });
+
+    // `/today` IS authenticated, so this one does take the shell wait, and it
+    // is doing more work here than it looks. `page.url()` below is a
+    // synchronous snapshot with no retry: under `domcontentloaded` it would
+    // read "/today" before the client-side auth guard has had a chance to bounce
+    // a dead session back to `/login`, and the assertion would go green without
+    // ever testing what its name claims. Waiting for the shell to render is what
+    // makes "the session survived a navigation" observable.
+    await waitForShell(page);
 
     // Should not be redirected to login
     expect(page.url()).not.toContain("/login");

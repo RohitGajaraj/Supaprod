@@ -25,7 +25,7 @@ import { waitForFocusToLand, waitForLayoutToSettle } from "./helpers/waits";
 // see the header of `helpers/auth.ts`.
 //
 // Both now come from one place, and the absence of the env var throws by name.
-import { DEMO_EMAIL, demoPassword, BASE_URL } from "./helpers/auth";
+import { DEMO_EMAIL, demoPassword, BASE_URL, waitForShell } from "./helpers/auth";
 
 /**
  * The comment above this list said "All 14 authenticated surfaces" and the list
@@ -62,6 +62,25 @@ const BREAKPOINTS = [
   { name: "desktop", width: 1280, height: 800 },
 ];
 
+/**
+ * NAVIGATION IN THIS FILE: `domcontentloaded` PLUS `waitForShell`, never
+ * `networkidle`. Measured on 2026-08-11 across the whole suite: `/evals`,
+ * `/agents` and `/drift` redirect to `/engine-room`, which loads
+ * `js.stripe.com`, and Stripe holds its connection open, so the page never
+ * gives `networkidle` the 500ms of silence it waits for. `goto` sat for the
+ * full navigation timeout and threw WHILE THE PAGE WAS RENDERED AND CORRECT
+ * BEHIND IT.
+ *
+ * `networkidle` does not report "the page is not ready". It reports "something
+ * on this page is still talking", and the two are unrelated, which is why
+ * Playwright discourages it. `waitForShell` waits for `main` to be visible,
+ * which IS the readiness condition every assertion below depends on, and it is
+ * indifferent to a third-party socket.
+ *
+ * Proven first on `02-surfaces-desktop.spec.ts`, where the same substitution
+ * turned 3 failures into 15 passes and a run of timeouts into 38 seconds.
+ */
+
 test.describe("Waves 1-2 QA: Design System Verification", () => {
   let page: Page;
 
@@ -69,7 +88,7 @@ test.describe("Waves 1-2 QA: Design System Verification", () => {
     page = await browser.newPage();
 
     // Log in with demo credentials
-    await page.goto(`${BASE_URL}/login`, { waitUntil: "networkidle" });
+    await page.goto(`${BASE_URL}/login`, { waitUntil: "domcontentloaded" });
     await page.fill('input[type="email"]', DEMO_EMAIL);
     await page.fill('input[type="password"]', demoPassword());
     await page.click('button[type="submit"]');
@@ -92,7 +111,8 @@ test.describe("Waves 1-2 QA: Design System Verification", () => {
       for (const bp of BREAKPOINTS) {
         test(`${surface} @ ${bp.name} (${bp.width}x${bp.height}): no horizontal scroll`, async () => {
           await page.setViewportSize({ width: bp.width, height: bp.height });
-          await page.goto(`${BASE_URL}${surface}`, { waitUntil: "networkidle" });
+          await page.goto(`${BASE_URL}${surface}`, { waitUntil: "domcontentloaded" });
+          await waitForShell(page);
           // Was `waitForTimeout(300) // Let layout settle`. Settling is a
           // condition — the document box stops changing — so wait for that and
           // then assert ONCE. Deliberately not `expect.poll(hasHorizontalScroll)
@@ -130,7 +150,8 @@ test.describe("Waves 1-2 QA: Design System Verification", () => {
         page.on("console", collect);
 
         try {
-          await page.goto(`${BASE_URL}${surface}`, { waitUntil: "networkidle" });
+          await page.goto(`${BASE_URL}${surface}`, { waitUntil: "domcontentloaded" });
+          await waitForShell(page);
           // Was `waitForTimeout(500)`, standing in for "let async errors
           // surface". The condition underneath that guess is "the surface has
           // finished rendering", because that is when mount-time errors have
@@ -157,7 +178,8 @@ test.describe("Waves 1-2 QA: Design System Verification", () => {
   test.describe("Interactive States", () => {
     test("Buttons: hover state smooth (desktop only)", async () => {
       await page.setViewportSize({ width: 1280, height: 800 });
-      await page.goto(`${BASE_URL}/today`, { waitUntil: "networkidle" });
+      await page.goto(`${BASE_URL}/today`, { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
 
       // Find first interactive button
       const button = await page.locator("button:visible").first();
@@ -175,7 +197,8 @@ test.describe("Waves 1-2 QA: Design System Verification", () => {
 
     test("Focus ring: visible on Tab navigation", async () => {
       await page.setViewportSize({ width: 1280, height: 800 });
-      await page.goto(`${BASE_URL}/today`, { waitUntil: "networkidle" });
+      await page.goto(`${BASE_URL}/today`, { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
 
       // Tab to first interactive element.
       await page.keyboard.press("Tab");
@@ -207,7 +230,8 @@ test.describe("Waves 1-2 QA: Design System Verification", () => {
 
   test.describe("Typography & Tokens", () => {
     test("Geist Sans font loads", async () => {
-      await page.goto(`${BASE_URL}/today`, { waitUntil: "networkidle" });
+      await page.goto(`${BASE_URL}/today`, { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
 
       const fontLoaded = await page.evaluate(() => {
         return document.fonts.check("12px Geist");
@@ -236,7 +260,8 @@ test.describe("Waves 1-2 QA: Design System Verification", () => {
      * transparent, and it is observable directly.
      */
     test("design-system color tokens resolve on :root", async () => {
-      await page.goto(`${BASE_URL}/today`, { waitUntil: "networkidle" });
+      await page.goto(`${BASE_URL}/today`, { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
 
       const unresolved = await page.evaluate(() => {
         const root = getComputedStyle(document.documentElement);
@@ -273,7 +298,8 @@ test.describe("Waves 1-2 QA: Design System Verification", () => {
   test.describe("Responsive Rail & Navigation", () => {
     test("Rail hidden on mobile (<768px)", async () => {
       await page.setViewportSize({ width: 320, height: 640 });
-      await page.goto(`${BASE_URL}/today`, { waitUntil: "networkidle" });
+      await page.goto(`${BASE_URL}/today`, { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
 
       const railVisible = await page.evaluate(() => {
         const rail =
@@ -290,7 +316,8 @@ test.describe("Waves 1-2 QA: Design System Verification", () => {
 
     test("Rail visible on desktop (≥768px)", async () => {
       await page.setViewportSize({ width: 1280, height: 800 });
-      await page.goto(`${BASE_URL}/today`, { waitUntil: "networkidle" });
+      await page.goto(`${BASE_URL}/today`, { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
 
       const railVisible = await page.evaluate(() => {
         const rail =
@@ -308,7 +335,8 @@ test.describe("Waves 1-2 QA: Design System Verification", () => {
 
   test.describe("Accessibility Baseline", () => {
     test("Images have alt text or aria-label", async () => {
-      await page.goto(`${BASE_URL}/today`, { waitUntil: "networkidle" });
+      await page.goto(`${BASE_URL}/today`, { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
 
       const imagesWithoutAlt = await page.evaluate(() => {
         const images = Array.from(document.querySelectorAll("img"));
@@ -324,7 +352,8 @@ test.describe("Waves 1-2 QA: Design System Verification", () => {
     });
 
     test("Form inputs associated with labels", async () => {
-      await page.goto(`${BASE_URL}/settings`, { waitUntil: "networkidle" });
+      await page.goto(`${BASE_URL}/settings`, { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
 
       const inputsWithoutLabel = await page.evaluate(() => {
         const inputs = Array.from(document.querySelectorAll("input, textarea, select"));
@@ -344,7 +373,8 @@ test.describe("Waves 1-2 QA: Design System Verification", () => {
 
   test.describe("Dark Theme", () => {
     test("Dark theme applied by default", async () => {
-      await page.goto(`${BASE_URL}/today`, { waitUntil: "networkidle" });
+      await page.goto(`${BASE_URL}/today`, { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
 
       const isDarkTheme = await page.evaluate(() => {
         const html = document.documentElement;

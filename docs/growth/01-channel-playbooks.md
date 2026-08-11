@@ -25,7 +25,7 @@ Ranked for OUR situation: zero audience, 7-day wave, listing in week 2–3. The 
 | Rank | Channel | Phase | Qualified-signup yield per founder-hour | Why this rank |
 | --- | --- | --- | --- | --- |
 | 1 | LinkedIn DMs + X DMs (gift-first, from [`03`](./03-customer-discovery-and-validation.md)) | days 3–7 | Highest floor: personalized 1st-degree DMs reply at 25–35% | Direct, qualified, no algorithm between us and the buyer |
-| 2 | X (founder story + receipts posts + reply-guy routine) | days 3–7 | Medium, high variance | The wave's public stage; where the PM/builder ecosystem actually talks |
+| 2 | X (founder story + evidence posts + reply-guy routine) | days 3–7 | Medium, high variance | The wave's public stage; where the PM/builder ecosystem actually talks |
 | 3 | Communities (Lenny's Slack, r/AI_Agents, Lovable Discord, AI Tinkerers) | seed day 0, harvest week 2+ | Low this week, compounds | Best audience match anywhere (Lenny's); etiquette gates the speed |
 | 4 | LinkedIn posts (carousel + text) | days 3–7 | Low-medium | Credibility amplifier for the DM motion; anti-viral by design |
 | 5 | Newsletters (Aakash Gupta, How I AI slots) | email day 0–1, lands week 2–4 | Potentially high per $ | Longest lead time of anything actionable — start first |
@@ -56,8 +56,8 @@ Day 0 actions with lead times longer than the wave:
 
 > **Two near-identical positioning launches happened on Product Hunt in June 2026. Read their pages and comment threads BEFORE our copy finalizes.**
 >
-> - **Samepage Signals** (samepage.ai) — "second brain for product leaders," pushes insights across Jira/Linear/Productboard/Slack/Notion/Gong. 205 upvotes, Jun 25 2026, launched with a $4.85M raise (Craft Ventures; angels incl. Justin Kan). Differentiation line: _they surface insight; Supaprod closes the loop — decision to build to recorded outcome, with receipts._
-> - **Brief** (briefhq.ai) — "Navigate your agents to product-market fit," a Product Graph serving context to humans and agents via Slack/CLI/MCP, explicitly targets Cursor/Claude Code/Windsurf. 264 upvotes, Jun 2026. Differentiation line: _they feed context to agents; Supaprod governs agents end to end and keeps the outcome ledger — nobody else connects decide → build → outcome and learns from it._
+> - **Samepage Signals** (samepage.ai) — "second brain for product leaders," pushes insights across Jira/Linear/Productboard/Slack/Notion/Gong. 205 upvotes, Jun 25 2026, launched with a $4.85M raise (Craft Ventures; angels incl. Justin Kan). Differentiation line: _they surface insight; Supaprod closes the loop — decision to build to recorded outcome, with the evidence._
+> - **Brief** (briefhq.ai) — "Navigate your agents to product-market fit," a Product Graph serving context to humans and agents via Slack/CLI/MCP, explicitly targets Cursor/Claude Code/Windsurf. 264 upvotes, Jun 2026. Differentiation line: _they feed context to agents; Supaprod governs agents end to end and keeps the track record — nobody else connects decide → build → outcome and learns from it._
 >
 > Their comment threads are a free preview of the objections our listing will get. Mine both; feed objections into the qa-bank ([`pitch/qa-bank.md`](../pitch/qa-bank.md)).
 
@@ -65,9 +65,9 @@ Day 0 actions with lead times longer than the wave:
 
 ## 4. Hacker News / Show HN
 
-**Why it matters:** the highest-trust technical audience; a good Show HN drives 1-week traffic, GitHub-star halo (AI tools averaged +121 stars/24h post-HN, arXiv 2511.04453), and permanent credibility. It is also our best-fit audience for the "it built part of itself" receipts story.
+**Why it matters:** the highest-trust technical audience; a good Show HN drives 1-week traffic, GitHub-star halo (AI tools averaged +121 stars/24h post-HN, arXiv 2511.04453), and permanent credibility. It is also our best-fit audience for the "it built part of itself" evidence story.
 
-**Audience fit:** engineers, product engineers, technical founders — exactly the expanded wedge (v13 §3). Skeptical of AI claims; rewards receipts and honest limitations.
+**Audience fit:** engineers, product engineers, technical founders — exactly the expanded wedge (v13 §3). Skeptical of AI claims; rewards evidence and honest limitations.
 
 **Timing:** week 2–3 (v13 phase 3), Tue–Thu, start of US business hours (sources conflict ET vs PT; err toward 8–10am ET). Secondary window: Sunday ~6–9pm PT. **Hard gates before submitting** (from [`pitch/launch-assets.md`](../pitch/launch-assets.md), confirmed by the official rules):
 
@@ -92,7 +92,7 @@ Day 0 actions with lead times longer than the wave:
 - [ ] Console clean on the demo path
 - [ ] The `[N]` slots in the drafted post refilled from live DB same morning
 
-**Common mistakes:** waitlist-page submissions (ineligible); reposting quickly after a failed attempt (JobPilot AI's day-2 post was invisibly shadowbanned, Jun 2026 — one legitimate reattempt after a real gap is tolerated); arguing with skeptics (answer plainly, show the ledger); launching into a flooded Show tab (CodeYam died twice this way — if the tab is flooded at post time, wait a day).
+**Common mistakes:** waitlist-page submissions (ineligible); reposting quickly after a failed attempt (JobPilot AI's day-2 post was invisibly shadowbanned, Jun 2026 — one legitimate reattempt after a real gap is tolerated); arguing with skeptics (answer plainly, show the track record); launching into a flooded Show tab (CodeYam died twice this way — if the tab is flooded at post time, wait a day).
 
 **Success metrics:** 100+ points = strong; 30+ real comments with founder answers = the actual asset (Understudy won on answer quality at 120 points); demo tries and signups attributed (fix the analytics first); 5+ qualified beta applications.
 
@@ -135,7 +135,7 @@ Day 0 actions with lead times longer than the wave:
 - Thread skeleton for the founder story (day 3): hook → problem → founder story → what's real (numbers) → the wrong calls too → CTA in reply. Full copy: [`02`](./02-prelaunch-copy-pack.md) §1.
 - **Reply-guy routine (45–60 min/day, founder):** reply substantively within 15–60 min to posts from PM/AI accounts; never pitch in replies — the bio and pinned post carry the product. Target ecosystem: levelsio (892K, actively quote-boosts builders' launches in 2026), Marc Lou, Tony Dinh, Arvid Kahl, swyx/Latent Space; PM side: Aakash Gupta (~180K on X). **No evidence Lenny or Aakash amplify cold launches — the route to them is the sponsorship/relationship path (§10), not tagging.**
 
-**Realistic reach (the honest number):** accounts that get launch-day reach posted consistently for ~6 months prior. Fresh accounts reach ~nobody. Floor case from the research: 600 followers → 150K impressions but 12 signups over 6 weeks. Our counter: the wave is designed to be _quote-tweetable by bigger accounts_ (receipts, teardowns, the built-itself PR), and the DM motion doesn't need reach. Directional benchmarks if the account grows: 3,500 followers ≈ 450 launch signups (~directional, uncredited).
+**Realistic reach (the honest number):** accounts that get launch-day reach posted consistently for ~6 months prior. Fresh accounts reach ~nobody. Floor case from the research: 600 followers → 150K impressions but 12 signups over 6 weeks. Our counter: the wave is designed to be _quote-tweetable by bigger accounts_ (evidence, teardowns, the built-itself PR), and the DM motion doesn't need reach. Directional benchmarks if the account grows: 3,500 followers ≈ 450 launch signups (~directional, uncredited).
 
 **Success metrics:** saves/bookmarks + profile clicks + waitlist referrals tagged from X; 3+ quote-tweets from 10K+ accounts during the wave = the breakout signal.
 
@@ -149,7 +149,7 @@ Day 0 actions with lead times longer than the wave:
 
 **Format ranking (AuthoredUp 3M+ post dataset):**
 
-1. **Document/PDF carousels — 6.60% avg engagement, +39% reach vs average, and only ~4.9% of creators use them** (the low-competition gap). 5–15 slides. The day-4 receipts drop and the day-5 teardown both become carousels.
+1. **Document/PDF carousels — 6.60% avg engagement, +39% reach vs average, and only ~4.9% of creators use them** (the low-competition gap). 5–15 slides. The day-4 evidence drop and the day-5 teardown both become carousels.
 2. Native video (5.60%, 45–90s).
 3. Text-only (~2% but highest raw-reach ceiling; 150–300 words).
 

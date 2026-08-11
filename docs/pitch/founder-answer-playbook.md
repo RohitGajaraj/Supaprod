@@ -99,7 +99,7 @@ Refresh these against the live database the morning of any conversation. **A sta
 *Because building stopped being the bottleneck. Code has a fast oracle: it compiles in seconds, so an agent can iterate against it and building commoditizes. "What should we build, and was that right" has no fast oracle. Feedback lands in weeks to quarters. So the expensive, scarce part of product work is exactly the part nobody has automated, and it is the part that does not commoditize.*
 
 **"Is this not just a wrapper on Claude or GPT?"** (Posture C, reject the premise)
-*The models are interchangeable parts. The system is the loop, the gates and the ledger, and none of that comes from a model. We run frontier models through one chokepoint and swap them per job. If a better model ships tomorrow we get better for free, which is the opposite of a wrapper's problem.*
+*The models are interchangeable parts. The system is the loop, the gates and the track record, and none of that comes from a model. We run frontier models through one chokepoint and swap them per job. If a better model ships tomorrow we get better for free, which is the opposite of a wrapper's problem.*
 
 **"Who is it for?"**
 *The front door is one PM or founding PM drowning in the low-judgment half of the job. The expansion is the team, where it becomes the decision system of record. The buyer for that is the VP of Product, who wants to know what the team decided and whether it paid off.*

@@ -11,12 +11,12 @@
 
 **What this kit IS today:** every asset fully drafted and ready — titles, body copy, gallery shot lists, the honest-limitations list, the failure-path GIF brief — so that the moment PC-04 ships and the first 2-3 beta stories land, publishing is a fill-in-the-blanks job, not a from-scratch write. That is the actual leverage of doing this now.
 
-## 1. Show HN post (the centerpiece — receipts-first, per demo-script.md's Show HN variant)
+## 1. Show HN post (the centerpiece — evidence-first, per demo-script.md's Show HN variant)
 
 **Title (Beat 0 as the promise, per the demo doctrine):**
 
 ```
-Show HN: Supaprod – an AI product team with a ledger that proves what worked
+Show HN: Supaprod – an AI product team with a track record that proves what worked
 ```
 
 _Alt, if the above reads too close to "AI product tool" (v13's own ban list) — pick on submit day by reading both aloud:_
@@ -37,7 +37,7 @@ r/ProductManagement thread on PRDs converges on the exact same line.]
 Supaprod is an agent fleet that runs the product loop end to end — reads
 signals, ranks the bets, red-teams them, writes the spec, builds to a PR,
 records what happened — plus the thing engineering never needed: an outcome
-ledger, because code has a compiler and product judgment doesn't.
+track record, because code has a compiler and product judgment doesn't.
 
 What's real today [PROVEN, live DB as of publish date]:
 - A pg_cron engine advances missions every minute through Sense→Decide→
@@ -61,10 +61,10 @@ The honest limitations (we'd rather you hear it from us):
 
 I'll be in the comments all day. Happy to show the failure path live too —
 it's rehearsed on purpose (see the GIF): a wrong AI-drafted call, reverted
-in one key, recorded in the ledger as its own receipt.
+in one key, recorded in the track record as its own evidence.
 ```
 
-**The failure-path GIF (per demo-script.md Beat 4 — the single highest-trust moment the research identifies):** record the wrong-ranking → revert → ledger-receipt sequence on a real (dogfood or demo) account. This is not a nice-to-have; the research is explicit that skeptics judge the error path, not the win path. Brief: 15-20 seconds, the revert keystroke visible, the ledger entry landing visible immediately after.
+**The failure-path GIF (per demo-script.md Beat 4 — the single highest-trust moment the research identifies):** record the wrong-ranking → revert → track record-evidence sequence on a real (dogfood or demo) account. This is not a nice-to-have; the research is explicit that skeptics judge the error path, not the win path. Brief: 15-20 seconds, the revert keystroke visible, the track record entry landing visible immediately after.
 
 **Comment-thread posture (founder, live, all day):** answer technical questions plainly, cite the repo/register when asked "is this real," never argue with skeptics — the community's own top threads (research §12.4) call out defensive posturing as a tell. If someone asks about the self-improvement claim, the honest answer is "designed, not yet running publicly — we don't claim it until it demonstrably does" (the WIRING discipline, in public, live).
 
@@ -73,15 +73,15 @@ in one key, recorded in the ledger as its own receipt.
 **Tagline (60 chars):**
 
 ```
-The AI product team with a ledger that proves what worked
+The AI product team with a track record that proves what worked
 ```
 
 **Description (short, PH-native, no adjectives doing a number's job):**
 
 ```
 Supaprod runs product work end to end with an agent fleet — signal to
-decision to spec to shipped PR — and keeps an outcome ledger so every call
-has a receipt. Free tier runs the full loop on a small credit budget. Try
+decision to spec to shipped PR — and keeps an track record so every call
+lands in the audit trail. Free tier runs the full loop on a small credit budget. Try
 it without signing up: [DEMO-LINK].
 ```
 
@@ -90,13 +90,13 @@ it without signing up: [DEMO-LINK].
 ```
 Hey HN/PH — built this because I hit the wall myself: the more agent work
 I delegated, the more I had to answer for with nothing to answer FROM. So
-the ledger came first, the agents second. Ask me anything, including what's
+the track record came first, the agents second. Ask me anything, including what's
 NOT built yet — I'd rather tell you than have you find out.
 ```
 
-**Gallery shot list (5 assets, in this order — receipts before claims, per the doctrine):**
+**Gallery shot list (5 assets, in this order — evidence before claims, per the doctrine):**
 
-1. The Today judgment lane — the ≤3 calls needing a human, byline + receipt link visible.
+1. The Today judgment lane — the ≤3 calls needing a human, byline + evidence link visible.
 2. The teardown (Critic red-teaming a real bet) — evidence chain visible, not a chat bubble.
 3. A real merged PR with CI green, opened by the mission, under the merge gate.
 4. The revert moment — the failure path, captioned "we rehearse being wrong on purpose."
@@ -104,15 +104,15 @@ NOT built yet — I'd rather tell you than have you find out.
 
 **Topics/categories:** Productivity, Artificial Intelligence, SaaS. Avoid "AI Assistant" / "No-Code" categories — the v13 ban on "AI PM tool" framing applies to category selection too, not just copy.
 
-## 3. Teardown share links (the receipts artifact people actually forward)
+## 3. Teardown share links (the evidence artifact people actually forward)
 
-**Mechanism ([PROVEN], verified live 2026-07-10):** every Critic teardown gets a public, read-only share link at `/t/$slug` (`src/routes/t.$slug.tsx`, `getPublicTeardown` in `src/lib/opportunities-share.functions.ts`) — the idea, the verdict (Ship/Revise/Kill), and the three honest sections (risks, what would kill it, what you cannot prove yet), no login required. Same shape as `/d/$slug` (decisions) and the new `/proof` Trust Ledger (`trust-ledger-launch-plan.md`) — this repo now has three public receipt surfaces sharing one pattern. This is the artifact the Show HN post and PH listing both point to as proof, and the natural thing a beta partner forwards to a colleague ("look what it found in 90 seconds") — organic distribution that isn't astroturfing, because the partner is sharing their own real result.
+**Mechanism ([PROVEN], verified live 2026-07-10):** every Critic teardown gets a public, read-only share link at `/t/$slug` (`src/routes/t.$slug.tsx`, `getPublicTeardown` in `src/lib/opportunities-share.functions.ts`) — the idea, the verdict (Ship/Revise/Kill), and the three honest sections (risks, what would kill it, what you cannot prove yet), no login required. Same shape as `/d/$slug` (decisions) and the new `/proof` Track record (`trust-track record-launch-plan.md`) — this repo now has three public evidence surfaces sharing one pattern. This is the artifact the Show HN post and PH listing both point to as proof, and the natural thing a beta partner forwards to a colleague ("look what it found in 90 seconds") — organic distribution that isn't astroturfing, because the partner is sharing their own real result.
 
 **Copy for the share-link landing (what a stranger sees clicking a shared teardown):**
 
 ```
 This is a real teardown Supaprod ran on [workspace]'s actual bet — evidence,
-precedent, and the call, all with receipts. No login needed to read it.
+precedent, and the call, all with the evidence. No login needed to read it.
 [Try it on your own bet → DEMO-LINK]
 ```
 
@@ -120,7 +120,7 @@ precedent, and the call, all with receipts. No login needed to read it.
 
 Per [`CLAUDE.md`](../../CLAUDE.md) §1.65: the build-in-public brand system lives in a **separate private repo**, not this one. This repo's job is the one-way insight feed: when a genuinely postable build insight surfaces during the launch sprint (high bar — not a build log, something a real social post would use), it goes into [`../growth/brand-feed.md`](../growth/brand-feed.md) with a capture cue (the screenshot/video/link that would strengthen the post). The brand repo's engine drafts in the founder's voice and stages Buffer drafts for his review; it never publishes on its own. **Nothing from Supaprod work publishes to the founder's accounts without his explicit approval** — this kit does not draft social posts directly; it feeds the one channel that's designed to.
 
-**Launch-week candidates worth capturing to brand-feed.md when they happen for real (not written yet — these are the shape, not drafted posts):** the day PC-04's demo goes live; the first real design-partner "aha" moment (with the partner's permission); the Show HN thread hitting front-page-of-day, if it does; the first paying-customer receipt.
+**Launch-week candidates worth capturing to brand-feed.md when they happen for real (not written yet — these are the shape, not drafted posts):** the day PC-04's demo goes live; the first real design-partner "aha" moment (with the partner's permission); the Show HN thread hitting front-page-of-day, if it does; the first paying-customer evidence.
 
 ## 5. The Google-OAuth "request access" guard (the launch trap, guarded)
 

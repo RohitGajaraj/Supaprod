@@ -34,12 +34,12 @@ Everything asserted below is checkable. This table is the allowlist, and the nev
 | Claim used in the copy | Where it is verified |
 | --- | --- |
 | Supaprod tells you what to build, builds it, ships it, and learns from the outcome so it guides the next call | [`../../README.md`](../../README.md), the three layers |
-| Agents draft, propose and build unattended, and nothing irreversible happens without a person | `src/routes/index.tsx` `DESC`, and the `/security` body |
+| Agents draft, propose and build on their own, and nothing irreversible happens without a person | `src/routes/index.tsx` `DESC`, and the `/security` body |
 | `/demo` is a real workspace you can open without signing up | Tracker §F5 |
 | `/p/teardown` is a real Critic teardown you can run without signing up | Tracker §F5, and it now server-renders |
 | GitHub is the one connector that works end to end today | Tracker, founder ruling 1 of 2026-08-07 |
 | The Free plan is $0 and takes no card | `src/routes/pricing.tsx` |
-| The receipts shown publicly are labelled examples | Founder ruling 2 of 2026-08-07 |
+| The evidence shown publicly are labelled examples | Founder ruling 2 of 2026-08-07 |
 | Eight users, all founder or internal. No revenue | [`../../README.md`](../../README.md), "Where this actually is" |
 | The record travels to the next person. The compounded recall does not, yet | [`../../README.md`](../../README.md), the `agent_memory` known limit |
 | Supaprod is a private beta and entry is by invite code | Founder ruling of 2026-08-07 on the access model, shipped in `src/lib/waitlist-email.server.ts` |
@@ -200,7 +200,7 @@ This is the email most companies do not send, and it is the reason the rest of t
 >
 > This is the email where a company at our stage shows you logos. I have none, so here is the actual state of things.
 >
-> Eight people use Supaprod and all eight are me or internal. No revenue: billing is built, tested and switched off on purpose. Nobody outside has run a quarter on it, and the receipts on our site are labelled as examples for exactly that reason.
+> Eight people use Supaprod and all eight are me or internal. No revenue: billing is built, tested and switched off on purpose. Nobody outside has run a quarter on it, and the evidence on our site are labelled as examples for exactly that reason.
 >
 > That was a decision. A half-built loop teaches you the wrong thing, because you get feedback on a demo instead of on the thesis. The loop closes now, which is why we are letting anyone in at all.
 >
@@ -328,7 +328,7 @@ This is the email most companies do not send, and it is the reason the rest of t
 >
 > Supaprod is not somewhere to visit. It is something to open once a day, with coffee, before anybody asks you for anything.
 >
-> That place is Today. It tells you what changed, what needs you, and what the agents did while you were not looking. They run the work unattended inside boundaries you set in advance, and Today is where both the results and the decisions waiting on you land.
+> That place is Today. It tells you what changed, what needs you, and what the agents did while you were not looking. They run the work on their own inside boundaries you set in advance, and Today is where both the results and the decisions waiting on you land.
 >
 > The rest of the machinery sits behind one door on purpose. Traces, evals, budgets and guardrails live in the Engine Room, there the moment you want them and out of the way when you do not.
 >

@@ -49,7 +49,7 @@ Founder ruling 2026-08-07: the seeded proof surfaces stay, visibly labelled as e
 | Surface | What a stranger gets | Why it is the one to link |
 | --- | --- | --- |
 | **supaprod.ai/p/teardown** | Paste a PRD or a one-line product bet, get a receipted Critic red-team: the verdict, the risks, what would kill it, and what you cannot prove yet. No account, no connectors. | The reader supplies the input, so nothing about the result is staged. Rate limited. |
-| **supaprod.ai/demo** | A read-only walkthrough of a real workspace: one teardown, the decision ledger, and one mission trace end to end, including a mission that **stopped short** and says so. | Every data call on the page is GET only. There is nothing on it a visitor can change. |
+| **supaprod.ai/demo** | A read-only walkthrough of a real workspace: one teardown, the decision record, and one mission trace end to end, including a mission that **stopped short** and says so. | Every data call on the page is GET only. There is nothing on it a visitor can change. |
 
 ### 0.5 Gates that must be green before any of this posts
 
@@ -214,7 +214,7 @@ honestly where it sits rather than what quarter I hope it lands in.
 
 ### 1.5 Gallery shot list, five slides
 
-**Order is receipts before claims.** Each slide is a real surface that exists today. No mockups, no composites, no numbers pasted over a screenshot.
+**Order is evidence before claims.** Each slide is a real surface that exists today. No mockups, no composites, no numbers pasted over a screenshot.
 
 > **Every one of these has to be captured fresh.** `docs/screenshots/` is gitignored, so no product screenshot is committed to this repository and none can be pulled from it. Product Hunt gallery frames are 1270x760; the branded frame is `docs/growth/branding/social/producthunt-gallery-dark-1270x760@2x.png`.
 
@@ -222,8 +222,8 @@ honestly where it sits rather than what quarter I hope it lands in.
 | --- | --- | --- | --- | --- |
 | **1** | The result of a real teardown on the ordinary example bet: the verdict, the risks, what would kill it, and what you cannot prove yet, all visible in one frame. | `/p/teardown` | *Paste any product bet. This is what comes back.* | The only artifact on the page a stranger can reproduce in sixty seconds with no account, so it converts skepticism instead of asking for trust. Use the built-in example bet, which is deliberately weak: a Critic that waved through a good bet would prove nothing. |
 | **2** | One mission trace end to end, every station and every agent's work visible, **including the mission that stopped short** with its red "stopped" state on screen. | `/demo`, mission trace section | *One mission, station by station. This one stopped before it finished, and the product shows you the stop.* | The failure path is the highest-trust frame available. Skeptics judge the error path, not the win path, and shipping a screenshot of your own product failing is a thing a fabricated listing cannot do. |
-| **3** | The decision ledger with an outcome settled against the decision that caused it, the verdict and the decision visible in the same frame. | `/demo`, ledger section | *The call, and what actually happened, on the same row. That is what re-ranks the next one.* | This is the claim. Slides 1 and 2 earn the right to make it; this one makes it. |
-| **4** | The human boundary: the approval surface showing merge, revert and delegate pinned to a human, with a tool set to review rather than auto. | Engine Room, Safety, Controls | *Agents run unattended inside boundaries you set first. Merge, revert and delegate never leave you.* | The instant objection to "agents write code in your repo" is safety. Answering it in the gallery means the comment thread starts one objection further along. |
+| **3** | The decision record with an outcome settled against the decision that caused it, the verdict and the decision visible in the same frame. | `/demo`, track record section | *The call, and what actually happened, on the same row. That is what re-ranks the next one.* | This is the claim. Slides 1 and 2 earn the right to make it; this one makes it. |
+| **4** | The human boundary: the approval surface showing merge, revert and delegate pinned to a human, with a tool set to review rather than auto. | Engine Room, Safety, Controls | *Agents run on their own inside boundaries you set first. Merge, revert and delegate never leave you.* | The instant objection to "agents write code in your repo" is safety. Answering it in the gallery means the comment thread starts one objection further along. |
 | **5** | The connect surface with GitHub connected and real signals landed from it, with the honest state of the others visible rather than cropped out. | Integrations | *GitHub, connected and reading. Nine sources have a working adapter today, and we say which.* | Naming the one that works beats claiming twenty. It also pre-answers the connector question, which is the objection most likely to be checked by a commenter with an afternoon. |
 
 **What is deliberately not in the gallery:** `/proof`, because it is seeded and labelled as examples and a seeded surface in a gallery reads as a fabricated one; any frame carrying a user count, a revenue figure or a logo wall; and the pricing table, which belongs on the page it lives on and wins nobody a vote.
@@ -319,7 +319,7 @@ opened. Today is the doors opening.
 Four things, and none of them is trust.
 
 Policy is set in advance and does not block. Permission is asked in the moment
-and does. Agents draft, propose and build unattended, and nothing irreversible
+and does. Agents draft, propose and build on their own, and nothing irreversible
 happens without a person.
 
 Merge, revert and delegate stay human, always, and no amount of earned autonomy
@@ -429,7 +429,7 @@ HN convention: the `Show HN:` prefix, a plain description of the thing, no marke
 **Primary:**
 
 ```
-Show HN: Supaprod, an agent loop for product work with an outcome ledger
+Show HN: Supaprod, an agent loop for product work with an track record
 ```
 
 `72 characters.`
@@ -437,7 +437,7 @@ Show HN: Supaprod, an agent loop for product work with an outcome ledger
 **Alternate 1**, and the better pick if the submission points at `/p/teardown` rather than the home page, because it names the thing you can use in the first four words:
 
 ```
-Show HN: A no-signup red-team for your product bet, with receipts
+Show HN: A no-signup red-team for your product bet, with the evidence
 ```
 
 `65 characters.`
@@ -503,7 +503,7 @@ enough to ship.
 Tenancy is account, then workspace, then product, enforced by RLS on membership
 in the database. Not in application code. A bug in a route cannot reach another
 workspace's rows, which is the property you need before you let an agent run
-unattended at all.
+on its own at all.
 
 Agent boundaries. Policy is resolved in advance and does not block; permission is
 asked in the moment and does. Merge, revert and delegate are pinned to a human
@@ -578,14 +578,17 @@ These belong in the first comment or in the first reply, not held back. The patt
 ```
 Two of the three layers are a wrapper and I will say which. Ranking what to build
 is a capability, not an asset: a frontier model with the same inputs gets most of
-the way there and closer with every release. The loop, the gates and the ledger
+the way there and closer with every release. The loop, the gates and the track record
 are real engineering and still buildable by anyone with money and distribution;
 they buy a lead measured in quarters, not a position.
 
 The part I claim is defensible is the third one, and it is not a model property.
 It needs a specific team's decisions joined to that team's outcomes, labelled
-over time. That data cannot be bought, scraped or synthesised, because it is
-produced by running the loop. It also gets more valuable as models commoditize:
+over time. The part of that a competitor cannot rebuild is what the team
+believed would happen before they found out. Everything else survives in chat
+logs and call recordings, and an agent can reconstruct it in an afternoon; a
+forecast leaves no trace unless something captured it at the moment of the
+call. It also gets more valuable as models commoditize:
 when everyone reasons equally well, the differentiator is whose context is
 better.
 
@@ -604,7 +607,7 @@ interface renders. This proves the loop runs, which is the only thing I can prov
 with zero outside users, and it is exactly the limit of what I am claiming.
 
 The one thing that is not my data: /p/teardown takes your input. You paste your
-own bet and the Critic red-teams it with receipts. If that output is not sharper
+own bet and the Critic red-teams it with the evidence. If that output is not sharper
 than what you would have written yourself, the rest of this does not matter and
 you should say so in this thread.
 ```
@@ -626,7 +629,7 @@ something asks it to. Write-back only exists on the tier that also carries roles
 approval lanes and an audit trail.
 
 Merge, revert and delegate are pinned to a human and no earned autonomy lowers
-them. Agents draft, propose and build unattended, and nothing irreversible
+them. Agents draft, propose and build on their own, and nothing irreversible
 happens without a person.
 
 What is not built: SSO, full audit and roles are architected and not shipped. If
@@ -695,7 +698,7 @@ is a refund.
 
 What I am asking for is not a signup. Try one thing and tell me it is bad:
 supaprod.ai/p/teardown takes a product bet you actually have and red-teams it
-with receipts. No account, no connectors, about ninety seconds. If the output is
+with the evidence. No account, no connectors, about ninety seconds. If the output is
 not sharper than what you would have written yourself, say so here and I will
 take that more seriously than any signup this week produces.
 
@@ -764,7 +767,7 @@ to end. The other eleven complete an OAuth handshake and read nothing, and I cal
 them stubs rather than "coming soon".
 
 One thing to try, no account and about ninety seconds: supaprod.ai/p/teardown.
-Paste a product bet you actually have and the Critic red-teams it with receipts.
+Paste a product bet you actually have and the Critic red-teams it with the evidence.
 If the output is worse than what you would have written yourself, I would rather
 hear that here than not hear it.
 ```
@@ -815,7 +818,7 @@ sign-off you do not have agents, you have a queue with a nicer interface. Merge,
 revert and delegate stay human and no earned autonomy lowers those floors.
 
 Tenancy is RLS on membership in the database, not checks in application code,
-which is the precondition for letting anything run unattended.
+which is the precondition for letting anything run on their own.
 
 Not finished, and worth saying in this room: the memory layer is scoped to the
 user who wrote it rather than the workspace, so a successor inherits the record
@@ -836,7 +839,7 @@ Read-only walkthrough, no account: supaprod.ai/demo
 ```
 Supaprod is open to try with no signup.
 
-Paste a product bet and the Critic red-teams it with receipts:
+Paste a product bet and the Critic red-teams it with the evidence:
 supaprod.ai/p/teardown
 
 Or watch one real mission run end to end:

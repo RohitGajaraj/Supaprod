@@ -136,7 +136,7 @@ Writing code, opening a PR and running checks is exactly what Cursor, Devin and 
 do. Leading layer two with it frames Supaprod as a coding tool competing in the most crowded
 category in software, and it invites the one question you cannot win: "how is this different from
 Cursor?" The investor canon says it directly: _the models are interchangeable parts; the system is
-ours: the loop, the gates, the ledger._ Code generation is the commodity you spent Beat 4
+ours: the loop, the gates, the track record._ Code generation is the commodity you spent Beat 4
 explaining.
 
 **Layer two is now the thing nobody else does: the whole loop, and it closes.**

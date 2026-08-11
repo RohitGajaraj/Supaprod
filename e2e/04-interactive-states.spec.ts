@@ -3,7 +3,7 @@
  * Hover, focus, loading, error, empty, disabled states
  */
 import { test, expect, Page } from "@playwright/test";
-import { login, takeScreenshot } from "./helpers/auth";
+import { login, takeScreenshot, waitForShell } from "./helpers/auth";
 import { waitForStyleToSettle } from "./helpers/waits";
 
 /** Hue channel out of `oklch(L C H)` / `oklch(L C H / a)`, or null if the value
@@ -13,6 +13,25 @@ function parseOklchHue(value: string): number | null {
   const match = /oklch\(\s*[\d.%]+\s+[\d.]+\s+([\d.]+)/i.exec(value);
   return match ? Number.parseFloat(match[1]) : null;
 }
+
+/**
+ * NAVIGATION IN THIS FILE: `domcontentloaded` PLUS `waitForShell`, never
+ * `networkidle`. Measured on 2026-08-11 across the whole suite: `/evals`,
+ * `/agents` and `/drift` redirect to `/engine-room`, which loads
+ * `js.stripe.com`, and Stripe holds its connection open, so the page never
+ * gives `networkidle` the 500ms of silence it waits for. `goto` sat for the
+ * full navigation timeout and threw WHILE THE PAGE WAS RENDERED AND CORRECT
+ * BEHIND IT.
+ *
+ * `networkidle` does not report "the page is not ready". It reports "something
+ * on this page is still talking", and the two are unrelated, which is why
+ * Playwright discourages it. `waitForShell` waits for `main` to be visible,
+ * which IS the readiness condition every assertion below depends on, and it is
+ * indifferent to a third-party socket.
+ *
+ * Proven first on `02-surfaces-desktop.spec.ts`, where the same substitution
+ * turned 3 failures into 15 passes and a run of timeouts into 38 seconds.
+ */
 
 test.describe("Interactive States - Today", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
@@ -28,11 +47,13 @@ test.describe("Interactive States - Today", () => {
 
   test("button hover states on Today", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto("/today", { waitUntil: "networkidle" });
+    await page.goto("/today", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
 
     if (page.url().includes("/login")) {
       await login(page);
-      await page.goto("/today", { waitUntil: "networkidle" });
+      await page.goto("/today", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
     }
 
     await takeScreenshot(page, "today-default", "interactive/today");
@@ -54,11 +75,13 @@ test.describe("Interactive States - Today", () => {
 
   test("focus ring visibility on Today - keyboard navigation", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto("/today", { waitUntil: "networkidle" });
+    await page.goto("/today", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
 
     if (page.url().includes("/login")) {
       await login(page);
-      await page.goto("/today", { waitUntil: "networkidle" });
+      await page.goto("/today", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
     }
 
     // Tab through elements to verify focus rings
@@ -89,11 +112,13 @@ test.describe("Interactive States - Today", () => {
 
   test("card hover states on Today", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto("/today", { waitUntil: "networkidle" });
+    await page.goto("/today", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
 
     if (page.url().includes("/login")) {
       await login(page);
-      await page.goto("/today", { waitUntil: "networkidle" });
+      await page.goto("/today", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
     }
 
     // Find cards
@@ -124,11 +149,13 @@ test.describe("Interactive States - Build", () => {
 
   test("build surface interactive states", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto("/build", { waitUntil: "networkidle" });
+    await page.goto("/build", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
 
     if (page.url().includes("/login")) {
       await login(page);
-      await page.goto("/build", { waitUntil: "networkidle" });
+      await page.goto("/build", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
     }
 
     await takeScreenshot(page, "build-default", "interactive/build");
@@ -147,11 +174,13 @@ test.describe("Interactive States - Build", () => {
 
   test("keyboard navigation through Build", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto("/build", { waitUntil: "networkidle" });
+    await page.goto("/build", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
 
     if (page.url().includes("/login")) {
       await login(page);
-      await page.goto("/build", { waitUntil: "networkidle" });
+      await page.goto("/build", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
     }
 
     // Tab through 5 elements and log focus
@@ -187,11 +216,13 @@ test.describe("Interactive States - Discover", () => {
 
   test("discover interactive states", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto("/discover", { waitUntil: "networkidle" });
+    await page.goto("/discover", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
 
     if (page.url().includes("/login")) {
       await login(page);
-      await page.goto("/discover", { waitUntil: "networkidle" });
+      await page.goto("/discover", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
     }
 
     await takeScreenshot(page, "discover-default", "interactive/discover");
@@ -255,11 +286,13 @@ test.describe("Focus Ring Compliance", () => {
     page,
   }) => {
     await page.context().addCookies(authCookies);
-    await page.goto("/today", { waitUntil: "networkidle" });
+    await page.goto("/today", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
 
     if (page.url().includes("/login")) {
       await login(page);
-      await page.goto("/today", { waitUntil: "networkidle" });
+      await page.goto("/today", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
     }
 
     await page.keyboard.press("Tab");

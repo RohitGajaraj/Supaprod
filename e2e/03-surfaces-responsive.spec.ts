@@ -3,7 +3,7 @@
  * Verifies layout at breakpoints, checks bottom nav, rail visibility
  */
 import { test, expect, Page } from '@playwright/test';
-import { login, takeScreenshot } from './helpers/auth';
+import { login, takeScreenshot, waitForShell } from './helpers/auth';
 
 const KEY_SURFACES = [
   { path: '/today', name: 'today', label: 'Today' },
@@ -48,6 +48,25 @@ async function checkTouchTargets(page: Page): Promise<{ element: string; size: s
   });
 }
 
+/**
+ * NAVIGATION IN THIS FILE: `domcontentloaded` PLUS `waitForShell`, never
+ * `networkidle`. Measured on 2026-08-11 across the whole suite: `/evals`,
+ * `/agents` and `/drift` redirect to `/engine-room`, which loads
+ * `js.stripe.com`, and Stripe holds its connection open, so the page never
+ * gives `networkidle` the 500ms of silence it waits for. `goto` sat for the
+ * full navigation timeout and threw WHILE THE PAGE WAS RENDERED AND CORRECT
+ * BEHIND IT.
+ *
+ * `networkidle` does not report "the page is not ready". It reports "something
+ * on this page is still talking", and the two are unrelated, which is why
+ * Playwright discourages it. `waitForShell` waits for `main` to be visible,
+ * which IS the readiness condition every assertion below depends on, and it is
+ * indifferent to a third-party socket.
+ *
+ * Proven first on `02-surfaces-desktop.spec.ts`, where the same substitution
+ * turned 3 failures into 15 passes and a run of timeouts into 38 seconds.
+ */
+
 test.describe('Responsive Audit - Tablet 768px', () => {
   test.use({ viewport: { width: 768, height: 1024 } });
 
@@ -63,11 +82,13 @@ test.describe('Responsive Audit - Tablet 768px', () => {
   for (const surface of KEY_SURFACES) {
     test(`${surface.label} - tablet 768px`, async ({ page }) => {
       await page.context().addCookies(authCookies);
-      await page.goto(surface.path, { waitUntil: 'networkidle' });
+      await page.goto(surface.path, { waitUntil: 'domcontentloaded' });
+      await waitForShell(page);
 
       if (page.url().includes('/login')) {
         await login(page);
-        await page.goto(surface.path, { waitUntil: 'networkidle' });
+        await page.goto(surface.path, { waitUntil: 'domcontentloaded' });
+        await waitForShell(page);
       }
 
       await takeScreenshot(page, `tablet-${surface.name}`, 'surfaces/tablet');
@@ -96,11 +117,13 @@ test.describe('Responsive Audit - Mobile 320px', () => {
   for (const surface of KEY_SURFACES) {
     test(`${surface.label} - mobile 320px`, async ({ page }) => {
       await page.context().addCookies(authCookies);
-      await page.goto(surface.path, { waitUntil: 'networkidle' });
+      await page.goto(surface.path, { waitUntil: 'domcontentloaded' });
+      await waitForShell(page);
 
       if (page.url().includes('/login')) {
         await login(page);
-        await page.goto(surface.path, { waitUntil: 'networkidle' });
+        await page.goto(surface.path, { waitUntil: 'domcontentloaded' });
+        await waitForShell(page);
       }
 
       await takeScreenshot(page, `mobile-${surface.name}`, 'surfaces/mobile');
@@ -122,11 +145,13 @@ test.describe('Responsive Audit - Mobile 320px', () => {
 
   test('bottom nav visibility at 320px', async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'networkidle' });
+    await page.goto('/today', { waitUntil: 'domcontentloaded' });
+    await waitForShell(page);
 
     if (page.url().includes('/login')) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'networkidle' });
+      await page.goto('/today', { waitUntil: 'domcontentloaded' });
+      await waitForShell(page);
     }
 
     // Check for bottom nav (mobile nav)
@@ -163,11 +188,13 @@ test.describe('Responsive Breakpoint - 640px', () => {
 
   test('today - no horizontal scroll at 640px', async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'networkidle' });
+    await page.goto('/today', { waitUntil: 'domcontentloaded' });
+    await waitForShell(page);
 
     if (page.url().includes('/login')) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'networkidle' });
+      await page.goto('/today', { waitUntil: 'domcontentloaded' });
+      await waitForShell(page);
     }
 
     await takeScreenshot(page, 'breakpoint-640-today', 'surfaces/breakpoints');

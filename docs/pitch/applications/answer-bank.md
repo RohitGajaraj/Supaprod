@@ -107,7 +107,7 @@ actually happened.
 
 The build lane is built in. Our own engine runs frontier models through one
 runtime chokepoint and delivers spec-shaped pull requests behind a merge gate
-no agent can cross, with a receipt on every action and one-key rollback. Your
+no agent can cross, with an audit trail on every action and one-key rollback. Your
 team runs no second coding tool for it, and when a better model ships, Supaprod
 gets better the same day.
 
@@ -492,4 +492,4 @@ Never use: em dashes or en dashes in pasted copy. No invisible Unicode.
 
 Product-name rules: the product is **Supaprod**, never "SupaProd". `Cadence` is the retired name and must not appear.
 
-Positioning rules: "company brain" is YC's phrase, quoted and attributed, never our brand identity. Our owned words are the outcome ledger, the decision brain, receipts.
+Positioning rules: "company brain" is YC's phrase, quoted and attributed, never our brand identity. Our owned words are the track record, the decision brain, evidence.
