@@ -14,9 +14,27 @@ import { useMachineView } from "@/hooks/use-machine-view";
  */
 export function LandingNav() {
   const { isMachineView, toggle } = useMachineView();
+  /* `px-4` below 640 rather than `px-6`, plus a real gap, and it is not
+   * cosmetic.
+   *
+   * Measured at 320px on 2026-08-11: the brand ends at x=119 and "Sign in"
+   * begins at x=119. They touch. Not an overflow, which is why no
+   * horizontal-scroll check ever caught it, and not an overlap either. The
+   * row's content came to exactly 272px inside exactly 272px of available
+   * width, so `justify-between` had no free space left to put between them and
+   * the two groups met in the middle.
+   *
+   * Zero slack is the interesting state here: it reads as broken, it passes
+   * every assertion we own, and it is one long label away from becoming a real
+   * overflow. The eight pixels a side bought back are the cheapest possible fix
+   * and the layout is identical from 640 up. */
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 bg-[#0a0a0a]/75 backdrop-blur-md border-b border-white/[0.06]">
-      <Link to="/" className="flex items-center text-white" aria-label="Supaprod home">
+    <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-3 px-4 sm:px-6 py-3 bg-[#0a0a0a]/75 backdrop-blur-md border-b border-white/[0.06]">
+      <Link
+        to="/"
+        className="flex min-w-0 items-center text-white"
+        aria-label="Supaprod home"
+      >
         <SupaprodWordmark tier="public" />
       </Link>
 

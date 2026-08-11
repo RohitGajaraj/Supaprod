@@ -101,9 +101,22 @@ export const getLandingStats = createServerFn({ method: "GET" }).handler(
        * beside this change sets it on the six fixtures where it was simply
        * false.
        */
-      const realWs = await db.from("workspaces").select("id").not("is_sample", "is", true);
+      /**
+       * THE ALLOWLIST COMES FROM THE DATABASE, because `is_sample` alone was
+       * still wrong. It records what a SEED did, and the case it misses is what
+       * a SIGN-IN does: `current_user_default_workspace()` mints "My Workspace"
+       * for any account on first use, so a demo or investor account looking
+       * around produces an unflagged workspace that this counted as production.
+       * Three exist. Whether a workspace is production depends on WHO OWNS IT,
+       * and ownership is not a column on the workspace, so it cannot be another
+       * boolean somebody must remember to set. `production_workspace_ids()`
+       * (20260811120000) is the one definition, and it fails closed.
+       */
+      const realWs = await db.rpc("production_workspace_ids");
       if (realWs.error) return null;
-      const allowed = (realWs.data ?? []).map((w: { id: string }) => w.id);
+      const allowed = ((realWs.data ?? []) as unknown as Array<string | { id: string }>).map((w) =>
+        typeof w === "string" ? w : w.id,
+      );
       if (!allowed.length) return null;
       // Loose builder typing on purpose: supabase-js generics recurse too deep
       // here (TS2589), and this file already runs on a relaxed client cast.

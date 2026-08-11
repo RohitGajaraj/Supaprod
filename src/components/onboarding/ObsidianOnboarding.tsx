@@ -677,7 +677,27 @@ export function ObsidianOnboarding() {
     window.sessionStorage.setItem("supaprod.onboarding.phase", phase);
   }, [phase]);
 
-  // PC-02: stopwatch timer for the "10-minute wedge" promise
+  /* PC-02 stopwatch. It was labelled "the 10-minute wedge promise" and there is
+   * no such promise any more: the duration ruling of 2026-08-11 settled on ONE,
+   * a minute, hedged as "usually" for the reasons written out beside the copy on
+   * the critic screen below. A comment naming a retired number is how the wrong
+   * number gets taught to the next reader, which is the whole reason that sweep
+   * happened, so the number is out of here rather than merely stale.
+   *
+   * TWO THINGS THE NEXT PERSON SHOULD KNOW BEFORE TRUSTING THIS BLOCK.
+   *
+   * `elapsed` IS WRITTEN AND NEVER READ. Nothing renders it: `Frame` takes a
+   * `showTimer` prop and no caller anywhere passes one, so this interval wakes
+   * every 500 ms for the life of the screen, sets state, forces a re-render and
+   * shows a person nothing. It is a dead stopwatch, not a displayed one.
+   *
+   * That is a LOGIC defect and it is deliberately not fixed here: this pass was
+   * scoped to copy only while the phase state machine was being cut, and
+   * deleting state is exactly the kind of change that collides. Left named
+   * rather than silently tidied.
+   *
+   * The live counter a user actually sees is a different one: `criticStage`,
+   * rendered by the AiPulse during the run, which counts real seconds. */
   const startTimeRef = useRef<number | null>(null);
   const [elapsed, setElapsed] = useState<string>("0m 0s");
 
@@ -1339,6 +1359,69 @@ export function ObsidianOnboarding() {
               />
             </div>
           ) : (
+            /* THE ONE DURATION THIS PRODUCT PROMISES, AND WHY IT IS HEDGED.
+             *
+             * Founder ruling 2026-08-11, delegated: one duration, said the same
+             * way on every surface, and it has to be the one the flow actually
+             * keeps. Two were in the code and they disagreed by a factor of ten.
+             * The arrival screen said "in the next 10 minutes" and named three
+             * steps; the declared P0 and the 2026-08-10 one-input ruling both
+             * said sixty seconds. Ten minutes lost outright: it was ten times
+             * the typical truth AND it described a sequence nobody could reach,
+             * since arrival, product and data were already dead by then and have
+             * since been deleted.
+             *
+             * MEASURED 2026-08-11 against the one call that stands between a new
+             * account and its verdict. `mFinish` runs `runWedgeTeardown`, which
+             * records the idea and then calls `runCritic`; that call is logged
+             * as surface `judge`, so it can be counted rather than estimated.
+             * Broken out BY MODEL, because this path is not on the fast one:
+             *
+             *   select model, count(*), round(avg(latency_ms)),
+             *          max(latency_ms)
+             *   from ai_events
+             *   where surface = 'judge' and status = 'ok' and latency_ms > 0
+             *   group by model;
+             *   -- gemini-2.5-pro    n=9    mean 20,628 ms  max 24,777 ms
+             *   -- gemini-2.5-flash  n=638  mean  2,429 ms  max 18,930 ms
+             *
+             * `runCritic` asks for `gemini-2.5-pro` and only falls back to
+             * flash, so THIS surface is the 20-second row, not the 2-second one.
+             * Across all 716 judge calls ever made, none has exceeded 24.8 s and
+             * none has crossed 30 s. So a minute is comfortably the typical
+             * case, and "under a minute" is the same duration as the
+             * sixty-second P0. It is also already the shipped wording on
+             * /p/teardown, so the two surfaces that perform one act now make one
+             * promise.
+             *
+             * "USUALLY" IS LOAD-BEARING AND MUST NOT BE DROPPED, and this is the
+             * half that a happy-path reading misses. The number a flow can keep
+             * is not the number it hits when everything works:
+             *
+             *   · A single model attempt is bounded at `MODEL_CALL_TIMEOUT_MS`
+             *     = 90_000 (runtime.server.ts). One timeout alone overruns a
+             *     minute by half, before anything else has been tried.
+             *   · On RATE_LIMIT or SERVER_ERROR the runtime RETRIES with backoff,
+             *     then walks an ordered fallback chain, and every entry in that
+             *     chain gets its own 90 s ceiling. Nothing in the code bounds
+             *     the TOTAL under a minute.
+             *   · The primary model's sample is n=9. Nine runs cannot carry a
+             *     hard latency guarantee for anyone.
+             *   · 9 further attempts came back `blocked` with no verdict at all.
+             *
+             * So the unhedged forms ("in 60 seconds", "in under a minute") are
+             * claims this repo cannot keep on a bad day, and a promise that
+             * fails on a bad day is the same defect as a metric that cannot be
+             * reproduced. docs/pitch/verified-numbers.md governs: where a number
+             * cannot be established hard, the weaker form is the one that ships.
+             *
+             * The unfalsifiable half is already on screen: the AiPulse above
+             * counts REAL elapsed seconds during the run, so a slow day tells
+             * the truth in real time instead of being predicted at.
+             *
+             * "Receipts" is gone with the vocabulary ruling of 2026-08-11. The
+             * word for what the Critic hands back is evidence, which is also
+             * the field name it returns (`missing_evidence`). */
             <p
               className="text-label-12"
               style={{
@@ -1347,7 +1430,7 @@ export function ObsidianOnboarding() {
                 marginBottom: 0,
               }}
             >
-              Supaprod will show its work with receipts.
+              Supaprod will show its work and the evidence under it, usually in under a minute.
             </p>
           )}
           <div style={{ marginTop: 16 }}>
@@ -1545,7 +1628,7 @@ export function ObsidianOnboarding() {
                 </Button>
                 {/* THE MOST SHAREABLE THING A REAL USER EVER GETS FROM US, AND
                     IT HAD NO WAY OUT OF THIS SCREEN.
-                    A verdict on the user's own bet, two minutes after signup,
+                    A verdict on the user's own bet, about a minute after signup,
                     and the only action was to walk away from it. The public
                     /p/teardown page has shipped copy-to-share for a stranger's
                     pasted document since RPT-03; the account holder looking at

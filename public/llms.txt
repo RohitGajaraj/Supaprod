@@ -58,7 +58,7 @@ Supaprod is designed for the agentic era. Every page supports structured agent c
 | `/missions` | Autonomous mission management: running, completed, staged |
 | `/build` | Live build surface: agent activity, PR/CI status, cost per session |
 | `/knowledge` | Decision brain and memory layer: beliefs, supersession graph, learnings |
-| `/trust-ledger` | Audit trail: every decision, every outcome, integrity fingerprint |
+| `/track-record` | Audit trail: every decision, every outcome, integrity fingerprint |
 | `/govern` | Governance and cost controls: agent trust arcs, spend caps, approval modes |
 | `/discover` | Discovery feed: opportunities ranked by ICE, signals, precedents |
 
