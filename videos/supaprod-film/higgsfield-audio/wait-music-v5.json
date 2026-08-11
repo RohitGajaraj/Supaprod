@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-08-11T22:09:31.446941Z",
+  "display_name": "Sonilo Music",
+  "id": "abf205e4-e801-4168-95fa-3440ebd786f0",
+  "job_type": "sonilo_music",
+  "min_result_url": null,
+  "params": {
+    "duration": 142,
+    "prompt": "A minimal cinematic electronic score at a strict constant 96 BPM for the entire duration: one steady subtle groove that never stops, never changes tempo, and has no breakdown and no half-time section. Soft warm analog synth bass pulse, restrained electronic percussion with a gentle tick, airy warm pads, quiet confident energy. The groove starts immediately in the first second, holds one consistent feel all the way through, gradually adds subtle layers, and resolves warmly in the last ten seconds while the beat continues to the end. Premium, subtle, understated, like a modern product film. No vocals, no EDM drop, no risers, no tempo shifts, no pauses in the rhythm."
+  },
+  "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3GrM9hprJ3PH4vVtwjOom6boQVj/hf_20260811_220931_abf205e4-e801-4168-95fa-3440ebd786f0.m4a",
+  "status": "completed"
+}
