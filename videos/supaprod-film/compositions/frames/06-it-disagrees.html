@@ -3,19 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <!-- F6 · It disagrees — Decide screen scores both bets; the exciting one loses and is passed.
-       Head is metadata only; the runtime clones ONLY the <template> below. -->
+       v5 shell: full-width top bar → seven-station strip (02 Decide active) → narrow icon rail.
+       Head is metadata only; the runtime clones ONLY the <template> below. Duration 10.9s. -->
 </head>
 <body>
 <template>
   <style>
-    /* ————— fonts (screen kit, dual-path src) ————— */
+    /* ————— fonts (kit copy of frame.md block, dual-path src) ————— */
     @font-face{font-family:"Geist";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Geist-Regular.woff2") format("woff2"),url("assets/fonts/Geist-Regular.woff2") format("woff2");}
     @font-face{font-family:"Geist Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/GeistMono-Regular.woff2") format("woff2"),url("assets/fonts/GeistMono-Regular.woff2") format("woff2");}
     @font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");}
     @font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2"),url("assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");}
     @font-face{font-family:"Mona Sans";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/MonaSans-Regular.woff2") format("woff2"),url("assets/fonts/MonaSans-Regular.woff2") format("woff2");}
 
-    /* ————— tokens (screen kit v3 — declared on #root, inherit down; :root breaks under scoping) ————— */
+    /* ————— tokens — declared on #root (a :root selector gets scoped away in the composited render) ————— */
     #root{
       --sk-ground:#0A0A0B;
       --sk-panel:#141416;
@@ -46,16 +47,15 @@
       --sk-mono:"IBM Plex Mono",ui-monospace,monospace;
       --sk-ring:0 0 0 1px var(--sk-hairline);
       --sk-ambient:0 24px 80px rgba(0,0,0,.5);
-      position:absolute;inset:0;width:100%;height:100%;overflow:hidden;
+      position:absolute;inset:0;width:100%;height:100%;overflow:hidden;font-family:var(--sk-ui);
     }
 
     /* ————— ground clip (track 0) — the dependable full-bleed ink ————— */
     .f6-ground{position:absolute;inset:0;background:#0A0A0B;}
 
-    /* ————— world clip (track 1) — kit frame + camera rig ————— */
-    .f6-world{position:absolute;inset:0;}
+    /* ————— frame ground & perspective stage (kit) ————— */
     .sk-frame{
-      position:relative;width:100%;height:100%;overflow:hidden;
+      position:absolute;inset:0;overflow:hidden;
       container-type:size;
       background:var(--sk-ground);
       color:var(--sk-text);
@@ -63,103 +63,125 @@
       -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
     }
     .sk-frame *,.sk-frame *::before,.sk-frame *::after{box-sizing:border-box;margin:0;padding:0;}
-    /* camera wrapper — single world transform (multi-phase-camera + viewport-change) */
-    .f6-cam{
-      position:absolute;inset:0;
-      transform-origin:50% 50%;
-      will-change:transform,filter;
-      filter:url(#f6-pushblur);
-    }
     .sk-stage{
       position:absolute;inset:0;display:grid;place-items:center;
+      padding-bottom:10cqh;
       perspective:2200px;
       perspective-origin:50% 42%;
     }
     .sk-screen{
       position:relative;
-      width:88cqw;height:86cqh;
-      transform:rotateX(2.7deg) rotateY(-4.2deg);
+      width:88cqw;height:82cqh;
+      transform:rotateX(1.8deg) rotateY(-2.4deg);
       transform-style:preserve-3d;
       background:var(--sk-ground);
       border-radius:var(--sk-r-pane);
       box-shadow:var(--sk-ring),var(--sk-ambient);
       overflow:hidden;
-      will-change:transform;
     }
 
-    /* ————— app shell ————— */
+    /* ————— app shell · the REAL product shell —————
+       Full-width top bar → full-width seven-station strip → narrow icon rail
+       beside the content. The stations never live in the left nav; the rail is
+       its own axis, so the working surface keeps the width the sidebar took. */
     .sk-shell{
       display:grid;height:100%;
-      grid-template-columns:12.5cqw minmax(0,1fr);
-      grid-template-rows:3.2cqh minmax(0,1fr);
-      grid-template-areas:"side top" "side main";
+      grid-template-columns:2.9cqw minmax(0,1fr);
+      grid-template-rows:4cqh 7cqh minmax(0,1fr);
+      grid-template-areas:"top top" "spine spine" "rail main";
     }
-    .sk-sidebar{
-      grid-area:side;display:flex;flex-direction:column;min-height:0;
-      background:var(--sk-ground);border-right:1px solid var(--sk-hairline);
+
+    /* top bar · bare mark + wordmark · breadcrumb · centred notification strip · ask + avatar */
+    .sk-topbar{
+      grid-area:top;display:grid;align-items:center;
+      grid-template-columns:auto minmax(0,1fr) auto;gap:0.9cqw;
+      padding:0 1cqw;border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
     }
-    .sk-ws{display:flex;align-items:center;gap:0.55cqw;padding:1cqw 1cqw 0.8cqw;}
-    .sk-ws-mark{
-      width:0.72cqw;height:0.72cqw;flex:none;border-radius:50%;
-      border:1px solid var(--sk-ember);
-      background:radial-gradient(circle at 50% 50%,var(--sk-ember) 0 28%,transparent 30%);
+    .sk-topleft{display:flex;align-items:center;gap:0.7cqw;min-width:0;}
+    .sk-brand{display:flex;align-items:center;gap:0.42cqw;}
+    .sk-brand-mark{width:1.15cqw;height:1.15cqw;flex:none;display:block;}
+    .sk-brand-name{font:600 0.86cqw/1.25 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+    .sk-topdiv{width:1px;height:1.5cqh;flex:none;background:var(--sk-hairline);}
+    .sk-crumb{
+      display:flex;align-items:center;gap:0.3cqw;white-space:nowrap;
+      font:400 0.72cqw/1 var(--sk-ui);color:var(--sk-muted);
     }
-    .sk-ws-name{font:600 0.82cqw/1 var(--sk-ui);color:var(--sk-text);letter-spacing:0.01em;}
-    .sk-ws-caret{margin-left:auto;font:400 0.6cqw/1 var(--sk-mono);color:var(--sk-faint);}
-    .sk-nav{display:flex;flex-direction:column;gap:0.12cqh;padding:0.3cqw 0.5cqw;}
-    .sk-navrow{
-      display:flex;align-items:center;gap:0.55cqw;
-      padding:0.42cqw 0.6cqw;border-radius:var(--sk-r-row);
-      font:400 0.73cqw/1 var(--sk-ui);color:var(--sk-muted);
+    .sk-crumb-sep{color:var(--sk-faint);}
+    .sk-crumb-here{color:var(--sk-text);}
+    .sk-crumb-caret{font:400 0.6cqw/1 var(--sk-mono);color:var(--sk-faint);}
+    .sk-notify{justify-self:center;display:flex;align-items:center;gap:0.45cqw;min-width:0;white-space:nowrap;}
+    .sk-notify-gl{display:flex;align-items:center;gap:0.26cqw;flex:none;}
+    .sk-notify-gl svg{width:0.72cqw;height:0.72cqw;display:block;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+    .sk-notify-lead{font:500 0.66cqw/1.2 var(--sk-ui);color:var(--sk-text);flex:none;}
+    .sk-notify-sub{font:400 0.66cqw/1.2 var(--sk-ui);color:var(--sk-faint);min-width:0;overflow:hidden;text-overflow:ellipsis;}
+    .sk-notify-time{font:400 0.6cqw/1.2 var(--sk-ui);color:var(--sk-faint);flex:none;}
+    .sk-topright{display:flex;align-items:center;gap:0.6cqw;}
+    .sk-ask{
+      display:flex;align-items:center;gap:0.38cqw;height:2.3cqh;flex:none;
+      padding:0 0.6cqw;background:var(--sk-panel);
+      border:1px solid var(--sk-hairline);border-radius:999px;
+      font:400 0.7cqw/1 var(--sk-ui);color:var(--sk-text);
     }
-    .sk-navrow .sk-dot{
-      width:0.3cqw;height:0.3cqw;flex:none;border-radius:50%;
-      background:var(--dot,var(--sk-faint));
+    .sk-ask svg{width:0.72cqw;height:0.72cqw;flex:none;stroke:var(--sk-muted);fill:none;stroke-width:1.5;stroke-linejoin:round;}
+    .sk-kbd{font:400 0.62cqw/1 var(--sk-mono);color:var(--sk-faint);}
+    .sk-avatar{
+      width:1.5cqw;height:1.5cqw;flex:none;display:grid;place-items:center;
+      background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:50%;
+      font:600 0.55cqw/1 var(--sk-ui);color:var(--sk-muted);letter-spacing:0.03em;
     }
-    .sk-navcount{margin-left:auto;font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-faint);}
-    .sk-navrow.is-active{background:var(--sk-raised);color:var(--sk-text);}
-    .sk-navrow.is-active .sk-dot{box-shadow:0 0 0.45cqw 0 var(--dot,var(--sk-accent));}
-    .sk-navrow.is-active .sk-navcount{color:var(--sk-muted);}
-    .sk-side-foot{
-      margin-top:auto;display:flex;align-items:center;gap:0.45cqw;
-      padding:0.85cqw 1cqw;border-top:1px solid var(--sk-hairline);
-      font:400 0.57cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.03em;
+
+    /* ————— station strip · seven numbered cells, full width, straight under the top bar ————— */
+    .sk-spine{
+      grid-area:spine;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
+      border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
     }
+    .sk-stn{
+      position:relative;display:grid;grid-template-rows:1.05cqh 1.75cqh 1.2cqh;gap:0.3cqh;
+      align-content:center;padding:0 0.9cqw;min-width:0;
+    }
+    .sk-stn + .sk-stn{border-left:1px solid var(--sk-hairline);}
+    .sk-stn-n{font:400 0.5cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.08em;}
+    .sk-stn-name{font:400 0.84cqw/1.1 var(--sk-ui);color:var(--sk-muted);letter-spacing:-0.005em;white-space:nowrap;}
+    .sk-stn-sub{font:400 0.56cqw/1.1 var(--sk-ui);color:var(--sk-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .sk-stn.is-here .sk-stn-name{font-weight:600;color:var(--sk-text);}
+    .sk-stn.is-here .sk-stn-sub{color:var(--sk-ember);}
+    .sk-stn.has-work .sk-stn-name{color:color-mix(in srgb,var(--sk-text) 82%,var(--sk-muted));}
+    .sk-stn-dot{
+      position:absolute;right:0.85cqw;top:1.15cqh;width:0.3cqw;height:0.3cqw;border-radius:50%;
+      background:var(--sk-ember);box-shadow:0 0 0.5cqw color-mix(in srgb,var(--sk-ember) 62%,transparent);
+    }
+
+    /* ————— narrow icon rail · Today · Runs · Brain · Crew · Engine room ————— */
+    .sk-rail{
+      grid-area:rail;display:flex;flex-direction:column;align-items:center;min-height:0;
+      padding:0.85cqh 0;background:var(--sk-ground);border-right:1px solid var(--sk-hairline);
+    }
+    .sk-railtop{display:flex;flex-direction:column;align-items:center;gap:0.42cqh;}
+    .sk-railfoot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:0.3cqh;}
+    .sk-glyph{
+      position:relative;width:1.95cqw;height:1.95cqw;flex:none;
+      display:grid;place-items:center;border-radius:var(--sk-r-control);color:var(--sk-faint);
+    }
+    .sk-glyph svg{
+      width:1.02cqw;height:1.02cqw;display:block;fill:none;stroke:currentColor;
+      stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;
+    }
+    .sk-glyph.is-active{background:var(--sk-raised);color:var(--sk-text);box-shadow:inset 0 0 0 1px var(--sk-hairline);}
+    .sk-railfoot .sk-glyph{width:1.7cqw;height:1.7cqw;}
+    .sk-railfoot .sk-glyph svg{width:0.9cqw;height:0.9cqw;}
     .sk-livedot{
       width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;
       background:var(--sk-pass);box-shadow:0 0 0.4cqw var(--sk-pass);
     }
-    .sk-topbar{
-      grid-area:top;display:flex;align-items:center;gap:0.9cqw;
-      padding:0 1cqw;border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
-    }
-    .sk-crumb{display:flex;align-items:center;font:400 0.62cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;}
-    .sk-crumb-sep{padding:0 0.35cqw;color:var(--sk-faint);}
-    .sk-crumb-here{color:var(--sk-text);}
-    .sk-ask{
-      display:flex;align-items:center;gap:0.5cqw;flex:0 1 20cqw;height:2.1cqh;
-      padding:0 0.4cqw 0 0.65cqw;background:var(--sk-panel);
-      border:1px solid var(--sk-hairline);border-radius:var(--sk-r-control);
-      font:400 0.66cqw/1 var(--sk-ui);color:var(--sk-faint);
-    }
-    .sk-ask svg{width:0.68cqw;height:0.68cqw;flex:none;stroke:var(--sk-faint);fill:none;stroke-width:1.6;}
-    .sk-kbd{
-      margin-left:auto;padding:0.1cqw 0.32cqw;
-      font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-faint);
-      background:var(--sk-ground);border:1px solid var(--sk-hairline);border-radius:5px;
-    }
-    .sk-avatar{
-      width:1.25cqw;height:1.25cqw;flex:none;display:grid;place-items:center;
-      background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:50%;
-      font:600 0.5cqw/1 var(--sk-ui);color:var(--sk-muted);letter-spacing:0.05em;
-    }
 
-    /* ————— type + primitives ————— */
+    /* ————— true-UI type (kit) ————— */
     .sk-title{font:600 1.3cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
     .sk-body{font:400 0.73cqw/1.45 var(--sk-ui);color:var(--sk-text);}
     .sk-meta{font:400 0.68cqw/1.4 var(--sk-ui);color:var(--sk-muted);}
     .sk-label{font:500 0.65cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.10em;text-transform:uppercase;}
     .sk-spacer{flex:1;}
+
+    /* ————— panels · rows (kit) ————— */
     .sk-panel{
       background:var(--sk-panel);border:1px solid var(--sk-hairline);
       border-radius:var(--sk-r-panel);overflow:hidden;min-height:0;
@@ -171,8 +193,14 @@
     }
     .sk-panel-title{font:600 0.83cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
     .sk-panel-body{flex:1;min-height:0;overflow:hidden;}
+    .sk-panel-ft{
+      display:flex;align-items:center;gap:0.6cqw;flex:none;
+      padding:0.6cqw 1cqw;border-top:1px solid var(--sk-hairline);background:var(--sk-panel);
+    }
     .sk-row{padding:0.7cqw 1cqw;}
     .sk-row + .sk-row{border-top:1px solid var(--sk-hairline);}
+
+    /* ————— chips · badges (kit) ————— */
     .sk-chip{
       display:inline-flex;align-items:center;gap:0.3cqw;
       padding:0.22cqw 0.45cqw;border:1px solid var(--sk-hairline);
@@ -183,7 +211,7 @@
     .sk-chip.is-on,
     .sk-chip--accent{color:var(--sk-accent);border-color:color-mix(in srgb,var(--sk-accent) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-accent) 8%,transparent);}
     .sk-chip--pass{color:var(--sk-pass);border-color:color-mix(in srgb,var(--sk-pass) 40%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-pass) 8%,transparent);}
-    .sk-chip--ember{color:var(--sk-ember);border-color:color-mix(in srgb,var(--sk-ember) 45%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-ember) 9%,transparent);}
+    .sk-chip--fail{color:var(--sk-fail);border-color:color-mix(in srgb,var(--sk-fail) 42%,var(--sk-hairline));background:color-mix(in srgb,var(--sk-fail) 9%,transparent);}
     .sk-dot-inline{width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;background:currentColor;}
     .sk-badge{
       display:inline-flex;align-items:center;padding:0.22cqw 0.45cqw;
@@ -191,7 +219,7 @@
       font:400 0.57cqw/1.3 var(--sk-mono);color:var(--sk-muted);font-variant-numeric:tabular-nums;
     }
 
-    /* ————— composite score with sub-bars ————— */
+    /* ————— score + sub-bars (kit) ————— */
     .sk-score{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.1cqw;align-items:center;margin-top:0.7cqw;}
     .sk-score-main{display:flex;flex-direction:column;align-items:flex-start;gap:0.15cqw;}
     .sk-score-num{
@@ -210,48 +238,76 @@
 
     /* ————— bet detail cards ————— */
     .sk-betcard{
-      flex:none;padding:1.1cqw 1.2cqw;background:var(--sk-raised);
+      flex:none;padding:1.05cqw 1.15cqw;background:var(--sk-raised);
       border:1px solid var(--sk-hairline);border-radius:var(--sk-r-card);
     }
-    .sk-betcard-hd{display:flex;align-items:center;gap:0.6cqw;}
-    .sk-betcard-title{font:600 0.95cqw/1.25 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+    .sk-betcard-hd{display:flex;align-items:center;gap:0.55cqw;}
+    .sk-betcard-title{position:relative;font:600 0.95cqw/1.25 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
     .sk-betcard .sk-meta{margin-top:0.3cqw;font-size:0.62cqw;}
     .sk-betnote{
-      display:flex;gap:0.45cqw;margin-top:0.8cqw;padding-top:0.65cqw;
+      display:flex;align-items:baseline;gap:0.45cqw;margin-top:0.8cqw;padding-top:0.65cqw;
       border-top:1px solid var(--sk-hairline);
-      font:400 0.57cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
+      font:400 0.6cqw/1.4 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.02em;
     }
-    .sk-betnote span{color:var(--sk-accent);}
+    .sk-betnote span{color:var(--sk-accent);flex:none;}
+    .sk-agentline{
+      display:flex;align-items:center;gap:0.5cqw;
+      padding:0.6cqw 0.8cqw;background:var(--sk-raised);
+      border:1px solid var(--sk-hairline);border-radius:var(--sk-r-row);
+      font:400 0.62cqw/1.3 var(--sk-mono);color:var(--sk-muted);
+    }
+    .sk-run{color:var(--sk-accent);text-align:center;}
 
     /* ————— cursor (kit) ————— */
-    .sk-cursor{position:absolute;z-index:90;width:1.05cqw;height:1.05cqw;pointer-events:none;left:52cqw;top:44cqh;opacity:0;will-change:transform,opacity;}
+    .sk-cursor{position:absolute;z-index:90;width:1.05cqw;height:1.05cqw;pointer-events:none;left:31cqw;top:56cqh;opacity:0;will-change:transform,opacity;}
     .sk-cursor svg{display:block;width:100%;height:100%;overflow:visible;}
     .sk-cursor svg path{fill:var(--sk-text);stroke:var(--sk-ground);stroke-width:1.1;stroke-linejoin:round;}
 
     /* ————— frame-6 specifics ————— */
+    #f6cam{position:absolute;inset:0;transform-origin:50% 50%;will-change:transform;}
     .f6-content{
       grid-area:main;position:relative;display:grid;
-      grid-template-columns:minmax(0,1fr) minmax(0,1fr) 15.5cqw;
-      grid-template-rows:auto minmax(0,1fr);
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr) 16cqw;
+      grid-template-rows:auto auto minmax(0,1fr);
       gap:1cqw;padding:1.1cqw;min-height:0;
     }
     .f6-head{grid-column:1/-1;display:flex;align-items:baseline;gap:0.8cqw;}
-    .f6-cell{position:relative;align-self:start;min-height:0;}
+    .f6-cell{position:relative;grid-row:2;align-self:start;min-height:0;}
     .f6-card{--dof:0px;filter:blur(var(--dof));will-change:filter,transform,opacity;position:relative;}
     .f6-slot{
       position:absolute;inset:0;display:grid;place-items:center;
-      border:1px dashed var(--sk-hairline);border-radius:var(--sk-r-card);
+      border:1px dashed color-mix(in srgb,var(--sk-fail) 30%,var(--sk-hairline));
+      border-radius:var(--sk-r-card);background:color-mix(in srgb,var(--sk-fail) 3%,transparent);
       opacity:0;pointer-events:none;
     }
+    .f6-slot-txt{font:400 0.62cqw/1.3 var(--sk-mono);color:color-mix(in srgb,var(--sk-fail) 62%,var(--sk-faint));letter-spacing:0.03em;}
     .f6-ring{
-      position:absolute;inset:0;border:1px solid var(--sk-ember);border-radius:var(--sk-r-card);
-      box-shadow:0 0 1cqw rgba(255,107,44,0.22);
+      position:absolute;inset:0;border:1px solid var(--sk-pass);border-radius:var(--sk-r-card);
+      box-shadow:0 0 1cqw rgba(79,196,122,0.20);
       opacity:0;pointer-events:none;
     }
-    .f6-advance{opacity:0;}
+    .f6-strike{
+      position:absolute;left:0;right:0;top:52%;height:1.5px;background:var(--sk-fail);
+      transform:scaleX(0);transform-origin:0 50%;will-change:transform;
+    }
+    .f6-reveal{opacity:0;}
     .f6-note{opacity:0;will-change:transform,opacity;}
     .f6-val{opacity:0;}
-    .f6-rail{align-self:stretch;}
+    /* what each score is built from — the data under the disagreement */
+    .f6-ev{
+      margin-top:0.85cqw;padding-top:0.7cqw;border-top:1px solid var(--sk-hairline);
+      display:flex;flex-direction:column;gap:0.4cqw;
+    }
+    .f6-evhd{font:500 0.55cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.10em;text-transform:uppercase;}
+    .f6-evrow{
+      display:grid;grid-template-columns:minmax(0,1fr) 4.2cqw 6.2cqw;gap:0.5cqw;align-items:baseline;
+      font:400 0.66cqw/1.3 var(--sk-ui);color:var(--sk-text);opacity:0;
+    }
+    .f6-evrow b{font:400 0.6cqw/1.3 var(--sk-mono);color:var(--sk-muted);text-align:right;font-variant-numeric:tabular-nums;}
+    .f6-evrow em{font:400 0.57cqw/1.3 var(--sk-mono);font-style:normal;color:var(--sk-faint);text-align:right;white-space:nowrap;}
+    .f6-evrow em.is-direct{color:var(--sk-pass);}
+    .f6-evrow em.is-thin{color:color-mix(in srgb,var(--sk-fail) 62%,var(--sk-muted));}
+    .f6-rail{grid-column:3;grid-row:2/span 2;align-self:stretch;}
     .f6-rail-body{position:relative;flex:1;min-height:0;overflow:hidden;}
     .f6-passrow-title{font:400 0.73cqw/1.35 var(--sk-ui);color:var(--sk-muted);}
     .f6-passrow-title s{color:var(--sk-faint);}
@@ -259,24 +315,30 @@
     .f6-shiftrow{will-change:transform;}
     .f6-incoming{
       position:absolute;top:0.5cqw;left:0.6cqw;right:0.6cqw;z-index:5;
-      padding:0.6cqw 0.8cqw;background:var(--sk-raised);
-      border:1px solid var(--sk-hairline);border-radius:var(--sk-r-row);
+      padding:0.6cqw 0.8cqw;background:color-mix(in srgb,var(--sk-fail) 7%,var(--sk-raised));
+      border:1px solid color-mix(in srgb,var(--sk-fail) 40%,var(--sk-hairline));border-radius:var(--sk-r-row);
       opacity:0;transform-origin:50% 50%;will-change:transform,opacity;
     }
+    .f6-incoming .f6-passrow-title s{color:color-mix(in srgb,var(--sk-fail) 70%,var(--sk-muted));}
     .f6-badge{display:inline-grid;}
     .f6-badge span{grid-area:1/1;text-align:center;}
     .f6-b3{opacity:0;}
+    .f6-agentwrap{grid-column:1/3;grid-row:3;align-self:start;position:relative;}
+    #f6-agentB{position:absolute;inset:0;opacity:0;}
+    .f6-agenttrack{display:block;width:9cqw;height:0.18cqw;background:var(--sk-hairline);border-radius:2px;overflow:hidden;flex:none;}
+    .f6-agentfill{display:block;width:100%;height:100%;background:var(--sk-accent);border-radius:inherit;transform:scaleX(0.06);transform-origin:0 50%;}
+    /* drag proxy · the small card the cursor actually carries to the rail */
     .f6-ghost{
-      position:absolute;left:12cqw;top:9.6cqh;width:16cqw;z-index:80;
-      padding:0.7cqw 0.9cqw;background:var(--sk-raised);
-      border:1px solid var(--sk-hairline);border-radius:var(--sk-r-card);
+      position:absolute;left:1.09cqw;top:6.76cqh;width:16.7cqw;z-index:80;
+      padding:0.6cqw 0.75cqw;background:var(--sk-raised);
+      border:1px solid var(--sk-hairline);border-radius:var(--sk-r-row);
       box-shadow:var(--sk-ring),var(--sk-ambient);
       opacity:0;transform-origin:50% 50%;will-change:transform,opacity;
     }
     .f6-ghost-hd{display:flex;align-items:center;gap:0.5cqw;}
-    .f6-ghost-title{font:600 0.8cqw/1.2 var(--sk-ui);color:var(--sk-text);}
+    .f6-ghost-title{font:600 0.78cqw/1.25 var(--sk-ui);color:var(--sk-text);}
     .f6-ripple{
-      position:absolute;left:16cqw;top:10.8cqh;width:2.2cqw;height:2.2cqw;
+      position:absolute;left:0;top:0;width:2.2cqw;height:2.2cqw;
       margin:-1.1cqw 0 0 -1.1cqw;border:1px solid var(--sk-text);border-radius:50%;
       opacity:0;z-index:85;pointer-events:none;transform-origin:50% 50%;will-change:transform,opacity;
     }
@@ -294,175 +356,231 @@
       color:var(--sk-decide);opacity:0;will-change:transform,opacity;
     }
     .sk-lt-line{font:600 2.6cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;opacity:0;will-change:transform,opacity;}
-  
-/* v4 identity: real product mark + workspace label */
-.sk-ws-mark{background:none !important;border-radius:0 !important;padding:0.08cqw;box-sizing:border-box;}
-.sk-ws-space{font:400 0.62cqw/1 var(--sk-mono, "IBM Plex Mono", monospace);color:var(--sk-text-muted, #A8A29A);margin-left:0.45cqw;padding:0.16cqw 0.38cqw;border:1px solid var(--sk-hairline, #26262A);border-radius:6px;}
-</style>
+  </style>
 
-  <div data-hf-id="hf-0831" id="root" data-composition-id="06-it-disagrees" data-width="1920" data-height="1080" data-duration="8.8">
+  <div id="root" data-composition-id="06-it-disagrees" data-width="1920" data-height="1080" data-duration="10.9">
 
     <!-- track 0 · full-bleed ink ground -->
-    <div data-hf-id="hf-esh7" id="f6-bg" class="clip f6-ground" data-start="0" data-duration="8.3" data-track-index="0"></div>
+    <div id="f6-bg" class="clip f6-ground" data-start="0" data-duration="10.9" data-track-index="0"></div>
 
     <!-- track 1 · the world: kit frame + camera rig + Decide screen -->
-    <div data-hf-id="hf-66n5" id="f6-world" class="clip f6-world" data-start="0" data-duration="8.3" data-track-index="1" data-layout-allow-overflow="">
-      <div data-hf-id="hf-hpwk" class="sk-frame" id="f6-frame">
+    <div id="f6-world" class="clip" data-start="0" data-duration="10.9" data-track-index="1" data-layout-allow-overflow="">
+      <div class="sk-frame" id="f6-frame">
 
-        <!-- push-blur filter (motion-blur-streak, push-through variation: symmetric smear) -->
-        <svg data-hf-id="hf-30au" width="0" height="0" aria-hidden="true" style="position:absolute">
-          <defs data-hf-id="hf-mh0t">
-            <filter data-hf-id="hf-ptgs" id="f6-pushblur" x="-30%" y="-30%" width="160%" height="160%">
-              <fegaussianblur data-hf-id="hf-i791" id="f6-pushblur-std" in="SourceGraphic" stdDeviation="0 0" />
+        <!-- push/pan blur (motion-blur-streak, horizontal smear at peak velocity) -->
+        <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+          <defs>
+            <filter id="f6-streak" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur id="f6-streak-blur" in="SourceGraphic" stdDeviation="0 0" />
             </filter>
           </defs>
         </svg>
 
-        <div data-hf-id="hf-he1e" class="f6-cam" id="f6-cam">
-          <div data-hf-id="hf-at0b" class="sk-stage">
-            <div data-hf-id="hf-j1qa" class="sk-screen" id="f6-screen" style="--sk-accent:var(--sk-decide)">
-              <div data-hf-id="hf-3cvj" class="sk-shell">
+        <div id="f6cam">
+          <div class="sk-stage">
+            <div class="sk-screen" id="f6-screen" style="--sk-accent:var(--sk-decide)">
+              <div class="sk-shell">
 
-                <!-- sidebar · harbor · Decide active -->
-                <aside data-hf-id="hf-hfdm" class="sk-sidebar">
-                  <div data-hf-id="hf-qaw1" class="sk-ws">
-                    <span data-hf-id="hf-to4o" class="sk-ws-mark"><svg data-hf-id="hf-96aw" viewBox="0 0 100 100" style="width:100%;height:100%;display:block;overflow:visible"><path data-hf-id="hf-vh80" d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="5.5" fill="none" stroke-linecap="round" /><circle data-hf-id="hf-mwp7" cx="50" cy="50" r="8.5" fill="#FF6B2C" /></svg></span>
-                    <span data-hf-id="hf-uadg" class="sk-ws-name">supaprod</span><span data-hf-id="hf-427x" class="sk-ws-space">harbor</span>
-                    <span data-hf-id="hf-oix8" class="sk-ws-caret">⌄</span>
+                <!-- top bar · bare mark + Supaprod · breadcrumb · notification strip · Ask ⌘K · avatar -->
+                <header class="sk-topbar f6-dof">
+                  <div class="sk-topleft">
+                    <span class="sk-brand">
+                    <span class="sk-brand-mark"><svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block;overflow:visible"><path d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="5.5" fill="none" stroke-linecap="round" /><circle cx="50" cy="50" r="8.5" fill="#FF6B2C" /></svg></span>
+                    <span class="sk-brand-name">Supaprod</span>
+                    </span>
+                    <span class="sk-topdiv"></span>
+                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">checkout</span><span class="sk-crumb-caret">⌄</span></div>
                   </div>
-                  <nav data-hf-id="hf-fryg" class="sk-nav">
-                    <div data-hf-id="hf-16ha" class="sk-navrow" style="--dot:var(--sk-text)"><span data-hf-id="hf-07il" class="sk-dot"></span>Today<span data-hf-id="hf-2d1h" class="sk-navcount">3</span></div>
-                    <div data-hf-id="hf-3hbe" class="sk-navrow" style="--dot:var(--sk-discover)"><span data-hf-id="hf-2b7l" class="sk-dot"></span>Discover<span data-hf-id="hf-eh0y" class="sk-navcount">24</span></div>
-                    <div data-hf-id="hf-a58v" class="sk-navrow is-active" style="--dot:var(--sk-decide)"><span data-hf-id="hf-3i4o" class="sk-dot"></span>Decide<span data-hf-id="hf-5m1l" class="sk-navcount">3</span></div>
-                    <div data-hf-id="hf-u2g2" class="sk-navrow" style="--dot:var(--sk-plan)"><span data-hf-id="hf-33tn" class="sk-dot"></span>Plan</div>
-                    <div data-hf-id="hf-2i5q" class="sk-navrow" style="--dot:var(--sk-design)"><span data-hf-id="hf-14ai" class="sk-dot"></span>Design</div>
-                    <div data-hf-id="hf-gigg" class="sk-navrow" style="--dot:var(--sk-build)"><span data-hf-id="hf-0pzh" class="sk-dot"></span>Build<span data-hf-id="hf-2rci" class="sk-navcount">2</span></div>
-                    <div data-hf-id="hf-fikq" class="sk-navrow" style="--dot:var(--sk-ship)"><span data-hf-id="hf-1wwk" class="sk-dot"></span>Ship</div>
-                    <div data-hf-id="hf-aq7s" class="sk-navrow" style="--dot:var(--sk-learn)"><span data-hf-id="hf-1ilj" class="sk-dot"></span>Learn<span data-hf-id="hf-35nj" class="sk-navcount">1</span></div>
-                    <div data-hf-id="hf-xe1p" class="sk-navrow" style="--dot:var(--sk-ember)"><span data-hf-id="hf-5vyu" class="sk-dot"></span>Brain</div>
-                  </nav>
-                  <div data-hf-id="hf-tei1" class="sk-side-foot"><span data-hf-id="hf-yc43" class="sk-livedot"></span>3 agents running</div>
-                </aside>
-
-                <!-- top bar -->
-                <header data-hf-id="hf-jnan" class="sk-topbar">
-                  <div data-hf-id="hf-5wuw" class="sk-crumb"><span data-hf-id="hf-nafj">harbor</span><span data-hf-id="hf-l3jz" class="sk-crumb-sep">/</span><span data-hf-id="hf-x644" class="sk-crumb-here">decide</span></div>
-                  <div data-hf-id="hf-87bn" class="sk-ask">
-                    <svg data-hf-id="hf-56oz" viewBox="0 0 16 16"><circle data-hf-id="hf-g1c9" cx="7" cy="7" r="4.5" /><line data-hf-id="hf-ln1i" x1="10.5" y1="10.5" x2="14" y2="14" /></svg>
-                    ask supaprod…
-                    <span data-hf-id="hf-kff0" class="sk-kbd">⌘K</span>
+                  <div class="sk-notify">
+                    <span class="sk-notify-gl">
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><circle cx="7.6" cy="7.6" r="4.3" /><path d="M10.9 10.9L14.3 14.3" /></svg>
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-faint)"><path d="M3 5.2h12M3 9h8M3 12.8h10" /></svg>
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><path d="M3 12.4l4-4 3 3 5-5.6" /><path d="M15 5.8h-3.3M15 5.8v3.3" /></svg>
+                    </span>
+                    <span class="sk-notify-lead">2 bets are ready for your call</span>
+                    <span class="sk-notify-sub">checkout against the redesign · scored just now</span>
+                    <span class="sk-notify-time">now</span>
                   </div>
-                  <span data-hf-id="hf-5jd0" class="sk-spacer"></span>
-                  <span data-hf-id="hf-2l7w" class="sk-chip sk-chip--pass"><span data-hf-id="hf-4gwh" class="sk-dot-inline"></span>synced 2m ago</span>
-                  <div data-hf-id="hf-4z8v" class="sk-avatar">MR</div>
+                  <div class="sk-topright">
+                    <div class="sk-ask"><svg viewBox="0 0 18 18"><path d="M15.2 10.4a2.4 2.4 0 0 1-2.4 2.4H6.4L3.2 15.4V5a2.4 2.4 0 0 1 2.4-2.4h7.2A2.4 2.4 0 0 1 15.2 5Z" /></svg>Ask<span class="sk-kbd">⌘K</span></div>
+                    <div class="sk-avatar">MR</div>
+                  </div>
                 </header>
 
-                <!-- content · two bets head-to-head + passed rail -->
-                <main data-hf-id="hf-ife4" class="f6-content">
+                <!-- the seven-station strip · full width, under the top bar; Decide is where we are -->
+                <div class="sk-spine f6-dof">
+                  <div class="sk-stn has-work"><span class="sk-stn-n">01</span><span class="sk-stn-name">Discover</span><span class="sk-stn-sub">24 signals</span></div>
+                  <div class="sk-stn is-here"><i class="sk-stn-dot"></i><span class="sk-stn-n">02</span><span class="sk-stn-name">Decide</span><span class="sk-stn-sub">2 bets scoring</span></div>
+                  <div class="sk-stn"><span class="sk-stn-n">03</span><span class="sk-stn-name">Plan</span><span class="sk-stn-sub">7 runs</span></div>
+                  <div class="sk-stn"><span class="sk-stn-n">04</span><span class="sk-stn-name">Design</span><span class="sk-stn-sub"></span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">05</span><span class="sk-stn-name">Build</span><span class="sk-stn-sub">2 runs</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">06</span><span class="sk-stn-name">Ship</span><span class="sk-stn-sub">v2.4 live</span></div>
+                  <div class="sk-stn"><span class="sk-stn-n">07</span><span class="sk-stn-name">Learn</span><span class="sk-stn-sub">day 6 of 30</span></div>
+                </div>
 
-                  <div data-hf-id="hf-oaao" class="f6-head" id="f6-head">
-                    <h1 data-hf-id="hf-pott" class="sk-title">Decide</h1>
-                    <span data-hf-id="hf-15h2" class="sk-meta f6-headmeta" style="font-size:0.62cqw;">2 bets in review · re-scored 2m ago</span>
-                    <span data-hf-id="hf-hdvg" class="sk-spacer"></span>
-                    <span data-hf-id="hf-h1pf" class="sk-chip is-on f6-headchip">by composite</span>
-                    <span data-hf-id="hf-7njt" class="sk-chip f6-headchip">impact</span>
-                    <span data-hf-id="hf-cr9z" class="sk-chip f6-headchip">confidence</span>
-                    <span data-hf-id="hf-vx7p" class="sk-chip f6-headchip">effort</span>
+                <!-- narrow icon rail · Today active · a separate axis from the stations -->
+                <aside class="sk-rail f6-dof">
+                  <div class="sk-railtop">
+                    <span class="sk-glyph is-active"><svg viewBox="0 0 20 20"><path d="M3 6h14M3 10h9M3 14h11" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M2 10h3.3l2.2-5.2 3.3 10.4 2.2-5.2H18" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><circle cx="5.2" cy="4.8" r="1.9" /><circle cx="14.8" cy="10" r="1.9" /><circle cx="5.2" cy="15.2" r="1.9" /><path d="M5.2 6.7v6.6M7.1 4.8h3.7a2 2 0 0 1 2 2v1.3M7.1 15.2h3.7a2 2 0 0 0 2-2v-1.3" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="6.6" y="6.6" width="6.8" height="6.8" rx="1.6" /><path d="M10 2.4v4.2M10 13.4v4.2M2.4 10h4.2M13.4 10h4.2" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M3 6.2h4.2M11.6 6.2H17M3 13.8h7.4M14.8 13.8H17" /><circle cx="9.4" cy="6.2" r="1.9" /><circle cx="12.9" cy="13.8" r="1.9" /></svg></span>
+                  </div>
+                  <div class="sk-railfoot">
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="3" y="4.4" width="14" height="11.2" rx="1.6" /><path d="M7.7 4.4v11.2M12.4 4.4v11.2" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M15.4 11.9A6.1 6.1 0 0 1 8.1 4.6 6.3 6.3 0 1 0 15.4 11.9Z" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.5" /><path d="M10 2.6v2.1M10 15.3v2.1M2.6 10h2.1M15.3 10h2.1M4.8 4.8l1.5 1.5M13.7 13.7l1.5 1.5M15.2 4.8l-1.5 1.5M6.3 13.7l-1.5 1.5" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="3" y="4.4" width="14" height="11.2" rx="1.6" /><path d="M8 4.4v11.2" /></svg></span>
+                  </div>
+                </aside>
+
+                <!-- content · two bets head-to-head + the Passed rail -->
+                <main class="f6-content">
+
+                  <div class="f6-head" id="f6-head">
+                    <h1 class="sk-title">Decide</h1>
+                    <span class="sk-meta f6-headmeta" style="font-size:0.62cqw;">2 bets in review · scored against 23 signals</span>
+                    <span class="sk-spacer"></span>
+                    <span class="sk-chip is-on f6-headchip">by composite</span>
+                    <span class="sk-chip f6-headchip">impact</span>
+                    <span class="sk-chip f6-headchip">confidence</span>
+                    <span class="sk-chip f6-headchip">effort</span>
                   </div>
 
                   <!-- left · the exciting one -->
-                  <div data-hf-id="hf-q3rx" class="f6-cell">
-                    <div data-hf-id="hf-zo9g" class="f6-slot" id="f6-slot">
-                      <span data-hf-id="hf-ukx2" class="sk-meta" style="font-size:0.62cqw;color:var(--sk-faint);">moved to passed · just now</span>
+                  <div class="f6-cell" style="grid-column:1;">
+                    <div class="f6-slot" id="f6-slot">
+                      <span class="f6-slot-txt">moved to Passed · just now</span>
                     </div>
-                    <article data-hf-id="hf-f5bq" class="sk-betcard f6-card" id="f6-card-l">
-                      <header data-hf-id="hf-15zb" class="sk-betcard-hd">
-                        <h3 data-hf-id="hf-xzbo" class="sk-betcard-title">redesign the app</h3>
-                        <span data-hf-id="hf-g6yd" class="sk-spacer"></span>
-                        <span data-hf-id="hf-057y" class="sk-chip">the exciting one</span>
+                    <article class="sk-betcard f6-card" id="f6-card-l">
+                      <header class="sk-betcard-hd">
+                        <h3 class="sk-betcard-title">redesign the app<i class="f6-strike" id="f6-strike"></i></h3>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-chip sk-chip--fail f6-reveal" id="f6-reject">below the bar · 4.0 vs 6.5</span>
+                        <span class="sk-chip">the exciting one</span>
                       </header>
-                      <p data-hf-id="hf-hqlg" class="sk-meta">opened from exec note · 4 signals · 2 sources · updated 1h ago</p>
-                      <div data-hf-id="hf-6yqe" class="sk-score sk-score--dim">
-                        <div data-hf-id="hf-98pf" class="sk-score-main">
-                          <span data-hf-id="hf-ekf2" class="sk-score-num" id="f6-num-l" style="color:#6B6660;">0.0</span>
-                          <span data-hf-id="hf-0mh4" class="sk-score-cap">composite</span>
+                      <p class="sk-meta">opened from an exec note · 4 signals · 2 sources · updated 1h ago</p>
+                      <div class="sk-score sk-score--dim">
+                        <div class="sk-score-main">
+                          <span class="sk-score-num" id="f6-num-l" style="color:#6B6660;">0.0</span>
+                          <span class="sk-score-cap">composite</span>
                         </div>
-                        <div data-hf-id="hf-0tq2" class="sk-score-bars">
-                          <div data-hf-id="hf-l9be" class="sk-subbar"><span data-hf-id="hf-r909" class="sk-subbar-name">impact</span><span data-hf-id="hf-nu7n" class="sk-subbar-track"><i data-hf-id="hf-5vi4" class="f6-bar" style="width:78%"></i></span><span data-hf-id="hf-4p02" class="sk-subbar-val f6-val">7.8</span></div>
-                          <div data-hf-id="hf-56we" class="sk-subbar"><span data-hf-id="hf-yz5j" class="sk-subbar-name">confidence</span><span data-hf-id="hf-9yj7" class="sk-subbar-track"><i data-hf-id="hf-xcl6" class="f6-bar" style="width:29%"></i></span><span data-hf-id="hf-5d9u" class="sk-subbar-val f6-val">2.9</span></div>
-                          <div data-hf-id="hf-5l7f" class="sk-subbar"><span data-hf-id="hf-dged" class="sk-subbar-name">effort</span><span data-hf-id="hf-9k86" class="sk-subbar-track"><i data-hf-id="hf-ylf3" class="f6-bar" style="width:84%"></i></span><span data-hf-id="hf-cwz7" class="sk-subbar-val f6-val">8.4</span></div>
+                        <div class="sk-score-bars">
+                          <div class="sk-subbar"><span class="sk-subbar-name">impact</span><span class="sk-subbar-track"><i class="f6-bar" style="width:78%"></i></span><span class="sk-subbar-val f6-val">7.8</span></div>
+                          <div class="sk-subbar"><span class="sk-subbar-name">confidence</span><span class="sk-subbar-track"><i class="f6-bar" style="width:29%"></i></span><span class="sk-subbar-val f6-val">2.9</span></div>
+                          <div class="sk-subbar"><span class="sk-subbar-name">effort</span><span class="sk-subbar-track"><i class="f6-bar" style="width:84%"></i></span><span class="sk-subbar-val f6-val">8.4</span></div>
                         </div>
                       </div>
-                      <p data-hf-id="hf-0wb2" class="sk-betnote f6-note" id="f6-note-l"><span data-hf-id="hf-lxfe">agent</span>thin evidence — 4 signals, none direct</p>
+                      <div class="f6-ev">
+                        <div class="f6-evhd">what the score is built on</div>
+                        <div class="f6-evrow"><span>exec note</span><b>1</b><em class="is-thin">an opinion</em></div>
+                        <div class="f6-evrow"><span>team mentions</span><b>3</b><em class="is-thin">indirect</em></div>
+                        <div class="f6-evrow"><span>customers who asked</span><b>0</b><em class="is-thin">none</em></div>
+                        <div class="f6-evrow"><span>measured payback</span><b>—</b><em class="is-thin">nothing yet</em></div>
+                      </div>
+                      <p class="sk-betnote f6-note" id="f6-note-l"><span>the agent's take</span>· 4 signals, none direct — no measured payback</p>
                     </article>
                   </div>
 
                   <!-- right · the boring one that pays -->
-                  <div data-hf-id="hf-vmb5" class="f6-cell">
-                    <article data-hf-id="hf-cqr4" class="sk-betcard f6-card" id="f6-card-r">
-                      <div data-hf-id="hf-1ji8" class="f6-ring" id="f6-ring"></div>
-                      <header data-hf-id="hf-8mg7" class="sk-betcard-hd">
-                        <h3 data-hf-id="hf-m5v7" class="sk-betcard-title">fix checkout drop-off</h3>
-                        <span data-hf-id="hf-gl9e" class="sk-spacer"></span>
-                        <span data-hf-id="hf-0n33" class="sk-chip sk-chip--ember f6-advance" id="f6-advance">→ log the decision</span>
-                        <span data-hf-id="hf-cnq6" class="sk-chip">the boring one</span>
+                  <div class="f6-cell" style="grid-column:2;">
+                    <article class="sk-betcard f6-card" id="f6-card-r">
+                      <div class="f6-ring" id="f6-ring"></div>
+                      <header class="sk-betcard-hd">
+                        <h3 class="sk-betcard-title">fix checkout drop-off</h3>
+                        <span class="sk-spacer"></span>
+                        <span class="sk-chip sk-chip--pass f6-reveal" id="f6-advance"><span class="sk-dot-inline"></span>advancing → 03 Plan</span>
+                        <span class="sk-chip">the boring one</span>
                       </header>
-                      <p data-hf-id="hf-gr4s" class="sk-meta">opened by maya r. · 19 signals · 6 sources · updated 2m ago</p>
-                      <div data-hf-id="hf-akb7" class="sk-score">
-                        <div data-hf-id="hf-wrlf" class="sk-score-main">
-                          <span data-hf-id="hf-qhvs" class="sk-score-num" id="f6-num-r" style="color:#6B6660;">0.0</span>
-                          <span data-hf-id="hf-llj4" class="sk-score-cap">composite</span>
+                      <p class="sk-meta">opened by maya r. · 19 signals · 6 sources · updated 2m ago</p>
+                      <div class="sk-score">
+                        <div class="sk-score-main">
+                          <span class="sk-score-num" id="f6-num-r" style="color:#6B6660;">0.0</span>
+                          <span class="sk-score-cap">composite</span>
                         </div>
-                        <div data-hf-id="hf-muxq" class="sk-score-bars">
-                          <div data-hf-id="hf-5zig" class="sk-subbar"><span data-hf-id="hf-fh2l" class="sk-subbar-name">impact</span><span data-hf-id="hf-95x5" class="sk-subbar-track"><i data-hf-id="hf-1m15" class="f6-bar" style="width:86%"></i></span><span data-hf-id="hf-c4d5" class="sk-subbar-val f6-val">8.6</span></div>
-                          <div data-hf-id="hf-37d9" class="sk-subbar"><span data-hf-id="hf-jx4n" class="sk-subbar-name">confidence</span><span data-hf-id="hf-8rm4" class="sk-subbar-track"><i data-hf-id="hf-69k5" class="f6-bar" style="width:82%"></i></span><span data-hf-id="hf-aj51" class="sk-subbar-val f6-val">8.2</span></div>
-                          <div data-hf-id="hf-3loa" class="sk-subbar"><span data-hf-id="hf-ip3t" class="sk-subbar-name">effort</span><span data-hf-id="hf-8db3" class="sk-subbar-track"><i data-hf-id="hf-ucwn" class="f6-bar" style="width:31%"></i></span><span data-hf-id="hf-b6w9" class="sk-subbar-val f6-val">3.1</span></div>
+                        <div class="sk-score-bars">
+                          <div class="sk-subbar"><span class="sk-subbar-name">impact</span><span class="sk-subbar-track"><i class="f6-bar" style="width:86%"></i></span><span class="sk-subbar-val f6-val">8.6</span></div>
+                          <div class="sk-subbar"><span class="sk-subbar-name">confidence</span><span class="sk-subbar-track"><i class="f6-bar" style="width:82%"></i></span><span class="sk-subbar-val f6-val">8.2</span></div>
+                          <div class="sk-subbar"><span class="sk-subbar-name">effort</span><span class="sk-subbar-track"><i class="f6-bar" style="width:31%"></i></span><span class="sk-subbar-val f6-val">3.1</span></div>
                         </div>
                       </div>
-                      <p data-hf-id="hf-vl5q" class="sk-betnote f6-note" id="f6-note-r"><span data-hf-id="hf-lcf2">agent</span>recommends: smaller bet, direct evidence, faster payback</p>
+                      <div class="f6-ev">
+                        <div class="f6-evhd">what the score is built on</div>
+                        <div class="f6-evrow"><span>support tickets</span><b>12</b><em class="is-direct">direct</em></div>
+                        <div class="f6-evrow"><span>customer calls</span><b>4</b><em class="is-direct">direct</em></div>
+                        <div class="f6-evrow"><span>survey responses</span><b>214</b><em class="is-direct">38% name it</em></div>
+                        <div class="f6-evrow"><span>funnel · step 3 → 4</span><b>41%</b><em class="is-direct">measured</em></div>
+                      </div>
+                      <p class="sk-betnote f6-note" id="f6-note-r"><span>the agent's take</span>· 19 signals point at checkout — direct evidence, faster payback</p>
                     </article>
                   </div>
 
+                  <!-- agent presence · the working indicator that runs the scoring, then the advance -->
+                  <div class="f6-agentwrap">
+                    <div class="sk-agentline" id="f6-agentA">
+                      <span class="sk-livedot"></span><span class="sk-run">▸</span>agent · scoring 2 bets — 23 signals weighed…
+                      <span class="f6-agenttrack"><i class="f6-agentfill" id="f6-agentfill"></i></span>
+                      <span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">now</span>
+                    </div>
+                    <div class="sk-agentline" id="f6-agentB">
+                      <span class="sk-livedot"></span><span class="sk-run">▸</span>agent · advancing “fix checkout drop-off” to 03 Plan
+                      <span class="sk-spacer"></span><span class="sk-meta" style="font-size:0.57cqw;">just now</span>
+                    </div>
+                  </div>
+
                   <!-- passed rail -->
-                  <section data-hf-id="hf-lukm" class="sk-panel f6-rail">
-                    <header data-hf-id="hf-krk0" class="sk-panel-hd">
-                      <h2 data-hf-id="hf-6rzt" class="sk-panel-title" style="font-size:0.78cqw;">Passed</h2>
-                      <span data-hf-id="hf-iksj" class="sk-spacer"></span>
-                      <span data-hf-id="hf-2y91" class="sk-badge f6-badge"><span data-hf-id="hf-m53f" id="f6-b2">2</span><span data-hf-id="hf-fl6o" class="f6-b3" id="f6-b3">3</span></span>
+                  <section class="sk-panel f6-rail">
+                    <header class="sk-panel-hd">
+                      <h2 class="sk-panel-title" style="font-size:0.78cqw;">Passed</h2>
+                      <span class="sk-spacer"></span>
+                      <span class="sk-badge f6-badge"><span id="f6-b2">4</span><span class="f6-b3" id="f6-b3">5</span></span>
                     </header>
-                    <div data-hf-id="hf-097m" class="sk-panel-body f6-rail-body">
-                      <!-- incoming struck row (scale-swap target) -->
-                      <div data-hf-id="hf-q09c" class="f6-incoming" id="f6-incoming">
-                        <p data-hf-id="hf-n9y8" class="f6-passrow-title"><s data-hf-id="hf-gmjh">redesign the app</s></p>
-                        <p data-hf-id="hf-ghiy" class="f6-passrow-meta">scored 4.0 · passed just now</p>
+                    <div class="sk-panel-body f6-rail-body">
+                      <!-- incoming struck row (scale-swap target, fail-red) -->
+                      <div class="f6-incoming" id="f6-incoming">
+                        <p class="f6-passrow-title"><s>redesign the app</s></p>
+                        <p class="f6-passrow-meta">scored 4.0 · passed just now</p>
                       </div>
-                      <div data-hf-id="hf-557d" class="sk-row f6-shiftrow f6-pr" id="f6-pr1">
-                        <p data-hf-id="hf-jpy0" class="f6-passrow-title"><s data-hf-id="hf-t2l3">add AI to everything</s></p>
-                        <p data-hf-id="hf-7wa5" class="f6-passrow-meta">scored 3.1 · 3w ago</p>
+                      <div class="sk-row f6-shiftrow f6-pr" id="f6-pr1">
+                        <p class="f6-passrow-title"><s>add AI to everything</s></p>
+                        <p class="f6-passrow-meta">scored 3.1 · 3w ago</p>
                       </div>
-                      <div data-hf-id="hf-93be" class="sk-row f6-shiftrow f6-pr" id="f6-pr2">
-                        <p data-hf-id="hf-ij0x" class="f6-passrow-title"><s data-hf-id="hf-9xpg">rewrite in the new stack</s></p>
-                        <p data-hf-id="hf-nbab" class="f6-passrow-meta">scored 2.8 · 5w ago</p>
+                      <div class="sk-row f6-shiftrow f6-pr" id="f6-pr2">
+                        <p class="f6-passrow-title"><s>rewrite in the new stack</s></p>
+                        <p class="f6-passrow-meta">scored 2.8 · 5w ago</p>
+                      </div>
+                      <div class="sk-row f6-shiftrow f6-pr" id="f6-pr3">
+                        <p class="f6-passrow-title"><s>one more analytics dashboard</s></p>
+                        <p class="f6-passrow-meta">scored 2.4 · 7w ago</p>
+                      </div>
+                      <div class="sk-row f6-shiftrow f6-pr" id="f6-pr4">
+                        <p class="f6-passrow-title"><s>in-app tour, take two</s></p>
+                        <p class="f6-passrow-meta">scored 2.1 · 9w ago</p>
                       </div>
                     </div>
+                    <footer class="sk-panel-ft">
+                      <span class="sk-meta" style="font-size:0.6cqw;">every call keeps its scoring</span>
+                      <span class="sk-spacer"></span>
+                      <span class="sk-meta" style="font-size:0.6cqw;color:var(--sk-accent);">open →</span>
+                    </footer>
                   </section>
+
+                  <!-- drag proxy + click ripple + cursor · ride the screen tilt with the content -->
+                  <div class="f6-ghost" id="f6-ghost">
+                    <div class="f6-ghost-hd">
+                      <span class="f6-ghost-title">redesign the app</span>
+                      <span class="sk-spacer"></span>
+                      <span class="sk-badge">4.0</span>
+                    </div>
+                  </div>
+                  <div class="f6-ripple" id="f6-ripple"></div>
+                  <div class="sk-cursor" id="f6-cursor">
+                    <svg viewBox="0 0 24 24"><path d="M5.5 3.2 L5.5 18.6 L9.3 15.1 L11.8 20.6 L14.4 19.4 L11.9 14 L17 13.5 Z" /></svg>
+                  </div>
 
                 </main>
               </div>
-
-              <!-- drag ghost · ripple · cursor (ride the screen tilt) -->
-              <div data-hf-id="hf-ly02" class="f6-ghost" id="f6-ghost">
-                <div data-hf-id="hf-81db" class="f6-ghost-hd">
-                  <span data-hf-id="hf-21bp" class="f6-ghost-title">redesign the app</span>
-                  <span data-hf-id="hf-iz3k" class="sk-spacer"></span>
-                  <span data-hf-id="hf-t0eh" class="sk-badge">4.0</span>
-                </div>
-              </div>
-              <div data-hf-id="hf-2zf0" class="f6-ripple" id="f6-ripple"></div>
-              <div data-hf-id="hf-ytaa" class="sk-cursor" id="f6-cursor">
-                <svg data-hf-id="hf-y9f5" viewBox="0 0 24 24"><path data-hf-id="hf-6db4" d="M5.5 3.2 L5.5 18.6 L9.3 15.1 L11.8 20.6 L14.4 19.4 L11.9 14 L17 13.5 Z" /></svg>
-              </div>
-
             </div>
           </div>
         </div>
@@ -470,59 +588,88 @@
     </div>
 
     <!-- track 2 · film overlay — lower-third, above the caption keep-out -->
-    <div data-hf-id="hf-che7" id="f6-overlay" class="clip f6-overlay" data-start="0" data-duration="8.3" data-track-index="2">
-      <div data-hf-id="hf-0lxp" class="sk-lowerthird">
-        <span data-hf-id="hf-aceq" class="sk-lt-kicker" id="f6-lt-k">02 · Decide</span>
-        <span data-hf-id="hf-i2ce" class="sk-lt-line" id="f6-lt-l">it can say no — and show why.</span>
+    <div id="f6-overlay" class="clip f6-overlay" data-start="0" data-duration="10.9" data-track-index="2">
+      <div class="sk-lowerthird">
+        <span class="sk-lt-kicker" id="f6-lt-k">02 · Decide</span>
+        <span class="sk-lt-line" id="f6-lt-l">it can say no — and show why.</span>
       </div>
     </div>
 
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
   <script>
     window.__timelines = window.__timelines || {};
     const tl = gsap.timeline({ paused: true });
 
-    /* ───────────────────────── camera rig (multi-phase-camera + viewport-change) ───────────────────────── */
-    const camEl = document.getElementById("f6-cam");
+    const DUR = 10.9;
+    const camEl = document.getElementById("f6cam");
     const screenEl = document.getElementById("f6-screen");
-    const cam = { scale: 0.945, x: 20, y: 0 };          // phase state
-    const drift = { p: 0 };                              // continuous micro-drift
-    let dx = 0, dy = 0;
-    function applyCamera() {
-      dx = Math.sin(drift.p) * 5;
-      dy = Math.sin(drift.p * 1.31) * 3;
-      camEl.style.transform = `translate(${cam.x + dx}px, ${cam.y + dy}px) scale(${cam.scale})`;
-    }
-    const tilt = { rx: 2.7, ry: -4.2 };                  // the arc around the pair, in perspective
-    function applyTilt() {
-      screenEl.style.transform = `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`;
-    }
-    applyCamera(); applyTilt();
 
-    /* push-blur (motion-blur-streak, push-through "B B" smear) — seeded at 0 */
-    const blurNode = document.getElementById("f6-pushblur-std");
+    /* ── VO cue map (06.mp3, clip-relative, measured) ───────────────────
+       0.31–2.16  "It scores each bet."
+       2.76–4.48  "When the data says you're wrong"
+       4.83–5.76  "it disagrees."
+       6.29–7.59  "And the exciting idea"
+       7.83–10.07 "loses to the boring one that pays."
+       10.07–10.9 held read (the slack lives here)                      */
+
+    /* ── macro camera (multi-phase-camera + viewport-change) ───────────
+       One world wrapper; cam is the single source of truth; one driver
+       tween writes transform every frame (phase moves + sine micro-drift).
+       The screen is 88cqw × 82cqh on a stage with 10cqh bottom padding, so
+       its untransformed top sits 54px above frame centre. `ly` is the px of
+       ink wanted ABOVE the screen; the vertical translate is derived from it
+       (y = 496.8·s − 540 + ly) so the shell stays framed at every scale, and
+       |x| ≤ 844.8·s − 960 keeps the side edges past the frame edges. */
+    const cam = { s: 1.10, x: 0, ly: 53 };
+    const tilt = { rx: 1.8, ry: -2.4 };
+    const applyTilt = () => { screenEl.style.transform = "rotateX(" + tilt.rx.toFixed(3) + "deg) rotateY(" + tilt.ry.toFixed(3) + "deg)"; };
+    applyTilt();
+
+    /* ── motion-blur streak (horizontal, peaks at max pan velocity) ── */
+    const blurNode = document.getElementById("f6-streak-blur");
     const blurProxy = { v: 0 };
-    const writeBlur = () => blurNode.setAttribute("stdDeviation", `${blurProxy.v} ${blurProxy.v}`);
-    writeBlur();
+    const writeBlur = () => {
+      blurNode.setAttribute("stdDeviation", blurProxy.v.toFixed(2) + " 0");
+      camEl.style.filter = blurProxy.v < 0.02 ? "none" : "url(#f6-streak)";
+    };
+    writeBlur(); // seed frame 0
 
-    /* ── Scene 1 (0.0–2.4) · arrival: settle + arc, chrome reveals ── */
-    tl.fromTo("#f6-frame", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power1.out" }, 0.01);
-    tl.to(cam, { scale: 1, x: 0, duration: 2.3, ease: "power2.out", onUpdate: applyCamera }, 0);
-    tl.to(tilt, { rx: 1.5, ry: -2.0, duration: 2.4, ease: "power2.out", onUpdate: applyTilt }, 0);
-    tl.fromTo("#f6-lt-k", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.55);
-    tl.fromTo("#f6-lt-l", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 0.72);
-    tl.fromTo(".f6-headmeta", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 0.65);
-    tl.fromTo(".f6-headchip", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out", stagger: 0.06 }, 0.8);
-    tl.fromTo(".f6-pr", { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out", stagger: 0.12 }, 0.95);
+    /* ── single deterministic driver: phase state + micro-drift ── */
+    const DRIFT_CYCLES = 2.1, AMP_X = 5, AMP_Y = 3, FREQ_RATIO = 1.31;
+    const driver = { t: 0 };
+    const apply = () => {
+      const p = (driver.t / DUR) * Math.PI * 2 * DRIFT_CYCLES;
+      const dx = Math.sin(p) * AMP_X;
+      const dy = Math.sin(p * FREQ_RATIO) * AMP_Y;
+      const y = 496.8 * cam.s - 540 + cam.ly;
+      camEl.style.transform =
+        "translate(" + (cam.x + dx).toFixed(2) + "px," + (y + dy).toFixed(2) + "px) scale(" + cam.s.toFixed(4) + ")";
+    };
 
-    /* ── Scene 2 (2.4–5.2) · "it scores each bet": bars fill + counts, then the rack-focus disagreement ── */
-    // sub-bars fill as a chord (stat fill, transform-only)
-    tl.fromTo(".f6-bar", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 1.15, ease: "power3.out" }, 2.5);
-    tl.fromTo(".f6-val", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.out" }, 3.35);
+    /* ═════════ Scene 1 (0.0–2.4) · "It scores each bet." ═════════ */
+    tl.fromTo("#f6-frame", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 0.01);
+    // arrival settle, then a slow push across the pair while the scoring runs
+    tl.to(cam, { s: 1.155, x: -6, ly: 30, duration: 2.25, ease: "power2.out", onUpdate: apply }, 0.1);
+    tl.to(tilt, { rx: 1.2, ry: -1.7, duration: 2.25, ease: "power2.out", onUpdate: applyTilt }, 0.1);
 
-    // composite scores count up (counting-dynamic-scale, small UI register: value + font-size in one tween)
+    tl.fromTo("#f6-lt-k", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5,  ease: "power3.out" }, 0.5);
+    tl.fromTo("#f6-lt-l", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 0.68);
+    tl.fromTo(".f6-headmeta", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 0.35);
+    tl.fromTo(".f6-headchip", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out", stagger: 0.06 }, 0.45);
+    tl.fromTo(".f6-pr", { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out", stagger: 0.12 }, 0.6);
+
+    // agent presence · the working indicator runs the whole score fill
+    tl.fromTo("#f6-agentA", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.25);
+    tl.fromTo("#f6-agentfill", { scaleX: 0.06 }, { scaleX: 0.97, duration: 1.75, ease: "power1.inOut" }, 0.4);
+
+    // sub-bars fill on "scores", then the two composites tick up (sfx: two score ticks)
+    tl.fromTo(".f6-bar", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 1.05, ease: "power3.out", stagger: 0.05 }, 0.55);
+    tl.fromTo(".f6-val", { opacity: 0 }, { opacity: 1, duration: 0.32, ease: "power2.out", stagger: 0.04 }, 1.45);
+    // the inputs the scores are built on read in as the agent weighs them
+    tl.fromTo(".f6-evrow", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.32, ease: "power2.out", stagger: 0.05 }, 0.4);
+
     const numL = document.getElementById("f6-num-l");
     const numR = document.getElementById("f6-num-r");
     const scoreL = { v: 0, fs: 1.05 };
@@ -530,69 +677,97 @@
     const writeL = () => { numL.textContent = scoreL.v.toFixed(1); numL.style.fontSize = scoreL.fs.toFixed(3) + "cqw"; };
     const writeR = () => { numR.textContent = scoreR.v.toFixed(1); numR.style.fontSize = scoreR.fs.toFixed(3) + "cqw"; };
     writeL(); writeR();
-    tl.to(scoreL, { v: 4.0, fs: 1.5, duration: 1.3, ease: "power3.out", onUpdate: writeL }, 2.55);
-    tl.to(scoreR, { v: 8.0, fs: 1.5, duration: 1.3, ease: "power3.out", onUpdate: writeR }, 2.55);
-    tl.to(numL, { color: "#F2EFE9", duration: 1.3, ease: "power2.out" }, 2.55);
-    tl.to(numR, { color: "#C39A5E", duration: 1.3, ease: "power2.out" }, 2.55);
+    tl.to(scoreL, { v: 4.0, fs: 1.5, duration: 1.15, ease: "power3.out", onUpdate: writeL }, 0.62);
+    tl.to(scoreR, { v: 8.0, fs: 1.5, duration: 1.35, ease: "power3.out", onUpdate: writeR }, 0.72);
+    tl.to(numL, { color: "#F2EFE9", duration: 1.15, ease: "power2.out" }, 0.62);
+    tl.to(numR, { color: "#C39A5E", duration: 1.35, ease: "power2.out" }, 0.72);
 
-    // left card's own agent line lands with its low score
-    tl.fromTo("#f6-note-l", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 4.0);
+    // the losing card's own note lands in the beat of quiet after the first sentence
+    tl.fromTo("#f6-note-l", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 2.2);
 
-    // rack focus (depth-of-field-blur): look at the exciting one… then the boring one that pays
-    tl.to(cam, { x: 38, duration: 0.55, ease: "power2.inOut", onUpdate: applyCamera }, 3.75);
-    tl.to("#f6-card-r", { "--dof": "2.2px", opacity: 0.86, duration: 0.55, ease: "power2.inOut" }, 3.75);
-    tl.to(cam, { x: -55, duration: 0.6, ease: "power2.inOut", onUpdate: applyCamera }, 4.45);
-    tl.to("#f6-card-r", { "--dof": "0px", opacity: 1, duration: 0.6, ease: "power2.inOut" }, 4.45);
-    tl.to("#f6-card-l", { "--dof": "2.4px", opacity: 0.82, duration: 0.6, ease: "power2.inOut" }, 4.45);
+    /* ═════════ Scene 2 (2.4–6.2) · "When the data says you're wrong — it disagrees." ═════════ */
+    // pan onto the winner as the evidence-based dissent note lands
+    tl.to(cam, { s: 1.30, x: -120, ly: 0, duration: 1.0, ease: "power2.inOut", onUpdate: apply }, 2.75);
+    tl.to(tilt, { rx: 1.0, ry: -1.2, duration: 1.0, ease: "power2.inOut", onUpdate: applyTilt }, 2.75);
+    tl.to(blurProxy, { v: 5.5, duration: 0.5, ease: "power2.in",  onUpdate: writeBlur }, 2.75);
+    tl.to(blurProxy, { v: 0,   duration: 0.5, ease: "power2.out", onUpdate: writeBlur }, 3.25);
 
-    // the dissent note slides under the right card
-    tl.fromTo("#f6-note-r", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 4.55);
+    // "the data says you're wrong" — the agent's take, with the data under it
+    tl.fromTo("#f6-note-r", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 3.0);
+    tl.fromTo("#f6-card-l", { "--dof": "0px" }, { "--dof": "2.4px", opacity: 0.84, duration: 0.7, ease: "power2.inOut" }, 3.05);
 
-    /* ── Scene 3 (5.2–8.3) · "loses": drag to passed (scale-swap), winner takes the ember edge, push ── */
-    // cursor arrives and travels to the exciting card (cursor-click-ripple: move → settle → click)
-    tl.fromTo("#f6-cursor", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, 4.65);
-    tl.to("#f6-cursor", { x: -690, y: -358, duration: 0.85, ease: "power2.inOut" }, 4.75);
-    tl.to("#f6-cursor", { scale: 0.86, duration: 0.08, ease: "power2.in", yoyo: true, repeat: 1 }, 5.3);
-    tl.fromTo("#f6-ripple",
-      { scale: 0.2, opacity: 0.55 },
-      { scale: 2.6, opacity: 0, duration: 0.6, ease: "power2.out", immediateRender: false }, 5.34);
+    // breathe between the two halves of the sentence (camera never sleeps)
+    tl.to(cam, { s: 1.32, x: -112, duration: 0.95, ease: "power1.inOut", onUpdate: apply }, 3.85);
 
-    // grab: real card lifts to a ghost that follows the cursor
-    tl.to("#f6-card-l", { opacity: 0.3, duration: 0.2, ease: "power2.out" }, 5.42);
-    tl.fromTo("#f6-ghost",
-      { opacity: 0, scale: 0.85, rotation: 2 },
-      { opacity: 1, scale: 1, rotation: 2, duration: 0.28, ease: "back.out(1.5)" }, 5.4);
-    tl.to("#f6-cursor", { x: 490, y: -322, duration: 0.7, ease: "power2.inOut" }, 5.55);
-    tl.to("#f6-ghost", { x: 1180, y: 36, duration: 0.7, ease: "power2.inOut" }, 5.55);
-    tl.to("#f6-cursor", { scale: 0.86, duration: 0.08, ease: "power2.in", yoyo: true, repeat: 1 }, 6.27);
+    // "it disagrees." — rack back to the exciting one as it takes the reject state
+    tl.to(cam, { s: 1.30, x: 132, duration: 0.9, ease: "power2.inOut", onUpdate: apply }, 4.8);
+    tl.to("#f6-card-l", { "--dof": "0px", opacity: 1, duration: 0.7, ease: "power2.inOut" }, 4.8);
+    tl.fromTo("#f6-card-r", { "--dof": "0px" }, { "--dof": "2.2px", opacity: 0.86, duration: 0.7, ease: "power2.inOut" }, 4.85);
+    tl.fromTo("#f6-reject", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 4.95);
 
-    // the drop — scale-swap-transition: ghost shrinks out, struck row pops into the rail
-    tl.to("#f6-ghost", { scale: 0.68, opacity: 0, duration: 0.3, ease: "power2.in" }, 6.3);
-    tl.fromTo("#f6-incoming",
-      { scale: 0.72, opacity: 0 },
-      { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.6)" }, 6.45);
-    tl.to(".f6-shiftrow", { y: 52, duration: 0.45, ease: "power3.out" }, 6.3);
-    tl.to("#f6-b2", { opacity: 0, duration: 0.25, ease: "power1.inOut" }, 6.4);
-    tl.to("#f6-b3", { opacity: 1, duration: 0.25, ease: "power1.inOut" }, 6.4);
+    /* ═════════ Scene 3 (6.2–10.9) · "And the exciting idea loses to the boring one that pays." ═════════ */
+    // pull back so both cards and the Passed rail are in frame for the kill
+    tl.to(cam, { s: 1.16, x: 0, ly: 30, duration: 0.85, ease: "power2.inOut", onUpdate: apply }, 5.8);
+    tl.to("#f6-card-r", { "--dof": "0px", opacity: 1, duration: 0.6, ease: "power2.inOut" }, 5.85);
+    tl.to(tilt, { rx: 1.5, ry: -2.1, duration: 0.85, ease: "power2.inOut", onUpdate: applyTilt }, 5.8);
 
-    // the vacated slot admits it
-    tl.to("#f6-card-l", { opacity: 0, duration: 0.35, ease: "power2.in" }, 6.3);
-    tl.fromTo("#f6-slot", { opacity: 0 }, { opacity: 0.7, duration: 0.4, ease: "power2.out" }, 6.55);
+    /* Screen-local geometry (measured): left card 77,192 623×335 · Passed rail 1362,192
+       · incoming row 1375,257 282×62 · cursor hotspot at translate 0 = (656,727)
+       · ripple centre at translate 0 = (56,119). */
+    // cursor arcs to the exciting card on "And the exciting idea" (x and y on different eases)
+    tl.set("#f6-cursor", { x: -150, y: -70 }, 0);
+    tl.fromTo("#f6-cursor", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "none" }, 6.05);
+    tl.to("#f6-cursor", { x: -406, duration: 0.75, ease: "power1.inOut" }, 6.2);
+    tl.to("#f6-cursor", { y: -515, duration: 0.75, ease: "power2.out" }, 6.2);
+    // press (cursor-click-ripple: press → release → ripple on the grab point)
+    tl.to("#f6-cursor", { scale: 0.86, duration: 0.09, ease: "power2.in" }, 7.0);
+    tl.to("#f6-cursor", { scale: 1, duration: 0.16, ease: "power2.out" }, 7.09);
+    tl.set("#f6-ripple", { x: 194, y: 93 }, 0);
+    tl.fromTo("#f6-ripple", { scale: 0.2, opacity: 0.5 }, { scale: 2.6, opacity: 0, duration: 0.55, ease: "power2.out", immediateRender: false }, 7.04);
 
-    // the winner advances — ember edge (the winner's edge is an ember moment)
-    tl.fromTo("#f6-ring", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power2.out" }, 6.6);
-    tl.to("#f6-card-r", { scale: 1.015, duration: 0.5, ease: "power2.out" }, 6.6);
-    tl.fromTo("#f6-advance", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 6.75);
-    tl.to("#f6-cursor", { x: -140, y: -268, duration: 0.9, ease: "power2.inOut" }, 6.6);
+    // grab · the card hands a proxy to the cursor and dims in place
+    tl.to("#f6-card-l", { opacity: 0.5, duration: 0.25, ease: "power2.out" }, 7.12);
+    tl.fromTo("#f6-ghost", { opacity: 0, scale: 0.86, rotation: 1.4 }, { opacity: 1, scale: 1, rotation: 1.4, duration: 0.26, ease: "power3.out" }, 7.1);
+    tl.to("#f6-cursor", { x: 800, y: -455, duration: 0.85, ease: "power2.inOut" }, 7.15);
+    tl.to("#f6-ghost", { x: 1279, y: 66, duration: 0.85, ease: "power2.inOut" }, 7.15);
+    // camera follows the drag, streaking at peak velocity
+    tl.to(cam, { s: 1.24, x: -70, ly: 8, duration: 1.05, ease: "power2.inOut", onUpdate: apply }, 7.05);
+    tl.to(blurProxy, { v: 7, duration: 0.5, ease: "power2.in",  onUpdate: writeBlur }, 7.15);
+    tl.to(blurProxy, { v: 0, duration: 0.5, ease: "power2.out", onUpdate: writeBlur }, 7.65);
 
-    // camera pushes on the winner, streaking at peak velocity, settling sharp
-    tl.to(cam, { scale: 1.09, x: -160, y: 10, duration: 1.3, ease: "power2.inOut", onUpdate: applyCamera }, 6.5);
-    tl.to(tilt, { rx: 1.1, ry: -1.2, duration: 1.3, ease: "power2.inOut", onUpdate: applyTilt }, 6.5);
-    tl.to(blurProxy, { v: 4.5, duration: 0.65, ease: "power2.in", onUpdate: writeBlur }, 6.5);
-    tl.to(blurProxy, { v: 0, duration: 0.62, ease: "power2.out", onUpdate: writeBlur }, 7.15);
+    // "loses" · the strike sweeps the losing card in fail-red and it dims out
+    tl.fromTo("#f6-strike", { scaleX: 0 }, { scaleX: 1, duration: 0.26, ease: "power2.out" }, 7.83);
+    tl.to("#f6-card-l", { opacity: 0.34, borderColor: "#EF6A5F", duration: 0.3, ease: "power2.out" }, 7.83);
+    tl.to("#f6-ghost", { borderColor: "#EF6A5F", duration: 0.26, ease: "power2.out" }, 7.83);
+    // the proxy drops into the rail (scale-swap-transition)
+    tl.to("#f6-ghost", { scale: 0.7, opacity: 0, duration: 0.3, ease: "power2.in" }, 8.06);
+    tl.to("#f6-card-l", { opacity: 0, duration: 0.35, ease: "power2.in" }, 8.16);
 
-    /* drift driver — inserted LAST so it reads final cam state each frame; spans the whole shot */
-    tl.to(drift, { p: Math.PI * 2 * 2, duration: 8.3, ease: "none", onUpdate: applyCamera }, 0);
+    // scale-swap-transition · the struck row pops into the Passed rail, the stack shifts, the count ticks
+    tl.fromTo("#f6-incoming", { scale: 0.72, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.6)" }, 8.2);
+    tl.to(".f6-shiftrow", { y: 52, duration: 0.45, ease: "power3.out" }, 8.12);
+    tl.to("#f6-b2", { opacity: 0, duration: 0.22, ease: "power1.inOut" }, 8.2);
+    tl.to("#f6-b3", { opacity: 1, duration: 0.22, ease: "power1.inOut" }, 8.2);
+    // the vacated slot says where it went
+    tl.fromTo("#f6-slot", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 8.3);
+
+    // "to the boring one that pays" · the winner advances — pass-green edge, advancing chip
+    tl.fromTo("#f6-ring", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power2.out" }, 8.55);
+    tl.to("#f6-card-r", { scale: 1.018, duration: 0.5, ease: "power2.out" }, 8.55);
+    tl.fromTo("#f6-advance", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 8.7);
+    // the agent line hands the winner to the next station
+    tl.to("#f6-agentA", { opacity: 0, duration: 0.3, ease: "power1.out" }, 8.6);
+    tl.fromTo("#f6-agentB", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 8.68);
+    tl.to("#f6-cursor", { x: 594, y: -512, duration: 0.9, ease: "power2.inOut" }, 8.5);
+
+    // push onto the winner, then a settled held read (10.07–10.9 absorbs the slack)
+    tl.to(cam, { s: 1.34, x: -150, ly: 0, duration: 1.35, ease: "power2.inOut", onUpdate: apply }, 8.2);
+    tl.to(tilt, { rx: 1.0, ry: -1.1, duration: 1.35, ease: "power2.inOut", onUpdate: applyTilt }, 8.2);
+    tl.to(cam, { s: 1.355, x: -156, duration: 1.35, ease: "power1.inOut", onUpdate: apply }, 9.55);
+
+    /* driver registered LAST so it reads each frame's settled cam values */
+    tl.to(driver, { t: DUR, duration: DUR, ease: "none", onUpdate: apply }, 0);
+    apply(); // seed t=0
 
     window.__timelines["06-it-disagrees"] = tl;
   </script>
