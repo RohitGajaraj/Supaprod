@@ -259,6 +259,59 @@ function LandingPage() {
         {/* Keyboard focus is a human action: the double-ring ember focus
             state, separated from the control by the ink itself. */}
         <style>{`
+          /* THE LANDING PAGE HAD NEVER PAINTED ITS OWN GROUND.
+           *
+           * The div above carries \`bg-[#0a0a0a]\` and that utility DOES NOT
+           * EXIST. Measured 2026-08-11 by walking every stylesheet in the
+           * document and asking which rules matching this element set a
+           * background: zero. The arbitrary-value class was never generated, so
+           * the element is transparent and simply shows whatever is behind it,
+           * which is the body, which follows the app's theme.
+           *
+           * In dark that is #0a0a0a and the page looks exactly right, which is
+           * why this survived: the bug and the intent produce the same pixels
+           * for most visitors. In light the body is white, the headline is
+           * still \`text-white\` because THAT utility is real, and the largest
+           * object on the public homepage renders at a contrast ratio of 1.0.
+           * White on white. Not hard to read. Invisible.
+           *
+           * \`__root.tsx\` stamps \`data-theme="light"\` for anyone whose stored
+           * theme is light OR whose stored theme is system with a light OS, and
+           * it does that on every route including this one. First-time visitors
+           * have nothing stored and get dark, which is the other half of why
+           * nobody saw it: it only breaks for people who have been here before.
+           *
+           * THIS IS A DELIBERATELY SINGLE-THEME SURFACE and that is allowed,
+           * but a design that commits to one theme still has to paint the
+           * background and the colours explicitly rather than inherit them.
+           * Inheriting is what made it a coin flip on the visitor's OS. */
+          .landing-root {
+            background: #0a0a0a;
+            /* So the scrollbar, and any form control the browser draws itself,
+             * match the page instead of the stamped theme. */
+            color-scheme: dark;
+            /* THE DECORATIVE BLEEDS RUN OFF THE PAGE AT 768 AND ONLY AT 768.
+             *
+             * Two elements deliberately extend past their container to bleed a
+             * background wider than the text it sits behind: the capability
+             * scrim in Receipts.tsx (\`px-8 -mx-8\`) and the mark in
+             * TrustClose.tsx (\`absolute -right-40\`). Both are \`hidden md:*\`,
+             * so they do not exist below 768 and there is room for them above
+             * about 1000. At exactly the middle breakpoint they appear and
+             * there is nowhere to put them: measured 2026-08-11, the page was
+             * 834px wide inside a 768px viewport.
+             *
+             * \`clip\` rather than \`hidden\`, and the difference is the whole
+             * reason this is safe. \`overflow-x: hidden\` makes \`overflow-y\`
+             * compute to \`auto\` as well, which quietly creates a second
+             * vertical scroll container and is how a page comes to feel stuck.
+             * \`clip\` constrains one axis and leaves the other alone.
+             *
+             * Checked before reaching for it: this page has no \`position:
+             * sticky\` anywhere, which is the one thing a clipping ancestor
+             * would break. */
+            overflow-x: clip;
+          }
           .landing-root a:focus-visible,
           .landing-root button:focus-visible {
             outline: none;
