@@ -40,8 +40,8 @@
 
 ## v5 duration table (LOCKED — build your frame to THIS duration; Vesper VO + breathing air)
 
-F1 9.4 · F2 10.8 · F3 14.2 · F4 10.6 · F5 7.4 · F6 10.9 · F7 6.8 · F8 23.2 · F9 11.7 · F10 12.1 ·
-F11 10.2 · F12 6.6 · F13 10.0 — film total 143.9s (v8 FINAL). STORYBOARD durations already match.
+F1 8.8 · F2 12.1 · F3 13.7 · F4 11.3 · F5 6.9 · F6 11.0 · F7 6.4 · F8 22.8 · F9 10.8 · F10 10.8 ·
+F11 11.8 · F12 6.4 · F13 9.3 — film total 142.1s (v10 FROZEN — founder-approved script; VO plays at 1.05x pitch-preserved). STORYBOARD durations already match.
 
 ## Agent presence + seam law (founder, 2026-08-12)
 

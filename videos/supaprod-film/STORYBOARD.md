@@ -24,7 +24,7 @@ music: "minimal cinematic pulse — restrained electronic with a warm analog und
 
 - scene: An agent builds and ships a feature in seconds — an editor writes itself, a deploy goes green
 - voiceover: "These days, anyone can build. Agents write the code — beautiful features, shipped in days."
-- duration: 9.4s
+- duration: 8.8s
 - transition_in: cut
 - status: animated
 - src: compositions/frames/01-anyone-can-build.html
@@ -45,7 +45,7 @@ Scene 3 (5.6–8.2s): on "shipped in days", the deploy status flips to a green "
 
 - scene: A wall of shipped features over a flat adoption chart — lots built, nothing moved
 - voiceover: "But what to build — nobody cracks that call. So teams build the wrong features, beautifully… and miss what mattered. That's the judgment gap."
-- duration: 10.8s
+- duration: 12.1s
 - transition_in: crossfade
 - status: animated
 - src: compositions/frames/02-worth-building.html
@@ -66,7 +66,7 @@ Scene 3 (6.0–8.5s): on "and miss.", the chart's period-summary chip lands: "no
 
 - scene: A PM's screen at 9am — threads, tickets, dashboards, a roadmap doc — piling into one unanswerable question
 - voiceover: "You know the feeling. Signals everywhere — interviews, tickets, dashboards, hunches. The loudest voice wins the roadmap. And six months later, someone asks — why did we build this?"
-- duration: 14.2s
+- duration: 13.7s
 - transition_in: zoom-through
 - status: animated
 - src: compositions/frames/03-you-know-the-feeling.html
@@ -87,8 +87,8 @@ Scene 4 (10.0–14.5s): the pile dims and blurs (`depth-of-field-blur`); a clean
 ## Frame 4 — Supaprod
 
 - scene: The mark draws itself; the camera pushes through its ember core into the product's home
-- voiceover: "Supaprod. One place where agents run the work — and you make the calls. Agents that know what to build, ship it, and guide the next call."
-- duration: 10.6s
+- voiceover: "Supaprod… Where the work runs on agents — and the calls stay yours. Agents that know what to build, ship it, and guide the next call."
+- duration: 11.3s
 - transition_in: zoom-through
 - status: animated
 - src: compositions/frames/04-supaprod.html
@@ -113,7 +113,7 @@ Scene 3 (5.4–10.8s): slow cinematic pan across the home while the tagline play
 
 - scene: The Discover screen clusters raw signal into ranked bets, evidence pinned
 - voiceover: "Your signals pour in. It reads every one — and hands you ranked bets, evidence attached."
-- duration: 7.4s
+- duration: 6.9s
 - transition_in: push-slide LEFT
 - status: animated
 - src: compositions/frames/05-signals-become-bets.html
@@ -133,8 +133,8 @@ Scene 3 (5.0–7.3s): on "evidence attached", the cursor hovers bet 01 — its e
 ## Frame 6 — It disagrees
 
 - scene: The Decide screen scores both bets; the exciting one loses and is moved to passed
-- voiceover: "It scores each bet. When the evidence says you're wrong — it disagrees. And the exciting idea loses to the boring one that pays."
-- duration: 10.9s
+- voiceover: "It scores each bet. When the data says you're wrong — it disagrees. And the exciting idea loses to the boring one that pays."
+- duration: 11.0s
 - transition_in: push-slide LEFT
 - status: animated
 - src: compositions/frames/06-it-disagrees.html
@@ -155,7 +155,7 @@ Scene 3 (5.2–8.3s): on "loses", the cursor drags "redesign the app" toward a P
 
 - scene: The decision commit form — a forecast typed, sealed, locked
 - voiceover: "And at the moment you commit — it writes down what you believe will happen. Before you find out."
-- duration: 6.8s
+- duration: 6.4s
 - transition_in: crossfade
 - status: animated
 - src: compositions/frames/07-the-forecast.html
@@ -176,7 +176,7 @@ Scene 3 (5.6–8.0s): close-up hold on the sealed row (timestamp, author, immuta
 
 - scene: One traveling shot across Plan, Build, Ship — the spec writes, agents build inside boundaries, the ship kit assembles — landing wide on the whole route
 - voiceover: "Agents run every station. In Plan, the spec writes itself. In Design, the prototype takes shape. In Build, the code is written and tested — inside your boundaries. And Ship isn't just launch day — the announcement, the changelog, the customer email. Done. One platform. The whole product lifecycle."
-- duration: 23.2s
+- duration: 22.8s
 - transition_in: push-slide LEFT
 - status: animated
 - src: compositions/frames/08-the-route.html
@@ -199,8 +199,8 @@ Scene 5 (16.0–18.2s): the camera settles WIDE on the whole connected route —
 ## Frame 9 — The loop closes
 
 - scene: The Learn screen scores the outcome against the call; Discover's ranking visibly reorders
-- voiceover: "When results land, Learn scores them — what worked, what didn't, and why. That lands in the brain, feeds your next signals — and the next bet re-ranks itself."
-- duration: 11.7s
+- voiceover: "When results land, Learn scores every outcome against the call that caused it. The brain takes it in — and your next bet re-ranks itself."
+- duration: 10.8s
 - transition_in: zoom-through
 - status: animated
 - src: compositions/frames/09-the-loop-closes.html
@@ -221,8 +221,8 @@ Scene 4 (8.0–10.8s): on "It learns. Then it guides.", the camera pulls to show
 ## Frame 10 — It stops you
 
 - scene: Mid-draft, the product interrupts: you've made this call before — with the record to prove it
-- voiceover: "And the next time you're deciding, it's beside you — similar calls, what worked, what didn't. About to repeat a mistake? It stops you."
-- duration: 12.1s
+- voiceover: "And the next time you're deciding, it's beside you — the same call from last quarter, and how it went. About to repeat a mistake? It stops you."
+- duration: 10.8s
 - transition_in: crossfade
 - status: animated
 - src: compositions/frames/10-it-stops-you.html
@@ -243,8 +243,8 @@ Scene 4 (9.4–12.3s): on "guiding the next move", the panel settles to a calm e
 ## Frame 11 — What can't be reconstructed
 
 - scene: The decision record close-up: artifacts on one side, the sealed belief on the other
-- voiceover: "What you believed. What worked. What didn't — and why. Your shared brain, guiding the next call."
-- duration: 10.2s
+- voiceover: "What you believed. What worked. What didn't — and why. Your shared brain — at the table, every time."
+- duration: 11.8s
 - transition_in: blur-crossfade
 - status: animated
 - src: compositions/frames/11-what-cant-be-reconstructed.html
@@ -265,7 +265,7 @@ Scene 3 (5.4–7.2s): on "guides your next call", a small ember guidance chip sl
 
 - scene: Six words on a fire-orange field — the film's single palette flip
 - voiceover: "You stop guessing. You start deciding. Build what matters."
-- duration: 6.6s
+- duration: 6.4s
 - transition_in: crossfade
 - status: animated
 - src: compositions/frames/12-the-promise.html
@@ -286,7 +286,7 @@ Scene 2 (1.6–4.0s): "you start deciding." joins beneath at 700; both hold as t
 
 - scene: The app recedes into the dark; the mark draws; the caret types the address
 - voiceover: "Supaprod… Agents run the work. You make the calls. And every call makes the next one sharper."
-- duration: 10.0s
+- duration: 9.3s
 - transition_in: crossfade
 - status: animated
 - src: compositions/frames/13-close.html

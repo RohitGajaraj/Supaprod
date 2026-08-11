@@ -33,7 +33,7 @@
 **Time:** 27.0 – 35.0s
 **Delivery:** Warm relief. The name lands clean; the tagline rides one easy breath.
 
-    Supaprod. One place where agents run the work — and you make the calls. Agents that know what to build, ship it, and guide the next call.
+    Supaprod… Where the work runs on agents — and the calls stay yours. Agents that know what to build, ship it, and guide the next call.
 
 ## Line 5 — Signals become bets (Frame 5)
 
@@ -47,7 +47,7 @@
 **Time:** 43.0 – 52.0s
 **Delivery:** A near-smile on "disagree with you". The twist lands the sentence.
 
-    It scores each bet. When the evidence says you're wrong — it disagrees. And the exciting idea loses to the boring one that pays.
+    It scores each bet. When the data says you're wrong — it disagrees. And the exciting idea loses to the boring one that pays.
 
 ## Line 7 — The forecast (Frame 7)
 
@@ -68,21 +68,21 @@
 **Time:** 73.0 – 83.0s
 **Delivery:** The mechanism crescendo, delivered by slowing, not shouting. Real pauses at "It learns. Then it guides."
 
-    When results land, Learn scores them — what worked, what didn't, and why. That lands in the brain, feeds your next signals — and the next bet re-ranks itself.
+    When results land, Learn scores every outcome against the call that caused it. The brain takes it in — and your next bet re-ranks itself.
 
 ## Line 10 — It stops you (Frame 10)
 
 **Time:** 83.0 – 93.0s
 **Delivery:** The aha. The quoted warning spoken like the product is speaking — calm, plain. Then back to the narrator for the last line.
 
-    And the next time you're deciding, it's beside you — similar calls, what worked, what didn't. About to repeat a mistake? It stops you.
+    And the next time you're deciding, it's beside you — the same call from last quarter, and how it went. About to repeat a mistake? It stops you.
 
 ## Line 11 — What can't be reconstructed (Frame 11)
 
 **Time:** 93.0 – 101.0s
 **Delivery:** Plain statement of fact; the sentence does the work.
 
-    What you believed. What worked. What didn't — and why. Your shared brain, guiding the next call.
+    What you believed. What worked. What didn't — and why. Your shared brain — at the table, every time.
 
 ## Line 12 — The promise (Frame 12)
 
