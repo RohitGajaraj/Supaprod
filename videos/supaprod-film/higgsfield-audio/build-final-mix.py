@@ -43,13 +43,17 @@ sfx = [
     ('whoosh', F[7]+19.6, 0.34, None),  # F8 dive to the route
     ('chime',  F[8]+1.2,  0.28, None),  # F9 verdict lands
     ('tick',   F[8]+6.5,  0.50, None),  # F9 re-rank
-    ('alert',  F[9]+3.3,  0.50, None),  # F10 precedent panel
+    ('warn',   F[9]+3.3,  0.55, 2.4),   # F10 precedent panel, the film's signature caution
     ('click',  F[9]+8.6,  0.40, None),  # F10 view-the-record hover
     ('keys',   F[10]+0.6, 0.40, 1.7),   # F11 palette typing
     ('click',  F[10]+2.3, 0.45, None),  # F11 answer lands
     ('punch',  F[10]+6.4, 0.25, None),  # F11 rack-focus deep hit
     ('swell',  F[11]+0.1, 0.50, None),  # F12 orange promise
-    ('chime',  F[12]+1.2, 0.38, None),  # F13 close
+    ('click',  F[5]+7.1,  0.35, None),  # F6 drag begins
+    ('tick',   F[1]+1.0,  0.30, None),  # F2 release rows
+    ('tick',   F[1]+1.6,  0.30, None),
+    ('tick',   F[1]+2.2,  0.30, None),
+    ('bloom',  F[12]+1.2, 0.45, None),  # F13 tagline reveal, the brand resolve motif
 ]
 
 files = [f'{i:02d}.mp3' for i in range(1, 14)] + ['music-final.m4a'] + \
@@ -60,8 +64,8 @@ fc = []
 for i, d in enumerate(vo_delays):
     fc.append(f'[{i}:a]atempo=1.05,adelay={d}|{d}[v{i}]')
 fc.append(''.join(f'[v{i}]' for i in range(13)) +
-          'amix=inputs=13:normalize=0,dynaudnorm=g=7:m=4.0[vo]')
-fc.append('[13:a]volume=0.40[mus]')
+          'amix=inputs=13:normalize=0,dynaudnorm=g=7:m=4.0,volume=1.12[vo]')
+fc.append('[13:a]volume=0.29[mus]')
 uses = {}
 for n, *_ in sfx: uses[n] = uses.get(n, 0) + 1
 for n, cnt in uses.items():
@@ -76,13 +80,13 @@ for j, (n, at, vol, trim) in enumerate(sfx):
     fc.append(f'[{n}{k}]{filt}[s{j}]'); snames.append(f'[s{j}]')
 fc.append(''.join(snames) + f'amix=inputs={len(snames)}:normalize=0[sfx]')
 fc.append('[vo]asplit=2[voA][voKey]')
-fc.append('[mus][voKey]sidechaincompress=threshold=0.03:ratio=10:attack=45:release=600:makeup=1[musd]')
+fc.append('[mus][voKey]sidechaincompress=threshold=0.025:ratio=12:attack=40:release=550:makeup=1[musd]')
 fc.append('[voA][musd][sfx]amix=inputs=3:normalize=0,alimiter=limit=0.93,'
           'aformat=sample_rates=48000:channel_layouts=stereo[out]')
 
 cmd = ['/opt/homebrew/bin/ffmpeg', '-y', '-v', 'error']
 for f in files: cmd += ['-i', f]
 cmd += ['-filter_complex', ';'.join(fc), '-map', '[out]', '-t', '142.1',
-        '-c:a', 'aac', '-b:a', '256k', 'audio-master-v4-final.m4a']
+        '-c:a', 'aac', '-b:a', '256k', 'audio-master-v5.m4a']
 r = subprocess.run(cmd, capture_output=True, text=True)
-print(r.stderr[-500:] if r.returncode else 'FINAL FILM MIX DONE: audio-master-v4-final.m4a')
+print(r.stderr[-500:] if r.returncode else 'FINAL FILM MIX DONE: audio-master-v5.m4a')

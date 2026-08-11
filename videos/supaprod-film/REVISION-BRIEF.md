@@ -98,3 +98,28 @@ F11 11.8 · F12 6.4 · F13 9.3 — film total 142.1s (v10 FROZEN — founder-app
   everything else stays.
 - **13-close**: slow product moment behind the lockup (gentler recede), keep the typed URL; the
   spoken line no longer mentions demo/login (visual URL only).
+
+## Addendum — founder rulings folded in 2026-08-12 early morning (v6 round)
+
+- **Kicker numbering law**: the numbers 01-07 belong to the seven stations only
+  (Discover, Decide, Plan, Design, Build, Ship, Learn). Every other kicker is
+  unnumbered ("The forecast", "The record", "The era", "The blind spot").
+  F7's kicker dropped its "03 ·" for this reason; F8's station kickers keep theirs.
+- **The ending restructure**: "build what matters." moved OFF the orange promise
+  frame (F12 now holds two lines: you stop guessing / you start deciding) and
+  became THE tagline on F13, cream, under the wordmark. The voice still says the
+  full three-part close; the screen answers with the distilled six letters' worth.
+  Voice and screen no longer duplicate each other.
+- **Signature sounds**: sfx/warn.m4a (calm two-note caution, F10 precedent only)
+  and sfx/bloom.m4a (warm resolve, F13 tagline reveal only). alert.m4a stays as
+  the F3 message ping. chime stays a utility sound. One sound, one meaning.
+- **Voice/bed balance, measured**: voice stem -15.4 LUFS, ducked bed -29.1 LUFS,
+  margin +13.7 dB during narration. The bed reduction + 12:1 ducking do the work;
+  the voice trim (1.12) is polish. Do not push voice further, it is 1 dB from the
+  limiter; if the founder ever wants more separation, lower the bed volume (0.29),
+  never raise the voice.
+- **Fixed this round**: F8 Design wireframes brightened (bars were hairline-on-raised,
+  invisible); F8 kicker spans given explicit muted color (they inherited darkness);
+  F11 lower-third swap no longer double-exposes (l2 enters at 4.90 after l1 exits);
+  F10 on-screen em dash removed (zero-dash rule); F12 ink rule widened to 3.4cqw so
+  it cannot read as a stray dash; F3 unfocused windows lifted 0.62→0.70.
