@@ -262,9 +262,11 @@ merged pull request.
 What I understand that they do not: every one of them stops one step short.
 They surface, draft, remember, or dispatch. None of them checks the shipped
 outcome against the decision that caused it and feeds that back into the next
-ranking. That last step is the only one that compounds, it cannot be bolted
-onto a tracker, and it cannot be copied quickly because it only accumulates
-with time.
+ranking. That last step is the only one that compounds, and the part of it a
+competitor cannot rebuild is what the team believed would happen before they
+found out. Everything else about a decision survives in chat logs and call
+recordings, and an agent can reconstruct it in an afternoon. A forecast leaves
+no trace unless something captured it at the moment of the call.
 
 I also do not compete on code generation. That layer is a knife fight and the
 models keep absorbing it. I own the harness instead: the loop, the gates, the

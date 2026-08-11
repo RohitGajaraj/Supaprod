@@ -584,8 +584,11 @@ they buy a lead measured in quarters, not a position.
 
 The part I claim is defensible is the third one, and it is not a model property.
 It needs a specific team's decisions joined to that team's outcomes, labelled
-over time. That data cannot be bought, scraped or synthesised, because it is
-produced by running the loop. It also gets more valuable as models commoditize:
+over time. The part of that a competitor cannot rebuild is what the team
+believed would happen before they found out. Everything else survives in chat
+logs and call recordings, and an agent can reconstruct it in an afternoon; a
+forecast leaves no trace unless something captured it at the moment of the
+call. It also gets more valuable as models commoditize:
 when everyone reasons equally well, the differentiator is whose context is
 better.
 

@@ -650,9 +650,11 @@ What I understand that they don't: every one of them stops one step short.
 Samepage surfaces, ChatPRD and Spark draft, Brief remembers context, Linear
 and Ship OS dispatch. Nobody checks the shipped outcome against the
 decision and feeds it back, and that last step is the only one that
-compounds. The connected record of decision, evidence, and outcome cannot
-be bolted onto a tracker, and it cannot be copied quickly, because it only
-accumulates with time.
+compounds. And the part of it a competitor cannot rebuild is what the team
+believed would happen before they found out. Everything else about a
+decision survives in chat logs and call recordings, and an agent can
+reconstruct it in an afternoon. A forecast leaves no trace unless something
+captured it at the moment of the call.
 
 I also deliberately do not build the code generator. Cursor and Devin are
 in a capital knife fight there, and the models keep absorbing that layer.
@@ -830,8 +832,8 @@ What I understand that they do not: every one of them stops one step
 short. They surface, draft, remember, or dispatch. None of them checks
 the shipped outcome against the decision that caused it and feeds that
 back, and that last step is the only one that compounds. It cannot be
-bolted onto a tracker, and it cannot be copied quickly, because it only
-accumulates with time. I built the whole system around it.
+rebuilt from chat logs afterward is what the team believed would happen
+before they found out. I built the whole system around it.
 
 On the build, I own the harness, not the model: code generation is a
 commodity you call through an API, so I built the lane once, gates,
