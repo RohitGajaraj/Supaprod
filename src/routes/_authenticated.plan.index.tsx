@@ -558,10 +558,32 @@ function PlanPage() {
    * `isLoading` as `isPending && isFetching`, which is FALSE for a query that is
    * pending but not in flight (src/lib/query-state.ts). Three states have no
    * answer to give — fetching, pending-but-not-fetching, and failed — and
-   * `isLoading` was only the first. It also keeps a head that DOES hold rows
-   * stating them through a failed background refetch, because v5 leaves `data` in
-   * place through one and `isError` is checked as its own clause rather than
-   * folded into the wait.
+   * `isLoading` was only the first.
+   *
+   * `roadmap.isError` CARRIES THE THIRD ON ITS OWN, and since 2026-08-11 it is
+   * the ONLY thing carrying it. `stillWaiting` used to return true for ever after
+   * a failed read, purely as a side effect of `data` staying undefined; it was
+   * fixed to stand down on failure, because that accident was leaving `<Failed>`
+   * sentences unreachable on other surfaces. Here the accident had been doing
+   * useful work, so this clause went from belt-and-braces to load-bearing on the
+   * same day. Delete it as redundant and "Nothing is committed yet." returns as a
+   * statement of fact over a read that refused, which is the defect in the first
+   * paragraph.
+   *
+   * THIS COMMENT USED TO CLAIM THE OPPOSITE OF WHAT THE LINE DOES, and the claim
+   * was never true: it said the head "keeps a head that DOES hold rows stating
+   * them through a failed background refetch". It does not. v5 keeps `data`
+   * through a failed refetch and sets `isError`, and `isError` is the FIRST
+   * clause, so the head blanks to "Plan" while the rows are still in hand.
+   *
+   * That is the deliberate cost of the mirror above, not an oversight. The board
+   * blanks in exactly the same state — RoadmapColumns tests `roadmap.isError`
+   * before anything else — so the head and the board still agree, which is the
+   * invariant this whole comment is built on and the one worth keeping. Stating
+   * counts through a failed refetch would be BETTER product and it cannot be done
+   * here alone: it needs both files to distinguish "errored with rows in hand"
+   * from "errored with nothing", and one of them changing on its own reopens the
+   * head-contradicts-board defect this station was repaired for twice.
    */
   const roadmapUnknown = roadmap.isError || stillWaiting(roadmap);
 

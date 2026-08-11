@@ -34,25 +34,105 @@ const MAX_TAG_UPDATES = 50;
 const SCAN_LIMIT = 100;
 const DEMO_TOPUP_THRESHOLD = 3; // top up the demo feed only for a near-empty workspace
 
-// Demo/sample accounts are the ONLY workspaces that may receive the synthetic
-// DEMO_FEED. A real signup's signals come from its bound connectors (kickFirstIngest
-// + the ingestors below); injecting fabricated competitor/customer signals into a
-// real workspace would present invented data as the user's own. Demo accounts are
-// identified exactly as everywhere else in the product (admin workspaces view, the
-// SQL demo-reset guard, handle_new_user): the owner's @redcadence.app email.
-const DEMO_ACCOUNT_DOMAIN = "@redcadence.app";
+/**
+ * WHO COUNTS AS A DEMO ACCOUNT — asked of the database, never answered locally.
+ *
+ * Demo/sample accounts are the ONLY workspaces that may receive the synthetic
+ * DEMO_FEED. A real signup's signals come from its bound connectors (kickFirstIngest
+ * + the ingestors below); injecting fabricated competitor/customer signals into a real
+ * workspace would present invented data as the user's own.
+ *
+ * THIS WAS A DOMAIN MATCH ON THE RETIRED DEMO DOMAIN UNTIL 2026-08-11, AND BY THEN IT
+ * WAS NOT MERELY STALE — IT WAS INVERTED. Measured against production that day, the old
+ * predicate and the database's own allowlist selected DISJOINT sets: the two retired
+ * logins matched here and were absent from the allowlist, while `harbor@supaprod.ai` —
+ * the live demo account, and the only one with `auto_sense_enabled` — was in the
+ * allowlist and matched nothing here. The retired pair was suspended on 2026-07-25. So
+ * the tick was offering the top-up exclusively to dead workspaces and withholding it
+ * from the live one, with zero overlap between the two answers.
+ *
+ * WHY THIS MATTERED EVEN THOUGH NOTHING VISIBLY BROKE. Every candidate workspace sits
+ * above DEMO_TOPUP_THRESHOLD today, so no top-up was due and the inversion had cost
+ * nothing yet. It bites on the next demo reset: `admin_reset_demo_workspace` DELETEs the
+ * workspace's signals and is allowlisted to exactly these supaprod.ai accounts, so a
+ * reset empties the demo and this predicate then refuses to refill it. The reset path
+ * and the refill path disagreed about who is a demo account, which quietly made "reset
+ * the demo" a one-way door.
+ *
+ * THE OBVIOUS FIX IS THE DANGEROUS ONE, and migration
+ * 20260730000500_demo_reset_allowlist.sql already refused it in so many words: swapping
+ * the domain to `@supaprod.ai` would sweep in founder@supaprod.ai and every real staff
+ * account, authorising invented signals into the founder's own workspace. A gate that
+ * widens to include the thing it protects is not a gate. The database answers this with
+ * an explicit allowlist, `public.demo_account_emails()`, and this now asks it.
+ *
+ * ONE DELIBERATE DUPLICATE SURVIVES, in `_authenticated.admin.workspaces.tsx`, which
+ * keeps a hand-copied list to decide whether to RENDER the reset control. That one is
+ * safe by construction and says so: if it drifts, the SQL wins and the button throws.
+ * This copy was not safe in either direction, because it is the only gate on a write.
+ */
+let demoEmailCache: ReadonlySet<string> | null = null;
+
+/** Test seam: forget the cached allowlist. Never called by product code. */
+export function resetDemoAccountCache(): void {
+  demoEmailCache = null;
+}
+
+/**
+ * Pure and exported so the matching rule is testable without a database.
+ *
+ * Lowercased on both sides: the allowlist is hand-written in a migration while
+ * `auth.users.email` preserves whatever case the account was created with, and a demo
+ * account that silently stopped matching because someone typed a capital is precisely
+ * the class of failure this whole comment exists about.
+ */
+export function normalizeDemoEmails(emails: readonly string[]): ReadonlySet<string> {
+  return new Set(emails.map((e) => String(e).trim().toLowerCase()).filter(Boolean));
+}
+
+/** Pure membership test. A null allowlist means "could not establish", never "no". */
+export function isDemoAccountEmail(
+  email: string | null | undefined,
+  allowlist: ReadonlySet<string> | null,
+): boolean {
+  if (!email || !allowlist) return false;
+  return allowlist.has(email.trim().toLowerCase());
+}
+
+/**
+ * The allowlist, read once per isolate.
+ *
+ * Cache discipline mirrors `runAttemptColumnsPresent`: a SUCCESSFUL read is cached
+ * because the function is IMMUTABLE and only changes by migration, and a FAILURE is not,
+ * so one network blip cannot disable the top-up for the isolate's life. An EMPTY array
+ * is treated as a failed read rather than as "there are no demo accounts" — the list is
+ * never legitimately empty, and believing an empty one would disable the feed silently.
+ */
+async function demoAccountEmails(): Promise<ReadonlySet<string> | null> {
+  if (demoEmailCache) return demoEmailCache;
+  try {
+    const { data, error } = await supabaseAdmin.rpc("demo_account_emails");
+    if (error || !Array.isArray(data) || data.length === 0) return null;
+    demoEmailCache = normalizeDemoEmails(data);
+    return demoEmailCache;
+  } catch {
+    return null;
+  }
+}
 
 /** True only when the workspace owner is an internal demo/sample account.
  *  Reads auth.users.email (the authoritative demo signal; profiles carries no
  *  email column). Fails CLOSED: any error resolves to false, so a real signup
  *  can never receive the synthetic feed; at worst a demo account misses a
- *  harmless top-up. */
+ *  harmless top-up. The allowlist is resolved FIRST so that an unreadable list
+ *  costs no per-workspace user lookup. */
 async function isDemoWorkspaceOwner(ownerId: string): Promise<boolean> {
   try {
+    const allowlist = await demoAccountEmails();
+    if (!allowlist) return false;
     const { data, error } = await supabaseAdmin.auth.admin.getUserById(ownerId);
-    const email = data?.user?.email;
-    if (error || !email) return false;
-    return email.toLowerCase().endsWith(DEMO_ACCOUNT_DOMAIN);
+    if (error) return false;
+    return isDemoAccountEmail(data?.user?.email, allowlist);
   } catch {
     return false;
   }
