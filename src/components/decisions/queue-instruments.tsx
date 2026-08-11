@@ -187,6 +187,32 @@ export function ScoreMeter({
   const shown = value.toFixed(decimals);
   const moved = typeof delta === "number" && delta !== 0 ? delta : null;
 
+  /**
+   * THE BAND, AS A FRACTION OF THE CEILING RATHER THAN AN ABSOLUTE.
+   *
+   * This meter is used with ceiling 10 (ICE) and ceiling 100 (severity,
+   * recency and novelty folded), so a threshold written in points would mean
+   * two different things on two surfaces. The percentage is the only reading
+   * that transfers.
+   *
+   * 70 and 40 rather than thirds, because the queues these appear in are
+   * ranked and already sorted: the useful question at a glance is "is this one
+   * still worth my attention", and the answer turns near the top of the range
+   * rather than at the middle of it. Measured against the live queue, that
+   * puts the 8.0 and 7.7 bets in strong, the 7.3s in fair, and only genuinely
+   * weak candidates in the last band.
+   *
+   * THE COLOUR IS NEVER THE ONLY CHANNEL. The numeral is right beside it and
+   * the bar's LENGTH says the same thing, so this reads identically in
+   * greyscale, in a screenshot and to a reader who cannot separate the hues.
+   */
+  const band =
+    pct >= 70
+      ? "var(--sp-score-strong)"
+      : pct >= 40
+        ? "var(--sp-score-fair)"
+        : "var(--sp-score-weak)";
+
   return (
     <span
       style={{ display: "inline-flex", alignItems: "center", gap: "var(--sp-space-2)" }}
@@ -213,15 +239,28 @@ export function ScoreMeter({
             display: "block",
             height: "100%",
             width: `${pct}%`,
-            background: "var(--sp-mute)",
+            background: band,
           }}
         />
       </span>
       {moved !== null ? (
-        // An arrow and a magnitude, in the mono the rest of the numbers use, at
-        // metadata weight. It is a fact about the past, so it must never be
-        // louder than the number it moved.
-        <span className="sp-num" style={{ color: "var(--sp-mute)" }}>
+        /* An arrow and a magnitude, in the mono the rest of the numbers use, at
+         * metadata SIZE. It is a fact about the past, so it must never be
+         * louder than the number it moved, and size is what enforces that.
+         *
+         * IT WAS GREY IN BOTH DIRECTIONS UNTIL 2026-08-11, which made this the
+         * one place in the product where movement was shown without saying
+         * which way. Elsewhere on the same screen a delta already rendered
+         * green for a rise and red for a fall, so a single surface carried two
+         * treatments of one idea and the quieter one was the one attached to
+         * the score.
+         *
+         * The glyph and the sign of the number both still say it, so the hue
+         * is the third channel here rather than the first. */
+        <span
+          className="sp-num"
+          style={{ color: moved > 0 ? "var(--sp-move-up)" : "var(--sp-move-down)" }}
+        >
           {moved > 0 ? "▲" : "▼"}
           {Math.abs(moved).toFixed(1)}
         </span>

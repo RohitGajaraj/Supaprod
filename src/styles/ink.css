@@ -263,6 +263,42 @@
   --sp-warn: #e8b44c;
   --sp-gate: #ff6b2c; /* ember. marks the human, and nothing else */
 
+  /* ---- Magnitude: the score ramp and the movement pair ----
+   *
+   * THE RULE THIS REPLACES SAID "NEVER A COLOURED CELL", AND IT WAS RIGHT
+   * ABOUT CELLS AND WRONG ABOUT BARS. Its reasoning, verbatim from the design
+   * anatomy: "Length survives greyscale and survives regrouping, which a hue
+   * does not." True, and it does not follow that hue must be absent. It
+   * follows that hue must not be ALONE.
+   *
+   * What the old ramp cost, in the founder's words on 2026-08-11: "everything
+   * is a grey tone and there is no real differentiation, the user cannot
+   * really pick until he clearly focuses on the score". That is the whole
+   * defect. A grey bar is read by MEASURING it, which costs a fixation per
+   * row; a hue is read pre-attentively, which costs none. On a ranked queue
+   * the eye should be able to skip the weak ones without reading a number.
+   *
+   * REDUNDANT, NEVER SUBSTITUTED. Every place these are used, the length of
+   * the bar and the numeral itself still carry the same fact, so the ramp
+   * degrades to exactly the old design in greyscale, in a screenshot, and for
+   * a reader who cannot separate red from green. Colour is the second channel
+   * and never the only one. That is the condition on using them.
+   *
+   * They alias the outcome colours on purpose rather than introducing a
+   * parallel palette: a strong score and a passing check are the same idea at
+   * different resolutions, and the light theme already redefines all three, so
+   * these follow it without a second set of overrides. */
+  --sp-score-strong: var(--sp-pass);
+  --sp-score-fair: var(--sp-warn);
+  --sp-score-weak: var(--sp-fail);
+
+  /* Movement. Up is not always good in the world, but on every surface that
+   * shows a delta here it is: a score that rose, a count that grew, a run that
+   * got faster. Where a rise is bad the caller must say so rather than reuse
+   * these. */
+  --sp-move-up: var(--sp-pass);
+  --sp-move-down: var(--sp-fail);
+
   /* ---- Surfaces (dark: the design target) ----
    * prototype: --bg --sheet --lift --sink --float
    * Never #000 or #fff; every neutral is tinted. */
