@@ -61,8 +61,10 @@ files = [f'{i:02d}.mp3' for i in range(1, 14)] + ['music-final.m4a'] + \
 idx = {n: 14 + i for i, n in enumerate(sorted({s[0] for s in sfx}))}
 
 fc = []
+TEMPO = [1.05] * 13
+TEMPO[7] = 1.08  # L8's Arthur take runs 24.48s raw; 1.08 brings it inside the 22.8s window
 for i, d in enumerate(vo_delays):
-    fc.append(f'[{i}:a]atempo=1.05,adelay={d}|{d}[v{i}]')
+    fc.append(f'[{i}:a]atempo={TEMPO[i]},adelay={d}|{d}[v{i}]')
 fc.append(''.join(f'[v{i}]' for i in range(13)) +
           'amix=inputs=13:normalize=0,dynaudnorm=g=7:m=4.0,volume=1.12[vo]')
 fc.append('[13:a]volume=0.29[mus]')
@@ -87,6 +89,6 @@ fc.append('[voA][musd][sfx]amix=inputs=3:normalize=0,alimiter=limit=0.93,'
 cmd = ['/opt/homebrew/bin/ffmpeg', '-y', '-v', 'error']
 for f in files: cmd += ['-i', f]
 cmd += ['-filter_complex', ';'.join(fc), '-map', '[out]', '-t', '142.1',
-        '-c:a', 'aac', '-b:a', '256k', 'audio-master-v5.m4a']
+        '-c:a', 'aac', '-b:a', '256k', 'audio-master-v6-arthur.m4a']
 r = subprocess.run(cmd, capture_output=True, text=True)
-print(r.stderr[-500:] if r.returncode else 'FINAL FILM MIX DONE: audio-master-v5.m4a')
+print(r.stderr[-500:] if r.returncode else 'FINAL FILM MIX DONE: audio-master-v6-arthur.m4a')

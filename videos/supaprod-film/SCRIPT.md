@@ -1,8 +1,9 @@
 # SCRIPT — supaprod-film (v2 — founder notes folded in)
 
-**Voice:** Vesper (Higgsfield · Qwen Audio 3.0 TTS, 48kHz) — founder-ruled 2026-08-12
-**Voice settings:** per-line `instruction` carries each delivery note below
+**Voice:** Arthur (Higgsfield · text2speech_v2, variant elevenlabs, voice-id 30fc8796-ceb6-4a66-b3a7-4a145ef7f346) — founder-ruled 2026-08-12 early morning, reversing the earlier Vesper ruling after an A/B on the same sentence. Vesper takes preserved in `higgsfield-audio/vesper-takes/`.
+**Voice settings:** delivery is carried by the text itself (this engine takes no instruction field); ASCII punctuation only in prompts
 **Pronunciation:** the product name is always written "Soopah-prod" in TTS prompts (renders SOO-PA-PROD — founder-ruled, take 2)
+**Timing:** L8 mixes at atempo 1.08 (its take runs 24.48s raw against a 22.8s window); all other lines at 1.05. L5's mid-line pauses were tightened 0.62s in place of a speed-up.
 **Voice direction:** Warm, confident, human storytelling — a founder speaking plainly, never an announcer. Natural pauses at full stops.
 
 ---
@@ -19,7 +20,7 @@
 **Time:** 7.0 – 15.0s
 **Delivery:** The turn. Slower on "worth". A beat before "and miss."
 
-    But what to build — nobody cracks that call. So teams build the wrong features, beautifully… and miss what mattered. That's the judgment gap.
+    But what to build — nobody cracks that call. So teams build the wrong features… and miss what mattered. That's the judgment gap.
 
 ## Line 3 — You know the feeling (Frame 3)
 
@@ -75,7 +76,7 @@
 **Time:** 83.0 – 93.0s
 **Delivery:** The aha. The quoted warning spoken like the product is speaking — calm, plain. Then back to the narrator for the last line.
 
-    And the next time you're deciding, it's beside you — the same call from last quarter, and how it went. About to repeat a mistake? It stops you.
+    And the next time you're deciding, it's beside you — the same call from last quarter, and how it went. About to repeat a mistake? It warns you.
 
 ## Line 11 — What can't be reconstructed (Frame 11)
 
