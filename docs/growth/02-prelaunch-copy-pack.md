@@ -1,5 +1,22 @@
 # 02 — The Pre-Launch Copy Pack (days 3-7, ready to approve)
 
+> # 🛑 DO NOT SEND ANY OF THIS UNTIL THE FOUNDER FIXES THE TIMELINE. Checked against the live database 2026-08-11.
+>
+> **Three claims in this file are contradicted by the data, and two of them are tagged PROVEN.**
+>
+> | Claim in this file | What the database says |
+> | --- | --- |
+> | *"For 13 months Supaprod ran on itself"* and *"It ran on itself for 13 months"* | **The earliest mission in the database is `2026-06-04`, and zero missions predate `2026-06-02`.** The repo's first real commit is `2026-06-02`. Supaprod has existed for **ten weeks**, not thirteen months. |
+> | *"the numbers from my own workspace: 133 missions, 72 recorded decisions, 2,162 AI calls"* | **No workspace has those numbers.** The largest is a seeded fixture named "Helio Labs" at 94 missions and 85 decisions. The most plausible founder workspace, "My workspace", holds **64 missions and 50 decisions**. Total AI calls across every workspace is **34,686**, not 2,162. |
+> | The `[refresh; live counters]` tags | **There is no live counter behind these.** The four landing count fields are computed and rendered nowhere. A tag promising a number refreshes is worse than a stale number, because it says the figure is maintained. |
+>
+> **What is safe to say, verified today:** `4,950` commits and `510` migrations over **ten weeks**, from a one-line command anyone can run. `341` missions and `288` decisions **across all workspaces**, which is a different and weaker claim than "my own workspace" and must be said that way.
+>
+> **What only the founder can resolve.** The "13 months" figure appears **sixteen times** and at least some of it is biography rather than product: *"I spent 13 months building the other thing"* reads as a previous product and may be perfectly true. **The two sentences that say Supaprod itself ran for 13 months are corrected below; every other instance is left alone and needs his eye**, particularly the subject line *"13 months of agents running a product org"* and the title *"I recorded every product decision I made for 13 months."*
+>
+> **This is the same defect that took three numbers out of the YC application tonight** ([`../pitch/yc/fall-2026-application.md`](../pitch/yc/fall-2026-application.md), the block after the first field). The rule it establishes applies here in full: **a number quoted outward carries its query, or it does not go.**
+
+
 > _Created: 2026-07-12. Part of the GTM launch operating manual ([README](./README.md)). Every asset below is ready-to-paste copy for the 7-day wave. The Show HN and Product Hunt copy already exist in [`pitch/launch-assets.md`](../pitch/launch-assets.md) and are NOT duplicated here; they fire in the listing week._
 >
 > **Rules baked into every word:** humanized output (no em or en dashes, no AI-cliche phrasing), sharp plain-words PM voice, short sentences, specifics over adjectives. Claims follow [`pitch/one-pager.md`](../pitch/one-pager.md) tags: PROVEN facts speak in present tense; WIRING is "coming" or absent; the phrase "AI PM tool" never appears. On X, the link always goes in the first reply, never the post body.
@@ -115,9 +132,11 @@ and whether the call was right. That last question is the one nobody's
 tooling answers. Roadmaps get made, shipped, and nobody checks the
 score.
 
-For 13 months Supaprod ran on itself. The numbers from my own
-workspace: 133 missions, 72 recorded decisions, 2,162 AI calls through
-one governed pipeline [refresh]. It wrote specs, built to pull
+Supaprod ran on itself for ten weeks before any outsider touched it.
+[FOUNDER: the workspace numbers here were not reproducible, see the
+warning at the top of this file. Across every workspace it is 341
+missions and 288 decisions, which is a weaker claim and must be said
+that way.] It wrote specs, built to pull
 requests through a human gate, and recorded outcomes against its own
 bets. It also got things wrong, and the wrong calls are in the track record
 with their reverts. I would not trust a system that hid them.
@@ -559,9 +578,9 @@ teamed by the Critic. Personally reviewed.
 **The three proof points (all PROVEN; live counters where possible):**
 
 ```
-It ran on itself for 13 months.
-133 missions, 72 recorded decisions, 2,162 governed AI calls, on our
-own product, before any outsider touched it. [refresh; live counters]
+It ran on itself for ten weeks.
+[FOUNDER: figures pulled, see the warning at the top of this file. The
+reproducible one is 4,950 commits and 510 migrations over ten weeks.]
 
 It shipped part of itself.
 A real PR through its own gated path: spec, agent build, human

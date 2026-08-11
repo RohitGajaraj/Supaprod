@@ -41,6 +41,16 @@ The application said *119 lessons recorded, 38 where it decided the verdict itse
 >
 > **What this does not change:** pulling the three numbers from the YC application was right and is unaffected, because that document quoted them from a database query rather than from the page.
 
+### The same defect, found a second time, in launch copy
+
+[`../growth/02-prelaunch-copy-pack.md`](../growth/02-prelaunch-copy-pack.md) carries a **DO NOT SEND** block at the top now. Three claims are contradicted by the live database and two were tagged **PROVEN**:
+
+- *"For 13 months Supaprod ran on itself."* **The earliest mission in the database is `2026-06-04` and zero missions predate `2026-06-02`.** Supaprod has existed for **ten weeks**. Both sentences asserting the thirteen-month runtime are corrected in place.
+- *"the numbers from my own workspace: 133 missions, 72 recorded decisions, 2,162 AI calls."* **No workspace has those numbers.** Largest is the "Helio Labs" fixture at 94 and 85; the plausible founder workspace holds 64 and 50. Total AI calls across everything is **34,686**.
+- The `[refresh; live counters]` tags promise a live counter. **There is none.** A tag saying a figure refreshes is worse than a stale figure, because it claims the number is maintained.
+
+**Needs the founder and nothing else can resolve it:** "13 months" appears **sixteen times** and some of it is biography rather than product. *"I spent 13 months building the other thing"* reads as a previous product and may be true. The two product-runtime sentences are fixed; **the other fourteen are left alone and need his eye**, especially the subject line *"13 months of agents running a product org"* and the title *"I recorded every product decision I made for 13 months."*
+
 ### The two rules this establishes
 
 1. **A number quoted outward carries its query, or it does not go.** None of the three had recorded SQL anywhere in the repo, which is why the file could tell the founder to "confirm them the same morning" and give him no way to do it.
