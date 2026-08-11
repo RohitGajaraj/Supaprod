@@ -464,6 +464,15 @@ export async function applyFixCore(
   db: SupabaseClient,
   data: { workspaceId: string; kind: "eval" | "agent" | "playbook"; subjectRef: string },
   userId: string,
+  /**
+   * True when the scheduled tick drove this in Auto mode and nobody was present.
+   * Only the decisions row below reads it: `decisions.auto_origin` is the column
+   * that says "the loop raised this, not a person" (migration 20260805120000),
+   * and it defaults to false, so an unattended apply that omits it reads back as
+   * a call the human made. Defaults to attended, because the human "Apply" click
+   * is the one caller that cannot pass it.
+   */
+  opts: { unattended?: boolean } = {},
 ): Promise<ApplyFixResult> {
   // The proposal must already be enriched (there is a suggested fix to apply).
   const { data: prop } = await db
@@ -546,7 +555,42 @@ export async function applyFixCore(
           2000,
         ),
       status: "approved",
+      /**
+       * STILL 'manual', AND IT IS STILL WRONG. Nothing here was hand-written:
+       * a deterministic rule raised the flag, the model composed the text this
+       * rationale quotes, and on the tick's Auto path no human was present at
+       * all. The honest value is 'agent'.
+       *
+       * IT IS NOT CHANGED YET, ON PURPOSE, and the reason is worth more than
+       * the fix. Migration 20260811140000 adds 'agent' to
+       * `decisions_source_kind_check`, but migrations in this project are
+       * committed here and APPLIED BY LOVABLE ON PUBLISH. Until that publish
+       * happens the live constraint still refuses the value — and the insert
+       * below reads neither a returned error nor uses `.throwOnError()`, so
+       * supabase-js would resolve with `{data: null, error}` and this `try`
+       * would catch nothing. The row would simply stop being written, silently,
+       * on an unattended cron path.
+       *
+       * That is strictly worse than a mislabelled row: a wrong label is
+       * visible and correctable, a missing row is neither. It is also the exact
+       * defect the migration was written to end — a station that files nothing
+       * looking identical to a station with nothing to file — which this repo
+       * has now hit three times. Reintroducing it while fixing a label would be
+       * a poor trade.
+       *
+       * TO FINISH THIS: once 20260811140000 is applied, change this to 'agent'
+       * and add this file to WRITE_POINTS in decision-gate.wiring.test.ts,
+       * which will then require the gate, `status: gate.status` and
+       * `recordAutoApproval` here — none of which this path does yet. The
+       * wiring test's catch-all already fails on an unlisted 'agent' writer, so
+       * that guard will hold the line rather than let this land half-done.
+       */
       source_kind: "manual",
+      // Where it came from and whether anyone was in the room are two different
+      // facts, and only this column carries the second. This half needs no
+      // migration: `auto_origin` is a plain boolean with no constraint and one
+      // reader. False on the Apply click, true on the tick's unattended pass.
+      auto_origin: opts.unattended === true,
     });
   } catch {
     // Best-effort ledger stamp: the applied rule already stands on its own.
