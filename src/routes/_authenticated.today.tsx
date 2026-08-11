@@ -665,15 +665,32 @@ function Today() {
    * While it counts, the headline says the surface's name rather than
    * "Reading..." — a headline describing the fetch is the surface talking about
    * itself, and the lanes underneath already say what is being read.
+   *
+   * `missions.isError` IS TESTED HERE AND IT IS NOT SYMMETRY FOR ITS OWN SAKE.
+   * Two of the three counts below — `stuck` and `shipped` — come from `missions`,
+   * and `stateSentence` reads a zero as "nothing happened" rather than as "not
+   * known". Until 2026-08-11 nothing guarded it and nothing needed to, by
+   * accident: `stillWaiting` never stood down on a failed read, so `loading`
+   * stayed true for ever and the headline sat on the harmless "Today". Fixing
+   * that helper removed the accident. Without this clause a cold `missions`
+   * failure now falls through with `stuck: 0, shipped: 0` and prints "Nothing is
+   * ready for your review. Nothing is stuck." — which is exactly the claim the
+   * paragraph above forbids, made from a read that refused.
+   *
+   * It returns the surface's name rather than a sentence of its own, matching
+   * `queue.isError` in effect but not in voice. A dedicated line — the parallel
+   * to "Your review queue did not load." — would be better product and is a copy
+   * decision, deliberately left rather than invented here.
    */
   const headline = React.useMemo(() => {
-    if (loading) return "Today";
+    if (loading || missions.isError) return "Today";
     if (queue.isError) return "Your review queue did not load.";
     if (justLanded && criticResult) return "Your first brief is ready.";
     return stateSentence({ ready: items.length, stuck: stuck.length, shipped: shipped.length });
   }, [
     loading,
     queue.isError,
+    missions.isError,
     justLanded,
     criticResult,
     items.length,

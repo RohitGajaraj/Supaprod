@@ -68,6 +68,49 @@ describe("stillWaiting refuses to call an absent answer 'none'", () => {
     expect(stillWaiting({ isPending: false, data: undefined })).toBe(true);
   });
 
+  it("STOPS waiting once a read has FAILED, because an error is an answer", () => {
+    /**
+     * THE CASE THE TYPE COULD NOT EXPRESS UNTIL 2026-08-11, which is why it was
+     * wrong for five days rather than caught here.
+     *
+     * react-query v5 settles a query that fails with nothing cached into
+     * `status: 'error'`: `isPending` goes false and `data` STAYS undefined. That
+     * is byte-for-byte the state asserted directly above — so with the old
+     * two-field `AnswerableQuery` these two tests were THE SAME TEST, and the
+     * stub had no way to say which situation it meant. The helper returned true
+     * for ever after a cold failure, every surface that asked before its error
+     * arm sat on a permanent skeleton, and each `<Failed>` sentence and retry
+     * button underneath was unreachable dead code.
+     *
+     * Three surfaces met it independently — build.index.tsx and HeldClaims.tsx
+     * hung on it, and ship.tsx worked around it locally at `docReading` and
+     * documented the workaround at length. One defect found three times from the
+     * outside is a wrong SHAPE, not three mistakes.
+     */
+    expect(stillWaiting({ isPending: false, data: undefined, isError: true })).toBe(false);
+  });
+
+  it("still waits on a PENDING query even if a SIBLING has failed", () => {
+    // Only the failed query stands down. A surface must not start rendering
+    // verdicts about a dataset that is genuinely still in flight just because
+    // some other read gave up first.
+    expect(
+      stillWaiting(
+        { isPending: false, data: undefined, isError: true },
+        { isPending: true, data: undefined },
+      ),
+    ).toBe(true);
+  });
+
+  it("does not treat a missing isError as an error", () => {
+    // `isError` is OPTIONAL so the hand-rolled stubs in this file keep meaning
+    // what they meant. If an omitted flag read as truthy, every assertion above
+    // would invert and this guard would wave through the exact 2026-08-06
+    // incident it exists to prevent.
+    expect(stillWaiting({ isPending: true, data: undefined, isError: false })).toBe(true);
+    expect(stillWaiting({ isPending: false, data: undefined, isError: false })).toBe(true);
+  });
+
   it("stops waiting once an answer arrives, even an empty one", () => {
     // A genuinely empty workspace MUST still reach its first-run screen. If this
     // returned true the onboarding would never render and a new user would sit

@@ -15,7 +15,7 @@ Every reviewer, at every program, is answering four questions in this order. Kno
 
 ### What we win on (lead with these, always)
 
-**A. The build story is genuinely rare.** Eight weeks. 4,878 commits. 508 migrations. 401 features specced, 362 shipped. A working end-to-end system, solo. Most applicants to most programs have a Figma file and a waitlist. This is the single strongest card and it is verifiable in thirty seconds.
+**A. The build story is genuinely rare.** Nine weeks. 4917 commits. 508 migrations. 401 features specced, 362 shipped. A working end-to-end system, solo. Most applicants to most programs have a Figma file and a waitlist. This is the single strongest card and it is verifiable in thirty seconds.
 
 **B. The founder is the product's own thesis, demonstrated.** Supaprod claims one person directing a fleet of agents can do what a team used to do. Rohit is the existence proof of his own claim. This converts the biggest apparent weakness (solo) into the proof of the pitch. No competitor's founder can say this about their own product.
 
@@ -61,7 +61,7 @@ Every reviewer, at every program, is answering four questions in this order. Kno
 
 **Rule 1: the first sentence carries the whole answer.** Reviewers read thousands of applications at a few minutes each. Every answer front-loads its conclusion, then supports it. Never build to a point.
 
-**Rule 2: numbers argue, adjectives do not.** "4,878 commits in eight weeks" beats "built incredibly fast" every time. Where we have no number, we use a specific fact, never an adjective. Cut every "robust", "seamless", "cutting-edge".
+**Rule 2: numbers argue, adjectives do not.** "4917 commits in nine weeks" beats "built incredibly fast" every time. Where we have no number, we use a specific fact, never an adjective. Cut every "robust", "seamless", "cutting-edge".
 
 **Rule 3: unconditional commitment.** No "if accepted, I will…" anywhere, ever. The company is happening regardless. The program changes the speed and the zip code, never the decision. Contingency reads as neediness and neediness reads as weakness.
 
@@ -124,7 +124,7 @@ The canon already carried this and it was under-used. Two lines to reach for:
 
 **The framing that defuses it, use this whenever the number appears:**
 
-> _"Eight weeks, one person, 4,878 commits directed and reviewed."_
+> _"Nine weeks, one person, 4917 commits directed and reviewed."_
 
 Not lines typed. **Throughput directed and reviewed.** Stated that way the number stops competing with the agent story and starts supporting it, because reviewing 4,264 commits in eight weeks is itself the hard thing.
 

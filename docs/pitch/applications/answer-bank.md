@@ -20,7 +20,7 @@
 | --- | --- | --- |
 | Commits | **4,878** _(2026-08-10 23:55)_ | `git rev-list --count origin/main` ← **origin/main, not HEAD.** HEAD counts whichever lane branch you are on and drifts from the real total |
 | Migrations | **508** _(2026-08-10)_ | `ls supabase/migrations/*.sql \| wc -l` |
-| Build duration | **8 weeks** — ⚠️ **founder to confirm before any paste, see note below** | not derivable from git |
+| Build duration | **9 weeks** _(founder-set start: first week of June 2026)_ | count from 2026-06-07; not derivable from git |
 | Feature register | 401 specced / 362 shipped | `scripts/dashboard-tally.sh` |
 | Homepage counters (strict, public) | 83 missions run · 26 decisions recorded · 16 outcomes graded · 840 AI calls | render live on supaprod.ai |
 | External paying users | **0** | fact |
@@ -213,7 +213,7 @@ of India's Startup India initiative.
 ```
 Solo, and moving fast. Open to a cofounder who shares the vision and energy and
 adds a fresh perspective I do not have. For now, solo, and it is the reason the
-product exists: eight weeks of one person directing a fleet of agents produced
+product exists: nine weeks of one person directing a fleet of agents produced
 4,878 commits and a working end-to-end system. The thesis of the company is that
 this is now possible, and I am the proof of it.
 ```
@@ -268,7 +268,7 @@ And I remain the most demanding user I have. I run my company on it every day.
 ### How far along (long form)
 ```
 The journey: a decade of living this problem as a PM, a month of nights and
-weekends on a prototype, then eight weeks of building it for real, 4,878 commits
+weekends on a prototype, then nine weeks of building it for real, 4917 commits
 and counting. In that time it went from an early spine to running end to end.
 It is almost there, not finished; I am shaping the last stretch with users, not
 assumptions.
@@ -284,7 +284,7 @@ parallel. Public launch in September 2026.
 
 ### How far along (short form, under 50 words)
 ```
-Working end to end and live at supaprod.ai. Eight weeks of building, 4,878
+Working end to end and live at supaprod.ai. Nine weeks of building, 4917
 commits, solo. Beta is open, public launch September 2026. Zero paying users
 yet; I built the system before opening the doors, deliberately.
 ```
