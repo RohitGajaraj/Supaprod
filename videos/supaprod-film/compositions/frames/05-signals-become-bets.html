@@ -347,7 +347,7 @@
       
 </style>
 
-      <div id="root" data-composition-id="05-signals-become-bets" data-width="1920" data-height="1080" data-duration="7.6">
+      <div id="root" data-composition-id="05-signals-become-bets" data-width="1920" data-height="1080" data-duration="7.4">
 
         <!-- ground + world · full-bleed ink field carrying the product screen; camera rig inside -->
         <div id="f5-world" class="clip sk-frame" data-start="0" data-duration="7.6" data-track-index="0" data-layout-allow-overflow="">
@@ -604,6 +604,7 @@
 
       <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
       <script>
+        gsap.defaults({ lazy: false });   // paused, seeked timelines never tick — lazy tweens would render stale start values
         window.__timelines = window.__timelines || {};
         const tl = gsap.timeline({ paused: true });
 

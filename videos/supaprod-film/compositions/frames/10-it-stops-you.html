@@ -352,7 +352,7 @@
 .sk-ws-space{font:400 0.62cqw/1 var(--sk-mono, "IBM Plex Mono", monospace);color:var(--sk-text-muted, #A8A29A);margin-left:0.45cqw;padding:0.16cqw 0.38cqw;border:1px solid var(--sk-hairline, #26262A);border-radius:6px;}
 </style>
 
-  <div id="root" data-composition-id="10-it-stops-you" data-width="1920" data-height="1080" data-duration="12.9">
+  <div id="root" data-composition-id="10-it-stops-you" data-width="1920" data-height="1080" data-duration="11.4">
 
     <!-- track 0 · full-bleed ink ground -->
     <div id="f10-bg" class="clip f10-ground" data-start="0" data-duration="12.3" data-track-index="0"></div>
@@ -558,7 +558,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
   <script>
-    window.__timelines = window.__timelines || {};
+    gsap.defaults({ lazy: false });   // paused, seeked timelines never tick — lazy tweens would render stale start values
+        window.__timelines = window.__timelines || {};
     const tl = gsap.timeline({ paused: true });
 
     /* ───────────── camera rig — multi-phase-camera (phases + drift) on one world wrapper ───────────── */

@@ -205,7 +205,7 @@
 .sk-lt-line{font:600 2.6cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
 </style>
 
-<div id="root" data-composition-id="01-anyone-can-build" data-width="1920" data-height="1080" data-duration="8.7" data-layout-allow-overflow="">
+<div id="root" data-composition-id="01-anyone-can-build" data-width="1920" data-height="1080" data-duration="9.3" data-layout-allow-overflow="">
 
   <!-- track 0 · full-bleed ground -->
   <div id="f1-ground" class="clip f1-groundclip" data-start="0" data-duration="8.2" data-track-index="0"></div>
@@ -380,7 +380,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
   <script>
-    window.__timelines = window.__timelines || {};
+    gsap.defaults({ lazy: false });   // paused, seeked timelines never tick — lazy tweens would render stale start values
+        window.__timelines = window.__timelines || {};
     (function () {
       var tl = gsap.timeline({ paused: true });
       var $ = function (id) { return document.getElementById(id); };

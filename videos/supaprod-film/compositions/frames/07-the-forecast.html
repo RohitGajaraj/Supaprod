@@ -365,7 +365,7 @@
     .sk-lt-line{font:600 2.6cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;opacity:0;will-change:transform,opacity;}
   </style>
 
-  <div id="root" data-composition-id="07-the-forecast" data-width="1920" data-height="1080" data-duration="6.4">
+  <div id="root" data-composition-id="07-the-forecast" data-width="1920" data-height="1080" data-duration="6.9">
 
     <!-- track 0 · full-bleed ink ground -->
     <div id="f7-bg" class="clip f7-ground" data-start="0" data-duration="6.4" data-track-index="0"></div>
@@ -594,7 +594,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
   <script>
-    window.__timelines = window.__timelines || {};
+    gsap.defaults({ lazy: false });   // paused, seeked timelines never tick — lazy tweens would render stale start values
+        window.__timelines = window.__timelines || {};
     const tl = gsap.timeline({ paused: true });
 
     /* ───────────────────────── camera rig (multi-phase-camera + viewport-change) ───────────────────────── */

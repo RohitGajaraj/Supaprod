@@ -167,7 +167,7 @@
 .f3-lt-line{font:600 2.4cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-.01em;}
 </style>
 
-<div id="root" data-composition-id="03-you-know-the-feeling" data-width="1920" data-height="1080" data-duration="14.9">
+<div id="root" data-composition-id="03-you-know-the-feeling" data-width="1920" data-height="1080" data-duration="14.1">
   <div id="f3-scene" class="clip f3-scene" data-start="0" data-duration="14.5" data-track-index="0" data-layout-allow-overflow="">
 
     <svg width="0" height="0" aria-hidden="true" style="position:absolute">
@@ -360,7 +360,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
 <script>
-window.__timelines = window.__timelines || {};
+gsap.defaults({ lazy: false });   // paused, seeked timelines never tick — lazy tweens would render stale start values
+        window.__timelines = window.__timelines || {};
 (function(){
   var tl = gsap.timeline({ paused: true });
   var DUR = 14.5, W = 1920, H = 1080;

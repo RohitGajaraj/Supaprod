@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <!-- F8 · The route — one traveling shot across Plan, Build, Ship, then the seven-station route. 18.2s. Everything the runtime needs lives inside <template>. -->
+    <!-- F8 · The route — one traveling shot across Plan, Build, Ship, then the seven-station route. 22.8s. Everything the runtime needs lives inside <template>. -->
   </head>
   <body>
     <template>
@@ -89,52 +89,130 @@
         #f8-scr-plan{left:-80cqw;--sk-accent:var(--sk-plan);}
         #f8-scr-build{left:10cqw;--sk-accent:var(--sk-build);}
         #f8-scr-ship{left:100cqw;--sk-accent:var(--sk-ship);}
+        /* the Design station · a prototype window living in the gap between Plan and Build */
+        #f8-design{
+          position:absolute;left:-11cqw;top:20cqh;width:22cqw;height:44cqh;
+          display:flex;flex-direction:column;background:var(--sk-panel);
+          border:1px solid var(--sk-hairline);border-radius:var(--sk-r-pane);
+          box-shadow:var(--sk-ring),var(--sk-ambient);overflow:hidden;
+          --sk-accent:var(--sk-design);
+        }
+        .f8-dsg-hd{
+          display:flex;align-items:center;gap:0.5cqw;padding:0.7cqw 0.85cqw;
+          border-bottom:1px solid var(--sk-hairline);
+          font:500 0.6cqw/1 var(--sk-mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--sk-design);
+        }
+        .f8-dsg-body{flex:1;display:flex;flex-direction:column;gap:0.6cqw;padding:0.85cqw;min-height:0;}
+        .f8-dsg-title{font:600 0.92cqw/1.25 var(--sk-ui);color:var(--sk-text);}
+        .f8-dsg-canvas{flex:1;display:flex;gap:0.55cqw;min-height:0;}
+        .f8-dsg-canvas > i{
+          position:relative;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:0.22cqw;
+          padding:0.4cqw;border:1px solid var(--sk-hairline);border-radius:6px;background:var(--sk-raised);
+          opacity:0;will-change:transform,opacity;
+        }
+        .f8-dsg-canvas b{display:block;height:0.2cqw;border-radius:2px;background:var(--sk-hairline);}
+        .f8-dsg-canvas b:first-child{width:64%;}
+        .f8-dsg-canvas .is-live{border-color:color-mix(in srgb,var(--sk-design) 62%,var(--sk-hairline));}
+        .f8-dsg-pin{
+          position:absolute;top:-0.3cqw;right:-0.3cqw;width:0.72cqw;height:0.72cqw;
+          border-radius:50% 50% 50% 3px;background:var(--sk-design);opacity:0;
+          box-shadow:0 0 0.55cqw color-mix(in srgb,var(--sk-design) 55%,transparent);will-change:transform,opacity;
+        }
+        .f8-dsg-ft{display:flex;align-items:center;gap:0.45cqw;font:400 0.56cqw/1.3 var(--sk-mono);color:var(--sk-faint);}
         .f8-dof{--dof:0px;filter:blur(var(--dof));will-change:filter;}
         #f8-scr-build.f8-dof{--dof:3px;opacity:0.9;}
         #f8-scr-ship.f8-dof{--dof:3px;opacity:0.9;}
 
         /* ————— app shell (kit) ————— */
-        .sk-shell{
-          display:grid;height:100%;
-          grid-template-columns:12.5cqw minmax(0,1fr);
-          grid-template-rows:3.2cqh minmax(0,1fr);
-          grid-template-areas:"side top" "side main";
-        }
-        .sk-sidebar{
-          grid-area:side;display:flex;flex-direction:column;min-height:0;
-          background:var(--sk-ground);border-right:1px solid var(--sk-hairline);
-        }
-        .sk-ws{display:flex;align-items:center;gap:0.55cqw;padding:1cqw 1cqw 0.8cqw;}
-        .sk-ws-mark{
-          width:0.72cqw;height:0.72cqw;flex:none;border-radius:50%;
-          border:1px solid var(--sk-ember);
-          background:radial-gradient(circle at 50% 50%,var(--sk-ember) 0 28%,transparent 30%);
-        }
-        .sk-ws-name{font:600 0.82cqw/1 var(--sk-ui);color:var(--sk-text);letter-spacing:0.01em;}
-        .sk-ws-caret{margin-left:auto;font:400 0.6cqw/1 var(--sk-mono);color:var(--sk-faint);}
-        .sk-nav{display:flex;flex-direction:column;gap:0.12cqh;padding:0.3cqw 0.5cqw;}
-        .sk-navrow{
-          display:flex;align-items:center;gap:0.55cqw;
-          padding:0.42cqw 0.6cqw;border-radius:var(--sk-r-row);
-          font:400 0.73cqw/1 var(--sk-ui);color:var(--sk-muted);
-        }
-        .sk-navrow .sk-dot{
-          width:0.3cqw;height:0.3cqw;flex:none;border-radius:50%;
-          background:var(--dot,var(--sk-faint));
-        }
-        .sk-navcount{margin-left:auto;font:400 0.55cqw/1 var(--sk-mono);color:var(--sk-faint);}
-        .sk-navrow.is-active{background:var(--sk-raised);color:var(--sk-text);}
-        .sk-navrow.is-active .sk-dot{box-shadow:0 0 0.45cqw 0 var(--dot,var(--sk-accent));}
-        .sk-navrow.is-active .sk-navcount{color:var(--sk-muted);}
-        .sk-side-foot{
-          margin-top:auto;display:flex;align-items:center;gap:0.45cqw;
-          padding:0.85cqw 1cqw;border-top:1px solid var(--sk-hairline);
-          font:400 0.57cqw/1 var(--sk-mono);color:var(--sk-muted);letter-spacing:0.03em;
-        }
-        .sk-livedot{
-          width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;
-          background:var(--sk-pass);box-shadow:0 0 0.4cqw var(--sk-pass);
-        }
+    .sk-shell{
+      display:grid;height:100%;
+      grid-template-columns:2.9cqw minmax(0,1fr);
+      grid-template-rows:4cqh 7cqh minmax(0,1fr);
+      grid-template-areas:"top top" "spine spine" "rail main";
+    }
+
+    /* top bar · bare mark + wordmark · breadcrumb · centred notification strip · ask + avatar */
+    .sk-topbar{
+      grid-area:top;display:grid;align-items:center;
+      grid-template-columns:auto minmax(0,1fr) auto;gap:0.9cqw;
+      padding:0 1cqw;border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
+    }
+    .sk-topleft{display:flex;align-items:center;gap:0.7cqw;min-width:0;}
+    .sk-brand{display:flex;align-items:center;gap:0.42cqw;}
+    .sk-brand-mark{width:1.15cqw;height:1.15cqw;flex:none;display:block;}
+    .sk-brand-name{font:600 0.86cqw/1.25 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.005em;}
+    .sk-topdiv{width:1px;height:1.5cqh;flex:none;background:var(--sk-hairline);}
+    .sk-crumb{
+      display:flex;align-items:center;gap:0.3cqw;white-space:nowrap;
+      font:400 0.72cqw/1 var(--sk-ui);color:var(--sk-muted);
+    }
+    .sk-crumb-sep{color:var(--sk-faint);}
+    .sk-crumb-here{color:var(--sk-text);}
+    .sk-crumb-caret{font:400 0.6cqw/1 var(--sk-mono);color:var(--sk-faint);}
+    .sk-notify{justify-self:center;display:flex;align-items:center;gap:0.45cqw;min-width:0;white-space:nowrap;}
+    .sk-notify-gl{display:flex;align-items:center;gap:0.26cqw;flex:none;}
+    .sk-notify-gl svg{width:0.72cqw;height:0.72cqw;display:block;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+    .sk-notify-lead{font:500 0.66cqw/1.2 var(--sk-ui);color:var(--sk-text);flex:none;}
+    .sk-notify-sub{font:400 0.66cqw/1.2 var(--sk-ui);color:var(--sk-faint);min-width:0;overflow:hidden;text-overflow:ellipsis;}
+    .sk-notify-time{font:400 0.6cqw/1.2 var(--sk-ui);color:var(--sk-faint);flex:none;}
+    .sk-topright{display:flex;align-items:center;gap:0.6cqw;}
+    .sk-ask{
+      display:flex;align-items:center;gap:0.38cqw;height:2.3cqh;flex:none;
+      padding:0 0.6cqw;background:var(--sk-panel);
+      border:1px solid var(--sk-hairline);border-radius:999px;
+      font:400 0.7cqw/1 var(--sk-ui);color:var(--sk-text);
+    }
+    .sk-ask svg{width:0.72cqw;height:0.72cqw;flex:none;stroke:var(--sk-muted);fill:none;stroke-width:1.5;stroke-linejoin:round;}
+    .sk-kbd{font:400 0.62cqw/1 var(--sk-mono);color:var(--sk-faint);}
+    .sk-avatar{
+      width:1.5cqw;height:1.5cqw;flex:none;display:grid;place-items:center;
+      background:var(--sk-raised);border:1px solid var(--sk-hairline);border-radius:50%;
+      font:600 0.55cqw/1 var(--sk-ui);color:var(--sk-muted);letter-spacing:0.03em;
+    }
+
+    /* ————— station strip · seven numbered cells, full width, straight under the top bar ————— */
+    .sk-spine{
+      grid-area:spine;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
+      border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
+    }
+    .sk-stn{
+      position:relative;display:grid;grid-template-rows:1.05cqh 1.75cqh 1.2cqh;gap:0.3cqh;
+      align-content:center;padding:0 0.9cqw;min-width:0;
+    }
+    .sk-stn + .sk-stn{border-left:1px solid var(--sk-hairline);}
+    .sk-stn-n{font:400 0.5cqw/1 var(--sk-mono);color:var(--sk-faint);letter-spacing:0.08em;}
+    .sk-stn-name{font:400 0.84cqw/1.1 var(--sk-ui);color:var(--sk-muted);letter-spacing:-0.005em;white-space:nowrap;}
+    .sk-stn-sub{font:400 0.56cqw/1.1 var(--sk-ui);color:var(--sk-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .sk-stn.is-here .sk-stn-name{font-weight:600;color:var(--sk-text);}
+    .sk-stn.is-here .sk-stn-sub{color:var(--sk-ember);}
+    .sk-stn.has-work .sk-stn-name{color:color-mix(in srgb,var(--sk-text) 82%,var(--sk-muted));}
+    .sk-stn-dot{
+      position:absolute;right:0.85cqw;top:1.15cqh;width:0.3cqw;height:0.3cqw;border-radius:50%;
+      background:var(--sk-ember);box-shadow:0 0 0.5cqw color-mix(in srgb,var(--sk-ember) 62%,transparent);
+    }
+
+    /* ————— narrow icon rail · Today · Runs · Brain · Crew · Engine room ————— */
+    .sk-rail{
+      grid-area:rail;display:flex;flex-direction:column;align-items:center;min-height:0;
+      padding:0.85cqh 0;background:var(--sk-ground);border-right:1px solid var(--sk-hairline);
+    }
+    .sk-railtop{display:flex;flex-direction:column;align-items:center;gap:0.42cqh;}
+    .sk-railfoot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:0.3cqh;}
+    .sk-glyph{
+      position:relative;width:1.95cqw;height:1.95cqw;flex:none;
+      display:grid;place-items:center;border-radius:var(--sk-r-control);color:var(--sk-faint);
+    }
+    .sk-glyph svg{
+      width:1.02cqw;height:1.02cqw;display:block;fill:none;stroke:currentColor;
+      stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;
+    }
+    .sk-glyph.is-active{background:var(--sk-raised);color:var(--sk-text);box-shadow:inset 0 0 0 1px var(--sk-hairline);}
+    .sk-railfoot .sk-glyph{width:1.7cqw;height:1.7cqw;}
+    .sk-railfoot .sk-glyph svg{width:0.9cqw;height:0.9cqw;}
+    .sk-livedot{
+      width:0.26cqw;height:0.26cqw;flex:none;border-radius:50%;
+      background:var(--sk-pass);box-shadow:0 0 0.4cqw var(--sk-pass);
+    }
         .sk-topbar{
           grid-area:top;display:flex;align-items:center;gap:0.9cqw;
           padding:0 1cqw;border-bottom:1px solid var(--sk-hairline);background:var(--sk-ground);
@@ -325,6 +403,17 @@
         .f8-mini-row .sk-tick{font-size:0.5cqw;}
         .f8-mini-canvas{flex:1;display:flex;gap:0.35cqw;min-height:0;}
         .f8-mini-canvas i{display:block;flex:1;border:1px solid var(--sk-hairline);border-radius:5px;background:var(--sk-raised);}
+        .f8-proto i{position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:0.14cqw;padding:0.22cqw;overflow:visible;}
+        .f8-proto b{display:block;height:0.16cqw;border-radius:2px;background:var(--sk-hairline);}
+        .f8-proto b:first-child{width:70%;}
+        .f8-proto .is-live{border-color:color-mix(in srgb,var(--sk-design) 60%,var(--sk-hairline));}
+        .f8-pin{
+          position:absolute;top:-0.22cqw;right:-0.22cqw;width:0.52cqw;height:0.52cqw;border-radius:50% 50% 50% 2px;
+          background:var(--sk-design);box-shadow:0 0 0.4cqw color-mix(in srgb,var(--sk-design) 55%,transparent);
+        }
+        .f8-refused{color:var(--sk-fail);}
+        .f8-refused b{font-weight:500;color:var(--sk-fail);}
+        .f8-x{color:var(--sk-fail);font:500 0.56cqw/1 var(--sk-mono);}
 
         /* ————— F8 · route flow label (lands with the wide) ————— */
         .f8-flow{
@@ -360,10 +449,10 @@
 .sk-ws-space{font:400 0.62cqw/1 var(--sk-mono, "IBM Plex Mono", monospace);color:var(--sk-text-muted, #A8A29A);margin-left:0.45cqw;padding:0.16cqw 0.38cqw;border:1px solid var(--sk-hairline, #26262A);border-radius:6px;}
 </style>
 
-      <div id="root" data-composition-id="08-the-route" data-width="1920" data-height="1080" data-duration="18.6">
+      <div id="root" data-composition-id="08-the-route" data-width="1920" data-height="1080" data-duration="23.2">
 
         <!-- ground + world · full-bleed ink field carrying the three-screen route; camera rig inside -->
-        <div id="f8-world" class="clip sk-frame" data-start="0" data-duration="18.2" data-track-index="0" data-layout-allow-overflow="">
+        <div id="f8-world" class="clip sk-frame" data-start="0" data-duration="22.8" data-track-index="0" data-layout-allow-overflow="">
 
           <svg width="0" height="0" aria-hidden="true" style="position:absolute">
             <defs>
@@ -380,36 +469,56 @@
               <!-- ══════════ 03 · PLAN — the spec writes itself ══════════ -->
               <div class="sk-screen f8-dof" id="f8-scr-plan">
                 <div class="sk-shell">
-                  <aside class="sk-sidebar">
-                    <div class="sk-ws">
-                      <span class="sk-ws-mark"><svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block;overflow:visible"><path d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="5.5" fill="none" stroke-linecap="round" /><circle cx="50" cy="50" r="8.5" fill="#FF6B2C" /></svg></span>
-                      <span class="sk-ws-name">supaprod</span><span class="sk-ws-space">harbor</span>
-                      <span class="sk-ws-caret">⌄</span>
-                    </div>
-                    <nav class="sk-nav">
-                      <div class="sk-navrow" style="--dot:var(--sk-text)"><span class="sk-dot"></span>Today<span class="sk-navcount">3</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-discover)"><span class="sk-dot"></span>Discover<span class="sk-navcount">24</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-decide)"><span class="sk-dot"></span>Decide<span class="sk-navcount">3</span></div>
-                      <div class="sk-navrow is-active" style="--dot:var(--sk-plan)"><span class="sk-dot"></span>Plan<span class="sk-navcount">1</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-design)"><span class="sk-dot"></span>Design</div>
-                      <div class="sk-navrow" style="--dot:var(--sk-build)"><span class="sk-dot"></span>Build<span class="sk-navcount">2</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-ship)"><span class="sk-dot"></span>Ship</div>
-                      <div class="sk-navrow" style="--dot:var(--sk-learn)"><span class="sk-dot"></span>Learn<span class="sk-navcount">1</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-ember)"><span class="sk-dot"></span>Brain</div>
-                    </nav>
-                    <div class="sk-side-foot"><span class="sk-livedot"></span>3 agents running</div>
-                  </aside>
                   <header class="sk-topbar">
-                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span>plan</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">checkout-fix</span></div>
-                    <div class="sk-ask">
-                      <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5" /><line x1="10.5" y1="10.5" x2="14" y2="14" /></svg>
-                      ask supaprod…
-                      <span class="sk-kbd">⌘K</span>
-                    </div>
-                    <span class="sk-spacer"></span>
-                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>synced 2m ago</span>
+                  <div class="sk-topleft">
+                    <span class="sk-brand">
+                    <span class="sk-brand-mark"><svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block;overflow:visible"><path d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="5.5" fill="none" stroke-linecap="round" /><circle cx="50" cy="50" r="8.5" fill="#FF6B2C" /></svg></span>
+                    <span class="sk-brand-name">Supaprod</span>
+                    </span>
+                    <span class="sk-topdiv"></span>
+                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span>decide</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">commit</span><span class="sk-crumb-caret">⌄</span></div>
+                  </div>
+                  <div class="sk-notify">
+                    <span class="sk-notify-gl">
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><circle cx="7.6" cy="7.6" r="4.3" /><path d="M10.9 10.9L14.3 14.3" /></svg>
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-faint)"><path d="M3 5.2h12M3 9h8M3 12.8h10" /></svg>
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><path d="M3 12.4l4-4 3 3 5-5.6" /><path d="M15 5.8h-3.3M15 5.8v3.3" /></svg>
+                    </span>
+                    <span class="sk-notify-lead">the spec is drafting itself</span>
+                    <span class="sk-notify-sub">checkout drop-off fix · agent working</span>
+                    <span class="sk-notify-time">now</span>
+                  </div>
+                  <div class="sk-topright">
+                    <div class="sk-ask"><svg viewBox="0 0 18 18"><path d="M15.2 10.4a2.4 2.4 0 0 1-2.4 2.4H6.4L3.2 15.4V5a2.4 2.4 0 0 1 2.4-2.4h7.2A2.4 2.4 0 0 1 15.2 5Z" /></svg>Ask<span class="sk-kbd">⌘K</span></div>
                     <div class="sk-avatar">MR</div>
-                  </header>
+                  </div>
+                </header>
+
+                <div class="sk-spine">
+                  <div class="sk-stn has-work"><span class="sk-stn-n">01</span><span class="sk-stn-name">Discover</span><span class="sk-stn-sub">24 signals</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">02</span><span class="sk-stn-name">Decide</span><span class="sk-stn-sub">3 bets</span></div>
+                  <div class="sk-stn is-here"><i class="sk-stn-dot"></i><span class="sk-stn-n">03</span><span class="sk-stn-name">Plan</span><span class="sk-stn-sub">1 spec drafting</span></div>
+                  <div class="sk-stn"><span class="sk-stn-n">04</span><span class="sk-stn-name">Design</span><span class="sk-stn-sub"></span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">05</span><span class="sk-stn-name">Build</span><span class="sk-stn-sub">2 runs</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">06</span><span class="sk-stn-name">Ship</span><span class="sk-stn-sub">v2.4</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">07</span><span class="sk-stn-name">Learn</span><span class="sk-stn-sub">day 6 of 30</span></div>
+                </div>
+
+                <aside class="sk-rail">
+                  <div class="sk-railtop">
+                    <span class="sk-glyph is-active"><svg viewBox="0 0 20 20"><path d="M3 6h14M3 10h9M3 14h11" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M2 10h3.3l2.2-5.2 3.3 10.4 2.2-5.2H18" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><circle cx="5.2" cy="4.8" r="1.9" /><circle cx="14.8" cy="10" r="1.9" /><circle cx="5.2" cy="15.2" r="1.9" /><path d="M5.2 6.7v6.6M7.1 4.8h3.7a2 2 0 0 1 2 2v1.3M7.1 15.2h3.7a2 2 0 0 0 2-2v-1.3" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="6.6" y="6.6" width="6.8" height="6.8" rx="1.6" /><path d="M10 2.4v4.2M10 13.4v4.2M2.4 10h4.2M13.4 10h4.2" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M3 6.2h4.2M11.6 6.2H17M3 13.8h7.4M14.8 13.8H17" /><circle cx="9.4" cy="6.2" r="1.9" /><circle cx="12.9" cy="13.8" r="1.9" /></svg></span>
+                  </div>
+                  <div class="sk-railfoot">
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="3" y="4.4" width="14" height="11.2" rx="1.6" /><path d="M7.7 4.4v11.2M12.4 4.4v11.2" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M15.4 11.9A6.1 6.1 0 0 1 8.1 4.6 6.3 6.3 0 1 0 15.4 11.9Z" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.5" /><path d="M10 2.6v2.1M10 15.3v2.1M2.6 10h2.1M15.3 10h2.1M4.8 4.8l1.5 1.5M13.7 13.7l1.5 1.5M15.2 4.8l-1.5 1.5M6.3 13.7l-1.5 1.5" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="3" y="4.4" width="14" height="11.2" rx="1.6" /><path d="M8 4.4v11.2" /></svg></span>
+                  </div>
+                </aside>
                   <main style="grid-area:main;position:relative;display:grid;grid-template-columns:minmax(0,1fr) 16cqw;gap:1cqw;padding:1.1cqw;min-height:0;">
 
                     <!-- spec editor · doc types itself -->
@@ -466,38 +575,71 @@
               </div>
 
               <!-- ══════════ 05 · BUILD — agent run inside boundaries ══════════ -->
+              <!-- 04 · Design — the prototype taking shape, between Plan and Build -->
+              <div id="f8-design" class="f8-dof">
+                <div class="f8-dsg-hd"><span class="sk-dot-inline"></span>04 · design</div>
+                <div class="f8-dsg-body">
+                  <div class="f8-dsg-title">checkout — one screen, one retry</div>
+                  <div class="f8-dsg-canvas">
+                    <i id="f8-dsg-f1"><b></b><b></b></i>
+                    <i id="f8-dsg-f2" class="is-live"><b></b><b></b><span class="f8-dsg-pin" id="f8-dsg-pin"></span></i>
+                    <i id="f8-dsg-f3"><b></b></i>
+                  </div>
+                  <div class="f8-dsg-ft"><span class="sk-livedot"></span>agent · prototyping from the spec · on brand</div>
+                </div>
+              </div>
               <div class="sk-screen f8-dof" id="f8-scr-build">
                 <div class="sk-shell">
-                  <aside class="sk-sidebar">
-                    <div class="sk-ws">
-                      <span class="sk-ws-mark"><svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block;overflow:visible"><path d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="5.5" fill="none" stroke-linecap="round" /><circle cx="50" cy="50" r="8.5" fill="#FF6B2C" /></svg></span>
-                      <span class="sk-ws-name">supaprod</span><span class="sk-ws-space">harbor</span>
-                      <span class="sk-ws-caret">⌄</span>
-                    </div>
-                    <nav class="sk-nav">
-                      <div class="sk-navrow" style="--dot:var(--sk-text)"><span class="sk-dot"></span>Today<span class="sk-navcount">3</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-discover)"><span class="sk-dot"></span>Discover<span class="sk-navcount">24</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-decide)"><span class="sk-dot"></span>Decide<span class="sk-navcount">3</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-plan)"><span class="sk-dot"></span>Plan<span class="sk-navcount">1</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-design)"><span class="sk-dot"></span>Design</div>
-                      <div class="sk-navrow is-active" style="--dot:var(--sk-build)"><span class="sk-dot"></span>Build<span class="sk-navcount">2</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-ship)"><span class="sk-dot"></span>Ship</div>
-                      <div class="sk-navrow" style="--dot:var(--sk-learn)"><span class="sk-dot"></span>Learn<span class="sk-navcount">1</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-ember)"><span class="sk-dot"></span>Brain</div>
-                    </nav>
-                    <div class="sk-side-foot"><span class="sk-livedot"></span>3 agents running</div>
-                  </aside>
                   <header class="sk-topbar">
-                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span>build</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">fix/checkout-dropoff</span></div>
-                    <div class="sk-ask">
-                      <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5" /><line x1="10.5" y1="10.5" x2="14" y2="14" /></svg>
-                      ask supaprod…
-                      <span class="sk-kbd">⌘K</span>
-                    </div>
-                    <span class="sk-spacer"></span>
-                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>synced 2m ago</span>
+                  <div class="sk-topleft">
+                    <span class="sk-brand">
+                    <span class="sk-brand-mark"><svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block;overflow:visible"><path d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="5.5" fill="none" stroke-linecap="round" /><circle cx="50" cy="50" r="8.5" fill="#FF6B2C" /></svg></span>
+                    <span class="sk-brand-name">Supaprod</span>
+                    </span>
+                    <span class="sk-topdiv"></span>
+                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span>decide</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">commit</span><span class="sk-crumb-caret">⌄</span></div>
+                  </div>
+                  <div class="sk-notify">
+                    <span class="sk-notify-gl">
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><circle cx="7.6" cy="7.6" r="4.3" /><path d="M10.9 10.9L14.3 14.3" /></svg>
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-faint)"><path d="M3 5.2h12M3 9h8M3 12.8h10" /></svg>
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><path d="M3 12.4l4-4 3 3 5-5.6" /><path d="M15 5.8h-3.3M15 5.8v3.3" /></svg>
+                    </span>
+                    <span class="sk-notify-lead">the build is running</span>
+                    <span class="sk-notify-sub">branch, migration, 214 tests · inside your boundaries</span>
+                    <span class="sk-notify-time">now</span>
+                  </div>
+                  <div class="sk-topright">
+                    <div class="sk-ask"><svg viewBox="0 0 18 18"><path d="M15.2 10.4a2.4 2.4 0 0 1-2.4 2.4H6.4L3.2 15.4V5a2.4 2.4 0 0 1 2.4-2.4h7.2A2.4 2.4 0 0 1 15.2 5Z" /></svg>Ask<span class="sk-kbd">⌘K</span></div>
                     <div class="sk-avatar">MR</div>
-                  </header>
+                  </div>
+                </header>
+
+                <div class="sk-spine">
+                  <div class="sk-stn has-work"><span class="sk-stn-n">01</span><span class="sk-stn-name">Discover</span><span class="sk-stn-sub">24 signals</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">02</span><span class="sk-stn-name">Decide</span><span class="sk-stn-sub">3 bets</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">03</span><span class="sk-stn-name">Plan</span><span class="sk-stn-sub">7 runs</span></div>
+                  <div class="sk-stn"><span class="sk-stn-n">04</span><span class="sk-stn-name">Design</span><span class="sk-stn-sub"></span></div>
+                  <div class="sk-stn is-here"><i class="sk-stn-dot"></i><span class="sk-stn-n">05</span><span class="sk-stn-name">Build</span><span class="sk-stn-sub">2 runs · tests green</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">06</span><span class="sk-stn-name">Ship</span><span class="sk-stn-sub">v2.4</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">07</span><span class="sk-stn-name">Learn</span><span class="sk-stn-sub">day 6 of 30</span></div>
+                </div>
+
+                <aside class="sk-rail">
+                  <div class="sk-railtop">
+                    <span class="sk-glyph is-active"><svg viewBox="0 0 20 20"><path d="M3 6h14M3 10h9M3 14h11" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M2 10h3.3l2.2-5.2 3.3 10.4 2.2-5.2H18" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><circle cx="5.2" cy="4.8" r="1.9" /><circle cx="14.8" cy="10" r="1.9" /><circle cx="5.2" cy="15.2" r="1.9" /><path d="M5.2 6.7v6.6M7.1 4.8h3.7a2 2 0 0 1 2 2v1.3M7.1 15.2h3.7a2 2 0 0 0 2-2v-1.3" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="6.6" y="6.6" width="6.8" height="6.8" rx="1.6" /><path d="M10 2.4v4.2M10 13.4v4.2M2.4 10h4.2M13.4 10h4.2" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M3 6.2h4.2M11.6 6.2H17M3 13.8h7.4M14.8 13.8H17" /><circle cx="9.4" cy="6.2" r="1.9" /><circle cx="12.9" cy="13.8" r="1.9" /></svg></span>
+                  </div>
+                  <div class="sk-railfoot">
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="3" y="4.4" width="14" height="11.2" rx="1.6" /><path d="M7.7 4.4v11.2M12.4 4.4v11.2" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M15.4 11.9A6.1 6.1 0 0 1 8.1 4.6 6.3 6.3 0 1 0 15.4 11.9Z" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.5" /><path d="M10 2.6v2.1M10 15.3v2.1M2.6 10h2.1M15.3 10h2.1M4.8 4.8l1.5 1.5M13.7 13.7l1.5 1.5M15.2 4.8l-1.5 1.5M6.3 13.7l-1.5 1.5" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="3" y="4.4" width="14" height="11.2" rx="1.6" /><path d="M8 4.4v11.2" /></svg></span>
+                  </div>
+                </aside>
                   <main style="grid-area:main;position:relative;display:grid;grid-template-columns:26cqw minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:1cqw;padding:1.1cqw;min-height:0;">
 
                     <!-- boundary banner · thin ember strip across the top -->
@@ -522,7 +664,8 @@
                         <div class="sk-logline"><span class="sk-log-t">14:03:19</span><span class="sk-run">▸</span><span>writing retry handler…</span></div>
                         <div class="sk-logline" id="f8-log5"><span class="sk-log-t">14:03:41</span><span class="sk-tick">✓</span><span>retry handler wired — 3 files</span></div>
                         <div class="sk-logline" id="f8-log6"><span class="sk-log-t">14:03:58</span><span class="sk-tick">✓</span><span>form state preserved on decline</span></div>
-                        <div class="sk-logline is-run" id="f8-log7"><span class="sk-log-t">14:04:12</span><span class="sk-run">▸</span><span>running integration suite…</span></div>
+                        <div class="sk-logline" id="f8-log7"><span class="sk-log-t">14:04:12</span><span class="sk-tick">✓</span><span>integration suite · 214 passing</span></div>
+                        <div class="sk-logline f8-refused" id="f8-log8"><span class="sk-log-t">14:04:29</span><span class="f8-x">✕</span><span>drop column <b>orders.legacy_ref</b> — blocked, outside your boundary</span></div>
                       </div>
                       <footer class="sk-panel-ft">
                         <span class="sk-meta" style="font-size:0.6cqw;">run 41 · started 2m ago · maya r. watching</span>
@@ -558,36 +701,56 @@
               <!-- ══════════ 06 · SHIP — release notes + GTM, done ══════════ -->
               <div class="sk-screen f8-dof" id="f8-scr-ship">
                 <div class="sk-shell">
-                  <aside class="sk-sidebar">
-                    <div class="sk-ws">
-                      <span class="sk-ws-mark"><svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block;overflow:visible"><path d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="5.5" fill="none" stroke-linecap="round" /><circle cx="50" cy="50" r="8.5" fill="#FF6B2C" /></svg></span>
-                      <span class="sk-ws-name">supaprod</span><span class="sk-ws-space">harbor</span>
-                      <span class="sk-ws-caret">⌄</span>
-                    </div>
-                    <nav class="sk-nav">
-                      <div class="sk-navrow" style="--dot:var(--sk-text)"><span class="sk-dot"></span>Today<span class="sk-navcount">3</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-discover)"><span class="sk-dot"></span>Discover<span class="sk-navcount">24</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-decide)"><span class="sk-dot"></span>Decide<span class="sk-navcount">3</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-plan)"><span class="sk-dot"></span>Plan<span class="sk-navcount">1</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-design)"><span class="sk-dot"></span>Design</div>
-                      <div class="sk-navrow" style="--dot:var(--sk-build)"><span class="sk-dot"></span>Build<span class="sk-navcount">2</span></div>
-                      <div class="sk-navrow is-active" style="--dot:var(--sk-ship)"><span class="sk-dot"></span>Ship<span class="sk-navcount">1</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-learn)"><span class="sk-dot"></span>Learn<span class="sk-navcount">1</span></div>
-                      <div class="sk-navrow" style="--dot:var(--sk-ember)"><span class="sk-dot"></span>Brain</div>
-                    </nav>
-                    <div class="sk-side-foot"><span class="sk-livedot"></span>3 agents running</div>
-                  </aside>
                   <header class="sk-topbar">
-                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span>ship</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">v2.4</span></div>
-                    <div class="sk-ask">
-                      <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5" /><line x1="10.5" y1="10.5" x2="14" y2="14" /></svg>
-                      ask supaprod…
-                      <span class="sk-kbd">⌘K</span>
-                    </div>
-                    <span class="sk-spacer"></span>
-                    <span class="sk-chip sk-chip--pass"><span class="sk-dot-inline"></span>synced 2m ago</span>
+                  <div class="sk-topleft">
+                    <span class="sk-brand">
+                    <span class="sk-brand-mark"><svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block;overflow:visible"><path d="M 90.00 50.00 L 89.94 49.20 L 89.77 48.42 L 89.49 47.65 L 89.10 46.91 L 88.61 46.21 L 88.01 45.55 L 87.31 44.95 L 86.52 44.41 L 85.64 43.94 L 84.68 43.55 L 83.65 43.24 L 82.56 43.02 L 81.40 42.89 L 80.20 42.86 L 78.97 42.93 L 77.70 43.11 L 76.41 43.39 L 75.11 43.77 L 73.81 44.27 L 72.51 44.86 L 71.24 45.56 L 70.00 46.36 L 68.79 47.25 L 67.62 48.24 L 66.51 49.32 L 65.46 50.48 L 64.48 51.71 L 63.57 53.01 L 62.75 54.37 L 62.01 55.79 L 61.37 57.24 L 60.82 58.74 L 60.36 60.26 L 60.01 61.79 L 59.76 63.33 L 59.61 64.87 L 59.57 66.40 L 59.62 67.90 L 59.77 69.38 L 60.02 70.81 L 60.36 72.19 L 60.79 73.51 L 61.30 74.77 L 61.88 75.95 L 62.54 77.05 L 63.25 78.06 L 64.02 78.98 L 64.84 79.81 L 65.70 80.52 L 66.58 81.14 L 67.48 81.64 L 68.40 82.03 L 69.31 82.32 L 70.22 82.49 L 71.10 82.55 L 71.96 82.50 L 72.79 82.34 L 73.56 82.08 L 74.28 81.73 L 74.94 81.27 L 75.53 80.73 L 76.04 80.11 L 76.46 79.41 L 76.80 78.64 L 77.03 77.82 L 77.17 76.94 L 77.21 76.02 L 77.14 75.07 L 76.96 74.09 L 76.67 73.09 L 76.27 72.10 L 75.76 71.10 L 75.14 70.12 L 74.41 69.17 L 73.58 68.24 L 72.66 67.36 L 71.63 66.52 L 70.52 65.75 L 69.33 65.04 L 68.06 64.40 L 66.72 63.84 L 65.31 63.36 L 63.86 62.98 L 62.36 62.68 L 60.83 62.48 L 59.27 62.38 L 57.69 62.39 L 56.11 62.49 L 54.53 62.69 L 52.97 63.00 L 51.42 63.40 L 49.91 63.90 L 48.44 64.50 L 47.02 65.18 L 45.66 65.94 L 44.37 66.79 L 43.14 67.70 L 42.00 68.68 L 40.94 69.72 L 39.98 70.81 L 39.11 71.93 L 38.34 73.09 L 37.68 74.27 L 37.12 75.47 L 36.67 76.67 L 36.32 77.86 L 36.08 79.04 L 35.95 80.19 L 35.92 81.30 L 35.99 82.38 L 36.16 83.40 L 36.43 84.36 L 36.78 85.25 L 37.21 86.06 L 37.71 86.79 L 38.29 87.43 L 38.92 87.98 L 39.61 88.42 L 40.34 88.76 L 41.10 89.00 L 41.89 89.12 L 42.69 89.13 L 43.50 89.03 L 44.31 88.81 L 45.11 88.48 L 45.88 88.04 L 46.62 87.50 L 47.32 86.84 L 47.98 86.09 L 48.57 85.25 L 49.10 84.31 L 49.56 83.29 L 49.94 82.20 L 50.24 81.03 L 50.44 79.81 L 50.55 78.54 L 50.57 77.22 L 50.48 75.86 L 50.29 74.49 L 50.00 73.09 L 49.60 71.70 L 49.10 70.30 L 48.50 68.93 L 47.79 67.57 L 46.99 66.25 L 46.10 64.97 L 45.11 63.74 L 44.05 62.56 L 42.90 61.46 L 41.69 60.42 L 40.41 59.47 L 39.08 58.60 L 37.70 57.82 L 36.28 57.14 L 34.83 56.55 L 33.36 56.06 L 31.88 55.68 L 30.41 55.39 L 28.94 55.22 L 27.49 55.14 L 26.06 55.16 L 24.68 55.28 L 23.34 55.50 L 22.06 55.81 L 20.84 56.20 L 19.69 56.68 L 18.62 57.22 L 17.64 57.84 L 16.75 58.51 L 15.95 59.24 L 15.26 60.01 L 14.67 60.81 L 14.20 61.64 L 13.83 62.48 L 13.57 63.33 L 13.43 64.18 L 13.40 65.02 L 13.48 65.83 L 13.67 66.61 L 13.96 67.36 L 14.36 68.05 L 14.85 68.68 L 15.44 69.25 L 16.11 69.75 L 16.86 70.17 L 17.69 70.50 L 18.58 70.74 L 19.52 70.88 L 20.52 70.92 L 21.55 70.86 L 22.61 70.69 L 23.70 70.41 L 24.79 70.03 L 25.88 69.53 L 26.97 68.93 L 28.04 68.23 L 29.08 67.41 L 30.08 66.50 L 31.04 65.50 L 31.94 64.40 L 32.79 63.22 L 33.57 61.96 L 34.27 60.62 L 34.89 59.23 L 35.42 57.78 L 35.86 56.28 L 36.21 54.74 L 36.46 53.18 L 36.62 51.59 L 36.67 50.00 L 36.62 48.41 L 36.46 46.82 L 36.21 45.26 L 35.86 43.72 L 35.42 42.22 L 34.89 40.77 L 34.27 39.38 L 33.57 38.04 L 32.79 36.78 L 31.94 35.60 L 31.04 34.50 L 30.08 33.50 L 29.08 32.59 L 28.04 31.77 L 26.97 31.07 L 25.88 30.47 L 24.79 29.97 L 23.70 29.59 L 22.61 29.31 L 21.55 29.14 L 20.52 29.08 L 19.52 29.12 L 18.58 29.26 L 17.69 29.50 L 16.86 29.83 L 16.11 30.25 L 15.44 30.75 L 14.85 31.32 L 14.36 31.95 L 13.96 32.64 L 13.67 33.39 L 13.48 34.17 L 13.40 34.98 L 13.43 35.82 L 13.57 36.67 L 13.83 37.52 L 14.20 38.36 L 14.67 39.19 L 15.26 39.99 L 15.95 40.76 L 16.75 41.49 L 17.64 42.16 L 18.62 42.78 L 19.69 43.32 L 20.84 43.80 L 22.06 44.19 L 23.34 44.50 L 24.68 44.72 L 26.06 44.84 L 27.49 44.86 L 28.94 44.78 L 30.41 44.61 L 31.88 44.32 L 33.36 43.94 L 34.83 43.45 L 36.28 42.86 L 37.70 42.18 L 39.08 41.40 L 40.41 40.53 L 41.69 39.58 L 42.90 38.54 L 44.05 37.44 L 45.11 36.26 L 46.10 35.03 L 46.99 33.75 L 47.79 32.43 L 48.50 31.07 L 49.10 29.70 L 49.60 28.30 L 50.00 26.91 L 50.29 25.51 L 50.48 24.14 L 50.57 22.78 L 50.55 21.46 L 50.44 20.19 L 50.24 18.97 L 49.94 17.80 L 49.56 16.71 L 49.10 15.69 L 48.57 14.75 L 47.98 13.91 L 47.32 13.16 L 46.62 12.50 L 45.88 11.96 L 45.11 11.52 L 44.31 11.19 L 43.50 10.97 L 42.69 10.87 L 41.89 10.88 L 41.10 11.00 L 40.34 11.24 L 39.61 11.58 L 38.92 12.02 L 38.29 12.57 L 37.71 13.21 L 37.21 13.94 L 36.78 14.75 L 36.43 15.64 L 36.16 16.60 L 35.99 17.62 L 35.92 18.70 L 35.95 19.81 L 36.08 20.96 L 36.32 22.14 L 36.67 23.33 L 37.12 24.53 L 37.68 25.73 L 38.34 26.91 L 39.11 28.07 L 39.98 29.19 L 40.94 30.28 L 42.00 31.32 L 43.14 32.30 L 44.37 33.21 L 45.66 34.06 L 47.02 34.82 L 48.44 35.50 L 49.91 36.10 L 51.42 36.60 L 52.97 37.00 L 54.53 37.31 L 56.11 37.51 L 57.69 37.61 L 59.27 37.62 L 60.83 37.52 L 62.36 37.32 L 63.86 37.02 L 65.31 36.64 L 66.72 36.16 L 68.06 35.60 L 69.33 34.96 L 70.52 34.25 L 71.63 33.48 L 72.66 32.64 L 73.58 31.76 L 74.41 30.83 L 75.14 29.88 L 75.76 28.90 L 76.27 27.90 L 76.67 26.91 L 76.96 25.91 L 77.14 24.93 L 77.21 23.98 L 77.17 23.06 L 77.03 22.18 L 76.80 21.36 L 76.46 20.59 L 76.04 19.89 L 75.53 19.27 L 74.94 18.73 L 74.28 18.27 L 73.56 17.92 L 72.79 17.66 L 71.96 17.50 L 71.10 17.45 L 70.22 17.51 L 69.31 17.68 L 68.40 17.97 L 67.48 18.36 L 66.58 18.86 L 65.70 19.48 L 64.84 20.19 L 64.02 21.02 L 63.25 21.94 L 62.54 22.95 L 61.88 24.05 L 61.30 25.23 L 60.79 26.49 L 60.36 27.81 L 60.02 29.19 L 59.77 30.62 L 59.62 32.10 L 59.57 33.60 L 59.61 35.13 L 59.76 36.67 L 60.01 38.21 L 60.36 39.74 L 60.82 41.26 L 61.37 42.76 L 62.01 44.21 L 62.75 45.63 L 63.57 46.99 L 64.48 48.29 L 65.46 49.52 L 66.51 50.68 L 67.62 51.76 L 68.79 52.75 L 70.00 53.64 L 71.24 54.44 L 72.51 55.14 L 73.81 55.73 L 75.11 56.23 L 76.41 56.61 L 77.70 56.89 L 78.97 57.07 L 80.20 57.14 L 81.40 57.11 L 82.56 56.98 L 83.65 56.76 L 84.68 56.45 L 85.64 56.06 L 86.52 55.59 L 87.31 55.05 L 88.01 54.45 L 88.61 53.79 L 89.10 53.09 L 89.49 52.35 L 89.77 51.58 L 89.94 50.80 L 90.00 50.00 Z" stroke="#F2EFE9" stroke-width="5.5" fill="none" stroke-linecap="round" /><circle cx="50" cy="50" r="8.5" fill="#FF6B2C" /></svg></span>
+                    <span class="sk-brand-name">Supaprod</span>
+                    </span>
+                    <span class="sk-topdiv"></span>
+                    <div class="sk-crumb"><span>harbor</span><span class="sk-crumb-sep">/</span><span>decide</span><span class="sk-crumb-sep">/</span><span class="sk-crumb-here">commit</span><span class="sk-crumb-caret">⌄</span></div>
+                  </div>
+                  <div class="sk-notify">
+                    <span class="sk-notify-gl">
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><circle cx="7.6" cy="7.6" r="4.3" /><path d="M10.9 10.9L14.3 14.3" /></svg>
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-faint)"><path d="M3 5.2h12M3 9h8M3 12.8h10" /></svg>
+                      <svg viewBox="0 0 18 18" style="stroke:var(--sk-ember)"><path d="M3 12.4l4-4 3 3 5-5.6" /><path d="M15 5.8h-3.3M15 5.8v3.3" /></svg>
+                    </span>
+                    <span class="sk-notify-lead">v2.4 is going out</span>
+                    <span class="sk-notify-sub">release notes, announcement, changelog · assembling</span>
+                    <span class="sk-notify-time">now</span>
+                  </div>
+                  <div class="sk-topright">
+                    <div class="sk-ask"><svg viewBox="0 0 18 18"><path d="M15.2 10.4a2.4 2.4 0 0 1-2.4 2.4H6.4L3.2 15.4V5a2.4 2.4 0 0 1 2.4-2.4h7.2A2.4 2.4 0 0 1 15.2 5Z" /></svg>Ask<span class="sk-kbd">⌘K</span></div>
                     <div class="sk-avatar">MR</div>
-                  </header>
+                  </div>
+                </header>
+
+                <div class="sk-spine">
+                  <div class="sk-stn has-work"><span class="sk-stn-n">01</span><span class="sk-stn-name">Discover</span><span class="sk-stn-sub">24 signals</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">02</span><span class="sk-stn-name">Decide</span><span class="sk-stn-sub">3 bets</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">03</span><span class="sk-stn-name">Plan</span><span class="sk-stn-sub">7 runs</span></div>
+                  <div class="sk-stn"><span class="sk-stn-n">04</span><span class="sk-stn-name">Design</span><span class="sk-stn-sub"></span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">05</span><span class="sk-stn-name">Build</span><span class="sk-stn-sub">2 runs</span></div>
+                  <div class="sk-stn is-here"><i class="sk-stn-dot"></i><span class="sk-stn-n">06</span><span class="sk-stn-name">Ship</span><span class="sk-stn-sub">v2.4 shipping</span></div>
+                  <div class="sk-stn has-work"><span class="sk-stn-n">07</span><span class="sk-stn-name">Learn</span><span class="sk-stn-sub">day 6 of 30</span></div>
+                </div>
+
+                <aside class="sk-rail">
+                  <div class="sk-railtop">
+                    <span class="sk-glyph is-active"><svg viewBox="0 0 20 20"><path d="M3 6h14M3 10h9M3 14h11" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M2 10h3.3l2.2-5.2 3.3 10.4 2.2-5.2H18" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><circle cx="5.2" cy="4.8" r="1.9" /><circle cx="14.8" cy="10" r="1.9" /><circle cx="5.2" cy="15.2" r="1.9" /><path d="M5.2 6.7v6.6M7.1 4.8h3.7a2 2 0 0 1 2 2v1.3M7.1 15.2h3.7a2 2 0 0 0 2-2v-1.3" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="6.6" y="6.6" width="6.8" height="6.8" rx="1.6" /><path d="M10 2.4v4.2M10 13.4v4.2M2.4 10h4.2M13.4 10h4.2" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M3 6.2h4.2M11.6 6.2H17M3 13.8h7.4M14.8 13.8H17" /><circle cx="9.4" cy="6.2" r="1.9" /><circle cx="12.9" cy="13.8" r="1.9" /></svg></span>
+                  </div>
+                  <div class="sk-railfoot">
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="3" y="4.4" width="14" height="11.2" rx="1.6" /><path d="M7.7 4.4v11.2M12.4 4.4v11.2" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><path d="M15.4 11.9A6.1 6.1 0 0 1 8.1 4.6 6.3 6.3 0 1 0 15.4 11.9Z" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.5" /><path d="M10 2.6v2.1M10 15.3v2.1M2.6 10h2.1M15.3 10h2.1M4.8 4.8l1.5 1.5M13.7 13.7l1.5 1.5M15.2 4.8l-1.5 1.5M6.3 13.7l-1.5 1.5" /></svg></span>
+                    <span class="sk-glyph"><svg viewBox="0 0 20 20"><rect x="3" y="4.4" width="14" height="11.2" rx="1.6" /><path d="M8 4.4v11.2" /></svg></span>
+                  </div>
+                </aside>
                   <main style="grid-area:main;position:relative;display:grid;grid-template-columns:minmax(0,1fr) 16cqw;gap:1cqw;padding:1.1cqw;min-height:0;">
 
                     <!-- release surface · notes unfurl, deploy flips live -->
@@ -678,9 +841,9 @@
                 </div>
                 <div class="f8-mini" style="--mc:var(--sk-design)">
                   <div class="f8-mini-hd"><span class="sk-dot-inline"></span>04 · design</div>
-                  <div class="f8-mini-row is-bright">prototype · checkout</div>
-                  <div class="f8-mini-canvas"><i></i><i></i></div>
-                  <div class="f8-mini-row is-mono">2 screens · in review</div>
+                  <div class="f8-mini-row is-bright">prototype · checkout, one screen</div>
+                  <div class="f8-mini-canvas f8-proto"><i class="f8-pf"><b></b><b></b></i><i class="f8-pf is-live"><b></b><b></b><s class="f8-pin"></s></i><i class="f8-pf"><b></b></i></div>
+                  <div class="f8-mini-row is-mono">3 frames · 1 comment · on brand</div>
                 </div>
                 <div class="f8-mini" style="--mc:var(--sk-build)">
                   <div class="f8-mini-hd"><span class="sk-dot-inline"></span>05 · build</div>
@@ -715,15 +878,16 @@
         </div>
 
         <!-- film overlay · lower-third rides outside the camera -->
-        <div id="f8-lt" class="clip" data-start="0" data-duration="18.2" data-track-index="1">
+        <div id="f8-lt" class="clip" data-start="0" data-duration="22.8" data-track-index="1">
           <div class="sk-lowerthird">
             <div class="f8-kickers">
               <span id="f8-k1">03 · Plan</span>
+              <span id="f8-kd">04 · Design</span>
               <span id="f8-k2">05 · Build</span>
               <span id="f8-k3">06 · Ship</span>
               <span id="f8-k4">01–07 · the route</span>
             </div>
-            <span class="sk-lt-line" id="f8-ltl">seven stations, one connected route.</span>
+            <span class="sk-lt-line" id="f8-ltl">the complete product lifecycle — one platform.</span>
           </div>
         </div>
 
@@ -731,10 +895,11 @@
 
       <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
       <script>
+        gsap.defaults({ lazy: false });   // paused, seeked timelines never tick — lazy tweens would render stale start values
         window.__timelines = window.__timelines || {};
         const tl = gsap.timeline({ paused: true });
 
-        const DUR = 18.2;
+        const DUR = 22.8;
         const camEl = document.getElementById("f8cam");
 
         /* ── macro camera (multi-phase-camera + viewport-change, PAN mode) ──
@@ -743,28 +908,42 @@
            Single cam object is the source of truth; screen = (S·ox + x, S·oy + y),
            so centering a target means x = −ox·S, y = −oy·S. One driver tween
            (registered last) writes transform every frame with sine micro-drift. */
-        const cam = { s: 1.32, x: 2149, y: 61 };            // t=0 · tight on the typing doc body
 
-        /* Scene 1 · PLAN — widen off the doc, then a slow push (camera never sleeps) */
-        tl.to(cam, { s: 1.14, x: 1970,  y: 98,  duration: 2.0,  ease: "power1.inOut" }, 0.25);
-        tl.to(cam, { s: 1.19, x: 2056,  y: 103, duration: 1.6,  ease: "power1.inOut" }, 2.45);
-        /* Scene 2 · pan to BUILD (blur streak rides this pan) */
-        tl.to(cam, { s: 1.16, x: 0,     y: 100, duration: 0.95, ease: "power2.inOut" }, 4.2);
-        tl.to(cam, { s: 1.12, x: 60,    y: 96,  duration: 1.1,  ease: "power1.inOut" }, 5.3);
-        tl.to(cam, { s: 1.24, x: 434,   y: 51,  duration: 1.7,  ease: "power1.inOut" }, 6.6);
-        /* Scene 3 · pan to SHIP */
-        tl.to(cam, { s: 1.16, x: -2005, y: 100, duration: 0.95, ease: "power2.inOut" }, 8.6);
-        tl.to(cam, { s: 1.13, x: -1955, y: 96,  duration: 1.2,  ease: "power1.inOut" }, 9.7);
-        tl.to(cam, { s: 1.24, x: -2676, y: 58,  duration: 1.7,  ease: "power1.inOut" }, 11.1);
-        /* Scene 4 · pull + dive to the route strip, then dolly the seven stations */
-        tl.to(cam, { s: 2.05, x: 2834,  y: -1218, duration: 0.55, ease: "power2.inOut" }, 13.0);
-        const HOP = 944.64;                                  // station pitch × dolly scale
-        for (let i = 1; i <= 6; i++) {
-          tl.to(cam, { x: 2834 - i * HOP, duration: 0.3, ease: "power1.inOut" }, 13.55 + (i - 1) * 0.35);
-        }
-        /* Scene 5 · settle WIDE on the whole route, then breathe */
-        tl.to(cam, { s: 0.56,  x: 0, y: -363, duration: 1.0,  ease: "power2.inOut" }, 15.9);
-        tl.to(cam, { s: 0.578,       y: -373, duration: 1.25, ease: "power1.inOut" }, 16.95);
+        /* ── the camera as a deterministic keyframe table ──
+           Tween state depends on seek history; a paused timeline that the renderer
+           seeks out of order can leave a completed tween unapplied. The driver below
+           computes the camera from t directly, so every seek yields identical pixels.
+           World: screen centers ox = −1728 (Plan) / −960 (Design) / 0 (Build) / +1728 (Ship);
+           centering a target means x = −ox·s. */
+        const CAM_KEYS = [
+          { t: 0.00, s: 1.32, x: 2149, y: 61  },   // tight on the typing doc
+          { t: 2.81, s: 1.14, x: 1970, y: 98  },   // Plan · widen off the doc
+          { t: 5.60, s: 1.19, x: 2056, y: 103 },   // Plan · slow push
+          { t: 6.90, s: 1.30, x: 1248, y: 40  },   // pan to DESIGN
+          { t: 8.80, s: 1.34, x: 1286, y: 44  },   // Design · settle
+          { t: 9.90, s: 1.16, x: 0,    y: 100 },   // pan to BUILD
+          { t: 11.40,s: 1.12, x: 60,   y: 96  },   // Build · widen
+          { t: 13.80,s: 1.24, x: 434,  y: 51  },   // Build · push into the console
+          { t: 15.50,s: 1.16, x: -2005,y: 100 },   // pan to SHIP
+          { t: 17.00,s: 1.13, x: -1955,y: 96  },   // Ship · widen
+          { t: 19.20,s: 1.24, x: -2676,y: 58  },   // Ship · push into the kit
+          { t: 20.20,s: 2.05, x: 2834, y: -1218 }, // dive to the route strip
+          { t: 21.45,s: 2.05, x: -2834,y: -1218 }, // dolly all seven stations
+          { t: 22.40,s: 0.56, x: 0,    y: -363 },  // pull WIDE on the whole route
+          { t: 22.80,s: 0.578,x: 0,    y: -373 },  // breathe
+        ];
+        const easeInOut = (p) => p < 0.5 ? 4*p*p*p : 1 - Math.pow(-2*p + 2, 3) / 2;
+        const camAt = (t) => {
+          if (t <= CAM_KEYS[0].t) return CAM_KEYS[0];
+          for (let i = 1; i < CAM_KEYS.length; i++) {
+            const a = CAM_KEYS[i - 1], b = CAM_KEYS[i];
+            if (t <= b.t) {
+              const p = easeInOut((t - a.t) / (b.t - a.t));
+              return { s: a.s + (b.s - a.s) * p, x: a.x + (b.x - a.x) * p, y: a.y + (b.y - a.y) * p };
+            }
+          }
+          return CAM_KEYS[CAM_KEYS.length - 1];
+        };
 
         /* ── motion-blur streak (path A, horizontal; peaks at peak pan velocity) ── */
         const blurNode = document.getElementById("f8-streak-blur");
@@ -774,90 +953,109 @@
           camEl.style.filter = blurProxy.v < 0.02 ? "none" : "url(#f8-streak)";
         };
         writeBlur(); // seed frame 0
-        tl.to(blurProxy, { v: 12, duration: 0.45, ease: "power2.in",    onUpdate: writeBlur }, 4.2);
-        tl.to(blurProxy, { v: 0,  duration: 0.55, ease: "power2.out",   onUpdate: writeBlur }, 4.65);
-        tl.to(blurProxy, { v: 12, duration: 0.45, ease: "power2.in",    onUpdate: writeBlur }, 8.6);
-        tl.to(blurProxy, { v: 0,  duration: 0.55, ease: "power2.out",   onUpdate: writeBlur }, 9.05);
-        tl.to(blurProxy, { v: 9,  duration: 0.5,  ease: "power2.in",    onUpdate: writeBlur }, 13.0);
-        tl.to(blurProxy, { v: 5,  duration: 2.0,  ease: "power1.inOut", onUpdate: writeBlur }, 13.55);
-        tl.to(blurProxy, { v: 0,  duration: 0.8,  ease: "power2.out",   onUpdate: writeBlur }, 15.75);
+        tl.to(blurProxy, { v: 11, duration: 0.42, ease: "power2.in",    onUpdate: writeBlur }, 5.9);
+        tl.to(blurProxy, { v: 0,  duration: 0.55, ease: "power2.out",   onUpdate: writeBlur }, 6.35);
+        tl.to(blurProxy, { v: 12, duration: 0.45, ease: "power2.in",    onUpdate: writeBlur }, 8.8);
+        tl.to(blurProxy, { v: 0,  duration: 0.55, ease: "power2.out",   onUpdate: writeBlur }, 9.3);
+        tl.to(blurProxy, { v: 12, duration: 0.45, ease: "power2.in",    onUpdate: writeBlur }, 14.4);
+        tl.to(blurProxy, { v: 0,  duration: 0.55, ease: "power2.out",   onUpdate: writeBlur }, 14.9);
+        tl.to(blurProxy, { v: 9,  duration: 0.5,  ease: "power2.in",    onUpdate: writeBlur }, 19.6);
+        tl.to(blurProxy, { v: 5,  duration: 1.5,  ease: "power1.inOut", onUpdate: writeBlur }, 20.1);
+        tl.to(blurProxy, { v: 0,  duration: 0.7,  ease: "power2.out",   onUpdate: writeBlur }, 21.4);
+        
+        
+        
+        
+        
+        
 
         /* ── depth-of-field rack focus between the three screens ──
            (CSS seeds build/ship at 3px blur + 0.9 dim; plan starts sharp) */
-        tl.to("#f8-scr-plan",  { "--dof": "3px",   opacity: 0.9,  duration: 0.9, ease: "power2.inOut" }, 4.2);
-        tl.to("#f8-scr-build", { "--dof": "0px",   opacity: 1,    duration: 0.9, ease: "power2.inOut" }, 4.2);
-        tl.to("#f8-scr-build", { "--dof": "3px",   opacity: 0.9,  duration: 0.9, ease: "power2.inOut" }, 8.6);
-        tl.to("#f8-scr-ship",  { "--dof": "0px",   opacity: 1,    duration: 0.9, ease: "power2.inOut" }, 8.6);
-        tl.to("#f8-scr-plan",  { "--dof": "2.2px", opacity: 0.94, duration: 0.8, ease: "power2.inOut" }, 13.0);
-        tl.to("#f8-scr-build", { "--dof": "2.2px", opacity: 0.94, duration: 0.8, ease: "power2.inOut" }, 13.0);
-        tl.to("#f8-scr-ship",  { "--dof": "2.2px", opacity: 0.94, duration: 0.8, ease: "power2.inOut" }, 13.0);
-        tl.to("#f8-scr-plan",  { "--dof": "1.2px", opacity: 1,    duration: 1.0, ease: "power2.inOut" }, 15.9);
-        tl.to("#f8-scr-build", { "--dof": "1.2px", opacity: 1,    duration: 1.0, ease: "power2.inOut" }, 15.9);
-        tl.to("#f8-scr-ship",  { "--dof": "1.2px", opacity: 1,    duration: 1.0, ease: "power2.inOut" }, 15.9);
+        tl.to("#f8-design",    { "--dof": "0px",   opacity: 1,    duration: 0.9, ease: "power2.inOut" }, 5.9);
+        tl.to("#f8-design",    { "--dof": "3px",   opacity: 0.9,  duration: 0.9, ease: "power2.inOut" }, 8.8);
+        tl.to("#f8-scr-plan",  { "--dof": "3px",   opacity: 0.9,  duration: 1.127, ease: "power2.inOut" }, 5.9);
+        tl.to("#f8-scr-build", { "--dof": "0px",   opacity: 1,    duration: 1.127, ease: "power2.inOut" }, 5.9);
+        tl.to("#f8-scr-build", { "--dof": "3px",   opacity: 0.9,  duration: 1.127, ease: "power2.inOut" }, 14.4);
+        tl.to("#f8-scr-ship",  { "--dof": "0px",   opacity: 1,    duration: 1.127, ease: "power2.inOut" }, 14.4);
+        tl.to("#f8-scr-plan",  { "--dof": "2.2px", opacity: 0.94, duration: 1.002, ease: "power2.inOut" }, 19.6);
+        tl.to("#f8-scr-build", { "--dof": "2.2px", opacity: 0.94, duration: 1.002, ease: "power2.inOut" }, 19.6);
+        tl.to("#f8-scr-ship",  { "--dof": "2.2px", opacity: 0.94, duration: 1.002, ease: "power2.inOut" }, 19.6);
+        tl.to("#f8-scr-plan",  { "--dof": "1.2px", opacity: 1,    duration: 1.253, ease: "power2.inOut" }, 21.385);
+        tl.to("#f8-scr-build", { "--dof": "1.2px", opacity: 1,    duration: 1.253, ease: "power2.inOut" }, 21.385);
+        tl.to("#f8-scr-ship",  { "--dof": "1.2px", opacity: 1,    duration: 1.253, ease: "power2.inOut" }, 21.385);
 
         /* ── Scene 1 · the spec writes itself (discrete-text-sequence, smooth slice) ── */
         const FULL = "Preserve form state on error, surface the decline reason inline, and retry tokenization without a full reload.";
         const typeEl = document.getElementById("f8-type");
         const len = { v: 0 };
         tl.to(len, {
-          v: FULL.length, duration: 3.0, ease: "power1.inOut",
+          v: FULL.length, duration: 3.758, ease: "power1.inOut",
           onUpdate: () => { typeEl.textContent = FULL.substring(0, Math.floor(len.v)); },
         }, 0.9);
         /* TOC focus follows the doc: approach becomes the active section mid-type */
-        tl.to("#f8-toc-problem",  { color: "#A8A29A", boxShadow: "inset 0 0 0 0 rgba(0,0,0,0)", duration: 0.35, ease: "power1.out" }, 2.6);
-        tl.to("#f8-toc-approach", { color: "#F2EFE9", boxShadow: "inset 2px 0 0 #8FA464",       duration: 0.35, ease: "power1.out" }, 2.6);
+        tl.to("#f8-toc-problem",  { color: "#A8A29A", boxShadow: "inset 0 0 0 0 rgba(0,0,0,0)", duration: 0.438, ease: "power1.out" }, 3.652);
+        tl.to("#f8-toc-approach", { color: "#F2EFE9", boxShadow: "inset 2px 0 0 #8FA464",       duration: 0.438, ease: "power1.out" }, 3.652);
 
         /* ── Scene 2 · console ticks live + diff rows stream ── */
-        tl.fromTo("#f8-diff1", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 5.0);
-        tl.fromTo("#f8-log5",  { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 5.4);
-        tl.fromTo("#f8-diff2", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 5.7);
-        tl.fromTo("#f8-log6",  { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 6.3);
-        tl.fromTo("#f8-diff3", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 6.5);
-        tl.fromTo("#f8-log7",  { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 7.2);
+        tl.fromTo("#f8-diff1", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.438, ease: "power2.out" }, 9.818);
+        tl.fromTo("#f8-log5",  { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.438, ease: "power2.out" }, 10.327);
+        tl.fromTo("#f8-diff2", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.438, ease: "power2.out" }, 10.709);
+        tl.fromTo("#f8-log6",  { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.438, ease: "power2.out" }, 11.472);
+        tl.fromTo("#f8-diff3", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.438, ease: "power2.out" }, 11.727);
+        tl.fromTo("#f8-log7",  { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.438, ease: "power2.out" }, 12.618);
+        tl.fromTo("#f8-log8",  { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.438, ease: "power2.out" }, 13.471);
 
         /* ── Scene 3 · release notes unfurl · GTM ticks on the VO · deploy flips live ── */
-        tl.fromTo("#f8-note1", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 8.85);
-        tl.fromTo("#f8-note2", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 9.1);
-        tl.fromTo("#f8-note3", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 9.35);
+        tl.fromTo("#f8-note1", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.564, ease: "power2.out" }, 14.695);
+        tl.fromTo("#f8-note2", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.564, ease: "power2.out" }, 14.991);
+        tl.fromTo("#f8-note3", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.564, ease: "power2.out" }, 15.286);
         const TICKS = [["#f8-tk1", "#f8-chk1", 9.9], ["#f8-tk2", "#f8-chk2", 10.6], ["#f8-tk3", "#f8-chk3", 11.3]];
         TICKS.forEach(([tick, row, at]) => {
-          tl.fromTo(tick, { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.6)" }, at);
-          tl.to(row, { color: "#F2EFE9", duration: 0.3, ease: "power1.out" }, at);
+          tl.fromTo(tick, { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.438, ease: "back.out(1.6)" }, at);
+          tl.to(row, { color: "#F2EFE9", duration: 0.376, ease: "power1.out" }, at);
         });
-        tl.to("#f8-dep-warn",  { opacity: 0, y: -5, duration: 0.3, ease: "power1.in" }, 12.15);
-        tl.fromTo("#f8-dep-live", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 12.25);
+        tl.to("#f8-dep-warn",  { opacity: 0, y: -5, duration: 0.376, ease: "power1.in" }, 18.595);
+        tl.fromTo("#f8-dep-live", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.438, ease: "power2.out" }, 18.713);
 
         /* ── Scene 4 · spine draws through the stations as the camera passes ── */
         const spine = document.getElementById("f8-spinepath");
         const spineLen = spine.getTotalLength();
         spine.style.strokeDasharray = String(spineLen);
         spine.style.strokeDashoffset = String(spineLen);
-        tl.to(spine, { strokeDashoffset: 0, duration: 2.35, ease: "none" }, 13.35);
+        tl.to(spine, { strokeDashoffset: 0, duration: 2.944, ease: "none" }, 19.815);
         /* node dots pop as the pen crosses each gap */
         gsap.utils.toArray(".f8-node").forEach((node, i) => {
           tl.fromTo(node, { scale: 0, transformOrigin: "50% 50%" },
-            { scale: 1, duration: 0.3, ease: "back.out(2)" }, 13.62 + i * 0.35);
+            { scale: 1, duration: 0.376, ease: "back.out(2)" }, 13.62 + i * 0.35);
         });
         /* each station gets a tap pulse on its camera hit */
         gsap.utils.toArray(".f8-mini").forEach((card, i) => {
           const at = 13.55 + i * 0.35;
-          tl.to(card, { scale: 1.05, duration: 0.13, ease: "power2.out" }, at);
-          tl.to(card, { scale: 1,    duration: 0.22, ease: "power2.in"  }, at + 0.13);
+          tl.to(card, { scale: 1.05, duration: 0.163, ease: "power2.out" }, at);
+          tl.to(card, { scale: 1,    duration: 0.276, ease: "power2.in"  }, at + 0.13);
         });
 
         /* ── Scene 5 · the strip completes: signal → … → learning ── */
         tl.fromTo(".f8-flow-tok", { opacity: 0, y: 10 },
-          { opacity: 1, y: 0, duration: 0.4, ease: "power2.out", stagger: 0.07 }, 16.2);
+          { opacity: 1, y: 0, duration: 0.501, ease: "power2.out", stagger: 0.07 }, 20.295);
 
         /* ── lower-third · kicker relay follows the camera, line lands on the wide ── */
-        tl.fromTo("#f8-k1", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.85);
-        tl.to("#f8-k1", { opacity: 0, y: -8, duration: 0.3, ease: "power1.in" }, 4.3);
-        tl.fromTo("#f8-k2", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 4.55);
-        tl.to("#f8-k2", { opacity: 0, y: -8, duration: 0.3, ease: "power1.in" }, 8.7);
-        tl.fromTo("#f8-k3", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 8.95);
-        tl.to("#f8-k3", { opacity: 0, y: -8, duration: 0.3, ease: "power1.in" }, 15.85);
-        tl.fromTo("#f8-k4", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 16.1);
-        tl.fromTo("#f8-ltl", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 16.55);
+                /* ── 04 · Design — the prototype takes shape on its spoken cue ── */
+        tl.fromTo("#f8-dsg-f1", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 6.35);
+        tl.fromTo("#f8-dsg-f2", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 6.75);
+        tl.fromTo("#f8-dsg-f3", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 7.15);
+        tl.fromTo("#f8-dsg-pin", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out", transformOrigin: "50% 50%" }, 7.75);
+
+tl.fromTo("#f8-k1", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 1.2);
+        tl.to("#f8-k1", { opacity: 0, y: -8, duration: 0.36, ease: "power1.in" }, 5.7);
+        tl.fromTo("#f8-kd", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 6.1);
+        tl.to("#f8-kd", { opacity: 0, y: -8, duration: 0.36, ease: "power1.in" }, 8.6);
+        tl.fromTo("#f8-k2", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 9.1);
+        tl.to("#f8-k2", { opacity: 0, y: -8, duration: 0.36, ease: "power1.in" }, 14.2);
+        tl.fromTo("#f8-k3", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 14.7);
+        tl.to("#f8-k3", { opacity: 0, y: -8, duration: 0.36, ease: "power1.in" }, 19.4);
+        tl.fromTo("#f8-k4", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 19.9);
+        tl.fromTo("#f8-ltl", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 20.6);
 
         /* ── single deterministic driver: micro-drift + caret blink ── */
         const caretEl = document.getElementById("f8-caret");
@@ -867,13 +1065,14 @@
           const p = (driver.t / DUR) * Math.PI * 2 * DRIFT_CYCLES;
           const dx = Math.sin(p) * AMP_X;
           const dy = Math.sin(p * FREQ_RATIO) * AMP_Y;
+          const c = camAt(driver.t);
           camEl.style.transform =
-            "translate(" + (cam.x + dx).toFixed(2) + "px," + (cam.y + dy).toFixed(2) + "px) scale(" + cam.s.toFixed(4) + ")";
+            "translate(" + (c.x + dx).toFixed(2) + "px," + (c.y + dy).toFixed(2) + "px) scale(" + c.s.toFixed(4) + ")";
           caretEl.style.opacity = Math.sin(driver.t * Math.PI * 2 / 0.9) > 0 ? "1" : "0.1";
         };
 
         /* driver registered LAST so it reads each frame's settled cam values */
-        tl.to(driver, { t: DUR, duration: DUR, ease: "none", onUpdate: apply }, 0);
+        tl.to(driver, { t: DUR, duration: DUR, ease: "none", onUpdate: apply }, 0.0);
         apply(); // seed t=0
 
         window.__timelines["08-the-route"] = tl;

@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-08-11T20:29:38.629255Z",
+  "display_name": "Sonilo Music",
+  "id": "d5223f6c-d4d4-40dd-ae2f-8c63a9bbc530",
+  "job_type": "sonilo_music",
+  "min_result_url": null,
+  "params": {
+    "duration": 142,
+    "prompt": "Modern cinematic-electronic teaser score in four acts across the full duration: act one sparse tension with a ticking pulse and deep sub, act two opens into a confident mid-tempo groove with crisp hats and evolving analog arps, act three layers momentum with rhythmic string-like stabs, act four resolves warm and triumphant but restrained in the final twenty seconds. Precise, fresh, premium; no vocals, no EDM drop, no cliche epic-trailer braams."
+  },
+  "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3GrM9hprJ3PH4vVtwjOom6boQVj/hf_20260811_202938_d5223f6c-d4d4-40dd-ae2f-8c63a9bbc530.m4a",
+  "status": "completed"
+}
