@@ -7,6 +7,12 @@
       "skillPath": "agent_reach/skill/SKILL.md",
       "computedHash": "c9fa09a33f4d41de0a9752162c693aab9a402fcb20e51923954585f621b465ee"
     },
+    "brag": {
+      "source": "latent-spaces/brag",
+      "sourceType": "github",
+      "skillPath": "skills/brag/SKILL.md",
+      "computedHash": "bfa006908e7389adc592000980b99638f4db108286679ccd454a2d378709790b"
+    },
     "deploy-to-vercel": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",

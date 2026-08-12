@@ -147,7 +147,22 @@ export const Route = createFileRoute("/_authenticated/engine-room")({
     surface: typeof search.surface === "string" ? search.surface : undefined,
   }),
   component: EngineRoomPage,
-  head: () => ({ meta: [{ title: "Engine room · Supaprod" }] }),
+  /**
+   * THE DOCUMENT TITLE CARRIES THE ROOM, and it used to be one hardcoded string
+   * for all five URLs. Five distinct pages sharing one title makes browser
+   * history unusable: back through Spend, Safety and Record and every entry
+   * reads "Engine room · Supaprod", so the list cannot tell you where you have
+   * been. `match.search` is the same validated object the component reads, so
+   * the tab and the page can never disagree about which room is open.
+   */
+  head: ({ match }) => {
+    const open = match.search.room;
+    return {
+      meta: [
+        { title: open ? `${ROOM_NAMES[open]} · Engine room · Supaprod` : "Engine room · Supaprod" },
+      ],
+    };
+  },
   errorComponent: ({ error, reset }) => (
     <Surface>
       <PageHead
@@ -278,10 +293,19 @@ function EngineRoomPage() {
         wide
         context={
           <>
+            {/* NEXT RIDES THE SUB WHEN THE ASIDE IS AT THE PAGE FLOOR, and this
+                pair of classes is the whole switch. Below `--sp-ctx-split` the
+                aside stacks under the entire room body: measured on ?room=record
+                at 1280 with the rail expanded, `.sp-ctx` was 983px wide at
+                y=786.3 of a 900px viewport, with its last line drawn beneath the
+                fixed composer. So the one line the reader came to act on sat at
+                eye level in one rail state and under the dock in the other. The
+                copy is rendered in both places and exactly one is shown; the
+                rules live in styles/engine-room.css beside the numbers. */}
             {status?.glance?.action ? (
               <>
-                <div className="sp-ctx-head">Next</div>
-                <div className="sp-ctx-body">{status.glance.action}</div>
+                <div className="sp-ctx-head sp-er-next-aside">Next</div>
+                <div className="sp-ctx-body sp-er-next-aside">{status.glance.action}</div>
               </>
             ) : null}
             <div className="sp-ctx-head">The engine calls this</div>
@@ -289,6 +313,24 @@ function EngineRoomPage() {
           </>
         }
       >
+        {/* WHERE YOU ARE, AND THE WAY BACK, ON ONE LINE ABOVE THE TITLE.
+            The room's NAME was rendered exactly once in the whole chassis, as
+            the tablist's `aria-label`, so a screen reader heard "Spend views"
+            and a sighted reader had no word for the room they were standing in:
+            the title is the question, the rail says "Engine room" on all four,
+            and the full `main` innerText of ?room=spend contained no "Spend".
+            The question is the room's PURPOSE and stays the title; the name is
+            its ADDRESS and belongs here, beside the way out. The back control
+            came from the Block head 224px down the page, right-aligned with an
+            empty cell to its left, which is not where anyone looks for it. */}
+        <div className="sp-er-crumb">
+          <button type="button" className="sp-block-more" onClick={back}>
+            All four rooms
+          </button>
+          <span aria-hidden="true">·</span>
+          <span className="sp-er-crumb-here">{ROOM_NAMES[room]}</span>
+        </div>
+
         <PageHead
           title={ROOM_QUESTIONS[room]}
           sub={
@@ -315,6 +357,14 @@ function EngineRoomPage() {
                   </>
                 ) : null}
                 {status.glance.verdict}
+                {/* The other half of the switch above. Shown only when the
+                    aside has stacked to the page floor. */}
+                {status.glance.action ? (
+                  <span className="sp-er-next-inline">
+                    {" · "}
+                    {status.glance.action}
+                  </span>
+                ) : null}
               </>
             ) : (
               "Reading."
@@ -339,7 +389,11 @@ function EngineRoomPage() {
           ))}
         </div>
 
-        <Block sub={meta.descriptor} more="All four rooms" onMore={back}>
+        {/* No `more` here any more: the way out is the crumb above the title.
+            A Block with a `more` and no `title` renders a head whose left cell
+            is an empty <span>, so "All four rooms" sat alone at the far right of
+            a 983px band, which reads as a stray link rather than as the exit. */}
+        <Block sub={meta.descriptor}>
           <Body view={activeView} suite={suite} agent={agent} surface={surface} />
         </Block>
       </Surface>
@@ -393,7 +447,22 @@ function EngineRoomOverview({
   return (
     // No context column. The overview's whole job is the routing decision, and
     // nothing else read here was machine state.
-    <Surface>
+    //
+    // `wide`, and it was missing. The prop's own docstring states the test: the
+    // 74ch measure exists so a LINE OF PROSE stays readable and is the wrong
+    // constraint for anything laid out in columns. Every card on this page is a
+    // `repeat(auto-fill, minmax(132px, 1fr))` figure grid, so it is on the
+    // columns side of that rule for exactly the reason the room bodies are.
+    //
+    // MEASURED AT 1280 BEFORE THIS LINE. Rail expanded (work region 1044px):
+    // `.sp-main` was 636.1px ending at 902.4 while the composer ended at 1240,
+    // two right edges 337.6px apart with 36% of the region dead black. Rail
+    // COLLAPSED (region 1216px) the column did not grow, it only slid left: the
+    // gap became 504.7px. So collapsing the rail, whose whole job is to give the
+    // work more room, gave this page none. Opening a room then jumped the
+    // content 347.4px wider, because line 277 already passes `wide`. One right
+    // edge now, on the overview and in its own rooms alike.
+    <Surface wide>
       <PageHead title={headline} />
 
       {/* A column of cards rather than a row-list. The gap is the system's
