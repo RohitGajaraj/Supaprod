@@ -32,6 +32,7 @@ Open one only when you are building that thing. Each carries per-ID specs: conte
 | Decision Brain, increment 1 | [`ambient-precedent-plan.md`](./initiatives/ambient-precedent-plan.md) |
 | Decision Brain, the supersession engine | [`supersession-engine-plan.md`](./initiatives/supersession-engine-plan.md) |
 | Builder reliability and the codegen direction | [`builder-reliability-and-codegen-direction.md`](./initiatives/builder-reliability-and-codegen-direction.md) (a proposal; the founder owns the decision) |
+| Forecast resolution, the grading half of FC-01 | [`forecast-resolution-plan.md`](./initiatives/forecast-resolution-plan.md) |
 
 ## The current rebuild
 
