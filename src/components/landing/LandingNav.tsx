@@ -35,6 +35,23 @@ export function LandingNav() {
       </Link>
 
       <div className="hidden md:flex items-center gap-8">
+        {/* FILM, ADDED 2026-08-12, AND WHY IT DOES NOT REOPEN THE "UPDATES" CUT
+            RECORDED ABOVE. Updates was removed for being a THIRD-PRIORITY
+            destination competing for a click before the visitor had read a
+            sentence. The film is the opposite: 2:22 is the fastest complete
+            answer to "what is this", which makes it a first-priority door, and
+            it is FIRST in the group for that reason.
+
+            It is also not a net addition to the page. The hero's tertiary link
+            came out in the same change (see Hero.tsx): the film moved from a
+            line that wrapped awkwardly under two buttons to the place a
+            navigation item belongs. One door, better placed.
+
+            Safe against the 320px zero-slack measurement in the note above:
+            this group is `hidden md:flex` and does not exist below 768. */}
+        <a href="/film" className="text-sm text-zinc-400 hover:text-white transition-colors">
+          Film
+        </a>
         <a
           href="/demo"
           // Read in the handler, not at render: this nav is server rendered.

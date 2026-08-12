@@ -158,6 +158,17 @@ docs/screenshots/
 # Served social/preview image (the cosmic brand-band OG card) must be committed so it
 # deploys and link previews work.
 !public/og-cadence.png
+
+# The film's poster frame (2026-08-12). Same reason as every exception in this
+# block, and it was caught by the same failure this file already documents
+# below: the global *.jpg rule silently swallowed it, `git add` refused it, and
+# an unnoticed miss would have deployed the film with no poster - a black
+# rectangle before anyone presses play, and no og:image on /film, which is the
+# whole point of having a shareable URL for it.
+#
+# Scoped to the folder, not the filename, so a re-cut that renames the frame
+# does not have to remember to come back here.
+!public/film/*.jpg
 # Served favicon / apple-touch marks (the app head references these) must be committed.
 !public/favicon.png
 !public/apple-touch-icon.png

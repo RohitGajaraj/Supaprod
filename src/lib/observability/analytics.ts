@@ -26,6 +26,9 @@ export type TrackEvent =
   | "waitlist_join"
   | "referral_share"
   | "demo_click"
+  // The product film, embedded 2026-08-12. Carries `surface` so the three
+  // mounts (landing section, /demo, /film) stay tellable apart.
+  | "film_play"
   // AFD-04 auth boundary. The funnel's real entry, and it had nothing until
   // 2026-08-02. See ./auth.functions.ts for why no first-party row is written.
   | "signup_completed"

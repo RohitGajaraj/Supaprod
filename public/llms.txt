@@ -74,7 +74,8 @@ show the claim rather than assert it.
 | `/product` | How it works: the seven stations, the loop, and the moat |
 | `/updates` | Changelog: what shipped, in plain language, dated against the build log |
 | `/` | Landing page: product thesis, the three layers, core capabilities |
-| `/demo` | Live, no-signup demo workspace (read-only) |
+| `/demo` | Live, no-signup demo workspace (read-only), opening with the film |
+| `/film` | The product film, 2:22 and narrated: one signal through all seven stations, and an outcome scored against the call that caused it |
 | `/faq` | Frequently asked questions, question-shaped for answer engines |
 | `/pricing` | Pricing and plans |
 | `/brief` | For investors: problem, product, market, team |

@@ -24,6 +24,7 @@ import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InvestorsRouteImport } from './routes/investors'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as FilmRouteImport } from './routes/film'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as CheckoutRouteImport } from './routes/checkout'
@@ -265,6 +266,11 @@ const InvestorsRoute = InvestorsRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FilmRoute = FilmRouteImport.update({
+  id: '/film',
+  path: '/film',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -1185,6 +1191,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRouteWithChildren
   '/demo': typeof DemoRoute
   '/faq': typeof FaqRoute
+  '/film': typeof FilmRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/investors': typeof InvestorsRoute
   '/login': typeof LoginRoute
@@ -1368,6 +1375,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRouteWithChildren
   '/demo': typeof DemoRoute
   '/faq': typeof FaqRoute
+  '/film': typeof FilmRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/investors': typeof InvestorsRoute
   '/login': typeof LoginRoute
@@ -1551,6 +1559,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRouteWithChildren
   '/demo': typeof DemoRoute
   '/faq': typeof FaqRoute
+  '/film': typeof FilmRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/investors': typeof InvestorsRoute
   '/login': typeof LoginRoute
@@ -1736,6 +1745,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/demo'
     | '/faq'
+    | '/film'
     | '/forgot-password'
     | '/investors'
     | '/login'
@@ -1919,6 +1929,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/demo'
     | '/faq'
+    | '/film'
     | '/forgot-password'
     | '/investors'
     | '/login'
@@ -2101,6 +2112,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/demo'
     | '/faq'
+    | '/film'
     | '/forgot-password'
     | '/investors'
     | '/login'
@@ -2286,6 +2298,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRouteWithChildren
   DemoRoute: typeof DemoRoute
   FaqRoute: typeof FaqRoute
+  FilmRoute: typeof FilmRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   InvestorsRoute: typeof InvestorsRoute
   LoginRoute: typeof LoginRoute
@@ -2485,6 +2498,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/film': {
+      id: '/film'
+      path: '/film'
+      fullPath: '/film'
+      preLoaderRoute: typeof FilmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -3892,6 +3912,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRouteWithChildren,
   DemoRoute: DemoRoute,
   FaqRoute: FaqRoute,
+  FilmRoute: FilmRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   InvestorsRoute: InvestorsRoute,
   LoginRoute: LoginRoute,

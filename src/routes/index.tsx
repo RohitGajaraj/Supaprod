@@ -34,6 +34,7 @@ import { LandingNav } from "@/components/landing/LandingNav";
 import { Hero } from "@/components/landing/Hero";
 import { TheGap } from "@/components/landing/TheGap";
 import { ThreeLayers } from "@/components/landing/ThreeLayers";
+import { TheFilm } from "@/components/landing/TheFilm";
 import { LoopWalkthrough } from "@/components/landing/LoopWalkthrough";
 import { Receipts } from "@/components/landing/Receipts";
 import { TrustClose } from "@/components/landing/TrustClose";
@@ -158,6 +159,7 @@ When a build breaks, Supaprod diagnoses the failure, revises its own spec, rebui
 - Track record: /proof (publishes our calibration score live, including an honest zero until outcomes land)
 - Public teardown (no signup): /p/teardown
 - Shipping log: /updates
+- The film: /film (2:22, narrated. One signal through all seven stations, and an outcome scored against the call that caused it)
 
 ## Agent interfaces
 - A2A agent card: /.well-known/agent.json
@@ -352,6 +354,11 @@ function LandingPage() {
               02 in motion: absence, then the answer, then the receipt
               (founder ruling 2026-07-25). */}
           <ThreeLayers />
+          {/* The film shows the whole thing in 2:22; the walkthrough below
+              then lets the reader drive the same loop at their own pace. Show
+              first, explore second - the reverse would summarize for someone
+              who had already done the work. */}
+          <TheFilm />
           <LoopWalkthrough />
           <Receipts />
           <TrustClose waitlistCount={waitlistCount} />

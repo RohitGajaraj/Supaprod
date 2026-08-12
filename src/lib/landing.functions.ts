@@ -213,7 +213,16 @@ export const getWaitlistCount = createServerFn({ method: "GET" }).handler(
   },
 );
 
-const LANDING_EVENTS = ["landing_visit", "waitlist_join", "referral_share", "demo_click"] as const;
+// `film_play` added 2026-08-12 with the film embed. It carries a `surface`
+// prop ("landing" | "demo" | "film") because the film has three mounts and the
+// only interesting question about it is which door people press play behind.
+const LANDING_EVENTS = [
+  "landing_visit",
+  "waitlist_join",
+  "referral_share",
+  "demo_click",
+  "film_play",
+] as const;
 export type LandingEventName = (typeof LANDING_EVENTS)[number];
 
 /**
@@ -611,7 +620,7 @@ export type LandingFunnel = {
 /** Empty per-event tally. Written out so a new event name is a type error here
  *  rather than a silently missing column on the surface. */
 function zeroEventCounts(): Record<LandingEventName, number> {
-  return { landing_visit: 0, waitlist_join: 0, referral_share: 0, demo_click: 0 };
+  return { landing_visit: 0, waitlist_join: 0, referral_share: 0, demo_click: 0, film_play: 0 };
 }
 
 export const getLandingFunnel = createServerFn({ method: "GET" })

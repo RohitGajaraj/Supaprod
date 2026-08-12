@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
+import { FILM_DURATION_LABEL, FilmPlayer } from "@/components/landing/FilmPlayer";
 import { PUBLIC_INK_THEME } from "@/components/landing/inkTheme";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { stripAutoPrefix } from "@/components/plan/format";
@@ -463,6 +464,25 @@ function DemoPage() {
               workspace: a real teardown, a real decision history, a real mission trace. You cannot
               break anything, so look around.
             </p>
+          </div>
+        </section>
+
+        {/* THE FILM, ADDED 2026-08-12, AND WHY IT LANDS HERE FIRST.
+            The landing hero's tertiary link read "Watch a real run" and
+            pointed at this page for weeks. Nothing on it moves: every section
+            below is live seeded DATA, which is the right thing for this page
+            to be and is not a run anybody can watch. The film is the moving
+            answer, so it opens the page the promise was aimed at.
+
+            It sits ABOVE the live sections rather than below them because the
+            film is the fastest explanation of what the numbers underneath
+            even are. A visitor who plays it reads the rest with context; one
+            who skips it loses nothing, since the film is click to play and
+            costs no bytes until pressed. */}
+        <section className="px-6 pb-14">
+          <div className="mx-auto max-w-5xl">
+            <Eyebrow>The film &middot; {FILM_DURATION_LABEL} &middot; sound on</Eyebrow>
+            <FilmPlayer surface="demo" />
           </div>
         </section>
 

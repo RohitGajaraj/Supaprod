@@ -1,5 +1,9 @@
-import { trackLandingEvent } from "@/lib/landing.functions";
-import { getLandingSessionKey } from "@/lib/landing-session";
+// The landing-funnel imports left with the hero's /demo link on 2026-08-12
+// (see the CTA row below). The hero's tertiary link is now an in-page anchor
+// to the film, and a scroll is not a conversion worth a row: the film section
+// fires `film_play` when somebody actually presses play, which is the event
+// that means something. `demo_click` still fires from LandingNav and
+// LoopWalkthrough, so the funnel keeps that step.
 import { MarkGlint } from "./MarkGlint";
 
 /**
@@ -551,24 +555,23 @@ export function Hero() {
                   No signup &middot; evidence in a minute
                 </span>
               </a>
-              <a
-                href="/demo"
-                // The session key is read inside the handler, never at render,
-                // so SSR paints this link without touching sessionStorage. It
-                // comes back undefined if the browser will not give us one, and
-                // the event fires anyway with no key attached.
-                onClick={() =>
-                  void trackLandingEvent({
-                    data: { event: "demo_click", sessionKey: getLandingSessionKey() },
-                  })
-                }
-                className="hero-quiet group rounded-sm text-sm text-zinc-400"
-              >
-                Watch a real run{" "}
-                <span className="hero-arrow inline-block" aria-hidden>
-                  &rarr;
-                </span>
-              </a>
+              {/* THE THIRD LINK IS GONE, 2026-08-12 (founder), AND THIS IS THE
+                  SECOND TIME THE SAME RULE HAS BEEN APPLIED HERE.
+
+                  It read "Watch a real run" and pointed at /demo, which was a
+                  promise the destination could not keep: /demo is live seeded
+                  DATA (a teardown, a decision history, a mission trace) and not
+                  one frame of it moves. Repointing it at the film fixed the
+                  promise and left the real problem standing - it wrapped onto
+                  its own line under the two buttons and read as an orphan, a
+                  third door competing with the two that matter.
+
+                  That is the note directly below this one, from 2026-08-10,
+                  arriving a second time: "under one ember button the hero was
+                  offering three doors at once". Two is the shape that works.
+                  The film is not hidden by this; it has the nav, its own
+                  section one scroll down, and /film. Nothing above the fold
+                  has to carry it. */}
             </div>
 
             {/* REMOVED 2026-08-10 (founder): the Critic offer paragraph and the

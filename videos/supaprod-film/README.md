@@ -4,7 +4,14 @@
 
 A 2:22 product film — marketing teaser + system demo — produced 2026-08-11/12,
 founder-directed through ~40 review rounds. Submitted to the YC application and
-future accelerator applications; the website embed is deliberately deferred.
+future accelerator applications.
+
+**The website embed shipped 2026-08-12, reversing the same-day deferral.** It is
+live on three surfaces from one component (`src/components/landing/FilmPlayer.tsx`):
+the landing page's own section between `ThreeLayers` and `LoopWalkthrough`, the
+top of `/demo`, and the standalone shareable `/film`. See
+[the web renditions](#the-web-renditions-what-the-site-actually-serves) below —
+**the site does not serve any file in `renders/`.**
 
 ## The deliverables (what you ship, nothing else)
 
@@ -21,6 +28,51 @@ Everything else in `renders/` is a review candidate the founder saw
 versions can be compared side by side. Silent intermediate pictures
 (`video-vN.mp4`) were deleted for disk space; every one is recoverable from its
 muxed master via `ffmpeg -i master -map 0:v -c copy`.
+
+## The web renditions: what the site actually serves
+
+**Nothing in `renders/` is web-servable.** Cloudflare Workers caps a single
+static asset at **25 MiB** (Free and Paid alike) and Lovable deploys onto
+Workers, so the 93MB 1080 master is 3.7x over and the 192MB 4K master is 7.7x
+over. A publish carrying either does not go out. 4K on the site would also buy
+nothing if it could ship: the player is a ~1000px card, so a 3840px source is
+downsampled to 2-4x fewer pixels than it carries, and the viewer pays the bytes
+for detail no display in the layout can resolve. 4K stays the archive and
+upload master.
+
+These four files, in `public/film/`, are what visitors get:
+
+| File | What it is |
+|---|---|
+| `supaprod-film-1080.mp4` | 21.9MB, CRF 23. The default. Highest quality that fits under the cap with headroom. |
+| `supaprod-film-720.mp4` | 9.0MB, CRF 26. Narrow screens and `Save-Data`, picked at click time. |
+| `supaprod-film-poster.jpg` | 73KB. Frame **t=82s** — the Build station, boundary bar, live diff. Chosen because it carries agents, governance and real code in one still. |
+| `supaprod-film.vtt` | 43 caption cues. **Generated, never typed.** |
+
+Regenerate picture and captions from the master:
+
+```bash
+# 1080 (the default) and 720, both faststart so playback starts before the
+# whole file has landed. Raising quality past CRF 23 breaks the 25MiB cap:
+# CRF 21 measured 28.0MB and would fail the publish.
+ffmpeg -y -i renders/supaprod-film-final-1080.mp4 -c:v libx264 -preset slow -crf 23 \
+  -profile:v high -pix_fmt yuv420p -g 60 -c:a aac -b:a 128k -movflags +faststart \
+  ../../public/film/supaprod-film-1080.mp4
+
+# Captions. Reads DUR/OFFSET/TEMPO straight out of build-final-mix.py, so a
+# rhythm change there is a caption change here after one re-run. Asserts that
+# no cue overlaps the next rather than silently clamping.
+python3 higgsfield-audio/build-captions.py
+```
+
+**If `build-final-mix.py`'s `DUR`, `OFFSET` or `TEMPO` change, change the copies
+at the top of `build-captions.py` in the same commit.** They are duplicated on
+purpose (the mix script is not importable) and that is the one seam that can
+drift.
+
+`src/components/landing/the-film-ships.test.ts` guards the mechanisms: every
+path the player names exists, no video exceeds the cap, the small rendition is
+actually smaller, and the caption cues run forwards and end inside the runtime.
 
 ## The source of truth, per layer
 
