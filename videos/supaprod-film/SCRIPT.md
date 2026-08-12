@@ -13,7 +13,9 @@
 **Time:** 0.0 – 7.0s
 **Delivery:** Light, almost admiring. No dread yet.
 
-    These days, anyone can build. Agents write the code — beautiful features, shipped in days.
+    These days, anyone can build. Agents write the code — features ship beautifully, in no time.
+
+*(Founder ruling 2026-08-12: features are not beautiful; the shipping is. The craft compliment goes to the verb.)*
 
 ## Line 2 — Worth building (Frame 2)
 

@@ -9,8 +9,16 @@ starts, t = [], 0.0
 for d in DUR:
     starts.append(t); t += d
 F = starts  # F[0]..F[12]
+# The rhythm map (founder ruling: the film must breathe; no seam under ~0.5s of air).
+# Measured line ends vs next line starts; these offsets open the three breathless seams
+# (L5>L6 was 0.02s, L7>L8 0.15s, L8>L9 0.13s) without touching the picture.
 OFFSET = [0.4] * 13
-OFFSET[3] = 0.9  # the reflection beat: "Nobody remembers." breathes ~0.65s before the brand name enters
+OFFSET[3] = 1.4   # the reflection: "Nobody remembers." hangs 1.1s before the brand enters
+OFFSET[4] = 0.9   # L5 slides with it
+OFFSET[5] = 1.38  # L6 too; its tail still clears L7 by half a second
+OFFSET[7] = 0.75  # air after the forecast line, before the tour begins
+OFFSET[8] = 1.0   # the tour finishes, one breath, then the loop closes
+OFFSET[9] = 0.6   # keeps L9>L10 at half a second after the L9 shift
 vo_delays = [int((s + o) * 1000) for s, o in zip(F, OFFSET)]
 
 # (sfx_name, absolute_time_s, volume, trim_s or None) — frame-local cues on the frozen table
@@ -64,12 +72,12 @@ idx = {n: 14 + i for i, n in enumerate(sorted({s[0] for s in sfx}))}
 
 fc = []
 TEMPO = [1.05] * 13
-TEMPO[7] = 1.08  # L8's Arthur take runs 24.48s raw; 1.08 brings it inside the 22.8s window
+TEMPO[7] = 1.09  # L8 runs 24.48s raw; 1.09 fits it between its delayed start and L9's breath
 for i, d in enumerate(vo_delays):
     fc.append(f'[{i}:a]atempo={TEMPO[i]},adelay={d}|{d}[v{i}]')
 fc.append(''.join(f'[v{i}]' for i in range(13)) +
           'amix=inputs=13:normalize=0,dynaudnorm=g=7:m=4.0,volume=1.12[vo]')
-fc.append('[13:a]volume=0.29,afade=t=out:st=139.4:d=2.6[mus]')
+fc.append('[13:a]volume=0.38,afade=t=out:st=139.4:d=2.6[mus]')  # founder: the hang drum was too subtle; +2.3dB, gentler duck below
 uses = {}
 for n, *_ in sfx: uses[n] = uses.get(n, 0) + 1
 for n, cnt in uses.items():
@@ -84,13 +92,13 @@ for j, (n, at, vol, trim) in enumerate(sfx):
     fc.append(f'[{n}{k}]{filt}[s{j}]'); snames.append(f'[s{j}]')
 fc.append(''.join(snames) + f'amix=inputs={len(snames)}:normalize=0[sfx]')
 fc.append('[vo]asplit=2[voA][voKey]')
-fc.append('[mus][voKey]sidechaincompress=threshold=0.025:ratio=12:attack=40:release=550:makeup=1[musd]')
+fc.append('[mus][voKey]sidechaincompress=threshold=0.030:ratio=8:attack=40:release=550:makeup=1[musd]')
 fc.append('[voA][musd][sfx]amix=inputs=3:normalize=0,alimiter=limit=0.93,'
           'aformat=sample_rates=48000:channel_layouts=stereo[out]')
 
 cmd = ['/opt/homebrew/bin/ffmpeg', '-y', '-v', 'error']
 for f in files: cmd += ['-i', f]
 cmd += ['-filter_complex', ';'.join(fc), '-map', '[out]', '-t', '142.1',
-        '-c:a', 'aac', '-b:a', '256k', 'audio-master-v11.m4a']
+        '-c:a', 'aac', '-b:a', '256k', 'audio-master-v13.m4a']
 r = subprocess.run(cmd, capture_output=True, text=True)
-print(r.stderr[-500:] if r.returncode else 'FINAL FILM MIX DONE: audio-master-v11.m4a')
+print(r.stderr[-500:] if r.returncode else 'FINAL FILM MIX DONE: audio-master-v13.m4a')
