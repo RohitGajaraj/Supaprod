@@ -22,6 +22,12 @@ Nothing here is superseded by age. A 2026-06 competitor sweep is still true abou
 | [`external-strategy-synthesis.md`](./external-strategy-synthesis.md) | An outside read of the strategy. |
 | [`market-validation-2026-08.md`](./market-validation-2026-08.md) | **The test of whether the Lenny findings generalise.** Four lanes run entirely outside that ecosystem: what the frontier labs shipped since Krieger named this layer, where the money went, what employers put in requisitions, and what engineers do instead of buying. **Confirms the problem, confirms the DIY default, contradicts the business.** Read it for the two findings that hurt: Notion shipped a free version of the lifecycle framing on 2026-07-09, and engineering wrote down the forecast-at-decision-time practice a decade ago and never tooled it. **The fifth lane landed as §8** on 2026-08-11: the category and analyst question. **Read §8.5 before any positioning work** — it is the least comfortable section in the file. |
 
+## What we may and may not claim
+
+| File | What it holds |
+| --- | --- |
+| [`claims-audit.md`](./claims-audit.md) | **143 claims tested against the codebase; 43 refuted.** Read before writing any outward copy — site, deck, application or sales call. Holds the live overclaims still on production (the data-residency promise with no data behind it, three wrong tool counts on machine-readable surfaces, a table count stale by 59), the full banned-vocabulary and banned-claim lists with rates and replacements, the four tense laws, and the traps — including superseded strings still printed under a heading called "Positioning canon". Ends on the gap that lets it recur: **there is no automated guard for any banned word**, so a surface that breaks the law ships silently and green. |
+
 ## What product managers actually say
 
 | File | What it holds |

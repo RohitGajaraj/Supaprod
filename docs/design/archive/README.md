@@ -13,6 +13,7 @@
 | [`loom-v4.md`](./loom-v4.md) | `DESIGN-LOOM.md`, Loom v4 | 2026-07-10, superseded by Tempo v5 |
 | [`tempo-v5.md`](./tempo-v5.md) | `DESIGN-TEMPO.md`, Tempo v5, the Geist-derived system | 2026-07-28, rejected in the rebuild-from-zero ruling |
 | [`ui-revamp-handoff.md`](./ui-revamp-handoff.md) | `UI-REVAMP-HANDOFF.md`, the live UI pickup list | 2026-07-28, describes an app shape that no longer exists |
+| [`website-v3-enterprise-2026-08.md`](./website-v3-enterprise-2026-08.md) | A from-scratch enterprise marketing site on `site/v3-enterprise` | **2026-08-12, rejected on sight.** It used a banned category claim in its hero, made the station diagram the front door against an explicit ruling, and was pushed with two failing tests. **Do not merge that branch.** Its audit of the LIVE site, and the claims audit it produced, are the parts worth keeping |
 
 ## Why all four went
 
