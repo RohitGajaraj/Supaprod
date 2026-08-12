@@ -78,7 +78,7 @@ for i, d in enumerate(vo_delays):
     fc.append(f'[{i}:a]atempo={TEMPO[i]},adelay={d}|{d}[v{i}]')
 fc.append(''.join(f'[v{i}]' for i in range(13)) +
           'amix=inputs=13:normalize=0,dynaudnorm=g=7:m=4.0,volume=1.12[vo]')
-fc.append('[13:a]volume=0.38,afade=t=out:st=139.4:d=2.6[mus]')  # founder: the hang drum was too subtle; +2.3dB, gentler duck below
+fc.append('[13:a]volume=0.38,afade=t=out:st=141.3:d=0.8[mus]')  # the track's own quiet resolution carries the close; only a hair of protection at the end
 uses = {}
 for n, *_ in sfx: uses[n] = uses.get(n, 0) + 1
 for n, cnt in uses.items():
@@ -100,6 +100,6 @@ fc.append('[voA][musd][sfx]amix=inputs=3:normalize=0,alimiter=limit=0.93,'
 cmd = ['/opt/homebrew/bin/ffmpeg', '-y', '-v', 'error']
 for f in files: cmd += ['-i', f]
 cmd += ['-filter_complex', ';'.join(fc), '-map', '[out]', '-t', '142.1',
-        '-c:a', 'aac', '-b:a', '256k', 'audio-master-v15.m4a']
+        '-c:a', 'aac', '-b:a', '256k', 'audio-master-v16-final.m4a']
 r = subprocess.run(cmd, capture_output=True, text=True)
-print(r.stderr[-500:] if r.returncode else 'FINAL FILM MIX DONE: audio-master-v15.m4a')
+print(r.stderr[-500:] if r.returncode else 'FINAL FILM MIX DONE: audio-master-v16-final.m4a')

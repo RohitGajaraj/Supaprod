@@ -237,3 +237,5 @@ design-reference/Latest Design System - v3 /
 # start of every run (2026-08-11: one lane running any spec silently bricked
 # browser verification for all the others).
 playwright/.auth/
+videos/supaprod-film/renders/video-4k.mp4
+videos/supaprod-film/renders/supaprod-film-final-4k.mp4

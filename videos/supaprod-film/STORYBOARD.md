@@ -44,7 +44,7 @@ Scene 3 (5.6–8.2s): on "shipped in days", the deploy status flips to a green "
 ## Frame 2 — Worth building
 
 - scene: A wall of shipped features over a flat adoption chart — lots built, nothing moved
-- voiceover: "But what to build — nobody cracks that call. So teams build the wrong features, beautifully… and miss what mattered. That's the judgment gap."
+- voiceover: "But what to build — nobody cracks that call. So teams build the wrong features… and miss what mattered. That's the judgment gap."
 - duration: 12.1s
 - transition_in: crossfade
 - status: animated
@@ -221,7 +221,7 @@ Scene 4 (8.0–10.8s): on "It learns. Then it guides.", the camera pulls to show
 ## Frame 10 — It stops you
 
 - scene: Mid-draft, the product interrupts: you've made this call before — with the record to prove it
-- voiceover: "And the next time you're deciding, it's beside you — the same call from last quarter, and how it went. About to repeat a mistake? It stops you."
+- voiceover: "And the next time you're deciding, it's beside you — the same call from last quarter, and how it went. About to repeat a mistake? It warns you."
 - duration: 10.8s
 - transition_in: crossfade
 - status: animated

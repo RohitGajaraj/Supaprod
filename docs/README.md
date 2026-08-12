@@ -74,6 +74,7 @@ Start at [`../README.md`](../README.md) if you want to know what the product is.
 | **Strategy, direction, the moat, market positioning** | [`strategy/`](./strategy/README.md) | its README, the arbiter. **Update `v11-guiding-star.md` in place; do not open a v14.** |
 | **Product positioning as words a customer reads** | [`pitch/`](./pitch/README.md), in the existing file | its README. Update in place, never a parallel copy. |
 | **An accelerator, incubator or VC application** | `pitch/applications/<programme>/` | [`pitch/applications/README.md`](./pitch/applications/README.md). Answers go in `answer-bank.md`, not per programme. |
+| **The product film, or any change to it** | [`../videos/supaprod-film/`](../videos/supaprod-film/README.md) | its README — the deliverables, the source layers, the two change pipelines, and the traps. The shipped 2:22 film lives there, not in `docs/`. |
 | **A question you were asked in an interview, or a pushback** | [`pitch/founder-answer-playbook.md`](./pitch/founder-answer-playbook.md), same session | already linked. This file is updated after **every** application and interview. |
 | **Launch, marketing, a channel playbook, an experiment, brand ops** | [`growth/`](./growth/README.md) | its README. Numbered `00`..`07` for the launch sequence; brand ownership in `brand-ops/`. |
 | **Architecture: a contract about how the system is built** | [`../architecture/`](../architecture/README.md) | its README. Contracts state the invariant; they do not argue for it. |

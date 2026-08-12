@@ -1,3 +1,5 @@
+> **HISTORICAL (2026-08-12).** Production is COMPLETE; the film shipped. Start at README.md in this folder instead. This file is kept as the production-era record only.
+
 # Film v4 — pending work (handoff, 2026-08-12 ~02:05 IST)
 
 > Any session resumes from here. Read REVISION-BRIEF.md first (the standing ground truth: real-app

@@ -1,6 +1,17 @@
 # Pick up here
 
-> _Created: 2026-08-07 · Last updated: 2026-08-12_
+> _Created: 2026-08-07 · Last updated: 2026-08-12 (film session close)_
+
+## ✅ FILM SESSION CLOSED — 2026-08-12 morning. The product film SHIPPED.
+
+**The 2:22 product film is done, founder-approved, and submitted to the YC application.** Everything about it — deliverables, source layers, the two change pipelines, the traps — lives in [`videos/supaprod-film/README.md`](../../videos/supaprod-film/README.md). Read that before touching anything film-related; do not reconstruct from this handoff.
+
+**Git got reconciled this session, deliberately:**
+- `main` now contains BOTH sides of the 36-ahead/32-behind divergence, merged (not rebased), one conflict (this file) resolved by union. Gates on the merged tree: `tsc --noEmit` clean, `bun test` 8807 pass / 0 fail.
+- **Another lane's uncommitted WIP was found in the tree and parked on `wip/lane-rescue-2026-08-12` (pushed).** Governance panels, brain views, discover/engine-room routes, shell primitives, a new `BoundaryStatement.tsx`. Nothing dropped, nothing judged. **The owning lane must restore from that branch.**
+- `film/teaser-v4` (remote) is the film's production history; its commits are all contained in main now.
+
+**Open, small:** graphify community labels are stale after a forced re-index (`graphify label` refreshes, costs LLM calls). The 4K master lives on disk only (GitHub 100MB limit). Website embed of the film is deliberately deferred — founder ruling.
 
 ## Current session — 2026-08-12 (resumed from context-break)
 

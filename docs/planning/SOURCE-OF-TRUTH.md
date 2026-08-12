@@ -10,6 +10,8 @@ If you are starting a session: read this, then [`../operations/session-handoff.m
 
 ## Now
 
+**THE PRODUCT FILM SHIPPED 2026-08-12 and went into the YC application.** A 2:22 film — teaser + system demo, Arthur narration, hang-drum score — founder-approved after ~40 review rounds. Masters, sources, and the how-to-change-it manual: [`videos/supaprod-film/README.md`](../../videos/supaprod-film/README.md). The YC upload file is `renders/supaprod-product-film-2026.mp4` (1080). The 4K master is on disk only (GitHub's 100MB limit); it regenerates from source in ~15 min. Website embed deliberately deferred (founder ruling, same day).
+
 **PUBLIC LAUNCH IS MID-SEPTEMBER 2026. Founder ruling 2026-08-07, and it REVERSES the 2026-08-06 direction.**
 
 That earlier direction moved the launch to "this week, on Product Hunt and X" and explicitly superseded the mid-September date. It held for one day. The reversal is recorded rather than overwritten because the two dates had been live in different files simultaneously, and three separate audits on 2026-08-07 stopped on the contradiction before they could schedule anything.
