@@ -8,8 +8,7 @@
 
 **Git got reconciled this session, deliberately:**
 - `main` now contains BOTH sides of the 36-ahead/32-behind divergence, merged (not rebased), one conflict (this file) resolved by union. Gates on the merged tree: `tsc --noEmit` clean, `bun test` 8807 pass / 0 fail.
-- **Another lane's uncommitted WIP was found in the tree and parked on `wip/lane-rescue-2026-08-12` (pushed).** Governance panels, brain views, discover/engine-room routes, shell primitives, a new `BoundaryStatement.tsx`. Nothing dropped, nothing judged. **The owning lane must restore from that branch.**
-- `film/teaser-v4` (remote) is the film's production history; its commits are all contained in main now.
+- **Another lane's uncommitted WIP was found in the tree, parked on a rescue branch, then MERGED INTO MAIN on the founder's ruling** (governance panels, brain views, discover/engine-room routes, shell primitives, a new `BoundaryStatement.tsx`). Gates after that merge: tsc clean, `bun test` 8807 pass / 0 fail. Both `wip/lane-rescue-2026-08-12` and `film/teaser-v4` were verified fully contained in main and deleted from the remote.
 
 **Open, small:** graphify community labels are stale after a forced re-index (`graphify label` refreshes, costs LLM calls). The 4K master lives on disk only (GitHub 100MB limit). Website embed of the film is deliberately deferred — founder ruling.
 
