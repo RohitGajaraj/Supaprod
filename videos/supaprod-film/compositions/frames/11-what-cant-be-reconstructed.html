@@ -294,8 +294,9 @@
         width:auto; max-width:52cqw; transform:none;
         padding:2.2cqh 6cqw 2.6cqh 8cqw;
         display:flex; flex-direction:column; align-items:flex-start; gap:0.9cqh;
-        background:linear-gradient(90deg, rgba(10,10,11,0.78) 0%, rgba(10,10,11,0.44) 55%, rgba(10,10,11,0) 100%);
+        background:linear-gradient(90deg, rgba(10,10,11,0.52) 0%, rgba(10,10,11,0.26) 55%, rgba(10,10,11,0) 100%);
         border:0; border-radius:0;
+        opacity:0; will-change:opacity;
       }
       .sk-lowerthird::before, .f3-lt::before, .f1-lt::before, .f2-lt::before{
         content:""; display:block; width:2.6cqw; height:2px; background:var(--sk-ember,#FF6B2C); margin-bottom:0.3cqh;
@@ -549,8 +550,12 @@
       tl.to(row, { backgroundColor: "rgba(242,239,233,0.05)", duration: 0.22, ease: "power1.inOut", yoyo: true, repeat: 1 }, 0.6 + i * 0.27);
     });
 
+    // container (scrim + ember rule) leads the type in, and holds through the line swap
+    tl.fromTo("#f11-overlay .sk-lowerthird", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 2.80);
     tl.fromTo("#f11-lt-k", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 2.952);
     tl.fromTo("#f11-lt-l1", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 3.064);
+    // and clears with the frame, after the second line has held to the end
+    tl.to("#f11-overlay .sk-lowerthird", { opacity: 0, duration: 0.45, ease: "power1.in" }, 10.9);
 
     /* ── Scene 2 (2.8–5.4) · "Supaprod keeps" — rack focus to the sealed forecast, pan with streak ── */
     // rack (depth-of-field-blur): plane A defocuses exactly as pre-blurred plane B snaps sharp

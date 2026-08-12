@@ -372,8 +372,9 @@
         width:auto; max-width:52cqw; transform:none;
         padding:2.2cqh 6cqw 2.6cqh 8cqw;
         display:flex; flex-direction:column; align-items:flex-start; gap:0.9cqh;
-        background:linear-gradient(90deg, rgba(10,10,11,0.78) 0%, rgba(10,10,11,0.44) 55%, rgba(10,10,11,0) 100%);
+        background:linear-gradient(90deg, rgba(10,10,11,0.52) 0%, rgba(10,10,11,0.26) 55%, rgba(10,10,11,0) 100%);
         border:0; border-radius:0;
+        opacity:0; will-change:opacity;
       }
       .sk-lowerthird::before, .f3-lt::before, .f1-lt::before, .f2-lt::before{
         content:""; display:block; width:2.6cqw; height:2px; background:var(--sk-ember,#FF6B2C); margin-bottom:0.3cqh;
@@ -402,7 +403,7 @@
         <svg width="0" height="0" aria-hidden="true" style="position:absolute">
           <defs>
             <filter id="f7-pushblur" x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur id="f7-pushblur-std" in="SourceGraphic" stdDeviation="0 0" />
+              <fegaussianblur id="f7-pushblur-std" in="SourceGraphic" stdDeviation="0 0" />
             </filter>
           </defs>
         </svg>
@@ -660,9 +661,11 @@
     tl.to(tilt, { rx: 1.6, ry: -2.2, duration: 3.0, ease: "power2.out", onUpdate: applyTilt }, 0);
     // the form arrives — hero visible early
     tl.fromTo("#f7-modal", { opacity: 0, y: 14, scale: 0.965 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "power3.out" }, 0.12);
-    // lower-third
+    // lower-third · scrim and ember rule ride in with the text, and leave with it
+    tl.fromTo("#f7-overlay .sk-lowerthird", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.35);
     tl.fromTo("#f7-lt-k", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.5);
     tl.fromTo("#f7-lt-l", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 0.68);
+    tl.to("#f7-overlay .sk-lowerthird", { opacity: 0, duration: 0.45, ease: "power1.in" }, 5.5);
 
     // discrete-text-sequence — the forecast typed with human cadence (clusters, a thinking pause)
     const SEQUENCE = [

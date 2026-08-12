@@ -461,8 +461,9 @@
         width:auto; max-width:52cqw; transform:none;
         padding:2.2cqh 6cqw 2.6cqh 8cqw;
         display:flex; flex-direction:column; align-items:flex-start; gap:0.9cqh;
-        background:linear-gradient(90deg, rgba(10,10,11,0.78) 0%, rgba(10,10,11,0.44) 55%, rgba(10,10,11,0) 100%);
+        background:linear-gradient(90deg, rgba(10,10,11,0.52) 0%, rgba(10,10,11,0.26) 55%, rgba(10,10,11,0) 100%);
         border:0; border-radius:0;
+        opacity:0; will-change:opacity;
       }
       .sk-lowerthird::before, .f3-lt::before, .f1-lt::before, .f2-lt::before{
         content:""; display:block; width:2.6cqw; height:2px; background:var(--sk-ember,#FF6B2C); margin-bottom:0.3cqh;
@@ -1075,6 +1076,9 @@
         tl.fromTo("#f8-dsg-f3", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 7.15);
         tl.fromTo("#f8-dsg-pin", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out", transformOrigin: "50% 50%" }, 7.75);
 
+        /* the container (scrim + ember rule) rides up once with the first kicker, holds through
+           the whole relay so it never flickers between stations, and clears before the cut */
+        tl.fromTo("#f8-lt .sk-lowerthird", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 1.05);
 tl.fromTo("#f8-k1", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 1.2);
         tl.to("#f8-k1", { opacity: 0, y: -8, duration: 0.36, ease: "power1.in" }, 5.7);
         tl.fromTo("#f8-kd", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 6.1);
@@ -1085,6 +1089,7 @@ tl.fromTo("#f8-k1", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, ea
         tl.to("#f8-k3", { opacity: 0, y: -8, duration: 0.36, ease: "power1.in" }, 19.4);
         tl.fromTo("#f8-k4", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 19.9);
         tl.fromTo("#f8-ltl", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 20.6);
+        tl.to("#f8-lt .sk-lowerthird", { opacity: 0, duration: 0.45, ease: "power1.in" }, 21.9);
 
         /* ── single deterministic driver: micro-drift + caret blink ── */
         const caretEl = document.getElementById("f8-caret");

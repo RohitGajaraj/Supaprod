@@ -308,14 +308,18 @@
 /* ————— the address field — the caret's bookend ————— */
 #cl-url{
   position:absolute;left:50%;top:62.6cqh;
-  width:13.5cqw;height:4.4cqh;margin-left:-6.75cqw;
-  display:flex;align-items:center;gap:0.18cqw;
-  padding:0 1.1cqw;
+  width:16.5cqw;height:4.4cqh;margin-left:-8.25cqw;
+  display:flex;align-items:center;gap:0.55cqw;
+  padding:0 1.2cqw;
   background:rgba(20,20,22,0.88);
-  border:1px solid var(--sk-hairline);border-radius:var(--sk-r-control);
+  border:1px solid var(--sk-hairline);border-radius:2.2cqh;  /* full pill: reads as a browser address bar */
   box-shadow:var(--sk-ring),var(--sk-ambient);
   opacity:0;
   will-change:transform,opacity;
+}
+#cl-url-lock{
+  width:0.95cqw;height:0.95cqw;flex:none;
+  stroke:var(--sk-muted);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
 }
 #cl-url-text{
   font:500 1.3cqw/1 var(--sk-mono);color:var(--sk-text);letter-spacing:0.01em;
@@ -505,6 +509,7 @@
           <div id="cl-word">supaprod</div>
           <div id="cl-subtag">build what matters.</div>
           <div id="cl-url">
+            <svg id="cl-url-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11 V7 a4 4 0 0 1 8 0 v4" /></svg>
             <span id="cl-url-text"></span>
             <span id="cl-caret"></span>
           </div>
@@ -571,6 +576,9 @@
 
     // the mark revolves as it completes (F4's draw motif, bookended)
     tl.fromTo("#cl-spin", { rotation: -46 }, { rotation: 0, duration: 1.85, ease: "power2.out" }, 0.02);
+    /* the loader motif holds through the close: a slow continuous revolve, petals warming to amber */
+    tl.to("#cl-spin", { rotation: 26, duration: 7.2, ease: "none" }, 2.0);
+    tl.to("#cl-loop", { stroke: "#E8B44C", duration: 3.4, ease: "power1.inOut" }, 3.2);
     // stroke draw · pen trace, power2.out, no bounce (VO: "Supaprod.")
     tl.fromTo(loop, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: 1.45, ease: "power2.out" }, 0.12);
     // loader motif: the stroke warms from white toward amber as the loop closes

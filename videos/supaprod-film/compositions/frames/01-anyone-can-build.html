@@ -203,6 +203,31 @@
 }
 .sk-lt-kicker{font:500 0.72cqw/1 var(--sk-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--sk-ember);}
 .sk-lt-line{font:600 2.6cqw/1.2 var(--sk-ui);color:var(--sk-text);letter-spacing:-0.01em;}
+
+      /* ═══ premium overlay normalization (film-wide typographic system) ═══
+         One anchor: left 8cqw, block bottom at 79cqh. One scale. A soft scrim
+         for legibility on any background. A 2px ember rule as the signature. */
+      .sk-lowerthird, .f3-lt, .f1-lt, .f2-lt{
+        position:absolute; left:0; bottom:14cqh; top:auto; right:auto;
+        width:auto; max-width:52cqw; transform:none;
+        padding:2.2cqh 6cqw 2.6cqh 8cqw;
+        display:flex; flex-direction:column; align-items:flex-start; gap:0.9cqh;
+        background:linear-gradient(90deg, rgba(10,10,11,0.52) 0%, rgba(10,10,11,0.26) 55%, rgba(10,10,11,0) 100%);
+        border:0; border-radius:0;
+        opacity:0;                      /* scrim + ember rule stay hidden until the block is tweened in */
+      }
+      .sk-lowerthird::before, .f3-lt::before, .f1-lt::before, .f2-lt::before{
+        content:""; display:block; width:2.6cqw; height:2px; background:var(--sk-ember,#FF6B2C); margin-bottom:0.3cqh;
+      }
+      .sk-lowerthird .sk-lt-kicker, .f3-lt .f3-lt-kicker, .f1-lt .f1-lt-kicker, .f2-lt .f2-lt-kicker,
+      .sk-lt-kicker, .f3-lt-kicker{
+        font:500 0.62cqw/1 var(--sk-mono,"IBM Plex Mono",monospace); letter-spacing:0.16em; text-transform:uppercase;
+        color:var(--sk-muted,#A8A29A);
+      }
+      .sk-lowerthird .sk-lt-line, .sk-lt-line, .f3-lt .f3-lt-line, .f3-lt-line{
+        font:500 1.55cqw/1.35 var(--sk-ui,"Mona Sans",sans-serif); letter-spacing:-0.01em;
+        color:#F2EFE9; text-shadow:0 1px 22px rgba(0,0,0,0.65);
+      }
 </style>
 
 <div id="root" data-composition-id="01-anyone-can-build" data-width="1920" data-height="1080" data-duration="9.3" data-layout-allow-overflow="">
@@ -370,7 +395,7 @@
     </div>
 
     <!-- film overlay — lower-third -->
-    <div class="sk-lowerthird">
+    <div class="sk-lowerthird" id="f1-lt">
       <span class="sk-lt-kicker" id="f1-lt-k">The era</span>
       <span class="sk-lt-line" id="f1-lt-l">anyone can build now.</span>
     </div>
@@ -448,9 +473,13 @@
       var drv = { t: 0 };
       tl.to(drv, { t: 8.2, duration: 8.2, ease: "none", onUpdate: function () { renderSeq(drv.t); } }, 0);
 
-      /* ── lower-third rises during scene 1 (film overlay, never centered) */
+      /* ── lower-third rises during scene 1 (film overlay, never centered).
+         The block itself (scrim + ember rule) fades in just ahead of the kicker
+         and leaves before the cut, so neither is on screen with no text. */
+      tl.fromTo("#f1-lt", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.8);
       tl.fromTo("#f1-lt-k", { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.95);
       tl.fromTo("#f1-lt-l", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 1.2);
+      tl.to("#f1-lt", { opacity: 0, duration: 0.45, ease: "power1.in" }, 7.9);
 
       /* ── scene 2 — pipeline ticks green (staggered pending→done flips) */
       var FLIPS = [3.3, 3.7, 4.05, 4.4];

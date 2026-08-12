@@ -43,7 +43,7 @@ sfx = [
     ('whoosh', F[7]+19.6, 0.34, None),  # F8 dive to the route
     ('chime',  F[8]+1.2,  0.28, None),  # F9 verdict lands
     ('tick',   F[8]+6.5,  0.50, None),  # F9 re-rank
-    ('warn',   F[9]+3.3,  0.55, 2.4),   # F10 precedent panel, the film's signature caution
+    ('alert',  F[9]+3.3,  0.45, None),  # F10 precedent panel (warn.m4a retired: it read as a second voice under L10)
     ('click',  F[9]+8.6,  0.40, None),  # F10 view-the-record hover
     ('keys',   F[10]+0.6, 0.40, 1.7),   # F11 palette typing
     ('click',  F[10]+2.3, 0.45, None),  # F11 answer lands
@@ -67,7 +67,7 @@ for i, d in enumerate(vo_delays):
     fc.append(f'[{i}:a]atempo={TEMPO[i]},adelay={d}|{d}[v{i}]')
 fc.append(''.join(f'[v{i}]' for i in range(13)) +
           'amix=inputs=13:normalize=0,dynaudnorm=g=7:m=4.0,volume=1.12[vo]')
-fc.append('[13:a]volume=0.29[mus]')
+fc.append('[13:a]volume=0.29,afade=t=out:st=139.4:d=2.6[mus]')
 uses = {}
 for n, *_ in sfx: uses[n] = uses.get(n, 0) + 1
 for n, cnt in uses.items():
@@ -89,6 +89,6 @@ fc.append('[voA][musd][sfx]amix=inputs=3:normalize=0,alimiter=limit=0.93,'
 cmd = ['/opt/homebrew/bin/ffmpeg', '-y', '-v', 'error']
 for f in files: cmd += ['-i', f]
 cmd += ['-filter_complex', ';'.join(fc), '-map', '[out]', '-t', '142.1',
-        '-c:a', 'aac', '-b:a', '256k', 'audio-master-v6-arthur.m4a']
+        '-c:a', 'aac', '-b:a', '256k', 'audio-master-v8.m4a']
 r = subprocess.run(cmd, capture_output=True, text=True)
-print(r.stderr[-500:] if r.returncode else 'FINAL FILM MIX DONE: audio-master-v6-arthur.m4a')
+print(r.stderr[-500:] if r.returncode else 'FINAL FILM MIX DONE: audio-master-v8.m4a')

@@ -411,8 +411,9 @@
         width:auto; max-width:52cqw; transform:none;
         padding:2.2cqh 6cqw 2.6cqh 8cqw;
         display:flex; flex-direction:column; align-items:flex-start; gap:0.9cqh;
-        background:linear-gradient(90deg, rgba(10,10,11,0.78) 0%, rgba(10,10,11,0.44) 55%, rgba(10,10,11,0) 100%);
+        background:linear-gradient(90deg, rgba(10,10,11,0.52) 0%, rgba(10,10,11,0.26) 55%, rgba(10,10,11,0) 100%);
         border:0; border-radius:0;
+        opacity:0; will-change:opacity;
       }
       .sk-lowerthird::before, .f3-lt::before, .f1-lt::before, .f2-lt::before{
         content:""; display:block; width:2.6cqw; height:2px; background:var(--sk-ember,#FF6B2C); margin-bottom:0.3cqh;
@@ -756,12 +757,15 @@
     tl.to("#f10-draft", { "--dof": "2.4px", opacity: 0.84, duration: 0.6, ease: "power2.inOut" }, 3.2);
     tl.to("#f10-agentline", { "--dof": "2.4px", opacity: 0.7, duration: 0.6, ease: "power2.inOut" }, 3.2);
 
-    // lower-third lands on the interrupt
+    // lower-third lands on the interrupt — container (scrim + ember rule) leads the type in
+    tl.fromTo("#f10-overlay .sk-lowerthird", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 3.20);
     tl.fromTo("#f10-lt-k", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 3.35);
     tl.fromTo("#f10-lt-l", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 3.55);
     // and clears well before the cross to frame 11 (frame 11 fades up at local 10.8) so the two never stack
     tl.to("#f10-lt-k", { opacity: 0, y: -8, duration: 0.4, ease: "power1.in" }, 9.9);
     tl.to("#f10-lt-l", { opacity: 0, y: -8, duration: 0.4, ease: "power1.in" }, 10.0);
+    // band and type leave together
+    tl.to("#f10-overlay .sk-lowerthird", { opacity: 0, duration: 0.45, ease: "power1.in" }, 10.0);
 
     // "You made this call last year" — the past card takes the accent bar
     tl.fromTo("#f10-pastbar", { scaleY: 0, transformOrigin: "50% 0%" }, { scaleY: 1, duration: 0.45, ease: "power2.out" }, 4.35);

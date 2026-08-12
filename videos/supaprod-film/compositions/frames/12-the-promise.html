@@ -57,11 +57,13 @@
   color:var(--sk-ink-near);
   white-space:nowrap;
 }
-/* line 2 — the turn; deeper ink, heavier */
+/* line 2 — the turn IS the hero now (founder ruling): cream on ember, near 2x, no underline */
 .tp-line--turn{
   font-weight:700;
-  color:var(--sk-ink);
-  margin-top:0.9cqh;
+  font-size:6.2cqw;
+  letter-spacing:-0.015em;
+  color:#FDF9F2;
+  margin-top:1.4cqh;
 }
 /* line 3 — the finisher; a step larger and opened up, the last word of the film's argument */
 .tp-line--finish{
@@ -114,7 +116,7 @@
       <div class="tp-title">
         <span class="tp-rule" id="tp-rule"></span>
         <span class="tp-line" id="tp-l1">you stop guessing.</span>
-        <span class="tp-line tp-line--turn" id="tp-l2">you start <span class="tp-em" id="tp-em">deciding<span class="tp-em-rule" id="tp-em-rule"></span></span>.</span>
+        <span class="tp-line tp-line--turn" id="tp-l2">you start deciding.</span>
       </div>
     </div>
   </div>
@@ -175,12 +177,12 @@
     /* ── beat 2 (2.2 s) · "you start deciding." — joins beneath at 700, full ink ── */
     tl.fromTo("#tp-l2", { y: 26, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 2.2);
 
-    /* the emphasis · "deciding" settles a hair deeper into the field, then its ink rule draws itself.
-       No bounce, no hue: a soft press plus a drawn underline, both in near-ink on fire.  */
-    tl.fromTo("#tp-em",
-      { scale: 1.022, y: -1, color: "rgba(17,17,17,0.88)" },
-      { scale: 1, y: 0, color: "#0A0A0B", duration: 0.6, ease: "power3.out" }, 2.9);
-    tl.fromTo("#tp-em-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "power3.out" }, 3.05);
+    /* the hero bloom · the whole cream line presses in and glows once (no underline) */
+    tl.fromTo("#tp-l2", { scale: 0.965 },
+      { scale: 1, duration: 0.9, ease: "power2.out", transformOrigin: "0% 50%" }, 2.9);
+    tl.fromTo("#tp-l2",
+      { textShadow: "0 2px 10px rgba(253,249,242,0)" },
+      { textShadow: "0 2px 44px rgba(253,249,242,0.38)", duration: 0.8, ease: "power2.out" }, 3.05);
 
     /* ── beat 3 (4.1 s) · "build what matters." — the finisher, a step larger; last motion lands at 4.8 s ── */
     /* the finisher line moved to the close (founder ruling): the voice says it here, the screen answers on the cut */

@@ -455,7 +455,32 @@
         /* lower-third clip wrapper */
         #f9-lt{position:absolute;inset:0;container-type:size;pointer-events:none;}
         #f9-lt .sk-lt-kicker,#f9-lt .sk-lt-line{opacity:0;}
-      </style>
+      
+      /* ═══ premium overlay normalization (film-wide typographic system) ═══
+         One anchor: left 8cqw, block bottom at 79cqh. One scale. A soft scrim
+         for legibility on any background. A 2px ember rule as the signature. */
+      .sk-lowerthird, .f3-lt, .f1-lt, .f2-lt{
+        position:absolute; left:0; bottom:14cqh; top:auto; right:auto;
+        width:auto; max-width:52cqw; transform:none;
+        padding:2.2cqh 6cqw 2.6cqh 8cqw;
+        display:flex; flex-direction:column; align-items:flex-start; gap:0.9cqh;
+        background:linear-gradient(90deg, rgba(10,10,11,0.52) 0%, rgba(10,10,11,0.26) 55%, rgba(10,10,11,0) 100%);
+        border:0; border-radius:0;
+        opacity:0; will-change:opacity;
+      }
+      .sk-lowerthird::before, .f3-lt::before, .f1-lt::before, .f2-lt::before{
+        content:""; display:block; width:2.6cqw; height:2px; background:var(--sk-ember,#FF6B2C); margin-bottom:0.3cqh;
+      }
+      .sk-lowerthird .sk-lt-kicker, .f3-lt .f3-lt-kicker, .f1-lt .f1-lt-kicker, .f2-lt .f2-lt-kicker,
+      .sk-lt-kicker, .f3-lt-kicker{
+        font:500 0.62cqw/1 var(--sk-mono,"IBM Plex Mono",monospace); letter-spacing:0.16em; text-transform:uppercase;
+        color:var(--sk-muted,#A8A29A);
+      }
+      .sk-lowerthird .sk-lt-line, .sk-lt-line, .f3-lt .f3-lt-line, .f3-lt-line{
+        font:500 1.55cqw/1.35 var(--sk-ui,"Mona Sans",sans-serif); letter-spacing:-0.01em;
+        color:#F2EFE9; text-shadow:0 1px 22px rgba(0,0,0,0.65);
+      }
+</style>
 
       <div id="root" data-composition-id="09-the-loop-closes" data-width="1920" data-height="1080" data-duration="11.3">
 
@@ -976,8 +1001,11 @@
         tl.to(".f9-dofA", { "--dof": "0px",  opacity: 1,     duration: 0.9, ease: "power2.inOut" }, 3.05);
 
         /* ── lower-third · Scene 1 ── */
+        /* container (scrim + ember rule) arrives just ahead of the type and clears before the cut */
+        tl.fromTo("#f9-lt .sk-lowerthird", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.70);
         tl.fromTo("#f9-ltk", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5,  ease: "power2.out" }, 0.85);
         tl.fromTo("#f9-ltl", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 1.05);
+        tl.to("#f9-lt .sk-lowerthird", { opacity: 0, duration: 0.45, ease: "power1.in" }, 9.9);
 
         /* ── Scene 1 · results land: the measured line draws, then the verdict stamps ── */
         tl.fromTo(spark, { strokeDashoffset: SPARK_LEN },
