@@ -1,6 +1,28 @@
 # Pick up here
 
-> _Created: 2026-08-07 · Last updated: 2026-08-12 (film session close)_
+> _Created: 2026-08-07 · Last updated: 2026-08-12 (FC-01 grading half)_
+
+## ✅ SESSION CLOSED 2026-08-12 night. FC-01's grading half is BUILT, and ONE CLICK stands between it and being real.
+
+**Start here, not with this file: [`../planning/initiatives/forecast-resolution-plan.md`](../planning/initiatives/forecast-resolution-plan.md).** It carries the design, the reasoning, the seven tasks and the four places the repo corrected the plan. Do not reconstruct any of it from this summary.
+
+**What shipped.** The half of FC-01 that grades a captured forecast: a horizon passing now produces either a verdict or an explicit deferral, and a workspace can read how often its own calls were right. Ten commits ending at `94b66899`. Five modules: the import-free rule module `src/lib/brain/forecast-resolution.ts`, `src/components/learn/forecast-words.ts`, the reads and writes in `src/lib/forecast.functions.ts`, the drafting pass `src/lib/brain/forecast-audit.server.ts` riding the existing `calibrate-tick`, and `ForecastDeskPanel` on `/learn`. Gate: tsc 0, 8,787 pass, 0 fail, eslint clean on every touched file, production build green.
+
+**THE ONE THING LEFT, and only the founder can do it: publish.** The code is merged and pushed and therefore NOT live. Until publish is clicked in Lovable, `/learn` carries no forecast group and nobody can settle anything. **No migration is outstanding**; `20260812210000` was applied by the founder and verified two ways (all six columns in the regenerated `integrations/supabase/types.ts`, and the version written into `supabase_migrations.schema_migrations` by Lovable's `20260812171150`).
+
+**TWO CLAIMS THAT ARE NOT TRUE YET. Do not let them into any outward surface.** No forecast has ever resolved, so there is no calibration record; the permitted form is that the loop is wired and proven and begins accruing on first real use. And the auto-settle leg is **wired and unexercised**: it needs a decision carrying both a forecast and a `prd_id` whose outcome a person settled, and no such row is known to exist. Report it as wired, never as working, which is the same distinction the `applyOutcome` probe drew on 2026-08-06.
+
+**The design rules worth not relearning.** A deferral writes no verdict, ever, because a deferral is the absence of an outcome rather than a kind of one; `inconclusive` is reserved for evidence that arrived and did not settle the claim. The tick enriches and never gates, so the due queue is derived in SQL from the frozen columns and a forecast reaches the desk with `auto_derive_enabled` off. `FORECAST_SAYS` and `VERDICT_SAYS` are kept disjoint by a test and **no mapping function may be written between them**: a spec outcome can be `missed` while its forecast is a `hit`, both correct at once. Reads fail soft, writes fail loud.
+
+**Four repo facts that cost time to find, so they are recorded rather than rediscovered:**
+- **`rtk`'s filtered `git status` and `git diff` can show a full staged diff on a clean tree.** For any claim about what is staged, committed or pushed, use plumbing (`git diff-index --cached HEAD`, `git diff-files`, `git ls-tree`) or prefix with `rtk proxy`. This nearly produced the exact opposite conclusion about whether the film embed had been committed.
+- **A new `*.functions.ts` file must be registered in `SURFACE_REGISTRY`**, enforced by a CI gate whose comment says a capability with no on-screen door is an orphan. It fails `bun test`, not `tsc`.
+- **Server-function logic goes in an exported `...Impl` taking the client** (see `budgets.functions.test.ts`), because a `createServerFn` handler cannot be reached from a test without an auth context.
+- **A component file must not export constants**, or Fast Refresh breaks for every component in it. That is why `forecast-desk-words.ts` and `verdict-words.ts` exist as their own modules.
+
+**Not mine, still open, flagged rather than touched:** `bun run lint` was already failing repo-wide before this work, hundreds of prettier errors across files unrelated to it, so that gate is currently protecting nothing. A loose gitignored screenshot sits at the repo root (`discover-error-current-vs-proposed.png`). A second Claude session (`supaprod-55`) was active in this repo at the same time, working the website-redesign stop-work; `origin/site/v3-enterprise` holds one commit NOT contained in main (`a11a9d01`), and the founder asked that session, not this one, to clear the GitHub compare banner.
+
+---
 
 ## ✅ FILM SESSION CLOSED — 2026-08-12 morning. The product film SHIPPED.
 
