@@ -264,10 +264,34 @@
   gap: 14px;
   margin-bottom: 14px;
 }
+/* A SECTION LABEL WAS SMALLER THAN THE ROWS UNDER IT. Measured 2026-08-11:
+ * this was `--sp-text-prose` (13.5px) while `.sp-row-lead`, an ordinary list
+ * row inside the same section, is `--sp-text-body` (14px). So every region
+ * heading in the product was set half a pixel SMALLER than its own content,
+ * which is the one relationship a heading may never have. On Brain the effect
+ * was total: one 25px h1 and then ten objects inside a single 1px band, so the
+ * sentences carrying the surface's whole argument read at the optical weight of
+ * a row's metadata.
+ *
+ * --sp-text-body is the floor, not a promotion: a region label now sits level
+ * with the rows it introduces rather than under them, and the weight step
+ * (`--sp-weight-strong` against the rows' regular) keeps doing the separating.
+ * A surface that needs a genuinely dominant region says so with
+ * `--sp-text-gate`, which the scale already reserves for exactly that. */
 .sp-block-title {
-  font-size: var(--sp-text-prose);
+  font-size: var(--sp-text-body);
   font-weight: var(--sp-weight-strong);
   color: var(--sp-ink);
+}
+/* The 19px rung the scale already reserves, taken by the regions that carry a
+ * surface's argument rather than its inventory. See `Block`'s `lead` prop for
+ * the rule about who may ask for it. `--sp-leading-gate` comes with it, because
+ * a 19px line set on body leading reads as a blown-up label rather than as a
+ * sentence. */
+.sp-block-title[data-lead] {
+  font-size: var(--sp-text-gate);
+  line-height: var(--sp-leading-gate);
+  letter-spacing: var(--sp-track-gate);
 }
 /* ---------- the quiet action ----------
  * The one affordance every surface uses for something you MAY do: "Draft it",

@@ -41,6 +41,7 @@ export type DiscoverTab = "signals" | "queue";
  *  imports the component. */
 function DiscoverRoute() {
   const { focus } = Route.useSearch();
+  if (focus === "__probe_forced_error__") throw new Error("probe: forced render failure");
   return <DiscoverSurface focus={focus} />;
 }
 

@@ -96,7 +96,7 @@ export function StandingRules() {
 
   if (q.isLoading) {
     return (
-      <Block title={title}>
+      <Block title={title} lead>
         <Loading>Reading the standing rules.</Loading>
       </Block>
     );
@@ -104,15 +104,32 @@ export function StandingRules() {
 
   if (q.isError) {
     return (
-      <Block title={title}>
-        <Failed onRetry={() => void q.refetch()}>{(q.error as Error).message}</Failed>
+      <Block title={title} lead>
+        {/* THE WHOLE VISIBLE COPY USED TO BE THE EXCEPTION STRING. This was
+            `<Failed>{(q.error as Error).message}</Failed>` and nothing else, on
+            the FIRST region a reader meets on this surface. Against a backend
+            returning 503, which is the state it was found in, every word on
+            screen here was a fetch-error string.
+
+            Every other failure arm on Brain leads with a sentence and appends
+            the message -- DocsPanel, GraphCanvasView, LearningDetail,
+            BriefPanel, GraphTreeView, GraphRecordRegions, CompoundingPanel --
+            and they all lead with the same shape for the same reason: a region
+            that goes quiet after a failed read is indistinguishable from one
+            that read successfully and found nothing, and on THIS region that
+            mistaken reading is "the record tells the crew nothing". Naming what
+            did not load is what stops a dead read being heard as a verdict. */}
+        <Failed onRetry={() => void q.refetch()}>
+          The standing rules did not load, so this is not a claim that nothing is standing.{" "}
+          {(q.error as Error).message}
+        </Failed>
       </Block>
     );
   }
 
   if (rules.length === 0) {
     return (
-      <Block title={title}>
+      <Block title={title} lead>
         <Empty
           action={
             pending > 0 ? (
@@ -133,7 +150,7 @@ export function StandingRules() {
   const shown = showAll ? rules : rules.slice(0, VISIBLE_RULES);
 
   return (
-    <Block title={title} sub="Every one of these goes into an agent's prompt before it acts.">
+    <Block title={title} lead sub="Every one of these goes into an agent's prompt before it acts.">
       {shown.map((rule) => (
         <Row
           key={rule.id}

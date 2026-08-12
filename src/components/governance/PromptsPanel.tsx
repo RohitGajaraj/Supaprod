@@ -535,6 +535,11 @@ function TemplateDetail({
         versions={versions}
         runs={(analytics.data?.runs as { version_id: string; variant: string }[] | undefined) ?? []}
         failed={analytics.isError}
+        // A failure signal with no loading signal left the block asserting that
+        // nothing had called this prompt in thirty days for every moment before
+        // the read landed - on the block a person reads to decide whether a
+        // version is safe to roll back.
+        loading={analytics.isLoading}
         onRetry={() => void analytics.refetch()}
       />
 
@@ -764,11 +769,16 @@ function UsageBlock({
   versions,
   runs,
   failed,
+  loading,
   onRetry,
 }: {
   versions: Version[];
   runs: { version_id: string; variant: string }[];
   failed: boolean;
+  /** Loading, Empty and Failed are three different primitives. `runs` defaults
+   *  to `[]`, so without this the Empty spoke for the read that had not landed
+   *  yet as well as for the read that came back with nothing. */
+  loading: boolean;
   onRetry: () => void;
 }) {
   const totals = useMemo(() => {
@@ -784,6 +794,14 @@ function UsageBlock({
         <Failed onRetry={onRetry}>
           The call history did not load, so no share can be worked out from it.
         </Failed>
+      </Block>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Block title="Who answered what">
+        <Loading>Reading the last 30 days of calls.</Loading>
       </Block>
     );
   }

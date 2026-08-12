@@ -368,15 +368,31 @@ export function ArtifactsView() {
   }
 
   const n = artifacts.length;
-  const heading = q.isLoading
-    ? "Reading what your crew has made."
-    : q.isError
-      ? "What your crew has made did not load."
-      : n === 0
-        ? "Nothing made yet."
-        : n === 1
-          ? "One thing your crew has made."
-          : `${n} things your crew has made.`;
+
+  /**
+   * THE REGION SAYS WHAT IT IS. THE PRIMITIVES SAY WHAT HAPPENED.
+   *
+   * This heading used to be computed from the query state, and the body then
+   * rendered the primitive for the SAME state one line below it, in different
+   * words. Three states, each said twice:
+   *
+   *   "Reading what your crew has made."  /  <Loading>Reading the shelf.</Loading>
+   *   "What your crew has made did not load." / <Failed>Could not read your artifacts.</Failed>
+   *   "Nothing made yet."  /  <Empty>Your crew has not made anything yet...</Empty>
+   *
+   * Loading, Failed and Empty exist precisely so a region does not have to
+   * narrate its own read; a heading that changes underneath a reader every time
+   * a request resolves is a label doing a status line's job, and the two
+   * vocabularies drifting apart is what made the duplication visible. The
+   * failure copy also reached for "artifacts", which is the one word section 7
+   * of this header says a stranger may not carry and which the plain-words
+   * heading exists specifically to avoid.
+   *
+   * So the heading is now the stable noun, and it says the same thing on every
+   * read. The count moved out with the states: it was only ever legible on one
+   * of the four, and the three group headings below already carry it per family.
+   */
+  const heading = "What your crew has made";
 
   // The crew, right now. State only: the action string is assembled from tool
   // names and would leak mechanism onto a user-facing surface.
@@ -392,8 +408,16 @@ export function ArtifactsView() {
   return (
     <>
       <Block title={heading} sub={liveLine}>
+        {/* The failure is stated ONCE now, here, so this sentence has to carry
+            the whole thing: what did not load, and the claim it is refusing to
+            make. It also drops "artifacts", the one word section 7 above says a
+            stranger may not carry -- the heading avoids it deliberately and the
+            error arm was reaching for it one line below. */}
         {q.isError ? (
-          <Failed onRetry={() => void q.refetch()}>Could not read your artifacts.</Failed>
+          <Failed onRetry={() => void q.refetch()}>
+            The shelf did not load, so this is not a claim that your crew has made nothing.{" "}
+            {(q.error as Error).message}
+          </Failed>
         ) : null}
 
         {q.isLoading ? <Loading>Reading the shelf.</Loading> : null}

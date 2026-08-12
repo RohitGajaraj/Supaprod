@@ -188,6 +188,7 @@ export function Block({
   sub,
   more,
   onMore,
+  lead = false,
   children,
 }: {
   title?: string;
@@ -198,13 +199,52 @@ export function Block({
   sub?: React.ReactNode;
   more?: string;
   onMore?: () => void;
+  /** THE ONE RUNG BETWEEN THE PAGE TITLE AND EVERYTHING ELSE.
+   *
+   *  The scale reserves `--sp-text-gate` (19px) and calls it "the gate
+   *  question, biggest thing on a surface". A surface whose regions all sit at
+   *  the same step never uses it, and the result is measurable rather than a
+   *  matter of taste: Brain, counted live on 2026-08-11, drew one 25px object
+   *  and then ten objects inside a single 1px band, so the sentences carrying
+   *  its whole argument were set at the optical weight of a row's metadata.
+   *
+   *  OPT-IN, AND SPARINGLY. This is not "an important section"; it is the
+   *  region a reader must land on if they read nothing else on the page. A
+   *  surface that marks everything has marked nothing, so the rule is that
+   *  `lead` belongs to the regions carrying the surface's ARGUMENT and never to
+   *  the ones carrying its inventory. */
+  lead?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <section className="sp-block">
       {(title || more) && (
         <div className="sp-block-head">
-          {title ? <span className="sp-block-title">{title}</span> : <span />}
+          {/* A REGION TITLE IS A HEADING, AND THIS WAS A SPAN. Measured on Brain,
+              2026-08-11: `main.querySelectorAll("h1,h2,h3,h4,h5,h6")` returned
+              exactly ONE element on every one of that surface's five tabs, the
+              page H1. "What the record now tells the crew", "What led to what",
+              "Brief", "Documents", "What came out of it" and "Everything
+              downstream" were all spans inside a <section> with no accessible
+              name, so a reader navigating by heading got one stop and no way to
+              reach any region on the page.
+
+              It is also why the type went wrong. A span carries no size of its
+              own, so the heading role had to be drawn entirely by
+              `.sp-block-title` -- and that token sat BELOW the body text in the
+              rows underneath it. Nothing in the markup objected, because there
+              was no heading for the size to be wrong about. The <h2> gives the
+              type somewhere to attach; Tailwind's preflight already zeroes the
+              default margin and font-size, which is why `.sp-title` can be an
+              h1 with no reset of its own, so this is visually identical the day
+              it lands and structurally right from then on. */}
+          {title ? (
+            <h2 className="sp-block-title" data-lead={lead || undefined}>
+              {title}
+            </h2>
+          ) : (
+            <span />
+          )}
           {more ? (
             <button type="button" className="sp-block-more" onClick={onMore}>
               {more}

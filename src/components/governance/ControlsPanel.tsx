@@ -95,8 +95,8 @@ import {
   setWorkspacePause,
   MISSION_CONCURRENCY_CAP,
 } from "@/lib/governance.functions";
-import type { BoundaryTool } from "@/lib/governance.functions";
 import { humanWriteError } from "@/lib/roles.functions";
+import { BoundaryStatement } from "./BoundaryStatement";
 import { useGovernedWrite } from "@/hooks/use-workspace-role";
 import {
   listEventSubscriptions,
@@ -168,30 +168,6 @@ type Committed = {
   handoff?: { slug: string | null | undefined } | null;
 };
 
-/**
- * THE ONE TOOL RULE THIS PANEL RESTATES, AND THE ONLY ONE.
- *
- * `resolveToolMode` (lib/ai/loop.server.ts) carries a branch quoted here
- * verbatim rather than paraphrased:
- *
- *     } else if (mode === "confirm" && toolRisk(toolName) === "low") {
- *       mode = "auto";
- *
- * So a reversible tool that never leaves this workspace does not hold at "come
- * to me first" - the run executes it inline. `getBoundary` buckets on the
- * STORED value, so these tools are listed there under what still comes to you
- * while the loop runs them alone. This panel counts them where they actually
- * land and says so; it does not silently renumber the boundary underneath the
- * reader.
- *
- * It reads `floor` and `risk` off the boundary's own rows rather than
- * recomputing either, so there is exactly one client-side restatement of one
- * server rule, and it is this function.
- */
-function runsAloneDespiteAsking(t: BoundaryTool): boolean {
-  return t.mode === "confirm" && t.risk === "low" && t.floor === null;
-}
-
 /** A quiet fact that hangs off a control rather than sitting on its own line. */
 const NOTE = {
   fontSize: "var(--sp-text-label)",
@@ -222,7 +198,22 @@ function firedPhrase(iso: string): string {
   return t === "now" ? "just now" : `${t} ago`;
 }
 
-export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
+export function ControlsPanel({
+  onOpenQueue,
+  boundaryElsewhere = false,
+}: {
+  onOpenQueue?: () => void;
+  /**
+   * True when the surface mounting this panel has ALREADY put the tool boundary
+   * on a tab of its own, which the Safety room now does: its front tab is named
+   * "What is allowed", and the boundary is the answer to that question.
+   *
+   * Settings > Controls has no such tab, so it leaves this false and keeps the
+   * block. Either way it is the same component reading the same cache entry, so
+   * this decides where the statement is drawn and never what it says.
+   */
+  boundaryElsewhere?: boolean;
+}) {
   const { activeWorkspaceId } = useWorkspace();
   /**
    * The pause switch is platform policy, not a user row: `kill_switches` writes
@@ -393,13 +384,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
   const live = waiting[0] ?? null;
   const deciding = (id: string) => decideEvtMut.isPending && decideEvtMut.variables?.eventId === id;
 
-  // The boundary, in the boundary's own three buckets. `demoted` is the set the
-  // stored value and the runtime disagree about; see runsAloneDespiteAsking.
   const bd = boundaryQ.data;
-  const demoted = (bd?.asks ?? []).filter(runsAloneDespiteAsking);
-  const alone = (bd?.alone.length ?? 0) + demoted.length;
-  const asks = (bd?.asks.length ?? 0) - demoted.length;
-  const never = bd?.never.length ?? 0;
   // Consent classes are grouped over the tools an agent can actually reach,
   // which is exactly the boundary's live-and-not-off set. Reading it from here
   // rather than from a second listTools call is what keeps this block and the
@@ -450,9 +435,67 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
 
   return (
     <>
-      <Block title="Boundaries">
+      {/* PERMISSION ASKED IN THE MOMENT OUTRANKS EVERY STANDING POLICY ON THE
+          PAGE, and until 2026-08-11 it did not: the Gate rendered sixth, below
+          an unbounded list of recent runs, while its own note claimed the end
+          of the queue was "visible from the start". The governance canon this
+          file cites is that policy does not block and permission does, so the
+          one thing on this surface with an agent stopped mid-run waiting on a
+          human is now the first thing on it.
+
+          One at a time, so there is one primary action on screen. */}
+      {live ? (
+        <Gate
+          question={`Let ${agentDisplayName(live.target_agent_slug)} run on ${eventLabel(live)}?`}
+          lines={[
+            <>
+              <Num>{eventWord(live.event_type)}</Num> fired {firedPhrase(live.created_at)}, and this
+              pipeline asks you before it dispatches.
+            </>,
+            <>Skipping runs nothing. The event stays on the record either way.</>,
+          ]}
+        >
+          <Button
+            variant="primary"
+            disabled={deciding(live.id)}
+            onClick={() =>
+              decideEvtMut.mutate({
+                eventId: live.id,
+                decision: "approve",
+                agentSlug: live.target_agent_slug,
+                label: eventLabel(live),
+              })
+            }
+          >
+            Dispatch it
+          </Button>
+          <Button
+            disabled={deciding(live.id)}
+            onClick={() =>
+              decideEvtMut.mutate({
+                eventId: live.id,
+                decision: "reject",
+                agentSlug: live.target_agent_slug,
+                label: eventLabel(live),
+              })
+            }
+          >
+            Skip it
+          </Button>
+        </Gate>
+      ) : null}
+
+      {/* THE STOP, ON ITS OWN, IN THE TAB'S OWN WORDS. It used to be one Line
+          inside a block titled "Boundaries", drawn identically to a hardcoded
+          concurrency cap two rows below it, under a tab whose descriptor reads
+          "Stop the machine now, if you have to." A kill switch with no more
+          weight than a 5 is a kill switch nobody finds in the minute they need
+          it. The standing limits it used to share a block with are their own
+          region below, because a limit that has always been there and a switch
+          you are about to throw are different kinds of fact. */}
+      <Block title="Stop the machine">
         {overview.isLoading ? (
-          <Loading>Reading the boundaries this workspace runs inside.</Loading>
+          <Loading>Reading whether the crew is running.</Loading>
         ) : (
           <>
             <Line label="Agents may run" sub={pauseSub}>
@@ -472,7 +515,15 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
               />
             </Field>
             {ks?.reason ? <div style={NOTE}>On record: {ks.reason}</div> : null}
+          </>
+        )}
+      </Block>
 
+      <Block title="Standing limits">
+        {overview.isLoading ? (
+          <Loading>Reading the limits this workspace runs inside.</Loading>
+        ) : (
+          <>
             <Line label="Missions at once" sub="New goals queue when the mesh is at capacity.">
               <Num>{MISSION_CONCURRENCY_CAP}</Num>
             </Line>
@@ -504,8 +555,18 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         more={addOpen ? undefined : "Add a rule"}
         onMore={() => setAddOpen(true)}
       >
+        {/* THE THREE ARMS, IN THE ORDER THE FILE ALREADY ARGUES FOR ELSEWHERE.
+            `subs` is `subsQ.data?.subscriptions ?? []`, so without the loading
+            arm this region asserted "no pipeline rules yet" as a fact from the
+            first paint - directly beneath a Boundaries block that was honestly
+            saying it was still reading. On a governance surface "no pipeline
+            routes anything without asking you" and "we have not looked yet" are
+            opposite facts. The Empty is reachable only after a read that
+            SUCCEEDED. */}
         {subsQ.isError ? (
           <Failed onRetry={() => void subsQ.refetch()}>Pipeline rules did not load.</Failed>
+        ) : subsQ.isLoading ? (
+          <Loading>Reading the pipeline rules.</Loading>
         ) : subs.length === 0 ? (
           <Empty>No pipeline rules yet. Add one and the next matching event routes itself.</Empty>
         ) : (
@@ -646,88 +707,17 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         ) : null}
       </Block>
 
-      {/* ------------------------------------------------------------------ *
-        THE BOUNDARY, STATED. NOT A SECOND PLACE TO SET IT.
+      {/* THE BOUNDARY, STATED. NOT A SECOND PLACE TO SET IT.
 
-        This block used to be thirteen Selects writing `updateToolMode`, which
-        is the mutation /boundary writes, over the same stored value, in a
-        different vocabulary. It is a read now, and its counts come off the
-        same cached `getBoundary` /boundary renders, so a person standing in
-        Settings can still answer "what do these things do without me" without
-        being handed a second set of levers that disagree with the first.
+          It lives in BoundaryStatement.tsx now, because the Safety room's front
+          tab is named "What is allowed" and these are the three lines that
+          answer it. Settings > Controls mounts the same component, off the same
+          cached `getBoundary` read under the same key /boundary uses, so the two
+          cannot disagree about a count. `boundaryElsewhere` is how the Safety
+          room says it has already put this on the tab whose name promises it. */}
+      {boundaryElsewhere ? null : <BoundaryStatement />}
 
-        The three headings are /boundary's own, word for word, so the door
-        below lands somewhere that sounds like the sentence that sent them.
-       * ------------------------------------------------------------------ */}
-      <Block
-        title="What your crew may do alone"
-        sub="Set once, on the boundary. Moving one never interrupts work that is already running."
-        more="Open the boundary"
-        onMore={() => void navigate({ to: "/boundary" })}
-      >
-        {boundaryQ.isLoading ? (
-          <Loading>Reading what your crew is allowed to do.</Loading>
-        ) : boundaryQ.isError ? (
-          <Failed onRetry={() => void boundaryQ.refetch()}>
-            The boundary did not load, so no count here would be the real one.
-          </Failed>
-        ) : alone + asks + never === 0 ? (
-          <Empty>
-            No tools are switched on for this account yet, so there is nothing to allow or refuse.
-          </Empty>
-        ) : (
-          <>
-            <Line
-              label="What they do alone"
-              sub="No approval, no interruption. This is where the leverage is."
-            >
-              <Num>{alone}</Num>
-            </Line>
-            <Line
-              label="What still comes to you"
-              sub="Each of these costs one interruption every time it happens."
-            >
-              <Num>{asks}</Num>
-            </Line>
-            <Line
-              label="What nobody may do"
-              sub="Off for agents and for people. Turning one back on is a decision on the record."
-            >
-              <Num>{never}</Num>
-            </Line>
-
-            {/* THE ONE PLACE WHAT YOU SET AND WHAT RUNS DISAGREE, and it is
-              said as its own row rather than footnoted under a control showing
-              the wrong value. Named tools, not a bare count: "three do not do
-              what you set" is only actionable if you know which three.
-
-              NO TONE ON THE COUNT. This is a policy fact, not an outcome, and
-              the number is not a status - the sentence carries the whole
-              meaning and survives greyscale on its own. */}
-            {demoted.length > 0 ? (
-              <Line
-                label="Set to come to you first, and they will not"
-                sub={
-                  <>
-                    {demoted
-                      .slice(0, 4)
-                      .map((t) => t.label)
-                      .join(", ")}
-                    {demoted.length > 4 ? ` and ${demoted.length - 4} more` : ""}
-                    {
-                      " never hold there: each one is reversible and stays inside this workspace, so a run executes it inline rather than stopping to ask. They are counted above as done alone, which is what happens. Switch one off on the boundary to actually stop it."
-                    }
-                  </>
-                }
-              >
-                <Num>{demoted.length}</Num>
-              </Line>
-            ) : null}
-          </>
-        )}
-      </Block>
-
-      {/* The SAME tools the three counts above are drawn from, grouped by blast
+      {/* The SAME tools the boundary counts are drawn from, grouped by blast
           radius with the trust-ladder default posture per class. Consent is a
           per-class idea, not a per-tool one; this states what each class
           defaults to, and the boundary is where a specific tool moves.
@@ -765,7 +755,14 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
       </Block>
 
       <Block title="Recent runs" sub="What each run spent against the caps it was given.">
-        {runs.length === 0 ? (
+        {/* `runs` is `data?.runs ?? []`, so "no mission runs yet" was asserted
+            from the first paint of every load. The only overview.isLoading
+            guard in this file used to sit in the Boundaries block, three
+            regions up, which put one honest region and one asserting region on
+            screen together out of a single unfinished read. */}
+        {overview.isLoading ? (
+          <Loading>Reading what the crew has run.</Loading>
+        ) : runs.length === 0 ? (
           <Empty>No mission runs yet. The first one starts when you give the crew a goal.</Empty>
         ) : (
           runs.map((r) => {
@@ -842,57 +839,13 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         )}
       </Block>
 
-      {/* Permission asked in the moment, and the only thing on this surface
-          that is. One at a time, so there is one primary action on screen and
-          the end of the queue is visible from the start. */}
-      {live ? (
-        <Gate
-          question={`Let ${agentDisplayName(live.target_agent_slug)} run on ${eventLabel(live)}?`}
-          lines={[
-            <>
-              <Num>{eventWord(live.event_type)}</Num> fired {firedPhrase(live.created_at)}, and this
-              pipeline asks you before it dispatches.
-            </>,
-            <>Skipping runs nothing. The event stays on the record either way.</>,
-          ]}
-        >
-          <Button
-            variant="primary"
-            disabled={deciding(live.id)}
-            onClick={() =>
-              decideEvtMut.mutate({
-                eventId: live.id,
-                decision: "approve",
-                agentSlug: live.target_agent_slug,
-                label: eventLabel(live),
-              })
-            }
-          >
-            Dispatch it
-          </Button>
-          <Button
-            disabled={deciding(live.id)}
-            onClick={() =>
-              decideEvtMut.mutate({
-                eventId: live.id,
-                decision: "reject",
-                agentSlug: live.target_agent_slug,
-                label: eventLabel(live),
-              })
-            }
-          >
-            Skip it
-          </Button>
-        </Gate>
-      ) : null}
-
       <Block
         title="Reactor activity"
         sub={
           waiting.length > 1 ? (
             <>
-              <Num>{waiting.length - 1}</Num> more are waiting behind the one above. Settle it and
-              the next takes its place.
+              <Num>{waiting.length - 1}</Num> more are waiting behind the one at the top of this
+              page. Settle it and the next takes its place.
             </>
           ) : (
             "What the rules above routed, and what came of it."
@@ -901,12 +854,14 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
       >
         {queueQ.isError ? (
           <Failed onRetry={() => void queueQ.refetch()}>Reactor activity did not load.</Failed>
+        ) : queueQ.isLoading ? (
+          <Loading>Reading the reactor queue.</Loading>
         ) : events.length === 0 ? (
           <Empty>No reactor events yet. One appears the moment a rule above matches.</Empty>
         ) : (
           events
-            // The one being asked is drawn as the Gate above, so it is not
-            // drawn twice.
+            // The one being asked is drawn as the Gate at the top of the page,
+            // so it is not drawn twice.
             .filter((e) => e.id !== live?.id)
             .map((e) => {
               const isPending = e.status === "pending" && e.approval_mode === "confirm";

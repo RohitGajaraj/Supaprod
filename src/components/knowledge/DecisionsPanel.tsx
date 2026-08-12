@@ -365,7 +365,15 @@ export function DecisionsPanel() {
       {decisions.isLoading ? (
         <Loading>Reading the calls on the record.</Loading>
       ) : decisions.isError ? (
+        /* AND A FAILURE SAYS WHAT FAILED, 2026-08-11. The same argument one
+           branch up, applied to the branch beside it: this printed the raw
+           exception and nothing else, on the DEFAULT tab of this surface, so a
+           reader arriving at Brain with the backend down saw a fetch-error
+           string where the ledger goes and no sentence telling them the calls
+           were still there. Every other failure arm on Brain leads with the
+           claim it is refusing to make and then appends the message. */
         <Failed onRetry={() => void decisions.refetch()}>
+          The calls did not load, so this is not a claim that none are on the record.{" "}
           {(decisions.error as Error).message}
         </Failed>
       ) : rows.length === 0 ? (

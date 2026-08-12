@@ -43,6 +43,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useConfirm } from "@/hooks/use-confirm";
 import { InjectionDefenseCard } from "./InjectionDefenseCard";
+import { GUARDRAIL_FLOOR } from "@/lib/ai/guardrail-floor";
 import {
   getGuardrailOverview,
   upsertGuardrailRule,
@@ -128,6 +129,38 @@ function ruleSentence(action: string, kind: string, applies: string): string {
   return `${ACTION_PHRASE[action as Action] ?? action} ${
     KIND_PHRASE[kind as Kind] ?? kind
   } ${APPLIES_PHRASE[applies as Applies] ?? applies}.`;
+}
+
+/** A quiet fact on the right of a Line where a control would otherwise sit. */
+const CONTROL_WORD = {
+  fontSize: "var(--sp-text-label)",
+  color: "var(--sp-mute)",
+};
+
+/**
+ * WHETHER SWITCHING THIS RULE OFF WOULD ACTUALLY SWITCH ANYTHING OFF.
+ *
+ * `withFloor` (lib/ai/guardrail-floor.ts) de-duplicates on `kind::pattern` and
+ * returns `[...GUARDRAIL_FLOOR, ...extra]`, and `loadGuardrails` selects with
+ * `.eq("enabled", true)`. So a workspace rule that shares a kind and a pattern
+ * with a floor rule is dropped from `configured` the moment it is disabled and
+ * immediately re-added from the floor: the call is screened either way.
+ *
+ * Eight of the nine built-in seeds share kind and pattern with a floor rule, so
+ * until 2026-08-11 an admin could switch off credit-card redaction on the
+ * enterprise-inspection surface, be told in writing that it "checks nothing
+ * until you turn it back on", and have it keep redacting. This file's sibling
+ * ControlsPanel calls that exact shape "worse than no control".
+ *
+ * The test is the runtime's own key, not a paraphrase of it, and it is gated on
+ * the floor the SERVER reported for this workspace: a response carrying no
+ * floor gets its switches back rather than a claim this panel cannot support.
+ */
+function makeIsFloor(reported: { id: string }[]) {
+  const reportedIds = new Set(reported.map((f) => f.id));
+  const live = GUARDRAIL_FLOOR.filter((f) => reportedIds.has(f.id));
+  const keys = new Set(live.map((f) => `${f.kind}::${f.pattern}`));
+  return (r: { kind: string; pattern: string }) => keys.has(`${r.kind}::${r.pattern}`);
 }
 
 /** A rule that has never fired is a more useful fact than a timestamp: it is
@@ -276,6 +309,18 @@ export function GuardrailsPanel() {
 
   const rules = overview.data?.rules ?? [];
   const hits = overview.data?.hits ?? [];
+  /**
+   * THE RULES THAT SCREEN THIS WORKSPACE WHETHER OR NOT IT CONFIGURED ANY.
+   *
+   * `getGuardrailOverview` has returned this since the floor shipped, under a
+   * comment saying it exists "so the Safety room can stop saying 'Nothing
+   * checks your AI calls yet' to a workspace whose calls are, in fact, being
+   * checked". This panel read only `.rules` and `.hits`, so it went on saying
+   * it - to seventeen of the twenty-one workspaces in the live database, one
+   * click below an overview card already carrying "8 always on".
+   */
+  const floor = overview.data?.floor ?? [];
+  const isFloor = makeIsFloor(floor);
 
   // Last fired per rule, from the real hits log. Hits arrive newest first, so
   // the first one seen for a name is the latest.
@@ -288,6 +333,11 @@ export function GuardrailsPanel() {
     return (
       <RuleEditor
         rule={editing}
+        // The same fact the list states, said again where the same claim would
+        // otherwise be made a second time: the editor's "Checking once you
+        // save" writes `enabled`, and for a floor-backed rule the runtime
+        // re-adds it regardless.
+        onFloor={isFloor(editing)}
         // Opening a rule is a READ, and the migration deliberately left every
         // read alone. So the detail stays reachable and only the two writes at
         // the bottom of it are refused.
@@ -330,8 +380,16 @@ export function GuardrailsPanel() {
 
       <Block
         title="What the rules check"
+        // TWO POPULATIONS, COUNTED SEPARATELY. The old sub said "<live> of
+        // <rules.length> read every call", which omitted the eight that also
+        // read every call and cannot be switched off.
         sub={
-          rules.length === 0 ? undefined : (
+          rules.length === 0 ? undefined : floor.length > 0 ? (
+            <>
+              <Num>{floor.length}</Num> always on, plus <Num>{live}</Num> of{" "}
+              <Num>{rules.length}</Num> you set. The rest are saved and switched off.
+            </>
+          ) : (
             <>
               <Num>{live}</Num> of <Num>{rules.length}</Num> read every call. The rest are saved and
               switched off.
@@ -367,48 +425,79 @@ export function GuardrailsPanel() {
               </>
             }
           >
-            Nothing checks your AI calls yet. The built-in set reads for personal data, secrets and
-            prompt injection, and you can write your own on top of it.
+            {/* THE EMPTY IS ABOUT THIS WORKSPACE'S OWN RULES, AND ONLY THOSE.
+                It used to say "Nothing checks your AI calls yet" to a
+                workspace whose every call runs through the floor, which is
+                false in the direction that gets someone hurt: it reads as an
+                open door. */}
+            {floor.length > 0 ? (
+              <>
+                <Num>{floor.length}</Num> rules screen every call already: personal data is
+                redacted, credentials are blocked, prompt injection is flagged. You have not written
+                any of your own on top of them.
+              </>
+            ) : (
+              <>
+                Nothing checks your AI calls yet. The built-in set reads for personal data, secrets
+                and prompt injection, and you can write your own on top of it.
+              </>
+            )}
           </Empty>
         ) : (
-          rules.map((g) => (
-            <Line
-              key={g.id}
-              label={g.name}
-              // Three different facts, none of them the name again: what it
-              // does, what it looks for, and whether it has ever done anything.
-              sub={
-                <>
-                  {ruleSentence(g.action, g.kind, g.applies_to)} <Num>{g.pattern}</Num>{" "}
-                  {lastFiredPhrase(lastFired.get(g.name) ?? null)}
-                  {g.built_in ? " It came with the product." : ""}
-                </>
-              }
-            >
-              <Button
-                variant="ghost"
-                onClick={() =>
-                  setEditing({
-                    id: g.id,
-                    name: g.name,
-                    kind: g.kind as Kind,
-                    pattern: g.pattern,
-                    action: g.action as Action,
-                    applies_to: g.applies_to as Applies,
-                    enabled: g.enabled,
-                  })
+          rules.map((g) => {
+            const onTheFloor = isFloor(g);
+            return (
+              <Line
+                key={g.id}
+                label={g.name}
+                // Three different facts, none of them the name again: what it
+                // does, what it looks for, and whether it has ever done anything.
+                sub={
+                  <>
+                    {ruleSentence(g.action, g.kind, g.applies_to)} <Num>{g.pattern}</Num>{" "}
+                    {lastFiredPhrase(lastFired.get(g.name) ?? null)}
+                    {onTheFloor
+                      ? " It is part of the screening floor, so this workspace runs it either way."
+                      : g.built_in
+                        ? " It came with the product."
+                        : ""}
+                  </>
                 }
               >
-                Open
-              </Button>
-              <Switch
-                checked={g.enabled}
-                label={`${g.name} checks every call`}
-                disabled={tog.isPending || !mayWrite}
-                onChange={(next) => tog.mutate({ id: g.id, enabled: next, name: g.name })}
-              />
-            </Line>
-          ))
+                <Button
+                  variant="ghost"
+                  onClick={() =>
+                    setEditing({
+                      id: g.id,
+                      name: g.name,
+                      kind: g.kind as Kind,
+                      pattern: g.pattern,
+                      action: g.action as Action,
+                      applies_to: g.applies_to as Applies,
+                      enabled: g.enabled,
+                    })
+                  }
+                >
+                  Open
+                </Button>
+                {/* NO SWITCH WHERE THE RUNTIME WOULD IGNORE IT. The fact
+                    replaces the control, which is the pattern this codebase
+                    already applied to the tool modes in ControlsPanel: a
+                    control that displays a value the system does not honour is
+                    worse than no control. */}
+                {onTheFloor ? (
+                  <span style={CONTROL_WORD}>Always on. It cannot be switched off.</span>
+                ) : (
+                  <Switch
+                    checked={g.enabled}
+                    label={`${g.name} checks every call`}
+                    disabled={tog.isPending || !mayWrite}
+                    onChange={(next) => tog.mutate({ id: g.id, enabled: next, name: g.name })}
+                  />
+                )}
+              </Line>
+            );
+          })
         )}
 
         {tog.error ? <Failed>{humanWriteError(tog.error, GUARDRAIL_WRITE_FAILED)}</Failed> : null}
@@ -487,6 +576,7 @@ export function GuardrailsPanel() {
 
 function RuleEditor({
   rule,
+  onFloor,
   canWrite,
   writeDenied,
   onChange,
@@ -505,6 +595,10 @@ function RuleEditor({
   testResult,
 }: {
   rule: RuleForm;
+  /** True when the runtime screens on this kind and pattern regardless of the
+   *  stored `enabled`, so the checkbox below would promise something it cannot
+   *  deliver. */
+  onFloor: boolean;
   /** False for a role the database will refuse. The fields stay readable. */
   canWrite: boolean;
   writeDenied: string | null;
@@ -596,19 +690,33 @@ function RuleEditor({
         </Field>
 
         {/* A value you submit, not a boundary that goes live under your finger,
-            so it is a checkbox and stays monochrome. */}
-        <Line
-          label="Checking once you save"
-          htmlFor="rule-enabled"
-          sub="Leave this off to write the rule now and start it later."
-        >
-          <Checkbox
-            id="rule-enabled"
+            so it is a checkbox and stays monochrome.
+
+            ABSENT, not disabled, for a rule the runtime screens either way: an
+            unticked box beside "Leave this off to start it later" is a written
+            promise that unticking it stops the checking, and for a floor-backed
+            kind and pattern it does not. */}
+        {onFloor ? (
+          <Line
             label="Checking once you save"
-            checked={rule.enabled}
-            onChange={(next) => onChange({ ...rule, enabled: next })}
-          />
-        </Line>
+            sub="This kind and pattern are part of the screening floor, so every call runs through them whether this rule is on or off."
+          >
+            <span style={CONTROL_WORD}>Always on</span>
+          </Line>
+        ) : (
+          <Line
+            label="Checking once you save"
+            htmlFor="rule-enabled"
+            sub="Leave this off to write the rule now and start it later."
+          >
+            <Checkbox
+              id="rule-enabled"
+              label="Checking once you save"
+              checked={rule.enabled}
+              onChange={(next) => onChange({ ...rule, enabled: next })}
+            />
+          </Line>
+        )}
       </Block>
 
       <Block
