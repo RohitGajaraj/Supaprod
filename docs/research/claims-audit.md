@@ -16,7 +16,15 @@ The website attempt that commissioned it was rejected the same evening
 ([`../design/archive/website-v3-enterprise-2026-08.md`](../design/archive/website-v3-enterprise-2026-08.md)).
 **The audit outlived it and is the durable output.**
 
-To re-derive: `Workflow({scriptPath: '<session>/workflows/scripts/supaprod-site-v3-research-wf_fe589774-da8.js'})`.
+**The complete findings, verbatim — all 143 with their evidence — are in
+[`claims-audit-findings.md`](./claims-audit-findings.md).** This file is the
+readable analysis; that one is the record, committed because the workflow
+journal that produced it lives in a session directory outside git and does not
+survive the session.
+
+**Re-run the audit:** `Workflow({scriptPath: '.claude/workflows/claims-audit.js'})`.
+The harness is committed, so it reproduces on any machine.
+
 Anything below that carries a number should be requeried before it is published
 again — a number without its query is not evidence.
 

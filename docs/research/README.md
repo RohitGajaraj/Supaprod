@@ -26,6 +26,7 @@ Nothing here is superseded by age. A 2026-06 competitor sweep is still true abou
 
 | File | What it holds |
 | --- | --- |
+| [`claims-audit-findings.md`](./claims-audit-findings.md) | **The raw record: all 143 findings verbatim**, refuted and survived, each with its `file:line` evidence. Committed because the workflow journal behind it lives in a session directory and does not survive the session — losing it would mean paying for the same audit twice. Section B is the useful half on a good day: 100 claims that **survived** an adversarial fact-check, with the evidence to cite. Re-runnable via the committed harness at `.claude/workflows/claims-audit.js`. |
 | [`claims-audit.md`](./claims-audit.md) | **143 claims tested against the codebase; 43 refuted.** Read before writing any outward copy — site, deck, application or sales call. Holds the live overclaims still on production (the data-residency promise with no data behind it, three wrong tool counts on machine-readable surfaces, a table count stale by 59), the full banned-vocabulary and banned-claim lists with rates and replacements, the four tense laws, and the traps — including superseded strings still printed under a heading called "Positioning canon". Ends on the gap that lets it recur: **there is no automated guard for any banned word**, so a surface that breaks the law ships silently and green. |
 
 ## What product managers actually say
