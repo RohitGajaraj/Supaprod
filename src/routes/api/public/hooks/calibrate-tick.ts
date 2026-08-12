@@ -3,6 +3,7 @@ import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { withJobRun } from "@/lib/observability";
 import { calibrateExpiredInsights } from "@/lib/brain/calibrate-insights.server";
+import { auditDueForecasts } from "@/lib/brain/forecast-audit.server";
 
 export const Route = createFileRoute("/api/public/hooks/calibrate-tick")({
   server: {
@@ -23,6 +24,12 @@ export const Route = createFileRoute("/api/public/hooks/calibrate-tick")({
           }
 
           let totalScored = 0;
+          // FC-01: the forecast pass rides this tick rather than adding a second
+          // scheduled job. It shares the per-workspace try/catch below, so a
+          // forecast failure narrows to that workspace and never stops the
+          // insight calibration that was here first.
+          let totalForecastsDrafted = 0;
+          let totalForecastsAutoSettled = 0;
           const results: Array<{ workspace_id: string; scored?: number; error?: string }> = [];
 
           for (const ws of workspaces ?? []) {
@@ -33,6 +40,9 @@ export const Route = createFileRoute("/api/public/hooks/calibrate-tick")({
               }
               const r = await calibrateExpiredInsights(supabaseAdmin, ws.owner_id, ws.id);
               totalScored += r.scored;
+              const f = await auditDueForecasts(supabaseAdmin, ws.owner_id, ws.id);
+              totalForecastsDrafted += f.drafted;
+              totalForecastsAutoSettled += f.autoSettled;
               results.push({ workspace_id: ws.id, scored: r.scored });
             } catch (e) {
               results.push({
@@ -42,7 +52,13 @@ export const Route = createFileRoute("/api/public/hooks/calibrate-tick")({
             }
           }
 
-          return json({ ok: true, processed: workspaces?.length ?? 0, scored: totalScored });
+          return json({
+            ok: true,
+            processed: workspaces?.length ?? 0,
+            scored: totalScored,
+            forecastsDrafted: totalForecastsDrafted,
+            forecastsAutoSettled: totalForecastsAutoSettled,
+          });
         });
       },
     },
