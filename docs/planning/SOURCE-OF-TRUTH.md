@@ -113,7 +113,8 @@ Nothing below can be done autonomously. Each needs a decision, a secret, an acco
 
 | What | Why it is blocked |
 | --- | --- |
-| **Click publish in Lovable** | Pushing to main does not deploy. App code sits until this happens; database migrations applied through Lovable are live immediately. |
+| **Click publish in Lovable** | Pushing to main does not deploy. App code sits until this happens; database migrations applied through Lovable are live immediately. **Verified waiting as of 2026-08-12 21:45 IST: `/film` returns 404 in production while `/`, `/demo`, `/track-record` and `/pricing` all return 200, and the film's own video URLs answer `text/html`, which is the SPA fallback rather than the mp4.** The embed is committed and pushed (`5c67795d`); the deploy predates it. |
+| **Apply `20260812210000_a_forecast_horizon_passed_and_nothing_was_on_the_other_side.sql`** | FC-01's grading half. Six columns on `decisions` plus a replacement index. It goes through the Lovable MCP, which is installed but unauthenticated in agent sessions, so no agent can apply it. Tasks 4 to 7 of [`initiatives/forecast-resolution-plan.md`](./initiatives/forecast-resolution-plan.md) read these columns and wait on it. **Apply the migration BEFORE publishing app code that reads it:** the two are separate switches and PostgREST answers an unknown column with an error, so the wrong order breaks `/learn`. The plan makes the desk fail soft as a second line of defence. |
 | **Live Stripe keys and price IDs, then the credits go-live flip** | Metering is off. It was once armed with zero balances and blocked all AI, so it stays off until balances exist. Runbook: [`../operations/credit-engine-go-live.md`](../operations/credit-engine-go-live.md). |
 | **Merchant-of-record pick** | Blocks the billing rail going live. |
 | **`RESEND_API_KEY`** on a founder-owned transactional email account | The out-of-app reach channel is built and env-gated; it does nothing without this. |
