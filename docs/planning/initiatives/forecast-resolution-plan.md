@@ -202,6 +202,7 @@ No Brier score. No throttle. No backfill of existing rows. No change to the capt
 - **Commit with `git commit -F <file>`.** zsh evaluates backticks inside `-m` and silently deletes the word.
 - **Migration naming:** `supabase/migrations/<UTC timestamp>_<snake_case_reason>.sql`, carrying a comment that explains why it exists.
 - **Query key convention on `/learn`:** existing keys are `["outcome"]`, `["outcome-pending"]`, `["outcome-agent-settled"]`. New keys follow the same shape.
+- **ORDERING HAZARD, and the reason the desk must fail soft.** Migrations are applied through Lovable and are live immediately; app code goes live separately when publish is clicked. Those are two switches, not one, and nothing enforces their order. Every query in Tasks 4 to 6 names columns that do not exist until Task 1 is applied, and PostgREST answers an unknown column with an error rather than a null. So if the code is published first, `/learn` does not degrade, it breaks, and it takes the spec-outcome desk down with it because they share a route. **`ForecastDeskPanel` therefore renders nothing on a failed query rather than surfacing the error**, and `listDueForecasts`, `listAgentSettledForecasts` and `getForecastCallRate` each return their empty shape on error instead of throwing. This matches the repo's existing fail-safe rule: every seam degrades to rendering nothing, and a forecast failure must never break the Learn desk. `settleForecast` and `deferForecastCheck` are the exception and still throw, because a write that silently does nothing is the defect `deferOutcomeCheck` was fixed for.
 
 ---
 
@@ -862,7 +863,11 @@ export const listDueForecasts = createServerFn({ method: "GET" })
       .or(dueCheckFilter(nowIso))
       .order("forecast_horizon_date", { ascending: true })
       .limit(12);
-    if (error) throw new Error(error.message);
+    // Fail soft, per the ordering hazard in the global constraints: until the
+    // Task 1 migration is applied these columns do not exist, and PostgREST
+    // answers an unknown column with an error. Returning empty keeps the rest of
+    // the Learn desk standing.
+    if (error) return { due: [] };
 
     const nowMs = Date.parse(nowIso);
     const due = (data ?? [])
@@ -985,7 +990,8 @@ export const listAgentSettledForecasts = createServerFn({ method: "GET" })
       .not("forecast_resolved_by_agent_slug", "is", null)
       .order("forecast_resolved_at", { ascending: false })
       .limit(8);
-    if (error) throw new Error(error.message);
+    // Fail soft, same reason as listDueForecasts.
+    if (error) return { settled: [] };
     return { settled: data ?? [] };
   });
 
