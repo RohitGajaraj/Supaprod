@@ -52,7 +52,7 @@
   margin-bottom:2.2cqh;
 }
 .tp-line{
-  font:400 3.4cqw/1.18 var(--sk-ui);
+  font:600 3.4cqw/1.18 var(--sk-ui);   /* heavier ink so the dark line holds its own against the cream hero */
   letter-spacing:-0.01em;
   color:var(--sk-ink-near);
   white-space:nowrap;
@@ -63,7 +63,8 @@
   font-size:6.2cqw;
   letter-spacing:-0.015em;
   color:#FDF9F2;
-  margin-top:1.4cqh;
+  margin-top:0.6cqh;         /* the pair reads as one thought, not two paragraphs */
+  transform-origin:0% 50%;   /* fixed from the start so no tween ever re-anchors it mid-motion */
 }
 /* line 3 — the finisher; a step larger and opened up, the last word of the film's argument */
 .tp-line--finish{
@@ -114,7 +115,6 @@
   <div id="tp-world" class="clip" data-start="0" data-duration="6.4" data-track-index="1">
     <div id="tp-cam">
       <div class="tp-title">
-        <span class="tp-rule" id="tp-rule"></span>
         <span class="tp-line" id="tp-l1">you stop guessing.</span>
         <span class="tp-line tp-line--turn" id="tp-l2">you start deciding.</span>
       </div>
@@ -171,15 +171,12 @@
     /* ═════ the triplet — each fragment arrives on its spoken cue (VO enters ~0.4 s) ═════ */
 
     /* ── beat 1 (0.5 s) · "you stop guessing." — the ink rule stub wipes in first, then the line ── */
-    tl.fromTo("#tp-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, 0.12);
     tl.fromTo("#tp-l1", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.85, ease: "power3.out" }, 0.5);
 
     /* ── beat 2 (2.2 s) · "you start deciding." — joins beneath at 700, full ink ── */
-    tl.fromTo("#tp-l2", { y: 26, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 2.2);
+    tl.fromTo("#tp-l2", { y: 26, opacity: 0, scale: 0.97 }, { y: 0, opacity: 1, scale: 1, duration: 0.8, ease: "power3.out" }, 2.2);
 
     /* the hero bloom · the whole cream line presses in and glows once (no underline) */
-    tl.fromTo("#tp-l2", { scale: 0.965 },
-      { scale: 1, duration: 0.9, ease: "power2.out", transformOrigin: "0% 50%" }, 2.9);
     tl.fromTo("#tp-l2",
       { textShadow: "0 2px 10px rgba(253,249,242,0)" },
       { textShadow: "0 2px 44px rgba(253,249,242,0.38)", duration: 0.8, ease: "power2.out" }, 3.05);

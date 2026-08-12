@@ -509,7 +509,7 @@
           <div id="cl-word">supaprod</div>
           <div id="cl-subtag">build what matters.</div>
           <div id="cl-url">
-            <svg id="cl-url-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11 V7 a4 4 0 0 1 8 0 v4" /></svg>
+            <svg id="cl-url-lock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6" /><line x1="15" y1="15" x2="20.5" y2="20.5" /></svg>
             <span id="cl-url-text"></span>
             <span id="cl-caret"></span>
           </div>
@@ -576,9 +576,8 @@
 
     // the mark revolves as it completes (F4's draw motif, bookended)
     tl.fromTo("#cl-spin", { rotation: -46 }, { rotation: 0, duration: 1.85, ease: "power2.out" }, 0.02);
-    /* the loader motif holds through the close: a slow continuous revolve, petals warming to amber */
+    /* the loader motif holds through the close: a slow continuous revolve; the mark stays brand cream */
     tl.to("#cl-spin", { rotation: 26, duration: 7.2, ease: "none" }, 2.0);
-    tl.to("#cl-loop", { stroke: "#E8B44C", duration: 3.4, ease: "power1.inOut" }, 3.2);
     // stroke draw · pen trace, power2.out, no bounce (VO: "Supaprod.")
     tl.fromTo(loop, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: 1.45, ease: "power2.out" }, 0.12);
     // loader motif: the stroke warms from white toward amber as the loop closes

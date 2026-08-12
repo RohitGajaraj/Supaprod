@@ -9,7 +9,9 @@ starts, t = [], 0.0
 for d in DUR:
     starts.append(t); t += d
 F = starts  # F[0]..F[12]
-vo_delays = [int((s + 0.4) * 1000) for s in F]
+OFFSET = [0.4] * 13
+OFFSET[3] = 0.9  # the reflection beat: "Nobody remembers." breathes ~0.65s before the brand name enters
+vo_delays = [int((s + o) * 1000) for s, o in zip(F, OFFSET)]
 
 # (sfx_name, absolute_time_s, volume, trim_s or None) — frame-local cues on the frozen table
 sfx = [
@@ -89,6 +91,6 @@ fc.append('[voA][musd][sfx]amix=inputs=3:normalize=0,alimiter=limit=0.93,'
 cmd = ['/opt/homebrew/bin/ffmpeg', '-y', '-v', 'error']
 for f in files: cmd += ['-i', f]
 cmd += ['-filter_complex', ';'.join(fc), '-map', '[out]', '-t', '142.1',
-        '-c:a', 'aac', '-b:a', '256k', 'audio-master-v8.m4a']
+        '-c:a', 'aac', '-b:a', '256k', 'audio-master-v11.m4a']
 r = subprocess.run(cmd, capture_output=True, text=True)
-print(r.stderr[-500:] if r.returncode else 'FINAL FILM MIX DONE: audio-master-v8.m4a')
+print(r.stderr[-500:] if r.returncode else 'FINAL FILM MIX DONE: audio-master-v11.m4a')

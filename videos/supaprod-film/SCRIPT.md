@@ -25,9 +25,9 @@
 ## Line 3 — You know the feeling (Frame 3)
 
 **Time:** 15.0 – 27.0s
-**Delivery:** Direct address, knowing. The question at the end lands quiet, not dramatic.
+**Delivery:** Direct address, knowing. The question lands quiet; "Nobody knows." colder still, flat, a door closing. (Founder ruling 2026-08-12: the pain must CLOSE before the brand enters — the unanswered question was left hanging.)
 
-    You know the feeling. Signals everywhere — interviews, tickets, dashboards, hunches. The loudest voice wins the roadmap. And six months later, someone asks — why did we build this?
+    You know the feeling. Signals everywhere — interviews, tickets, dashboards, hunches. The loudest voice wins. And six months later, someone asks — why did we build this? Nobody remembers.
 
 ## Line 4 — Supaprod (Frame 4)
 
