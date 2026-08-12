@@ -181,6 +181,8 @@ No Brier score. No throttle. No backfill of existing rows. No change to the capt
 
 > **For agentic workers:** REQUIRED SUB-SKILL: use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this task by task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Progress (2026-08-12).** Tasks 2 and 3 are BUILT and green: `src/lib/brain/forecast-resolution.ts` and `src/components/learn/forecast-words.ts`, 23 tests, all four pins proven red then green by planting the defect. Gate at that point: tsc 0, 8,755 pass, 0 fail, eslint clean on the new files. **Task 1, the migration, is not applied yet**, and Tasks 4 to 7 read columns it adds, so they wait on it. Applying it goes through the Lovable MCP. Nothing built so far touches the database, which is why it could land first.
+
 **Goal:** a forecast horizon passing produces either a verdict or an explicit deferral, and a workspace can read how often its own calls were right.
 
 **Architecture:** a pure predicate module holds the queue rule and the auto-settle gate so both are testable without a database. A `.server.ts` module drafts suggestions and promotes only the gated subset, called from the existing `calibrate-tick`. Server functions expose the queue, the settle, the deferral and the rate to the Learn desk, which gains its own forecast panel rather than growing `SettlePanel` further.
