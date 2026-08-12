@@ -1,0 +1,284 @@
+import { describe, it, expect } from "bun:test";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  listDueForecastsImpl,
+  settleForecastImpl,
+  deferForecastCheckImpl,
+  listAgentSettledForecastsImpl,
+  getForecastCallRateImpl,
+  FORECAST_COLS,
+} from "./forecast.functions";
+
+const NOW = "2026-08-12T12:00:00.000Z";
+const NOW_MS = Date.parse(NOW);
+const PAST = "2026-08-09T12:00:00.000Z";
+const FUTURE = "2026-08-20T12:00:00.000Z";
+
+type Captured = { table: string; patch: Record<string, unknown> | null; filters: string[] };
+
+/**
+ * Chainable Supabase mock for the forecast desk.
+ *
+ * The write chains end in `.select("id")` and refuse an empty result, because a
+ * write refused by RLS RESOLVES in supabase-js rather than throwing. So the mock
+ * has to model the returned rows too: a chain answering `data: null` on the happy
+ * path would make every write look refused and fail the test for the opposite of
+ * the real reason. This is the exact shape whose absence made an earlier pin's
+ * test unreachable.
+ */
+function mockDb(config: {
+  rows?: unknown[];
+  error?: { message: string } | null;
+  priorCount?: number | null;
+  writeRefused?: boolean;
+  captured?: Captured;
+}): SupabaseClient {
+  const err = config.error ?? null;
+  const cap = config.captured;
+
+  type Chain = {
+    select: () => Chain;
+    not: () => Chain;
+    is: () => Chain;
+    eq: () => Chain;
+    neq: () => Chain;
+    lte: () => Chain;
+    or: (s: string) => Chain;
+    order: () => Chain;
+    limit: () => Chain;
+    maybeSingle: () => Promise<{ data: unknown; error: null }>;
+    then: (resolve: (v: unknown) => unknown) => Promise<unknown>;
+  };
+
+  const makeChain = (table: string, patch: Record<string, unknown> | null): Chain => {
+    const chain: Chain = {
+      select: () => chain,
+      not: () => chain,
+      is: () => chain,
+      eq: () => chain,
+      neq: () => chain,
+      lte: () => chain,
+      or: (s: string) => {
+        cap?.filters.push(s);
+        return chain;
+      },
+      order: () => chain,
+      limit: () => chain,
+      maybeSingle: () =>
+        Promise.resolve({
+          data:
+            config.priorCount === null || config.priorCount === undefined
+              ? null
+              : { forecast_deferred_count: config.priorCount },
+          error: null,
+        }),
+      then: (resolve: (v: unknown) => unknown) => {
+        if (patch !== null && cap) {
+          cap.table = table;
+          cap.patch = patch;
+        }
+        // A write chain answers rows; a read chain answers the configured rows.
+        if (patch !== null) {
+          return Promise.resolve({
+            data: err || config.writeRefused ? [] : [{ id: "dec-1" }],
+            error: err,
+          }).then(resolve);
+        }
+        return Promise.resolve({ data: err ? null : (config.rows ?? []), error: err }).then(
+          resolve,
+        );
+      },
+    };
+    return chain;
+  };
+
+  return {
+    from: (table: string) => ({
+      select: (...args: unknown[]) => {
+        void args;
+        return makeChain(table, null);
+      },
+      update: (patch: Record<string, unknown>) => makeChain(table, patch),
+    }),
+  } as unknown as SupabaseClient;
+}
+
+const dueRow = {
+  id: "dec-1",
+  title: "Ship the narrow onboarding",
+  forecast_claim: "Activation clears 20 percent in week one",
+  forecast_how_we_will_know: "The activation panel for the cohort",
+  forecast_horizon_date: PAST,
+  forecast_resolution: null,
+  forecast_next_check_at: null,
+  forecast_deferred_count: 0,
+  forecast_resolution_suggestion: null,
+  workspace_id: "ws-1",
+};
+
+describe("listDueForecastsImpl (FC-01)", () => {
+  it("maps a due row and reads lateness off the frozen horizon", async () => {
+    const { due } = await listDueForecastsImpl(mockDb({ rows: [dueRow] }), NOW);
+    expect(due).toHaveLength(1);
+    expect(due[0].claim).toBe("Activation clears 20 percent in week one");
+    expect(due[0].howWeWillKnow).toBe("The activation panel for the cohort");
+    expect(due[0].daysLate).toBe(3);
+    expect(due[0].suggestion).toBeNull();
+  });
+
+  it("exposes a drafted verdict when the tick has left one", async () => {
+    const withDraft = {
+      ...dueRow,
+      forecast_resolution_suggestion: {
+        verdict: "miss",
+        rationale: "It sat at 11 percent.",
+        confidence: 0.82,
+      },
+    };
+    const { due } = await listDueForecastsImpl(mockDb({ rows: [withDraft] }), NOW);
+    expect(due[0].suggestion).toEqual({
+      verdict: "miss",
+      rationale: "It sat at 11 percent.",
+      confidence: 0.82,
+    });
+  });
+
+  it("applies the pure predicate, so a deferred row cannot slip through", async () => {
+    const deferred = { ...dueRow, forecast_next_check_at: FUTURE };
+    const { due } = await listDueForecastsImpl(mockDb({ rows: [deferred] }), NOW);
+    expect(due).toEqual([]);
+  });
+
+  /**
+   * The ordering hazard. Migrations and deploys are two switches with no enforced
+   * order, and PostgREST answers an unknown column with an error rather than a
+   * null. Throwing here would take the whole Learn desk down, spec outcomes
+   * included, because both live on one route.
+   */
+  it("fails soft rather than breaking the desk it joins", async () => {
+    const { due } = await listDueForecastsImpl(
+      mockDb({ error: { message: 'column "forecast_next_check_at" does not exist' } }),
+      NOW,
+    );
+    expect(due).toEqual([]);
+  });
+
+  it("asks for the deferral clause NULL-safely", async () => {
+    const captured: Captured = { table: "", patch: null, filters: [] };
+    await listDueForecastsImpl(mockDb({ rows: [], captured }), NOW);
+    expect(captured.filters[0]).toBe(
+      `forecast_next_check_at.is.null,forecast_next_check_at.lte.${NOW}`,
+    );
+  });
+});
+
+describe("settleForecastImpl (FC-01)", () => {
+  it("writes the verdict and leaves no agent fingerprint", async () => {
+    const captured: Captured = { table: "", patch: null, filters: [] };
+    const r = await settleForecastImpl(
+      mockDb({ captured }),
+      { decisionId: "dec-1", resolution: "miss", rationale: "It sat at 11 percent." },
+      NOW,
+    );
+    expect(r.ok).toBe(true);
+    expect(captured.table).toBe("decisions");
+    expect(captured.patch?.forecast_resolution).toBe("miss");
+    expect(captured.patch?.forecast_resolved_by_agent_slug).toBeNull();
+    expect(captured.patch?.forecast_resolved_at).toBe(NOW);
+  });
+
+  /**
+   * Loud on writes, on purpose. A refused write RESOLVES with zero rows, and
+   * reporting success over it is the defect deferOutcomeCheck was fixed for.
+   */
+  it("throws when the write is refused and changes nothing", async () => {
+    await expect(
+      settleForecastImpl(
+        mockDb({ writeRefused: true }),
+        { decisionId: "dec-1", resolution: "hit", rationale: "x" },
+        NOW,
+      ),
+    ).rejects.toThrow(/rights on this decision/);
+  });
+});
+
+describe("deferForecastCheckImpl (FC-01 integrity pin)", () => {
+  it("moves the check date, counts the deferral, and writes no verdict", async () => {
+    const captured: Captured = { table: "", patch: null, filters: [] };
+    const r = await deferForecastCheckImpl(
+      mockDb({ priorCount: 2, captured }),
+      { decisionId: "dec-1", days: 14 },
+      NOW_MS,
+    );
+    expect(r.checkBy).toBe("2026-08-26T12:00:00.000Z");
+    expect(r.deferredCount).toBe(3);
+    expect(captured.patch).not.toBeNull();
+    expect("forecast_resolution" in (captured.patch ?? {})).toBe(false);
+    expect("forecast_resolved_at" in (captured.patch ?? {})).toBe(false);
+  });
+
+  it("counts from zero when the forecast has never been deferred", async () => {
+    const r = await deferForecastCheckImpl(
+      mockDb({ priorCount: null }),
+      { decisionId: "dec-1", days: 7 },
+      NOW_MS,
+    );
+    expect(r.deferredCount).toBe(1);
+  });
+
+  it("throws when the check date did not actually move", async () => {
+    await expect(
+      deferForecastCheckImpl(
+        mockDb({ priorCount: 0, writeRefused: true }),
+        { decisionId: "dec-1", days: 14 },
+        NOW_MS,
+      ),
+    ).rejects.toThrow(/check date did not move/);
+  });
+});
+
+describe("getForecastCallRateImpl (FC-01)", () => {
+  it("attributes resolved calls to the team", async () => {
+    const rows = [
+      { forecast_resolution: "hit" },
+      { forecast_resolution: "hit" },
+      { forecast_resolution: "miss" },
+    ];
+    const s = await getForecastCallRateImpl(mockDb({ rows }));
+    expect(s.label).toBe("You called 2 of the last 3");
+  });
+
+  it("fails soft to the honest zero state", async () => {
+    const s = await getForecastCallRateImpl(mockDb({ error: { message: "boom" } }));
+    expect(s.resolved).toBe(0);
+    expect(s.label).toBe("Not enough resolved calls yet");
+  });
+});
+
+describe("listAgentSettledForecastsImpl (FC-01)", () => {
+  it("returns what an agent settled, so the set can be reconsidered", async () => {
+    const rows = [{ id: "dec-9", forecast_resolved_by_agent_slug: "forecast-auditor" }];
+    const { settled } = await listAgentSettledForecastsImpl(mockDb({ rows }));
+    expect(settled).toHaveLength(1);
+  });
+
+  it("fails soft", async () => {
+    const { settled } = await listAgentSettledForecastsImpl(mockDb({ error: { message: "boom" } }));
+    expect(settled).toEqual([]);
+  });
+});
+
+describe("FORECAST_COLS (FC-01)", () => {
+  it("requests every field the desk renders", () => {
+    for (const col of [
+      "forecast_claim",
+      "forecast_how_we_will_know",
+      "forecast_horizon_date",
+      "forecast_next_check_at",
+      "forecast_deferred_count",
+      "forecast_resolution_suggestion",
+    ]) {
+      expect(FORECAST_COLS).toContain(col);
+    }
+  });
+});

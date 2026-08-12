@@ -548,6 +548,17 @@ export const SURFACE_REGISTRY = {
     opensFrom: "spine-stage-07",
     status: "planned",
   },
+  // FC-01, the grading half. Same home and door as `outcome`, because a due
+  // forecast and a due spec outcome are settled at the same desk. It is
+  // deliberately NOT the same domain: a spec outcome asks whether shipping paid
+  // off and a forecast asks whether the belief was right, and one event can
+  // answer those two differently.
+  forecast: {
+    kind: "canvas-panel",
+    home: "canvas/07-growth",
+    opensFrom: "spine-stage-07",
+    status: "planned",
+  },
   "pm-impact": {
     kind: "canvas-panel",
     home: "canvas/07-growth",
