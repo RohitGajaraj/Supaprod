@@ -19,6 +19,7 @@ OFFSET[5] = 1.38  # L6 too; its tail still clears L7 by half a second
 OFFSET[7] = 0.75  # air after the forecast line, before the tour begins
 OFFSET[8] = 1.0   # the tour finishes, one breath, then the loop closes
 OFFSET[9] = 0.6   # keeps L9>L10 at half a second after the L9 shift
+OFFSET[12] = 2.4  # the pre-CTA breath: 2.4s of pure score between the impact line and the close
 vo_delays = [int((s + o) * 1000) for s, o in zip(F, OFFSET)]
 
 # (sfx_name, absolute_time_s, volume, trim_s or None) — frame-local cues on the frozen table
@@ -63,7 +64,7 @@ sfx = [
     ('tick',   F[1]+1.0,  0.30, None),  # F2 release rows
     ('tick',   F[1]+1.6,  0.30, None),
     ('tick',   F[1]+2.2,  0.30, None),
-    ('bloom',  F[12]+1.2, 0.45, None),  # F13 tagline reveal, the brand resolve motif
+    ('bloom',  F[12]+3.9, 0.45, None),  # F13 tagline reveal, timed to the spoken closing statement
 ]
 
 files = [f'{i:02d}.mp3' for i in range(1, 14)] + ['music-final.m4a'] + \
@@ -99,6 +100,6 @@ fc.append('[voA][musd][sfx]amix=inputs=3:normalize=0,alimiter=limit=0.93,'
 cmd = ['/opt/homebrew/bin/ffmpeg', '-y', '-v', 'error']
 for f in files: cmd += ['-i', f]
 cmd += ['-filter_complex', ';'.join(fc), '-map', '[out]', '-t', '142.1',
-        '-c:a', 'aac', '-b:a', '256k', 'audio-master-v13.m4a']
+        '-c:a', 'aac', '-b:a', '256k', 'audio-master-v15.m4a']
 r = subprocess.run(cmd, capture_output=True, text=True)
-print(r.stderr[-500:] if r.returncode else 'FINAL FILM MIX DONE: audio-master-v13.m4a')
+print(r.stderr[-500:] if r.returncode else 'FINAL FILM MIX DONE: audio-master-v15.m4a')

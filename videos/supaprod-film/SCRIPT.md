@@ -92,11 +92,17 @@
 **Time:** 101.0 – 106.0s
 **Delivery:** Six words, all space.
 
-    You stop guessing. You start deciding. Build what matters.
+    Agents run the work. The judgment is yours. Every call makes the next one sharper.
+
+*(Founder-ruled 2026-08-12: "the judgment is yours" answers L2's "judgment gap" — the arc closes on its own opening. "The calls stay yours" retired here as faintly defensive.)*
+
+*(Founder ruling 2026-08-12 late: the orange slide is the impact statement — the moat spoken and shown together; "you stop guessing / you start deciding" retired as bland. "Build what matters." moved to the close as the spoken closing statement.)*
 
 ## Line 13 — Close (Frame 13)
 
 **Time:** 106.0 – 114.0s
 **Delivery:** Settled, warm. The URL spoken like an address, not an ad.
 
-    Supaprod… Agents run the work. You make the calls. And every call makes the next one sharper.
+    Supaprod… Build what matters.
+
+*(The close is pure: the name, the closing statement landing with its on-screen twin, the URL. Everything else moved to the orange impact slide.)*
