@@ -149,6 +149,7 @@ import {
 } from "@/lib/outcome.functions";
 import { getImpactLedger } from "@/lib/pm-impact.functions";
 import { SettlePanel } from "@/components/learn/SettlePanel";
+import { ForecastDeskPanel } from "@/components/learn/ForecastDeskPanel";
 import { VERDICT_SAYS } from "@/components/learn/verdict-words";
 import {
   Actions,
@@ -484,6 +485,14 @@ function Learn() {
           receipts and the queue it drains. It reports which workspace the bet
           in focus lives in, and everything below is drawn from that workspace;
           see the header. */}
+      {/* FC-01: due forecasts come first, because a forecast is settled against
+          a date the team set and a spec outcome is not. It is a SEPARATE group
+          and never a synonym: a spec outcome asks whether shipping paid off, a
+          forecast asks whether the belief was right, and one event answers those
+          differently. It renders nothing when there is nothing to settle, and
+          nothing when its reads fail, so it can never take this desk down. */}
+      <ForecastDeskPanel />
+
       <SettlePanel onDeskWorkspace={rememberDeskWorkspace} />
 
       {/* WHAT SURVIVES A RELOAD. The panel's receipt stack is React state and
