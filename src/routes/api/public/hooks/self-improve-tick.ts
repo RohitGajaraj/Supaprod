@@ -155,6 +155,10 @@ export const Route = createFileRoute("/api/public/hooks/self-improve-tick")({
                         admin,
                         { workspaceId: ws.id, kind: f.kind, subjectRef: f.subject_ref as string },
                         ws.owner_id,
+                        // Nobody is here. `ws.owner_id` is read off the workspaces
+                        // row above: it names the owner, not an actor who did
+                        // anything, so the decisions row must not read as theirs.
+                        { unattended: true },
                       );
                       if (applied.applied && !applied.cached) autoApplied++;
                     }

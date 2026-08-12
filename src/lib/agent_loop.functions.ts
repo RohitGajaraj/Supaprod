@@ -81,7 +81,7 @@ export const decideApproval = createServerFn({ method: "POST" })
     // the RPT-32 gate signal fire only on a genuine first decision.
     const { data: prior } = await supabase
       .from("agent_approvals")
-      .select("status,agent_slug,tool_name")
+      .select("status,agent_slug,tool_name,workspace_id")
       .eq("id", data.approvalId)
       .eq("user_id", userId)
       .maybeSingle();
@@ -89,6 +89,7 @@ export const decideApproval = createServerFn({ method: "POST" })
       status?: string | null;
       agent_slug?: string | null;
       tool_name?: string | null;
+      workspace_id?: string | null;
     } | null;
     const status = data.decision === "approve" ? "approved" : "rejected";
     const { error } = await supabase
@@ -116,6 +117,11 @@ export const decideApproval = createServerFn({ method: "POST" })
         agentSlug: priorRow.agent_slug ?? null,
         toolName: priorRow.tool_name ?? null,
         verdict: status,
+        // Without this the row lands with workspace_id = NULL, and
+        // self-improve's readAgentSignals scopes by workspace_id with no
+        // fallback - so the most-decided gate in the product moved no
+        // correction rate at all.
+        workspaceId: priorRow.workspace_id ?? null,
       });
     }
     if (status === "approved" && data.execute !== false) {

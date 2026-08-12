@@ -549,6 +549,7 @@ export type Database = {
           agent_id: string | null
           agent_name: string
           agent_slug: string
+          attempt: number | null
           created_at: string
           credits_refunded: boolean
           delegate_meta: Json | null
@@ -564,6 +565,7 @@ export type Database = {
           mission_token_cap: number | null
           model: string | null
           output: string | null
+          resume_count: number | null
           spend_used_usd: number
           status: string
           step_index: number
@@ -576,6 +578,7 @@ export type Database = {
           agent_id?: string | null
           agent_name: string
           agent_slug: string
+          attempt?: number | null
           created_at?: string
           credits_refunded?: boolean
           delegate_meta?: Json | null
@@ -591,6 +594,7 @@ export type Database = {
           mission_token_cap?: number | null
           model?: string | null
           output?: string | null
+          resume_count?: number | null
           spend_used_usd?: number
           status?: string
           step_index?: number
@@ -603,6 +607,7 @@ export type Database = {
           agent_id?: string | null
           agent_name?: string
           agent_slug?: string
+          attempt?: number | null
           created_at?: string
           credits_refunded?: boolean
           delegate_meta?: Json | null
@@ -618,6 +623,7 @@ export type Database = {
           mission_token_cap?: number | null
           model?: string | null
           output?: string | null
+          resume_count?: number | null
           spend_used_usd?: number
           status?: string
           step_index?: number
@@ -1420,6 +1426,7 @@ export type Database = {
           parent_kind: string
           rationale: string | null
           relation: string
+          seeded: boolean
           user_id: string
           valid_to: string | null
           workspace_id: string
@@ -1437,6 +1444,7 @@ export type Database = {
           parent_kind: string
           rationale?: string | null
           relation?: string
+          seeded?: boolean
           user_id: string
           valid_to?: string | null
           workspace_id?: string
@@ -1454,6 +1462,7 @@ export type Database = {
           parent_kind?: string
           rationale?: string | null
           relation?: string
+          seeded?: boolean
           user_id?: string
           valid_to?: string | null
           workspace_id?: string
@@ -9622,6 +9631,10 @@ export type Database = {
       invite_code_status: { Args: { _code: string }; Returns: string }
       is_account_member: { Args: { account: string }; Returns: boolean }
       is_account_owner: { Args: { account: string }; Returns: boolean }
+      is_production_workspace: {
+        Args: { _workspace_id: string }
+        Returns: boolean
+      }
       is_workspace_member: { Args: { ws: string }; Returns: boolean }
       is_workspace_owner: { Args: { ws: string }; Returns: boolean }
       issue_mcp_token: {
@@ -9881,6 +9894,7 @@ export type Database = {
         Args: { p_product_id: string; p_workspace_id: string }
         Returns: boolean
       }
+      production_workspace_ids: { Args: never; Returns: string[] }
       publish_announcement: {
         Args: { _announcement_id: string; _workspace_id: string }
         Returns: undefined

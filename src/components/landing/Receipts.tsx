@@ -1,5 +1,3 @@
-import type { LandingStats } from "@/lib/landing.functions";
-
 /**
  * Beat 4 - Receipts (the investor beat).
  *
@@ -12,7 +10,11 @@ import type { LandingStats } from "@/lib/landing.functions";
  * the one centred object on the page, and it is centred on purpose: it is a
  * statement, not a row.
  *
- * The `stats` prop is accepted and ignored so the route can keep passing it.
+ * IT TAKES NO PROPS NOW. It used to accept `stats` and ignore it so the route
+ * could keep passing something, and that courtesy is what kept six COUNT
+ * queries alive in the loader of `/` for two weeks after the counters beat was
+ * deleted. An ignored parameter reads as a temporary shim and survives as
+ * permanent load.
  *
  * ---------------------------------------------------------------------------
  * 2026-08-09 - the worked example and the dead links came out (founder ruling).
@@ -54,7 +56,7 @@ import type { LandingStats } from "@/lib/landing.functions";
  * because it names what the record holds, which is a description of the
  * product, not a count of what we have already collected.
  */
-export function Receipts(_props: { stats?: LandingStats | null }) {
+export function Receipts() {
   // Only destinations a stranger can check without an account, and only ones
   // with something on the other side. A link that resolves to an empty page is
   // not a receipt, it is a claim with extra steps.

@@ -40,7 +40,7 @@ The three assets no competitor can copy this week, which every idea exploits:
 | 9 | **"The ICE table that never learns"** — interactive static-score vs track record page | 3 | $0 | M | low | 35% | 9 |
 | 10 | **PM-vs-engineer agent-envy meme pack** — 6-8 formats, seeded with the wave | 3 | $0 | S | low | 35% | 10 |
 | 11 | **AI-announcement hijack kit** — pre-written "the labs shipped the hands" responses | 3 | $0 | S | low | 30% | 11 |
-| 12 | **The Evidence Page** — live dogfood counters (2,162 AI events, 133 missions...) | 2 | $0 | S | low | 45% | 12 |
+| 12 | **The Evidence Page** — live dogfood counters. ⛔ **The example figures here (2,162 AI events, 133 missions) are RETIRED as of 2026-08-11** — seed data matching no workspace, see [`../pitch/verified-numbers.md`](../pitch/verified-numbers.md) §4. The asset is still worth building; it must count only rows that pass the demo/real split (`is_sample` on the workspace, `seeded` on the row) | 2 | $0 | S | low | 45% | 12 |
 | 13 | **ARD open spec** — "ADR for product decisions", GitHub spec, Supaprod as reference | 4 | $0 | M | low | 25% this week | 13 (compounds later) |
 | 14 | **X Spaces / LinkedIn Live** — "watch the track record live" AMA, day 6-7 | 2 | $0 | S | low | 30% | 14 |
 | 15 | **Decision-debt calculator** — 6-question free tool, share-your-score | 3 | $0 | L | low | 25% | 15 (build post-wave) |

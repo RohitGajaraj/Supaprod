@@ -323,19 +323,126 @@ const ExtendApprovalSchema = z.object({
   additionalHours: z.number().int().min(1).max(168),
 });
 
-/** Extend a pending approval's TTL. */
+/**
+ * Run statuses that mean the work behind a gate is STILL LIVE.
+ *
+ * AN ALLOWLIST, AND THE DIRECTION IS THE WHOLE POINT. The obvious way to write
+ * this is a set of FINISHED statuses to refuse on, and that version fails open
+ * on everything it forgot. It was drafted that way — `{completed, failed,
+ * halted, cancelled}` — and the set omitted `completed_with_failures`, which is
+ * 452 of 1,135 runs, 40% of every run ever recorded and the second most common
+ * outcome in the table (census at `ai/mission-advance.server.ts`). It also
+ * omitted `complete` and included `cancelled`, of which there are none. So the
+ * guard would have waved through the ordinary case and blocked a case that does
+ * not occur.
+ *
+ * `agent_runs.status` has NO check constraint — it is plain text with a default
+ * — so nothing downstream catches a status this file has never heard of. An
+ * allowlist of live states makes an unknown status REFUSE rather than proceed,
+ * which is the correct direction for a guard to fail when it is surprised. Same
+ * inversion, same reasoning, as gate 4 in `decision-gate.ts`.
+ *
+ * The three members are the only non-terminal writes in `ai/loop.server.ts`:
+ * `queued` (enqueued, not yet picked up), `running`, and `waiting_approval`
+ * (which is the state a gate being extended is normally in).
+ */
+const LIVE_RUN_STATUSES = new Set(["queued", "running", "waiting_approval"]);
+
+/**
+ * Put an approval back on the clock.
+ *
+ * THE DEFECT THIS CLOSES. `approvals-tick` expires a gate by writing BOTH
+ * `escalation_state = 'expired'` AND `status = 'expired'` in one update, and
+ * every queue that asks whether a call is still waiting on a human asks
+ * `status`: `countNeedsYouCalls` and `getNeedsYou` (`.eq("status","pending")`),
+ * the queue in `approvals-queue.functions.ts` (`a.status === "pending"`), and
+ * this button's own panel (`ApprovalsPanel`, `.filter((a) => a.status ===
+ * "pending")`). This write moved `expires_at` and `escalation_state` and left
+ * `status` on 'expired', so the extension was written, reported success, and
+ * the call still did not come back to any queue.
+ *
+ * Nothing could repair it afterwards either, which is what made it permanent:
+ * the sweeper's expiry pass only re-reads `status='pending'` rows, and
+ * `needsEscalationResolve` only clears a DECIDED row. So the gate was never
+ * listed, never re-expired, and never resolved. It is the day's recurring
+ * shape once more — the writer and the reader were looking at two different
+ * columns.
+ *
+ * WHAT IT WILL NOT REVIVE, both refusing in a sentence rather than reporting a
+ * success the person cannot see anywhere:
+ *
+ *   * A call somebody already answered. `decideApproval` has no re-decide
+ *     guard of its own — it sets `status='approved'` and calls
+ *     `executeApproval` unconditionally — so reviving a decided row would run
+ *     its tool a SECOND time. The `decided_at` test is what stands between an
+ *     extension and a duplicate side effect.
+ *   * A call whose run is over, because approving that gate would run a tool
+ *     with nothing left to run into.
+ *
+ * The update repeats both conditions as WHERE clauses rather than trusting the
+ * read, so a row that changes underneath between the two statements is refused
+ * by the database rather than by a check that raced, and `.select("id")` makes
+ * an empty result an error instead of a silent no-op.
+ */
 export const extendApprovalTtl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: z.infer<typeof ExtendApprovalSchema>) => ExtendApprovalSchema.parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const newExpiry = new Date(Date.now() + data.additionalHours * 60 * 60 * 1000).toISOString();
-    const { error } = await supabase
+
+    const { data: row } = await supabase
       .from("agent_approvals")
-      .update({ expires_at: newExpiry, escalation_state: "pending" })
+      .select("id,status,decided_at,run_id")
       .eq("id", data.approvalId)
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!row) throw new Error("We could not find that call, so nothing changed.");
+    if (row.decided_at || (row.status !== "pending" && row.status !== "expired")) {
+      throw new Error(
+        `You already answered this call (${row.status}), so it cannot go back on the clock.`,
+      );
+    }
+    if (row.run_id) {
+      const { data: run } = await supabase
+        .from("agent_runs")
+        .select("status")
+        .eq("id", row.run_id)
+        .maybeSingle();
+      // A run we cannot read is refused, not waved through. RLS on agent_runs
+      // is `auth.uid() = user_id AND is_workspace_member(workspace_id)`, so a
+      // null here means either the row is gone or this person cannot see it,
+      // and neither is a reason to put a tool back in front of them.
+      if (!run || !LIVE_RUN_STATUSES.has(String(run?.status ?? ""))) {
+        throw new Error(
+          run
+            ? `The run this call belonged to is ${run.status}, so there is nothing left to unblock.`
+            : "We could not read the run this call belonged to, so it stays off the clock.",
+        );
+      }
+    }
+
+    const newExpiry = new Date(Date.now() + data.additionalHours * 60 * 60 * 1000).toISOString();
+    const { data: written, error } = await supabase
+      .from("agent_approvals")
+      .update({
+        expires_at: newExpiry,
+        escalation_state: "pending",
+        // THE COLUMN THE QUEUES ACTUALLY READ. Without this line the new clock
+        // is real in the database and invisible on every surface.
+        status: "pending",
+        // The sweeper's "Auto-expired after TTL" note stops being true of a
+        // call that is waiting again, and the card renders it as a live error.
+        error: null,
+      })
+      .eq("id", data.approvalId)
+      .eq("user_id", userId)
+      .is("decided_at", null)
+      .in("status", ["pending", "expired"])
+      .select("id");
     if (error) throw new Error(error.message);
+    if (!written || written.length === 0) {
+      throw new Error(unconfirmedWrite("that it is back on the clock"));
+    }
     return { ok: true, expires_at: newExpiry };
   });
 

@@ -48,13 +48,18 @@ describe("buildGateEventRow (RPT-32): normalize a gate decision into a row", () 
     const row = buildGateEventRow(USER, {
       gateType: "nonsense" as GateType,
       subjectType: "spec",
+      workspaceId: null,
     });
     expect(row.gate_type).toBe("override");
     expect(CORRECTION_GATE_TYPES.has(row.gate_type)).toBe(true);
   });
 
   test("an empty subject_type falls back to 'unknown' (NOT NULL column)", () => {
-    const row = buildGateEventRow(USER, { gateType: "approval", subjectType: "  " });
+    const row = buildGateEventRow(USER, {
+      gateType: "approval",
+      subjectType: "  ",
+      workspaceId: null,
+    });
     expect(row.subject_type).toBe("unknown");
   });
 });

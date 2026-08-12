@@ -129,9 +129,8 @@ function LoginPage() {
       // and returns `{ redirected: true }`, which is why the
       // `window.location.assign(dest)` below is unreachable in the usual case.
       // The round trip comes back to this URL, "/", so pressing "Continue with
-      // Google" renders the whole marketing landing (getLandingStats fires five
-      // `count: "exact", head: true` queries, landing.functions.ts:60-69) and
-      // only then does the effect at index.tsx:161 notice the session and
+      // Google" renders the whole marketing landing, its loader query included,
+      // and only then does the effect at index.tsx:161 notice the session and
       // `window.location.replace("/today")`. Two documents, on the button most
       // people press, and precisely the detour SIGNED_IN_HOME removes from the
       // email path above.
