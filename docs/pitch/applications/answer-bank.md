@@ -142,6 +142,35 @@ Agents do the work. You answer for it. Supaprod is how you answer.
 
 ## 2. Founder
 
+### The record, verbatim — every education and work-history field, for any form
+
+**Read off the live YC founder profile on 2026-08-13 and confirmed by the founder.** Every accelerator, incubator and investor form asks for some subset of this. **Copy from here rather than retyping from memory**, and if a form disagrees with this table, this table is what gets fixed.
+
+**Education** — *the canon rules "education TUM only" on non-YC surfaces ([`../repositioning-2026-07-22.md`](../repositioning-2026-07-22.md)); list both wherever a form has room, because an empty education field reads worse than a second entry.*
+
+| School | Degree | Dates |
+| --- | --- | --- |
+| **Technical University of Munich** | Master degree, Business Administration And Management, General | Oct 2019 - Nov 2022 |
+| **Visvesvaraya Technological University** | BE, Mechatronics Engineering | Jan 2012 - Jan 2016 |
+
+**Work history**, newest first. The one-line descriptions are the paste-ready versions from [`../yc/founder-profile-answers.md`](../yc/founder-profile-answers.md), which owns the reasoning behind each.
+
+| Company | Title | Dates |
+| --- | --- | --- |
+| **Intellect Design Arena Ltd** | Senior AI Product Manager, Assistant Vice President | Jun 2023 - Sep 2026 |
+| **Indian Institute of Management Bangalore** | Founder, Entrepreneurial Venture | Jan 2022 - Dec 2023 |
+| **Technical University of Munich, TUM School of Management** | MBA, Business Administration and Management | Oct 2019 - Nov 2022 |
+| **Infineon Technologies** | Product Manager | May 2021 - Oct 2022 |
+| **Bosch Software and Digital Solutions** | Product Analyst | Apr 2021 - Oct 2021 |
+| **ISRO - Indian Space Research Organisation** | Associate Product Manager | May 2017 - Sep 2019 |
+| **ISRO - Indian Space Research Organisation** | Communications System Engineer - Space Objects | Sep 2016 - Apr 2017 |
+
+> **The MBA appears in both sections on purpose, and the dates must match to the month.** Education carries the degree, Work History carries the nineteen-month gap it closes between ISRO ending Sep 2019 and Bosch starting Apr 2021. **If those two entries ever disagree by a single month, that is the one inconsistency a reviewer can catch without leaving the page.**
+>
+> **The overlaps are real, not errors.** Bosch and Infineon both run under the MBA; the IIM Bangalore venture runs under Infineon and Intellect. The MBA work-history description explains all of them in one line (*"a full-time job and a degree at the same time"*), which is why that entry is never the one cut for space.
+>
+> **Bosch stays even though it is six months and a junior title**, because it is on the LinkedIn every application links to. An omission a reviewer can spot reads far worse than a weak entry.
+
 ### One line
 ```
 Rohit Gajaraj, solo founder and CEO. A decade as the human glue between product
