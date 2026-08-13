@@ -82,6 +82,7 @@ Most work here is an accelerator, incubator, residency or grant application. The
 | [`compounding-memory-narrative.md`](./compounding-memory-narrative.md) | You need the commercial argument for the memory layer, including the limits that are still real. |
 | [`repositioning-2026-07-22.md`](./repositioning-2026-07-22.md) | The triple-RFS intersection, per-surface vocabulary, the competitor sweep. |
 | [`investor-deck/`](./investor-deck/README.md) | The pre-seed deck, frozen 2026-07-24, print-to-PDF wired, with the brand assets vault. |
+| [**`shareables/README.md`**](./shareables/README.md) | ⭐ **You are about to send something to an outsider.** One index for every finished outward asset: the one-page link card that is the default answer to "upload your deck", the 16-page PDF and its four clipping slides, both YouTube URLs, and where the video masters and brand marks actually live. Carries the two authoring rules that cost us a rebuild each: **no `box-shadow`** (Chrome prints shadow blur as a hard rectangle) and **no dates or counts** in copy that outlives the thing it describes. |
 
 ### Recording video
 
