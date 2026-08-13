@@ -37,10 +37,11 @@ This rule was learned the hard way — the same claim escaped six separate sweep
 
 **Two of those phrases are on the list deliberately even though they are not banned.** *"Starts at zero"* is currently **live and correct** on the landing page (*"a competitor starting next year starts at zero, next year"*) because it is a claim about calendar accrual, which the evidence never touched. It stays on the grep list precisely so a sweep flags it and forces a re-read. **A phrase list containing only banned wording cannot tell you "we fixed this here" apart from "we never had it here"** — and that distinction is the whole point of the sweep. _(Both additions are the UI/UX lane's, 2026-08-10.)_
 
-**Status of the four programme folders, swept 2026-08-10:**
+**Status of the five programme folders** (swept 2026-08-10; Sequoia Arc added 2026-08-13):
 
 | Folder | Sent? | What was done |
 | --- | --- | --- |
+| [**`sequoia-arc/`**](./sequoia-arc/) | **No — due 2026-08-17, 11:59pm PT** | **Drafted 2026-08-13.** The nearest dated deadline with no blocker. Five answers plus four likely extras, against live numbers. **The form sits behind a login and its fields are not public, so open it first and cut each block to its stated limit.** Angle: YC gets the wedge, Sequoia gets the asset. |
 | [`ef-bridge-sf/`](./ef-bridge-sf/) | **No — due 2026-08-30** | **Corrected in place.** Numbers re-derived, and the "most important problem" answer now says the true thing about what cannot be rebuilt. Ready to send. |
 | [`betaworks-ai-camp/`](./betaworks-ai-camp/) | Yes, 2026-07-31 | Answers left as filed. **Interview correction block added at the top of both files** — four claims to not repeat, with the replacement for each. |
 | [`the-residency/`](./the-residency/) | Yes, 2026-07-31 | Same. Decisions by 2026-08-28. Includes the dogfooding line, which is the one that would actually cost us. |
@@ -48,7 +49,7 @@ This rule was learned the hard way — the same claim escaped six separate sweep
 
 **Why the three submitted ones were annotated rather than rewritten.** Each carries its own rule — *"archived record of what was sent, do not edit, because any interview will be against these answers."* That rule is right. Rewriting the filed answers would leave the founder arguing against a document the partner is holding and cannot see. **So the sent text stands and the correction sits above it**, which is what an interview actually needs: what you said, what turned out to be wrong, and the better sentence to say instead.
 
-⚠️ **Still stale, and not in scope for the 2026-08-10 sweep:** [`answer-bank.md`](./answer-bank.md) and [`positioning-doctrine.md`](./positioning-doctrine.md) are corrected on *language* but still carry **4,264 commits, 410 migrations and eight weeks**. Live is **4,876 / 508 / nine weeks**. Every future application pulls from the answer bank, so fix the numbers there before drafting the next one.
+✅ **Fixed 2026-08-13.** [`answer-bank.md`](./answer-bank.md) and [`positioning-doctrine.md`](./positioning-doctrine.md) were carrying **4,264 commits, 410 migrations and eight-to-nine weeks** into anything drafted next. Both now read **5,131 / 532 / ten weeks**. The answer bank also claimed build duration was not derivable from git because the orphan-main recovery flattened every commit date. That was false: the rewrite touched committer dates, author dates were never touched, and the first real commit is `2026-06-02`.
 
 ## How this folder works
 
@@ -76,20 +77,25 @@ This rule was learned the hard way — the same claim escaped six separate sweep
 
 ---
 
-## 🔥 The urgent queue
+## 🔥 The urgent queue — re-cut 2026-08-13
+
+**Everything above 08-13 has passed.** The EF London dates, HF0 and EF XF are gone for this cycle and are recorded in the closed section rather than left sitting at the top implying action.
 
 | When | Program | Fit | Terms | Status |
 | --- | --- | --- | --- | --- |
-| TODAY 07-31 | Entrepreneur First XF (Experienced Founders), London | 6.5 | EF standard | Not drafted |
-| **08-01** | HF0 Residency, Fall 2026 | 7.0 | Up to $1M for 5% | Deadline unverified, single source |
-| **08-04** | Entrepreneur First, London Fall 2026 | 8.5 | £6K equity-free, then $125K for 8% | Not drafted |
-| 08-16 | German Accelerator Kickstart | 2.5 | Fully funded, **no equity** | Low fit |
-| **08-17** | **Sequoia Arc, Fall 2026** | **8.5** | Sequoia pre-seed program | Not drafted |
-| 08-21 | Hub71 Access Programme, Cohort 20 (Abu Dhabi) | 6-7 | Housing, office, credits, cash | 33 questions |
-| 08-30 | EF The Bridge Residency, San Francisco | 6.0 | EF standard | |
-| 08-31 | Slush Startup Stage, Helsinki | 6.0 | Free to apply, €1.5K booth | |
+| 08-14 | The Residency, Fall 2026 | 7.0 | No equity, you pay | **Submitted 2026-07-31.** No action |
+| **08-16** | **Unidentified.** The founder named an 08-16 close and does not have the name | ? | ? | **GATED on the founder.** The only 08-16 row we hold is German Accelerator Kickstart at fit 2.5, and the recommendation on that one is to skip |
+| **08-17** | [**Sequoia Arc, Fall 2026**](./sequoia-arc/) | **8.5** | Pre-seed or seed, terms set per company | **DRAFTED 2026-08-13.** Nearest date with no blocker |
+| **08-21** | **DIFC (Dubai).** Founder-named, deadline the 21st | ? | ? | **GATED on the founder.** Not on this tracker and not among the 144 researched; no public listing found for a close on the 21st. Needs the exact program name and apply link |
+| 08-21 | Berkeley SkyDeck, Batch 23 | 8.5 | Takes equity **and** charges a fee | Not drafted. Solo fine |
+| 08-21 | Hub71 Access Programme, Cohort 20 (Abu Dhabi) | 7.0 | Cash plus housing, office, credits | **Hard blocker:** needs an ADGM entity and physical presence in Abu Dhabi. 33 questions |
+| 08-30 | [EF The Bridge Residency, San Francisco](./ef-bridge-sf/) | 6.0 | EF standard | Drafted and corrected. Ready to send |
+| 08-31 | Slush Startup Stage, Helsinki | 6.0 | Free to apply, €1.5K booth | Costs flights and Helsinki accommodation |
+| 09-22 | Antler UK Residency | 7.0 | £210K for 8.5% | UK right to work required by day one |
 | 09-23 | Character Labs G7 | 8.0 | Character VC | |
-| 11-02 | Startup Wise Guys Founders Club | 6.0 | Up to €100K convertible | Solo OK |
+| 11-01 | Edge City India 2026 (Goa) | 6.0 | No equity, you pay | |
+| 11-02 | Startup Wise Guys Founders Club | 6.0 | Up to €100K convertible | Solo OK, no geography or entity bar |
+| 11-03 | Plug and Play (Silicon Valley Enterprise & AI) | 8.0 | Equity-free | Form needs an incorporation date and ARR; we have neither |
 
 ## 🟢 Rolling, apply any time, ranked by fit
 
