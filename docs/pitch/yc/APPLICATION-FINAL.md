@@ -90,15 +90,18 @@ It also caught two scope overclaims the earlier draft carried: **"blocks every l
 ### 1d. "How long have each of you been working on this?"
 
 ```
-Ten weeks, solo, directing agents: 5,000+ commits and 530+ database
-migrations, seven days a week. Before that, about a month of nights and
+Ten weeks, seven days a week, solo, directing agents: 5,000+ commits and
+530+ database migrations. Before that, about a month of nights and
 weekends on the prototype it grew out of.
 
-I took a break from my product role to build this, and my notice is now
-in. I am going full time on Supaprod regardless of the outcome here. That
-decision is made. What the batch changes is where I sit, how fast I learn,
-and how quickly I can adjust and scale. Not whether I am in.
+All ten weeks have been full-time. I took a break from my product role to
+build this, and my notice is now in. I am going full time on Supaprod
+regardless of the outcome here. That decision is made. What the batch
+changes is where I sit, how fast I learn, and how quickly I can adjust and
+scale. Not whether I am in.
 ```
+
+**The form's question is "How much of that has been full-time?" and the old answer never said.** It opened *"Eight weeks... Completely full-time"* with the full-time claim floating loose at the end. "All ten weeks have been full-time" answers it in five words and then explains how that is possible, which is the actual question behind the question for someone still holding a job.
 
 **Founder-set wording, 2026-08-13. No date, and do not add one.** He asked for the break to appear, because it is the part that shows the commitment was made before any program was in the picture. "Notice is now in" carries the same weight without pinning a day that can move.
 
@@ -120,25 +123,31 @@ launch is mid-September, on Hacker News and Product Hunt.
 **Low churn on purpose.** The founder finalised this on 2026-08-03 against the repo and the live database, and it is still accurate. Two edits only: the vendor-neutral observability line stays honest, and the coding-agent list drops to what runs today.
 
 ```
-Coding agents: Claude Code and Codex write the code, with Lovable and
+AI coding tools: Claude Code and Codex write the code, with Lovable and
 Antigravity in the mix. I direct them and make every call.
-AI models: model agnostic by design. Every AI call goes through one
-runtime chokepoint handling budget, cache, guardrails, tracing, fallback
-and feature gates, so Claude, GPT, Gemini, Qwen, DeepSeek or a local model
-plug in as interchangeable parts. Running today: Qwen and Gemini carry the
-agent loop, GPT-5 where reasoning depth earns its cost, Cohere embed-v4
-for every retrieval vector.
+
+AI models: model agnostic by design. Every AI call goes through one runtime
+chokepoint handling budget, cache, guardrails, tracing, fallback and
+feature gates, so any model plugs in as an interchangeable part. Running
+today across the last two weeks: Qwen and Gemini carry the agent loop,
+GPT-5 where reasoning depth earns its cost, and Cohere embed-v4 for every
+retrieval vector.
+
 Frontend: TanStack Start on React 19 and Vite, with Tailwind and shadcn.
-Backend and data: TypeScript throughout, Supabase Postgres with row level
-security, pgvector for retrieval, pg_cron driving the autonomous engine,
-Bun for builds and packages.
+Backend and data: TypeScript throughout. Supabase Postgres with row level
+security, pgvector for retrieval, pg_cron driving the autonomous engine.
 Deployment: Cloudflare Workers.
-Observability: the system writes its own telemetry, every agent action and
-AI call landing in the audit trail, behind one vendor neutral facade so
-PostHog and Sentry drop in without the product depending on either.
 ```
 
-**Verify before paste:** the "running today" clause is a claim about live traffic. One query against `ai_events` over the last 14 days confirms or corrects the three model names. If the query cannot run, cut that sentence rather than paste it unchecked.
+> ### ⚠️ Two things on the live form are NOT supported. Queried 2026-08-13.
+>
+> The field currently reads *"Claude Code, Codex, and Kimi K3 write the code; HyperAgent runs the agentic workflows; I direct them in parallel through Conductor"*.
+>
+> **`ai_events`, last 14 days:** `cohere/embed-v4.0` 27,008 · `qwen/qwen-plus` 4,902 · `google/gemini-2.5-flash` 4,329 · `gemini-3-flash-preview` 280 · `openai/gpt-5` 50. **Kimi does not appear at all**, and the registry carries `moonshot/kimi-k2`, never a K3. HyperAgent and Conductor have no presence in `src/` either.
+>
+> **Naming a tool that does not run is the cheapest possible way to lose a technical reader**, and this is the one field where a partner is explicitly invited to look. Both names are removed above.
+>
+> **The observability paragraph is also cut**, on the panel's objection. It volunteered a vendor-neutral facade and eight-provider routing from a founder with zero users, which the diligence reader called *"self-supplied evidence of misallocation."* The question asks what the stack is, not how well-architected it is.
 
 ---
 
@@ -155,21 +164,22 @@ PostHog and Sentry drop in without the product depending on either.
 ### 3a. "Who writes code, or does other technical work on your product?"
 
 ```
-Everything is built in house by me with AI agents: design, development,
-coding, testing, and the analysis of what people do with it. I direct the
-work and make every call. The agents execute, primarily Claude Code and
-Codex. No non founder has touched it.
+I do, directing AI agents. No non founder has touched any of it. Design,
+development, coding, testing and the analysis of what people do with it,
+all in house.
 
-The code does not go unchecked. A separate reviewer, independent of the
-agents that write, audits the codebase for security and holds every change
-against the test suite before it can merge.
+Claude Code and Codex do the writing. I make every call and review every
+change. A separate reviewer, independent of the agents that write, audits
+for security and holds every change against the test suite before it can
+merge.
 
 Supaprod's own roadmap runs inside Supaprod, so every one of those calls
-sits in the audit trail with the evidence behind it. That is how I know
-the product works end to end before asking anyone else to trust it.
+sits in the audit trail with the evidence behind it.
 ```
 
-**Three deliberate removals from the filed version.** The build register is gone, because it was last maintained on 2026-08-04 and understates the work by roughly 450 commits; an accurate count from a stale source is a false claim with a correct number inside it. The Kimi and HyperAgent names are gone, because naming five tools where two do the work invites a question that buys nothing. And "one person directing a fleet of agents" is gone as a slogan, kept only as the plain fact in the first line.
+**The form asks "Was any of it done by a non-founder?" and the old answer buried the reply in the fourth sentence.** It now answers in the first two, because that is the clause a partner is scanning for. Everything else is explanation.
+
+**Three deliberate removals from the filed version.** The build register is gone, because it was last maintained on 2026-08-04 and understates the work by roughly 450 commits; an accurate count from a stale source is a false claim with a correct number inside it. **Kimi K3 and HyperAgent are gone**, because neither appears in the last 14 days of `ai_events` and the registry carries `kimi-k2`, never a K3. And "one person directing a fleet of agents" is gone as a slogan, kept only as plain fact in the first line.
 
 ### 3b. "Are you looking for a cofounder?"
 
