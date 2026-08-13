@@ -10,7 +10,7 @@
 
 ### The one dated obligation this created, and it is easy to miss
 
-**Re-arm the demo approval queues in early September.** Armed 2026-07-28 on a 60-day runway, so they lapse around **2026-09-25**, which falls *inside* the interview window of **2026-09-08 to 2026-10-05**. The traction answer promises in writing that *"a reviewer can open a login and use it."* If the queues have lapsed when a reviewer tries, the application's own claim fails in front of the person evaluating it. **Also still owed: allocate and record the demo login** (`meridian@` or `lantern@supaprod.ai`).
+**Re-arm the demo approval queues in early September.** Armed 2026-07-28 on a 60-day runway, so they lapse around **2026-09-25**, which falls *inside* the interview window of **2026-09-08 to 2026-10-05**. The traction answer promises in writing that *"a reviewer can open a login and use it."* If the queues have lapsed when a reviewer tries, the application's own claim fails in front of the person evaluating it. **The form never asked for a login, so nothing was missed.** None of the 21 questions requests product access. **Do not volunteer credentials.** When a reviewer asks, take `meridian@` or `lantern@supaprod.ai`, re-arm its queue first, verify by signing in, and record it. Rehearse only on `harbor@`. The post-submission page has an Updates box (1,000 chars) for genuine later news.
 
 ### Two positioning rulings from this session that bind every future application
 

@@ -392,9 +392,10 @@ the call and grades it later, whether or not anyone wants to look.
 1. ✅ **Submitted 2026-08-13**, eight days before the 2026-08-21 deadline.
 2. ⏳ **Interviews run 2026-09-08 to 2026-10-05.** Orientation 2026-11-02, program to 2027-04-15, Demo Day April 2027.
 3. ⚠️ **Re-arm the demo approval queues in early September.** They were armed 2026-07-28 on a 60-day runway, so they lapse around 2026-09-25 — inside the interview window. Answer 8 promises a reviewer can open a login and use it, so that promise has to still be true when someone tries.
-4. ⚠️ **Allocate and record the demo login** before any interview: `meridian@supaprod.ai` or `lantern@supaprod.ai`.
-5. **Numbers in the filed text are frozen at 2026-08-13** and will drift: 5,000+ commits, 530+ migrations, 37 scheduled jobs. Do not re-quote them from here in a later application; re-derive with `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l`.
-6. **If an interview lands,** read [`../../founder-answer-playbook.md`](../../founder-answer-playbook.md) first and update it in the same session.
+4. ℹ️ **The form never asked for a login, so nothing was missed here.** None of the 21 questions requests product access; the login exists only as a claim inside answer 8. **Do not volunteer credentials** — unsolicited access reads as pushy, and every reviewer who opens a shared workspace clears the approval queue for the next one. **When someone asks:** take `meridian@supaprod.ai` or `lantern@supaprod.ai`, re-arm its queue first, sign in to verify, and record it. Rehearse only on `harbor@`.
+5. **There is a channel for later material.** The post-submission page carries an **Updates box, 1,000 characters**. Use it for real news — public launch, first users — not for a credential nobody requested.
+6. **Numbers in the filed text are frozen at 2026-08-13** and will drift: 5,000+ commits, 530+ migrations, 37 scheduled jobs. Do not re-quote them from here in a later application; re-derive with `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l`.
+7. **If an interview lands,** read [`../../founder-answer-playbook.md`](../../founder-answer-playbook.md) first and update it in the same session.
 
 ## Related
 
