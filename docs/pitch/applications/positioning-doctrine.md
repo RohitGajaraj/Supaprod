@@ -61,7 +61,7 @@ Every reviewer, at every program, is answering four questions in this order. Kno
 
 **Rule 1: the first sentence carries the whole answer.** Reviewers read thousands of applications at a few minutes each. Every answer front-loads its conclusion, then supports it. Never build to a point.
 
-**Rule 2: numbers argue, adjectives do not.** "4917 commits in nine weeks" beats "built incredibly fast" every time. Where we have no number, we use a specific fact, never an adjective. Cut every "robust", "seamless", "cutting-edge".
+**Rule 2: numbers argue, adjectives do not.** "5,131 commits in ten weeks" beats "built incredibly fast" every time. Where we have no number, we use a specific fact, never an adjective. Cut every "robust", "seamless", "cutting-edge".
 
 **Rule 3: unconditional commitment.** No "if accepted, I will…" anywhere, ever. The company is happening regardless. The program changes the speed and the zip code, never the decision. Contingency reads as neediness and neediness reads as weakness.
 
@@ -124,9 +124,9 @@ The canon already carried this and it was under-used. Two lines to reach for:
 
 **The framing that defuses it, use this whenever the number appears:**
 
-> _"Nine weeks, one person, 4917 commits directed and reviewed."_
+> _"Ten weeks, one person, 5,131 commits directed and reviewed."_
 
-Not lines typed. **Throughput directed and reviewed.** Stated that way the number stops competing with the agent story and starts supporting it, because reviewing 4,264 commits in eight weeks is itself the hard thing.
+Not lines typed. **Throughput directed and reviewed.** Stated that way the number stops competing with the agent story and starts supporting it, because reviewing 5,131 commits in ten weeks is itself the hard thing.
 
 | Surface | Use it? | Why |
 | --- | --- | --- |
@@ -147,7 +147,7 @@ Every program optimises for something different. Same facts, different order and
 | Program | What it actually selects for | We lead with | Our biggest risk there | The specific counter |
 | --- | --- | --- | --- | --- |
 | **South Park Commons** | Intellectual honesty, technical depth, people who think in public and contribute to a community. Famous for the "-1 to 0" pre-idea stage. | The earned insight, and the four versions built and thrown away. SPC rewards someone genuinely wrestling with a hard question. | We may read as **too far along** for a pre-idea fellowship, which is a real mismatch risk. | Do not pitch. Frame as a frontier question he is living inside: what does accountability look like when agents do the work and no human reviewed it. Emphasise the thrown-away versions and what each one taught. Community contribution over traction. |
-| **a16z Speedrun** | Speed, ambition, AI-native builders, raw velocity. Historically games and consumer-tech leaning. | Velocity and agent-native architecture: 4,264 commits in 8 weeks, a product built by directing agents, that itself directs agents. | B2B product-ops tooling may sit outside their stated focus, and the batch window may be closed today. | Frame as **agentic infrastructure**, not "a PM tool". The governance-and-evidence layer is what every agent company will need. Note that Brief, a direct neighbour, is already Speedrun-backed, which proves the thesis is in scope. |
+| **a16z Speedrun** | Speed, ambition, AI-native builders, raw velocity. Historically games and consumer-tech leaning. | Velocity and agent-native architecture: 5,131 commits in ten weeks, a product built by directing agents, that itself directs agents. | B2B product-ops tooling may sit outside their stated focus, and the batch window may be closed today. | Frame as **agentic infrastructure**, not "a PM tool". The governance-and-evidence layer is what every agent company will need. Note that Brief, a direct neighbour, is already Speedrun-backed, which proves the thesis is in scope. |
 | **Techstars** | Team first, then market, then traction, then mentorability. Explicitly mentor-driven. | Domain expertise and market: a decade in product, enterprise credibility, a clearly sized market. | **Solo founder and zero traction hit hardest here.** Techstars weights team most heavily of any program on this list. | Address solo head-on and early, as the thesis proven. Show genuine hunger for mentorship, which is their actual product. Pick the right vertical program (AI or enterprise software), never the generic one. |
 | **Hub71 (Abu Dhabi)** | Strategic fit with UAE national AI and fintech ambitions, willingness to relocate and establish locally, scale-up potential. | **The BFSI card.** An AI platform used by 200+ financial institutions across 70+ countries is exactly the profile the UAE is recruiting for. Plus unconditional relocation. | Requires an ADGM entity and physical presence. | Lead with regulated-industry AI governance, not product management. Abu Dhabi wants AI infrastructure for financial services; that is genuinely who he is. Relocation willingness is a feature here, not a cost. |
 | **Station F (Paris)** | Varies sharply by program. Founders Program is competitive and cohort-based. | European ties: TUM, and product work at Infineon in Munich. He has operated in Europe. | Competitive, and some programs charge desk fees. | Pick the single best-fit program rather than applying to all of them. European operating history is the differentiator against other non-EU applicants. |

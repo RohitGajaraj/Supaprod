@@ -18,9 +18,9 @@
 
 | Figure | Value | How to re-pull |
 | --- | --- | --- |
-| Commits | **4,878** _(2026-08-10 23:55)_ | `git rev-list --count origin/main` ← **origin/main, not HEAD.** HEAD counts whichever lane branch you are on and drifts from the real total |
-| Migrations | **508** _(2026-08-10)_ | `ls supabase/migrations/*.sql \| wc -l` |
-| Build duration | **9 weeks** _(founder-set start: first week of June 2026)_ | count from 2026-06-07; not derivable from git |
+| Commits | **5,131** _(2026-08-13)_ | `git rev-list --count origin/main` ← **origin/main, not HEAD.** HEAD counts whichever lane branch you are on and drifts from the real total |
+| Migrations | **532** _(2026-08-13)_ | `ls supabase/migrations/*.sql \| wc -l` |
+| Build duration | **10 weeks** _(first commit 2026-06-02, derived from git)_ | `git log --reverse --format='%ad' --date=short \| sed -n 2p` then count to today. **11 weeks from 2026-08-18.** |
 | ~~Feature register~~ | **DO NOT USE** | The register has not been maintained since `2026-08-04`, and `scripts/dashboard-tally.sh` **does not exist in the repo**. Volume claims are dropped outward; the demo login is the evidence. |
 | Homepage counters (strict, public) | 83 missions run · 26 decisions recorded · 16 outcomes graded · 840 AI calls | render live on supaprod.ai |
 | External paying users | **0** | fact |
@@ -28,11 +28,22 @@
 
 > ### 🔢 Re-derive every number before it goes into an application. These aged 14% in ten days.
 >
-> On 2026-07-31 this card said **4,264 commits / 410 migrations**. On 2026-08-10 the live figures were **4,878 / 508** — and the commit count moved **4,872 → 4,876 → 4,878 in a single evening** as three lanes pushed. **A number in this card is a snapshot, never a fact.** The YC application shipped a 20% understatement of our own velocity because someone trusted a card instead of the command.
+> On 2026-07-31 this card said **4,264 commits / 410 migrations**. On 2026-08-10 it was **4,878 / 508**, and on 2026-08-13 it is **5,131 / 532** — the commit count moved **4,872 → 4,876 → 4,878 in a single evening** as three lanes pushed. **A number in this card is a snapshot, never a fact.** The YC application shipped a 20% understatement of our own velocity because someone trusted a card instead of the command.
 >
-> **⚠️ Build duration is contested and only the founder can settle it.** This card says eight weeks from a 2026-06-03 first commit. **Git cannot confirm that** — the history was rewritten during the orphan-main recovery, so every commit now carries a 2026-08-10 date and the true start is not derivable. From 2026-06-03 the elapsed time is **nine weeks**, not eight. This is not a rounding question: **understating duration overstates velocity**, so "eight weeks" is an overclaim if the real answer is nine. The founder said eight on 2026-08-10; he is the authority on when he started, and he should confirm it the morning of any paste.
+> ### ✅ Build duration is SETTLED, 2026-08-13. It was never contested; the claim that git could not answer it was wrong.
 >
-> _Snapshot taken 2026-07-31. Counters render live on the site, so a reviewer can check them. Never quote the raw totals that include seeded content. The duration ages: it is eight weeks through early August, then nine, and so on. Restate it truthfully on every later submit._
+> This block previously read *"the history was rewritten during the orphan-main recovery, so every commit now carries a 2026-08-10 date and the true start is not derivable,"* and it routed the question to the founder as something only he could settle. **Both halves are false, and one command shows it.** Author dates and committer dates are intact and identical, and they distribute the way real work distributes:
+>
+> ```bash
+> git log --format='%ad' --date=format:'%Y-%m' | sort | uniq -c   # 2490 in 06, 1810 in 07, 831 in 08
+> git log --reverse --format='%ad %cd' --date=short | sed -n 2p    # 2026-06-02 2026-06-02
+> ```
+>
+> **First real commit is `2026-06-02`**, giving **ten weeks** as of 2026-08-13. The single commit dated `2025-01-01` is template scaffold and is excluded, which is the only reason to take the second line rather than the first.
+>
+> **The generalisable error, worth more than the correction:** the rewrite changed **committer** dates on some ranges, and someone checked `%cd`, found the flattening, and concluded the start date was unrecoverable. **`%ad` was never touched and answers the question directly.** A rewrite that damages one date field is not a rewrite that damages both, and "not derivable" is a strong claim that needs the second command before anyone writes it down.
+>
+> _Counters render live on the site, so a reviewer can check them. Never quote the raw totals that include seeded content. **The duration ages**: restate it truthfully on every later submit rather than copying this line._
 
 ---
 
@@ -213,7 +224,7 @@ of India's Startup India initiative.
 ```
 Solo, and moving fast. Open to a cofounder who shares the vision and energy and
 adds a fresh perspective I do not have. For now, solo, and it is the reason the
-product exists: nine weeks of one person directing a fleet of agents produced
+product exists: ten weeks of one person directing a fleet of agents produced
 4,878 commits and a working end-to-end system. The thesis of the company is that
 this is now possible, and I am the proof of it.
 ```
@@ -268,7 +279,7 @@ And I remain the most demanding user I have. I run my company on it every day.
 ### How far along (long form)
 ```
 The journey: a decade of living this problem as a PM, a month of nights and
-weekends on a prototype, then nine weeks of building it for real, 4917 commits
+weekends on a prototype, then ten weeks of building it for real, 5131 commits
 and counting. In that time it went from an early spine to running end to end.
 It is almost there, not finished; I am shaping the last stretch with users, not
 assumptions.
@@ -284,7 +295,7 @@ parallel. Public launch in September 2026.
 
 ### How far along (short form, under 50 words)
 ```
-Working end to end and live at supaprod.ai. Nine weeks of building, 4917
+Working end to end and live at supaprod.ai. Ten weeks of building, 5131
 commits, solo. Beta is open, public launch September 2026. Zero paying users
 yet; I built the system before opening the doors, deliberately.
 ```
