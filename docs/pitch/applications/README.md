@@ -1,10 +1,12 @@
 # Accelerator, incubator, residency and grant applications — the master tracker
 
-> ### ❌ First outcome is in: South Park Commons said no, 2026-08-11
+> ### ❌ First outcome is in: South Park Commons said no, 2026-08-11 at 05:31 IST
 >
 > **Reason given: "not the right fit."** No further detail, which is the normal form and carries little signal on its own.
 >
-> **What we can and cannot learn from it.** A single rejection with a boilerplate reason is **not evidence the positioning is wrong**, and reading it as such is how a good thesis gets abandoned on noise. But it is worth noting **what that application actually said**, because it went out before the corrections: it closed Q13 on the **falsified moat claim** (*"whoever owns it owns the record of how companies actually decided"*), and it carried the **five-beat structure without the outside-evidence test** behind it. Whether that mattered is unknowable. It is a reason to be glad the corrections landed before the YC submission rather than after.
+> **They gave no reason, and we must not invent one.** The email states plainly that the number of applicants means they cannot offer individual feedback, and it makes no judgement of fit. An earlier version of this file recorded the reason as *"not the right fit"* — **that was our paraphrase, and recording an invented reason is worse than recording none**, because a later session reads it as a signal and adjusts positioning against something nobody said. They also invite a future application.
+>
+> **What we can and cannot learn from it.** A single rejection with no stated reason is **not evidence the positioning is wrong**, and reading it as such is how a good thesis gets abandoned on noise. But it is worth noting **what that application actually said**, because it went out before the corrections: it closed Q13 on the **falsified moat claim** (*"whoever owns it owns the record of how companies actually decided"*), and it carried the **five-beat structure without the outside-evidence test** behind it. Whether that mattered is unknowable. It is a reason to be glad the corrections landed before the YC submission rather than after.
 >
 > **The one real lesson is about sequencing, not content:** applications sent before the evidence was checked cannot be un-sent. **Nothing else goes out until it passes the numbers rule** ([`../verified-numbers.md`](../verified-numbers.md)).
 
@@ -46,7 +48,7 @@ This rule was learned the hard way — the same claim escaped six separate sweep
 | [`ef-bridge-sf/`](./ef-bridge-sf/) | **No — due 2026-08-30** | **Corrected in place.** Numbers re-derived, and the "most important problem" answer now says the true thing about what cannot be rebuilt. Ready to send. |
 | [`betaworks-ai-camp/`](./betaworks-ai-camp/) | Yes, 2026-07-31 | Answers left as filed. **Interview correction block added at the top of both files** — four claims to not repeat, with the replacement for each. |
 | [`the-residency/`](./the-residency/) | Yes, 2026-07-31 | Same. Decisions by 2026-08-28. Includes the dogfooding line, which is the one that would actually cost us. |
-| [`south-park-commons/`](./south-park-commons/) | Yes, 2026-07-31 | ❌ **REJECTED 2026-08-11.** Reason given: not the right fit. |
+| [`south-park-commons/`](./south-park-commons/) | Yes, 2026-07-31 | ❌ **REJECTED 2026-08-11, 05:31 IST. No reason was given** — they state the volume of applicants means no individual feedback. They invite a future application. |
 
 **Why the three submitted ones were annotated rather than rewritten.** Each carries its own rule — *"archived record of what was sent, do not edit, because any interview will be against these answers."* That rule is right. Rewriting the filed answers would leave the founder arguing against a document the partner is holding and cannot see. **So the sent text stands and the correction sits above it**, which is what an interview actually needs: what you said, what turned out to be wrong, and the better sentence to say instead.
 
@@ -96,12 +98,27 @@ Workflow({ name: 'application-pressure-test', args: {
 
 ---
 
+## The Notion board is the live view, and this file is the reasoning
+
+**[`Supaprod · Application Board`](https://app.notion.com/p/4014ff9cb1c240c9a3b761e790852970)** carries the status of every programme. This file carries *why*. When they disagree, fix both in the same sitting.
+
+**Four views, added 2026-08-13:**
+
+| View | What it answers |
+| --- | --- |
+| **Outcomes board** | Everything grouped by status, colour-coded. Cards show priority, region, stage, fit, deadline and decision date without opening one |
+| **⏳ Waiting on a decision** | Submitted or Interview, oldest first — who owes us an answer |
+| **✅ Accepted** | Empty so far |
+| **❌ Rejected** | With the decision date and what they actually said |
+
+**Every card carries a `Region` chip** (US · UK · Europe · India · Middle East · Asia-Pacific · Multi-region · Global / remote) so the geography is readable at a glance. **`Decision date` and `Outcome detail` are new** — an outcome without its date is not trackable, and an outcome without their exact words invites a paraphrase that later reads as a signal.
+
 ## ✅ Submitted
 
 | Program | Submitted | Decision | Login given | Open items |
 | --- | --- | --- | --- | --- |
 | **Y Combinator Fall 2026** | 2026-07-23 | rolling | `explore@supaprod.ai` | **System demo video and founder video still need updating.** Deferred 2026-07-31, come back to it. Filed under the old name Cadence; only the five update surfaces are editable. |
-| **[South Park Commons](./south-park-commons/)** | 2026-07-31 | ❌ **rejected 2026-08-11**, "not the right fit" | `voyage@supaprod.ai` | none |
+| **[South Park Commons](./south-park-commons/)** | 2026-07-31 | ❌ **rejected 2026-08-11, 05:31 IST. No reason given** | `voyage@supaprod.ai` | none. They invite a future application |
 | **[Betaworks AI Camp](./betaworks-ai-camp/)** | 2026-07-31 | rolling, batch starts 08-31 | `compass@supaprod.ai` | none |
 | **[The Residency, Fall 2026](./the-residency/)** | 2026-07-31 | by 2026-08-28 | none given | none |
 

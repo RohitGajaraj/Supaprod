@@ -1,21 +1,44 @@
 # Pick up here
 
-> _Created: 2026-08-07 · Last updated: 2026-08-12 (FC-01 grading half)_
-## 🔥 APPLICATIONS LANE — 2026-08-13 15:30 UTC. Sequoia Arc and Berkeley SkyDeck both drafted.
+> _Created: 2026-08-07 · Last updated: 2026-08-13 night (Berkeley SkyDeck FILED)_
 
-**Work completed this session.** Sequoia Arc (deadline 2026-08-17, fit 8.5) was drafted in the previous session. Berkeley SkyDeck (deadline 2026-08-21, fit 8.5) is drafted in this session. Both applications are built from the live answer-bank (5,131 commits, 532 migrations, ten weeks as of 2026-08-13) and tailored to the selection criteria of each program. Sequoia Arc's angle: "YC gets the wedge. Sequoia gets the asset (the forecast)." Berkeley SkyDeck's angle: "YC gets the wedge. Sequoia gets the asset. Berkeley SkyDeck gets the thesis proved (engineering rigor + founder-market fit)."
+## 🚀 APPLICATIONS LANE CLOSED FOR SKYDECK — 2026-08-13 night. It is submitted.
 
-**What each application needs before sending.** Both forms sit behind logins and their exact field names and character limits are not public. Before pasting any block: (1) open the actual form, (2) count the field limits in the form itself, (3) cut blocks from bottom up, (4) read aloud for AI cadence. Sequoia Arc: `https://www.sequoiacap.com/arc/apply/` (five questions known, form has additional fields). Berkeley SkyDeck: `https://www.f6s.com/skydeck-batch-23/apply` (fields 1-8 drafted, F6S may ask additional items).
+**Berkeley SkyDeck Batch 23 was filed by the founder on 2026-08-13**, eight days before the 2026-08-21 deadline. Verified on the post-submission page, which renders a read-only *Your Answers* view with no Apply button, rather than taken on trust. **$210K for 7.25%.** Notion Application Board row is `Submitted`, dated, and the page carries the full record.
 
-**Gates still blocking further work.** Four founder decisions outstanding: (1) Lovable publish (blocks YC demo login from being reachable). (2) DIFC program name and apply link (deadline 08-21, has not been found on any tracker). (3) 08-16 program confirmation (only identified option is German Accelerator Kickstart at fit 2.5, recommendation is skip). (4) YC employment status clause and outside-user count (two fields in YC Surface 1c/1d).
+**The filed text of all 21 answers is in [`../pitch/applications/berkeley-skydeck/APPLICATION-FINAL.md`](../pitch/applications/berkeley-skydeck/APPLICATION-FINAL.md)**, read back off the live page rather than copied from the draft. Do not trust an earlier draft in git history; two answers were rewritten in the browser and one was edited by the founder directly.
 
-**Next independent work.** EF Bridge SF (08-30) is drafted and corrected, ready to send once founder approves. After that, Slush Startup Stage (08-31) is unstarted but has a reasonable fit (6.0). Once any of the four gates clears, the corresponding application path opens.
+### The one dated obligation this created, and it is easy to miss
 
-**Files touched.** `docs/pitch/applications/berkeley-skydeck/` (new folder with positioning.md and application.md). `docs/pitch/applications/README.md` (updated Berkeley SkyDeck row to show drafted status).
+**Re-arm the demo approval queues in early September.** Armed 2026-07-28 on a 60-day runway, so they lapse around **2026-09-25**, which falls *inside* the interview window of **2026-09-08 to 2026-10-05**. The traction answer promises in writing that *"a reviewer can open a login and use it."* If the queues have lapsed when a reviewer tries, the application's own claim fails in front of the person evaluating it. **Also still owed: allocate and record the demo login** (`meridian@` or `lantern@supaprod.ai`).
+
+### Two positioning rulings from this session that bind every future application
+
+**Rule 7, now in [`../pitch/applications/positioning-doctrine.md`](../pitch/applications/positioning-doctrine.md): the competitor is the stack, and we never say we have none.** A PM runs discovery in one tool, the spec in a second, design in a third, code agents in a fourth, flags in a fifth, the result in a sixth; the tax is the seams, not the tools. Name every rival, then show none owns the path between the steps. **"We have no competitors" was the founder's instinct, was pushed back on, and the reframe was agreed** — it is the most common red flag in that question, it is not true, and it claims without a mechanism.
+
+**Door, then body, then brain, in every answer that describes the product.** An earlier SkyDeck draft led with the moat and never said what the product does. Five answers were reordered.
+
+### The founder record is now one source, with dates
+
+**[`../pitch/applications/answer-bank.md`](../pitch/applications/answer-bank.md) §2 holds every education and work-history field**, exact strings and month ranges, read off the live YC founder profile and confirmed by the founder. Until today the undergraduate degree existed on the YC profile and **nowhere in the repo**, so any other form had to be filled from a screenshot. Fill the next form from there.
+
+### F6S, so nobody rediscovers it
+
+**Three gates hide the questions**, in order: a substantially complete company page, then Basic Information at n of n, then Team at 1 of 1. Until all three pass there is a padlock, no Submit button, and nothing typed is saved. It looks exactly like a broken form; it is not.
+
+**F6S discards any value it did not watch you type.** The native setter plus `input`/`change`/`blur`/`focusout` reverts on reload, and so does staging a value and landing one real keystroke. Select all and type, in chunks — a single very long type call fails outright. Its currency widget refuses to store a `0` even on a required field whose own hint asks for one, and it rejects any end date in the future.
+
+### Left unfinished, deliberately, and it is the founder's
+
+**The F6S founder profile at `f6s.com/rohit-gajaraj` is half done.** Both education entries are in (TUM MBA, VTU BE). Of seven work-history entries, **Intellect is in; IIM Bangalore saved with the wrong dates (Jan '23 – May '23, should be Jan 2022 – Dec 2023); Infineon, Bosch and both ISRO roles are not added.** The founder took it over to finish by hand. Three things he was told to decide: the profile headline now reads *Senior AI Product Manager at Intellect* instead of *CEO at Supaprod* (the Supaprod entry has no dates, so it sorts below); *Describe yourself briefly* is 63 characters over its limit; and **"Actively looking / Open to work" is switched on**, which on a founder profile an accelerator reads says job-hunting.
+
+### Also shipped today
+
+**[`../pitch/shareables/`](../pitch/shareables/README.md) is the one folder for anything an outsider receives** — the one-page investor link card (4 verified link annotations), the 16-page deck PDF and its four clipping slides, both YouTube URLs, video master locations and brand marks. Two Chrome PDF traps are written down there: `box-shadow` prints as a hard rectangle, and `-webkit-background-clip:text` prints its background box and trims the last glyph.
+
+**Next application:** open [`../pitch/applications/README.md`](../pitch/applications/README.md) and take the nearest live deadline. Sequoia Arc is **not open** (verified live, "sign up to be notified").
 
 ---
-
-
 
 ## ✅ SESSION CLOSED 2026-08-12 night. FC-01's grading half is BUILT, and ONE CLICK stands between it and being real.
 
