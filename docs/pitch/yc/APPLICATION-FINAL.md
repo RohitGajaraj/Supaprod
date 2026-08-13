@@ -4,93 +4,66 @@
 
 ---
 
-# §A. THE THREE TEXT SURFACES. PASTE THESE. (2026-08-13)
+# §A. THE APPLICATION, PLAIN. (rewritten 2026-08-13, founder register)
 
-> **The portal leaves five surfaces open: Progress Update, Fundraising Update, Team Update, Founder Video, Demo Video.** Both videos are done. **These three carry everything else, and they are the only place the current truth reaches a partner** — §7 through §12 below are locked at whatever was live on 2026-07-23 and cannot be edited.
+> **The register, in one line: write it the way you would say it out loud to a partner across a table.** Everything below passes that test or it is cut.
 >
-> **Numbers in this section, pulled 2026-08-13:** `git rev-list --count HEAD` = **5,131** · `ls supabase/migrations/*.sql | wc -l` = **532** · first real commit `2026-06-02`, so **ten weeks**. The first two move daily. **Re-run both the morning you paste.**
+> **Three rules the founder set on 2026-08-13, and they override earlier drafts.**
 >
-> **Written to three constraints.** Nothing volunteered twice. No em dash anywhere in a paste block. No present-tense claim of accumulated learning, because the honest form survives a query and the flattering one does not.
-
-## What this version does differently, in one paragraph
-
-The old text argued from volume: commits, a feature register, a decade of pain. Volume is the one argument every application makes. **This version argues from two things almost nobody can put on a form.** The first is a mechanism: a forecast frozen at the moment of the call, held immutable by the database itself. The second is a correction: three product numbers deleted because a self-audit found them to be demo data. A partner meets thousands of founders claiming a moat. Far fewer hand over the number that made them look worst.
+> 1. **Describe the product from the team's side, not the founder's.** *"The weak bets get argued down before I see them"* is wrong; a reviewer does not care what he sees. And **"you" is banned in a product sentence**, because a reviewer reads it as themselves. Name the person: *the team*. `I` survives only where the question is about him.
+> 2. **No word that is only there to fill space.** No runtimes, no file sizes, no invented programme vocabulary, no drama. Never make the plan sound small: *"one person at a time"* reads as no ambition.
+> 3. **If a claim is heavy, ask whether it is true today before polishing it.**
+>
+> **One claim was cut under rule 3 and it was load-bearing.** *"Supaprod's own roadmap runs inside Supaprod"* does not survive its own database: **344 missions, 27 completed.** What replaced it is checkable and stronger: **44 code changes, 42 deployments, 295 agent actions stopped at a human approval.**
+>
+> **Numbers, 2026-08-13.** 5,000+ commits, 530+ migrations, ten weeks. Outward copy always uses the rounded form. Re-run `git rev-list --count origin/main` the morning you paste.
+>
+> **Exactly one vulnerability beat in the whole application**, and it is the moat falsification in 8h. A correction shows judgment. A second admission reads as a deficit and dilutes the first.
 
 ---
 
-## Surface 1 — Progress Update
+## EDITABLE NOW — Progress Update
 
-### 1a. Product link
-
-```
-https://supaprod.ai
-```
-
-### 1b. Login credentials (single line)
-
-```
-explore@supaprod.ai / Supaprod!Explore2026 (private beta. The workspace has calls waiting on your judgment, each opening to the evidence behind it. To create your own account instead, invite code YC-COMPOUND-K7QR4V)
-```
-
-**Log in with these exact credentials, in incognito, before you save anything.** A dead login fails the whole application. Fallback if it breaks: `harbor@supaprod.ai / Supaprod!Harbor2026`, identical workspace, then fix.
-
-### 1c. "How far along are you?" — the field that carries the application
+### "How far along are you?"
 
 ```
 Cadence is now Supaprod. I renamed it after submitting and the form will
 not let me change the name. Same product, live at https://supaprod.ai.
 
-It runs end to end. Signals arrive from the tools a team already uses and
-get clustered into opportunities. The weak bets get argued down before I
-see them. The spec comes out with its evidence attached and goes to coding
-agents, they open real pull requests, and nothing merges without a person.
+It works end to end today. A team connects the places their user feedback
+already sits. Supaprod reads it, groups it into what is worth looking at,
+and argues against the weak ideas before the team commits to one. The spec
+comes out with the evidence attached, and coding agents pick up the build.
+They open real pull requests. A person merges them.
 
-Supaprod's own roadmap runs inside Supaprod. That is how I know it holds
-up under real work before asking anyone else to trust it.
+Built since I applied: when a team commits a decision, Supaprod asks three
+things. What they expect to happen, how they will know, and by when. Those
+answers lock. Nobody can go back and edit them once the result is in, and
+that is enforced in the database rather than by the app.
 
-Built since I applied: committing a decision captures what you expect, how
-you will know, and by when. Those three fields cannot be edited
-afterwards, including by me.
+That is the whole company, and I got it wrong the first time. I had been
+saying a competitor cannot rebuild your decision history. They can.
+Vercel's COO rebuilt why a deal was lost out of Slack, email and call
+recordings, using an agent built in two days. What nobody can rebuild is
+what a team believed before they found out, because almost nobody writes
+it down. Now something does.
 
-I was wrong about the moat. A competitor can rebuild a decision history
-from Slack and call recordings, and Vercel's COO did exactly that in two
-days with an agent built for the job. What survives nowhere is what a team
-believed before the outcome landed. That is what I built.
+This week the other half shipped: when the date a team named arrives, the
+call comes back and gets settled against the thing they said they would
+check.
 
-Live as of this week: the path that settles a forecast once its horizon
-passes, against the observable it named.
+I run my own product work on it. Its agents have produced 44 code changes
+and 42 deployments, and 295 of their actions stopped at a human approval
+before going through.
 
-2:22 film of the system: https://supaprod.ai/film
+Film of the product: https://supaprod.ai/film
 Brief: https://supaprod.ai/brief
 
-The work now is getting it in front of product people one at a time and
-watching where they stop.
+Next is getting it into the hands of product teams and finding out where
+it breaks for someone who is not me.
 ```
 
-**Three de-duplication edits, 2026-08-13.** The connector names left this field and live in the tech-stack answer, which is the question that asks what you use; the flow reads the same without them. *"The database refuses every later edit"* became plain language here and the trigger detail moved to the stack answer, so the product claim and its implementation each appear once. And the launch date moved to the field that asks when, leaving this one to close on what happens next.
-
-**~190 words, nine blocks, none over four lines.** Every block carries a fact the partner cannot get from another field.
-
-### How this version was chosen, and the two things that nearly went out
-
-Three compression strategies were drafted and scored cold by three readers: a YC partner mid-batch, a seed VC who buys insight where there is no traction, and a screener whose only job is to find the sentence doing more work than the build supports. **All three ranked maximum compression first or second.** The spine above is that draft, with the strongest sentences from the other two grafted in.
-
-**The screener earned the whole exercise.** It killed the sentence *"when the date passes, the call is graded against what shipped"* on the grounds that the grading path was merged and unpublished, so a partner clicking the URL would find no such desk. It was right, and that is why the deploy happened before this text was finalised. The line now states a shipped capability rather than an assertion.
-
-It also caught two scope overclaims the earlier draft carried: **"blocks every later edit"** covers three columns of eleven and `service_role` is exempt, so the sentence is now scoped to *those fields*; and **"a film of it working"** describes rendered compositions rather than a screen capture, so it reads *film of the system*.
-
-**And the synthesis itself introduced two errors that had to be caught.**
-
-| It wrote | Why it is wrong |
-| --- | --- |
-| *"I proved it by doing exactly that in two days with an agent I built for the test"* | **Fabricated attribution.** The founder did not run that reconstruction. **Vercel's COO did.** It reads stronger and it would collapse the first time a partner asked about it. Restored to the true attribution, which is still a strong sentence because it is checkable. |
-| *"the teams already asking for access"* | **Unsupported demand claim.** No team has asked. Replaced with the design-partner list, which exists and is a plan rather than a claim about demand. |
-
-**The generalisable lesson: an adversarial reader panel improves the copy and does not make it true.** Three readers scored these drafts on persuasiveness and internal consistency, and not one of them flagged the attribution swap, because a false sentence that fits the surrounding argument reads as the strongest sentence in the field. **Verification is a separate pass from evaluation and neither substitutes for the other.**
-
-`[FOUNDER]` **If any outside person has used it by paste day, add one sentence with the true count under the film link.** If the count is still zero, add nothing. Another field already carries the radio, and repeating a zero draws attention to it.
-
-### 1d. "How long have each of you been working on this?"
+### "How long have each of you been working on this? How much of that has been full-time?"
 
 ```
 Ten weeks, seven days a week, solo, directing agents: 5,000+ commits and
@@ -104,28 +77,7 @@ changes is where I sit, how fast I learn, and how quickly I can adjust and
 scale. Not whether I am in.
 ```
 
-**The form's question is "How much of that has been full-time?" and the old answer never said.** It opened *"Eight weeks... Completely full-time"* with the full-time claim floating loose at the end. "All ten weeks have been full-time" answers it in five words and then explains how that is possible, which is the actual question behind the question for someone still holding a job.
-
-**Founder-set wording, 2026-08-13. No date, and do not add one.** He asked for the break to appear, because it is the part that shows the commitment was made before any program was in the picture. "Notice is now in" carries the same weight without pinning a day that can move.
-
-**Why no date is the right call and not a softening.** A date reads as precise but is the one clause that can be falsified by a delay, and a partner who checks in six weeks and finds it slipped reads it as a founder who missed. "I took a break to build this and my notice is in" is a completed action, checkable, and cannot go stale.
-
-### 1e. "Are people using your product?" (radio)
-
-**No**, unless an outside person has literally used it by paste day. Availability is not adoption, and 1c already says the product is open. Flip to **Yes** only with real users, and then state the true count in 1c.
-
-### 1f. "When will you have a version people can use?"
-
-```
-It is usable now, through the link and demo login above. Public launch is
-mid-September.
-```
-
-**Hacker News and Product Hunt are cut.** All three readers said the same thing: naming the channels is the default answer on a large share of applications, it is true of anyone, and it spends the field dodging the question a usable product with no users actually invites. The channel order stays the plan of record, it just does not earn space here.
-
-### 1g. "What tech stack are you using?"
-
-**Low churn on purpose.** The founder finalised this on 2026-08-03 against the repo and the live database, and it is still accurate. Two edits only: the vendor-neutral observability line stays honest, and the coding-agent list drops to what runs today.
+### "What tech stack are you using... Include AI models and AI coding tools you use."
 
 ```
 AI coding tools: Claude Code and Codex write the code, with Lovable and
@@ -143,9 +95,9 @@ Tailwind and shadcn, Bun for install, test and build.
 
 Data: Supabase Postgres with row level security, pgvector for retrieval,
 pg_cron running 37 active jobs that drive the autonomous engine, plus
-Supabase Auth and Storage. Forecast immutability is a BEFORE UPDATE
-trigger in Postgres rather than a check in application code, so it holds
-for every caller the app can make.
+Supabase Auth and Storage. The forecast fields are made immutable by a
+BEFORE UPDATE trigger in Postgres rather than a check in application code,
+so the rule holds for every caller the app can make.
 
 Deployment: Cloudflare Workers. Stripe for billing.
 
@@ -165,56 +117,22 @@ AI call landing in the audit trail. PostHog for product analytics and
 Sentry for failure capture drop into a vendor neutral facade at launch.
 ```
 
-### Six things were cut, and the rule that cut them
+### "When will you have a version people can use?"
 
-**Founder ruling 2026-08-13: if it is not really running, it does not go on the form.** Applied strictly, an env key is not evidence.
+```
+It is usable now, through the link and demo login above. Public launch is
+mid-September.
+```
 
-| Cut | Why |
-| --- | --- |
-| **AssemblyAI** | `audio_transcripts` returns **0**. `src/lib/audio.functions.ts` says it plainly: *"Audio transcription is dormant by design"* without the key. It has never run. |
-| **SearXNG** and **Firecrawl** | `web-search-fallback.ts` picks a backend only when `SEARXNG_URL` is non-blank, so it is a conditional fallback rather than a component. Firecrawl is also a `stubAdapter` on the connector side. |
-| **Better Stack** | The founder could not confirm it from memory. **That is the test.** A line you cannot defend in an interview is worth less than the space it takes. |
-| **OpenHands** and **Deno Deploy** | Wired, never proven in production, and neither is load-bearing to the story. |
-| **Resend** | Real, but transactional email is not a fact that changes a partner's read. |
+### Radios
 
-### What survives, and where each line was checked
-
-| Claim | Checked against |
-| --- | --- |
-| Model mix and call counts | `ai_events`, 14-day window, queried live 2026-08-13 |
-| 37 active cron jobs | `select count(*) filter (where active) from cron.job` |
-| Forecast immutability is a Postgres trigger | `pg_trigger`: `trg_decisions_forecast_immutable`, BEFORE UPDATE, enabled |
-| E2B with secret redaction | `src/lib/exec/e2b.server.ts` — `redactSecrets()` covers `ghs_`, `ghp_`, fine-grained and OAuth tokens, plus any credential embedded in a clone URL |
-| The pull-request path actually runs | `studio_changesets` 44, `deployments` 42, `agent_approvals` **295** |
-| Nine connectors | `src/lib/connectors/providers/index.server.ts` — the other eleven are `stubAdapter` and are **not named**, because a reader assumes a named connector works |
-
-**The trigger line is the most valuable sentence in this field** and it was not there before. It states the company's core mechanism as infrastructure rather than as a promise, and a technical reader can confirm it in one query. That is worth more than every vendor name removed above.
-
-**PostHog and Sentry stay, as landing at launch.** Env keys and the facade exist; neither SDK is in `package.json`. The question says *"using, or planning to use"*, so the plan is a valid answer where the present tense would not have been.
-
-> ### ⚠️ Two things on the live form are NOT supported. Queried 2026-08-13.
->
-> The field currently reads *"Claude Code, Codex, and Kimi K3 write the code; HyperAgent runs the agentic workflows; I direct them in parallel through Conductor"*.
->
-> **`ai_events`, last 14 days:** `cohere/embed-v4.0` 27,008 · `qwen/qwen-plus` 4,902 · `google/gemini-2.5-flash` 4,329 · `gemini-3-flash-preview` 280 · `openai/gpt-5` 50. **Kimi does not appear at all**, and the registry carries `moonshot/kimi-k2`, never a K3. HyperAgent and Conductor have no presence in `src/` either.
->
-> **Naming a tool that does not run is the cheapest possible way to lose a technical reader**, and this is the one field where a partner is explicitly invited to look. Both names are removed above.
->
-> **The observability paragraph is also cut**, on the panel's objection. It volunteered a vendor-neutral facade and eight-provider routing from a founder with zero users, which the diligence reader called *"self-supplied evidence of misallocation."* The question asks what the stack is, not how well-architected it is.
+**Are people using your product? → No.** **Do you have revenue? → No.** **Currently fundraising? → No.**
 
 ---
 
-## Surface 2 — Fundraising Update
+## EDITABLE NOW — Team Update
 
-**File nothing.** No investment taken, not currently raising, nothing changed since 2026-07-23. The locked §10 already says this.
-
-**Do not use this surface for narrative.** It exists to report a change in the cap table. Filling it with positioning reads as a founder padding a form, and the Progress Update already carries every word that belongs on this application.
-
----
-
-## Surface 3 — Team Update
-
-### 3a. "Who writes code, or does other technical work on your product?"
+### "Who writes code... Was any of it done by a non-founder?"
 
 ```
 I do, directing AI agents. No non founder has touched any of it. Design,
@@ -226,45 +144,227 @@ independent of the agents that write, audits for security and holds every
 change against the test suite before it can merge.
 ```
 
-**Two de-duplication edits.** The agent names come out, because the tech-stack question explicitly asks for AI coding tools and this one asks *who does the work*; the answer to *who* is "me, directing agents", and the names are one field away. *"Supaprod's own roadmap runs inside Supaprod"* comes out too, because it is progress evidence and belongs in the field that asks how far along you are. What is left answers the question and the follow-up clause, and stops.
-
-**The form asks "Was any of it done by a non-founder?" and the old answer buried the reply in the fourth sentence.** It now answers in the first two, because that is the clause a partner is scanning for. Everything else is explanation.
-
-**Three deliberate removals from the filed version.** The build register is gone, because it was last maintained on 2026-08-04 and understates the work by roughly 450 commits; an accurate count from a stale source is a false claim with a correct number inside it. **Kimi K3 and HyperAgent are gone**, because neither appears in the last 14 days of `ai_events` and the registry carries `kimi-k2`, never a K3. And "one person directing a fleet of agents" is gone as a slogan, kept only as plain fact in the first line.
-
-### 3b. "Are you looking for a cofounder?"
-
-**Keep unchanged.** It already reads secure, and rewriting a settled answer to sound better is how a confident line turns anxious.
+### "Are you looking for a cofounder?"
 
 ```
-Solo, and moving fast. Open to a cofounder who shares the vision and the
+Solo, and moving fast. Open to a cofounder who shares the vision and
 energy and adds a perspective I do not have. For now, solo.
 ```
 
 ---
 
-## Paste-day order
+## LOCKED ON THE FORM — the interview script, and the source for every other programme
 
-1. Incognito login on `explore@supaprod.ai`. Land on a populated workspace. Fail here and stop.
-2. Re-run the two moving numbers. Update 1c and 1d together, or they will disagree.
-3. Fill the two `[FOUNDER]` slots: the user count in 1c, the employment clause in 1d.
-4. Paste Surface 1. Set the radio truthfully. Save.
-5. Paste Surface 3. Save.
-6. Leave Surface 2 empty.
-7. Read every pasted field aloud once. Anything you would not say to a person, cut.
+> These cannot be edited at YC. **A partner may quote any of it back**, so it is rehearsed rather than pasted. It is also the source every other application pulls from, so it is written to the same register.
+
+### 7b. Fifty characters or less
+
+```
+Product decisions with a forecast you cannot edit
+```
+
+_48 characters._ **Alternate, if the plainer read is wanted:** `Agents run product work. You keep the judgment.` _(46)._ The filed answer is *"Cursor for PMs, the whole product org."* All three readers wanted it gone: it borrows the do-the-work-faster frame that 9b spends a paragraph disowning.
+
+### 7f. What is your company going to make?
+
+```
+Supaprod runs product work when agents do the building.
+
+A team connects the places their user feedback already lives: Slack,
+Zendesk, Intercom, GitHub. Supaprod reads it, groups it into what is worth
+looking at, and argues against the weak ideas before the team commits.
+Then it writes the spec with the evidence attached and hands the build to
+coding agents. The team approves what matters. Nothing merges without a
+person.
+
+What makes it a company is what gets kept. Every agent action is recorded,
+every decision carries the evidence behind it, and every gate records who
+cleared it. When agents do the work, being able to answer what was decided
+and on what stops being paperwork. It is the thing that lets a team let
+them run at all.
+
+One piece of that cannot be produced afterwards. When a team commits a
+decision, Supaprod asks what they expect to happen, how they will know,
+and by when. Those answers lock. When the date arrives, the call comes
+back to be settled against what they said they would check.
+
+Building got cheap. What a company runs on now is the calls it makes and
+whether they were right.
+```
+
+### 8e. Are people using your product?
+
+```
+No outside users yet. I run my own product work on it, which shows the
+thing works, not that anyone wants it, and I am not going to blur those
+two. Anyone can open it right now with the demo login above.
+```
+
+### 8h. If you have applied with the same idea before, what has changed?
+
+```
+Same idea, one batch later. What changed is what I think the defensible
+part is.
+
+I had it wrong. I was telling people a competitor cannot rebuild your
+decision history. Then I watched Vercel's COO rebuild why a deal was lost
+out of Slack, email and call recordings, using an agent built in two days.
+A history can be reconstructed. What a team believed before the outcome
+landed cannot, because almost nobody writes it down.
+
+So I built the part that catches it. Capture shipped on 10 August, the
+settling on 13 August.
+
+The application was filed as Cadence. Same company, renamed since.
+```
+
+### 9a. Why did you pick this idea? Do you have domain expertise?
+
+```
+Close to a decade in product: ISRO, then Infineon, then senior AI product
+at Intellect, a technology company that 200+ banks and financial
+institutions build their own AI products on.
+
+The job underneath all three was the same. Hold the context across a dozen
+tools and a dozen people, then re-answer "why did we decide this" from
+memory months later, usually badly.
+
+Supaprod started as a dashboard I built to stop doing that. Agents made it
+urgent, because they build far faster than anyone can judge what is worth
+building.
+
+Then I checked whether it was only my problem. I read 679 primary sources
+and sat in a private community of about thirty thousand product managers.
+One of them put it better than I could: "PMs got faster at shipping but
+didn't get better at defending why. The judgment gap got exposed."
+
+I have not run formal discovery interviews and I am not going to pretend I
+have.
+```
+
+### 9b. Who are your competitors? Who do you fear most?
+
+```
+The one I actually fear is not a company. It is a folder.
+
+Teams hand-roll this in markdown and scripts, and it works. Every
+do-it-yourself success I found is one person in one context. Every failure
+is a second person or a fleet of agents. That transition is where we sell,
+and it is the honest read: on engineering forums the reflex is "just
+commit your agent files".
+
+The named ones are real and getting closer. Notion shipped Ship OS free in
+July. Atlassian launched Product Collection in May, positioned around
+better decisions. Linear hands issues to coding agents. ChatPRD drafts
+specs for over 100,000 PMs. All of them make doing the work faster.
+
+None of them records whether the call was right, and none catches what a
+team expected before it found out.
+
+The other objection I get is that simpler tools are easier for agents to
+drive, so why add a layer. That is true and it is not enough. An agent can
+write into a Notion page or a GitHub issue. It cannot write a decision
+with its evidence, its author, a slot for the verdict and a human gate
+into either. Simple tools are agent-writable. They are not
+agent-governable.
+
+I deliberately do not build the code generator. That fight is expensive
+and the models keep absorbing it.
+```
+
+### 9c. How will you make money? How much could you make?
+
+```
+A workspace subscription plus credits for what the agents actually run, so
+the bill tracks work done rather than seats.
+
+First customers are founders and PMs on small teams. They feel this
+hardest and can start without asking procurement. That is the tier I price
+first, in beta, against people who have used it.
+
+It grows into teams and companies, where the audit trail is the line that
+gets budgeted. That budget already exists. It is spread across a tracker,
+a docs tool, a spec tool, a coding agent and a weekly status meeting.
+
+On size: there are roughly 2.6 million product managers and the work they
+do is already paid for as salary. I am not going to hand you a market
+number I cannot defend, because the price has not been tested on a single
+real customer. That happens in beta.
+```
+
+### 9d. Which other ideas did you consider?
+
+```
+This is the one. The closest was the dashboard version that became
+Supaprod. I am building what I kept wishing existed.
+```
+
+### 3b. The most impressive thing other than this startup
+
+```
+I worked on satellite communication systems at ISRO, on Chandrayaan-2 and
+Mangalyaan.
+
+What made it hard is that hardware launches once. There is no patch
+release, no rollback and no second attempt. Everything has to be right
+before it leaves the ground, and every decision has to survive review by
+people who will not accept "it should be fine".
+
+My part was on the communication link.
+
+Both missions flew.
+```
+
+**Currently blank on the form, and it should not be.** Two empty fields on a founder profile read as incuriosity.
+
+### 3c. Things you have built before
+
+```
+Four versions of Supaprod before this one, each rebuilt from scratch when
+the shape turned out to be wrong. Those repositories are private because
+they carry the current architecture, and I am happy to walk through any of
+them.
+
+Before that, internal tools at work nobody asked me to build: a dashboard
+for tracking why decisions were made, and reporting that replaced a
+recurring manual process.
+
+Two years ago I could not ship production software. I learned to build by
+directing agents, out of necessity, and it is the most useful thing I
+know.
+```
+
+### 11a. What convinced you to apply to Y Combinator?
+
+```
+Friends of mine just went through YC. Badis and I overlapped at TUM and
+later worked on the same team at the same company, and I watched their
+batch from application to Demo Day. That settled it.
+
+I have not been to a YC event.
+```
+
+### 11b. How did you hear about Y Combinator?
+
+```
+I have followed Y Combinator online for years.
+```
 
 ---
 
-## What is deliberately NOT in these three surfaces
+## What changed in this pass, and why
 
-| Left out | Reason |
+| Cut | Reason |
 | --- | --- |
-| Feature or register counts | The register is stale by ~450 commits and understates the build. Do not cite it. |
-| Any product usage number | Every one that existed was seed data. A smaller honest number is still zero. |
-| "Cursor for PMs" | It is allowed on YC surfaces and it is in the locked 7f already. Repeating it in an update spends a line on something the partner has read. |
-| The seven-station diagram, "operating system", "agentic-first" | All retired. Platform words read as meaningless, and nobody in the market's own writing uses them. |
-| Named competitors | The locked 9b handles them. An update surface repeating locked content wastes the read. |
-| Present tense compounding | "Wired and proven, begins accruing on first real use" survives diligence. "It learns from your corrections" does not survive one query. |
+| *"before I see them"*, *"what you expect"* | Written from the founder's side, and **"you" reads to a reviewer as themselves.** Both now name the team. |
+| *"Supaprod's own roadmap runs inside Supaprod"* | **344 missions, 27 completed.** The claim does not survive its own database. Replaced with the three numbers that do. |
+| *"2:22 film"* | A runtime is filler. The link is the fact. |
+| *"one at a time"*, *"design-partner list"* | The first sounds like no ambition, the second is invented vocabulary. |
+| *"Cursor for PMs"* in 7b | It borrows the do-the-work-faster frame that 9b spends a paragraph disowning. |
+| The TAM ladder in 9c | Three readers scored it 3/10 for a headcount-derived market number and an underived SOM. **Saying the price is untested is stronger than a number that cannot be defended.** |
+| Hacker News and Product Hunt in the launch answer | The default answer on a large share of applications, and true of anyone. |
+
+**Repetition removed across fields.** ISRO was told in full in both 9a and 3b, and Intellect and Infineon appeared in both 9a and 3c. **9a now carries the one-line career arc only**; 3b and 3c carry the specifics 9a does not. The connector names, the launch date, the agent tool names and the immutability detail each appear exactly once, in the field whose question asks for them.
 
 ---
 
