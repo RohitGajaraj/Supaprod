@@ -87,7 +87,7 @@ This rule was learned the hard way — the same claim escaped six separate sweep
 | **08-16** | **Unidentified.** The founder named an 08-16 close and does not have the name | ? | ? | **GATED on the founder.** The only 08-16 row we hold is German Accelerator Kickstart at fit 2.5, and the recommendation on that one is to skip |
 | **08-17** | [**Sequoia Arc, Fall 2026**](./sequoia-arc/) | **8.5** | Pre-seed or seed, terms set per company | **DRAFTED 2026-08-13.** Nearest date with no blocker |
 | **08-21** | **DIFC (Dubai).** Founder-named, deadline the 21st | ? | ? | **GATED on the founder.** Not on this tracker and not among the 144 researched; no public listing found for a close on the 21st. Needs the exact program name and apply link |
-| 08-21 | Berkeley SkyDeck, Batch 23 | 8.5 | Takes equity **and** charges a fee | Not drafted. Solo fine |
+| 08-21 | [**Berkeley SkyDeck, Batch 23**](./berkeley-skydeck/) | 8.5 | Takes equity **and** charges a fee | **DRAFTED 2026-08-13.** F6S form; open and trim by field limit |
 | 08-21 | Hub71 Access Programme, Cohort 20 (Abu Dhabi) | 7.0 | Cash plus housing, office, credits | **Hard blocker:** needs an ADGM entity and physical presence in Abu Dhabi. 33 questions |
 | 08-30 | [EF The Bridge Residency, San Francisco](./ef-bridge-sf/) | 6.0 | EF standard | Drafted and corrected. Ready to send |
 | 08-31 | Slush Startup Stage, Helsinki | 6.0 | Free to apply, €1.5K booth | Costs flights and Helsinki accommodation |
