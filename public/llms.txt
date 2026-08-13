@@ -11,10 +11,10 @@ You remain in control: no irreversible action happens without your approval.
 One product, three layers, and each is the precondition for the next.
 
 1. **The director**: tells you what to build. Reads your signals, your product data, your competitors and your own past calls, and ranks what is worth doing next.
-2. **The operating system**: runs the whole lifecycle. Seven stations that agents walk on their own, inside boundaries a human sets in advance.
+2. **The loop**: runs the whole lifecycle. Seven stations that agents walk on their own, inside boundaries a human sets in advance.
 3. **The shared brain**: learns, and then guides. It tells you what is right next time, and warns before you repeat what was wrong.
 
-You cannot be the shared brain without owning the loop that generates the outcomes, and you cannot run the loop without being the operating system. Ship any one alone and it is a feature, not a company.
+You cannot be the shared brain without owning the loop that generates the outcomes, and you cannot run the loop without owning every station in it. Ship any one alone and it is a feature, not a company.
 
 ## The loop: one governed route, seven stations
 
@@ -26,7 +26,7 @@ Discover, Decide, Plan, Design, Build, Ship, Learn. Not seven tools bolted toget
 - **Build and Ship**: specialist agents write the code and drive the checks back to green. The merge gate stays human: nothing merges, ships, or takes an irreversible outward action without an approval
 - **Learn**: the outcome is settled with a verdict, written back against the decision that caused it, and it re-ranks what Discover and Decide surface next
 
-**The loop does not end in a report. It ends by changing what you are shown.** That is the difference between an operating system and a dashboard.
+**The loop does not end in a report. It ends by changing what you are shown.** That is the difference between a system that runs the work and a dashboard.
 
 ## Who Supaprod is for
 

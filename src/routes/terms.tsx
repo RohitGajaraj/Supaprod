@@ -32,10 +32,10 @@ function TermsPage() {
 
       <LegalSection title="What Supaprod does">
         <p>
-          Supaprod is an agent-native operating system for product work: it senses signals, proposes
-          decisions, drafts specs, and can dispatch coding agents to build against them. Every
-          action that ships, merges, or otherwise takes effect outside your review requires your
-          explicit approval, per the approval mode you set for that action.
+          Supaprod is where product decisions live when agents do the work: it senses signals,
+          proposes decisions, drafts specs, and can dispatch coding agents to build against them.
+          Every action that ships, merges, or otherwise takes effect outside your review requires
+          your explicit approval, per the approval mode you set for that action.
         </p>
       </LegalSection>
 

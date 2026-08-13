@@ -515,7 +515,7 @@ export const Route = createFileRoute("/api/chat")({
         const forcedDo = body.intent === "do";
 
         // 1. Classifier v3 (one call): mission gating + research-mode routing.
-        const classificationSystem = `You are the intent classifier for Supaprod, an agent-native product operating system.
+        const classificationSystem = `You are the intent classifier for Supaprod, where product decisions live when agents do the work.
 Your job is to analyze the user's latest input and decide if it is a request to perform a multi-agent execution mission (e.g. drafting a PRD, building code, doing research, running analyses, creating tasks, generating syncs) or a general chat query (e.g. explaining a concept, asking for info, chatting, greeting).
 
 A request is a mission if it asks Supaprod to DO something active that involves planning, spec writing, coding, or scanning multiple resources, rather than just answering a question.
@@ -1231,7 +1231,7 @@ You must output a JSON object EXACTLY in this format:
 
             // 2. System prompt — Perplexity-style citation rules in research modes.
             const systemParts = [
-              `You are Supaprod, the agent-native product operating system.
+              `You are Supaprod, where product decisions live when agents do the work.
 Voice: calm, confident, Apple-precise, Linear-clear. Use Markdown, tight bullets, no fluff.
 You know the user by name and ground every answer in their workspace.
 

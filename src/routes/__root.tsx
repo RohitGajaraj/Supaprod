@@ -125,20 +125,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Supaprod" },
       {
         name: "description",
-        content: "The decision and outcome operating system for product teams.",
+        content: "Supaprod is where product decisions live when agents do the work.",
       },
       { name: "author", content: "Supaprod" },
       { property: "og:title", content: "Supaprod" },
       {
         property: "og:description",
-        content: "The decision and outcome operating system for product teams.",
+        content: "Supaprod is where product decisions live when agents do the work.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Supaprod" },
       {
         name: "twitter:description",
-        content: "The decision and outcome operating system for product teams.",
+        content: "Supaprod is where product decisions live when agents do the work.",
       },
       // Branded social image (public/og-supaprod.png). Absolute URL required by crawlers.
       { property: "og:image", content: "https://supaprod.ai/og-supaprod.png" },

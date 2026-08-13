@@ -34,7 +34,17 @@ describe("the public brief parent is readable", () => {
     expect(summary).toContain("<h1");
     expect(summary.match(/<h2/g)).toHaveLength(3);
     expect(summary).toContain("The director tells you what to build.");
-    expect(summary).toContain("The operating system runs the whole lifecycle.");
+    // PINS THE IDEA, NOT THE SPELLING (2026-08-13), for the same reason as
+    // layer 03 below and by the same precedent. This read
+    // toContain("The operating system runs the whole lifecycle.") until the
+    // 2026-08-11 retire-everywhere ruling reached the surfaces it had missed:
+    // "operating system" is on the Never list for the landing page, brief and
+    // listings (docs/strategy/positioning-locked-2026-08.md:203), and layer 02
+    // renders as "the loop" on the site already. What this test exists to prove
+    // is that layer 02 is present in the parent document as real semantic text
+    // rather than living only in the iframe. The layer's claim is that it runs
+    // the whole lifecycle; what that layer is CALLED is positioning's call.
+    expect(summary).toMatch(/runs the whole lifecycle\./);
     // PINS THE IDEA, NOT THE SPELLING (2026-08-11). This read
     // toContain("The company brain learns, then guides.") until the
     // practitioner-vocabulary ruling retired "company brain"

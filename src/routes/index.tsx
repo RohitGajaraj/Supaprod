@@ -144,7 +144,7 @@ For product managers. ${TAGLINE} Nothing irreversible happens without you.
 
 ## The three layers
 1. The director: tells you what to build. Ranks your signals, product data, competitors and past calls.
-2. The operating system: runs the whole lifecycle. Seven stations agents walk on their own, inside boundaries a human sets in advance.
+2. The loop: runs the whole lifecycle. Seven stations agents walk on their own, inside boundaries a human sets in advance.
 3. The shared brain: learns, and then guides. Tells you what is right next time, and warns before you repeat what was wrong.
 
 Each layer is the precondition for the next. Ship any one alone and it is a feature, not a company.

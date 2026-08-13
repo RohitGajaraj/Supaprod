@@ -236,7 +236,7 @@ export function BriefDeck() {
             </p>
             <div>
               <h2 id="operating-system-heading" style={briefHeadingStyle}>
-                The operating system runs the whole lifecycle.
+                The loop runs the whole lifecycle.
               </h2>
               <p style={briefBodyStyle}>
                 Discover, Decide, Plan, Design, Build, Ship, and Learn run as one governed route.
