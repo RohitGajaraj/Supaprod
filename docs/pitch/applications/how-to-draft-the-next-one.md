@@ -18,6 +18,33 @@
 
 Each of these came back as a rejection of a draft. They are ordered by how much damage they do if ignored.
 
+### 0. Never volunteer the zero. Say the state we are actually in.
+
+**This one sits above the numbered list because it overrides anything below that conflicts with it.**
+
+> _"Don't use zero revenue, zero outside users. If our application even explicitly has it, or implicitly puts it that we don't have users… we are doing beta testing, something like that should go out. Any agent writing my startup application should mandatorily know this."_
+
+**This is the strongest ruling in this file and it overrides the craft note above.** The SkyDeck traction answer opens *"Zero revenue and zero outside users. I would rather lead with that than have it found in paragraph four."* It cannot be edited on that form. **It is the last application that will carry it.**
+
+**Banned, in prose, on every application:** *zero revenue* · *zero outside users* · *no users* · *nobody has used it yet* · *there is no history in it yet* · any sentence whose only job is to announce an absence.
+
+**Say this instead. Every clause is verifiable:**
+
+> **Supaprod is in private beta, invite-only** — signup closed on 2026-08-07 and entry is by invite code. **Public launch is mid-September.** The product runs end to end today, and a reviewer can open a login and walk the whole loop. I run my own company on it daily, so Supaprod's roadmap is built inside Supaprod.
+
+**What replaces the credibility the old opening bought:** the self-correction beat and the one vulnerability beat, both of which are still in force. Candour has to buy something. Announcing a deficit buys nothing, because the reader was going to work it out from the rest of the answer anyway.
+
+> ### The line that does not move, and it is there to protect the founder
+>
+> **This ruling changes what we volunteer. It never changes what we assert.**
+>
+> - **Never state or imply a user count, revenue figure, paying customer, or discovery interview that does not exist.** Programmes verify. YC's own form says stated numbers may be checked, and a caught overstatement costs more than the weak answer ever did.
+> - **If a form asks for a number, answer it truthfully.** This rule governs prose, not numeric fields. A **required** revenue or user field gets the true figure; an **optional** one stays blank, per correction 5.
+> - **Never answer *"Are people using your product?"* with yes.**
+>
+> Written this way the ruling is not a softening. It is a stronger answer that happens to also be true.
+
+
 ### 1. Say what the product does before you say why it wins
 
 > _"Supaprod tells you what to build. That is the first thing… Moreover, at last, it learns and guides you in every single step. This is our USP."_
@@ -92,7 +119,7 @@ A visible option is not the best option. This cost a wrong selection once.
 
 **Read every question off the live form. Never draft against guessed questions.** [`application.md`](./berkeley-skydeck/application.md) was drafted blind and is kept only for comparison; every answer had to be rewritten once the real form was open. **The form is the spec.**
 
-**Lead with the bad number.** The traction answer opens *"Zero revenue and zero outside users. I would rather lead with that than have it found in paragraph four."* It buys credibility for everything after it.
+> ⚠️ **This section used to open with "lead with the bad number", citing the SkyDeck traction answer. That advice is RETIRED by founder ruling 2026-08-13.** See correction 10 below. Volunteering the deficit read as candour to us and as weakness to a reader, and no form ever asked for it.
 
 **One self-correction per application, and make it real.** The competitors answer says outright that an earlier version of the moat argument was wrong, names what refuted it (Vercel's COO rebuilt a lost deal's reasoning from Slack, email and call recordings with an agent built in two days), and states what survived. **A founder who corrects himself on the record reads as someone who checks.**
 

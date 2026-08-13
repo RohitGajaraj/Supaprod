@@ -264,6 +264,9 @@ deal was lost out of Slack, email and call recordings, using an agent built in
 two days. Causes survive. What nobody can rebuild is what a team believed before
 it found out, because almost nobody writes it down.
 
+> 🚫 **DO NOT REUSE THIS ANSWER. Founder ruling 2026-08-13: never volunteer the zero.** The opening line below is the retired framing. It stands here only because it is the archived record of what was actually filed and cannot be edited on the form. **For any new application, use the private-beta framing** in [`../answer-bank.md`](../answer-bank.md) §4 and rule 0 of [`../how-to-draft-the-next-one.md`](../how-to-draft-the-next-one.md).
+
+
 I also do not build the code generator. That layer is a capital fight and the
 models keep absorbing it. Supaprod decides what is worth building, dispatches to
 whichever generator wins, and governs the result.

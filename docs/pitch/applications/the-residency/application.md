@@ -236,6 +236,9 @@ And I am the most demanding user I have. I run my company on it daily and hit ev
 
 ### key traction metrics, use bullet points (be concise) *
 
+> 🚫 **DO NOT REUSE THIS ANSWER. Founder ruling 2026-08-13: never volunteer the zero.** The opening line below is the retired framing. It stands here only because it is the archived record of what was actually filed and cannot be edited on the form. **For any new application, use the private-beta framing** in [`../answer-bank.md`](../answer-bank.md) §4 and rule 0 of [`../how-to-draft-the-next-one.md`](../how-to-draft-the-next-one.md).
+
+
 ```text
 - It runs end to end today. An engine advances product missions on its own every minute, through sense, decide, define, build, ship and learn.
 - 401 features specced, 362 shipped in eight weeks, solo. I had the register independently audited against the actual code and it held.

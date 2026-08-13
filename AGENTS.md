@@ -32,7 +32,7 @@ They are one product because each is the precondition for the next: you cannot b
 
 **The industry name for layer 03 is "context graph"**, put at *Assess* on the ThoughtWorks Technology Radar in April 2026: decisions, policies, exceptions, precedents, evidence and outcomes as connected nodes structured for AI consumption, capturing *why* where systems of record capture *what*. **Use it in docs and with technical buyers; keep it out of the hero.** Its enumeration omits forecasts, and that omission is the gap we occupy.
 
-**Three rules that follow, binding on every surface:**
+**Four rules that follow, binding on every surface:**
 1. **Never claim accumulated learning in the present tense.** Not *"we learn from your corrections."* The honest and stronger form is *the loop is wired and proven, and it begins accruing on first real use.*
 2. **Never imply an unbroken signal → shipped → learned chain.** It is broken in two places: Discover promotes 3 of 86 themes, and Build writes no changeset or deployment edges. Demo the Discover → Decide → Learn half, which is real.
 3. **Use practitioner language everywhere — in-product as well as public** (founder ruling 2026-08-11; **this replaces the register split, which is retired**).
@@ -41,6 +41,12 @@ They are one product because each is the precondition for the next: you cannot b
    - **approve vs review:** keep **approve** where it names a **gate action** (something is blocked pending the click); use **review** where it means **looking at something**. The test is whether clicking it unblocks anything.
    - **Never use "context" alone on a marketing surface** — it means the LLM context window here and reads as jargon.
    - Exact strings for every remaining instance: [`docs/growth/vocabulary-change-list-2026-08.md`](./docs/growth/vocabulary-change-list-2026-08.md).
+
+**4. Never volunteer the zero (founder ruling 2026-08-13, and it is binding on every application).** Do not write *"zero revenue and zero outside users"*, *"no users"*, *"nobody has used it yet"*, or any sentence whose job is to announce an absence. **No form requires a deficit as an opening line** — leading with one was our craft choice, it read as candour, and it cost more than it bought. The Berkeley SkyDeck application carries it and cannot be edited. **It is the last one that will.**
+
+**Say the state we are actually in, all of which is true:** in **private beta, invite-only** (signup closed 2026-08-07, entry is by invite code) · **public launch mid-September 2026** · the product **runs end to end and a reviewer can open a login and use it** · the founder **runs the company on it daily**, so Supaprod's own roadmap runs inside Supaprod.
+
+> **The line that does not move, because it protects the founder.** This ruling changes what we **volunteer**, never what we **assert**. Never state or imply a user count, revenue figure, paying customer or discovery interview that does not exist — programmes verify, and YC's form says outright that stated numbers may be checked. **If a form asks for a number, answer it truthfully**: this governs prose, not numeric fields. A required revenue field gets the true figure; an optional one stays blank. Never answer *"Are people using your product?"* with yes.
 
 Full canon and evidence: [`docs/strategy/positioning-locked-2026-08.md`](./docs/strategy/positioning-locked-2026-08.md) · [`docs/research/lennys-corpus-sweep-2026-08.md`](./docs/research/lennys-corpus-sweep-2026-08.md).
 

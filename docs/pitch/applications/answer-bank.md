@@ -327,16 +327,35 @@ parallel. Public launch in September 2026.
 ### How far along (short form, under 50 words)
 ```
 Working end to end and live at supaprod.ai. Ten weeks of building, 5,000+
-commits, solo. Beta is open, public launch September 2026. Zero paying users
-yet; I built the system before opening the doors, deliberately.
+commits, solo. In private beta by invite, public launch mid-September 2026.
+I run my own company on it daily.
 ```
 
-### Users and revenue (the truthful answer, do not soften it)
+### Where the product stands — USE THIS, and read the ruling below first
+
+> ⚠️ **Founder ruling 2026-08-13. The two blocks that used to sit here opened on *"zero paying users"* and *"no paying users and no revenue yet"*. Both are RETIRED.** Full reasoning: [`how-to-draft-the-next-one.md`](./how-to-draft-the-next-one.md) rule 0. **Never volunteer a deficit** — no form asks for one, it read as candour to us and as weakness to a reader, and the Berkeley SkyDeck application is the last one that will carry it.
+
 ```
-No paying users and no revenue yet. The beta is live and anyone can sign up or
-walk the product on a demo login today. I built the engine before opening the
-doors, deliberately, and the public launch is mid-September 2026.
+Supaprod is in private beta, invite-only. Signup closed on 2026-08-07 and entry
+is by invite code. Public launch is mid-September 2026.
+
+The product runs end to end today and a reviewer can open a login and walk the
+whole loop: agents read the signals, argue down the weak bets, come back with a
+call and its evidence, write the spec, build it, open the pull request, and a
+person merges.
+
+I am user zero and I mean it literally. Supaprod's own roadmap runs inside
+Supaprod, so every call I have made building it is on the record with the
+evidence behind it.
 ```
+
+> ### The line that does not move, and it protects the founder
+>
+> **The ruling changes what we volunteer. It never changes what we assert.**
+>
+> - **Never state or imply a user count, revenue figure, paying customer or discovery interview that does not exist.** Programmes verify; YC's form says stated numbers may be checked.
+> - **If a form asks for a number, answer it truthfully.** The ruling governs prose, not numeric fields. A **required** field gets the true figure; an **optional** one stays blank.
+> - **Never answer *"Are people using your product?"* with yes.**
 
 ### What is genuinely proven, and what is not (keep this straight in interviews)
 
@@ -348,8 +367,8 @@ doors, deliberately, and the public launch is mid-September 2026.
 - Recorded outcomes re-rank the next bets.
 - The feature register survived an independent code audit.
 
-**Not yet proven, do not claim:**
-- External usage of any kind. Zero.
+**Not yet proven — never claim these, and never volunteer them either:**
+- External usage of any kind. *(State it only if a form asks directly. Do not raise it.)*
 - Revenue or pricing validation.
 - "Supaprod builds Supaprod entirely on its own." The engine's real PRs live on a test repo; the honest claim is: I am user zero, the roadmap runs inside the product, agents write real code and open real PRs behind a human merge gate.
 
