@@ -40,6 +40,8 @@ Most work here is an accelerator, incubator, residency or grant application. The
 
 **6. Tag every claim.** `PROVEN` (live and verifiable) · `WIRING` (built, not yet demonstrably run, and **never said publicly until it runs**) · `ROADMAP` (say so). Honesty is the product here.
 
+**6b. Run the pressure test. Added 2026-08-13, and nothing sends without it.** [`.claude/workflows/application-pressure-test.js`](../../.claude/workflows/application-pressure-test.js) drafts, fact-verifies against git and the live database, then has three adversarial readers score the whole application and name the one **real action** that would flip them. Full description and the failures each phase answers: [`applications/README.md`](./applications/README.md). **Verification runs before evaluation, deliberately** — a reader panel improves copy and does not make it true, which we learned when a synthesis step invented a flattering attribution and all three readers rated it the strongest sentence in its field.
+
 **7. Log where it went.** Record the submission in [`applications/README.md`](./applications/README.md), and if the program needs a login, take one from [`../operations/demo-credentials.md`](../operations/demo-credentials.md). **One login per application, never shared:** reviewers open them weeks apart, and whoever opens second finds an approval queue the first one already cleared, which deletes the single most important beat in the demo. Rehearse on `harbor@` only.
 
 ---

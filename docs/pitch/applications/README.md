@@ -51,10 +51,39 @@ This rule was learned the hard way — the same claim escaped six separate sweep
 
 ✅ **Fixed 2026-08-13.** [`answer-bank.md`](./answer-bank.md) and [`positioning-doctrine.md`](./positioning-doctrine.md) were carrying **4,264 commits, 410 migrations and eight-to-nine weeks** into anything drafted next. Both now read **5,131 / 532 / ten weeks**. The answer bank also claimed build duration was not derivable from git because the orphan-main recovery flattened every commit date. That was false: the rewrite touched committer dates, author dates were never touched, and the first real commit is `2026-06-02`.
 
+## 🧪 Run the pressure test before ANY application sends. Added 2026-08-13.
+
+**`.claude/workflows/application-pressure-test.js`** is the harness. It is programme-agnostic: pass the questions and it does the rest.
+
+```js
+Workflow({ name: 'application-pressure-test', args: {
+  program: 'Sequoia Arc', applyUrl: '…', deadline: '2026-08-17',
+  selectsFor: 'founder-market fit verified by reference calls; a dated market trigger',
+  clusters: [{ key: 'identity', title: '…', fields: '<questions verbatim, with limits>', extra: '<programme guidance>' }],
+}})
+```
+
+**Five phases, and each one exists because of a failure that already happened here.**
+
+| Phase | What it does | The failure it answers |
+| --- | --- | --- |
+| **Facts** | Derives commits, migrations and duration from git at run time, reads the canon, and splits every mechanism into *live and reachable today* versus *wired and never run*. Records a `scope_limit` per claim. | Applications went out carrying numbers nobody could reproduce, and three turned out to be seed data. |
+| **Draft** | One agent per field cluster, writing only from the fact sheet. | Answers assembled from memory contradict each other across programmes. |
+| **Verify** | Checks every claim against the code, git and the database. Four named error classes: misattribution, scope overclaim, the claim under a new wording, and unsupported demand. Removes what it cannot verify rather than softening it. | A retired claim escaped six phrase-sweeps in one day because every banned word had been stripped from it. |
+| **Pressure** | Three readers score the assembled application: a serial-founder VC, a time-poor partner, a technical diligence lead. Each returns a verdict and the one **real action** that would flip them. Wording changes are not accepted as answers. | We were grading our own copy. |
+| **Final** | Fixes every objection, strips cross-field repetition, and is **forbidden from inventing a fact** to close a weakness. | See below. |
+
+> ### The rule that matters most, and it cost us to learn it
+>
+> **Verify runs BEFORE Pressure, and Final may not invent.** On 2026-08-13 a synthesis step credited another company's experiment to the founder, and **all three independent readers scored that sentence the strongest in its field.** A false sentence that fits the surrounding argument reads as the best sentence in the field, so a reader panel improves copy and does not make it true.
+>
+> **Evaluation and verification are separate passes and neither substitutes for the other.**
+
 ## How this folder works
 
 | File | What it is |
 | --- | --- |
+| [**`../../../.claude/workflows/application-pressure-test.js`**](../../../.claude/workflows/application-pressure-test.js) | **The pressure-test harness. Run it before any application sends.** Programme-agnostic; derives its own numbers. |
 | [`answer-bank.md`](./answer-bank.md) | Every reusable answer, at every length. Pull from here, never write from scratch. |
 | [`positioning-doctrine.md`](./positioning-doctrine.md) | How we get **selected**, not just how we apply. Asset track record, the counters to every objection, the per-program positioning axis, and the quality gate. |
 | `<program>/positioning.md` | What that specific program selects for, and our angle into it. |
