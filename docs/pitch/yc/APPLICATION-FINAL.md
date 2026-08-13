@@ -59,9 +59,11 @@ before going through.
 Film of the product: https://supaprod.ai/film
 Brief: https://supaprod.ai/brief
 
-Next is getting it into the hands of product teams and finding out where
-it breaks for someone who is not me.
+Next is getting it into the hands of product teams and learning what they
+run into that I never would.
 ```
+
+**The close was rewritten 2026-08-13.** It read *"finding out where it breaks for someone who is not me"*, which distances the founder from the outcome and can be heard as *not my problem*. The version above says the same thing and puts him inside it: **the limitation named is his own**, and the sentence commits him to closing it. It also earns its place beside the paragraph above, where he is the only user, so the contrast between what he sees and what a team will hit is the reason the next step exists.
 
 ### "How long have each of you been working on this? How much of that has been full-time?"
 
