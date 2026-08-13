@@ -12,6 +12,25 @@
 
 **Re-arm the demo approval queues in early September.** Armed 2026-07-28 on a 60-day runway, so they lapse around **2026-09-25**, which falls *inside* the interview window of **2026-09-08 to 2026-10-05**. The traction answer promises in writing that *"a reviewer can open a login and use it."* If the queues have lapsed when a reviewer tries, the application's own claim fails in front of the person evaluating it. **The form never asked for a login, so nothing was missed.** None of the 21 questions requests product access. **Do not volunteer credentials.** When a reviewer asks, take `meridian@` or `lantern@supaprod.ai`, re-arm its queue first, verify by signing in, and record it. Rehearse only on `harbor@`. The post-submission page has an Updates box (1,000 chars) for genuine later news.
 
+### ⏸️ PARKED until ~2026-08-15: demo data freshness. Founder ruling 2026-08-13.
+
+**Parked deliberately** until the accelerator application push is done, then picked up. **The session cron reminder is in-memory and dies with the session, so this note is the durable copy.**
+
+**The problem, in two halves.** Seeded demo workspaces ship five pending approvals whose `expires_at` sits hours out, so **the queue rots on its own** — on 2026-07-28 every demo workspace had already decayed to 1 pending + 4 expired untouched. Re-armed that day with a 60-day runway, landing ~2026-09-26. Separately, absolute timestamps age, so a reviewer opening in October sees data dated July.
+
+**The agreed design, and the reasoning behind each part:**
+
+1. **Do not remove the expiry.** The horizon *is* the product — the pitch rests on *"what they expect, how they will know, and by when"*. A gate that never expires demonstrates a different product, and a reviewer who notices dates that never move reads the demo as a mock. **A frozen queue is more suspicious than an empty one.**
+2. **A daily tick, not a 60-day runway.** A runway is a cliff somebody has to remember. Copy the pattern at `/api/public/hooks/calibrate-tick`.
+3. **Re-arm undecided gates and advance in-flight work**, with horizons relative to now.
+4. **Leave settled history alone.** Old resolved calls *should* look old — that is the accumulated record, and if everything looks like today there is no compounding to show.
+5. **Create new rows, never rewrite frozen ones.** Forecast fields freeze on write and a database trigger blocks every later edit. Bypassing it would make the demo violate the exact invariant the pitch is built on, which is far worse than stale data.
+6. **Fail loud.** A silent no-op is how this gets discovered during an interview.
+
+**Verify first, before building any of it:** no forecast has ever resolved, so `/learn` may be empty regardless of freshness. Freshness does not help an empty surface.
+
+**Hard date regardless of the above:** the queues lapse ~2026-09-25, inside the SkyDeck interview window of 09-08 to 10-05. **Re-arm before 09-08.**
+
 ### Two positioning rulings from this session that bind every future application
 
 **Rule 7, now in [`../pitch/applications/positioning-doctrine.md`](../pitch/applications/positioning-doctrine.md): the competitor is the stack, and we never say we have none.** A PM runs discovery in one tool, the spec in a second, design in a third, code agents in a fourth, flags in a fifth, the result in a sixth; the tax is the seams, not the tools. Name every rival, then show none owns the path between the steps. **"We have no competitors" was the founder's instinct, was pushed back on, and the reframe was agreed** — it is the most common red flag in that question, it is not true, and it claims without a mechanism.

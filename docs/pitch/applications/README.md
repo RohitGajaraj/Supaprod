@@ -119,6 +119,18 @@ Workflow({ name: 'application-pressure-test', args: {
 
 **Every card carries a `Region` chip** (US · UK · Europe · India · Middle East · Asia-Pacific · Multi-region · Global / remote) so the geography is readable at a glance. **`Decision date` and `Outcome detail` are new** — an outcome without its date is not trackable, and an outcome without their exact words invites a paraphrase that later reads as a signal.
 
+## ⚠️ What is now stale inside the already-filed applications
+
+**Four of the five filed applications quote numbers that have since moved or been retired.** They cannot be edited on most of those forms, so the fix is not to rewrite them — it is to **never repeat them in a call, an interview or the next application.** Flagged on each Notion page as well.
+
+| Claim in the filed text | Status |
+| --- | --- |
+| **"401 features specced, 362 shipped"** | ❌ **RETIRED 2026-08-11.** Unmaintained since 08-04 and the script named for verifying it does not exist. **Never re-quote.** |
+| **"eight weeks"** | Now **ten**. Re-derive the duration at the hour of use. |
+| **5,000+ commits · 530+ migrations · 37 scheduled jobs** | ✅ Still true and re-derivable: `git rev-list --count origin/main`, `ls supabase/migrations/*.sql \| wc -l` |
+
+**Two positioning rulings also post-date every application filed before 2026-08-13**: *door before moat*, and *the competitor is the stack and we never claim to have none*. Brief against [`how-to-draft-the-next-one.md`](./how-to-draft-the-next-one.md) before any interview, never against the filed text.
+
 ## ✅ Submitted
 
 | Program | Submitted | Decision | Login given | Open items |
