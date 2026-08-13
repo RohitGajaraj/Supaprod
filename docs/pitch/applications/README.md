@@ -98,6 +98,12 @@ Workflow({ name: 'application-pressure-test', args: {
 
 ---
 
+## 📌 Read this before drafting anything
+
+**[`how-to-draft-the-next-one.md`](./how-to-draft-the-next-one.md)** is the craft log: every correction the founder made and why, what worked and should be repeated, what did not, and what the forms themselves do to you. It was written after Berkeley SkyDeck was filed and it is the file that stops the next application relearning the same nine things.
+
+**The three files, and none replaces another.** [`answer-bank.md`](./answer-bank.md) owns the **facts** (numbers, bios, the founder record with dates). [`positioning-doctrine.md`](./positioning-doctrine.md) owns the **rules**, seven of them. [`how-to-draft-the-next-one.md`](./how-to-draft-the-next-one.md) owns the **craft**.
+
 ## The Notion board is the live view, and this file is the reasoning
 
 **[`Supaprod · Application Board`](https://app.notion.com/p/4014ff9cb1c240c9a3b761e790852970)** carries the status of every programme. This file carries *why*. When they disagree, fix both in the same sitting.

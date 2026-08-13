@@ -1,0 +1,171 @@
+# How to draft the next one
+
+> _Created: 2026-08-13 · Last updated: 2026-08-13_
+
+**Read this before drafting any application.** It is the record of what the founder actually corrected, what survived contact with a real form, and what wasted hours. Two applications were filed on the strength of it: [Y Combinator Fall 2026](../yc/APPLICATION-FINAL.md) and [Berkeley SkyDeck Batch 23](./berkeley-skydeck/APPLICATION-FINAL.md).
+
+**The three files this sits between, and none of them replaces another:**
+
+| File | Owns |
+| --- | --- |
+| [`answer-bank.md`](./answer-bank.md) | The **facts**: numbers, bios, the founder record, reusable blocks |
+| [`positioning-doctrine.md`](./positioning-doctrine.md) | The **rules**: seven of them, each learned from a defect |
+| **This file** | The **craft**: what the founder changed, why, and what the forms themselves do |
+
+---
+
+## Part 1 — Every correction the founder made, and what it cost to learn
+
+Each of these came back as a rejection of a draft. They are ordered by how much damage they do if ignored.
+
+### 1. Say what the product does before you say why it wins
+
+> _"Supaprod tells you what to build. That is the first thing… Moreover, at last, it learns and guides you in every single step. This is our USP."_
+
+**The defect:** the first SkyDeck draft opened five separate answers on the moat — the frozen forecast — and never told a reader what the product is for. It read as a clever mechanism attached to nothing.
+
+**The rule:** **door, then body, then brain.** Tells you what to build → builds and ships it → learns and guides the next call. **The door is the part nobody else sells**, and it must open every answer that describes the product. The moat is the third layer's mechanism, not the headline.
+
+**Five answers were reordered on this**: the 140-character differentiator, the one-sentence description, *what do you do in detail*, *what problem are you solving*, and *tell us about your competitors*.
+
+### 2. The competitor is a stack, not a company
+
+> _"Everyone does one single thing, but for a product manager it is like juggling multiple tools with each other, and that's the thing we are trying to solve. This should be our competitive judgment."_
+
+**What changed:** this was buried as a clause about "carrying reasoning between tools". It is now the first sentence of the competitors answer. A PM runs discovery in one tool, the spec in a second, design in a third, code agents in a fourth, flags in a fifth, the result in a sixth. **The tax is the seams, not the tools.**
+
+### 3. Never say "we have no competitors", and this one was a pushback that stuck
+
+The founder's instinct was to add *"honestly, there are no competitors."* **It was pushed back on and he agreed the reframe was stronger.** Three reasons, and they generalise:
+
+1. It is the most common red flag in that exact question. Reviewers read it as naive or evasive.
+2. It is not true. Substitutes exist and get bought instead of us.
+3. It claims without a mechanism, which breaks Rule 2 of the doctrine.
+
+**Write the version that means the same thing and survives scrutiny:** name every competitor, then show none of them owns the path between the steps. *Grading a decision needs the call and its outcome inside one system, and a handoff is precisely where those two get separated.* That is structural, so no feature answers it.
+
+> **This is the pattern to reuse when a founder instinct is right in substance and wrong in form: keep the insight, change the claim into a mechanism.**
+
+### 4. Build on the draft, do not replace it
+
+> _"I asked you to build on top of the existing one… I wanted you to combine both things and write it."_
+
+**What happened:** the Q21 obstacle answer was rewritten from scratch around the ISRO pivot story, which threw away material he wanted kept. The filed version **combines** them into one arc: the pivot inside ISRO, then leaving ISRO, then the years of being unable to build, ending on the mechanism.
+
+**The rule: when a draft is wrong, name what is wrong with it and fix that.** A full replacement loses the parts that were working, and he will notice.
+
+### 5. Leave an optional field blank
+
+> _"For whichever is optional and it's not mandated and we don't have information, you can leave it like that. Let's not give any impression that we have."_
+
+Revenue, amount raising, target valuation and runway are all blank on the SkyDeck application on purpose. **A blank says less than a number we cannot support.**
+
+### 6. Do not describe the stage more modestly than it is
+
+> _"Prototype as a stage is too modest."_
+
+Stage was set to **Users**. The product runs end to end and a reviewer can open a login. Under-describing is as much a defect as overclaiming, and it is far harder to see in your own draft.
+
+### 7. The tagline names the product category
+
+> _"It needs to be short and crisper… the tagline should name the product category."_
+
+Landed on: **"Agent-run product organization that grades its own calls."**
+
+> ⚠️ **Unresolved, and it needs a ruling.** The ratified category line in the canon is *"the agentic-first operating system for product teams"*. *"Agent-run product organization"* is live on the SkyDeck application and the YouTube channel and was never ruled. **Two category phrases are live on two surfaces.**
+
+### 8. US-based is the plan, stated without hedging
+
+> _"As of now we are based out of India, but you want to say 'would be based out of the US'… like how we did for YC."_
+
+The filed wording: incorporation will be a Delaware C-corp rather than an Indian entity, so there is nothing to restructure later, and **being US-based is the plan regardless of the outcome**. That last clause matters — it is Rule 3, unconditional commitment. Never *"if accepted, I will…"*.
+
+### 9. Scroll every dropdown before choosing
+
+> _"You have to scroll down and see what the full options are… Not just here, going forward, everywhere you need to scroll down in the dropdown list."_
+
+A visible option is not the best option. This cost a wrong selection once.
+
+---
+
+## Part 2 — What worked, and should be repeated
+
+**Read every question off the live form. Never draft against guessed questions.** [`application.md`](./berkeley-skydeck/application.md) was drafted blind and is kept only for comparison; every answer had to be rewritten once the real form was open. **The form is the spec.**
+
+**Lead with the bad number.** The traction answer opens *"Zero revenue and zero outside users. I would rather lead with that than have it found in paragraph four."* It buys credibility for everything after it.
+
+**One self-correction per application, and make it real.** The competitors answer says outright that an earlier version of the moat argument was wrong, names what refuted it (Vercel's COO rebuilt a lost deal's reasoning from Slack, email and call recordings with an agent built in two days), and states what survived. **A founder who corrects himself on the record reads as someone who checks.**
+
+**One vulnerability beat, placed where the form invites it, never volunteered.** The SkyDeck version: *"The honest gap is not that there are no users. It is that I have had almost no contact with them."* It then converts into the reason for applying to that specific programme.
+
+**Show the behaviour, never name the trait.** *"I built and threw away four complete working ones"* cannot be discounted. *"I am persistent"* can. **Every sentence that explains what an experience taught you is the sentence that makes an application sound written for the application.**
+
+**Say the mechanism, not the adjective.** *"Those three fields freeze on write and a database trigger blocks every later edit"* beats any amount of "robust" or "defensible".
+
+---
+
+## Part 3 — What did not work
+
+**Leading with the moat.** Covered above, and it was the single largest rewrite.
+
+**Repeating the same block in three fields.** The seven-station lifecycle walk appeared near-verbatim in *what do you do in detail*, *what problem are you solving* and *traction*. **Each field gets the material its own question asks for and nothing else.** Caught in YC first, then again in SkyDeck — it recurs because each answer looks fine on its own.
+
+**Quoting volume as evidence.** A register count of specced-versus-shipped features was used until it was found to be unmaintained and unverifiable. It is now dropped in favour of the working login. **If a number cannot be re-derived on demand, it is not evidence.**
+
+**Paraphrasing an outcome.** South Park Commons was recorded as rejecting us for *"not the right fit"*. The actual email gave **no reason at all** and said so. An invented reason is worse than none, because the next session reads it as a signal.
+
+---
+
+## Part 4 — What the forms themselves do
+
+### F6S, which hosts a large share of accelerator applications
+
+**Three gates hide the entire question set**, and they must pass in order:
+
+1. A company page that is **substantially complete**, reached from the yellow *"Let's get started → Create new"* panel. **Check whether one already exists first** — the name field warns *"You're already on the X page"*, which reads like an error and is not.
+2. **Basic Information at n of n.** It auto-populates from the company page, so filling that page well fills this section for free.
+3. **Team at 1 of 1.** The holdout is not obvious: *Describe yourself*, *Your Skills*, **Location**, and at least one **Contact info** row.
+
+Until all three pass: padlock, no Submit button, and **nothing typed is saved**. It looks exactly like a broken form.
+
+**F6S discards any value it did not watch you type.** The native value setter plus `input`, `change`, `blur` and `focusout` all revert on reload; so does staging a value and landing one real keystroke afterwards. **Select all and type, in chunks of roughly 400 to 900 characters** — one very long type call fails outright without changing the field.
+
+**Its currency widget refuses to store a `0`**, even on a required field whose own hint says to enter `0`. The form still validates without it. **It also rejects any end date in the future**, so a notice period has to render as *Present*.
+
+**Backspace deletes committed tags** once the text box is empty. A run of backspaces wiped all seven market tags. **Dismiss uncommitted text by clicking away.**
+
+**It silently adds wrong parent categories to market tags.** *Agent Management* added **Human Resources**; *Product Management* added **Consulting**. **Re-read the tag list after every pick.**
+
+**There is no Save button.** It autosaves; *Apply now* is the only explicit action.
+
+### Anywhere
+
+**Verify by reloading and reading back the exact element you wrote to, addressed by name.** Never confirm a save by content-matching across all fields — a distinctive-looking substring matched a different field once and reported a false failure on a correct answer.
+
+**Do not type into a field the founder is editing.** It has collided twice; his edit wins and the work is lost.
+
+---
+
+## Part 5 — The procedure for the next one
+
+1. **Open the live form first.** Read every question and every dropdown option off the page. Record them verbatim in the programme's `APPLICATION-FINAL.md`.
+2. **Pull facts from [`answer-bank.md`](./answer-bank.md)**, never from memory or a screenshot. Re-derive live numbers: `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l`.
+3. **Check the seven rules in [`positioning-doctrine.md`](./positioning-doctrine.md)**, then this file.
+4. **Draft door → body → brain.** Cut any block that already appears in another field.
+5. **Read every answer aloud. Delete any sentence that stays true with a competitor's name swapped in.**
+6. **Verify each answer persisted** by reloading, then record the filed text.
+7. **The founder submits.** Never submit an application.
+8. **Log it**: the programme folder, [`README.md`](./README.md), and the [Notion Application Board](https://app.notion.com/p/4014ff9cb1c240c9a3b761e790852970) with status, dates and outcome detail.
+
+---
+
+## Related
+
+- [`README.md`](./README.md) — the programme tracker and the urgent queue
+- [`answer-bank.md`](./answer-bank.md) — facts, bios, and the founder record with dates
+- [`positioning-doctrine.md`](./positioning-doctrine.md) — the seven rules
+- [`berkeley-skydeck/APPLICATION-FINAL.md`](./berkeley-skydeck/APPLICATION-FINAL.md) — filed 2026-08-13, all 21 answers as sent
+- [`../yc/APPLICATION-FINAL.md`](../yc/APPLICATION-FINAL.md) — supersedes all other sources on facts and numbers
+- [`../yc/founder-profile-answers.md`](../yc/founder-profile-answers.md) — the founder profile, field by field
+- [`../shareables/README.md`](../shareables/README.md) — the deck, the link card, the videos
+- [`../founder-answer-playbook.md`](../founder-answer-playbook.md) — for a live conversation or interview

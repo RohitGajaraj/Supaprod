@@ -21,6 +21,8 @@ Most work here is an accelerator, incubator, residency or grant application. The
 
 **3. Pull the answers; never write them fresh.** [`applications/answer-bank.md`](./applications/answer-bank.md) holds every reusable answer at every length.
 
+**2b. Read the craft log, and this is the one that saves the most time.** [`applications/how-to-draft-the-next-one.md`](./applications/how-to-draft-the-next-one.md) is every correction the founder made on a filed application, in his own words, plus what worked, what did not, and what the forms themselves do to you. It exists so the next application does not relearn nine things the hard way. **The split is: `answer-bank.md` owns the facts, `positioning-doctrine.md` owns the rules, `how-to-draft-the-next-one.md` owns the craft.**
+
 **4. Take the facts from the canon, not from memory.** These are the ones that get fumbled:
 
 | Fact | Value |

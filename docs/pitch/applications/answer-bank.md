@@ -2,6 +2,8 @@
 
 > _Created 2026-07-31. This is the single reusable source for every accelerator, incubator, residency and grant application. Each program folder pulls from here and adds only what is program-specific. Never write a new answer from scratch; pull the closest block, trim to the word limit, and adjust the emphasis._
 
+> **This file owns the facts.** The rules are in [`positioning-doctrine.md`](./positioning-doctrine.md) and the craft is in [`how-to-draft-the-next-one.md`](./how-to-draft-the-next-one.md). Pull numbers and bios from here; pull the shape of an answer from those.
+
 ## The five laws (carried over from the YC application, they still govern)
 
 1. **True on the day you hit submit, with zero outside users.** Plans appear as dated plans. Programs verify numbers.

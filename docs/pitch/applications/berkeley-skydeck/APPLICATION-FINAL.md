@@ -398,6 +398,7 @@ the call and grades it later, whether or not anyone wants to look.
 
 ## Related
 
+- [`../how-to-draft-the-next-one.md`](../how-to-draft-the-next-one.md) — **every correction that produced this application, and the F6S traps**
 - [`positioning.md`](./positioning.md) — what SkyDeck selects for
 - [`application.md`](./application.md) — the superseded draft, written against guessed questions
 - [`../answer-bank.md`](../answer-bank.md) · [`../positioning-doctrine.md`](../positioning-doctrine.md)

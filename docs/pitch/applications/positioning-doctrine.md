@@ -57,6 +57,8 @@ Every reviewer, at every program, is answering four questions in this order. Kno
 
 ---
 
+> **The rules live here. The craft lives in [`how-to-draft-the-next-one.md`](./how-to-draft-the-next-one.md)** — every founder correction with the words that prompted it, what worked, what did not, and the platform traps. Read both before drafting.
+
 ## Part 2 — The three rules that decide whether an application reads as strong
 
 **Rule 1: the first sentence carries the whole answer.** Reviewers read thousands of applications at a few minutes each. Every answer front-loads its conclusion, then supports it. Never build to a point.
