@@ -83,13 +83,11 @@ which is the only reason one person can ship at this pace.
 Film of the product: https://supaprod.ai/film
 Brief: https://supaprod.ai/brief
 
-It is in private beta now, invite-only, and the public launch is
-mid-September. Everything from here is about putting it in front of
-product teams and letting what they hit shape the build, the same way
-running my own company on it has shaped it so far.
+Next is getting it into the hands of product teams and learning what they
+run into that I never would.
 ```
 
-> ⚠️ **The close was rewritten again on 2026-08-14, founder ruling: never volunteer the zero.** It read *"Next is getting it into the hands of product teams and learning what they run into that I never would."* Nothing in that sentence is false, but its subtext is *nobody uses this*, and the ruling covers the implicit form as well as the explicit one. **The replacement states the beta and the launch date, both true and both news since the application was filed**, and keeps the same forward motion without the reader supplying the deficit. **It does not contradict the locked "Are people using your product: No"** — availability is not adoption, and the new text claims no users.
+> **A rewrite of this close was drafted 2026-08-14 and DECLINED by the founder** — *"I'll leave it the way it is, I think it's fine."* The proposed replacement stated the private beta and the launch date instead, on the never-volunteer-the-zero ruling. **The text above is what is live on the form and it stays.** Recorded so the next session does not re-propose it.
 
 **The close was rewritten 2026-08-13.** It read *"finding out where it breaks for someone who is not me"*, which distances the founder from the outcome and can be heard as *not my problem*. The version above says the same thing and puts him inside it: **the limitation named is his own**, and the sentence commits him to closing it. It also earns its place beside the paragraph above, where he is the only user, so the contrast between what he sees and what a team will hit is the reason the next step exists.
 
