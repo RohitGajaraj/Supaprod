@@ -1,61 +1,81 @@
 # Pick up here
 
-> _Created: 2026-08-07 · Last updated: 2026-08-13 night (Berkeley SkyDeck FILED)_
+> _Created: 2026-08-07 · Last updated: 2026-08-14, 01:00 IST (applications session closed)_
 
-## 🚀 APPLICATIONS LANE CLOSED FOR SKYDECK — 2026-08-13 night. It is submitted.
+## ✅ SESSION CLOSED 2026-08-14 ~01:00 IST. Two applications filed, and the rules that produced them are written down.
 
-**Berkeley SkyDeck Batch 23 was filed by the founder on 2026-08-13**, eight days before the 2026-08-21 deadline. Verified on the post-submission page, which renders a read-only *Your Answers* view with no Apply button, rather than taken on trust. **$210K for 7.25%.** Notion Application Board row is `Submitted`, dated, and the page carries the full record.
+**Two went out: Berkeley SkyDeck Batch 23 (2026-08-13, eight days early) and Conviction Embed Winter 2026 (2026-08-14, drafted and filed the same night).** Six applications are now live, one is decided.
 
-**The filed text of all 21 answers is in [`../pitch/applications/berkeley-skydeck/APPLICATION-FINAL.md`](../pitch/applications/berkeley-skydeck/APPLICATION-FINAL.md)**, read back off the live page rather than copied from the draft. Do not trust an earlier draft in git history; two answers were rewritten in the browser and one was edited by the founder directly.
+| Programme | Filed | State |
+| --- | --- | --- |
+| Y Combinator Fall 2026 | 07-23 | Open, rolling. Demo + founder video still owed |
+| South Park Commons | 07-31 | ❌ **Rejected 08-11, 05:31 IST. No reason given** |
+| Betaworks AI Camp | 07-31 | Open. Batch starts 08-31 |
+| The Residency | 07-31 | Open. **Decision due by 08-28** |
+| **Berkeley SkyDeck** | **08-13** | Open. Interviews 09-08 to 10-05 |
+| **Conviction Embed** | **08-14** | Open. **Rolling admissions, <1% selection** |
 
-### The one dated obligation this created, and it is easy to miss
+---
 
-**Re-arm the demo approval queues in early September.** Armed 2026-07-28 on a 60-day runway, so they lapse around **2026-09-25**, which falls *inside* the interview window of **2026-09-08 to 2026-10-05**. The traction answer promises in writing that *"a reviewer can open a login and use it."* If the queues have lapsed when a reviewer tries, the application's own claim fails in front of the person evaluating it. **The form never asked for a login, so nothing was missed.** None of the 21 questions requests product access. **Do not volunteer credentials.** When a reviewer asks, take `meridian@` or `lantern@supaprod.ai`, re-arm its queue first, verify by signing in, and record it. Rehearse only on `harbor@`. The post-submission page has an Updates box (1,000 chars) for genuine later news.
+## 🔴 THE TWO DATED OBLIGATIONS. Nothing else in here is time-critical.
 
-### ⏸️ PARKED until ~2026-08-15: demo data freshness. Founder ruling 2026-08-13.
+**1. Send the Conviction endorsement link. Days, not weeks.**
 
-**Parked deliberately** until the accelerator application push is done, then picked up. **The session cron reminder is in-memory and dies with the session, so this note is the durable copy.**
+`https://embed.conviction.com/endorse/73794e94-33a1-43c1-95a9-7b8fedd39d26`
 
-**The problem, in two halves.** Seeded demo workspaces ship five pending approvals whose `expires_at` sits hours out, so **the queue rots on its own** — on 2026-07-28 every demo workspace had already decayed to 1 pending + 4 expired untouched. Re-armed that day with a 60-day runway, landing ~2026-09-26. Separately, absolute timestamps age, so a reviewer opening in October sees data dated July.
+**No other programme on the board offers a third-party signal after submission.** The founder is solo and unvouched-for, and this is the only lever that touches that directly. **Their process is "rolling admissions over the month"**, so an endorsement arriving after the file has been read is worth nothing. Pick people who watched the work, not the most senior names available.
 
-**The agreed design, and the reasoning behind each part:**
+**2. Re-arm the demo approval queues before 2026-09-08.** They were armed 07-28 on a 60-day runway and lapse ~09-25, **inside the SkyDeck interview window of 09-08 to 10-05**. The SkyDeck traction answer promises in writing that *"a reviewer can open a login and use it."* If the queues have lapsed when someone tries, the application's own claim fails in front of the person judging it. Full design for the permanent fix is in the parked section below.
 
-1. **Do not remove the expiry.** The horizon *is* the product — the pitch rests on *"what they expect, how they will know, and by when"*. A gate that never expires demonstrates a different product, and a reviewer who notices dates that never move reads the demo as a mock. **A frozen queue is more suspicious than an empty one.**
-2. **A daily tick, not a 60-day runway.** A runway is a cliff somebody has to remember. Copy the pattern at `/api/public/hooks/calibrate-tick`.
-3. **Re-arm undecided gates and advance in-flight work**, with horizons relative to now.
-4. **Leave settled history alone.** Old resolved calls *should* look old — that is the accumulated record, and if everything looks like today there is no compounding to show.
-5. **Create new rows, never rewrite frozen ones.** Forecast fields freeze on write and a database trigger blocks every later edit. Bypassing it would make the demo violate the exact invariant the pitch is built on, which is far worse than stale data.
-6. **Fail loud.** A silent no-op is how this gets discovered during an interview.
+---
 
-**Verify first, before building any of it:** no forecast has ever resolved, so `/learn` may be empty regardless of freshness. Freshness does not help an empty surface.
+## The rulings from this session, all binding on every future application
 
-**Hard date regardless of the above:** the queues lapse ~2026-09-25, inside the SkyDeck interview window of 09-08 to 10-05. **Re-arm before 09-08.**
+**Read [`../pitch/applications/how-to-draft-the-next-one.md`](../pitch/applications/how-to-draft-the-next-one.md) before drafting anything.** It now carries fourteen corrections. The four that cost the most tonight:
 
-### Two positioning rulings from this session that bind every future application
+- **Rule 0 — never volunteer the zero.** Not *"zero revenue and zero outside users"*, not *"no users"*, not any sentence whose only job is to announce an absence. **Say the state we are in:** private beta, invite-only, signup closed 08-07, public launch mid-September. **The ruling changes what we volunteer, never what we assert** — if a form asks for a number, answer it truthfully. Berkeley SkyDeck is the last application carrying the old framing and it cannot be edited.
+- **Rule 0b — write confident, never braced for a fight.** The Conviction draft was rejected whole for register, not for any fact. *"I did not shop for an idea"*, *"nothing else has a claim on the time"*, *"named, so this does not read as evasion"* — all rebut charges nobody laid, and a reader feels the brace before weighing the claim.
+- **Rule 0c — answer the question that was asked, and stop.** *"When did you start and when were you full time"* is two dates. It got career defence instead.
+- **Rule 0d — Moon and Mars missions, never the mission names.** **This rule already existed** and still did not reach the draft, because it lived in the YC founder profile rather than in the file the procedure sends you to. **A rule outside the drafting path is not documented, it is buried.**
 
-**Rule 7, now in [`../pitch/applications/positioning-doctrine.md`](../pitch/applications/positioning-doctrine.md): the competitor is the stack, and we never say we have none.** A PM runs discovery in one tool, the spec in a second, design in a third, code agents in a fourth, flags in a fifth, the result in a sixth; the tax is the seams, not the tools. Name every rival, then show none owns the path between the steps. **"We have no competitors" was the founder's instinct, was pushed back on, and the reframe was agreed** — it is the most common red flag in that question, it is not true, and it claims without a mechanism.
+**Also settled:** the competitor is the stack, never claim to have none (doctrine Rule 7) · build on a draft rather than replacing it · leave optional fields blank · **"Cursor for PMs" is banned on any surface** and under-claims besides.
 
-**Door, then body, then brain, in every answer that describes the product.** An earlier SkyDeck draft led with the moat and never said what the product does. Five answers were reordered.
+## What else shipped
 
-### The founder record is now one source, with dates
+**The 2026-08-11 retire-everywhere ruling finally reached the surfaces it missed.** *"Operating system"* was still live on eight public surfaces, worst of all `__root.tsx` — the default meta/OG/Twitter description every route without its own head inherits, including `/trust` — plus both in-product LLM system prompts, which shaped how the assistant described itself. Self-description is now the canon line; layer 02 reads *"the loop"* publicly. **tsc clean, 8,787 pass, 0 fail.**
 
-**[`../pitch/applications/answer-bank.md`](../pitch/applications/answer-bank.md) §2 holds every education and work-history field**, exact strings and month ranges, read off the live YC founder profile and confirmed by the founder. Until today the undergraduate degree existed on the YC profile and **nowhere in the repo**, so any other form had to be filled from a screenshot. Fill the next form from there.
+**The founder record has one source with dates.** [`../pitch/applications/answer-bank.md`](../pitch/applications/answer-bank.md) §2 — both degrees, seven work-history entries, exact strings and month ranges. The undergraduate degree previously existed on the YC profile and **nowhere in the repo**.
 
-### F6S, so nobody rediscovers it
+**Stale numbers inside already-filed applications are listed.** The 401/362 feature register was retired 08-11 and appears in four filed applications that cannot be edited. **Never re-quote it.** Eight weeks is now ten.
 
-**Three gates hide the questions**, in order: a substantially complete company page, then Basic Information at n of n, then Team at 1 of 1. Until all three pass there is a padlock, no Submit button, and nothing typed is saved. It looks exactly like a broken form; it is not.
+**Notion Application Board rebuilt:** `Decision date`, `Outcome detail` and an `Accepted` status that did not exist; region chips on all 67 rows; two formulas (`Closes in`, `Waiting`); four views. All five submitted applications carry their filed text or a pointer to it.
 
-**F6S discards any value it did not watch you type.** The native setter plus `input`/`change`/`blur`/`focusout` reverts on reload, and so does staging a value and landing one real keystroke. Select all and type, in chunks — a single very long type call fails outright. Its currency widget refuses to store a `0` even on a required field whose own hint asks for one, and it rejects any end date in the future.
+---
 
-### Left unfinished, deliberately, and it is the founder's
+## ⏸️ PARKED until ~2026-08-15: demo data freshness. Founder ruling 2026-08-13.
 
-**The F6S founder profile at `f6s.com/rohit-gajaraj` is half done.** Both education entries are in (TUM MBA, VTU BE). Of seven work-history entries, **Intellect is in; IIM Bangalore saved with the wrong dates (Jan '23 – May '23, should be Jan 2022 – Dec 2023); Infineon, Bosch and both ISRO roles are not added.** The founder took it over to finish by hand. Three things he was told to decide: the profile headline now reads *Senior AI Product Manager at Intellect* instead of *CEO at Supaprod* (the Supaprod entry has no dates, so it sorts below); *Describe yourself briefly* is 63 characters over its limit; and **"Actively looking / Open to work" is switched on**, which on a founder profile an accelerator reads says job-hunting.
+**Parked until the application push finishes.** The session cron reminder is in-memory and dies with the session, so this is the durable copy.
 
-### Also shipped today
+**The problem, in two halves.** Seeded demo workspaces ship five pending approvals whose `expires_at` sits hours out, so **the queue rots on its own** — on 07-28 every demo workspace had already decayed to 1 pending + 4 expired untouched. Separately, absolute timestamps age, so a reviewer opening in October sees data dated July.
 
-**[`../pitch/shareables/`](../pitch/shareables/README.md) is the one folder for anything an outsider receives** — the one-page investor link card (4 verified link annotations), the 16-page deck PDF and its four clipping slides, both YouTube URLs, video master locations and brand marks. Two Chrome PDF traps are written down there: `box-shadow` prints as a hard rectangle, and `-webkit-background-clip:text` prints its background box and trims the last glyph.
+**The agreed design:**
 
-**Next application:** open [`../pitch/applications/README.md`](../pitch/applications/README.md) and take the nearest live deadline. Sequoia Arc is **not open** (verified live, "sign up to be notified").
+1. **Do not remove the expiry.** The horizon *is* the product. **A frozen queue is more suspicious than an empty one.**
+2. **A daily tick, not a 60-day runway.** Copy `/api/public/hooks/calibrate-tick`.
+3. **Re-arm undecided gates and advance in-flight work**, horizons relative to now.
+4. **Leave settled history alone.** Old resolved calls *should* look old — that is the accumulated record.
+5. **Create new rows, never rewrite frozen ones.** Forecast fields freeze on write behind a database trigger; bypassing it would make the demo violate the invariant the pitch is built on.
+6. **Fail loud.** A silent no-op is how this gets found during an interview.
+
+**Verify first:** no forecast has ever resolved, so `/learn` may be empty regardless of freshness.
+
+---
+
+## Open, not urgent
+
+- **F6S founder profile at `f6s.com/rohit-gajaraj` is half done.** Both degrees in; of seven work entries only Intellect is in, IIM Bangalore has wrong dates (Jan '23 – May '23, should be Jan 2022 – Dec 2023), and Infineon, Bosch and both ISRO roles are missing. **The profile headline reads *Senior AI Product Manager at Intellect* instead of CEO at Supaprod** because the Supaprod entry has no dates. *"Describe yourself briefly"* is 63 characters over. **"Actively looking / Open to work" is switched on.**
+- **Next applications, ranked:** a16z Speedrun is open year-round with a **priority window 10-12 to 11-01** — deliberately held until after the mid-September launch, so it goes in with real usage. Sequoia Arc is **closed**, notify-list only, verified twice.
+- **Deck source defect:** slides 3, 6, 15, 16 overflow by 27/34/75/47px.
 
 ---
 
