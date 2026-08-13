@@ -7,18 +7,44 @@
 # §A. THE APPLICATION, PLAIN. (rewritten 2026-08-13, founder register)
 
 > **The register, in one line: write it the way you would say it out loud to a partner across a table.** Everything below passes that test or it is cut.
->
-> **Three rules the founder set on 2026-08-13, and they override earlier drafts.**
->
-> 1. **Describe the product from the team's side, not the founder's.** *"The weak bets get argued down before I see them"* is wrong; a reviewer does not care what he sees. And **"you" is banned in a product sentence**, because a reviewer reads it as themselves. Name the person: *the team*. `I` survives only where the question is about him.
-> 2. **No word that is only there to fill space.** No runtimes, no file sizes, no invented programme vocabulary, no drama. Never make the plan sound small: *"one person at a time"* reads as no ambition.
-> 3. **If a claim is heavy, ask whether it is true today before polishing it.**
->
-> **One claim was cut under rule 3 and it was load-bearing.** *"Supaprod's own roadmap runs inside Supaprod"* does not survive its own database: **344 missions, 27 completed.** What replaced it is checkable and stronger: **44 code changes, 42 deployments, 295 agent actions stopped at a human approval.**
->
-> **Numbers, 2026-08-13.** 5,000+ commits, 530+ migrations, ten weeks. Outward copy always uses the rounded form. Re-run `git rev-list --count origin/main` the morning you paste.
->
-> **Exactly one vulnerability beat in the whole application**, and it is the moat falsification in 8h. A correction shows judgment. A second admission reads as a deficit and dilutes the first.
+
+## The five rules, set by the founder on 2026-08-13, each from a defect he caught
+
+| # | Rule | The sentence that produced it |
+| --- | --- | --- |
+| **1** | **Write the product from the team's side, not the founder's**, and never use *"you"* in a product sentence, because a reviewer reads it as themselves. Name the person. `I` survives only where the question is about him. | *"The weak bets get argued down before I see them"* |
+| **2** | **No word that exists only to fill space.** No runtimes, no file sizes, no invented vocabulary. And never make the plan sound small. | *"a 2:22 film"* · *"one person at a time"* |
+| **3** | **Describe the product by what a team feeds it and gets back, never by the plumbing.** Naming four integrations implies the set stops there. **Under-describing is as much a defect as overclaiming, and far harder to see, because a narrow sentence still reads as true.** | *"a team connects the places their user feedback sits"* |
+| **4** | **Never quantify the human gate on an autonomy story.** The gate is a feature as a principle and a liability as a count. **A number is not automatically stronger than a sentence**: ask what a reader concludes from its magnitude. | *"295 agent actions stopped at a human approval"* |
+| **5** | **Show the agent at every step, and never write the product as a form.** Naming only the build step makes every other step read as manual. *"The product asks you three things"* describes data entry, which is the opposite of the claim. | *"coding agents pick up the build"* · *"Supaprod asks three things"* |
+
+**A sixth rule sits above all of them: if a claim is heavy, ask whether it is true today before polishing it.** That is what removed *"Supaprod's own roadmap runs inside Supaprod"*, which does not survive its own database: **344 missions, 27 completed.**
+
+**Numbers, 2026-08-13.** 5,000+ commits, 530+ migrations, ten weeks. Outward copy always uses the rounded form. Re-run `git rev-list --count origin/main` the morning you paste.
+
+**Exactly one vulnerability beat in the whole application**, and it is the moat falsification. A correction shows judgment. A second admission reads as a deficit and dilutes the first.
+
+## Every surface on the form, and its status
+
+**The portal exposes five surfaces. Three carry text, two carry video, and every one was audited, not just the text boxes.**
+
+| Surface | Field | Status |
+| --- | --- | --- |
+| **Progress Update** | Demo attachment | ✅ On the form, 2:22, inside the 3 min / 100 MB cap |
+| | Product link | ✅ `https://supaprod.ai` |
+| | Login credentials | ✅ `explore@supaprod.ai / Supaprod!Explore2026 (private beta...)` **Test it in incognito before saving anything** |
+| | How far along are you? | ⚠️ **Re-paste** |
+| | How long / how much full-time? | ⚠️ **Re-paste.** The form still says eight weeks and 4.8k commits |
+| | Tech stack | ⚠️ **Re-paste.** The form names Kimi K3, HyperAgent and Conductor, none of which run |
+| | Are people using your product? | ✅ **No** |
+| | When will you have a version people can use? | ⚠️ **Re-paste** |
+| | Do you have revenue? | ✅ **No** |
+| **Team Update** | Who writes code / non-founder? | ⚠️ **Re-paste.** The form names Kimi K3 and HyperAgent |
+| | Are you looking for a cofounder? | ✅ Unchanged, reads secure |
+| | Founder profile | ✅ Marked complete, but **3b and 3c are blank inside it** and both are written below |
+| **Founder Video** | 1 minute requested | 🔴 **2:37 attached, 2.5x the stated cap.** A required field and the first thing a partner opens |
+| **Demo Video** | 3 min / 100 MB cap | ✅ 2:22, inside the cap |
+| **Fundraising Update** | Currently fundraising? | ✅ **No.** Nothing else to file; the surface reports a cap-table change and there is none |
 
 ---
 
@@ -30,28 +56,20 @@
 Cadence is now Supaprod. I renamed it after submitting and the form will
 not let me change the name. Same product, live at https://supaprod.ai.
 
-It works end to end today, and agents run every step of it.
-
-A team points it at what they already have: user feedback, product data,
-sales and support conversations, what competitors are shipping. Agents
-read all of it and cluster it into what is worth looking at. A critic
-agent argues down the weak ideas before anyone commits, weighed against
-where the team already wants to go. Once a call is made, agents write the
-spec with the evidence attached, plan the work, build it, open the pull
-requests, ship it and write the release notes. When the result lands they
-grade what shipped against what the spec promised, and that verdict feeds
-the ranking of what to build next.
-
-A person approves and merges. That is the only place a human is required,
-and it is deliberate.
+It works end to end today, and agents run every step. They read what a
+team already has, cluster it into what is worth looking at, argue down the
+weak ideas, write the spec with its evidence attached, plan and design the
+work, build it, open the pull requests, ship, write the release notes, and
+grade what shipped against what the spec promised. A person approves and
+merges, and that is the only place a human is required.
 
 Built since I applied: agents can run all of that, but they cannot know
 what a team believes is going to happen. So at the moment a call is made,
 that belief goes down with it. What they expect, how they will know, and
-by when. It locks, enforced in the database rather than by the app. The
-system carries it from there, brings it back the day it falls due, drafts
-the verdict from what actually shipped, and files it against the decision
-that caused it. That second half shipped this week.
+by when. It locks and cannot be edited afterwards, not even by the person
+who wrote it. The system carries it from there, brings it back the day it
+falls due, drafts the verdict from what actually shipped, and files it
+against the decision that caused it. That second half shipped this week.
 
 I had the moat wrong at first. I was saying a competitor cannot rebuild
 your decision history. They can. Vercel's COO rebuilt why a deal was lost
@@ -59,9 +77,8 @@ out of Slack, email and call recordings, using an agent built in two days.
 What nobody can rebuild is what a team believed before they found out,
 because almost nobody writes it down. Now something does.
 
-I run my own product work on it. The engine advances on its own every
-minute without me starting anything, which is the only reason one person
-can ship at this pace.
+The engine advances on its own every minute without me starting anything,
+which is the only reason one person can ship at this pace.
 
 Film of the product: https://supaprod.ai/film
 Brief: https://supaprod.ai/brief
@@ -90,7 +107,7 @@ scale. Not whether I am in.
 
 ```
 AI coding tools: Claude Code and Codex write the code, with Lovable and
-Antigravity in the mix. I direct them and make every call.
+Antigravity in the mix.
 
 AI models: every model call goes through one runtime chokepoint that
 handles budget, cache, guardrails, tracing, fallback and feature gates, so
@@ -114,8 +131,7 @@ Agent execution: E2B sandboxes run agent-written code, with secret
 redaction on every output stream so a token cannot reach a log.
 
 Source control: a GitHub App with webhooks, so agents open and merge real
-pull requests through the app rather than pushing with a personal token,
-and every merge passes a human gate.
+pull requests through the app rather than pushing with a personal token.
 
 Ingestion: nine connectors on OAuth with per-workspace encrypted secrets.
 GitHub, Slack, Intercom, Zendesk, Canny, Productboard, Salesforce, HubSpot
@@ -185,8 +201,9 @@ movement, and the direction they have already decided they want to go.
 
 From there agents run the work. They read all of it and cluster it into
 what is worth looking at. A critic argues against the weak ideas before
-anyone commits. Agents write the spec with the evidence attached, plan it,
-build it, open the pull requests, ship it and write the release notes.
+anyone commits. Agents write the spec with the evidence attached, plan and
+design the work, build it, open the pull requests, ship it and write the
+release notes.
 When the result lands they grade what shipped against what the spec
 promised, and that verdict feeds the ranking of what to build next.
 
