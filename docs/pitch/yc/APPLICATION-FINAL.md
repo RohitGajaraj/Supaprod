@@ -54,9 +54,9 @@ This week the other half shipped: when the date a team named arrives, the
 call comes back and gets settled against the thing they said they would
 check.
 
-I run my own product work on it. Its agents have produced 44 code changes
-and 42 deployments, and 295 of their actions stopped at a human approval
-before going through.
+I run my own product work on it. The engine advances on its own every
+minute without me starting anything, which is the only reason one person
+can ship at this pace.
 
 Film of the product: https://supaprod.ai/film
 Brief: https://supaprod.ai/brief

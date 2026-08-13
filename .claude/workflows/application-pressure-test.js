@@ -200,6 +200,18 @@ Before shipping any product sentence, ask what the fullest true version of the i
 then whether the sentence covers it. Under-describing is as much a defect as overclaiming
 and it is far harder to notice, because a narrow sentence still reads as true.
 
+**4. NEVER QUANTIFY THE HUMAN GATE ON AN AUTONOMY STORY.**
+The gate is a feature when stated as a principle and a liability when stated as a count.
+"Nothing merges without a person" reads as governance. "295 agent actions stopped at a
+human approval" reads as agents that cannot be trusted, on a product whose entire claim
+is that they can run. Same fact, opposite conclusion.
+
+The general rule: a number is not automatically stronger than a sentence. Before adding
+one, ask what a reader concludes from its MAGNITUDE, not just from whether it is true. A
+supervision count argues against autonomy, and a small absolute number undersells work
+that a qualitative claim would have carried. Prefer numbers that measure what the system
+does unattended over numbers that measure how often a person had to step in.
+
 Corollaries the founder named directly:
 - No drama words, no invented programme vocabulary, no category language.
 - Never make the plan sound small. "One person at a time" reads as no ambition. State
