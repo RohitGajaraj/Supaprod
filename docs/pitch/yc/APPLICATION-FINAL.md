@@ -40,8 +40,6 @@ explore@supaprod.ai / Supaprod!Explore2026 (private beta. The workspace has call
 Cadence is now Supaprod. I renamed it after submitting and the form will
 not let me change the name. Same product, live at https://supaprod.ai.
 
-Ten weeks solo, directing agents: 5,000+ commits, 530+ database migrations.
-
 It runs end to end. Signals from Slack, Zendesk, Stripe, Salesforce and
 GitHub get clustered, agents argue down the weak bets, and the spec
 arrives with its evidence attached for coding agents to build.
@@ -92,9 +90,9 @@ It also caught two scope overclaims the earlier draft carried: **"blocks every l
 ### 1d. "How long have each of you been working on this?"
 
 ```
-Ten weeks on this build, seven days a week. The repo shows 5,131 commits
-and 532 database migrations across that stretch, plus about a month of
-nights and weekends on the prototype it grew out of.
+Ten weeks, solo, directing agents: 5,000+ commits and 530+ database
+migrations, seven days a week. Before that, about a month of nights and
+weekends on the prototype it grew out of.
 
 I took a break from my product role to build this, and my notice is now
 in. I am going full time on Supaprod regardless of the outcome here. That
