@@ -12,12 +12,12 @@
 
 **[`Supaprod-Investor-Briefing.pdf`](./Supaprod-Investor-Briefing.pdf)** · one page, 16:9, ~320KB
 
-**Send this when a form asks for a deck.** It is a branded page whose orange button is a real PDF link annotation, so a click lands the reader on the live briefing where the deck is interactive.
+**Send this when a form asks for a deck.** It is what is attached to the Berkeley SkyDeck application, classified *Investment*. It is a branded page whose orange button is a real PDF link annotation, so a click lands the reader on the live briefing where the deck is interactive.
 
 | Link on the page | Target |
 | --- | --- |
 | **Open the briefing** (button) | `https://supaprod.ai/brief` |
-| Or watch the product film | `https://youtu.be/x9WgGn0FyYU` |
+| **See it run** | `https://youtu.be/x9WgGn0FyYU` |
 | Footer, left | `https://supaprod.ai` |
 | Footer, right | `mailto:investors@supaprod.ai` |
 
@@ -51,6 +51,12 @@ print(d.count(b'/Subtype /Link'),'annotations');\
 Expect **4 annotations**.
 
 **The subtext names four sections and they were chosen, not guessed:** *the market, the moat, why now, the business model*. All four exist in the deck (verified against its own section headers) and none of them decays. **Traction was deliberately left out** — a line promising *where the product stands* dates itself the moment the product moves.
+
+> ### The subtext breaks in a fixed place, and that is a third authoring rule
+>
+> **A `max-width` gives you a wrap position, not a line break.** The subtext originally sat in one `max-width:700px` block, so the break landed wherever the glyph widths happened to cross 700px. It read as randomly placed because it was. It is now **two `<div>`s at `white-space:nowrap`** — the lead-in on line one, the four sections on line two, both flush to the headline's left edge. The break cannot move when the copy or the font metrics change, and an over-long line overflows visibly instead of silently becoming three.
+>
+> **The film line is `See it run:`, not `Or watch the product film:`.** Founder ruling 2026-08-13: the leading *"Or"* is dead weight, and naming the format is more formal than saying what the thing is. It also reads as the counterpart to *Open the briefing* — read it, or watch it.
 
 ## 2. The full deck, and its known defect
 

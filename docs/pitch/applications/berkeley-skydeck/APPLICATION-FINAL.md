@@ -34,13 +34,24 @@
 
 ---
 
-## ⛔ Not yet answered, and it is the founder's
+## ✅ Every required field is filled. "Apply now" is live and the founder submits it.
 
-**Q16, "How did you hear about SkyDeck?"** is required and unanswered. It is a dropdown, and two of its options open a follow-up field. The options are:
+Verified against a **reloaded** page, not the DOM that was typed into: no required field is empty, no validation error renders, and the blue **Apply now** button is enabled.
 
-`LinkedIn` · `Heard from Sibyl via F6S` · `Direct email outreach` · `OpenVC` · `Heard from SkyDeck startup founder/alumni` · `Other (ie. University, Accelerator, Gov. Program)` · `Heard from SkyDeck Advisor` · `Webinar / Info session` · `Facebook`
+| Attachment | What is on the form |
+| --- | --- |
+| **Upload your deck** (required) | `Supaprod-Investor-Briefing.pdf`, classified **Investment** — the one-page link card, not the 16-page deck |
+| **Product Video** | `youtube.com/embed/x9WgGn0FyYU` — the product film, public |
+| **Team Video** | `youtube.com/embed/zBmtUtkTyBs` — the founder pitch, unlisted |
+| **Company website** | `https://supaprod.ai` |
 
-**`Other` opens "Through which program did you first learn about SkyDeck?"** and `Heard from SkyDeck Advisor` opens "Which SkyDeck Advisor?". Pick the true one.
+**The link card was attached rather than the 16-page PDF, and that is the founder's ruling.** The deck clips its own content on four slides; the card's button opens `/brief`, where the same material renders correctly and stays current. Swap it from [`../../shareables/`](../../shareables/README.md) if a reviewer ever asks for a file to read offline.
+
+> ### Two F6S behaviours that cost time, both now settled
+>
+> **Optional money fields are left blank on purpose, and F6S enforces it anyway.** *Revenue last month*, *last 12 months*, *amount raising*, *target valuation* and *runway* are all optional and all empty. Founder ruling 2026-08-13: **leave an optional field blank rather than fill it, so nothing implies a number we do not have.** The platform agrees — its currency widget normalises `0` back to empty and refuses to store it, through synthetic events *and* through real keystrokes.
+>
+> **That applies to a required field too, and it looks like a bug.** *"How much have you raised from investors?"* is marked required and its own hint reads *"Just put 0 if you haven't raised yet"* — yet the same widget discards the `0`. The field reads empty on reload and **the form still validates and still offers Apply now.** Do not spend time fighting it; zero and empty are the same value here.
 
 ---
 
@@ -340,7 +351,7 @@ moment of the call and grades it later, whether or not anyone wants to look.
 
 ## Before this submits
 
-1. **Answer Q16.** It is required and the form will not pass validation without it.
+1. ~~Answer Q16.~~ **Done — `LinkedIn`.** *Heard from SkyDeck Advisor* and *founder/alumni* were both refused: each claims a warm connection we do not have, and the advisor option asks *which advisor*. There is no X/Twitter option.
 2. **Re-derive both numbers** the hour of submission: `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l`. They appear in answers 1 and 8 and must agree.
 3. **Allocate a demo login.** `meridian@supaprod.ai` or `lantern@supaprod.ai` are the two free ones; record it on the Notion board. Answer 8 promises a reviewer can open a login, so that promise has to be real.
 4. **Re-arm the approval queues.** Last armed 2026-07-28 on a 60-day runway, so they hold to late September. Interviews run 09-08 to 10-05, which is **past that**.
