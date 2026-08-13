@@ -45,6 +45,52 @@ Each of these came back as a rejection of a draft. They are ordered by how much 
 > Written this way the ruling is not a softening. It is a stronger answer that happens to also be true.
 
 
+### 0b. Write it confident, never braced for a fight (founder ruling, 2026-08-14)
+
+> _"If this is the tone the entire application is written in, an investor reading it might feel this founder does not deserve it. If I were evaluating it, that would be my lens too."_
+
+**The Conviction Embed draft was rejected whole for this.** Not for a fact, for a register. It was written as if defending against an accusation nobody had made:
+
+| Written | The problem |
+| --- | --- |
+| *"I did not shop for an idea."* | Rebuts a charge the reader never laid |
+| *"nothing else has a claim on the time"* | Combative where a plain fact would do |
+| *"Named, so this does not read as evasion."* | Pre-arguing with the reader mid-answer |
+| *"I would rather say that plainly than let a demo imply a history it has not earned"* | Defensive about a strength |
+
+**Every one of those reads as a founder expecting to be doubted.** A reader feels the brace before they weigh the claim, and the whole application inherits it.
+
+**This ruling is not new. It restates Rule 4 of the doctrine** (*"connect with human empathy, how you can be kind and sincere, that is what the real me is"*, founder direction 2026-07-31) — which the draft ignored completely. **Confidence reads as calm. Defensiveness reads as doubt.** Say the fact, let it stand, move on.
+
+### 0c. Answer the question that was asked, and stop
+
+**"When did you start working on this? When were you full time?"** is two factual questions. The draft answered with *"I am going full time regardless of how this application goes. That decision is already made"* — career-defence material nobody requested, in a field that wanted two dates.
+
+> _"They're not asking anything like you are mentioning. This is not required, and it is very hard and not relevant for them."_
+
+**Before writing any answer, say out loud what the question actually asks for.** If a sentence does not serve that, it belongs in a different field or in no field. Padding a factual question with argument makes the argument look like it was needed.
+
+### 0d. Moon and Mars missions, never the mission names
+
+**The rule already existed and I still got it wrong**, which is the more important half of this entry. [`../yc/founder-profile-answers.md`](../yc/founder-profile-answers.md) line 174 has said since 2026-08-13:
+
+> **"Say Moon and Mars missions, never the mission names.** A reader outside India does not know them and a name they have to look up is a name that stops the sentence."
+
+**The founder also applied it by hand** on the SkyDeck form, editing an answer to read *"tracking the Mars & Moon space missions"*.
+
+**It was written in a file nobody opens while drafting an application, so it did not travel.** `APPLICATION-FINAL.md` for YC still breaks it, and so do the EF Bridge and Betaworks drafts.
+
+> ### The lesson under the lesson, and it is why this file exists
+>
+> **A rule recorded in a file outside the drafting path is not documented, it is buried.** Every ruling has to land HERE, in the file the procedure sends a drafter to, or it will be rediscovered the expensive way. When a correction arrives, the question is not *"did I write it down"* but *"is it written where the next draft will hit it."*
+
+### 0e. Read the YC application's own rules before drafting anything else
+
+[`../yc/APPLICATION-FINAL.md`](../yc/APPLICATION-FINAL.md) carries five craft rules and a sixth above them, each from a defect the founder caught. **They bind every application, not just YC.** The two most easily missed:
+
+- **Rule 6, above all the others: if a claim is heavy, ask whether it is true today before polishing it.** This is what removed *"Supaprod's own roadmap runs inside Supaprod"* — it does not survive its own database, **344 missions against 27 completed.** That killed claim was then written into the Conviction draft anyway.
+- **Exactly one vulnerability beat per application.** A correction shows judgment; a second admission reads as a deficit and dilutes the first. The Conviction draft had three.
+
 ### 1. Say what the product does before you say why it wins
 
 > _"Supaprod tells you what to build. That is the first thing… Moreover, at last, it learns and guides you in every single step. This is our USP."_

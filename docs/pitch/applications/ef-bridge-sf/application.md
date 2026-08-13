@@ -28,7 +28,7 @@
 > _"Let us know what university you attended, company you worked at, or mentor you worked with."_
 
 ```text
-Mostly on the job, in places where being wrong was expensive. At ISRO, building satellite communication systems for Chandrayaan-2 and Mangalyaan, where hardware launches once and there is no patch release. Then an MBA at the Technical University of Munich, and semiconductors at Infineon. Then three years putting AI into banking at Intellect, where nobody accepts "the model decided".
+Mostly on the job, in places where being wrong was expensive. At ISRO, building satellite communication systems for its Moon and Mars missions, where hardware launches once and there is no patch release. Then an MBA at the Technical University of Munich, and semiconductors at Infineon. Then three years putting AI into banking at Intellect, where nobody accepts "the model decided".
 
 The last two years I taught myself to build. I went from writing specs and waiting on engineers to shipping production software by directing agents. Self-taught, out of necessity, and the most useful thing I know.
 ```

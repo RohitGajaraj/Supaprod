@@ -339,6 +339,8 @@ Supaprod. I am building what I kept wishing existed.
 
 ### 3b. The most impressive thing other than this startup
 
+> ⚠️ **This is filed and locked, and it breaks the Moon-and-Mars naming rule** written the same day in [`founder-profile-answers.md`](./founder-profile-answers.md) line 174: *say Moon and Mars missions, never the mission names, because a reader outside India has to look them up.* The filed text stands. **Never copy this phrasing into a new application.**
+
 ```
 I worked on satellite communication systems at ISRO, on Chandrayaan-2 and
 Mangalyaan.

@@ -211,6 +211,9 @@ None. No investment, no grants, no angels. Self-funded, and I have not run a fun
 ```
 I spent ten years as the person this problem breaks.
 
+
+> ⚠️ **Breaks the Moon-and-Mars naming rule** ([`../yc/founder-profile-answers.md`](../yc/founder-profile-answers.md) line 174: *say Moon and Mars missions, never the mission names*). This is filed text and stays as the record of what was sent. **Do not copy it into a new application.**
+
 Satellite communication systems at ISRO from 2016 to 2019, on Chandrayaan-2, Mangalyaan and GSAT-19, across twelve-plus missions, coordinating with NASA, ESA and JAXA. Then an MBA at the Technical University of Munich, and product management at Infineon, a $50M consumer audio portfolio shipping into Samsung, Apple and Xiaomi flagships. Then, since 2023, senior AI product manager at Intellect, on the enterprise AI platform that 200+ financial institutions across 70+ countries use to build their own AI products, where I shipped 0-to-1 AI onboarding to 100K+ end users and built the evaluation and cost infrastructure behind it.
 
 Three industries, one job underneath all of them: carry the context across a dozen tools, and re-answer "why did we decide this" from memory, months later, with the evidence long buried.
