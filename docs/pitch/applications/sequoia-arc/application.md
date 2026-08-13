@@ -4,7 +4,7 @@
 >
 > ⚠️ **The form sits behind a login and its exact fields are not public.** These answers are written against the five questions Arc is known to ask, at a length that trims cleanly. **Open the form first, then cut each block to its stated limit.** If a field asks something not covered here, pull from [`../answer-bank.md`](../answer-bank.md) rather than composing fresh.
 >
-> **Numbers, pulled 2026-08-13: 5,131 commits, 532 migrations, ten weeks.** Re-run `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l` the hour you submit.
+> **Numbers, pulled 2026-08-13: 5,000+ commits, 530+ migrations, ten weeks (exact: 5,131 / 532).** Re-run `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l` the hour you submit.
 >
 > **No em dash appears in any block below.** Nothing sends without the founder's approval.
 
@@ -93,7 +93,7 @@ growing.
 
 The other half is that I can now build it. Over the last two years I went from
 writing specs and waiting on engineers to shipping production software by
-directing agents. Ten weeks, solo, 5,131 commits and 532 database migrations,
+directing agents. Ten weeks, solo, 5,000+ commits and 530+ database migrations,
 and the product runs end to end.
 ```
 
@@ -111,7 +111,7 @@ along the way sits in the audit trail with its evidence. That proves the
 product functions end to end before I ask anyone to trust it, which is a
 different claim from proving anyone wants it, and I am not going to blur them.
 
-Ten weeks of build: 5,131 commits, 532 database migrations, a public film of
+Ten weeks of build: 5,000+ commits and 530+ database migrations, a public film of
 the product working at https://supaprod.ai/film. Public launch mid-September.
 
 One thing I would rather tell you than have you find. I was quoting three

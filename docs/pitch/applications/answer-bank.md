@@ -279,7 +279,7 @@ And I remain the most demanding user I have. I run my company on it every day.
 ### How far along (long form)
 ```
 The journey: a decade of living this problem as a PM, a month of nights and
-weekends on a prototype, then ten weeks of building it for real, 5131 commits
+weekends on a prototype, then ten weeks of building it for real, 5,000+ commits
 and counting. In that time it went from an early spine to running end to end.
 It is almost there, not finished; I am shaping the last stretch with users, not
 assumptions.
@@ -295,7 +295,7 @@ parallel. Public launch in September 2026.
 
 ### How far along (short form, under 50 words)
 ```
-Working end to end and live at supaprod.ai. Ten weeks of building, 5131
+Working end to end and live at supaprod.ai. Ten weeks of building, 5,000+
 commits, solo. Beta is open, public launch September 2026. Zero paying users
 yet; I built the system before opening the doors, deliberately.
 ```

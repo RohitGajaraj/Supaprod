@@ -4,7 +4,7 @@
 >
 > ⚠️ **These answers are drafted against the fields F6S typically requests for SkyDeck.** Check the actual form and adjust field order as needed. Do not compose fresh; pull from [`../answer-bank.md`](../answer-bank.md) and trim to the form's limits.
 >
-> **Numbers, pulled 2026-08-13: 5,131 commits, 532 migrations, ten weeks.** Re-run `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l` the hour you submit.
+> **Numbers, pulled 2026-08-13: 5,000+ commits, 530+ migrations, ten weeks (exact: 5,131 / 532).** Re-run `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l` the hour you submit.
 >
 > **No em dash appears in any block below.** Nothing sends without the founder's approval.
 
@@ -99,7 +99,7 @@ why did we decide this.
 I did not write a proposal for this company. I built it to stop doing that work.
 And then I shipped it solo, which is the other proof the thesis is sound.
 
-Ten weeks. 5,131 commits directed and reviewed. 532 database migrations. No
+Ten weeks. 5,000+ commits directed and reviewed. 530+ database migrations. No
 non-founder has touched the codebase. Every line goes through typecheck, build,
 and a review pass before merge. An independent reviewer audits it for security
 and against the register.
@@ -148,7 +148,7 @@ cross. Every call along the way sits in the audit trail with its evidence.
 That proves the product functions end to end before I ask anyone to trust it. It
 is a different claim from proving anyone wants it, and I do not blur them.
 
-Ten weeks of build: 5,131 commits, 532 database migrations. A public walkthrough
+Ten weeks of build: 5,000+ commits and 530+ database migrations. A public walkthrough
 at https://supaprod.ai/film. Demo login on request.
 
 One correction worth volunteering early. I was quoting product numbers I was

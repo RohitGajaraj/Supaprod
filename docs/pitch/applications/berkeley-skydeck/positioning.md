@@ -12,7 +12,7 @@
 | --- | --- |
 | **Founder-market fit and technical depth** | **Strong.** Not a first-time PM; close to a decade in product plus a decade-long pattern of learning the engineering. ISRO to Infineon to BFSI OEM at scale. The codebase is solo-authored, reviewed and audited. |
 | **A clear product-market pain with timing** | **Strong.** Agents commoditized building. Product decisions became the bottleneck. 82% of PMs already measure productivity gains from AI, but cannot defend the calls they make. Timing: the infrastructure layer gets decided in the next two quarters. |
-| **Proof of execution** | **Strongest card.** Not wireframes or a slide deck. A working end-to-end system, 5,131 commits in ten weeks, solo, running daily. Live at supaprod.ai with a login anyone can test. The product runs on itself. |
+| **Proof of execution** | **Strongest card.** Not wireframes or a slide deck. A working end-to-end system, 5,000+ commits in ten weeks, solo, running daily. Live at supaprod.ai with a login anyone can test. The product runs on itself. |
 
 ## The angle, and it is different from the YC and Sequoia ones
 
@@ -30,7 +30,7 @@ The one thing that replaces traction here: the product works end to end and runs
 
 ## Three anchors carried from canon
 
-1. **The build story is rare.** Agents write the code. Directing and reviewing 5,131 commits in ten weeks is itself the hard thing. State it that way.
+1. **The build story is rare.** Agents write the code. Directing and reviewing 5,000+ commits in ten weeks is itself the hard thing. State it that way.
 2. **The founder is the thesis.** Supaprod claims one person directing agents can match a team. The person exists. The product exists. That is a check that most founders cannot mark.
 3. **This founder thinks in systems.** ISRO (hardware that launches once, no second chance). Infineon (supply chains and semiconductor margins). Intellect (200+ financial institutions, 70+ countries, regulated). Not a PM who read about B2B. A PM who lived in rooms where governance was not optional.
 

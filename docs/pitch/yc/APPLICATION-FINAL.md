@@ -40,31 +40,34 @@ explore@supaprod.ai / Supaprod!Explore2026 (private beta. The workspace has call
 Cadence is now Supaprod. I renamed it after submitting and the form will
 not let me change the name. Same product, live at https://supaprod.ai.
 
-It runs end to end. Signals from Slack, Zendesk, Stripe, Salesforce and
-GitHub get clustered, agents argue down the weak bets, and the spec
-arrives with its evidence attached for coding agents to build.
+It runs end to end. Signals arrive from the tools a team already uses and
+get clustered into opportunities. The weak bets get argued down before I
+see them. The spec comes out with its evidence attached and goes to coding
+agents, they open real pull requests, and nothing merges without a person.
 
-Supaprod's roadmap runs inside Supaprod. Its agents open pull requests on
-its own codebase, and nothing merges without a person.
+Supaprod's own roadmap runs inside Supaprod. That is how I know it holds
+up under real work before asking anyone else to trust it.
 
-Built since I applied: committing a decision captures what you expect,
-how you will know, and by when. The database refuses every later edit to
-those fields, not the app.
+Built since I applied: committing a decision captures what you expect, how
+you will know, and by when. Those three fields cannot be edited
+afterwards, including by me.
 
 I was wrong about the moat. A competitor can rebuild a decision history
 from Slack and call recordings, and Vercel's COO did exactly that in two
-days with an agent built for the job. What survives nowhere is what a
-team believed before the outcome landed. That is what I built.
+days with an agent built for the job. What survives nowhere is what a team
+believed before the outcome landed. That is what I built.
 
 Live as of this week: the path that settles a forecast once its horizon
-passes, graded against the observable it named.
+passes, against the observable it named.
 
 2:22 film of the system: https://supaprod.ai/film
 Brief: https://supaprod.ai/brief
 
-Mid-September is the public launch. Between now and then I am putting it
-in front of the PMs and founders on my design-partner list.
+The work now is getting it in front of product people one at a time and
+watching where they stop.
 ```
+
+**Three de-duplication edits, 2026-08-13.** The connector names left this field and live in the tech-stack answer, which is the question that asks what you use; the flow reads the same without them. *"The database refuses every later edit"* became plain language here and the trigger detail moved to the stack answer, so the product claim and its implementation each appear once. And the launch date moved to the field that asks when, leaving this one to close on what happens next.
 
 **~190 words, nine blocks, none over four lines.** Every block carries a fact the partner cannot get from another field.
 
@@ -114,9 +117,11 @@ scale. Not whether I am in.
 ### 1f. "When will you have a version people can use?"
 
 ```
-It is usable now, through the login above or the invite code. The public
-launch is mid-September, on Hacker News and Product Hunt.
+It is usable now, through the link and demo login above. Public launch is
+mid-September.
 ```
+
+**Hacker News and Product Hunt are cut.** All three readers said the same thing: naming the channels is the default answer on a large share of applications, it is true of anyone, and it spends the field dodging the question a usable product with no users actually invites. The channel order stays the plan of record, it just does not earn space here.
 
 ### 1g. "What tech stack are you using?"
 
@@ -126,60 +131,66 @@ launch is mid-September, on Hacker News and Product Hunt.
 AI coding tools: Claude Code and Codex write the code, with Lovable and
 Antigravity in the mix. I direct them and make every call.
 
-AI models: model agnostic. Every AI call goes through one runtime
-chokepoint that handles budget, cache, guardrails, tracing, fallback and
-feature gates, so any model plugs in as an interchangeable part. Live
-traffic over the last fourteen days: Cohere embed-v4 for every retrieval
-vector at 27,008 calls, Qwen-plus at 4,902 and Gemini 2.5 Flash at 4,329
-carrying the agent loop, Gemini 3 Flash at 280, and GPT-5 at 50 where
-reasoning depth earns its cost.
+AI models: every model call goes through one runtime chokepoint that
+handles budget, cache, guardrails, tracing, fallback and feature gates, so
+any model plugs in as an interchangeable part. Live traffic over the last
+fourteen days: Cohere embed-v4 for every retrieval vector at 27,008 calls,
+Qwen-plus at 4,902 and Gemini 2.5 Flash at 4,329 carrying the agent loop,
+and GPT-5 where reasoning depth earns its cost.
 
-Frontend: TanStack Start on React 19, Vite, Tailwind, shadcn. Bun for
-builds and packages. TypeScript end to end, server functions included.
+Frontend: TanStack Start on React 19 and Vite, TypeScript throughout,
+Tailwind and shadcn, Bun for install, test and build.
 
-Data: Supabase Postgres with row level security on every tenant table,
-pgvector for retrieval, pg_cron running 37 active jobs that drive the
-autonomous engine, plus Supabase Auth and Storage.
+Data: Supabase Postgres with row level security, pgvector for retrieval,
+pg_cron running 37 active jobs that drive the autonomous engine, plus
+Supabase Auth and Storage. Forecast immutability is a BEFORE UPDATE
+trigger in Postgres rather than a check in application code, so it holds
+for every caller the app can make.
 
-Deployment: Cloudflare Workers.
+Deployment: Cloudflare Workers. Stripe for billing.
 
 Agent execution: E2B sandboxes run agent-written code, with secret
-redaction on every output stream so a token cannot reach a log. OpenHands
-is wired as a delegate for coding work. Deno Deploy hosts preview
-deployments.
+redaction on every output stream so a token cannot reach a log.
 
 Source control: a GitHub App with webhooks, so agents open and merge real
 pull requests through the app rather than pushing with a personal token,
 and every merge passes a human gate.
 
-Ingestion: nine live connectors on OAuth with per-workspace encrypted
-secrets, covering GitHub, Slack, Intercom, Zendesk, Canny, Productboard,
-Salesforce, HubSpot and Stripe. AssemblyAI transcribes calls and extracts
-action items into the same signal stream. Firecrawl and a self-hosted
-SearXNG cover web retrieval.
-
-Email: Resend. Uptime: Better Stack heartbeats.
+Ingestion: nine connectors on OAuth with per-workspace encrypted secrets.
+GitHub, Slack, Intercom, Zendesk, Canny, Productboard, Salesforce, HubSpot
+and Stripe.
 
 Observability: the system writes its own telemetry, every agent action and
 AI call landing in the audit trail. PostHog for product analytics and
 Sentry for failure capture drop into a vendor neutral facade at launch.
 ```
 
-### Everything above was inventoried from the code, not recalled
+### Six things were cut, and the rule that cut them
 
-| Claim | Where it was checked |
+**Founder ruling 2026-08-13: if it is not really running, it does not go on the form.** Applied strictly, an env key is not evidence.
+
+| Cut | Why |
+| --- | --- |
+| **AssemblyAI** | `audio_transcripts` returns **0**. `src/lib/audio.functions.ts` says it plainly: *"Audio transcription is dormant by design"* without the key. It has never run. |
+| **SearXNG** and **Firecrawl** | `web-search-fallback.ts` picks a backend only when `SEARXNG_URL` is non-blank, so it is a conditional fallback rather than a component. Firecrawl is also a `stubAdapter` on the connector side. |
+| **Better Stack** | The founder could not confirm it from memory. **That is the test.** A line you cannot defend in an interview is worth less than the space it takes. |
+| **OpenHands** and **Deno Deploy** | Wired, never proven in production, and neither is load-bearing to the story. |
+| **Resend** | Real, but transactional email is not a fact that changes a partner's read. |
+
+### What survives, and where each line was checked
+
+| Claim | Checked against |
 | --- | --- |
 | Model mix and call counts | `ai_events`, 14-day window, queried live 2026-08-13 |
 | 37 active cron jobs | `select count(*) filter (where active) from cron.job` |
+| Forecast immutability is a Postgres trigger | `pg_trigger`: `trg_decisions_forecast_immutable`, BEFORE UPDATE, enabled |
 | E2B with secret redaction | `src/lib/exec/e2b.server.ts` — `redactSecrets()` covers `ghs_`, `ghp_`, fine-grained and OAuth tokens, plus any credential embedded in a clone URL |
-| AssemblyAI | `src/lib/audio.functions.ts` — transcript then action-item extraction, each action inserted as a `transcript_action` signal |
-| OpenHands, Deno Deploy, Firecrawl, SearXNG, Resend, Better Stack | env keys plus a named module for each in `src/lib/` |
-| GitHub App | `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET` |
-| Nine live connectors | `src/lib/connectors/providers/index.server.ts` — the other eleven are `stubAdapter` and are **not named**, because a reader assumes a named connector works |
+| The pull-request path actually runs | `studio_changesets` 44, `deployments` 42, `agent_approvals` **295** |
+| Nine connectors | `src/lib/connectors/providers/index.server.ts` — the other eleven are `stubAdapter` and are **not named**, because a reader assumes a named connector works |
 
-**PostHog and Sentry are stated as landing at launch, deliberately.** Env keys and the facade exist; neither SDK is in `package.json`. The form's question says *"using, or planning to use"*, so the plan is a legitimate answer and the present tense would not have been.
+**The trigger line is the most valuable sentence in this field** and it was not there before. It states the company's core mechanism as infrastructure rather than as a promise, and a technical reader can confirm it in one query. That is worth more than every vendor name removed above.
 
-**One judgement call, and it is yours.** The reader panel scored this field 4 and called a long architecture answer from a founder with zero users *"self-supplied evidence of misallocation."* You ruled for full detail, and the question does explicitly ask for it, so full detail is what is above. The counter-argument is real but the field is the one place a partner invites the depth, and a technical reader who sees E2B with secret redaction and a GitHub App rather than a token is reading a system, not a prototype.
+**PostHog and Sentry stay, as landing at launch.** Env keys and the facade exist; neither SDK is in `package.json`. The question says *"using, or planning to use"*, so the plan is a valid answer where the present tense would not have been.
 
 > ### ⚠️ Two things on the live form are NOT supported. Queried 2026-08-13.
 >
@@ -210,14 +221,12 @@ I do, directing AI agents. No non founder has touched any of it. Design,
 development, coding, testing and the analysis of what people do with it,
 all in house.
 
-Claude Code and Codex do the writing. I make every call and review every
-change. A separate reviewer, independent of the agents that write, audits
-for security and holds every change against the test suite before it can
-merge.
-
-Supaprod's own roadmap runs inside Supaprod, so every one of those calls
-sits in the audit trail with the evidence behind it.
+I make every call and review every change. A separate reviewer,
+independent of the agents that write, audits for security and holds every
+change against the test suite before it can merge.
 ```
+
+**Two de-duplication edits.** The agent names come out, because the tech-stack question explicitly asks for AI coding tools and this one asks *who does the work*; the answer to *who* is "me, directing agents", and the names are one field away. *"Supaprod's own roadmap runs inside Supaprod"* comes out too, because it is progress evidence and belongs in the field that asks how far along you are. What is left answers the question and the follow-up clause, and stops.
 
 **The form asks "Was any of it done by a non-founder?" and the old answer buried the reply in the fourth sentence.** It now answers in the first two, because that is the clause a partner is scanning for. Everything else is explanation.
 

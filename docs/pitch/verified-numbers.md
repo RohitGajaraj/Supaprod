@@ -16,7 +16,7 @@
 | Migrations | **519** | `ls supabase/migrations/*.sql \| wc -l` |
 | Elapsed | **ten weeks** | First real commit is `2026-06-02`. One template commit is dated `2025-01-01` and is scaffold, not work. `git log --reverse --format=%ad --date=short \| head -5` |
 
-**Say "4,900+ commits in ten weeks".** The `+` form ages safely, because as the count grows the claim only becomes an understatement. **"4,000 commits in seven weeks" was in five fields as recently as today** and was a 20 percent understatement of our own velocity in the field where velocity is the point.
+**Say "5,000+ commits in ten weeks".** The `+` form ages safely, because as the count grows the claim only becomes an understatement. **"4,000 commits in seven weeks" was in five fields as recently as today** and was a 20 percent understatement of our own velocity in the field where velocity is the point.
 
 ---
 
