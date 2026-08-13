@@ -250,3 +250,12 @@ design-reference/Latest Design System - v3 /
 playwright/.auth/
 videos/supaprod-film/renders/video-4k.mp4
 videos/supaprod-film/renders/supaprod-film-final-4k.mp4
+
+# Film reference frames and scroll captures. The global *.png/*.jpg rules above
+# swallowed these, which meant 25 reference images existed only on one laptop.
+# They are 14 MB total and they are the visual record behind every render in
+# videos/supaprod-film/renders/, which IS tracked. Founder ruling 2026-08-13:
+# nothing but secrets lives only on local.
+!videos/supaprod-film/snapshots/**/*.png
+!videos/supaprod-film/snapshots/**/*.jpg
+!videos/supaprod-film/capture/screenshots/**/*.png
