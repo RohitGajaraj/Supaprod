@@ -1,10 +1,15 @@
-# Conviction Embed — every field, as drafted
+# Conviction Embed — every field, as filed
 
 > _Created: 2026-08-14 · Last updated: 2026-08-14_
 
-> ⏳ **DRAFTED AND WAITING ON THE FOUNDER. Not submitted.** Every question below was read off the live form, and every answer is the text sitting in the form right now.
+> 🚀 **SUBMITTED 2026-08-14 by the founder, to Conviction Embed Winter 2026.** Confirmation screen received. Every answer below was verified character-for-character against the live form before submission, so this is the filed text.
 >
-> **Form:** `https://embed.conviction.com/apply` · **Programme:** Embed, 7th cohort
+> **Application ID:** `73794e94-33a1-43c1-95a9-7b8fedd39d26`
+>
+> **🔗 ENDORSEMENT LINK, AND IT IS AN UNUSED LEVER:** `https://embed.conviction.com/endorse/73794e94-33a1-43c1-95a9-7b8fedd39d26`
+> The confirmation invites mentors and advisors to endorse the application. **No other programme on this tracker has offered a third-party signal after submission.** For a solo founder whose weakest line is being unvouched-for, this is the single highest-leverage thing left. It costs nothing and it is not automatic — it only happens if someone is asked.
+>
+> **Form:** `https://embed.conviction.com/apply` · **Programme:** Embed, **Winter 2026** cohort
 > **Terms: $250K on an uncapped, no-discount MFN SAFE**, plus $350K AWS, $350K Azure and $500K+ across OpenAI, Anthropic, Baseten, Pinecone, Vercel and Weights & Biases. Early access to Mistral models.
 > **Shape:** remote-first. **One mandatory SF retreat, 11-13 September.** Demo day **12 November**.
 > **No published deadline.** Applications close when the cohort fills, and the retreat is weeks away, so this is time-critical.
@@ -337,14 +342,13 @@ Solo today, and open to a cofounder who shares the thesis.
 
 ---
 
-## Before this is submitted
+## Filed. What is owed now.
 
-1. **The founder must drag in the founder video.** It is 63 MB, past the browser-automation cap, and the field is required.
-2. **Decide on the video over-length.** Both run past the stated two-minute cap, by 32 and 22 seconds. A 2:00 cut of either is a small job if the risk is not wanted.
-3. **Re-derive the numbers** the hour it is sent: `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l`. The text says 5,000+ and 530+.
-4. **Read every answer aloud.** Delete any sentence that stays true with a competitor's name swapped in.
-5. **The founder submits.** Nothing here does.
-6. **Log the outcome** in [`../README.md`](../README.md) and on the [Notion Application Board](https://app.notion.com/p/4014ff9cb1c240c9a3b761e790852970), with the decision date and their exact words.
+1. 🔗 **Send the endorsement link. This is the live action and it has a shelf life.** `https://embed.conviction.com/endorse/73794e94-33a1-43c1-95a9-7b8fedd39d26` — an endorsement is worth most while the application is still being read, so this is a this-week job, not a someday one. Candidates are people who have watched the work directly rather than the most senior names available.
+2. ⏳ **The retreat is 11-13 September and demo day is 12 November.** A decision has to land before the retreat, so expect an answer inside roughly four weeks.
+3. ⚠️ **Both videos went in over the stated two-minute cap** — founder 2:32, demo 2:22. If the programme comes back on length, a 2:00 cut of either is a small job.
+4. **Numbers in the filed text are frozen at 2026-08-14**: 5,000+ commits, 530+ migrations, 37 scheduled jobs, ten weeks. **Re-derive rather than re-quote** in the next application.
+5. **Log the outcome** in [`../README.md`](../README.md) and on the [Notion Application Board](https://app.notion.com/p/4014ff9cb1c240c9a3b761e790852970), with the decision date and their exact words. **Record what they actually say, never a paraphrase** — South Park Commons was written up as *"not the right fit"* when no reason had been given at all.
 
 ## Related
 
