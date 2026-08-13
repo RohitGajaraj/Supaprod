@@ -126,18 +126,60 @@ launch is mid-September, on Hacker News and Product Hunt.
 AI coding tools: Claude Code and Codex write the code, with Lovable and
 Antigravity in the mix. I direct them and make every call.
 
-AI models: model agnostic by design. Every AI call goes through one runtime
-chokepoint handling budget, cache, guardrails, tracing, fallback and
-feature gates, so any model plugs in as an interchangeable part. Running
-today across the last two weeks: Qwen and Gemini carry the agent loop,
-GPT-5 where reasoning depth earns its cost, and Cohere embed-v4 for every
-retrieval vector.
+AI models: model agnostic. Every AI call goes through one runtime
+chokepoint that handles budget, cache, guardrails, tracing, fallback and
+feature gates, so any model plugs in as an interchangeable part. Live
+traffic over the last fourteen days: Cohere embed-v4 for every retrieval
+vector at 27,008 calls, Qwen-plus at 4,902 and Gemini 2.5 Flash at 4,329
+carrying the agent loop, Gemini 3 Flash at 280, and GPT-5 at 50 where
+reasoning depth earns its cost.
 
-Frontend: TanStack Start on React 19 and Vite, with Tailwind and shadcn.
-Backend and data: TypeScript throughout. Supabase Postgres with row level
-security, pgvector for retrieval, pg_cron driving the autonomous engine.
+Frontend: TanStack Start on React 19, Vite, Tailwind, shadcn. Bun for
+builds and packages. TypeScript end to end, server functions included.
+
+Data: Supabase Postgres with row level security on every tenant table,
+pgvector for retrieval, pg_cron running 37 active jobs that drive the
+autonomous engine, plus Supabase Auth and Storage.
+
 Deployment: Cloudflare Workers.
+
+Agent execution: E2B sandboxes run agent-written code, with secret
+redaction on every output stream so a token cannot reach a log. OpenHands
+is wired as a delegate for coding work. Deno Deploy hosts preview
+deployments.
+
+Source control: a GitHub App with webhooks, so agents open and merge real
+pull requests through the app rather than pushing with a personal token,
+and every merge passes a human gate.
+
+Ingestion: nine live connectors on OAuth with per-workspace encrypted
+secrets, covering GitHub, Slack, Intercom, Zendesk, Canny, Productboard,
+Salesforce, HubSpot and Stripe. AssemblyAI transcribes calls and extracts
+action items into the same signal stream. Firecrawl and a self-hosted
+SearXNG cover web retrieval.
+
+Email: Resend. Uptime: Better Stack heartbeats.
+
+Observability: the system writes its own telemetry, every agent action and
+AI call landing in the audit trail. PostHog for product analytics and
+Sentry for failure capture drop into a vendor neutral facade at launch.
 ```
+
+### Everything above was inventoried from the code, not recalled
+
+| Claim | Where it was checked |
+| --- | --- |
+| Model mix and call counts | `ai_events`, 14-day window, queried live 2026-08-13 |
+| 37 active cron jobs | `select count(*) filter (where active) from cron.job` |
+| E2B with secret redaction | `src/lib/exec/e2b.server.ts` — `redactSecrets()` covers `ghs_`, `ghp_`, fine-grained and OAuth tokens, plus any credential embedded in a clone URL |
+| AssemblyAI | `src/lib/audio.functions.ts` — transcript then action-item extraction, each action inserted as a `transcript_action` signal |
+| OpenHands, Deno Deploy, Firecrawl, SearXNG, Resend, Better Stack | env keys plus a named module for each in `src/lib/` |
+| GitHub App | `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET` |
+| Nine live connectors | `src/lib/connectors/providers/index.server.ts` — the other eleven are `stubAdapter` and are **not named**, because a reader assumes a named connector works |
+
+**PostHog and Sentry are stated as landing at launch, deliberately.** Env keys and the facade exist; neither SDK is in `package.json`. The form's question says *"using, or planning to use"*, so the plan is a legitimate answer and the present tense would not have been.
+
+**One judgement call, and it is yours.** The reader panel scored this field 4 and called a long architecture answer from a founder with zero users *"self-supplied evidence of misallocation."* You ruled for full detail, and the question does explicitly ask for it, so full detail is what is above. The counter-argument is real but the field is the one place a partner invites the depth, and a technical reader who sees E2B with secret redaction and a GitHub App rather than a token is reading a system, not a prototype.
 
 > ### ⚠️ Two things on the live form are NOT supported. Queried 2026-08-13.
 >
