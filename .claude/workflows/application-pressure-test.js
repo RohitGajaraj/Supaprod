@@ -212,6 +212,21 @@ supervision count argues against autonomy, and a small absolute number undersell
 that a qualitative claim would have carried. Prefer numbers that measure what the system
 does unattended over numbers that measure how often a person had to step in.
 
+**5. SHOW THE AGENT AT EVERY STEP, AND NEVER WRITE THE PRODUCT AS A FORM.**
+Two failures with one cause: describing the loop by the step where automation is most
+obvious, and describing an input as the product interrogating the user.
+
+Naming only "coding agents pick up the build" makes every other step read as manual, so
+an agentic product is described as a normal one with a code generator bolted on. Walk the
+whole journey and put the agent in each step, in plain words a stranger can follow.
+
+And "the product asks you three things" describes a form. The user hears prompting and
+data entry, which is the opposite of the claim. State what the SYSTEM does with the
+input, not what it demands from the person. Where a human input genuinely is required,
+frame it as the one thing a machine cannot produce, so the exception proves the thesis
+instead of undercutting it, and make clear the human gate is the smallest one that makes
+the rest safe to run.
+
 Corollaries the founder named directly:
 - No drama words, no invented programme vocabulary, no category language.
 - Never make the plan sound small. "One person at a time" reads as no ambition. State

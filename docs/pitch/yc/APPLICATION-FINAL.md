@@ -30,29 +30,34 @@
 Cadence is now Supaprod. I renamed it after submitting and the form will
 not let me change the name. Same product, live at https://supaprod.ai.
 
-It works end to end today. A team points it at what they already have:
-user feedback, product data, sales and support conversations, what
-competitors are shipping. Supaprod turns that into what is worth building
-next, weighed against where the team already wants to take the product,
-and argues down the weak ideas before anyone commits. The spec comes out
-with the evidence attached, and coding agents pick up the build. They open
-real pull requests. A person merges them.
+It works end to end today, and agents run every step of it.
 
-Built since I applied: when a team commits a decision, Supaprod asks three
-things. What they expect to happen, how they will know, and by when. Those
-answers lock. Nobody can go back and edit them once the result is in, and
-that is enforced in the database rather than by the app.
+A team points it at what they already have: user feedback, product data,
+sales and support conversations, what competitors are shipping. Agents
+read all of it and cluster it into what is worth looking at. A critic
+agent argues down the weak ideas before anyone commits, weighed against
+where the team already wants to go. Once a call is made, agents write the
+spec with the evidence attached, plan the work, build it, open the pull
+requests, ship it and write the release notes. When the result lands they
+grade what shipped against what the spec promised, and that verdict feeds
+the ranking of what to build next.
 
-That is the whole company, and I got it wrong the first time. I had been
-saying a competitor cannot rebuild your decision history. They can.
-Vercel's COO rebuilt why a deal was lost out of Slack, email and call
-recordings, using an agent built in two days. What nobody can rebuild is
-what a team believed before they found out, because almost nobody writes
-it down. Now something does.
+A person approves and merges. That is the only place a human is required,
+and it is deliberate.
 
-This week the other half shipped: when the date a team named arrives, the
-call comes back and gets settled against the thing they said they would
-check.
+Built since I applied: agents can run all of that, but they cannot know
+what a team believes is going to happen. So at the moment a call is made,
+that belief goes down with it. What they expect, how they will know, and
+by when. It locks, enforced in the database rather than by the app. The
+system carries it from there, brings it back the day it falls due, drafts
+the verdict from what actually shipped, and files it against the decision
+that caused it. That second half shipped this week.
+
+I had the moat wrong at first. I was saying a competitor cannot rebuild
+your decision history. They can. Vercel's COO rebuilt why a deal was lost
+out of Slack, email and call recordings, using an agent built in two days.
+What nobody can rebuild is what a team believed before they found out,
+because almost nobody writes it down. Now something does.
 
 I run my own product work on it. The engine advances on its own every
 minute without me starting anything, which is the only reason one person
@@ -177,10 +182,17 @@ Supaprod runs product work when agents do the building.
 A team points it at everything they already have. User feedback, product
 analytics, sales and support conversations, market and competitor
 movement, and the direction they have already decided they want to go.
-Supaprod reads all of it, groups it into what is worth looking at, and
-argues against the weak ideas before the team commits. Then it writes the
-spec with the evidence attached and hands the build to coding agents. The
-team approves what matters. Nothing merges without a person.
+
+From there agents run the work. They read all of it and cluster it into
+what is worth looking at. A critic argues against the weak ideas before
+anyone commits. Agents write the spec with the evidence attached, plan it,
+build it, open the pull requests, ship it and write the release notes.
+When the result lands they grade what shipped against what the spec
+promised, and that verdict feeds the ranking of what to build next.
+
+A person approves and merges, and that is the only place a human is
+required. It is the smallest gate that still makes the rest safe to let
+run.
 
 What makes it a company is what gets kept. Every agent action is recorded,
 every decision carries the evidence behind it, and every gate records who
@@ -188,10 +200,12 @@ cleared it. When agents do the work, being able to answer what was decided
 and on what stops being paperwork. It is the thing that lets a team let
 them run at all.
 
-One piece of that cannot be produced afterwards. When a team commits a
-decision, Supaprod asks what they expect to happen, how they will know,
-and by when. Those answers lock. When the date arrives, the call comes
-back to be settled against what they said they would check.
+One piece of it agents cannot produce, because it is not an artifact and
+they cannot know it: what a team believes is going to happen. So the
+belief goes down at the moment of the call. What they expect, how they
+will know, and by when. It locks. The system carries it from there and
+brings it back the day it falls due, settled against what actually
+shipped.
 
 Building got cheap. What a company runs on now is the calls it makes and
 whether they were right.
