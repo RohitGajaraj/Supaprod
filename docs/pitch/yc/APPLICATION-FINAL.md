@@ -1,10 +1,212 @@
 # YC Fall 2026: the application, ready to paste
 
-> _Created: 2026-08-11 · Last updated: 2026-08-11 · **This is the only file to paste from.** Every field below is final text. [`fall-2026-application.md`](./fall-2026-application.md) is the reasoning, the history and the audit trail behind it; this is the output. Where they differ, this file wins._
+> _Created: 2026-08-11 · Last updated: 2026-08-13 · **This is the only file to paste from.** Every field below is final text. [`fall-2026-application.md`](./fall-2026-application.md) is the reasoning, the history and the audit trail behind it; this is the output. Where they differ, this file wins._
 
-> # 🛑 THE FOUNDER REVIEWED THIS ON 2026-08-11 AND IS NOT HAPPY. DO NOT PASTE YET.
+---
+
+# §A. THE THREE TEXT SURFACES. PASTE THESE. (2026-08-13)
+
+> **The portal leaves five surfaces open: Progress Update, Fundraising Update, Team Update, Founder Video, Demo Video.** Both videos are done. **These three carry everything else, and they are the only place the current truth reaches a partner** — §7 through §12 below are locked at whatever was live on 2026-07-23 and cannot be edited.
 >
-> **A review session is scheduled with him. His objections are below, in his words, with what I did about each one immediately and what is still open.** The two outright false claims are already removed, because a false claim does not wait for a meeting.
+> **Numbers in this section, pulled 2026-08-13:** `git rev-list --count HEAD` = **5,131** · `ls supabase/migrations/*.sql | wc -l` = **532** · first real commit `2026-06-02`, so **ten weeks**. The first two move daily. **Re-run both the morning you paste.**
+>
+> **Written to three constraints.** Nothing volunteered twice. No em dash anywhere in a paste block. No present-tense claim of accumulated learning, because the honest form survives a query and the flattering one does not.
+
+## What this version does differently, in one paragraph
+
+The old text argued from volume: commits, a feature register, a decade of pain. Volume is the one argument every application makes. **This version argues from two things almost nobody can put on a form.** The first is a mechanism: a forecast frozen at the moment of the call, held immutable by the database itself. The second is a correction: three product numbers deleted because a self-audit found them to be demo data. A partner meets thousands of founders claiming a moat. Far fewer hand over the number that made them look worst.
+
+---
+
+## Surface 1 — Progress Update
+
+### 1a. Product link
+
+```
+https://supaprod.ai
+```
+
+### 1b. Login credentials (single line)
+
+```
+explore@supaprod.ai / Supaprod!Explore2026 (private beta. The workspace has calls waiting on your judgment, each opening to the evidence behind it. To create your own account instead, invite code YC-COMPOUND-K7QR4V)
+```
+
+**Log in with these exact credentials, in incognito, before you save anything.** A dead login fails the whole application. Fallback if it breaks: `harbor@supaprod.ai / Supaprod!Harbor2026`, identical workspace, then fix.
+
+### 1c. "How far along are you?" — the field that carries the application
+
+```
+Cadence is now Supaprod. Same company, same person, live at
+https://supaprod.ai. The form will not let me rename it.
+
+Where it stands: the product runs end to end. Signals arrive from the
+tools a team already uses. The system clusters them, argues against the
+weak bets before I see them, drafts the spec with its evidence attached,
+and hands the build to coding agents. Nothing merges without a person.
+5,131 commits and 532 database migrations in ten weeks.
+
+The part I built since applying is the part a rival cannot lift from your
+chat logs. At the moment you commit a decision, Supaprod takes three
+things: what you expect to happen, how you will know, and by when. Those
+fields freeze on write, and a database trigger blocks every later edit. A
+prediction you can revise after the result is not a prediction. When the
+date passes, the call gets graded against what actually shipped.
+
+Two things I got wrong and corrected.
+
+I had been saying a rival cannot rebuild your decision history. Most of it
+survives in Slack and call recordings. Someone reconstructed a lost deal
+from theirs using an agent built in two days. What does not survive is
+what a team believed before the outcome landed, because almost nobody
+writes that down. That is the gap I now close, and it is the only part of
+this that cannot be backfilled.
+
+The second one is sharper. Three product numbers I had been quoting turned
+out to be my own demo data. The query separating samples from real work
+matched on the shape of a workspace id, and sample workspaces get ordinary
+ids. The real count was zero. I shipped a column so the two can never blur
+again, and I would rather tell you than have you find it.
+
+So the honest state, before you ask: the loop is wired end to end and
+proven on a live database, and empty by design until someone runs real
+work through it. I can show you that path running today.
+
+A 2:22 film of the product working: https://supaprod.ai/film
+The full brief: https://supaprod.ai/brief
+Public launch: mid-September.
+```
+
+`[FOUNDER]` **If any outside person has used it by paste day, add one sentence with the true count, directly under the film link.** This is the first thing a partner looks for and nothing above substitutes for it. Never pad it. If the count is still zero, add nothing: the paragraph beginning *"So the honest state"* already answers it, and answering it twice draws attention to the gap.
+
+**Why the two corrections stay in, at length.** They are the strongest paragraphs on the form. YC weights updating on evidence above being right first time, and each of these carries a mechanism, a root cause and a fix. The seed-data one also pre-empts the only diligence question that could have hurt: a partner who runs the query finds zero either way, and finding it after being told is a very different read from finding it cold.
+
+### 1d. "How long have each of you been working on this?"
+
+```
+Ten weeks on this build, seven days a week. The repo shows 5,131 commits
+and 532 database migrations across that stretch, plus about a month of
+nights and weekends on the prototype it grew out of.
+
+I am going full time on Supaprod regardless of the outcome here. That
+decision is made. The batch changes where I sit and how fast I learn, not
+whether I am in.
+```
+
+`[FOUNDER]` **Add one clause stating the literal employment position on paste day**, and keep it to one clause with no gray area: *"my notice is in, last day <date>"* or *"I am on a break from my product role"*. Rehearse the same words for the interview; this is the one line a partner will test against LinkedIn.
+
+### 1e. "Are people using your product?" (radio)
+
+**No**, unless an outside person has literally used it by paste day. Availability is not adoption, and 1c already says the product is open. Flip to **Yes** only with real users, and then state the true count in 1c.
+
+### 1f. "When will you have a version people can use?"
+
+```
+It is usable now, through the login above or the invite code. The public
+launch is mid-September, on Hacker News and Product Hunt.
+```
+
+### 1g. "What tech stack are you using?"
+
+**Low churn on purpose.** The founder finalised this on 2026-08-03 against the repo and the live database, and it is still accurate. Two edits only: the vendor-neutral observability line stays honest, and the coding-agent list drops to what runs today.
+
+```
+Coding agents: Claude Code and Codex write the code, with Lovable and
+Antigravity in the mix. I direct them and make every call.
+AI models: model agnostic by design. Every AI call goes through one
+runtime chokepoint handling budget, cache, guardrails, tracing, fallback
+and feature gates, so Claude, GPT, Gemini, Qwen, DeepSeek or a local model
+plug in as interchangeable parts. Running today: Qwen and Gemini carry the
+agent loop, GPT-5 where reasoning depth earns its cost, Cohere embed-v4
+for every retrieval vector.
+Frontend: TanStack Start on React 19 and Vite, with Tailwind and shadcn.
+Backend and data: TypeScript throughout, Supabase Postgres with row level
+security, pgvector for retrieval, pg_cron driving the autonomous engine,
+Bun for builds and packages.
+Deployment: Cloudflare Workers.
+Observability: the system writes its own telemetry, every agent action and
+AI call landing in the audit trail, behind one vendor neutral facade so
+PostHog and Sentry drop in without the product depending on either.
+```
+
+**Verify before paste:** the "running today" clause is a claim about live traffic. One query against `ai_events` over the last 14 days confirms or corrects the three model names. If the query cannot run, cut that sentence rather than paste it unchecked.
+
+---
+
+## Surface 2 — Fundraising Update
+
+**File nothing.** No investment taken, not currently raising, nothing changed since 2026-07-23. The locked §10 already says this.
+
+**Do not use this surface for narrative.** It exists to report a change in the cap table. Filling it with positioning reads as a founder padding a form, and the Progress Update already carries every word that belongs on this application.
+
+---
+
+## Surface 3 — Team Update
+
+### 3a. "Who writes code, or does other technical work on your product?"
+
+```
+Everything is built in house by me with AI agents: design, development,
+coding, testing, and the analysis of what people do with it. I direct the
+work and make every call. The agents execute, primarily Claude Code and
+Codex. No non founder has touched it.
+
+The code does not go unchecked. A separate reviewer, independent of the
+agents that write, audits the codebase for security and holds every change
+against the test suite before it can merge.
+
+Supaprod's own roadmap runs inside Supaprod, so every one of those calls
+sits in the audit trail with the evidence behind it. That is how I know
+the product works end to end before asking anyone else to trust it.
+```
+
+**Three deliberate removals from the filed version.** The build register is gone, because it was last maintained on 2026-08-04 and understates the work by roughly 450 commits; an accurate count from a stale source is a false claim with a correct number inside it. The Kimi and HyperAgent names are gone, because naming five tools where two do the work invites a question that buys nothing. And "one person directing a fleet of agents" is gone as a slogan, kept only as the plain fact in the first line.
+
+### 3b. "Are you looking for a cofounder?"
+
+**Keep unchanged.** It already reads secure, and rewriting a settled answer to sound better is how a confident line turns anxious.
+
+```
+Solo, and moving fast. Open to a cofounder who shares the vision and the
+energy and adds a perspective I do not have. For now, solo.
+```
+
+---
+
+## Paste-day order
+
+1. Incognito login on `explore@supaprod.ai`. Land on a populated workspace. Fail here and stop.
+2. Re-run the two moving numbers. Update 1c and 1d together, or they will disagree.
+3. Fill the two `[FOUNDER]` slots: the user count in 1c, the employment clause in 1d.
+4. Paste Surface 1. Set the radio truthfully. Save.
+5. Paste Surface 3. Save.
+6. Leave Surface 2 empty.
+7. Read every pasted field aloud once. Anything you would not say to a person, cut.
+
+---
+
+## What is deliberately NOT in these three surfaces
+
+| Left out | Reason |
+| --- | --- |
+| Feature or register counts | The register is stale by ~450 commits and understates the build. Do not cite it. |
+| Any product usage number | Every one that existed was seed data. A smaller honest number is still zero. |
+| "Cursor for PMs" | It is allowed on YC surfaces and it is in the locked 7f already. Repeating it in an update spends a line on something the partner has read. |
+| The seven-station diagram, "operating system", "agentic-first" | All retired. Platform words read as meaningless, and nobody in the market's own writing uses them. |
+| Named competitors | The locked 9b handles them. An update surface repeating locked content wastes the read. |
+| Present tense compounding | "Wired and proven, begins accruing on first real use" survives diligence. "It learns from your corrections" does not survive one query. |
+
+---
+
+# §B. The locked application, and the record behind it
+
+> **§7 through §12 below are LOCKED on the form.** They are here as the interview script: a partner may quote any of it back. The 2026-08-11 founder objections and their resolutions follow, then every locked field.
+
+> # 🛑 FOUNDER REVIEW, 2026-08-11. The objections below are RESOLVED in §A above.
+>
+> **Objection 1 ("putting people in it") and objection 2 (the build register) are removed from every paste block in §A.** Objection 3 (the AI-built framing) is settled the way the review recommended: the tech-stack field answers the question plainly because YC asks it directly, and no other field claims it.
+>
+> **His objections are below in his words, kept as the record of what was corrected and why.** The two outright false claims were removed on the day, because a false claim does not wait for a meeting.
 >
 > | # | His objection | Status |
 > | --- | --- | --- |
@@ -26,6 +228,8 @@
 3. **Nothing here claims accumulated learning in the present tense.** The loop is wired and proven; it begins accruing on first real use. That is both the honest form and the stronger one.
 4. **Three fields need something only you have**, marked `[YOU]`: the discovery-call count, the demo video, and what actually comes next in 8a.
 
+> ⚠️ **§7 to §12 below are LOCKED on the live form and cannot be pasted.** They are the interview script. **The paste source is [§A](#a-the-three-text-surfaces-paste-these-2026-08-13) at the top of this file.**
+
 ---
 
 ## §0. What changed from the version on the form, and why
@@ -44,9 +248,9 @@
 
 | Number | Value | How |
 | --- | --- | --- |
-| Commits | **4,969** ← *moves daily* | `git rev-list --count HEAD` |
-| Migrations | **512** ← *moves* | `ls supabase/migrations/*.sql \| wc -l` |
-| Weeks | **ten** | First real commit `2026-06-02`. One template commit dated 2025-01-01 is scaffold, not work. |
+| Commits | **5,131** _(2026-08-13)_ ← *moves daily* | `git rev-list --count HEAD` |
+| Migrations | **532** _(2026-08-13)_ ← *moves* | `ls supabase/migrations/*.sql \| wc -l` |
+| Weeks | **ten** | First real commit `2026-06-02`. One template commit dated 2025-01-01 is scaffold, not work. **Eleven weeks from 2026-08-18.** |
 | ~~Build register~~ | **DO NOT USE** | **Not abandoned, deliberately deprioritised** (founder, 2026-08-11): keeping it current cost more than it returned, so the team went straight to building. It is accurate up to `2026-08-04` and carries nothing from the last two to three weeks, roughly 450 commits. So it **understates** the build. Do not cite it, and do not describe it as neglected; the reason it is stale is a defensible trade-off, not a lapse. |
 | Outside users | **zero** | Stated once, in 8e, where the form asks. |
 | Revenue | **none** | |
