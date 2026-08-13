@@ -55,6 +55,18 @@ Verified against a **reloaded** page, not the DOM that was typed into: no requir
 
 ---
 
+## 🧱 Two answers rewritten on founder direction, 2026-08-13 night
+
+**Q21 now tells the ISRO pivot** rather than stacking three obstacles against a question that asks for one. Reasoning and the repetition check sit with the answer itself, below.
+
+### The competitors answer now opens on the stack
+
+**"Everyone does one single thing, but for a product manager it is like juggling multiple tools."** That is the competitive judgment, and it was buried as a clause. It is now the first sentence: six tools, and the tax is the seams between them, not the tools.
+
+**The founder's other instinct was to say we have no competitors. That was pushed back on and the reframe agreed.** It is the most common red flag in this exact question, it is not true, and it claims without a mechanism. **Name every competitor, then show none of them owns the path between the steps** — because grading a decision needs the call and its outcome in one system, and a handoff is where those two get separated. That is structural, so it cannot be answered with a feature.
+
+**This is now doctrine for every application, not just this one:** [`../positioning-doctrine.md`](../positioning-doctrine.md) Part 2, Rule 7.
+
 ## ⚠️ REWRITTEN 2026-08-13 EVENING — the order was wrong, not the facts
 
 **Founder correction, and it is the most important note in this file.** The first draft led with the moat and never said what the product does. The canon orders it **door, then body, then brain**, and the door is the part nobody else sells.
@@ -209,18 +221,27 @@ first real test in beta.
 ### 7. Tell us about your competitors and why you are dramatically better
 
 ```
-Every one of them makes doing the work faster. Not one of them decides what the
-work should be, and not one tells you afterwards whether you were right. That is
-the whole gap, and it is where Supaprod sits.
+Ask who competes with Supaprod and the honest answer is not a company, it is a
+stack. A PM runs discovery in one tool, writes the spec in a second, designs in a
+third, hands code to agents in a fourth, ships behind flags in a fifth, and reads
+the result in a sixth. Every one of those is excellent at its step. Not one of
+them decides what the work should be, and not one tells you afterwards whether
+you were right.
 
-Notion shipped Ship OS free in July. Atlassian launched Product Collection in
-May, positioned around better decisions. Linear hands issues to coding agents.
-ChatPRD drafts specs for 100k+ PMs. Cursor and the labs generate the code. Each
-one is excellent at its step. A team still has to pick the step, sequence the
-steps, and carry the reasoning between them, which is what the PM actually does
-all day.
+The tax is not the tools, it is the seams between them. Context has to be
+re-entered at every handoff, and by the third one the reasoning behind the call
+is gone. Carrying that context between six products that cannot see each other is
+what a PM actually does all day. That is the job Supaprod takes.
 
-The real competitor is not any of them. It is a folder. Teams hand-roll this in
+Named, so this does not read as evasion. Notion shipped Ship OS free in July.
+Atlassian launched Product Collection in May, positioned around better decisions.
+Linear hands issues to coding agents. ChatPRD drafts specs for 100k+ PMs. Cursor
+and the labs generate the code. Each owns a step and is getting better at it.
+None owns the path between the steps, and that is not a gap they can close with a
+feature: grading a decision needs the call and its outcome inside one system, and
+a handoff is precisely where those two get separated.
+
+The other real competitor is a folder. Teams hand-roll this in
 markdown files and scripts, and it works until a second person or a fleet of
 agents touches it. Every do-it-yourself success I found is a single operator in
 a single context. Every failure is multi-person or multi-agent.
@@ -318,34 +339,53 @@ N/A. This is my first application to SkyDeck.
 
 ## 21. Overcoming an obstacle (optional, and answered)
 
+> **Exact question:** *"We value when founders have had to overcome great obstacles in their lives. Tell us about a time you've had to overcome an obstacle and how that informs your experience (Optional)"*
+
 ```
-For most of my career I could describe what needed building and could not build
-it. I wrote the spec, handed it over, and waited. When the result came back
-wrong I could not tell whether the idea had been wrong or the execution had,
-and I had no standing to argue either way.
+At ISRO I started in operations, tracking the Mars mission day to day. A
+spacecraft already millions of kilometres out, that nobody could reach and
+nobody could fix.
 
-Two years ago I decided that had to stop. No computer science degree and no
-spare time, so I learned by directing agents and shipping real things badly
-until they stopped being bad. Before the version of Supaprod that stands today
-I built and threw away four complete working ones. Each of them ran. Each was
-built on an assumption about the problem that turned out to be wrong, and I
-could not see it until the thing existed and I had to use it myself.
+What I wanted was the product side. Deciding what gets built, rather than
+operating what already had been. There was no path between the two and no title
+to apply for.
 
-The harder one came earlier. Leaving ISRO is not a normal move in India. It is
-the national space agency, people spend years trying to get in, and it is not a
-job people walk away from. I left with nothing lined up on the other side,
-moved to Germany for an MBA, and worked full time through the last eighteen
-months of it.
+Operations gave me one thing nobody else had: live access to the satellite data.
+So when something looked wrong I could work through it myself, often before it
+reached the people whose job it was. I did that on my own time, worked out what
+had actually gone wrong and what would have to change so it did not happen
+again, and wrote it up as requirements nobody had asked me for. Then I took them
+to the people who made those calls, and kept doing it until it stopped being
+unusual.
 
-What both taught me is the thing Supaprod is built around. I was wrong four
-times in a row and only found out by shipping. The expensive part was never
-being wrong. It was that nothing anywhere held what I had expected beforehand,
-so each time I reconstructed my own reasoning from memory and mostly flattered
-myself doing it. That is why the product freezes what a team predicts at the
-moment of the call and grades it later, whether or not anyone wants to look.
+Eight months in, I moved across. Asking was the last step, not the first.
+
+I have run the same play at every switch since: hardware to product,
+semiconductors to banking, and two years ago product manager to someone who
+ships code. The most expensive of them was leaving ISRO altogether. It is the
+national space agency, people spend years trying to get in, and I left with
+nothing lined up on the other side.
+
+Here is how it informs the company. Build the evidence first, then ask, works
+right up until nobody can see the evidence you built. Before the version of
+Supaprod standing today I built and threw away four complete working ones. Each
+of them ran. Each rested on an assumption about the problem that turned out to be
+wrong, and I only found out by shipping. The expensive part was never being
+wrong. It was that nothing anywhere held what I had expected beforehand, so each
+time I reconstructed my own reasoning from memory and mostly flattered myself
+doing it. That is why the product freezes what a team predicts at the moment of
+the call and grades it later, whether or not anyone wants to look.
 ```
 
-**Optional fields left blank read as nothing to say.** This one earns its place by ending where the product starts: the obstacle is not decoration, it is the origin of the mechanism in answers 5 and 7. **No trait is ever named.** Persistence is four thrown-away versions; diligence is a full-time job alongside a degree. The reader supplies the word, which is the only way it survives.
+**Rewritten 2026-08-13 night on founder direction: use the pivot story from the YC founder profile.** The earlier draft stacked three obstacles (could not build, four thrown-away versions, leaving ISRO) against a question that asks for **a time**, singular. This one is a single obstacle with a structural shape — *no path between the two and no title to apply for* — and an outcome a reader can check.
+
+**The access detail is the hinge and it must not be cut.** Without it, *"I wrote requirements nobody had asked me for"* reads as an eager junior generating work. With it, the same sentence reads as someone who noticed they held an asymmetry nobody else had and spent it.
+
+**The eight months is checkable against the work history on the founder profile** (Communications System Engineer Sep 2016 to Apr 2017, Associate Product Manager from May 2017). Someone writing unrequested documents does not move across in eight months; someone repeatedly arriving with the analysis first does.
+
+**No trait is ever named**, and the ending is unchanged from the earlier draft because it was the strongest thing in it: the obstacle is not decoration, it is the origin of the mechanism in answers 5 and 7.
+
+> **On telling ISRO twice.** Answer 1 uses ISRO as industry context inside a three-industry sweep (*hardware launches once*). This answer uses it as a personal obstacle (*ops to product, data access, eight months*). **No sentence and no fact repeats**, which is the same split the YC application uses between its career-arc field and its mission-specifics field. Source: [`../../yc/founder-profile-answers.md`](../../yc/founder-profile-answers.md).
 
 ---
 

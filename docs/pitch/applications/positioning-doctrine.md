@@ -138,6 +138,26 @@ Not lines typed. **Throughput directed and reviewed.** Stated that way the numbe
 
 **⚠️ Corrected 2026-08-11: do not use a register count.** It has not been maintained since 2026-08-04 and the script named for verifying it does not exist. The founder's ruling is to drop volume claims and let the working demo login carry it. ~~*401 features specced, 362 shipped, register independently audited against the code and it held.* Shipped beats committed, and "audited and it held" is the part nobody can fake. Re-pull with `bash scripts/dashboard-tally.sh`.
 
+**Rule 7: the competitor is the stack, and we never say we have none (founder direction, 2026-08-13).**
+
+> _"Shouldn't we say it's all about the stacked thing? Everyone does one single thing, but for a product manager it is like juggling multiple tools with each other, and that's the thing we are trying to solve. This should be our competitive judgment."_
+
+**The direction is right and it belongs in every competitors answer we write from now on.** It was half-buried in the SkyDeck draft as a clause about carrying reasoning between tools. It is now the opening.
+
+> **A PM runs discovery in one tool, writes the spec in a second, designs in a third, hands code to agents in a fourth, ships behind flags in a fifth, and reads the result in a sixth.** Every one of those is excellent at its step. **The tax is not the tools, it is the seams between them:** context is re-entered at every handoff, and by the third one the reasoning behind the call is gone.
+
+**One half of the direction was pushed back on, and the founder agreed the reframe is stronger.** The instinct was to say *"honestly, there are no competitors."* Do not write that, on any form, ever:
+
+1. **It is the most common red flag in the question.** Reviewers read it as naive or evasive, and YC flags it by name. It costs the reader on the one answer where credibility is being tested.
+2. **It is not true.** Substitutes exist and get bought instead of us. Notion, Atlassian, Linear, ChatPRD and Cursor are all real and all named in our answer.
+3. **It claims without a mechanism**, which breaks Rule 2.
+
+**Write the version that means the same thing and survives scrutiny: name every competitor, then show that none owns the path between them.** That is the structural argument, and it is the one a point tool cannot answer with a feature:
+
+> **Grading a decision needs the call and its outcome inside one system, and a handoff is precisely where those two get separated.**
+
+**And keep the second substitute.** The stack is one competitor; **a folder of markdown files is the other**, and it is the one that actually wins deals today. Every DIY success we found is a single operator in a single context; every failure is multi-person or multi-agent.
+
 ---
 
 ## Part 3 — The positioning axis, program by program
