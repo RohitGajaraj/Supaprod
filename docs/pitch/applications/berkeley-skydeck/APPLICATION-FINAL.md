@@ -10,7 +10,7 @@
 >
 > **Form:** `https://www.f6s.com/skydeck-batch-23/apply` (F6S login required).
 >
-> ✅ **FILLED AND SAVED 2026-08-13.** Every answer below is live in the form and verified by re-fetching the page server-side. **Not submitted.** One field is unanswered and it is the founder's: Q16, *how did you hear about SkyDeck*.
+> 🚀 **SUBMITTED 2026-08-13, by the founder.** Verified on the live page, which now renders a read-only **Your Answers** view with no Apply button. Every answer below is the filed text, read back off that page rather than from this file.
 
 ## The thing that wasted an hour, and it will waste yours too
 
@@ -34,9 +34,9 @@
 
 ---
 
-## ✅ Every required field is filled. "Apply now" is live and the founder submits it.
+## 🚀 Filed. What went in, and what F6S did with it.
 
-Verified against a **reloaded** page, not the DOM that was typed into: no required field is empty, no validation error renders, and the blue **Apply now** button is enabled.
+Verified against the post-submission page, not the DOM that was typed into. The application is in; the deadline was 2026-08-21 and it went eight days early.
 
 | Attachment | What is on the form |
 | --- | --- |
@@ -337,14 +337,16 @@ N/A. This is my first application to SkyDeck.
 
 ---
 
-## 21. Overcoming an obstacle (optional, and answered)
+## 21. Overcoming an obstacle — AS FILED
 
 > **Exact question:** *"We value when founders have had to overcome great obstacles in their lives. Tell us about a time you've had to overcome an obstacle and how that informs your experience (Optional)"*
 
+**This is the text on the filed application, read back off the live page.** The founder edited the opening himself; that wording is his and stands.
+
 ```
-At ISRO I started in operations, tracking the Mars mission day to day. A
-spacecraft already millions of kilometres out, that nobody could reach and
-nobody could fix.
+At ISRO, I started in communications & operations, tracking the Mars & Moon
+space missions day to day. A spacecraft already millions of kilometres out, that
+nobody could reach and nobody could fix.
 
 What I wanted was the product side. Deciding what gets built, rather than
 operating what already had been. There was no path between the two and no title
@@ -369,34 +371,30 @@ nothing lined up on the other side.
 Here is how it informs the company. Build the evidence first, then ask, works
 right up until nobody can see the evidence you built. Before the version of
 Supaprod standing today I built and threw away four complete working ones. Each
-of them ran. Each rested on an assumption about the problem that turned out to be
-wrong, and I only found out by shipping. The expensive part was never being
+of them ran. Each rested on an assumption about the problem that turned out to
+be wrong, and I only found out by shipping. The expensive part was never being
 wrong. It was that nothing anywhere held what I had expected beforehand, so each
 time I reconstructed my own reasoning from memory and mostly flattered myself
 doing it. That is why the product freezes what a team predicts at the moment of
 the call and grades it later, whether or not anyone wants to look.
 ```
 
-**Rewritten 2026-08-13 night on founder direction: use the pivot story from the YC founder profile.** The earlier draft stacked three obstacles (could not build, four thrown-away versions, leaving ISRO) against a question that asks for **a time**, singular. This one is a single obstacle with a structural shape — *no path between the two and no title to apply for* — and an outcome a reader can check.
+**Two drafts were rejected before this one, and the reason is reusable.** The first stacked three obstacles against a question that asks for **a time**, singular. The second replaced them all with the ISRO pivot and lost the material the founder wanted kept. **The filed version combines them into one arc**: the pivot inside ISRO, then leaving ISRO, then the years of being unable to build, all ending on the mechanism.
 
-**The access detail is the hinge and it must not be cut.** Without it, *"I wrote requirements nobody had asked me for"* reads as an eager junior generating work. With it, the same sentence reads as someone who noticed they held an asymmetry nobody else had and spent it.
+**The access detail is the hinge and it must not be cut.** Without it, *"I wrote requirements nobody had asked me for"* reads as an eager junior generating work. With it, it reads as someone who noticed they held an asymmetry nobody else had and spent it. **The eight months is checkable** against the founder profile (Communications System Engineer Sep 2016 to Apr 2017, Associate Product Manager from May 2017).
 
-**The eight months is checkable against the work history on the founder profile** (Communications System Engineer Sep 2016 to Apr 2017, Associate Product Manager from May 2017). Someone writing unrequested documents does not move across in eight months; someone repeatedly arriving with the analysis first does.
-
-**No trait is ever named**, and the ending is unchanged from the earlier draft because it was the strongest thing in it: the obstacle is not decoration, it is the origin of the mechanism in answers 5 and 7.
-
-> **On telling ISRO twice.** Answer 1 uses ISRO as industry context inside a three-industry sweep (*hardware launches once*). This answer uses it as a personal obstacle (*ops to product, data access, eight months*). **No sentence and no fact repeats**, which is the same split the YC application uses between its career-arc field and its mission-specifics field. Source: [`../../yc/founder-profile-answers.md`](../../yc/founder-profile-answers.md).
+> **On telling ISRO twice.** Answer 1 uses ISRO as industry context in a three-industry sweep. This answer uses it as a personal obstacle. **No sentence and no fact repeats.** Source for the pivot: [`../../yc/founder-profile-answers.md`](../../yc/founder-profile-answers.md).
 
 ---
 
-## Before this submits
+## Filed. What is still owed, and when
 
-1. ~~Answer Q16.~~ **Done — `LinkedIn`.** *Heard from SkyDeck Advisor* and *founder/alumni* were both refused: each claims a warm connection we do not have, and the advisor option asks *which advisor*. There is no X/Twitter option.
-2. **Re-derive both numbers** the hour of submission: `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l`. They appear in answers 1 and 8 and must agree.
-3. **Allocate a demo login.** `meridian@supaprod.ai` or `lantern@supaprod.ai` are the two free ones; record it on the Notion board. Answer 8 promises a reviewer can open a login, so that promise has to be real.
-4. **Re-arm the approval queues.** Last armed 2026-07-28 on a 60-day runway, so they hold to late September. Interviews run 09-08 to 10-05, which is **past that**.
-5. **Read every answer aloud.** Delete any sentence that stays true with a competitor's name swapped in.
-6. Log the submission here, on the Notion board, and in [`../README.md`](../README.md).
+1. ✅ **Submitted 2026-08-13**, eight days before the 2026-08-21 deadline.
+2. ⏳ **Interviews run 2026-09-08 to 2026-10-05.** Orientation 2026-11-02, program to 2027-04-15, Demo Day April 2027.
+3. ⚠️ **Re-arm the demo approval queues in early September.** They were armed 2026-07-28 on a 60-day runway, so they lapse around 2026-09-25 — inside the interview window. Answer 8 promises a reviewer can open a login and use it, so that promise has to still be true when someone tries.
+4. ⚠️ **Allocate and record the demo login** before any interview: `meridian@supaprod.ai` or `lantern@supaprod.ai`.
+5. **Numbers in the filed text are frozen at 2026-08-13** and will drift: 5,000+ commits, 530+ migrations, 37 scheduled jobs. Do not re-quote them from here in a later application; re-derive with `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l`.
+6. **If an interview lands,** read [`../../founder-answer-playbook.md`](../../founder-answer-playbook.md) first and update it in the same session.
 
 ## Related
 
