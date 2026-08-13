@@ -37,49 +37,57 @@ explore@supaprod.ai / Supaprod!Explore2026 (private beta. The workspace has call
 ### 1c. "How far along are you?" — the field that carries the application
 
 ```
-Cadence is now Supaprod. Same company, same person, live at
-https://supaprod.ai. The form will not let me rename it.
+Cadence is now Supaprod. I renamed it after submitting and the form will
+not let me change the name. Same product, live at https://supaprod.ai.
 
-Where it stands: the product runs end to end. Signals arrive from the
-tools a team already uses. The system clusters them, argues against the
-weak bets before I see them, drafts the spec with its evidence attached,
-and hands the build to coding agents. Nothing merges without a person.
-5,131 commits and 532 database migrations in ten weeks.
+Ten weeks solo, directing agents: 5,000+ commits, 530+ database migrations.
 
-The part I built since applying is the part a rival cannot lift from your
-chat logs. At the moment you commit a decision, Supaprod takes three
-things: what you expect to happen, how you will know, and by when. Those
-fields freeze on write, and a database trigger blocks every later edit. A
-prediction you can revise after the result is not a prediction. When the
-date passes, the call gets graded against what actually shipped.
+It runs end to end. Signals from Slack, Zendesk, Stripe, Salesforce and
+GitHub get clustered, agents argue down the weak bets, and the spec
+arrives with its evidence attached for coding agents to build.
 
-Two things I got wrong and corrected.
+Supaprod's roadmap runs inside Supaprod. Its agents open pull requests on
+its own codebase, and nothing merges without a person.
 
-I had been saying a rival cannot rebuild your decision history. Most of it
-survives in Slack and call recordings. Someone reconstructed a lost deal
-from theirs using an agent built in two days. What does not survive is
-what a team believed before the outcome landed, because almost nobody
-writes that down. That is the gap I now close, and it is the only part of
-this that cannot be backfilled.
+Built since I applied: committing a decision captures what you expect,
+how you will know, and by when. The database refuses every later edit to
+those fields, not the app.
 
-The second one is sharper. Three product numbers I had been quoting turned
-out to be my own demo data. The query separating samples from real work
-matched on the shape of a workspace id, and sample workspaces get ordinary
-ids. The real count was zero. I shipped a column so the two can never blur
-again, and I would rather tell you than have you find it.
+I was wrong about the moat. A competitor can rebuild a decision history
+from Slack and call recordings, and Vercel's COO did exactly that in two
+days with an agent built for the job. What survives nowhere is what a
+team believed before the outcome landed. That is what I built.
 
-So the honest state, before you ask: the loop is wired end to end and
-proven on a live database, and empty by design until someone runs real
-work through it. I can show you that path running today.
+Live as of this week: the path that settles a forecast once its horizon
+passes, graded against the observable it named.
 
-A 2:22 film of the product working: https://supaprod.ai/film
-The full brief: https://supaprod.ai/brief
-Public launch: mid-September.
+2:22 film of the system: https://supaprod.ai/film
+Brief: https://supaprod.ai/brief
+
+Mid-September is the public launch. Between now and then I am putting it
+in front of the PMs and founders on my design-partner list.
 ```
 
-`[FOUNDER]` **If any outside person has used it by paste day, add one sentence with the true count, directly under the film link.** This is the first thing a partner looks for and nothing above substitutes for it. Never pad it. If the count is still zero, add nothing: the paragraph beginning *"So the honest state"* already answers it, and answering it twice draws attention to the gap.
+**~190 words, nine blocks, none over four lines.** Every block carries a fact the partner cannot get from another field.
 
-**Why the two corrections stay in, at length.** They are the strongest paragraphs on the form. YC weights updating on evidence above being right first time, and each of these carries a mechanism, a root cause and a fix. The seed-data one also pre-empts the only diligence question that could have hurt: a partner who runs the query finds zero either way, and finding it after being told is a very different read from finding it cold.
+### How this version was chosen, and the two things that nearly went out
+
+Three compression strategies were drafted and scored cold by three readers: a YC partner mid-batch, a seed VC who buys insight where there is no traction, and a screener whose only job is to find the sentence doing more work than the build supports. **All three ranked maximum compression first or second.** The spine above is that draft, with the strongest sentences from the other two grafted in.
+
+**The screener earned the whole exercise.** It killed the sentence *"when the date passes, the call is graded against what shipped"* on the grounds that the grading path was merged and unpublished, so a partner clicking the URL would find no such desk. It was right, and that is why the deploy happened before this text was finalised. The line now states a shipped capability rather than an assertion.
+
+It also caught two scope overclaims the earlier draft carried: **"blocks every later edit"** covers three columns of eleven and `service_role` is exempt, so the sentence is now scoped to *those fields*; and **"a film of it working"** describes rendered compositions rather than a screen capture, so it reads *film of the system*.
+
+**And the synthesis itself introduced two errors that had to be caught.**
+
+| It wrote | Why it is wrong |
+| --- | --- |
+| *"I proved it by doing exactly that in two days with an agent I built for the test"* | **Fabricated attribution.** The founder did not run that reconstruction. **Vercel's COO did.** It reads stronger and it would collapse the first time a partner asked about it. Restored to the true attribution, which is still a strong sentence because it is checkable. |
+| *"the teams already asking for access"* | **Unsupported demand claim.** No team has asked. Replaced with the design-partner list, which exists and is a plan rather than a claim about demand. |
+
+**The generalisable lesson: an adversarial reader panel improves the copy and does not make it true.** Three readers scored these drafts on persuasiveness and internal consistency, and not one of them flagged the attribution swap, because a false sentence that fits the surrounding argument reads as the strongest sentence in the field. **Verification is a separate pass from evaluation and neither substitutes for the other.**
+
+`[FOUNDER]` **If any outside person has used it by paste day, add one sentence with the true count under the film link.** If the count is still zero, add nothing. Another field already carries the radio, and repeating a zero draws attention to it.
 
 ### 1d. "How long have each of you been working on this?"
 
@@ -88,12 +96,15 @@ Ten weeks on this build, seven days a week. The repo shows 5,131 commits
 and 532 database migrations across that stretch, plus about a month of
 nights and weekends on the prototype it grew out of.
 
-I am going full time on Supaprod regardless of the outcome here. That
-decision is made. The batch changes where I sit and how fast I learn, not
-whether I am in.
+I took a break from my product role to build this, and my notice is now
+in. I am going full time on Supaprod regardless of the outcome here. That
+decision is made. What the batch changes is where I sit, how fast I learn,
+and how quickly I can adjust and scale. Not whether I am in.
 ```
 
-`[FOUNDER]` **Add one clause stating the literal employment position on paste day**, and keep it to one clause with no gray area: *"my notice is in, last day <date>"* or *"I am on a break from my product role"*. Rehearse the same words for the interview; this is the one line a partner will test against LinkedIn.
+**Founder-set wording, 2026-08-13. No date, and do not add one.** He asked for the break to appear, because it is the part that shows the commitment was made before any program was in the picture. "Notice is now in" carries the same weight without pinning a day that can move.
+
+**Why no date is the right call and not a softening.** A date reads as precise but is the one clause that can be falsified by a delay, and a partner who checks in six weeks and finds it slipped reads it as a founder who missed. "I took a break to build this and my notice is in" is a completed action, checkable, and cannot go stale.
 
 ### 1e. "Are people using your product?" (radio)
 
