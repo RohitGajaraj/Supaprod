@@ -1,6 +1,21 @@
 # Pick up here
 
 > _Created: 2026-08-07 · Last updated: 2026-08-12 (FC-01 grading half)_
+## 🔥 APPLICATIONS LANE — 2026-08-13 15:30 UTC. Sequoia Arc and Berkeley SkyDeck both drafted.
+
+**Work completed this session.** Sequoia Arc (deadline 2026-08-17, fit 8.5) was drafted in the previous session. Berkeley SkyDeck (deadline 2026-08-21, fit 8.5) is drafted in this session. Both applications are built from the live answer-bank (5,131 commits, 532 migrations, ten weeks as of 2026-08-13) and tailored to the selection criteria of each program. Sequoia Arc's angle: "YC gets the wedge. Sequoia gets the asset (the forecast)." Berkeley SkyDeck's angle: "YC gets the wedge. Sequoia gets the asset. Berkeley SkyDeck gets the thesis proved (engineering rigor + founder-market fit)."
+
+**What each application needs before sending.** Both forms sit behind logins and their exact field names and character limits are not public. Before pasting any block: (1) open the actual form, (2) count the field limits in the form itself, (3) cut blocks from bottom up, (4) read aloud for AI cadence. Sequoia Arc: `https://www.sequoiacap.com/arc/apply/` (five questions known, form has additional fields). Berkeley SkyDeck: `https://www.f6s.com/skydeck-batch-23/apply` (fields 1-8 drafted, F6S may ask additional items).
+
+**Gates still blocking further work.** Four founder decisions outstanding: (1) Lovable publish (blocks YC demo login from being reachable). (2) DIFC program name and apply link (deadline 08-21, has not been found on any tracker). (3) 08-16 program confirmation (only identified option is German Accelerator Kickstart at fit 2.5, recommendation is skip). (4) YC employment status clause and outside-user count (two fields in YC Surface 1c/1d).
+
+**Next independent work.** EF Bridge SF (08-30) is drafted and corrected, ready to send once founder approves. After that, Slush Startup Stage (08-31) is unstarted but has a reasonable fit (6.0). Once any of the four gates clears, the corresponding application path opens.
+
+**Files touched.** `docs/pitch/applications/berkeley-skydeck/` (new folder with positioning.md and application.md). `docs/pitch/applications/README.md` (updated Berkeley SkyDeck row to show drafted status).
+
+---
+
+
 
 ## ✅ SESSION CLOSED 2026-08-12 night. FC-01's grading half is BUILT, and ONE CLICK stands between it and being real.
 
