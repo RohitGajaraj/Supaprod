@@ -10,7 +10,7 @@
 
 ## 1. The link card, and it is the default
 
-**[`supaprod-briefing-onepager.pdf`](./supaprod-briefing-onepager.pdf)** · one page, 16:9, ~390KB
+**[`Supaprod-Investor-Briefing.pdf`](./Supaprod-Investor-Briefing.pdf)** · one page, 16:9, ~320KB
 
 **Send this when a form asks for a deck.** It is a branded page whose orange button is a real PDF link annotation, so a click lands the reader on the live briefing where the deck is interactive.
 
@@ -27,26 +27,30 @@
 >
 > **No `box-shadow` on anything.** Chrome's PDF printer renders shadow blur as a **hard-edged rectangle**. The first cut had `box-shadow:0 10px 40px rgba(255,107,44,.32)` on the button and printed a solid orange panel behind it. It looked correct in the browser and wrong in the artifact.
 >
-> **No dates, no counts, nothing that decays.** The first cut said *"August 2026"* and *"sixteen sections"*. The briefing gains and loses sections; a number here means editing this file every time the deck changes, and it will be missed. The copy is now written so it stays true whatever `/brief` becomes.
+> **No `-webkit-background-clip:text` either, and this one took three attempts to diagnose.** Chrome's PDF printer paints the element's background box as well as the clipped text, so a gradient keyword arrives with a visible rectangle around it and its final glyph trimmed. Padding does not help, because the box itself is being drawn. **Colour each letter with its own `color` instead**; the headline ramp is eight hand-set stops from `#FFE3D4` to `#FF6B2C` and cannot fail in any renderer.
+>
+> **No dates, no counts, nothing that decays.** The first cut said *"August 2026"*, *"sixteen sections"*, *"two minutes"* for the film, and *"where the product actually stands"*. The briefing gains and loses sections; a number here means editing this file every time the deck changes, and it will be missed. The copy is now written so it stays true whatever `/brief` becomes.
 
-Source: **[`supaprod-briefing-onepager.src.html`](./supaprod-briefing-onepager.src.html)**, self-contained with Geist and the mark embedded as data URIs.
+Source: **[`Supaprod-Investor-Briefing.src.html`](./Supaprod-Investor-Briefing.src.html)**, self-contained with Geist and the mark embedded as data URIs.
 
 ```bash
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
   --headless --disable-gpu --no-pdf-header-footer \
-  --print-to-pdf="docs/pitch/shareables/supaprod-briefing-onepager.pdf" \
-  "file://$PWD/docs/pitch/shareables/supaprod-briefing-onepager.src.html"
+  --print-to-pdf="docs/pitch/shareables/Supaprod-Investor-Briefing.pdf" \
+  "file://$PWD/docs/pitch/shareables/Supaprod-Investor-Briefing.src.html"
 ```
 
 **Verify links survived** — a link that only looks like a link is the failure mode:
 
 ```bash
-python3 -c "import re;d=open('docs/pitch/shareables/supaprod-briefing-onepager.pdf','rb').read();\
+python3 -c "import re;d=open('docs/pitch/shareables/Supaprod-Investor-Briefing.pdf','rb').read();\
 print(d.count(b'/Subtype /Link'),'annotations');\
 [print(' ',u.decode()) for u in sorted(set(re.findall(rb'/URI\s*\(([^)]+)\)',d)))]"
 ```
 
 Expect **4 annotations**.
+
+**The subtext names four sections and they were chosen, not guessed:** *the market, the moat, why now, the business model*. All four exist in the deck (verified against its own section headers) and none of them decays. **Traction was deliberately left out** — a line promising *where the product stands* dates itself the moment the product moves.
 
 ## 2. The full deck, and its known defect
 

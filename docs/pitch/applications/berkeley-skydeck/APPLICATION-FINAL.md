@@ -44,6 +44,20 @@
 
 ---
 
+## ⚠️ REWRITTEN 2026-08-13 EVENING — the order was wrong, not the facts
+
+**Founder correction, and it is the most important note in this file.** The first draft led with the moat and never said what the product does. The canon orders it **door, then body, then brain**, and the door is the part nobody else sells.
+
+> **Supaprod tells a product team what to build. Then it builds and ships it. Then it learns what happened and guides the next call.**
+>
+> **Nobody sells the first part.** Every tool on the market makes the work faster once somebody has already decided what the work is. Deciding is still one person, alone, guessing, then defending the guess. That is the wedge, and it must open every answer that describes the product.
+
+**The moat still matters, but it is the third layer's mechanism, not the headline.** Lead with the forecast and a reader never learns what the product does.
+
+**Five answers were reordered on this rule:** the 140-character differentiator, the one-sentence description, *what do you do in detail*, *what problem are you solving*, and *tell us about your competitors*.
+
+**One more defect fixed in the same pass:** the seven-station walk appeared near-verbatim in three separate fields. It was cut from the traction answer, which owns *zero users*, not *how the product works*. That duplication is the same one caught in the YC application on 2026-08-13.
+
 ## The five rules every answer below was written against
 
 Each was learned from a defect the founder caught in the YC application on 2026-08-13.
@@ -108,55 +122,50 @@ https://www.linkedin.com/in/rohit-gajaraj/
 ### 4. Describe your startup in one sentence
 
 ```
-Supaprod is an agent-run product organization: it reads a team's product
-signals, decides what is worth building, ships the code, and grades every call
-against what the team predicted before it found out.
+Supaprod tells a product team what to build, runs the whole lifecycle with
+agents to ship it, and grades every call against what the team predicted so the
+next one is sharper.
 ```
+Building got cheap inside eighteen months. Deciding what to build did not.
 
----
+82% of product people report AI already makes them measurably more productive,
+and over the same stretch burnout went from 44.7% to 55.7%, with the top fear
+being expected to do more for the same pay. Speed is solved. Nobody needs more
+output.
 
-## Product / Technology
+Every tool sold to a product team helps them do the work faster once somebody
+has already decided what the work is. Nobody sells the deciding. That is still
+one person, alone, guessing, and then defending the guess. A practitioner put it
+better than I can: PMs got faster at shipping but did not get better at
+defending why, and when delivery accelerates and clarity does not, AI
+accelerates confusion.
 
-### 5. What problem are you trying to solve, and how does your product uniquely solve it?
+Supaprod solves it in three layers, and each one is the precondition for the
+next.
 
-```
-Building got cheap inside eighteen months, so the bottleneck moved. 82% of
-product people report AI already makes them measurably more productive, and
-over the same stretch burnout went from 44.7% to 55.7%, with the top fear being
-expected to do more for the same pay. Speed is solved. Nobody needs more output.
+It tells a team what to build. Agents read everything the team already has:
+product data, market and competitor intelligence, customer voice, product
+feedback, analytics, and the team's own vision. They cluster it into what is
+worth looking at, argue down the weak bets, and come back with an actual call
+and the evidence behind it. Something a team can argue with, not a summary.
 
-What broke is judgment. A practitioner put it better than I can: PMs got faster
-at shipping but did not get better at defending why, and when delivery
-accelerates and clarity does not, AI accelerates confusion.
+It builds and ships it. Write the spec with its evidence attached, plan and
+design the work, build it, open the pull requests, ship, write the release
+notes. A person approves and merges.
 
-Supaprod runs the whole lifecycle with agents and keeps the reasoning attached
-to the work. Agents read what a team already has across Slack, Intercom,
-Zendesk, Canny, Productboard, Salesforce, HubSpot, Stripe and GitHub. They
-cluster it into what is worth looking at, argue down the weak ideas, write the
-spec with its evidence attached, plan and design the work, build it, open the
-pull requests, ship, write the release notes, and grade what shipped against
-what the spec promised. A person approves and merges.
+It learns what actually happened, and guides the next call. At the moment a
+decision is committed, Supaprod takes what the team expects to happen, how they
+will know, and by when. Those three fields freeze on write and a database
+trigger blocks every later edit. When the date falls due, the call is graded
+against what actually shipped, and that verdict re-ranks what the team is shown
+next.
 
-The part that is ours alone sits at the moment of the call. When a decision is
-committed, Supaprod takes what the team expects to happen, how they will know,
-and by when. Those three fields freeze on write and a database trigger blocks
-every later edit. When the date falls due, the agents bring it back, draft the
-verdict from what actually shipped, and file it against the decision that
-caused it.
-
-Everything else about a decision survives somewhere. Causes sit in Slack and
-call recordings, and an agent can rebuild them in an afternoon. A prediction
-made before the outcome was known leaves no trace at all unless something
-captured it at the time. That is the thing nobody can reconstruct, and it is
-what a team needs in order to learn whether it is getting better at deciding.
-```
-
----
-
-## Market
-
-### 6. How many potential customers are there and how large is the market?
-
+The third layer is the one nobody else can copy quickly. Causes survive in chat
+logs and call recordings, and an agent can rebuild them in an afternoon. A
+prediction made before the outcome was known leaves no trace at all unless
+something captured it at the time. That is the only part of a decision that
+cannot be reconstructed after the fact, and it is what turns a tool that ships
+work into one that gets better at choosing it.
 ```
 Roughly 2.6M product managers worldwide, plus the founders and engineering
 leads doing the same job without the title. That is the buyer.
@@ -189,84 +198,65 @@ first real test in beta.
 ### 7. Tell us about your competitors and why you are dramatically better
 
 ```
-The real competitor is a folder. Teams hand-roll this in markdown files and
-scripts, and it works until a second person or a fleet of agents touches it.
-Every do-it-yourself success I found is a single operator in a single context.
-Every failure is multi-person or multi-agent.
+Every one of them makes doing the work faster. Not one of them decides what the
+work should be, and not one tells you afterwards whether you were right. That is
+the whole gap, and it is where Supaprod sits.
 
-The named neighbours are close and getting closer. Notion shipped Ship OS free
-in July. Atlassian launched Product Collection in May, positioned around better
-decisions. Linear hands issues to coding agents. ChatPRD drafts specs for 100k+
-PMs. Every one of them makes doing the work faster.
+Notion shipped Ship OS free in July. Atlassian launched Product Collection in
+May, positioned around better decisions. Linear hands issues to coding agents.
+ChatPRD drafts specs for 100k+ PMs. Cursor and the labs generate the code. Each
+one is excellent at its step. A team still has to pick the step, sequence the
+steps, and carry the reasoning between them, which is what the PM actually does
+all day.
 
-None of them records whether the call was right, and none captures what a team
-expected before it found out. That is the difference, and it is a mechanism
-rather than a claim. At the moment a decision is committed, Supaprod takes what
-the team expects to happen, how they will know, and by when. Those three fields
-freeze on write and a database trigger blocks every later edit, including by
-the person who wrote them. When the date falls due, the agents bring it back,
-draft the verdict from what actually shipped, and file it against the decision
-that caused it.
+The real competitor is not any of them. It is a folder. Teams hand-roll this in
+markdown files and scripts, and it works until a second person or a fleet of
+agents touches it. Every do-it-yourself success I found is a single operator in
+a single context. Every failure is multi-person or multi-agent.
 
-I had this wrong at first and it is worth saying. I used to argue that a
-competitor could not rebuild your decision history. They can. Vercel's COO
-rebuilt why a deal was lost out of Slack, email and call recordings, using an
-agent built in two days. Causes survive. What nobody can rebuild is what a team
-believed before they found out, because almost nobody writes it down.
+Supaprod is dramatically better on one axis and honest about the rest: it owns
+the whole loop rather than a step. It tells a team what to build, it builds and
+ships it, and it grades the call afterwards so the next one is sharper. Nobody
+else spans all three, and the third is what makes the first two compound instead
+of just repeating.
 
-I also do not build the code generator. Cursor and the labs are in a capital
-fight there and the models keep absorbing that layer. Supaprod decides what is
-worth building, dispatches to whichever generator wins, and governs the result.
-```
+The mechanism, not an adjective. At the moment a decision is committed, Supaprod
+takes what the team expects to happen, how they will know, and by when. Those
+fields freeze on write and a database trigger blocks every later edit, including
+by the person who wrote them. When the date falls due the call is graded against
+what shipped, and that verdict re-ranks what the team sees next.
 
-**The question invites bragging and the answer refuses it.** SkyDeck asks why we are "dramatically better". Answering with a database trigger rather than an adjective is the whole register. The self-correction paragraph is deliberate: it is the retired moat claim, named as retired, which is the only way to say it now.
+I had this wrong at first and it is worth saying. I used to argue a competitor
+could not rebuild your decision history. They can. Vercel's COO rebuilt why a
+deal was lost out of Slack, email and call recordings, using an agent built in
+two days. Causes survive. What nobody can rebuild is what a team believed before
+it found out, because almost nobody writes it down.
 
----
-
-## Traction
-
-### 8. How much monthly revenue/users, and how quickly are you growing?
-
+I also do not build the code generator. That layer is a capital fight and the
+models keep absorbing it. Supaprod decides what is worth building, dispatches to
+whichever generator wins, and governs the result.
 ```
 Zero revenue and zero outside users. I would rather lead with that than have it
 found in paragraph four.
 
 Public launch is mid-September. What exists today is a working product rather
-than a market. It runs end to end and a reviewer can open a login and use it.
-Agents read what a team already has, cluster it into what is worth looking at,
-argue down the weak ideas, write the spec with its evidence attached, plan and
-design the work, build it, open the pull requests, ship, write the release
-notes, and grade what shipped against what the spec promised. A person approves
-and merges.
+than a market. It runs end to end, all three layers, and a reviewer can open a
+login and use it.
 
 What I can show in place of traction is the build. Ten weeks solo, 5,000+
-commits, 530+ database migrations, and 37 scheduled jobs that advance the
-system every minute without me starting anything. A film of it working:
-https://supaprod.ai/film
+commits, 530+ database migrations, and 37 scheduled jobs that advance the system
+every minute without me starting anything. A film of it working:
+https://youtu.be/x9WgGn0FyYU
 
-One thing I will not overstate. The part that grades a decision against what
-the team predicted is wired and proven end to end, and it begins accruing on
-first real use. There is no history in it yet, because nobody has used it yet.
+One thing I will not overstate. The third layer is wired and proven end to end,
+and it begins accruing on first real use. There is no history in it yet, because
+nobody has used it yet.
 
 The honest gap is not that there are no users. It is that I have had almost no
 contact with them, and that is the thing to fix rather than more product.
 Closing it is the entire next quarter, and it is the specific reason I am
 applying to a program built around customer introductions rather than one that
 only writes a cheque.
-```
-
-> ### This is the field that decides the application, and it is answered against the known weakness rather than around it
->
-> **SkyDeck's own sidebar says selected startups have "typically raised prior funding and achieved a level of customer traction".** We have neither. Every reader who pressure-tested the YC application landed on the same thing, and it was **not zero users but zero user contact.**
->
-> The last paragraph does the only thing available: it names the gap more precisely than a reviewer would, and it ties the ask to **SkyDeck's stated customer-introduction machinery** rather than to money. That is the one accelerator-specific sentence in the application and it should not be reused elsewhere unchanged.
-
----
-
-## Financial Info
-
-### 9. Current monthly burn rate (US dollars)
-
 ```
 Roughly $1,000 a month, varying between about $500 and $1,500 with how much
 agent work runs that month. That is AI model spend, infrastructure and tooling.
@@ -290,7 +280,7 @@ entity incorporated yet. Self-funded to date and I hold 100%.
 | 12 | Affiliation | **Global Founder** |
 | 13 | Other UC campus | **N/A** |
 | 14 | UC-affiliated status | **N/A** |
-| 16 | How did you hear about SkyDeck | ⛔ **UNANSWERED, founder's call** |
+| 16 | How did you hear about SkyDeck | **LinkedIn.** No X/Twitter option exists. The advisor and alumni options were refused: both claim a warm connection and the advisor one asks *which advisor* |
 | 17 | Former Pad-13 / IPP | **No, I am not a former SkyDeck Pad-13 or IPP startup** |
 | 19 | Ethnic background (optional) | **Asian American / Asian** ticked. Optional and self-identified; clear it if unwanted |
 | 20 | Female founders (optional) | **None** |
