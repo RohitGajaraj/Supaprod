@@ -10,7 +10,25 @@
 >
 > **Form:** `https://www.f6s.com/skydeck-batch-23/apply` (F6S login required).
 >
-> ⚠️ **This file exists because the F6S form does not autosave.** Network tracing during the filling session showed telemetry only and **zero save requests**. Treat this file as the source of truth and the form as a disposable copy.
+> ✅ **FILLED AND SAVED 2026-08-13.** Every answer below is live in the form and verified by re-fetching the page server-side. **Not submitted.** One field is unanswered and it is the founder's: Q16, *how did you hear about SkyDeck*.
+
+## The thing that wasted an hour, and it will waste yours too
+
+**F6S locks the entire question set behind a completed company page.** The Questions section renders with a padlock, no Submit button appears, and **nothing you type is saved** — network tracing showed telemetry beacons and zero writes. It looks exactly like a broken form. It is not.
+
+**The order is forced, and it is three gates, not one:**
+
+1. **A company page must exist and be substantially complete.** `f6s.com/<slug>`, reached from the yellow *"Let's get started → Create new"* panel on the programme page. **Check whether one already exists before creating** — the name field warns *"You're already on the X page"* and it is easy to read that as an error rather than as "you already have this."
+2. **Basic Information must reach n of n complete.** It auto-populates from the company page: tagline becomes *short description*, description becomes *what do you do in detail*, plus markets, stage and location. **Fill the company page well and this section fills itself.**
+3. **The Team section must reach 1 of 1.** The holdout is not obvious: it needs *Describe yourself*, *Your Skills*, **Location**, and at least one **Contact info** row. Miss any one and the questions stay locked.
+
+**Only then do the questions unlock and start saving.**
+
+> **Two traps inside the company page.**
+>
+> **F6S auto-adds parent categories to market tags, and some of them are wrong.** Picking *Agent Management* silently added **Human Resources**, because F6S reads "agent" as a call-centre agent. Picking *Product Management* silently added **Consulting**. Both misclassify a product company. **Re-read the tag list after every pick.**
+>
+> **Backspace deletes tags once the text box is empty.** Clearing a half-typed entry with a run of backspaces removed all seven committed tags. Dismiss uncommitted text by clicking away, never by holding backspace.
 >
 > This supersedes [`application.md`](./application.md), which was drafted against guessed questions before the form was opened. That file is kept for comparison, not for pasting.
 
