@@ -53,6 +53,51 @@ supply chain. First time I owned something with nobody above me to approve
 the call, and the first time I learned how expensive a wrong one is.
 ```
 
+### Technical University of Munich — MBA (NEW ENTRY, add this)
+
+**Closes the nineteen-month hole between ISRO ending Sep 2019 and Bosch starting Apr 2021.** Education already covers it, but reviewers scan the two sections separately and a gap in the work timeline is noticed first.
+
+```
+Technical University of Munich, TUM School of Management
+MBA, Business Administration and Management
+Oct 2019 - Nov 2022 · Munich, Germany
+```
+
+```
+Leaving ISRO is not a normal move in India. It is the national space agency,
+people spend years trying to get in, and it is not a job people walk away
+from. I did, with nothing lined up on the other side.
+
+I picked TUM because the management school sits inside Germany's top-ranked
+technical university rather than beside it, and I did not want to stop being
+technical. From 2021 I worked through it, first at Bosch and then at
+Infineon, so the last eighteen months were a full-time job and a degree at
+the same time.
+```
+
+**Use `Oct 2019 - Nov 2022`, identical to the Education entry.** If the two sections disagree on the same degree by a single month, that is the one inconsistency a reviewer can catch without leaving the page.
+
+**Three escalating facts, no adjective in any of them.** *"A job millions of people in India dream about"* asks the reader to be impressed. *"People spend years trying to get in, and it is not a job people walk away from"* states how that career works, and then **"I did"** carries the whole thing. Admiration the reader supplies is the only kind that survives.
+
+**It also pre-explains every overlap below it.** A reviewer who reads this first never has to wonder why Bosch, Infineon and the MBA all run together, and *"a full-time job and a degree at the same time"* is the diligence signal without the word.
+
+**One line of university context, and only one.** *"Germany's top-ranked technical university"* is checkable and useful for a reader who does not know TUM. More than that reads as insecure, which is the opposite of the intent.
+
+### Bosch Software and Digital Solutions — Product Analyst: KEEP, and fix the typo
+
+**The instinct to cut it is understandable.** Six months, a junior title, and blockchain market research is the weakest-signal line on the page in 2026.
+
+**Keep it anyway, for one reason that outweighs all of that: it is on his LinkedIn, and this profile links to his LinkedIn.** A reviewer who opens the link and finds a role missing from the YC profile has found an omission, and an omission reads far worse than a short junior job. Consistency across two surfaces he controls is worth more than the marginal drag of one weak entry.
+
+**The live form reads "Bitcoin in Lighting Network".** That is Lightning, and a typo on a founder profile is a small diligence signal working the wrong way.
+
+```
+First product role in Europe, taken during the MBA. Market and technical
+research on emerging payment rails, including Bitcoin's Lightning Network.
+```
+
+Six months now reads as a deliberate stint alongside study rather than a job that did not work out.
+
 ### Infineon Technologies — Product Manager
 
 ```
@@ -156,14 +201,13 @@ am glad to walk any of them with you.
 ### "Competitions, awards, papers"
 
 ```
-MBA from TUM in Munich, done while working full-time. My thesis was on the
-creator and ownership economy.
+My MBA thesis at TUM was on the creator and ownership economy.
 
 The bubble tea venture was incubated at IIM Bangalore's NSRCEL and
 recognised under Startup India.
 ```
 
-**"Done while working full-time" does two jobs.** It is the diligence signal, and it silently answers the MBA-over-Infineon overlap a reviewer would otherwise pause on.
+**The MBA itself is cut from this field.** With the new work-history entry it would appear in three places: Education, Work History and here. Three mentions of one degree is padding. **Work History owns the timeline and the story; this field owns the thesis.**
 
 **Web3 is dropped from the thesis line.** True and dated 2022, but in 2026 the word costs a small discount for no gain, and the interesting half is the creator and ownership economy.
 
