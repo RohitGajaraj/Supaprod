@@ -30,11 +30,13 @@
 Cadence is now Supaprod. I renamed it after submitting and the form will
 not let me change the name. Same product, live at https://supaprod.ai.
 
-It works end to end today. A team connects the places their user feedback
-already sits. Supaprod reads it, groups it into what is worth looking at,
-and argues against the weak ideas before the team commits to one. The spec
-comes out with the evidence attached, and coding agents pick up the build.
-They open real pull requests. A person merges them.
+It works end to end today. A team points it at what they already have:
+user feedback, product data, sales and support conversations, what
+competitors are shipping. Supaprod turns that into what is worth building
+next, weighed against where the team already wants to take the product,
+and argues down the weak ideas before anyone commits. The spec comes out
+with the evidence attached, and coding agents pick up the build. They open
+real pull requests. A person merges them.
 
 Built since I applied: when a team commits a decision, Supaprod asks three
 things. What they expect to happen, how they will know, and by when. Those
@@ -172,12 +174,13 @@ _48 characters._ **Alternate, if the plainer read is wanted:** `Agents run produ
 ```
 Supaprod runs product work when agents do the building.
 
-A team connects the places their user feedback already lives: Slack,
-Zendesk, Intercom, GitHub. Supaprod reads it, groups it into what is worth
-looking at, and argues against the weak ideas before the team commits.
-Then it writes the spec with the evidence attached and hands the build to
-coding agents. The team approves what matters. Nothing merges without a
-person.
+A team points it at everything they already have. User feedback, product
+analytics, sales and support conversations, market and competitor
+movement, and the direction they have already decided they want to go.
+Supaprod reads all of it, groups it into what is worth looking at, and
+argues against the weak ideas before the team commits. Then it writes the
+spec with the evidence attached and hands the build to coding agents. The
+team approves what matters. Nothing merges without a person.
 
 What makes it a company is what gets kept. Every agent action is recorded,
 every decision carries the evidence behind it, and every gate records who

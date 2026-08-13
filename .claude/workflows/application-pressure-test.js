@@ -189,6 +189,17 @@ Before any sentence ships, ask: would I say this out loud, in these words, to a 
 sitting across a table who wants to know what this is? If it would sound rehearsed,
 inflated or like a deck, rewrite it the way you would actually say it.
 
+**3. DESCRIBE THE PRODUCT BY WHAT A TEAM FEEDS IT AND GETS BACK, NEVER BY THE PLUMBING.**
+The connector list is what it plugs into, not what it does, and writing from the
+inventory silently narrows the product. "A team connects the places their user feedback
+sits" is wrong twice over: the inputs are user feedback AND product analytics AND sales
+and support conversations AND market and competitor movement AND the direction the team
+has already chosen, and naming four integrations implies the set stops there.
+
+Before shipping any product sentence, ask what the fullest true version of the input is,
+then whether the sentence covers it. Under-describing is as much a defect as overclaiming
+and it is far harder to notice, because a narrow sentence still reads as true.
+
 Corollaries the founder named directly:
 - No drama words, no invented programme vocabulary, no category language.
 - Never make the plan sound small. "One person at a time" reads as no ambition. State
