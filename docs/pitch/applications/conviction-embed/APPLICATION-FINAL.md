@@ -345,10 +345,12 @@ Solo today, and open to a cofounder who shares the thesis.
 ## Filed. What is owed now.
 
 1. 🔗 **Send the endorsement link. This is the live action and it has a shelf life.** `https://embed.conviction.com/endorse/73794e94-33a1-43c1-95a9-7b8fedd39d26` — an endorsement is worth most while the application is still being read, so this is a this-week job, not a someday one. Candidates are people who have watched the work directly rather than the most senior names available.
-2. ⏳ **The retreat is 11-13 September and demo day is 12 November.** A decision has to land before the retreat, so expect an answer inside roughly four weeks.
-3. ⚠️ **Both videos went in over the stated two-minute cap** — founder 2:32, demo 2:22. If the programme comes back on length, a 2:00 cut of either is a small job.
-4. **Numbers in the filed text are frozen at 2026-08-14**: 5,000+ commits, 530+ migrations, 37 scheduled jobs, ten weeks. **Re-derive rather than re-quote** in the next application.
-5. **Log the outcome** in [`../README.md`](../README.md) and on the [Notion Application Board](https://app.notion.com/p/4014ff9cb1c240c9a3b761e790852970), with the decision date and their exact words. **Record what they actually say, never a paraphrase** — South Park Commons was written up as *"not the right fit"* when no reason had been given at all.
+2. ⏳ **Rolling admissions, which changes the urgency of point 1.** Their own wording is *"rolling admissions over the month"* — decisions come continuously rather than on a cutoff date, **so an endorsement that arrives after the file has been read is worth nothing.** Send it in days, not weeks.
+3. **Duration: plan on roughly two months, September to mid-November, and do not quote a figure back to them.** Their site publishes no length. The two dates it does publish, retreat **11-13 September** and demo day **12 November**, span **nine weeks**, while a secondary source describes Embed as an **eight-week** programme. The conflict is unresolved, so the honest form is *about two months*.
+4. **No interview process is published.** No stages, no timeline, nothing on what follows submission. **Do not assume an interview stage exists.** They state selectivity as *"<1% selection in first batches"*.
+5. ⚠️ **Both videos went in over the stated two-minute cap** — founder 2:32, demo 2:22. If the programme comes back on length, a 2:00 cut of either is a small job.
+6. **Numbers in the filed text are frozen at 2026-08-14**: 5,000+ commits, 530+ migrations, 37 scheduled jobs, ten weeks. **Re-derive rather than re-quote** in the next application.
+7. **Log the outcome** in [`../README.md`](../README.md) and on the [Notion Application Board](https://app.notion.com/p/4014ff9cb1c240c9a3b761e790852970), with the decision date and their exact words. **Record what they actually say, never a paraphrase** — South Park Commons was written up as *"not the right fit"* when no reason had been given at all.
 
 ## Related
 
