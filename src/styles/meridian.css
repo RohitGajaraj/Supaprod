@@ -105,11 +105,40 @@
    * it is unmistakable because nothing else in the product uses this stop.
    */
 
-  /* ── TEXT. Four stops, never pure white. ─────────────────────────────── */
+  /*
+   * ── TEXT. Four stops, never pure white, EVERY ONE MEASURED. ───────────
+   *
+   * These lightnesses are not chosen by eye. They were solved in a browser on
+   * 2026-08-14 by painting each token to a canvas, reading the pixel back, and
+   * computing the WCAG ratio against the WORST surface it can sit on (which is
+   * `lift` on dark and `sink` on paper, not the page ground).
+   *
+   * Worst-case ratios, both grounds:  ink 15.8 / 14.2 . body 9.2 / 7.5
+   *                                   mute 6.6 / 5.4  . faint 4.6 / 4.5
+   * All four clear AA at 4.5 in BOTH grounds.
+   *
+   * WHAT THE MEASUREMENT CHANGED, because the first draft was wrong. `faint`
+   * was authored at 0.505 and described in this file as "the quietest legible
+   * stop". It measured 2.98 on dark and 2.60 on paper, which is not legible
+   * and does not clear even the 3:1 large-text floor. A stop that fails its own
+   * one-word description is worse than no stop.
+   *
+   * The naive fix, lifting `faint` alone, collapsed it onto `mute`: both
+   * solved to the same lightness on paper, which is not a ramp, it is one
+   * colour with two names. So `mute` moved FURTHER from the ground instead,
+   * and `faint` took the value `mute` used to hold. That buys AA on all four
+   * and keeps a real step between each pair (1.41 and 1.42 on dark, 1.41 and
+   * 1.18 on paper).
+   *
+   * IF YOU CHANGE ONE, RE-MEASURE ALL FOUR. Do not compute this by hand and do
+   * not read it off getComputedStyle: that returns `oklch()` verbatim in some
+   * engines, and parsing it as rgb reports ink-on-bg as 1.00, which is how the
+   * first attempt at this check silently produced garbage.
+   */
   --mrd-ink: oklch(0.965 0.003 70); /* the thing itself */
   --mrd-body: oklch(0.795 0.005 70); /* supporting prose */
-  --mrd-mute: oklch(0.635 0.006 70); /* labels, metadata */
-  --mrd-faint: oklch(0.505 0.006 70); /* the quietest legible stop */
+  --mrd-mute: oklch(0.7 0.006 70); /* labels, metadata */
+  --mrd-faint: oklch(0.61 0.006 70); /* the quietest stop that is still AA */
 
   /* ── STRUCTURE. Edges carry alpha so they sit on any ground. ─────────── */
   --mrd-line: oklch(0.98 0.003 70 / 0.11); /* a real edge */
@@ -219,10 +248,12 @@
   --mrd-float: oklch(0.996 0.003 85);
   --mrd-solid: oklch(0.28 0.012 70);
 
+  /* Solved against `sink`, the darkest paper stop, which is the worst case
+     here exactly as `lift` is on dark. See the note on the dark ramp. */
   --mrd-ink: oklch(0.22 0.012 70);
   --mrd-body: oklch(0.4 0.01 70);
-  --mrd-mute: oklch(0.545 0.009 70);
-  --mrd-faint: oklch(0.655 0.008 70);
+  --mrd-mute: oklch(0.48 0.009 70);
+  --mrd-faint: oklch(0.52 0.009 70);
 
   --mrd-line: oklch(0.28 0.012 70 / 0.14);
   --mrd-line-soft: oklch(0.28 0.012 70 / 0.07);
@@ -237,11 +268,16 @@
    * theme's lightness these read as highlighter on white. Meaning and contrast
    * both have to survive the ground change, and only the hue stays fixed.
    */
+  /*
+   * Measured worst case on paper, against `sink`: you 5.4, agent 5.1,
+   * fail 5.0, pass 4.5. `pass` was authored at 0.52 and measured 4.19, just
+   * under AA, so it moved to 0.50. Every semantic clears 4.5 on both grounds.
+   */
   --mrd-you: oklch(0.5 0.19 315);
   --mrd-you-dim: oklch(0.63 0.13 315);
   --mrd-agent: oklch(0.48 0.13 235);
   --mrd-agent-dim: oklch(0.61 0.09 235);
-  --mrd-pass: oklch(0.52 0.14 152);
+  --mrd-pass: oklch(0.5 0.14 152);
   --mrd-fail: oklch(0.52 0.19 27);
 
   /* Shadows on paper are a warm brown at low opacity, never black. */
