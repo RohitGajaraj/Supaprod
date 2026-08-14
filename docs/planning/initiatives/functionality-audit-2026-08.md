@@ -39,11 +39,13 @@ Verified, so that nobody rebuilds it.
 
 ---
 
-## 2. The three mechanisms that were live and doing nothing
+## 2. What exists but is broken, flaky, or partially wired
+
+### 2A. Three mechanisms that were live and doing nothing
 
 This is the headline, and all three share one shape: **a gate whose control side was never built.**
 
-### 2.1 P0 — `auto_derive_enabled` had no writer anywhere in the repo
+#### 2A.1 P0 — `auto_derive_enabled` had no writer anywhere in the repo
 
 ```sql
 SELECT count(*) AS ws, count(*) FILTER (WHERE auto_derive_enabled) AS derive_on FROM workspaces;
@@ -60,7 +62,7 @@ Dead with it: insight resolution, brier scoring, the 72h generator throttle, and
 
 **Fixed** by building the writers it never had (`src/lib/workspace-automation.functions.ts`), RLS-enforced and zero-row checked. **Deliberately not fixed:** arming it across the fleet, which starts recurring model spend on 21 workspaces. That is a founder call under standing ruling 3.
 
-### 2.2 P0 — the guard test then found a second one
+#### 2A.2 P0 — the guard test then found a second one
 
 A test asserting the real invariant — *a column the code branches on must be a column some code can write* — immediately surfaced `auto_scout_enabled`: identical state, 0 of 21, gating `scout-tick` (hourly) and `competitor-tick` (weekly).
 
@@ -68,7 +70,7 @@ Four other gating flags were checked and are healthy, so this is a real distinct
 
 The guard is `src/lib/workspace-automation.test.ts`, proven red by removing a flag from the catalogue and green by restoring it.
 
-### 2.3 P0 — the observability layer reported failed jobs as successful
+#### 2A.3 P0 — the observability layer reported failed jobs as successful
 
 `withJobRun` writes `status='ok'` when its callback **resolves** and `status='error'` only when it **throws**, and fires the external heartbeat on the same branch. At least twelve tick handlers `return json({...}, 500)` from *inside* that callback. Returning a Response is resolving.
 
@@ -78,9 +80,9 @@ So a tick failing on every invocation writes an unbroken run of `ok` rows on sch
 
 ---
 
-## 3. Money and correctness
+### 2B. Money, concurrency and correctness
 
-### 3.1 P0 — no Stripe webhook idempotency exists at all
+#### 2B.1 P0 — no Stripe webhook idempotency exists at all
 
 ```sql
 SELECT count(*) FROM information_schema.tables WHERE table_name IN ('stripe_events','webhook_events');
@@ -89,15 +91,15 @@ SELECT count(*) FROM information_schema.tables WHERE table_name IN ('stripe_even
 
 `event.id` is never read; the type cast in the handler does not even include it. Stripe delivers at-least-once, and `reset_subscription_cycle` unconditionally sets `balance_credits = _grant`. **A redelivered `invoice.payment_succeeded` after the customer has spent credits restores them to full, free.**
 
-### 3.2 P0 — customer charged, zero credits granted, 200 returned, no retry
+#### 2B.2 P0 — customer charged, zero credits granted, 200 returned, no retry
 
 The Stripe line-items fetch has no `r.ok` check and no timeout. On a 401/429/500 the error body parses fine, `lookup_key` is undefined, the grant is skipped, and the route still answers 200 — so Stripe never retries. Compounding: the three payment RPCs never destructure `error`, so their try/catch blocks are decorative, and `apply_topup_credits` returns an `applied` flag that is discarded, making a capped grant indistinguishable from a successful one.
 
-### 3.3 P0 — double refund mints credits from nothing
+#### 2B.3 P0 — double refund mints credits from nothing
 
 `refundAbandonedRunCredits` reads `credits_refunded`, refunds, then stamps the flag with no precondition and no `.select()`. Two concurrent callers (there are two call sites) both read `false` and both refund. The migration's own comment delegates idempotency to the caller; the caller does not hold it. The fix is to make the flag the claim: stamp first, conditionally, and refund only if you won.
 
-### 3.4 P0 — `accounts.owner_id` has no unique index
+#### 2B.4 P0 — `accounts.owner_id` has no unique index
 
 ```sql
 SELECT count(*) FROM pg_indexes WHERE tablename='accounts' AND indexdef ILIKE '%UNIQUE%owner_id%';  -- 0
@@ -106,25 +108,25 @@ SELECT count(*) FROM (SELECT owner_id FROM accounts GROUP BY owner_id HAVING cou
 
 `ensure_user_default_account` is SELECT-then-INSERT and runs on every billing read. Two parallel page loads at signup both see null and both insert: two accounts, two credit pools, two monthly grants, spend split so every cap under-counts. **Zero duplicates exist today, which is luck, not design.**
 
-### 3.5 P0 — the same approval can execute twice
+#### 2B.5 P0 — the same approval can execute twice
 
 Three writers set approval status with no `.eq("status","pending")` precondition, and `executeApproval` checks `approved` by *reading*, runs the tool, and only stamps `executed` afterwards — so the window is the entire tool run. Two approval surfaces exist. The consequence is `studio.pr.merge` **merging a customer PR twice**, `studio.commit` pushing twice, and `delegate.openhands` dispatching a second paid external job. There is no unique index and no state-machine trigger on `agent_approvals` to catch it.
 
 Worse, the expiry sweeper updates by id alone, so it can flip an already-`executed` approval back to `expired` with a fabricated error, after which the resume path tells the agent the tool was never run.
 
-### 3.6 P0 — `resume-runs` replays live agent runs, every 60 seconds
+#### 2B.6 P0 — `resume-runs` replays live agent runs, every 60 seconds
 
 It selects runs with `status='running'` and a stale checkpoint, then resumes them. The compare-and-swap inside `resumeAgentLoop` covers only `queued` and `waiting_approval`; `running` falls straight through. Stale is 2 minutes, the cron period is 60 seconds. Two or more workers replay the same checkpoint: doubled model calls, doubled credit debits, doubled tool execution including GitHub writes, and interleaved checkpoint writes.
 
-### 3.7 P1 — budget meters lose updates permanently
+#### 2B.7 P1 — budget meters lose updates permanently
 
 `incrementBudget` reads `daily_usd_used`, adds in JavaScript, and blind-writes. Two concurrent calls both read 10.00 and both write 10.50. Unlike the balance check this is **not self-correcting**: the ledger is permanently short and the cap under-reports for the rest of the window. The adjacent `record_mission_usage` does the same job correctly as an atomic `SET x = x + n`.
 
 ---
 
-## 4. What is stubbed, dark, or claimed but not implemented
+## 3. What is stubbed or claimed but not implemented
 
-### 4.1 P0 — the guidance loop has never carried a real outcome
+### 3.1 P0 — the guidance loop has never carried a real outcome
 
 This is the product's central claim, so it gets the most evidence.
 
@@ -146,7 +148,7 @@ Three causes, each verified:
 
 **The honest form remains: the loop is wired and proven, and it begins accruing on first real use.** It is now able to.
 
-### 4.2 P0 — the agent surface is a reader, not an operator
+### 3.2 P0 — the agent surface is a reader, not an operator
 
 Measured against the lifecycle verbs, **19 of 20 are UI-only**; only "ingest a signal" has full coverage. The product's own agents run on a 55-tool registry that is unreachable from outside the process; external agents got 11 reads and 4 writes.
 
@@ -160,17 +162,17 @@ All three were minted by calling the SQL RPC directly, *around* the validator. T
 
 Still open: no idempotency key on any external write, no bulk operations anywhere (a user with 200 pending approvals has 200 clicks), errors returned as prose rather than typed codes, and no way for an agent to obtain a credential without a human visiting a web page.
 
-### 4.3 P1 — built-but-unreachable code
+### 3.3 P1 — built-but-unreachable code
 
 27 server-function modules (~4,400 lines) have no production importer. The notable ones: `today-lanes.functions.ts` (559 lines — an entire Today information architecture that `/today` does not use), `calendar.functions.ts` (724 lines), `goals.functions.ts` and `loops.functions.ts` (the SW-4 GOAL and LOOP modes), `briefing.functions.ts`. `surface-registry.ts` independently self-declares 91 surfaces as `status: "planned"`, and the two lists largely agree — the server half was built, the UI half was not.
 
 `funnel-week2` is the fleet's one genuinely dead loop: a complete, auth-guarded, `withJobRun`-wrapped endpoint with no cron entry in any of the 533 migrations. Rated P1 rather than P0 because its readers have no callers either — it is dead code driving a dead read.
 
-### 4.4 P0 — the connector "connect" loop
+### 3.4 P0 — the connector "connect" loop
 
 `linear.functions.ts` reads only shared admin env keys and never the per-user vault token the OAuth flow mints. A user who **completes** the Linear OAuth round-trip is told *"Linear isn't connected yet. Link it from Integrations"* — pointed back at the flow they just finished. Same shape for `notion` and `google_docs`. Separately, 11 of 20 connector adapters are `stubAdapter`, whose `validate()` returns "adapter not implemented", so "Test it" fails for all 11.
 
-### 4.5 P1 — silent failures that present as legitimate zeroes
+### 3.5 P1 — silent failures that present as legitimate zeroes
 
 706 call sites destructure `{ data }` without checking `error`. The consequential ones are where an empty array feeds a *claim*: the public proof page prints "0 supersessions caught" on any DB error; the drift health check fails open to `ok: true`; the loop-stall detector reports "idle" because it could not look, and its type has no `unknown` verdict to express the difference; the credits ledger records a delta computed from an unchecked read.
 
@@ -178,7 +180,7 @@ The generalization is precise and worth keeping: **a readiness flag that exists 
 
 ---
 
-## 4.6 The spine, traced end to end — P0
+## 3.6 The spine, traced end to end — P0
 
 The founder's question is whether one piece of work travels Discover to Learn. Traced in production, station by station.
 
@@ -230,7 +232,7 @@ Credits are a secondary blocker on two accounts only: tracks in workspaces holdi
 
 ---
 
-## 6. Priorities, and the reasoning
+## 6. Priorities, and the reasoning (see also the register in section 8)
 
 Worked in this order, and the reasoning is not severity alone:
 
@@ -252,3 +254,48 @@ Fixes are landing with tests proven red before green by planting the defect, not
 - Removing a flag from the automation catalogue turns the writer test red, which is the property that would have caught `auto_derive_enabled` six weeks ago.
 
 The per-cycle gate stays `bunx tsc --noEmit` plus `bun test`, and green must be measured on the merged tree rather than one worktree, because three worktrees share this commit.
+
+---
+
+## 8. The register
+
+Every finding in one table, with what happened to it. `Closed` means fixed with a test proven red before green. `Deferred` always carries a reason; a deferral with no reason is just a thing nobody did.
+
+| # | P | Finding | Status |
+| --- | --- | --- | --- |
+| 1 | P0 | `withJobRun` records success when a handler returns a 500 from inside it, so twelve ticks could fail forever while every dashboard stayed green | **Closed.** Guarded durably: a non-2xx return is now a failure in the ledger, so the next tick written cannot reintroduce it |
+| 2 | P0 | `auto_derive_enabled` readable and unwritable for six weeks; calibration, brier scoring and the whole forecast audit selected zero rows | **Closed.** Writers built; guard test then found `auto_scout_enabled` in the same state |
+| 3 | P0 | Arming those two flags fleet-wide | **Deferred.** Starts recurring model spend on 21 workspaces. Founder call under standing ruling 3, not an agent's |
+| 4 | P0 | No Stripe webhook idempotency at all; a redelivered renewal refills spent credits free | **Closed.** `stripe_events` claim, released on a thrown handler so the retry path still works |
+| 5 | P0 | Customer charged, zero credits granted, 200 returned so Stripe never retries | **Closed.** `r.ok` checked, timeout added, RPC errors and the `applied` flag now read |
+| 6 | P0 | Double refund mints credits from nothing | **Closed.** The flag is now the claim, taken before the refund |
+| 7 | P0 | `accounts.owner_id` not unique on a SELECT-then-INSERT path that runs on every billing read | **Closed.** Unique index, with a migration that names duplicates loudly rather than failing cryptically |
+| 8 | P0 | The same approval could execute twice, merging a customer PR twice | **Closed.** Claim taken before `def.run()`, plus a DB trigger making the illegal transition impossible for any writer |
+| 9 | P0 | Expiry sweeper overwrote an executed approval, then told the agent the tool never ran | **Closed.** |
+| 10 | P0 | `resume-runs` replayed live agent runs every 60 seconds: doubled model calls, credits and GitHub writes | **Closed.** Five-minute lease on the `running` branch |
+| 11 | P0 | Duplicate and silently-dropped customer email from one block | **Closed.** Claim before send; a failed send releases the claim |
+| 12 | P0 | The guidance loop had never carried a real outcome: `agent_memory` held zero `outcome` rows against 358 precedent lookups | **Closed.** The one `if` its own comment prescribed removing |
+| 13 | P0 | Three of four MCP write tools could never be authorized; the mint path kept a stale scope list | **Closed.** Derived from the tool map and pinned by a test |
+| 14 | P0 | The moat surface had no agent access at all: no read, no write | **Closed.** `record_forecast`, `settle_forecast`, `list_due_forecasts`, with separate scopes |
+| 15 | P0 | Auto-settle gate rested on a false premise, letting agent-judges-outcome authorize agent-judges-forecast | **Closed.** Now reads `outcome->>settled_by` |
+| 16 | P0 | Forecast tick could clobber a human verdict mid-`callModel`, and re-billed the same call forever | **Closed.** Compare-and-swap, plus a read of the write result |
+| 17 | P0 | A settled forecast could never be reopened, inverting the property its own column exists for | **Closed.** Reopening appends to an append-only log; no update or delete policy exists on it |
+| 18 | P0 | Credit refusal misclassified as a station failure, freezing tracks permanently | **Closed.** Matched on the error's code, not its prose |
+| 19 | P0 | A track frozen by an empty account could never recover once paid | **Closed.** The attempt ceiling no longer applies to a money hold |
+| 20 | P0 | **The spine is starved at station one: no real inbound signal source is connected** | **Open, and not a code fix.** Nine OAuth providers built-and-unregistered, `FIRECRAWL_API_KEY` unset. Both already on this repo's founder-gated list |
+| 21 | P0 | 12 tracks blocked behind approvals unanswered for up to 86 hours; nothing surfaces the cost of not answering | **Open.** Building the programmatic approval path rather than faking the rows |
+| 22 | P0 | A starved station is misdiagnosed as a broken one, sending a person to inspect a station instead of connecting a source | **Open.** `STATION_NEEDS.sense` already has the right words; `needIsMet` is the wrong predicate |
+| 23 | P0 | The connect loop: a user who completes Linear OAuth is told to go and connect Linear | **Open.** Auth reads shared env keys, never the per-user vault token the flow mints |
+| 24 | P1 | `agentic_model` silently discarded on save; every unattended tick ran on a model nobody chose | **Closed.** Plus a guard comparing what the caller sends against what the schema accepts |
+| 25 | P1 | Budget meters lose updates permanently, so the cap under-reports for the rest of the window | **Open.** Needs an atomic RPC in the shape of `record_mission_usage` |
+| 26 | P1 | No idempotency key on any external write; `record_decision` twice makes two decisions | **Open.** `withIdempotency` already exists and is unused on external paths |
+| 27 | P1 | No bulk operations on any machine surface; 200 pending approvals means 200 clicks | **Open.** |
+| 28 | P1 | Tool errors are prose, not typed codes; no `Retry-After` on a 429 | **Open.** |
+| 29 | P1 | 27 server modules (~4,400 lines) with no importer, including a whole Today IA that `/today` does not use | **Open.** Each is a wire-up or a deletion, and both are product calls rather than defects |
+| 30 | P1 | Silent failures presenting as legitimate zeroes on health, analytics and public proof surfaces | **Partly closed.** The tick and connector cases are fixed; the health-surface `unknown` state is open |
+| 31 | P2 | Seat limits dormant (`limit_gates_enabled()` returns false) and racy the moment they are switched on | **Open.** Nothing enforces seats today, in JS or SQL |
+| 32 | P2 | A locked four-tier pricing ruling was never implemented; code still ships five tiers on old slugs | **Open.** |
+
+**Why this order.** The observability lie went first because it is the multiplier: every other finding here was invisible while a failed job reported success, and fixing it turns "trust this audit" into "watch it happen." Then the switches with no writers, because they are cheap and they un-dark three mechanisms at once including the moat's. Then the moat's agent surface, because the positioning rests on it. Then money, because the failure is unrecoverable and silent. Then double execution, because merging a customer's PR twice is the most externally visible failure in the list.
+
+**What I did not do, and would not.** I did not arm the automation flags across the fleet, and I did not approve the 12 stuck gates in the database to make the spine appear to move. Setting `approved` without `executed` would resume the run telling the agent a tool ran when it did not, and a demonstration that moves because the record lies is worse than one that is honestly stuck.
