@@ -165,7 +165,7 @@ Open each, tell me open or closed, and I will draft against whichever are live.
 | Where | What it holds |
 | --- | --- |
 | **[🏆 Notion: All Funding Programmes, Ranked](https://www.notion.so/e6a24c8fc4bb49aab2160de95b862749)** | The live board. Sort by Score, filter by Tier, Call, Region or Days left |
-| [`sweep/all-programmes-ranked.csv`](./sweep/all-programmes-ranked.csv) | **All 571 rows, 18 columns, nothing truncated.** Notion imports this natively — Import → CSV — so the whole set can be rebuilt as a database in one click |
+| [`all-programmes-ranked.csv`](./all-programmes-ranked.csv) | **All 571 rows, 18 columns, nothing truncated.** Notion imports this natively — Import → CSV — so the whole set can be rebuilt as a database in one click |
 | [`../../../scripts/rank-funding-programmes.py`](../../../scripts/rank-funding-programmes.py) | The scorer. Re-run it when a page state changes and the ranking updates |
 
 **Why a script rather than judgement.** 571 programmes cannot be ranked by hand without the ranking drifting between the first row and the last. The rubric is code, so every score is reproducible and auditable. The weights follow the founder's stated priority order: **deadline · location · money · dilution · brand · network · customer access · realistic odds · effort.**

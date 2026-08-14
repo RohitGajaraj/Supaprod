@@ -1,6 +1,63 @@
 # Pick up here
 
-> _Created: 2026-08-07 · Last updated: 2026-08-14, 19:05 IST (Lane 0 and Lane 1 both closed within five minutes; the applications section below them is still live and still dated)_
+> _Created: 2026-08-07 · Last updated: 2026-08-14, 19:10 IST. **Three lanes closed within ten minutes of each other: funding, design, engineering — in that order below.**_
+
+## ✅ FUNDING LANE CLOSED 2026-08-14 ~19:10 IST. 571 programmes swept, ranked and tiered.
+
+> **Start here: [`docs/pitch/applications/what-to-apply-for-next.md`](../pitch/applications/what-to-apply-for-next.md).** It is the standing answer to *"what do we apply for next"* and it does not need re-deriving.
+
+| Artefact | What it is |
+| --- | --- |
+| [`applications/what-to-apply-for-next.md`](../pitch/applications/what-to-apply-for-next.md) | ⭐ **The queue, in order.** Read this first |
+| [`applications/gate-2-ranking.md`](../pitch/applications/gate-2-ranking.md) | Tiers, calls with reasoning, **the ask recommendation with comparables** |
+| [`applications/FUNDING-TRACKER.csv`](../pitch/applications/FUNDING-TRACKER.csv) | The founder's Excel dashboard. **Stale — built before the relocation re-weighting** |
+| [`applications/all-programmes-ranked.csv`](../pitch/applications/all-programmes-ranked.csv) | All 571 rows, 23 columns, with a `Status` column |
+| [`applications/sweep/`](../pitch/applications/sweep/README.md) | The eleven lanes with page evidence. **Temporary — delete when the ranking is settled** |
+| [`scripts/rank-funding-programmes.py`](../../scripts/rank-funding-programmes.py) | The scorer. Re-run it, never hand-edit a score |
+| [`scripts/harvest-workflow-journal.py`](../../scripts/harvest-workflow-journal.py) | Lands each agent's output as it finishes |
+
+**Notion:** [🏆 All Funding Programmes, Ranked](https://www.notion.so/e6a24c8fc4bb49aab2160de95b862749) (75 rows loaded) · [🎯 Gate 2](https://app.notion.com/p/3bc3f54c86c28183a103e005b9776c27) · [💸 Application Board](https://app.notion.com/p/4014ff9cb1c240c9a3b761e790852970)
+
+### Three founder rulings that now govern screening
+
+Full text at the top of [`applications/README.md`](../pitch/applications/README.md).
+
+1. **A deadline is a rumour until the form contradicts it.** HF0 sat in the closed pile on a date from one unverified aggregator while its form was live. **Only the programme's own page justifies a skip, quoted.**
+2. **No entity is a funding-release condition, not an eligibility bar.** Hub71 was recorded as a hard blocker on an ADGM entity; its form asks which country your HQ is in, not where you are registered.
+3. **Solo founder is one condition, not a stop.** Of 571 programmes, exactly one — Surge by Peak XV — turned out to be a genuine wall.
+
+### The priority order, restated late in the session
+
+**Money and its size · network access · credits · relocation to the US · everything else.** Deadline breaks ties and never outranks what is on offer.
+
+**Relocation is solved** — the founder is quitting his job and ready to move — so an in-person programme anywhere is a neutral fact rather than a cost. That re-weighting moved **Tier 1 from 17 to 39** and put US programmes with real money at the top.
+
+### Act on these
+
+| When | What |
+| --- | --- |
+| **2 days** | **CF Accelerator #9** (€25K, zero equity) and **ikigai Launchpad** ($100K/8%) |
+| **7 days** | **Hub71 Access + Hub71+ AI** — one filing covers both |
+| **16 days** | **EF The Bridge Residency SF** — **the draft already exists in this repo** |
+| **18 days** | **Solo Founders Program SF** — $100K for 2.5%, best terms-per-percent on the list |
+| **carried over** | Send the **Conviction endorsement link**; **re-arm the demo approval queues before 09-08** |
+
+**Ten pages need the founder to open them** — Notion sites and JS-only apps a fetcher cannot pass. Listed with evidence in `gate-2-ranking.md`. The three that matter most: **Cisco Scale Hub at Station F**, **EXIST-Gründerstipendium**, **Microsoft GenAI Studio at Station F**.
+
+### What is not done
+
+- **Notion holds 75 of 571 rows.** The CSV is richer and Notion imports it natively; pushing the rest one by one truncates every text field.
+- **Five sweep lanes never got a dedicated verify agent.** Measured rather than assumed: they carry page evidence and terms on 100% of rows, and two are better resolved than a lane that did get one. Re-running them buys almost nothing.
+- **The Excel dashboard is stale** — pre-reweighting. Re-run Claude in Excel over `all-programmes-ranked.csv`.
+
+### Four things that cost time, so they are written down
+
+- **A workflow returns nothing until it finishes.** A 25-agent run died on a session limit holding 41 programmes when 452 were already discovered. The harvester is why they survived. See [`subagents.md`](./subagents.md).
+- **`pipeline()` drops a whole item when a later stage throws.** One failed verify agent discarded 50 good discovered programmes. The script now falls back to the discovered records.
+- **Excel saved a summary over its own source CSV**, cp1252 instead of UTF-8, 571 rows down to 124. **The dashboard and the dataset are two files and never share a filename.** Lane 1 caught the same thing independently and flagged it below.
+- **Measuring the wrong column, three times.** Lane quality inferred from journal-entry counts. Credits ranked as cheques. Fund sizes parsed as investments. Each time the thing measured was not the thing that changes.
+
+---
 
 ## ✅ LANE 0 CLOSED 2026-08-14 ~19:00 IST. The audit is written, twenty commits are on main, and what remains needs you rather than an agent.
 

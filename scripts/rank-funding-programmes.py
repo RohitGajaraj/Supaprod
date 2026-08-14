@@ -24,6 +24,7 @@ Deadline stays a strong axis because a closing form is a forcing function, not
 a preference -- but it no longer outranks the value of what is on offer.
 
 Usage:  scripts/rank-funding-programmes.py > /tmp/ranked.json
+Output lands at docs/pitch/applications/all-programmes-ranked.csv (see session notes).
 """
 import json
 import glob
