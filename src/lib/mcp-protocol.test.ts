@@ -252,6 +252,7 @@ describe("MCP_TOOLS catalog integrity", () => {
 // ───────────────────────────────────────────────────────────────────────────
 import {
   MCP_READ_TOOL_NAMES,
+  MCP_WRITE_SCOPES,
   MCP_WRITE_TOOL_NAMES,
   WRITE_SCOPE_BY_TOOL,
   canCallWriteTool,
@@ -282,6 +283,28 @@ describe("INTEROP Q2 — write-tool catalog", () => {
       expect(typeof WRITE_SCOPE_BY_TOOL[name]).toBe("string");
       expect(WRITE_SCOPE_BY_TOOL[name].length).toBeGreaterThan(0);
     }
+  });
+
+  /**
+   * THE PIN THAT WAS MISSING, and its absence cost three working tools.
+   *
+   * A tool is only reachable if a token can carry its scope. The mint path kept
+   * a SECOND, hand-written allow-list, and when the write layer grew from one
+   * tool to four that list was never widened -- so record_decision, draft_spec
+   * and settle_outcome were catalogued, dispatched, and individually unit-tested
+   * while being impossible to authorize. Every existing test asked "does this
+   * tool declare a scope"; none asked "can that scope be granted". This is that
+   * question, and it fails the moment the two lists disagree again.
+   */
+  test("every scope a write tool requires is one the mint path can grant", () => {
+    for (const name of MCP_WRITE_TOOL_NAMES) {
+      expect(MCP_WRITE_SCOPES).toContain(WRITE_SCOPE_BY_TOOL[name]);
+    }
+  });
+
+  test("the grantable scope list invents nothing no tool asks for", () => {
+    const required = new Set(Object.values(WRITE_SCOPE_BY_TOOL));
+    for (const scope of MCP_WRITE_SCOPES) expect(required.has(scope)).toBe(true);
   });
 });
 

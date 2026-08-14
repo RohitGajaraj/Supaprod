@@ -6,6 +6,7 @@ import { supersededChildIds, type LineageEdgeLite } from "./trust-ledger.functio
 import { screenIngestText, INGEST_REVIEW_TAG } from "./ingest-guardrails";
 import { OutcomeContractSchema } from "./discovery.functions";
 import { buildArdDocument, type ArdDesignSection } from "./ard-schema";
+import { MCP_WRITE_SCOPES } from "./mcp-protocol";
 import { loadDesignDispatchContext } from "@/lib/build/design-gate.server";
 
 /**
@@ -60,11 +61,21 @@ export const issueMCPToken = createServerFn({ method: "POST" })
         workspace_id: z.string().uuid(),
         slug: z.string().min(1).max(100),
         rate_limit_per_min: z.number().int().min(1).max(1000).optional(),
-        // INTEROP-V11 Q2: capability scopes. Constrained to the known write
-        // scopes (allow-list) so a token can never be minted with an arbitrary
-        // scope string; default [] = read-only. A write scope is INERT until the
-        // global interop_write_enabled() gate is flipped on.
-        scopes: z.array(z.enum(["write:signal"])).optional(),
+        // INTEROP-V11 Q2: capability scopes. Still an allow-list, so a token can
+        // never be minted with an arbitrary scope string; default [] =
+        // read-only. A write scope is INERT until the global
+        // interop_write_enabled() gate is flipped on.
+        //
+        // TAKEN FROM WRITE_SCOPE_BY_TOOL RATHER THAN LISTED AGAIN. This was a
+        // hand-kept second copy reading `["write:signal"]`, and when the write
+        // layer grew from one tool to four on 2026-08-10 it was never widened.
+        // record_decision, draft_spec and settle_outcome were catalogued,
+        // dispatched, scope-checked and unit-tested while being impossible to
+        // authorize through the product: the only tokens in production carrying
+        // write:decision were minted by calling the SQL RPC directly, around
+        // this validator. Deriving the list means a new write tool is mintable
+        // the day it is added, and mcp-protocol.test.ts pins the two together.
+        scopes: z.array(z.enum(MCP_WRITE_SCOPES as unknown as [string, ...string[]])).optional(),
       })
       .parse(i ?? {}),
   )

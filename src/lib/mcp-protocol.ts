@@ -214,6 +214,22 @@ export const WRITE_SCOPE_BY_TOOL: Readonly<Record<string, string>> = {
   settle_outcome: "write:outcome",
 };
 
+/**
+ * Every capability scope a token may be granted, DERIVED from the tool map above
+ * rather than written out a second time.
+ *
+ * The mint path used to carry its own hand-kept allow-list, and it had fallen a
+ * founder ruling behind: it accepted `write:signal` alone, so `record_decision`,
+ * `draft_spec` and `settle_outcome` were catalogued, dispatched, tested, and
+ * impossible to authorize through the product. Three built write tools were
+ * unreachable because one enum in a different file was never widened alongside
+ * them. Deriving it here means adding a write tool makes it mintable the same
+ * day, and the two lists cannot drift apart again.
+ */
+export const MCP_WRITE_SCOPES: readonly string[] = [
+  ...new Set(Object.values(WRITE_SCOPE_BY_TOOL)),
+].sort();
+
 export const MCP_WRITE_TOOLS: McpTool[] = [
   {
     name: "ingest_signal",

@@ -4078,43 +4078,41 @@ const learningRecord = def({
      * The reporting half now sits OUTSIDE the guard, so every path that reaches
      * this point either carries a memory id or says why it does not.
      *
-     * PARTIAL, AND THIS IS THE HALF THAT IS STILL BROKEN. An unattributable
-     * verdict is now REPORTED. It still does not REACH the pool, because
-     * `rememberOutcome`'s `prdId` is `string`, not `string | null`
-     * (src/lib/ai/memory.server.ts), so there is no call to make without a spec.
-     * The real fix is to widen that parameter to `string | null` and call this
-     * unconditionally, so a verdict compounds on its own text even with no spec
-     * behind it. That is one line in another file plus dropping the `if` here;
-     * until it lands, the branch below is a smoke alarm, not a sprinkler. */
+     * CLOSED 2026-08-14. The widening this comment asked for had already landed
+     * in src/lib/ai/memory.server.ts, whose `prdId` reads `string | null` and
+     * whose docblock says null is a real, supported case. The `if` it asked to
+     * drop had not been. So the sprinkler was plumbed and the valve stayed shut,
+     * and the pool measured ZERO 'outcome' rows for another eight days while 358
+     * precedent lookups ran against it.
+     *
+     * A verdict now compounds on its own text whether or not a spec could be
+     * resolved. That is the correct behaviour and not a lowering of the bar: the
+     * lesson "we shipped the wrong thing for the third time" is worth recalling
+     * on its own words, and demanding a foreign key before a lesson may be
+     * remembered was always a filing rule wearing the costume of a data rule.
+     * The spec id remains on the row when there is one, so attribution is not
+     * lost, only stopped from being a precondition. */
     let outcomeMemoryId: string | null = null;
     let outcomeMemoryError: string | null = null;
-    if (resolvedPrdId) {
-      try {
-        const memory = await rememberOutcome(supabase, {
-          userId,
-          workspaceId: resolvedWorkspace,
-          prdId: resolvedPrdId,
-          opportunityId,
-          learningId,
-          content: a.summary,
-          importance: a.verdict === "uncertain" ? 3 : 5,
-          verdict: a.verdict,
-          priorIce,
-          newIce,
-          prdTitle,
-          oppTitle,
-        });
-        outcomeMemoryId = memory.id;
-        outcomeMemoryError = memory.error;
-      } catch (e) {
-        outcomeMemoryError = e instanceof Error ? e.message : String(e);
-      }
-    } else {
-      // Not a failure of the memory writer — the writer was never reachable.
-      // Said in the words a person reading error_events needs, because "no
-      // memory was written" without the reason sends them to the wrong file.
-      outcomeMemoryError =
-        "No spec could be resolved for this verdict, so no outcome memory was written: rememberOutcome requires a prdId. The learning is on the record and carries prd_id null.";
+    try {
+      const memory = await rememberOutcome(supabase, {
+        userId,
+        workspaceId: resolvedWorkspace,
+        prdId: resolvedPrdId,
+        opportunityId,
+        learningId,
+        content: a.summary,
+        importance: a.verdict === "uncertain" ? 3 : 5,
+        verdict: a.verdict,
+        priorIce,
+        newIce,
+        prdTitle,
+        oppTitle,
+      });
+      outcomeMemoryId = memory.id;
+      outcomeMemoryError = memory.error;
+    } catch (e) {
+      outcomeMemoryError = e instanceof Error ? e.message : String(e);
     }
     if (outcomeMemoryError) {
       // Awaited, not fired and forgotten: an unawaited promise in a Cloudflare

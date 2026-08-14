@@ -111,7 +111,7 @@ export async function auditDueForecasts(
   supabase: SupabaseClient,
   userId: string,
   workspaceId: string,
-): Promise<{ drafted: number; autoSettled: number }> {
+): Promise<{ drafted: number; autoSettled: number; raced: number; failed: number }> {
   const nowIso = new Date().toISOString();
   const { data: due, error } = await supabase
     .from("decisions")
@@ -124,12 +124,29 @@ export async function auditDueForecasts(
     // surface can never disagree about what is due.
     .or(dueCheckFilter(nowIso))
     .limit(AUDIT_BATCH);
-  if (error) return { drafted: 0, autoSettled: 0 };
+  /**
+   * A FAILED READ IS NOT AN EMPTY QUEUE, and the old `return {drafted:0}` made
+   * the two identical. The caller wrote `ok: true` either way, so a workspace
+   * whose forecast pass could not read the table looked exactly like one with
+   * nothing due -- in job_runs, in the HTTP response, and in telemetry at once.
+   * Throwing lets calibrate-tick record the workspace as failed.
+   */
+  if (error) throw new Error(`forecast audit could not read due forecasts: ${error.message}`);
 
   let drafted = 0;
   let autoSettled = 0;
+  let raced = 0;
+  let failed = 0;
 
   for (const raw of (due ?? []) as unknown as DueRow[]) {
+    let settledThisRow = false;
+    /**
+     * PER ROW, so one failure cannot truncate the batch. Without this a single
+     * callModel throw -- an exhausted budget, or GovernanceHaltError from the
+     * kill switch -- abandoned every remaining forecast silently, so rows 1..k
+     * got drafts and k+1..10 got nothing and nobody learned which.
+     */
+    try {
     const link = await linkedOutcomeIsSettled(supabase, raw.prd_id);
     const res = await callModel(supabase as never, userId, {
       surface: "decision",
@@ -175,11 +192,55 @@ export async function auditDueForecasts(
         }),
       );
       autoSettled++;
+      settledThisRow = true;
     }
 
-    await supabase.from("decisions").update(patch).eq("id", raw.id).select("id");
+    /**
+     * GUARDED ON forecast_resolution IS NULL, AND THE RESULT IS READ.
+     *
+     * Two separate defects lived on the one unguarded line this replaces.
+     *
+     * The race: a `callModel` round trip sits between the SELECT that found this
+     * row and this write. A person settling the same forecast at the desk inside
+     * that window had their verdict, their rationale, their timestamp and their
+     * NULL agent slug overwritten, and the row restamped as auto-settled. The
+     * `.is()` clause makes the update a compare-and-swap on the exact column
+     * that means "already decided", so the human always wins and a second tick
+     * running concurrently cannot double-settle. The sibling module guards its
+     * write the same way and for the same reason (outcome-suggestion.server.ts).
+     *
+     * The unread result: supabase-js RESOLVES a refused write, so `drafted++`
+     * ran whether or not a row changed. That made a permanently-failing pass
+     * report `forecastsDrafted: N`, and because the row stayed unresolved it was
+     * still due on the next tick, re-billing the paid model call above forever.
+     * A tick that cannot write should say so and stop paying to rediscover it.
+     */
+    const { data: written, error: writeError } = await supabase
+      .from("decisions")
+      .update(patch)
+      .eq("id", raw.id)
+      .is("forecast_resolution", null)
+      .select("id");
+
+    if (writeError) {
+      failed++;
+      continue;
+    }
+    if (!written || written.length === 0) {
+      // Not an error: somebody settled this forecast while the model was
+      // thinking. Their verdict stands and this draft is simply stale.
+      if (settledThisRow) autoSettled--;
+      raced++;
+      continue;
+    }
     drafted++;
+    } catch {
+      // The row is untouched and still due, so the next tick retries it. What
+      // must not happen is the remaining rows being dropped on the floor.
+      if (settledThisRow) autoSettled--;
+      failed++;
+    }
   }
 
-  return { drafted, autoSettled };
+  return { drafted, autoSettled, raced, failed };
 }
