@@ -1,7 +1,7 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, test, expect } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { stillWaiting } from "../query-state";
+import { stillWaiting, waitingOnNothing } from "../query-state";
 
 /**
  * A RETURNING USER WAS TOLD TO CONNECT THEIR FIRST SOURCE.
@@ -377,5 +377,75 @@ describe("the guard is a property of the file, not of one line in it", () => {
     // still carry the shape; both are named above with what each one renders.
     expect(offenders.length).toBeLessThanOrEqual(STILL_GUARDING_ON_ISLOADING);
     expect(offenders).not.toContain("Ship");
+  });
+});
+
+describe("a query that will never run is not a query you are waiting on", () => {
+  /**
+   * THE HANG, pinned. `enabled: false` leaves a react-query v5 result at
+   * `isPending: true, isError: false, data: undefined, fetchStatus: "idle"` for
+   * the entire life of the component. That satisfied every clause of
+   * stillWaiting, so a surface whose precondition was missing sat in front of a
+   * permanent spinner with no error text and no retry.
+   *
+   * Measured on production 2026-08-14: Today's three reads are all
+   * `enabled: Boolean(workspaceId)`, and activeWorkspaceId is null for a user in
+   * zero workspaces. needsOnboarding keys on profiles.onboarded rather than on
+   * membership and returns false on a read error, so that user reaches Today.
+   */
+  const disabled = { isPending: true, isError: false, data: undefined, fetchStatus: "idle" } as const;
+
+  test("a disabled query does not hold the surface in a wait", () => {
+    expect(stillWaiting(disabled)).toBe(false);
+  });
+
+  test("and waitingOnNothing names what is actually true", () => {
+    expect(waitingOnNothing(disabled)).toBe(true);
+  });
+
+  /**
+   * THE NARROWNESS IS THE SAFETY. Only `idle` counts. A paused query is offline
+   * and will retry, and a fetching one is on its way; reporting either as
+   * never-coming would render an empty state over data that is genuinely
+   * arriving, which is the original defect at the top of this file.
+   */
+  test("a paused or in-flight query is still coming", () => {
+    expect(stillWaiting({ isPending: true, data: undefined, fetchStatus: "paused" })).toBe(true);
+    expect(stillWaiting({ isPending: true, data: undefined, fetchStatus: "fetching" })).toBe(true);
+  });
+
+  /**
+   * A settled query is idle too. Without the isPending clause this would call
+   * every answered query never-coming and end the wait a render early, which is
+   * the same bug pointing the other way.
+   */
+  test("a query that has already answered is not mistaken for a disabled one", () => {
+    const answered = { isPending: false, data: [1, 2], fetchStatus: "idle" } as const;
+    expect(stillWaiting(answered)).toBe(false);
+    expect(waitingOnNothing(answered)).toBe(false);
+  });
+
+  test("one live query among disabled ones still holds the wait", () => {
+    const live = { isPending: true, data: undefined, fetchStatus: "fetching" } as const;
+    expect(stillWaiting(disabled, live)).toBe(true);
+    // Not ALL of them are switched off, so the surface is not missing a
+    // precondition, it is mid-load.
+    expect(waitingOnNothing(disabled, live)).toBe(false);
+  });
+
+  test("callers that pass no fetchStatus behave exactly as before", () => {
+    // Every existing call site and stub omits it. An omitted fetchStatus must
+    // never be read as idle, or this fix would end waits it has no business
+    // ending.
+    expect(stillWaiting({ isPending: true, data: undefined })).toBe(true);
+    expect(waitingOnNothing({ isPending: true, data: undefined })).toBe(false);
+  });
+
+  test("an error still wins, because a failure is not a missing precondition", () => {
+    expect(stillWaiting({ isPending: true, data: undefined, isError: true, fetchStatus: "idle" })).toBe(false);
+  });
+
+  test("waitingOnNothing is false when asked about nothing", () => {
+    expect(waitingOnNothing()).toBe(false);
   });
 });

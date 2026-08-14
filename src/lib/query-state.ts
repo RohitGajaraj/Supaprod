@@ -51,7 +51,32 @@
  * meaning what they meant: an omitted `isError` is falsy, so every existing
  * assertion in that file returns exactly what it returned before.
  */
-export type AnswerableQuery = { isPending: boolean; data: unknown; isError?: boolean };
+export type AnswerableQuery = {
+  isPending: boolean;
+  data: unknown;
+  isError?: boolean;
+  /**
+   * `fetchStatus` FROM REACT-QUERY, AND WITHOUT IT A DISABLED QUERY HANGS FOREVER.
+   *
+   * A query with `enabled: false` is `isPending: true, isError: false, data:
+   * undefined` for the whole life of the component. That is case 1 in the
+   * docblock above, and it satisfies every clause of `stillWaiting`, so a
+   * surface built on this helper waits on an answer that is never coming.
+   *
+   * Measured on production 2026-08-14: Today's three reads are all
+   * `enabled: Boolean(workspaceId)`, and `activeWorkspaceId` resolves to null
+   * for a user who belongs to zero workspaces. `needsOnboarding` keys on
+   * `profiles.onboarded` rather than on membership, and returns false on a read
+   * error, so that user reaches Today and sits in front of three permanent
+   * spinners with no error text and no retry.
+   *
+   * react-query separates the two questions: `isPending` is "has an answer ever
+   * arrived", `fetchStatus` is "is one on its way". Only `'idle'` while pending
+   * means nobody is coming. Optional, so every existing caller and every
+   * hand-rolled stub keeps meaning exactly what it meant.
+   */
+  fetchStatus?: "fetching" | "paused" | "idle";
+};
 
 /**
  * True while ANY of the given queries has yet to produce an answer.
@@ -87,5 +112,38 @@ export type AnswerableQuery = { isPending: boolean; data: unknown; isError?: boo
  * removing them is a separate, wider edit than the one that fixes the defect.
  */
 export function stillWaiting(...queries: AnswerableQuery[]): boolean {
-  return queries.some((q) => !q.isError && (q.isPending || q.data === undefined));
+  return queries.some((q) => !q.isError && !isNeverComing(q) && (q.isPending || q.data === undefined));
+}
+
+/**
+ * A query that is switched off, and will therefore never answer.
+ *
+ * `enabled: false` in react-query v5 leaves a query pending and idle forever. It
+ * is not slow, it is not failing, and it is not going to arrive: the surface
+ * asked for nothing. Treating that as "still waiting" is what turns a missing
+ * precondition into a spinner nobody can escape.
+ *
+ * DELIBERATELY NARROW, and the narrowness is the safety. `paused` (offline, will
+ * retry) and `fetching` are both genuinely coming, so only `idle` counts. And a
+ * query that has ALREADY answered goes idle too, which is why `isPending` has to
+ * be true as well: without that clause this would report every settled query as
+ * never-coming and end the wait one render early, which is the original defect
+ * at the top of this file in reverse.
+ */
+function isNeverComing(q: AnswerableQuery): boolean {
+  return q.isPending === true && q.fetchStatus === "idle";
+}
+
+/**
+ * The state a disabled query actually means: the surface is missing something it
+ * needs before it can ask anything at all.
+ *
+ * Exported because ending the wait is only half the fix. `stillWaiting` going
+ * false renders the surface's EMPTY state, and telling a user with no workspace
+ * that their workspace is empty is a different wrong answer from the spinner it
+ * replaces. A surface that can be reached without its precondition should ask
+ * this and say so plainly. This is the seam; what it looks like is Lane 1's.
+ */
+export function waitingOnNothing(...queries: AnswerableQuery[]): boolean {
+  return queries.length > 0 && queries.every(isNeverComing);
 }

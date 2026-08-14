@@ -16,9 +16,10 @@ The raw output of each audit pass behind [`../functionality-audit-2026-08.md`](.
 | Pass | Scope | File |
 | --- | --- | --- |
 | The long tail | Daily-driver screens, orphans, and the unwired server layer | [`long-tail-and-orphans.md`](./long-tail-and-orphans.md) |
+| Admin | Eleven tabs of controls that render, fire, and change nothing | [`admin-surfaces.md`](./admin-surfaces.md) |
+| Billing and connectors | What a paying user and a connecting user actually see | [`billing-and-connectors.md`](./billing-and-connectors.md) |
 | Seven stations | Discover through Learn, from the user's point of view | pending, see below |
 | Agent surfaces | Agents, crew, approvals, governance, trust | pending, see below |
-| Workspace and admin | Settings, onboarding, billing, admin, connectors | pending, see below |
 
 **Three passes died mid-flight on 2026-08-14 and are being re-run.** Four were launched at once, and each spawned children of its own, so the real concurrency was closer to eight while two other lanes were also fanning out. Every one of them returned `Connection lost mid-response`. The founder's cap is two at a time, and the correction this taught is that the cap has to count NESTED spawns, not just the ones launched directly: four became eight without anybody choosing that.
 
