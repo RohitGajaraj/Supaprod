@@ -1,8 +1,41 @@
 # The design system
 
-> _Created: 2026-08-03 · Last updated: 2026-08-03_
+> _Created: 2026-08-03 · Last updated: 2026-08-14_
 
-**This is the current design contract for every Supaprod surface.** It replaces `DESIGN.md` (Ember), `DESIGN-OBSIDIAN.md` (v3), `DESIGN-LOOM.md` (v4) and `DESIGN-TEMPO.md` (v5 Tempo). All four are retired history, kept in [`archive/`](./archive/) for reference only. **Never build from them, and never cite them as authority.**
+> ## ⚠️ SUPERSEDED IN PART, 2026-08-14. READ THIS BEFORE THE REST OF THE FILE.
+>
+> The founder retired **every** prior design system on 2026-08-14, this one included, and
+> instructed that the platform be designed from the product rather than inherited from its own
+> history. The named lineage he retired: v1, v2, v3, Obsidian, Tempo, and Cadence/ink.
+>
+> **The current system is Meridian: [`../../src/styles/meridian.css`](../../src/styles/meridian.css).**
+> Its header carries the reasoning, the scene that decided the ground, and the colour rule. Read it
+> before building anything.
+>
+> **What Meridian replaces in this file:** the token layer. Every `--sp-*` reference below, the
+> `ink.css` / `primitives.css` / `shell.css` stack, and the "we are past the reskin" paragraph.
+> `--sp-*` is now **life support**, not a contract: 32 route files still render through it and
+> deleting it in one move would break every surface at once, which is exactly how the 2026-07
+> rebuild failed. So: no new surface may use it, every migrated surface drops it, and the layer is
+> deleted when the last one moves. **Never extend it.**
+>
+> **What in this file still binds,** because it is a founder ruling about judgement rather than
+> about tokens:
+> - The **ratchet**: no change may make a surface worse to satisfy an instruction.
+> - The **standard**: the states nobody screenshots are composed, not merely handled.
+> - **Colour carries status, never decorates**, and must survive a greyscale test.
+> - **Look at it before you ship it.** Both rejected button designs were reasoned from tokens and
+>   neither was ever rendered.
+> - The **Engine-Room doctrine** and **humanized output**.
+> - The **open UX backlog** below, which is still largely undelivered.
+> - **Copy the proven pattern per surface**, and file the research in
+>   [`REFERENCE-PATTERNS.md`](./REFERENCE-PATTERNS.md) in the same session. The 19-component
+>   agentic reference library captured on 2026-08-14 is filed there, with its source and licence.
+>
+> The rest of this file is kept because the *reasons* recorded in it are expensive and still true.
+> Read it as the record of how we got here, not as the contract for what to build next.
+
+**This was the design contract from 2026-08-03 until 2026-08-14.** It replaced `DESIGN.md` (Ember), `DESIGN-OBSIDIAN.md` (v3), `DESIGN-LOOM.md` (v4) and `DESIGN-TEMPO.md` (v5 Tempo). All four are retired history, kept in [`archive/`](./archive/) for reference only. **Never build from them, and never cite them as authority.**
 
 ---
 

@@ -47,14 +47,12 @@ const orbit = Array.from({ length: 9 }, (_, i) => {
 
 export type LoadingVariant = "Drive" | "Dots" | "Orbit";
 
-const PATTERNS: Record<
-  LoadingVariant,
-  { delays: (number | null)[]; dur: number; round: boolean }
-> = {
-  Drive: { delays: chevron, dur: 650, round: false },
-  Dots: { delays: chevron, dur: 650, round: true },
-  Orbit: { delays: orbit, dur: 950, round: false },
-};
+const PATTERNS: Record<LoadingVariant, { delays: (number | null)[]; dur: number; round: boolean }> =
+  {
+    Drive: { delays: chevron, dur: 650, round: false },
+    Dots: { delays: chevron, dur: 650, round: true },
+    Orbit: { delays: orbit, dur: 950, round: false },
+  };
 
 /**
  * Ticks in tenths, which moves visibly without forcing a render every frame.
