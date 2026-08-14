@@ -4,7 +4,7 @@
 
 **Why it is built this way.** The research tool returns everything at the end. A run that dies on the last lane would take every earlier lane with it, and each lane costs real time because every programme is checked against its own live apply page rather than a listing.
 
-**11 lanes landed · 568 programmes captured · 🟢 249 open · 🟡 232 blocked · ⚪ 87 closed**
+**11 lanes landed · 568 programmes captured · 🟢 258 open · 🟡 220 blocked · ⚪ 90 closed**
 
 | Lane | Stage | Programmes |
 | --- | --- | --- |
@@ -18,7 +18,7 @@
 | [`live-signal-x`](./lane-live-signal-x.md) | discovery only, verification running | 48 |
 | [`nordics-baltics-benelux`](./lane-nordics-baltics-benelux.md) | discovery only, verification running | 46 |
 | [`uk-ireland`](./lane-uk-ireland.md) | discovery only, verification running | 48 |
-| [`us-ai-native`](./lane-us-ai-native.md) | discovery only, verification running | 58 |
+| [`us-ai-native`](./lane-us-ai-native.md) | verified | 58 |
 
 `raw/` holds one untouched JSON file per completed agent. Nothing is merged into it and nothing overwrites it, so it is the recovery point if a roll-up above is ever wrong.
 
