@@ -5,11 +5,14 @@ import * as React from "react";
 
 import { SendBackSheet } from "@/components/approvals/SendBack";
 import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
+import { NeedsSetup } from "@/components/meridian/NeedsSetup";
+import { taskStatus } from "@/components/meridian/TaskRows";
 import { AskComposer } from "@/components/today/AskComposer";
 import { DecisionQueue } from "@/components/today/DecisionQueue";
 import { FocusNext } from "@/components/today/FocusNext";
 import { PushedInsights } from "@/components/today/PushedInsights";
 import { QuietMorning } from "@/components/today/QuietMorning";
+import { RunState, ShippedState } from "@/components/today/RunState";
 import { ago, daysSince, withinLastDay } from "@/components/today/when";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useSelection } from "@/components/shell/use-selection";
@@ -18,6 +21,7 @@ import {
   Block,
   Button,
   Door,
+  Empty,
   Failed,
   Loading,
   Num,
@@ -103,6 +107,36 @@ import "@/styles/today.css";
 export const Route = createFileRoute("/_authenticated/today")({
   component: Today,
   head: () => ({ meta: [{ title: "Today · Supaprod" }] }),
+  /**
+   * THE FRONT DOOR HAD NO FLOOR UNDER IT.
+   *
+   * Every read on this surface is guarded, and a guarded read is not the only
+   * way a page dies. A throw anywhere in the render tree below -- a mission row
+   * with a shape the formatter did not expect, a queue item missing a field a
+   * child dereferences -- landed on the router's own default, on the one screen
+   * a person opens first and the one screen that is supposed to tell them
+   * whether their morning is clear. Seven surfaces carry this boundary and this
+   * was the only one without it.
+   *
+   * IT SAYS WHAT IS STILL TRUE, then offers the way out. A page that failed to
+   * draw is not a record that lost anything, and the first thing a person needs
+   * to know is which of the two happened. `reset` re-renders the tree rather
+   * than reloading the tab, so a retry costs nothing and keeps the session.
+   */
+  errorComponent: ({ error, reset }) => (
+    <Surface wide>
+      <PageHead
+        title="Today did not open."
+        sub="Whatever the crew did overnight is still on the record. This is the page failing to draw it."
+      />
+      <Block>
+        <Empty>{(error as Error)?.message ?? "The reason did not come back with the error."}</Empty>
+        <Button variant="primary" onClick={reset}>
+          Try again
+        </Button>
+      </Block>
+    </Surface>
+  ),
 });
 
 /* The four states a run can be in that this surface has a lane for. Anything
@@ -152,9 +186,25 @@ const laneDoor = (total: number): string =>
 const LEARNING_BLOCK = "The last thing it learned";
 
 const VERDICT_LABEL: Record<string, string> = { ship: "Ship", revise: "Revise", kill: "Kill" };
-const VERDICT_TONE: Record<string, "pass" | "warn" | "fail"> = {
+/**
+ * THREE VERDICTS, TWO COLOURS, AND THAT IS THE WHOLE POINT.
+ *
+ * `revise` used to take the "warn" tone, which resolves to gold. Gold IS
+ * BANNED, and this is not an absence to be filled in: founder ruling
+ * 2026-08-14 removed yellow, mustard, amber and gold from the entire system.
+ * There is no warn token because there must not be one, so do not add one to
+ * meridian.css to give this a third hue. Ship and kill are OUTCOMES and get
+ * green and red, and revise is not an outcome at all, it is a call still to be
+ * made. Painting it a third hue asked the reader to memorise a lookup table for
+ * a word that already says exactly what it means.
+ *
+ * So it is quiet, and the word carries it. A verdict that reads "Revise" in
+ * plain ink between one that is green and one that is red is not ambiguous; it
+ * is the one that has not landed yet, which is true.
+ */
+const VERDICT_TONE: Record<string, "pass" | "quiet" | "fail"> = {
   ship: "pass",
-  revise: "warn",
+  revise: "quiet",
   kill: "fail",
 };
 
@@ -327,7 +377,12 @@ function Lane({
 function Today() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { activeWorkspace } = useWorkspace();
+  const {
+    activeWorkspace,
+    workspaces,
+    isLoading: readingWorkspaces,
+    refreshWorkspaces,
+  } = useWorkspace();
   const workspaceId = activeWorkspace?.id ?? null;
 
   // Engine-Room: Today names outcomes, decisions and evidence. Agent internals stay recessed.
@@ -742,6 +797,71 @@ function Today() {
     shipped.length,
   ]);
 
+  /**
+   * THE THIRD FACT, WHICH THIS SURFACE HAS NEVER TOLD APART FROM THE OTHER TWO.
+   *
+   * A person in zero workspaces reaches Today, and every read on this surface is
+   * `enabled: Boolean(workspaceId)`. A disabled query reports pending for ever,
+   * so `stillWaiting` never stands down: the headline sits on "Today", the
+   * shipped lane reads "Reading what the crew finished." and neither ever
+   * changes. Ending that wait by falling through to the empty state is a
+   * different wrong answer rather than a fix, because it tells someone with no
+   * workspace that their workspace is quiet.
+   *
+   * Three facts, and the product has been collapsing them into two: NOTHING
+   * EXISTS YET, THE READ FAILED, and A PRECONDITION IS MISSING. This is the
+   * third, and it is the one a first-time reader actually opens.
+   *
+   * THE REFUSED READ IS SEPARATED FROM IT rather than folded in. The workspace
+   * list is a react-query read like any other and it can refuse, and what a
+   * refusal leaves behind is an empty list, which is exactly what belonging to
+   * no workspace leaves behind. `useWorkspace` reports the list and whether it
+   * is still reading and nothing else, so the third fact is read from the cache
+   * the hook already fills. That costs no fetch and changes no wiring, and it is
+   * the whole difference between "you are not in a workspace" and "we could not
+   * find out".
+   *
+   * NEITHER BRANCH WEARS THE ACCENT. Joining a workspace is a setup act, not a
+   * decision: dressing it as one sends a reader hunting for a call to make, and
+   * there is no call here, only a thing to put in place.
+   */
+  const workspacesRefused = queryClient.getQueryState(["workspaces"])?.status === "error";
+  const noWorkspace = !readingWorkspaces && !workspacesRefused && workspaces.length === 0;
+  const workspacesUnreadable = !readingWorkspaces && workspacesRefused && workspaces.length === 0;
+
+  if (noWorkspace || workspacesUnreadable) {
+    return (
+      <Surface wide>
+        <div className="today-page">
+          <p className="today-greeting">{greeting}</p>
+          {/* "Today" rather than a sentence about the state, because the state
+              is the thing below and saying it twice is the ban this file's own
+              lane subtitle records. The subtitle names the boundary instead,
+              which is the one fact neither of the two bodies below states. */}
+          <PageHead title="Today" sub="Everything on this surface belongs to a workspace." />
+          {workspacesUnreadable ? (
+            <Block title="The workspaces you are in">
+              <Failed onRetry={() => refreshWorkspaces()}>
+                This could not be read, so it cannot tell a quiet morning from a workspace it never
+                saw.
+              </Failed>
+            </Block>
+          ) : (
+            <NeedsSetup
+              kind="no-workspace"
+              thenWhat="this opens on what the crew finished overnight, what is waiting on your call, and what stopped."
+              action={
+                <Button variant="primary" onClick={() => navigate({ to: "/onboarding" })}>
+                  Set up your workspace
+                </Button>
+              }
+            />
+          )}
+        </div>
+      </Surface>
+    );
+  }
+
   return (
     <Surface wide>
       <div className="today-page">
@@ -759,8 +879,16 @@ function Today() {
               {onRecord !== null ? (
                 <>
                   {" · "}
+                  {/* TWO DOORS ON THIS PAGE ONCE CARRIED THE SAME WORDS AND WENT
+                      TO DIFFERENT PLACES. This one and the one under the settled
+                      calls both read "Open the record": this opens the shared
+                      brain, that opens the room holding every call you have
+                      settled. A label that names neither destination is worse
+                      than no label, because a reader who has learned where one
+                      goes now believes the wrong thing about the other. Each one
+                      names where it lands. */}
                   <Door
-                    title="Open the record"
+                    title="Open the shared brain"
                     onClick={() => navigate({ to: "/brain", search: {} })}
                   >
                     <Num>{onRecord}</Num> {onRecord === 1 ? "day" : "days"} on the record
@@ -799,10 +927,18 @@ function Today() {
             more={shipped.length > 0 ? laneDoor(shipped.length) : undefined}
             onMore={() => navigate({ to: "/runs" })}
           >
-            {/* THE ONE LIVE REGION FOR THE RUN RECORD. Three lanes are fed by
-                this single read, and three `<Loading>`s would announce the same
-                fetch three times to a screen reader. The other two say they are
-                reading in their own subtitle and stay silent. */}
+            {/* THE ONE LIVE REGION FOR THE RUN RECORD, AND IT COVERS THE WAIT
+                ONLY. Three lanes are fed by this single read, and three
+                `<Loading>`s would announce the same fetch three times to a
+                screen reader. The other two say they are reading in their own
+                subtitle and stay silent.
+                THE FAILURE IS A DIFFERENT CASE AND ALL THREE NOW CARRY IT.
+                `Failed` is not a live region, so three of them announce nothing,
+                and the reason to hold back never applied to it: the retry lived
+                here alone, so a reader whose run record refused was told "This
+                could not be read." over the stuck and still-running lanes with
+                no way to ask again, on the two lanes where not knowing costs the
+                most. */}
             {stillWaiting(missions) ? (
               <Loading>Reading what the crew finished.</Loading>
             ) : missions.isError ? (
@@ -830,11 +966,14 @@ function Today() {
                           {mission.hop_count === 1 ? "handoff" : "handoffs"} ·{" "}
                         </>
                       ) : null}
-                      {mission.status === "completed_with_failures" ? (
-                        <span className="sp-warn">partial</span>
-                      ) : (
-                        <span className="sp-pass">done</span>
-                      )}
+                      {/* `partial` used to be gold. Gold IS BANNED and there is
+                          no warn token because there must not be one, so this
+                          is not an absence for a later hand to fill in. A run
+                          that shipped with a hole in it is also not a fifth
+                          outcome. It takes the brightest ink and medium weight
+                          instead, so it still stops the eye and still survives
+                          a greyscale reading. */}
+                      <ShippedState partial={mission.status === "completed_with_failures"} />
                     </>
                   }
                   time={ago(mission.completed_at)}
@@ -912,11 +1051,15 @@ function Today() {
                     failed={entry.failed}
                   />
                 ))}
+                {/* The second of the pair. See the note on the door in the page
+                    subtitle: that one opens the shared brain, this one opens the
+                    room that holds every settled call with what each one caused,
+                    and until now both said "Open the record". */}
                 <Door
-                  title="Open everything you have settled"
+                  title="Every call you have settled, with what each one caused"
                   onClick={() => navigate({ to: "/engine-room", search: { room: "record" } })}
                 >
-                  Open the record
+                  Open everything you have settled
                 </Door>
               </div>
             ) : null}
@@ -928,40 +1071,60 @@ function Today() {
               stuck.length === 0 ? (
                 "Nothing stopped."
               ) : (
+                /* THE VERB THIS LANE COULD NOT KEEP. It read "Waiting on you to
+                   unblock" and offered nothing to unblock with: no control on
+                   the lane, none on the row, and no query on this surface that
+                   could supply one. A promised verb with no control behind it is
+                   the small lie that teaches a reader to stop trusting the
+                   controls that ARE real, and there are several on this page.
+                   So the lane promises what it can deliver, which is the door.
+                   The row still says who is blocked; this says where to go. */
                 <>
-                  <Num>{stuck.length}</Num> stopped before finishing. Waiting on you to unblock.
+                  <Num>{stuck.length}</Num> stopped before finishing. Open one to see where it
+                  stopped.
                 </>
               ),
             )}
-            quiet={stuck.length === 0}
+            quiet={stuck.length === 0 && runsState === "ready"}
             more={stuck.length > 0 ? laneDoor(stuck.length) : undefined}
             onMore={() => navigate({ to: "/runs" })}
           >
-            {stuck.slice(0, LANE_ROWS).map((mission) => (
-              <Row
-                key={mission.id}
-                tight
-                marks={
-                  <AgentMark
-                    slug={mission.current_agent_slug}
-                    name={mission.build_driver}
-                    state={mission.status === "failed" ? "failed" : "idle"}
-                  />
-                }
-                lead={<Who>{cleanTitle(mission.title)}</Who>}
-                sub={
-                  mission.status === "failed" ? (
-                    <span className="sp-fail">failed</span>
-                  ) : (
-                    <span>{mission.status}</span>
-                  )
-                }
-                time={ago(mission.completed_at ?? mission.updated_at)}
-                onClick={() =>
-                  navigate({ to: "/runs/$missionId", params: { missionId: mission.id } })
-                }
-              />
-            ))}
+            {/* The wait is announced once, by the shipped lane; see the note
+                there. The refusal is not announced at all, so it belongs on
+                every lane that cannot draw without the read, with the retry
+                that used to exist in one place only. */}
+            {runsState === "reading" ? null : runsState === "failed" ? (
+              <Failed onRetry={() => void missions.refetch()}>
+                The run record did not load, so this cannot say what stopped.
+              </Failed>
+            ) : (
+              stuck.slice(0, LANE_ROWS).map((mission) => (
+                <Row
+                  key={mission.id}
+                  tight
+                  marks={
+                    <AgentMark
+                      slug={mission.current_agent_slug}
+                      name={mission.build_driver}
+                      state={taskStatus(mission.status) === "failed" ? "failed" : "idle"}
+                    />
+                  }
+                  lead={<Who>{cleanTitle(mission.title)}</Who>}
+                  /* THE ROW PRINTED THE DATABASE'S OWN WORD. `halted`,
+                     `cancelled` and `blocked` went to screen verbatim, and a
+                     reader got three words nobody says out loud and no way to
+                     tell which of them was theirs to fix. `RunState` runs the
+                     value through the Meridian mapping, which resolves anything
+                     it does not recognise to "a person is required" rather than
+                     claiming a machine is still working on it. */
+                  sub={<RunState status={mission.status} />}
+                  time={ago(mission.completed_at ?? mission.updated_at)}
+                  onClick={() =>
+                    navigate({ to: "/runs/$missionId", params: { missionId: mission.id } })
+                  }
+                />
+              ))
+            )}
           </Lane>
 
           <Lane
@@ -975,28 +1138,36 @@ function Today() {
                 </>
               ),
             )}
-            quiet={running.length === 0}
+            quiet={running.length === 0 && runsState === "ready"}
             more={running.length > 0 ? laneDoor(running.length) : undefined}
             onMore={() => navigate({ to: "/runs" })}
           >
-            {running.slice(0, LANE_ROWS).map((mission) => {
-              const agent = mission.current_agent_slug
-                ? agentDisplayName(mission.current_agent_slug)
-                : "The crew";
-              const elapsed = ago(mission.created_at);
-              return (
-                <Row
-                  key={mission.id}
-                  tight
-                  marks={<AgentMark slug={mission.current_agent_slug} state="running" />}
-                  lead={stripAutoPrefix(mission.current_sub_goal ?? mission.title)}
-                  sub={`${agent}${elapsed ? ` · ${elapsed} running` : " · running"}`}
-                  onClick={() =>
-                    navigate({ to: "/runs/$missionId", params: { missionId: mission.id } })
-                  }
-                />
-              );
-            })}
+            {/* Same division as the stuck lane: the wait is announced once by
+                the shipped lane, the refusal is silent and belongs here too. */}
+            {runsState === "reading" ? null : runsState === "failed" ? (
+              <Failed onRetry={() => void missions.refetch()}>
+                The run record did not load, so this cannot say what is still going.
+              </Failed>
+            ) : (
+              running.slice(0, LANE_ROWS).map((mission) => {
+                const agent = mission.current_agent_slug
+                  ? agentDisplayName(mission.current_agent_slug)
+                  : "The crew";
+                const elapsed = ago(mission.created_at);
+                return (
+                  <Row
+                    key={mission.id}
+                    tight
+                    marks={<AgentMark slug={mission.current_agent_slug} state="running" />}
+                    lead={stripAutoPrefix(mission.current_sub_goal ?? mission.title)}
+                    sub={`${agent}${elapsed ? ` · ${elapsed} running` : " · running"}`}
+                    onClick={() =>
+                      navigate({ to: "/runs/$missionId", params: { missionId: mission.id } })
+                    }
+                  />
+                );
+              })
+            )}
           </Lane>
         </div>
 

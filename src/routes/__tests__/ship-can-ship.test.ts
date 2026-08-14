@@ -465,7 +465,30 @@ describe("the role behind the announcement controls is a read like any other", (
     expect(flat).toMatch(
       /const roleUnknown = !membersReading && !members\.isError && role === null/,
     );
-    expect(flat).toMatch(/lines=\{roleLines\(\)\}/);
+    /*
+     * PINS THE CLAIM, NOT THE SPELLING.
+     *
+     * This asserted the literal `lines={roleLines()}`. The requirement it was
+     * protecting is that a reader who cannot see the controls always learns
+     * WHY, which means roleLines() must reach the announcement gate's `lines`.
+     * The day-one branch now prepends a sentence of its own, so the literal
+     * match failed on a change that satisfies the invariant completely. A guard
+     * on an exact string fails when the copy improves and passes when the
+     * meaning breaks, which is the wrong way round.
+     *
+     * What is asserted instead: BOTH announcement gates carry the reason, and
+     * where a gate branches, EVERY arm carries it. That is stronger than the
+     * string it replaces, because it catches a future ternary that drops the
+     * reason from one arm, which the old assertion would have passed.
+     *
+     * The promote confirmation gate is deliberately not counted: it is about a
+     * release, not about the reader's role.
+     */
+    const withRole = flat.match(/lines=\{[^}]*roleLines\(\)[^}]*\}/g) ?? [];
+    expect(withRole.length).toBe(2);
+    for (const prop of withRole.filter((s) => s.includes("?") && s.includes(":"))) {
+      expect((prop.match(/roleLines\(\)/g) ?? []).length).toBeGreaterThanOrEqual(2);
+    }
   });
 
   it("never states who the reader is waiting on from a role read that did not answer", () => {

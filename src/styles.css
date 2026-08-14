@@ -3,6 +3,13 @@
 @import "./styles/ink.css";
 @import "./styles/shell.css";
 @import "./styles/primitives.css";
+/*
+ * MERIDIAN, the current design system (2026-08-14). Loads last so it wins on
+ * equal specificity. Everything above it is life support for surfaces not yet
+ * migrated and is being deleted, not extended. New work uses --mrd-* only.
+ * Reasoning, the colour rule and the migration position: styles/meridian.css.
+ */
+@import "./styles/meridian.css";
 @source "../src";
 
 @custom-variant dark (&:is(.dark *));

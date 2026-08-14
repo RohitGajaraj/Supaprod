@@ -60,6 +60,7 @@ import { Route as AuthenticatedOpportunitiesRouteImport } from './routes/_authen
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated.onboarding'
 import { Route as AuthenticatedObserveRouteImport } from './routes/_authenticated.observe'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
+import { Route as AuthenticatedMeridianRouteImport } from './routes/_authenticated.meridian'
 import { Route as AuthenticatedMemoryRouteImport } from './routes/_authenticated.memory'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated.meetings'
 import { Route as AuthenticatedLearnRouteImport } from './routes/_authenticated.learn'
@@ -452,6 +453,11 @@ const AuthenticatedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMeridianRoute = AuthenticatedMeridianRouteImport.update({
+  id: '/meridian',
+  path: '/meridian',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedMemoryRoute = AuthenticatedMemoryRouteImport.update({
   id: '/memory',
   path: '/memory',
@@ -1243,6 +1249,7 @@ export interface FileRoutesByFullPath {
   '/learn': typeof AuthenticatedLearnRoute
   '/meetings': typeof AuthenticatedMeetingsRouteWithChildren
   '/memory': typeof AuthenticatedMemoryRoute
+  '/meridian': typeof AuthenticatedMeridianRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/observe': typeof AuthenticatedObserveRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -1426,6 +1433,7 @@ export interface FileRoutesByTo {
   '/learn': typeof AuthenticatedLearnRoute
   '/meetings': typeof AuthenticatedMeetingsRouteWithChildren
   '/memory': typeof AuthenticatedMemoryRoute
+  '/meridian': typeof AuthenticatedMeridianRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/observe': typeof AuthenticatedObserveRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -1611,6 +1619,7 @@ export interface FileRoutesById {
   '/_authenticated/learn': typeof AuthenticatedLearnRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRouteWithChildren
   '/_authenticated/memory': typeof AuthenticatedMemoryRoute
+  '/_authenticated/meridian': typeof AuthenticatedMeridianRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/observe': typeof AuthenticatedObserveRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
@@ -1797,6 +1806,7 @@ export interface FileRouteTypes {
     | '/learn'
     | '/meetings'
     | '/memory'
+    | '/meridian'
     | '/notifications'
     | '/observe'
     | '/onboarding'
@@ -1980,6 +1990,7 @@ export interface FileRouteTypes {
     | '/learn'
     | '/meetings'
     | '/memory'
+    | '/meridian'
     | '/notifications'
     | '/observe'
     | '/onboarding'
@@ -2164,6 +2175,7 @@ export interface FileRouteTypes {
     | '/_authenticated/learn'
     | '/_authenticated/meetings'
     | '/_authenticated/memory'
+    | '/_authenticated/meridian'
     | '/_authenticated/notifications'
     | '/_authenticated/observe'
     | '/_authenticated/onboarding'
@@ -2750,6 +2762,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/meridian': {
+      id: '/_authenticated/meridian'
+      path: '/meridian'
+      fullPath: '/meridian'
+      preLoaderRoute: typeof AuthenticatedMeridianRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/memory': {
@@ -3782,6 +3801,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedLearnRoute: typeof AuthenticatedLearnRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRouteWithChildren
   AuthenticatedMemoryRoute: typeof AuthenticatedMemoryRoute
+  AuthenticatedMeridianRoute: typeof AuthenticatedMeridianRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedObserveRoute: typeof AuthenticatedObserveRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
@@ -3852,6 +3872,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedLearnRoute: AuthenticatedLearnRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRouteWithChildren,
   AuthenticatedMemoryRoute: AuthenticatedMemoryRoute,
+  AuthenticatedMeridianRoute: AuthenticatedMeridianRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedObserveRoute: AuthenticatedObserveRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,

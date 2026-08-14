@@ -332,7 +332,7 @@ export function DecisionsPanel() {
               aria-controls="decisions-composer"
               onClick={() => setOpen((o) => !o)}
             >
-              {open ? "Close" : "Log decision"}
+              {open ? "Close" : "Record a decision"}
             </Button>
           </span>
         </div>
@@ -396,7 +396,7 @@ export function DecisionsPanel() {
             No call on the record matches that.
           </Empty>
         ) : (
-          <Empty action={<Button onClick={() => setOpen(true)}>Log decision</Button>}>
+          <Empty action={<Button onClick={() => setOpen(true)}>Record a decision</Button>}>
             Calls land here on their own when a mission completes, a spec is approved, or a meeting
             transcript is read. Log one yourself when the call was made somewhere else.
           </Empty>
@@ -510,7 +510,7 @@ function LogDecision({
   return (
     <div id={id}>
       <Block
-        title="Log a decision"
+        title="Record a decision"
         // Different information from the title, not a restatement of it.
         sub="A call made outside the loop. The crew reads it before it acts again."
       >
@@ -603,7 +603,7 @@ function LogDecision({
               })
             }
           >
-            {submitting ? "Logging" : "Log decision"}
+            {submitting ? "Recording" : "Record it"}
           </Button>
         </Actions>
       </Block>

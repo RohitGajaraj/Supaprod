@@ -195,14 +195,21 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
     label: "Brain",
     index: "",
     zone: "intelligence",
-    tagline: "Everything the product knows.",
+    // NOT "Everything the product knows." That claimed knowledge in the
+    // present tense on the door to the brain, which is the one claim the
+    // vocabulary canon forbids outright: the loop is wired and proven, and it
+    // accrues on first real use. This says what the crew does with the record,
+    // which is true on day one and stays true as the record fills.
+    tagline: "What the crew reads before it acts.",
   },
   {
     to: "/engine-room",
     label: "Pulse",
     index: "",
     zone: "intelligence",
-    tagline: "The machine's vital signs: spend, quality, safety, record.",
+    // Names the four rooms, not the machinery. "The machine's vital signs"
+    // told the reader about our internals rather than about their work.
+    tagline: "Spend, quality, safety, and the record.",
   },
 ];
 

@@ -1778,6 +1778,18 @@ function Ship() {
     .filter((t) => Number.isFinite(t));
   const lastPublished = publishedAt.length ? Math.max(...publishedAt) : null;
 
+  /*
+   * NOTHING HAS EVER SHIPPED, which is a different fact from "nothing is
+   * waiting to go out" and drives a different question below.
+   *
+   * Gated on `isSuccess` on purpose: an unread or failed changelog also has
+   * zero entries, and treating that as "nothing shipped" would state a fact
+   * about the workspace on the strength of a read that never answered. When
+   * the read has not landed this stays false and the ordinary question shows,
+   * which is the safe direction to be wrong in.
+   */
+  const nothingShipped = changelog.isSuccess && notes.length === 0;
+
   const untold = !changelog.isSuccess
     ? 0
     : notes.filter((e) => {
@@ -2224,14 +2236,50 @@ function Ship() {
           ) : null}
         </Gate>
       ) : (
-        // THE QUESTION WITH NOTHING UNDER IT, which is what a lost role read
-        // used to draw here. The Gate stays (a reader with no write rights has
-        // always seen the question and should keep seeing it), and the reason
-        // the button is absent is now said on the line beneath it.
-        <Gate question="Write the first announcement?" lines={roleLines()}>
+        /*
+         * THE QUESTION WITH NOTHING UNDER IT, which is what a lost role read
+         * used to draw here. The Gate stays (a reader with no write rights has
+         * always seen the question and should keep seeing it), and the reason
+         * the button is absent is now said on the line beneath it.
+         *
+         * AND THE DAY ONE CASE, WHICH USED TO ASK FOR SOMETHING DISHONEST.
+         * On a workspace where nothing has ever shipped, the biggest element on
+         * this station asked "Write the first announcement?" with a primary
+         * that opens a customer-facing composer. That is the loudest control on
+         * the screen inviting a person to announce a release that does not
+         * exist, and on the profile that dominates production it is the FIRST
+         * thing they see here.
+         *
+         * The capability is not removed, because a team may legitimately
+         * announce something this product never tracked. What changes is that
+         * it stops being the recommended act: the question becomes a statement
+         * of what is actually true, the line says what normally puts something
+         * here, and the control drops from primary to ordinary. Nothing shipped
+         * is not a problem to solve on this screen, it is a fact about
+         * somewhere else.
+         */
+        <Gate
+          question={
+            nothingShipped
+              ? "Nothing has gone out, because nothing has shipped yet."
+              : "Write the first announcement?"
+          }
+          lines={
+            nothingShipped
+              ? [
+                  "A release lands here once a merged change carries release notes. Until one does, there is nothing for an announcement to be about.",
+                  ...roleLines(),
+                ]
+              : roleLines()
+          }
+        >
           {canContribute ? (
-            <Button variant="primary" disabled={busy} onClick={startNew}>
-              Write an announcement
+            <Button
+              variant={nothingShipped ? "default" : "primary"}
+              disabled={busy}
+              onClick={startNew}
+            >
+              {nothingShipped ? "Write one anyway" : "Write an announcement"}
             </Button>
           ) : null}
         </Gate>

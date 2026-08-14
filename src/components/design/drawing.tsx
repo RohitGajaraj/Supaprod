@@ -10,6 +10,8 @@
  * is worse than either.
  */
 
+import type { ReactNode } from "react";
+
 import { Line, Num, Row, Value, Button } from "@/components/shell/primitives";
 import type { DesignConsequence, DesignGateWord } from "@/lib/design-scaffold.functions";
 import type { DesignCriticFinding } from "@/lib/ai/design-critic";
@@ -29,9 +31,20 @@ import { RULE_TEXT_FLOOR, ruleTextFor, tallyPhrase } from "./vocabulary";
  * click, and a screenshot of a screen is not that. This is the same frame
  * contract `DesignScaffoldPanel` and the mission canvas already use.
  *
- * The white base is deliberate and is not a theme break: the document inside
+ * The light base is deliberate and is not a theme break: the document inside
  * styles its own canvas and assumes a light page, so the frame matches it
  * rather than flashing dark before srcDoc paints.
+ *
+ * IT IS A TOKEN NOW, AND IT WAS `#fff` (2026-08-14). Meridian's own header
+ * bans pure white and pure black outright, and this file is the one place in
+ * the station that hand wrote a colour. The base has to be light in BOTH
+ * grounds, which rules out every surface token: `sheet` and `float` invert with
+ * the theme and would put the dark flash back on the dark ground, which is the
+ * exact thing this line exists to prevent. `--mrd-on-solid` is the only token
+ * in the system that is light on both, and it is borrowed here rather than
+ * meant: it was authored for text sitting on a filled control. The gap it is
+ * standing in for is reported to the design lane, and if a token for an
+ * embedded document's canvas ever lands, this is its first caller.
  */
 export function DrawingStage({ html, title }: { html: string; title: string }) {
   return (
@@ -45,7 +58,7 @@ export function DrawingStage({ html, title }: { html: string; title: string }) {
         height: 460,
         border: "1px solid var(--sp-line)",
         borderRadius: "var(--sp-radius-panel)",
-        background: "#fff",
+        background: "var(--mrd-on-solid)",
       }}
     />
   );
@@ -55,10 +68,25 @@ export function DrawingStage({ html, title }: { html: string; title: string }) {
  * The consequence
  * ------------------------------------------------------------------ */
 
+/** Emphasis without hue: the top of the ink ramp and a heavier stroke. See the
+ *  note on `Consequence` for why this is not a colour. */
+function Raised({ children }: { children: ReactNode }) {
+  return <span className="font-medium text-mrd-ink">{children}</span>;
+}
+
 /**
  * What letting this through actually does. Four questions, and each answer is
  * either read from the record or replaced by the sentence that says we did not
  * read it.
+ *
+ * THE THREE ANSWERS THAT MATTER ARE RAISED, NOT TINTED (2026-08-14). They wore
+ * `tone="warn"`, which resolves to `--sp-warn`, a gold. There is no warning
+ * colour in this product and no token for one, on purpose: the hues are spoken
+ * for, one for "a person is required" and two for outcome, and a fourth meaning
+ * invented for a panel is a meaning every reader then has to learn. Gold is
+ * also the specific hue the system keeps off the screen. What these three
+ * sentences actually need is weight, so they take the top of the ink ramp and a
+ * heavier stroke, which reads at a glance and survives greyscale.
  */
 export function Consequence({
   consequence,
@@ -80,10 +108,12 @@ export function Consequence({
     <>
       {hasDrawing ? (
         <Line label="What it replaces">
-          <Value tone={redrawn ? "warn" : "quiet"}>
-            {redrawn
-              ? "The drawing before it, which was overwritten"
-              : "Nothing. First drawing of this spec"}
+          <Value>
+            {redrawn ? (
+              <Raised>The drawing before it, which was overwritten</Raised>
+            ) : (
+              "Nothing. First drawing of this spec"
+            )}
           </Value>
         </Line>
       ) : null}
@@ -97,16 +127,18 @@ export function Consequence({
           sentence says why rather than leaving a one-word answer under the most
           consequential question on the panel. */}
       <Line label="What it holds up">
-        <Value tone={blocksDispatch ? "warn" : "quiet"}>
-          {blocksDispatch
-            ? "This spec cannot reach Build"
-            : !stageEnabled
-              ? "Nothing. The design stage is off"
-              : gateStatus === "approved"
-                ? "Nothing. It can reach Build"
-                : !hasDrawing
-                  ? "Nothing. No screen is drawn, so the gate has nothing to hold"
-                  : "Nothing"}
+        <Value>
+          {blocksDispatch ? (
+            <Raised>This spec cannot reach Build</Raised>
+          ) : !stageEnabled ? (
+            "Nothing. The design stage is off"
+          ) : gateStatus === "approved" ? (
+            "Nothing. It can reach Build"
+          ) : !hasDrawing ? (
+            "Nothing. No screen is drawn, so the gate has nothing to hold"
+          ) : (
+            "Nothing"
+          )}
         </Value>
       </Line>
 
@@ -136,13 +168,17 @@ export function Consequence({
           ) : undefined
         }
       >
-        <Value tone={stale > 0 ? "warn" : "quiet"}>
+        <Value>
           {boundRules.length === 0 ? (
             hasDrawing ? (
               "No rules in force. Drawn from generic defaults"
             ) : (
               "No rules in force. It would be drawn from generic defaults"
             )
+          ) : stale > 0 ? (
+            <Raised>
+              <Num>{boundRules.length}</Num> rules {hasDrawing ? "bound in" : "would bind in"}
+            </Raised>
           ) : (
             <>
               <Num>{boundRules.length}</Num> rules {hasDrawing ? "bound in" : "would bind in"}
@@ -161,8 +197,8 @@ export function Consequence({
 /**
  * Each finding carries the one thing you can do about it without leaving: make
  * it a standing rule, so the crew stops repeating it. That posts the finding to
- * the same extractor the brand ledger uses, and what comes back lands in the
- * gate at the top of this surface.
+ * the same extractor the brand rules in Settings use, and what comes back lands
+ * in the gate at the top of this surface.
  */
 export function Findings({
   findings,

@@ -138,10 +138,9 @@ export function GraphCompoundingStrip({
 
   if (!loading && !failed && !hasClaim) {
     return memUnread ? (
-      <Block title="Your record, compounding">
+      <Block title="What the record holds">
         <Failed onRetry={() => void memQ.refetch()}>
-          What the record has learned could not be read, so nothing here is a claim that it has
-          learned nothing.
+          This could not be read, so nothing here is a claim that the record is empty.
         </Failed>
       </Block>
     ) : null;
@@ -149,13 +148,18 @@ export function GraphCompoundingStrip({
 
   return (
     <Block
-      title="Your record, compounding"
+      // NOT "Your record, compounding". Present progressive asserted that
+      // accumulation is happening right now, which is the claim the vocabulary
+      // canon forbids: the loop is wired and proven, and it accrues on first
+      // real use. A title that names WHAT IS THERE is true at every size of
+      // record, including zero.
+      title="What the record holds"
       // Different information from the title, not a restatement: this is the
       // read on the graph BELOW, not a standing claim.
       sub="Measured over the nodes in view, and over the last ninety days of runs."
     >
       {loading ? (
-        <Loading>Reading what the record has learned.</Loading>
+        <Loading>Reading the record.</Loading>
       ) : failed ? (
         // Never an empty state, and never the pre-migration copy. A read that
         // did not answer is a different fact from a table that is not there yet.
@@ -166,8 +170,8 @@ export function GraphCompoundingStrip({
             void calibrationQ.refetch();
           }}
         >
-          These numbers did not load, so nothing here is a claim about how much the record has
-          learned. {((memQ.error ?? liftQ.error ?? calibrationQ.error) as Error)?.message ?? ""}
+          These numbers did not load, so nothing here is a claim about what the record holds.{" "}
+          {((memQ.error ?? liftQ.error ?? calibrationQ.error) as Error)?.message ?? ""}
         </Failed>
       ) : (
         <>
@@ -177,29 +181,38 @@ export function GraphCompoundingStrip({
               thing this system refuses to blur: `tableReady` false means the
               read did not answer, not that there is nothing to answer with. It
               says that now, in the fail voice, in the reader's terms. */}
+          {/* NOT "What it learned" over a count. A count offered as proof of
+              learning is the exact shape the canon rejects, and the identical
+              sentence was already killed once on the Brain surface. The label
+              now names what the number IS. */}
           <Line
-            label="What it learned"
+            label="On the record"
             sub={
               memUnread
-                ? "This could not be read just now, so it is not a claim that nothing was learned"
+                ? "This could not be read just now, so it is not a claim that the record is empty"
                 : mem && mem.stored > 0
                   ? `${mem.newThisWeek} of them landed this week`
-                  : "Nothing learned yet, so there is nothing to compound"
+                  : "Nothing on the record yet"
             }
           >
             {memUnread ? (
               <Value tone="fail">Not read</Value>
             ) : mem && mem.stored > 0 ? (
               <Value>
-                <Num>{mem.stored.toLocaleString()}</Num> memories
+                <Num>{mem.stored.toLocaleString()}</Num> entries
               </Value>
             ) : (
               <Value>Not yet</Value>
             )}
           </Line>
 
+          {/* NOT "What learning bought". That asserted learning had produced
+              measured value. This is a ninety-day comparison between runs that
+              had more precedent to go on and runs that had less: the label
+              names the slice, the sub states the finding, the value sizes it.
+              No claim that the system learned anything. */}
           <Line
-            label="What learning bought"
+            label="Where precedent was richer"
             sub={
               lift?.tableReady && lift.liftPoints != null
                 ? "Runs with richer precedent validated more often, over ninety days"

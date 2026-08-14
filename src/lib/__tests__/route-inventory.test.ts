@@ -162,6 +162,8 @@ const AUTH_EXEMPT: Record<string, string> = {
     "parked Phase-5 alternative to /onboarding, unlinked on purpose until the merge at Gate 2",
   "/onboarding": "entered by the authenticated gate on first run, not by a link",
   "/m": "Mission Control, the one unported surface; kept alive as a URL while retirement is planned",
+  "/meridian":
+    "the Meridian design gallery: a workbench, not a product surface. It renders every component in both grounds so a design is looked at before it ships, which is the failure this repo has already paid for twice (two designs rejected in one evening, both reasoned from tokens and neither ever rendered). It is deliberately absent from the rail: the spine already carries more doors than it should, and a component catalogue is not a station. Reached by typing the URL. Delete this exemption if it ever gets a door.",
 };
 
 /** A redirect stub is not a surface. It has no content to be orphaned from. */
