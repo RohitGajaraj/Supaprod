@@ -2,6 +2,8 @@
 
 > _Created 2026-08-14 from the eleven-lane global sweep. **568 programmes captured, 305 confirmed open against their own apply page.** Every row below carries terms read off the programme's own page, not an aggregator. Re-check the link before filing: programmes change dates without notice, and this sweep exists because one did._
 
+**Looking for what to file next? Read [`what-to-apply-for-next.md`](./what-to-apply-for-next.md) instead** — it carries the queue in order and does not need re-deriving. This file carries the reasoning behind the calls and the ask.
+
 **Notion mirror: [🎯 Gate 2](https://app.notion.com/p/3bc3f54c86c28183a103e005b9776c27).** Same content, readable on a phone. **When the two disagree, fix both in the same sitting** — that rule already governs the tracker and the board, and a third copy is exactly how the last drift started.
 
 **How to read this.** Tier is expected value for **this** founder: solo, unincorporated, no external users, a working product, ten weeks of build, an enterprise AI background. It is not a ranking of programme prestige. A famous programme we will not get into ranks below an obscure one we will.

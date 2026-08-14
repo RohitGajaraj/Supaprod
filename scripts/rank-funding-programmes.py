@@ -8,9 +8,20 @@ changes. Where a human call genuinely beats the formula, override it in
 `docs/pitch/applications/gate-2-ranking.md` and say why -- do not quietly edit a
 number here.
 
-The founder's stated priority order, 2026-08-14:
-  deadline · location · impact · value received · money raised ·
-  accelerator brand · network · position · customer access
+The founder's priority order, RESTATED 2026-08-14 18:24 IST and binding:
+  1. money, AND ITS SIZE  ("whoever gives me money" / ranked on "how big is it")
+  2. network access
+  3. credits
+  4. relocation to the US -- a PREFERENCE, no longer a constraint
+  5. everything else
+
+RELOCATION IS SOLVED, 2026-08-14 18:24 IST: "I am ready to move in. I'm quitting
+the job, and I'm ready to move in." So an in-person programme anywhere is no
+longer a cost to be scored against, and location is now a small upside for the
+US rather than a discriminator. Money quantum does the ranking; a larger cheque
+outside the US outranks a smaller one inside it.
+Deadline stays a strong axis because a closing form is a forcing function, not
+a preference -- but it no longer outranks the value of what is on offer.
 
 Usage:  scripts/rank-funding-programmes.py > /tmp/ranked.json
 """
@@ -193,23 +204,31 @@ def score_customer(p):
 
 
 def score_location(p):
-    """Bangalore-reachable and remote score highest; US is the destination."""
+    """US highest: relocating there is the goal, so a US programme IS the prize.
+
+    Reordered 2026-08-14 on founder instruction. The earlier version scored
+    Bangalore-reachable highest, which optimised for convenience and against
+    the stated destination.
+    """
     t = (str(p.get("location_requirement") or "") + " " + str(p.get("region") or "")).lower()
-    if any(s in t for s in ("remote", "virtual", "global", "online", "no relocation", "none stated")):
-        return 10
-    if any(s in t for s in ("india", "bangalore", "bengaluru")):
-        return 9
-    if any(s in t for s in ("germany", "munich", "berlin", "dach")):
-        return 8   # second home base, TUM alumnus
-    if any(s in t for s in ("san francisco", "sf", "bay area", "new york", "nyc", "us ")):
-        return 7   # stated destination, but needs a visa
-    if any(s in t for s in ("abu dhabi", "dubai", "uae", "riyadh", "qatar")):
+    if any(k in t for k in ("san francisco", "bay area", "new york", "nyc", "silicon valley",
+                            "palo alto", "austin", "berkeley", "united states", "usa", "us -")):
+        return 10  # the destination, and these programmes usually carry visa support
+    if any(k in t for k in ("remote", "virtual", "global", "online", "no relocation", "none stated")):
+        return 8.5  # costs nothing, but moves us nowhere
+    if any(k in t for k in ("germany", "munich", "berlin", "dach", "heilbronn")):
+        return 7.5  # second home base, TUM alumnus
+    if any(k in t for k in ("london", "uk", "cambridge")):
         return 6.5
-    if any(s in t for s in ("london", "uk", "cambridge")):
+    if any(k in t for k in ("india", "bangalore", "bengaluru")):
+        return 6.5  # home, so no relocation gained
+    if any(k in t for k in ("paris", "france", "europe", "amsterdam", "nordic")):
         return 6
-    if any(s in t for s in ("paris", "france", "europe")):
+    if any(k in t for k in ("abu dhabi", "dubai", "uae", "riyadh", "qatar", "saudi")):
         return 6
-    return 5
+    # Nothing scores below 5.5 any more. The founder is relocating regardless,
+    # so an unfamiliar location is a neutral fact, not a penalty.
+    return 5.5
 
 
 def deadline(p):
@@ -276,10 +295,13 @@ def score_effort(p):
     return max(1.0, base)
 
 
+# Weights follow the founder's restated order. Money leads, network second,
+# credits third, US relocation fourth. Odds stays high because an application
+# that cannot be won is worth nothing regardless of the prize.
 WEIGHTS = {
-    "urgency": 1.6, "location": 1.4, "money": 1.5, "dilution": 1.1,
-    "brand": 1.3, "network": 1.2, "customer": 1.3, "odds": 1.7, "effort": 0.6,
-    "credits": 0.4,
+    "money": 2.9, "network": 1.8, "credits": 1.4, "location": 0.9,
+    "odds": 1.5, "urgency": 1.2, "brand": 1.0, "customer": 1.0,
+    "dilution": 0.8, "effort": 0.4,
 }
 
 

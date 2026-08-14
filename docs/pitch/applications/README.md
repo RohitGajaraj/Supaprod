@@ -123,6 +123,7 @@ Workflow({ name: 'application-pressure-test', args: {
 
 | File | What it is |
 | --- | --- |
+| [**`what-to-apply-for-next.md`**](./what-to-apply-for-next.md) | **⭐ START HERE. The standing answer to "what do we apply for next".** The founder's priority order, the queue in order, what is already decided and why, and where every other file lives. Regenerated from the sweep, never hand-edited. |
 | [**`gate-2-ranking.md`**](./gate-2-ranking.md) | **The ranked list and the calls, 2026-08-14.** Tiers, apply-now versus apply-later per target with the reasoning, the ten pages only the founder can open, and the ask recommendation with comparables drawn from the sweep's own verified terms. **Start here before filing anything.** |
 | [**`sweep/`**](./sweep/README.md) | **The 2026-08 global sweep, harvested lane by lane while it runs.** Every programme checked against its own live apply page rather than a listed date. Written incrementally on purpose: a run that dies on the last lane must not take the earlier ones with it. |
 | [**`../../../.claude/workflows/application-pressure-test.js`**](../../../.claude/workflows/application-pressure-test.js) | **The pressure-test harness. Run it before any application sends.** Programme-agnostic; derives its own numbers. |
