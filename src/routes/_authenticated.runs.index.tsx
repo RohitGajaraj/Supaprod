@@ -176,6 +176,70 @@
  * recorded in that same file, next to the CSS they explain.
  * ==================================================================
  *
+ * ==================================================================
+ * THE LIST BECAME A GRID, 2026-08-14. What changed, and what it fixed.
+ *
+ * WHAT THIS SURFACE WAS. A workspace-wide list with a cap and nothing else: no
+ * search, no filter, no sort, and one control reading "All 43" that never said
+ * how many rows it was holding back. Past about ten runs the reader was
+ * scrolling and hoping. The 2026-08-14 surface audit found the same hole on
+ * three surfaces at once, and `FilterTable` and `Search` were ported for
+ * exactly this class of surface.
+ *
+ * FOUR FACTS, NOT TWO. `FilterTable` composes `RecordsTable` and passes
+ * `isFiltered` and `totalBeforeFilter` down, which is the only way a grid can
+ * tell AN EMPTY WORKSPACE from A FILTER THAT HID EVERYTHING. This surface
+ * could not distinguish them at all. The other two, a read that failed and a
+ * cap, are answered here in the surface's own voice, above the grid, because
+ * an empty workspace also needs a DOOR and a grid cannot carry one.
+ *
+ * THE CAP PRINTS A REAL NUMBER NOW. "All 43" became "Showing 8 of 43 rows. 35
+ * not shown." with the way past it beside the count. Silent truncation is a
+ * failure this product has already shipped once.
+ *
+ * WHAT THE ROW ACTIONS COST BEFORE. Archive and Delete were raw
+ * `<button className="sp-block-more">` with the irreversible one pushed
+ * sideways by an inline margin. The stated reason for skipping the Button
+ * primitive was real and still is: a 38px control would roughly double a tight
+ * row's height. It is answered rather than reverted in
+ * components/runs/RowActions.tsx, which is 22px, draws its own rule before the
+ * destructive control, gives that control the only edge in the row, and names
+ * the run in every accessible name. Distance alone is the one separator a
+ * narrow column or a zoomed page can quietly take away.
+ *
+ * THE AMBER IS GONE. The completion-evidence flag was drawn `.sp-warn`, which
+ * resolves to #e8b44c. There is no warn colour in this system and no token to
+ * put one in. The three states map onto meanings the product already has:
+ * verified is an outcome, "needs verification" is a person having to go and
+ * look, and "no evidence yet" is a structural limit that is not an alarm. The
+ * run's own tone table already said exactly that.
+ *
+ * THE TABLISTS WERE HALF BUILT, AND HALF IS WORSE THAN NONE. Both tab rows on
+ * this file carried `role="tablist"` and `role="tab"` and none of the rest:
+ * no arrow keys, no roving tab stop, no `aria-controls`, no `role="tabpanel"`.
+ * `role="tab"` PROMISES that keyboard. The house already answers this twice,
+ * in obsidian/flashlight-tabs.tsx and knowledge/GraphPanel.tsx, and neither
+ * could be called from here, so components/runs/Tabs.tsx is those two
+ * generalised rather than a third hand-rolled copy.
+ *
+ * THE LAST SHADCN IMPORTS LEFT THE ROUTE FILES. This was the only route still
+ * importing `AlertDialog` and `buttonVariants` from `components/ui/`. The
+ * confirmation is unchanged in substance and now goes through `useConfirm`,
+ * the one confirm 32 surfaces already share: same Radix focus trap, escape
+ * key, focus return and inert background, drawn in house primitives. What it
+ * carries differently is noted at the call site.
+ *
+ * THE ROW IS A DOOR IN MANAGE MODE TOO, and the comment that said otherwise is
+ * retired. On a list row the two Manage controls could only sit INSIDE the
+ * clickable region and a button inside a button is invalid markup, so Manage
+ * used to take the row's link away. In a grid they have a cell of their own.
+ *
+ * WHAT WAS LOST, said plainly: the list's "Show fewer" is gone. The grid owns
+ * its own cap so that one control states the numbers, and RecordsTable's lift
+ * is one-way. Two controls for one cap that can disagree would be worse than
+ * the loss.
+ * ==================================================================
+ *
  * VOICE: never greet, always report. "Mission" is a mechanism word and stays
  * out of every user-facing string; these are runs. Internal identifiers
  * (studio.*, mission_id, agent_slug 'builder') are unchanged, per the standing
@@ -193,17 +257,7 @@ import * as React from "react";
 import { z } from "zod";
 
 import { toast } from "@/lib/notify";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { buttonVariants } from "@/components/ui/button";
+import { useConfirm } from "@/hooks/use-confirm";
 import { listPrds } from "@/lib/discovery.functions";
 import {
   dispatchStudioSession,
@@ -219,18 +273,12 @@ import { missionProgress } from "@/lib/delegate-desk";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
-import {
-  completionEvidence,
-  COMPLETION_EVIDENCE_LABEL,
-  COMPLETION_EVIDENCE_REASON,
-} from "@/lib/build/verification";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import {
   Actions,
-  AgentMark,
   Block,
   Button,
   Empty,
@@ -241,23 +289,16 @@ import {
   Num,
   PageHead,
   Receipt,
-  Row,
   Select,
   Surface,
   Textarea,
-  Who,
 } from "@/components/shell/primitives";
 // The run-state vocabulary is shared with the board rather than defined here,
 // so the two views cannot disagree about what a run is doing.
-import {
-  actorName,
-  actorSlug,
-  actorVerb,
-  ago,
-  MARK_STATE,
-  runState,
-} from "@/components/runs/run-state";
+import { runState } from "@/components/runs/run-state";
 import { RunBoard } from "@/components/runs/RunBoard";
+import { RunsGrid } from "@/components/runs/RunsGrid";
+import { Tabs, TabPanel } from "@/components/runs/Tabs";
 
 /* ------------------------------------------------------------------ *
  * Formatting and mapping. Local on purpose: nothing here reaches into
@@ -291,30 +332,20 @@ function firstLine(text: string | null | undefined, max = 150): string | null {
   return line.length > max ? `${line.slice(0, max - 1)}…` : line;
 }
 
-/** A row's second line, one separator, one rhythm. Assembling it by hand put a
- *  double space and a stray middot into the first draft of every branch, which
- *  is what a list of facts joined by string concatenation always does. */
-function Meta({ parts }: { parts: React.ReactNode[] }) {
-  const kept = parts.filter(Boolean);
-  return (
-    <>
-      {kept.map((part, i) => (
-        <React.Fragment key={i}>
-          {i > 0 ? " · " : null}
-          {part}
-        </React.Fragment>
-      ))}
-    </>
-  );
-}
-
-/** Anti-scroll: the list opens short and expands on demand. */
+/** Anti-scroll: the grid opens short and expands on demand, and it says in
+ *  real numbers how many rows it is holding back while it is short. */
 const VISIBLE = 8;
 
 /** The empty gate's "describe the next build" sends the caret here. Addressed by
  *  id rather than a ref because the Textarea primitive's prop type is
  *  TextareaHTMLAttributes, which does not carry `ref` (reported as a gap). */
 const PROMPT_ID = "build-prompt";
+
+/** The two tab rows on this surface. Each id is a group of element ids, so a
+ *  panel can name the tab it belongs to and two rows on one page cannot
+ *  collide. */
+const VIEW_TABS = "runs-view";
+const DOOR_TABS = "runs-door";
 
 /** What a click here left behind. Session-local: the durable record is the run
  *  itself, and a second copy of it would be a second source of one truth. */
@@ -513,6 +544,12 @@ function Composer({
    * the page can lose Cmd+Enter to it. The dialog stays outside this element
    * on purpose, because a portal still bubbles through the React tree and the
    * chord would otherwise fire behind an open repo gate.
+   *
+   * THE ARROW KEYS ON THE DOOR ROW DO NOT REACH IT EITHER, and that is the
+   * same argument from the other end. The tab row moves FOCUS on an arrow and
+   * selects on Enter or Space, which is a plain button's own behaviour; a row
+   * that selected on focus would switch the door under someone stepping past
+   * it. See components/runs/Tabs.tsx.
    */
   const onComposerChord = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (!(e.metaKey || e.ctrlKey) || e.key !== "Enter") return;
@@ -524,102 +561,96 @@ function Composer({
   return (
     <>
       <div onKeyDown={onComposerChord}>
-        <div className="sp-tabs" role="tablist" aria-label="How to start">
-          <button
-            type="button"
-            role="tab"
-            className="sp-tab"
-            aria-selected={mode === "goal"}
-            onClick={() => setMode("goal")}
-          >
-            From a goal
-          </button>
-          <button
-            type="button"
-            role="tab"
-            className="sp-tab"
-            aria-selected={mode === "ship"}
-            onClick={() => setMode("ship")}
-          >
-            From a spec
-          </button>
-        </div>
-
-        <Textarea
-          id={PROMPT_ID}
-          aria-label={mode === "ship" ? "Describe what to ship" : "Describe the goal"}
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          rows={3}
-          placeholder={
-            mode === "ship"
-              ? "Describe what to ship. Engineer plans it against the connected repo."
-              : "Describe the goal, for example: find the three strongest churn signals this week and draft a spec for the biggest fix."
-          }
+        <Tabs
+          group={DOOR_TABS}
+          label="How to start"
+          active={mode}
+          onSelect={setMode}
+          tabs={[
+            { id: "goal", label: "From a goal" },
+            { id: "ship", label: "From a spec" },
+          ]}
         />
 
-        {mode === "ship" ? (
-          <>
-            <Field label="Spec">
-              <Select
-                value={prdId ?? ""}
-                onChange={(e) => setPrdId(e.target.value || null)}
-                disabled={approvedPrds.length === 0}
-              >
-                <option value="">No spec</option>
-                {approvedPrds.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.title}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            {/* Loading, error and empty each speak for themselves rather than one
-                of them wearing another's clothes. */}
-            {prds.isError ? (
-              <Failed onRetry={() => void prds.refetch()}>The approved specs did not load.</Failed>
-            ) : !prds.isLoading && approvedPrds.length === 0 ? (
-              <Empty>
-                No spec is approved yet, so describe the work instead.{" "}
-                <Link to="/plan" style={{ color: "var(--sp-ink)" }}>
-                  Approve one in Plan
-                </Link>
-                .
-              </Empty>
-            ) : null}
-          </>
-        ) : null}
-
-        <Actions>
-          <Button
-            variant={startIsPrimary ? "primary" : "default"}
-            // THE KEYCAP ARRIVES WITH THE KEY AND LEAVES WITH IT. `canStart` is
-            // the whole of what the chord tests, so this <kbd> is true by
-            // construction rather than by a reader remembering to keep two
-            // conditions in step. Drawn unconditionally it promised a key on a
-            // dim button that would do nothing at all: an empty composer offers
-            // no work to start, and a person who presses the advertised chord
-            // there learns that the keycaps on this product are decoration.
-            // This is not the surface going quiet under the ratchet. Nothing is
-            // removed: the button, its label and the title that says what
-            // unlocks it all stay, and the keycap appearing the moment there is
-            // something to start is a signal the surface did not have before.
-            shortcut={canStart ? "⌘⏎" : undefined}
-            disabled={!canStart}
-            onClick={run}
-            // A disabled control pairs with an explanation: a dim button on its
-            // own says nothing about what would unlock it.
-            title={
-              canStart || isPending
-                ? undefined
-                : mode === "ship"
-                  ? "Describe the work in a few words, or pick an approved spec"
-                  : "Describe the goal in a few words"
+        <TabPanel group={DOOR_TABS} active={mode}>
+          <Textarea
+            id={PROMPT_ID}
+            aria-label={mode === "ship" ? "Describe what to ship" : "Describe the goal"}
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            rows={3}
+            placeholder={
+              mode === "ship"
+                ? "Describe what to ship. Engineer plans it against the connected repo."
+                : "Describe the goal, for example: find the three strongest churn signals this week and draft a spec for the biggest fix."
             }
-          >
-            {isPending ? "Starting" : "Hand it over"}
-          </Button>
-        </Actions>
+          />
+
+          {mode === "ship" ? (
+            <>
+              <Field label="Spec">
+                <Select
+                  value={prdId ?? ""}
+                  onChange={(e) => setPrdId(e.target.value || null)}
+                  disabled={approvedPrds.length === 0}
+                >
+                  <option value="">No spec</option>
+                  {approvedPrds.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              {/* Loading, error and empty each speak for themselves rather than one
+                of them wearing another's clothes. */}
+              {prds.isError ? (
+                <Failed onRetry={() => void prds.refetch()}>
+                  The approved specs did not load.
+                </Failed>
+              ) : !prds.isLoading && approvedPrds.length === 0 ? (
+                <Empty>
+                  No spec is approved yet, so describe the work instead.{" "}
+                  <Link to="/plan" style={{ color: "var(--sp-ink)" }}>
+                    Approve one in Plan
+                  </Link>
+                  .
+                </Empty>
+              ) : null}
+            </>
+          ) : null}
+
+          <Actions>
+            <Button
+              variant={startIsPrimary ? "primary" : "default"}
+              // THE KEYCAP ARRIVES WITH THE KEY AND LEAVES WITH IT. `canStart` is
+              // the whole of what the chord tests, so this <kbd> is true by
+              // construction rather than by a reader remembering to keep two
+              // conditions in step. Drawn unconditionally it promised a key on a
+              // dim button that would do nothing at all: an empty composer offers
+              // no work to start, and a person who presses the advertised chord
+              // there learns that the keycaps on this product are decoration.
+              // This is not the surface going quiet under the ratchet. Nothing is
+              // removed: the button, its label and the title that says what
+              // unlocks it all stay, and the keycap appearing the moment there is
+              // something to start is a signal the surface did not have before.
+              shortcut={canStart ? "⌘⏎" : undefined}
+              disabled={!canStart}
+              onClick={run}
+              // A disabled control pairs with an explanation: a dim button on its
+              // own says nothing about what would unlock it.
+              title={
+                canStart || isPending
+                  ? undefined
+                  : mode === "ship"
+                    ? "Describe the work in a few words, or pick an approved spec"
+                    : "Describe the goal in a few words"
+              }
+            >
+              {isPending ? "Starting" : "Hand it over"}
+            </Button>
+          </Actions>
+        </TabPanel>
       </div>
 
       <RepoGateDialog
@@ -651,12 +682,20 @@ function BuildPage() {
   const qc = useQueryClient();
   const navigate = useNavigate({ from: "/runs/" });
   const search = Route.useSearch();
+  const confirm = useConfirm();
 
   // One mode, not two toggles. Managing reveals archived runs AND the two
   // actions on them, because they are the same job.
   const [managing, setManaging] = React.useState(false);
   const [showAll, setShowAll] = React.useState(false);
-  const [deleteTarget, setDeleteTarget] = React.useState<StudioSessionListItem | null>(null);
+  // The finder is summoned rather than standing open. `Search` is a whole panel,
+  // a field AND its own list of matches, so left open over the grid it would
+  // render the same runs twice a few pixels apart: the defect this surface
+  // already removed once when it killed two of its three renderings of one list.
+  const [finding, setFinding] = React.useState(false);
+  // Which run the delete is in flight for, so the control that started it is
+  // the one that says so. Nothing else on the surface changes.
+  const [deleting, setDeleting] = React.useState<string | null>(null);
   const [receipts, setReceipts] = React.useState<CommitReceipt[]>([]);
 
   /* MANAGING IS A VIEW, AND A VIEW MUST NOT COST THE SURFACE ITS DATA.
@@ -755,11 +794,9 @@ function BuildPage() {
   });
   const del = useMutation({
     mutationFn: (missionId: string) => fDelete({ data: { missionId } }),
-    onSuccess: () => {
-      setDeleteTarget(null);
-      invalidate();
-    },
+    onSuccess: invalidate,
     onError: (e: Error) => toast.error(e.message),
+    onSettled: () => setDeleting(null),
   });
 
   /* ---- opening a run ----
@@ -793,6 +830,33 @@ function BuildPage() {
     el.focus();
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+  };
+
+  /* DELETING ASKS FIRST, AND THE QUESTION IS THE HOUSE'S ONE QUESTION.
+   *
+   * This route used to build its own AlertDialog out of `components/ui/`, and
+   * it was the last route file in the product importing from there. `useConfirm`
+   * is the same Radix mechanism drawn in house primitives, mounted once above
+   * the outlet, so the focus trap, the escape key, the focus return and the
+   * inert background are all unchanged and none of them is re-implemented here.
+   *
+   * TWO THINGS IT CARRIES DIFFERENTLY, both said rather than hidden. The run's
+   * name is no longer bolded inside the sentence, because the shared body takes
+   * a plain string; it is still named. And the pending state moved off the
+   * dialog's own button onto the row's Delete control, which is where the
+   * reader's eye already is once the question has closed. */
+  const askDelete = async (s: StudioSessionListItem) => {
+    const title = stripAutoPrefix(s.title);
+    const ok = await confirm({
+      title: "Delete this run?",
+      body: `This removes the working log and any staged files for ${title}. What it decided stays on the record. To just tidy the list, archive it instead.`,
+      confirmLabel: "Delete the run",
+      cancelLabel: "Keep it",
+      destructive: true,
+    });
+    if (!ok) return;
+    setDeleting(s.mission_id);
+    del.mutate(s.mission_id);
   };
 
   const commit = (r: Omit<CommitReceipt, "at">) => {
@@ -855,8 +919,6 @@ function BuildPage() {
    * stage, not a lens on a list. One gesture, one meaning, everywhere. */
   useSpineStrip(null);
 
-  const visible = showAll ? rows : rows.slice(0, VISIBLE);
-
   // WHICH VIEW. The list is the default and the absence of the key means it,
   // so the plain /runs URL stays clean and the three dead lens names still
   // land somewhere real. Switching writes the choice into the URL, so a board
@@ -864,6 +926,30 @@ function BuildPage() {
   const board = search.view === "board";
   const setView = (next: "list" | "board") =>
     navigate({ search: (prev) => ({ ...prev, view: next === "board" ? "board" : undefined }) });
+
+  /* NOTHING IN THE WORKSPACE IS THE SAME FACT IN BOTH VIEWS, SO IT GETS THE
+   * SAME DOOR. The board's empty state carried a button and the list's carried
+   * none, off one condition, so pressing Board conjured a way forward that
+   * pressing List took away.
+   *
+   * IT IS A GHOST IN BOTH, and that is the one-primary rule rather than a
+   * downgrade. With no rows there is no call waiting, so `startIsPrimary` is
+   * true and the composer's "Hand it over" is the screen's primary in both
+   * views. A second filled button beside it would make neither of them the
+   * one thing to press. The board used to draw a primary here and this is the
+   * correction. */
+  const nothingYet = (
+    <Empty
+      action={
+        <Button variant="ghost" onClick={focusComposer}>
+          Describe the next build
+        </Button>
+      }
+    >
+      Nothing has been built here yet. Describe the work and the crew plans the steps, writes the
+      change, and opens the pull request.
+    </Empty>
+  );
 
   return (
     <Surface
@@ -876,7 +962,22 @@ function BuildPage() {
       context={
         board ? undefined : (
           <>
-            {repoStatus.data ? (
+            {repoStatus.isError ? (
+              /* A CHECK THAT DID NOT COME BACK IS NOT A REPO THAT IS NOT
+                 CONNECTED. This arm used to be absent: `repoStatus.data ? ...
+                 : null` rendered nothing at all when the check failed, so the
+                 one precondition every dispatch depends on simply vanished
+                 from the surface, and a reader who had read it a minute
+                 earlier had no way to notice it had stopped being said. */
+              <>
+                <div className="sp-ctx-head">Where builds land</div>
+                <div className="sp-ctx-body">
+                  <Failed onRetry={() => void repoStatus.refetch()}>
+                    We could not check where builds land.
+                  </Failed>
+                </div>
+              </>
+            ) : repoStatus.data ? (
               <>
                 <div className="sp-ctx-head">Where builds land</div>
                 <div className="sp-ctx-body">
@@ -977,92 +1078,82 @@ function BuildPage() {
 
       {/* The view switch. Same furniture as the composer's two doors, in the
           same position on both views, because a toggle that moves when you use
-          it does not read as one control. */}
-      <div className="sp-tabs" role="tablist" aria-label="How to read the runs">
-        <button
-          type="button"
-          role="tab"
-          className="sp-tab"
-          aria-selected={!board}
-          onClick={() => setView("list")}
-        >
-          List
-        </button>
-        <button
-          type="button"
-          role="tab"
-          className="sp-tab"
-          aria-selected={board}
-          onClick={() => setView("board")}
-        >
-          Board
-        </button>
-      </div>
+          it does not read as one control.
 
-      {board ? (
-        firstLoad ? (
-          <Loading>Reading the record.</Loading>
-        ) : sessions.isError ? (
-          <Failed onRetry={() => void sessions.refetch()}>
-            The runs did not load, so this board is not the whole picture.
-          </Failed>
-        ) : rows.length === 0 ? (
-          <Empty
-            action={
-              <Button variant="primary" onClick={focusComposer}>
-                Describe the next build
-              </Button>
+          IT IS A REAL TABLIST NOW. Both rows on this file declared `role="tab"`
+          and delivered none of what that role promises: a screen reader
+          announced "tab, 1 of 2", a person pressed an arrow, and nothing moved.
+          Every tab was also its own tab stop, so tabbing through the page
+          walked a reader through the choice they had already declined. See
+          components/runs/Tabs.tsx, which is the house's two existing answers
+          generalised rather than a third copy. */}
+      <Tabs
+        group={VIEW_TABS}
+        label="How to read the runs"
+        active={board ? "board" : "list"}
+        onSelect={setView}
+        tabs={[
+          { id: "list", label: "List" },
+          { id: "board", label: "Board" },
+        ]}
+      />
+
+      <TabPanel group={VIEW_TABS} active={board ? "board" : "list"}>
+        {board ? (
+          firstLoad ? (
+            <Loading>Reading the record.</Loading>
+          ) : sessions.isError ? (
+            <Failed onRetry={() => void sessions.refetch()}>
+              The runs did not load, so this board is not the whole picture.
+            </Failed>
+          ) : rows.length === 0 ? (
+            nothingYet
+          ) : (
+            <RunBoard
+              rows={rows}
+              progressById={progressById}
+              showAll={showAll}
+              onShowAll={() => setShowAll((v) => !v)}
+              onOpen={openRun}
+            />
+          )
+        ) : firstLoad ? null : sessions.isError ? (
+          <Gate question="The runs did not load.">
+            <Button variant="primary" onClick={() => void sessions.refetch()}>
+              Try again
+            </Button>
+          </Gate>
+        ) : call ? (
+          <Gate
+            // The stored title carries a machine "[auto]" origin prefix when the
+            // loop raised it. That is provenance, not copy, and it never reaches
+            // the sentence a person is asked to judge.
+            question={`${stripAutoPrefix(call.title)} is waiting on you.`}
+            lines={
+              [
+                call.pending_approvals > 0 ? (
+                  <span key="calls">
+                    <Num>{call.pending_approvals}</Num>{" "}
+                    {call.pending_approvals === 1 ? "call" : "calls"} to settle before it goes on.
+                  </span>
+                ) : (
+                  <span key="calls">It stopped and cannot go on until a person answers.</span>
+                ),
+                firstLine(call.goal) ? <span key="goal">{firstLine(call.goal)}</span> : null,
+                call.changeset ? (
+                  <span key="repo">
+                    {call.changeset.repo}
+                    {call.changeset.branch ? ` · ${call.changeset.branch}` : ""}
+                  </span>
+                ) : null,
+              ].filter(Boolean) as React.ReactNode[]
             }
           >
-            Nothing has been built here yet, so there is nothing to lay out. Describe the work below
-            and the crew plans the steps, writes the change, and opens the pull request.
-          </Empty>
-        ) : (
-          <RunBoard
-            rows={rows}
-            progressById={progressById}
-            showAll={showAll}
-            onShowAll={() => setShowAll((v) => !v)}
-            onOpen={openRun}
-          />
-        )
-      ) : firstLoad ? null : sessions.isError ? (
-        <Gate question="The runs did not load.">
-          <Button variant="primary" onClick={() => void sessions.refetch()}>
-            Try again
-          </Button>
-        </Gate>
-      ) : call ? (
-        <Gate
-          // The stored title carries a machine "[auto]" origin prefix when the
-          // loop raised it. That is provenance, not copy, and it never reaches
-          // the sentence a person is asked to judge.
-          question={`${stripAutoPrefix(call.title)} is waiting on you.`}
-          lines={
-            [
-              call.pending_approvals > 0 ? (
-                <span key="calls">
-                  <Num>{call.pending_approvals}</Num>{" "}
-                  {call.pending_approvals === 1 ? "call" : "calls"} to settle before it goes on.
-                </span>
-              ) : (
-                <span key="calls">It stopped and cannot go on until a person answers.</span>
-              ),
-              firstLine(call.goal) ? <span key="goal">{firstLine(call.goal)}</span> : null,
-              call.changeset ? (
-                <span key="repo">
-                  {call.changeset.repo}
-                  {call.changeset.branch ? ` · ${call.changeset.branch}` : ""}
-                </span>
-              ) : null,
-            ].filter(Boolean) as React.ReactNode[]
-          }
-        >
-          <Button variant="primary" onClick={() => openRun(call.mission_id)}>
-            Open the run
-          </Button>
-          {waiting.length > 1 ? (
-            /* NAME THE NOUN HERE TOO. `waiting.length` counts RUNS in a gate
+            <Button variant="primary" onClick={() => openRun(call.mission_id)}>
+              Open the run
+            </Button>
+            {waiting.length > 1 ? (
+              /* NAME THE NOUN HERE TOO. `waiting.length` counts RUNS in a gate
                state, and the line three rows above it counts CALLS on the one
                run being shown. A reader just told "3 calls to settle" read a
                bare "Settle all 5" as five calls, and then landed on /approvals,
@@ -1071,59 +1162,70 @@ function BuildPage() {
                on `headline`); the button was missed. It says "all" rather than
                "the other" on purpose: the destination queue holds every waiting
                run including the one on screen. */
-            <Button variant="ghost" onClick={() => navigate({ to: "/approvals" })}>
-              Settle all {waiting.length} runs
+              <Button variant="ghost" onClick={() => navigate({ to: "/approvals" })}>
+                Settle all {waiting.length} runs
+              </Button>
+            ) : null}
+          </Gate>
+        ) : (
+          <Gate question="Nothing is waiting on you.">
+            <Button variant="ghost" onClick={focusComposer}>
+              Describe the next build
             </Button>
-          ) : null}
-        </Gate>
-      ) : (
-        <Gate question="Nothing is waiting on you.">
-          <Button variant="ghost" onClick={focusComposer}>
-            Describe the next build
-          </Button>
-        </Gate>
-      )}
+          </Gate>
+        )}
 
-      {/* A textarea is prose and keeps the measure, so the composer holds it
+        {/* A textarea is prose and keeps the measure, so the composer holds it
           back even where the board around it dropped it. */}
-      <div style={board ? { maxWidth: "var(--sp-main-max)" } : undefined}>
-        <Block title="Hand work over" sub="Anything risky comes back to you before it happens.">
-          <Composer
-            // One primary per screen. On the list the gate owns it when a run
-            // is waiting; on the board there is no gate, so the hand-over does.
-            startIsPrimary={(board || !call) && !sessions.isError}
-            onCommit={commit}
-          />
-        </Block>
-
-        {receipts.length > 0 ? (
-          <Block title="What you set in motion">
-            {receipts.map((r, i) => (
-              <Receipt
-                key={`${r.id}-${i}`}
-                verb={r.verb}
-                consequence={r.consequence}
-                handoff={r.handoff}
-                time={r.at}
-                failed={r.failed}
-              />
-            ))}
+        <div style={board ? { maxWidth: "var(--sp-main-max)" } : undefined}>
+          <Block title="Hand work over" sub="Anything risky comes back to you before it happens.">
+            <Composer
+              // One primary per screen. On the list the gate owns it when a run
+              // is waiting; on the board there is no gate, so the hand-over does.
+              startIsPrimary={(board || !call) && !sessions.isError}
+              onCommit={commit}
+            />
           </Block>
-        ) : null}
-      </div>
 
-      {board ? null : (
-        <Block
-          title="Runs"
-          sub={
-            managing
-              ? "Archived runs are included. What a run decided stays on the record."
-              : undefined
-          }
-          more={rows.length > VISIBLE ? (showAll ? "Show fewer" : `All ${rows.length}`) : undefined}
-          onMore={() => setShowAll((v) => !v)}
-        >
-          {/* A COLD LOAD SAYS SO, in the list exactly as it does on the board.
+          {receipts.length > 0 ? (
+            <Block title="What you set in motion">
+              {receipts.map((r, i) => (
+                <Receipt
+                  key={`${r.id}-${i}`}
+                  verb={r.verb}
+                  consequence={r.consequence}
+                  handoff={r.handoff}
+                  time={r.at}
+                  failed={r.failed}
+                />
+              ))}
+            </Block>
+          ) : null}
+        </div>
+
+        {board ? null : (
+          <Block
+            title="Runs"
+            sub={
+              managing
+                ? "Archived runs are included. What a run decided stays on the record."
+                : undefined
+            }
+            /* THE REGION'S CONTROL IS IN THE REGION'S HEAD, which is where a
+               reader looks for one. It used to be the cap toggle ("All 43"),
+               and the cap now belongs to the grid, which states both real
+               numbers instead of one. Offered only above the cap, because a
+               finder over a list you can already see whole is furniture. */
+            more={
+              rows.length > VISIBLE && !firstLoad && !sessions.isError
+                ? finding
+                  ? "Close the finder"
+                  : "Find a run"
+                : undefined
+            }
+            onMore={() => setFinding((v) => !v)}
+          >
+            {/* A COLD LOAD SAYS SO, in the list exactly as it does on the board.
               This arm used to be `null`, so on a first load the Block printed
               its "Runs" heading over an empty body: a heading standing over
               nothing, which a person reads as "there is nothing here" rather
@@ -1131,186 +1233,62 @@ function BuildPage() {
               SAME `firstLoad` flag with this same Loading line, so pressing
               Board made the surface speak and pressing List made it go silent,
               off one variable. Fixed 2026-08-11. */}
-          {firstLoad ? (
-            <Loading>Reading the record.</Loading>
-          ) : sessions.isError ? (
-            // "Nothing here" and "we could not find out" are different facts and
-            // a person acts differently on each, so they never share a shape.
-            <Failed onRetry={() => void sessions.refetch()}>
-              The runs did not load, so this list is not the whole picture.
-            </Failed>
-          ) : rows.length === 0 ? (
-            <Empty>
-              Nothing has been built here yet. Describe the work above and the crew plans the steps,
-              writes the change, and opens the pull request.
-            </Empty>
-          ) : (
-            visible.map((s) => {
-              const state = runState(s);
-              const files = s.changeset?.file_count ?? 0;
-              const p = progressById.get(s.mission_id);
-              const steps =
-                p && p.total > 0 ? (
-                  <>
-                    step <Num>{p.done}</Num> of <Num>{p.total}</Num>
-                  </>
-                ) : null;
-              const evidence = completionEvidence({
-                claimsDone: state === "done",
-                kind: s.kind,
-                changesetStatus: s.changeset?.status ?? null,
-                prUrl: s.changeset?.pr_url ?? null,
-              });
+            {firstLoad ? (
+              <Loading>Reading the record.</Loading>
+            ) : sessions.isError ? (
+              // "Nothing here" and "we could not find out" are different facts and
+              // a person acts differently on each, so they never share a shape.
+              <Failed onRetry={() => void sessions.refetch()}>
+                The runs did not load, so this list is not the whole picture.
+              </Failed>
+            ) : rows.length === 0 ? (
+              nothingYet
+            ) : (
+              /* THE GRID ANSWERS THE OTHER TWO FACTS. A filter that hid
+                 everything and a cap that is holding rows back are states this
+                 surface could not express at all, and both are the grid's:
+                 `FilterTable` passes `isFiltered` and `totalBeforeFilter` down
+                 so an empty result can never be printed as an empty workspace.
+                 The two states above stay HERE, because an empty workspace
+                 needs a door and a failed read needs the surface's own voice. */
+              <RunsGrid
+                rows={rows}
+                progressById={progressById}
+                // Exactly one mark on this surface may blink, and it is the one
+                // the Gate above is asking about. The old list gave every
+                // waiting run the `gate` state, so a workspace with a dozen
+                // open calls blinked a dozen marks in unison.
+                blinkingId={call?.mission_id ?? null}
+                managing={managing}
+                // Guarded by the same condition that draws its control. Left
+                // ungated, a finder opened over forty runs would still be on
+                // screen after thirty-seven of them were archived away, with
+                // the control that closes it no longer drawn.
+                finding={finding && rows.length > VISIBLE}
+                onOpen={openRun}
+                onArchive={(s) =>
+                  archive.mutate({ missionId: s.mission_id, archived: !s.archived })
+                }
+                onDelete={(s) => void askDelete(s)}
+                archivePending={archive.isPending}
+                deletingId={deleting}
+                maxRows={VISIBLE}
+              />
+            )}
 
-              // ONE second line, carrying a DIFFERENT fact from the title: who is
-              // on it, what they are doing, how far through the plan they are.
-              const sub: React.ReactNode[] =
-                state === "working"
-                  ? [
-                      <>
-                        <Who>{actorName(s.kind)}</Who> is {actorVerb(s.kind)}
-                      </>,
-                      steps,
-                    ]
-                  : state === "gate"
-                    ? [
-                        "Waiting on you",
-                        s.pending_approvals > 0 ? (
-                          <>
-                            <Num>{s.pending_approvals}</Num>{" "}
-                            {s.pending_approvals === 1 ? "call" : "calls"}
-                          </>
-                        ) : null,
-                      ]
-                    : state === "stopped"
-                      ? [steps ? <>Stopped at {steps}</> : "Stopped"]
-                      : state === "queued"
-                        ? [`Queued for ${actorName(s.kind).toLowerCase()}`]
-                        : [
-                            <>
-                              <Who>{actorName(s.kind)}</Who> finished
-                            </>,
-                            files > 0 ? (
-                              <>
-                                <Num>{files}</Num> {files === 1 ? "file" : "files"}
-                              </>
-                            ) : null,
-                            // The one element that calls out a Done claim with
-                            // nothing behind it. Its reason is the tooltip.
-                            evidence ? (
-                              <span
-                                className={
-                                  evidence === "verified"
-                                    ? "sp-pass"
-                                    : evidence === "needs-verification"
-                                      ? "sp-warn"
-                                      : undefined
-                                }
-                                title={COMPLETION_EVIDENCE_REASON[evidence]}
-                              >
-                                {COMPLETION_EVIDENCE_LABEL[evidence]}
-                              </span>
-                            ) : null,
-                          ];
-
-              // Managing turns the row from a link into a shelf: it stops being a
-              // button, so its two actions can live inside it without one control
-              // nested in another.
-              //
-              // "Archived" is the LAST thing that goes into `sub`, because `sub`
-              // is the fact line and holds nothing but facts. The two Manage
-              // controls used to be pushed into this same array, so an archived
-              // row's second line rendered "Engineer finished · 3 files ·
-              // Verified · Archived · Restore · Delete": three states and two
-              // commands in one rhythm, with the one irreversible act on this
-              // surface a middot away from a file count in a line people read as
-              // status. They live in the Row's own `action` slot now, which is
-              // exactly what that slot is for. Fixed 2026-08-11.
-              if (s.archived) sub.push("Archived");
-
-              return (
-                <Row
-                  key={s.mission_id}
-                  tight
-                  marks={
-                    <AgentMark slug={actorSlug(s.kind)} state={MARK_STATE[state]} name={s.title} />
-                  }
-                  lead={stripAutoPrefix(s.title)}
-                  sub={<Meta parts={sub} />}
-                  time={ago(s.updated_at)}
-                  onClick={managing ? undefined : () => openRun(s.mission_id)}
-                  action={
-                    managing ? (
-                      /* A fragment, not a wrapper: `.sp-row-action` is already
-                         the flex row with the gap. These stay quiet text buttons
-                         rather than the Button primitive, because a 38px control
-                         would double the height of a `tight` row. */
-                      <>
-                        <button
-                          type="button"
-                          className="sp-block-more"
-                          disabled={archive.isPending}
-                          onClick={() =>
-                            archive.mutate({ missionId: s.mission_id, archived: !s.archived })
-                          }
-                        >
-                          {s.archived ? "Restore" : "Archive"}
-                        </button>
-                        {/* Separated by DISTANCE rather than by colour, the same
-                            rule the Actions primitive's `trailing` slot carries:
-                            the interface is monochrome, red means status, and
-                            Delete is the one act here that cannot be undone. */}
-                        <button
-                          type="button"
-                          className="sp-block-more"
-                          style={{ marginLeft: "var(--sp-space-3)" }}
-                          onClick={() => setDeleteTarget(s)}
-                        >
-                          Delete
-                        </button>
-                      </>
-                    ) : undefined
-                  }
-                />
-              );
-            })
-          )}
-
-          {/* The control that turns Managing on has to survive turning it on.
+            {/* The control that turns Managing on has to survive turning it on.
               Gated on isLoading this button removed itself the instant it was
               pressed, so the toggle had no visible off switch for a beat. */}
-          {firstLoad || sessions.isError || rows.length === 0 ? null : (
-            <Actions>
-              <Button variant="ghost" onClick={() => setManaging((v) => !v)}>
-                {managing ? "Done" : "Manage"}
-              </Button>
-            </Actions>
-          )}
-        </Block>
-      )}
-
-      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this run?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This removes the working log and any staged files for{" "}
-              <strong>{deleteTarget ? stripAutoPrefix(deleteTarget.title) : ""}</strong>. What it
-              decided stays on the record. To just tidy the list, archive it instead.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Keep it</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => deleteTarget && del.mutate(deleteTarget.mission_id)}
-              disabled={del.isPending}
-              className={buttonVariants({ variant: "destructive" })}
-            >
-              {del.isPending ? "Deleting" : "Delete the run"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            {firstLoad || sessions.isError || rows.length === 0 ? null : (
+              <Actions>
+                <Button variant="ghost" onClick={() => setManaging((v) => !v)}>
+                  {managing ? "Done" : "Manage"}
+                </Button>
+              </Actions>
+            )}
+          </Block>
+        )}
+      </TabPanel>
     </Surface>
   );
 }

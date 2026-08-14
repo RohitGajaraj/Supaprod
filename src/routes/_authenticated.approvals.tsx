@@ -12,8 +12,8 @@
  *    its place unless it serves that.
  *
  * 3. KEEP / MOVE / KILL, on what was here before:
- *    KEEP  the queue itself, the filter row, the project grouping, the j/k/a/r
- *          keys, the optimistic decide: this is where the decision is made.
+ *    KEEP  the queue itself, the filter row, the j/k/a/d keys, the optimistic
+ *          decide: this is where the decision is made.
  *    KEEP  the "N more in other workspaces" line. It is the only thing telling
  *          you the number in front of you is not the whole number.
  *    KILL  the per-item full card. Twenty cards, each with its own evidence
@@ -23,12 +23,13 @@
  *          display? If a user wants to know, he will click deeper."
  *    KILL  the standalone page header and RoomChromeShell. The app shell
  *          already says where you are.
- *    MOVE  the evidence, the cost and the provenance out of the list and into
- *          the context column, where they describe the ONE call in focus.
+ *    MOVE  the evidence, the cost and where a call came from out of the list
+ *          and into the context column, where they describe the ONE call in
+ *          focus.
  *
- * 4. ONE CLICK AWAY. A list row is one line plus a different second fact (who
- *    raised it, what kind), never wrapping. Its full evidence appears when it
- *    becomes the focused call, which is one keypress or one click.
+ * 4. ONE CLICK AWAY. A list row is one line plus a different second fact,
+ *    never wrapping. Its full evidence appears when it becomes the focused
+ *    call, which is one keypress or one click.
  *
  * 5. THE MOMENT. Clearing the last one. The queue is worked in order and the
  *    surface always has exactly one thing asking, so the end is visible from
@@ -39,20 +40,69 @@
  * j and k move which item is the gate. That matches how the queue is actually
  * worked, one call at a time, and keeps one primary action on screen.
  *
- * Every behaviour is preserved: optimistic decide with rollback, a/r, the
+ * Every behaviour is preserved: optimistic decide with rollback, a/d, the
  * workspace-scoped query key shared with the rail badge and Today, the
  * unscoped other-workspaces read, and the live-activity line on an empty queue.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * 2026-08-14: THE COST OF WAITING IS NOW ON THE SURFACE (Meridian).
+ *
+ * Measured in production that morning: twelve gates pending, ages in hours 86,
+ * 83, 83, 83, 80, 74, 68, 67, 66, 55, 52, 51. The oldest entered at 18:31 on 10
+ * August. Each one blocks exactly one named piece of work, and NOTHING ANYWHERE
+ * IN THE PRODUCT TOLD ANYONE. The loop sat for three and a half days waiting on
+ * a click, in a product whose whole claim is that it keeps moving.
+ *
+ * The diagnosis was not that the queue looked bad. It was that A PENDING
+ * APPROVAL IS A ROW IN A LIST, NOT A STALLED PIECE OF WORK WITH A COST. So the
+ * list is no longer a list of gates: it is StalledWork, which drives emphasis
+ * from age through elevation and type weight as well as hue, so the oldest is
+ * still obviously the oldest in greyscale, and which names what is not
+ * happening. The gate at the top carries the same fact for the call in front of
+ * you.
+ *
+ * TWO THINGS CHANGED THAT ARE NOT PRESENTATION, and both are here rather than
+ * in the read, so no query moved:
+ *
+ *   ORDER. The queue arrives NEWEST FIRST (approvals-queue.functions.ts sorts
+ *   `b.timestamp` against `a.timestamp`), so this surface used to put the
+ *   freshest call in front of a person while an 86 hour gate sat at the bottom
+ *   of the page. It is sorted OLDEST FIRST here, which is the order the surface
+ *   already claimed to work in ("settled in order") and the only order the
+ *   finding above permits. The read is untouched; this is which one is drawn
+ *   first.
+ *
+ *   THE PROJECT GROUPING IS GONE, and it was on the KEEP list until today. A
+ *   list grouped by project cannot also be ordered by age: an 86 hour gate
+ *   sitting under the third project heading is exactly how the oldest call
+ *   stayed invisible for three and a half days. The project is not lost, it
+ *   moves onto the row itself, which is a better place for it: a heading tells
+ *   you where you are in a list, a row fact tells you what is held up.
+ *
+ * THE ROW'S SECOND FACT CHANGED, and answer 4 above is still the law. It used
+ * to be who raised the call and which family it belongs to; it is now how long
+ * the call has been stopped and what that is holding up. Both are one line and
+ * neither wraps, so the shape is unchanged and only the fact is. The agent is
+ * not lost: it is drawn in the context column for the call in focus, which is
+ * one keypress away, and it never told a reader whether to act. The age does.
+ * The family is still on the surface as the filter row's own buckets.
  *
  * THE COMMIT (agents/FINAL-agent-presence.md R10, which named this surface and
  * this line as the defect). Settling a call used to fire a toast saying
  * "Approved." and the card vanished. A toast confirms that your click
- * REGISTERED; a receipt renders what your click CAUSED. An approval that
+ * REGISTERED; the settled line renders what your click CAUSED. An approval that
  * erases itself teaches you that your judgment left no trace, and judgment is
  * the product, so it now leaves a mark at the moment it is made. The per-item
  * approveConsequence is real, per-kind copy that already existed, so the
- * receipt says the true thing rather than a generic confirmation. No arrow is
- * drawn to a receiving agent, because nothing in decideApprovalItem's response
- * tells us who picks the work up: an arrow to nowhere is worse than no arrow.
+ * settled line says the true thing rather than a generic confirmation. No arrow
+ * is drawn to a receiving agent, because nothing in decideApprovalItem's
+ * response tells us who picks the work up: an arrow to nowhere is worse than no
+ * arrow.
+ *
+ * FOUR FACTS, NOT TWO. This surface separates them and must keep separating
+ * them: nothing is waiting on you, a filter excluded everything, the read
+ * failed, and you are not in a workspace yet so it cannot ask its question at
+ * all. The third must never wear the first's clothes and must offer a way out.
  */
 
 import { createFileRoute } from "@tanstack/react-router";
@@ -69,29 +119,27 @@ import {
   type ApprovalQueueItem,
 } from "@/lib/approvals-queue.functions";
 import { getLiveActivity } from "@/lib/agents.functions";
-import { toast } from "@/lib/notify";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import {
-  AgentMark,
-  Block,
-  Button,
-  Empty,
-  Gate,
-  Loading,
-  Num,
-  PageHead,
-  Receipt,
-  Row,
-  Surface,
-} from "@/components/shell/primitives";
+import { Surface } from "@/components/shell/primitives";
+
+import { ApprovalCard } from "@/components/meridian/ApprovalCard";
+import { NeedsSetup } from "@/components/meridian/NeedsSetup";
+import { StalledWork, type StalledItem } from "@/components/meridian/StalledWork";
+
+import { CallGate, GateAction, ReadFailed } from "@/components/approvals/CallGate";
+import { CallContext, Key } from "@/components/approvals/CallContext";
+import { FilterExcludedEverything, QueueFilters } from "@/components/approvals/QueueFilters";
+import { SettledTrail, type SettledLine } from "@/components/approvals/SettledTrail";
+import { UndatedCalls, type UndatedCall } from "@/components/approvals/UndatedCalls";
+import { waitingSince } from "@/components/approvals/stopped-for";
 
 export const Route = createFileRoute("/_authenticated/approvals")({
   component: ApprovalsSurface,
   head: () => ({ meta: [{ title: "Approvals · Supaprod" }] }),
 });
 
-const TOAST_APPROVE: Record<ApprovalQueueItem["kindKey"], string> = {
+const SETTLED_APPROVE: Record<ApprovalQueueItem["kindKey"], string> = {
   tool_call: "Approved.",
   decision: "Approved.",
   memory_candidate: "In. It guides the next call.",
@@ -103,7 +151,7 @@ const TOAST_APPROVE: Record<ApprovalQueueItem["kindKey"], string> = {
   design_gate: "Design approved. This spec can now dispatch to Build.",
   playbook_proposal: "Playbook adopted.",
 };
-const TOAST_REJECT = "Rejected. Noted for next time.";
+const SETTLED_REJECT = "Declined. Noted for next time.";
 
 const FILTERS: { id: ApprovalFilter; label: string }[] = [
   { id: "all", label: "All" },
@@ -115,25 +163,42 @@ const FILTERS: { id: ApprovalFilter; label: string }[] = [
 
 /** stripAutoPrefix only removes a LEADING "[auto]". Evidence lines carry it
  *  mid-sentence too ("From [auto] Investigate the ..."), so the marker has to
- *  come out wherever it sits: it is provenance for the loop, never copy. */
+ *  come out wherever it sits: it marks a call the loop raised itself, and it is
+ *  never copy for a person to read. */
 function stripAuto(text: string): string {
   return text.replace(/\[auto\]\s*/gi, "").trim();
 }
 
-function groupByProject(items: ApprovalQueueItem[]) {
-  const groups = new Map<string, { name: string; items: ApprovalQueueItem[] }>();
-  for (const item of items) {
-    const key = item.projectId ?? "__workspace__";
-    const name = item.projectName ?? "Workspace";
-    if (!groups.has(key)) groups.set(key, { name, items: [] });
-    groups.get(key)!.items.push(item);
-  }
-  return [...groups.values()];
+/** The mission or project a call sits in front of, in the words the queue
+ *  already resolved. Null on the families that are workspace wide (memory,
+ *  house rules, trust, assumption challenges, playbooks), and null is drawn as
+ *  nothing rather than as "Workspace", because inventing a container for a call
+ *  that has none says something the read never said. */
+function subjectOf(item: ApprovalQueueItem): string | null {
+  return item.project ?? item.projectName ?? null;
+}
+
+/**
+ * OLDEST FIRST, and calls with no recorded start time last.
+ *
+ * The read hands this page newest first. That order put the freshest call in
+ * front of a person and left the 86 hour one at the bottom of the page, which
+ * is the defect the 2026-08-14 finding names. Sorting here rather than in the
+ * read keeps every other reader of that same cache entry (the rail badge,
+ * Today) untouched.
+ */
+function oldestFirst(a: ApprovalQueueItem, b: ApprovalQueueItem): number {
+  const at = waitingSince(a.timestamp);
+  const bt = waitingSince(b.timestamp);
+  if (at === null && bt === null) return 0;
+  if (at === null) return 1;
+  if (bt === null) return -1;
+  return at - bt;
 }
 
 function ApprovalsSurface() {
   const qc = useQueryClient();
-  const { activeWorkspaceId } = useWorkspace();
+  const { activeWorkspaceId, workspaces, isLoading: workspacesLoading } = useWorkspace();
   const fetchQueue = useServerFn(getApprovalsQueue);
   const fetchLiveActivity = useServerFn(getLiveActivity);
   const mDecide = useServerFn(decideApprovalItem);
@@ -141,14 +206,16 @@ function ApprovalsSurface() {
   const [filter, setFilter] = useState<ApprovalFilter>("all");
   const [focusedId, setFocusedId] = useState<string | null>(null);
   // THE COMMIT (agents/FINAL-agent-presence.md R10). A settled call does not
-  // vanish into a toast: it collapses in place into a receipt that stays on
-  // the surface for the rest of the session, so your judgment leaves a visible
+  // vanish into a toast: it collapses in place into a line that stays on the
+  // surface for the rest of the session, so your judgment leaves a visible
   // trace at the moment you make it. Session-local on purpose; the durable
-  // record is the trust ledger, and duplicating it here would be a second
+  // record is the trust audit trail, and duplicating it here would be a second
   // source of the same truth.
-  const [receipts, setReceipts] = useState<
-    { id: string; verb: string; consequence: string; at: string; failed?: boolean }[]
-  >([]);
+  const [settled, setSettled] = useState<SettledLine[]>([]);
+
+  // One clock for one paint, so the gate's age and the queue's ages can never
+  // disagree by a tick inside the same render.
+  const now = Date.now();
 
   // ONE COUNT, ONE SOURCE (2026-07-18): the same query key the rail badge and
   // Today read, scoped to the active workspace, so this page's own count can
@@ -186,10 +253,11 @@ function ApprovalsSurface() {
     return c;
   }, [allItems]);
 
-  const visibleItems = useMemo(
-    () => (filter === "all" ? allItems : allItems.filter((i) => i.filterBucket === filter)),
-    [allItems, filter],
-  );
+  const visibleItems = useMemo(() => {
+    const inFilter =
+      filter === "all" ? allItems : allItems.filter((i) => i.filterBucket === filter);
+    return [...inFilter].sort(oldestFirst);
+  }, [allItems, filter]);
 
   useEffect(() => {
     if (visibleItems.length === 0) {
@@ -203,7 +271,46 @@ function ApprovalsSurface() {
 
   const focused = visibleItems.find((i) => i.id === focusedId) ?? null;
   const rest = visibleItems.filter((i) => i.id !== focusedId);
-  const groups = useMemo(() => groupByProject(rest), [rest]);
+
+  /*
+   * The queue below the gate, as work that has stopped rather than as rows.
+   *
+   * `blocking` is the mission or project the call sits in front of, which is
+   * the coarsest honest answer available: nothing on an item names the single
+   * downstream piece of work it holds up, so for a tool-call gate this is the
+   * mission (exactly right) and for a project-scoped gate it is the project
+   * (true, and less precise than the component deserves). Recorded as a gap
+   * rather than papered over with a guess.
+   *
+   * `reason` is left at its default. Every call in this queue is a gate waiting
+   * on a person; nothing here is stopped for want of a connected source, which
+   * is the other reason StalledWork draws and the one that carries no accent.
+   *
+   * No per-row commit control. StalledWork offers one and it is deliberately
+   * not passed: this surface keeps ONE primary action on screen, and a row that
+   * can approve but not decline is a lopsided pair on an irreversible verdict.
+   */
+  const stalled: StalledItem[] = [];
+  const undated: UndatedCall[] = [];
+  for (const item of rest) {
+    const since = waitingSince(item.timestamp);
+    if (since === null) {
+      undated.push({
+        id: item.id,
+        asking: stripAuto(item.title),
+        where: subjectOf(item),
+        onOpen: () => setFocusedId(item.id),
+      });
+      continue;
+    }
+    stalled.push({
+      id: item.id,
+      asking: stripAuto(item.title),
+      since,
+      blocking: subjectOf(item) ?? undefined,
+      onOpen: () => setFocusedId(item.id),
+    });
+  }
 
   /* THE OPTIMISTIC UPDATE ON THIS PAGE HAD NEVER WORKED, and it looked correct.
    *
@@ -235,16 +342,16 @@ function ApprovalsSurface() {
       return { prev };
     },
     onSuccess: (_res, vars) => {
-      // No toast. The receipt IS the confirmation, and it says what the click
-      // CAUSED rather than that it registered.
-      setReceipts((r) => [
+      // No toast. The settled line IS the confirmation, and it says what the
+      // click CAUSED rather than that it registered.
+      setSettled((r) => [
         {
           id: vars.item.id,
           verb: vars.verdict === "approve" ? "You approved" : "You declined",
           consequence:
             vars.verdict === "approve"
-              ? (vars.item.approveConsequence ?? TOAST_APPROVE[vars.item.kindKey])
-              : (vars.item.rejectConsequence ?? TOAST_REJECT),
+              ? (vars.item.approveConsequence ?? SETTLED_APPROVE[vars.item.kindKey])
+              : (vars.item.rejectConsequence ?? SETTLED_REJECT),
           at: new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
         },
         ...r,
@@ -252,10 +359,10 @@ function ApprovalsSurface() {
     },
     onError: (e: Error, vars, ctx) => {
       if (ctx?.prev) qc.setQueryData(queueKey, ctx.prev);
-      // A failed write still writes a receipt, and the receipt goes honest
+      // A failed write still writes a line, and the line goes honest
       // immediately. Never a success shape over a failed write: that is the one
       // thing that makes the successful ones trustworthy.
-      setReceipts((r) => [
+      setSettled((r) => [
         {
           id: vars.item.id,
           verb: "Nothing was recorded",
@@ -275,7 +382,7 @@ function ApprovalsSurface() {
     },
   });
 
-  /* j/k move focus, a/r settle the focused call. Both guards run before any of
+  /* j/k move focus, a/d settle the focused call. Both guards run before any of
    * them, and the order is the whole point.
    *
    * THE DEFECT THIS CLOSES, found 2026-08-05. This was the one gate surface
@@ -286,9 +393,9 @@ function ApprovalsSurface() {
    * constantly, DECLINED the focused approval on their way out of the page.
    * Cmd+A, select-all, APPROVED it. Cmd+K opened Ask and walked the queue focus
    * underneath the overlay at the same time. decideApprovalItem writes the
-   * verdict to the trust ledger and there is no undo, so the cost of one stray
-   * reload was a settled call the user never made, attributed to them forever,
-   * and a queue one item shorter than they left it.
+   * verdict to the trust audit trail and there is no undo, so the cost of one
+   * stray reload was a settled call the user never made, attributed to them
+   * forever, and a queue one item shorter than they left it.
    *
    * WHY NOTHING CAUGHT IT. The handler was correct TypeScript, it rendered, and
    * every test passed: reading `e.key` without reading `e.metaKey` is not an
@@ -311,7 +418,11 @@ function ApprovalsSurface() {
    * j and k are not destructive and still stand down under a modifier, for the
    * reason Cmd+K showed: a surface that moves its own focus underneath an
    * overlay the user just opened has taken a keypress that was never addressed
-   * to it, and the call they then settle is not the call they were reading. */
+   * to it, and the call they then settle is not the call they were reading.
+   *
+   * j AND k NOW WALK OLDEST FIRST, because `visibleItems` is ordered that way
+   * (see `oldestFirst`). The keys are unchanged; what changed is which call is
+   * under them first, and it is now the one that has been stopped longest. */
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -364,7 +475,7 @@ function ApprovalsSurface() {
   }, [visibleItems, focusedId, decide]);
 
   const activity = liveActivity.data;
-  const receiptLine =
+  const quietLine =
     activity?.state === "working"
       ? "The crew is working. The next call comes to you here."
       : activity?.state === "waiting"
@@ -388,158 +499,157 @@ function ApprovalsSurface() {
         ? "1 decision is ready for you."
         : `${n} decisions are ready for you.`;
 
+  /* THE THIRD FACT, which this surface used to collapse into the first. A
+     person in no workspace at all was told "Nothing is ready for you.", which
+     is true and useless: nothing CAN be ready, and the act that changes it is
+     not a decision but a piece of setup. Only asserted once the membership read
+     has actually landed and the queue itself came back empty, because several
+     gate families predate workspace tenancy and are read unscoped either way,
+     so a person with no workspace can still legitimately have calls waiting. */
+  const needsWorkspace =
+    !workspacesLoading && workspaces.length === 0 && !queue.isLoading && !queue.isError && n === 0;
+
+  const focusedSince = focused ? waitingSince(focused.timestamp) : null;
+  const focusedLines = focused ? focused.evidence.slice(0, 3).map(stripAuto) : [];
+  const focusedHidden = focused ? Math.max(0, focused.evidence.length - 3) : 0;
+
   return (
     <Surface
       context={
         focused ? (
-          <>
-            <div className="sp-ctx-head">Where this call came from</div>
-            <div className="sp-ctx-row">
-              <AgentMark slug={focused.agentSlug} state="gate" />
-              <span>
-                <span className="sp-ctx-name">{agentDisplayName(focused.agentSlug)}</span>
-                <span className="sp-ctx-sub">
-                  {focused.projectName ?? focused.project ?? "This workspace"}
-                </span>
-              </span>
-            </div>
-            {focused.impact ? (
+          <CallContext
+            agentSlug={focused.agentSlug}
+            agentName={agentDisplayName(focused.agentSlug)}
+            where={subjectOf(focused) ?? "This workspace"}
+            impact={focused.impact}
+            keys={
+              /* SAID `r` UNTIL 2026-08-10, AND `r` DOES NOTHING. The decline key
+                 was migrated r -> d (see the note above the key handler in this
+                 file); the handler, the button's own drawn keycap and
+                 lib/key-model.ts all moved together, and this sentence did not.
+                 So the one place on the surface that TEACHES the shortcut taught
+                 a key bound to nothing, while the working key sat unmentioned two
+                 inches away on the button.
+                 It survived because no test asserts this string. The derivation
+                 law the rail uses -- draw the keycap from the same source that
+                 binds it, so the two cannot drift -- is exactly what this prose
+                 sentence opted out of by hand-writing the letter. */
               <>
-                <div className="sp-ctx-head">Before you decide</div>
-                <div className="sp-ctx-body">{focused.impact}</div>
+                <Key>j</Key> and <Key>k</Key> walk the queue, oldest first. <Key>a</Key> approves
+                the one in front of you, <Key>d</Key> declines it.
               </>
-            ) : null}
-            <div className="sp-ctx-head">Moving through</div>
-            {/* SAID `r` UNTIL 2026-08-10, AND `r` DOES NOTHING. The decline key
-                was migrated r -> d (see the note above the key handler in this
-                file); the handler, the button's own drawn keycap and
-                lib/key-model.ts all moved together, and this sentence did not.
-                So the one place on the surface that TEACHES the shortcut taught
-                a key bound to nothing, while the working key sat unmentioned two
-                inches away on the button.
-                It survived because no test asserts this string. The derivation
-                law the rail uses -- draw the keycap from the same source that
-                binds it, so the two cannot drift -- is exactly what this prose
-                sentence opted out of by hand-writing the letter. */}
-            <div className="sp-ctx-body">
-              <Num>j</Num> and <Num>k</Num> walk the queue. <Num>a</Num> approves the one in front
-              of you, <Num>d</Num> declines it.
-            </div>
-          </>
+            }
+          />
         ) : null
       }
     >
-      <PageHead
-        title={headline}
-        sub={n > 0 ? "Settled in order. The one in front of you is the one that moves." : undefined}
-      />
-
-      {allItems.length > 0 ? (
-        <div className="sp-tabs" role="tablist" aria-label="Filter the queue">
-          {FILTERS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              role="tab"
-              className="sp-tab"
-              aria-selected={filter === f.id}
-              onClick={() => setFilter(f.id)}
-            >
-              {f.label}
-              {counts[f.id] > 0 ? <span className="sp-tab-count">{counts[f.id]}</span> : null}
-            </button>
-          ))}
-        </div>
-      ) : null}
-
-      {/* A LOADING READ IS NOT AN EMPTY PAGE. This was `isLoading ? null`,
-          which rendered the heading and then nothing at all: on a cold load
-          the queue surface was a blank rectangle for as long as the read took,
-          with no signal that anything was coming. Empty, Failed and Loading
-          are three different primitives in this product precisely so that a
-          read in flight never wears the clothes of a queue with nothing in it,
-          and this page was skipping straight past that rule. */}
-      {queue.isLoading ? (
-        <Loading>Reading the queue.</Loading>
-      ) : queue.isError ? (
-        <Gate question="The queue did not load.">
-          <Button variant="primary" onClick={() => void queue.refetch()}>
-            Try again
-          </Button>
-        </Gate>
-      ) : focused ? (
-        <Gate
-          // Provenance, not copy: the "[auto]" prefix marks a call the loop
-          // raised itself and must never reach the sentence being judged.
-          question={stripAuto(focused.title)}
-          lines={[
-            ...focused.evidence
-              .slice(0, 3)
-              .map((line, i) => <span key={i}>{stripAuto(line)}</span>),
-            <span key="c">{focused.approveConsequence}</span>,
-          ]}
-        >
-          <Button
-            variant="primary"
-            shortcut="a"
-            disabled={decide.isPending}
-            onClick={() => decide.mutate({ item: focused, verdict: "approve" })}
-          >
-            Approve
-          </Button>
-          <Button
-            shortcut="d"
-            disabled={decide.isPending}
-            onClick={() => decide.mutate({ item: focused, verdict: "reject" })}
-          >
-            Decline
-          </Button>
-        </Gate>
-      ) : (
-        <Gate question={allItems.length === 0 ? "Nothing needs you." : "Nothing in this filter."}>
-          {allItems.length === 0 && receiptLine ? (
-            <span className="sp-subtitle">{receiptLine}</span>
+      <div className="flex flex-col gap-mrd-7">
+        <header>
+          <h1 className="text-[25px] leading-tight font-medium text-mrd-ink">{headline}</h1>
+          {/* THE SECOND CLAUSE EARNS ITS WORDS, and it is not decoration. The
+              headline counts the WHOLE queue and the section below the gate
+              counts the queue MINUS the call in the gate, so on twelve pending
+              calls a reader meets "12" and then "11" two inches apart. Naming
+              the split is what makes those two numbers one fact instead of a
+              contradiction. Do not shorten this back to one sentence. */}
+          {n > 0 ? (
+            <p className="mt-mrd-3 text-[13px] leading-relaxed text-mrd-body">
+              Settled in order, oldest first. The one in front of you is the one that moves, and the
+              rest are listed under it.
+            </p>
           ) : null}
-        </Gate>
-      )}
+        </header>
 
-      {receipts.length > 0 ? (
-        <Block title="What you settled">
-          {receipts.map((r, i) => (
-            <Receipt
-              key={`${r.id}-${i}`}
-              verb={r.verb}
-              consequence={r.consequence}
-              time={r.at}
-              failed={r.failed}
-            />
-          ))}
-        </Block>
-      ) : null}
+        {allItems.length > 0 ? (
+          <QueueFilters
+            filters={FILTERS}
+            counts={counts}
+            active={filter}
+            onSelect={(id) => setFilter(id)}
+          />
+        ) : null}
 
-      {groups.map((group) => (
-        <Block key={group.name} title={group.name}>
-          {group.items.map((item) => (
-            <Row
-              key={item.id}
-              tight
-              marks={<AgentMark slug={item.agentSlug} state="quiet" />}
-              lead={stripAuto(item.title)}
-              // The second line is a DIFFERENT fact, not more of the first: who
-              // raised it and what family of call it is. The evidence belongs
-              // to the one call in focus, not to twenty rows.
-              sub={`${agentDisplayName(item.agentSlug)} · ${item.kind.toLowerCase()}`}
-              onClick={() => setFocusedId(item.id)}
-            />
-          ))}
-        </Block>
-      ))}
+        {/* A LOADING READ IS NOT AN EMPTY PAGE. This was `isLoading ? null`,
+            which rendered the heading and then nothing at all: on a cold load
+            the queue surface was a blank rectangle for as long as the read took,
+            with no signal that anything was coming. Empty, failed and loading
+            are three different things in this product precisely so that a read
+            in flight never wears the clothes of a queue with nothing in it, and
+            this page was skipping straight past that rule.
 
-      {otherWorkspacesCount > 0 ? (
-        <Empty>
-          <Num>{otherWorkspacesCount}</Num> more waiting in your other workspaces.
-        </Empty>
-      ) : null}
+            A plain quiet line, not the pixel-grid loader: that one carries a
+            live elapsed timer and belongs where an agent genuinely runs for
+            seconds. On an ordinary read it would invent a wait. */}
+        {queue.isLoading ? (
+          <p className="text-[13px] text-mrd-mute" role="status" aria-live="polite">
+            Reading the queue.
+          </p>
+        ) : queue.isError ? (
+          <ReadFailed onRetry={() => void queue.refetch()}>The queue did not load.</ReadFailed>
+        ) : needsWorkspace ? (
+          <NeedsSetup
+            kind="no-workspace"
+            thenWhat="every call the crew stops to ask lands here, and the work it is holding up is named beside it."
+          />
+        ) : focused ? (
+          <CallGate
+            // The "[auto]" marker names a call the loop raised itself and must
+            // never reach the sentence being judged.
+            question={stripAuto(focused.title)}
+            subject={subjectOf(focused)}
+            since={focusedSince}
+            now={now}
+            lines={focusedLines}
+            hiddenLineCount={focusedHidden}
+            consequence={focused.approveConsequence}
+          >
+            <GateAction
+              variant="primary"
+              shortcut="a"
+              disabled={decide.isPending}
+              onClick={() => decide.mutate({ item: focused, verdict: "approve" })}
+            >
+              Approve
+            </GateAction>
+            <GateAction
+              shortcut="d"
+              disabled={decide.isPending}
+              onClick={() => decide.mutate({ item: focused, verdict: "reject" })}
+            >
+              Decline
+            </GateAction>
+          </CallGate>
+        ) : allItems.length === 0 ? (
+          /* NOTHING IS WAITING, which is good news and is drawn as such: no
+             accent, no illustration, no call to action. The live line beside it
+             is the one thing worth adding, because "nothing needs you" and "the
+             crew is mid-run and something is coming" are different facts to
+             someone deciding whether to close the tab. */
+          <div className="flex flex-col gap-mrd-4">
+            <ApprovalCard questions={[]} />
+            {quietLine ? <p className="text-[12.5px] text-mrd-mute">{quietLine}</p> : null}
+          </div>
+        ) : (
+          <FilterExcludedEverything
+            total={allItems.length}
+            label={FILTERS.find((f) => f.id === filter)?.label ?? "this filter"}
+            onClearFilter={() => setFilter("all")}
+          />
+        )}
+
+        <SettledTrail lines={settled} />
+
+        {stalled.length > 0 ? <StalledWork items={stalled} now={now} /> : null}
+
+        <UndatedCalls calls={undated} />
+
+        {otherWorkspacesCount > 0 ? (
+          <p className="text-[12.5px] text-mrd-mute">
+            <span className="font-mrd-mono tabular-nums text-mrd-body">{otherWorkspacesCount}</span>{" "}
+            more waiting in your other workspaces.
+          </p>
+        ) : null}
+      </div>
     </Surface>
   );
 }

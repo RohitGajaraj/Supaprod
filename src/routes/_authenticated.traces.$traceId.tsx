@@ -57,6 +57,14 @@
  *    page ever grows: JSON keeps its structure and scrolls sideways in the box,
  *    prose wraps.
  *
+ *    THAT LAST SENTENCE WAS A COMMENT AND NOT A FACT, for as long as this file
+ *    has existed. The `<pre>` it described set no max height and no overflow, so
+ *    a 400 line result grew the page until the controls under it were off
+ *    screen, and one wide JSON line pushed the whole page sideways with it. It
+ *    is now enforced by `TracePane`, which adapts the text to Meridian's
+ *    CodeBlock: the cap, both axes, and a copy control on every pane, which is
+ *    the other half of what someone holding a prompt actually wants.
+ *
  * 5. DELIGHT, AND CONFUSION. The moment is reading the literal system prompt a
  *    model was handed and recognising a line you wrote. Nothing else in the
  *    product answers "is it really doing what I told it" this directly. The
@@ -74,7 +82,7 @@
  *    guardrail hit says which rule stopped which side, and the eval judge's own
  *    words now render beside its scores instead of being fetched and thrown
  *    away. Registers are kept apart per the DID / SAID law: what ran is a
- *    receipt of facts in mono, what the judge said is quoted prose.
+ *    record of facts in mono, what the judge said is quoted prose.
  *    NOT CLAIMED: work in motion. getTrace returns a mission as {id, title}
  *    with no status, so this surface cannot honestly tell you whether the run
  *    is still going, and it never renders a running or waiting mark. An honest
@@ -83,7 +91,25 @@
  * MECHANISM WORDS ARE CORRECT HERE and almost nowhere else: this is the engine
  * room's drill layer, the reader is an engineer, and trace, span, hop, tool
  * call, guardrail and eval are what a stack trace calls them. Mono carries
- * every id, duration, token count and cost.
+ * every id, duration, token count and cost. The one word that was mechanism
+ * without meaning was "Via", a single cell holding three unlabelled facts
+ * jammed together with separators: it now says who served the call, what it was
+ * called through, and, only when it happened, that the first choice failed.
+ *
+ * COLOUR. Every colour on this surface is a Meridian token. Two of them are
+ * outcome and nothing else, and the third state a call can be in, stopped by a
+ * guardrail, deliberately has no hue at all: there is no amber in this system
+ * and a guardrail stop is not a failure of the call, so it is carried by weight
+ * and by words. See `Outcome` below.
+ *
+ * FIVE THINGS THIS PAGE CAN BE, and they are five different facts rather than
+ * two. The read is still running. The read failed. The id in the address is not
+ * a trace id, which is the one a mistyped paste actually hits and which used to
+ * render the validator's own words about a schema. The trace holds no hop at
+ * all, which is also what an expired trace and another account's trace look
+ * like, and the copy names all three. And a trace that recorded tool calls but
+ * no model call, where the auto-pick has nothing to pick and the page used to
+ * simply stop after the hop list.
  *
  * The read is unchanged: getTrace on ["trace", id], the same interleave of
  * ai_events with tool_calls by created_at, the same brief-bearing system
@@ -99,13 +125,20 @@ import { getTrace } from "@/lib/traces.functions";
 import { evalScoreVerdict } from "@/components/observe/EvalScoreChips";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { stripAutoPrefix } from "@/components/plan/format";
+import { Fact, FactLabel, Facts, IdFact, CopyButton } from "@/components/traces/TraceFacts";
+import { TracePane } from "@/components/traces/TracePane";
+import { ToolTrace } from "@/components/traces/ToolTrace";
 import {
   Actions,
   AgentMark,
   Block,
   Button,
+  CtxBody,
+  CtxHead,
+  CtxRow,
   Empty,
   Failed,
+  Loading,
   Num,
   PageHead,
   Row,
@@ -168,7 +201,10 @@ type Selected = { kind: "event" | "tool"; id: string };
 
 /* ------------------------------------------------------------------ *
  * Formatting. Local on purpose: nothing here reaches into another
- * surface's folder, so a parallel port cannot break this one.
+ * surface's folder, so a parallel port cannot break this one. The
+ * presentation atoms in src/components/traces/ ARE this surface's
+ * folder, and they take formatted strings rather than a second copy of
+ * these functions.
  * ------------------------------------------------------------------ */
 
 function fmtMs(ms: number) {
@@ -206,10 +242,28 @@ function since(iso: string | null | undefined): string | null {
   return `on ${new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
 }
 
+/** The route param is free text until something proves otherwise, and getTrace
+ *  validates it as a uuid on the server. So a truncated or mistyped id comes
+ *  back through the same channel as a database outage and used to render the
+ *  validator's own words at the reader, which name a schema rather than the
+ *  mistake. The shape is knowable here, so the surface can say which of the two
+ *  things went wrong. */
+const TRACE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** ai_events.via is one of three routes, and the raw word is opaque even to an
+ *  engineer: `byo` and `cache` in particular change what the numbers beside them
+ *  mean. Unknown values pass through untranslated rather than being swallowed. */
+function routeWords(via: string): string {
+  if (via === "gateway") return "the shared gateway";
+  if (via === "byo") return "your own key";
+  if (via === "cache") return "cache, no new call";
+  return via;
+}
+
 /** ai_events.status is written post-hoc: only ok / error / blocked exist.
- *  A blocked call is NOT a gate: ember marks the human and nothing else, and
- *  nobody is being asked anything here. It fails soft on the mark and says so
- *  in words on the row's second line. Nothing on this page ever renders
+ *  A blocked call is NOT a gate: the accent marks a person who has to decide,
+ *  and nobody is being asked anything here. It fails soft on the mark and says
+ *  so in words on the row's second line. Nothing on this page ever renders
  *  `running`: a trace is a record, and the wiring cannot tell us otherwise. */
 function markState(status: string): MarkState {
   if (status === "error") return "failed";
@@ -217,93 +271,25 @@ function markState(status: string): MarkState {
 }
 
 /* ------------------------------------------------------------------ *
- * Local presentation atoms. Deliberately not added to the shared
- * primitives: they are this surface's shape, not the system's.
+ * The one presentation atom that stays here, because it encodes THIS
+ * surface's status vocabulary rather than a shape. Everything else the
+ * file used to draw by hand (the fact grid, the labels, the panes) now
+ * lives in src/components/traces/.
  * ------------------------------------------------------------------ */
 
-const factGrid: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(148px, 1fr))",
-  gap: "16px 20px",
-};
-
-const factValue: React.CSSProperties = {
-  fontSize: "var(--sp-text-meta)",
-  color: "var(--sp-ink)",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  whiteSpace: "nowrap",
-};
-
-/** Capped, and it scrolls on BOTH axes inside its own box. Horizontal
- *  scrolling was named twice as a pain point, so a 400-line result may never
- *  grow the page and a 300-column JSON line may never widen it. */
-const paneBase: React.CSSProperties = {
-  margin: 0,
-  fontFamily: "var(--sp-font-mono)",
-  fontSize: "var(--sp-text-data)",
-  lineHeight: 1.6,
-  color: "var(--sp-body)",
-  background: "var(--sp-sink)",
-  borderRadius: "var(--sp-radius-panel)",
-  padding: "14px 16px",
-};
-
-const noteStyle: React.CSSProperties = {
-  marginTop: 16,
-  fontSize: "var(--sp-text-meta)",
-};
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="sp-ctx-head" style={{ marginBottom: 6 }}>
-      {children}
-    </div>
-  );
-}
-
-function Fact({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div style={{ minWidth: 0 }}>
-      <Label>{label}</Label>
-      <div style={factValue}>{children}</div>
-    </div>
-  );
-}
-
-/** `data` keeps structure and scrolls sideways in its box: indented JSON is
- *  unreadable once it is word-broken. Prose wraps, because a paragraph that
- *  scrolls sideways is the defect this rule exists to prevent. */
-function Pane({
-  label,
-  data = false,
-  children,
-}: {
-  label: string;
-  data?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div style={{ marginTop: 20 }}>
-      <Label>{label}</Label>
-      <pre
-        style={
-          data
-            ? { ...paneBase, whiteSpace: "pre" }
-            : { ...paneBase, whiteSpace: "pre-wrap", wordBreak: "break-word" }
-        }
-      >
-        {children}
-      </pre>
-    </div>
-  );
-}
-
-/** One honest verdict word for a call's outcome, in the outcome colours. */
+/** One honest verdict word for a call's outcome, in the outcome colours.
+ *
+ *  THREE STATES, TWO COLOURS, and that is deliberate. Green and red report what
+ *  happened. A guardrail stop is a third thing: the call did not fail, a rule
+ *  refused it, and the reader is not being asked to do anything about it here.
+ *  The system has no warn hue to spend on that and is not getting one, so it is
+ *  carried by weight and by a full sentence instead, which is what it needed
+ *  anyway: "blocked" was never the useful word. */
 function Outcome({ status }: { status: string }) {
-  if (status === "ok") return <span className="sp-pass">ok</span>;
-  if (status === "blocked") return <span className="sp-warn">stopped by a guardrail</span>;
-  return <span className="sp-fail">{status}</span>;
+  if (status === "ok") return <span className="text-mrd-pass">ok</span>;
+  if (status === "blocked")
+    return <span className="font-medium text-mrd-ink">stopped by a guardrail</span>;
+  return <span className="text-mrd-fail">{status}</span>;
 }
 
 /* ------------------------------------------------------------------ *
@@ -337,16 +323,19 @@ function SpanDetail({
 
   return (
     <>
-      <div style={factGrid}>
+      <Facts>
         <Fact label="Outcome">
           <Outcome status={span.status} />
         </Fact>
         <Fact label="Model">
           <Num>{span.model}</Num>
         </Fact>
-        <Fact label="Via">
-          <Num>{`${span.provider} · ${span.via}${span.fallback ? " · fallback" : ""}`}</Num>
+        {/* Was one cell labelled "Via" holding `provider · via · fallback`. Three
+            facts, no labels, and the cell truncated before the third one. */}
+        <Fact label="Served by">
+          <Num>{span.provider}</Num>
         </Fact>
+        <Fact label="Called through">{routeWords(span.via)}</Fact>
         <Fact label="Took">
           <Num>{fmtMs(span.latency_ms)}</Num>
         </Fact>
@@ -357,20 +346,23 @@ function SpanDetail({
         <Fact label="Cost">
           <Num>{fmtUsd(Number(span.est_cost_usd))}</Num>
         </Fact>
-        <Fact label="Span id">
-          <Num>{span.id}</Num>
-        </Fact>
-      </div>
+        {/* Only when it happened. A cell reading "no" on every well-behaved call
+            is a column of noise carrying one bit for one call in a hundred. */}
+        {span.fallback ? (
+          <Fact label="Fallback">the first choice failed, this model was next</Fact>
+        ) : null}
+      </Facts>
+
+      {/* The id an engineer came for, in full, and takeable. */}
+      <IdFact label="Span id" value={span.id} />
 
       {span.error_message ? (
-        <div style={{ ...noteStyle }} className="sp-fail">
-          {span.error_message}
-        </div>
+        <div className="mt-mrd-5 text-[13px] text-mrd-fail">{span.error_message}</div>
       ) : null}
 
       {hits.length > 0 ? (
-        <div style={{ marginTop: 22 }}>
-          <Label>{hits.length === 1 ? "Guardrail hit" : "Guardrail hits"}</Label>
+        <div className="mt-mrd-6">
+          <FactLabel>{hits.length === 1 ? "Guardrail hit" : "Guardrail hits"}</FactLabel>
           {hits.map((h, i) => (
             <Row
               key={`${h.rule_name}-${i}`}
@@ -393,37 +385,39 @@ function SpanDetail({
       ) : null}
 
       {scores.length > 0 || rationale ? (
-        <div style={{ marginTop: 22 }}>
-          <Label>Judged</Label>
+        <div className="mt-mrd-6">
+          <FactLabel>Judged</FactLabel>
           {scores.length > 0 ? (
-            <div style={factGrid}>
+            <Facts>
               {scores.map((s) => {
                 const verdict = evalScoreVerdict(s.value, s.higherIsBetter);
+                // Pass and fail are outcomes and take the outcome colours.
+                // "watch" is neither, and the colour it used to wear was the
+                // amber this system does not have. It is a word at full ink
+                // with weight behind it, which is what the middle of a three
+                // step verdict actually needs.
                 const tone =
-                  verdict === "pass" ? "sp-pass" : verdict === "watch" ? "sp-warn" : "sp-fail";
+                  verdict === "pass"
+                    ? "text-mrd-pass"
+                    : verdict === "fail"
+                      ? "text-mrd-fail"
+                      : "font-medium text-mrd-ink";
                 return (
-                  <div key={s.label} style={{ minWidth: 0 }}>
-                    <Label>{s.label}</Label>
-                    <div style={factValue}>
-                      <span className={tone}>{verdict}</span> <Num>{s.value.toFixed(2)}</Num>
-                    </div>
-                  </div>
+                  <Fact key={s.label} label={s.label}>
+                    <span className={tone}>{verdict}</span> <Num>{s.value.toFixed(2)}</Num>
+                  </Fact>
                 );
               })}
-            </div>
+            </Facts>
           ) : null}
           {rationale ? (
             // DID versus SAID: the scores above are a record, this is a claim,
             // and they must never share a treatment. Quoted, in prose, in the
             // judge's own words rather than paraphrased into a fact.
             <div
-              style={{
-                marginTop: scores.length > 0 ? 16 : 0,
-                fontSize: "var(--sp-text-meta)",
-                color: "var(--sp-body)",
-                maxWidth: "68ch",
-                lineHeight: "var(--sp-leading-body)",
-              }}
+              className={`max-w-[var(--mrd-measure)] text-[13px] leading-relaxed text-mrd-body ${
+                scores.length > 0 ? "mt-mrd-5" : ""
+              }`}
             >
               The judge said: &quot;{rationale}&quot;
             </div>
@@ -431,9 +425,9 @@ function SpanDetail({
         </div>
       ) : null}
 
-      {span.input_preview ? <Pane label="Input">{span.input_preview}</Pane> : null}
-      {span.system_preview ? <Pane label="System prompt">{span.system_preview}</Pane> : null}
-      {span.output_preview ? <Pane label="Output">{span.output_preview}</Pane> : null}
+      {span.input_preview ? <TracePane label="Input" text={span.input_preview} /> : null}
+      {span.system_preview ? <TracePane label="System prompt" text={span.system_preview} /> : null}
+      {span.output_preview ? <TracePane label="Output" text={span.output_preview} /> : null}
     </>
   );
 }
@@ -441,33 +435,34 @@ function SpanDetail({
 function ToolDetail({ tool }: { tool: ToolCallRow }) {
   return (
     <>
-      <div style={factGrid}>
+      <Facts>
+        {/* One outcome vocabulary on the surface. A tool carries a boolean
+            rather than a status word, and mapping it here rather than writing
+            a second pair of coloured spans is what keeps the two kinds of hop
+            saying "ok" and "failed" in the same words and the same colours. */}
         <Fact label="Outcome">
-          {tool.ok ? <span className="sp-pass">ok</span> : <span className="sp-fail">failed</span>}
+          <Outcome status={tool.ok ? "ok" : "failed"} />
+        </Fact>
+        {/* The detail pane is the thing that gets screenshotted, and it named
+            everything about the call except which tool it was. SpanDetail
+            names its model for the same reason one row above says it. */}
+        <Fact label="Tool">
+          <Num>{tool.tool_name}</Num>
         </Fact>
         <Fact label="Took">
           <Num>{fmtMs(tool.latency_ms)}</Num>
         </Fact>
-        <Fact label="Call id">
-          <Num>{tool.id}</Num>
-        </Fact>
-      </div>
+      </Facts>
 
-      {tool.error ? (
-        <div style={{ ...noteStyle }} className="sp-fail">
-          {tool.error}
-        </div>
-      ) : null}
+      <IdFact label="Call id" value={tool.id} />
+
+      {tool.error ? <div className="mt-mrd-5 text-[13px] text-mrd-fail">{tool.error}</div> : null}
 
       {tool.args != null ? (
-        <Pane label="Arguments" data>
-          {JSON.stringify(tool.args, null, 2)}
-        </Pane>
+        <TracePane label="Arguments" json text={JSON.stringify(tool.args, null, 2)} />
       ) : null}
       {tool.result != null ? (
-        <Pane label="Result" data>
-          {JSON.stringify(tool.result, null, 2)}
-        </Pane>
+        <TracePane label="Result" json text={JSON.stringify(tool.result, null, 2)} />
       ) : null}
     </>
   );
@@ -583,10 +578,14 @@ export function TraceDetail({ id }: { id: string }) {
     </>
   );
 
+  // The title holds still across every one of the states below. It used to be
+  // the loading sentence, so arriving replaced the h1 and shifted everything
+  // under it.
   if (trace.isLoading) {
     return (
       <Surface>
-        <PageHead title="Reading the trace." />
+        <PageHead title={shortTitle} />
+        <Loading>Reading the trace.</Loading>
       </Surface>
     );
   }
@@ -595,7 +594,19 @@ export function TraceDetail({ id }: { id: string }) {
     return (
       <Surface>
         <PageHead title={shortTitle} />
-        <Failed onRetry={() => void trace.refetch()}>{(trace.error as Error).message}</Failed>
+        {TRACE_ID.test(id) ? (
+          <Failed onRetry={() => void trace.refetch()}>{(trace.error as Error).message}</Failed>
+        ) : (
+          // A MISTYPED ID AND A FAILED READ ARE DIFFERENT FACTS, and the reader
+          // acts differently on each: one is checked against the log line they
+          // came from, the other is waited out. Retrying an id that is not one
+          // never succeeds, so this branch offers no retry and leans on the way
+          // out below, which every branch here already carries.
+          <Failed>
+            That is not a trace id. A trace id is 36 characters in five groups separated by hyphens,
+            so check the one you were given for a missing character at either end.
+          </Failed>
+        )}
         <Actions>
           <Button variant="ghost" onClick={back}>
             All traces
@@ -636,47 +647,58 @@ export function TraceDetail({ id }: { id: string }) {
     <Surface
       context={
         <>
-          <div className="sp-ctx-head">Who ran it</div>
+          <CtxHead>Who ran it</CtxHead>
           {actors.length > 0 ? (
             actors.map((a) => (
-              <div className="sp-ctx-row" key={a.slug}>
-                <AgentMark
-                  slug={a.slug}
-                  state={totals.failed > 0 && actors.length === 1 ? "failed" : "idle"}
-                />
-                <span>
-                  <span className="sp-ctx-name">{agentDisplayName(a.slug)}</span>
-                  <span className="sp-ctx-sub">
+              <CtxRow
+                key={a.slug}
+                mark={
+                  <AgentMark
+                    slug={a.slug}
+                    state={totals.failed > 0 && actors.length === 1 ? "failed" : "idle"}
+                  />
+                }
+                name={agentDisplayName(a.slug)}
+                sub={
+                  <>
                     <Num>{a.n}</Num> {a.n === 1 ? "call" : "calls"}
-                  </span>
-                </span>
-              </div>
+                  </>
+                }
+              />
             ))
           ) : (
-            <div className="sp-ctx-row">
-              <AgentMark
-                slug={null}
-                name={rootSurface}
-                state={totals.failed > 0 ? "failed" : "idle"}
-              />
-              <span>
-                <span className="sp-ctx-name">{rootSurface ?? "The engine"}</span>
-                <span className="sp-ctx-sub">no agent on this trace</span>
-              </span>
-            </div>
+            <CtxRow
+              mark={
+                <AgentMark
+                  slug={null}
+                  name={rootSurface}
+                  state={totals.failed > 0 ? "failed" : "idle"}
+                />
+              }
+              name={rootSurface ?? "The engine"}
+              sub="no agent on this trace"
+            />
           )}
 
-          <div className="sp-ctx-head">What it cost</div>
-          <div className="sp-ctx-body">
+          <CtxHead>What it cost</CtxHead>
+          <CtxBody>
             <Num>{totals.tokens.toLocaleString()}</Num> tokens · <Num>{fmtUsd(totals.cost)}</Num>
-          </div>
+          </CtxBody>
 
-          <div className="sp-ctx-head">Trace id</div>
-          <div className="sp-ctx-body" style={{ wordBreak: "break-all" }}>
-            <Num>{id}</Num>
-          </div>
+          <CtxHead>Trace id</CtxHead>
+          <CtxBody>
+            <span className="flex flex-wrap items-center gap-x-mrd-4 gap-y-mrd-2">
+              <span className="min-w-0 break-all">
+                <Num>{id}</Num>
+              </span>
+              {/* The same control the span and call ids carry. Reading 36
+                  characters off a screen to retype them into a log query is the
+                  work this surface exists to save. */}
+              <CopyButton value={id} what="trace id" />
+            </span>
+          </CtxBody>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginTop: 24 }}>
+          <div className="mt-mrd-6 flex flex-wrap gap-mrd-4">
             {mission ? (
               <Button
                 onClick={() =>
@@ -703,7 +725,7 @@ export function TraceDetail({ id }: { id: string }) {
             {totals.failed > 0 ? (
               <>
                 {" · "}
-                <span className="sp-fail">
+                <span className="text-mrd-fail">
                   <Num>{totals.failed}</Num> failed
                 </span>
               </>
@@ -711,13 +733,26 @@ export function TraceDetail({ id }: { id: string }) {
             {totals.blocked > 0 ? (
               <>
                 {" · "}
-                <span className="sp-warn">
+                {/* No hue, for the reason `Outcome` gives. Weight lifts it off a
+                    muted subtitle without claiming the run broke. */}
+                <span className="font-medium text-mrd-ink">
                   <Num>{totals.blocked}</Num> stopped by a guardrail
                 </span>
               </>
             ) : null}
           </>
         }
+      />
+
+      {/* Shut, one line, and it names its own failures. See ToolTrace. */}
+      <ToolTrace
+        tools={toolCalls.map((t) => ({
+          id: t.id,
+          name: t.tool_name,
+          ok: t.ok,
+          took: fmtMs(t.latency_ms),
+        }))}
+        onPick={(toolId) => setSelected({ kind: "tool", id: toolId })}
       />
 
       <Block
@@ -749,9 +784,9 @@ export function TraceDetail({ id }: { id: string }) {
             const hits = hitsByEvent.get(s.id) ?? [];
             const outcome =
               s.status === "error" && s.error_message ? (
-                <span className="sp-fail">{clip(s.error_message)}</span>
+                <span className="text-mrd-fail">{clip(s.error_message)}</span>
               ) : s.status === "blocked" ? (
-                <span className="sp-warn">
+                <span className="font-medium text-mrd-ink">
                   {s.error_message ? clip(s.error_message) : "Stopped by a guardrail"}
                 </span>
               ) : s.output_preview ? (
@@ -793,7 +828,7 @@ export function TraceDetail({ id }: { id: string }) {
                     <>
                       {hits.length > 0 ? (
                         <>
-                          <span className="sp-warn">
+                          <span className="font-medium text-mrd-ink">
                             <Num>{hits.length}</Num>{" "}
                             {hits.length === 1 ? "guardrail hit" : "guardrail hits"}
                           </span>
@@ -831,7 +866,7 @@ export function TraceDetail({ id }: { id: string }) {
                     started +<Num>{fmtMs(offset)}</Num>
                   </>
                 ) : !t.ok && t.error ? (
-                  <span className="sp-fail">{clip(t.error)}</span>
+                  <span className="text-mrd-fail">{clip(t.error)}</span>
                 ) : (t.result ?? t.args) != null ? (
                   clip(JSON.stringify(t.result ?? t.args))
                 ) : (
@@ -857,7 +892,14 @@ export function TraceDetail({ id }: { id: string }) {
             <ToolDetail tool={selRow.tool} />
           )}
         </Block>
-      ) : null}
+      ) : (
+        // The root span is picked for you the moment events load, so this is
+        // reached only by a trace that recorded tool calls and no model call
+        // at all. That used to render as a page that simply stopped.
+        <Block title="Nothing is picked">
+          <Empty>Pick a hop above to read what it was sent and what came back.</Empty>
+        </Block>
+      )}
     </Surface>
   );
 }

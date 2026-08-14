@@ -318,9 +318,23 @@ export function RecordsTable<Row>({
        * name. So the pinned cell steps up the neutral ladder instead of taking
        * the translucent overlay, which lands at the same lightness.
        */
-      const pinned = isSelected
-        ? "sticky left-0 z-[1] bg-mrd-lift"
-        : "sticky left-0 z-[1] bg-mrd-sheet group-hover:bg-mrd-lift";
+      const pinFill = isSelected ? "bg-mrd-lift" : "bg-mrd-sheet group-hover:bg-mrd-lift";
+
+      /*
+       * TWO pins, not one, and this was a real defect.
+       *
+       * The pin used to be gated on `!selectable`, so switching selection on
+       * silently unpinned the identity column: the 36px checkbox stayed put and
+       * the NAME scrolled away, which is the one thing pinning exists to
+       * prevent. Selection makes it worse, not better, because a checkbox with
+       * nothing beside it cannot tell you what you just ticked.
+       *
+       * So the checkbox pins at 0 and the identity column pins immediately to
+       * its right. `left-9` is 2.25rem, which is the width declared for that
+       * column in the colgroup below; if one moves the other must.
+       */
+      const pinnedCheckbox = `sticky left-0 z-[1] ${pinFill}`;
+      const pinnedIdentity = `sticky ${selectable ? "left-9" : "left-0"} z-[1] ${pinFill}`;
 
       return (
         <tr
@@ -330,7 +344,7 @@ export function RecordsTable<Row>({
         >
           {selectable && (
             <td
-              className={`w-9 border-b border-mrd-line-soft px-3 py-2 align-middle transition-colors ${pinned}`}
+              className={`w-9 border-b border-mrd-line-soft px-3 py-2 align-middle transition-colors ${pinnedCheckbox}`}
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               <input
@@ -348,7 +362,7 @@ export function RecordsTable<Row>({
               style={{ transitionDuration: "var(--mrd-d-press)" }}
               className={`border-b border-mrd-line-soft px-3 py-2 align-middle text-[12.5px] text-mrd-body transition-colors ${
                 column.numeric ? "text-right font-mrd-mono tabular-nums" : ""
-              } ${index === 0 && !selectable ? `${pinned} font-medium text-mrd-ink` : ""}`}
+              } ${index === 0 ? `${pinnedIdentity} font-medium text-mrd-ink` : ""}`}
             >
               {column.cell(row)}
             </td>
@@ -407,7 +421,7 @@ export function RecordsTable<Row>({
                     aria-sort={active ? (sort!.dir === 1 ? "ascending" : "descending") : "none"}
                     className={`sticky top-0 border-b border-mrd-line bg-mrd-sheet px-3 py-2 text-[11.5px] font-medium text-mrd-mute ${
                       column.numeric ? "text-right" : ""
-                    } ${index === 0 && !selectable ? "left-0 z-[3]" : "z-[2]"}`}
+                    } ${index === 0 ? (selectable ? "left-9 z-[3]" : "left-0 z-[3]") : "z-[2]"}`}
                   >
                     {sortable ? (
                       <button

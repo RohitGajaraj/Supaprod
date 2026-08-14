@@ -45,6 +45,22 @@
  *         somebody deliberately sent past reads "Design skipped on purpose"
  *         rather than "nothing drawn yet", which are opposite facts. `?focus=`
  *         lands a handoff from Plan on the right spec instead of on the list.
+ *    ADD  (2026-08-14) THE LIST BECAME A GRID. This was the clearest dense-data
+ *         hole in the product: every drawing in the workspace, uncapped,
+ *         unsearchable and with nothing to narrow it by, on the surface that
+ *         reads the longest list in the spine. Four things landed with it, and
+ *         each of them is in `DrawingsTable`: chips that narrow and carry their
+ *         own counts, a cap that prints both real numbers instead of stopping
+ *         quietly, columns that can be compared and sorted where a two-line row
+ *         could only be read, and a finder for the person who already knows the
+ *         name. Nothing the row said was dropped.
+ *    ADD  (2026-08-14) THE THIRD FACT. This surface had two shapes for three
+ *         different things: nothing exists yet, the read failed, and a
+ *         precondition is missing. The third was drawn in the first one's
+ *         clothes, so a spec too thin for Design to read looked like a drawing
+ *         the crew had not got to. It is now `NeedsSetup`, which is the one
+ *         state that is allowed to carry the act that unblocks it. The list's
+ *         own empty state stays an empty state, and the note under it says why.
  *    ADD  (2026-08-06) the ROUTE AS A WRITE, not only as a reading. This surface
  *         could DISPLAY "Design skipped on purpose" and could not record it: the
  *         only per-spec caller of `chooseDesignRoute` was the spec page, and the
@@ -54,8 +70,8 @@
  *         the only path, and a station that cannot record its own skip is a
  *         station insisting it is mandatory.
  *
- * 4. WHAT IS ONE CLICK AWAY. The brand ledger with its import, paste and
- *    defaults machinery stays in Settings. Every prototype ever made stays on
+ * 4. WHAT IS ONE CLICK AWAY. The brand rules with their import, paste and
+ *    defaults machinery stay in Settings. Every prototype ever made stays on
  *    /artifacts. The spec's own text stays on /plan, and (2026-08-06) it is
  *    genuinely one click from the spec in focus: "Open the spec" in the focus
  *    Block head. It used to be zero clicks available, because the only
@@ -75,25 +91,33 @@
  *    the pending rule owns it, and the drawing's own verdict sits WITH the
  *    drawing because the drawing is the evidence for it.
  *
- * 6. WHERE THE CREW IS. Design draws every screen in the list and the row
- *    carries its mark; the mark runs while a redraw runs and stops when it
- *    stops. The Critic is a second, differently-marked worker you can call on
- *    the drawing, and its findings can be turned into standing rules the crew
- *    then follows. Remove the agents and this surface has nothing in it: no
- *    drawings, no findings, no rules, and a gate over an empty frame.
+ * 6. WHERE THE CREW IS. Design draws every screen in the list and every row
+ *    carries its mark. The mark states which of them is asking rather than
+ *    which is moving: nothing in the grid animates for a redraw, because the
+ *    three indicators this surface already carries are all bound to that same
+ *    mutation and a fourth would be the same fact said louder. The Critic is a
+ *    second, differently-marked worker you can call on the drawing, and its
+ *    findings can be turned into standing rules the crew then follows. Remove
+ *    the agents and this surface has nothing in it: no drawings, no findings,
+ *    no rules, and a gate over an empty frame.
  *
  * 7. RECOGNITION. The identity on this surface is the AGENT (Design draws,
  *    Critic reviews) and the ARTIFACT (a spec, its drawing, its links), and
  *    both are marked. Scanning path: the Gate wins when a rule is waiting,
- *    because it is a 19px question against 14px rows; otherwise the eye lands
- *    on the drawing, which is a 460px lit rectangle in a monochrome page and
- *    is the only thing on the surface that could win. The emptiest REALISTIC
- *    state is a first-month workspace: a couple of specs, one drawing that got
- *    prepped speculatively, no brand rules, no lineage. Every panel here has a
- *    sentence for that state and none of them says "no results". Internal
- *    words a stranger would not survive are all translated at the edge:
- *    `prd` reads "spec", `mission` reads "run", `prototype` reads "shared
- *    link", `design_gate_status` never appears, and the fidelities say what
+ *    because it is a 19px question against a grid of 12.5px cells; otherwise
+ *    the eye lands on the drawing, which is a 460px lit rectangle in a
+ *    monochrome page and is the only thing on the surface that could win. In
+ *    the grid itself the only colour is on the specs waiting for a call, so
+ *    what needs a person is one sweep rather than a read. The emptiest
+ *    REALISTIC state is a first-month workspace: a couple of specs, one drawing
+ *    that got prepped speculatively, no brand rules, no lineage. Every panel
+ *    here has a sentence for that state and none of them says "no results". The
+ *    grid adds the one state a list of that kind is allowed to say, and it is
+ *    not that sentence: a chip that excluded every row says the rows exist and
+ *    hands back the way to see them. Internal words a stranger would not
+ *    survive are all translated at the edge: `prd` reads "spec", `mission`
+ *    reads "run", `prototype` reads "shared link", `design_gate_status` never
+ *    appears, `design_memory` never appears, and the fidelities say what
  *    question they answer rather than assuming the reader knows.
  *
  * HONESTY. Nothing on this surface is inferred. The blast radius is read out
@@ -126,20 +150,15 @@ import {
   runScaffoldDesignCritic,
   toggleDesignStage,
   type DesignFidelity,
-  type DesignWorkRow,
 } from "@/lib/design-scaffold.functions";
 import { publishPrototypeFromPrd, togglePrototypeShare } from "@/lib/prototypes.functions";
 import { isModalOpen } from "@/lib/overlay";
 import type { DesignCriticFinding } from "@/lib/ai/design-critic";
 import { CATEGORY_LABEL, SOURCE_LABEL } from "@/components/knowledge/design-memory-shared";
 import { Consequence, DrawingStage, Findings } from "@/components/design/drawing";
-import {
-  FIDELITY_QUESTION,
-  FIDELITY_WORD,
-  GATE_WORD,
-  fidelityWord,
-  ruleTextFor,
-} from "@/components/design/vocabulary";
+import { DrawingsTable } from "@/components/design/DrawingsTable";
+import { NeedsSetup } from "@/components/meridian/NeedsSetup";
+import { FIDELITY_QUESTION, FIDELITY_WORD, ruleTextFor } from "@/components/design/vocabulary";
 import {
   Actions,
   AgentMark,
@@ -157,11 +176,9 @@ import {
   Num,
   PageHead,
   Receipt,
-  Row,
   Surface,
   Switch,
   Value,
-  Who,
 } from "@/components/shell/primitives";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import { CrewWorking } from "@/components/shell/CrewWorking";
@@ -180,18 +197,9 @@ function shareUrl(slug: string): string {
   return `${typeof window !== "undefined" ? window.location.origin : ""}/p/${slug}`;
 }
 
-/** Plain-words relative time. Mono is applied by the row, not here. */
-function ago(iso: string | null | undefined): string | null {
-  if (!iso) return null;
-  const ms = Date.now() - new Date(iso).getTime();
-  if (!Number.isFinite(ms) || ms < 0) return null;
-  const mins = Math.floor(ms / 60000);
-  if (mins < 1) return "now";
-  if (mins < 60) return `${mins}m`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h`;
-  return `${Math.floor(hours / 24)}d`;
-}
+/* Relative time moved to `DrawingsTable` with the rows it described. It was
+   only ever the list's own clock, and the panels below state their dates in
+   full because a date somebody will quote belongs in words, not in "3d". */
 
 /** A receipt renders NEXT TO the control that caused it. This page is taller
  *  than a screen once a drawing is open, so one fixed receipt region would put
@@ -219,36 +227,18 @@ type Trace = {
   failed?: boolean;
 };
 
-/** The row's SECOND line carries one different fact, and which fact that is
- *  depends on the row. A drawing made before rules that are now in force is
- *  the exception worth surfacing in a list; everything else describes itself. */
-function rowSub(r: DesignWorkRow, gateOn: boolean): string {
-  if (!r.drawing) {
-    // A SKIP IS A DECISION AND SAYS SO. Without this line an undrawn spec that
-    // somebody deliberately sent past Design is indistinguishable from one
-    // nobody has got to yet, and those are opposite facts: the first is settled
-    // and the second is waiting on the crew.
-    if (r.route?.route === "direct") {
-      return `Design skipped on purpose · ${new Date(r.route.at).toLocaleDateString(undefined, {
-        day: "numeric",
-        month: "short",
-      })}`;
-    }
-    return gateOn && r.gateStatus === "approved"
-      ? "Nothing drawn. The gate is already approved"
-      : r.route?.route === "design"
-        ? "Handed here to be drawn"
-        : "Nothing drawn yet";
-  }
-  if (r.rulesSince > 0) {
-    return `Drawn before ${r.rulesSince} ${r.rulesSince === 1 ? "rule" : "rules"} now in force`;
-  }
-  const shape = `${r.drawing.screenCount} ${r.drawing.screenCount === 1 ? "screen" : "screens"}`;
-  const facts = [fidelityWord(r.drawing.fidelity), shape];
-  // The gate word is only a fact while there IS a gate.
-  if (gateOn) facts.push(GATE_WORD[r.gateStatus]);
-  return facts.join(" · ");
-}
+/* THE ROW'S ONE EXTRA FACT BECAME COLUMNS, 2026-08-14.
+ *
+ * `rowSub` packed six different facts into one line and chose between them:
+ * where the spec stands, how finished the drawing is, how many screens it
+ * holds, whether it is behind rules that came into force after it, and when any
+ * of that last happened. A person scanning forty of those reads a paragraph per
+ * row and can compare none of it, which is what a list does instead of a grid.
+ *
+ * Every one of those facts survives in `DrawingsTable`, each in a column that
+ * can be sorted and counted. The one thing lost on the row is the exact date of
+ * a skip, which is now the cell's title and is stated in full in the panel
+ * below, where the decision it belongs to is. */
 
 /**
  * WHAT OF YOURS SHAPED THIS DRAWING.
@@ -282,27 +272,39 @@ function Grounding({ prdId }: { prdId: string }) {
    * A NAMED RULE OPENS. Every rule that shaped the drawing was printed as
    * plain text, so the surface would tell you your screen was built on
    * "Buttons state the consequence" and leave you to go and find out what that
-   * rule actually says. The brand ledger in Settings is where a rule is read,
-   * edited and retired, and this file's own answer 4 already puts it there.
+   * rule actually says. The brand rules in Settings are where a rule is read,
+   * edited and retired, and this file's own answer 4 already puts them there.
    *
    * THE LIMIT, RECORDED RATHER THAN FAKED: Settings validates `?section=`,
    * `?tab=`, `?connector=` and `?checkout=` and nothing else, so there is no
-   * per-rule address to link to. The door lands on the ledger that holds the
-   * rule, not on the rule. Every name is its own control anyway, because the
-   * one that is retired is the one you came to look at and a single link at the
-   * end of the sentence would not say which.
+   * per-rule address to link to.
+   *
+   * SO THE NAMES STOPPED BEING DOORS, 2026-08-14. The paragraph above used to
+   * end by defending one control per name, on the grounds that the retired rule
+   * is the one you came to look at and a single link would not say which. That
+   * argument was wrong in the only way that matters: four names on one line
+   * were four doors to the SAME address, so pressing the one you wanted and
+   * pressing any other did exactly the same thing. An affordance is a promise,
+   * and four of them promising to open four different rules while opening one
+   * list is a promise the data cannot keep. The names are stated as the facts
+   * they are, and the ONE address there really is carries the one control. The
+   * retired ones are still named separately in their own sentence, which is
+   * what that argument was actually asking for.
    */
-  const openLedger = () =>
+  const openBrandRules = () =>
     void navigate({ to: "/settings", search: { section: "brand" } as never });
-  const ruleDoors = (rules: { id: string; title: string }[]) =>
+  const ruleNames = (rules: { id: string; title: string }[]) =>
     rules.map((g, i) => (
       <React.Fragment key={g.id}>
         {i > 0 ? ", " : null}
-        <Door onClick={openLedger} title="Open this rule in Brand settings">
-          {g.title}
-        </Door>
+        {g.title}
       </React.Fragment>
     ));
+  const rulesDoor = (
+    <Door onClick={openBrandRules} title="Read and retire these in Brand settings">
+      Open brand rules
+    </Door>
+  );
 
   // Silence beats a wrong sentence here. An unread provenance is not the same
   // fact as an ungrounded drawing, so a failed read says nothing at all.
@@ -319,9 +321,22 @@ function Grounding({ prdId }: { prdId: string }) {
 
   if (ungrounded) {
     return (
+      /* THE SENTENCE NAMED A DATABASE TABLE AT A PERSON. It read "Approving
+         rules in Design memory changes what the next drawing inherits", and
+         `design_memory` is the table these rows are stored in. Nobody standing
+         here has seen that word anywhere else in the product: the rules are
+         called brand rules on this page, in the context column beside it and in
+         Settings, so the one place that named the machinery was the one place
+         telling a person what to do next. */
       <Line
         label="Drawn without your design language"
-        sub="No standing rule was in force when this was made, so every choice in it is the model's own. Approving rules in Design memory changes what the next drawing inherits."
+        sub={
+          <>
+            No standing rule was in force when this was made, so every choice in it is the
+            model&apos;s own. Approve a brand rule and every drawing after it is built on it.{" "}
+            {rulesDoor}
+          </>
+        }
       />
     );
   }
@@ -335,10 +350,13 @@ function Grounding({ prdId }: { prdId: string }) {
           <>
             {current} still stand. {staleCount} {staleCount === 1 ? "has" : "have"} been replaced
             since, so this drawing is behind your design language:{" "}
-            {ruleDoors(groundedIn.filter((g) => g.retired))}.
+            {ruleNames(groundedIn.filter((g) => g.retired))}. {rulesDoor}
           </>
         ) : (
-          <>{ruleDoors(groundedIn)}. Everything else in the drawing is the model's own.</>
+          <>
+            {ruleNames(groundedIn)}. Everything else in the drawing is the model&apos;s own.{" "}
+            {rulesDoor}
+          </>
         )
       }
     />
@@ -1113,8 +1131,21 @@ function Design() {
 
       {/* ONE Gate. The pending rule owns it because nothing the crew draws is
           on settled ground until it is answered. A drawing's own verdict is
-          not here: it sits with the drawing, which is its evidence. */}
-      {rules.isError ? (
+          not here: it sits with the drawing, which is its evidence.
+
+          AND IT SAYS SO WHILE IT READS. This region had four branches and none
+          of them was the wait, so between the request and the answer the
+          biggest element on the station was absent and the headline, which
+          falls back to the station's name for exactly this moment, was the only
+          thing on screen. A person who arrives on a workspace with a rule
+          pending sees "Design" over a horizontal rule and reads it as "nothing
+          is waiting", which is the sentence the fallback exists to avoid
+          saying. A plain quiet line, not a working indicator: this is us
+          reading a table, and dressing an ordinary read as an agent at work is
+          the invented status this system refuses everywhere else. */}
+      {rules.isLoading ? (
+        <Loading>Reading the brand rules.</Loading>
+      ) : rules.isError ? (
         <Gate question="The brand rules did not load.">
           <Button variant="primary" onClick={() => void rules.refetch()}>
             Try again
@@ -1210,6 +1241,26 @@ function Design() {
             Could not read the drawings. {(work.error as Error).message}
           </Failed>
         ) : items.length === 0 ? (
+          /* STILL AN EMPTY STATE, AND DELIBERATELY NOT A MISSING PRECONDITION.
+             The obvious upgrade here is the state that says this station cannot
+             ask its question yet, and the data cannot support it. `listDesignWork`
+             returns the same empty shape for three different facts: a workspace
+             with no specs, a workspace whose every spec has nothing drawn and an
+             already approved gate (the list drops exactly those, because there
+             is nothing there to look at and nothing to decide), and a reader who
+             is in no workspace at all, which it answers with `empty` before it
+             reads anything. Naming any one of them would be a guess two thirds
+             of the time, so the sentence stays the one that is true in all
+             three. The discriminator it would need is in the report for the
+             engineering lane.
+
+             CORRECTED 2026-08-14: this note used to name the second fact as "a
+             workspace whose every spec is drawn and settled". That is not what
+             the server drops. `items` keeps every row where `drawings.has(id)`,
+             so a drawn and settled spec stays on this surface; the row that
+             falls out is the undrawn one whose gate is already approved. A
+             comment that misreports the filter it is defending is the one kind
+             of sentence this file must not carry. */
           <Empty
             action={<Button onClick={() => void navigate({ to: "/plan" })}>Open specs</Button>}
           >
@@ -1217,32 +1268,31 @@ function Design() {
             read, and every drawing in this workspace lands here.
           </Empty>
         ) : (
-          items.map((r) => (
-            <Row
-              key={r.prdId}
-              tight
-              focused={focusId === r.prdId}
-              marks={
-                <AgentMark
-                  slug={DRAWS}
-                  // Exactly one mark may blink, and only when it is genuinely
-                  // the first call. A pending rule outranks it and takes the
-                  // Gate, so nothing blinks underneath it.
-                  state={
-                    !gateOn || !r.drawing || r.gateStatus !== "pending"
-                      ? "quiet"
-                      : waiting.length === 0 && drawnAndWaiting[0]?.prdId === r.prdId
-                        ? "gate"
-                        : "waiting"
-                  }
-                />
-              }
-              lead={<Who>{r.title}</Who>}
-              sub={rowSub(r, gateOn)}
-              time={ago(r.drawing?.drawnAt ?? r.gateDecidedAt)}
-              onClick={() => setPicked(r.prdId)}
-            />
-          ))
+          /* THE ONE SURFACE IN THE SPINE THAT NEVER CAPPED. Decide, Plan, Ship
+             and Build all cap their lists; this one printed every drawing the
+             server would give it, unsorted past the server's own ranking, with
+             nothing to narrow it by and no way to find one by name. It is also
+             the longest list in the product: `listDesignWork` returns up to
+             forty specs against the eighty one production carries, so a person
+             here scrolls and hopes.
+
+             The grid, the chips and the finder all live in DrawingsTable, and
+             every fact the two-line row carried is still on the screen. What
+             the row could not do is compare: forty rows of prose is forty
+             sentences to read, and the same forty in columns is one sweep.
+
+             EXACTLY ONE MARK MAY BLINK, and the rule is enforced here rather
+             than in the grid, because only this file knows that a pending brand
+             rule outranks the whole list and has already taken the Gate. With
+             one waiting nothing below it blinks. */
+          <DrawingsTable
+            rows={items}
+            gateOn={gateOn}
+            focusId={focusId}
+            blinkPrdId={waiting.length === 0 ? (drawnAndWaiting[0]?.prdId ?? null) : null}
+            drawnBy={DRAWS}
+            onPick={setPicked}
+          />
         )}
 
         {/* Named, not shrugged at. The door is the same one the focus Block
@@ -1250,16 +1300,33 @@ function Design() {
 
             TWO SENTENCES BECAUSE THERE ARE TWO CASES. With an empty list there
             is no focus Block below at all, and the notice would otherwise send
-            the reader to compare against something that is not on the page. */}
+            the reader to compare against something that is not on the page.
+
+            AND THE DOOR IS A DOOR AGAIN. It was drawn as `Failed`'s retry, so
+            the one control under "the spec you were handed is not in this list"
+            said "Open the spec" in the position, the shape and the wording of
+            Try again. Nothing is retried by it: it leaves the station. A retry
+            that navigates teaches a person that pressing Try again might take
+            the page away, which is the one thing that control must never do.
+            The sentence keeps `Failed`, because this is a handoff that did not
+            arrive and it is not an empty list. */}
         {handoffMissed ? (
-          <Failed
-            onRetry={() => void navigate({ to: "/plan/spec/$id", params: { id: sent as string } })}
-            retryLabel="Open the spec"
-          >
-            {focusId
-              ? "The spec you were handed is not in this list, so what is open below is a different one."
-              : "The spec you were handed is not in this list, and nothing else is either."}
-          </Failed>
+          <>
+            <Failed>
+              {focusId
+                ? "The spec you were handed is not in this list, so what is open below is a different one."
+                : "The spec you were handed is not in this list, and nothing else is either."}
+            </Failed>
+            <Actions>
+              <Button
+                onClick={() =>
+                  void navigate({ to: "/plan/spec/$id", params: { id: sent as string } })
+                }
+              >
+                Open the spec
+              </Button>
+            </Actions>
+          </>
         ) : null}
       </Block>
 
@@ -1299,7 +1366,34 @@ function Design() {
               {focus.drawing ? (
                 <DrawingStage html={focus.drawing.html} title={focus.title} />
               ) : focus.specTooThin ? (
-                <Empty
+                /* THE THIRD FACT, AND IT WAS WEARING THE SECOND ONE'S CLOTHES.
+                   This surface has three different things to say and had two
+                   shapes to say them in: nothing exists yet, the read failed,
+                   and THIS ONE, where the station cannot ask its question at
+                   all. A spec under a paragraph is not an empty drawing slot
+                   waiting on the crew; it is a precondition nobody has met, and
+                   the one act that changes it is a person writing more spec.
+                   Drawn as `Empty` it read as "the crew has not got to this
+                   yet", which sends someone away to wait for a drawing that
+                   will never be made.
+                   The distinction is not cosmetic: the fidelity spectrum below
+                   is withheld for exactly this row, so the panel offered no way
+                   forward and no reason for its absence.
+                   NO ACCENT ON IT, and that is `NeedsSetup`'s own rule rather
+                   than a choice made here. Writing a spec is a setup act, not a
+                   call that unblocks a gate, and orchid on it would send a
+                   person hunting for a decision that is not on this screen. */
+                <NeedsSetup
+                  kind="upstream"
+                  title="Design has nothing to read yet"
+                  /* The body has to END on the precondition, because
+                     `NeedsSetup` prints `thenWhat` after the fixed words "Once
+                     it is,". With the default title overridden there is nothing
+                     else on the panel for "it" to point at, and a dangling
+                     "Once it is" in the one state whose whole job is to name
+                     the missing thing is the state failing at its own job. */
+                  body="This spec is still shorter than a paragraph. A screen drawn from it would be invention rather than a reading of your intent, so Design waits until the spec is long enough to read."
+                  thenWhat="Design draws the screen from the spec's own words, and the call on it is made on this panel."
                   action={
                     <Button
                       onClick={() =>
@@ -1312,10 +1406,7 @@ function Design() {
                       Write the spec
                     </Button>
                   }
-                >
-                  Design has nothing to read. This spec is still shorter than a paragraph, and a
-                  screen drawn from it would be invention rather than a reading of your intent.
-                </Empty>
+                />
               ) : (
                 <Empty>
                   Nothing is drawn for this spec yet. Pick how finished you want it and Design draws
@@ -1430,6 +1521,45 @@ function Design() {
                 />
               ) : null}
 
+              {/* A SETTLED VERDICT IS A FACT, AND IT USED TO BE A DEAD BUTTON.
+                  The primary control read "Approved" and was disabled once the
+                  gate was approved: a status wearing a control's clothes, in
+                  the one position on the panel a person looks for the thing to
+                  press. It also spent the bar's only primary slot on something
+                  that could not be pressed, so the call that WAS still live,
+                  sending it back, sat there looking secondary.
+
+                  The verdict and its day now read as the sentence they are, and
+                  the bar below carries only what still does something. The date
+                  is new here: `gateDecidedAt` has been on this record all along
+                  and no panel ever printed it, so "approved" carried no
+                  when. */}
+              {focus.drawing && focus.stageEnabled && focus.gateStatus !== "pending" ? (
+                <Line
+                  label={
+                    focus.gateStatus === "approved"
+                      ? "You approved this design"
+                      : "You sent this design back"
+                  }
+                  sub={
+                    <>
+                      {focus.gateDecidedAt
+                        ? `Settled on ${new Date(focus.gateDecidedAt).toLocaleDateString(
+                            undefined,
+                            {
+                              day: "numeric",
+                              month: "short",
+                            },
+                          )}. `
+                        : "The record does not carry the day it was settled. "}
+                      {focus.gateStatus === "approved"
+                        ? "Sending it back shuts the gate again."
+                        : "The gate stays shut until a drawing is approved."}
+                    </>
+                  }
+                />
+              ) : null}
+
               <Actions
                 trailing={
                   focus.drawing ? (
@@ -1459,13 +1589,22 @@ function Design() {
                 {focus.drawing ? (
                   focus.stageEnabled ? (
                     <>
-                      <Button
-                        variant="primary"
-                        disabled={busy || focus.gateStatus === "approved"}
-                        onClick={() => verdict.mutate("approve")}
-                      >
-                        {focus.gateStatus === "approved" ? "Approved" : "Approve the design"}
-                      </Button>
+                      {/* Approve is drawn only while approving would do
+                          something. Pressing it on an approved gate wrote the
+                          same status back and taught the taste loop a second
+                          time from one judgment, which is why it was disabled
+                          rather than repeated; a control nobody can press is
+                          not the answer to a control that should not be
+                          there. */}
+                      {focus.gateStatus === "approved" ? null : (
+                        <Button
+                          variant="primary"
+                          disabled={busy}
+                          onClick={() => verdict.mutate("approve")}
+                        >
+                          Approve the design
+                        </Button>
+                      )}
                       <Button disabled={busy} onClick={() => verdict.mutate("reject")}>
                         Send it back
                       </Button>
@@ -1640,12 +1779,25 @@ function Design() {
                       for reasons that have nothing to do with what is served.
                       Silent when there is no drawing above to compare against,
                       because there is then no question to answer. */}
+                  {/* THE STALE LINK IS RAISED, NOT TINTED. It carried
+                      `tone="warn"`, which resolves to `--sp-warn`, a gold. This
+                      product has no warning colour and no token for one: a hue
+                      here would have to sit between "a person is required" and
+                      "it failed" and it is neither, and gold is the one hue the
+                      system is most careful to keep off a screen. What the
+                      sentence needs is emphasis, so it takes the top of the ink
+                      ramp and a heavier weight, which is legible in greyscale
+                      and does not claim a meaning the palette reserves. */}
                   {!focus.drawing ? null : s.matchesDrawing === true ? (
                     " · This is the drawing above"
                   ) : s.matchesDrawing === false ? (
                     <>
                       {" · "}
-                      <Value tone="warn">Serves an earlier drawing, not the one above</Value>
+                      <Value>
+                        <span className="font-medium text-mrd-ink">
+                          Serves an earlier drawing, not the one above
+                        </span>
+                      </Value>
                     </>
                   ) : (
                     " · Could not read which drawing it serves"

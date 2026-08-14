@@ -144,14 +144,37 @@ export function Chat({
   const [draft, setDraft] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  /** The scrolling box itself, so following the thread cannot move the page. */
+  const streamRef = useRef<HTMLDivElement>(null);
 
   const canSend = draft.trim().length > 0;
   const showHeader = tabs.length > 0 || Boolean(onNewThread);
 
-  // Follow the newest turn. Instant rather than smooth, because a long thread
-  // scrolling past on every step is motion sickness, not feedback.
+  /*
+   * Follow the newest turn. Instant rather than smooth, because a long thread
+   * scrolling past on every step is motion sickness, not feedback.
+   *
+   * TWO THINGS THIS DELIBERATELY DOES NOT DO, both of which it used to.
+   *
+   * It does not run on mount. Effects fire on the first render too, so a pane
+   * that opens with zero turns still scrolled. On the real Ask pane, which
+   * opens over a page the reader has already scrolled somewhere on purpose,
+   * that is a yank with no cause.
+   *
+   * It does not use scrollIntoView. That method walks EVERY ancestor scroll
+   * container until the element is visible, so it moves the host page rather
+   * than this thread. Setting scrollTop on the box itself cannot escape the
+   * box, which is the actual requirement. Found by putting six of these on one
+   * page: the page loaded scrolled to the last one.
+   */
+  const didMount = useRef(false);
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ block: "end" });
+    if (!didMount.current) {
+      didMount.current = true;
+      return;
+    }
+    const box = streamRef.current;
+    if (box) box.scrollTop = box.scrollHeight;
   }, [turns, busy]);
 
   const send = () => {
@@ -202,7 +225,10 @@ export function Chat({
         </div>
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3 pt-3 pb-1">
+      <div
+        ref={streamRef}
+        className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3 pt-3 pb-1"
+      >
         {/*
          * EMPTY, the case this pane opens in most often. It says what can be
          * asked rather than sitting blank, because a blank pane with a composer
