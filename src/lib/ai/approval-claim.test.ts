@@ -34,6 +34,7 @@ import {
   claimApprovalDecision,
   claimApprovalExecution,
   resumeAgentLoop,
+  claimRunningRunLease,
   resetRaceColumnProbes,
 } from "./loop.server";
 import { TOOL_REGISTRY, type ToolDef } from "./tools/registry.server";
@@ -278,41 +279,63 @@ describe("resumeAgentLoop: a live run carries a lease", () => {
     expect(db.statements.some((s) => s.table === "agent_run_checkpoints")).toBe(false);
   });
 
+  /**
+   * FIXED 2026-08-14. This asserted a property of the LEASE by running the whole
+   * LOOP, and the loop does not terminate against a fake database.
+   *
+   * The old version called `resumeAgentLoop`, swallowed the rejection, and then
+   * checked that a checkpoint had been read and the lease had moved. Past the
+   * lease the loop keeps going, and on a machine whose `.env` carries real
+   * Supabase credentials it reached a live call and hung to the 5s timeout. So
+   * the result depended on whether an untracked file existed: two lanes read
+   * different numbers on the same commit and neither was wrong, and CI could
+   * never see it because CI has no credentials. Its own comment named the two
+   * repairs it had rejected (racing a sleep, flushing microtasks) and the two it
+   * thought were needed, both larger than a test edit.
+   *
+   * Neither was needed. The property is entirely `claimRunningRunLease`'s:
+   * whether an expired lease can be retaken. `resumeAgentLoop` was only ever the
+   * vehicle. Asserting the claim directly is deterministic, makes no network
+   * call, depends on no file outside the repo, and is STRICTER than the original,
+   * because "the lease moved" was ambiguous between "reclaimed" and "overwritten
+   * by something else" while `claimed` is the answer itself.
+   *
+   * The sibling above still goes through `resumeAgentLoop`, correctly: a fresh
+   * lease makes the loop return early, so it terminates on its own.
+   */
   test("an expired lease is reclaimable, so an evicted worker does not strand the run", async () => {
     const db = makeFakeDb({
       agent_runs: [runRow({ resume_lease_at: "2026-08-14T00:00:00.000Z" })],
       agents: [agentRow],
     });
-    /**
-     * KNOWN LIMITATION, NAMED RATHER THAN PAPERED OVER (2026-08-14).
-     *
-     * It proceeds past the lease and then fails somewhere in the loop, which is
-     * not what this asserts: the lease must not be the thing stopping it, or a
-     * worker that died mid-step would hold the run forever.
-     *
-     * BUT "somewhere in the loop" is not a place. Past the lease the loop keeps
-     * going, and on a machine that HAS a `.env` carrying real Supabase
-     * credentials it reaches a live call and hangs to the 5s timeout. So the
-     * outcome depends on whether an untracked file exists: Lane 1 saw this fail
-     * while this lane read 0 fail on the same commit, and neither number was
-     * wrong. CI cannot see it, because CI has no credentials.
-     *
-     * TWO REPAIRS WERE TRIED AND BOTH REJECTED, which is why this is documented
-     * instead of fixed in a hurry:
-     *
-     *   1. Racing the loop against a one second sleep. Rejected by
-     *      a-timeout-is-not-a-wait.test.ts, correctly: that is a bet about the
-     *      machine and is the exact idiom that guard exists to stop.
-     *   2. Flushing microtasks until the lease moves. The claim does not settle
-     *      on the microtask queue, so the condition never becomes true.
-     *
-     * THE REAL FIX is one of two things, and both are bigger than a test edit:
-     * complete the fake so the loop terminates on its own, or stop the loop
-     * reading process env when a client was handed to it. Filed rather than
-     * rushed at session close.
-     */
-    await resumeAgentLoop(db as unknown as SupabaseClient, RUN).catch(() => {});
-    expect(db.statements.some((s) => s.table === "agent_run_checkpoints")).toBe(true);
+    const res = await claimRunningRunLease(db as unknown as SupabaseClient, RUN);
+    expect(res.claimed).toBe(true);
     expect(db.tables.agent_runs[0].resume_lease_at).not.toBe("2026-08-14T00:00:00.000Z");
   });
+
+  test("a lease still inside its window is not retaken", async () => {
+    const db = makeFakeDb({
+      agent_runs: [runRow({ resume_lease_at: new Date().toISOString() })],
+      agents: [agentRow],
+    });
+    expect((await claimRunningRunLease(db as unknown as SupabaseClient, RUN)).claimed).toBe(false);
+  });
+
+  test("a row that predates the migration reads as never leased", async () => {
+    // The column defaults to '-infinity' rather than NULL precisely so the claim
+    // is one comparison and every historical row is claimable.
+    const db = makeFakeDb({ agent_runs: [runRow()], agents: [agentRow] });
+    expect((await claimRunningRunLease(db as unknown as SupabaseClient, RUN)).claimed).toBe(true);
+  });
+
+  test("a run that is no longer running cannot be leased", async () => {
+    // The claim is scoped to status 'running'. A finished run must not be
+    // resumable by a tick that read it a moment too late.
+    const db = makeFakeDb({
+      agent_runs: [runRow({ status: "done", resume_lease_at: "-infinity" })],
+      agents: [agentRow],
+    });
+    expect((await claimRunningRunLease(db as unknown as SupabaseClient, RUN)).claimed).toBe(false);
+  });
+
 });
