@@ -299,6 +299,102 @@ describe("needIsMet", () => {
     // Build's precondition is Plan's job. No amount of world state fills it.
     expect(needIsMet(STATION_NEEDS.build, [], true)).toBe(false);
   });
+
+  it("refuses to let a station's own output satisfy a precondition it cannot produce", () => {
+    // THE COLLAPSE THIS PINS. Discover's need kinds are `signal` and `theme`,
+    // which is exactly what Discover files. So a membership test answered yes
+    // the moment Discover succeeded once, for the rest of the track's life, and
+    // a later tick that found nothing NEW was diagnosed as a station that has
+    // everything and still fails. That escalation is terminal and it sends a
+    // person to inspect a station which was behaving correctly.
+    expect(needIsMet(STATION_NEEDS.sense, ["signal"])).toBe(false);
+    expect(needIsMet(STATION_NEEDS.sense, ["theme"])).toBe(false);
+    expect(needIsMet(STATION_NEEDS.sense, ["signal", "theme"], false)).toBe(false);
+    // The world is still the one thing that can answer it.
+    expect(needIsMet(STATION_NEEDS.sense, ["signal"], true)).toBe(true);
+  });
+
+  it("keeps reading the record for every precondition a station does own", () => {
+    // The change above must not leak into the other six. Each of these is a
+    // question about the track's own record and nothing else.
+    for (const station of AGENT_STATION_ORDER) {
+      const need = STATION_NEEDS[station];
+      if (need.from === null) continue;
+      expect(needIsMet(need, [need.kinds[0]])).toBe(true);
+      // And the world cannot stand in for a station that owes the work.
+      expect(needIsMet(need, [], true)).toBe(false);
+    }
+  });
+});
+
+describe("a starved station is not a broken one", () => {
+  /**
+   * The live freeze this closes. 26 of 43 production tracks sat at Discover on
+   * `station-cannot-finish` -- terminal, "needs your eyes on the station" --
+   * while the station was doing exactly the right thing: it looked, found
+   * nothing new, and refused to invent evidence.
+   *
+   * The two holds are not interchangeable and the difference is everything a
+   * person does next. `needs-evidence` names a one-minute job and is RESUMABLE,
+   * so the work restarts itself the moment a source is connected.
+   * `station-cannot-finish` asks somebody to debug a station and nothing can
+   * ever clear it.
+   */
+  it("asks for a source when nothing new has landed, even after Discover once succeeded", () => {
+    const d = decideCorrection(at("sense", { filed: ["signal", "theme"], externalMet: false }));
+    expect(d.action).toBe("escalate");
+    if (d.action !== "escalate") return;
+    expect(d.reason).toBe("needs-evidence");
+    expect(d.because.toLowerCase()).toContain("connect a source");
+  });
+
+  it("keeps that escalation resumable, so a connected source restarts the work", () => {
+    // The whole point of choosing this hold. A person supplies what only they
+    // can and the loop carries on by itself, rather than leaving nineteen pieces
+    // of work to be unstuck by hand.
+    const asked = decideCorrection(at("sense", { filed: ["signal"], externalMet: false }));
+    const hold = holdForCorrection(asked);
+    expect(hold).toBe("needs-evidence");
+    const answered = decideCorrection(
+      at("sense", { filed: ["signal"], priorHold: hold as HoldReason, externalMet: true }),
+    );
+    expect(answered.action).toBe("retry");
+    if (answered.action !== "retry") return;
+    expect(answered.resume).toBe(true);
+  });
+
+  it("still calls a genuinely broken Discover broken", () => {
+    // The other side of the same predicate, and it must not be lost: evidence
+    // IS arriving and the station still files nothing three times over. That is
+    // the station rather than the world, and it earns a person's attention.
+    const d = decideCorrection(at("sense", { filed: ["signal"], externalMet: true }));
+    expect(d.action).toBe("escalate");
+    if (d.action !== "escalate") return;
+    expect(d.reason).toBe("station-cannot-finish");
+  });
+
+  it("never sends work back from the entry of the loop, whatever it has filed", () => {
+    for (const met of [true, false, null]) {
+      for (const filed of [[], ["signal"], ["theme"], ["signal", "theme", "decision"]]) {
+        expect(decideCorrection(at("sense", { filed, externalMet: met })).action).not.toBe(
+          "go-back",
+        );
+      }
+    }
+  });
+
+  it("cannot be reached from a station that sends work backwards", () => {
+    // `backNote` in the driver calls needIsMet with no externalMet argument, so
+    // the change above would read every external precondition as unsatisfied
+    // there. That is only safe because a station whose precondition has no owner
+    // can never be the origin of a correction: correctableTo returns null for
+    // it, so it never sends work back and never appears as `history.last.from`.
+    // Pinned rather than reasoned about, because it is load-bearing and invisible.
+    for (const station of AGENT_STATION_ORDER) {
+      if (STATION_NEEDS[station].from !== null) continue;
+      expect(correctableTo(STATION_NEEDS[station], fullRoute(), station)).toBeNull();
+    }
+  });
 });
 
 describe("every escalation reaches a person as a sentence, never a status word", () => {

@@ -165,6 +165,64 @@ const SELECT =
  * validation, the same route model and the same refusals. Two entrances to one
  * table is how the two drift.
  */
+/**
+ * File the cluster this work came from as the first thing on its record.
+ *
+ * THE HANDOFF AT THE ENTRY TO THE SPINE, and its absence was the defect that
+ * froze the autonomous half of the loop.
+ *
+ * `promoteClustersOnce` turns a qualifying cluster into work and writes
+ * `spine_tracks.theme_id`, which is a link nothing on the drive path reads. The
+ * driver briefs each station from `spine_track_members` through `loadUpstream`,
+ * so a promoted track arrived at Discover carrying no members at all: the crew
+ * whose job is to gather evidence for a cluster was told the cluster's TITLE and
+ * nothing else. Not its summary, not the frequency and severity that cleared the
+ * bar, not the signals underneath it. The station then reported, correctly, that
+ * it could find nothing, and the driver read a clean run that filed nothing as a
+ * station worth retrying. Three attempts later the work was frozen.
+ *
+ * That is the driver's own "seven strangers given the same sentence" defect,
+ * fixed between stations in the attachment pass and still live at the door.
+ *
+ * THE THEME AND NOT ITS SIGNALS, deliberately. A cluster's `summary` is the
+ * distilled form of the evidence underneath it, which is the whole reason
+ * clustering exists; and `HANDOFF_BODIES` inlines the two newest bodies only, so
+ * a dozen signal rows would push the summary out of the brief and arrive as a
+ * list of bare ids. The chain a person reads stays legible for the same reason.
+ * Discover's own crew is what goes and gets the rest.
+ *
+ * BEST-EFFORT, on the contract every other member write in the spine carries:
+ * losing the index is recoverable, losing the work is not. A promotion that
+ * succeeded must never be reported as refused because its first member row did
+ * not land, so this returns rather than throws and the track stands either way.
+ */
+async function attachOriginTheme(
+  supabase: SupabaseClient,
+  trackId: string,
+  themeId: string,
+): Promise<void> {
+  try {
+    const { error } = await supabase.from("spine_track_members" as never).upsert(
+      {
+        track_id: trackId,
+        artifact_kind: "theme",
+        artifact_id: themeId,
+        station: "sense",
+      } as never,
+      { onConflict: "track_id,artifact_kind,artifact_id" },
+    );
+    if (error) {
+      console.error(
+        `[spine] track ${trackId} started but its origin cluster ${themeId} was not filed: ${error.message}`,
+      );
+    }
+  } catch (e) {
+    console.error(
+      `[spine] filing the origin cluster for track ${trackId} threw: ${e instanceof Error ? e.message : String(e)}`,
+    );
+  }
+}
+
 export async function startTrackCore(
   supabase: SupabaseClient,
   userId: string,
@@ -211,7 +269,9 @@ export async function startTrackCore(
       if (code === "23505") return { track: null, problems: ["already promoted"] };
       return { track: null, problems: [error?.message ?? "The track could not be started."] };
     }
-    return { track: rowToTrack(row as unknown as TrackRow), problems: [] };
+    const track = rowToTrack(row as unknown as TrackRow);
+    if (data.themeId) await attachOriginTheme(supabase, track.id, data.themeId);
+    return { track, problems: [] };
   } catch (e) {
     return { track: null, problems: [(e as Error).message] };
   }

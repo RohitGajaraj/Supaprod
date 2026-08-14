@@ -23,6 +23,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { promoteClustersOnce } from "./promote.server";
 import { MAX_PROMOTIONS_PER_SWEEP } from "./promote";
+import { ARTIFACT_SOURCE } from "./chain";
 
 type ThemeFixture = {
   id: string;
@@ -69,13 +70,17 @@ function mockSupabase(config: {
   insertErr?: { code?: string; message?: string } | null;
   /** Refuse the post-promotion status write, which must never fail the sweep. */
   statusErr?: { code?: string; message?: string } | null;
+  /** Refuse the origin-cluster member write, which must also never fail it. */
+  memberErr?: { code?: string; message?: string } | null;
 }) {
   const inserted: Array<Record<string, unknown>> = [];
   const statusMarked: Array<{ id: string; status: string }> = [];
+  const members: Array<Record<string, unknown>> = [];
 
   const client = {
     __inserted: inserted,
     __statusMarked: statusMarked,
+    __members: members,
     from: (table: string) => {
       if (table === "spine_tracks") {
         return {
@@ -156,6 +161,22 @@ function mockSupabase(config: {
           }),
         };
       }
+      if (table === "spine_track_members") {
+        return {
+          /**
+           * The origin cluster filed against the track it started.
+           *
+           * THIS IS THE HANDOFF AT THE DOOR. Without it a promoted track reaches
+           * Discover carrying no members, so `loadUpstream` returns nothing and
+           * the crew whose job is to gather evidence for a cluster is briefed
+           * with the cluster's title and nothing else.
+           */
+          upsert: async (row: Record<string, unknown>, _opts: unknown) => {
+            members.push(row);
+            return { error: config.memberErr ?? null };
+          },
+        };
+      }
       throw new Error(`mockSupabase: unexpected table "${table}"`);
     },
   };
@@ -163,6 +184,7 @@ function mockSupabase(config: {
   return client as unknown as SupabaseClient & {
     __inserted: typeof inserted;
     __statusMarked: typeof statusMarked;
+    __members: typeof members;
   };
 }
 
@@ -322,5 +344,83 @@ describe("promoteClustersOnce tells its zeroes apart", () => {
 
     expect(sweep.outcomes[0].why).toBe("already promoted");
     expect(sweep.outcomes[0].trackId).toBeNull();
+  });
+});
+
+describe("the cluster a promoted track came from reaches the station that must work it", () => {
+  /**
+   * WHY THIS BLOCK EXISTS. `promoteClustersOnce` wrote `spine_tracks.theme_id`
+   * and stopped, and nothing on the drive path reads that column. The driver
+   * briefs every station from `spine_track_members`, so the autonomous half of
+   * the loop opened work and then handed Discover a one-line title: no summary,
+   * no frequency or severity, no evidence. Discover reported that it could find
+   * nothing, which was true, and the driver counted a clean run that filed
+   * nothing as a station worth retrying until the work froze.
+   *
+   * The link existed the whole time. It was written into a column the loop does
+   * not read, which is the same defect as a flag with no writer wearing the other
+   * face: a writer with no reader.
+   */
+  it("files the origin cluster as the track's first member", async () => {
+    const db = mockSupabase({ themes: [strong()] });
+    const sweep = await promoteClustersOnce(db, "user-1");
+
+    expect(sweep.outcomes[0].trackId).toBe("track-for-theme-1");
+    expect(db.__members).toHaveLength(1);
+    expect(db.__members[0]).toMatchObject({
+      track_id: "track-for-theme-1",
+      artifact_kind: "theme",
+      artifact_id: "theme-1",
+      // Filed AT Discover, because that is the station whose brief it belongs in
+      // and the station a person reads it under on the chain.
+      station: "sense",
+    });
+  });
+
+  it("names a kind the chain reader can actually resolve", async () => {
+    // A member whose kind is absent from ARTIFACT_SOURCE is dropped silently by
+    // loadUpstream, so a typo here would reproduce the empty brief exactly while
+    // every row looked present in the table.
+    const db = mockSupabase({ themes: [strong()] });
+    await promoteClustersOnce(db, "user-1");
+    const kind = String(db.__members[0].artifact_kind);
+    expect(ARTIFACT_SOURCE[kind]).toBeTruthy();
+    expect(ARTIFACT_SOURCE[kind].table).toBe("themes");
+  });
+
+  it("files nothing when the track was refused, because there is no track to file against", async () => {
+    const db = mockSupabase({
+      themes: [strong()],
+      insertErr: { message: "duplicate key value violates unique constraint" },
+    });
+    await promoteClustersOnce(db, "user-1");
+    expect(db.__members).toEqual([]);
+  });
+
+  it("keeps the promotion when the member write is refused", async () => {
+    // Same fail-soft rule as the status mark, and for the same reason: the track
+    // is the promotion. Losing the index is recoverable, losing the work is not.
+    const db = mockSupabase({
+      themes: [strong()],
+      memberErr: { message: "permission denied for table spine_track_members" },
+    });
+    const sweep = await promoteClustersOnce(db, "user-1");
+    expect(sweep.blocked).toBeNull();
+    expect(sweep.outcomes[0].why).toBe("started");
+    expect(sweep.outcomes[0].trackId).toBe("track-for-theme-1");
+  });
+
+  it("files one member per promoted cluster and never one for an unpromoted one", async () => {
+    const db = mockSupabase({
+      themes: [strong(), strong({ id: "theme-2", title: "Search returns nothing for exact SKUs" })],
+    });
+    await promoteClustersOnce(db, "user-1");
+
+    const promoted = new Set(
+      db.__members.map((m) => `${m.track_id}:${String(m.artifact_id)}`),
+    );
+    expect(promoted).toEqual(
+      new Set(["track-for-theme-1:theme-1", "track-for-theme-2:theme-2"]),
+    );
   });
 });

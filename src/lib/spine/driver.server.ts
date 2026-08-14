@@ -119,6 +119,19 @@ type DriveRow = {
   spend_used_usd: number | null;
   /** Its own ceiling, when one was set for this track specifically. */
   spend_cap_usd: number | null;
+  /**
+   * When the driver last looked at this track.
+   *
+   * READ, not only written, since `externalEvidence` started asking whether
+   * anything NEW has arrived rather than whether the workspace has ever held a
+   * signal. Every path out of `driveTrackOnce` stamps it, so it is the last
+   * moment this track is known to have been considered, which is exactly the
+   * watermark "has evidence landed since we last tried" needs.
+   *
+   * Null on a track that has never been driven, which is read as "look at the
+   * workspace as it stands" rather than as "nothing has arrived".
+   */
+  driven_at: string | null;
 };
 
 /** Is everything switched off for this workspace? Checked first, always. */
@@ -806,13 +819,39 @@ async function loadUpstream(
 async function externalEvidence(
   supabase: SupabaseClient,
   workspaceId: string | null,
+  /**
+   * When this track was last considered. Anything that arrived after it is
+   * evidence the station has never had a chance to read.
+   *
+   * Null means the track has never been driven, and then the question is simply
+   * whether the workspace holds anything at all, because none of it has been
+   * offered to this track yet.
+   */
+  since: string | null,
 ): Promise<boolean | null> {
   if (!workspaceId) return null;
   try {
-    const { count, error } = await supabase
+    let q = supabase
       .from("signals")
       .select("id", { count: "exact", head: true })
       .eq("workspace_id", workspaceId);
+    // NEW EVIDENCE, NOT ANY EVIDENCE, and the difference decides whether the
+    // loop keeps spending.
+    //
+    // This used to be an all-time workspace-wide count, which had two costs. It
+    // made `needs-evidence` unreachable after the workspace's first signal ever,
+    // so a starved Discover was always diagnosed as a broken one. And because
+    // `needs-evidence` is resumable, a workspace holding any signal at all
+    // resumed the moment it escalated: the ask was "answered" by a row that had
+    // been sitting there for weeks, the station ran, filed nothing, spent three
+    // more dispatches, escalated, and resumed again. A five-tick cycle billing a
+    // full crew each lap, for a question nobody had answered.
+    //
+    // Measured against `driven_at`, the resume fires only when something has
+    // actually landed since the loop last looked, which is what the escalation
+    // asked for in the first place.
+    if (since) q = q.gt("created_at", since);
+    const { count, error } = await q;
     if (error) return null;
     return (count ?? 0) > 0;
   } catch {
@@ -861,7 +900,9 @@ async function correctIfPossible(
   // today is Discover alone. Every other station is answered entirely from the
   // track's own record and costs no extra query.
   const externalMet =
-    need.from === null ? await externalEvidence(supabase, row.workspace_id) : null;
+    need.from === null
+      ? await externalEvidence(supabase, row.workspace_id, row.driven_at)
+      : null;
 
   const decision = decideCorrection({
     hold: at.hold,
@@ -1492,6 +1533,12 @@ export async function driveTrackOnce(
 export const DRIVE_SELECT =
   "id,user_id,workspace_id,title,origin,entry_station,station,path,waived,attempts,last_hold," +
   "pending_gates," +
+  // The watermark `externalEvidence` measures new arrivals against. Absent, it
+  // reads as null, which makes the check fall back to "has this workspace ever
+  // held a signal" -- the very behaviour that made a starved Discover
+  // indistinguishable from a broken one. It belongs in the shared constant for
+  // the same reason the budget columns do.
+  "driven_at," +
   // The budget columns. A DriveRow missing these reads them as null, which
   // resolves to "spent nothing" and silently removes the ceiling, so they
   // belong in the shared constant rather than in whichever caller remembers.

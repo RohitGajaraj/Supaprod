@@ -319,14 +319,35 @@ export type EscalationReason =
   /** Sent back twice for the same thing and it is still missing. */
   | "corrections-spent";
 
-/** Is the precondition on the record, or supplied from outside the loop? */
+/**
+ * Is the precondition on the record, or supplied from outside the loop?
+ *
+ * A PRECONDITION NO STATION CAN PRODUCE IS NEVER SATISFIED BY WHAT A STATION
+ * PRODUCED, and that asymmetry is the whole correction of a live defect.
+ *
+ * Discover's need is "evidence in this workspace to gather", and its `kinds` are
+ * `signal` and `theme` -- which is exactly what Discover itself files. So the
+ * membership test answered yes the moment Discover succeeded once, for the rest
+ * of the track's life. A later Discover tick that found nothing new therefore
+ * took the "you have everything and still finish empty" branch and escalated to
+ * `station-cannot-finish`: terminal, and it sends a person to inspect a station
+ * that was working correctly. The signals on the record are the station's own
+ * output, not a fresh supply of work, and reading them as a supply is how the
+ * loop came to tell people their Discover was broken when the truth was that
+ * nothing new had landed.
+ *
+ * So for the one precondition with no owning station, the world outside is the
+ * ONLY thing that can answer it. `externalMet` is deliberately three-valued and
+ * `null` (nobody could check) reads as unsatisfied, so an unreadable table can
+ * only ever make the loop more cautious.
+ */
 export function needIsMet(
   need: Precondition,
   filed: readonly string[],
   externalMet: boolean | null = null,
 ): boolean {
-  if (need.kinds.some((k) => filed.includes(k))) return true;
-  return need.from === null && externalMet === true;
+  if (need.from === null) return externalMet === true;
+  return need.kinds.some((k) => filed.includes(k));
 }
 
 /**
