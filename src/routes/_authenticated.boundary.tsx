@@ -81,6 +81,7 @@ import { relativeTime } from "@/lib/memory-view";
 import { updateToolMode } from "@/lib/agent_loop.functions";
 import { humanWriteError } from "@/lib/roles.functions";
 import { TrustGraduationsBlock } from "@/components/governance/TrustGraduations";
+import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
 import {
   Block,
   CtxBody,
@@ -724,6 +725,19 @@ function BoundarySurface() {
         }
       />
 
+      {/* WORKSPACE-WIDE POLICY, ABOVE THE PER-TOOL EXCEPTIONS. These four
+          switches decide what runs on a schedule at all; the tool modes below
+          decide how much of it happens without asking. Read in that order it is
+          one page; read the other way a person tunes exceptions to a loop that
+          is switched off.
+
+          IT IS OUTSIDE THE `b` GUARDS DELIBERATELY. The boundary read below can
+          fail, and when it does this page shows a failure state and nothing
+          else. These switches do not depend on that read, and the automation
+          flags are the one thing on this page that can be dark for six weeks
+          without anybody noticing, so they must not disappear because a
+          different query broke. */}
+      <AutomationBoundary workspaceId={activeWorkspaceId ?? null} />
       {b.isError ? (
         <Failed onRetry={() => void b.refetch()}>
           {(b.error as Error)?.message ?? "The reason did not come back with the error."}

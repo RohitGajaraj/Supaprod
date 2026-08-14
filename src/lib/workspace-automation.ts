@@ -43,7 +43,63 @@ export type AutomationFlag = {
   costsModelCalls: boolean;
   /** What stops happening while it is off. Written for the person deciding. */
   darkWhenOff: string;
+  /**
+   * A PLATFORM capability this flag needs, beyond the workspace's own switch.
+   *
+   * WHY THIS EXISTS, and it is the same defect one level up. `auto_derive_enabled`
+   * was a column that could be read and never written, so "off" was permanent and
+   * looked configurable. This is the mirror image: a flag that CAN be turned on,
+   * is turned on, and still does nothing, because the thing it drives is gated on
+   * a platform secret nobody in the workspace can see.
+   *
+   * `scout-tick` and `researcher-tick` both return early when
+   * `FIRECRAWL_API_KEY` is unset. They say so honestly, in a JSON body that goes
+   * to pg_cron and is read by nobody, and the early return happens BEFORE the
+   * job ledger is opened, so not even a run is recorded. Meanwhile the workspace
+   * switch reads on. So a person can arm market watching, be told it is armed,
+   * and never once be told that the platform cannot do it.
+   *
+   * Absent means the workspace switch is the only condition, which is true of
+   * most of them.
+   */
+  requiresPlatform?: {
+    /** The env var, named so an operator knows exactly what to set. */
+    key: string;
+    /** What is missing, in the words a person reads. Never the variable name. */
+    missing: string;
+  };
 };
+
+/**
+ * What a flag is ACTUALLY doing, which is not always what its switch says.
+ *
+ * Three states rather than two, because "off" and "on but it cannot run" need
+ * different things from a person and a two-state model has to call one of them by
+ * the other's name. `grounded` is the one that did not exist: armed, willing, and
+ * held down by something outside the workspace.
+ */
+export type AutomationRunState = "off" | "grounded" | "on";
+
+/**
+ * PURE. Resolve a flag's switch and the platform's readiness into one answer.
+ *
+ * `platformReady` is three-valued on purpose. `null` means nobody checked, and it
+ * is read as READY, which is the opposite of how this codebase treats an unknown
+ * elsewhere and is deliberate: this function feeds a label, not a gate. Reporting
+ * "your Scout cannot run" because a readiness probe failed would be inventing an
+ * outage, and a client that has no way to read a server env var would otherwise
+ * show every flag as grounded.
+ */
+export function automationRunState(input: {
+  flag: AutomationFlag;
+  enabled: boolean;
+  platformReady?: boolean | null;
+}): AutomationRunState {
+  if (!input.enabled) return "off";
+  if (!input.flag.requiresPlatform) return "on";
+  return input.platformReady === false ? "grounded" : "on";
+}
+
 
 export const AUTOMATION_FLAGS: readonly AutomationFlag[] = [
   {
@@ -71,6 +127,12 @@ export const AUTOMATION_FLAGS: readonly AutomationFlag[] = [
     costsModelCalls: true,
     darkWhenOff:
       "Scout and competitor sweeps select this workspace never, so market movement is only ever noticed by a person going to look for it.",
+    // The one flag whose switch is not the only condition. Both sweeps behind it
+    // stop before they start when the crawler is unconfigured.
+    requiresPlatform: {
+      key: "FIRECRAWL_API_KEY",
+      missing: "Reading the open web is not switched on for this platform yet, so market watching stays armed and idle until an admin sets it up.",
+    },
   },
 ];
 
@@ -86,6 +148,13 @@ export function automationFlag(column: string): AutomationFlag | undefined {
  * quietly dark for six weeks.
  */
 export const automationFlagColumns: readonly string[] = AUTOMATION_FLAGS.map((f) => f.column);
+
+/** Every platform capability the catalogue depends on, deduplicated. */
+export const AUTOMATION_PLATFORM_KEYS: readonly string[] = [
+  ...new Set(
+    AUTOMATION_FLAGS.map((f) => f.requiresPlatform?.key).filter((k): k is string => Boolean(k)),
+  ),
+].sort();
 
 /**
  * Does arming this flag need a person who can approve spend?

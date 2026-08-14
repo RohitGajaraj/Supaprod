@@ -154,6 +154,19 @@ describe("surface registry", () => {
  * of something that shipped better. Two live routes (`/calendar`, `/meetings`)
  * currently advertise capabilities on this list.
  */
+/*
+ * LEFT THIS LIST, in order, with what closed it.
+ *
+ * The point of a countdown is that it counts down. Recording what left keeps the
+ * list from reading as a fixed cost of doing business.
+ *
+ *   workspace-automation  2026-08-14  It held the writers built to fix
+ *     `auto_derive_enabled` having no writer at all, and those writers then had
+ *     no door: correct, RLS-enforced, tested, and called by nothing in
+ *     components or routes, so arming the flag still needed SQL. The fix moved
+ *     the defect one layer out instead of closing it. Closed by
+ *     components/governance/AutomationBoundary.tsx, mounted on /boundary.
+ */
 const KNOWN_UNREACHED: readonly string[] = [
   "ambient",
   "audio",
@@ -183,7 +196,6 @@ const KNOWN_UNREACHED: readonly string[] = [
   "today-lanes",
   // Built 2026-08-14 for a flag that had no writer at all. The control is Lane
   // 1's and is not built yet, which is why this is registered `planned`.
-  "workspace-automation",
 ];
 
 function sourceFilesUnderSrc(): string[] {

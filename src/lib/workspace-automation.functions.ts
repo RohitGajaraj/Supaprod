@@ -2,7 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { AUTOMATION_FLAGS, automationFlag, automationFlagColumns } from "./workspace-automation";
+import {
+  AUTOMATION_FLAGS,
+  AUTOMATION_PLATFORM_KEYS,
+  automationFlag,
+  automationFlagColumns,
+} from "./workspace-automation";
 
 // The writers the automation flags never had. See workspace-automation.ts for
 // why this file exists; the short version is that auto_derive_enabled was read
@@ -17,10 +22,34 @@ import { AUTOMATION_FLAGS, automationFlag, automationFlagColumns } from "./works
 
 export type AutomationState = Record<string, boolean>;
 
+/**
+ * Which platform capabilities are configured, so a surface can tell an armed
+ * flag from a running one.
+ *
+ * SERVER-SIDE ONLY, AND IT RETURNS BOOLEANS, NEVER VALUES. The client needs to
+ * know whether the crawler is set up; it must never learn the key. Reading
+ * `process.env` here and shipping a boolean is the whole point, and it is why
+ * this cannot live in the import-free catalogue module beside the flags.
+ *
+ * WHAT IT CLOSES. `scout-tick` and `researcher-tick` both return early when
+ * `FIRECRAWL_API_KEY` is unset, before the job ledger is even opened, so no run
+ * is recorded and their honest explanation goes into a JSON body that only
+ * pg_cron reads. The workspace switch meanwhile reads on. A person could arm
+ * market watching, be told it was armed, and never be told the platform cannot
+ * do it. This is the fact that makes the difference sayable.
+ */
+export function platformReadiness(): Record<string, boolean> {
+  const ready: Record<string, boolean> = {};
+  for (const key of AUTOMATION_PLATFORM_KEYS) {
+    ready[key] = Boolean(process.env[key]);
+  }
+  return ready;
+}
+
 export async function getWorkspaceAutomationImpl(
   db: SupabaseClient,
   workspaceId: string,
-): Promise<{ state: AutomationState }> {
+): Promise<{ state: AutomationState; platform: Record<string, boolean> }> {
   const { data, error } = await db
     .from("workspaces")
     .select(automationFlagColumns.join(","))
@@ -30,7 +59,10 @@ export async function getWorkspaceAutomationImpl(
   const row = (data ?? {}) as Record<string, unknown>;
   const state: AutomationState = {};
   for (const col of automationFlagColumns) state[col] = row[col] === true;
-  return { state };
+  // Returned together, because a switch without the platform fact beside it is
+  // the half-truth this pair exists to stop. A caller cannot render "armed and
+  // idle" from the switch alone.
+  return { state, platform: platformReadiness() };
 }
 
 export async function setWorkspaceAutomationImpl(
