@@ -6,6 +6,8 @@
 
 **How to read it.** Every number below carries the query or the grep that produced it, because a number without its query cannot be re-checked and has twice been wrong in this repo. Findings are ranked P0 (breaks a core flow or loses money), P1 (degrades a demanding user), P2 (worth doing, not now).
 
+**The evidence behind it** is in [`audit-reports/`](./audit-reports/README.md), one file per pass, committed as each finished rather than at the end.
+
 **The measurement baseline**, taken on `0c9ff970` before any edit: `bunx tsc --noEmit` 0 errors; `bun test` 8,787 pass, 0 fail, 23 skip, 60 todo across 517 files. Production is `supaprod.lovable.app`, Lovable project `371dd588-1b70-4629-9bb5-9f003f3af373`, last published from `0c9ff970`.
 
 ---
