@@ -201,25 +201,60 @@ function sourceFilesUnderSrc(): string[] {
   return out;
 }
 
+/**
+ * COMPUTED ONCE, AND THE FIRST VERSION FLAKED FOR WANT OF IT.
+ *
+ * Each call reads every source file under `src/` and runs 160 domains against
+ * all of them, which is 8 to 13 seconds. Calling it per test meant three full
+ * sweeps, and under load (two other lanes running agents on this machine) every
+ * one of them blew bun's 5-second default and the suite went red on a green
+ * codebase.
+ *
+ * That is the worst kind of failing test: it passes on a quiet box and fails on
+ * a busy one, so the next person reads it as noise and stops trusting the gate.
+ * A gate nobody trusts is the thing this file was written to replace. Memoised
+ * here rather than given a longer timeout, because the sweep genuinely only
+ * needs to happen once and 24 seconds of repeated work is the actual defect.
+ */
+let unreachedCache: string[] | null = null;
+
+/**
+ * ONE PASS OVER THE FILES, NOT ONE PASS PER DOMAIN.
+ *
+ * The first version asked, for each of 160 domains, whether any of ~1,000 files
+ * mentioned it: 160,000 substring scans over large strings, 8 to 13 seconds. It
+ * blew bun's 5-second default whenever the machine was busy, so the gate went
+ * red on a green codebase and read as noise. A gate nobody trusts is the thing
+ * this file exists to replace.
+ *
+ * Inverted: read every file once, pull out the module specifier of every import
+ * that names a `*.functions` module, and collect them in a set. A domain is then
+ * unreached if its own name is missing from that set, which is a lookup rather
+ * than a search. Same answer, and it no longer depends on how loaded the box is.
+ *
+ * The pattern deliberately covers the aliased form, both relative forms, and the
+ * dynamic `await import(...)` several server modules use to keep a heavy
+ * dependency out of a client bundle. Missing that last one would report a
+ * reached module as an orphan, which is exactly the false positive that gets a
+ * gate switched off.
+ */
+const IMPORTED_FUNCTIONS_MODULE = /["'](?:@\/lib|\.{1,2}(?:\/[\w.-]+)*)\/([\w-]+)\.functions["']/g;
+
 function unreachedDomains(): string[] {
-  const sources = sourceFilesUnderSrc().map((f) => [f, readFileSync(f, "utf8")] as const);
-  return domainsOnDisk().filter((domain) => {
-    const spec = `${domain}.functions`;
-    return !sources.some(
-      ([file, text]) =>
-        !file.endsWith(`lib/${spec}.ts`) &&
-        // Static import, aliased import, and dynamic `await import(...)`, which
-        // several server modules use to keep a heavy dependency out of a
-        // client bundle. Missing that form would report a reached module as an
-        // orphan, which is the failure that makes a gate get switched off.
-        (text.includes(`"@/lib/${spec}"`) ||
-          text.includes(`'@/lib/${spec}'`) ||
-          text.includes(`"./${spec}"`) ||
-          text.includes(`'./${spec}'`) ||
-          text.includes(`"../${spec}"`) ||
-          text.includes(`'../${spec}'`)),
-    );
-  });
+  if (unreachedCache) return unreachedCache;
+
+  const referenced = new Set<string>();
+  for (const file of sourceFilesUnderSrc()) {
+    const text = readFileSync(file, "utf8");
+    for (const m of text.matchAll(IMPORTED_FUNCTIONS_MODULE)) {
+      // A module importing itself is not a reader of itself.
+      if (file.endsWith(`lib/${m[1]}.functions.ts`)) continue;
+      referenced.add(m[1]);
+    }
+  }
+
+  unreachedCache = domainsOnDisk().filter((d) => !referenced.has(d));
+  return unreachedCache;
 }
 
 describe("no-orphan enforcement, on imports rather than intentions", () => {
