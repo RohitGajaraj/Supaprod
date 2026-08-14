@@ -278,7 +278,7 @@ export function Chat({
               disabled={!canSend}
               onClick={send}
               className={`flex size-7 items-center justify-center rounded-mrd-ctl transition-[background-color,color,transform] duration-200 enabled:active:scale-[0.96] ${
-                canSend ? "bg-mrd-solid text-mrd-ink" : "bg-mrd-lift text-mrd-faint"
+                canSend ? "bg-mrd-solid text-mrd-on-solid" : "bg-mrd-lift text-mrd-faint"
               }`}
             >
               <Icon size={16}>

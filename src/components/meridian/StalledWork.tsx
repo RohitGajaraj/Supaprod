@@ -190,7 +190,7 @@ function Item({ item, now }: { item: StalledItem; now: number }) {
           <button
             type="button"
             onClick={item.onAllow}
-            className="rounded-mrd-ctl bg-mrd-solid px-2.5 py-1 text-[12.5px] font-medium text-mrd-ink transition-opacity hover:opacity-90"
+            className="rounded-mrd-ctl bg-mrd-solid px-2.5 py-1 text-[12.5px] font-medium text-mrd-on-solid transition-opacity hover:opacity-90"
             style={{ transitionDuration: "var(--mrd-d-press)" }}
           >
             {item.allowLabel ?? "Let it run"}

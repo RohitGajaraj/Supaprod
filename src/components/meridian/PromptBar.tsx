@@ -367,7 +367,7 @@ export function PromptBar({
         disabled={!canSend}
         onClick={send}
         className={`flex size-7 shrink-0 items-center justify-center transition-[background-color,color,transform] duration-200 enabled:active:scale-[0.94] ${btnRadius} ${
-          canSend ? "bg-mrd-solid text-mrd-ink" : "bg-mrd-lift text-mrd-faint"
+          canSend ? "bg-mrd-solid text-mrd-on-solid" : "bg-mrd-lift text-mrd-faint"
         }`}
       >
         <Icon size={16} strokeWidth={2.4}>

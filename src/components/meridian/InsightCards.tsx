@@ -478,7 +478,7 @@ function CouldNotRead({ reason, onRetry }: { reason: string; onRetry?: () => voi
         <button
           type="button"
           onClick={onRetry}
-          className={`mt-[var(--mrd-s4)] rounded-mrd-ctl bg-mrd-solid px-3 py-1.5 text-[13px] font-medium text-mrd-ink transition-[filter,transform] duration-100 hover:brightness-110 active:scale-[0.97] ${FOCUS_RING}`}
+          className={`mt-[var(--mrd-s4)] rounded-mrd-ctl bg-mrd-solid px-3 py-1.5 text-[13px] font-medium text-mrd-on-solid transition-[filter,transform] duration-100 hover:brightness-110 active:scale-[0.97] ${FOCUS_RING}`}
         >
           Try again
         </button>

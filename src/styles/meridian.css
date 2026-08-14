@@ -140,6 +140,28 @@
   --mrd-mute: oklch(0.7 0.006 70); /* labels, metadata */
   --mrd-faint: oklch(0.61 0.006 70); /* the quietest stop that is still AA */
 
+  /*
+   * THE LABEL ON A FILLED CONTROL, and the ONE token that must NOT invert.
+   *
+   * Every other colour flips with the ground: light text on dark, dark text on
+   * paper. `--mrd-solid` is the exception among SURFACES, because a primary
+   * button steps AWAY from its own canvas, so it is the lightest stop on dark
+   * and the DARKEST on paper. Its face is dark in both grounds.
+   *
+   * A label written as `--mrd-ink` inverts along with everything else and lands
+   * dark on dark on paper: measured 1.19 to 1, a slab with the ghost of a word
+   * on it. That is not hypothetical. The design record already contains this
+   * exact defect from an earlier system, caught on paper by screenshotting
+   * rather than by reasoning. It was reintroduced here and caught the same way,
+   * by rendering all 21 components in both grounds, on 12 controls across 9
+   * files, because no fixture had ever passed a primary button an action.
+   *
+   * There is nothing to swap to: NO other token is light in both grounds. This
+   * one exists to be, and it is the only one. Never write text-mrd-ink on a
+   * filled control.
+   */
+  --mrd-on-solid: oklch(0.965 0.003 70);
+
   /* ── STRUCTURE. Edges carry alpha so they sit on any ground. ─────────── */
   --mrd-line: oklch(0.98 0.003 70 / 0.11); /* a real edge */
   --mrd-line-soft: oklch(0.98 0.003 70 / 0.055); /* a rule between sections */
@@ -255,6 +277,14 @@
   --mrd-mute: oklch(0.48 0.009 70);
   --mrd-faint: oklch(0.52 0.009 70);
 
+  /*
+   * Restated, and deliberately STILL LIGHT. This is the one token that does not
+   * invert, because the surface it sits on does not invert either: the primary
+   * face is dark on both grounds. Tinted to the paper hue so it reads as warm
+   * paper-white on an inked slab rather than as a hole punched in it.
+   */
+  --mrd-on-solid: oklch(0.97 0.008 85);
+
   --mrd-line: oklch(0.28 0.012 70 / 0.14);
   --mrd-line-soft: oklch(0.28 0.012 70 / 0.07);
   --mrd-edge: oklch(0.28 0.012 70 / 0.26);
@@ -302,6 +332,7 @@
   --color-mrd-solid: var(--mrd-solid);
 
   --color-mrd-ink: var(--mrd-ink);
+  --color-mrd-on-solid: var(--mrd-on-solid);
   --color-mrd-body: var(--mrd-body);
   --color-mrd-mute: var(--mrd-mute);
   --color-mrd-faint: var(--mrd-faint);

@@ -169,7 +169,7 @@ export function Search<Item>({
         <button
           type="button"
           onClick={failure.onRetry}
-          className={`mt-1 rounded-mrd-ctl bg-mrd-solid px-2.5 py-1 text-[12.5px] font-medium text-mrd-ink transition-opacity hover:opacity-90 ${FOCUS}`}
+          className={`mt-1 rounded-mrd-ctl bg-mrd-solid px-2.5 py-1 text-[12.5px] font-medium text-mrd-on-solid transition-opacity hover:opacity-90 ${FOCUS}`}
           style={{ transitionDuration: "var(--mrd-d-press)" }}
         >
           Try again

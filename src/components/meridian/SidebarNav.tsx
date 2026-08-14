@@ -286,7 +286,7 @@ export function SidebarNav({
           aria-label={isCollapsed ? `${workspaceName}, switch workspace` : undefined}
           className={`flex min-w-0 flex-1 items-center gap-2.5 rounded-mrd-ctl p-1.5 text-left transition-[background-color,transform] duration-100 hover:bg-mrd-hover active:scale-[0.96] ${FOCUS_RING}`}
         >
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-mrd-solid text-[13px] font-semibold text-mrd-ink">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-mrd-solid text-[13px] font-semibold text-mrd-on-solid">
             {workspaceName.slice(0, 1).toUpperCase()}
           </span>
           {!isCollapsed && (
@@ -430,7 +430,7 @@ export function SidebarNav({
           onFocus={() => openTip("__primary")}
           onBlur={closeTip}
           aria-label={isCollapsed ? primaryAction.label : undefined}
-          className={`relative flex w-full items-center gap-2 rounded-mrd-ctl bg-mrd-solid px-2 py-1.5 text-[13px] font-medium text-mrd-ink transition-[filter,transform] duration-100 hover:brightness-110 active:scale-[0.96] ${isCollapsed ? "justify-center" : ""} ${FOCUS_RING}`}
+          className={`relative flex w-full items-center gap-2 rounded-mrd-ctl bg-mrd-solid px-2 py-1.5 text-[13px] font-medium text-mrd-on-solid transition-[filter,transform] duration-100 hover:brightness-110 active:scale-[0.96] ${isCollapsed ? "justify-center" : ""} ${FOCUS_RING}`}
           style={{ marginBottom: "var(--mrd-s2)" }}
         >
           {!isCollapsed && (

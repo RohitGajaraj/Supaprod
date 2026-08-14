@@ -110,7 +110,7 @@ const control =
  * is required" somewhere that actually blocks.
  */
 const primary =
-  "inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-mrd-solid px-2.5 text-[12.5px] text-mrd-ink transition-[background-color,transform] duration-150 hover:bg-mrd-float active:scale-[0.96]";
+  "inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-mrd-solid px-2.5 text-[12.5px] text-mrd-on-solid transition-[background-color,transform] duration-150 hover:bg-mrd-float active:scale-[0.96]";
 
 type Box = { top: number; left: number; width: number; height: number };
 
@@ -472,7 +472,7 @@ export function SelectionActions({
                     type="button"
                     aria-label="Send edit instruction"
                     onClick={() => hasInstruction && onInstruction(instruction.trim())}
-                    className="flex size-7 shrink-0 items-center justify-center rounded-full bg-mrd-solid text-mrd-ink transition-transform duration-200 active:scale-[0.94]"
+                    className="flex size-7 shrink-0 items-center justify-center rounded-full bg-mrd-solid text-mrd-on-solid transition-transform duration-200 active:scale-[0.94]"
                   >
                     <Icon size={16} strokeWidth={2.4}>
                       <path d="M12 19V5M5 12l7-7 7 7" />
