@@ -533,13 +533,38 @@ Approving a pending gate is a **write**. Two programs on one login means the sec
 | Login | Password | Allocated to | Status |
 | --- | --- | --- | --- |
 | `explore@supaprod.ai` | `Supaprod!Explore2026` | **Y Combinator** (already filed) | LOCKED, do not reuse |
-| `voyage@supaprod.ai` | `Supaprod!Voyage2026` | **South Park Commons** (2026-07-31, submitted) | SPENT |
-| `compass@supaprod.ai` | `Supaprod!Compass2026` | **Betaworks AI Camp** (2026-07-31, submitted) | SPENT |
+| `voyage@supaprod.ai` | `Supaprod!Voyage2026` | ~~South Park Commons~~ → **REUSABLE** (founder ruling 2026-08-14) | free, re-arm before sending |
+| `compass@supaprod.ai` | `Supaprod!Compass2026` | **Betaworks AI Camp** (2026-07-31, submitted) | held, never opened |
 | `meridian@supaprod.ai` | `Supaprod!Meridian2026` | _(assign)_ | free |
 | `lantern@supaprod.ai` | `Supaprod!Lantern2026` | _(assign)_ | free |
 | `harbor@supaprod.ai` | `Supaprod!Harbor2026` | founder rehearsal only | NEVER send |
 
-> ⚠️ **Four free logins.** If more than four programs need a login, clone additional workspaces first (`supabase/migrations/20260725140000_clone_helio_to_investor_workspaces.sql` is the pattern). For lower-priority programs, give the signup link instead of a login: `https://supaprod.ai`, sign up with any email, you land in a seeded workspace in about a minute.
+> ### 🔍 Measured 2026-08-14, and it changes what we assumed. **No reviewer has ever signed in.**
+>
+> ```sql
+> select email, created_at, last_sign_in_at from auth.users
+> where email like '%@supaprod.ai' order by last_sign_in_at desc nulls last;
+> ```
+>
+> | Account | `last_sign_in_at` | What that means |
+> | --- | --- | --- |
+> | `voyage@` (South Park Commons) | **NULL** | **Never signed into, once, ever** |
+> | `compass@` (Betaworks) | **NULL** | **Never signed into, once, ever** |
+> | `meridian@` · `lantern@` | NULL | Never used, as expected |
+> | `explore@` (YC) | 2026-08-13 08:12 UTC | Signed in at least once. **Not attributable** — see below |
+> | `harbor@` (rehearsal) | 2026-08-14 07:55 UTC | Founder rehearsal, as designed |
+>
+> **`explore@` cannot be attributed to YC and must not be reported as engagement.** `auth.audit_log_entries` holds **0 rows** in this project, so there is no per-event history to read — only a single last-sign-in timestamp. 2026-08-13 is the day the SkyDeck application was being drafted and logins were being tested in incognito, which is the likelier explanation. **Say "signed into at least once, unattributable", never "YC opened it".**
+>
+> ### The strategic fact underneath, and it is bigger than the allocation question
+>
+> **South Park Commons rejected us without ever opening the product.** The login sat in two answers of a filed application and was never used. So the demo login is **not** doing the persuading we assumed it does at the screening stage — the form alone carried that decision, and lost it.
+>
+> **This does not mean stop sending logins.** It means the written answers must survive on their own, and a login is what converts an *interested* reader, not what creates one. Weight the drafting hours accordingly.
+
+> ⚠️ **Three free logins now** (`voyage@` recovered, `meridian@`, `lantern@`). If more programs need one, clone additional workspaces first (`supabase/migrations/20260725140000_clone_helio_to_investor_workspaces.sql` is the pattern). For lower-priority programs, give the signup link instead of a login: `https://supaprod.ai`, sign up with any email, you land in a seeded workspace in about a minute.
+>
+> **Do not pre-create logins and let them sit.** The scarce thing is not the workspace, it is the approval queue, which decays on its own. Create on demand, and **arm the queue at send time, not at create time.**
 >
 > ⏳ **Approval queues decay.** Each seeded workspace ships five pending approvals with short `expires_at`. Re-arm before any review window. Last re-arm 2026-07-28 with a 60-day runway, so it holds to late September.
 

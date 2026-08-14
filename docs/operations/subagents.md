@@ -63,3 +63,33 @@ A subagent's summary describes what it _intended_ to do. For any code-writing ag
 - Running multiple planners for the same feature. Pick one.
 - Delegating routine reads or one-line greps. Just do them.
 - Repeating a search a subagent is already running. Wait for its result.
+
+---
+
+## ⚠️ Long fan-outs: land each agent's output as it finishes, never at the end
+
+> **Founder ruling, 2026-08-14:** _"After each subagent's work is done, save it somewhere so that even if the system shuts down you can retrieve it. I don't want you to begin from the start."_
+
+**The gap this closes.** A `Workflow` returns its result **only when the whole script finishes**. A twenty-agent run that dies on agent nineteen hands you nothing, and if each agent did expensive work — live page checks, screenshots, audits — that is hours gone.
+
+**The work is not actually lost, and knowing where it is matters more than the fix.** The harness appends one line per finished agent to `journal.jsonl` in the run's transcript directory:
+
+```json
+{"type":"result","agentId":"a40be...","result":{ ... }}
+```
+
+That directory lives under `~/.claude/projects/`, so it **survives a reboot**. But raw JSONL in a session directory is not retrievable in any practical sense, and nobody will find it under pressure.
+
+**The pattern.** Poll the journal on a timer, materialise each result to disk, commit.
+
+1. **Take the transcript dir from the launch result.** It is printed when the workflow starts.
+2. **Write one untouched file per agent first** — never merged, never overwritten by a peer. That is the recovery point when a roll-up turns out to be wrong.
+3. **Build the readable roll-up from those**, then commit.
+4. **Make the harvester idempotent** — rebuild every output from the journal on each pass. Then the harvester is disposable: if it dies, re-run it and the state returns. **The journal is the source of truth; the harvested files never are.**
+
+**Two things that cost time to learn:**
+
+- **Do not pass `--no-verify` to stop the hooks firing on a 30-second commit loop.** It trades the repo's invariants for a convenience the durability requirement does not need. A failed gate should fail the commit — the files are already on disk either way, and the failure belongs in the log where someone sees it.
+- **The harvested folder is temporary and must be deleted when the run completes.** Leaving it beside the canonical output is how a second, staler copy of the same data gets created, which the pitch folder's standing rules forbid outright.
+
+**Cross-session relay is unreliable.** `SendMessage` to a peer session failed three times while passing this ruling between lanes, twice with the confirmed `[ref]`. **A rule that has to reach another lane goes in a tracked file, not a message.**

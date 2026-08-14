@@ -12,6 +12,42 @@
 
 > _Created 2026-07-31. 144 programs researched live against their own sites and forms on 2026-07-31. This is the single index. Deadlines were verified the day this was written and **programs change them without notice**, so re-check the source link before relying on any date._
 
+## 🚪 BINDING, 2026-08-14 — three founder rulings on how we screen. They govern before any drafting starts.
+
+**All three exist because we were about to skip programmes that were open to us.** Each one turns a "not eligible" into a question you answer by opening a page.
+
+### 1. A deadline is a rumour until the form contradicts it. Open the apply page.
+
+> _"Don't just go with a hard deadline. Sometimes these programs accept late applications. One such example is HF0 — it says the deadline is done, but if I open the application now, it's still accepting."_
+
+**Verified the same day: `hf0.com/apply` serves a live multi-step form with no closed notice**, while this tracker carried it as a passed 2026-08-01 deadline. Its own Blockers field admits the date came from **one aggregator and was never verified**. A programme was sitting in the closed pile on a rumour.
+
+**So a listed date never decides anything on its own.** For every programme, record what the **form** does:
+
+| `page_state` | What it means | What we do |
+| --- | --- | --- |
+| **OPEN** | The form loads and accepts input | Apply, whatever the listed date said |
+| **CLOSED (on the page)** | The page itself says closed, or the form is gone | Skip, and record the exact wording |
+| **UNKNOWN** | Gated by a login, a paywall, or an account wall | **Escalate to the founder for access.** Never infer |
+
+**Never write "closed" from an aggregator, a cached search result, or a date in this file.** The evidence for a skip is the programme's own page saying so, quoted.
+
+### 2. No entity is not an eligibility blocker. It is a funding-release condition.
+
+> _"Most of these applications allow us to apply even without an entity, and later on, if you get selected, post-registration they release the fund."_
+
+**This is how YC and most US programmes already work** — they incorporate you into a Delaware C-corp as part of the deal. Being unincorporated blocks the *money moving*, not the *applying*.
+
+**Record it as a blocker only when the programme's own page states an entity is required to submit.** Hub71's ADGM requirement is a real one. The DPIIT-gated India stack is a real one. Everything else is a post-selection step, and the US-primary ruling in the doctrine already says not to incorporate in India to unlock it.
+
+### 3. Solo founder is one condition, not a stop.
+
+> _"Do NOT filter out programs because I am a solo founder. That is one condition, not a stop. If they ask for a team, we still apply."_
+
+**We apply anyway.** A published two-founder preference is a lower score, not a skip. **Skip only on a hard legal or eligibility wall** — a residence permit we do not hold, a university sponsorship we cannot get, an entity that must exist before the form will accept us.
+
+**The rows currently marked `Skip - solo blocked` predate this ruling and need re-reading against it.**
+
 ## ⚠️ BINDING, 2026-08-10 — every application in this folder speaks the corrected language
 
 **Founder ruling: any application we make must speak in the post-sweep positioning.** Canon: [`../../strategy/positioning-locked-2026-08.md`](../../strategy/positioning-locked-2026-08.md) §5G. Grounded in a full read of 679 documents / 5.9M words plus the members-only PM community.
@@ -87,6 +123,7 @@ Workflow({ name: 'application-pressure-test', args: {
 
 | File | What it is |
 | --- | --- |
+| [**`sweep/`**](./sweep/README.md) | **The 2026-08 global sweep, harvested lane by lane while it runs.** Every programme checked against its own live apply page rather than a listed date. Written incrementally on purpose: a run that dies on the last lane must not take the earlier ones with it. |
 | [**`../../../.claude/workflows/application-pressure-test.js`**](../../../.claude/workflows/application-pressure-test.js) | **The pressure-test harness. Run it before any application sends.** Programme-agnostic; derives its own numbers. |
 | [`answer-bank.md`](./answer-bank.md) | Every reusable answer, at every length. Pull from here, never write from scratch. |
 | [`positioning-doctrine.md`](./positioning-doctrine.md) | How we get **selected**, not just how we apply. Asset track record, the counters to every objection, the per-program positioning axis, and the quality gate. |
@@ -244,16 +281,20 @@ The UK route is the cleanest and has genuine option value: a five-year founder v
 
 **One login per program, never shared.** Approving a gate is a write, so the second reviewer on a shared workspace finds an emptied approval queue and a dead room.
 
-| Login | Allocated to | Date |
-| --- | --- | --- |
-| `explore@supaprod.ai` | **Y Combinator** (filed) | locked |
-| `voyage@supaprod.ai` | **South Park Commons** | 2026-07-31 |
-| `compass@supaprod.ai` | **Betaworks AI Camp** | 2026-07-31 |
-| `meridian@supaprod.ai` | _unallocated_ | |
-| `lantern@supaprod.ai` | _unallocated_ | |
-| `harbor@supaprod.ai` | founder rehearsal, **never send** | |
+| Login | Allocated to | Date | Ever signed into? |
+| --- | --- | --- | --- |
+| `explore@supaprod.ai` | **Y Combinator** (filed) | locked | Once, 2026-08-13. **Unattributable** |
+| `voyage@supaprod.ai` | ~~South Park Commons~~ → **free again** | freed 2026-08-14 | **Never** |
+| `compass@supaprod.ai` | **Betaworks AI Camp** | 2026-07-31 | **Never** |
+| `meridian@supaprod.ai` | _unallocated_ | | Never |
+| `lantern@supaprod.ai` | _unallocated_ | | Never |
+| `harbor@supaprod.ai` | founder rehearsal, **never send** | | Yes, by the founder |
 
-**Only two free logins remain.** Before the next two Tier-1 applications, clone more workspaces using the pattern in `supabase/migrations/20260725140000_clone_helio_to_investor_workspaces.sql`. Lower-priority programs get the self-signup line instead: _"sign up with any email, you land in a seeded workspace in about a minute."_
+**Three free logins now.** `voyage@` was released by founder ruling 2026-08-14 — South Park Commons has decided, so nobody is going to open it. Re-arm its approval queue before it goes anywhere.
+
+> ⚠️ **Measured 2026-08-14: no external reviewer has ever signed in.** `voyage@` and `compass@` both carry a NULL `last_sign_in_at`, so **South Park Commons rejected us without opening the product**. The full query, the `explore@` attribution problem, and what this means for where the drafting hours go: [`answer-bank.md`](./answer-bank.md) §11.
+
+Before more Tier-1 applications need one, clone more workspaces using the pattern in `supabase/migrations/20260725140000_clone_helio_to_investor_workspaces.sql`. **Create on demand and arm the queue at send time** — a login created now and sent in three weeks lands a reviewer in a decayed queue. Lower-priority programs get the self-signup line instead: _"sign up with any email, you land in a seeded workspace in about a minute."_
 
 ---
 

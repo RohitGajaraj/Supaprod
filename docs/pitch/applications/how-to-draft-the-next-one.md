@@ -221,6 +221,14 @@ Until all three pass: padlock, no Submit button, and **nothing typed is saved**.
 
 ## Part 5 — The procedure for the next one
 
+> ### 0. Before any of this: confirm the programme is actually shut before you skip it. Founder rulings, 2026-08-14.
+>
+> **Three screening rulings live in [`README.md`](./README.md), and all three exist because we nearly skipped programmes that were open.** The short form:
+>
+> - **A listed deadline is a rumour until the form contradicts it.** `hf0.com/apply` was serving a live form while this folder carried it as closed on a date taken from one unverified aggregator. **Only the programme's own page can justify a skip**, quoted. If a login or paywall blocks the check, escalate for access rather than inferring.
+> - **No entity is not an eligibility blocker.** It gates the money moving, not the applying, unless the page says otherwise.
+> - **Solo founder is one condition, not a stop.** A two-founder preference lowers the score; only a hard legal or eligibility wall skips.
+
 1. **Open the live form first.** Read every question and every dropdown option off the page. Record them verbatim in the programme's `APPLICATION-FINAL.md`.
 2. **Pull facts from [`answer-bank.md`](./answer-bank.md)**, never from memory or a screenshot. Re-derive live numbers: `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l`.
 3. **Check the seven rules in [`positioning-doctrine.md`](./positioning-doctrine.md)**, then this file.
