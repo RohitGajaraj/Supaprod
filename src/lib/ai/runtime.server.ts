@@ -1467,53 +1467,61 @@ async function incrementBudget(
   usd: number,
   traceId?: string | null,
 ) {
-  const today = new Date().toISOString().slice(0, 10);
-  const thisMonth = today.slice(0, 7) + "-01";
+  // ATOMIC, THROUGH AN RPC, and the reason is money rather than tidiness.
+  //
+  // This used to read the row, add in JavaScript, and blind-write the sum. Two
+  // concurrent calls both read 10.00 and both wrote 10.50, so one call's spend
+  // vanished. Unlike a balance check that is corrected by the next true read,
+  // a LEDGER lost update is permanent: nothing recomputes the number, so the
+  // cap under-reports for the rest of the day and the month. The agent loop
+  // makes these calls in parallel by design, so the collision was the normal
+  // case. `record_mission_usage` had done this correctly since June.
+  //
   // The spend ledger is service-role territory. authenticated is column-restricted
   // to caps only (migration 20260708153000), so a user cannot PATCH their own usage
   // back to 0 or roll the window forward to dodge the cap. The runtime therefore
   // meters through supabaseAdmin, the same principal split that lets checkBudget
   // still read via the user client while only the service role advances the ledger.
   const admin = supabaseAdmin as unknown as SupabaseClient;
-  const { data: existing } = await admin
-    .from("ai_budgets")
-    .select(
-      "id,day_window,month_window,daily_tokens_used,monthly_tokens_used,daily_usd_used,monthly_usd_used,daily_usd_cap,monthly_usd_cap,alert_at_pct",
-    )
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (!existing) {
-    await admin.from("ai_budgets").insert({
-      user_id: userId,
-      daily_tokens_used: tokens,
-      monthly_tokens_used: tokens,
-      daily_usd_used: usd,
-      monthly_usd_used: usd,
-      day_window: today,
-      month_window: thisMonth,
-    });
+  const { data: metered, error: meterErr } = await admin.rpc("record_ai_budget_usage", {
+    _user_id: userId,
+    _tokens: Math.trunc(tokens),
+    _usd: usd,
+  });
+  // A meter that could not be written must not also lose the alert it would have
+  // raised, so the failure is reported rather than swallowed. It is not thrown:
+  // the model call already happened and already cost money, and turning a
+  // bookkeeping failure into a caller-visible error would discard a completed
+  // answer the user has paid for.
+  if (meterErr) {
+    console.error("[budget] account meter did not record:", meterErr.message);
     return;
   }
-  const dayReset = existing.day_window !== today;
-  const monthReset = existing.month_window !== thisMonth;
-  const newDailyUsd = Number(dayReset ? 0 : existing.daily_usd_used) + usd;
-  const newMonthlyUsd = Number(monthReset ? 0 : existing.monthly_usd_used) + usd;
-  await admin
-    .from("ai_budgets")
-    .update({
-      day_window: today,
-      month_window: thisMonth,
-      daily_tokens_used: (dayReset ? 0 : existing.daily_tokens_used) + tokens,
-      monthly_tokens_used: (monthReset ? 0 : existing.monthly_tokens_used) + tokens,
-      daily_usd_used: newDailyUsd,
-      monthly_usd_used: newMonthlyUsd,
-    })
-    .eq("id", existing.id);
+  const row = (Array.isArray(metered) ? metered[0] : metered) as
+    | {
+        new_daily_usd: number | string | null;
+        new_monthly_usd: number | string | null;
+        daily_usd_cap: number | string | null;
+        monthly_usd_cap: number | string | null;
+        alert_at_pct: number | string | null;
+      }
+    | null
+    | undefined;
+  if (!row) return;
+
+  const newDailyUsd = Number(row.new_daily_usd ?? 0);
+  const newMonthlyUsd = Number(row.new_monthly_usd ?? 0);
 
   // Soft-cap alert: emit one when crossing the threshold (between prior and new).
-  const pctAlert = Number(existing.alert_at_pct ?? 80);
-  const prevDaily = Number(dayReset ? 0 : existing.daily_usd_used);
-  const dailyCap = Number(existing.daily_usd_cap ?? 0);
+  //
+  // "PRIOR" IS NOW THIS CALL'S OWN BEFORE-VALUE, derived by subtracting this
+  // call's own contribution from the authoritative new total. That is stricter
+  // than the stale read it replaces: every racing caller used to share one
+  // before-value, so a crossing fired several times or not at all. Subtracting
+  // your own delta means exactly one caller sees the threshold cross.
+  const pctAlert = Number(row.alert_at_pct ?? 80);
+  const prevDaily = newDailyUsd - usd;
+  const dailyCap = Number(row.daily_usd_cap ?? 0);
   if (dailyCap > 0) {
     const thr = (pctAlert / 100) * dailyCap;
     if (prevDaily < thr && newDailyUsd >= thr) {
@@ -1528,8 +1536,8 @@ async function incrementBudget(
       });
     }
   }
-  const prevMonthly = Number(monthReset ? 0 : existing.monthly_usd_used);
-  const monthlyCap = Number(existing.monthly_usd_cap ?? 0);
+  const prevMonthly = newMonthlyUsd - usd;
+  const monthlyCap = Number(row.monthly_usd_cap ?? 0);
   if (monthlyCap > 0) {
     const thr = (pctAlert / 100) * monthlyCap;
     if (prevMonthly < thr && newMonthlyUsd >= thr) {
@@ -1553,37 +1561,35 @@ async function incrementSurfaceBudget(
   usd: number,
   traceId?: string | null,
 ) {
-  const today = new Date().toISOString().slice(0, 10);
-  const thisMonth = today.slice(0, 7) + "-01";
-  // Same ledger split as incrementBudget: authenticated is column-restricted to
-  // caps/enabled, so the runtime meters the surface ledger through supabaseAdmin.
+  // Atomic, for the same reason as the account meter above. The RPC returns no
+  // row when the surface has no budget configured, which is the same "not
+  // metered" answer the read-then-update version gave on a missing row.
   const admin = supabaseAdmin as unknown as SupabaseClient;
-  const { data: existing } = await admin
-    .from("ai_surface_budgets")
-    .select(
-      "id,day_window,month_window,daily_usd_used,monthly_usd_used,daily_usd_cap,monthly_usd_cap",
-    )
-    .eq("user_id", userId)
-    .eq("surface", surface)
-    .maybeSingle();
-  if (!existing) return; // no per-surface budget configured
-  const dayReset = existing.day_window !== today;
-  const monthReset = existing.month_window !== thisMonth;
-  const prevDaily = Number(dayReset ? 0 : existing.daily_usd_used);
-  const prevMonthly = Number(monthReset ? 0 : existing.monthly_usd_used);
-  const newDaily = prevDaily + usd;
-  const newMonthly = prevMonthly + usd;
-  await admin
-    .from("ai_surface_budgets")
-    .update({
-      day_window: today,
-      month_window: thisMonth,
-      daily_usd_used: newDaily,
-      monthly_usd_used: newMonthly,
-    })
-    .eq("id", existing.id);
+  const { data: metered, error: meterErr } = await admin.rpc("record_ai_surface_usage", {
+    _user_id: userId,
+    _surface: surface,
+    _usd: usd,
+  });
+  if (meterErr) {
+    console.error(`[budget] surface meter did not record for ${surface}:`, meterErr.message);
+    return;
+  }
+  const row = (Array.isArray(metered) ? metered[0] : metered) as
+    | {
+        new_daily_usd: number | string | null;
+        new_monthly_usd: number | string | null;
+        daily_usd_cap: number | string | null;
+        monthly_usd_cap: number | string | null;
+      }
+    | null
+    | undefined;
+  if (!row) return; // no per-surface budget configured
+  const newDaily = Number(row.new_daily_usd ?? 0);
+  const newMonthly = Number(row.new_monthly_usd ?? 0);
+  const prevDaily = newDaily - usd;
+  const prevMonthly = newMonthly - usd;
 
-  const dailyCap = Number(existing.daily_usd_cap ?? 0);
+  const dailyCap = Number(row.daily_usd_cap ?? 0);
   if (dailyCap > 0) {
     const thr = 0.8 * dailyCap;
     if (prevDaily < thr && newDaily >= thr) {
@@ -1598,7 +1604,7 @@ async function incrementSurfaceBudget(
       });
     }
   }
-  const monthlyCap = Number(existing.monthly_usd_cap ?? 0);
+  const monthlyCap = Number(row.monthly_usd_cap ?? 0);
   if (monthlyCap > 0) {
     const thr = 0.8 * monthlyCap;
     if (prevMonthly < thr && newMonthly >= thr) {
