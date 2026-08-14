@@ -629,10 +629,12 @@ function SettingsPage() {
  * You - profile, appearance, hours
  * ================================================================== */
 
+// Two grounds only. "System" was removed on 2026-08-14: it let the product open
+// in a ground nobody picked, and it made the toggle a three-stop control for a
+// two-state choice. Dark is the ground the product is designed on.
 const THEME_CHOICES: { id: Theme; label: string }[] = [
-  { id: "light", label: "Light" },
   { id: "dark", label: "Dark" },
-  { id: "system", label: "System" },
+  { id: "light", label: "Light" },
 ];
 
 const DENSITY_CHOICES = [

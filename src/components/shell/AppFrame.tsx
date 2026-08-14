@@ -160,7 +160,6 @@ import {
   IconGear,
   IconMoon,
   IconSun,
-  IconSystem,
   IconPanel,
   IconRuns,
   IconToday,
@@ -507,10 +506,12 @@ function livePoll(anyWorking: boolean): number | false {
  * leaves you guessing what pressing it will get you. The cycle is
  * light -> dark -> system, set by use-theme.tsx.
  */
-const THEME_TITLE: Record<"light" | "dark" | "system", string> = {
+// Two grounds, so the control names the one it will move you to. System
+// preference was removed on 2026-08-14, which also fixed the old three-stop
+// cycle where pressing this twice from dark did not return you to dark.
+const THEME_TITLE: Record<"light" | "dark", string> = {
   light: "Switch to dark",
-  dark: "Follow the system",
-  system: "Switch to light",
+  dark: "Switch to light",
 };
 
 /** Plain-words relative time. Mono digits are applied by the caller. */
@@ -1347,7 +1348,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                 title={THEME_TITLE[theme]}
                 aria-label={THEME_TITLE[theme]}
               >
-                {theme === "light" ? <IconSun /> : theme === "dark" ? <IconMoon /> : <IconSystem />}
+                {theme === "light" ? <IconSun /> : <IconMoon />}
               </button>
               {/* Settings holds a key too (`s`), and it is a door in the foot
                 rather than a row, so the hint rides its name instead of a

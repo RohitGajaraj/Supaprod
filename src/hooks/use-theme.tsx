@@ -1,16 +1,41 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 
-export type Theme = "dark" | "light" | "system";
-export type ResolvedTheme = "dark" | "light";
+/**
+ * THEME. Two grounds, dark and paper, and dark is the one the product is
+ * designed on (founder ruling 2026-08-14).
+ *
+ * SYSTEM PREFERENCE WAS REMOVED IN THE SAME RULING, and the reason is worth
+ * keeping because the old comment argued the opposite. "system" was defended
+ * here as "the Vercel/Linear register", which is a claim about what other
+ * products do rather than a claim about this one. It cost us three things:
+ *
+ *   1. The product could open in a theme nobody chose. A first-time reviewer on
+ *      a light-preference laptop met the paper theme, which is the SECONDARY
+ *      ground, on the first screen they ever saw of the product.
+ *   2. It made "which theme am I looking at" a two-variable question (the mode
+ *      AND the OS), so `theme` and `resolvedTheme` could disagree, and every
+ *      consumer had to know which one it wanted.
+ *   3. The toggle had three stops for two outcomes, so pressing it twice from
+ *      dark did not return you to dark.
+ *
+ * A theme the product has an opinion about should not be delegated to an OS
+ * setting the product cannot see. `Theme` and `ResolvedTheme` are now the same
+ * two values, and both names are kept so consumers do not have to change.
+ */
+export type Theme = "dark" | "light";
+export type ResolvedTheme = Theme;
 
 const STORAGE_KEY = "supaprod.theme";
-// Tempo v5 theme law (DESIGN-TEMPO.md section 1): dark is the default experience.
 const DEFAULT_THEME: Theme = "dark";
 
 type ThemeContextValue = {
-  /** The user's chosen mode, including "system". */
+  /** The ground the reader chose. */
   theme: Theme;
-  /** What is actually on screen after resolving "system". */
+  /**
+   * The ground actually on screen. Identical to `theme` now that nothing is
+   * resolved at runtime. Kept so the existing call sites still compile, and so
+   * the distinction is available again if a future ground ever needs resolving.
+   */
   resolvedTheme: ResolvedTheme;
   setTheme: (t: Theme) => void;
   toggleTheme: () => void;
@@ -18,22 +43,12 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-function systemPrefersLight(): boolean {
-  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
-  return window.matchMedia("(prefers-color-scheme: light)").matches;
-}
-
-function resolveTheme(t: Theme): ResolvedTheme {
-  if (t === "system") return systemPrefersLight() ? "light" : "dark";
-  return t;
-}
-
 function applyThemeClass(t: ResolvedTheme) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
-  // Tempo v5 contract, agreed with the styles.css unit: dark = the 'dark'
-  // class with NO data-theme attribute (:root already holds the dark tokens);
-  // light = data-theme='light' with the 'dark' class removed, so the
+  // Contract agreed with the styles.css unit: dark = the 'dark' class with NO
+  // data-theme attribute (:root already holds the dark tokens); light =
+  // data-theme='light' with the 'dark' class removed, so the
   // [data-theme='light'] token block in styles.css actually applies.
   if (t === "dark") {
     root.classList.add("dark");
@@ -51,76 +66,57 @@ function readStoredTheme(): Theme {
   if (typeof window === "undefined") return DEFAULT_THEME;
   try {
     const v = window.localStorage.getItem(STORAGE_KEY);
-    if (v === "dark" || v === "light" || v === "system") return v;
-    // Legacy stored theme from the pre-Ember generation.
-    if (v === "aurora") return "dark";
+    if (v === "dark" || v === "light") return v;
+    // Migrations. Both retired values resolve to dark rather than falling
+    // through, so a reader who had picked "system" lands on the designed
+    // ground instead of whatever their laptop happened to prefer.
+    if (v === "system" || v === "aurora") return "dark";
   } catch {
     /* noop */
   }
   return DEFAULT_THEME;
 }
 
-// The toggle walks the full trio so system preference is a first-class stop
-// (light -> dark -> system -> light), the Vercel/Linear register.
-const CYCLE: Theme[] = ["light", "dark", "system"];
+function persist(t: Theme) {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, t);
+  } catch {
+    /* noop */
+  }
+}
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // SSR-safe: start with default; hydrate from localStorage in an effect.
+  // SSR-safe: start with the default, hydrate from localStorage in an effect.
+  // The server always paints dark, and dark is now also the default, so the
+  // first paint matches the common case and there is no theme flash for it.
   const [theme, setThemeState] = useState<Theme>(DEFAULT_THEME);
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("dark");
 
   useEffect(() => {
     const stored = readStoredTheme();
-    const resolved = resolveTheme(stored);
     setThemeState(stored);
-    setResolvedTheme(resolved);
-    applyThemeClass(resolved);
+    applyThemeClass(stored);
+    // Rewrite storage so a retired value ("system", "aurora") is replaced
+    // rather than re-read and re-mapped on every load.
+    persist(stored);
   }, []);
 
-  // While in system mode, follow live OS preference changes.
-  useEffect(() => {
-    if (theme !== "system") return;
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
-    const mq = window.matchMedia("(prefers-color-scheme: light)");
-    const onChange = () => {
-      const resolved: ResolvedTheme = mq.matches ? "light" : "dark";
-      setResolvedTheme(resolved);
-      applyThemeClass(resolved);
-    };
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, [theme]);
-
   const setTheme = useCallback((t: Theme) => {
-    const resolved = resolveTheme(t);
     setThemeState(t);
-    setResolvedTheme(resolved);
-    applyThemeClass(resolved);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, t);
-    } catch {
-      /* noop */
-    }
+    applyThemeClass(t);
+    persist(t);
   }, []);
 
   const toggleTheme = useCallback(() => {
     setThemeState((cur) => {
-      const idx = CYCLE.indexOf(cur);
-      const next: Theme = CYCLE[(idx + 1) % CYCLE.length];
-      const resolved = resolveTheme(next);
-      setResolvedTheme(resolved);
-      applyThemeClass(resolved);
-      try {
-        window.localStorage.setItem(STORAGE_KEY, next);
-      } catch {
-        /* noop */
-      }
+      const next: Theme = cur === "dark" ? "light" : "dark";
+      applyThemeClass(next);
+      persist(next);
       return next;
     });
   }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, resolvedTheme: theme, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -132,7 +128,7 @@ export function useTheme(): ThemeContextValue {
     // Fallback so the hook works outside provider (no-op setters).
     return {
       theme: DEFAULT_THEME,
-      resolvedTheme: "dark",
+      resolvedTheme: DEFAULT_THEME,
       setTheme: () => {},
       toggleTheme: () => {},
     };
