@@ -140,6 +140,11 @@ describe("listDueForecastsImpl (FC-01)", () => {
       verdict: "miss",
       rationale: "It sat at 11 percent.",
       confidence: 0.82,
+      // A draft now says which of three things it is. 0.82 clears the
+      // auto-settle floor, so this one is a considered judgment rather than a
+      // reading or the empty shape parseAuditReply writes for a reply it had to
+      // correct. Those three used to render identically.
+      quality: "considered",
     });
   });
 

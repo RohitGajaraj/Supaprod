@@ -32,10 +32,7 @@
 export type AutomationFlag = {
   /** The `workspaces` column. */
   column:
-    | "auto_sense_enabled"
-    | "auto_derive_enabled"
-    | "auto_trigger_enabled"
-    | "auto_scout_enabled";
+    "auto_sense_enabled" | "auto_derive_enabled" | "auto_trigger_enabled" | "auto_scout_enabled";
   /** What a person is actually turning on. Practitioner words, not column names. */
   label: string;
   /**

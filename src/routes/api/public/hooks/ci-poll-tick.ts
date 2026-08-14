@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { withJobRun } from "@/lib/observability";
@@ -88,6 +89,98 @@ import {
  * or by watching real GitHub-side effects (branch shas, check-run results),
  * never by reading net._http_response's content column for this endpoint.
  */
+
+/* ------------------------------------------------------------------ *
+ * CLAIMS, because this tick runs concurrently with itself
+ *
+ * github-webhook.ts calls runCiPollTick() UNAWAITED on every webhook, and
+ * pg_cron calls it every two minutes. Two sweeps therefore start on the same
+ * `.limit(20)` set ordered `updated_at ASC`, which means they collide head-on
+ * rather than divide the work between them. Every "have we already done this?"
+ * below used to be a count-read or a plain read, and a read is not a
+ * mutual-exclusion primitive: two readers both see zero and both proceed.
+ * ------------------------------------------------------------------ */
+
+/**
+ * Spend one branch-sync attempt, and win the right to push the merge.
+ *
+ * The counter WAS the record of the attempt and is now also the claim. Before
+ * this, the tick read `branch_sync_attempts`, wrote `attempts + 1` filtered by
+ * id, and POSTed to api.github.com/repos/{repo}/merges. Two sweeps both read 0,
+ * both wrote 1, and both merged: the customer's branch got the same sync commit
+ * twice and BRANCH_SYNC_BUDGET = 2 silently bought four.
+ *
+ * The NULL case is handled separately and is not defensive noise: `.eq(col, 0)`
+ * never matches a NULL in Postgres, so a row written before the column had its
+ * default would be refused forever and its stale branch never synced.
+ */
+export async function claimBranchSyncAttempt(
+  db: SupabaseClient,
+  changeset: { id: string; branch_sync_attempts?: number | null },
+): Promise<{ claimed: boolean; attempts: number }> {
+  const prior = changeset.branch_sync_attempts ?? 0;
+  const base = db
+    .from("studio_changesets")
+    .update({ branch_sync_attempts: prior + 1 })
+    .eq("id", changeset.id);
+  const guarded =
+    changeset.branch_sync_attempts === null || changeset.branch_sync_attempts === undefined
+      ? base.is("branch_sync_attempts", null)
+      : base.eq("branch_sync_attempts", prior);
+  const { data, error } = await guarded.select("id");
+  if (error) return { claimed: false, attempts: prior };
+  return { claimed: (data?.length ?? 0) > 0, attempts: prior + 1 };
+}
+
+/**
+ * Take a one-time claim on a named piece of work, enforced by the database.
+ *
+ * `idempotency_keys` carries UNIQUE (scope, key), so the second inserter gets
+ * 23505 however many workers ask at once, which is the guarantee a count-read
+ * cannot give. Used for the two INSERTs in this file whose only protection was
+ * a count taken moments earlier: the merge-gate approval (a duplicate is a
+ * duplicate human decision AND a duplicate customer email) and the CI-fix
+ * builder dispatch (a duplicate is a second paid agent run committing to the
+ * same branch).
+ *
+ * FAILS CLOSED, and deliberately unlike the resume lease. Everything guarded
+ * here is retried by the next sweep two minutes from now, so refusing costs a
+ * short delay; proceeding on an unreadable answer costs a second merge commit
+ * on a customer's branch. The long-term guard stays the count-read that was
+ * already there: this claim exists to cover the concurrent window, and the
+ * count-read covers the window after any key retention has swept the row away.
+ */
+export async function claimOnce(
+  db: SupabaseClient,
+  scope: string,
+  key: string,
+  userId: string | null,
+): Promise<{ claimed: boolean; reason: string }> {
+  const { error } = await db.from("idempotency_keys").insert({ scope, key, user_id: userId });
+  if (!error) return { claimed: true, reason: "won" };
+  const code = (error as { code?: string }).code;
+  const message = (error as { message?: string }).message ?? "";
+  if (code === "23505" || /duplicate key|unique/i.test(message)) {
+    return { claimed: false, reason: "another sweep holds this claim" };
+  }
+  return { claimed: false, reason: message || "claim unreadable" };
+}
+
+/**
+ * Hand a claim back when the work it authorized did not happen.
+ *
+ * A claim and its release are ONE mechanism, and shipping the claim alone is
+ * worse than shipping neither: an insert that fails after the claim is taken
+ * would retire that piece of work permanently, so the red build never gets its
+ * fix run and the green PR never gets its merge gate, while the tick reports a
+ * clean sweep every two minutes forever. Best-effort by design; a release that
+ * fails leaves the claim standing, which is the same outcome as before it was
+ * attempted.
+ */
+export async function releaseClaim(db: SupabaseClient, scope: string, key: string): Promise<void> {
+  const { error } = await db.from("idempotency_keys").delete().eq("scope", scope).eq("key", key);
+  if (error) console.error(`[ci-poll] claim release failed for ${scope}:${key}:`, error.message);
+}
 
 const CI_FIX_BUDGET = Math.max(1, Number(process.env.CI_FIX_BUDGET ?? 3) || 3);
 // Small, separate budget from CI_FIX_BUDGET: a branch sync is a cheap,
@@ -791,6 +884,21 @@ export async function runCiPollTick() {
               // preview row above. Refused, the human never sees the merge
               // decision, the PR sits green and unmerged forever, and the job
               // says it swept cleanly. Now the miss is named.
+              /* THE COUNT-READ ABOVE IS NOT A LOCK. Two sweeps reading the
+               * same changeset both see zero pending/approved/executed merge
+               * gates and both insert one, which is a duplicate human decision
+               * AND, through the expiring-gate mailer, a duplicate customer
+               * email. The claim below is enforced by UNIQUE (scope, key), so
+               * only one sweep may create the gate however many are running.
+               * The count-read stays: it is the guard for the long run, this is
+               * the guard for the overlapping second. */
+              const gateClaim = await claimOnce(
+                supabaseAdmin as unknown as SupabaseClient,
+                "ci-poll.merge-gate",
+                cs.mission_id,
+                cs.user_id,
+              );
+              if (!gateClaim.claimed) continue;
               const { data: apprRows, error: apprErr } = await supabaseAdmin
                 .from("agent_approvals")
                 .insert({
@@ -809,6 +917,15 @@ export async function runCiPollTick() {
               if (apprErr || !apprRows || apprRows.length === 0) {
                 failures.push(
                   `${cs.id.slice(0, 8)}: merge-approval insert ${apprErr?.message ?? "refused, no row"}`,
+                );
+                // The gate was not created, so the claim must not outlive the
+                // attempt. Held, it would make this the one changeset whose
+                // merge decision can never be surfaced again, which is exactly
+                // the silence this branch was written to end.
+                await releaseClaim(
+                  supabaseAdmin as unknown as SupabaseClient,
+                  "ci-poll.merge-gate",
+                  cs.mission_id,
                 );
               }
             }
@@ -850,10 +967,16 @@ export async function runCiPollTick() {
             // Spend one attempt of the budget regardless of outcome
             // (mirrors the fix_attempts pattern below) so the retry
             // count is honest even if the sync hits a conflict.
-            await supabaseAdmin
-              .from("studio_changesets")
-              .update({ branch_sync_attempts: syncAttempts + 1 })
-              .eq("id", cs.id);
+            //
+            // AND THE SPEND IS THE CLAIM. Winning this conditional increment is
+            // what authorizes the merge POST below; a sweep that lost it is
+            // looking at a changeset another sweep is already syncing, and
+            // pushing anyway is a second sync commit on a customer's branch.
+            const syncClaim = await claimBranchSyncAttempt(
+              supabaseAdmin as unknown as SupabaseClient,
+              cs,
+            );
+            if (!syncClaim.claimed) continue;
 
             const mergeRes = await fetch(`https://api.github.com/repos/${repo}/merges`, {
               method: "POST",
@@ -964,6 +1087,20 @@ export async function runCiPollTick() {
           `Your job: diagnose from the detail above (call ci.logs with pr_number ${cs.pr_number} if you need more), read the failing files with repo.read, stage the minimal fix with studio.stage, then append it with studio.fix.commit. Do NOT open or merge PRs. Do NOT touch files unrelated to this changeset. After the fix commit, finish with a one-line summary of what was wrong and what you changed.`,
         ].join("\n");
 
+        /* SAME SHAPE, MORE EXPENSIVE DUPLICATE. The two guards above are a
+         * live-run count and a head-sha count, both plain reads, so two sweeps
+         * that arrive together both pass and both enqueue a builder run: two
+         * paid agent runs diagnosing one red build and committing to the same
+         * branch. Keyed by changeset and head sha, which is exactly what the
+         * head-sha count was trying to express. */
+        const dispatchClaim = await claimOnce(
+          supabaseAdmin as unknown as SupabaseClient,
+          "ci-poll.fix-dispatch",
+          `${cs.id}:${headSha}`,
+          cs.user_id,
+        );
+        if (!dispatchClaim.claimed) continue;
+
         const { error: runErr } = await supabaseAdmin.from("agent_runs").insert({
           user_id: cs.user_id,
           agent_id: (agent as { id: string }).id,
@@ -976,6 +1113,15 @@ export async function runCiPollTick() {
         });
         if (runErr) {
           failures.push(`${cs.id.slice(0, 8)}: enqueue ${runErr.message}`);
+          // Nothing was enqueued, so nothing is holding the work. A claim kept
+          // past a failed insert would silently retire this head sha: the red
+          // build would never get its one fix run and the tick would report a
+          // clean sweep every two minutes for the rest of the PR's life.
+          await releaseClaim(
+            supabaseAdmin as unknown as SupabaseClient,
+            "ci-poll.fix-dispatch",
+            `${cs.id}:${headSha}`,
+          );
           continue;
         }
         // Budget consumption lives in studio.fix.commit itself (per real

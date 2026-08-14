@@ -177,93 +177,93 @@ export async function auditDueForecasts(
      * got drafts and k+1..10 got nothing and nobody learned which.
      */
     try {
-    const link = await linkedOutcomeIsSettled(supabase, raw.prd_id);
-    const res = await callModel(supabase as never, userId, {
-      surface: "decision",
-      surface_ref: "audit_forecast",
-      model: MODEL,
-      workspaceId,
-      responseFormat: "json_object",
-      messages: [
-        { role: "system", content: AUDIT_SYSTEM },
-        {
-          role: "user",
-          content: forecastAuditPrompt({
-            claim: raw.forecast_claim ?? "",
-            howWeWillKnow: raw.forecast_how_we_will_know ?? "",
-            horizonDate: raw.forecast_horizon_date ?? "",
-            evidence: link.evidence,
-          }),
-        },
-      ],
-    });
-    const parsed = parseAuditReply((res.json ?? {}) as never);
-
-    // The draft always lands. It is enrichment, and a person settling this
-    // forecast by hand should be able to read what the agent thought.
-    const patch: Record<string, unknown> = {
-      forecast_resolution_suggestion: {
-        verdict: parsed.verdict,
-        rationale: parsed.rationale,
-        confidence: parsed.confidence,
-        drafted_at: nowIso,
+      const link = await linkedOutcomeIsSettled(supabase, raw.prd_id);
+      const res = await callModel(supabase as never, userId, {
+        surface: "decision",
+        surface_ref: "audit_forecast",
         model: MODEL,
-      },
-    };
+        workspaceId,
+        responseFormat: "json_object",
+        messages: [
+          { role: "system", content: AUDIT_SYSTEM },
+          {
+            role: "user",
+            content: forecastAuditPrompt({
+              claim: raw.forecast_claim ?? "",
+              howWeWillKnow: raw.forecast_how_we_will_know ?? "",
+              horizonDate: raw.forecast_horizon_date ?? "",
+              evidence: link.evidence,
+            }),
+          },
+        ],
+      });
+      const parsed = parseAuditReply((res.json ?? {}) as never);
 
-    if (canAutoSettle({ linkedOutcomeSettled: link.settled, confidence: parsed.confidence })) {
-      Object.assign(
-        patch,
-        buildSettlePatch({
-          resolution: parsed.verdict,
+      // The draft always lands. It is enrichment, and a person settling this
+      // forecast by hand should be able to read what the agent thought.
+      const patch: Record<string, unknown> = {
+        forecast_resolution_suggestion: {
+          verdict: parsed.verdict,
           rationale: parsed.rationale,
-          nowIso,
-          agentSlug: AUDITOR_SLUG,
-        }),
-      );
-      autoSettled++;
-      settledThisRow = true;
-    }
+          confidence: parsed.confidence,
+          drafted_at: nowIso,
+          model: MODEL,
+        },
+      };
 
-    /**
-     * GUARDED ON forecast_resolution IS NULL, AND THE RESULT IS READ.
-     *
-     * Two separate defects lived on the one unguarded line this replaces.
-     *
-     * The race: a `callModel` round trip sits between the SELECT that found this
-     * row and this write. A person settling the same forecast at the desk inside
-     * that window had their verdict, their rationale, their timestamp and their
-     * NULL agent slug overwritten, and the row restamped as auto-settled. The
-     * `.is()` clause makes the update a compare-and-swap on the exact column
-     * that means "already decided", so the human always wins and a second tick
-     * running concurrently cannot double-settle. The sibling module guards its
-     * write the same way and for the same reason (outcome-suggestion.server.ts).
-     *
-     * The unread result: supabase-js RESOLVES a refused write, so `drafted++`
-     * ran whether or not a row changed. That made a permanently-failing pass
-     * report `forecastsDrafted: N`, and because the row stayed unresolved it was
-     * still due on the next tick, re-billing the paid model call above forever.
-     * A tick that cannot write should say so and stop paying to rediscover it.
-     */
-    const { data: written, error: writeError } = await supabase
-      .from("decisions")
-      .update(patch)
-      .eq("id", raw.id)
-      .is("forecast_resolution", null)
-      .select("id");
+      if (canAutoSettle({ linkedOutcomeSettled: link.settled, confidence: parsed.confidence })) {
+        Object.assign(
+          patch,
+          buildSettlePatch({
+            resolution: parsed.verdict,
+            rationale: parsed.rationale,
+            nowIso,
+            agentSlug: AUDITOR_SLUG,
+          }),
+        );
+        autoSettled++;
+        settledThisRow = true;
+      }
 
-    if (writeError) {
-      failed++;
-      continue;
-    }
-    if (!written || written.length === 0) {
-      // Not an error: somebody settled this forecast while the model was
-      // thinking. Their verdict stands and this draft is simply stale.
-      if (settledThisRow) autoSettled--;
-      raced++;
-      continue;
-    }
-    drafted++;
+      /**
+       * GUARDED ON forecast_resolution IS NULL, AND THE RESULT IS READ.
+       *
+       * Two separate defects lived on the one unguarded line this replaces.
+       *
+       * The race: a `callModel` round trip sits between the SELECT that found this
+       * row and this write. A person settling the same forecast at the desk inside
+       * that window had their verdict, their rationale, their timestamp and their
+       * NULL agent slug overwritten, and the row restamped as auto-settled. The
+       * `.is()` clause makes the update a compare-and-swap on the exact column
+       * that means "already decided", so the human always wins and a second tick
+       * running concurrently cannot double-settle. The sibling module guards its
+       * write the same way and for the same reason (outcome-suggestion.server.ts).
+       *
+       * The unread result: supabase-js RESOLVES a refused write, so `drafted++`
+       * ran whether or not a row changed. That made a permanently-failing pass
+       * report `forecastsDrafted: N`, and because the row stayed unresolved it was
+       * still due on the next tick, re-billing the paid model call above forever.
+       * A tick that cannot write should say so and stop paying to rediscover it.
+       */
+      const { data: written, error: writeError } = await supabase
+        .from("decisions")
+        .update(patch)
+        .eq("id", raw.id)
+        .is("forecast_resolution", null)
+        .select("id");
+
+      if (writeError) {
+        failed++;
+        continue;
+      }
+      if (!written || written.length === 0) {
+        // Not an error: somebody settled this forecast while the model was
+        // thinking. Their verdict stands and this draft is simply stale.
+        if (settledThisRow) autoSettled--;
+        raced++;
+        continue;
+      }
+      drafted++;
     } catch {
       // The row is untouched and still due, so the next tick retries it. What
       // must not happen is the remaining rows being dropped on the floor.

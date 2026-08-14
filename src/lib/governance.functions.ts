@@ -9,7 +9,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { toolRisk } from "@/lib/tool-consequences";
 import { HIGH_RISK_FORCE_REVIEW, HIGH_RISK_MIN_CONFIRM } from "@/lib/ai/trust-ramp";
 import { cleanTitle } from "@/components/plan/format";
-import { executeApproval, type Json } from "@/lib/ai/loop.server";
+import { claimApprovalDecision, executeApproval, type Json } from "@/lib/ai/loop.server";
 import {
   summarizeAgentRecords,
   trackRecordsToObject,
@@ -670,17 +670,23 @@ export const resolveApproval = createServerFn({ method: "POST" })
   .inputValidator((d: z.infer<typeof ResolveApprovalSchema>) => ResolveApprovalSchema.parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const { error } = await supabase
-      .from("agent_approvals")
-      .update({
-        status: data.decision,
-        escalation_state: "resolved",
-        decided_at: new Date().toISOString(),
-        decided_by: userId,
-      })
-      .eq("id", data.approvalId)
-      .eq("user_id", userId);
-    if (error) throw new Error(error.message);
+    /* THE DECISION IS A CLAIM, NOT A STAMP.
+     *
+     * This write used to be filtered by id and user alone, with no `.select()`,
+     * which made "I decided this" and "someone decided this two seconds ago"
+     * the same observable outcome, because supabase-js resolves a zero-row write as
+     * `{ data: null, error: null }`. Approving also EXECUTES, so two people
+     * answering the same call in two tabs (this panel and the /approvals queue)
+     * produced two runs of the tool: studio.pr.merge merged the customer's PR
+     * twice, delegate.openhands dispatched a second paid external job.
+     *
+     * Losing this race is ORDINARY. The surface refreshes and shows the
+     * decision that stands; nothing is thrown, because nobody did anything
+     * wrong by answering a call that had just been answered. */
+    const claim = await claimApprovalDecision(supabase, userId, data.approvalId, data.decision);
+    if (!claim.claimed) {
+      return { ok: true, executed: false, already_decided: true, result: null as Json | null };
+    }
 
     // Record the human's note on the call (Appendix D). Best-effort: the
     // decision_reason column lands via a Phase 0 migration — tolerate its
@@ -700,11 +706,13 @@ export const resolveApproval = createServerFn({ method: "POST" })
 
     if (data.decision === "approved") {
       // executeApproval flips the row to executed/failed itself; its failure
-      // is surfaced to the caller but the decision stays recorded.
+      // is surfaced to the caller but the decision stays recorded. It takes its
+      // OWN claim before running the tool, so winning the decision above is not
+      // mistaken for permission to run.
       const result = await executeApproval(supabase, userId, data.approvalId);
-      return { ok: true, executed: true, result: result as Json };
+      return { ok: true, executed: true, already_decided: false, result: result as Json };
     }
-    return { ok: true, executed: false };
+    return { ok: true, executed: false, already_decided: false, result: null as Json | null };
   });
 
 /* ------------------------------------------------------------------ *

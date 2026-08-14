@@ -1,7 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { runAgentLoop, executeApproval, type Json } from "@/lib/ai/loop.server";
+import {
+  runAgentLoop,
+  executeApproval,
+  claimApprovalDecision,
+  type Json,
+} from "@/lib/ai/loop.server";
 import { recordGateSignalCore } from "@/lib/gate-signals.functions";
 import { assertWorkspaceRole, GOVERNED_WRITES } from "@/lib/roles.functions";
 
@@ -92,23 +97,35 @@ export const decideApproval = createServerFn({ method: "POST" })
       workspace_id?: string | null;
     } | null;
     const status = data.decision === "approve" ? "approved" : "rejected";
-    const { error } = await supabase
-      .from("agent_approvals")
-      .update({
-        status,
-        decided_at: new Date().toISOString(),
-        decided_by: userId,
-      })
-      .eq("id", data.approvalId)
-      .eq("user_id", userId);
-    if (error) throw new Error(error.message);
-    // RPT-32: log the human at this gate. Recorded ONLY when this is a real
-    // first decision on an existing pending approval, so a missing/foreign
-    // approvalId (no prior row) or a re-decide (prior already approved/rejected)
-    // never injects a phantom or duplicate signal that would skew the per-agent
-    // correction rate. AWAITED (not fire-and-forget) so the write survives the
-    // Cloudflare Workers response teardown; recordGateSignalCore never throws,
-    // so awaiting it can never block or break the approve/reject decision.
+    /* THE READ ABOVE WAS NEVER A PRECONDITION, ONLY A LABEL.
+     *
+     * `prior` was read for attribution and for the gate signal below, and the
+     * write that followed was filtered by id and user alone. So the status this
+     * function had just read was allowed to change underneath it, and two
+     * surfaces answering one call (this one and the Govern panel) both wrote a
+     * decision and both went on to EXECUTE the tool. That is a second merge
+     * commit on a customer's branch, or a second paid delegate.openhands job.
+     *
+     * The claim carries `.eq("status","pending")` and reads its rows back, so
+     * the loser is told cleanly and stops. It is not an error state: answering
+     * a call someone else just answered is a normal thing for two people to do. */
+    const claim = await claimApprovalDecision(
+      supabase,
+      userId,
+      data.approvalId,
+      status as "approved" | "rejected",
+    );
+    if (!claim.claimed) {
+      return { ok: true, executed: false, already_decided: true, result: null as Json | null };
+    }
+    // RPT-32: log the human at this gate. The claim above is now the guarantee
+    // that this is a genuine FIRST decision (it only wins on a pending row), so
+    // the prior-status test that used to carry that job is a second reading of
+    // the same fact, kept because `priorRow` is also where the attribution
+    // comes from, and a null row means there is nothing to attribute to.
+    // AWAITED (not fire-and-forget) so the write survives the Cloudflare Workers
+    // response teardown; recordGateSignalCore never throws, so awaiting it can
+    // never block or break the approve/reject decision.
     if (priorRow?.status === "pending") {
       await recordGateSignalCore(supabase, userId, {
         gateType: data.decision === "approve" ? "approval" : "rejection",
@@ -125,10 +142,12 @@ export const decideApproval = createServerFn({ method: "POST" })
       });
     }
     if (status === "approved" && data.execute !== false) {
+      // executeApproval takes its own claim before calling the tool, so winning
+      // the decision above never doubles as permission to run.
       const result = await executeApproval(supabase, userId, data.approvalId);
-      return { ok: true, executed: true, result: result as Json };
+      return { ok: true, executed: true, already_decided: false, result: result as Json };
     }
-    return { ok: true, executed: false };
+    return { ok: true, executed: false, already_decided: false, result: null as Json | null };
   });
 
 export const listAgentMemory = createServerFn({ method: "POST" })

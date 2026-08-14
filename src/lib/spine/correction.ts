@@ -594,10 +594,7 @@ export function correctionFixMemory(input: {
  * only a string survived, but it is now the second question rather than the only
  * one, and it recognises both wordings.
  */
-const ENVIRONMENT_CODES: ReadonlySet<string> = new Set([
-  "CREDIT_EXHAUSTED",
-  "CREDIT_CAP_REACHED",
-]);
+const ENVIRONMENT_CODES: ReadonlySet<string> = new Set(["CREDIT_EXHAUSTED", "CREDIT_CAP_REACHED"]);
 
 export function isEnvironmentFailure(failure: unknown): boolean {
   if (!failure) return false;
@@ -614,7 +611,7 @@ export function isEnvironmentFailure(failure: unknown): boolean {
     typeof failure === "string"
       ? failure
       : typeof (failure as { message?: unknown })?.message === "string"
-        ? ((failure as { message: string }).message)
+        ? (failure as { message: string }).message
         : null;
   if (!message) return false;
   const m = message.toLowerCase();

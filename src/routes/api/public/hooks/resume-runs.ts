@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { resumeAgentLoop, runAgentLoop } from "@/lib/ai/loop.server";
+import { resumeAgentLoop, runAgentLoop, type LoopResult } from "@/lib/ai/loop.server";
 import { advanceMissionCore, type MissionLite } from "@/lib/ai/mission-advance.server";
 import { classifyMissionGate } from "@/lib/reliability/gate-state";
 import { withJobRun } from "@/lib/observability";
@@ -77,6 +77,64 @@ const ABANDON_MS = Math.max(60_000, Number(process.env.REPLAN_ABANDON_MS) || 20 
 const STUCK_MS = Math.max(10 * 60_000, Number(process.env.RUN_STUCK_MS) || DEFAULT_STUCK_MS);
 /** Bounded per tick, so a bad day cannot turn one cron pass into a mass halt. */
 const STUCK_BATCH = 20;
+
+/**
+ * Give up on missions whose planning never landed.
+ *
+ * THE ONE MISSION WRITE IN THIS FILE THAT CARRIED NO PRECONDITION. Compare the
+ * un-block pass, the adoption pass and the block pass: each names the status it
+ * was read at and reads its rows back. This one halted by id alone, and the id
+ * list is assembled from reads taken earlier in the same tick, behind a resume
+ * pass and an advance pass that each take seconds. A mission that planned,
+ * dispatched and moved on in that window was halted anyway, and `halted` is
+ * terminal, so the tick killed live work and reported a clean sweep.
+ *
+ * The status filter is the same one that selected the candidates, so a mission
+ * that has since finished, been blocked on a gate, or been cancelled by a
+ * person is simply not matched. The returned ids are the rows the database
+ * confirms it wrote, not the ids we hoped to write.
+ */
+export async function haltAbandonedMissions(
+  db: SupabaseClient,
+  missionIds: string[],
+  nowIso: string,
+): Promise<{ halted: string[] }> {
+  if (!missionIds.length) return { halted: [] };
+  const { data } = await db
+    .from("missions")
+    .update({ status: "halted", updated_at: nowIso })
+    .in("id", missionIds)
+    .in("status", ["running", "in_progress"])
+    .select("id");
+  return { halted: ((data ?? []) as { id: string }[]).map((m) => m.id) };
+}
+
+/**
+ * Resume each run in turn, separating what ran from what was already held.
+ *
+ * resumeAgentLoop now refuses to replay a run another worker has leased and
+ * says so with `claim_lost`. Counting that as a resume would report fifteen
+ * resumes on a tick that did one, the same class of untruth as the write that
+ * could not tell a refusal from a success, one layer up.
+ */
+export async function resumeRuns(
+  ids: string[],
+  resume: (id: string) => Promise<LoopResult>,
+): Promise<{ resumed: string[]; skipped: string[]; failed: { id: string; error: string }[] }> {
+  const resumed: string[] = [];
+  const skipped: string[] = [];
+  const failed: { id: string; error: string }[] = [];
+  for (const id of ids) {
+    try {
+      const res = await resume(id);
+      if (res?.claim_lost) skipped.push(id);
+      else resumed.push(id);
+    } catch (e) {
+      failed.push({ id, error: e instanceof Error ? e.message : String(e) });
+    }
+  }
+  return { resumed, skipped, failed };
+}
 
 export const Route = createFileRoute("/api/public/hooks/resume-runs")({
   server: {
@@ -380,16 +438,18 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
             }
 
             const ids = [...(queued ?? []), ...(stale ?? []), ...resumable].map((r) => r.id);
-            const resumed: string[] = [];
-            const failed: { id: string; error: string }[] = [];
-            for (const id of ids) {
-              try {
-                await resumeAgentLoop(supabaseAdmin, id);
-                resumed.push(id);
-              } catch (e) {
-                failed.push({ id, error: e instanceof Error ? e.message : String(e) });
-              }
-            }
+            /* THE 'running' ROWS ABOVE ARE THE DANGEROUS ONES. They are runs
+             * whose worker probably died, and until the lease inside
+             * resumeAgentLoop they had no claim of any kind: this tick runs
+             * every 60 seconds, STALE_MS is 2 minutes, and one tick resumes up
+             * to fifteen runs in sequence, so overlapping ticks replayed the
+             * same checkpoint in parallel. The lease lives in resumeAgentLoop
+             * so every caller gets it; what belongs here is telling the truth
+             * about which of these ids actually ran. */
+            const sweep = await resumeRuns(ids, (id) => resumeAgentLoop(supabaseAdmin, id));
+            const resumed = sweep.resumed;
+            const skipped = sweep.skipped;
+            const failed = sweep.failed;
 
             // v6 Phase 1 — "the loop runs itself": auto-advance every running
             // mission. The deterministic, model-free reflector dispatches
@@ -502,14 +562,13 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
                 toReplan.push(m);
               }
             }
-            if (toAbandon.length) {
-              // Give up on missions whose planning never landed; keeps the queue
-              // clear. Best-effort: a failure here just retries next tick.
-              await admin
-                .from("missions")
-                .update({ status: "halted", updated_at: new Date().toISOString() })
-                .in("id", toAbandon);
-            }
+            // Give up on missions whose planning never landed; keeps the queue
+            // clear. Best-effort: a failure here just retries next tick.
+            const abandoned = await haltAbandonedMissions(
+              admin,
+              toAbandon,
+              new Date().toISOString(),
+            );
             const planned: { id: string; run_id?: string; error?: string }[] = [];
             for (const m of toReplan) {
               try {
@@ -588,12 +647,16 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
               JSON.stringify({
                 ok: true,
                 resumed,
+                // Runs another worker already held. Reported, never counted as
+                // work this tick did.
+                skipped,
                 failed,
                 advanced,
                 planned,
                 unblocked,
                 blocked,
                 adopted,
+                abandoned: abandoned.halted,
               }),
               {
                 headers: { "Content-Type": "application/json" },

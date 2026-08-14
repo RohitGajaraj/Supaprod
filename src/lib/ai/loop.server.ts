@@ -44,6 +44,7 @@ import { recordStageEvent } from "@/lib/stage-events.server";
 import { classifyFailureCode } from "@/lib/observability/gates";
 import {
   countsAsResumption,
+  isMissingColumnError,
   nextResumeCount,
   runAttemptColumnsPresent,
 } from "./run-attempt.server";
@@ -255,6 +256,15 @@ export type LoopResult = {
   approvals_queued: number;
   run_id?: string | null;
   halted?: { kind: string; reason: string } | null;
+  /**
+   * This call did no work because another worker holds the run.
+   *
+   * A sweeper that counts every returned LoopResult as a resume reports work it
+   * did not do, and the two outcomes are otherwise identical: a lost claim
+   * returns normally, by design, because losing a race is ordinary rather than
+   * exceptional. Optional so no existing construction site has to change.
+   */
+  claim_lost?: boolean;
 };
 
 type Action =
@@ -1648,6 +1658,34 @@ export async function resumeAgentLoop(
         approvals_queued: 0,
         run_id: runId,
         halted: null,
+        claim_lost: true,
+      };
+    }
+  }
+
+  /* THE BRANCH THE COMPARE-AND-SWAP ABOVE COULD NOT COVER.
+   *
+   * A run already at 'running' has no status to move, so the promotion above
+   * matched nothing and simply fell through, and 'running' is exactly the set
+   * resume-runs sweeps for eviction recovery every 60 seconds. Two overlapping
+   * ticks therefore replayed one checkpoint at once, which spends credits
+   * twice, calls the model twice and re-runs whatever tool the checkpoint was
+   * standing on, GitHub writes included.
+   *
+   * The lease is taken here rather than in the sweeper so that every caller of
+   * resumeAgentLoop is covered, including any added later. */
+  if (run.status === "running") {
+    const lease = await claimRunningRunLease(supabase, runId);
+    if (!lease.claimed) {
+      return {
+        trace_id: "",
+        agent_slug: run.agent_slug,
+        steps: [],
+        final: "Already being resumed by another worker.",
+        approvals_queued: 0,
+        run_id: runId,
+        halted: null,
+        claim_lost: true,
       };
     }
   }
@@ -1982,6 +2020,211 @@ export async function resumeAgentLoop(
   });
 }
 
+/* ------------------------------------------------------------------ *
+ * CLAIMS: the writes that AUTHORIZE work rather than record it
+ *
+ * The rule every claim below obeys: a conditional UPDATE carries `.select()`
+ * and its zero-row case is handled. supabase-js RESOLVES a refused or zero-row
+ * write as `{ data: null, error: null }`, so without the select there is no
+ * observable difference between "I won" and "someone else already did this",
+ * and the caller proceeds as though it won. That single fact is the cause of
+ * every defect this section closes.
+ * ------------------------------------------------------------------ */
+
+/**
+ * Per-isolate memo of whether a claim column exists yet, keyed `table.column`.
+ *
+ * Migrations here are applied out of band, so a deploy can run for minutes
+ * against a database that has not caught up. PostgREST fails the WHOLE
+ * statement when it is handed a column the table does not have (42703), so an
+ * ungated claim would not degrade, it would refuse every execution and every
+ * resume. Same discipline as run-attempt.server.ts: a definite absence is
+ * cached (a column does not appear mid-isolate), a transient error is not.
+ */
+const raceColumnProbe = new Map<string, boolean>();
+
+/** Test seam: forget what the probes learned. Never called by product code. */
+export function resetRaceColumnProbes(): void {
+  raceColumnProbe.clear();
+}
+
+async function raceColumnPresent(
+  supabase: SupabaseClient,
+  table: string,
+  column: string,
+): Promise<boolean> {
+  const key = `${table}.${column}`;
+  const cached = raceColumnProbe.get(key);
+  if (cached !== undefined) return cached;
+  try {
+    const { error } = await supabase.from(table).select(column).limit(1);
+    if (!error) {
+      raceColumnProbe.set(key, true);
+      return true;
+    }
+    if (isMissingColumnError(error)) raceColumnProbe.set(key, false);
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+export type ClaimResult = { claimed: boolean };
+export type ApprovalDecision = "approved" | "rejected";
+
+/**
+ * Take the ONE decision a pending gate is allowed to receive.
+ *
+ * THREE SURFACES DECIDE APPROVALS and none of them held a precondition: the
+ * governance panel (resolveApproval), the calls queue (decideApproval) and
+ * Studio all wrote `status = <verdict>` filtered by id and user alone. So a
+ * person answering in one tab while a teammate answers in another produced two
+ * successful decisions on one row, and because approving also EXECUTES, two
+ * runs of a tool that merges a customer's pull request.
+ *
+ * `.eq("status", "pending")` makes the decision the claim. The loser matches
+ * zero rows and is told so, which is a normal answer and not an error: someone
+ * already decided this, the surface should refresh, nobody did anything wrong.
+ *
+ * escalation_state moves with the verdict because a decided gate that keeps
+ * escalation_state='pending' is a phantom in every Needs-You surface (they read
+ * escalation_state, not status). resolveApproval already did this; decideApproval
+ * did not, which is why the reconcile pass in approvals-tick had to clean up
+ * after it every minute.
+ */
+export async function claimApprovalDecision(
+  supabase: SupabaseClient,
+  userId: string,
+  approvalId: string,
+  decision: ApprovalDecision,
+): Promise<ClaimResult> {
+  const { data, error } = await supabase
+    .from("agent_approvals")
+    .update({
+      status: decision,
+      escalation_state: "resolved",
+      decided_at: new Date().toISOString(),
+      decided_by: userId,
+    })
+    .eq("id", approvalId)
+    .eq("user_id", userId)
+    .eq("status", "pending")
+    .select("id");
+  if (error) throw new Error(error.message);
+  return { claimed: (data?.length ?? 0) > 0 };
+}
+
+/**
+ * Take the right to RUN an approved gate's tool.
+ *
+ * Nothing authorized a gated tool run before this. executeApproval read
+ * status='approved', ran the tool, and stamped 'executed' afterwards, so the
+ * "already executed" window was the entire duration of the tool call: both
+ * callers read 'approved', both called def.run(), the PR merged twice, and the
+ * second result blob overwrote the first so the audit trail kept one of two
+ * real executions.
+ *
+ * NO EXPIRY, DELIBERATELY, and this is the one lease in the codebase that
+ * refuses to be one. The work behind this claim is not repeatable: handing a
+ * dead worker's claim to a second worker means merging a pull request that may
+ * already be merged. A crashed execution leaves the row 'approved' with the
+ * claim held, which is precisely where a crash left it before this existed
+ * (nothing ever retried executeApproval), so the stuck row is not a regression,
+ * it is the honest state and the safe direction to fail.
+ */
+export async function claimApprovalExecution(
+  supabase: SupabaseClient,
+  userId: string,
+  approvalId: string,
+): Promise<ClaimResult & { guarded: boolean }> {
+  if (!(await raceColumnPresent(supabase, "agent_approvals", "execution_claimed_at"))) {
+    // The migration has not landed on this database. Refusing every execution
+    // would take the whole approvals surface down to prevent a race, which is
+    // the worse trade: degrade to the old behaviour and say so once per isolate.
+    console.warn(
+      "[approvals] execution_claimed_at is absent; gated tools run without a double-run guard until the migration applies",
+    );
+    return { claimed: true, guarded: false };
+  }
+  const { data, error } = await supabase
+    .from("agent_approvals")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .update({ execution_claimed_at: new Date().toISOString() } as any)
+    .eq("id", approvalId)
+    .eq("user_id", userId)
+    .eq("status", "approved")
+    .is("execution_claimed_at", null)
+    .select("id");
+  if (error) throw new Error(error.message);
+  return { claimed: (data?.length ?? 0) > 0, guarded: true };
+}
+
+/**
+ * What a caller gets back when the work was already done by someone else.
+ *
+ * Shaped as a result rather than an exception on purpose: the loser of this
+ * race did nothing wrong, and a thrown error here surfaces in the UI as a
+ * failed approval on a call that in fact succeeded.
+ */
+export const APPROVAL_ALREADY_HANDLED = {
+  already_handled: true,
+  note: "Another decision path already ran this call. Nothing ran twice.",
+} as const;
+
+/**
+ * How long one worker may hold a live run before another may take it over.
+ *
+ * Sized against resume-runs' own 2-minute staleness window: a run that is
+ * genuinely progressing stamps last_checkpoint_at every step and is never
+ * selected as stale in the first place, so anything still being claimed here
+ * has shown no sign of life for at least two minutes already. Long enough that
+ * overlapping cron ticks cannot both take it; short enough that an evicted
+ * worker hands it back rather than stranding the run.
+ */
+export const RESUME_LEASE_MS = Math.max(60_000, Number(process.env.RESUME_LEASE_MS) || 5 * 60_000);
+
+/**
+ * Take the right to resume a run that is ALREADY 'running'.
+ *
+ * The compare-and-swap below in resumeAgentLoop covers 'queued' and
+ * 'waiting_approval' by moving the status; a run already at 'running' has no
+ * status left to move, so it had no guard at all and a comment beside the CAS
+ * admitted it. resume-runs selects stale 'running' runs every 60 seconds and
+ * resumes up to fifteen of them sequentially, so two overlapping ticks replayed
+ * one checkpoint in parallel: doubled model calls, doubled debit_account_credits,
+ * doubled tool execution including GitHub writes, and interleaved checkpoint
+ * writes that corrupt the step sequence.
+ *
+ * FAILS OPEN on an unreadable error, which is the opposite of the approval
+ * claim above and for the opposite reason: a resume that never happens strands
+ * a run permanently, while a resume that happens twice is recoverable through
+ * the checkpoint and idempotency machinery this loop already has. The column
+ * defaults to '-infinity' rather than NULL so the claim is a single comparison,
+ * and so every row that predates the migration reads as never leased.
+ */
+export async function claimRunningRunLease(
+  supabase: SupabaseClient,
+  runId: string,
+  nowMs: number = Date.now(),
+): Promise<ClaimResult> {
+  if (!(await raceColumnPresent(supabase, "agent_runs", "resume_lease_at")))
+    return { claimed: true };
+  const cutoff = new Date(nowMs - RESUME_LEASE_MS).toISOString();
+  const { data, error } = await supabase
+    .from("agent_runs")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .update({ resume_lease_at: new Date(nowMs).toISOString() } as any)
+    .eq("id", runId)
+    .eq("status", "running")
+    .lt("resume_lease_at", cutoff)
+    .select("id");
+  if (error) {
+    console.error("[resume] lease claim unreadable, proceeding unguarded:", error.message);
+    return { claimed: true };
+  }
+  return { claimed: (data?.length ?? 0) > 0 };
+}
+
 /** Execute a previously approved approval. Returns the tool result or throws. */
 export async function executeApproval(
   supabase: SupabaseClient,
@@ -1990,16 +2233,43 @@ export async function executeApproval(
 ): Promise<unknown> {
   const { data: appr, error } = await supabase
     .from("agent_approvals")
-    .select("id,tool_name,args,agent_id,agent_slug,trace_id,status,run_id,mission_id,workspace_id")
+    .select(
+      "id,tool_name,args,agent_id,agent_slug,trace_id,status,run_id,mission_id,workspace_id,result",
+    )
     .eq("id", approvalId)
     .eq("user_id", userId)
     .maybeSingle();
   if (error || !appr) throw new Error("Approval not found");
+  // A gate another caller already carried to the end. Hand back what it
+  // produced instead of throwing: the caller asked for this call's outcome and
+  // that outcome exists, so an error here would report a success as a failure.
+  if (appr.status === "executed") return appr.result ?? APPROVAL_ALREADY_HANDLED;
   if (appr.status !== "approved") throw new Error(`Approval is ${appr.status}, not approved`);
   const def = TOOL_REGISTRY[appr.tool_name];
   if (!def) throw new Error(`Unknown tool: ${appr.tool_name}`);
   const parseRes = def.argsSchema.safeParse(appr.args);
   if (!parseRes.success) throw new Error(`Bad args: ${parseRes.error.message}`);
+  /* THE CLAIM COMES AFTER VALIDATION AND BEFORE THE RUN, and both halves of
+   * that sentence are load-bearing.
+   *
+   * After validation, because the claim never expires: spending it on a call
+   * that can never run would strand the approval at 'approved' with nothing
+   * able to take it. Unknown tool and bad args are decided from the row alone
+   * and cost nothing to re-decide.
+   *
+   * Before the run, because the claim is what AUTHORIZES the run. Stamping
+   * afterwards is what let two callers both believe they were the first. */
+  const claim = await claimApprovalExecution(supabase, userId, approvalId);
+  if (!claim.claimed) {
+    const { data: settled } = await supabase
+      .from("agent_approvals")
+      .select("status,result")
+      .eq("id", approvalId)
+      .maybeSingle();
+    const row = settled as { status?: string; result?: unknown } | null;
+    if (row?.status === "executed") return row.result ?? APPROVAL_ALREADY_HANDLED;
+    return APPROVAL_ALREADY_HANDLED;
+  }
   try {
     const result = await def.run(parseRes.data, {
       supabase,
