@@ -4,13 +4,14 @@
 
 **Why it is built this way.** The research tool returns everything at the end. A run that dies on the last lane would take every earlier lane with it, and each lane costs real time because every programme is checked against its own live apply page rather than a listing.
 
-**10 lanes landed · 500 programmes captured · 🟢 229 open · 🟡 189 blocked · ⚪ 82 closed**
+**11 lanes landed · 556 programmes captured · 🟢 264 open · 🟡 208 blocked · ⚪ 84 closed**
 
 | Lane | Stage | Programmes |
 | --- | --- | --- |
 | [`aggregators`](./lane-aggregators.md) | discovery only, verification running | 46 |
 | [`apac-mena-india`](./lane-apac-mena-india.md) | verified | 41 |
 | [`communities-fellowships`](./lane-communities-fellowships.md) | discovery only, verification running | 51 |
+| [`credits-cloud-ai`](./lane-credits-cloud-ai.md) | discovery only, verification running | 56 |
 | [`eu-level-nondilutive`](./lane-eu-level-nondilutive.md) | discovery only, verification running | 37 |
 | [`france-dach-south`](./lane-france-dach-south.md) | discovery only, verification running | 54 |
 | [`grants-philanthropic`](./lane-grants-philanthropic.md) | verified | 71 |
