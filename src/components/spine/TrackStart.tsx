@@ -39,7 +39,13 @@ import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { advanceTrack, listTracks, startTrack, type Track } from "@/lib/spine/track.functions";
+import {
+  advanceTrack,
+  listTracks,
+  retryStation,
+  startTrack,
+  type Track,
+} from "@/lib/spine/track.functions";
 import { TrackChain } from "@/components/spine/TrackChain";
 import { TrackActivity } from "@/components/spine/TrackActivity";
 import { nextStation, WORK_SHAPE_LABEL, type WorkShape } from "@/lib/spine/route";
@@ -78,6 +84,7 @@ export function TrackStart() {
   const fStart = useServerFn(startTrack);
   const fList = useServerFn(listTracks);
   const fAdvance = useServerFn(advanceTrack);
+  const fRetry = useServerFn(retryStation);
 
   const [open, setOpen] = React.useState(false);
   const [title, setTitle] = React.useState("");
@@ -199,6 +206,40 @@ export function TrackStart() {
       }),
   });
 
+  /**
+   * Let the station that stopped run again, without skipping it.
+   *
+   * THE CONTROL THIS LIST DID NOT HAVE. A held track had two moves: hand it to
+   * the next station, or call it finished. Neither is "try again", so a track
+   * holding `station-cannot-finish` or `given-up`, both of which no code path
+   * clears, was dead to its owner: skip the station that could not finish, or
+   * close the work. A person who fixed the real cause outside the product, by
+   * connecting a source or topping the account up or writing the missing spec,
+   * had no way to say so and the driver never looked again.
+   *
+   * It says the STATION runs again rather than that the work moved, because it
+   * did not move. The next tick does the driving; nothing is dispatched here.
+   */
+  const release = useMutation({
+    mutationFn: (t: Track) => fRetry({ data: { trackId: t.id } }),
+    onSuccess: (res, t) => {
+      void qc.invalidateQueries({ queryKey: ["spine-tracks"] });
+      if (res.refused) {
+        setMoved({ verb: "Nothing was released", consequence: res.refused, failed: true });
+        return;
+      }
+      setMoved({
+        verb: "You released it",
+        consequence: `${AGENT_STATIONS[t.station].name} runs again on ${t.title} at the next sweep. Nothing has been charged for it yet.`,
+      });
+    },
+    onError: (e: Error, t) =>
+      setMoved({
+        verb: "Nothing was released",
+        consequence: `${t.title} is still held at ${AGENT_STATIONS[t.station].name}. ${e.message}`,
+        failed: true,
+      }),
+  });
   const list = tracks.data ?? [];
   const needsOrigin = shape !== null && NEEDS_ORIGIN.has(shape);
   const ready = title.trim().length > 0 && shape !== null && (!needsOrigin || origin.trim());
@@ -393,6 +434,26 @@ export function TrackStart() {
                         confirm or an undo; there is no undo to offer, so it
                         confirms, and the second press states the consequence
                         rather than repeating the verb. */}
+                        {/* FIRST, BECAUSE IT IS THE CHEAPER ANSWER. A held
+                        station that can run again should be tried before the
+                        work is walked past it, and skipping is the move that
+                        cannot be undone by the driver. Only offered on a track
+                        the driver actually stopped: on anything else there is
+                        nothing to release, and the server refuses it with that
+                        sentence rather than writing something that looks like
+                        it helped. */}
+                        {t.hold ? (
+                          <MoreItem
+                            onClick={() => {
+                              if (release.isPending) return;
+                              release.mutate(t);
+                            }}
+                          >
+                            {release.isPending && release.variables?.id === t.id
+                              ? "Releasing it"
+                              : `Let ${AGENT_STATIONS[t.station].name} try again`}
+                          </MoreItem>
+                        ) : null}
                         <MoreItem
                           onClick={() => {
                             if (hand.isPending) return;

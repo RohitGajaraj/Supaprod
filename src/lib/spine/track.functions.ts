@@ -484,6 +484,135 @@ export const advanceTrack = createServerFn({ method: "POST" })
  * difference between a route and a checklist. The safety of the whole model
  * rests on a waiver being reversible and attributed.
  */
+/**
+ * Let the station that stopped try again, where it stands.
+ *
+ * THE GAP THIS CLOSES. A held track had exactly two controls: hand it to the
+ * next station, or call it finished. Neither is "try again". So a track holding
+ * `station-cannot-finish` or `given-up`, both of which no code path clears, was
+ * dead to its owner: the only ways forward were to SKIP the station that could
+ * not finish, which advances work the station never did, or to close the piece of
+ * work entirely. A person who fixed the actual cause outside the product, by
+ * connecting a source or topping up an account or writing the missing spec, had
+ * no way to say so.
+ *
+ * IT DOES NOT MOVE THE STATION, and that is the whole difference from
+ * `advanceTrack`. It writes the same three columns the driver's own resume branch
+ * writes when an answered escalation clears itself: `attempts` back to zero,
+ * `last_hold` cleared, `driven_at` touched. The next tick then drives the station
+ * normally, so "one tick, one attempt at one station" stays true and nothing here
+ * dispatches anything or spends anything.
+ *
+ * WHY IT REFUSES ON A TRACK THAT IS NOT HELD. A clear on a running track would
+ * reset an attempt counter mid-flight and hand the station three fresh tries it
+ * had not earned, which turns a repair control into a way to buy retries. There
+ * is nothing to retry on a track the driver has not stopped, so the honest answer
+ * is a refusal with a reason rather than a write that looks like it helped.
+ *
+ * IT REFUSES WHILE PAUSED, failing closed on an unreadable switch, for the reason
+ * `advanceTrack` states: a kill switch outranks every other consideration, and a
+ * control that wrote anyway beside a row reading "everything is paused" would
+ * make the switch a suggestion.
+ *
+ * THE TRAIL SAYS A PERSON DID IT. `stage_events` gets a row with `actor: 'human'`
+ * and the station as both ends, because the work did not move and a trail that
+ * claimed a transition would be the false stage event `advanceTrack` was repaired
+ * for. What it records is that somebody released this station to run again.
+ */
+export const retryStation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .handler(
+    async ({ context, data }): Promise<{ track: Track | null; refused: string | null }> => {
+      const { supabase } = context;
+      try {
+        const { data: row } = await supabase
+          .from("spine_tracks" as never)
+          .select(SELECT)
+          .eq("id", data.trackId)
+          .maybeSingle();
+        if (!row) return { track: null, refused: "That work could not be found." };
+
+        const raw = row as unknown as TrackRow;
+        const track = rowToTrack(raw);
+
+        if (raw.status !== "open") {
+          return { track, refused: "This work is closed, so there is no station to run." };
+        }
+
+        // Fails closed, the same direction driver.server.ts takes for the same
+        // control.
+        if (raw.workspace_id) {
+          let paused = true;
+          try {
+            const { data: sw } = await supabase
+              .from("kill_switches")
+              .select("paused")
+              .eq("scope", "workspace")
+              .eq("workspace_id", raw.workspace_id)
+              .maybeSingle();
+            paused = Boolean((sw as { paused?: boolean } | null)?.paused);
+          } catch {
+            paused = true;
+          }
+          if (paused) {
+            return {
+              track,
+              refused: "Everything is paused for this workspace, so nothing was released.",
+            };
+          }
+        }
+
+        // Nothing to retry on work the driver has not stopped. Read off the raw
+        // column rather than the rendered sentence, because `rowToTrack` maps
+        // `last_hold` through `holdLine` into prose for the surface and prose is
+        // not a state.
+        if (!raw.last_hold) {
+          return {
+            track,
+            refused: "This work is not held, so there is nothing waiting to be released.",
+          };
+        }
+
+        const now = new Date().toISOString();
+        const { data: updated, error } = await supabase
+          .from("spine_tracks" as never)
+          .update({ attempts: 0, last_hold: null, driven_at: now, updated_at: now } as never)
+          .eq("id", data.trackId)
+          .select(SELECT)
+          .single();
+
+        // An UPDATE that came back unconfirmed did not necessarily fail to
+        // commit, so this reports what it knows and refuses to narrate a cause.
+        if (error || !updated) {
+          return {
+            track,
+            refused: "The release did not come back confirmed, so nothing here is certain.",
+          };
+        }
+
+        await recordStageEvent(supabase, {
+          entityType: "spine_track",
+          entityId: track.id,
+          // Both ends are the same station on purpose: the work did not move.
+          from: track.station,
+          to: track.station,
+          actor: "human",
+          workspaceId: raw.workspace_id,
+          userId: raw.user_id,
+        });
+
+        return { track: rowToTrack(updated as unknown as TrackRow), refused: null };
+      } catch (e) {
+        console.error("retryStation failed:", e);
+        return {
+          track: null,
+          refused: "The release failed. Nothing on screen can be trusted until this list reloads.",
+        };
+      }
+    },
+  );
+
 export const setStationWaiver = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
