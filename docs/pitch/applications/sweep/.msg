@@ -1,4 +1,4 @@
-Sweep harvest: 7 lanes on disk, 329 programmes
+Sweep harvest: 8 lanes on disk, 380 programmes
 
 The research run returns everything at the end, so a crash on the last
 lane would take every earlier one with it. This lands each lane as it
