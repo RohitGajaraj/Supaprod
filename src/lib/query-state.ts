@@ -112,7 +112,9 @@ export type AnswerableQuery = {
  * removing them is a separate, wider edit than the one that fixes the defect.
  */
 export function stillWaiting(...queries: AnswerableQuery[]): boolean {
-  return queries.some((q) => !q.isError && !isNeverComing(q) && (q.isPending || q.data === undefined));
+  return queries.some(
+    (q) => !q.isError && !isNeverComing(q) && (q.isPending || q.data === undefined),
+  );
 }
 
 /**
