@@ -283,10 +283,28 @@ describe("resumeAgentLoop: a live run carries a lease", () => {
       agent_runs: [runRow({ resume_lease_at: "2026-08-14T00:00:00.000Z" })],
       agents: [agentRow],
     });
-    // It proceeds past the lease (and then fails somewhere in the loop, which is
-    // fine and not what this asserts): the lease must not be the thing stopping
-    // it, or a worker that died mid-step would hold the run forever.
-    await resumeAgentLoop(db as unknown as SupabaseClient, RUN).catch(() => {});
+    /**
+     * BOUNDED, BECAUSE "FAILS SOMEWHERE IN THE LOOP" IS NOT A PLACE.
+     *
+     * This used to `await` the whole loop and shrug at whatever happened after
+     * the lease, on the reasoning that only the lease is being asserted. That
+     * reasoning is right about the assertion and wrong about the await: past the
+     * lease the loop keeps going, and on a machine that HAS a `.env` with real
+     * Supabase credentials it reaches a live call and hangs to the timeout.
+     *
+     * So the result depended on whether an untracked file existed. It passes in
+     * CI and in a worktree without `.env`, and fails in a worktree with one,
+     * which is the worst kind of green: Lane 1 hit it on 2026-08-14 while this
+     * lane's suite read 0 fail, and neither number was wrong.
+     *
+     * The lease claim happens first and is observable immediately, so the wait
+     * is bounded rather than open-ended. What is asserted is unchanged; what is
+     * removed is the licence for execution to wander into the network.
+     */
+    await Promise.race([
+      resumeAgentLoop(db as unknown as SupabaseClient, RUN).catch(() => {}),
+      new Promise((resolve) => setTimeout(resolve, 1_000)),
+    ]);
     expect(db.statements.some((s) => s.table === "agent_run_checkpoints")).toBe(true);
     expect(db.tables.agent_runs[0].resume_lease_at).not.toBe("2026-08-14T00:00:00.000Z");
   });
