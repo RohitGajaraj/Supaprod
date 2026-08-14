@@ -4,7 +4,7 @@
 // with no on-screen door is an orphan and fails this suite. Deliberately
 // fs-based and synchronous, same shape as route-inventory.test.ts.
 import { describe, expect, test } from "bun:test";
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 import {
@@ -117,5 +117,137 @@ describe("surface registry", () => {
       status: "live",
     });
     expect(surfaceForDomain("not-a-domain")).toBeUndefined();
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// THE GATE THIS FILE'S OWN HEADER PROMISES, AND DID NOT ENFORCE.
+//
+// The header says a capability with no on-screen door is an orphan and fails
+// this suite. It did not. Every test above asks whether a domain has a REGISTRY
+// ENTRY with a non-empty `opensFrom` string, which is a declaration of intent,
+// not a fact about the code. So 27 modules with no importer anywhere in `src/`
+// passed CI indefinitely, including a 558-line second implementation of Today
+// that `/today` does not use.
+//
+// This is the fourth instance of one pattern found on 2026-08-14: a green test
+// guarding a thing nobody reaches. The others were a workspace flag no code
+// could write, three MCP write tools whose scope no code could grant, and a
+// connector cap no code calls. Every one of those tests asked "does this unit
+// behave correctly" and none asked "is this unit reached".
+//
+// WHY AN ENUMERATED LIST RATHER THAN A CLEAN ASSERTION. The 27 below are real
+// and each is a product decision (wire the UI, or delete the module) rather than
+// a defect to fix in a test file. Failing the build on all of them today would
+// force a rushed answer to 27 separate questions. Listing them converts an
+// invisible problem into a debt that is counted, and the gate below makes the
+// list SHRINK ONLY: a new orphan fails immediately, and a wired-up or deleted
+// module must be removed from the list or the suite fails for the opposite
+// reason. Neither direction can drift quietly.
+// ───────────────────────────────────────────────────────────────────────────
+
+/**
+ * Domains with no importer anywhere in `src/`, measured 2026-08-14.
+ *
+ * The verdicts are in docs/planning/initiatives/audit-reports/long-tail-and-orphans.md:
+ * roughly half are a real capability one screen away and half are second copies
+ * of something that shipped better. Two live routes (`/calendar`, `/meetings`)
+ * currently advertise capabilities on this list.
+ */
+const KNOWN_UNREACHED: readonly string[] = [
+  "ambient",
+  "audio",
+  "briefing",
+  "calendar",
+  "changelog-heartbeat",
+  "cost-per-outcome",
+  "dashboard",
+  "delegate-desk",
+  "delegate-poll",
+  "design-interchange",
+  "fanout",
+  "funnel",
+  "goals",
+  "greeting",
+  "loop-health",
+  "loops",
+  "meetings",
+  "moat",
+  "product-context",
+  "researcher",
+  "rework",
+  "run-analytics",
+  "shared-premise",
+  "strategy-registry",
+  "task-graph",
+  "today-lanes",
+  // Built 2026-08-14 for a flag that had no writer at all. The control is Lane
+  // 1's and is not built yet, which is why this is registered `planned`.
+  "workspace-automation",
+];
+
+function sourceFilesUnderSrc(): string[] {
+  const SRC = join(LIB_DIR, "..");
+  const out: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir)) {
+      if (entry === "node_modules" || entry === "__tests__") continue;
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) walk(full);
+      else if (/\.(ts|tsx)$/.test(entry) && !/\.test\.tsx?$/.test(entry)) out.push(full);
+    }
+  };
+  walk(SRC);
+  return out;
+}
+
+function unreachedDomains(): string[] {
+  const sources = sourceFilesUnderSrc().map((f) => [f, readFileSync(f, "utf8")] as const);
+  return domainsOnDisk().filter((domain) => {
+    const spec = `${domain}.functions`;
+    return !sources.some(
+      ([file, text]) =>
+        !file.endsWith(`lib/${spec}.ts`) &&
+        // Static import, aliased import, and dynamic `await import(...)`, which
+        // several server modules use to keep a heavy dependency out of a
+        // client bundle. Missing that form would report a reached module as an
+        // orphan, which is the failure that makes a gate get switched off.
+        (text.includes(`"@/lib/${spec}"`) ||
+          text.includes(`'@/lib/${spec}'`) ||
+          text.includes(`"./${spec}"`) ||
+          text.includes(`'./${spec}'`) ||
+          text.includes(`"../${spec}"`) ||
+          text.includes(`'../${spec}'`)),
+    );
+  });
+}
+
+describe("no-orphan enforcement, on imports rather than intentions", () => {
+  test("no NEW server-function domain is unreachable", () => {
+    const surprises = unreachedDomains().filter((d) => !KNOWN_UNREACHED.includes(d));
+    expect(
+      surprises,
+      `These domains have no importer anywhere in src/. Either wire the surface that reaches them, delete them, or add them to KNOWN_UNREACHED with a reason: ${surprises.join(", ")}`,
+    ).toEqual([]);
+  });
+
+  test("the debt list shrinks and never rots", () => {
+    // A module that was wired up, or deleted, must leave the list. Without this
+    // the allowlist becomes a permanent excuse rather than a countdown.
+    const stillUnreached = new Set(unreachedDomains());
+    const fixed = KNOWN_UNREACHED.filter((d) => !stillUnreached.has(d));
+    expect(
+      fixed,
+      `These are reachable now (or gone), so remove them from KNOWN_UNREACHED: ${fixed.join(", ")}`,
+    ).toEqual([]);
+  });
+
+  test("the scan itself is working", () => {
+    // If the import detection broke, every domain would look unreached and the
+    // first test would pass only because the allowlist swallowed everything.
+    // 160 domains against 27 known orphans: anything near the total means the
+    // matcher is broken, not that the codebase collapsed.
+    expect(unreachedDomains().length).toBeLessThan(domainsOnDisk().length / 2);
+    expect(domainsOnDisk().length).toBeGreaterThan(100);
   });
 });
