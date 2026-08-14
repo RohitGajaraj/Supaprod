@@ -18,11 +18,13 @@ The raw output of each audit pass behind [`../functionality-audit-2026-08.md`](.
 | The long tail | Daily-driver screens, orphans, and the unwired server layer | [`long-tail-and-orphans.md`](./long-tail-and-orphans.md) |
 | Admin | Eleven tabs of controls that render, fire, and change nothing | [`admin-surfaces.md`](./admin-surfaces.md) |
 | Billing and connectors | What a paying user and a connecting user actually see | [`billing-and-connectors.md`](./billing-and-connectors.md) |
-| Seven stations | Discover through Learn, from the user's point of view | pending, see below |
-| Agent surfaces | Agents, crew, approvals, governance, trust | pending, see below |
+| Seven stations | Discover through Learn, from the user's point of view | [`seven-stations-user-lens.md`](./seven-stations-user-lens.md) |
+| Agent surfaces | Agents, crew, approvals, governance, trust | [`agent-and-governance-surfaces.md`](./agent-and-governance-surfaces.md) |
 
 **Three passes died mid-flight on 2026-08-14 and are being re-run.** Four were launched at once, and each spawned children of its own, so the real concurrency was closer to eight while two other lanes were also fanning out. Every one of them returned `Connection lost mid-response`. The founder's cap is two at a time, and the correction this taught is that the cap has to count NESTED spawns, not just the ones launched directly: four became eight without anybody choosing that.
 
 The completed pass survived only because it had already been written to disk when it finished, which is the whole point of the save-as-you-go ruling.
+
+**Two of the three were re-run and landed**, and the table above links them. They sat unlinked for a while, which is its own small lesson: the row that says "pending" is the row nobody goes back to change, so the doc gate had to catch it. Two of the seven-stations findings, Ship's day-one Gate and Build's day-one headline, were fixed in `72417655`.
 
 The eight earlier passes (forecast, ticks and cron, agent-tier access, stubs and dead ends, concurrency and money, core lifecycle, silent failures, learn and brain) were distilled directly into the audit document and its register as they arrived, and are not reproduced here.
