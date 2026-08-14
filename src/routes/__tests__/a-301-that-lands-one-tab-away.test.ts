@@ -103,7 +103,7 @@ describe("/fleet does not promise a lens that was never built", () => {
     expect(
       buildHasLens === fleetForwards,
       buildHasLens
-        ? "Build now validates a search param. If that is the by-agent lens, restore `search: { view: \"agent\" }` in _authenticated.fleet.tsx."
+        ? 'Build now validates a search param. If that is the by-agent lens, restore `search: { view: "agent" }` in _authenticated.fleet.tsx.'
         : "Build has no lens and /fleet correctly forwards nothing.",
     ).toBe(true);
   });
