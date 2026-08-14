@@ -178,6 +178,48 @@ The generalization is precise and worth keeping: **a readiness flag that exists 
 
 ---
 
+## 4.6 The spine, traced end to end — P0
+
+The founder's question is whether one piece of work travels Discover to Learn. Traced in production, station by station.
+
+**The driver is real, scheduled, and running.** `track-tick` fires every 10 minutes and drove every open track this morning. `spine_tracks` is the unit of work; `driveTrackOnce` dispatches each station's agent crew under its own boundary.
+
+**And 39 of 43 tracks are standing at the FIRST station.** Exactly one track has ever reached `learn` and finished, on 2026-08-01. Nothing has completed since.
+
+```sql
+SELECT status, station, count(*), max(driven_at) FROM spine_tracks GROUP BY 1,2;
+-- open/sense 39 (driven today) · open/decide 2 · open/define 1 · done/learn 1
+SELECT last_hold, count(*), max(attempts) FROM spine_tracks WHERE station='sense' GROUP BY 1;
+-- station-cannot-finish 26 (attempts 3) · waiting-on-a-person 12 · out-of-credit 1
+```
+
+The lineage graph says the same thing from the other side: the front of the spine is alive and the middle went cold weeks ago.
+
+```sql
+SELECT parent_kind||' -> '||child_kind, count(*), max(created_at) FROM artifact_lineage GROUP BY 1;
+-- signal->theme 591, latest 08-12   ·  theme->opportunity 38, latest 08-06
+-- opportunity->prd 13, latest 07-30 ·  prd->mission 31, latest 07-15
+-- mission->changeset 21, 07-21      ·  changeset->deployment 14, 07-16
+```
+
+**The cause is not a broken station. It is that the first station has nothing to read.** A `discovery-scout` run on 2026-08-12 says it in its own words:
+
+> "No verbatim evidence exists beyond the confirmed signal... The claim of '12 signals' and '83% confidence' is unsupported, ingestion pipeline is not yet configured. To proceed, the Intercom connector must first be configured. No further signals can be logged."
+
+**The agent is behaving correctly and the product is punishing it for it.** It refused to invent evidence, filed nothing, and the driver read a clean run that filed nothing as a station failure worth retrying. Three attempts later the track froze.
+
+Three separate defects sit behind that, and two are now fixed:
+
+1. **A credit refusal was misclassified as a station failure.** `isEnvironmentFailure` tested `message.includes("credit balance")`, but the runtime raises the same refusal in two wordings and every live failure carried the one that does not contain that substring. **Fixed:** matched on the error's `code` first, prose second. This is the "pin the claim, not the spelling" failure in its purest form.
+2. **A track frozen by an empty account could never recover**, because `stalled` escalates to `station-cannot-finish`, which is terminal. Topping the account up did not revive it. **Fixed:** the attempt ceiling no longer applies when the last hold was `out-of-credit` or `over-budget`, since those attempts were never spent on anything.
+3. **STILL OPEN: the correction loop misdiagnoses a starved station as a broken one.** `STATION_NEEDS.sense` already carries the right words, "evidence in this workspace to gather" with the fix "Connect a source on Discover". But `needIsMet` is satisfied by any signal ever attached to the track, and these tracks all carry historical signals. So a station that cannot find anything NEW reads as a station that has what it needs and failed anyway, and the person is sent to inspect the station rather than to connect a source.
+
+**What actually blocks a live end-to-end run, and it is not code.** No real inbound signal source is connected. Nine OAuth providers are built and unregistered, and `FIRECRAWL_API_KEY` is unset. Both are on this repo's own founder-gated list. Until one real source flows, Discover has nothing to sense, and every station after it is waiting on Discover.
+
+Credits are a secondary blocker on two accounts only: tracks in workspaces holding 5,000 credits are frozen identically, so credit exhaustion explains 1 frozen track, not 26.
+
+---
+
 ## 5. What is missing entirely
 
 - **A reopen path for a settled forecast.** No unsettle, no re-settle, no correction. The migration says the agent-slug column exists so agent verdicts stay reversible; the surface renders those rows with no control, so in practice an agent verdict is irreversible. Design decision handed to Lane 1.
