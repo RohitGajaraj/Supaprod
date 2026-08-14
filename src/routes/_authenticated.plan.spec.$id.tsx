@@ -1041,6 +1041,38 @@ function SpecEditorPage() {
     if (!routeInfo) return null;
     if (!routeSendsToBuild) return null;
     if (routeInfo.gateHolds) return "The drawn screen has to be settled at Design first.";
+    /**
+     * THE APPROVAL GATE, WHICH THIS PAGE ASSERTED AND DID NOT HOLD.
+     *
+     * Two surfaces disagreed about whether approval gates a build, and this page
+     * argued against itself. The Approve control's own tooltip reads "approve
+     * the spec, SO BUILD CAN PICK IT UP", and the Build station honours exactly
+     * that: `ReadyToBuild` filters to `status === "approved"`. But this
+     * dispatch checked only the design gate, so a person could send a DRAFT
+     * straight to Build from here, spend a billed builder run on work nobody
+     * had approved, then walk to Build and not find the spec in "ready".
+     *
+     * The server does not settle it either: `dispatchBuilderMission` never
+     * moves `prds.status`, by design, because only the ship stamp does. So
+     * approval is purely a human's mark, and the only two places that read it
+     * as a gate are the Build station and this tooltip.
+     *
+     * REFUSING RATHER THAN WARNING, and the friction argument is why. The
+     * remedy is the Approve button in the Actions row on this same screen, so
+     * the refusal costs one click on a page the user is already looking at.
+     * Against that: a build is the most expensive thing this product does
+     * unattended, and a governance product that spends money on work its own
+     * gate never saw is arguing against itself in the one place it matters.
+     *
+     * `status` is read off the loaded spec rather than a second query, and an
+     * unreadable spec does NOT refuse: a failed read must not masquerade as a
+     * governance decision, which is the class of bug this repo has paid for
+     * repeatedly.
+     */
+    const status = prdQ.data?.prd?.status;
+    if (status && status !== "approved" && status !== "shipped") {
+      return "Approve the spec first. Build only picks up an approved spec, and a run costs money.";
+    }
     return null;
   };
 
