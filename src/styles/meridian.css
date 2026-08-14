@@ -1,0 +1,337 @@
+/*
+ * MERIDIAN
+ * The design system for Supaprod. Authored 2026-08-14.
+ *
+ * It replaces v1, v2, v3, Obsidian, Tempo and Cadence/ink. Those are not
+ * ancestors to be respected; the founder's instruction was to stop inheriting
+ * from them and design from the product. Nothing in this file was derived by
+ * looking at what came before, and where a value here matches an old one it is
+ * because the reasoning arrived there independently.
+ *
+ * MIGRATION, STATED HONESTLY. `ink.css` and its 159 `--sp-*` tokens are still
+ * loaded, because 32 route files render through them and deleting the layer
+ * today would break every surface at once. That is precisely how the 2026-07
+ * rebuild failed. `--sp-*` is therefore LIFE SUPPORT, not a peer system: no new
+ * surface may use it, every migrated surface drops it, and the layer is deleted
+ * when the last one moves. Do not add to it. Do not alias Meridian onto it.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * THE SCENE, which is what decided the ground
+ *
+ * A product lead opens this before standup to find out what the crew did
+ * overnight, on a large monitor, in a room where six other tools are already
+ * open. They are not visiting; they are working here all day.
+ *
+ * That forces a dark ground, and not because instruments look serious dark.
+ * It is because the screen's job is to RECEDE. The only things that should
+ * carry brightness are the overnight diff, the run that stopped, and the one
+ * call that is theirs to make. On a light ground the page itself is the
+ * brightest object in the room and the judgement has to shout over its own
+ * canvas. Light is available and complete, and it is the secondary ground.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * THE COLOUR RULE, which came from the product rather than from a palette
+ *
+ * This product exists to draw one line: what a machine did, and what a person
+ * must decide. So that line is the colour system.
+ *
+ *      WARM GOLD   a person is required.  Your call, your approval, your
+ *                  attention. It is the same hue whether the reason is a
+ *                  decision or a warning, because to the reader those are one
+ *                  fact: this will not move until you touch it.
+ *      COOL BLUE   a machine is working. The only cool hue in the product, so
+ *                  "an agent is running" is separable from "you must act" at a
+ *                  glance, before any word is read.
+ *      GREEN/RED   outcome. What happened, never what is needed.
+ *
+ * Everything else is a neutral. Colour carries status and never decorates, and
+ * the whole system must survive a greyscale test: if the screen stops making
+ * sense without hue, the hue was doing work that structure should have done.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * WHY OKLCH
+ *
+ * The neutral ladder is the mechanism this system separates surfaces with, so
+ * its steps have to READ as even. Hex ramps almost never are: equal numeric
+ * steps are not equal perceptual steps, which is why hand-tuned hex ramps
+ * bunch at one end. OKLCH lightness is perceptually uniform, so a ladder built
+ * on it climbs evenly, and a single value can be nudged without re-tuning its
+ * neighbours.
+ *
+ * Neutrals are tinted toward hue 70, a warm graphite. Chroma stays between
+ * 0.004 and 0.012, which is below the threshold where anyone would call it a
+ * colour, and above the threshold where the screen reads as dead grey. Pure
+ * #000 and #fff appear nowhere.
+ */
+
+:root {
+  /* ── GROUND. The ladder every surface climbs, dark. ──────────────────── */
+  --mrd-bg: oklch(0.145 0.006 70); /* the canvas */
+  --mrd-sink: oklch(0.125 0.006 70); /* a recess: the record, evidence */
+  --mrd-sheet: oklch(0.175 0.006 70); /* chrome: header, rail */
+  --mrd-lift: oklch(0.215 0.007 70); /* a raised control, secondary button */
+  --mrd-float: oklch(0.255 0.008 70); /* genuinely floating: menu, pane */
+  --mrd-solid: oklch(0.325 0.009 70); /* the primary button face */
+
+  /*
+   * The primary action is the next stop on the ladder the surfaces already
+   * climb, not a new colour idea. A saturated or inverted primary was tried
+   * twice in this product's history and rejected twice, for the same reason
+   * both times: it spent the one accent on chrome. Ours stays a neutral, and
+   * it is unmistakable because nothing else in the product uses this stop.
+   */
+
+  /* ── TEXT. Four stops, never pure white. ─────────────────────────────── */
+  --mrd-ink: oklch(0.965 0.003 70); /* the thing itself */
+  --mrd-body: oklch(0.795 0.005 70); /* supporting prose */
+  --mrd-mute: oklch(0.635 0.006 70); /* labels, metadata */
+  --mrd-faint: oklch(0.505 0.006 70); /* the quietest legible stop */
+
+  /* ── STRUCTURE. Edges carry alpha so they sit on any ground. ─────────── */
+  --mrd-line: oklch(0.98 0.003 70 / 0.11); /* a real edge */
+  --mrd-line-soft: oklch(0.98 0.003 70 / 0.055); /* a rule between sections */
+  --mrd-edge: oklch(0.98 0.003 70 / 0.22); /* a field's own edge */
+  --mrd-edge-focus: oklch(0.98 0.003 70 / 0.45);
+  --mrd-hover: oklch(0.98 0.003 70 / 0.045);
+  --mrd-scrim: oklch(0.09 0.005 70 / 0.62);
+
+  /* ── SEMANTIC. Four meanings, and no fifth. ──────────────────────────── */
+  --mrd-you: oklch(0.8 0.145 82); /* WARM: a person is required */
+  --mrd-you-dim: oklch(0.62 0.105 82); /* the same meaning, at rest */
+  --mrd-agent: oklch(0.7 0.105 258); /* COOL: a machine is working */
+  --mrd-agent-dim: oklch(0.55 0.075 258);
+  --mrd-pass: oklch(0.74 0.15 152); /* outcome: it worked */
+  --mrd-fail: oklch(0.66 0.19 27); /* outcome: it did not */
+
+  /*
+   * There is deliberately no separate `warn`. An amber warning and a gold
+   * "your call" would sit within a few degrees of each other and teach the
+   * reader nothing by their difference. They are one fact: this does not move
+   * until you touch it. One hue, one meaning, no lookup table to memorise.
+   */
+
+  /* ── TYPE. A scale with real contrast, not twelve adjacent sizes. ────── */
+  --mrd-font: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --mrd-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /*
+   * Ratio 1.25 between steps. The previous system carried twelve sizes inside
+   * a 10px span, which is not a hierarchy, it is a gradient: nothing announced
+   * itself because every step was within noise of its neighbour. Eight stops,
+   * each visibly not the one below it.
+   */
+  --mrd-t-micro: 11px; /* keycaps, stage numerals */
+  --mrd-t-data: 12px; /* mono: counts, durations, ids */
+  --mrd-t-base: 13px; /* the working size, dense by intent */
+  --mrd-t-lead: 16px; /* a lead line, a card's subject */
+  --mrd-t-h3: 20px;
+  --mrd-t-h2: 25px;
+  --mrd-t-h1: 32px;
+  --mrd-t-display: 40px;
+
+  --mrd-w-regular: 400;
+  --mrd-w-medium: 500;
+  --mrd-w-semi: 590; /* Geist reads thin at 600; 590 holds at 13px */
+
+  --mrd-lh-tight: 1.15; /* headings */
+  --mrd-lh-snug: 1.4; /* UI rows */
+  --mrd-lh-prose: 1.65; /* reading */
+  --mrd-measure: 68ch; /* prose only, never a table or a row */
+
+  /* ── SPACE. Grows, so composition has rhythm. ────────────────────────── */
+  /*
+   * Not a linear 4/8/12/16 ramp. Uniform padding everywhere is the single most
+   * reliable way to make a dense product look machine-generated: everything
+   * gets the same breath and nothing is grouped. These grow, so the gap
+   * BETWEEN groups is always visibly larger than the gap WITHIN one.
+   */
+  --mrd-s1: 2px;
+  --mrd-s2: 4px;
+  --mrd-s3: 6px;
+  --mrd-s4: 10px;
+  --mrd-s5: 16px;
+  --mrd-s6: 24px;
+  --mrd-s7: 40px;
+  --mrd-s8: 64px;
+
+  /* ── RADIUS. ─────────────────────────────────────────────────────────── */
+  --mrd-r-xs: 4px;
+  --mrd-r-chip: 7px;
+  --mrd-r-ctl: 9px;
+  --mrd-r-card: 12px;
+  --mrd-r-pane: 16px;
+
+  /* ── MOTION. Ease out, exponential. No bounce, no elastic. ───────────── */
+  --mrd-ease: cubic-bezier(0.22, 1, 0.36, 1); /* out-quint */
+  --mrd-ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
+  --mrd-d-press: 120ms; /* a control acknowledging a press */
+  --mrd-d-move: 220ms; /* something changing position or size */
+  --mrd-d-enter: 420ms; /* something arriving that was not there */
+
+  /* ── ELEVATION. Warm, never a black shadow. ──────────────────────────── */
+  --mrd-shadow-card: 0 1px 2px oklch(0.09 0.005 70 / 0.4);
+  --mrd-shadow-float: 0 8px 24px -6px oklch(0.09 0.005 70 / 0.55);
+  --mrd-shadow-pane: 0 24px 64px -12px oklch(0.07 0.005 70 / 0.7);
+}
+
+/*
+ * ── PAPER, the secondary ground ─────────────────────────────────────────
+ *
+ * Same roles, opposite direction. Every theme steps AWAY from its own canvas:
+ * a raised control is LIGHTER than a dark ground and DARKER than a paper one.
+ * Only the values that must change are restated, so anything not listed here
+ * is deliberately theme invariant. Type, space, radius and motion never change
+ * with the ground; a layout that shifts on a theme toggle is a bug.
+ *
+ * It is warm paper stock under a lamp, not a white template. Chroma on the
+ * neutrals rises slightly against the dark theme's, because a paper white with
+ * no warmth in it reads as an unstyled page rather than as a chosen surface.
+ */
+[data-theme="light"] {
+  --mrd-bg: oklch(0.965 0.008 85);
+  --mrd-sink: oklch(0.932 0.011 85);
+  --mrd-sheet: oklch(0.985 0.005 85);
+  --mrd-lift: oklch(0.951 0.009 85);
+  --mrd-float: oklch(0.996 0.003 85);
+  --mrd-solid: oklch(0.28 0.012 70);
+
+  --mrd-ink: oklch(0.22 0.012 70);
+  --mrd-body: oklch(0.4 0.01 70);
+  --mrd-mute: oklch(0.545 0.009 70);
+  --mrd-faint: oklch(0.655 0.008 70);
+
+  --mrd-line: oklch(0.28 0.012 70 / 0.14);
+  --mrd-line-soft: oklch(0.28 0.012 70 / 0.07);
+  --mrd-edge: oklch(0.28 0.012 70 / 0.26);
+  --mrd-edge-focus: oklch(0.28 0.012 70 / 0.55);
+  --mrd-hover: oklch(0.28 0.012 70 / 0.04);
+  --mrd-scrim: oklch(0.3 0.012 70 / 0.35);
+
+  /*
+   * The semantic four are re-darkened rather than reused. A hue that clears
+   * contrast on a near-black ground fails on paper, and the gold fails worst:
+   * at L 0.80 it is a highlighter on white. These hold their meaning and their
+   * contrast in both grounds, which is the only thing that must survive.
+   */
+  --mrd-you: oklch(0.58 0.15 68);
+  --mrd-you-dim: oklch(0.7 0.11 72);
+  --mrd-agent: oklch(0.5 0.13 258);
+  --mrd-agent-dim: oklch(0.63 0.09 258);
+  --mrd-pass: oklch(0.52 0.14 152);
+  --mrd-fail: oklch(0.52 0.19 27);
+
+  /* Shadows on paper are a warm brown at low opacity, never black. */
+  --mrd-shadow-card: 0 1px 2px oklch(0.45 0.04 60 / 0.14);
+  --mrd-shadow-float: 0 8px 24px -6px oklch(0.45 0.04 60 / 0.18);
+  --mrd-shadow-pane: 0 24px 64px -12px oklch(0.42 0.045 60 / 0.24);
+}
+
+/*
+ * ── TAILWIND SURFACE ────────────────────────────────────────────────────
+ * Utilities generated from the tokens above, so a component can be written in
+ * class names without any file hand-writing a colour. `@theme inline` emits
+ * the var() reference rather than a frozen copy, which is what makes a single
+ * component render correctly in both grounds.
+ */
+@theme inline {
+  --color-mrd-bg: var(--mrd-bg);
+  --color-mrd-sink: var(--mrd-sink);
+  --color-mrd-sheet: var(--mrd-sheet);
+  --color-mrd-lift: var(--mrd-lift);
+  --color-mrd-float: var(--mrd-float);
+  --color-mrd-solid: var(--mrd-solid);
+
+  --color-mrd-ink: var(--mrd-ink);
+  --color-mrd-body: var(--mrd-body);
+  --color-mrd-mute: var(--mrd-mute);
+  --color-mrd-faint: var(--mrd-faint);
+
+  --color-mrd-line: var(--mrd-line);
+  --color-mrd-line-soft: var(--mrd-line-soft);
+  --color-mrd-edge: var(--mrd-edge);
+  --color-mrd-hover: var(--mrd-hover);
+
+  --color-mrd-you: var(--mrd-you);
+  --color-mrd-you-dim: var(--mrd-you-dim);
+  --color-mrd-agent: var(--mrd-agent);
+  --color-mrd-agent-dim: var(--mrd-agent-dim);
+  --color-mrd-pass: var(--mrd-pass);
+  --color-mrd-fail: var(--mrd-fail);
+
+  --radius-mrd-xs: var(--mrd-r-xs);
+  --radius-mrd-chip: var(--mrd-r-chip);
+  --radius-mrd-ctl: var(--mrd-r-ctl);
+  --radius-mrd-card: var(--mrd-r-card);
+  --radius-mrd-pane: var(--mrd-r-pane);
+
+  --font-mrd: var(--mrd-font);
+  --font-mrd-mono: var(--mrd-mono);
+}
+
+/*
+ * ── MOTION KEYFRAMES ────────────────────────────────────────────────────
+ * Prefixed, because `spin` and `fade-in` already exist in a 133KB stylesheet
+ * and a keyframe collision resolves by source order with no warning.
+ */
+
+@keyframes mrd-pixel-on {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes mrd-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes mrd-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mrd-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes mrd-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*
+ * REDUCED MOTION. Decoration stops; information does not. An elapsed timer
+ * keeps ticking even with animation off, because freezing the number tells
+ * someone waiting on a long job that it has stalled. That distinction is the
+ * rule: if stopping it removes a fact, it is not decoration.
+ */
+@media (prefers-reduced-motion: reduce) {
+  [style*="mrd-pixel-on"],
+  [style*="mrd-shimmer"],
+  [style*="mrd-fade-up"],
+  [style*="mrd-fade-in"],
+  [style*="mrd-spin"] {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

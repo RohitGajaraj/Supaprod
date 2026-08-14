@@ -888,3 +888,122 @@ Researched 2026-08-10 against official product documentation. **Supaprod 36-hour
 
 **Status:** STEP 0 complete. 9 pattern classes researched. All decisions are cited. Ready for STEP 1 audit and STEP 2 design system.
 
+
+---
+
+# BEAUTIFUL UI: 19 primitives for agentic interfaces
+
+Researched and captured 2026-08-14. **This section supersedes the `--sp-*` instruction in this
+file's own header.** The founder retired every prior design system on 2026-08-14 (v1, v2, v3,
+Obsidian, Tempo, Cadence/ink) and instructed that the platform be designed fresh. New work is
+expressed in **Meridian** (`src/styles/meridian.css`, `--mrd-*`). `--sp-*` is life support for
+surfaces not yet migrated: never extend it, drop it as each surface moves, delete it when the last
+one does.
+
+## The source, and how to re-check it
+
+| | |
+| --- | --- |
+| **Origin** | <https://www.beautifului.dev/> |
+| **Author** | Turbo, a product design studio, credited on the site foot |
+| **Licence** | MIT, stated on the source page |
+| **Captured** | 2026-08-14, all 19 components |
+| **Method** | each component's own **"View code"** panel on that page, read as text |
+
+**If you are an agent and you need a component's source: open that URL, find the component by
+name, press "View code".** The panel carries the real source including the author's design notes,
+which are usually the reason a value is what it is. Two ways of getting it that produce wrong
+answers, both tried: reading the rendered demo and inferring the code, and screenshotting the
+panel and transcribing it. Neither survives contact with the timings.
+
+One extraction note worth keeping. The in-page scripting route returns the source through a
+content filter that rejects it; `get_page_text` with the code panel open returns it intact. That
+is a tooling quirk, not a permissions one.
+
+## Why this reference class at all
+
+It is the only published set built for the thing this product actually is: an interface where a
+machine works and a person adjudicates. Every component in it answers a question our audit found
+unanswered somewhere in the app. It is not a style to admire; it is a parts bin that matches our
+holes.
+
+## The Meridian mapping
+
+Their code is Tailwind against their own theme. Ours is Tailwind v4 (`@tailwindcss/vite`), so it
+compiles nearly verbatim once the names are mapped. Porting is mechanical:
+
+| Theirs | Ours | Note |
+| --- | --- | --- |
+| `"use client"` | *delete* | this app is TanStack Router, not Next |
+| `text-ink` / `var(--ink)` | `text-mrd-ink` / `var(--mrd-ink)` | |
+| `text-ink-2` / `var(--ink-2)` | `text-mrd-body` / `var(--mrd-body)` | |
+| `text-ink-3` / `var(--ink-3)` | `text-mrd-mute` / `var(--mrd-mute)` | |
+| `bg-inset` | `bg-mrd-sink` | |
+| `bg-hover`, `bg-hover-2` | `bg-mrd-hover` | they carry two, we carry one |
+| `bg-line`, `border-line` | `bg-mrd-line`, `border-mrd-line` | |
+| `border-line-strong` | `border-mrd-edge` | |
+| `text-green` | `text-mrd-pass` | outcome only |
+| `text-red` | `text-mrd-fail` | outcome only |
+| `bg-orange` | `text-mrd-you` | see the colour rule below |
+| `bg-accent` | `bg-mrd-agent` | their accent is categorical, not brand |
+| `rounded-control` | `rounded-mrd-ctl` | ours is `ctl`, not `control` |
+| `@keyframes X` | `mrd-X` | prefixed; `spin` and `fade-in` already exist elsewhere |
+
+**Do not reuse their token names.** `--ink` is already declared four times in `src/styles.css` at
+four different values, inside the `[data-obsidian]` layer mounted on `<html>` for the whole
+authenticated app. That layer's blocks share specificity and resolve by source order, and its own
+header records two production bugs caused by exactly that. Aliasing onto `--ink` loses that fight
+silently, in one theme only.
+
+**Both themes come free, and nothing is written twice.** `--mrd-*` is redefined under
+`[data-theme="light"]` and `@theme inline` emits the `var()` reference rather than a frozen copy,
+so one component renders correctly on both grounds. If you find yourself writing a light variant
+of a component, stop: the mapping is wrong somewhere.
+
+**Where their colour meets our rule.** Meridian carries one semantic law: warm gold means a person
+is required, cool blue means a machine is working, green and red are outcome. Their palette is
+decorative in places (three categorical dot colours in a search trace). Map by MEANING, not by
+matching hue: an "attention" orange becomes `--mrd-you`, an agent-activity colour becomes
+`--mrd-agent`. A component that ends up with four hues doing no semantic work has been ported
+wrong.
+
+## The 19, and where each one belongs here
+
+Placement is grounded in the surface audit of 2026-08-14, so each row names a real hole rather
+than a guess. Status is kept current as they land.
+
+| # | Component | What it is | Where it goes, and the gap it closes | Status |
+| --- | --- | --- | --- | --- |
+| 01 | **Loading State** | pixel grid, shimmer label, live elapsed timer | Everywhere an agent genuinely runs. Closes the founder's stated top gap ("live agent status, the only core USP"): the shipped state says *what* is being read, never *how long*, so a slow job and a hung job are the same pixels. Bare loading states at `runs.$missionId` and `traces.$traceId` first. | ✅ ported |
+| 02 | **Thinking** | expandable trace: steps, reasoning, search, coding | `traces.$traceId`, the single rawest file in the app (1.1:1 primitive to raw div). Also the step list on `runs.$missionId`. | ⬜ |
+| 03 | **Streaming Text** | streamed answer with inline sources and follow-ups | The Ask pane. Also Brain, where precedent is currently a list and should be an answer with its sources attached. | ⬜ |
+| 04 | **Approval Card** | the human-in-the-loop question, asked before acting | `/approvals`, Today's "Ready for your review" lane, and the Decide gate. All three read the same queue today with three different keyboards. | ⬜ |
+| 05 | **Tool Chips** | tool calls and code edits as compact chips | Build. This is the founder's backlog item 2 verbatim: expanding a touched file "opens something he cannot locate, with unexplained blank space above it". | ⬜ |
+| 06 | **Task Rows** | live agent task status: running, failed, completed | `/runs`, and Today's four lanes. Today renders a raw DB enum (`halted`, `blocked`) straight into the Stuck row. | ⬜ |
+| 07 | **Chat** | tabbed chat panel with reasoning replies | The Ask pane body. | ⬜ |
+| 08 | **Prompt Bar** | composer with @ sources, / commands, model picker | The Ask composer. Ruling stands: Ask lives top right and opens a pane; the bottom composer strip is rejected. | ⬜ |
+| 09 | **Recommendation Card** | agent suggestion with a confidence meter | Decide, under the gate. Also the forecast desk, where a model that returned unparseable output currently renders identically to a considered judgment. | ⬜ |
+| 10 | **Context Cards** | retrieved knowledge chunks with their sources | Brain precedent, and Decide's evidence recess. Evidence is capped at four with no way to spot-check quality. | ⬜ |
+| 11 | **Diff Table** | proposed edits sweeping through tabular data | Design's proposed changes, and spec revisions. | ⬜ |
+| 12 | **Records Table** | dense grid with tags, sorting, relationship status | `runs.index` and the Decide queue. | ⬜ |
+| 13 | **Filter Table** | status chips that reorganise live data | The missing dense-data affordance. Design renders **every** drawing uncapped and unsearchable; Ship has five independent expand toggles and no filter; Build has no search on a workspace-wide list. | ⬜ |
+| 14 | **Sidebar Nav** | workspace navigation with quick search | The rail. Founder backlog item 6: auto-collapse once the spine is familiar, with instant hover tooltips. | ⬜ |
+| 15 | **Search** | command search with live filtering and an empty state | The command palette, and the absent search on the spec list, Design and Ship. | ⬜ |
+| 16 | **Insight Cards** | paged insights with scrub-ready live charts | Learn. Note the honesty constraint: never claim accumulated learning in the present tense. | ⬜ |
+| 17 | **Code Block** | agent-written code streaming in line by line | `traces.$traceId`, whose current `<pre>` has no overflow and no max height despite its own comment claiming both. | ⬜ |
+| 18 | **Fine-tune Card** | the agent adjusts design properties in an inspector | Design, as the fidelity and property inspector. | ⬜ |
+| 19 | **Selection Actions** | highlight a passage, hand it to the agent | Prose surfaces: the spec, the PRD, the release document. | ⬜ |
+
+## Standing constraints that override anything lifted
+
+1. **Vocabulary.** Never *receipts, ledger, company brain, decision layer, unattended, first run,
+   provenance*. Never *remembers, stores, logs* as verbs of the brain. *Audit trail* and *shared
+   brain* are correct. Never claim accumulated learning in the present tense.
+2. **Never mechanism as a label.** Their demos name columns (`Via`, `Span id`). That is right only
+   in the engine room's drill layer, where the reader is an engineer, and wrong everywhere else.
+3. **Empty is the primary case, not the afterthought.** Production holds 296 decisions with one
+   forecast and zero resolutions, and `agent_memory` holds zero rows of kind `outcome`. Every
+   component lands on an empty workspace first. Design the zero and one-row cases before the dense
+   one; the dense one is hypothetical today.
+4. **A failed read is never an empty state.** It must not wear one's clothes, and it must offer a
+   way out.
