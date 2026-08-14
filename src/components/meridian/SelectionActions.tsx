@@ -1,0 +1,491 @@
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { ReactNode, RefObject } from "react";
+
+/*
+ * SELECTION ACTIONS, hand a highlighted passage to an agent.
+ *
+ * ── PROVENANCE ──────────────────────────────────────────────────────────
+ * Pattern source: https://www.beautifului.dev/ , component "Selection Actions"
+ *                 (their file: components/SelectionActions.tsx), MIT licensed,
+ *                 read from that page's own "View code" panel on 2026-08-14.
+ * To re-check it: open that URL, find the component, press "View code". Do not
+ * re-derive it from the rendered demo or a screenshot.
+ * Ported to Meridian tokens. Full record: docs/design/REFERENCE-PATTERNS.md
+ *
+ * ── WHY THIS EXISTS IN THIS PRODUCT ─────────────────────────────────────
+ * It lands on prose: the spec, the PRD, the release document. Today the only
+ * way to get an agent to touch one paragraph of those is to describe the
+ * paragraph in a composer somewhere else, which means retyping the thing you
+ * are already pointing at. Selecting it IS the reference. That is the entire
+ * value, and it is why the bar attaches to the selection rather than living in
+ * a toolbar at the top of the page.
+ *
+ * ── THE SEAM, WHICH IS DIFFERENT FROM THE REFERENCE ─────────────────────
+ * The reference wraps one hard-coded sentence in its own span and measures
+ * that. It can, because it is a demo of itself. A real prose surface hands you
+ * a DOM `Range` from the reader's own selection, over markup this component
+ * has never seen, so `range` is the input here. Everything else follows from
+ * it: the bar centres on the full selection bounds and sits under the LAST
+ * line of it, which is the only placement that does not cover the text the
+ * reader just chose.
+ *
+ * The highlight is drawn by this component too, as absolutely positioned
+ * panels over the range's own client rects. That is deliberate. It means the
+ * caller does not have to inject a wrapper element into its document to get
+ * the passage marked, and it keeps the one decision about what colour a
+ * selected passage is in the one file that is allowed to make it.
+ *
+ * ── WHAT THE COLOUR IS DOING ────────────────────────────────────────────
+ * The passage is neutral while it is merely selected, because selecting is not
+ * a status. Once the work is handed over, the highlight and the spinner take
+ * `--mrd-agent`: a machine is working on exactly this text, and the reader can
+ * see which words are in flight without reading the bar. If the edit comes
+ * back broken, `--mrd-fail` states the outcome. Nothing here uses the hue that
+ * means a person is required, because the person is already here with their
+ * cursor in the document; the thing that needs them is the Keep or Discard
+ * decision, and that is carried by the primary control's position, not a tint.
+ *
+ * ── WHAT WAS DROPPED, AND WHY ───────────────────────────────────────────
+ * `iconoir-react` and the two atom imports are not dependencies here, so the
+ * icons are inline SVG and the shimmer is built the way LoadingState builds
+ * it. The reference also streams the rewrite into the passage in place; this
+ * does not. Streaming belongs to StreamingText, which owns the reveal timing
+ * the founder tuned on 2026-08-14, and duplicating that engine in a second
+ * file is how two components drift apart. Here the result arrives when it
+ * arrives, and the caller renders it.
+ */
+
+export type SelectionAction = {
+  key: string;
+  /** What it does, in the reader's language. */
+  label: string;
+  icon?: ReactNode;
+  /** Kept out of the collapsed bar until the reader opens the overflow. */
+  secondary?: boolean;
+};
+
+export type SelectionPhase = "idle" | "working" | "result";
+
+const DEFAULT_ACTIONS: SelectionAction[] = [
+  { key: "explain", label: "Explain" },
+  { key: "improve", label: "Improve" },
+  { key: "shorten", label: "Shorten", secondary: true },
+  { key: "tighten", label: "Tighten", secondary: true },
+];
+
+function Icon({
+  children,
+  size = 14,
+  strokeWidth = 1.8,
+}: {
+  children: ReactNode;
+  size?: number;
+  strokeWidth?: number;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      {children}
+    </svg>
+  );
+}
+
+const control =
+  "inline-flex h-7 shrink-0 items-center gap-1 rounded-full px-2.5 text-[12px] text-mrd-ink transition-[background-color,color,transform] duration-150 hover:bg-mrd-hover active:scale-[0.96]";
+
+/*
+ * The primary is the next stop on the neutral ladder, not an inverted ink
+ * block. The reference inverts. Meridian rejected a saturated or inverted
+ * primary twice on the record, both times because it spends the product's one
+ * accent on chrome, and this product needs that accent free to mean "a person
+ * is required" somewhere that actually blocks.
+ */
+const primary =
+  "inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-mrd-solid px-2.5 text-[12.5px] text-mrd-ink transition-[background-color,transform] duration-150 hover:bg-mrd-float active:scale-[0.96]";
+
+type Box = { top: number; left: number; width: number; height: number };
+
+export function SelectionActions({
+  range,
+  containerRef,
+  actions = DEFAULT_ACTIONS,
+  phase = "idle",
+  workingLabel = "Working",
+  error = null,
+  onAction,
+  onInstruction,
+  onKeep,
+  onDiscard,
+  onRetry,
+  placeholder = "Describe the edit",
+}: {
+  /** The reader's live selection. Null hides the bar entirely. */
+  range: Range | null;
+  /** The positioned ancestor the bar and the highlight are measured against. */
+  containerRef: RefObject<HTMLElement | null>;
+  actions?: SelectionAction[];
+  phase?: SelectionPhase;
+  workingLabel?: string;
+  /** Set when the edit came back broken. Never rendered as a quiet nothing. */
+  error?: string | null;
+  onAction?: (action: SelectionAction) => void;
+  /** A free-text instruction typed into the bar instead of picking an action. */
+  onInstruction?: (text: string) => void;
+  onKeep?: () => void;
+  onDiscard?: () => void;
+  onRetry?: () => void;
+  placeholder?: string;
+}) {
+  const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
+  const [rects, setRects] = useState<Box[]>([]);
+  const [expanded, setExpanded] = useState(false);
+  const [instruction, setInstruction] = useState("");
+  const frameRef = useRef<number | null>(null);
+
+  const primaryActions = actions.filter((a) => !a.secondary);
+  const secondaryActions = actions.filter((a) => a.secondary);
+  const hasInstruction = instruction.trim().length > 0;
+
+  /*
+   * Measure inside a frame. A selection over wrapped prose produces one rect
+   * per visual line, and reading them during layout thrash puts the bar at an
+   * intermediate position for one paint, which shows up as a visible jump.
+   */
+  const place = useCallback(() => {
+    if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+    frameRef.current = requestAnimationFrame(() => {
+      const host = containerRef.current;
+      if (!host || !range) {
+        setAnchor(null);
+        setRects([]);
+        return;
+      }
+      const lines = Array.from(range.getClientRects()).filter((r) => r.width > 0 && r.height > 0);
+      const lastLine = lines.at(-1);
+      if (!lastLine) {
+        setAnchor(null);
+        setRects([]);
+        return;
+      }
+      const bounds = range.getBoundingClientRect();
+      const hostBox = host.getBoundingClientRect();
+
+      setRects(
+        lines.map((r) => ({
+          top: r.top - hostBox.top,
+          left: r.left - hostBox.left,
+          width: r.width,
+          height: r.height,
+        })),
+      );
+      // Centred on the whole selection, dropped under its final line.
+      setAnchor({
+        x: Math.round(bounds.left - hostBox.left + bounds.width / 2),
+        y: Math.round(lastLine.bottom - hostBox.top + 8),
+      });
+    });
+  }, [range, containerRef]);
+
+  useLayoutEffect(() => {
+    place();
+  }, [place, phase, expanded, error]);
+
+  useEffect(() => {
+    const host = containerRef.current;
+    if (!host) return;
+    const observer = new ResizeObserver(place);
+    observer.observe(host);
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+    };
+  }, [place, containerRef]);
+
+  // Reset the local draft whenever the reader moves to a different passage.
+  useEffect(() => {
+    setInstruction("");
+    setExpanded(false);
+  }, [range]);
+
+  if (!range || !anchor) return null;
+
+  const working = phase === "working";
+
+  return (
+    <>
+      {/*
+       * The highlight. Neutral while it is only selected; the agent hue once a
+       * machine has been handed the passage, so the words in flight are
+       * identifiable without reading the bar under them.
+       */}
+      {rects.map((r, i) => (
+        <span
+          key={i}
+          aria-hidden
+          className="pointer-events-none absolute rounded-mrd-xs transition-[background-color] duration-300"
+          style={{
+            top: r.top,
+            left: r.left,
+            width: r.width,
+            height: r.height,
+            background: working
+              ? "color-mix(in oklab, var(--mrd-agent) 20%, transparent)"
+              : "var(--mrd-hover)",
+            transitionTimingFunction: "var(--mrd-ease)",
+          }}
+        />
+      ))}
+
+      <div
+        className="absolute top-0 left-0 z-10"
+        style={{
+          transform: `translate3d(${anchor.x}px, ${anchor.y}px, 0) translateX(-50%)`,
+          transition: "transform var(--mrd-d-move) var(--mrd-ease)",
+          willChange: "transform",
+        }}
+      >
+        <div
+          role="toolbar"
+          aria-label="Actions for the selected passage"
+          className="flex h-9 w-fit max-w-[calc(100vw-48px)] items-center gap-0.5 rounded-full bg-mrd-float p-1 font-mrd text-mrd-ink"
+          style={{
+            boxShadow: "var(--mrd-shadow-float)",
+            animation: "mrd-fade-up var(--mrd-d-move) var(--mrd-ease) both",
+          }}
+        >
+          {/*
+           * A FAILED EDIT. It states the outcome and offers the way back. It
+           * does not fall silently to the idle bar, because a bar that simply
+           * reappears unchanged reads as "nothing happened" rather than as
+           * "that did not work", and the reader tries the same thing again.
+           */}
+          {error ? (
+            <>
+              <span className="inline-flex h-7 items-center gap-1.5 px-2.5 text-[12.5px] whitespace-nowrap text-mrd-body">
+                <span className="text-mrd-fail">
+                  <Icon size={13} strokeWidth={2.2}>
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 8v4M12 16h.01" />
+                  </Icon>
+                </span>
+                {error}
+              </span>
+              {onRetry && (
+                <button type="button" onClick={onRetry} className={primary}>
+                  <Icon>
+                    <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
+                  </Icon>
+                  Try again
+                </button>
+              )}
+              {onDiscard && (
+                <button type="button" onClick={onDiscard} className={control}>
+                  <Icon>
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </Icon>
+                  Dismiss
+                </button>
+              )}
+            </>
+          ) : working ? (
+            <span className="inline-flex h-7 items-center gap-1.5 px-2.5 text-[12.5px] whitespace-nowrap">
+              <span
+                aria-hidden
+                className="size-3 shrink-0 rounded-full border-[1.5px] border-mrd-edge border-t-mrd-agent"
+                style={{ animation: "mrd-spin 700ms linear infinite" }}
+              />
+              {/*
+               * Shimmer rather than pulse, for the reason LoadingState gives:
+               * a pulse changes the whole label's brightness and pulls the eye,
+               * a highlight travelling through it reads as "still going" in
+               * peripheral vision and stays quiet when looked at directly.
+               */}
+              <span
+                className="bg-clip-text font-medium text-transparent"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(90deg, var(--mrd-mute) 35%, var(--mrd-ink) 50%, var(--mrd-mute) 65%)",
+                  backgroundSize: "200% 100%",
+                  animation: "mrd-shimmer 1.4s linear infinite",
+                }}
+              >
+                {workingLabel}
+              </span>
+            </span>
+          ) : phase === "result" ? (
+            <>
+              <button type="button" onClick={onKeep} className={primary}>
+                <Icon>
+                  <path d="M20 6L9 17l-5-5" />
+                </Icon>
+                Keep
+              </button>
+              <button type="button" onClick={onDiscard} className={control}>
+                <Icon>
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </Icon>
+                Discard
+              </button>
+              {onRetry && (
+                <>
+                  <span aria-hidden className="mx-0.5 h-4 w-px shrink-0 bg-mrd-line" />
+                  <button
+                    type="button"
+                    aria-label="Try again"
+                    onClick={onRetry}
+                    className="flex size-7 shrink-0 items-center justify-center rounded-full text-mrd-mute transition-[background-color,color,transform] duration-150 hover:bg-mrd-hover hover:text-mrd-body active:scale-[0.96]"
+                  >
+                    <Icon>
+                      <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
+                    </Icon>
+                  </button>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              {onInstruction && (
+                <form
+                  className="flex h-7 shrink-0 items-center"
+                  style={{ width: hasInstruction ? 180 : 140 }}
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    if (hasInstruction) onInstruction(instruction.trim());
+                  }}
+                >
+                  <input
+                    value={instruction}
+                    onChange={(event) => setInstruction(event.target.value)}
+                    aria-label="Describe the edit"
+                    placeholder={placeholder}
+                    className="h-7 w-full bg-transparent pr-2.5 pl-3 text-[12.5px] text-mrd-ink outline-none placeholder:text-mrd-mute"
+                  />
+                </form>
+              )}
+
+              {/*
+               * The preset actions collapse away entirely once the reader
+               * starts typing, because at that point they have told us they
+               * want something the presets do not cover.
+               */}
+              <div
+                className="flex min-w-0 items-center gap-0.5 overflow-hidden transition-[max-width,opacity] duration-300"
+                style={{
+                  maxWidth: hasInstruction ? 0 : expanded ? 460 : 240,
+                  opacity: hasInstruction ? 0 : 1,
+                  transitionTimingFunction: "var(--mrd-ease)",
+                }}
+              >
+                {onInstruction && (
+                  <span aria-hidden className="mx-1 h-4 w-px shrink-0 bg-mrd-edge" />
+                )}
+
+                {primaryActions.map((action) => (
+                  <button
+                    key={action.key}
+                    type="button"
+                    onClick={() => onAction?.(action)}
+                    className={control}
+                  >
+                    {action.icon}
+                    {action.label}
+                  </button>
+                ))}
+
+                <div
+                  className="flex min-w-0 items-center gap-0.5 overflow-hidden transition-[max-width,opacity,margin] duration-300"
+                  style={{
+                    maxWidth: expanded ? 260 : 0,
+                    opacity: expanded ? 1 : 0,
+                    marginLeft: expanded ? 2 : 0,
+                    transitionTimingFunction: "var(--mrd-ease)",
+                  }}
+                >
+                  {secondaryActions.map((action) => (
+                    <button
+                      key={action.key}
+                      type="button"
+                      onClick={() => onAction?.(action)}
+                      className={control}
+                    >
+                      {action.icon}
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+
+                {secondaryActions.length > 0 && (
+                  <>
+                    <span aria-hidden className="mx-0.5 h-4 w-px shrink-0 bg-mrd-line" />
+                    <button
+                      type="button"
+                      aria-label={expanded ? "Show fewer actions" : "Show more actions"}
+                      aria-expanded={expanded}
+                      onClick={() => setExpanded((open) => !open)}
+                      className="flex size-7 shrink-0 items-center justify-center rounded-full text-mrd-ink transition-[background-color,transform] duration-200 hover:bg-mrd-hover active:scale-[0.96]"
+                    >
+                      <span
+                        className="flex transition-transform duration-300"
+                        style={{
+                          transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+                          transitionTimingFunction: "var(--mrd-ease)",
+                        }}
+                      >
+                        <Icon>
+                          <path d="M9 6l6 6-6 6" />
+                        </Icon>
+                      </span>
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/*
+               * Send appears only once there is something to send, which keeps
+               * the collapsed bar as short as it can be. A pane is narrow and
+               * this bar floats inside prose; every control that is not needed
+               * yet is one that pushes the useful ones off the line.
+               */}
+              {onInstruction && (
+                <div
+                  className="flex min-w-0 items-center overflow-hidden transition-[max-width,opacity] duration-300"
+                  style={{
+                    maxWidth: hasInstruction ? 30 : 0,
+                    opacity: hasInstruction ? 1 : 0,
+                    transitionTimingFunction: "var(--mrd-ease)",
+                  }}
+                >
+                  <button
+                    type="button"
+                    aria-label="Send edit instruction"
+                    onClick={() => hasInstruction && onInstruction(instruction.trim())}
+                    className="flex size-7 shrink-0 items-center justify-center rounded-full bg-mrd-solid text-mrd-ink transition-transform duration-200 active:scale-[0.94]"
+                  >
+                    <Icon size={16} strokeWidth={2.4}>
+                      <path d="M12 19V5M5 12l7-7 7 7" />
+                    </Icon>
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default SelectionActions;

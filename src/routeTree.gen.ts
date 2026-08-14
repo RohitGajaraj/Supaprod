@@ -20,6 +20,7 @@ import { Route as ProofRouteImport } from './routes/proof'
 import { Route as ProductRouteImport } from './routes/product'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as MeridianRouteImport } from './routes/meridian'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InvestorsRouteImport } from './routes/investors'
@@ -246,6 +247,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeridianRoute = MeridianRouteImport.update({
+  id: '/meridian',
+  path: '/meridian',
   getParentRoute: () => rootRouteImport,
 } as any)
 const McpRoute = McpRouteImport.update({
@@ -1196,6 +1202,7 @@ export interface FileRoutesByFullPath {
   '/investors': typeof InvestorsRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/meridian': typeof MeridianRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/product': typeof ProductRoute
@@ -1380,6 +1387,7 @@ export interface FileRoutesByTo {
   '/investors': typeof InvestorsRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/meridian': typeof MeridianRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/product': typeof ProductRoute
@@ -1564,6 +1572,7 @@ export interface FileRoutesById {
   '/investors': typeof InvestorsRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/meridian': typeof MeridianRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/product': typeof ProductRoute
@@ -1750,6 +1759,7 @@ export interface FileRouteTypes {
     | '/investors'
     | '/login'
     | '/mcp'
+    | '/meridian'
     | '/pricing'
     | '/privacy'
     | '/product'
@@ -1934,6 +1944,7 @@ export interface FileRouteTypes {
     | '/investors'
     | '/login'
     | '/mcp'
+    | '/meridian'
     | '/pricing'
     | '/privacy'
     | '/product'
@@ -2117,6 +2128,7 @@ export interface FileRouteTypes {
     | '/investors'
     | '/login'
     | '/mcp'
+    | '/meridian'
     | '/pricing'
     | '/privacy'
     | '/product'
@@ -2303,6 +2315,7 @@ export interface RootRouteChildren {
   InvestorsRoute: typeof InvestorsRoute
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
+  MeridianRoute: typeof MeridianRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ProductRoute: typeof ProductRoute
@@ -2470,6 +2483,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/meridian': {
+      id: '/meridian'
+      path: '/meridian'
+      fullPath: '/meridian'
+      preLoaderRoute: typeof MeridianRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -3917,6 +3937,7 @@ const rootRouteChildren: RootRouteChildren = {
   InvestorsRoute: InvestorsRoute,
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
+  MeridianRoute: MeridianRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ProductRoute: ProductRoute,

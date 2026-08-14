@@ -35,14 +35,38 @@
  * This product exists to draw one line: what a machine did, and what a person
  * must decide. So that line is the colour system.
  *
- *      WARM GOLD   a person is required.  Your call, your approval, your
- *                  attention. It is the same hue whether the reason is a
- *                  decision or a warning, because to the reader those are one
- *                  fact: this will not move until you touch it.
- *      COOL BLUE   a machine is working. The only cool hue in the product, so
- *                  "an agent is running" is separable from "you must act" at a
- *                  glance, before any word is read.
- *      GREEN/RED   outcome. What happened, never what is needed.
+ *      ORCHID   a person is required. Your call, your approval, your attention.
+ *               It is the same hue whether the reason is a decision or a
+ *               warning, because to the reader those are one fact: this will
+ *               not move until you touch it.
+ *      AZURE    a machine is working. It sits at lower chroma than orchid on
+ *               purpose: an agent running is ambient, not urgent, and should
+ *               never compete with the one thing asking for a person.
+ *      GREEN/RED  outcome. What happened, never what is needed.
+ *
+ * WHY ORCHID, AND WHY NOT GOLD. The first draft of this system used a warm gold
+ * for "a person is required" and leaned on a warm/cool metaphor to separate it
+ * from the machine blue. The founder rejected it on sight, 2026-08-14: yellow
+ * and mustard read as an AI-generated palette rather than a considered one, and
+ * he is right that it is the reflex every generated dashboard reaches for.
+ *
+ * The replacement is not a taste swap, it is a constraint solve. Three hue
+ * regions are already spoken for and cannot be reused: red means it failed,
+ * green means it worked, blue means a machine is working. That leaves the
+ * magenta-to-orchid arc as the only unambiguous space left. Orchid also has to
+ * sit FAR from red, because "this needs you" and "this broke" are the two
+ * states a reader must never confuse, and red-versus-magenta is exactly the
+ * pair that collapses for the most common colour vision deficiencies. So the
+ * machine hue was moved cooler to 235 to open the gap, and orchid sits at 315:
+ * 80 degrees from the machine, 72 from failure. Neither neighbour is close.
+ *
+ * The warm/cool framing is therefore RETIRED rather than quietly reworded. The
+ * two meanings are separated by hue distance and by chroma, not by temperature,
+ * and claiming otherwise would be describing a system we no longer have.
+ *
+ * NO YELLOW, MUSTARD, AMBER OR GOLD ANYWHERE IN THIS SYSTEM. Not as an accent,
+ * not as a warning, not as a chart series, not as a hover. If a state seems to
+ * need one, it needs structure instead.
  *
  * Everything else is a neutral. Colour carries status and never decorates, and
  * the whole system must survive a greyscale test: if the screen stops making
@@ -96,18 +120,18 @@
   --mrd-scrim: oklch(0.09 0.005 70 / 0.62);
 
   /* ── SEMANTIC. Four meanings, and no fifth. ──────────────────────────── */
-  --mrd-you: oklch(0.8 0.145 82); /* WARM: a person is required */
-  --mrd-you-dim: oklch(0.62 0.105 82); /* the same meaning, at rest */
-  --mrd-agent: oklch(0.7 0.105 258); /* COOL: a machine is working */
-  --mrd-agent-dim: oklch(0.55 0.075 258);
+  --mrd-you: oklch(0.72 0.16 315); /* ORCHID: a person is required */
+  --mrd-you-dim: oklch(0.56 0.11 315); /* the same meaning, at rest */
+  --mrd-agent: oklch(0.68 0.11 235); /* AZURE: a machine is working */
+  --mrd-agent-dim: oklch(0.54 0.08 235);
   --mrd-pass: oklch(0.74 0.15 152); /* outcome: it worked */
   --mrd-fail: oklch(0.66 0.19 27); /* outcome: it did not */
 
   /*
-   * There is deliberately no separate `warn`. An amber warning and a gold
-   * "your call" would sit within a few degrees of each other and teach the
-   * reader nothing by their difference. They are one fact: this does not move
-   * until you touch it. One hue, one meaning, no lookup table to memorise.
+   * There is deliberately no separate `warn`, and there is no amber to put it
+   * in even if there were. A warning and a "your call" are one fact to the
+   * reader: this does not move until you touch it. One hue, one meaning, no
+   * lookup table to memorise.
    */
 
   /* ── TYPE. A scale with real contrast, not twelve adjacent sizes. ────── */
@@ -209,14 +233,14 @@
 
   /*
    * The semantic four are re-darkened rather than reused. A hue that clears
-   * contrast on a near-black ground fails on paper, and the gold fails worst:
-   * at L 0.80 it is a highlighter on white. These hold their meaning and their
-   * contrast in both grounds, which is the only thing that must survive.
+   * contrast on a near-black ground does not clear it on paper: at the dark
+   * theme's lightness these read as highlighter on white. Meaning and contrast
+   * both have to survive the ground change, and only the hue stays fixed.
    */
-  --mrd-you: oklch(0.58 0.15 68);
-  --mrd-you-dim: oklch(0.7 0.11 72);
-  --mrd-agent: oklch(0.5 0.13 258);
-  --mrd-agent-dim: oklch(0.63 0.09 258);
+  --mrd-you: oklch(0.5 0.19 315);
+  --mrd-you-dim: oklch(0.63 0.13 315);
+  --mrd-agent: oklch(0.48 0.13 235);
+  --mrd-agent-dim: oklch(0.61 0.09 235);
   --mrd-pass: oklch(0.52 0.14 152);
   --mrd-fail: oklch(0.52 0.19 27);
 
@@ -249,7 +273,19 @@
   --color-mrd-line: var(--mrd-line);
   --color-mrd-line-soft: var(--mrd-line-soft);
   --color-mrd-edge: var(--mrd-edge);
+  --color-mrd-edge-focus: var(--mrd-edge-focus);
   --color-mrd-hover: var(--mrd-hover);
+  --color-mrd-scrim: var(--mrd-scrim);
+
+  /*
+   * What sits ON an accent fill. Without this every author does the contrast
+   * arithmetic themselves and one of them eventually gets it wrong in one
+   * ground only. It resolves to the ground itself, which is the correct answer
+   * in both directions: the accent is mid-lightness on dark and on paper, so
+   * the canvas is always the far end of the ramp from it.
+   */
+  --color-mrd-on-you: var(--mrd-bg);
+  --color-mrd-on-agent: var(--mrd-bg);
 
   --color-mrd-you: var(--mrd-you);
   --color-mrd-you-dim: var(--mrd-you-dim);
@@ -266,6 +302,29 @@
 
   --font-mrd: var(--mrd-font);
   --font-mrd-mono: var(--mrd-mono);
+
+  /*
+   * Elevation as utilities, so `shadow-mrd-card` exists and nobody has to reach
+   * for an inline style to raise something off the ladder.
+   */
+  --shadow-mrd-card: var(--mrd-shadow-card);
+  --shadow-mrd-float: var(--mrd-shadow-float);
+  --shadow-mrd-pane: var(--mrd-shadow-pane);
+
+  /*
+   * The growing space ramp as utilities: `p-mrd-4`, `gap-mrd-6`. This is the
+   * one that matters most for feel. Reaching for Tailwind's default linear
+   * scale is how a composition ends up with the same breath everywhere, which
+   * is the single most reliable way to make a dense product look generated.
+   */
+  --spacing-mrd-1: var(--mrd-s1);
+  --spacing-mrd-2: var(--mrd-s2);
+  --spacing-mrd-3: var(--mrd-s3);
+  --spacing-mrd-4: var(--mrd-s4);
+  --spacing-mrd-5: var(--mrd-s5);
+  --spacing-mrd-6: var(--mrd-s6);
+  --spacing-mrd-7: var(--mrd-s7);
+  --spacing-mrd-8: var(--mrd-s8);
 }
 
 /*
@@ -320,6 +379,24 @@
 }
 
 /*
+ * Something arriving that was not there a moment ago, and that the reader
+ * should notice: a card, a menu, a receipt. Scales from 98 rather than from a
+ * smaller figure, because a large scale-up reads as a pop and this system does
+ * not bounce. Distinct from mrd-fade-up, which is for a row joining a list it
+ * already belongs to.
+ */
+@keyframes mrd-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
  * REDUCED MOTION. Decoration stops; information does not. An elapsed timer
  * keeps ticking even with animation off, because freezing the number tells
  * someone waiting on a long job that it has stalled. That distinction is the
@@ -330,6 +407,7 @@
   [style*="mrd-shimmer"],
   [style*="mrd-fade-up"],
   [style*="mrd-fade-in"],
+  [style*="mrd-pop-in"],
   [style*="mrd-spin"] {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
