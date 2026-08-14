@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | [`aggregators`](./lane-aggregators.md) | discovery only, verification running | 46 |
 | [`apac-mena-india`](./lane-apac-mena-india.md) | verified | 41 |
-| [`communities-fellowships`](./lane-communities-fellowships.md) | discovery only, verification running | 51 |
+| [`communities-fellowships`](./lane-communities-fellowships.md) | verified | 51 |
 | [`credits-cloud-ai`](./lane-credits-cloud-ai.md) | discovery only, verification running | 56 |
 | [`eu-level-nondilutive`](./lane-eu-level-nondilutive.md) | discovery only, verification running | 37 |
 | [`france-dach-south`](./lane-france-dach-south.md) | discovery only, verification running | 54 |
