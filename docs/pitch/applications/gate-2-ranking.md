@@ -2,6 +2,8 @@
 
 > _Created 2026-08-14 from the eleven-lane global sweep. **568 programmes captured, 305 confirmed open against their own apply page.** Every row below carries terms read off the programme's own page, not an aggregator. Re-check the link before filing: programmes change dates without notice, and this sweep exists because one did._
 
+**Notion mirror: [🎯 Gate 2](https://app.notion.com/p/3bc3f54c86c28183a103e005b9776c27).** Same content, readable on a phone. **When the two disagree, fix both in the same sitting** — that rule already governs the tracker and the board, and a third copy is exactly how the last drift started.
+
 **How to read this.** Tier is expected value for **this** founder: solo, unincorporated, no external users, a working product, ten weeks of build, an enterprise AI background. It is not a ranking of programme prestige. A famous programme we will not get into ranks below an obscure one we will.
 
 **Three screening rulings govern every row** ([`README.md`](./README.md)): a deadline is a rumour until the form contradicts it · no entity is a funding-release condition, not an eligibility bar · solo is one condition, not a stop.
