@@ -259,3 +259,4 @@ videos/supaprod-film/renders/supaprod-film-final-4k.mp4
 !videos/supaprod-film/snapshots/**/*.png
 !videos/supaprod-film/snapshots/**/*.jpg
 !videos/supaprod-film/capture/screenshots/**/*.png
+docs/pitch/applications/sweep/.msg

@@ -221,7 +221,11 @@ def commit(nlanes, total):
             "completes. Rebuilt from the run journal on every pass, so the harvester\n"
             "itself is disposable.\n"
         )
+    # Stage the folder but NEVER the message file itself -- an earlier version
+    # staged the whole directory and committed its own .msg, which then showed
+    # as an unstaged deletion on the next pass and blocked a rebase.
     subprocess.run(["git", "add", "docs/pitch/applications/sweep"], cwd=REPO, check=False)
+    subprocess.run(["git", "reset", "-q", "--", os.path.relpath(msg, REPO)], cwd=REPO, check=False)
     staged = subprocess.run(
         ["git", "diff", "--cached", "--name-only"], cwd=REPO,
         capture_output=True, text=True, check=False).stdout.strip()
