@@ -1,68 +1,63 @@
 # Sweep lane: `apac-mena-india`
 
-> _Harvested from the live run. Stage captured: **discovered (verification still running)**. 40 programmes._
+> _Harvested from the live run. Stage captured: **verified**. 41 programmes._
 
 **Every row was checked against the programme's own apply page.** `page_state` is what the form did, never what a listing said. `UNKNOWN` means a login or paywall blocked the check and it needs the founder, not a guess.
 
 | Programme | Region | Category | Page state | Deadline | Terms | Solo stance | Entity to apply? | Apply |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Hub71 Access Programme (Cohort 20) | UAE / Abu Dhabi | accelerator | 🟢 OPEN | 2026-08-21 | SAFE note - equity taken. Amount/valuation not published on the page. | No published team-size requirement found on the pr | no | [apply](https://www.hub71.com/program/access-programme/apply) |
-| Hub71+ AI | UAE / Abu Dhabi | accelerator | 🟢 OPEN | 2026-08-21 | SAFE note - equity taken | Not stated on the page | no | [apply](https://www.hub71.com/program/hub71-plus-ai) |
-| Sanabil Startup Unlocked by 500 Global (Batch 5) | Saudi Arabia / Riyadh | accelerator | 🟢 OPEN | 2026-08-23 | None stated | Not stated on the page | no | [apply](https://sanabilstartupunlocked.aplica.500.co/) |
-| E3 Accelerator Cycle 6 | Saudi Arabia / Riyadh | accelerator | 🟢 OPEN | 2026-09-30 | Not published on the page | Published preference for teams: "Minimum of two co | no | [apply](https://e3.ventures/programs/e3-accelerator/) |
-| Google for Startups Accelerator: Middle East, North Africa and Turkey | MENA + Turkey | accelerator | 🟢 OPEN | 2026-08-31 | Equity-free | Not stated; requires "Commitment from CTO and/or t | no | [apply](https://startup.google.com/programs/accelerator/middle-east-north-africa-turkey/) |
-| Forge Residency Cohort 02 (Goa) | India / Goa | residency | 🟢 OPEN | null | None: "forge does not take equity" | Explicitly welcomes solo: "technical founders and  | no | [apply](https://www.forgeresidency.com/apply?cohort=2) |
-| Ship Residency | India / Bengaluru | residency | 🟢 OPEN | rolling | None: "Ship isn't an accelerator or an investor. We don't take equity, | Explicitly welcomes solo: "Absolutely. Solo founde | no | [apply](https://www.shipresidency.com/) |
-| AREA 01 | India / Bengaluru | residency | 🟢 OPEN | null | Not published | Framed around individual builders: "AREA 01 is bui | no | [apply](https://www.area01.space/) |
-| Iterative (Winter 2027 batch) | Southeast Asia (remote-first, Singapore-anchored) | accelerator | 🟢 OPEN | null | Roughly 10-15% of the company. Invested in full immediately - "no mile | Not stated as a bar. "I ONLY HAVE AN IDEA. CAN I A | no | [apply](https://www.iterative.vc/apply) |
-| Antler Singapore Inception SG21 | Singapore | residency | 🟢 OPEN | rolling | Equity taken; percentage not published on the page. "There is no fee t | Antler's model historically forms teams inside the | no | [apply](https://www.antler.co/location/singapore) |
-| Antler MENAP Residency (Dubai / Riyadh) | UAE and Saudi Arabia | residency | 🟢 OPEN | rolling | Equity taken; percentage not published | Not a published bar; the residency is "designed fo | no | [apply](https://www.antler.co/location/menap) |
-| Antler Australia / New Zealand Residency | Australia (Sydney, Melbourne, Brisbane) | residency | 🟢 OPEN | rolling | Equity taken; ANZ terms not published on the pages read | Not a published bar | no | [apply](https://www.antler.co/cohort-start-dates) |
-| Startmate Accelerator (Summer 2027 cohort) | Australia and New Zealand | accelerator | 🟢 OPEN | 2026-11-08 | At AUD $1.5m post-money for founders who have not previously raised. F | Not a published bar; mentors assess "connection to | no | [apply](https://www.startmate.com/accelerator/program) |
-| Surge by Peak XV | India and Southeast Asia | accelerator | 🟢 OPEN | rolling | Seed equity; terms not published on the apply page | The form makes co-founder details a required field | **yes** | [apply](https://surge.peakxv.com/apply) |
-| SparkLabs Taiwan Accelerator (Batch 11) | Taiwan / Taipei | accelerator | 🟢 OPEN | rolling | Equity taken; terms not published | Not stated on the page | no | [apply](https://www.sparklabstaiwan.com/accelerator/program) |
-| ikigai Launchpad | Taiwan / Taipei | accelerator | 🟢 OPEN | null | $100,000 for 8% through a SAFE, with potential follow-on from Lifelike | Explicitly welcomes solo: "A co-founder is not req | no | [apply](https://www.886studios.com/programs) |
-| in5 Tech Incubation Programme | UAE / Dubai | incubator | 🟢 OPEN | rolling | Equity-free | Not stated; open to "entrepreneurs with a business | no | [apply](https://infive.ae/in5-tech/) |
-| DIFC Innovation Hub startup programmes | UAE / Dubai | incubator | 🟢 OPEN | rolling | Not stated | Not stated | no | [apply](https://www.innovationhub.difc.ae/join-our-community/as-a-startup) |
-| 100X.VC | India | accelerator | 🟢 OPEN | rolling | iSAFE note for 15% of future equity - heavy for a pre-seed cheque of t | Not stated; they look for founders "actively build | **yes** | [apply](https://www.100x.vc/apply) |
-| IIMA Ventures incubation | India (Ahmedabad, Indore, Jaipur) | incubator | 🟢 OPEN | rolling | Not stated for incubation | Not stated for general incubation | no | [apply](https://iimaventures.com/incubation/) |
-| JETRO Global Startup Acceleration Program (GSAP) | Japan | non-dilutive scheme | 🟢 OPEN | 2026-08-30 | Non-dilutive - JETRO takes no equity | Not stated | **yes** | [apply](https://www.jetro.go.jp/en/startup/acceleration/gsap.html) |
-| Antler India Residency | India / Bengaluru | residency | 🟡 UNKNOWN | null | Equity taken; terms unverified from a primary source | Antler India's most recent AI residency was descri | no | [apply](https://www.antler.co/location/india) |
-| Future Founders Fellowship | India and Southeast Asia | fellowship | 🟡 UNKNOWN | null | Unknown | Unknown - fellowship structures typically assess i | no | [apply](https://surge.peakxv.com/futurefoundersfellowship) |
-| Techstars Tokyo Accelerator | Japan / Tokyo | accelerator | 🟡 UNKNOWN | null | Equity taken; standard Techstars terms not published on this page | Not stated | no | [apply](https://www.techstars.com/accelerators/tokyo) |
-| Sanabil Accelerator by 500 Global (next batch) | Saudi Arabia / Riyadh | accelerator | 🟡 UNKNOWN | null | The page states "The program Fee for Phase 1 is $35,000 per startup, e | Not stated; criteria are stage-based (MVP, early t | no | [apply](https://500.co/founders/mena/seed-accelerator) |
-| Misk Launchpad 10.0 | Saudi Arabia / Riyadh (hybrid, delivered virtually) | incubator | 🟡 UNKNOWN | null | Not stated - pre-acceleration programme | Explicitly accepts solo: "Teams of 2-3 co-founders | no | [apply](https://hub.misk.org.sa/en/programs/entrepreneurship/misk-launchpad/) |
-| Accel Atoms | India and Indian-origin founders globally | accelerator | 🟡 UNKNOWN | null | Co-investment - equity taken; terms not published | Not stated; "Founders at idea or prototype stage - | no | [apply](https://atoms.accel.com/apply) |
-| BITSoM VERTEX | India | incubator | 🟡 UNKNOWN | null | Unknown | Unknown | no | [apply](https://www.ceoinsightsindia.com/news/bitsom-debuts-vertex-to-bring-silicon-valley-innovation-to-india-nwid-24629.html) |
-| nasscom DeepTech Club | India | founder community | 🟡 UNKNOWN | rolling | None | Not stated | **yes** | [apply](https://nasscom.accubate.app/ext/form/404/1/apply) |
-| Cyberport Incubation Programme | Hong Kong | incubator | 🟡 UNKNOWN | null | Equity-free financial assistance | Not stated; requires at least one local authorised | **yes** | [apply](https://www.cyberport.hk/en/entrepreneurship/cyberport_incubation_programme/) |
-| HKSTP Incu-Tech Incubation Programme | Hong Kong | incubator | 🟡 UNKNOWN | null | Funding support - equity-free | Effectively team-requiring: "have at least 2 full- | **yes** | [apply](https://www.hkstp.org/en/programmes/incubation/incubation-programme) |
-| Tenity Singapore Incubation (Batch VII) | Singapore / Southeast Asia | incubator | 🟡 UNKNOWN | null | SGD 70K for a 2.5% equity stake, plus a programme participation fee of | Not stated | no | [apply](https://www.tenity.com/programs/singapore-incubation-batch-7) |
-| Sharjah Startup Studio (S3) and Access Sharjah Challenge | UAE / Sharjah | accelerator | 🟡 UNKNOWN | null | Equity-free | Not stated | no | [apply](https://www.startups.sheraa.ae/) |
-| Qatar Science & Technology Park Incubation Centre and Startup Qatar TASMU Accelerator | Qatar / Doha | incubator | 🟡 UNKNOWN | null | Not stated | Not stated | no | [apply](https://startupqatar.qa/en) |
-| Startup India Seed Fund Scheme | India | grant | 🟡 UNKNOWN | null | Unknown | Unknown | **yes** | [apply](https://seedfund.startupindia.gov.in/) |
-| Entrepreneur First - Bangalore | India / Bengaluru (with San Francisco progression) | incubator | ⚪ CLOSED | null | Equity taken at company formation; the grant phase is equity-free | The strongest solo stance of any programme in this | no | [apply](https://apply.joinef.com/app/bangalore-fall/) |
-| K-Startup Grand Challenge 2026 | South Korea | non-dilutive scheme | ⚪ CLOSED | null | Government programme - non-dilutive | No team-size requirement; applications are submitt | no | [apply](https://ksgc.global/) |
-| Blackbird Giants | Australia and New Zealand | incubator | ⚪ CLOSED | null | Equity-free | Not a published bar; aimed at early-stage founders | no | [apply](https://www.blackbird.vc/giants) |
-| OIST Innovation Accelerator | Japan / Okinawa | accelerator | ⚪ CLOSED | null | Non-dilutive | Not stated; requires at least one co-founder or C- | **yes** | [apply](https://www.oist.jp/innovation/program-accelerator-startup-support-innovation) |
-| Google for Startups Accelerator: India | India | accelerator | ⚪ CLOSED | null | Equity-free | Requires "Commitment from founder(s) and/or releva | no | [apply](https://startup.google.com/programs/accelerator/india/) |
+| Hub71 Access Programme (Cohort 20) | UAE / Abu Dhabi | accelerator | 🟢 OPEN | 2026-08-21 | SAFE note, equity taken. Valuation and discount not published on any H | No team-size bar. The founders question is free te | no | [apply](https://www.hub71.com/program/access-programme/apply) |
+| Hub71+ AI | UAE / Abu Dhabi | accelerator | 🟢 OPEN | 2026-08-21 | SAFE note, equity taken. | Same form and same stance as Access - no team-size | no | [apply](https://www.hub71.com/program/access-programme/apply) |
+| Sanabil Startup Unlocked by 500 Global (Batch 5) | Saudi Arabia / Riyadh | accelerator | 🟢 OPEN | 2026-08-23 | None stated - no equity mentioned anywhere on the programme page. | Not stated on the page. | no | [apply](https://sanabilstartupunlocked.aplica.500.co/) |
+| E3 Accelerator Cycle 6 | Saudi Arabia / Riyadh | accelerator | 🟢 OPEN | 2026-09-30 | Not published. "Any equity, investment, and valuation terms will be di | Published two-founder criterion, confirmed verbati | no | [apply](https://e3.ventures/programs/e3-accelerator/) |
+| Google for Startups Accelerator: Middle East, North Africa and Turkey | MENA + Turkey | accelerator | 🟢 OPEN | 2026-08-31 | Equity-free. | No team-size bar, but a technical-participation re | no | [apply](https://startup.google.com/programs/accelerator/middle-east-north-africa-turkey/) |
+| Forge Residency Cohort 02 (Goa) | India / Goa | residency | 🟢 OPEN | 2026-09-15 | None. "forge does not take equity." | Explicitly welcomes solo and pre-incorporation: "t | no | [apply](https://www.forgeresidency.com/apply?cohort=2) |
+| Ship Residency | India / Bengaluru | residency | 🟢 OPEN | rolling | None. "Ship isn't an accelerator or an investor. We don't take equity, | Explicitly welcomes solo: "Absolutely. Solo founde | no | [apply](https://www.shipresidency.com/) |
+| Iterative (Winter 2027 batch) | Southeast Asia (remote-first, Singapore-anchored) | accelerator | 🟢 OPEN | rolling | Roughly 10-15% of the company, invested in full immediately - "no mile | Explicitly funds solo founders: "We invest in both | no | [apply](https://www.iterative.vc/apply) |
+| Antler Singapore Inception SG21 | Singapore | residency | 🟢 OPEN | rolling | $100,000 for 10% via SAFE as the priced component; the remainder uncap | No published solo bar on the Singapore pages, but  | no | [apply](https://www.antler.co/location/singapore) |
+| Antler MENAP Residency (Dubai / Riyadh) | UAE and Saudi Arabia | residency | 🟢 OPEN | rolling | $180,000 for 11% via SAFE, plus up to $320,000 uncapped follow-on. Now | The clearest statement Antler publishes anywhere,  | no | [apply](https://www.antler.co/location/menap) |
+| Antler Australia / New Zealand Residency | Australia (Sydney, Melbourne, Brisbane) | residency | 🟢 OPEN | rolling | Equity taken; ANZ-specific terms not published on any Antler page read | No published ANZ-specific bar. Antler's global pre | no | [apply](https://www.antler.co/cohort-start-dates) |
+| Startmate Accelerator (Summer 2027 cohort) | Australia and New Zealand | accelerator | 🟢 OPEN | 2026-11-08 | AUD $120,000 at a AUD $1.5m post-money valuation for founders who have | No published solo bar on any Startmate page read.  | no | [apply](https://www.startmate.com/accelerator/program) |
+| Surge by Peak XV | India and Southeast Asia | accelerator | 🟢 OPEN | rolling | Seed equity investment. Percentage and valuation not published on the  | NOT a blocker, contrary to the phase-1 concern. Qu | **yes** | [apply](https://surge.peakxv.com/apply) |
+| Future Founders Fellowship | India / Bangalore | fellowship | 🟢 OPEN | 2026-08-31 | Not applicable - this is a paid internship, not an investment. | Not applicable - the programme assesses individual | no | [apply](https://surge.peakxv.com/futurefoundersfellowship) |
+| SparkLabs Taiwan Accelerator (Batch 11) | Taiwan / Taipei | accelerator | 🟢 OPEN | rolling | At least US$100K for up to 7%. Now sourced from the programme's own pa | Not stated on the page. | no | [apply](https://www.sparklabstaiwan.com/accelerator/program) |
+| ikigai Launchpad | Taiwan / Taipei | accelerator | 🟢 OPEN | 2026-08-16 | "The standard deal is a $100,000 USD investment for 8% through a SAFE" | Explicitly accommodates solo: "A co-founder is not | no | [apply](https://www.886studios.com/programs) |
+| in5 Tech Incubation Programme | UAE / Dubai | incubator | 🟢 OPEN | rolling | Equity-free. | No team-size requirement stated. "We are open to g | no | [apply](https://infive.ae/in5-tech/) |
+| DIFC Innovation Hub startup community | UAE / Dubai | incubator | 🟢 OPEN | rolling | None stated for community entry. The form asks "Equity Offered" as a f | Not stated. The form asks for Founder Bios as free | no | [apply](https://www.innovationhub.difc.ae/join-our-community/as-a-startup) |
+| Accel Atoms (AI Cohort and Atoms X) | India and Indian-origin founders globally | accelerator | 🟢 OPEN | rolling | Co-investment, equity taken. Terms not published. | Not stated as a bar. "Founders at idea or prototyp | no | [apply](https://apply.accel-atoms.com/) |
+| 100X.VC | India | accelerator | 🟢 OPEN | rolling | "the investment committee will email a term sheet offer for 1.25 Cr fo | Not stated. They look for founders "actively build | no | [apply](https://form.jotform.com/100xvc/100xvc-startup-application) |
+| IIMA Ventures incubation | India (Ahmedabad, Indore, Jaipur) | incubator | 🟢 OPEN | rolling | Not stated for incubation. The FAQ carries a "Do you take equity again | Not stated for general incubation. The FAQ does ad | no | [apply](https://iimaventures.com/incubation/) |
+| Cyberport Creative Micro Fund (CCMF) - Hong Kong Programme | Hong Kong | grant | 🟢 OPEN | 2026-12-01 | Non-dilutive grant. No equity taken. | No team-size requirement. The programme explicitly | no | [apply](https://ems.cyberport.hk/form/?selected_lang=en) |
+| HKSTP Incu-Tech Incubation Programme | Hong Kong | incubator | 🟢 OPEN | rolling | Funding support, equity-free. | Softer than phase 1 recorded. HKSTP's own pages st | **yes** | [apply](https://www.hkstp.org/en/programmes/incubation/incubation-programme) |
+| Startup Qatar Investment Program | Qatar / Doha | accelerator | 🟢 OPEN | rolling | Equity taken, and the published range is unusually wide: "TAKES 5-50%  | Not stated as a bar. The form asks how many techni | no | [apply](https://www.f6s.com/sqinvestmentprogram) |
+| JETRO Global Startup Acceleration Program (GSAP) | Japan | non-dilutive scheme | 🟢 OPEN | 2026-08-30 | Non-dilutive - JETRO takes no equity. | Not stated. Requirement 4 of 7 requires decision-m | **yes** | [apply](https://www.jetro.go.jp/en/startup/acceleration/gsap.html) |
+| Startup India Seed Fund Scheme (SISFS) | India | grant | 🟢 OPEN | rolling | Grant and debt/convertible debentures. "A startup applicant can avail  | No team-size requirement published. | **yes** | [apply](https://seedfund.startupindia.gov.in/) |
+| AREA 01 | India / Bengaluru | residency | 🟡 UNKNOWN |  | Not published. | Framed around individual builders. Eligibility is  | no | [apply](https://www.area01.space/) |
+| Antler India Residency | India / Bengaluru | residency | 🟡 UNKNOWN |  | ₹4 Cr (approximately $470K) for 11%. This is now sourced from antler.c | Team-leaning. The page describes target candidates | no | [apply](https://www.antler.co/location/india) |
+| Techstars Tokyo Accelerator | Japan / Tokyo | accelerator | 🟡 UNKNOWN |  | $120,000 total for 5% equity. Now sourced from the Tokyo programme pag | Not stated on the Tokyo page. | no | [apply](https://apply.techstars.com/) |
+| Sanabil Accelerator by 500 Global (Batch 12) | Saudi Arabia / Riyadh | accelerator | 🟡 UNKNOWN |  | Equity investment of $100,000+. Percentage not published. | Not stated. Criteria are stage-based rather than t | no | [apply](https://mena.aplica.500.co/) |
+| BITSoM VERTEX | India | incubator | 🟡 UNKNOWN |  | Unknown. | Unknown. | no | [apply](https://www.ceoinsightsindia.com/news/bitsom-debuts-vertex-to-bring-silicon-valley-innovation-to-india-nwid-24629.html) |
+| Cyberport Incubation Programme (CIP) | Hong Kong | incubator | 🟡 UNKNOWN |  | Equity-free financial assistance. | Not stated as a team-size rule, but "Founders coll | **yes** | [apply](https://ems.cyberport.hk/form/?selected_lang=en) |
+| Tenity Singapore Incubation (Batch VII) | Singapore / Southeast Asia | incubator | 🟡 UNKNOWN |  | SGD 70K for a 2.5% equity stake, plus a programme participation fee of | Not stated. | no | [apply](https://www.tenity.com/programs/) |
+| Sharjah Startup Studio (S3) | UAE / Sharjah | accelerator | 🟡 UNKNOWN |  | "Participate in an equity-free program with no participation charges." | Not stated. | no | [apply](https://www.asc.sheraa.ae/s3-program) |
+| Misk Launchpad 10.0 | Saudi Arabia / Riyadh (delivered virtually) | incubator | ⚪ CLOSED |  | None stated. Pre-acceleration programme, no equity mentioned. | One of only two programmes in the sweep that state | no | [apply](https://hub.misk.org.sa/en/programs/entrepreneurship/misk-launchpad/) |
+| nasscom DeepTech Club | India | founder community | ⚪ CLOSED |  | None. | Not stated. | no | [apply](https://nasscom.accubate.app/ext/form/2124/1/apply) |
+| Entrepreneur First - Bangalore | India / Bengaluru (with San Francisco progression) | incubator | ⚪ CLOSED |  | Equity taken at company formation; the grant phase is equity-free. | The strongest solo stance found anywhere in this s | no | [apply](https://www.joinef.com/register-your-interest-bangalore/) |
+| K-Startup Grand Challenge 2026 | South Korea | non-dilutive scheme | ⚪ CLOSED |  | Non-dilutive - government programme, no equity taken. | No team-size requirement on the main track; applic | no | [apply](https://ksgc.global/) |
+| Blackbird Giants | Australia and New Zealand | incubator | ⚪ CLOSED |  | None. "Giants is free and we don't ask for equity." | Not a published bar. Aimed at early-stage founders | no | [apply](https://www.blackbird.vc/giants) |
+| OIST Innovation Accelerator | Japan / Okinawa | accelerator | ⚪ CLOSED |  | Non-dilutive. | Not stated as a bar, but requires at least one cof | no | [apply](https://www.oist.jp/innovation/program-accelerator-startup-support-innovation) |
+| Google for Startups Accelerator: India | India | accelerator | ⚪ CLOSED |  | "The Google for Startups Accelerator: India is equity-free for all par | Requires "Commitment from founder(s) and/or releva | no | [apply](https://startup.google.com/programs/accelerator/india/) |
 
 ## 🟡 Blocked, and needs founder access
 
-- **Antler India Residency** — The India location page is live and carries the standard Antler "Apply now" flow, but publishes no current cohort dates, and India does not appear on Antler's own cohort-start-dates table (which lists Sept-Dec 2026 dates for Europe, London, Singapore, Nairobi, Dubai, Riyadh, Brisbane, Sydney and Melbourne, plus rolling-intake cities). An open India intake cannot be confirmed from the page. · https://www.antler.co/location/india
-- **Future Founders Fellowship** — Page identified in search results as a distinct Peak XV/Surge programme but not fetched and read in this session, so its application state cannot be asserted. No claim is made about whether it is open. · https://surge.peakxv.com/futurefoundersfellowship
-- **Techstars Tokyo Accelerator** — The Tokyo programme page is live and describes the accelerator but shows no application form, no open or closed banner, and no dates for a next cohort. Tokyo also does not appear in the accelerator list on techstars.com/accelerators, which currently shows only US and European programmes. Application state cannot be determined from the page. · https://www.techstars.com/accelerators/tokyo
-- **Sanabil Accelerator by 500 Global (next batch)** — The page carries two contradictory statements and no open or closed banner. It states "Priority Deadline: July 19, 2026... Applications period closes on August 9, 2026" for the 27 September - 9 December 2026 Riyadh batch, while the Pre-Program section also states "Applications are accepted on a rolling basis. Apply to be considered for the next batch." Current state cannot be determined from the page. · https://500.co/founders/mena/seed-accelerator
-- **Misk Launchpad 10.0** — The programme page lists an application window of "15 Jun 2026 - 08 Aug 2026" alongside a separate line reading "Application Closing 30 Sep" and a programme run of "06 Sep 2026 - 02 Jan 2027". The two dates contradict each other and the page carries no open or closed banner. · https://hub.misk.org.sa/en/programs/entrepreneurship/misk-launchpad/
-- **Accel Atoms** — The apply page loads but serves an overlay reading "Atoms is Upgrading - We're upgrading the Atoms application experience on July 11. Please complete your application now, or check after the 11th." The homepage offers only a newsletter signup with "I would like to be notified for the next cohort of Atoms" and no live cohort application. Whether an intake is open cannot be confirmed. · https://atoms.accel.com/apply
-- **BITSoM VERTEX** — Programme announced 5 August 2026 with a trade report stating "Applications for the inaugural cohort of BITSoM VERTEX are now officially open", but the official application portal was not located or read in this session. The URL recorded here is the announcement, not an application page, and must be replaced before use. · https://www.ceoinsightsindia.com/news/bitsom-debuts-vertex-to-bring-silicon-valley-innovation-to-india-nwid-24629.html
-- **nasscom DeepTech Club** — The Accubate application form URL returned a crawl infrastructure error and could not be read. The nasscom programme page describes the club but the form's state could not be confirmed. · https://nasscom.accubate.app/ext/form/404/1/apply
-- **Cyberport Incubation Programme** — The programme page carries a "Programme Update Notice" stating: "Cyberport Incubation Programme (CIP) will be undergoing enhancements to better support startup growth and development. Details of the updated programme will be announced soon. Please stay tuned for further updates." There is no application form, no open or closed declaration, and no next intake date. · https://www.cyberport.hk/en/entrepreneurship/cyberport_incubation_programme/
-- **HKSTP Incu-Tech Incubation Programme** — Programme pages are live and describe the three-year Incu-Tech programme, but no current application window, deadline or open/closed statement was found on the pages read · https://www.hkstp.org/en/programmes/incubation/incubation-programme
-- **Tenity Singapore Incubation (Batch VII)** — The Tenity programs page renders a dynamic filter (All / Open / Running / Closed) that returned "Sorry, no results found" on fetch, so no programme state could be read. The batch 7 URL resolves to the generic programs listing rather than a batch page with a stated status. · https://www.tenity.com/programs/singapore-incubation-batch-7
-- **Sharjah Startup Studio (S3) and Access Sharjah Challenge** — Programme pages describe S3 and the Access Sharjah Challenge, and trade press reports "Applications Open For Sheraa's Sharjah Startup Studio (S3)", but no application window, deadline or open/closed banner was read from Sheraa's own pages in this session · https://www.startups.sheraa.ae/
-- **Qatar Science & Technology Park Incubation Centre and Startup Qatar TASMU Accelerator** — QSTP and Startup Qatar programme descriptions were read via secondary sources only; no QSTP or Startup Qatar application page with a stated open or closed status was fetched in this session · https://startupqatar.qa/en
-- **Startup India Seed Fund Scheme** — Not fetched or read in this session. Recorded solely because the lane brief instructs that DPIIT-gated schemes be flagged as conditional fallbacks. No page state, deadline or terms are asserted, and the URL itself is unverified. · https://seedfund.startupindia.gov.in/
+- **AREA 01** — There is no application form, only a waitlist. The page states: "Join the waitlist through the terminal below. We'll ask for your name, email, LinkedIn, and how eager you are to join." The only mechanism on the page is a CLI-style waitlist portal. No cohort dates, no fees, no equity terms and no application window are published anywhere on the site, so whether an intake is open cannot be determined. · https://www.area01.space/
+- **Antler India Residency** — The India page is live and carries the standard Antler "Apply" flow, but states in its own words: "Next Residency will be announced soon, till then keep reaching out to us directly." India does not appear on Antler's cohort-start-dates table, which lists Berlin/Amsterdam, London, Singapore, Nairobi, Dubai/Riyadh and Brisbane/Sydney/Melbourne with fixed dates plus Toronto, US and Nordic cities on rolling intake. India appears in neither list, so no current intake can be confirmed. · https://www.antler.co/location/india
+- **Techstars Tokyo Accelerator** — An account wall stops me from seeing programme state. The Tokyo programme page carries a live "Apply Today" button pointing to https://apply.techstars.com/, but navigating there redirects to login.techstars.com (page title "Log in to your Techstars account", an OpenID Connect registration endpoint) and serves no public list of open programmes or deadlines. The Tokyo page itself publishes no application window, no open or closed banner and no next-cohort dates. I could not create an account to see past the wall. · https://apply.techstars.com/
+- **Sanabil Accelerator by 500 Global (Batch 12)** — Genuinely contradictory and unresolvable without an account. The programme page carries a live "Apply Today" link and states "Priority Deadline: July 19, 2026" and "Applications period closes on August 9, 2026" - a date now passed - while the Pre-Program section of the same page states "Applications are accepted on a rolling basis. Apply to be considered for the next batch." Following the live apply link lands on the Aplica platform, which shows "Submit your application to be considered for Batch 12 (2026). Apply before August 9, 2026. Program Dates September 27 - December 9, 2026" with an active "Apply here" button, and no closed notice anywhere. The form itself sits behind an account signup I did not pass, so whether it still accepts submissions cannot be seen. Not marked CLOSED because no page says so. · https://mena.aplica.500.co/
+- **BITSoM VERTEX** — No application page exists to check. The only URL on record is a trade announcement, not a programme page, and it is the same placeholder phase 1 flagged as unusable. I could not locate an official BITSoM VERTEX application portal: this session's web search budget (200 calls) was exhausted before I could search for one, and no candidate URL was available to fetch directly. No claim is made about whether applications are open. · https://www.ceoinsightsindia.com/news/bitsom-debuts-vertex-to-bring-silicon-valley-innovation-to-india-nwid-24629.html
+- **Cyberport Incubation Programme (CIP)** — A revamp notice plus an account gate. The programme page carries a "Programme Update Notice" stating: "Cyberport Incubation Programme (CIP) will be undergoing enhancements to better support startup growth and development. Details of the updated programme will be announced soon. Please stay tuned for further updates." It never says applications are closed, and it still carries an "Apply Now" button, but it publishes no application timeline or intake date. Following the button lands on the Cyberport Entrepreneurship Management System, which requires registration before any programme list is visible: "For first-time users, please register and complete your profile... Please note that some programme are only available to specific types of applicants." I could not see the available programme list without an account. · https://ems.cyberport.hk/form/?selected_lang=en
+- **Tenity Singapore Incubation (Batch VII)** — The specific batch page does not exist. https://www.tenity.com/programs/singapore-incubation-batch-7 resolves to the generic programmes listing rather than a batch page with a stated status. Reading that listing in full, 16 programmes are shown with explicit status labels and no Singapore incubation batch is among them: the Singapore entries are "SFIIP 2026" (Open), "SingHacks" (Closed) and "XRPL Accelerator 2025" (Closed). Whether a Batch VII incubation exists under another name cannot be determined from Tenity's own pages. · https://www.tenity.com/programs/
+- **Sharjah Startup Studio (S3)** — The page is live and labelled "Open", but every date on it belongs to the previous cycle, so the label cannot be trusted for the current one. It shows "Applications Open 7 JUL 2025", "Application Closes 7 SEP 2025", "Cohort Announcement 14 OCT 2025" and "Program Launch 20 OCT 2025" running through "FEB 2026" - a cycle that ended six months ago. No 2026 cycle dates and no closed notice appear. Whether a current intake exists cannot be determined. · https://www.asc.sheraa.ae/s3-program
 
 ## Full verified records
 
@@ -75,56 +70,54 @@
   "region": "UAE / Abu Dhabi",
   "apply_url": "https://www.hub71.com/program/access-programme/apply",
   "page_state": "OPEN",
-  "page_evidence": "Application form page loads and accepts input. Page states: \"The current deadline is 21 August 2026, and the programme starts in February 2027.\" Also: \"Applications do not close after the deadline: if you apply after the mentioned deadline related to a cohort, you will be considered for the next cohort.\"",
+  "page_evidence": "Verified by rendering the form: the application page paints a live multi-section form with 70 input/select/textarea elements. Fields read in full include \"Startup Name *\", \"Which sector best describes your startup? *\" (a 32-option list containing \"Artificial Intelligence\"), \"Please attach your pitch deck (PDF format)*\", \"What product stage are you at? *\" (Ideation / Building MVP / Post-launch and Pre-revenue / Generating Revenue / Profitable) and \"Which country is your HQ based in? *\". Programme page states: \"Hub71 is currently accepting applications for Cohort20. The current deadline is 21 August 2026\" and \"Applications do not close after the deadline: if you apply after the mentioned deadline related to a cohort, you will be considered for the next cohort.\"",
   "deadline": "2026-08-21",
   "deadline_source_url": "https://www.hub71.com/program/access-programme",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "No published team-size requirement found on the programme page - verify in phase 2",
-  "hard_blocker": "null",
-  "location_requirement": "12-month programme based in Abu Dhabi; designed for startups relocating a presence into the UAE. Free housing, office space and health insurance offered per the Hub71 startup page.",
-  "cash": "AED 250,000 cash via SAFE note + AED 250,000 in-kind incentives; high performers eligible for a further AED 250,000 top-up for additional equity",
-  "terms_dilution": "SAFE note - equity taken. Amount/valuation not published on the page.",
-  "credits_and_tools": "Hub71+ AI ecosystem partners include AWS, Nvidia, Google for Startups, HP, Core42, AI71, MBZUAI - compute access named on the Hub71+ AI page",
-  "customer_access": "Access to Abu Dhabi government and corporate partners, ADGM regulatory environment, 40+ capital partners",
-  "network_quality": "Sovereign-backed, largest Abu Dhabi tech ecosystem; Cohort 18 drew 2,453 applications and selected 27 startups",
-  "brand_value": "Strong in MENA/GCC, moderate globally",
-  "application_effort": "Single online form covering startup overview, problem, solution, product and business model. No video requirement stated. Roughly 2-4 hours.",
-  "cohort_dates": "Programme starts February 2027, runs 12 months",
+  "solo_founder_stance": "No team-size bar. The founders question is free text: \"Who are the (co-)founders and what are their roles? Please add all of their Linked In URLs. Please list down all (co-)founders, their full names, roles, nationalities, and each of their Linked In profiles\" - a solo founder can answer it truthfully. A separate required question, \"Who is responsible for building your product? (e.g., an in-house CTO, internal tech team, or external tech team)\", is answered well by a solo technical founder.",
+  "location_requirement": "12-month programme in Abu Dhabi. Programme page: \"At least one founder is expected to commit to relocating long-term and building a team out of Abu Dhabi.\" Free housing, office space and health insurance per the Hub71 startup page.",
+  "cash": "\"AED 250,000 worth of flexible incentives...and AED 250,000 in cash in exchange for equity through a SAFE note. High-performing startups committed to Abu Dhabi are eligible to receive a top-up of AED 250,000 in exchange for additional equity\"",
+  "terms_dilution": "SAFE note, equity taken. Valuation and discount not published on any Hub71 page read.",
+  "credits_and_tools": "Hub71+ AI ecosystem partners named on the Hub71+ AI page: AI71, Core42, AWS, Nvidia, Google for Startups, HP, MBZUAI, 42 Abu Dhabi.",
+  "customer_access": "Abu Dhabi government and corporate partners, ADGM regulatory environment, 40+ capital partners.",
+  "network_quality": "Sovereign-backed, largest Abu Dhabi tech ecosystem. Cohort 18 drew 2,453 applications and selected 27 startups, its first all-international intake.",
+  "brand_value": "Strong in MENA/GCC, moderate globally.",
+  "application_effort": "Roughly 4-6 hours. Read directly off the live form: 70 inputs, four 200-word essays (unique value proposition, team, why-now for Abu Dhabi, plans for first 3 months at Hub71), one 280-character problem statement, and a required pitch deck (PDF, max 10MB) that must cover problem, solution, business model, competition, market, traction, founding team, previous and next fundraising, and plans for Hub71 and Abu Dhabi. No video required. Three revenue fields are required in USD and would each be zero.",
+  "cohort_dates": "12-month programme starting February 2027. Applications reviewed June-November 2026 with feedback within 3 months of applying.",
   "sources": [
-   "https://www.hub71.com/program/access-programme",
    "https://www.hub71.com/program/access-programme/apply",
-   "https://www.hub71.com/i-am-a-startup",
-   "https://www.hub71.com/latest-news/press-release/hub71-selects-27-startups-for-cohort-18-in-first-all-international-intake-after-record-2453-applications"
+   "https://www.hub71.com/program/access-programme",
+   "https://www.hub71.com/program/hub71-plus-ai",
+   "https://www.hub71.com/i-am-a-startup"
   ],
-  "notes": "Highest-urgency item in this lane: the deadline is 7 days out. Application review runs June-November 2026 with feedback within 3 months. Cohort 18 was Hub71's first all-international intake, so a Bangalore-based solo founder with no UAE presence is not out of scope. Incorporation in ADGM appears to be a post-selection step rather than an application gate - confirm in phase 2."
+  "notes": "Highest-urgency item in the lane: 7 days out. Entity question settled by reading the form - it asks \"Which country is your HQ based in?\", not country of registration, so a Bangalore-based founder with no entity can complete it honestly. ADGM incorporation is a post-selection step, not an application gate. Note the form demands three separate required revenue figures and a runway question, so the zero-revenue position is stated explicitly rather than avoided. Hub71 runs two other programmes: Initiate (ideation/pre-MVP, no Hub71 funding, no Hub71 equity, restricted to FinTech, ClimateTech, Life Sciences, EdTech, Mobility & Logistics and FoodTech - a poor fit for a working horizontal product) and Sandbox. Access is the right Hub71 door."
  },
  {
   "name": "Hub71+ AI",
   "organisation": "Hub71, Abu Dhabi",
   "category": "accelerator",
   "region": "UAE / Abu Dhabi",
-  "apply_url": "https://www.hub71.com/program/hub71-plus-ai",
+  "apply_url": "https://www.hub71.com/program/access-programme/apply",
   "page_state": "OPEN",
-  "page_evidence": "Programme page live and describes an open 12-month programme; Hub71 site-wide states \"Hub71 is currently accepting applications for Cohort20. The current deadline is 21 August 2026\"",
+  "page_evidence": "Resolved the phase-1 open question. The Hub71+ AI page states you apply by selecting \"your programme of interest from the options below and answer the question as part of the selected programme's application form: 'Is your startup utilizing or building AI solutions as part of its core product offering?'\" That exact question was then found inside the live Access application form, with three options: \"Advanced AI Development\", \"AI-Driven Solutions and Platforms\" and \"Non-AI Focus\". Hub71+ AI is a track selected inside the Access form, not a separate intake.",
   "deadline": "2026-08-21",
   "deadline_source_url": "https://www.hub71.com/program/hub71-plus-ai",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not stated on the page",
-  "hard_blocker": "null",
-  "location_requirement": "Abu Dhabi; same 12-month structure as Access",
-  "cash": "AED 250,000 in-kind + AED 250,000 cash via SAFE",
-  "terms_dilution": "SAFE note - equity taken",
-  "credits_and_tools": "Compute power; partner network of AI71, Core 42, AWS, Nvidia, Google for Startups, HP, MBZUAI, 42 Abu Dhabi",
-  "customer_access": "Pilot opportunities in real-world settings via Abu Dhabi corporate and government partners",
-  "network_quality": "AI researchers and practitioners network specific to the AI track",
-  "brand_value": "Strong regionally; the AI specialisation is a better narrative fit for Supaprod than the generic Access track",
-  "application_effort": "Same Hub71 application form as Access",
-  "cohort_dates": "Cohort 20 starts February 2027",
+  "solo_founder_stance": "Same form and same stance as Access - no team-size bar.",
+  "location_requirement": "Abu Dhabi, same 12-month structure as Access.",
+  "cash": "Same as Access: AED 250,000 in-kind incentives plus AED 250,000 cash via SAFE, with a possible AED 250,000 top-up for additional equity.",
+  "terms_dilution": "SAFE note, equity taken.",
+  "credits_and_tools": "Compute power and partner network: AI71, Core42, AWS, Nvidia, Google for Startups, HP, MBZUAI, 42 Abu Dhabi.",
+  "customer_access": "Pilot opportunities in real-world settings via Abu Dhabi corporate and government partners.",
+  "network_quality": "AI researchers and practitioners network layered on the Hub71 ecosystem.",
+  "brand_value": "Strong regionally. The AI framing is a better narrative fit for Supaprod than the generic Access framing.",
+  "application_effort": "No incremental effort. It is one extra required radio button inside the Access form.",
+  "cohort_dates": "Cohort 20 starts February 2027.",
   "sources": [
    "https://www.hub71.com/program/hub71-plus-ai",
-   "https://www.hub71.com/program/access-programme"
+   "https://www.hub71.com/program/access-programme/apply"
   ],
-  "notes": "This reads as a specialist ecosystem layered on top of the Hub71 programmes rather than a separate intake. Phase 2 must confirm whether it is a distinct application or a track selection inside the Access form. Do not file twice if it is the same form."
+  "notes": "DO NOT FILE TWICE. This is the same submission as Hub71 Access with one radio button set to \"AI-Driven Solutions and Platforms\" or \"Advanced AI Development\". Filing Access and answering the AI question is the whole of applying to Hub71+ AI. Kept as its own row only because phase 1 asked the question; it should be merged into the Hub71 Access application when filing."
  },
  {
   "name": "Sanabil Startup Unlocked by 500 Global (Batch 5)",
@@ -133,26 +126,24 @@
   "region": "Saudi Arabia / Riyadh",
   "apply_url": "https://sanabilstartupunlocked.aplica.500.co/",
   "page_state": "OPEN",
-  "page_evidence": "Page states: \"Applications for Batch 5 (October 2026) is open with a priority deadline on August 2 and a final deadline on August 23.\"",
+  "page_evidence": "Rendered the page directly (WebFetch is blocked on this host). Page text: \"Sanabil Startup Unlocked by 500 Global is an immersive 5-day bootcamp in Riyadh, Saudi Arabia designed to equip founders with foundational knowledge and tools to help take their startup to the next level! Applications for Batch 5 (October 2026) is open with a priority deadline on August 2 and a final deadline on August 23.\" A live \"Apply here\" link is present, pointing to /auth/signin on the Aplica platform.",
   "deadline": "2026-08-23",
   "deadline_source_url": "https://sanabilstartupunlocked.aplica.500.co/",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not stated on the page",
-  "hard_blocker": "null",
-  "location_requirement": "5-day in-person bootcamp in Riyadh",
-  "cash": "None stated - this is a bootcamp, not a funded batch",
-  "terms_dilution": "None stated",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Saudi ecosystem exposure",
-  "network_quality": "500 Global partner network plus Sanabil (PIF-backed)",
-  "brand_value": "Useful as an on-ramp to the full Sanabil Accelerator; weaker standalone signal",
-  "application_effort": "Short online form on the Aplica platform. Likely under 2 hours.",
-  "cohort_dates": "October 2026, 5 days, Riyadh",
+  "solo_founder_stance": "Not stated on the page.",
+  "location_requirement": "5-day in-person bootcamp in Riyadh.",
+  "cash": "None. This is a bootcamp, not a funded batch.",
+  "terms_dilution": "None stated - no equity mentioned anywhere on the programme page.",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "Saudi ecosystem exposure only.",
+  "network_quality": "500 Global partner network plus Sanabil (PIF-backed).",
+  "brand_value": "Useful as an on-ramp to the full Sanabil Accelerator relationship; weak standalone credential.",
+  "application_effort": "Short form on the Aplica platform behind a free account signup. Under 2 hours on the evidence available.",
+  "cohort_dates": "October 2026, 5 days, Riyadh.",
   "sources": [
-   "https://sanabilstartupunlocked.aplica.500.co/",
-   "https://500.co/founders/mena/startup-bootcamp"
+   "https://sanabilstartupunlocked.aplica.500.co/"
   ],
-  "notes": "Low-cost, low-commitment entry point into the 500 Global MENA funnel, and the final deadline is 9 days out. The strategic value is the relationship with 500 Global and Sanabil ahead of the full accelerator, not the bootcamp itself. Confirm whether travel to Riyadh is self-funded."
+  "notes": "9 days out and confirmed open in the page's own words, including the word \"open\". The priority deadline of August 2 has passed, so this would be a final-deadline filing. Value here is the relationship with 500 Global and Sanabil ahead of the full accelerator, not the bootcamp. Travel and accommodation to Riyadh are not addressed on the page - assume self-funded until told otherwise."
  },
  {
   "name": "E3 Accelerator Cycle 6",
@@ -161,25 +152,24 @@
   "region": "Saudi Arabia / Riyadh",
   "apply_url": "https://e3.ventures/programs/e3-accelerator/",
   "page_state": "OPEN",
-  "page_evidence": "Page shows \"Status: Open\", \"Application Open 01 August 2026\", \"Application Close 30 September 2026\", and \"Applications closing on 30th Sep, 2026\"",
+  "page_evidence": "Page shows \"Status: Open\", \"Application Open: 01 August 2026\" and \"Application Close: 30 September 2026\".",
   "deadline": "2026-09-30",
   "deadline_source_url": "https://e3.ventures/programs/e3-accelerator/",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Published preference for teams: \"Minimum of two committed founders with complementary business and technical expertise.\" Not framed as a disqualifier but it is an explicit published criterion.",
-  "hard_blocker": "null",
-  "location_requirement": "Hybrid: virtual phase plus a Riyadh market-immersion phase. \"At least one founding member must be physically present in Riyadh for the onsite immersion phase.\"",
-  "cash": "Not published on the page",
-  "terms_dilution": "Not published on the page",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Saudi customer and partner engagement, regulatory navigation, incorporation and licensing support",
-  "network_quality": "Saudi market-entry focused; sector focus is AI and FinTech, which lines up with the founder's BFSI background",
-  "brand_value": "Moderate; strong specifically for Saudi market entry",
-  "application_effort": "Online application; effort not stated. Shortlisted founders interviewed after 30 September.",
-  "cohort_dates": "Three months: virtual phase, then Riyadh immersion, then Demo Day. Start date not published.",
+  "solo_founder_stance": "Published two-founder criterion, confirmed verbatim: \"Minimum of two committed founders with complementary business and technical expertise.\" It sits in the eligibility list rather than being framed as an automatic disqualifier, and the selection process runs through screening, founder interviews and individual terms discussion. Per screening rule 3 this stays on the list, but it is the single most explicit team requirement in the lane and should be treated as a real headwind, not a formality.",
+  "location_requirement": "Hybrid. \"At least one founding member must be physically present in Riyadh for the onsite immersion phase.\"",
+  "cash": "Not published. \"Potential monetary support and investment terms are assessed individually for each selected startup.\"",
+  "terms_dilution": "Not published. \"Any equity, investment, and valuation terms will be discussed individually with shortlisted startups before they formally join the program.\"",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "Saudi customer and partner engagement, regulatory navigation, incorporation and licensing support.",
+  "network_quality": "Saudi market-entry focused. Sector focus is AI and FinTech, which lines up with the Intellect/BFSI background.",
+  "brand_value": "Moderate; strong specifically for Saudi market entry.",
+  "application_effort": "Online application, then screening, founder interviews, final evaluation, terms discussion and selection. Effort not published; the criteria list implies a standard 2-4 hour form.",
+  "cohort_dates": "Three months: virtual preparation phase, Riyadh onsite immersion, then Demo Day. Start date not published.",
   "sources": [
    "https://e3.ventures/programs/e3-accelerator/"
   ],
-  "notes": "Answers the entity question on its own FAQ: \"No prior Saudi incorporation is required to apply. Startups accepted into the program will receive support navigating incorporation and licensing in Saudi Arabia.\" That is a clean fit for the no-entity position. The two-founder criterion is the real question - per screening rule 3 it stays on the list, but phase 2 should press whether a solo founder is auto-screened. Sector focus AI + FinTech matches the Intellect/BFSI credibility."
+  "notes": "Answers the entity question favourably on its own page: \"No prior Saudi incorporation is required to apply. Startups accepted into the program will receive support navigating incorporation and licensing in Saudi Arabia.\" That is a clean fit for the no-entity position. The stage criterion is the other friction: it asks for \"Pre-Seed to Seed startups with demonstrated traction, such as active pilots, paying customers, active users, recurring revenue, or signed commercial partnerships\" - with zero external users, none of those five is currently true. Sector focus AI + FinTech matches the founder's credibility better than almost anything else in the lane."
  },
  {
   "name": "Google for Startups Accelerator: Middle East, North Africa and Turkey",
@@ -188,25 +178,24 @@
   "region": "MENA + Turkey",
   "apply_url": "https://startup.google.com/programs/accelerator/middle-east-north-africa-turkey/",
   "page_state": "OPEN",
-  "page_evidence": "Page states \"Applications are now open\" and \"Up to Series A funded startups are invited to apply\"",
+  "page_evidence": "Page states \"Applications are now open\", opening 13 July 2026 and closing 31 August 2026, with kickoff October 2026 and Demo Day December 2026.",
   "deadline": "2026-08-31",
   "deadline_source_url": "https://startup.google.com/programs/accelerator/middle-east-north-africa-turkey/",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not stated; requires \"Commitment from CTO and/or technical roles to participate\" - the founder is both CEO and the technical builder here",
-  "hard_blocker": "null",
-  "location_requirement": "\"designed for startups across the region\" - MENA/Turkey. A Bangalore-based founder with no regional entity may be out of scope; the page does not say headquartered, unlike Google's India page.",
-  "cash": "None - equity-free",
-  "terms_dilution": "Equity-free",
-  "credits_and_tools": "Google Cloud credits (separate application), Cloud TPU access, Early Access Program and Trusted Tester benefits for Google AI products",
-  "customer_access": "Google mentor network rather than direct customers",
-  "network_quality": "10-15 startups per cohort, 1:1 with Google engineers",
-  "brand_value": "High - Google accelerator alumnus is a durable credential",
-  "application_effort": "Standard Google accelerator form; typically 2-4 hours, no video required",
-  "cohort_dates": "Ten weeks, October to December 2026; kickoff October, in-person Demo Day December 2026",
+  "solo_founder_stance": "No team-size bar, but a technical-participation requirement: \"Commitment from CTO and/or technical roles to participate and engage in required program sessions\", and the FAQ adds \"we do require all founders (CEO and CTO) and appropriate team members to be available to join all elements of the program.\" A solo founder who is both CEO and the builder satisfies this in substance.",
+  "location_requirement": "Unresolved, and this is the decision. The page describes the programme only as \"designed for startups across the region\". I read the entry-criteria block and the FAQ in full and neither states a headquarters, incorporation or residency requirement, and neither publishes a list of eligible countries. This is a real absence rather than something I failed to find: Google's India page by contrast says plainly \"Startups based/headquartered in India\". Treat the geographic gate as unstated, not as satisfied.",
+  "cash": "None. \"The Google for Startups Accelerator: Middle East, North Africa and Turkey program is equity-free for all participating startups.\"",
+  "terms_dilution": "Equity-free.",
+  "credits_and_tools": "Google Cloud credits (applied for separately), Cloud TPU access, Early Access Program and Trusted Tester benefits for Google AI products.",
+  "customer_access": "Google mentor network rather than direct customers.",
+  "network_quality": "10-15 startups per cohort, 1:1 with Google engineers.",
+  "brand_value": "High. A Google accelerator alumnus badge is a durable, globally legible credential.",
+  "application_effort": "2-4 hours on a standard Google accelerator form. No video required.",
+  "cohort_dates": "Ten weeks, October to December 2026, with an in-person Demo Day in December 2026.",
   "sources": [
    "https://startup.google.com/programs/accelerator/middle-east-north-africa-turkey/"
   ],
-  "notes": "The regional-headquarters question is the whole decision here. Google's India, SEA and ANZ cohorts are all closed for 2026, so MENA+Turkey is the only Google regional accelerator still open in this lane. Phase 2 must read the eligibility text for headquartered-in-region versus operating-in-region."
+  "notes": "The only Google regional accelerator still open in this lane - India, SEA and ANZ are all closed for 2026. Two criteria bite harder than geography: \"Startups demonstrating traction, ideally between Seed and Series A stage\" and \"Up to Series A funded startups are invited to apply\", against zero users and zero revenue. Because the region requirement is unstated rather than waived, the honest move is to file and let Google apply its own filter rather than self-reject, but rank it below programmes whose eligibility is affirmatively met."
  },
  {
   "name": "Forge Residency Cohort 02 (Goa)",
@@ -215,27 +204,26 @@
   "region": "India / Goa",
   "apply_url": "https://www.forgeresidency.com/apply?cohort=2",
   "page_state": "OPEN",
-  "page_evidence": "Live application form loads with fields for name, email, project, technical yes/no, prior builds, progress, links, and \"can you attend the full program in Goa?\" Page states \"in person in Goa, 11 October to 1 November 2026.\"",
-  "deadline": "null",
-  "deadline_source_url": "https://www.forgeresidency.com/apply?cohort=2",
+  "page_evidence": "Live application form renders with fields for name, email, project description, technical yes/no, previous work, current progress, Twitter/X and GitHub links, and attendance confirmation for Goa. The cohort page states \"11 oct to 1 nov 2026\" in Mandrem, Goa and \"twelve to fourteen founders\".",
+  "deadline": "2026-09-15",
+  "deadline_source_url": "https://www.forgeresidency.com/cohorts/2",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Explicitly welcomes solo: \"technical founders and builders working alone or in a small team\"",
-  "hard_blocker": "null",
-  "location_requirement": "Full-time in-person in Goa, 11 October to 1 November 2026. \"the full cohort lives and works together in Goa. there is no remote option.\"",
-  "cash": "None. \"nothing to apply, nothing to attend. no tuition, no fees. forge covers the month - the house, meals, mentors, and demo day.\" A small refundable deposit holds the place.",
-  "terms_dilution": "None: \"forge does not take equity\"",
-  "credits_and_tools": "AI credits and domains covered (per the cohort 01 page)",
-  "customer_access": "Demo day with resident founders and visiting operators",
-  "network_quality": "Cohort 01 ran July 2026 in Bengaluru with 13 founders across 8 teams and produced working products and a demo day - a real track record, one cohort deep",
-  "brand_value": "Low as a credential, high as a working environment and peer set",
-  "application_effort": "\"takes about five minutes\" - three short questions plus links",
-  "cohort_dates": "11 October - 1 November 2026, Goa",
+  "solo_founder_stance": "Explicitly welcomes solo and pre-incorporation: \"technical founders and builders working alone or in a small team. you can apply before incorporating a company.\"",
+  "location_requirement": "Full-time in person in Mandrem, Goa, 11 October to 1 November 2026. \"there is no remote option.\" Selection criteria include capacity to \"spend all three weeks in Goa working on one company.\"",
+  "cash": "None, and nothing is charged: \"nothing to apply, nothing to attend. no tuition, no fees. forge covers the month - the house, meals, mentors, and demo day.\" A small refundable deposit holds the place.",
+  "terms_dilution": "None. \"forge does not take equity.\"",
+  "credits_and_tools": "\"AI and infrastructure credits from the teams building the tools\", plus accommodation in a private villa and a private chef daily.",
+  "customer_access": "Demo day with resident founders and visiting operators. No customer pipeline.",
+  "network_quality": "Cohort 01 ran July 2026 in Bengaluru with 13 founders across 8 teams and produced working products and a demo day. A real track record, one cohort deep.",
+  "brand_value": "Low as a credential, high as a working environment and peer set.",
+  "application_effort": "\"takes about five minutes\" - three short questions plus links. No video, no references, no deck.",
+  "cohort_dates": "11 October - 1 November 2026, Mandrem, Goa. 12-14 founders.",
   "sources": [
    "https://www.forgeresidency.com/apply?cohort=2",
-   "https://www.forgeresidency.com/cohorts/1",
-   "https://forge.adihuman.ai/cohorts/1"
+   "https://www.forgeresidency.com/cohorts/2",
+   "https://www.forgeresidency.com/cohorts/1"
   ],
-  "notes": "Near-perfect structural fit: free, no equity, explicitly accepts pre-incorporation solo technical founders. The cost is 21 days of full-time relocation immediately after the mid-September public launch - phase 2 should check that against the launch calendar. No deadline published on the form; cohort 01 closed applications six days before its start."
+  "notes": "Phase 1 recorded no deadline; the cohort page publishes one: \"applications close at the end of the day. 15september2026\". Near-perfect structural fit - free, no equity, explicitly accepts pre-incorporation solo technical founders, five-minute application. The real cost is 21 days of full-time relocation starting three weeks after the mid-September public launch, which is the calendar collision to resolve. Given the application costs five minutes, filing and deciding later is close to free."
  },
  {
   "name": "Ship Residency",
@@ -244,25 +232,24 @@
   "region": "India / Bengaluru",
   "apply_url": "https://www.shipresidency.com/",
   "page_state": "OPEN",
-  "page_evidence": "Page states \"We take applications on a rolling basis. Apply now for the next cohort at Ship.\"",
+  "page_evidence": "Page states \"We take applications on a rolling basis. Apply now for the next cohort at Ship.\" Applications are submitted through a linked Tally form.",
   "deadline": "rolling",
   "deadline_source_url": "https://www.shipresidency.com/",
   "entity_required_to_apply": false,
   "solo_founder_stance": "Explicitly welcomes solo: \"Absolutely. Solo founders are welcome. You'll still be surrounded by people who push you like a team would.\"",
-  "hard_blocker": "null",
-  "location_requirement": "Physical house in Bengaluru - the founder is already in Bangalore, so zero relocation cost",
-  "cash": "None, and there is a cost to the founder: \"There's a subsidised monthly cost that covers your stay, food and utilities.\" The figure is not published.",
-  "terms_dilution": "None: \"Ship isn't an accelerator or an investor. We don't take equity, and there are no hidden fees for a spot in the house.\"",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Demo nights and warm intros to investors and operators",
-  "network_quality": "Residents named on the site have raised pre-seed from Right Side Capital, MARL Accelerator and Studio K",
-  "brand_value": "Low as a credential; useful as a peer group and intro surface in the founder's own city",
-  "application_effort": "Short rolling application; effort not published",
-  "cohort_dates": "Cohort-based: \"Most residents stay a few months per cohort. Exact dates are shared once you're selected.\"",
+  "location_requirement": "A physical house in Bengaluru. The founder already lives in Bangalore, so relocation cost is zero.",
+  "cash": "None, and it costs the founder money: \"There's a subsidised monthly cost that covers your stay, food and utilities.\" The figure is still not published anywhere on the site after a full read - it is disclosed only after selection.",
+  "terms_dilution": "None. \"Ship isn't an accelerator or an investor. We don't take equity, and there are no hidden fees for a spot in the house.\"",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "Demo nights and warm introductions to investors and operators. No customer pipeline.",
+  "network_quality": "Residents named on the site have raised pre-seed from Right Side Capital, MARL Accelerator and Studio K.",
+  "brand_value": "Low as a credential; useful as a peer group and introduction surface in the founder's own city.",
+  "application_effort": "Short rolling Tally form. Effort not published; well under 2 hours on the evidence.",
+  "cohort_dates": "Cohort-based. \"Most residents stay a few months per cohort. Exact dates are shared once you're selected.\"",
   "sources": [
    "https://www.shipresidency.com/"
   ],
-  "notes": "Cheapest option on the board given the founder already lives in Bangalore: no relocation, no equity, no entity. The undisclosed monthly cost is the only downside - phase 2 should get the number. Worth filing for the intro surface ahead of the September launch."
+  "notes": "Cheapest option on the board in time terms given the founder already lives in Bangalore: no relocation, no equity, no entity, solo explicitly welcome. The undisclosed monthly cost is the one open item and it is genuinely not on the site - phase 1 flagged it and a second full read did not surface a number, so it has to be asked for directly. Worth filing for the introduction surface ahead of the September launch."
  },
  {
   "name": "AREA 01",
@@ -270,26 +257,23 @@
   "category": "residency",
   "region": "India / Bengaluru",
   "apply_url": "https://www.area01.space/",
-  "page_state": "OPEN",
-  "page_evidence": "Page shows an active \"Apply for Cohort 01\" call to action and a waitlist terminal collecting name, email, LinkedIn and eagerness. No closed notice.",
-  "deadline": "null",
-  "deadline_source_url": "https://www.area01.space/",
+  "page_state": "UNKNOWN",
+  "page_evidence": "There is no application form, only a waitlist. The page states: \"Join the waitlist through the terminal below. We'll ask for your name, email, LinkedIn, and how eager you are to join.\" The only mechanism on the page is a CLI-style waitlist portal. No cohort dates, no fees, no equity terms and no application window are published anywhere on the site, so whether an intake is open cannot be determined.",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Framed around individual builders: \"AREA 01 is built for the stage between 'I can build' and 'I know what to build'\". No team requirement stated.",
-  "hard_blocker": "null",
+  "solo_founder_stance": "Framed around individual builders. Eligibility is three conditions: ability to ship software independently, willingness to prioritise customer discovery, and full-time commitment for 28 days. No team requirement stated.",
   "location_requirement": "28 days full-time in a villa in Indiranagar, Bengaluru. \"No side jobs, no part-time participation.\"",
-  "cash": "Not published",
-  "terms_dilution": "Not published",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Demo Day to investors, operators and mentors on day 28",
-  "network_quality": "12 builders per cohort; this is Cohort 01, so no track record yet",
-  "brand_value": "Low - unproven programme",
-  "application_effort": "Waitlist form only at this stage; minimal",
-  "cohort_dates": "28 days; start date not published",
+  "cash": "Not published.",
+  "terms_dilution": "Not published.",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "Demo Day to investors, operators and mentors on day 28.",
+  "network_quality": "12 builders per cohort. This is Cohort 01, so there is no track record.",
+  "brand_value": "Low - unproven programme.",
+  "application_effort": "Waitlist form only: name, email, LinkedIn, and a note on eagerness. Minutes.",
+  "cohort_dates": "28 days. Start date not published.",
   "sources": [
    "https://www.area01.space/"
   ],
-  "notes": "Structurally interesting because the curriculum is customer-evidence-driven (10-15 customer conversations in week 1, real users in production by week 3), which is exactly the gap Supaprod has with zero external users. But it is an unproven first cohort and cost, equity and dates are all unpublished. Phase 2 must establish those before this is filable."
+  "notes": "Structurally the most interesting curriculum in the India lane - 10-15 customer conversations in week 1 and real users in production by week 3, which is precisely Supaprod's gap. But after a full read of the only page that exists, cost, equity, dates and even whether applications are open are all unpublished, and an unproven first cohort demanding 28 days full-time is a large bet on nothing verifiable. Joining the waitlist costs a minute and converts this from UNKNOWN to answerable; do that rather than ranking it."
  },
  {
   "name": "Iterative (Winter 2027 batch)",
@@ -298,26 +282,25 @@
   "region": "Southeast Asia (remote-first, Singapore-anchored)",
   "apply_url": "https://www.iterative.vc/apply",
   "page_state": "OPEN",
-  "page_evidence": "Page states \"We're now accepting applications for Winter 2027 Batch, FEBRUARY - MAY 2027\"",
-  "deadline": "null",
-  "deadline_source_url": "https://www.iterative.vc/apply",
+  "page_evidence": "Page states \"We're now accepting applications for Winter 2027 Batch, FEBRUARY - MAY 2027\" with a live \"Submit Your Application\" link. The guide adds that applications are accepted year-round on a rolling basis with a response typically \"within two weeks\".",
+  "deadline": "rolling",
+  "deadline_source_url": "https://www.iterative.vc/getting-into-iterative",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not stated as a bar. \"I ONLY HAVE AN IDEA. CAN I APPLY TO ITERATIVE? Absolutely, Yes!\" - they have invested in two-week-old concepts with no traction.",
-  "hard_blocker": "null",
-  "location_requirement": "Focused exclusively on Southeast Asia. \"In-person orientation, fully remote program\" - 4-day in-person kickoff, remainder remote. The SEA focus is the open question for an India-based founder.",
-  "cash": "US$150,000 to US$500,000",
-  "terms_dilution": "Roughly 10-15% of the company. Invested in full immediately - \"no milestones to meet, no clawbacks, and absolutely no program fees.\"",
-  "credits_and_tools": "Not stated",
-  "customer_access": "SEA market access",
-  "network_quality": "YC-style batch model run by Brian Ma (ex-Divvy Homes CEO) and Cathy Guo",
-  "brand_value": "Strong within SEA, moderate globally",
-  "application_effort": "Written application plus interview; \"We provide detailed feedback to everyone who interviews.\"",
-  "cohort_dates": "February - May 2027, 12 weeks",
+  "solo_founder_stance": "Explicitly funds solo founders: \"We invest in both solo founders and co-founding teams.\" The only absolute is full-time commitment - they do not fund part-time founders regardless of hours. Also \"I ONLY HAVE AN IDEA. CAN I APPLY TO ITERATIVE? Absolutely, Yes!\"",
+  "location_requirement": "Resolved, and favourably: \"The company either needs to be based in Southeast Asia or focused on a market in Southeast Asia.\" Founders themselves need not be from the region. So an India-based founder qualifies on the second limb if Supaprod genuinely targets a SEA market. Format is a 4-day in-person orientation then a fully remote programme.",
+  "cash": "\"We invest between US $150,000 and US $500,000 for roughly 10-15% of your company.\"",
+  "terms_dilution": "Roughly 10-15% of the company, invested in full immediately - \"no milestones to meet, no clawbacks, and absolutely no program fees.\"",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "SEA market access and a SEA investor directory.",
+  "network_quality": "YC-style batch model run by Brian Ma (ex-Divvy Homes CEO) and Cathy Guo.",
+  "brand_value": "Strong within SEA, moderate globally.",
+  "application_effort": "Written application plus interview. \"We provide detailed feedback to everyone who interviews.\" Applying early carries a stated advantage because reviewers have more time.",
+  "cohort_dates": "February - May 2027, 12 weeks. Rolling admissions: they invest on acceptance rather than at batch start.",
   "sources": [
    "https://www.iterative.vc/apply",
    "https://www.iterative.vc/getting-into-iterative"
   ],
-  "notes": "The live question is whether an India-based product counts as SEA - Iterative describes itself as focused exclusively on Southeast Asia. Note rolling admissions: they invest on acceptance, not on batch start. Reapplicants have 2x the acceptance rate, so a filed application carries option value even if rejected."
+  "notes": "Phase 1's open question is answered on Iterative's own page and the answer unblocks it: SEA market focus is sufficient, SEA basing is not required. Two more confirmations from the same source - solo founders are explicitly funded, and \"No, you don't need to incorporate before applying\" (incorporation is needed only to receive funds, with Singapore recommended, which suits a founder avoiding an Indian entity). Rolling admission means it need not collide with the September launch. Reapplicants are reported to have roughly 2x acceptance, so a filed application carries option value. This is now one of the strongest structural fits in the lane."
  },
  {
   "name": "Antler Singapore Inception SG21",
@@ -326,28 +309,27 @@
   "region": "Singapore",
   "apply_url": "https://www.antler.co/location/singapore",
   "page_state": "OPEN",
-  "page_evidence": "Page states \"Applications are now open for founders who want to be considered early for the upcoming cohort... we're reviewing applications on a rolling basis\" and \"The next Antler Singapore residency starts on 5 October 2026.\"",
+  "page_evidence": "Page states \"Applications are now open for founders who want to be considered early for the upcoming cohort\" and \"The next Antler Singapore residency starts on 5 October 2026.\" Antler's cohort-start-dates table lists Singapore at October 5, 2026 and notes \"these are the start dates, not deadlines. We strongly encourage you to apply early to secure a seat.\"",
   "deadline": "rolling",
   "deadline_source_url": "https://www.antler.co/cohort-start-dates",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Antler's model historically forms teams inside the residency; SG21's framing has shifted to founders already building. \"SG21 is not for people exploring startup life. It is for founders who are already building.\" No published solo bar.",
-  "hard_blocker": "null",
-  "location_requirement": "\"we require founders to join our residency in Singapore for a period of 6 weeks starting from 5 October 2026\" - full-time and in-person. Founders self-fund travel and living.",
-  "cash": "Up to $400,000 from inception, starting with $150,000 net as the first ticket after 6 weeks",
-  "terms_dilution": "Equity taken; percentage not published on the page. \"There is no fee to participate in the residency.\"",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Hands-on work with early customers during the residency",
-  "network_quality": "Antler has backed 1,800+ startups globally including Airalo and Lovable; network spans 27-30 cities",
-  "brand_value": "High and globally legible",
-  "application_effort": "AI-guided conversational application, roughly 30 minutes, plus a PDF pitch deck under 20MB. Then a 15-minute call, then a partner call.",
-  "cohort_dates": "6 weeks from 5 October 2026",
+  "solo_founder_stance": "No published solo bar on the Singapore pages, but read it against Antler's own MENAP page, which states the house view plainly: \"We typically do not invest in solo founders after the program. Rather, we prefer to invest in teams of two or three co-founders with complementary, non-overlapping skills.\" SG21's framing has shifted toward founders already building - \"SG21 is not for people exploring startup life. It is for founders who are already building\" - which suits a solo founder with a working product, but expect cofounder pressure inside the residency.",
+  "location_requirement": "Full-time in person in Singapore for 6 weeks from 5 October 2026. Founders self-fund travel and living, and per Antler's own wording elsewhere \"Founders are responsible for arranging and coordinating their own visas\" - Antler provides support letters but \"do not offer visa sponsorship or assume any official or legal responsibility for founders.\"",
+  "cash": "$100,000 for 10% equity via SAFE, plus $50,000 via an uncapped SAFE with an MFN clause, plus up to $250,000 in matching capital (50% of outside funding raised). Up to $400,000 total at inception.",
+  "terms_dilution": "$100,000 for 10% via SAFE as the priced component; the remainder uncapped. \"There is no fee to participate in the residency.\"",
+  "credits_and_tools": "Access to \"$4 million in AI and infrastructure credits\".",
+  "customer_access": "Hands-on work with early customers during the residency.",
+  "network_quality": "Antler has backed 1,800+ startups globally including Airalo and Lovable; network spans 27-30 cities.",
+  "brand_value": "High and globally legible.",
+  "application_effort": "Roughly 30 minutes for the AI-guided conversational application (a static form is offered as a fallback), plus a pitch deck as a hard requirement - \"Prepare your deck in a PDF format (under 20MB).\" Then a 15-minute call, then a partner call. No video.",
+  "cohort_dates": "6 weeks from 5 October 2026.",
   "sources": [
    "https://www.antler.co/location/singapore",
    "https://www.antler.co/blog/applications-open-singapore-inception-sg21",
    "https://www.antler.co/cohort-start-dates",
-   "https://www.antler.co/blog/antler-singapore-announces-improved-investment-terms-and-6-week-residency"
+   "https://www.antler.co/location/menap"
   ],
-  "notes": "Best-in-lane combination of speed, cheque size and brand. The 5 October start collides directly with a mid-September public launch - that is the tension to resolve. A pitch deck is a hard requirement of the application flow. Antler runs Bangalore, Singapore, Seoul, Sydney and Dubai/Riyadh, so pick a city deliberately rather than filing to several."
+  "notes": "Best-in-lane combination of speed, cheque size and brand, and the terms are now sourced from Antler rather than aggregators. The 5 October start collides head-on with a mid-September public launch - that is the tension to resolve, and it is a harder collision than Forge because it runs 6 weeks and takes 10% of the company. A pitch deck is a hard gate of the application flow. Antler runs Bangalore, Singapore, Dubai/Riyadh and Sydney; pick one city deliberately rather than filing to several, because it is one organisation and one impression."
  },
  {
   "name": "Antler MENAP Residency (Dubai / Riyadh)",
@@ -356,26 +338,25 @@
   "region": "UAE and Saudi Arabia",
   "apply_url": "https://www.antler.co/location/menap",
   "page_state": "OPEN",
-  "page_evidence": "Page shows an active \"Apply now\" flow and states \"For more established teams, we accept and review investment proposals throughout the year on a rolling basis.\" The cohort start dates page lists \"October 11, 2026 - Dubai, Riyadh\".",
+  "page_evidence": "Page carries a live \"Apply now\" flow and states \"For more established teams, we accept and review investment proposals throughout the year on a rolling basis.\" Antler's cohort-start-dates table lists \"October 11, 2026 - Dubai, Riyadh\".",
   "deadline": "rolling",
   "deadline_source_url": "https://www.antler.co/cohort-start-dates",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not a published bar; the residency is \"designed for entrepreneurs who are already full-time or ready to transition\"",
-  "hard_blocker": "null",
-  "location_requirement": "10-week full-time in-person residency, held in Dubai (Spring) and Riyadh (Fall). Explicit warning: \"If MENAP is not a region of strategic interest for your venture - either for engaging local customers or establishing teams and operations - consider applying to one of Antler's other residency locations worldwide.\"",
-  "cash": "Up to $500K through the founder residency",
-  "terms_dilution": "Equity taken; percentage not published",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Local MENAP customers and operations",
-  "network_quality": "Antler global network",
-  "brand_value": "High",
-  "application_effort": "Short application to introduce yourself, then offer",
-  "cohort_dates": "10 weeks from 11 October 2026 (Riyadh, Fall edition)",
+  "solo_founder_stance": "The clearest statement Antler publishes anywhere, and it is discouraging: \"We typically do not invest in solo founders after the program. Rather, we prefer to invest in teams of two or three co-founders with complementary, non-overlapping skills.\" Not a bar on applying, and per screening rule 3 it stays on the list, but it means the realistic path here is cofounder formation rather than funding a solo founder with a finished product.",
+  "location_requirement": "10-week full-time in-person residency, Dubai in Spring and Riyadh in Autumn. Explicit self-selection warning: \"If MENAP is not a region of strategic interest for your venture - either for engaging local customers or establishing teams and operations - consider applying to one of Antler's other residency locations worldwide.\" Visas: \"Founders are responsible for arranging and coordinating their own visas\"; Antler provides support letters but \"do not offer visa sponsorship or assume any official or legal responsibility for founders.\"",
+  "cash": "\"We offer successful teams an initial investment of $180,000 via a SAFE agreement for 11% equity in your new company. Founders then have the potential to unlock an additional $320,000 in uncapped follow-on funding.\" Up to $500K in total.",
+  "terms_dilution": "$180,000 for 11% via SAFE, plus up to $320,000 uncapped follow-on. Now sourced from Antler directly rather than an aggregator.",
+  "credits_and_tools": "Not stated on the MENAP page.",
+  "customer_access": "Local MENAP customers and operations.",
+  "network_quality": "Antler global network. \"Due to the high volume of applications we receive, we are unable to provide individual or detailed feedback to applicants.\"",
+  "brand_value": "High.",
+  "application_effort": "Short application to introduce yourself, then the standard Antler funnel. Not all participants pitch the investment committee - selection depends on team cohesion, execution ability and venture scalability.",
+  "cohort_dates": "10 weeks from 11 October 2026 (Riyadh, Autumn edition).",
   "sources": [
    "https://www.antler.co/location/menap",
    "https://www.antler.co/cohort-start-dates"
   ],
-  "notes": "The page carries an explicit self-selection warning that Antler MENAP will not act as an expansion vehicle for a company established elsewhere. Supaprod has no established region, which arguably helps, but phase 2 must decide whether a genuine MENAP commitment is credible or whether Singapore or India is the honest Antler city."
+  "notes": "Two things now argue against this being the right Antler door. The page carries an explicit warning that MENAP will not act as an expansion vehicle for a venture established elsewhere, and the same page publishes the solo-founder preference in the strongest terms Antler uses anywhere. Supaprod has no established region, which arguably helps, but a genuine MENAP commitment would have to be real rather than tactical. Singapore is the honest Antler city for this founder unless a Gulf strategy is actually chosen."
  },
  {
   "name": "Antler India Residency",
@@ -384,27 +365,24 @@
   "region": "India / Bengaluru",
   "apply_url": "https://www.antler.co/location/india",
   "page_state": "UNKNOWN",
-  "page_evidence": "The India location page is live and carries the standard Antler \"Apply now\" flow, but publishes no current cohort dates, and India does not appear on Antler's own cohort-start-dates table (which lists Sept-Dec 2026 dates for Europe, London, Singapore, Nairobi, Dubai, Riyadh, Brisbane, Sydney and Melbourne, plus rolling-intake cities). An open India intake cannot be confirmed from the page.",
-  "deadline": "null",
+  "page_evidence": "The India page is live and carries the standard Antler \"Apply\" flow, but states in its own words: \"Next Residency will be announced soon, till then keep reaching out to us directly.\" India does not appear on Antler's cohort-start-dates table, which lists Berlin/Amsterdam, London, Singapore, Nairobi, Dubai/Riyadh and Brisbane/Sydney/Melbourne with fixed dates plus Toronto, US and Nordic cities on rolling intake. India appears in neither list, so no current intake can be confirmed.",
   "deadline_source_url": "https://www.antler.co/cohort-start-dates",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Antler India's most recent AI residency was described as targeting \"strong teams committed full-time\" - team-leaning but not a published solo bar",
-  "hard_blocker": "null",
-  "location_requirement": "Bengaluru, full-time in-person; the prior AI residency required availability in Bangalore for up to 3 weeks",
-  "cash": "Reported at Rs 2 crore for 9% for residency-selected startups - aggregator source only, not verified against antler.co",
-  "terms_dilution": "Equity taken; terms unverified from a primary source",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Indian market",
-  "network_quality": "Antler India portfolio spans defence tech, space, voice AI and B2B software",
-  "brand_value": "High",
-  "application_effort": "Antler standard application",
-  "cohort_dates": "Not published for the next India cohort",
+  "solo_founder_stance": "Team-leaning. The page describes target candidates as \"Strong teams\" and references \"founding teams\". No published solo bar, but Antler's global preference for two-to-three cofounder teams applies.",
+  "location_requirement": "\"Available to join full-time in Bangalore\" is listed as an ideal candidate criterion, and \"our Residency takes place in-person in Bengaluru only for the first 2 weeks.\" Zero relocation cost - the founder already lives there.",
+  "cash": "\"₹4 Cr (~$470K) for 11% in total investment with potential $30M in Follow-On Capital\"",
+  "terms_dilution": "₹4 Cr (approximately $470K) for 11%. This is now sourced from antler.co directly, replacing the aggregator figures phase 1 correctly refused to quote.",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "Indian market.",
+  "network_quality": "Antler India portfolio spans defence tech, space, voice AI and B2B software. \"Funding decisions made in just 3 weeks.\"",
+  "brand_value": "High.",
+  "application_effort": "Antler standard application. A pitch deck is required across Antler's flow.",
+  "cohort_dates": "Not published. \"Next Residency will be announced soon.\"",
   "sources": [
    "https://www.antler.co/location/india",
-   "https://www.antler.co/cohort-start-dates",
-   "https://ar.antler.co/location/india"
+   "https://www.antler.co/cohort-start-dates"
   ],
-  "notes": "Zero relocation cost - the founder is already in Bangalore. But India is absent from Antler's own published start-date table, so phase 2 must establish whether India is on rolling intake or between cohorts. Every equity and cheque figure circulating for Antler India comes from aggregators, not Antler; do not quote any of them until sourced from antler.co."
+  "notes": "Phase 1 asked whether India is on rolling intake or between cohorts; the page answers it - between cohorts, with a direct-contact route in the meantime. The terms question is also now settled from a primary source: ₹4 Cr for 11%, which is materially better than the ₹2 Cr for 9% that circulates on aggregators, and better value per point of dilution than Antler Singapore. Zero relocation cost and a 3-week decision make this the best Antler city for this founder on paper; the blocker is purely timing. Reaching out directly, as the page invites, is the correct action rather than waiting for a cohort announcement."
  },
  {
   "name": "Antler Australia / New Zealand Residency",
@@ -413,25 +391,25 @@
   "region": "Australia (Sydney, Melbourne, Brisbane)",
   "apply_url": "https://www.antler.co/cohort-start-dates",
   "page_state": "OPEN",
-  "page_evidence": "Cohort start dates page lists \"December 30, 2026 - December 2026 - Brisbane, Sydney, Melbourne\" and carries an active \"Apply now\" flow",
+  "page_evidence": "Cohort start dates page lists \"December 30, 2026 - December 2026 - Brisbane, Sydney, Melbourne\" with a live \"Apply now\" flow, and states \"Please note that these are the start dates, not deadlines. We strongly encourage you to apply early to secure a seat.\"",
   "deadline": "rolling",
   "deadline_source_url": "https://www.antler.co/cohort-start-dates",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not a published bar",
-  "hard_blocker": "null",
-  "location_requirement": "Full-time in-person in Australia. Antler's global FAQ states \"You must be able to commit 100% of your time and hold valid visa documentation for your chosen location\" - the visa condition is the item to check, not a confirmed blocker.",
-  "cash": "Not published for the ANZ residency on the pages read",
-  "terms_dilution": "Equity taken; ANZ terms not published on the pages read",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Not stated",
-  "network_quality": "Antler global network",
-  "brand_value": "High",
-  "application_effort": "Antler standard application",
-  "cohort_dates": "Starts 30 December 2026",
+  "solo_founder_stance": "No published ANZ-specific bar. Antler's global preference for two-to-three cofounder teams applies.",
+  "location_requirement": "Full-time in person in Australia from 30 December 2026. The visa position is now sourced from Antler's own wording on the MENAP page, which is a global policy statement: \"Founders are responsible for arranging and coordinating their own visas\" and Antler \"do not offer visa sponsorship or assume any official or legal responsibility for founders.\" Antler provides support letters only.",
+  "cash": "Not published for the ANZ residency on any Antler page read.",
+  "terms_dilution": "Equity taken; ANZ-specific terms not published on any Antler page read.",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "Not stated.",
+  "network_quality": "Antler global network.",
+  "brand_value": "High.",
+  "application_effort": "Antler standard application plus a pitch deck (PDF under 20MB).",
+  "cohort_dates": "Starts 30 December 2026.",
   "sources": [
-   "https://www.antler.co/cohort-start-dates"
+   "https://www.antler.co/cohort-start-dates",
+   "https://www.antler.co/location/menap"
   ],
-  "notes": "The visa requirement is the only thing here that could become a genuine hard blocker under screening rule 3 - an Indian passport holder needs an Australian visa permitting full-time company-building. Phase 2 should confirm whether Antler sponsors or whether documentation must already be held, because a residence permit not held is exactly the named stop condition."
+  "notes": "Phase 1 flagged the visa question as the one item that could become a genuine hard blocker. It resolves to a cost and logistics problem rather than a wall: Antler does not sponsor, but it does issue support letters, and Australia's visa routes for founders are obtainable rather than closed to an Indian passport holder. So no hard blocker is recorded. That said, this is the weakest Antler option here - no published ANZ terms, a 30 December start over the new year, self-funded relocation to the most expensive geography in the lane, and no ANZ market rationale for the product. Rank below Singapore and India."
  },
  {
   "name": "Startmate Accelerator (Summer 2027 cohort)",
@@ -440,26 +418,26 @@
   "region": "Australia and New Zealand",
   "apply_url": "https://www.startmate.com/accelerator/program",
   "page_state": "OPEN",
-  "page_evidence": "Page states \"PROGRAM DATE: Jan 25 - April 29, 2027\" and \"Applications close: November 8, 2026\"",
+  "page_evidence": "Page states \"PROGRAM DATE: Jan 25 - April 29, 2027\" and \"Applications close: November 8, 2026\".",
   "deadline": "2026-11-08",
   "deadline_source_url": "https://www.startmate.com/accelerator/program",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not a published bar; mentors assess \"connection to the problem, size of ambition, customer conversations\"",
-  "hard_blocker": "Probable ANZ-tie requirement, unconfirmed on the Accelerator page itself. Startmate's sibling Launch Club states \"At least one founder must have ties to the ANZ region\" and Blackbird's ANZ programmes carry the same rule. If the Accelerator publishes the same rule and the founder has no ANZ tie, it is a genuine eligibility wall - verify before ranking.",
-  "location_requirement": "Hybrid - joinable from anywhere in Australia or New Zealand, with three in-person weeks (week 0, mid-program, Demo Day)",
-  "cash": "AUD $120,000",
-  "terms_dilution": "At AUD $1.5m post-money for founders who have not previously raised. Founders who have raised are matched to their prior round's terms and must have raised AUD $250,000+.",
-  "credits_and_tools": "Not stated",
-  "customer_access": "ANZ customer base",
-  "network_quality": "Mentors invest their own money in the fund that invests in you; over 500 applications for 12-18 places",
-  "brand_value": "Strong in ANZ",
-  "application_effort": "Stage 1: online application plus a 90-second video, roughly 1 hour. Stage 2: 1-hour in-depth interview with 3-4 mentors, remote. Each application read by at least 3 mentors independently.",
-  "cohort_dates": "25 January - 29 April 2027, 12 weeks",
+  "solo_founder_stance": "No published solo bar on any Startmate page read. Mentors assess connection to the problem, size of ambition and customer conversations. \"You're never too early. 67% of Accelerator companies had no revenue when they applied\" - which directly accommodates the zero-revenue position.",
+  "location_requirement": "\"a hybrid program that you can join from anywhere in Australia or New Zealand\", with three mandatory in-person weeks (week 0, mid-program, Demo Day). Being in ANZ for the programme is therefore required in practice even though no residency rule is published.",
+  "cash": "AUD $120,000.",
+  "terms_dilution": "AUD $120,000 at a AUD $1.5m post-money valuation for founders who have not previously raised - an 8% stake. Founders who have raised are matched to their prior round's terms and must have raised AUD $250,000+.",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "ANZ customer base.",
+  "network_quality": "Mentors invest their own money in the fund that invests in you. Over 500 applications for 12-18 places. Each application read by at least 3 mentors independently.",
+  "brand_value": "Strong in ANZ, limited outside it.",
+  "application_effort": "Stage 1: online application plus a 90-second video, roughly 1 hour. Stage 2: 1-hour in-depth interview with 3-4 mentors, remote. Budget for producing the video.",
+  "cohort_dates": "25 January - 29 April 2027, 12 weeks.",
   "sources": [
    "https://www.startmate.com/accelerator/program",
+   "https://www.startmate.com/faq",
    "https://www.startmate.com/programs/launch-club"
   ],
-  "notes": "A 90-second founder video is required - budget for it. The ANZ-tie question is make-or-break and must be settled from the Accelerator's own eligibility text, not from Launch Club's. The AUD $1.5m post-money valuation is a hard cap worth weighing before filing."
+  "notes": "Phase 1 flagged a probable ANZ-tie hard blocker. I read the Accelerator programme page, the Accelerator overview and the Startmate FAQ and the rule is NOT published for the Accelerator anywhere - it appears only for the sibling Launch Club, whose FAQ says \"At least one founder must have ties to the ANZ region. (All sessions run on ANZ time.)\" Applying Launch Club's rule to the Accelerator would be exactly the aggregator-style inference screening rule 1 forbids, so no hard blocker is recorded. It remains a live risk rather than a confirmed wall, and the hybrid format assumes ANZ presence. The AUD $1.5m post-money cap is the harder commercial objection: 8% of the company for AUD $120k, on a product with 5,172 commits behind it."
  },
  {
   "name": "Surge by Peak XV",
@@ -468,54 +446,52 @@
   "region": "India and Southeast Asia",
   "apply_url": "https://surge.peakxv.com/apply",
   "page_state": "OPEN",
-  "page_evidence": "Multi-step application form loads and accepts input across four sections (Company, About the Founders, Description & Metrics, Final step) with live client-side validation on every field",
+  "page_evidence": "The four-tab form (Company, About the Founders, Description & Metrics, Final step) renders and accepts input across 21 questions with live client-side validation. Surge's FAQ states \"Applications for Surge are open year-round\" and \"The next cohort kicks off in September 2026.\"",
   "deadline": "rolling",
-  "deadline_source_url": "https://surge.peakxv.com/apply",
+  "deadline_source_url": "https://surge.peakxv.com/faqs/",
   "entity_required_to_apply": true,
-  "solo_founder_stance": "The form makes co-founder details a required field: \"Please fill out your other co-founders' 1) Name 2) email address 3) contact number 4) LinkedIn URL 5) city they are located in\" with error text \"Fill in all co-founders details before proceeding\". Whether that field accepts a none answer is unverified - test it in phase 2.",
-  "hard_blocker": "null",
-  "location_requirement": "16-week programme, mix of in-person and online; founders spend 3-4 days together in person at the start and end, with online group sessions every Thursday. The fellowship element involves eight weeks in Bangalore.",
-  "cash": "$500k up to $5M in seed capital from Peak XV",
-  "terms_dilution": "Seed equity; terms not published on the apply page",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Peak XV portfolio and network",
-  "network_quality": "Selection targets \"the top 0.4% of audacious founders globally\"; Surge 11 backed 23 companies",
-  "brand_value": "Very high in India and SEA",
-  "application_effort": "Long multi-section form: company details, founder stories, problem statement, differentiation, team fit, metrics. Several hours.",
-  "cohort_dates": "Reported as applications closing August 2026 for a Summer 2027 intake, with onboarding September 2026 and eight weeks in Bangalore June-July 2027 - secondary sources only, unverified against the Surge site",
+  "solo_founder_stance": "NOT a blocker, contrary to the phase-1 concern. Question 11 reads \"Please fill out your other co-founders' 1) Name 2) email address 3) contact number 4) LinkedIn URL 5) city they are located in.*\" with the error \"Fill in all co-founders details before proceeding\", but it is a free-text field, so a solo founder can answer it truthfully in words and proceed. Question 16, \"Why are you the right team to solve this problem and build this business?\", is likewise free text.",
+  "location_requirement": "16-week programme mixing in-person and online: founders spend 3-4 days together in person at the start and end, with online group sessions weekly.",
+  "cash": "\"Surge invests up to $5 million in seed capital in each company through an equity investment. Our investments range from $500-$5M.\"",
+  "terms_dilution": "Seed equity investment. Percentage and valuation not published on the apply page or the FAQ.",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "Peak XV portfolio and network.",
+  "network_quality": "Selection targets \"the top 0.4% of audacious founders globally\". Surge 11 backed 23 companies.",
+  "brand_value": "Very high in India and SEA - the strongest brand in the India lane.",
+  "application_effort": "3-5 hours. 21 questions across four tabs, including four substantive free-text answers (what the company does in one sentence, the problem, what is unique, why this is the right team). Question 19 asks for a deck, demo, screenshots or Loom via a Dropbox or Google Slides link with open permissions - so a shareable deck is effectively required, though no video is mandated. Question 20 is optional references.",
+  "cohort_dates": "16 weeks. FAQ states the next cohort kicks off September 2026.",
   "sources": [
    "https://surge.peakxv.com/apply",
-   "https://surge.peakxv.com/",
    "https://surge.peakxv.com/faqs/"
   ],
-  "notes": "entity_required_to_apply is set true on a specific observed basis: the form's question 3 is \"In which country is your company registered?\", a required field with the error \"Select the country where the company is registered\". Phase 2 must check whether the dropdown contains a not-yet-incorporated option before calling this a blocker - if it does, flip this to false. Highest-brand target in the India lane and worth the verification effort."
+  "notes": "Phase 1 asked whether the country dropdown contains a not-yet-incorporated option. It does not. I opened question 3, \"In which country is your company registered?*\", and enumerated the list: exactly 197 entries, all sovereign countries from Afghanistan to Zimbabwe, with no None, N/A, Other or not-yet-incorporated option. The field is required. entity_required_to_apply therefore stays true, on a directly observed basis rather than an inference. The offsetting good news is that the form otherwise fits well: question 17 offers \"Pre-launch/Beta\" as a lifecycle option and question 18 says explicitly \"If you are pre-launch, please put in N/A\" for traction metrics, so zero external users is an anticipated answer rather than a disqualifier. The only barrier is the entity, and it is a hard one on this form."
  },
  {
   "name": "Future Founders Fellowship",
   "organisation": "Peak XV Partners / Surge",
   "category": "fellowship",
-  "region": "India and Southeast Asia",
+  "region": "India / Bangalore",
   "apply_url": "https://surge.peakxv.com/futurefoundersfellowship",
-  "page_state": "UNKNOWN",
-  "page_evidence": "Page identified in search results as a distinct Peak XV/Surge programme but not fetched and read in this session, so its application state cannot be asserted. No claim is made about whether it is open.",
-  "deadline": "null",
-  "deadline_source_url": "null",
+  "page_state": "OPEN",
+  "page_evidence": "Page is live with multiple \"Apply now\" buttons linking to a Typeform, and lists \"AUG 2026\" as when applications close. But it is not a founder programme: it is a summer fellowship placing college students inside Peak XV portfolio startups.",
+  "deadline": "2026-08-31",
+  "deadline_source_url": "https://surge.peakxv.com/futurefoundersfellowship",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Unknown - fellowship structures typically assess individuals rather than teams, which would suit a solo founder",
-  "hard_blocker": "null",
-  "location_requirement": "Unknown",
-  "cash": "Unknown",
-  "terms_dilution": "Unknown",
-  "credits_and_tools": "Unknown",
-  "customer_access": "Unknown",
-  "network_quality": "Peak XV network",
-  "brand_value": "High",
-  "application_effort": "Unknown",
-  "cohort_dates": "Unknown",
+  "solo_founder_stance": "Not applicable - the programme assesses individual students, not founders or companies.",
+  "hard_blocker": "Yes, and it is unambiguous. Eligibility is restricted to current undergraduates: \"Currently in your 2nd to 4th year, with a bias toward 2nd and 3rd years\", enrolled at one of six named institutions - \"IIT Delhi, IIT Bombay, IIT Madras, IIT Kanpur, IIT Kharagpur, and BITS Pilani (Pilani Campus)\" - and \"Available full-time in Bangalore for 8 weeks (June to August 2027)\". The founder is a TUM alumnus and a working founder, not an enrolled student at any of those six colleges. This is an enrolment wall of exactly the kind screening rule 3 names as a genuine stop.",
+  "location_requirement": "Eight weeks full-time in person in Bangalore, June to August 2027.",
+  "cash": "Stipend of ₹2 lakhs per month, paid to the student fellow.",
+  "terms_dilution": "Not applicable - this is a paid internship, not an investment.",
+  "credits_and_tools": "Not applicable.",
+  "customer_access": "Not applicable.",
+  "network_quality": "Peak XV network, accessed as a student intern rather than as a founder.",
+  "brand_value": "High as a student credential; irrelevant as a founder credential.",
+  "application_effort": "Typeform application. Not applicable given the eligibility wall.",
+  "cohort_dates": "June to August 2027, eight weeks, Bangalore.",
   "sources": [
    "https://surge.peakxv.com/futurefoundersfellowship"
   ],
-  "notes": "A distinct programme from the main Surge accelerator, run by the same organisation - exactly the case the brief says to return. A fellowship track is more likely than the accelerator to accept a pre-incorporation solo founder, so verify this one first in phase 2; it may be the better Peak XV door."
+  "notes": "Phase 1 suggested this \"may be the better Peak XV door\" and asked for it to be verified first. It is not a door at all. The name is misleading: Future Founders Fellowship places students into portfolio companies for a summer at a ₹2 lakh monthly stipend; it does not fund or support founders. Recorded rather than dropped so it is not rediscovered and re-evaluated in a later sweep, and so the reasoning is on file. Surge itself remains the only Peak XV route, and its blocker is the entity, not the fellowship."
  },
  {
   "name": "SparkLabs Taiwan Accelerator (Batch 11)",
@@ -524,26 +500,24 @@
   "region": "Taiwan / Taipei",
   "apply_url": "https://www.sparklabstaiwan.com/accelerator/program",
   "page_state": "OPEN",
-  "page_evidence": "Page states \"Batch 11 Application is open\", \"Application Deadline: Applications are accepted on a rolling basis\", and \"Program Kickoff: Upon acceptance into the program\"",
+  "page_evidence": "Page states \"Batch 11 Application is open\", \"Application Deadline: Applications are accepted on a rolling basis\" and \"Program Kickoff: Upon acceptance into the program\".",
   "deadline": "rolling",
   "deadline_source_url": "https://www.sparklabstaiwan.com/accelerator/program",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not stated on the page",
-  "hard_blocker": "null",
-  "location_requirement": "Taiwan-anchored 3-month programme; the thesis is \"global from day one\" and they explicitly look for startups aiming to expand internationally from the start",
-  "cash": "They invest in every startup selected into the programme; amount not published on the page",
-  "terms_dilution": "Equity taken; terms not published",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Business clients and partners matched during the programme",
-  "network_quality": "SparkLabs global network across 350 startups on 6 continents; SparkLabs Taiwan has 60+ investments and 2 exits since 2018",
-  "brand_value": "Moderate globally, strong in Taiwan",
-  "application_effort": "Online application then three rounds of interviews",
-  "cohort_dates": "3 months, run twice a year, kickoff on acceptance",
+  "solo_founder_stance": "Not stated on the page.",
+  "location_requirement": "Taiwan-anchored 3-month programme. No pre-existing Taiwan presence required: \"an existing overseas business is explicitly not required\", and \"Language proficiency is not a requirement for the application\", though they recommend a team member proficient in the target market's language for execution.",
+  "cash": "\"We invest at least US$ 100K in exchange for up to 7% of equity for all the startups selected into the SparkLabs Taiwan accelerator program.\"",
+  "terms_dilution": "At least US$100K for up to 7%. Now sourced from the programme's own page rather than left unpublished as in phase 1.",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "Business clients and partners matched during the programme.",
+  "network_quality": "SparkLabs global network across 350 startups on 6 continents. SparkLabs Taiwan has 60+ investments and 2 exits since 2018.",
+  "brand_value": "Moderate globally, strong in Taiwan.",
+  "application_effort": "Online application then three rounds of interviews. Form effort not published; the three-round interview process is the real cost.",
+  "cohort_dates": "3 months, run twice a year, kickoff upon acceptance.",
   "sources": [
-   "https://www.sparklabstaiwan.com/accelerator/program",
-   "https://www.sparklabs.co.kr/sp/"
+   "https://www.sparklabstaiwan.com/accelerator/program"
   ],
-  "notes": "Rolling intake with kickoff on acceptance is unusually flexible - it means the programme can bend around the September launch rather than colliding with it. Note that SparkLabs Korea batch 22 is separately closed (\"The application for the 22th batch program is currently closed\"), so Taiwan is the live SparkLabs door."
+  "notes": "Rolling intake with kickoff on acceptance is unusually flexible and means the programme can bend around the mid-September launch rather than colliding with it - the single most schedule-friendly structure in the lane. Terms are decent: US$100K for up to 7% is better per point of dilution than 100X.VC and comparable to ikigai. The thesis fit is good too, since they explicitly look for startups aiming to expand internationally from the start. SparkLabs Korea batch 22 is separately closed, so Taiwan is the live SparkLabs door."
  },
  {
   "name": "ikigai Launchpad",
@@ -552,112 +526,103 @@
   "region": "Taiwan / Taipei",
   "apply_url": "https://www.886studios.com/programs",
   "page_state": "OPEN",
-  "page_evidence": "Page carries an active \"Apply to ikigai Launchpad\" call to action and states \"Next batch starts Fall 2026\", \"July 10, 2026 Applications open\", \"July 31, 2026 First acceptances end\". No closed notice anywhere on the page.",
-  "deadline": "null",
+  "page_evidence": "Page states \"Applications for the Fall 2026 batch are now open.\" with a dated timeline: \"July 10, 2026 Applications open\", \"July 31, 2026 First acceptances end\", \"August 16, 2026 2nd Round of Acceptances end\".",
+  "deadline": "2026-08-16",
   "deadline_source_url": "https://www.886studios.com/programs",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Explicitly welcomes solo: \"A co-founder is not required, but the company needs credible technical or domain capability on the founding team.\" The founder is the builder, so that is satisfied.",
-  "hard_blocker": "null",
-  "location_requirement": "10 weeks in person in Taipei; all co-founders expected on site; free office space provided for the full 10 weeks",
-  "cash": "$100,000 USD via SAFE",
-  "terms_dilution": "$100,000 for 8% through a SAFE, with potential follow-on from Lifelike Capital",
-  "credits_and_tools": "Exclusive corporate perks, unspecified",
-  "customer_access": "Warm introductions and investor matching",
-  "network_quality": "Built by founders behind Twitch, Kabam and Guitar Hero",
-  "brand_value": "Moderate and rising",
-  "application_effort": "Submit application, then two interview rounds",
-  "cohort_dates": "Fall 2026, 10 weeks in Taipei",
+  "solo_founder_stance": "Explicitly accommodates solo: \"A co-founder is not required, but the company needs credible technical or domain capability on the founding team.\" The founder is the builder, so this is satisfied outright.",
+  "location_requirement": "10 weeks in person in Taipei. \"All co-founders are expected to join on site for the core program\" and founders must be \"able to join the batch in Taipei\". Free office space for the full 10 weeks.",
+  "cash": "$100,000 USD via a SAFE note.",
+  "terms_dilution": "\"The standard deal is a $100,000 USD investment for 8% through a SAFE\", with potential follow-on from Lifelike Capital.",
+  "credits_and_tools": "Exclusive corporate perks, unspecified.",
+  "customer_access": "Warm introductions and investor matching.",
+  "network_quality": "Built by founders behind Twitch, Kabam and Guitar Hero.",
+  "brand_value": "Moderate and rising.",
+  "application_effort": "Four stages: \"1 Submit Application 2 Application Review 3 1st Interview 4 2nd Interview\". No video or references required. Form effort not published; budget 2-3 hours.",
+  "cohort_dates": "Fall 2026, 10 weeks in Taipei.",
   "sources": [
    "https://www.886studios.com/programs",
    "https://886studios.com/program/about-the-program"
   ],
-  "notes": "Answers both structural questions on its own FAQ: \"Do I need a Taiwan entity to apply? Or any entity? No, you don't need any entity to apply. If you're accepted into the program, you'll typically need to set up a US entity to receive funding.\" A US entity on acceptance is exactly the Delaware path the founder already prefers over an Indian one. Strong fit - prioritise verification. \"First acceptances end July 31\" implies rolling acceptances continue; confirm the batch is not full."
+  "notes": "URGENT - the second acceptance round closes 16 August 2026, two days out, which phase 1 could not see. This is the cleanest structural fit in the whole lane and it answers both hard questions on its own FAQ: \"Do I need a Taiwan entity to apply? Or any entity? No, you don't need any entity to apply. If you're accepted into the program, you'll typically need to set up a US entity to receive funding\", and no cofounder required. A US entity on acceptance is precisely the Delaware path the founder already prefers over an Indian one, so acceptance would resolve the incorporation question in the direction he already wants. The costs are real: 10 weeks in Taipei and 8% for $100k. Note the dated rounds imply acceptances continue past 16 August, but do not assume it - confirm the batch is not full before treating a later date as available."
  },
  {
   "name": "Techstars Tokyo Accelerator",
   "organisation": "Techstars, powered by Mitsui Fudosan and JETRO Startup",
   "category": "accelerator",
   "region": "Japan / Tokyo",
-  "apply_url": "https://www.techstars.com/accelerators/tokyo",
+  "apply_url": "https://apply.techstars.com/",
   "page_state": "UNKNOWN",
-  "page_evidence": "The Tokyo programme page is live and describes the accelerator but shows no application form, no open or closed banner, and no dates for a next cohort. Tokyo also does not appear in the accelerator list on techstars.com/accelerators, which currently shows only US and European programmes. Application state cannot be determined from the page.",
-  "deadline": "null",
+  "page_evidence": "An account wall stops me from seeing programme state. The Tokyo programme page carries a live \"Apply Today\" button pointing to https://apply.techstars.com/, but navigating there redirects to login.techstars.com (page title \"Log in to your Techstars account\", an OpenID Connect registration endpoint) and serves no public list of open programmes or deadlines. The Tokyo page itself publishes no application window, no open or closed banner and no next-cohort dates. I could not create an account to see past the wall.",
   "deadline_source_url": "https://www.techstars.com/accelerators/tokyo",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not stated",
-  "hard_blocker": "null",
-  "location_requirement": "Three-month programme in Tokyo, open to \"startups from Japan and abroad\"",
-  "cash": "Techstars standard terms, not published on this page",
-  "terms_dilution": "Equity taken; standard Techstars terms not published on this page",
-  "credits_and_tools": "Not stated",
-  "customer_access": "70+ Tokyo-based experts plus corporate partners Mitsui Fudosan and JETRO; cooperation from the Cabinet Office, METI and the Tokyo Metropolitan Government",
-  "network_quality": "Techstars global mentor network; applications from 120+ countries annually, acceptance rate reported under 1%",
-  "brand_value": "High and globally legible",
-  "application_effort": "Techstars standard application",
-  "cohort_dates": "The 2026 programme reportedly started 17 August 2026 with Demo Day 10 November 2026 (secondary source). Next cohort dates unknown.",
+  "solo_founder_stance": "Not stated on the Tokyo page.",
+  "location_requirement": "Three-month programme in Tokyo, explicitly open to \"startups from Japan and abroad\" - no Japanese entity or residency stated, which is a material contrast with JETRO GSAP's Japan-location wall.",
+  "cash": "\"$120,000 consists of $100,000 through an uncapped MFN Safe (or J-KISS) and $20,000 via a post-money Convertible Equity Agreement (CEA)\".",
+  "terms_dilution": "$120,000 total for 5% equity. Now sourced from the Tokyo programme page rather than left unpublished as in phase 1.",
+  "credits_and_tools": "Techstars Perks package (not itemised on this page).",
+  "customer_access": "70+ Tokyo-based experts plus corporate partners Mitsui Fudosan and JETRO, with cooperation from the Cabinet Office, METI and the Tokyo Metropolitan Government.",
+  "network_quality": "Techstars global mentor network. Applications from 120+ countries annually; acceptance rate reported under 1%.",
+  "brand_value": "High and globally legible - the strongest brand among the East Asia options here.",
+  "application_effort": "Techstars standard application behind the account wall. Effort not observable.",
+  "cohort_dates": "Not published. The 2026 programme reportedly started 17 August 2026, so any live intake concerns the 2027 cohort.",
   "sources": [
    "https://www.techstars.com/accelerators/tokyo",
    "https://www.techstars.com/accelerators",
-   "https://www.blackboxjp.com/news/applications-open-for-techstars-tokyos-2026-startup-accelerator"
+   "https://apply.techstars.com/"
   ],
-  "notes": "The 2026 cohort deadline was reported as 6 May and the programme starts three days from now, so this concerns the 2027 cohort. Explicitly sector-agnostic and interested in AI and data-driven intelligence. Phase 2 should find the Techstars application portal directly rather than trusting the marketing page - the programme-list omission may be a navigation quirk, not a discontinuation."
+  "notes": "Phase 1 suspected Tokyo had been dropped from the Techstars programme list. It has not - I read techstars.com/accelerators in full and \"Techstars Tokyo Accelerator\" is listed among the 16 programmes, alongside US and European ones. So the programme is current and the omission phase 1 saw was a navigation artefact. What genuinely cannot be established without an account is whether the 2027 intake is open and when it closes. Creating a free Techstars account is the cheap way to convert this from UNKNOWN to answerable, and is worth doing given the brand and the fact that Tokyo explicitly welcomes startups from abroad with no entity requirement stated."
  },
  {
-  "name": "Sanabil Accelerator by 500 Global (next batch)",
+  "name": "Sanabil Accelerator by 500 Global (Batch 12)",
   "organisation": "500 Global with Sanabil Investments",
   "category": "accelerator",
   "region": "Saudi Arabia / Riyadh",
-  "apply_url": "https://500.co/founders/mena/seed-accelerator",
+  "apply_url": "https://mena.aplica.500.co/",
   "page_state": "UNKNOWN",
-  "page_evidence": "The page carries two contradictory statements and no open or closed banner. It states \"Priority Deadline: July 19, 2026... Applications period closes on August 9, 2026\" for the 27 September - 9 December 2026 Riyadh batch, while the Pre-Program section also states \"Applications are accepted on a rolling basis. Apply to be considered for the next batch.\" Current state cannot be determined from the page.",
-  "deadline": "null",
+  "page_evidence": "Genuinely contradictory and unresolvable without an account. The programme page carries a live \"Apply Today\" link and states \"Priority Deadline: July 19, 2026\" and \"Applications period closes on August 9, 2026\" - a date now passed - while the Pre-Program section of the same page states \"Applications are accepted on a rolling basis. Apply to be considered for the next batch.\" Following the live apply link lands on the Aplica platform, which shows \"Submit your application to be considered for Batch 12 (2026). Apply before August 9, 2026. Program Dates September 27 - December 9, 2026\" with an active \"Apply here\" button, and no closed notice anywhere. The form itself sits behind an account signup I did not pass, so whether it still accepts submissions cannot be seen. Not marked CLOSED because no page says so.",
   "deadline_source_url": "https://500.co/founders/mena/seed-accelerator",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not stated; criteria are stage-based (MVP, early traction)",
-  "hard_blocker": "null",
-  "location_requirement": "MENA focus is an explicit criterion: \"Focused on the Middle Eastern and North African region (MENA)\". 12-week hybrid programme anchored in Riyadh.",
-  "cash": "Not stated for the accelerator itself",
-  "terms_dilution": "The page states \"The program Fee for Phase 1 is $35,000 per startup, excluding travel expenses\" - a paid programme. Must be confirmed as applying to this programme rather than a different 500 Global track sharing the page.",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Regional and global mentors, 500 Global partner network",
-  "network_quality": "Batch 11 selected 8 startups from more than 690 applications",
-  "brand_value": "Strong in MENA",
-  "application_effort": "Standard 500 Global application",
-  "cohort_dates": "Batch 12: 27 September - 9 December 2026, Riyadh, 12 weeks",
+  "solo_founder_stance": "Not stated. Criteria are stage-based rather than team-based.",
+  "location_requirement": "MENA focus is an explicit published criterion: \"Focused on the Middle Eastern and North African region (MENA)\". 12-week programme anchored in Riyadh.",
+  "cash": "\"Equity investment from 500 Global of USD $100,000+ for selected startups\".",
+  "terms_dilution": "Equity investment of $100,000+. Percentage not published.",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "Regional and global mentors, 500 Global partner network, Demo Day to partners and industry stakeholders in the MENA region.",
+  "network_quality": "\"Join a network of 300+ startups backed by 500 Global across the region.\" Batch 11 selected 8 startups from more than 690 applications.",
+  "brand_value": "Strong in MENA.",
+  "application_effort": "Standard 500 Global application on the Aplica platform behind a free account signup.",
+  "cohort_dates": "Batch 12: 27 September - 9 December 2026, Riyadh, 12 weeks.",
   "sources": [
    "https://500.co/founders/mena/seed-accelerator",
-   "https://www.wamda.com/2026/07/500-global-sanabil-startups-latest-accelerator-cohort",
-   "https://www.businesswire.com/news/home/20260624906346/en/500-Global-and-Sanabil-Investments-Announce-Batch-11-of-the-Sanabil-Accelerator-by-500-Global"
+   "https://mena.aplica.500.co/"
   ],
-  "notes": "Three things must be settled before this is filable: whether the $35,000 Phase 1 fee attaches to this programme (the page mixes tracks), whether the 9 August date has actually closed the window given the rolling language, and whether the MENA-focus criterion excludes an India-based founder. If the fee is real, this drops sharply."
+  "notes": "Phase 1 asked three questions and two are now answered. First, the $35,000 Phase 1 fee is NOT on this page - I read the full programme page including the benefits block and the disclaimer, and what it actually offers is \"Equity investment from 500 Global of USD $100,000+ for selected startups\". The fee phase 1 saw belongs to a different 500 Global track sharing the domain, and its removal changes the economics entirely: this is money in, not money out. Second, the MENA-focus criterion is published and explicit, so an India-based product with no MENA angle is out of thesis regardless of the deadline. Third, whether the 9 August window has actually closed remains genuinely unresolved. Worth an email to 500 Global rather than a speculative filing."
  },
  {
   "name": "Misk Launchpad 10.0",
   "organisation": "Misk Foundation (Mohammed bin Salman Foundation)",
   "category": "incubator",
-  "region": "Saudi Arabia / Riyadh (hybrid, delivered virtually)",
+  "region": "Saudi Arabia / Riyadh (delivered virtually)",
   "apply_url": "https://hub.misk.org.sa/en/programs/entrepreneurship/misk-launchpad/",
-  "page_state": "UNKNOWN",
-  "page_evidence": "The programme page lists an application window of \"15 Jun 2026 - 08 Aug 2026\" alongside a separate line reading \"Application Closing 30 Sep\" and a programme run of \"06 Sep 2026 - 02 Jan 2027\". The two dates contradict each other and the page carries no open or closed banner.",
-  "deadline": "null",
+  "page_state": "CLOSED",
+  "page_evidence": "The date contradiction phase 1 flagged is resolved against the programme. The page states \"Applications open 15 Jun 2026\" and \"Application Close 08 Aug 2026\", with the programme running \"06 Sep 2026 - 02 Jan 2027\". The 8 August close has passed. The stray \"Application Closing 30 Sep\" line phase 1 saw does not correspond to the application window stated in the programme's own dates block.",
   "deadline_source_url": "https://hub.misk.org.sa/en/programs/entrepreneurship/misk-launchpad/",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Explicitly accepts solo: \"Teams of 2-3 co-founders are preferred, while solo founders are also eligible to apply.\"",
-  "hard_blocker": "null",
-  "location_requirement": "\"The program is offered virtually; however, we host multiple optional physical events\" in Riyadh. Requires \"a strong commitment to testing and launching your venture in Saudi Arabia\" but explicitly not Saudi nationality: \"the applicant does not need to be a Saudi national.\"",
-  "cash": "Not stated",
-  "terms_dilution": "Not stated - pre-acceleration programme",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Saudi market validation",
-  "network_quality": "Training, workshops and 1:1 mentorship from experts and entrepreneurs",
-  "brand_value": "Moderate regionally",
-  "application_effort": "Online form after reading the programme overview and criteria",
-  "cohort_dates": "10 weeks hybrid; programme listed 06 Sep 2026 - 02 Jan 2027",
+  "solo_founder_stance": "One of only two programmes in the sweep that states a solo policy in writing, and it states it favourably: \"The ideal team should consist of 2-3 co-founders; however, solo founders are also eligible to apply.\"",
+  "location_requirement": "\"The program is offered virtually; however, we host multiple optional physical events\" in Riyadh. Nationality-agnostic: applicants must \"Be a Saudi national or non-Saudi with a strong commitment to testing and launching your venture in Saudi Arabia\".",
+  "cash": "None. \"Zero Enrollment Cost\" - \"Fully sponsored by Misk Foundation\".",
+  "terms_dilution": "None stated. Pre-acceleration programme, no equity mentioned.",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "Saudi market validation.",
+  "network_quality": "Training, workshops and 1:1 mentorship from experts and entrepreneurs.",
+  "brand_value": "Moderate regionally.",
+  "application_effort": "Sign up to Misk Hub, complete an online form before the deadline, then evaluation and acceptance notification.",
+  "cohort_dates": "10 weeks hybrid, listed 06 Sep 2026 - 02 Jan 2027.",
   "sources": [
-   "https://hub.misk.org.sa/en/programs/entrepreneurship/misk-launchpad/",
-   "https://www.for9a.com/en/opportunity/misk-launchpad-2026-program-for-startup-development-in-saudi-arabia"
+   "https://hub.misk.org.sa/en/programs/entrepreneurship/misk-launchpad/"
   ],
-  "notes": "One of the few programmes in this sweep that states a solo-founder policy in writing, and states it favourably. Also explicitly nationality-agnostic and delivered virtually, so it costs little to run in parallel with the launch. Resolve the date contradiction - if the 30 September date is live, this is comfortably open. Aimed at idea and prototype stage, which undersells a product that already runs end to end."
+  "notes": "Closed six days ago, confirmed from the programme's own dates block rather than an aggregator. Worth diarising for Launchpad 11.0 on a roughly mid-June application opening: it is free, explicitly solo-friendly, explicitly nationality-agnostic, requires no entity and is delivered virtually, so it would cost almost nothing to run in parallel with other work. The one caveat is that it targets \"idea, prototype, MVP, or early-launch stages\", which undersells a product that already runs end to end."
  },
  {
   "name": "in5 Tech Incubation Programme",
@@ -666,88 +631,80 @@
   "region": "UAE / Dubai",
   "apply_url": "https://infive.ae/in5-tech/",
   "page_state": "OPEN",
-  "page_evidence": "in5 FAQ states \"No matter what time of the day, month or year, you can apply at any point of time. We are always looking to support the next great idea.\"",
+  "page_evidence": "in5 states applications are accepted continuously: \"No matter what time of the day, month or year, you can apply at any point of time. We are always looking to support the next great idea.\" The page lists what to submit: \"Online Application Form [and] Business Plan Presentation\".",
   "deadline": "rolling",
   "deadline_source_url": "https://infive.ae/faqs/",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not stated; open to \"entrepreneurs with a business idea or a minimal viable product\"",
-  "hard_blocker": "null",
-  "location_requirement": "\"Startups must be based in or willing to operate in Dubai, UAE\" - willingness is sufficient, which keeps it open",
-  "cash": "None",
-  "terms_dilution": "Equity-free",
-  "credits_and_tools": "Subsidised licensing, workspace, and access to creative workspaces and specialised facilities",
-  "customer_access": "Investor access and networking; year-round workshops and events",
-  "network_quality": "TECOM Group ecosystem across Dubai Internet City, Dubai Industrial City and Dubai Science Park",
-  "brand_value": "Moderate; primarily a soft-landing and licensing vehicle",
-  "application_effort": "Online application, then shortlisted candidates present to a committee of industry experts and entrepreneurs",
-  "cohort_dates": "Rolling - no fixed cohort",
+  "solo_founder_stance": "No team-size requirement stated. \"We are open to great ideas from everyone - all it needs is for you to have a passion and belief in what you have to offer.\"",
+  "location_requirement": "Willingness is sufficient, which keeps it open: \"You will have to be located (or willing to relocate) in the UAE to be able to qualify.\"",
+  "cash": "None.",
+  "terms_dilution": "Equity-free.",
+  "credits_and_tools": "Subsidised licensing, workspace, \"smart labs, private offices, coworking spaces, workshops\" and sponsored showcase opportunities at tech events alongside international brands.",
+  "customer_access": "Investor access and networking; year-round workshops and events.",
+  "network_quality": "TECOM Group ecosystem across Dubai Internet City, Dubai Industrial City and Dubai Science Park.",
+  "brand_value": "Moderate; primarily a soft-landing and licensing vehicle rather than a credential.",
+  "application_effort": "Online form plus a business plan presentation, then shortlisted candidates present to a committee of industry experts and entrepreneurs. Budget 3-4 hours for the deck.",
+  "cohort_dates": "Rolling, no fixed cohort.",
   "sources": [
    "https://infive.ae/in5-tech/",
-   "https://infive.ae/faqs/",
-   "https://www.dic.ae/offerings/in5-centres"
+   "https://infive.ae/faqs/"
   ],
-  "notes": "Equity-free and rolling, so it costs nothing but time and can be filed any week. Its real value is subsidised UAE licensing and visas rather than capital or curriculum - useful only if a UAE entity becomes part of the plan. Rank below Hub71 for the same geography."
+  "notes": "Equity-free and rolling, so it can be filed any week and costs nothing but the business plan deck. Its real value is subsidised UAE licensing and visas rather than capital, curriculum or brand - useful only if a UAE entity becomes part of the plan. Rank below Hub71 for the same geography: Hub71 offers cash, a stronger network and the same soft landing."
  },
  {
-  "name": "DIFC Innovation Hub startup programmes",
+  "name": "DIFC Innovation Hub startup community",
   "organisation": "Dubai International Financial Centre (DIFC) Innovation Hub",
   "category": "incubator",
   "region": "UAE / Dubai",
   "apply_url": "https://www.innovationhub.difc.ae/join-our-community/as-a-startup",
   "page_state": "OPEN",
-  "page_evidence": "A live \"Startup Application Form\" is served with fields for startup name, incorporation country, traction metrics, pitch deck upload, cap table upload and a Submit button. No closed notice.",
+  "page_evidence": "Rendered the form directly (WebFetch is blocked on this host). A live Startup Application Form paints with roughly 40 input fields and a working Submit button. Fields read in full include Startup Name, Country of Incorporation (dropdown), Countries Operating in, Number of Employees, Current Monthly Revenue, Previous Funding Received, Funding Round, Founder Bios, Technology Stack Description, Current User Base, Competitor Analysis, Equity Offered, Annual Burn Rate, Exit Strategy, Demo Video Link and Traction Metrics, plus nine upload slots: Business Plan, Pitch Deck, Founder Headshots, Logo, Current Capital Table, Press Coverage, Product Roadmap, Market Research and Additional Supporting Documents. No closed notice anywhere.",
   "deadline": "rolling",
   "deadline_source_url": "https://www.innovationhub.difc.ae/join-our-community/as-a-startup",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not stated",
-  "hard_blocker": "null",
-  "location_requirement": "Dubai; DIFC Innovation Hub and the Dubai AI Campus, described as the region's largest AI cluster",
-  "cash": "None stated for community entry; individual accelerator tracks vary",
-  "terms_dilution": "Not stated",
-  "credits_and_tools": "Subsidised AI Licence at USD 1,500 per annum including premium coworking and discounted visas, plus an Ignyte platform subscription",
-  "customer_access": "Named accelerator tracks are largely sector-specific: FinTech Hive (FinTech, InsurTech, RegTech, Islamic FinTech), Transguard Early-Stage Accelerator (AI, energy optimisation, smart facilities), XRPL Accelerator, Global Landing Pad (PropTech, closed 9 March 2026)",
-  "network_quality": "Largest financial-technology accelerator in the MEASA region; 2,000+ growth-stage tech firms in the community",
-  "brand_value": "High in MEASA financial services - directly relevant to the founder's BFSI background",
-  "application_effort": "The community form is long and asks for a business plan, pitch deck, cap table, product roadmap and market research uploads. Several hours, and some fields (cap table) presume an entity.",
-  "cohort_dates": "Rolling for community; accelerator tracks run to their own calendars",
+  "solo_founder_stance": "Not stated. The form asks for Founder Bios as free text, so a solo founder can complete it.",
+  "location_requirement": "Dubai. DIFC Innovation Hub and the Dubai AI Campus, described as the region's largest AI cluster.",
+  "cash": "None for community entry. Individual accelerator tracks vary.",
+  "terms_dilution": "None stated for community entry. The form asks \"Equity Offered\" as a free-text field.",
+  "credits_and_tools": "Subsidised AI Licence at USD 1,500 per annum including premium coworking and discounted visas, plus an Ignyte platform subscription.",
+  "customer_access": "The named accelerator tracks are sector-specific: FinTech Hive (FinTech, InsurTech, RegTech, Islamic FinTech), Transguard Early-Stage Accelerator, XRPL Accelerator, and Global Landing Pad (PropTech, closed March 2026). None is a clean fit for a horizontal product-lifecycle tool.",
+  "network_quality": "Largest financial-technology accelerator in the MEASA region; 2,000+ growth-stage tech firms in the community.",
+  "brand_value": "High in MEASA financial services, which is directly adjacent to the founder's BFSI credibility.",
+  "application_effort": "8+ hours, and the heaviest form in the entire lane. Roughly 40 fields plus nine document uploads, several of which do not exist yet for a pre-incorporation company: a capital table, a business plan and market research. Several fields also presume an entity, notably Country of Incorporation and Current Capital Table.",
+  "cohort_dates": "Rolling for community membership. Accelerator tracks run to their own calendars.",
   "sources": [
    "https://www.innovationhub.difc.ae/join-our-community/as-a-startup",
-   "https://www.innovationhub.difc.ae/accelerators",
-   "https://www.innovationhub.difc.ae/accelerators/startup-programs",
-   "https://www.difc.com/ecosystem/innovation-hub",
-   "https://daic.dubaiaicampus.com/programmes"
+   "https://www.innovationhub.difc.ae/accelerators"
   ],
-  "notes": "The community form is the general door; the accelerator tracks visible right now are all sector-specific and none is a clean fit for a horizontal product-lifecycle tool. The one asset worth chasing is the USD 1,500/year AI Licence, a cheap non-Indian incorporation route if a UAE entity ever becomes the answer. Phase 2 should look for a horizontal AI track rather than filing the generic community form."
+  "notes": "Open and fileable, but the effort-to-value ratio is the worst in the lane: eight hours of documents, including a cap table for a company that does not exist, to join a community rather than a funded programme. Phase 1 recommended looking for a horizontal AI track instead of filing the generic community form, and having now read the form in full I would go further - do not file this unless a UAE entity becomes strategy. The one durable asset is the USD 1,500/year AI Licence as a cheap non-Indian incorporation route, and that can be pursued directly without the community application."
  },
  {
-  "name": "Accel Atoms",
+  "name": "Accel Atoms (AI Cohort and Atoms X)",
   "organisation": "Accel (with Google AI Futures Fund for the AI cohort)",
   "category": "accelerator",
   "region": "India and Indian-origin founders globally",
-  "apply_url": "https://atoms.accel.com/apply",
-  "page_state": "UNKNOWN",
-  "page_evidence": "The apply page loads but serves an overlay reading \"Atoms is Upgrading - We're upgrading the Atoms application experience on July 11. Please complete your application now, or check after the 11th.\" The homepage offers only a newsletter signup with \"I would like to be notified for the next cohort of Atoms\" and no live cohort application. Whether an intake is open cannot be confirmed.",
-  "deadline": "null",
-  "deadline_source_url": "https://atoms.accel.com/apply",
+  "apply_url": "https://apply.accel-atoms.com/",
+  "page_state": "OPEN",
+  "page_evidence": "Major correction to phase 1. The \"Atoms is Upgrading\" overlay is gone - atoms.accel.com/apply now redirects to apply.accel-atoms.com and serves a live \"Accel Atoms Application Form\" with LinkedIn and email sign-in. Two tracks are offered. AI Cohort: \"If you have an AI solution in place and believe your product is ready, apply early, and you will be automatically considered and evaluated when the next AI Cohort begins.\" Atoms X: \"Applications for Atoms X are open on a rolling basis. While the next cohort is planned for 2026, you can apply now.\" The form notes \"You may apply to either the AI or X Cohort, and your application will be automatically considered and evaluated when the next cohort begins.\"",
+  "deadline": "rolling",
+  "deadline_source_url": "https://apply.accel-atoms.com/",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not stated; \"Founders at idea or prototype stage - traction is not mandatory\"",
-  "hard_blocker": "null",
-  "location_requirement": "None: \"Indian & Indian-origin founders building AI-first products for India and users worldwide. Location doesn't matter, whether you are in Bengaluru, Silicon Valley, London, or elsewhere.\" The founder qualifies on origin regardless of where he lands.",
-  "cash": "Up to $2 million in co-investment per founder for the AI cohort",
-  "terms_dilution": "Co-investment - equity taken; terms not published",
+  "solo_founder_stance": "Not stated as a bar. \"Founders at idea or prototype stage - traction is not mandatory.\"",
+  "location_requirement": "None, and this is the standout feature: \"Indian & Indian-origin founders building AI-first products for India and users worldwide. Location doesn't matter, whether you are in Bengaluru, Silicon Valley, London, or elsewhere.\" The founder qualifies on origin regardless of where he lands, and there is no Indian-entity implication.",
+  "cash": "Up to $2 million in co-investment per founder for the AI cohort.",
+  "terms_dilution": "Co-investment, equity taken. Terms not published.",
   "credits_and_tools": "Compute, plus early access to Gemini and DeepMind models via Google's AI Futures Fund. At least one Gemini integration is expected in the solution.",
-  "customer_access": "Accel portfolio and Google",
-  "network_quality": "AI Cohort 2026 selected five companies from thousands of applicants; programme kicked off March 2026 at Google Ananta, Bengaluru",
-  "brand_value": "Very high in India",
-  "application_effort": "Online application. \"If you applied between September 1, 2025 and November 24, 2025, your application will automatically be considered\" - suggesting applications are banked between cohorts.",
-  "cohort_dates": "AI Cohort 2026 began February/March 2026. Next cohort dates not published.",
+  "customer_access": "Accel portfolio and Google.",
+  "network_quality": "AI Cohort 2026 selected five companies from thousands of applicants; kicked off March 2026 at Google Ananta, Bengaluru.",
+  "brand_value": "Very high in India.",
+  "application_effort": "2-3 hours. Two stated requisites: \"1. LinkedIn Profile: An updated LinkedIn profile is crucial for our selection process\" and \"2. Business Idea: A sharp pitch deck. Straight and direct. One minute to the top floor.\" Sign-in via LinkedIn or email; the form autosaves for up to a week. No video or references.",
+  "cohort_dates": "AI Cohort 2026 began February/March 2026. Next cohort dates not published; applications are banked and evaluated when the next cohort begins.",
   "sources": [
+   "https://apply.accel-atoms.com/",
    "https://atoms.accel.com/",
-   "https://atoms.accel.com/apply",
-   "https://atoms.accel.com/news/ai-cohort-2026-with-google",
-   "https://www.accel.com/noteworthies/google-joins-accel-to-turbocharge-ai-founders-with-atoms-ai-cohort-2026"
+   "https://atoms.accel.com/news/ai-cohort-2026-with-google"
   ],
-  "notes": "The 26 January 2026 deadline has passed, but Accel's own wording is that \"Founders applying after the deadline will be considered for future Atoms AI cohorts\" - precisely the situation screening rule 1 was written for. Do not mark this closed on a passed date. The location-agnostic Indian-origin eligibility makes it one of the few India-branded programmes with no Indian-entity implication."
+  "notes": "Phase 1 marked this UNKNOWN on a stale \"upgrading\" overlay dated July 11; the form is now live and this is exactly the case screening rule 1 was written for - the passed 26 January deadline never meant closed. Two tracks, not one: Atoms X is a distinct rolling programme for \"mission-centric founders building breakthrough products, technologies, or business models\", which is arguably a better description of Supaprod than the AI cohort's Gemini-integration expectation. Best India-lane combination available: no entity requirement, no location requirement, no traction requirement, a 2-3 hour application, and a very high brand. The Gemini integration expectation is the one thing to weigh before choosing the AI track over X."
  },
  {
   "name": "BITSoM VERTEX",
@@ -756,83 +713,76 @@
   "region": "India",
   "apply_url": "https://www.ceoinsightsindia.com/news/bitsom-debuts-vertex-to-bring-silicon-valley-innovation-to-india-nwid-24629.html",
   "page_state": "UNKNOWN",
-  "page_evidence": "Programme announced 5 August 2026 with a trade report stating \"Applications for the inaugural cohort of BITSoM VERTEX are now officially open\", but the official application portal was not located or read in this session. The URL recorded here is the announcement, not an application page, and must be replaced before use.",
-  "deadline": "null",
-  "deadline_source_url": "null",
+  "page_evidence": "No application page exists to check. The only URL on record is a trade announcement, not a programme page, and it is the same placeholder phase 1 flagged as unusable. I could not locate an official BITSoM VERTEX application portal: this session's web search budget (200 calls) was exhausted before I could search for one, and no candidate URL was available to fetch directly. No claim is made about whether applications are open.",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Unknown",
-  "hard_blocker": "null",
-  "location_requirement": "India; applications invited from \"Founders from across India\"",
-  "cash": "Unknown",
-  "terms_dilution": "Unknown",
-  "credits_and_tools": "Silicon Valley expertise and global frameworks via LENZ",
-  "customer_access": "\"dedicated pathways to enterprise pilot opportunities and real-world customer testing\" - directly addresses Supaprod's zero-external-users gap",
-  "network_quality": "New programme; aims to graduate 100 AI startups over three years; partnered with Hack2Skill for sourcing",
-  "brand_value": "Low - inaugural cohort of an unproven incubator",
-  "application_effort": "Unknown",
-  "cohort_dates": "Inaugural cohort; dates not published",
+  "solo_founder_stance": "Unknown.",
+  "location_requirement": "India. Applications reportedly invited from \"Founders from across India\".",
+  "cash": "Unknown.",
+  "terms_dilution": "Unknown.",
+  "credits_and_tools": "Silicon Valley expertise and global frameworks via LENZ, per the announcement.",
+  "customer_access": "The announcement claims \"dedicated pathways to enterprise pilot opportunities and real-world customer testing\", which would address Supaprod's zero-external-users gap - but this is unverified marketing copy, not a programme commitment.",
+  "network_quality": "New programme; states an aim to graduate 100 AI startups over three years; sourcing partner reported as Hack2Skill.",
+  "brand_value": "Low - inaugural cohort of an unproven incubator.",
+  "application_effort": "Unknown.",
+  "cohort_dates": "Inaugural cohort; dates not published.",
   "sources": [
    "https://www.ceoinsightsindia.com/news/bitsom-debuts-vertex-to-bring-silicon-valley-innovation-to-india-nwid-24629.html"
   ],
-  "notes": "Included because the enterprise-pilot pathway is the one thing Supaprod actually needs, but the record is thin: announced ten days ago, no verified application URL, no terms. Phase 2 should either find the real portal (likely via Hack2Skill) or drop this row. Do not file against the placeholder URL."
+  "notes": "RECOMMEND DROPPING unless someone can produce the real portal. Every substantive field is unknown, the only URL is a press announcement about a programme announced nine days ago, and the one attractive claim - enterprise pilot pathways - comes from trade copy rather than the programme itself. Per the brief this is reported as UNKNOWN rather than guessed at, but it should not consume filing effort ahead of the dozen verified open programmes in this lane. If it is pursued later, start from Hack2Skill, which is the reported sourcing partner. Do not file against the placeholder URL recorded here."
  },
  {
   "name": "nasscom DeepTech Club",
   "organisation": "nasscom",
   "category": "founder community",
   "region": "India",
-  "apply_url": "https://nasscom.accubate.app/ext/form/404/1/apply",
-  "page_state": "UNKNOWN",
-  "page_evidence": "The Accubate application form URL returned a crawl infrastructure error and could not be read. The nasscom programme page describes the club but the form's state could not be confirmed.",
-  "deadline": "rolling",
-  "deadline_source_url": "https://nasscom.in/deeptech/deeptechclub/",
-  "entity_required_to_apply": true,
-  "solo_founder_stance": "Not stated",
-  "hard_blocker": "Conditional, not a wall on the programme's own terms: reported eligibility is \"The startup must be legally registered in India\". That collides with the founder's deliberate decision not to incorporate an Indian entity, so this is a fallback only if that decision reverses.",
-  "location_requirement": "India",
-  "cash": "None - community membership",
-  "terms_dilution": "None",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Connections to industry leaders, investors, academia, researchers and government regulators",
-  "network_quality": "450+ curated deeptech startups, 120+ technology leaders and mentors; selection ratio under 7 in 100",
-  "brand_value": "Moderate in India; the Startup Badge is a credential",
-  "application_effort": "Online application, then a presentation to an expert jury panel for shortlisted startups",
-  "cohort_dates": "Rolling monthly - \"selected startups onboarded on the 10th of the following month\"",
+  "apply_url": "https://nasscom.accubate.app/ext/form/2124/1/apply",
+  "page_state": "CLOSED",
+  "page_evidence": "The application form states in its own words: \"Thank you for your interest. This application form is now closed for responses.\" That is the entire content of the page under the title \"Startup Application for Nasscom DeepTech Club | Nasscom\".",
+  "deadline_source_url": "https://nasscom.accubate.app/ext/form/2124/1/apply",
+  "entity_required_to_apply": false,
+  "solo_founder_stance": "Not stated.",
+  "location_requirement": "India. The programme describes itself as focused on \"India based deep technology startups\".",
+  "cash": "None - community membership.",
+  "terms_dilution": "None.",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "Connections to industry leaders, investors, academia, researchers and government regulators.",
+  "network_quality": "\"a community of 450+ early - mid stage companies and 120+ technology leaders / mentors who helped them reach lab-to-market / scale business / raise cumulative $1.5+ Bn\". 5,100+ industry connects and 4,200+ hours of mentoring.",
+  "brand_value": "Moderate in India; the Startup Badge is a modest credential.",
+  "application_effort": "Not assessable - the form is closed.",
+  "cohort_dates": "Previously rolling monthly, with selected startups onboarded on the 10th of the following month.",
   "sources": [
    "https://nasscom.in/deeptech/deeptechclub/",
-   "https://community.nasscom.in/communities/product-startups/deeptech-club.html",
-   "https://www.startupgrantsindia.com/nasscom-deeptech-club-launchpad-incubation-program-417"
+   "https://nasscom.accubate.app/ext/form/2124/1/apply"
   ],
-  "notes": "Flagged as an India-entity-gated fallback exactly as the lane brief requires. The Indian-registration requirement comes from an aggregator, not from nasscom's own eligibility text - phase 2 should confirm it at source before writing this off, because equity-free access to 450+ deeptech peers is cheap if the gate is softer than reported."
+  "notes": "Two corrections. First, phase 1's apply URL was wrong - it pointed at /ext/form/404/1/apply, a 404 path, which is why it returned a crawl error. The real form, linked as \"Join as a Startup\" from nasscom's own page, is /ext/form/2124/1/apply. Second, with the correct URL the answer is unambiguous: the form is closed, stated by the form itself, so the reported Indian-registration eligibility gate is moot for now and I did not need to resolve it. Phase 1 correctly refused to write this off on an aggregator's eligibility text; the closure supersedes that question. Worth re-checking later given monthly onboarding, and only then resolving whether Indian registration is genuinely required."
  },
  {
   "name": "100X.VC",
   "organisation": "100X.VC (Mehta Ventures, SEBI Category I AIF)",
   "category": "accelerator",
   "region": "India",
-  "apply_url": "https://www.100x.vc/apply",
+  "apply_url": "https://form.jotform.com/100xvc/100xvc-startup-application",
   "page_state": "OPEN",
-  "page_evidence": "Page states \"100X.VC Applications Open!\" and \"Fill up the application form here. Applications are accepted on a rolling basis.\"",
+  "page_evidence": "Page states \"100X.VC Applications Open!\" and \"Fill up the application form here. Applications are accepted on a rolling basis.\" Three separate live \"Apply Now\" buttons all resolve to a public JotForm with no login wall.",
   "deadline": "rolling",
   "deadline_source_url": "https://www.100x.vc/apply",
-  "entity_required_to_apply": true,
-  "solo_founder_stance": "Not stated; they look for founders \"actively building their startup from India\" and dedicated full-time",
-  "hard_blocker": "Conditional: an incorporated Indian entity (Pvt Ltd or LLP) is reported as required for the iSAFE instrument and regulatory compliance. Sourced from an aggregator profile rather than 100X's own page - verify.",
-  "location_requirement": "\"designed for founders building their startup from India\"; 6-week in-person HomeRun Masterclass Series in Mumbai",
-  "cash": "Rs 1.25 crore, approximately $150,000",
-  "terms_dilution": "iSAFE note for 15% of future equity - heavy for a pre-seed cheque of this size",
-  "credits_and_tools": "Not stated",
-  "customer_access": "VC Pitch Day for follow-on funding",
-  "network_quality": "Over 10,000 startups apply annually; 180+ companies backed across 12+ cohorts",
-  "brand_value": "Moderate in India",
-  "application_effort": "Online form, initial screening call within 7-10 working days, then an in-person interview in Mumbai",
-  "cohort_dates": "Bi-annual cohorts of 15-20 startups",
+  "entity_required_to_apply": false,
+  "solo_founder_stance": "Not stated. They look for founders \"actively building their startup from India\" and dedicated full-time.",
+  "hard_blocker": "Not an application blocker, but a genuine post-selection collision. The Indian entity is required at deal closure, in 100X's own words: \"Estimated time from Term sheet to Deal Closure is 2 weeks once the due diligence documents are submitted and the Indian entity is incorporated.\" That is precisely the Indian incorporation the founder ruled out on FEMA and RBI share-swap grounds, so accepting an offer would mean reversing that decision.",
+  "location_requirement": "\"designed for founders building their startup from India\". Shortlisted founders are \"invited to Mumbai for an interview\", and the HomeRun Masterclass Series is \"a 6-week in-person classroom engagement\" in Mumbai.",
+  "cash": "₹1.25 crore, approximately $150,000.",
+  "terms_dilution": "\"the investment committee will email a term sheet offer for 1.25 Cr for 15% of future equity ownership using iSAFE notes\". Confirmed verbatim from 100X's own page.",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "VC Pitch Day after the HomeRun Series, attended by \"top Angels, Family Offices, Micro VCs, Corporate Funds and VC funds of India\".",
+  "network_quality": "\"Over 10,000 startups apply annually\". 350+ founders across 180+ startups in the alumni network.",
+  "brand_value": "Moderate in India.",
+  "application_effort": "Public JotForm, no account needed. Then a screening call within 7-10 working days, then an in-person interview in Mumbai. Budget 2-3 hours for the form plus travel to Mumbai if shortlisted.",
+  "cohort_dates": "Bi-annual cohorts of 15-20 startups.",
   "sources": [
    "https://www.100x.vc/apply",
-   "https://www.100x.vc/isafe",
-   "https://www.startupgrantsindia.com/providers/100x-vc"
+   "https://www.100x.vc/isafe"
   ],
-  "notes": "India-entity fallback per the lane brief. Two independent reasons to rank it low even if the entity question resolves: 15% of future equity is expensive for Rs 1.25 crore, and the Indian entity is exactly what the founder ruled out on FEMA and RBI grounds. Listed for completeness, not as a target."
+  "notes": "Correction to phase 1: entity_required_to_apply is false, not true. Reading 100X's own six-step process, the Indian entity is named only at step 6, deal closure - the JotForm at step 1 is public and requires no entity. So the gate is at the money, not the form, exactly as screening rule 2 anticipates. That said, the two reasons to rank it low both survive verification and one strengthens: 15% of future equity for ₹1.25 crore is expensive pre-seed dilution, now confirmed verbatim rather than inferred, and taking the money requires the Indian incorporation the founder deliberately ruled out. Listed for completeness, not as a target."
  },
  {
   "name": "IIMA Ventures incubation",
@@ -841,55 +791,51 @@
   "region": "India (Ahmedabad, Indore, Jaipur)",
   "apply_url": "https://iimaventures.com/incubation/",
   "page_state": "OPEN",
-  "page_evidence": "Incubation page is live and describes rolling programmes: \"Details of upcoming and active programs are given on our website.\" No closed notice on the incubation page.",
+  "page_evidence": "Rendered the page directly (WebFetch is blocked on this host). The incubation page is live with a \"GET SUPPORT\" call to action and describes continuous intake: sessions and boosters run monthly and pitches quarterly, \"conducted at regular intervals... to ensure continuity of support\". No closed notice.",
   "deadline": "rolling",
   "deadline_source_url": "https://iimaventures.com/incubation/",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not stated for general incubation",
-  "hard_blocker": "null",
-  "location_requirement": "India; physical presence across Ahmedabad, Indore and Jaipur, with virtual support also offered",
-  "cash": "None for general incubation; specific funding programmes vary",
-  "terms_dilution": "Not stated for incubation",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Mentoring, partnerships and collaborations",
-  "network_quality": "1000+ startups accelerated, 300+ funded, 5000+ mentored; hosted India's first accelerator, iAccelerator, in 2009",
-  "brand_value": "Moderate to high in India",
-  "application_effort": "Online application; response in 2 weeks for some programmes, up to 45 days for wider-outreach ones",
-  "cohort_dates": "Generally 6 months, extendable by mutual agreement; individual programmes run 3-12 months",
+  "solo_founder_stance": "Not stated for general incubation. The FAQ does address cofounder absence indirectly - one question is \"Can your incubation centre help me find a co-founder?\", implying solo applicants are expected.",
+  "location_requirement": "India. Physical presence across Ahmedabad, Indore and Jaipur, with virtual support also offered. The stated focus is \"Tier 2 & Tier 3 cities of India\", which Bangalore is not - a thesis mismatch worth noting.",
+  "cash": "None for general incubation. Grants and seed investments run as separate programmes.",
+  "terms_dilution": "Not stated for incubation. The FAQ carries a \"Do you take equity against incubation support?\" question.",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "Mentoring, partnerships and collaborations.",
+  "network_quality": "1000+ startups accelerated, 300+ funded, 5000+ mentored. Hosted India's first accelerator, iAccelerator, in 2009.",
+  "brand_value": "Moderate to high in India.",
+  "application_effort": "Online application via GET SUPPORT. Response in 2 weeks for some programmes, up to 45 days for wider-outreach ones.",
+  "cohort_dates": "Generally 6 months, extendable by mutual agreement. Individual programmes run 3-12 months.",
   "sources": [
-   "https://iimaventures.com/incubation/",
-   "https://iimaventures.com/"
+   "https://iimaventures.com/incubation/"
   ],
-  "notes": "The one India institutional incubator in this sweep that answers the entity question favourably in its own FAQ: \"Do I need a registered company to apply? No. It is not mandatory for you to have a registered company to apply for incubation support. However, for some of our funding programs having a registered for-profit company might be mandatory.\" That splits cleanly - incubation without an entity, funding with one. Currently advertised cohorts (Tech Swanari 4.0, SHG fintech) are sector-specific and not a fit; find the sector-agnostic intake."
+  "notes": "Confirmed verbatim from IIMA's own FAQ, and it is the cleanest entity answer of any India institutional incubator: \"Do I need a registered company to apply? No. It is not mandatory for you to have a registered company to apply for incubation support. However, for some of our funding programs having a registered for-profit company might be mandatory.\" That splits exactly as phase 1 predicted - incubation without an entity, funding with one. Two reasons to rank it modestly: the stated mission is Tier 2 and Tier 3 city ecosystems rather than Bangalore, and the currently advertised cohorts are sector-specific. The value here is a non-dilutive institutional affiliation, not capital."
  },
  {
   "name": "Entrepreneur First - Bangalore",
   "organisation": "Entrepreneur First",
   "category": "incubator",
   "region": "India / Bengaluru (with San Francisco progression)",
-  "apply_url": "https://apply.joinef.com/app/bangalore-fall/",
+  "apply_url": "https://www.joinef.com/register-your-interest-bangalore/",
   "page_state": "CLOSED",
-  "page_evidence": "The application page states: \"Thank you for your interest in the Fall program in Bangalore. Applications for this program are closed. You can view our upcoming programs and open applications here.\"",
-  "deadline": "null",
-  "deadline_source_url": "https://apply.joinef.com/app/bangalore-fall/",
+  "page_evidence": "Confirmed twice from EF's own pages. The Fall programme page states: \"Applications closed. Thank you for your interest in the Fall program in Bangalore. Applications for this program are closed. You can view our upcoming programs and open applications here.\" Following that link to EF's Application Hub, I read the full programme list: Bangalore appears under \"BASED IN INDIA?\" with only a \"Register Interest\" button and no dates, no deadline and no live application - unlike the programmes that do carry an \"Apply Now\".",
+  "deadline_source_url": "https://apply.joinef.com/",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "The strongest solo stance of any programme in this lane: EF assesses individuals, not teams. \"This program is designed for individuals - not teams or existing companies... You do not need a cofounder to apply... EF assesses all applicants as individuals, before they have a business, cofounder or an idea.\"",
-  "hard_blocker": "null",
-  "location_requirement": "Bangalore, with a San Francisco progression track",
-  "cash": "Equity-free grant during the co-founder matching and ideation phase; up to Rs 2.3 crore invested once a company is formed",
-  "terms_dilution": "Equity taken at company formation; the grant phase is equity-free",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Not stated",
-  "network_quality": "EF global alumni network",
-  "brand_value": "High",
-  "application_effort": "Individual-assessment application plus interviews",
-  "cohort_dates": "Fall 26 cohort closed applications 1 May 2026",
+  "solo_founder_stance": "The strongest solo stance found anywhere in this sweep, confirmed verbatim on EF's hub FAQ: \"No you do not need a cofounder to apply. Our program brings together exceptional individuals to find a cofounder and build a startup from scratch. We assess all applicants as individuals, before they have a business, cofounder or an idea.\"",
+  "location_requirement": "Bangalore full-time and in person, then \"After 14 weeks, move to San Francisco for the last 3 months of the program.\" On visas: \"You may need a visa to relocate to one of our hub cities. We do not provide visas for the EF program. However, in many circumstances, we can offer support to help you apply for a visa, if required.\"",
+  "cash": "Equity-free grant during the cofounder-matching and ideation phase; investment once a company is formed.",
+  "terms_dilution": "Equity taken at company formation; the grant phase is equity-free.",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "Not stated.",
+  "network_quality": "EF global alumni network, with a stated bridge to Silicon Valley: \"We back you first, then give you a bridge to Silicon Valley.\"",
+  "brand_value": "High.",
+  "application_effort": "Individual-assessment application plus interviews with EF's Talent Investing team. \"We review applications on a rolling basis. You will receive an email from us regardless of the outcome.\"",
+  "cohort_dates": "Fall 26 Bangalore cohort closed applications 1 May 2026. Next Bangalore dates not published.",
   "sources": [
    "https://apply.joinef.com/app/bangalore-fall/",
-   "https://www.joinef.com/faqs/bangalore/",
-   "https://www.joinef.com/faqs/"
+   "https://apply.joinef.com/",
+   "https://www.joinef.com/faqs/bangalore/"
   ],
-  "notes": "Confirmed closed from EF's own page, not from an aggregator. Keep on the list: EF runs repeat cohorts and the page itself points to \"upcoming programs and open applications\". Phase 2 should read joinef.com's programme index for the next Bangalore or London intake - the individuals-not-teams model is the best structural match for a solo founder found anywhere in this sweep. The tension is that EF wants people before they have a company, and Supaprod is 5,172 commits deep."
+  "notes": "Closed, confirmed from EF's own pages rather than an aggregator, and registering interest is the only live Bangalore route. Reading the hub surfaced two other EF doors phase 1 could not see. XF2: Experienced Founders Program in London, Fall 2026 - \"Register here if you have 7+ years experience and have either founded a startup before or been a key part of its inception\" - fits this founder's ISRO/Infineon/Intellect arc precisely, though it sits in the Europe lane. And US Funding & Fellowships, which is open now on a rolling basis. The structural tension phase 1 identified is real and worth stating plainly: EF wants people before they have a company, and Supaprod is 5,172 commits and 532 migrations deep, so the individuals-not-teams model that makes EF the best solo-founder fit on paper is also the reason it may be the wrong stage."
  },
  {
   "name": "K-Startup Grand Challenge 2026",
@@ -898,27 +844,25 @@
   "region": "South Korea",
   "apply_url": "https://ksgc.global/",
   "page_state": "CLOSED",
-  "page_evidence": "The official recruitment guidelines state the main track \"Application Period: May 6 (Wed), 2026 - June 17 (Wed), 2026, 15:00 (KST)\". The current site front page shows only the International Student Track: \"Application Period July 13, 2026 - August 14, 2026 - 15:00 KST\", with the main-track window elapsed.",
-  "deadline": "null",
+  "page_evidence": "The main track window has elapsed: the official recruitment guidelines state \"Application Period: May 6 (Wed), 2026 - June 17 (Wed), 2026, 15:00 (KST)\". The only track still showing on the site is the International Student Track, at \"Application Period July 13, 2026 - August 14, 2026 - 15:00 KST\" - which expires today. The rest of the site shows \"Coming soon\".",
   "deadline_source_url": "https://ksgc.global/guidelines/KSGC_2026_Recruitment_Guidelines.pdf",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "No team-size requirement; applications are submitted under the name of the representative (CEO)",
-  "hard_blocker": "For the only track still open, the International Student Track, yes: \"International students residing in Korea\" and \"A pre-startup team composed of university students, led by an international student currently enrolled in a university in Korea.\" The founder is not enrolled in a Korean university, so that track is a genuine eligibility wall. The main track carries no such wall - it requires only that the CEO not be a Korean national, which the founder satisfies.",
-  "location_requirement": "Korea market entry; hybrid with activities in Korea. A Startup Preparation Visa recommendation letter valid up to one year is provided.",
-  "cash": "Government-funded support; amounts detailed in the guidelines",
-  "terms_dilution": "Government programme - non-dilutive",
-  "credits_and_tools": "Office space in Seoul, visa recommendation letter",
-  "customer_access": "Two-phase Korea market entry support, plus collaboration with large and mid-sized Korean enterprises",
-  "network_quality": "80 teams accepted; running annually since 2016",
-  "brand_value": "Moderate; strong specifically for Korea and Asia expansion",
-  "application_effort": "Web-based business plan with no separate document submission, in English, plus a 2-minute founder video and an optional pitch deck",
-  "cohort_dates": "Programme period July 2026 - April 2027",
+  "solo_founder_stance": "No team-size requirement on the main track; applications are submitted under the name of the representative (CEO).",
+  "hard_blocker": "For the only track still open today, yes, and it is a genuine enrolment wall: the International Student Track requires that \"All team members must be current undergraduate or graduate students\" and \"At least 50% of the team members must be international students\", led by an international student currently enrolled at a Korean university. The founder is not enrolled at any Korean university. The main track carries no such wall - it requires only that the CEO not be a Korean national, which he satisfies - but that track is closed.",
+  "location_requirement": "Korea market entry, hybrid with activities in Korea. A Startup Preparation Visa recommendation letter valid up to one year is provided.",
+  "cash": "Government-funded support; amounts detailed in the recruitment guidelines.",
+  "terms_dilution": "Non-dilutive - government programme, no equity taken.",
+  "credits_and_tools": "Office space in Seoul plus a visa recommendation letter.",
+  "customer_access": "Two-phase Korea market entry support and collaboration with large and mid-sized Korean enterprises.",
+  "network_quality": "80 teams accepted. Running annually since 2016.",
+  "application_effort": "Web-based business plan with no separate document submission, in English, plus a 2-minute founder video and an optional pitch deck.",
+  "brand_value": "Moderate; strong specifically for Korea and Asia expansion.",
+  "cohort_dates": "Programme period July 2026 - April 2027.",
   "sources": [
    "https://ksgc.global/",
-   "https://ksgc.global/guidelines/KSGC_2026_Recruitment_Guidelines.pdf",
-   "https://skaleplus.com/programs/2026-k-startup-grand-challenge--69fac0216b8e9f4ec6a72911-apply"
+   "https://ksgc.global/guidelines/KSGC_2026_Recruitment_Guidelines.pdf"
   ],
-  "notes": "Closed for 2026 but a high-value annual target worth diarising: non-dilutive, explicitly for non-Korean founders, no entity required to apply, and it carries a visa pathway. Eligibility extends to pre-startups, which a pre-incorporation founder is. Set a reminder for the May 2027 window."
+  "notes": "Closed for 2026 on the track that matters, and the one track technically still open expires today and is walled behind Korean university enrolment. This is a high-value annual target worth diarising for a May 2027 window: non-dilutive, explicitly open to non-Korean founders, no entity required to apply, eligibility extends to pre-startups, and it carries a visa pathway - a rare combination. Budget for the 2-minute founder video when the time comes."
  },
  {
   "name": "Blackbird Giants",
@@ -927,56 +871,80 @@
   "region": "Australia and New Zealand",
   "apply_url": "https://www.blackbird.vc/giants",
   "page_state": "CLOSED",
-  "page_evidence": "Published 2026 cycle: \"Applications open Wednesday, 4th February 2026 and close Sunday, 8th March 2026, with application outcome notification on Monday, 23rd March 2026.\" Both 2026 windows have elapsed; the virtual cohort runs August-September 2026.",
-  "deadline": "null",
+  "page_evidence": "No application form is served; the page offers only \"Join the waitlist to stay tuned for any updates on when applications open.\" The published 2026 cycle has elapsed: the Sydney cohort \"runs from Monday 30th March until Friday 1st May 2026\" and the Melbourne cohort \"from Monday 4th May until Friday 29th May 2026\".",
   "deadline_source_url": "https://www.blackbird.vc/giants",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not a published bar; aimed at early-stage founders at the ideation phase",
-  "hard_blocker": "Probable: \"At least one person in the founding team must have a connection with Australia or New Zealand.\" Separately, \"you must have been working on the startup idea for less than two years\", which Supaprod satisfies.",
-  "location_requirement": "Two in-person cohorts (Sydney, Melbourne) and one virtual cohort covering all of Australia and New Zealand",
-  "cash": "None - free mentoring programme",
-  "terms_dilution": "Equity-free",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Access to Blackbird's investment team",
-  "network_quality": "Mentors from across the ANZ technology ecosystem",
-  "brand_value": "Strong in ANZ",
-  "application_effort": "Application plus an AMA info session",
-  "cohort_dates": "2026: Sydney 30 March - 1 May; virtual cohort August-September",
+  "solo_founder_stance": "Not a published bar. Aimed at early-stage founders at the ideation phase.",
+  "hard_blocker": "Yes, and it is now confirmed from Blackbird's own eligibility text rather than LaunchVic's summary: \"At least one person in the founding team has a connection with Australia or New Zealand.\" A solo founder in Bangalore with no ANZ connection cannot satisfy a rule that requires it of the founding team. Separately, \"You have been working on the startup idea for less than two years\", which Supaprod does satisfy at ten weeks.",
+  "location_requirement": "Two in-person cohorts (Sydney, Melbourne) plus a virtual cohort covering Australia and New Zealand. \"Attendance at in-person events is mandatory.\"",
+  "cash": "None. Free mentoring programme.",
+  "terms_dilution": "None. \"Giants is free and we don't ask for equity.\"",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "Access to Blackbird's investment team.",
+  "network_quality": "Mentors from across the ANZ technology ecosystem.",
+  "brand_value": "Strong in ANZ, limited elsewhere.",
+  "application_effort": "Application plus an AMA information session. Not assessable while closed.",
+  "cohort_dates": "2026: Sydney 30 March - 1 May; Melbourne 4-29 May; virtual cohort August-September.",
   "sources": [
-   "https://www.blackbird.vc/giants",
-   "https://launchvic.org/programs/blackbird-giants-program/",
-   "https://www.grants.com.au/grants/blackbird-foundation-giants/"
+   "https://www.blackbird.vc/giants"
   ],
-  "notes": "Annual February window - diarise for 2027. The ANZ-connection rule is the likely wall and should be read off Blackbird's own eligibility text rather than LaunchVic's summary. The sibling Foundry programme (blackbird.vc/foundry) is EOI-open for Cohort 7 but targets university-affiliated researchers and carries the same ANZ-tie rule, so it is a weaker fit."
+  "notes": "Closed and, unlike Startmate, the ANZ-connection rule IS published on the programme's own page - so this one is a genuine eligibility wall rather than an inference from a sibling programme. That distinction matters: phase 1 reasonably suspected the same rule applied to Startmate, and it does not appear there. Diarise the February window for 2027 only if an ANZ connection ever becomes real. The sibling Foundry programme carries the same ANZ-tie rule and targets university-affiliated researchers, so it is a weaker fit still."
  },
  {
-  "name": "Cyberport Incubation Programme",
+  "name": "Cyberport Incubation Programme (CIP)",
   "organisation": "Hong Kong Cyberport Management Company",
   "category": "incubator",
   "region": "Hong Kong",
-  "apply_url": "https://www.cyberport.hk/en/entrepreneurship/cyberport_incubation_programme/",
+  "apply_url": "https://ems.cyberport.hk/form/?selected_lang=en",
   "page_state": "UNKNOWN",
-  "page_evidence": "The programme page carries a \"Programme Update Notice\" stating: \"Cyberport Incubation Programme (CIP) will be undergoing enhancements to better support startup growth and development. Details of the updated programme will be announced soon. Please stay tuned for further updates.\" There is no application form, no open or closed declaration, and no next intake date.",
-  "deadline": "null",
+  "page_evidence": "A revamp notice plus an account gate. The programme page carries a \"Programme Update Notice\" stating: \"Cyberport Incubation Programme (CIP) will be undergoing enhancements to better support startup growth and development. Details of the updated programme will be announced soon. Please stay tuned for further updates.\" It never says applications are closed, and it still carries an \"Apply Now\" button, but it publishes no application timeline or intake date. Following the button lands on the Cyberport Entrepreneurship Management System, which requires registration before any programme list is visible: \"For first-time users, please register and complete your profile... Please note that some programme are only available to specific types of applicants.\" I could not see the available programme list without an account.",
   "deadline_source_url": "https://www.cyberport.hk/en/entrepreneurship/cyberport_incubation_programme/",
   "entity_required_to_apply": true,
-  "solo_founder_stance": "Not stated; requires at least one local authorised representative physically working in Hong Kong",
-  "hard_blocker": "Requires a Hong Kong incorporated company: \"Applicant must be a registered digital tech company limited by shares (or in progress of incorporation) and incorporated in Hong Kong less than 7 years upon application deadline\", with founders holding 51%+ and a local representative in HK. Note this is a Hong Kong entity, not an Indian one, so it does not collide with the founder's FEMA/RBI concern.",
-  "location_requirement": "Hong Kong; local presence with at least one authorised representative physically working there",
-  "cash": "Up to HK$500,000 in financial assistance plus HK$200,000 on-site rental subsidy",
-  "terms_dilution": "Equity-free financial assistance",
-  "credits_and_tools": "Cyberport Investors, Enterprise, Technology and Professional Services Networks; mentorship",
-  "customer_access": "Business matching and exhibition opportunities",
-  "network_quality": "Large HK cohort ecosystem; 190 startups graduated in a recent cycle",
-  "brand_value": "Moderate; strong in Hong Kong",
-  "application_effort": "Online application, no fee. Prior intakes: March 2026 intake closed 2 January 2026; June 2026 intake closed 1 April 2026.",
-  "cohort_dates": "24-month programme",
+  "solo_founder_stance": "Not stated as a team-size rule, but \"Founders collectively must hold at least 51% of the company\", which a solo founder satisfies trivially.",
+  "hard_blocker": "A Hong Kong entity, though softer than it first appears. Eligibility, quoted from the programme's own accordion: \"A registered digital tech company limited by shares and incorporated in Hong Kong less than 7 years (or in progress of incorporation) upon application deadline\". The parenthetical means a founder can file while an HK company is being formed. Note this is a Hong Kong entity, not an Indian one, so it does not collide with the founder's FEMA and RBI concern.",
+  "location_requirement": "Hong Kong, with at least one authorised representative physically working there.",
+  "cash": "\"Up to HK$500,000 in financial assistance\" during the 24-month programme, plus rental subsidy.",
+  "terms_dilution": "Equity-free financial assistance.",
+  "credits_and_tools": "Cyberport Investors, Enterprise, Technology and Professional Services Networks; mentorship.",
+  "customer_access": "Business matching and exhibition opportunities.",
+  "network_quality": "Large Hong Kong cohort ecosystem.",
+  "brand_value": "Moderate; strong within Hong Kong.",
+  "application_effort": "Online application through the EMS portal, no fee, then a presentation to a vetting panel held physically at Cyberport or online via Zoom.",
+  "cohort_dates": "24-month programme. No intake dates published pending the revamp.",
   "sources": [
    "https://www.cyberport.hk/en/entrepreneurship/cyberport_incubation_programme/",
-   "https://www.cyberport.hk/en/entrepreneurship/cyberport_incubation_programme_faq/",
-   "https://ec.hkust.edu.hk/events/application-ccmf-and-cip-jun-2026-intake-cyberport-entrepreneurship-programme-information"
+   "https://ems.cyberport.hk/form/?selected_lang=en"
   ],
-  "notes": "Marked UNKNOWN rather than closed because the notice announces a revamp, not a closure - the page never says applications are closed. The \"or in progress of incorporation\" clause means a founder could file while an HK company is being formed, a softer gate than it first appears. Worth diarising for the revamped programme; HK$500k equity-free is one of the better non-dilutive numbers in the lane."
+  "notes": "Correctly marked UNKNOWN rather than closed - the notice announces a revamp, not a closure, and the page never says applications are closed. HK$500k equity-free remains one of the better non-dilutive numbers in the lane. The more useful discovery is on this same page: an \"Alternative Admission Route\" accordion that reads \"Many successful incubatees begin their journey through the Cyberport Creative Micro Fund before joining the Cyberport Incubation Programme. Companies yet to be incorporated may consider CCMF as their starting point.\" That is Cyberport itself pointing pre-incorporation founders at a different programme, which I have verified and listed as its own row."
+ },
+ {
+  "name": "Cyberport Creative Micro Fund (CCMF) - Hong Kong Programme",
+  "organisation": "Hong Kong Cyberport Management Company",
+  "category": "grant",
+  "region": "Hong Kong",
+  "apply_url": "https://ems.cyberport.hk/form/?selected_lang=en",
+  "page_state": "OPEN",
+  "page_evidence": "Not in phase 1's candidate list - found on the CIP page, which names CCMF as the route for \"Companies yet to be incorporated\". The programme publishes a live forward intake table: \"Intake / Online Application Deadline / Vetting & Presentation Session / Result Announcement - Jun 2026: 1 Apr 2026 - Oct 2026: 3 Aug 2026 - Feb 2027: 1 Dec 2026\". The February 2027 intake is open with a deadline of 1 December 2026. The page states \"Ready to apply? Submit your application through the Cyberport Entrepreneurship Management System.\"",
+  "deadline": "2026-12-01",
+  "deadline_source_url": "https://www.cyberport.hk/en/entrepreneurship/hong_kong_programme/",
+  "entity_required_to_apply": false,
+  "solo_founder_stance": "No team-size requirement. The programme explicitly accepts individual applicants as well as companies: sub-programmes are described as \"accepting individual applications and company applications\".",
+  "hard_blocker": "A Hong Kong nexus is required, but which one depends on the route, and one route does not need an entity to apply: \"Individual Applicants: Principal applicant must be Hong Kong ID Card holder. Company Applicants: Limited company registered and incorporated in Hong Kong upon admission.\" The founder holds no HK ID card, so the individual route is walled. The company route requires the HK company only upon admission, not to apply - so applying is possible, but accepting means incorporating in Hong Kong.",
+  "location_requirement": "Hong Kong. Open to applicants aged 18 or above upon the application deadline.",
+  "cash": "Up to HK$100,000 cash grant, disbursed in three stages: \"Stage 1 HK$10,000 Arranged on signing the CCMF agreement, Stage 2 HK$45,000 Arranged on approval of the interim report, Stage 3 HK$45,000 Arranged on project completion and approval of the final report.\"",
+  "terms_dilution": "Non-dilutive grant. No equity taken.",
+  "credits_and_tools": "Training, mentorship and business advice; business development and investment connections; local and global business network; publicity; alumni network.",
+  "customer_access": "Business development and investment connections.",
+  "network_quality": "Cyberport ecosystem. \"Successful completion of the CCMF programme may increase your chance of acceptance into our Cyberport Incubation Programme.\"",
+  "brand_value": "Moderate; a recognised stepping stone within Hong Kong.",
+  "application_effort": "Online application through the EMS portal, then a presentation to an independent vetting team drawn from the Entrepreneurship Committee Advisory Group, with a Q&A. Vetting weights are published: Project Management Team 30%, Business Model and Time to Market 30%, Creativity and Innovation 30%, Social Responsibility 10%.",
+  "cohort_dates": "Six-month project period. Next intake February 2027, deadline 1 December 2026.",
+  "sources": [
+   "https://www.cyberport.hk/en/entrepreneurship/hong_kong_programme/",
+   "https://www.cyberport.hk/en/entrepreneurship/cyberport_creative_micro_fund/",
+   "https://www.cyberport.hk/en/entrepreneurship/cyberport_incubation_programme/"
+  ],
+  "notes": "Added because it is a different programme by the same organisation and it is the one Cyberport itself recommends to pre-incorporation founders - exactly the case the brief says to return. Unlike CIP it has a live, dated, forward-looking intake: 1 December 2026 for a February 2027 start. Two features fit well: it is non-dilutive, and \"Projects that launch within three months of grant disbursement are preferred\" suits a product already running end to end. The vetting weighting is worth noting - 30% on Creativity and Innovation rewards the forecast-captured-at-decision-time mechanism, while 10% on Social Responsibility explicitly favours open-source and ethical dimensions. The cost of acceptance is a Hong Kong company."
  },
  {
   "name": "HKSTP Incu-Tech Incubation Programme",
@@ -984,118 +952,108 @@
   "category": "incubator",
   "region": "Hong Kong",
   "apply_url": "https://www.hkstp.org/en/programmes/incubation/incubation-programme",
-  "page_state": "UNKNOWN",
-  "page_evidence": "Programme pages are live and describe the three-year Incu-Tech programme, but no current application window, deadline or open/closed statement was found on the pages read",
-  "deadline": "null",
-  "deadline_source_url": "https://www.hkstp.org/en/programmes/incubation",
+  "page_state": "OPEN",
+  "page_evidence": "Applications are accepted continuously - the programme states it is open \"24 hours a day, 7 days a week, 365 days\". No application deadline or intake window applies.",
+  "deadline": "rolling",
+  "deadline_source_url": "https://www.hkstp.org/en/programmes/incubation/incubation-programme",
   "entity_required_to_apply": true,
-  "solo_founder_stance": "Effectively team-requiring: \"have at least 2 full-time staff working on site with not less than 50% of the team being R&D-related\" - a solo founder cannot satisfy a 2-person on-site staffing rule at application",
-  "hard_blocker": "Two stacked requirements: a \"Hong Kong tech-based limited company established within 5 years of the programme application submission date\", and at least 2 full-time on-site staff. The entity is a Hong Kong one, so it does not conflict with the India decision, but it must exist to apply.",
-  "location_requirement": "Hong Kong Science Park, on-site presence required",
-  "cash": "Up to HK$1.29 million to cover technology and business development expenses",
-  "terms_dilution": "Funding support - equity-free",
-  "credits_and_tools": "R&D support, lab and park facilities",
-  "customer_access": "Investor matching; industry practitioners on the evaluation panel",
-  "network_quality": "Large HK deeptech ecosystem",
-  "brand_value": "Moderate; strong in Hong Kong",
-  "application_effort": "Business plan, technology description, team credentials and financial projections submitted through the HKSTP portal, then a presentation to an evaluation panel. Heavy.",
-  "cohort_dates": "3-year programme",
+  "solo_founder_stance": "Softer than phase 1 recorded. HKSTP's own pages state no minimum team size; the FAQ instead notes that applicants can seek team members through networking events and talent programmes. The 2-full-time-on-site-staff rule phase 1 cited came from aggregators and I did not find it in HKSTP's own Mandatory Admission Criteria.",
+  "hard_blocker": "Yes, and confirmed from HKSTP: overseas applicants must obtain Hong Kong business registration before applying. Unlike Cyberport CCMF, there is no in-progress-of-incorporation concession, so the entity must exist to submit. Note again this is a Hong Kong entity, not an Indian one, so it does not conflict with the founder's India decision - it is a cost and commitment question, not a legal collision.",
+  "location_requirement": "Hong Kong Science Park. On-site participation is mandatory; rental subsidies provided.",
+  "cash": "Up to HK$1.29 million to cover technology and business development expenses.",
+  "terms_dilution": "Funding support, equity-free.",
+  "credits_and_tools": "R&D support, lab and park facilities.",
+  "customer_access": "Investor matching; industry practitioners on the evaluation panel.",
+  "network_quality": "Large Hong Kong deeptech ecosystem.",
+  "brand_value": "Moderate; strong within Hong Kong.",
+  "application_effort": "Heavy. Submit a business proposal online, then an eligibility check and due diligence meeting, then a presentation to an Assessment Panel. Rejected applicants may reapply three months after the panel result.",
+  "cohort_dates": "3-year programme.",
   "sources": [
    "https://www.hkstp.org/en/programmes/incubation",
-   "https://www.hkstp.org/en/programmes/incubation/incubation-programme",
-   "https://www.fundfluent.io/funding-programs/hkstp-incubation-programme",
-   "https://hkgrant.com/en/hong-kong-science-and-technology-parks-corporation-hkstp-incubation-incu-tech"
+   "https://www.hkstp.org/en/programmes/incubation/incubation-programme"
   ],
-  "notes": "Listed for lane completeness but this is the weakest fit in the sweep: HK entity plus two on-site full-time staff plus a heavy business-plan submission, against a solo founder with no entity. The eligibility text comes from aggregators rather than HKSTP's own criteria page - if phase 2 pursues this at all, read HKSTP's own eligibility first. Recommend dropping unless a Hong Kong base becomes strategy."
+  "notes": "Phase 1 recommended dropping this and the verification softens the case only slightly. Two corrections: it is open year-round rather than UNKNOWN, and the 2-full-time-staff rule is not in HKSTP's own criteria - phase 1 was right to flag that it came from aggregators. But the HK-registration-before-applying gate is real and is the binding constraint, and the admission criteria also require operating \"in the R&D field in Information and Communication Technology (ICT), electronics, green technology or precision engineering\", which a product-lifecycle SaaS tool fits only loosely. HK$1.29m equity-free is a large number; it is simply not reachable without committing to Hong Kong first. If Hong Kong ever becomes strategy, CCMF is the cheaper first step and HKSTP or CIP the follow-on."
  },
  {
   "name": "Tenity Singapore Incubation (Batch VII)",
   "organisation": "Tenity",
   "category": "incubator",
   "region": "Singapore / Southeast Asia",
-  "apply_url": "https://www.tenity.com/programs/singapore-incubation-batch-7",
+  "apply_url": "https://www.tenity.com/programs/",
   "page_state": "UNKNOWN",
-  "page_evidence": "The Tenity programs page renders a dynamic filter (All / Open / Running / Closed) that returned \"Sorry, no results found\" on fetch, so no programme state could be read. The batch 7 URL resolves to the generic programs listing rather than a batch page with a stated status.",
-  "deadline": "null",
+  "page_evidence": "The specific batch page does not exist. https://www.tenity.com/programs/singapore-incubation-batch-7 resolves to the generic programmes listing rather than a batch page with a stated status. Reading that listing in full, 16 programmes are shown with explicit status labels and no Singapore incubation batch is among them: the Singapore entries are \"SFIIP 2026\" (Open), \"SingHacks\" (Closed) and \"XRPL Accelerator 2025\" (Closed). Whether a Batch VII incubation exists under another name cannot be determined from Tenity's own pages.",
   "deadline_source_url": "https://www.tenity.com/programs/",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not stated",
-  "hard_blocker": "Conditional and material: \"For startups from other countries in the region... they are happy to receive applications, but applicants should be prepared to reincorporate in one of the primarily mentioned countries to be accepted.\" The named countries are Singapore, SEA, Indonesia, Philippines, Vietnam, Taiwan, Thailand and Hong Kong. India is not on that list.",
-  "location_requirement": "\"Tenity mainly focuses on startups coming from Singapore and South-East Asia\"",
-  "cash": "SGD 70K investment",
-  "terms_dilution": "SGD 70K for a 2.5% equity stake, plus a programme participation fee of SGD 15K payable by the startup",
-  "credits_and_tools": "Not stated",
-  "customer_access": "Leading corporate partners and investor access",
-  "network_quality": "The sixth Singapore edition invested in 13 early-stage startups; Tenity also runs Zurich, Istanbul, London, Madrid and Tallinn",
-  "brand_value": "Moderate; fintech-leaning",
-  "application_effort": "Application via Tenity; scouting contact at scouting@tenity.com",
-  "cohort_dates": "Five months, prototype/MVP to market-ready",
+  "solo_founder_stance": "Not stated.",
+  "hard_blocker": "Conditional and material, on the terms phase 1 recorded: \"For startups from other countries in the region... they are happy to receive applications, but applicants should be prepared to reincorporate in one of the primarily mentioned countries to be accepted.\" The named countries are Singapore, SEA, Indonesia, Philippines, Vietnam, Taiwan, Thailand and Hong Kong. India is not on that list.",
+  "location_requirement": "\"Tenity mainly focuses on startups coming from Singapore and South-East Asia.\"",
+  "cash": "SGD 70K investment.",
+  "terms_dilution": "SGD 70K for a 2.5% equity stake, plus a programme participation fee of SGD 15K payable by the startup.",
+  "credits_and_tools": "Not stated.",
+  "customer_access": "Leading corporate partners and investor access.",
+  "network_quality": "The sixth Singapore edition invested in 13 early-stage startups. Tenity also runs Zurich, Istanbul, London, Madrid and Tallinn.",
+  "brand_value": "Moderate; fintech-leaning.",
+  "application_effort": "Not assessable - no live batch page. Scouting contact is scouting@tenity.com.",
+  "cohort_dates": "Five months in prior editions, prototype/MVP to market-ready. No Batch VII dates published.",
   "sources": [
-   "https://www.tenity.com/programs/singapore-incubation-batch-7",
    "https://www.tenity.com/programs/",
    "https://www.tenity.com/press/sixth-edition-of-singapore-incubation-program"
   ],
-  "notes": "Two structural negatives before geography even arises: a SGD 15K participation fee paid by the founder, and only SGD 70K in for 2.5%. The reincorporation expectation would mean a Singapore entity, which is a live option for a founder avoiding India, but the economics are poor. Low priority."
+  "notes": "Reported UNKNOWN rather than dropped because I cannot confirm on Tenity's own page that the programme does not exist - only that no Singapore incubation batch appears in a listing that does carry explicit status labels for 16 other programmes. Low priority regardless, and the economics are the reason rather than the ambiguity: a SGD 15K participation fee paid by the founder against SGD 70K in for 2.5% is the worst deal in the lane, and it comes with a reincorporation expectation. Not worth chasing scouting@tenity.com ahead of the verified open programmes."
  },
  {
-  "name": "Sharjah Startup Studio (S3) and Access Sharjah Challenge",
+  "name": "Sharjah Startup Studio (S3)",
   "organisation": "Sheraa (Sharjah Entrepreneurship Center)",
   "category": "accelerator",
   "region": "UAE / Sharjah",
-  "apply_url": "https://www.startups.sheraa.ae/",
+  "apply_url": "https://www.asc.sheraa.ae/s3-program",
   "page_state": "UNKNOWN",
-  "page_evidence": "Programme pages describe S3 and the Access Sharjah Challenge, and trade press reports \"Applications Open For Sheraa's Sharjah Startup Studio (S3)\", but no application window, deadline or open/closed banner was read from Sheraa's own pages in this session",
-  "deadline": "null",
-  "deadline_source_url": "null",
+  "page_evidence": "The page is live and labelled \"Open\", but every date on it belongs to the previous cycle, so the label cannot be trusted for the current one. It shows \"Applications Open 7 JUL 2025\", \"Application Closes 7 SEP 2025\", \"Cohort Announcement 14 OCT 2025\" and \"Program Launch 20 OCT 2025\" running through \"FEB 2026\" - a cycle that ended six months ago. No 2026 cycle dates and no closed notice appear. Whether a current intake exists cannot be determined.",
+  "deadline_source_url": "https://www.asc.sheraa.ae/s3-program",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not stated",
-  "hard_blocker": "Probable for S3: reported as \"a four-month programme that provides UAE startups\" with eligibility for startups operating in the UAE. Verify whether UAE operation must pre-exist.",
-  "location_requirement": "Sharjah, UAE",
-  "cash": "S3: over AED 3 million in services across the cohort, equity-free. Access Sharjah Challenge: an AED 250,000 proof-of-concept contract.",
-  "terms_dilution": "Equity-free",
-  "credits_and_tools": "Over AED 3 million worth of resources, tools and in-kind services",
-  "customer_access": "The Access Sharjah Challenge offers a paid PoC contract with Sharjah regulators plus direct market access facilitated by Sheraa - a real paying customer, which is rare in this lane",
-  "network_quality": "Industry mentors; showcase at the Sharjah Entrepreneurship Festival",
-  "brand_value": "Moderate regionally",
-  "application_effort": "Unknown",
-  "cohort_dates": "S3 runs four months; ASC cycles annually",
+  "solo_founder_stance": "Not stated.",
+  "location_requirement": "Sharjah, UAE. Eligibility requires being \"Committed to operating and expanding within Sharjah and across the UAE\", and on attendance: \"we require your presence in the UAE for essential parts of the program, including the onboarding session, demo days, and showcase opportunities.\"",
+  "cash": "No cash. \"AED3m+ in perks value\" across the cohort.",
+  "terms_dilution": "\"Participate in an equity-free program with no participation charges.\"",
+  "credits_and_tools": "AED 3m+ in perks, resources, tools and in-kind services, plus \"15 credits that can be used towards 1:1 expert mentorship sessions, partner introductions and VC/capital introductions\".",
+  "customer_access": "The sibling Access Sharjah Challenge offers an AED 250,000 proof-of-concept contract with Sharjah entities - a genuine paying pilot, which is rare in this lane. But ASC runs sector-specific challenge themes and no live theme was visible.",
+  "network_quality": "Industry mentors; showcase at the Sharjah Entrepreneurship Festival.",
+  "brand_value": "Moderate regionally.",
+  "application_effort": "Not assessable while the page shows a stale cycle.",
+  "cohort_dates": "Four months. Last published cycle ran OCT 2025 - FEB 2026.",
   "sources": [
-   "https://www.startups.sheraa.ae/",
    "https://www.asc.sheraa.ae/s3-program",
-   "https://en.incarabia.com/sheraa-now-accepting-s3-startup-program-applications-762265.html",
-   "https://www.khaleejtimes.com/business/sheraa-launches-the-new-edition-of-s3-a-launchpad-for-startups-scaling-from-sharjah"
+   "https://www.startups.sheraa.ae/"
   ],
-  "notes": "The Access Sharjah Challenge is the more interesting of the two because it pays for a pilot rather than offering services, and a paid PoC is exactly what a product with zero external users needs. But ASC runs sector-specific challenge themes (the 2025 edition was agriculture and livestock), so phase 2 must check whether any live theme fits a product-lifecycle tool. Everything here needs verification from Sheraa's own pages."
+  "notes": "This is precisely the trap screening rule 1 warns about, inverted: an \"Open\" status label attached to a year-old cycle. I did not mark it OPEN on the strength of that label, because the only dates the page carries closed in September 2025, and I did not mark it CLOSED because the page never says so. The eligibility criteria are also a poor fit independent of timing - it asks for startups \"Ready for the market with early-customer traction and revenue generation\" in priority sectors EdTech, Sustainability, Advanced Manufacturing and Creative Industries, none of which is a horizontal product-lifecycle tool. The Access Sharjah Challenge remains the more interesting Sheraa door because it pays for a pilot, but no live theme was found."
  },
  {
-  "name": "Qatar Science & Technology Park Incubation Centre and Startup Qatar TASMU Accelerator",
-  "organisation": "Qatar Science & Technology Park (Qatar Foundation) / Invest Qatar",
-  "category": "incubator",
+  "name": "Startup Qatar Investment Program",
+  "organisation": "Qatar Development Bank (QDB) via Invest Qatar",
+  "category": "accelerator",
   "region": "Qatar / Doha",
-  "apply_url": "https://startupqatar.qa/en",
-  "page_state": "UNKNOWN",
-  "page_evidence": "QSTP and Startup Qatar programme descriptions were read via secondary sources only; no QSTP or Startup Qatar application page with a stated open or closed status was fetched in this session",
-  "deadline": "null",
-  "deadline_source_url": "null",
+  "apply_url": "https://www.f6s.com/sqinvestmentprogram",
+  "page_state": "OPEN",
+  "page_evidence": "Replaces phase 1's unverified QSTP row with a programme whose application I actually reached. The F6S application page renders under the title \"Apply to Startup Qatar Investment Program | F6S\", is labelled \"Open Deadline\", and serves a live question list including \"What sector(s) and sub-sector(s) does your company operate in?\", \"Stage of Startup\", \"Do you have a working prototype or an MVP at the moment? When was it launched?\", \"How long have you been working on your solution?\" and \"How many technical employees do you have in your team (i.e. developers or engineers)?\". Headline terms shown: \"FUNDS UP TO $5m per team\", \"TAKES 5-50% equity\", \"FUNDS 20 startups per year\".",
+  "deadline": "rolling",
+  "deadline_source_url": "https://www.f6s.com/sqinvestmentprogram",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Not stated",
-  "hard_blocker": "null",
-  "location_requirement": "Qatar; QSTP is a free zone within Qatar Foundation's Education City. The incubation programme includes \"quick incorporation\" support, which implies no pre-existing entity is needed.",
-  "cash": "Not stated",
-  "terms_dilution": "Not stated",
-  "credits_and_tools": "Coworking space, business facilitation and support services",
-  "customer_access": "QSTP runs corporate-partnered accelerators (TotalEnergies WaterTech, Merck FemTech) that generate real pilots; Startup Qatar runs the TASMU Accelerator for global technology startups",
-  "network_quality": "QSTP x TotalEnergies drew 226 applications from 79 countries and QSTP x Merck drew 242 from 64 countries - genuinely international intakes",
-  "brand_value": "Moderate regionally",
-  "application_effort": "Unknown",
-  "cohort_dates": "12-month incubation programme",
+  "solo_founder_stance": "Not stated as a bar. The form asks how many technical employees are on the team, which a solo technical founder answers as one.",
+  "location_requirement": "Qatar. The START track targets startups \"launching in Qatar\" and the GROW track those \"expanding to Qatar\". Registration and licence renewal cost waivers, flexible work and entrepreneur visa issuance, and subsidised housing are all offered, which implies establishing in Qatar is the point rather than a precondition.",
+  "cash": "\"START: Up to $1.1M\" for startups with a PoC or MVP launching in Qatar; \"GROW: Up to $5.5M\" for established startups expanding to Qatar. \"The amount of funding shall be trenched based on mutually agreed milestones.\"",
+  "terms_dilution": "Equity taken, and the published range is unusually wide: \"TAKES 5-50% equity\". A 50% ceiling is far outside normal accelerator terms and must be pinned down before filing.",
+  "credits_and_tools": "Registration and licence renewal cost waivers, subsidised co-working, talent and internship support, access to innovation and R&D grants, subsidised housing, skilling and mentoring, exhibition and event showcases.",
+  "customer_access": "\"Adoption of tech solutions by respective industries\" - direct industry adoption support, which is exactly the gap a product with zero external users has.",
+  "network_quality": "20 startups funded per year - a small, well-resourced cohort.",
+  "brand_value": "Moderate regionally.",
+  "application_effort": "F6S form, effort moderate. IMPORTANT operational note: F6S reverts anything set programmatically and only accepts what it watched a human type, so this form must be filled by hand rather than automated.",
+  "cohort_dates": "Rolling. \"Open Deadline\" per the F6S listing.",
   "sources": [
-   "https://startupqatar.qa/en",
-   "https://newap.sw.gov.qa/wps/wcm/connect/SW_InvestorsPortal_Content_Lib/Explore/Incubators/qatarsciencetechnologypark",
-   "https://thepeninsulaqatar.com/article/28/04/2026/qatar-science-technology-park-reports-steady-startup-and-investor-engagement",
-   "https://tdv.motc.gov.qa/digital-entrepreneurship/Incubation-Center"
+   "https://startupqatar.qa/en/investment-program",
+   "https://www.f6s.com/sqinvestmentprogram",
+   "https://startupqatar.qa/en"
   ],
-  "notes": "The named QSTP accelerators are all sector-specific (water tech, femtech) and none fits. The generic 12-month incubation and the TASMU Accelerator are the two possible doors and neither was verified. Stars of Science is out on age grounds (18-35) and Arab-world eligibility. Low-confidence row - phase 2 should find a live horizontal intake or drop it."
+  "notes": "Phase 1's Qatar row was a low-confidence guess at QSTP incubation and the TASMU Accelerator, neither of which it could verify. Working from Startup Qatar's own site, the live funding door is this QDB programme, and the START track is a direct fit: it targets \"entrepreneurs with a Proof of Concept (PoC) or Minimum Viable Product (MVP) who seek funding to establish their operations\", with up to $1.1M available. The 5-50% equity range is the thing to resolve before any filing - at the top of that range this is not an accelerator deal at all. Separately, Startup Qatar's Residency Program is an immigration scheme, not a funding programme: it requires an \"Endorsement letter from local incubator\" plus an attested bank statement showing USD 10,000, so it is downstream of an incubator relationship rather than a route in."
  },
  {
   "name": "JETRO Global Startup Acceleration Program (GSAP)",
@@ -1104,25 +1062,25 @@
   "region": "Japan",
   "apply_url": "https://www.jetro.go.jp/en/startup/acceleration/gsap.html",
   "page_state": "OPEN",
-  "page_evidence": "Page states \"We are currently accepting applications for the following course: Enterprise B2B Course (Phase 2)\" with \"Application Deadline: August 30th, 2026, 11:59 PM (JST)\". The AI, AI-CTO, Sustainability and ManufacturingTech courses are each marked \"Application closed\".",
+  "page_evidence": "One course remains open: \"We are currently accepting applications for the following course: Enterprise B2B Course (Phase 2)\" with \"Application Deadline: August 30th, 2026, 11:59 PM (JST)\". The AI, AI-CTO, Sustainability/GX and ManufacturingTech courses are each marked \"Application closed\".",
   "deadline": "2026-08-30",
   "deadline_source_url": "https://www.jetro.go.jp/en/startup/acceleration/gsap.html",
   "entity_required_to_apply": true,
-  "solo_founder_stance": "Not stated",
-  "hard_blocker": "Yes - a genuine eligibility wall. Application requirement 1 of 7 reads: \"The startup company must be located in Japan.\" There is no route in for a Bangalore-based founder with no Japanese entity.",
-  "location_requirement": "Japan-located company; Tokyo bootcamp 1-2 October plus an SF immersion week 2-6 November for the B2B course",
-  "cash": "Government-funded programme delivery",
-  "terms_dilution": "Non-dilutive - JETRO takes no equity",
-  "credits_and_tools": "Delivery by top overseas accelerators: Alchemist (B2B), StartX (AI), ERA (AI-CTO), Third Derivative (sustainability), Centrepolis (hardtech)",
-  "customer_access": "Overseas business development support",
-  "network_quality": "Alchemist and StartX are serious names; StartX has produced 18 unicorns",
-  "brand_value": "High for the delivering accelerators",
-  "application_effort": "Application form plus a pitch video, in English",
-  "cohort_dates": "Enterprise B2B Course Phase 2: September-December 2026, 10 companies",
+  "solo_founder_stance": "Not stated. Requirement 4 of 7 requires decision-making personnel to participate.",
+  "hard_blocker": "Yes - a genuine eligibility wall, and it is requirement 1 of 7 in JETRO's own published list: \"The startup company must be located in Japan.\" There is no route in for a Bangalore-based founder with no Japanese entity. Requirement 5 additionally requires agreement to terms and conditions in Japanese.",
+  "location_requirement": "Japan-located company. For the B2B course, a Tokyo bootcamp 1-2 October plus a San Francisco immersion week 2-6 November.",
+  "cash": "Government-funded programme delivery. No cheque to the startup.",
+  "terms_dilution": "Non-dilutive - JETRO takes no equity.",
+  "credits_and_tools": "Delivery by established overseas accelerators: Alchemist (B2B), StartX (AI), ERA (AI-CTO), Third Derivative (sustainability), Centrepolis (hardtech).",
+  "customer_access": "Overseas business development support.",
+  "network_quality": "Alchemist and StartX are serious names; StartX has produced 18 unicorns.",
+  "brand_value": "High for the delivering accelerators.",
+  "application_effort": "Application form plus a pitch video, in English. Not applicable given the location wall.",
+  "cohort_dates": "Enterprise B2B Course Phase 2: September-December 2026, 10 companies.",
   "sources": [
    "https://www.jetro.go.jp/en/startup/acceleration/gsap.html"
   ],
-  "notes": "Recorded with a genuine hard blocker rather than silently dropped, so the reasoning is on file: this is one of the few programmes in the sweep that fails screening rule 3's actual stop test. The Japan-location requirement is JETRO's own published criterion, not an inference. The governing language of the agreement is Japanese. Do not pursue."
+  "notes": "Recorded with its hard blocker rather than silently dropped, so the reasoning stays on file. This is one of only three programmes in the sweep that fails screening rule 3's actual stop test, and it fails on the programme's own published criterion rather than on inference. Note the useful contrast with Techstars Tokyo, which is also a Japan programme but explicitly welcomes \"startups from Japan and abroad\" with no entity requirement stated - so Japan as a geography is not closed, only this scheme is. Do not pursue GSAP."
  },
  {
   "name": "OIST Innovation Accelerator",
@@ -1131,26 +1089,24 @@
   "region": "Japan / Okinawa",
   "apply_url": "https://www.oist.jp/innovation/program-accelerator-startup-support-innovation",
   "page_state": "CLOSED",
-  "page_evidence": "Page states \"Applications close June 28, 2026. Only 4 spots available.\" and \"Applications open April - June 28, 2026\"",
-  "deadline": "null",
+  "page_evidence": "Page states \"Applications open April - June 28, 2026\" and \"Applications close June 28, 2026. Only 4 spots available.\" for the 2027-2028 cohort. That window closed seven weeks ago.",
   "deadline_source_url": "https://www.oist.jp/innovation/program-accelerator-startup-support-innovation",
-  "entity_required_to_apply": true,
-  "solo_founder_stance": "Not stated; requires at least one co-founder or C-suite member to relocate",
-  "hard_blocker": "Two: a technology-readiness gate (\"Core Technology Readiness Level between TRL-4 and TRL-6\" with \"Clear IP ownership\") aimed at entrepreneurial scientists commercialising lab research, and \"A registered legal entity (or near-term incorporation plan)\". A software product built in ten weeks is not a TRL-4-to-6 laboratory technology.",
+  "entity_required_to_apply": false,
+  "solo_founder_stance": "Not stated as a bar, but requires at least one cofounder or C-suite member to relocate for ten months.",
+  "hard_blocker": "Yes, on thesis rather than paperwork: \"Core Technology Readiness Level between TRL-4 and TRL-6\" plus \"Innovation Readiness Level (IRL) between IRL-2 and IRL-3\" and \"clear IP ownership\" with \"no unresolved conflicts with prior employers or institutions\". This is a deeptech and IP-commercialisation programme for entrepreneurial scientists validating laboratory technology. A software product built in ten weeks is not a TRL-4-to-6 lab technology, and no amount of traction would make it one.",
   "location_requirement": "\"Ability for at least one co-founder or C-suite to relocate to Okinawa for the full 10-month program.\" Open to global founders, with startup visa support and relocation assistance for selected teams.",
-  "cash": "Up to 10 million yen in non-dilutive project funding",
-  "terms_dilution": "Non-dilutive",
-  "credits_and_tools": "OIST research facilities",
-  "customer_access": "Japanese market validation; the Startup Elevate flagship investor event",
-  "network_quality": "OIST and Lifetime Ventures; only 4 teams selected per year from a global pool",
-  "brand_value": "High in Japanese deeptech",
-  "application_effort": "Online application, a 45-minute online interview (5-minute pitch, 40-minute Q&A) for the top 16, then a week-long Okinawa bootcamp for the top 8, then final proposals",
-  "cohort_dates": "2027-2028 cohort; residency runs June 2027 - March 2028",
+  "cash": "\"up to ¥10 million in non-dilutive project funding\" for operational costs, R&D and go-to-market during the residency.",
+  "terms_dilution": "Non-dilutive.",
+  "credits_and_tools": "OIST research facilities.",
+  "customer_access": "Japanese market validation; the Startup Elevate investor event.",
+  "network_quality": "OIST and Lifetime Ventures. Only 4 teams selected per year from a global pool.",
+  "brand_value": "High in Japanese deeptech, low outside it.",
+  "application_effort": "Online application, then a 45-minute online interview for the top 16, an Okinawa bootcamp 1-7 November 2026 for the top 8, then final proposals, with four teams selected by end of January 2027.",
+  "cohort_dates": "2027-2028 cohort; residency runs June 2027 - March 2028.",
   "sources": [
-   "https://www.oist.jp/innovation/program-accelerator-startup-support-innovation",
-   "https://www.oist.jp/news-center/news/coi-next/2026/5/13/oist-startup-accelerator-program-2026"
+   "https://www.oist.jp/innovation/program-accelerator-startup-support-innovation"
   ],
-  "notes": "Closed, and a poor thesis fit besides - this is a deeptech and IP commercialisation programme for entrepreneurial scientists, not a software accelerator. Recorded so it is not rediscovered and re-evaluated in a later sweep. The non-dilutive figure is attractive but the TRL gate is real."
+  "notes": "Closed, and a poor thesis fit regardless of timing - recorded so it is not rediscovered and re-evaluated in a later sweep. One correction to phase 1: incorporation is NOT mandatory at application; the programme expects it \"in the near future. Ideally, in Okinawa or Japan\", so entity_required_to_apply is false. The binding constraint is the TRL gate, which is structural rather than a matter of timing or effort. Do not diarise."
  },
  {
   "name": "Google for Startups Accelerator: India",
@@ -1159,52 +1115,52 @@
   "region": "India",
   "apply_url": "https://startup.google.com/programs/accelerator/india/",
   "page_state": "CLOSED",
-  "page_evidence": "Page states \"Applications are now closed\" with a \"Register your interest\" call to action in place of the form",
-  "deadline": "null",
+  "page_evidence": "Page states \"Applications are now closed\", with a \"Register your interest for future programs\" call to action in place of the form.",
   "deadline_source_url": "https://startup.google.com/programs/accelerator/india/",
   "entity_required_to_apply": false,
-  "solo_founder_stance": "Requires \"Commitment from founder(s) and/or relevant people from startups\" - the plural is bracketed, so solo is not excluded",
-  "hard_blocker": "For the 2026 cohort as run: \"Startups based/headquartered in India\", \"Startups demonstrating traction, ideally between Seed and Series A stage\", and startups \"past the 'idea stage' with some level of customer validation and market traction\". Zero external users is the binding problem here, not the entity.",
-  "location_requirement": "Headquartered in India; one-week in-person bootcamp in Bengaluru",
-  "cash": "None - equity-free",
-  "terms_dilution": "Equity-free",
-  "credits_and_tools": "Google AI stack access",
-  "customer_access": "Technical and go-to-market mentorship from Google",
-  "network_quality": "20 startups selected from nearly 2,500 applications for the 2026 cohort",
-  "brand_value": "High",
-  "application_effort": "Google form; applications reviewed in parallel with the application phase, then 40-60 shortlisted for interview and pitch",
-  "cohort_dates": "2026 cohort: applications closed 19 April, kickoff late June, Demo Day October 2026",
+  "solo_founder_stance": "Requires \"Commitment from founder(s) and/or relevant people from startups\" - the bracketed plural does not exclude a solo founder.",
+  "hard_blocker": "Not a permanent wall, but two criteria bind for the 2026 cohort as run: \"Seed to Series A funded AI-first startups headquartered in India\" and startups \"past the 'idea stage' with some level of customer validation and market traction\". Zero external users is the binding problem here, not the entity - and note the India-headquarters criterion is stated explicitly here in a way the MENA-Turkey page conspicuously does not state its regional equivalent.",
+  "location_requirement": "Headquartered in India, with a one-week in-person bootcamp in Bengaluru.",
+  "cash": "None. Equity-free.",
+  "terms_dilution": "\"The Google for Startups Accelerator: India is equity-free for all participating startups.\"",
+  "credits_and_tools": "Google AI stack access.",
+  "customer_access": "Technical and go-to-market mentorship from Google, not customers.",
+  "network_quality": "20 startups selected from nearly 2,500 applications for the 2026 cohort.",
+  "brand_value": "High.",
+  "application_effort": "Google form, then 40-60 shortlisted for interview and pitch. Not applicable while closed.",
+  "cohort_dates": "2026 cohort: applications closed 19 April 2026, kickoff June 2026, graduation September 2026. Three months.",
   "sources": [
-   "https://startup.google.com/programs/accelerator/india/",
-   "https://blog.google/intl/en-in/inviting-ai-first-startups-to-apply-for-google-for-startups-accelerator-india/",
-   "https://blog.google/intl/en-in/announcing-the-2026-cohort-of-google-for-startups-accelerator-india/"
+   "https://startup.google.com/programs/accelerator/india/"
   ],
-  "notes": "Confirmed closed from Google's own page. Diarise for the 2027 cycle - applications opened 31 March 2026 for the 2026 class, so expect a March-April 2027 window. The 2026 theme set, Agentic AI covering reasoning and advanced automation workflows, is a direct match for Supaprod's positioning, so this is a genuine target once there are users to point at. Check the India-headquartered criterion against the no-Indian-entity decision."
+  "notes": "Confirmed closed from Google's own page. Diarise for the 2027 cycle on a March-April window - applications for the 2026 class opened 31 March 2026 and closed 19 April. The 2026 theme, agentic AI covering reasoning and advanced automation workflows, is a direct match for Supaprod's positioning, so this becomes a genuine target once there are users to point at. The India-headquarters criterion needs weighing against the no-Indian-entity decision, though headquarters and incorporation are not the same test and a Bangalore-based founder may satisfy the former without the latter."
  },
  {
-  "name": "Startup India Seed Fund Scheme",
+  "name": "Startup India Seed Fund Scheme (SISFS)",
   "organisation": "DPIIT, Government of India",
   "category": "grant",
   "region": "India",
   "apply_url": "https://seedfund.startupindia.gov.in/",
-  "page_state": "UNKNOWN",
-  "page_evidence": "Not fetched or read in this session. Recorded solely because the lane brief instructs that DPIIT-gated schemes be flagged as conditional fallbacks. No page state, deadline or terms are asserted, and the URL itself is unverified.",
-  "deadline": "null",
-  "deadline_source_url": "null",
+  "page_state": "OPEN",
+  "page_evidence": "Phase 1 recorded this as an unverified placeholder; it is now checked. The site renders (the homepage paints empty on first load, but /about renders fully) and carries a live \"APPLY NOW\" call to action with a startup login route, plus published eligibility criteria and no closed notice. Applications run continuously through approved incubators rather than in windows.",
+  "deadline": "rolling",
+  "deadline_source_url": "https://seedfund.startupindia.gov.in/about",
   "entity_required_to_apply": true,
-  "solo_founder_stance": "Unknown",
-  "hard_blocker": "Conditional: DPIIT recognition requires an Indian incorporated entity, which the founder has deliberately ruled out on FEMA and RBI share-swap grounds. Fallback only.",
-  "location_requirement": "India",
-  "cash": "Unknown",
-  "terms_dilution": "Unknown",
-  "credits_and_tools": "Unknown",
-  "customer_access": "Unknown",
-  "network_quality": "Unknown",
-  "brand_value": "Low internationally",
-  "application_effort": "Unknown",
-  "cohort_dates": "Rolling through approved incubators",
-  "sources": [],
-  "notes": "Placeholder row carrying no verified facts, included only because the lane brief asks for DPIIT-gated schemes to be listed as conditional fallbacks. Every substantive field is deliberately unknown rather than filled from memory. Phase 2 should either verify it properly or delete the row - do not let unsourced figures leak into a shortlist."
+  "solo_founder_stance": "No team-size requirement published.",
+  "hard_blocker": "Yes, and now confirmed from the scheme's own eligibility page rather than assumed: \"A startup, recognized by DPIIT, incorporated not more than 2 years ago at the time of application.\" A second criterion compounds it: \"Shareholding by Indian promoters in the startup should be at least 51% at the time of application to the incubator for the scheme, as per Companies Act, 2013 and SEBI (ICDR) Regulations, 2018.\" Both require the Indian incorporated entity the founder deliberately ruled out on FEMA and RBI share-swap grounds. Fallback only.",
+  "location_requirement": "India. Funds are disbursed through eligible incubators across India.",
+  "cash": "Scheme outlay of INR 945 crore, disbursed via incubators \"for Proof of Concept, prototype development, product trials, market entry, and commercialization\". Per-startup ceilings are set in the scheme guidelines PDF, which I did not open, so no per-startup figure is asserted here.",
+  "terms_dilution": "Grant and debt/convertible debentures. \"A startup applicant can avail seed support in the form of grant and debt/convertible debentures each once as per the guidelines of the scheme.\"",
+  "credits_and_tools": "Delivered through the incubator, varies by incubator.",
+  "customer_access": "Via the host incubator.",
+  "network_quality": "Aims to support an estimated 3,600 entrepreneurs through 300 incubators.",
+  "brand_value": "Low internationally; moderate within India.",
+  "application_effort": "Online application through the SISFS portal to a chosen incubator. A startup application guide book is published.",
+  "cohort_dates": "Rolling through approved incubators.",
+  "sources": [
+   "https://seedfund.startupindia.gov.in/about",
+   "https://seedfund.startupindia.gov.in/"
+  ],
+  "notes": "Phase 1 deliberately left every field unknown and asked phase 2 to verify properly or delete the row. Verified: the scheme is live and the DPIIT gate is real, quoted above from the scheme's own eligibility list, along with a 51% Indian-promoter shareholding rule phase 1 had not surfaced. That second rule matters more than the first, because it would constrain the cap table itself rather than just requiring an entity - it is precisely the kind of structure a later Delaware flip has to unwind through FEMA and RBI share-swap rules. This strengthens rather than weakens the founder's original decision. Listed as a conditional fallback exactly as the lane brief requires, and it should stay bottom of the lane."
  }
 ]
 ```
