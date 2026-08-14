@@ -1,4 +1,6 @@
 import { describe, it, expect } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   entitlementsFor,
   isPlanTier,
@@ -256,7 +258,14 @@ describe("connectors: Free reads, capped at 3 (founder ruling 2026-08-04)", () =
     expect(() => assertConnectorCapability("free", "outflow")).toThrow(/Business plan/);
   });
 
-  it("Free is capped at 3 sources and the cap is enforced, not just advertised", () => {
+  // TITLE CORRECTED 2026-08-14. This read "and the cap is enforced, not just
+  // advertised", and it tested neither: it asserts the function refuses a fourth
+  // source, which is a claim about the function. `assertConnectorSlotAvailable`
+  // had ZERO callers at the time, so the cap was advertised on the public pricing
+  // page and in the plan picker and enforced nowhere at all. The word "enforced"
+  // in a test title is what let four separate reviewers read green as safe.
+  // Reachability is asserted in its own block at the bottom of this file.
+  it("Free refuses a fourth source, as a rule", () => {
     expect(entitlementsFor("free").connectorLimit).toBe(3);
     expect(() => assertConnectorSlotAvailable("free", 0)).not.toThrow();
     expect(() => assertConnectorSlotAvailable("free", 2)).not.toThrow();
@@ -365,5 +374,76 @@ describe("G1.3: Billing tier reconciliation (4 public vs 5 internal tiers)", () 
       expect(p.name).toBeDefined();
       expect(p.tier).toBe(tier);
     }
+  });
+});
+
+describe("the connector cap is reached, not merely defined", () => {
+  /**
+   * THE TEST THIS FILE WAS MISSING, and its absence is the whole finding.
+   *
+   * `assertConnectorSlotAvailable` shipped with seven passing tests above and no
+   * caller anywhere in `src`. Every one of those tests asks "does this function
+   * refuse a fourth source" and every one answers yes. None asks "does anything
+   * ever call it", so the cap was rendered as a promise on two surfaces and
+   * enforced on none, and the green tests were read as evidence that it worked.
+   *
+   * That is the fourth instance of one defect shape in a single audit: a flag no
+   * code could write, three MCP scopes no code could grant, a registry counting
+   * declarations rather than imports, and a limit function nothing called. The
+   * rule for the next person: a test that proves a unit works is not evidence the
+   * feature works. Somewhere there must also be a test that the unit is REACHED.
+   */
+  const CALLER = "src/lib/connections.functions.ts";
+
+  it("has a caller in the product, not only in this file", () => {
+    const code = readFileSync(join(import.meta.dir, "..", "..", CALLER), "utf8");
+    expect(code).toContain("assertConnectorSlotAvailable");
+  });
+
+  it("is called before a native OAuth round trip and before a gateway save", () => {
+    // The two doors chosen deliberately. Refusing at the START of the OAuth flow
+    // means a person is never sent to a provider's consent screen to authorize
+    // something that cannot then be stored.
+    const code = readFileSync(join(import.meta.dir, "..", "..", CALLER), "utf8");
+    const guard = "assertRoomForAnotherSource";
+    // The helper exists, and it is invoked at least twice beyond its definition.
+    const uses = code.split(guard).length - 1;
+    expect(uses).toBeGreaterThanOrEqual(3);
+  });
+
+  it("has an authoritative half in SQL, because the app is not the only door", () => {
+    // Nineteen code paths insert a connection row and thirteen of them are
+    // service-role OAuth callbacks, which bypass RLS. They do not bypass
+    // triggers, so the database is the only place one check covers every door.
+    const sql = readFileSync(
+      join(
+        import.meta.dir,
+        "..",
+        "..",
+        "supabase/migrations/20260814180000_a_cap_advertised_on_two_surfaces_and_enforced_on_none.sql",
+      ),
+      "utf8",
+    );
+    expect(sql).toContain("enforce_connector_limit");
+    expect(sql).toContain("before insert on public.connections");
+    expect(sql).toContain("before insert on public.user_calendar_connections");
+  });
+
+  it("keeps the SQL cap and the TypeScript cap on the same number", () => {
+    // Two sources of truth for one number is how a Business customer's memories
+    // start expiring. The migration names entitlements.ts as the source; this is
+    // the check that they have not drifted.
+    const sql = readFileSync(
+      join(
+        import.meta.dir,
+        "..",
+        "..",
+        "supabase/migrations/20260814180000_a_cap_advertised_on_two_surfaces_and_enforced_on_none.sql",
+      ),
+      "utf8",
+    );
+    const free = entitlementsFor("free").connectorLimit;
+    expect(free).not.toBeNull();
+    expect(sql).toContain(`when 'free' then ${free}`);
   });
 });

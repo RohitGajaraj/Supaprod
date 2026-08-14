@@ -16,6 +16,12 @@ import { getProviderAdapter } from "@/lib/connectors/providers/index.server";
 import { makeConnectState, makePkcePair } from "@/lib/connectors/providers/github.server";
 import { authorizeAppUserOAuth } from "@/integrations/lovable/appUserConnector";
 import { kickFirstIngest } from "@/lib/onboarding/first-ingest.server";
+import {
+  assertConnectorSlotAvailable,
+  entitlementsFor,
+  normalizePlanTier,
+  type PlanTier,
+} from "@/lib/entitlements";
 
 // F-CONN Phase 1 — account-level connections + workspace-level bindings.
 // connections: own-row RLS (the caller only ever sees their own rows).
@@ -145,6 +151,69 @@ function findNativeOAuthMethod(spec: ProviderSpec): NativeOAuthMethod {
 }
 
 /** Load a connection the caller owns (own-row RLS enforces ownership). */
+/**
+ * Refuse a new source when the plan's cap is already full, BEFORE anything moves.
+ *
+ * THE FRIENDLY HALF of a cap whose authoritative half is a database trigger
+ * (migration 20260814180000). The trigger closes all nineteen insert doors
+ * including the thirteen service-role OAuth callbacks; this exists so a person
+ * meets a sentence rather than a Postgres error, and so a native OAuth flow is
+ * refused before they are sent to the provider to authorize something that
+ * cannot be stored. Being bounced back from Slack's consent screen is a worse
+ * failure than being told the cap is full.
+ *
+ * `assertConnectorSlotAvailable` shipped with SEVEN PASSING TESTS AND ZERO
+ * CALLERS, advertised on the public pricing page and in the plan picker and
+ * enforced nowhere. This is the caller it never had, and
+ * `entitlements.test.ts` now pins its existence.
+ *
+ * COUNTS BOTH CONNECTOR TABLES, matching `connected_source_count` in SQL, because
+ * five of the nineteen doors write `user_calendar_connections` and a cap counting
+ * one table is dodgeable through the other.
+ *
+ * FAILS OPEN on a read it could not make, matching the trigger. This is a
+ * commercial boundary and not a safety control, so a lookup failure must not
+ * stop a legitimate person connecting their own data.
+ */
+async function assertRoomForAnotherSource(
+  db: SupabaseClient,
+  userId: string,
+): Promise<void> {
+  let tier: PlanTier;
+  try {
+    const { data, error } = await db
+      .from("accounts")
+      .select("plan_tier")
+      .eq("owner_id", userId)
+      .maybeSingle();
+    if (error || !data) return;
+    tier = normalizePlanTier((data as { plan_tier?: string | null }).plan_tier ?? null);
+  } catch {
+    return;
+  }
+  if (entitlementsFor(tier).connectorLimit === null) return;
+
+  let used = 0;
+  try {
+    const [conn, cal] = await Promise.all([
+      db
+        .from("connections")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("status", "connected"),
+      db
+        .from("user_calendar_connections")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId),
+    ]);
+    if (conn.error || cal.error) return;
+    used = (conn.count ?? 0) + (cal.count ?? 0);
+  } catch {
+    return;
+  }
+  assertConnectorSlotAvailable(tier, used);
+}
+
 async function loadOwnConnection(db: SupabaseClient, id: string): Promise<ConnectionRow> {
   const { data, error } = await db
     .from("connections")
@@ -271,6 +340,9 @@ export const startNativeOAuthConnect = createServerFn({ method: "POST" })
       .parse(i),
   )
   .handler(async ({ context, data }) => {
+    // Before the round trip, not after it. A person bounced back from the
+    // provider's consent screen with nothing stored is the worse failure.
+    await assertRoomForAnotherSource(context.supabase as unknown as SupabaseClient, context.userId);
     const spec = CONNECTOR_REGISTRY[data.provider];
     const method = findNativeOAuthMethod(spec);
     const clientId = process.env[method.clientIdEnv];
@@ -492,6 +564,7 @@ export const saveGatewayConnection = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const db = context.supabase as unknown as SupabaseClient;
+    await assertRoomForAnotherSource(db, context.userId);
     const spec = CONNECTOR_REGISTRY[data.provider];
     const method = findGatewayMethod(spec);
 
