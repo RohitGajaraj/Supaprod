@@ -17,7 +17,7 @@ import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { advanceMissionCore, type MissionLite } from "@/lib/ai/mission-advance.server";
-import { isLinearConfigured } from "@/lib/linear.functions";
+import { providerIsReachable } from "@/lib/connectors/gateway-era.server";
 import {
   validateDispatch,
   findDanglingDeps,
@@ -239,8 +239,13 @@ export const dispatchPRDToLinear = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<DispatchResult> => {
     const { supabase, userId } = context;
 
-    if (!isLinearConfigured())
-      throw new Error("Linear isn't connected. Link it from Settings → Integrations.");
+    // ASKS WHETHER THIS PERSON CAN REACH LINEAR, not whether an admin set a key.
+    // The env-only predicate this replaces answered the second question while
+    // every caller read it as the first, which is how a user who had completed
+    // the OAuth flow was told to go and connect Linear.
+    if (!(await providerIsReachable({ provider: "linear", userClient: supabase, userId }))) {
+      throw new Error("Linear is not connected. Connect it in Settings, Connections.");
+    }
 
     // Load PRD
     const { data: prd, error: pErr } = await supabase

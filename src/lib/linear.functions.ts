@@ -1,29 +1,48 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  resolveProviderCall,
+  providerIsReachable,
+  type ProviderCall,
+} from "@/lib/connectors/gateway-era.server";
 
-const GATEWAY = "https://connector-gateway.lovable.dev/linear/graphql";
-
-export function isLinearConfigured() {
-  return Boolean(process.env.LOVABLE_API_KEY && process.env.LINEAR_API_KEY);
+/**
+ * WHO THIS AUTHENTICATES AS, and why it changed.
+ *
+ * Every function here used to read `LOVABLE_API_KEY` + `LINEAR_API_KEY` from the
+ * environment and nothing else, so a person who completed the Linear OAuth flow
+ * had a token written to the vault that no code path ever read, and got told
+ * "Linear isn't connected yet. Link it from Integrations." The credential chain
+ * now answers instead, preferring their own connection and falling back to the
+ * admin key on the gateway exactly as before. Full reasoning lives on
+ * `resolveProviderCall`.
+ */
+async function linearCall(
+  supabase: SupabaseClient,
+  userId: string,
+  workspaceId?: string | null,
+): Promise<ProviderCall | null> {
+  return resolveProviderCall({
+    provider: "linear",
+    userClient: supabase,
+    userId,
+    workspaceId: workspaceId ?? null,
+  });
 }
 
-function headers() {
-  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-  if (!LOVABLE_API_KEY) throw new Error("Linear isn't connected yet. Link it from Integrations.");
-  const LINEAR_API_KEY = process.env.LINEAR_API_KEY;
-  if (!LINEAR_API_KEY) throw new Error("Linear isn't connected yet. Link it from Integrations.");
-  return {
-    Authorization: `Bearer ${LOVABLE_API_KEY}`,
-    "X-Connection-Api-Key": LINEAR_API_KEY,
-    "Content-Type": "application/json",
-  };
-}
+/** What a caller says when nothing resolved. One sentence, one next step. */
+const NOT_CONNECTED = "Linear is not connected. Connect it in Settings, Connections.";
 
-async function gql<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
-  const res = await fetch(GATEWAY, {
+async function gql<T>(
+  call: ProviderCall,
+  query: string,
+  variables?: Record<string, unknown>,
+): Promise<T> {
+  const res = await fetch(call.baseUrl, {
     method: "POST",
-    headers: headers(),
+    headers: call.headers,
     body: JSON.stringify({ query, variables }),
   });
   const body = await res.text();
@@ -63,9 +82,11 @@ const STATE_TO_LOCAL = (t: string): "todo" | "doing" | "done" => {
 
 export const listLinearTeams = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async () => {
-    if (!isLinearConfigured()) return { teams: [], connected: false as const };
+  .handler(async ({ context }) => {
+    const call = await linearCall(context.supabase, context.userId);
+    if (!call) return { teams: [], connected: false as const };
     const data = await gql<{ teams: { nodes: { id: string; key: string; name: string }[] } }>(
+      call,
       `query { teams(first: 50) { nodes { id key name } } }`,
     );
     return { teams: data.teams.nodes, connected: true as const };
@@ -82,8 +103,9 @@ export const searchLinearIssues = createServerFn({ method: "POST" })
       })
       .parse(i),
   )
-  .handler(async ({ data }) => {
-    if (!isLinearConfigured()) return { issues: [], connected: false as const };
+  .handler(async ({ context, data }) => {
+    const call = await linearCall(context.supabase, context.userId);
+    if (!call) return { issues: [], connected: false as const };
     const filters: string[] = [];
     if (data.teamId) filters.push(`team: { id: { eq: "${data.teamId}" } }`);
     if (data.onlyMine) filters.push(`assignee: { isMe: { eq: true } }`);
@@ -100,7 +122,7 @@ export const searchLinearIssues = createServerFn({ method: "POST" })
         team { key name }
       }
     } }`;
-    const r = await gql<{ issues: { nodes: LinearIssue[] } }>(q);
+    const r = await gql<{ issues: { nodes: LinearIssue[] } }>(call, q);
     return { issues: r.issues.nodes };
   });
 
@@ -116,7 +138,10 @@ export const importLinearIssue = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
+    const call = await linearCall(supabase, userId);
+    if (!call) throw new Error(NOT_CONNECTED);
     const r = await gql<{ issue: LinearIssue }>(
+      call,
       `query($id: String!) { issue(id: $id) {
         id identifier title description url priority
         state { name type } assignee { name email } team { key name }
@@ -153,13 +178,22 @@ export const importLinearIssue = createServerFn({ method: "POST" })
     return { task: row };
   });
 
-export async function pullLinearIssue(issueId: string): Promise<{
+/**
+ * TAKES THE TRANSPORT RATHER THAN RESOLVING ONE, because the sync loop calls it
+ * once per mapping and resolving per call would re-walk the whole credential
+ * chain (and re-decrypt the vault secret) for every row.
+ */
+export async function pullLinearIssue(
+  call: ProviderCall,
+  issueId: string,
+): Promise<{
   title: string;
   status: "todo" | "doing" | "done";
   priority: "low" | "medium" | "high";
   url: string;
 }> {
   const r = await gql<{ issue: LinearIssue }>(
+    call,
     `query($id: String!) { issue(id: $id) { id identifier title priority url state { type } } }`,
     { id: issueId },
   );
@@ -173,6 +207,7 @@ export async function pullLinearIssue(issueId: string): Promise<{
 }
 
 export async function pushLinearIssue(
+  call: ProviderCall,
   issueId: string,
   patch: {
     title?: string;
@@ -184,6 +219,7 @@ export async function pushLinearIssue(
   let stateId: string | undefined;
   if (patch.status) {
     const r = await gql<{ issue: { team: { states: { nodes: { id: string; type: string }[] } } } }>(
+      call,
       `query($id: String!) { issue(id: $id) { team { states { nodes { id type } } } } }`,
       { id: issueId },
     );
@@ -197,6 +233,7 @@ export async function pushLinearIssue(
   if (stateId) input.stateId = stateId;
   if (!Object.keys(input).length) return;
   await gql(
+    call,
     `mutation($id: String!, $input: IssueUpdateInput!) {
       issueUpdate(id: $id, input: $input) { success }
     }`,
@@ -217,6 +254,8 @@ export const createLinearIssuesFromTasks = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
+    const call = await linearCall(supabase, userId);
+    if (!call) throw new Error(NOT_CONNECTED);
     const { data: tasks, error } = await supabase
       .from("tasks")
       .select("*")
@@ -246,6 +285,7 @@ export const createLinearIssuesFromTasks = createServerFn({ method: "POST" })
           const r = await gql<{
             issueCreate: { success: boolean; issue: { id: string; url: string } };
           }>(
+            call,
             `mutation($input: IssueCreateInput!) {
             issueCreate(input: $input) { success issue { id url } }
           }`,

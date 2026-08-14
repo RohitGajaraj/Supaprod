@@ -1,20 +1,27 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { resolveProviderCall, type ProviderCall } from "@/lib/connectors/gateway-era.server";
 
-const NOTION_GATEWAY = "https://connector-gateway.lovable.dev/notion/v1";
-
-function headers() {
-  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-  const NOTION_API_KEY = process.env.NOTION_API_KEY;
-  if (!NOTION_API_KEY) throw new Error("NOTION_API_KEY is not configured");
-  return {
-    Authorization: `Bearer ${LOVABLE_API_KEY}`,
-    "X-Connection-Api-Key": NOTION_API_KEY,
-    "Content-Type": "application/json",
-  };
+/**
+ * WHO THIS AUTHENTICATES AS, and why it changed.
+ *
+ * These functions read `LOVABLE_API_KEY` + `NOTION_API_KEY` from the environment
+ * and nothing else, so the per-user token Notion's OAuth callback writes to the
+ * vault was never read by anything. The credential chain now answers instead:
+ * the person's own connection first, the admin key on the gateway second. The
+ * direct path also has to send `Notion-Version` itself, which the gateway used
+ * to inject. Full reasoning is on `resolveProviderCall`.
+ */
+async function notionCall(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<ProviderCall | null> {
+  return resolveProviderCall({ provider: "notion", userClient: supabase, userId });
 }
+
+const NOT_CONNECTED = "Notion is not connected. Connect it in Settings, Connections.";
 
 type TTMark = { type: string; attrs?: Record<string, unknown> };
 type TTNode = {
@@ -73,16 +80,16 @@ function extractPageId(input: string): string | null {
   return null;
 }
 
-async function nGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${NOTION_GATEWAY}${path}`, { headers: headers() });
+async function nGet<T>(call: ProviderCall, path: string): Promise<T> {
+  const res = await fetch(`${call.baseUrl}${path}`, { headers: call.headers });
   const body = await res.text();
   if (!res.ok) throw new Error(`Notion GET ${path} failed [${res.status}]: ${body.slice(0, 400)}`);
   return JSON.parse(body) as T;
 }
-async function nPost<T>(path: string, payload: unknown): Promise<T> {
-  const res = await fetch(`${NOTION_GATEWAY}${path}`, {
+async function nPost<T>(call: ProviderCall, path: string, payload: unknown): Promise<T> {
+  const res = await fetch(`${call.baseUrl}${path}`, {
     method: "POST",
-    headers: headers(),
+    headers: call.headers,
     body: JSON.stringify(payload),
   });
   const body = await res.text();
@@ -191,7 +198,7 @@ function extractText(n: TTNode): string {
   return "";
 }
 
-async function fetchAllChildren(blockId: string): Promise<NBlock[]> {
+async function fetchAllChildren(call: ProviderCall, blockId: string): Promise<NBlock[]> {
   const all: NBlock[] = [];
   let cursor: string | undefined;
   do {
@@ -199,6 +206,7 @@ async function fetchAllChildren(blockId: string): Promise<NBlock[]> {
       ? `?start_cursor=${encodeURIComponent(cursor)}&page_size=100`
       : `?page_size=100`;
     const data = await nGet<{ results: NBlock[]; has_more?: boolean; next_cursor?: string | null }>(
+      call,
       `/blocks/${encodeURIComponent(blockId)}/children${qs}`,
     );
     all.push(...(data.results ?? []));
@@ -212,8 +220,10 @@ async function fetchAllChildren(blockId: string): Promise<NBlock[]> {
 export const searchNotionPages = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ query: z.string().max(200).optional() }).parse(i))
-  .handler(async ({ data }) => {
-    const res = await nPost<{ results: NPage[] }>(`/search`, {
+  .handler(async ({ context, data }) => {
+    const call = await notionCall(context.supabase, context.userId);
+    if (!call) throw new Error(NOT_CONNECTED);
+    const res = await nPost<{ results: NPage[] }>(call, `/search`, {
       query: data.query ?? "",
       filter: { value: "page", property: "object" },
       page_size: 25,
@@ -242,10 +252,12 @@ export const importNotionPage = createServerFn({ method: "POST" })
     const pageId = extractPageId(data.urlOrId);
     if (!pageId) throw new Error("Could not parse a Notion page ID from input");
 
-    const page = await nGet<NPage>(`/pages/${encodeURIComponent(pageId)}`);
+    const call = await notionCall(supabase, userId);
+    if (!call) throw new Error(NOT_CONNECTED);
+    const page = await nGet<NPage>(call, `/pages/${encodeURIComponent(pageId)}`);
     const title = (pageTitle(page) || "Untitled").slice(0, 200);
     const icon = page.icon?.emoji ?? "📄";
-    const children = await fetchAllChildren(pageId);
+    const children = await fetchAllChildren(call, pageId);
     const nodes: TTNode[] = [];
     for (const b of children) {
       const n = blockToTiptap(b);

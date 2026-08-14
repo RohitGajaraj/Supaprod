@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { pullLinearIssue, pushLinearIssue } from "@/lib/linear.functions";
+import { resolveProviderCall } from "@/lib/connectors/gateway-era.server";
 
 const GDOCS_GATEWAY = "https://connector-gateway.lovable.dev/google_docs/v1";
 const NOTION_GATEWAY = "https://connector-gateway.lovable.dev/notion/v1";
@@ -567,7 +568,13 @@ export const pullMapping = createServerFn({ method: "POST" })
 
     // Linear issues -> tasks
     if (m.provider === "linear" && m.local_kind === "task") {
-      const r = await pullLinearIssue(m.external_id);
+      const call = await resolveProviderCall({
+        provider: "linear",
+        userClient: supabase,
+        userId,
+      });
+      if (!call) throw new Error("Linear is not connected. Connect it in Settings, Connections.");
+      const r = await pullLinearIssue(call, m.external_id);
       const completedAt = r.status === "done" ? new Date().toISOString() : null;
       const { error: uErr } = await supabase
         .from("tasks")
@@ -662,7 +669,13 @@ export const pushMapping = createServerFn({ method: "POST" })
         .eq("user_id", userId)
         .single();
       if (tErr || !task) throw new Error(tErr?.message ?? "Task not found");
-      await pushLinearIssue(m.external_id, {
+      const call = await resolveProviderCall({
+        provider: "linear",
+        userClient: supabase,
+        userId,
+      });
+      if (!call) throw new Error("Linear is not connected. Connect it in Settings, Connections.");
+      await pushLinearIssue(call, m.external_id, {
         title: task.title ?? undefined,
         status: (task.status as "todo" | "doing" | "done") ?? undefined,
         priority: (task.priority as "low" | "medium" | "high") ?? undefined,

@@ -1,8 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { resolveProviderCall, type ProviderCall } from "@/lib/connectors/gateway-era.server";
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_docs/v1";
+/**
+ * WHO THIS AUTHENTICATES AS, and why it changed.
+ *
+ * `fetchGDoc` read `LOVABLE_API_KEY` + `GOOGLE_DOCS_API_KEY` from the
+ * environment and nothing else, so the per-user token the Google OAuth callback
+ * writes to the vault was never read by anything, and a person who had completed
+ * the flow was told the key was not configured. The credential chain now answers:
+ * their own connection first, the admin key on the gateway second. Full
+ * reasoning is on `resolveProviderCall`.
+ */
+const NOT_CONNECTED = "Google Docs is not connected. Connect it in Settings, Connections.";
 
 function extractDocId(input: string): string | null {
   const s = input.trim();
@@ -110,16 +121,9 @@ function extractText(node: TTNode): string {
   return "";
 }
 
-async function fetchGDoc(documentId: string): Promise<GDocument> {
-  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-  const GOOGLE_DOCS_API_KEY = process.env.GOOGLE_DOCS_API_KEY;
-  if (!GOOGLE_DOCS_API_KEY) throw new Error("GOOGLE_DOCS_API_KEY is not configured");
-  const res = await fetch(`${GATEWAY_URL}/documents/${encodeURIComponent(documentId)}`, {
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "X-Connection-Api-Key": GOOGLE_DOCS_API_KEY,
-    },
+async function fetchGDoc(call: ProviderCall, documentId: string): Promise<GDocument> {
+  const res = await fetch(`${call.baseUrl}/documents/${encodeURIComponent(documentId)}`, {
+    headers: call.headers,
   });
   const body = await res.text();
   if (!res.ok) {
@@ -143,7 +147,13 @@ export const importGoogleDoc = createServerFn({ method: "POST" })
     const documentId = extractDocId(data.urlOrId);
     if (!documentId) throw new Error("Could not parse a Google Docs ID from input");
 
-    const gdoc = await fetchGDoc(documentId);
+    const call = await resolveProviderCall({
+      provider: "google_docs",
+      userClient: supabase,
+      userId,
+    });
+    if (!call) throw new Error(NOT_CONNECTED);
+    const gdoc = await fetchGDoc(call, documentId);
     const tiptap = gdocsToTiptap(gdoc);
     const title = (gdoc.title ?? "Untitled").slice(0, 200);
     const text = extractText(tiptap).slice(0, 50000);
