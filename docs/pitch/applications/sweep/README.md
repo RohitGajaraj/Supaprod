@@ -1,8 +1,8 @@
 # The 2026-08 funding sweep, harvested lane by lane
 
-> _This folder is written by a harvester while the sweep is still running, so a crash costs one lane rather than all of them. Every file here rebuilds from the run journal, which is the source of truth._
+> _Written by [`scripts/harvest-workflow-journal.py`](../../../../scripts/harvest-workflow-journal.py) while the sweep runs, so a crash costs one lane rather than all of them. Every file here rebuilds from the run journal, which is the source of truth._
 
-**Why it is built this way.** The research tool returns everything at the end. A run that dies on the last lane would take every earlier lane with it, and each lane costs real time because every programme is checked against its own live apply page rather than a listing.
+**Why it is built this way.** The research tool returns everything at the end. A run that dies on the last lane takes every earlier lane with it, and each lane costs real time because every programme is checked against its own live apply page. **This has now survived two restarts.**
 
 **11 lanes landed · 568 programmes captured · 🟢 262 open · 🟡 215 blocked · ⚪ 91 closed**
 
@@ -11,14 +11,16 @@
 | [`aggregators`](./lane-aggregators.md) | verified | 58 |
 | [`apac-mena-india`](./lane-apac-mena-india.md) | verified | 41 |
 | [`communities-fellowships`](./lane-communities-fellowships.md) | verified | 51 |
-| [`credits-cloud-ai`](./lane-credits-cloud-ai.md) | discovery only, verification running | 56 |
-| [`eu-level-nondilutive`](./lane-eu-level-nondilutive.md) | discovery only, verification running | 37 |
-| [`france-dach-south`](./lane-france-dach-south.md) | discovery only, verification running | 54 |
+| [`credits-cloud-ai`](./lane-credits-cloud-ai.md) | discovery only, verification owed | 56 |
+| [`eu-level-nondilutive`](./lane-eu-level-nondilutive.md) | discovery only, verification owed | 37 |
+| [`france-dach-south`](./lane-france-dach-south.md) | discovery only, verification owed | 54 |
 | [`grants-philanthropic`](./lane-grants-philanthropic.md) | verified | 71 |
-| [`live-signal-x`](./lane-live-signal-x.md) | discovery only, verification running | 48 |
+| [`live-signal-x`](./lane-live-signal-x.md) | discovery only, verification owed | 48 |
 | [`nordics-baltics-benelux`](./lane-nordics-baltics-benelux.md) | verified | 46 |
-| [`uk-ireland`](./lane-uk-ireland.md) | discovery only, verification running | 48 |
+| [`uk-ireland`](./lane-uk-ireland.md) | discovery only, verification owed | 48 |
 | [`us-ai-native`](./lane-us-ai-native.md) | verified | 58 |
+
+**Corrections this sweep made to the existing board: [`board-corrections.md`](./board-corrections.md).**
 
 `raw/` holds one untouched JSON file per completed agent. Nothing is merged into it and nothing overwrites it, so it is the recovery point if a roll-up above is ever wrong.
 
