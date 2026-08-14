@@ -301,3 +301,29 @@ Every finding in one table, with what happened to it. `Closed` means fixed with 
 **Why this order.** The observability lie went first because it is the multiplier: every other finding here was invisible while a failed job reported success, and fixing it turns "trust this audit" into "watch it happen." Then the switches with no writers, because they are cheap and they un-dark three mechanisms at once including the moat's. Then the moat's agent surface, because the positioning rests on it. Then money, because the failure is unrecoverable and silent. Then double execution, because merging a customer's PR twice is the most externally visible failure in the list.
 
 **What I did not do, and would not.** I did not arm the automation flags across the fleet, and I did not approve the 12 stuck gates in the database to make the spine appear to move. Setting `approved` without `executed` would resume the run telling the agent a tool ran when it did not, and a demonstration that moves because the record lies is worse than one that is honestly stuck.
+
+---
+
+## 9. The pattern worth naming: a green test guarding a thing nobody reaches
+
+Four separate findings this session are the same defect wearing different clothes, and the repetition is the finding.
+
+| Instance | The test asserts | What nobody checked |
+| --- | --- | --- |
+| `auto_derive_enabled` | nothing; the column has a default and a filter | that any code can WRITE it. Two cron jobs read it, none set it, 0 of 21 workspaces enabled |
+| The three MCP write tools | each tool declares a required scope | that the scope can be GRANTED. The mint path kept a stale second list |
+| `assertConnectorSlotAvailable` | the function refuses a fourth connector | that anything CALLS it. Zero callers; the cap is advertised on two surfaces and enforced nowhere |
+| `surface-registry` | every module has an entry with a non-empty `opensFrom` | that anything IMPORTS the module. 28 orphans, ~5,177 lines, passed CI |
+
+**The shape.** Each test asks *"does this unit behave correctly in isolation"* and every one answers yes. None asks *"is this unit reachable"*. So the code is correct, the tests are honest, and the feature does not exist. This is more dangerous than an untested gap, because the green test is read as evidence that the capability works, and in three of the four cases a document was written asserting exactly that.
+
+**Why it keeps happening here specifically.** This codebase is unusually good at pure, table-tested units, and that strength is the vector: a pure function is trivially testable in isolation and its reachability is invisible from inside its own test file. The four instances span four different subsystems and four different authors' work, so this is a property of the testing habit rather than of any one person.
+
+**The fix is a class of test, not four fixes.** Two now exist and both were proven red before green:
+
+- `workspace-automation.test.ts` scans the source for `.eq("<flag>", true)` read filters against `workspaces` and demands every gating flag have a writer. It found the second dead flag within seconds of being written.
+- `mcp-protocol.test.ts` now asks whether each write tool's scope is in the grantable set, rather than merely whether the tool declares one.
+
+Two more are owed and are the cheapest wins left in this document: make `surface-registry.test.ts` assert an actual import rather than a declared intention, and pin `assertConnectorSlotAvailable` to having a caller.
+
+**The rule, stated for the next person.** A test that proves a unit works is not evidence the feature works. Somewhere there must also be a test that the unit is *reached* — by a caller, by a writer, by a grantable scope, by an import. Where that second test is missing, the first one is a claim about code rather than about the product.
