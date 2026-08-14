@@ -25,7 +25,16 @@
 > - The **standard**: the states nobody screenshots are composed, not merely handled.
 > - **Colour carries status, never decorates**, and must survive a greyscale test.
 > - **Look at it before you ship it.** Both rejected button designs were reasoned from tokens and
->   neither was ever rendered.
+>   neither was ever rendered. **The gates cannot stand in for this and it is worth knowing why:
+>   the suite asks whether each component behaves, never whether anyone has looked at it.** On
+>   2026-08-14 every primary button in Meridian carried a **1.19:1** label on paper, because
+>   `bg-mrd-solid` and `text-mrd-ink` both invert across the grounds and so travel together
+>   instead of apart. Twelve controls, nine files, `tsc` clean and 8,787 tests green, and no
+>   fixture had ever handed a primary button an action, so nothing rendered the broken state in
+>   any run on any machine. Rendering it in both grounds found it in one pass. The gallery at
+>   [`/meridian`](../../src/routes/_authenticated.meridian.tsx) exists for this and nothing else.
+>   Lane 0 met the same shape one layer down the same day, in green tests guarding code nobody
+>   reached: **coverage is not reach, and reach is not a look.**
 > - The **Engine-Room doctrine** and **humanized output**.
 > - The **open UX backlog** below, which is still largely undelivered.
 > - **Copy the proven pattern per surface**, and file the research in

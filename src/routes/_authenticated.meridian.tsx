@@ -49,10 +49,30 @@ import { ToolChips, type ToolChipDiff, type ToolChipRow } from "@/components/mer
  * paper was caught rather than shipped.
  *
  * So every Meridian component gets looked at here, in BOTH grounds, side by
- * side, before it is wired to anything. It has already earned its keep twice:
- * it caught a panel that was invisible on the dark ground only, and it is where
- * the accent colour is being chosen from rendered candidates rather than from
- * a description.
+ * side, before it is wired to anything. It has earned its keep three times: it
+ * caught a panel invisible on the dark ground only, it is where the accent was
+ * chosen from four rendered candidates rather than from a description, and it
+ * found that EVERY primary button in the system had an invisible label on
+ * paper. `bg-mrd-solid` with `text-mrd-ink` measures 11.26:1 on dark and
+ * 1.19:1 on paper, because both tokens invert across the grounds and therefore
+ * travel together instead of apart. Twelve controls, nine files.
+ *
+ * ── WHY NO GATE COULD HAVE CAUGHT THAT ──────────────────────────────────
+ * Keep this sentence, because it is the argument for this route and it
+ * generalises past design. THE SUITE ASKED WHETHER EACH COMPONENT BEHAVED. IT
+ * NEVER ASKED WHETHER ANYONE HAD LOOKED AT IT. Every test passed, tsc was
+ * clean, and no fixture had ever handed a primary button an action, so the
+ * broken state was never rendered by anything, in any run, on any machine.
+ *
+ * Lane 0 hit the same shape one layer down on the same day and named it first:
+ * a green test guarding a thing nobody reaches, found four separate times, each
+ * asking "does this unit behave correctly" and none asking "is this unit
+ * reached". A flag no code could write. A scope no code could grant. A cap with
+ * zero callers. Coverage is not reach, and reach is not a look.
+ *
+ * The cost of this route is one file nobody ships to a customer. The cost of
+ * not having it is a design reasoned entirely from tokens, which this product
+ * has already paid twice.
  *
  * BOTH GROUNDS ON ONE PAGE. `[data-theme="light"]` is an attribute selector,
  * not a document-level switch, so wrapping a panel in it re-resolves every
