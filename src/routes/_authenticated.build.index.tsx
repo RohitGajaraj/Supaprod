@@ -288,11 +288,32 @@ function BuildEngine() {
 
   /** Assembled from counts this surface actually read, never from an estimate. */
   const needsYou = gated.length + stopped.length;
+
+  /*
+   * NEVER STARTED IS NOT THE SAME FACT AS CURRENTLY IDLE, and the composed
+   * headline could not tell them apart.
+   *
+   * On a workspace that has never reached this station it read "Nothing is
+   * being written. Nothing needs you." Both halves are literally true and
+   * together they are an ALL CLEAR: the sentence a person wants after a busy
+   * week, shown to someone who has not begun. It is the same shape as a count
+   * of zero offered as reassurance, and it tells a first time reader that they
+   * have arrived at the end of something rather than the start.
+   *
+   * Gated on `isSuccess` for the reason this file already gives twice: a read
+   * that refused also has zero items, and calling that "nothing written yet"
+   * states a fact about the workspace on the strength of an answer we never
+   * got.
+   */
+  const nothingEverWritten = work.isSuccess && items.length === 0;
+
   const headline = loading
     ? "Reading the record."
     : work.isError
       ? "The build record did not load."
-      : `${
+      : nothingEverWritten
+        ? "The crew has not written anything yet."
+        : `${
           live.length === 0
             ? unread?.runs
               ? "We could not read what is being written"
@@ -548,8 +569,17 @@ function BuildEngine() {
           </Failed>
         ) : items.length === 0 ? (
           <Empty>
-            The crew has not written anything yet. Hand work over on Runs and the change appears
-            here as it is written, with its files and its pull request.
+            {/* RUNS IS A DOOR HERE, AS IT ALREADY IS IN THE CONTEXT COLUMN.
+              This sentence named the one place a reader should go next and
+              rendered it as dead text, while the identical word is a live link
+              seventy lines above in "Where work comes from". Naming a
+              destination without a way to reach it is the same defect as a
+              button that does nothing, in a quieter costume. */}
+            The crew has not written anything yet. Hand work over on{" "}
+            <Link to="/runs" style={{ color: "var(--sp-ink)" }}>
+              Runs
+            </Link>{" "}
+            and the change appears here as it is written, with its files and its pull request.
           </Empty>
         ) : (
           items.map((i) => rowFor(i, "all"))
