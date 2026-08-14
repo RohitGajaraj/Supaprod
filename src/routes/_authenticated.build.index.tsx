@@ -314,30 +314,30 @@ function BuildEngine() {
       : nothingEverWritten
         ? "The crew has not written anything yet."
         : `${
-          live.length === 0
-            ? unread?.runs
-              ? "We could not read what is being written"
-              : "Nothing is being written"
-            : live.length === 1
-              ? "One change is being written"
-              : `${live.length} changes are being written`
-        }. ${
-          needsYou === 0
-            ? // "Nothing needs you" is a claim, and both halves of it come off
-              // reads that can fail. Either failing turns it into a question.
-              unread?.gates || unread?.runs
-              ? "We could not read what is waiting on you."
-              : "Nothing needs you."
-            : stopped.length === 0
-              ? needsYou === 1
-                ? "One needs you."
-                : `${needsYou} need you.`
-              : gated.length === 0
-                ? stopped.length === 1
-                  ? "One has stopped and nothing is picking it back up."
-                  : `${stopped.length} have stopped and nothing is picking them back up.`
-                : `${needsYou} need you, ${stopped.length} of them stopped.`
-        }`;
+            live.length === 0
+              ? unread?.runs
+                ? "We could not read what is being written"
+                : "Nothing is being written"
+              : live.length === 1
+                ? "One change is being written"
+                : `${live.length} changes are being written`
+          }. ${
+            needsYou === 0
+              ? // "Nothing needs you" is a claim, and both halves of it come off
+                // reads that can fail. Either failing turns it into a question.
+                unread?.gates || unread?.runs
+                ? "We could not read what is waiting on you."
+                : "Nothing needs you."
+              : stopped.length === 0
+                ? needsYou === 1
+                  ? "One needs you."
+                  : `${needsYou} need you.`
+                : gated.length === 0
+                  ? stopped.length === 1
+                    ? "One has stopped and nothing is picking it back up."
+                    : `${stopped.length} have stopped and nothing is picking them back up.`
+                  : `${needsYou} need you, ${stopped.length} of them stopped.`
+          }`;
 
   const rowFor = (item: BuildWorkItem, keyPrefix: string) => {
     const parts: React.ReactNode[] = [
