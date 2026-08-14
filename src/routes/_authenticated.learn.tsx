@@ -159,6 +159,7 @@ import {
   CtxRow,
   Empty,
   Failed,
+  Gate,
   Loading,
   Field,
   Input,
@@ -627,10 +628,49 @@ function Learn() {
             )}
           </>
         ) : (outcomes?.total ?? 0) === 0 ? (
-          <Empty>
-            Nothing has come back yet. A learning lands here the first time a shipped bet gets its
-            verdict, and it stays on the record after that.
-          </Empty>
+          /* A GATE, NOT AN EMPTY LINE, and this was the only station of the seven
+             that handed a new person nothing at all.
+
+             Every read on this desk is count-gated, and correctly: the forecast
+             desk draws nothing with no forecast due, the settle panel returns
+             null with no rows, the notes row is gated on notes, and the
+             take-it-with-you block is gated on a record existing. So a brand-new
+             workspace got a headline and one paragraph with no button and no
+             link, while Discover, Decide, Design and Brain all hand a new person
+             a door. Learn is the station the moat rests on, and it was the one
+             with no way forward.
+
+             THE WORDS ARE THE ONES THE LOOP ALREADY USES for exactly this state.
+             `STATION_NEEDS.learn` in src/lib/spine/correction.ts says what is
+             missing, "something written down to grade the outcome against", and
+             what fills it, "write down what this was meant to move before it can
+             be graded". The correction loop says that sentence to an agent when a
+             track reaches Learn with nothing to grade; there is no reason for the
+             surface to invent a second wording of the same fact.
+
+             TWO DOORS, ONE PRIMARY. Ship is the primary because it is the station
+             immediately before this one and the place work becomes gradeable at
+             all. Plan is the secondary, because a spec with nothing written down
+             about what it was meant to move cannot be graded even after it ships,
+             which is the failure this station sees most. */
+          <Gate
+            question="What should this grade first?"
+            lines={[
+              <span key="what">
+                A verdict lands here the first time a shipped bet is graded against what its spec
+                said it was for, and it stays on the record after that.
+              </span>,
+              <span key="need">
+                Nothing has shipped yet, so there is nothing to grade. Write down what a bet is
+                meant to move before it goes out, and the grade has something to measure against.
+              </span>,
+            ]}
+          >
+            <Button variant="primary" onClick={() => navigate({ to: "/ship" })}>
+              See what is waiting to go out
+            </Button>
+            <Button onClick={() => navigate({ to: "/plan" })}>Open the specs</Button>
+          </Gate>
         ) : (outcomes?.validated ?? 0) === 0 ? (
           <Empty>
             Nothing has paid off yet. <Num>{outcomes?.total}</Num> outcomes are on the record and

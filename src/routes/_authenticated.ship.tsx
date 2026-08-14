@@ -165,7 +165,7 @@
  *    their old wording word for word in the case where it was always true.
  */
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 // The launch-kit import stands alone, and merging the two lines will go red.
 // ship-has-an-agent.test.ts guards the exact statement `import {
@@ -1102,6 +1102,7 @@ function Ship() {
   // The spine, lit on this station. One shared query across all seven
   // (use-spine-strip.ts), so an always-on strip costs one request, not seven.
   useSpineStrip("ship");
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const { activeWorkspaceId } = useWorkspace();
   const wid = activeWorkspaceId ?? "";
@@ -2280,6 +2281,29 @@ function Ship() {
               onClick={startNew}
             >
               {nothingShipped ? "Write one anyway" : "Write an announcement"}
+            </Button>
+          ) : null}
+          {/* THE DOOR TO THE SOMEWHERE ELSE THIS GATE NAMES.
+
+              The comment above already had the right idea and stopped one step
+              short: "Nothing shipped is not a problem to solve on this screen, it
+              is a fact about somewhere else." It said where the answer lives and
+              did not open it, so a person on a day-one Ship desk read an accurate
+              sentence and had nowhere to press.
+
+              This station had NO in-app door of any kind. Every link on it is an
+              anchor to an external address (a production URL, a pull request) or
+              one raw href to a legacy route name, so the router was never used
+              from here at all. Found by the guard in
+              routes/__tests__/every-station-hands-you-a-door.test.ts, which
+              flagged Ship and Learn together.
+
+              Primary when nothing has shipped, because then it IS the next act;
+              absent otherwise, since a desk with releases on it does not need to
+              be sent to Build. */}
+          {nothingShipped ? (
+            <Button variant="primary" onClick={() => navigate({ to: "/build" })}>
+              See what is being built
             </Button>
           ) : null}
         </Gate>
