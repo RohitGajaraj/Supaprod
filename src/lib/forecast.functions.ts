@@ -5,11 +5,13 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   isForecastDue,
   summarizeForecastCalls,
+  suggestionQuality,
   buildDeferPatch,
   buildSettlePatch,
   dueCheckFilter,
   type ForecastResolution,
   type ForecastCallSummary,
+  type SuggestionQuality,
 } from "./brain/forecast-resolution";
 
 // FC-01, the grading half: the reads and writes behind the Learn desk's forecast
@@ -31,8 +33,29 @@ export type DueForecast = {
   horizonDate: string;
   daysLate: number;
   deferredCount: number;
-  suggestion: { verdict: ForecastResolution; rationale: string; confidence: number } | null;
+  suggestion: {
+    verdict: ForecastResolution;
+    rationale: string;
+    confidence: number;
+    /**
+     * Which of the three a reader is looking at. Without it a model that
+     * returned unparseable garbage renders identically to a considered
+     * judgment, because both arrive as `inconclusive`.
+     */
+    quality: SuggestionQuality;
+  } | null;
 };
+
+/**
+ * The desk shows twelve. This says how many there are.
+ *
+ * AN HONEST COUNT RATHER THAN PAGINATION, which is the right call on a list this
+ * short: pagination adds a control for a problem nobody has, while silently
+ * hiding the oldest overdue calls is the wrong failure on a desk whose entire
+ * purpose is that overdue calls get answered. So the surface can say "N more,
+ * oldest first" and mean it.
+ */
+export const DUE_FORECAST_PAGE = 12;
 
 /**
  * WHY EVERY READ HERE FAILS SOFT.
@@ -52,15 +75,20 @@ export type DueForecast = {
 export async function listDueForecastsImpl(
   db: SupabaseClient,
   nowIso: string,
-): Promise<{ due: DueForecast[] }> {
+): Promise<{ due: DueForecast[]; total: number }> {
   /**
    * No workspace filter, deliberately: RLS admits every workspace the caller
    * belongs to, so the desk is "every call anywhere that needs settling", which
    * matches listPendingOutcomes sitting beside it.
    */
-  const { data, error } = await db
+  const { data, error, count } = await db
     .from("decisions")
-    .select(FORECAST_COLS)
+    // `count: "exact"` alongside the limit, so the surface can say "N more,
+    // oldest first" instead of silently hiding the oldest overdue calls. On a
+    // desk whose entire purpose is that overdue calls get answered, a cap with
+    // no indicator is the wrong failure, and pagination on a list this short
+    // would add a control for a problem nobody has.
+    .select(FORECAST_COLS, { count: "exact" })
     .not("forecast_claim", "is", null)
     .is("forecast_resolution", null)
     .lte("forecast_horizon_date", nowIso)
@@ -74,8 +102,8 @@ export async function listDueForecastsImpl(
      */
     .or(dueCheckFilter(nowIso))
     .order("forecast_horizon_date", { ascending: true })
-    .limit(12);
-  if (error) return { due: [] };
+    .limit(DUE_FORECAST_PAGE);
+  if (error) return { due: [], total: 0 };
 
   const nowMs = Date.parse(nowIso);
   const due = (data ?? [])
@@ -103,11 +131,16 @@ export async function listDueForecastsImpl(
               verdict: s.verdict as ForecastResolution,
               rationale: String(s.rationale ?? ""),
               confidence: Number(s.confidence ?? 0),
+              quality: suggestionQuality({
+                verdict: s.verdict,
+                rationale: s.rationale,
+                confidence: s.confidence,
+              }),
             }
           : null,
       };
     });
-  return { due };
+  return { due, total: count ?? due.length };
 }
 
 export async function settleForecastImpl(
@@ -165,6 +198,152 @@ export async function deferForecastCheckImpl(
     throw new Error("The check date did not move. You may not have rights on this decision.");
   }
   return { checkBy: patch.forecast_next_check_at, deferredCount: patch.forecast_deferred_count };
+}
+
+/**
+ * Put a settled forecast back on the desk, WITHOUT erasing the verdict it had.
+ *
+ * WHY THIS EXISTS AT ALL. Migration 20260812210000 added
+ * `forecast_resolved_by_agent_slug` and argued the column exists so an agent
+ * verdict stays reversible. Nothing could reverse one: once
+ * `forecast_resolution` is non-null `isForecastDue` returns false, the row never
+ * comes back to the desk, and no surface or API offered a control. The property
+ * the column was added to guarantee was inverted in practice.
+ *
+ * WHY IT APPENDS RATHER THAN REWRITING, which is the whole design. Letting a
+ * caller overwrite a settled verdict in place would make the grade mutable, and
+ * this feature rests on a forecast being a thing nobody can quietly revise once
+ * the answer is known. But a wrong verdict left permanently in place is also a
+ * false entry, one the surface refuses to let anyone correct. Both corrupt the
+ * record. So the prior verdict, its rationale, its timestamp and the slug of
+ * whatever settled it are copied into an append-only log FIRST, and only then
+ * are the live columns cleared. The history reads underneath the live state
+ * rather than being replaced by it, and the log has no update or delete policy
+ * at all, so it cannot be pruned by any authenticated caller.
+ *
+ * WHAT STAYS FROZEN IS UNTOUCHED. The claim, the observable and the horizon are
+ * still held by `enforce_forecast_immutable`. What a team believed beforehand
+ * remains unrewritable. Only the grade may be revisited, which was always the
+ * intent: re-scoring on better evidence is legitimate, and the original
+ * migration exempts the resolution fields on purpose.
+ */
+export async function reopenForecastImpl(
+  db: SupabaseClient,
+  input: { decisionId: string; reason: string },
+  actorId: string | null,
+  nowIso: string,
+): Promise<{ ok: true; priorResolution: ForecastResolution }> {
+  const { data: row, error: readErr } = await db
+    .from("decisions")
+    .select(
+      "id,workspace_id,forecast_resolution,forecast_resolution_rationale," +
+        "forecast_resolved_at,forecast_resolved_by_agent_slug",
+    )
+    .eq("id", input.decisionId)
+    .maybeSingle();
+  if (readErr) throw new Error(readErr.message);
+  const current = row as {
+    workspace_id: string | null;
+    forecast_resolution: string | null;
+    forecast_resolution_rationale: string | null;
+    forecast_resolved_at: string | null;
+    forecast_resolved_by_agent_slug: string | null;
+  } | null;
+  if (!current) throw new Error("We could not find that decision, so nothing changed.");
+  if (!current.forecast_resolution) {
+    throw new Error("That forecast has no verdict to reopen. It is already waiting on the desk.");
+  }
+
+  /**
+   * THE HISTORY LANDS BEFORE THE CLEAR, and the order is the safety property. If
+   * the log write fails, the verdict is still on the row and the caller is told
+   * it did not reopen. Clearing first and logging second would lose the verdict
+   * entirely on exactly the same failure, which is the one outcome this whole
+   * design exists to prevent.
+   */
+  const { error: logErr } = await db.from("forecast_resolution_log").insert({
+    decision_id: input.decisionId,
+    workspace_id: current.workspace_id,
+    resolution: current.forecast_resolution,
+    resolution_rationale: current.forecast_resolution_rationale,
+    resolved_at: current.forecast_resolved_at,
+    resolved_by_agent_slug: current.forecast_resolved_by_agent_slug,
+    reopened_by: actorId,
+    reopened_at: nowIso,
+    reason: input.reason,
+  });
+  if (logErr) {
+    throw new Error(
+      `The previous verdict could not be filed, so it was not reopened and nothing was lost: ${logErr.message}`,
+    );
+  }
+
+  /**
+   * Guarded on the verdict we just filed. Between the read and here somebody
+   * could have reopened it already, and clearing again would file a second
+   * history row for a verdict that is no longer on the record.
+   */
+  const { data: cleared, error } = await db
+    .from("decisions")
+    .update({
+      forecast_resolution: null,
+      forecast_resolution_rationale: null,
+      forecast_resolved_at: null,
+      forecast_resolved_by_agent_slug: null,
+      // Back on the desk immediately rather than behind an old deferral.
+      forecast_next_check_at: null,
+    })
+    .eq("id", input.decisionId)
+    .eq("forecast_resolution", current.forecast_resolution)
+    .select("id");
+  if (error) throw new Error(error.message);
+  if (!cleared || cleared.length === 0) {
+    throw new Error(
+      "The verdict did not move. Somebody may have reopened it already, or you may not have rights on this decision.",
+    );
+  }
+  return { ok: true as const, priorResolution: current.forecast_resolution as ForecastResolution };
+}
+
+export type ForecastHistoryEntry = {
+  resolution: ForecastResolution;
+  rationale: string | null;
+  resolvedAt: string | null;
+  resolvedByAgentSlug: string | null;
+  reopenedAt: string;
+  reopenedBy: string | null;
+  reason: string;
+};
+
+/** Every verdict this forecast has carried and had taken off it, newest first. */
+export async function getForecastHistoryImpl(
+  db: SupabaseClient,
+  decisionId: string,
+): Promise<{ history: ForecastHistoryEntry[] }> {
+  const { data, error } = await db
+    .from("forecast_resolution_log")
+    .select(
+      "resolution,resolution_rationale,resolved_at,resolved_by_agent_slug,reopened_at,reopened_by,reason",
+    )
+    .eq("decision_id", decisionId)
+    .order("reopened_at", { ascending: false })
+    .limit(20);
+  // Fails soft for the same reason every read in this module does: the table
+  // goes live when the migration is applied and the code when publish is
+  // clicked, and a throw here would take the whole Learn desk down rather than
+  // hiding one panel.
+  if (error) return { history: [] };
+  return {
+    history: ((data ?? []) as Array<Record<string, unknown>>).map((r) => ({
+      resolution: String(r.resolution) as ForecastResolution,
+      rationale: (r.resolution_rationale as string | null) ?? null,
+      resolvedAt: (r.resolved_at as string | null) ?? null,
+      resolvedByAgentSlug: (r.resolved_by_agent_slug as string | null) ?? null,
+      reopenedAt: String(r.reopened_at),
+      reopenedBy: (r.reopened_by as string | null) ?? null,
+      reason: String(r.reason ?? ""),
+    })),
+  };
 }
 
 /**
@@ -254,6 +433,39 @@ export const deferForecastCheck = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) =>
     deferForecastCheckImpl(context.supabase as unknown as SupabaseClient, data, Date.now()),
+  );
+
+export const reopenForecast = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        decisionId: z.string().uuid(),
+        /**
+         * REQUIRED, and the minimum is not arbitrary. Reopening a verdict is a
+         * claim that the record is wrong, and a claim with no argument is the
+         * same non-answer as a status word on its own. The reason is the content
+         * of the new history row, not paperwork attached to it. The database
+         * carries the same floor so no other writer can route around it.
+         */
+        reason: z.string().trim().min(3).max(1000),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) =>
+    reopenForecastImpl(
+      context.supabase as unknown as SupabaseClient,
+      data,
+      context.userId ?? null,
+      new Date().toISOString(),
+    ),
+  );
+
+export const getForecastHistory = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ decisionId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) =>
+    getForecastHistoryImpl(context.supabase as unknown as SupabaseClient, data.decisionId),
   );
 
 export const listAgentSettledForecasts = createServerFn({ method: "GET" })

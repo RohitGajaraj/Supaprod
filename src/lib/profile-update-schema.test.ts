@@ -23,10 +23,7 @@ import { join } from "node:path";
 
 const LIB = import.meta.dir;
 const schemaSrc = readFileSync(join(LIB, "profile.functions.ts"), "utf8");
-const settingsSrc = readFileSync(
-  join(LIB, "..", "routes", "_authenticated.settings.tsx"),
-  "utf8",
-);
+const settingsSrc = readFileSync(join(LIB, "..", "routes", "_authenticated.settings.tsx"), "utf8");
 
 /** The field names inside the `const UpdateSchema = z.object({ ... })` literal. */
 function schemaFields(): string[] {

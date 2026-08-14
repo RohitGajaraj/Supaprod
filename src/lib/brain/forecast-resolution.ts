@@ -48,10 +48,18 @@ export function isForecastDue(row: DueForecastRow, nowIso: string): boolean {
  * The gate. Both conditions, never one.
  *
  * `linkedOutcomeSettled` is true only when the decision links to a spec whose
- * prds.outcome is non-null, and that column is written by the human settle path
- * alone (agent drafts live in prds.outcome_suggestion). So in the auto case the
- * agent applies a stated observable to judgment a person already made, and never
- * originates the judgment.
+ * `prds.outcome` was settled BY A PERSON. So in the auto case the agent applies
+ * a stated observable to judgment a person already made, and never originates
+ * the judgment.
+ *
+ * THIS COMMENT USED TO SAY prds.outcome IS WRITTEN BY THE HUMAN PATH ALONE.
+ * That was false and it was load bearing. Two agent paths write it through
+ * `applyOutcome`: the autonomous historian sweep and the MCP `settle_outcome`
+ * tool. The caller now checks `outcome->>settled_by` rather than mere presence,
+ * so an agent-settled outcome cannot authorise an agent-settled forecast. The
+ * chain agent-judges-outcome then agent-judges-forecast, with no human anywhere
+ * in it, was reachable until 2026-08-14 and was masked only by the auto leg
+ * never having executed.
  */
 export function canAutoSettle(input: {
   linkedOutcomeSettled: boolean;
@@ -71,6 +79,37 @@ export function canAutoSettle(input: {
  */
 export function dueCheckFilter(nowIso: string): string {
   return `forecast_next_check_at.is.null,forecast_next_check_at.lte.${nowIso}`;
+}
+
+/**
+ * How much a drafted verdict is worth to the person reading it.
+ *
+ * THREE STATES, NOT A BOOLEAN, because they are three different things to
+ * somebody about to settle a call. `parseAuditReply` coerces an unparseable or
+ * unrecognised model reply to `{verdict:"inconclusive", rationale:"",
+ * confidence:0}`, which the desk then renders identically to a considered
+ * judgment that genuinely could not settle the claim. Those are opposites: one
+ * is the agent having looked and reported honestly, the other is the agent
+ * having produced nothing at all. Collapsing them teaches people to distrust the
+ * drafts that are worth reading.
+ */
+export type SuggestionQuality = "considered" | "low-confidence" | "no-answer";
+
+export function suggestionQuality(input: {
+  verdict: string | null | undefined;
+  rationale: string | null | undefined;
+  confidence: number | null | undefined;
+}): SuggestionQuality {
+  const c =
+    typeof input.confidence === "number" && Number.isFinite(input.confidence)
+      ? input.confidence
+      : 0;
+  // No rationale and no confidence is the shape parseAuditReply produces when it
+  // had to correct the reply. Nothing was judged, so nothing is being offered.
+  if (!input.verdict || (c <= 0 && !(input.rationale ?? "").trim())) return "no-answer";
+  // Below the floor the verdict could not have settled itself, so it is a
+  // reading rather than a recommendation, and the desk should say so.
+  return c >= AUTO_SETTLE_CONFIDENCE_FLOOR ? "considered" : "low-confidence";
 }
 
 /** The zero state, pinned to the shared wording by a test. */
