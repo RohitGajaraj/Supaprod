@@ -512,6 +512,12 @@ export function decideDrive(input: {
   origin: string | null;
   pendingApprovals: number;
   attempts: number;
+  /**
+   * Why the driver stopped last time. Read ONLY to tell a station that failed
+   * from an account that could not pay, which are not the same fact and must not
+   * share a ceiling.
+   */
+  lastHold?: HoldReason | null;
   /** What earlier stations filed. Empty on the first station of a route. */
   upstream?: UpstreamArtifact[];
 }): DriveDecision {
@@ -519,7 +525,26 @@ export function decideDrive(input: {
   if (input.pendingApprovals > 0) return { act: false, hold: "waiting-on-a-person" };
   // A null station means the route is finished. Nothing follows learn.
   if (!input.station) return { act: false, hold: "done" };
-  if (input.attempts >= MAX_STATION_ATTEMPTS) return { act: false, hold: "stalled" };
+  /**
+   * THE CEILING IS FOR STATIONS THAT FAILED, NOT FOR AN EMPTY ACCOUNT.
+   *
+   * A track whose last stop was `out-of-credit` never ran, so its attempts were
+   * not spent on anything. Letting the ceiling apply to it means an account that
+   * empties for three ticks freezes every track it owns permanently, and topping
+   * the account back up does not revive them: `stalled` escalates to
+   * `station-cannot-finish`, which is terminal and asks a person to go and look
+   * at a station that was never the problem. Measured in production on
+   * 2026-08-14: 26 of 43 tracks sitting at exactly that, against an account at
+   * balance 0, all frozen since 2026-08-01.
+   *
+   * The write side already refuses to count these as attempts. This is the read
+   * side agreeing, so a track frozen before that refusal existed still recovers
+   * the moment it can pay, rather than needing a person to notice and reset it.
+   */
+  const blockedOnMoney = input.lastHold === "out-of-credit" || input.lastHold === "over-budget";
+  if (!blockedOnMoney && input.attempts >= MAX_STATION_ATTEMPTS) {
+    return { act: false, hold: "stalled" };
+  }
 
   const agentSlug = leadAgentFor(input.station);
   if (!agentSlug) return { act: false, hold: "no-agent" };

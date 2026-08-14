@@ -1008,6 +1008,11 @@ export async function driveTrackOnce(
     // correlational: this track waits because this track asked something.
     pendingApprovals: gates.stillOpen,
     attempts: row.attempts ?? 0,
+    // So the ceiling can tell a station that failed from an account that could
+    // not pay. Without it a track frozen while the account was empty stays
+    // frozen after it is topped up, which is how 26 tracks came to be sitting at
+    // `station-cannot-finish` behind a balance of zero.
+    lastHold: (row.last_hold ?? null) as HoldReason | null,
   });
 
   if (!decision.act) {
@@ -1080,6 +1085,8 @@ export async function driveTrackOnce(
   // is the same handoff that runs between stations, applied within one.
   let queued = 0;
   let failed: string | null = null;
+  /** The thrown value, kept so its code survives the reduction to a message. */
+  let failedError: unknown = null;
   let steps: ToolStepLike[] = [];
   const crew = stationCrew(station);
   const brief = [...upstream];
@@ -1220,6 +1227,11 @@ export async function driveTrackOnce(
     }
   } catch (e) {
     failed = e instanceof Error ? e.message : String(e);
+    // THE ERROR ITSELF, not only its sentence. isEnvironmentFailure decides
+    // whether this cost the track an attempt, and the runtime's credit errors
+    // carry a readonly `code` that says so exactly. Reducing them to a message
+    // first threw that away and left a substring test standing in for a fact.
+    failedError = e;
   }
 
   // Collected as the crew ran, not re-derived from the accumulated steps here.
@@ -1343,7 +1355,7 @@ export async function driveTrackOnce(
   // `out-of-time` one line above, so it is treated the same way: reported, never
   // counted, resumed by topping the account up.
   if (failed) {
-    const outside = isEnvironmentFailure(failed);
+    const outside = isEnvironmentFailure(failedError ?? failed);
     const hold: HoldReason = outside ? "out-of-credit" : "stalled";
     await supabase
       .from("spine_tracks" as never)

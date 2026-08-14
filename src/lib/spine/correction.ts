@@ -570,20 +570,63 @@ export function correctionFixMemory(input: {
  * nine tracks frozen on 2026-08-02 were exactly that: `spend_used_usd = 0` and
  * nothing behind them but credit refusals.
  *
- * DELIBERATELY NARROW. It matches the credit refusals this runtime raises by
- * name and nothing else. A broad "looks transient" match would swallow real
- * station failures into a hold that never counts an attempt, which would replace
- * a track that freezes with a track that runs forever, and that is the more
- * expensive of the two bugs by a wide margin.
+ * DELIBERATELY NARROW. It matches the credit refusals this runtime raises and
+ * nothing else. A broad "looks transient" match would swallow real station
+ * failures into a hold that never counts an attempt, which would replace a track
+ * that freezes with a track that runs forever, and that is the more expensive of
+ * the two bugs by a wide margin.
+ *
+ * IT MATCHES THE ERROR'S IDENTITY FIRST, AND ITS PROSE ONLY AS A FALLBACK.
+ * The original version tested `message.includes("credit balance")`, which is a
+ * guard on a sentence rather than on a fact. The runtime raises the same refusal
+ * in two wordings: `CreditExhaustedError` says "Account credit balance (0) is
+ * below the projected cost (2)." and the ai_events row it logs beside it says
+ * "credit_exhausted: account <id> balance 0 below projected 2". The second
+ * contains both words and never adjacently, so the substring test reads false on
+ * it. Any caller reading the refusal back off the run rather than catching the
+ * throw therefore got `stalled`, counted an attempt, and froze the track in
+ * three ticks -- the exact defect this function exists to prevent, reachable
+ * again through a different door.
+ *
+ * `CreditExhaustedError.code` is "CREDIT_EXHAUSTED" and `CreditCapError.code` is
+ * "CREDIT_CAP_REACHED". Those are declared readonly on the classes and are what
+ * this should always have been testing. The prose match stays for the case where
+ * only a string survived, but it is now the second question rather than the only
+ * one, and it recognises both wordings.
  */
-export function isEnvironmentFailure(message: string | null | undefined): boolean {
+const ENVIRONMENT_CODES: ReadonlySet<string> = new Set([
+  "CREDIT_EXHAUSTED",
+  "CREDIT_CAP_REACHED",
+]);
+
+export function isEnvironmentFailure(failure: unknown): boolean {
+  if (!failure) return false;
+
+  // An Error carrying the runtime's own code, which is the stable fact.
+  if (typeof failure === "object") {
+    const code = (failure as { code?: unknown }).code;
+    if (typeof code === "string" && ENVIRONMENT_CODES.has(code)) return true;
+    const name = (failure as { name?: unknown }).name;
+    if (name === "CreditExhaustedError" || name === "CreditCapError") return true;
+  }
+
+  const message =
+    typeof failure === "string"
+      ? failure
+      : typeof (failure as { message?: unknown })?.message === "string"
+        ? ((failure as { message: string }).message)
+        : null;
   if (!message) return false;
   const m = message.toLowerCase();
   return (
     // CreditExhaustedError: "Account credit balance (N) is below the projected cost (M)."
     m.includes("credit balance") ||
+    // The ai_events wording of the same refusal, which the substring above misses.
+    m.includes("credit_exhausted") ||
+    m.includes("below projected") ||
     // CreditCapError, raised by assertCreditCaps for a per-product or per-member ceiling.
     m.includes("credit cap") ||
+    m.includes("credit_cap_reached") ||
     m.includes("out of credit")
   );
 }

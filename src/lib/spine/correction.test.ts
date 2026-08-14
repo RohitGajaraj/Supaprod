@@ -10,7 +10,7 @@
  * frozen track, because it bills for the privilege.
  */
 
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, test } from "bun:test";
 import {
   CORRECTABLE_HOLDS,
   correctableTo,
@@ -25,7 +25,7 @@ import {
   STATION_NEEDS,
   type CorrectionInputs,
 } from "./correction";
-import { HOLD_LINE, MAX_STATION_ATTEMPTS, type HoldReason } from "./driver";
+import { HOLD_LINE, MAX_STATION_ATTEMPTS, decideDrive, type HoldReason } from "./driver";
 import { ARTIFACT_SOURCE } from "./chain";
 import { fullRoute, suggestRoute, type SpineRoute } from "./route";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
@@ -450,5 +450,132 @@ describe("a failure that was never the station's", () => {
     expect(isEnvironmentFailure("Tool call failed: 500")).toBe(false);
     expect(isEnvironmentFailure(null)).toBe(false);
     expect(isEnvironmentFailure("")).toBe(false);
+  });
+});
+
+describe("isEnvironmentFailure recognises the refusal in every form it arrives in", () => {
+  /**
+   * THE REGRESSION THAT FROZE 26 TRACKS, pinned.
+   *
+   * The runtime raises one refusal in two wordings. CreditExhaustedError says
+   * "Account credit balance (0) is below the projected cost (2)." and the
+   * ai_events row logged beside it says "credit_exhausted: account <id> balance
+   * 0 below projected 2". The original guard tested `includes("credit balance")`,
+   * which is true of the first and false of the second, because the second never
+   * puts those two words together. Measured in production on 2026-08-14: every
+   * live failure carried the SECOND wording.
+   *
+   * A guard on a sentence passes when the meaning breaks and fails when the copy
+   * improves. These pin the fact instead.
+   */
+  test("the ai_events wording is recognised, not only the thrown one", () => {
+    expect(
+      isEnvironmentFailure(
+        "credit_exhausted: account 16417eac-c480-45f7-aeff-55d787dba2f3 balance 0 below projected 2",
+      ),
+    ).toBe(true);
+  });
+
+  test("the thrown wording still works", () => {
+    expect(
+      isEnvironmentFailure("Account credit balance (0) is below the projected cost (2)."),
+    ).toBe(true);
+  });
+
+  /**
+   * The identity, which is what this should always have tested. Both classes
+   * declare a readonly `code`, so neither depends on anyone's prose surviving a
+   * copy edit.
+   */
+  test("an error object is matched on its code, whatever its message says", () => {
+    const err = Object.assign(new Error("something entirely reworded"), {
+      code: "CREDIT_EXHAUSTED",
+    });
+    expect(isEnvironmentFailure(err)).toBe(true);
+  });
+
+  test("and on its class name when the code is absent", () => {
+    const err = new Error("reworded again");
+    err.name = "CreditExhaustedError";
+    expect(isEnvironmentFailure(err)).toBe(true);
+  });
+
+  test("a per-scope cap is environmental too", () => {
+    const err = Object.assign(new Error("x"), { code: "CREDIT_CAP_REACHED" });
+    expect(isEnvironmentFailure(err)).toBe(true);
+  });
+
+  /**
+   * STILL NARROW, and this is the half that matters most. Swallowing a real
+   * station failure into a hold that never counts an attempt replaces a track
+   * that freezes with a track that runs forever, which is the more expensive bug.
+   */
+  test("a genuine station failure is NOT environmental", () => {
+    expect(isEnvironmentFailure("prd.draft returned no id")).toBe(false);
+    expect(isEnvironmentFailure(new Error("the model returned invalid JSON"))).toBe(false);
+    expect(isEnvironmentFailure(Object.assign(new Error("x"), { code: "TOOL_FAILED" }))).toBe(false);
+    expect(isEnvironmentFailure(null)).toBe(false);
+    expect(isEnvironmentFailure(undefined)).toBe(false);
+    expect(isEnvironmentFailure("")).toBe(false);
+  });
+});
+
+describe("the attempt ceiling does not apply to an account that could not pay", () => {
+  const base = {
+    paused: false,
+    station: "sense" as const,
+    title: "A track",
+    origin: null,
+    pendingApprovals: 0,
+  };
+
+  /**
+   * A track whose last stop was out-of-credit never ran, so its attempts were
+   * not spent on anything. Applying the ceiling to it means an account that
+   * empties for three ticks freezes every track it owns PERMANENTLY, and topping
+   * up does not revive them, because `stalled` escalates to
+   * `station-cannot-finish`, which is terminal and asks a person to inspect a
+   * station that was never the problem.
+   */
+  test("a track frozen at the ceiling behind an empty account still acts", () => {
+    const d = decideDrive({ ...base, attempts: MAX_STATION_ATTEMPTS, lastHold: "out-of-credit" });
+    expect(d.act).toBe(true);
+  });
+
+  test("the same applies to a budget ceiling", () => {
+    const d = decideDrive({ ...base, attempts: MAX_STATION_ATTEMPTS, lastHold: "over-budget" });
+    expect(d.act).toBe(true);
+  });
+
+  test("a station that genuinely failed still stalls at the ceiling", () => {
+    const d = decideDrive({ ...base, attempts: MAX_STATION_ATTEMPTS, lastHold: "produced-nothing" });
+    expect(d.act).toBe(false);
+    expect(d.hold).toBe("stalled");
+  });
+
+  test("an absent hold is treated as a real failure, never as free passage", () => {
+    // Fail safe: an unknown reason must not buy an unbounded retry.
+    const d = decideDrive({ ...base, attempts: MAX_STATION_ATTEMPTS, lastHold: null });
+    expect(d.act).toBe(false);
+    expect(d.hold).toBe("stalled");
+  });
+
+  test("money never outranks the kill switch or an open call", () => {
+    expect(
+      decideDrive({
+        ...base,
+        paused: true,
+        attempts: MAX_STATION_ATTEMPTS,
+        lastHold: "out-of-credit",
+      }).hold,
+    ).toBe("paused");
+    expect(
+      decideDrive({
+        ...base,
+        pendingApprovals: 1,
+        attempts: MAX_STATION_ATTEMPTS,
+        lastHold: "out-of-credit",
+      }).hold,
+    ).toBe("waiting-on-a-person");
   });
 });
