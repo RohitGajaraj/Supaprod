@@ -52,14 +52,54 @@ const TONE: Record<TaskStatus, string> = {
   blocked: "text-mrd-you",
 };
 
+/*
+ * ── THE TWO STATES `taskStatus` CANNOT ANSWER FOR, AND WHY THEY ARE HERE ──
+ * `taskStatus` resolves anything it does not recognise to "blocked", which is
+ * the right default for an unknown value and the wrong answer for these two.
+ * Today's Stuck lane feeds it `missions.status`, whose STUCK set is exactly
+ * `failed · halted · cancelled · blocked`. Two of those four are not in
+ * `taskStatus`'s cases, so both were arriving here as "waiting on you", in
+ * ORCHID, the hue this system reserves for A PERSON IS REQUIRED.
+ *
+ * Both are terminal. `cancelMission` withdraws that mission's approvals as it
+ * closes, so the product had stopped asking and the row went on saying it was
+ * asking. A run somebody cancelled yesterday sat in the accent all night,
+ * claiming the morning of whoever read it first.
+ *
+ * It was also a straight contradiction inside one product: `run-state.ts` puts
+ * `halted` and `cancelled` in STOPPED and the Runs grid renders them "Stopped",
+ * so the row's own click destination disagreed with the row. That file's header
+ * names this as the failure that "destroys trust in both at once".
+ *
+ * ── WHY TWO WORDS RATHER THAN ONE, AND WHY NEITHER GETS A HUE ────────────
+ * They are different facts and the lane's whole job is why work stopped:
+ * `cancelled` is a person deciding to stop, `halted` is the engine stopping.
+ * Runs groups them because a grid sorts by state; a lane that explains itself
+ * should not.
+ *
+ * Neither takes a colour. There is no hue for "deliberately stopped": it is not
+ * an outcome, so it is not green or red, and it needs nobody, so it is not
+ * orchid. This is the same ruling `partial` gets nine lines up, and the same
+ * answer: a state that feels like it wants a warning colour wants structure
+ * instead. Reaching for amber here is how the banned colour gets back in.
+ */
+const STOPPED: Record<string, string> = {
+  cancelled: "cancelled",
+  canceled: "cancelled",
+  halted: "stopped",
+};
+
 /**
  * A run's state, in a reader's words.
  *
  * Takes the raw value straight off the row, so no caller ever has to remember
  * which enum values exist. Every surface that shows one of these passes the
- * same string and gets the same four answers.
+ * same string and gets the same answers.
  */
 export function RunState({ status }: { status: string | null | undefined }) {
+  const stopped = STOPPED[(status ?? "").toLowerCase()];
+  if (stopped) return <span className="text-mrd-mute">{stopped}</span>;
+
   const state = taskStatus(status);
   return <span className={TONE[state]}>{WORD[state]}</span>;
 }

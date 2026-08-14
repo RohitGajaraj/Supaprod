@@ -86,8 +86,11 @@ function Meta({ parts }: { parts: React.ReactNode[] }) {
 /**
  * The completion-evidence flag, which used to be drawn in amber.
  *
- * `.sp-warn` resolves to `#e8b44c`, and there is no warn colour in this system
- * and no token to put one in. The three states map onto meanings the product
+ * `.sp-warn` resolves to a colour this system BANS. Founder ruling 2026-08-14
+ * removed yellow, mustard, amber and gold outright, and there is no warn token
+ * because there must not be one: this is a ban, not an absence waiting to be
+ * filled in, and it does not get added to meridian.css to make this column
+ * match the old drawing. The three states map onto meanings the product
  * already has:
  *
  *   verified            an OUTCOME, and a checkable one: a merged pull request
@@ -316,6 +319,7 @@ export function RunsGrid({
           placeholder="Find a run"
           maxResults={5}
           emptyTitle={emptyTitle}
+          noun="run"
         />
       ) : null}
 

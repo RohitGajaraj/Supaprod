@@ -45,7 +45,7 @@ import {
   type RecordTone,
 } from "@/components/meridian/RecordsTable";
 import { Search } from "@/components/meridian/Search";
-import { AgentMark, type MarkState } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/shell/primitives";
 import type { DesignFidelity, DesignWorkRow } from "@/lib/design-scaffold.functions";
 import { FIDELITY_WORD, GATE_WORD } from "./vocabulary";
 
@@ -190,7 +190,6 @@ export function DrawingsTable({
   rows,
   gateOn,
   focusId,
-  blinkPrdId,
   drawnBy,
   onPick,
 }: {
@@ -199,13 +198,6 @@ export function DrawingsTable({
   gateOn: boolean;
   /** The spec the panel below is open on. */
   focusId: string | null;
-  /**
-   * The ONE row allowed to blink, or null. Decided by the route, because only
-   * the route knows whether a pending brand rule outranks the whole list: the
-   * blink is the system's single "this is the thing asking" and a grid that
-   * hands it out per row spends it in the first ten pixels.
-   */
-  blinkPrdId: string | null;
   /** The agent that draws, named by the station's own cast entry and passed in
    *  rather than spelled again here: a slug written twice is a slug that drifts
    *  and then marks a row with an agent that does not exist. */
@@ -219,22 +211,36 @@ export function DrawingsTable({
         header: "Screen",
         width: "30ch",
         sortValue: (r) => r.title.toLowerCase(),
-        cell: (r) => {
-          const state: MarkState =
-            !gateOn || !r.drawing || r.gateStatus !== "pending"
-              ? "quiet"
-              : r.prdId === blinkPrdId
-                ? "gate"
-                : "waiting";
-          return (
-            <NameCell
-              row={r}
-              focused={focusId === r.prdId}
-              onPick={onPick}
-              mark={<AgentMark slug={drawnBy} state={state} />}
-            />
-          );
-        },
+        cell: (r) => (
+          /*
+           * THE MARK SAYS WHO DREW IT. IT DOES NOT SAY WHAT IT IS WAITING FOR.
+           *
+           * This passed `state="gate"` or `state="waiting"` for a spec with a
+           * pending call. Both resolve, through `.sp-mark[data-state=...]`, to
+           * `--sp-gate`: ember, #ff6b2c on dark and #c2500f on paper. Orange.
+           * The colour ruling of 2026-08-14 removed that hue from the system
+           * outright, and this row was still painting it.
+           *
+           * It was also the same fact twice. Eight characters to the right, the
+           * standing cell renders `RecordStatus tone="you"` in orchid for that
+           * same pending call, so a row waiting on a person carried an orange
+           * dot and a magenta dot side by side, both meaning the one thing.
+           * This file's header already ruled it: everything on the row that is
+           * not the standing orchid is a neutral.
+           *
+           * The blink went with it, and the header's own surface-discipline
+           * paragraph is why. The grid sorts judgeable rows to the top and the
+           * standing cell names the state in the accent, so a blink is a third
+           * telling of a fact the reader has been given twice, which is exactly
+           * what that rule refuses. Attention is spent, not decorated.
+           */
+          <NameCell
+            row={r}
+            focused={focusId === r.prdId}
+            onPick={onPick}
+            mark={<AgentMark slug={drawnBy} state="quiet" />}
+          />
+        ),
       },
       {
         key: "standing",
@@ -300,7 +306,7 @@ export function DrawingsTable({
         },
       },
     ],
-    [gateOn, focusId, blinkPrdId, drawnBy, onPick],
+    [gateOn, focusId, drawnBy, onPick],
   );
 
   /**
@@ -371,6 +377,7 @@ export function DrawingsTable({
             placeholder="Find a screen"
             maxResults={6}
             emptyTitle="Nothing to search yet"
+            noun="spec"
           />
         </div>
       ) : null}

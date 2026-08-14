@@ -45,8 +45,19 @@ export type SearchProps<Item> = {
   /** Names the field for assistive tech. Required; a bare magnifier says nothing. */
   label: string;
   placeholder?: string;
-  /** Results before the cap notice. Applies to the resting list too. */
+  /** Results before the cap notice. Nothing is listed until a query exists. */
   maxResults?: number;
+  /**
+   * What these things are called on the surface that mounted this. "run",
+   * "spec", "change". The finder used to print its own internals: a person
+   * reading Runs was told "None of the 43 items contain that" beside a heading
+   * that said "43 runs on the record", which is the component's noun reaching
+   * the screen past the product's. Singular; the plural is the singular plus an
+   * s unless `nounPlural` says otherwise.
+   */
+  noun?: string;
+  /** For the nouns an s does not fix. */
+  nounPlural?: string;
   /** Shown when the list itself is empty, before anything is typed. */
   emptyTitle?: string;
   emptyDetail?: string;
@@ -106,11 +117,40 @@ export function Search<Item>({
   emptyTitle = "Nothing to search yet",
   emptyDetail,
   failure,
+  noun = "item",
+  nounPlural,
 }: SearchProps<Item>) {
   const [query, setQuery] = useState("");
   const [capLifted, setCapLifted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const rowRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const many = nounPlural ?? `${noun}s`;
+
+  /*
+   * NOTHING IS LISTED UNTIL SOMEBODY TYPES.
+   *
+   * This used to return every item for an empty query and render the first
+   * `maxResults` of them as a live list, with its own cap line and its own
+   * "Show all N" button. That is defensible for a command palette standing
+   * alone. It is a defect everywhere this component is actually mounted, which
+   * is above a grid of the same rows: opening the finder on Runs put five run
+   * titles directly above the same eight run titles, two "Showing X of 43"
+   * lines and two "Show all 43" buttons that did different things, before a
+   * single character was typed. Design had the same pair.
+   *
+   * Both call sites had already written the rule and neither could keep it.
+   * RunsGrid's header says the finder is summoned "because left open over the
+   * grid it would render the same runs twice, a few pixels apart, which is the
+   * defect this surface already removed once". Summoning changes WHEN it is on
+   * screen, not WHETHER it duplicates the list once it is, so the rule has to
+   * live here, in the one place both surfaces go through.
+   *
+   * At rest it says what it will search over instead. That is a fact the grid
+   * does not carry, it is one line rather than a second list, and it answers
+   * the only question a person has before typing: is the thing I want in here.
+   */
+  const resting = query.trim() === "";
 
   const matched = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -119,7 +159,7 @@ export function Search<Item>({
   }, [items, itemText, query]);
 
   const shown = capLifted ? matched : matched.slice(0, maxResults);
-  const withheld = matched.length - shown.length;
+  const withheld = resting ? 0 : matched.length - shown.length;
 
   /*
    * Roving focus rather than a virtual cursor. The rows are real buttons, so
@@ -187,6 +227,17 @@ export function Search<Item>({
       <span className="text-[13px] font-medium text-mrd-ink">{emptyTitle}</span>
       {emptyDetail && <span className="text-[12px] text-mrd-mute">{emptyDetail}</span>}
     </div>
+  ) : resting ? (
+    /*
+     * The resting state. One line, no list, no cap, nothing to press. It names
+     * the pool so a person knows whether what they want is even in scope, and
+     * then gets out of the way of the grid it is sitting on top of.
+     */
+    <div className="px-3 py-4 text-center">
+      <span className="text-[12.5px] text-mrd-mute">
+        Type to search {items.length === 1 ? `the 1 ${noun}` : `all ${items.length} ${many}`}.
+      </span>
+    </div>
   ) : matched.length === 0 ? (
     /*
      * Distinct from the state above on purpose. "There is nothing" and "your
@@ -199,7 +250,7 @@ export function Search<Item>({
     >
       <span className="text-[13px] font-medium text-mrd-ink">No matches</span>
       <span className="text-[12px] text-mrd-mute">
-        None of the {items.length} items contain that.
+        None of the {items.length} {items.length === 1 ? noun : many} contain that.
       </span>
       <button
         type="button"
@@ -288,8 +339,15 @@ export function Search<Item>({
        * keystroke is worth knowing and not worth interrupting for, and an
        * assertive region here talks over the letters being typed.
        */}
+      {/* Silent at rest. Announcing "43 of 43 match" the moment the panel opens
+          reads a count nobody asked for over the top of someone starting to
+          type, and it is not true that they matched: nothing was searched. */}
       <div role="status" aria-live="polite" className="sr-only">
-        {failure ? failure.message : `${matched.length} of ${items.length} items match`}
+        {failure
+          ? failure.message
+          : resting
+            ? ""
+            : `${matched.length} of ${items.length} ${items.length === 1 ? noun : many} match`}
       </div>
 
       {panel}

@@ -108,7 +108,15 @@ export function GateAction({
           ? // The accent arrives on the control that actually releases the run.
             // Disabled it falls back to the neutral primary face, because a
             // dead control is furniture and must not keep shouting.
-            "bg-mrd-you text-mrd-on-you enabled:hover:opacity-90 disabled:bg-mrd-solid disabled:text-mrd-ink"
+            //
+            // The label goes to `--mrd-on-solid` and NEVER to `--mrd-ink`.
+            // Both `bg-mrd-solid` and `text-mrd-ink` inverate across the two
+            // grounds, so they travel together instead of apart: 11.26:1 on
+            // dark and 1.19:1 on paper, which is an invisible word. This gate
+            // sets `disabled` for the whole round trip of a decision, so on
+            // paper the label vanished on EVERY click. `--mrd-on-solid` is the
+            // one token that is light in both grounds and exists for this.
+            "bg-mrd-you text-mrd-on-you enabled:hover:opacity-90 disabled:bg-mrd-solid disabled:text-mrd-on-solid"
           : "border border-mrd-line bg-mrd-lift text-mrd-body enabled:hover:bg-mrd-float enabled:hover:text-mrd-ink"
       }`}
       style={{ transitionDuration: "var(--mrd-d-press)" }}

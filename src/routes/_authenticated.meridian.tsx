@@ -1345,7 +1345,7 @@ function MeridianGallery() {
                   emptyDetail="A spec is written at Plan, once a work item has been through a gate."
                 />
               </Case>
-              <Case label="Eight specs, capped at five">
+              <Case label="Eight specs, at rest. Type to see matches and the cap at five">
                 <Search<SpecDoc>
                   items={SPECS}
                   itemKey={(item) => item.id}
@@ -1353,6 +1353,7 @@ function MeridianGallery() {
                   label="Search specs"
                   placeholder="Search specs"
                   maxResults={5}
+                  noun="spec"
                   onSelect={noop}
                 />
               </Case>

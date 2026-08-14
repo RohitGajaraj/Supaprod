@@ -480,3 +480,45 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+/*
+ * THE POINTER. Every control in this system was missing it.
+ *
+ * ── WHAT HAPPENED ───────────────────────────────────────────────────────
+ * Tailwind v4 dropped `button { cursor: pointer }` from preflight; a bare
+ * `<button>` now takes `cursor: default`, the same arrow as dead page
+ * furniture. The legacy layer never noticed because primitives.css sets the
+ * pointer by hand about twenty times. Meridian is written in utilities and set
+ * it in two components out of eighteen, so sixteen components' worth of
+ * controls, across every surface ported so far, told the hand nothing.
+ *
+ * It is worth a system rule rather than sixteen edits because it is the defect
+ * nobody files. A person does not report "the cursor was wrong"; they report
+ * that the product feels unfinished, and this is one of the handful of things
+ * that produces that feeling without ever surfacing as a complaint. It also
+ * cost the grids their only remaining way to distinguish the row you can open
+ * from the row you are merely reading, once whole-row doors became impossible
+ * under a pinned scrolling column.
+ *
+ * ── WHY `@layer base`, AND NOT A PLAIN RULE ─────────────────────────────
+ * This is a FLOOR, not a ruling. Anything explicit must beat it:
+ *
+ *   Tailwind utilities  live in `@layer utilities`, which outranks base, so a
+ *                       deliberate `cursor-default` on a menu row still wins.
+ *   primitives.css      is unlayered, and unlayered CSS outranks every layer,
+ *                       so `.sp-row:not(button)` keeps its default arrow. That
+ *                       rule is the house law "a row that does not go anywhere
+ *                       must not look like it does", and a fix for a missing
+ *                       affordance must not go and break a correct one.
+ *
+ * `:disabled` is excluded rather than overridden, so the several
+ * `cursor: not-allowed` rules stay reachable and a dead control never promises.
+ */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+}

@@ -1281,15 +1281,23 @@ function Design() {
              the row could not do is compare: forty rows of prose is forty
              sentences to read, and the same forty in columns is one sweep.
 
-             EXACTLY ONE MARK MAY BLINK, and the rule is enforced here rather
-             than in the grid, because only this file knows that a pending brand
-             rule outranks the whole list and has already taken the Gate. With
-             one waiting nothing below it blinks. */
+             NO ROW BLINKS, and the blink is gone rather than moved. It was
+             carried by the agent mark, whose "gate" and "waiting" states both
+             resolve to `--sp-gate`, the ember this system banned on 2026-08-14.
+             So the one row asking wore orange beside the orchid the standing
+             column already gives it: one fact, two accents, one of them a
+             colour that must not exist here.
+
+             It could have been redrawn in orchid and it should not be. The grid
+             sorts the judgeable rows to the top and names the state in the
+             accent, so a blink would be the third telling of something the
+             reader has already been shown twice, and this station's own rule is
+             that a second live indicator has to earn its place against what is
+             already on screen. It cannot. */
           <DrawingsTable
             rows={items}
             gateOn={gateOn}
             focusId={focusId}
-            blinkPrdId={waiting.length === 0 ? (drawnAndWaiting[0]?.prdId ?? null) : null}
             drawnBy={DRAWS}
             onPick={setPicked}
           />
@@ -1534,12 +1542,25 @@ function Design() {
                   is new here: `gateDecidedAt` has been on this record all along
                   and no panel ever printed it, so "approved" carried no
                   when. */}
+              {/* WHO SETTLED IT IS NOT A FACT THIS PANEL HOLDS.
+                  These two lines said "You approved this design". `decideDesignGate`
+                  has no owner or role check, so any member of the workspace can
+                  settle the gate, and `getDesignScaffold` returns `gateStatus` and
+                  `gateDecidedAt` and no decider at all. So when a teammate settled
+                  it, every other person on the workspace was told they had done it
+                  themselves. This file's own header says nothing on this surface is
+                  inferred, and that was the newest sentence on the panel.
+
+                  The decider IS on the record, in `prds.design_decided_by`, and Ship
+                  already reads it. Until this query carries it too, the sentence
+                  drops the actor rather than guessing one. Naming the person is the
+                  better line and it is a data change, not a copy change. */}
               {focus.drawing && focus.stageEnabled && focus.gateStatus !== "pending" ? (
                 <Line
                   label={
                     focus.gateStatus === "approved"
-                      ? "You approved this design"
-                      : "You sent this design back"
+                      ? "This design was approved"
+                      : "This design was sent back"
                   }
                   sub={
                     <>

@@ -189,11 +189,14 @@ const VERDICT_LABEL: Record<string, string> = { ship: "Ship", revise: "Revise", 
 /**
  * THREE VERDICTS, TWO COLOURS, AND THAT IS THE WHOLE POINT.
  *
- * `revise` used to take the "warn" tone, which resolves to gold. There is no
- * warning colour in this system and no token to put one in: ship and kill are
- * OUTCOMES and get green and red, and revise is not an outcome at all, it is a
- * call still to be made. Painting it a third hue asked the reader to memorise a
- * lookup table for a word that already says exactly what it means.
+ * `revise` used to take the "warn" tone, which resolves to gold. Gold IS
+ * BANNED, and this is not an absence to be filled in: founder ruling
+ * 2026-08-14 removed yellow, mustard, amber and gold from the entire system.
+ * There is no warn token because there must not be one, so do not add one to
+ * meridian.css to give this a third hue. Ship and kill are OUTCOMES and get
+ * green and red, and revise is not an outcome at all, it is a call still to be
+ * made. Painting it a third hue asked the reader to memorise a lookup table for
+ * a word that already says exactly what it means.
  *
  * So it is quiet, and the word carries it. A verdict that reads "Revise" in
  * plain ink between one that is green and one that is red is not ambiguous; it
@@ -963,12 +966,13 @@ function Today() {
                           {mission.hop_count === 1 ? "handoff" : "handoffs"} ·{" "}
                         </>
                       ) : null}
-                      {/* `partial` used to be gold. There is no warning colour
-                          in this system and no token to put one in, and a run
-                          that shipped with a hole in it is not a fifth outcome.
-                          It takes the brightest ink and medium weight instead,
-                          so it still stops the eye and still survives a
-                          greyscale reading. */}
+                      {/* `partial` used to be gold. Gold IS BANNED and there is
+                          no warn token because there must not be one, so this
+                          is not an absence for a later hand to fill in. A run
+                          that shipped with a hole in it is also not a fifth
+                          outcome. It takes the brightest ink and medium weight
+                          instead, so it still stops the eye and still survives
+                          a greyscale reading. */}
                       <ShippedState partial={mission.status === "completed_with_failures"} />
                     </>
                   }
