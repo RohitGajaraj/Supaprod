@@ -327,3 +327,90 @@ Four separate findings this session are the same defect wearing different clothe
 Two more are owed and are the cheapest wins left in this document: make `surface-registry.test.ts` assert an actual import rather than a declared intention, and pin `assertConnectorSlotAvailable` to having a caller.
 
 **The rule, stated for the next person.** A test that proves a unit works is not evidence the feature works. Somewhere there must also be a test that the unit is *reached* — by a caller, by a writer, by a grantable scope, by an import. Where that second test is missing, the first one is a claim about code rather than about the product.
+
+---
+
+# Second pass, 2026-08-14 (evening), working directly on main
+
+> _Continuation of the audit above, not a replacement. Same rules: every claim carries the grep or the query that produced it, and every fix was proven red by planting the defect before it was fixed._
+
+**Baseline taken on `7c7a2d6d`:** `bunx tsc --noEmit` 0 errors; `bun test` 8,968 pass, **1 fail**. Gate at the end of this pass: tsc 0, **9,034 pass, 0 fail**, production build green.
+
+**The one-sentence finding of this pass.** The previous audit concluded the spine was starved at station one and filed it as founder-gated rather than a code fix; the starvation was real, and underneath it were three defects that a connected source would not have fixed, one of which was silently billing a full agent crew every five ticks.
+
+---
+
+## 10. What the first pass got wrong, and why it is worth writing down
+
+Register row 20 reads *"The spine is starved at station one: no real inbound signal source is connected. Open, and not a code fix."* Row 22 reads *"a starved station is misdiagnosed as a broken one. `STATION_NEEDS.sense` already has the right words; `needIsMet` is the wrong predicate."*
+
+Both were true. Neither was the cause.
+
+**The cause is that the autonomous path throws away the evidence that justified the work.** `promoteClustersOnce` turns a qualifying cluster into a track and writes `spine_tracks.theme_id`. Nothing on the drive path reads that column:
+
+```
+grep -rn "theme_id" src/lib/spine/ | grep -v test
+-- promote.server.ts (which themes are taken) and track.functions.ts (the insert). Nothing else.
+```
+
+The driver briefs every station from `spine_track_members` through `loadUpstream`. A promoted track therefore reached Discover carrying **no members at all**, so the crew whose job is to gather evidence for a cluster was handed the cluster's *title* and nothing else: no summary, no frequency, no severity, none of the signals underneath it. The agent reported it could find nothing, which was true, and the driver read a clean run that filed nothing as a station worth retrying until the attempt ceiling froze the work.
+
+**This is the driver's own documented defect, fixed between stations and still live at the door.** `describeUpstream` in `driver.ts` says the handoff's absence meant the loop "was not a chain, it was seven strangers given the same sentence". That was repaired for stations two through seven. Station one was never given its brief, because its brief arrives from outside the loop and the column carrying it had no reader.
+
+**The lesson for the register.** A mechanism sweep looks for a flag with no writer. This was a writer with no reader, which is the same defect inverted, and the first pass's own section 9 table has no row for that shape. It should: three of the four instances there are "nothing calls it", and this one is "nothing reads it".
+
+---
+
+## 11. What this pass found, ranked
+
+| # | P | Finding | Status |
+| --- | --- | --- | --- |
+| 33 | P0 | **The autonomous promotion path files no evidence against the track it starts.** `spine_tracks.theme_id` has no reader on the drive path, so a promoted track reaches Discover with zero members and a one-line brief | **Closed.** `attachOriginTheme` at the single door a track is born through. The theme and not its signals, because `HANDOFF_BODIES` inlines two bodies and a dozen signal rows would push the cluster summary out of the brief |
+| 34 | P0 | **A station's own output satisfied a precondition no station can produce.** Discover's need kinds are `signal` and `theme`, exactly what Discover files, so `needIsMet` answered yes forever after one success. A later empty tick therefore read as *"has everything and still fails"* and escalated to `station-cannot-finish`, which is **terminal** and sends a person to inspect a station that was working correctly | **Closed.** A precondition with no owning station is answered by the world alone |
+| 35 | P0 | **A resumable escalation was answered by rows that had been sitting there for weeks, so the loop billed a full crew every five ticks in silence.** `externalEvidence` counted signals workspace-wide and all-time. `needs-evidence` is in `RESUMABLE_HOLDS`, so any workspace holding any signal resumed immediately, ran the crew, filed nothing, escalated, resumed | **Closed.** Measured against `driven_at`, so the resume fires only when something actually landed. `driven_at` added to `DRIVE_SELECT` |
+| 36 | P0 | **A user who completed Linear OAuth was told to go and connect Linear.** `linear.functions.ts`, `notion.functions.ts` and `gdocs.functions.ts` read `process.env` and never imported `resolveProviderAuth`, the chokepoint whose own header says every external call site resolves through it. Production holds a real Linear connection in this state | **Closed.** A shared resolver returning a transport, not just a token: the two credentials go to different hosts. Vendor rules pinned rather than assumed |
+| 37 | P0 | **The connector cap was enforced nowhere**, and a test title said *"the cap is enforced, not just advertised"* while asserting neither | **Closed.** Trigger on both connector tables plus a friendly pre-check before the OAuth round trip. Dormant behind its own flag |
+| 38 | P0 | **Both AI spend meters lost updates permanently.** Read, add in JavaScript, blind-write. A ledger lost update is not self-correcting: the cap under-reports for the rest of the window | **Closed.** Atomic RPCs, window roll decided inside the locking statement |
+| 39 | P1 | **The spec-approval gate was enforced in one React component only.** Both server dispatch paths accepted a draft, including the one its own header calls "the agent door" | **Closed.** A pure module both paths import, beside the design gate rather than instead of it |
+| 40 | P1 | **Two of the seven stations were dead ends.** Learn rendered a headline and one paragraph with no button and no link; Ship had no router navigation at all | **Closed.** Both now offer a door. The guard found the Ship half |
+| 41 | P1 | **The suite was red on every machine that has credentials.** A test asserted a property of the resume lease by running the whole agent loop, which reached a live call and hung | **Closed.** The property belongs to the lease claim; asserting it directly is deterministic and stricter |
+| 42 | P2 | **A guard pinned an entire column list**, so adding a column for finding 39 broke a test about a different column | **Closed.** It asserts its property now. A guard that cannot tell a legitimate addition from a regression is one that gets loosened under deadline |
+| 43 | P1 | `TrackChain.tsx` and `TrackActivity.tsx` are built and mounted nowhere. `getTrackChain`'s own docstring calls itself *"THE DOOR THAT WAS MISSING"* and it is still missing, because nothing mounts the component that consumes it | **Open.** The spine's only door in the product is `TrackStart` on `/plan` |
+| 44 | P1 | **No control anywhere retries a held track.** A track at `station-cannot-finish` or `given-up` is dead to its owner; `advanceTrack` skips the station instead, producing nothing | **Open.** Related to 43: the surface that would carry the control is the one with no door |
+| 45 | P2 | `advanceTrack` consults only the kill switch. No `last_hold`, no `attempts`, no `pending_gates`, no did-this-station-finish predicate, so a person can walk a track through its whole remaining route with an empty member list while the board reports completion | **Open.** Deliberate in part (its header argues a person may carry their own work forward), but it is the one mover with no station-finished check at all |
+| 46 | P2 | The `writeSignals` sink header claims to be *"the single write path into public.signals"*. It is one of six; eleven other paths insert directly, so they carry no `source_kind`, no `external_id` dedup, no injection screen and no `stage_events` trail | **Open.** The claim is the defect, not necessarily the paths |
+
+---
+
+## 12. The pattern this pass adds to section 9
+
+Section 9 names *a green test guarding a thing nobody reaches* and gives four instances. This pass found a fifth shape and a sixth, and both belong in that table.
+
+| Instance | The test asserts | What nobody checked |
+| --- | --- | --- |
+| `spine_tracks.theme_id` | the column is written, and the promotion sweep is tested against it | that anything READS it. The drive path never did, so the link existed and carried nothing |
+| Learn's empty desk | each block renders correctly when it has no rows | that the PAGE still offers a way forward when every block correctly declines. Four right answers composed into a dead end |
+
+**The generalisation.** Section 9's four instances are all *"nothing calls it"*. These two are *"nothing reads it"* and *"the composition of correct parts is wrong"*. All six share one property: the unit test is honest, the unit is correct, and the feature does not exist. So the rule stated there needs one more clause: somewhere there must be a test that the unit is **reached**, that its output is **read**, and that the surface still **works when every unit correctly does nothing**.
+
+---
+
+## 13. Two migrations are staged and need applying
+
+Neither is destructive and neither touches a row on apply.
+
+| Migration | What it adds | Ordering |
+| --- | --- | --- |
+| `20260814180000_a_cap_advertised_on_two_surfaces_and_enforced_on_none.sql` | `connector_limit_enabled()` (false), `tier_connector_limit()`, `connected_source_count()`, and a `BEFORE INSERT` trigger on `connections` and `user_calendar_connections` | None. The trigger no-ops until the flag is flipped, which is a pricing decision |
+| `20260814190000_a_meter_that_loses_updates_undercounts_forever.sql` | `record_ai_budget_usage()`, `record_ai_surface_usage()` | **Apply before publishing the app code.** The code calls these; if it goes live first, the meters log a failure and spend goes unmetered until the migration lands |
+
+**Both prove themselves on apply**, and both are advisory rather than fatal about it: each arms its mechanism inside a transaction it rolls back and raises only if the mechanism demonstrably failed. Every other condition downgrades to a `WARNING` naming what could not be checked, because the fixtures need a user id and a foreign key to `auth.users` must not be able to fail a correct schema change. **Read the notices:** `PROVEN` means it was exercised, `WARNING` means correct by construction only and wants a live check.
+
+---
+
+## 14. What I did not do, and would not
+
+- **I did not query production.** No Lovable MCP is available in this harness, so every claim in section 11 is verified at the code and test level and none of it is a statement about live row state. In particular, *"the 26 frozen tracks recover on the next tick"* is traced through `decideDrive` and `decideCorrection`, not observed. The query that would confirm it is in section 13's handoff.
+- **I did not arm the connector cap.** Flipping `connector_limit_enabled()` starts refusing a fourth source on Free, and the standing rule is that a free user is never capped without a live upgrade path.
+- **I did not touch the tier or pricing slugs.** Register row 32 is still open and is a founder ruling, not a defect.
+- **I did not fix the eleven stub connector adapters**, so "Test it" still reports failure on a perfectly good connection for eleven providers. It is real and it is a day of work per adapter, so it wants its own pass rather than a rushed one.
