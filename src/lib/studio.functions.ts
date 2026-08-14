@@ -52,6 +52,7 @@ import {
   DESIGN_GATE_BLOCK_MESSAGE,
   type DesignDispatchContext,
 } from "@/lib/build/design-gate";
+import { specGateBlocksDispatch, SPEC_GATE_BLOCK_MESSAGE } from "@/lib/build/spec-gate";
 import { loadDesignGateState, loadDesignDispatchContext } from "@/lib/build/design-gate.server";
 import type { ArdDesignSection } from "@/lib/ard-schema";
 import { recordStageEvent } from "@/lib/stage-events.server";
@@ -255,6 +256,8 @@ export const dispatchStudioSession = createServerFn({ method: "POST" })
       github_issue_url: string | null;
       workspace_id: string | null;
       contract: unknown;
+      /** `prds.status`. Read by the approval gate; see ./build/spec-gate. */
+      status?: string | null;
     };
     let prd: PrdCtx | null = null;
     // Mission 3.4: filled from the design station's loaders when the spec has
@@ -263,11 +266,16 @@ export const dispatchStudioSession = createServerFn({ method: "POST" })
     if (data.prdId) {
       const { data: row, error } = await supabase
         .from("prds")
-        .select("id,title,body_md,github_issue_url,workspace_id,contract")
+        .select("id,title,body_md,github_issue_url,workspace_id,contract,status")
         .eq("id", data.prdId)
         .single();
       if (error) throw new Error(`PRD lookup failed: ${error.message}`);
       prd = row as unknown as PrdCtx;
+      // THE APPROVAL GATE, AT THE SERVER, on the other dispatch path. Both paths
+      // enforce one rule from one module, which is the same contract
+      // `design-gate.ts` states for itself. Reasoning: ./build/spec-gate.
+      if (specGateBlocksDispatch({ status: prd.status }))
+        throw new Error(SPEC_GATE_BLOCK_MESSAGE);
       sourceTitle = prd.title;
       workspaceId = prd.workspace_id;
       sections.push(

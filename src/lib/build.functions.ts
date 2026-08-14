@@ -42,6 +42,7 @@ import {
   toArdDesignSection,
   DESIGN_GATE_BLOCK_MESSAGE,
 } from "@/lib/build/design-gate";
+import { specGateBlocksDispatch, SPEC_GATE_BLOCK_MESSAGE } from "@/lib/build/spec-gate";
 import { loadDesignGateState, loadDesignDispatchContext } from "@/lib/build/design-gate.server";
 import { recordLineage } from "@/lib/lineage.functions";
 import { recordStageEvent } from "@/lib/stage-events.server";
@@ -516,16 +517,27 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
        *  below can honour a product-scoped repo binding; see its use site. */
       product_id: string | null;
       contract: unknown;
+      /** `prds.status`. Read by the approval gate; see ./build/spec-gate. */
+      status?: string | null;
     };
     let prd: PrdCtx | null = null;
     if (data.prdId) {
       const { data: row, error } = await supabase
         .from("prds")
-        .select("id,title,body_md,github_issue_url,workspace_id,product_id,contract")
+        .select("id,title,body_md,github_issue_url,workspace_id,product_id,contract,status")
         .eq("id", data.prdId)
         .single();
       if (error) throw refuseDispatch(`PRD lookup failed: ${error.message}`);
       prd = row as unknown as PrdCtx;
+      // THE APPROVAL GATE, AT THE SERVER. Beside the design gate rather than
+      // instead of it: they answer different questions and both are real.
+      //
+      // The rule lived in one React component's `routeBlocker`, so every other
+      // door accepted a draft: /runs dispatches, and so does an agent through
+      // this same function. A governance rule enforced in the client and not at
+      // the server is a suggestion with good manners. Reasoning: ./build/spec-gate.
+      if (specGateBlocksDispatch({ status: prd.status }))
+        throw refuseDispatch(SPEC_GATE_BLOCK_MESSAGE);
     }
 
     // SW-4 / mission 3.4: the design station gates dispatch here exactly as

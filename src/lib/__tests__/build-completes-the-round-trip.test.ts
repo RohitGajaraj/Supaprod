@@ -153,9 +153,19 @@ describe("the panel and the dispatch resolve the same repository", () => {
     // Passing `prd.product_id` without selecting it yields undefined -> null,
     // which is silently the OLD behaviour: workspace-scoped, wrong repo, no
     // error. This is the half that would have made the fix cosmetic.
-    expect(SERVER).toMatch(
-      /\.select\("id,title,body_md,github_issue_url,workspace_id,product_id,contract"\)/,
-    );
+    //
+    // LOOSENED FROM AN EXACT COLUMN LIST 2026-08-14, and the reason is worth
+    // keeping. This pinned the whole string, `"id,title,...,contract"`, so it
+    // failed the moment `status` was added for the approval gate: a correct
+    // change to a different column broke a test about product_id. A guard that
+    // cannot tell a legitimate addition from a regression gets loosened by
+    // whoever hits it next, under deadline, with no thought about what it was
+    // protecting. So it now asserts the PROPERTY it exists for, anchored to the
+    // same select, which still fails if product_id is dropped. Planted and
+    // confirmed.
+    const selects = SERVER.match(/\.select\("id,title,body_md[^"]*"\)/g) ?? [];
+    expect(selects.length).toBeGreaterThan(0);
+    for (const s of selects) expect(s).toContain("product_id");
   });
 
   it("the type carries it, so the read cannot drift back to undefined", () => {
