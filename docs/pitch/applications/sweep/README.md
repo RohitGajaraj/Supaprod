@@ -4,7 +4,7 @@
 
 **Why it is built this way.** The research tool returns everything at the end. A run that dies on the last lane would take every earlier lane with it, and each lane costs real time because every programme is checked against its own live apply page rather than a listing.
 
-**11 lanes landed · 568 programmes captured · 🟢 264 open · 🟡 212 blocked · ⚪ 92 closed**
+**11 lanes landed · 568 programmes captured · 🟢 262 open · 🟡 215 blocked · ⚪ 91 closed**
 
 | Lane | Stage | Programmes |
 | --- | --- | --- |
