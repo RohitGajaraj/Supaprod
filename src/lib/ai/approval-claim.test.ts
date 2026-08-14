@@ -284,27 +284,34 @@ describe("resumeAgentLoop: a live run carries a lease", () => {
       agents: [agentRow],
     });
     /**
-     * BOUNDED, BECAUSE "FAILS SOMEWHERE IN THE LOOP" IS NOT A PLACE.
+     * KNOWN LIMITATION, NAMED RATHER THAN PAPERED OVER (2026-08-14).
      *
-     * This used to `await` the whole loop and shrug at whatever happened after
-     * the lease, on the reasoning that only the lease is being asserted. That
-     * reasoning is right about the assertion and wrong about the await: past the
-     * lease the loop keeps going, and on a machine that HAS a `.env` with real
-     * Supabase credentials it reaches a live call and hangs to the timeout.
+     * It proceeds past the lease and then fails somewhere in the loop, which is
+     * not what this asserts: the lease must not be the thing stopping it, or a
+     * worker that died mid-step would hold the run forever.
      *
-     * So the result depended on whether an untracked file existed. It passes in
-     * CI and in a worktree without `.env`, and fails in a worktree with one,
-     * which is the worst kind of green: Lane 1 hit it on 2026-08-14 while this
-     * lane's suite read 0 fail, and neither number was wrong.
+     * BUT "somewhere in the loop" is not a place. Past the lease the loop keeps
+     * going, and on a machine that HAS a `.env` carrying real Supabase
+     * credentials it reaches a live call and hangs to the 5s timeout. So the
+     * outcome depends on whether an untracked file exists: Lane 1 saw this fail
+     * while this lane read 0 fail on the same commit, and neither number was
+     * wrong. CI cannot see it, because CI has no credentials.
      *
-     * The lease claim happens first and is observable immediately, so the wait
-     * is bounded rather than open-ended. What is asserted is unchanged; what is
-     * removed is the licence for execution to wander into the network.
+     * TWO REPAIRS WERE TRIED AND BOTH REJECTED, which is why this is documented
+     * instead of fixed in a hurry:
+     *
+     *   1. Racing the loop against a one second sleep. Rejected by
+     *      a-timeout-is-not-a-wait.test.ts, correctly: that is a bet about the
+     *      machine and is the exact idiom that guard exists to stop.
+     *   2. Flushing microtasks until the lease moves. The claim does not settle
+     *      on the microtask queue, so the condition never becomes true.
+     *
+     * THE REAL FIX is one of two things, and both are bigger than a test edit:
+     * complete the fake so the loop terminates on its own, or stop the loop
+     * reading process env when a client was handed to it. Filed rather than
+     * rushed at session close.
      */
-    await Promise.race([
-      resumeAgentLoop(db as unknown as SupabaseClient, RUN).catch(() => {}),
-      new Promise((resolve) => setTimeout(resolve, 1_000)),
-    ]);
+    await resumeAgentLoop(db as unknown as SupabaseClient, RUN).catch(() => {});
     expect(db.statements.some((s) => s.table === "agent_run_checkpoints")).toBe(true);
     expect(db.tables.agent_runs[0].resume_lease_at).not.toBe("2026-08-14T00:00:00.000Z");
   });
