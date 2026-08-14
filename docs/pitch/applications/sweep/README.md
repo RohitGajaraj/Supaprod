@@ -13,7 +13,7 @@
 | [`communities-fellowships`](./lane-communities-fellowships.md) | discovery only, verification running | 51 |
 | [`eu-level-nondilutive`](./lane-eu-level-nondilutive.md) | discovery only, verification running | 37 |
 | [`france-dach-south`](./lane-france-dach-south.md) | discovery only, verification running | 54 |
-| [`grants-philanthropic`](./lane-grants-philanthropic.md) | discovery only, verification running | 71 |
+| [`grants-philanthropic`](./lane-grants-philanthropic.md) | verified | 71 |
 | [`live-signal-x`](./lane-live-signal-x.md) | discovery only, verification running | 48 |
 | [`nordics-baltics-benelux`](./lane-nordics-baltics-benelux.md) | discovery only, verification running | 46 |
 | [`uk-ireland`](./lane-uk-ireland.md) | discovery only, verification running | 48 |

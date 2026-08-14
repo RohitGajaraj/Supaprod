@@ -1,6 +1,6 @@
 # Sweep lane: `grants-philanthropic`
 
-> _Harvested from the live run. Stage captured: **discovered (verification still running)**. 71 programmes._
+> _Harvested from the live run. Stage captured: **verified**. 71 programmes._
 
 **Every row was checked against the programme's own apply page.** `page_state` is what the form did, never what a listing said. `UNKNOWN` means a login or paywall blocked the check and it needs the founder, not a guess.
 
