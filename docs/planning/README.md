@@ -33,6 +33,7 @@ Open one only when you are building that thing. Each carries per-ID specs: conte
 | Decision Brain, the supersession engine | [`supersession-engine-plan.md`](./initiatives/supersession-engine-plan.md) |
 | Builder reliability and the codegen direction | [`builder-reliability-and-codegen-direction.md`](./initiatives/builder-reliability-and-codegen-direction.md) (a proposal; the founder owns the decision) |
 | Forecast resolution, the grading half of FC-01 | [`forecast-resolution-plan.md`](./initiatives/forecast-resolution-plan.md) |
+| What is broken, half-wired, or dark across the whole app | [`functionality-audit-2026-08.md`](./initiatives/functionality-audit-2026-08.md) (2026-08-14; every number carries its query) |
 
 ## The current rebuild
 
