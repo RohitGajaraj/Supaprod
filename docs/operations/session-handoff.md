@@ -1,8 +1,51 @@
 # Pick up here
 
-> _Created: 2026-08-07 · Last updated: 2026-08-14, 01:00 IST (applications session closed)_
+> _Created: 2026-08-07 · Last updated: 2026-08-14, 19:00 IST (Lane 0 engineering session closed; the applications section below it is still live and still dated)_
 
-## ✅ SESSION CLOSED 2026-08-14 ~01:00 IST. Two applications filed, and the rules that produced them are written down.
+## ✅ LANE 0 CLOSED 2026-08-14 ~19:00 IST. The audit is written, twenty commits are on main, and what remains needs you rather than an agent.
+
+**Read [`../planning/initiatives/functionality-audit-2026-08.md`](../planning/initiatives/functionality-audit-2026-08.md) first.** It has four sections, a 32-finding register, and the query behind every number. The twelve raw audit passes are in [`../planning/initiatives/audit-reports/`](../planning/initiatives/audit-reports/README.md), saved as each finished rather than at the end.
+
+### The one-sentence finding
+
+**The machinery is built to an unusually high standard and large parts of it had never executed, because the switches that would start them were never given a way to be flipped, and the layer that would have reported the silence was reporting success.**
+
+Three mechanisms were live in cron, on schedule, processing zero rows, with every dashboard green. `auto_derive_enabled` had **no writer anywhere in the repo** since 30 June, so calibration and the entire forecast audit selected nothing for six weeks. A guard test then found `auto_scout_enabled` in the identical state. And `withJobRun` recorded success whenever its callback resolved, while twelve tick handlers return a 500 from inside it, which is resolving.
+
+### The pattern worth carrying forward
+
+**A green test guarding a thing nobody reaches, found four separate times in one day**: a flag no code could write, three MCP write tools whose scope no code could grant, a connector cap with zero callers, and a registry counting declarations instead of imports. Each test asked *does this unit behave correctly* and none asked *is this unit reached*. In three of the four, a document had been written asserting the capability worked.
+
+Two guards now exist for that class, both proven red before green, and the orphan gate makes a 27-module debt list shrink-only. **Two are still owed**, named in section 9 of the audit.
+
+### 🔴 WHAT NEEDS YOU, in order
+
+1. **Connect one real inbound signal source.** This is what actually blocks a live Discover-to-Learn run, and it is not a code fix. Nine OAuth providers are built and unregistered; `FIRECRAWL_API_KEY` is unset. Until one source flows, Discover has nothing to sense and the six stations behind it wait. Traced in production: 39 of 43 work items stand at the first station, and **no item has ever travelled the full seven-station route** (one did five, entering at Define).
+2. **Twelve approvals, unanswered up to 86 hours**, each blocking one named piece of work. I deliberately did **not** fake these in the database: setting `approved` without `executed` resumes the run telling the agent a tool ran when it did not.
+3. **Arm `auto_derive_enabled` and `auto_scout_enabled` across the fleet.** The switches now exist. Flipping them starts recurring model spend on 21 workspaces, which is a spend decision.
+4. **Publish.** Main carries everything; the live site deploys from main, and pushing does not deploy.
+
+### What is closed
+
+Thirteen P0s, each with a test proven red by planting the defect. The money ones: no Stripe webhook idempotency existed at all (a redelivered renewal refilled spent credits, free), a failed line-items fetch left customers charged with nothing granted **and returned 200 so Stripe never retried**, a double refund minted credits from nothing, and `accounts.owner_id` had no unique index on a path that runs on every billing read. The execution ones: the same approval could execute twice, **merging a customer PR twice**, and live agent runs replayed every 60 seconds. The moat ones: `agent_memory` had **never held a row of kind `outcome`** while the precedent path had fired 358 times against that empty pool, and the forecast surface had no agent access at all.
+
+**Six migrations applied to production and verified by me** — schema, policies, row counts unchanged, and the guard trigger proven to fire by attempting an illegal transition rather than by checking it exists. **Two flows exercised live**: Stripe idempotency (first claim true, redelivery false) and the full forecast lifecycle across six steps, both cleaned up afterwards.
+
+### Handoffs to Lane 1
+
+Six contracts landed and acknowledged: `reopenForecast` (appends to a log with no update or delete policy, so a corrected grade never erases the one it replaced), a three-way `suggestionQuality`, an honest total on the due list, the automation-flag catalogue with `costsModelCalls` per flag, `waitingOnNothing` for surfaces reachable without their precondition, and approval age (already in the payload, no server work needed).
+
+**Correction I owe the record**: I told Lane 1 the one completed track proved the loop closes. It proves five stations of seven. A "completed" badge would assert a lap that never happened.
+
+### Gate at close
+
+`tsc` 0 errors · 8,969 tests pass, 0 fail (up from 8,787) · production build green · twenty commits on main · working tree clean.
+
+---
+
+## ✅ APPLICATIONS SESSION CLOSED 2026-08-14 ~01:00 IST. Two applications filed, and the rules that produced them are written down.
+
+> **Still live and still dated. Lane 0 did not touch any of it, and the two obligations below have not moved.**
 
 **Two went out: Berkeley SkyDeck Batch 23 (2026-08-13, eight days early) and Conviction Embed Winter 2026 (2026-08-14, drafted and filed the same night).** Six applications are now live, one is decided.
 
