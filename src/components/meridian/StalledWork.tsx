@@ -91,7 +91,7 @@ export type StalledItem = {
   /** The single piece of work this is holding up, if it holds up exactly one. */
   blocking?: string;
   /**
-   * Why it is stopped. Only "you" is gold. Defaults to "you" because an
+   * Why it is stopped. Only "you" carries the accent. Defaults to "you" because an
    * unexplained stall is more likely a gate than a setup gap, and because
    * over-claiming a person's attention is the cheaper mistake to correct.
    */

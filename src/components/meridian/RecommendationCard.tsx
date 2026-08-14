@@ -32,15 +32,25 @@ import { useState, type ReactNode } from "react";
  * for anyone; the control that resolves it is. Once resolved the accent is
  * replaced by `--mrd-pass`, which reports an outcome and never a need.
  *
- * ── WHAT IS DELIBERATELY NOT COPIED ─────────────────────────────────────
- * The reference paints the meter green at high confidence, orange at medium
- * and grey at none. All three are wrong here. Green reports an OUTCOME under
- * Meridian, so a green meter would tell a reader the recommendation already
- * worked, which nobody knows yet. Orange does not exist in this system at all
- * and is not coming back. And a meter that says its value twice, once in bar
- * count and once in hue, fails the greyscale test: strip the colour and it
- * loses nothing, which means the colour was never carrying the fact. The bars
- * are neutral and the count is the whole signal.
+ * ── THE METER IS TONAL, AND WHY IT IS THIS TONE ─────────────────────────
+ * The reference paints the meter green at high confidence, orange at medium,
+ * grey at none. The tonal meter itself is right and is kept. The specific
+ * hues are the part that cannot survive the move, for one reason each:
+ *
+ *   green   reports an OUTCOME in this system. This card sits directly under
+ *           a gate that also shows outcomes, so a green meter three inches
+ *           from a green result would tell a reader the recommendation had
+ *           already worked. Nobody knows that yet. This is the one objection
+ *           that is about our grammar rather than about taste, so it holds.
+ *   orange  has no token to render it. Not a ban, just an absence: adding one
+ *           means editing the shared stylesheet, which is a decision above
+ *           this file. Flagged rather than worked around.
+ *
+ * So the bars carry `--mrd-agent`. Confidence is the machine's report on its
+ * own answer, and azure is exactly the hue this system gives to a machine
+ * speaking. It is not an outcome, and it does not spend the orchid that the
+ * pending human action needs. Bar count still carries the reading on its own,
+ * so the meter survives a greyscale test with nothing lost.
  *
  * The reference styles inline code chips with a brand tint. A table name is
  * categorical, not status, so the chips are neutral here and the accent stays
@@ -84,8 +94,10 @@ function filled(confidence: number) {
 }
 
 /*
- * Neutral by design, see the header. Bar count is the reading; hue would only
- * restate it, and every hue this system owns already means something else.
+ * Tonal, as the reference has it. See the header for why the tone is azure
+ * rather than the reference's green: this is the machine reporting on its own
+ * answer, which is exactly what azure means here, and it keeps the meter clear
+ * of the two hues that report outcomes.
  */
 function Meter({ confidence }: { confidence: number }) {
   const on = filled(confidence);
@@ -97,7 +109,7 @@ function Meter({ confidence }: { confidence: number }) {
           className="w-1 rounded-full transition-colors duration-300"
           style={{
             height: 10,
-            background: bar < on ? "var(--mrd-ink)" : "var(--mrd-edge)",
+            background: bar < on ? "var(--mrd-agent)" : "var(--mrd-edge)",
           }}
         />
       ))}
@@ -163,8 +175,8 @@ export function RecommendationCard({
       <div className="w-full max-w-[380px] rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-4">
         <p className="text-[13px] font-medium text-mrd-body">No suggestion yet.</p>
         <p className="mt-1 text-[12px] leading-relaxed text-mrd-mute">
-          Nothing has been proposed for this call. The gate is open and the decision is
-          yours to make directly.
+          Nothing has been proposed for this call. The gate is open and the decision is yours to
+          make directly.
         </p>
       </div>
     );
@@ -189,10 +201,9 @@ export function RecommendationCard({
         >
           {unreadable ? (
             <>
-              The model answered, but the answer did not come back in a form this product
-              could read, so there is nothing here to weigh. This is not a weak
-              recommendation. It is the absence of one, and it needs a person rather than a
-              second opinion.
+              The model answered, but the answer did not come back in a form this product could
+              read, so there is nothing here to weigh. This is not a weak recommendation. It is the
+              absence of one, and it needs a person rather than a second opinion.
             </>
           ) : (
             (active.body ?? active.short)

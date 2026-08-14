@@ -264,8 +264,8 @@ export function TaskRows({
       <div className="w-full max-w-[440px] rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-4">
         <p className="text-[13px] font-medium text-mrd-body">No work has run here yet.</p>
         <p className="mt-1 text-[12px] leading-relaxed text-mrd-mute">
-          Each step an agent takes gets a line here, with whether it is running, finished,
-          broken, or waiting on you.
+          Each step an agent takes gets a line here, with whether it is running, finished, broken,
+          or waiting on you.
         </p>
       </div>
     );
@@ -298,9 +298,7 @@ export function TaskRows({
               type="button"
               aria-expanded={hasDetails ? open : undefined}
               disabled={!hasDetails}
-              onClick={() =>
-                setOpenRows((current) => ({ ...current, [task.id]: !open }))
-              }
+              onClick={() => setOpenRows((current) => ({ ...current, [task.id]: !open }))}
               className="flex h-11 w-full items-center gap-2.5 px-2.5 text-left transition-colors duration-100 enabled:hover:bg-mrd-hover disabled:cursor-default"
             >
               <Marker status={task.status} step={task.step} />
