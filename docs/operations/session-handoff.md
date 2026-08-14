@@ -1,6 +1,6 @@
 # Pick up here
 
-> _Created: 2026-08-07 · Last updated: 2026-08-14, 19:00 IST (Lane 0 engineering session closed; the applications section below it is still live and still dated)_
+> _Created: 2026-08-07 · Last updated: 2026-08-14, 19:05 IST (Lane 0 and Lane 1 both closed within five minutes; the applications section below them is still live and still dated)_
 
 ## ✅ LANE 0 CLOSED 2026-08-14 ~19:00 IST. The audit is written, twenty commits are on main, and what remains needs you rather than an agent.
 
@@ -40,6 +40,42 @@ Six contracts landed and acknowledged: `reopenForecast` (appends to a log with n
 ### Gate at close
 
 `tsc` 0 errors · 8,969 tests pass, 0 fail (up from 8,787) · production build green · twenty commits on main · working tree clean.
+
+---
+
+## ✅ LANE 1 CLOSED 2026-08-14 ~19:05 IST. A new design system is on main, and five stations render through it.
+
+**Everything is merged and pushed. `main`, `origin/main` and `parallel/lane-1-fresh` are all at `f3d1a8ef`.** Nothing is outstanding in any of the three worktrees.
+
+### What landed
+
+**Meridian, a design system written from scratch**, in `src/styles/meridian.css`. Founder ruling: do not inherit from v1, v2, v3, Obsidian, Tempo or Cadence. Its own namespace (`--mrd-*`), OKLCH throughout, both grounds from one set of tokens.
+
+**Twenty-one components** in `src/components/meridian/`. Nineteen ported from beautifui.dev with every divergence recorded in [`../design/REFERENCE-PATTERNS.md`](../design/REFERENCE-PATTERNS.md) alongside the source URL, author, licence and capture date, so a later agent can re-check rather than re-guess. Two more (`StalledWork`, `NeedsSetup`) were designed from live production findings.
+
+**A gallery at `/meridian`**, 1,718 lines, every component in dark and paper side by side. **It is the point of the exercise, not a nicety.** It found three defects nothing else could, the worst being that every primary button in the system had an invisible label on paper: `bg-mrd-solid` with `text-mrd-ink` measures 11.26:1 dark and **1.19:1 on paper**, because both tokens invert together instead of apart. Twelve controls, nine files. No typecheck or test can see that. `--mrd-on-solid` exists to fix it and is the only token light in both grounds.
+
+**Five stations rewired onto it:** today, approvals, runs, design, traces.
+
+### Two rulings that are now settled, and must not be reopened
+
+- **ORCHID IS THE ACCENT.** It went the long way: gold rejected, orchid rejected after it for reading adolescent, four alternatives drawn in full and compared side by side, orchid chosen over all four. Recorded in `meridian.css` with the reason reopening it is not a colour choice: red, green and blue are spoken for, so the magenta arc is the only space left, and 315 is what keeps "this needs you" from collapsing into "this broke" for the most common colour vision deficiencies.
+- **NO YELLOW, MUSTARD, AMBER, GOLD OR ORANGE.** Not as an accent, a warning, a chart series or a hover. **Never write the ban as an absence** ("there is no token to put one in") — that phrasing reads as an invitation and has now been fixed twice, in `ccd1e97e` and again in `438edf84`. Write it as a ban.
+
+### The one thing that is genuinely open
+
+**Nothing is blocked.** The remaining work is more surfaces: brain, learn, decide, plan, ship, build bodies, settings and admin have not been ported. Three verified defects from the review pass are also unfixed: **two monospace typefaces on Traces** (Geist Mono beside IBM Plex Mono, where the old page had one), **eleven approval rows whose only control is named "Open"** with no `aria-label`, and **Approvals' H1 saying "Nothing is ready for you." over a failed read and over a person with no workspace**.
+
+### 🔴 One thing for Lane 0, and one for the founder
+
+**`src/lib/ai/approval-claim.test.ts` fails on any machine with real Supabase credentials in `.env`.** The case is "an expired lease is reclaimable". With no credentials `resumeAgentLoop` short-circuits and the file passes in 477ms; with real ones it gets past the lease, makes a live call and hangs to the 5s timeout. **It fails on `origin/main` today and predates the design merge** — proven by running `origin/main` in a clean worktree with the same env. CI will not catch it because CI has no credentials.
+
+**`docs/pitch/applications/sweep/all-programmes-ranked.csv` is uncommitted in the `Supaprod` worktree, with different columns and dates rewritten from `2026-11-02` to `11/2/26`.** I first read that as a spreadsheet having saved over it, which is a real hazard for this file and has cut it from 571 rows to 124 before. **That is not what this is:** the row count is intact at 572 on both sides, and the funding lane is live in this file and regenerates it from `scripts/rank-funding-programmes.py`, which is enough to explain a different column order. Left untouched as someone else's in-flight work. Recorded only so nobody else mistakes it for damage, or commits it from another lane.
+
+### The method lesson worth keeping
+
+**A comparison between two checkouts is only evidence if their environments match.** The lease test above was called pre-existing, then called a regression, before a clean `origin/main` worktree passed it in 477ms. The worktree had no `.env`. Re-running with the same env reproduced the failure exactly.
+
 
 ---
 
