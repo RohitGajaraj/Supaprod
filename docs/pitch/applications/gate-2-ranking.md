@@ -153,3 +153,26 @@ Open each, tell me open or closed, and I will draft against whichever are live.
 - [`sweep/board-corrections.md`](./sweep/board-corrections.md) — what the deadline rule found on the old board
 - [`answer-bank.md`](./answer-bank.md) — every reusable answer. Pull from here, never write from scratch
 - [`how-to-draft-the-next-one.md`](./how-to-draft-the-next-one.md) — read before drafting anything
+
+---
+
+## The full 571, ranked
+
+**Every programme in the sweep is scored and tiered**, not just the shortlist above.
+
+| Where | What it holds |
+| --- | --- |
+| **[🏆 Notion: All Funding Programmes, Ranked](https://www.notion.so/e6a24c8fc4bb49aab2160de95b862749)** | The live board. Sort by Score, filter by Tier, Call, Region or Days left |
+| [`sweep/all-programmes-ranked.csv`](./sweep/all-programmes-ranked.csv) | **All 571 rows, 18 columns, nothing truncated.** Notion imports this natively — Import → CSV — so the whole set can be rebuilt as a database in one click |
+| [`../../../scripts/rank-funding-programmes.py`](../../../scripts/rank-funding-programmes.py) | The scorer. Re-run it when a page state changes and the ranking updates |
+
+**Why a script rather than judgement.** 571 programmes cannot be ranked by hand without the ranking drifting between the first row and the last. The rubric is code, so every score is reproducible and auditable. The weights follow the founder's stated priority order: **deadline · location · money · dilution · brand · network · customer access · realistic odds · effort.**
+
+**Where a human call beats the formula, the shortlist above wins.** The script cannot know that South Park Commons' Member Residency is a different door from the Fellowship that rejected us, or that Antler London bars solo founders while Antler Continental Europe welcomes them. Those calls are made above and they are the ones to act on.
+
+### Two scoring bugs found and fixed while building it, both worth knowing
+
+- **Credits were outranking cheques.** Snowflake, Together AI and Neon sat above Hub71 because a cloud voucher's headline number parsed as a cheque. Credits now score on their own axis at a much lower weight, which is what they are worth to a raise.
+- **Fund sizes and prize pools parsed as investments.** AI Fund ranked first on *"backed by over $370 million"*, LocalHost at $100 billion, XPRIZE on a $119M pool. Anything above $5M is now discarded as a pool by definition at this stage.
+
+Both are the same disease the repo already has a name for: **the thing being measured was not the thing that changes.**
