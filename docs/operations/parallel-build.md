@@ -1,6 +1,6 @@
 # Parallel build - how to run the lanes
 
-> _Created: 2026-06-19 · Last updated: 2026-07-10_
+> _Created: 2026-06-19 · Last updated: 2026-08-14 (added "Closing a lane", the handoff collision)_
 
 > Plain operating manual for running the backlog in parallel across several worktrees at once. The deep rules live in `docs/operations/autonomous-build-loop.md` sections 15-16; this is the "just tell me how to run it" page. **Rewritten 2026-06-20** for the numbered-lane model: lanes pull live from the dashboard, claim atomically, roam the whole board, run in the VS Code integrated terminal, and never stop on their own.
 
@@ -159,6 +159,22 @@ FORCE=1 bash scripts/lane-migrate.sh <oldFolder> <newFolder> <pinId-or-NONE> <la
 - `bash scripts/lane.sh list` shows what every lane currently holds.
 - To stop a lane: interrupt or close its terminal. Its last commit is already safe on `main`; `bash scripts/lane.sh reap` frees any claim it was holding.
 - **First time:** watch each lane's first cycle confirm its number and claim its item before you walk away. After that it is hands-off.
+
+## Closing a lane (the handoff collision)
+
+**Added 2026-08-14, after three lanes closed inside ten minutes and each destroyed the others' close-out.**
+
+Every lane writes the same two files at close: [`session-handoff.md`](./session-handoff.md), tracked, and `.remember/remember.md`, untracked. **They are one shared pair, not one per lane.** Lanes finish within minutes of each other because they are started together, so the collision is the normal case rather than the unlucky one.
+
+What was observed on 2026-08-14: Lane 1 wrote `remember.md`, Lane 0's close **replaced the whole file**, Lane 1 appended, and the funding lane **replaced it again**. In the tracked file it surfaced as a real merge conflict, because all three had prepended their own section above the same shared applications section.
+
+**The rules, in the order they matter:**
+
+- **Never `Write` either file. Read it first, then append or edit**, under a dated `##` section header so the seam is obvious to the next reader.
+- **On a conflict, keep every section.** Take the newest **committed** version as the base and splice yours in by date. **Resolving with `--ours` or `--theirs` silently drops an entire lane's close-out and leaves a tree that looks clean** — this is the failure mode worth fearing, because nothing afterwards reports it.
+- **`remember.md` is untracked, so a clobber there cannot be recovered.** Anything that must survive belongs in the tracked `session-handoff.md`.
+- **Verify your work landed by CONTENT, not by SHA.** Another lane may rebase your commit while you are still writing; the hash you remember disappears and the content is fine. Grep `origin/main` for your own section heading rather than testing `git merge-base --is-ancestor` on a SHA.
+- **A lane's own gate result is not the tree's.** A worktree created without an `.env` runs a different program from one that has it. Two lanes read 0 fail and 1 fail on the same commit on 2026-08-14, and neither was wrong (`KI-44`). Before calling a failure yours, check the environments match, not just the diff.
 
 ## Troubleshooting
 
