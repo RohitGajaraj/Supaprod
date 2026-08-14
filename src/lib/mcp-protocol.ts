@@ -368,6 +368,39 @@ const FORECAST_WRITE_TOOLS: McpTool[] = [
 // one rationale above it, instead of two entries buried in a list of four.
 MCP_WRITE_TOOLS.push(...FORECAST_WRITE_TOOLS);
 
+/**
+ * The one parameter every governed write accepts, added to all of them at once.
+ *
+ * WHY IT HAD TO EXIST. Not one write tool was idempotent, so `record_decision`
+ * called twice made two decisions, `draft_spec` twice made two specs, and
+ * `settle_outcome` twice settled twice. An agent retries on a timeout, and a
+ * timeout is exactly the case where it cannot know whether the first call
+ * landed, so the retry is not a bug in the agent. Making a retry safe is the
+ * protocol's job, and this surface asked agents to do the loop's most
+ * consequential writes with no way to do it.
+ *
+ * WHY IT IS OPTIONAL. Requiring it would break every existing caller, and would
+ * also promise more than the server can: a caller that omits it gets exactly
+ * today's behaviour, which is a fair choice for a write it knows is safe to
+ * repeat. What it must never be is UNAVAILABLE, which is what it was.
+ *
+ * ADDED BY DERIVATION RATHER THAN BY HAND SIX TIMES. The stale-scope-list defect
+ * in this same file is what the other habit costs: a hand-kept second list fell
+ * a founder ruling behind and left three built write tools impossible to
+ * authorize. A parameter every write tool must accept is a property of the SET,
+ * so it is applied to the set, and a seventh write tool inherits it on the day
+ * it is written.
+ */
+export const IDEMPOTENCY_PARAM = {
+  type: "string" as const,
+  description:
+    "Optional. A caller-chosen key, unique per intended write. Repeating a call with the same key returns the first result instead of writing again, and the reply carries idempotent_replay true. Scoped to this tool and this workspace, so the same key is safe to reuse across tools.",
+};
+
+for (const tool of MCP_WRITE_TOOLS) {
+  (tool.inputSchema.properties as Record<string, unknown>).idempotency_key = IDEMPOTENCY_PARAM;
+}
+
 export const MCP_WRITE_TOOL_NAMES: readonly string[] = MCP_WRITE_TOOLS.map((t) => t.name);
 
 // Classification recognizes BOTH read and write tool names as known tools (so a

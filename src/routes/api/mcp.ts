@@ -1,3 +1,4 @@
+import { withIdempotency } from "@/lib/runtime/idempotency.server";
 import { createFileRoute } from "@tanstack/react-router";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
@@ -339,11 +340,68 @@ async function resolveWriteEnabled(supabase: any): Promise<boolean> {
 }
 
 /**
- * Dispatch a GOVERNED WRITE tool. The caller MUST have already passed
- * canCallWriteTool (scope + gate); this only executes. `user_id` is the token's
- * owner — the signal is stamped with it, never with caller-supplied input.
+ * Dispatch a GOVERNED WRITE tool, at most once per idempotency key.
+ *
+ * WHY THIS WRAPPER EXISTS. Not one write tool was idempotent, so `record_decision`
+ * twice made two decisions and `settle_outcome` twice settled twice. An agent
+ * retries on a timeout, and a timeout is precisely the case where it cannot know
+ * whether the first call landed, so the retry is correct behaviour and the
+ * duplicate was ours. `withIdempotency` has existed for months and was used by
+ * the INTERNAL tool registry on nine paths; no external write ever reached it.
+ *
+ * THE KEY IS SCOPED TO THE TOOL AND THE WORKSPACE, and both halves are
+ * load-bearing. Tool-scoping means an agent reusing one request id across
+ * `record_decision` and `draft_spec` gets two writes rather than the second
+ * silently returning the first's result. Workspace-scoping means a key from one
+ * workspace can never return another workspace's stored payload, which would be
+ * a cross-tenant read through a cache rather than through a query.
+ *
+ * ONLY SUCCESS IS REMEMBERED. `withIdempotency` stores whatever its callback
+ * returns, so returning a failure through it would cache the failure and make a
+ * transient error permanent for that key: the retry the caller is entitled to
+ * would replay the error forever. So a refusal THROWS inside the callback,
+ * nothing is stored, and it is converted back to a refusal outside. A caller that
+ * retries after a genuine failure genuinely retries.
  */
 async function dispatchWriteTool(
+  supabase: any,
+  toolName: string,
+  workspace_id: string,
+  user_id: string,
+  params: Record<string, unknown>,
+): Promise<{ success: boolean; data?: unknown; error?: string; idempotent_replay?: boolean }> {
+  const rawKey = typeof params.idempotency_key === "string" ? params.idempotency_key.trim() : "";
+  // Bounded, because it becomes half a UNIQUE index entry. Long enough for a
+  // uuid or a hash, short enough that a pathological caller cannot bloat the
+  // table one row at a time.
+  const key = rawKey.slice(0, 200);
+  if (!key) return runWriteTool(supabase, toolName, workspace_id, user_id, params);
+
+  try {
+    const { result, cached } = await withIdempotency(
+      supabase,
+      `mcp:${toolName}`,
+      `${workspace_id}:${key}`,
+      user_id,
+      null,
+      async () => {
+        const r = await runWriteTool(supabase, toolName, workspace_id, user_id, params);
+        // Never cache a refusal. See the header.
+        if (!r.success) throw new Error(r.error ?? "write refused");
+        return r;
+      },
+    );
+    // SAID OUT LOUD, because "I already did this" and "I just did this" are
+    // different facts and an agent deciding what to do next needs to tell them
+    // apart. A machine surface that answers identically to both is asking the
+    // caller to guess.
+    return cached ? { ...result, idempotent_replay: true } : result;
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
+  }
+}
+
+async function runWriteTool(
   supabase: any,
   toolName: string,
   workspace_id: string,
@@ -664,14 +722,34 @@ export const Route = createFileRoute("/api/mcp")({
                   tool_name: dispatch.toolName,
                   result: writeResult.success ? "success" : "error",
                   error_message: writeResult.error,
-                  metadata: { elapsed_ms: Date.now() - startTime, write: true },
+                  // THE TRAIL HAS TO KNOW IT WAS A REPLAY. Without this a
+                  // retried call logs a second successful write, so the audit
+                  // record shows two writes where one happened, and anybody
+                  // counting agent activity off api_calls counts the retry as
+                  // work. The flag is the difference between "it did this twice"
+                  // and "it asked twice and we did it once".
+                  metadata: {
+                    elapsed_ms: Date.now() - startTime,
+                    write: true,
+                    ...(writeResult.idempotent_replay ? { idempotent_replay: true } : {}),
+                  },
                 },
                 supabase,
               );
+              // THE CALLER IS TOLD, in the payload it already parses. An agent
+              // that cannot tell "I already did this" from "I just did this" has
+              // to guess, and the guess is what a machine surface exists to
+              // remove. Merged into the object when it is one, so an existing
+              // caller reading named fields is unaffected; carried beside the
+              // value when it is not, rather than being dropped.
+              const writeData =
+                writeResult.idempotent_replay && writeResult.success
+                  ? writeResult.data && typeof writeResult.data === "object" && !Array.isArray(writeResult.data)
+                    ? { ...(writeResult.data as Record<string, unknown>), idempotent_replay: true }
+                    : { result: writeResult.data, idempotent_replay: true }
+                  : writeResult.data;
               const writeEnvelope = buildToolCallResult(
-                writeResult.success
-                  ? writeResult.data
-                  : (writeResult.error ?? "Tool execution failed"),
+                writeResult.success ? writeData : (writeResult.error ?? "Tool execution failed"),
                 !writeResult.success,
               );
               return new Response(JSON.stringify(jsonRpcResult(mcpReq.id, writeEnvelope)), {
