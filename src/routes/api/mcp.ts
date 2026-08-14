@@ -15,6 +15,9 @@ import {
   recordDecision,
   draftSpec,
   settleOutcome,
+  recordForecast,
+  settleForecastViaMcp,
+  listDueForecastsForAgent,
   logMCPCall,
 } from "@/lib/mcp.functions";
 import { getGoverningDecision, getContradictionHistory } from "@/lib/ai/mcp-brain.server";
@@ -297,6 +300,15 @@ async function dispatchTool(
         return { success: true, data };
       }
 
+      // FC-01. A read, so it sits here with the other reads and needs no scope:
+      // seeing which of your own calls are overdue is not a privileged action,
+      // and gating it would leave a token that may settle a forecast unable to
+      // discover which ones are waiting.
+      case "list_due_forecasts": {
+        const data = await listDueForecastsForAgent(supabase, workspace_id, params);
+        return { success: true, data };
+      }
+
       case "tools":
       case "resources":
         // Legacy discovery aliases. The tool catalog lives in mcp-protocol.ts
@@ -357,6 +369,17 @@ async function dispatchWriteTool(
       }
       case "settle_outcome": {
         const data = await settleOutcome(supabase, workspace_id, user_id, params);
+        return { success: true, data };
+      }
+      // FC-01, 2026-08-14. Two scopes rather than one: stating a belief and
+      // grading it are different permissions, and a token that may do the first
+      // must not thereby be able to mark its own prediction correct.
+      case "record_forecast": {
+        const data = await recordForecast(supabase, workspace_id, user_id, params);
+        return { success: true, data };
+      }
+      case "settle_forecast": {
+        const data = await settleForecastViaMcp(supabase, workspace_id, user_id, params);
         return { success: true, data };
       }
       default:

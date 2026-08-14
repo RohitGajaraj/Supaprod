@@ -951,3 +951,211 @@ export async function settleOutcome(
     learningId: (res as { learningId?: string | null })?.learningId ?? null,
   };
 }
+
+// ───────────────────────────────────────────────────────────────────────────
+// FC-01 — the forecast tools.
+//
+// WHY THESE EXIST. Before 2026-08-14 not one of the fifteen MCP tools touched a
+// forecast column. A forecast could be recorded only by a human typing into one
+// collapsed form on one route, listed only by that route's own loader, and
+// settled only by clicking a control on that same panel. Every other station in
+// the lifecycle had at least a read; this one had nothing.
+//
+// That is the wrong way round for this product. Most decisions here are captured
+// by agents (the meeting extractor, discovery, the trigger tick, the tool
+// registry, this very MCP surface), and the moat argument rests on the belief
+// being recorded BEFORE the outcome is known. An agent that can record a
+// decision and cannot say what it expects to follow from it is capturing the
+// half that a competitor can reconstruct and dropping the half that they cannot.
+// ───────────────────────────────────────────────────────────────────────────
+
+const recordForecastSchema = z.object({
+  decision_id: z.string().uuid(),
+  claim: z.string().min(1).max(500),
+  how_we_will_know: z.string().min(1).max(500),
+  horizon_date: z.string().datetime({ offset: true }),
+});
+
+export async function recordForecast(
+  supabaseClient: any,
+  _workspace_id: string,
+  user_id: string,
+  args: unknown,
+): Promise<{ status: "stored" | "quarantined"; decisionId: string | null }> {
+  const parsed = recordForecastSchema.safeParse(args);
+  if (!parsed.success) {
+    throw new Error(
+      "expected { decision_id: uuid, claim: string, how_we_will_know: string, horizon_date: ISO 8601 with offset, in the future }",
+    );
+  }
+  const p = parsed.data;
+
+  // Screened like every other inbound text on this surface. A forecast is read
+  // back to a person at settle time and fed to a model in the audit prompt, so
+  // it is exactly the kind of stored text a structural injection targets.
+  const screened = screenIngestText(`${p.claim} ${p.how_we_will_know}`);
+  if (screened === "quarantine") return { status: "quarantined", decisionId: null };
+
+  /**
+   * THE SAME FUNCTION THE HUMAN PATH CALLS, reached through the impl rather than
+   * the server function so this does not become a second copy of the set-once
+   * rule. setDecisionForecastImpl owns all of it: all three parts or none, the
+   * horizon must still be open, and the write is refused if the decision already
+   * carries a forecast. `_workspace_id` is unused deliberately, because the impl
+   * scopes by the decision's own owner, which is stricter than trusting the
+   * token's workspace claim.
+   */
+  const { setDecisionForecastImpl } = await import("@/lib/decisions.functions");
+  const res = await setDecisionForecastImpl(supabaseClient, user_id, {
+    decisionId: p.decision_id,
+    forecast_claim: p.claim,
+    forecast_how_we_will_know: p.how_we_will_know,
+    forecast_horizon_date: p.horizon_date,
+  });
+  return { status: "stored", decisionId: res.decisionId };
+}
+
+const settleForecastMcpSchema = z.object({
+  decision_id: z.string().uuid(),
+  resolution: z.enum(["hit", "miss", "inconclusive"]),
+  rationale: z.string().min(1).max(1000),
+  agent_slug: z.string().max(100).optional(),
+});
+
+export async function settleForecastViaMcp(
+  supabaseClient: any,
+  _workspace_id: string,
+  _user_id: string,
+  args: unknown,
+): Promise<{ status: "stored" | "quarantined" | "already_settled"; decisionId: string | null }> {
+  const parsed = settleForecastMcpSchema.safeParse(args);
+  if (!parsed.success) {
+    throw new Error(
+      "expected { decision_id: uuid, resolution: hit|miss|inconclusive, rationale: string, agent_slug?: string }",
+    );
+  }
+  const p = parsed.data;
+
+  const screened = screenIngestText(p.rationale);
+  if (screened === "quarantine") return { status: "quarantined", decisionId: null };
+
+  const { buildSettlePatch } = await import("@/lib/brain/forecast-resolution");
+  const patch = buildSettlePatch({
+    resolution: p.resolution,
+    rationale: p.rationale,
+    nowIso: new Date().toISOString(),
+    agentSlug: p.agent_slug?.trim() || "mcp-agent",
+  });
+
+  /**
+   * REFUSES TO OVERWRITE A VERDICT ALREADY ON THE RECORD, and the refusal is in
+   * the WHERE clause rather than in a preceding read, so it cannot be raced.
+   *
+   * This mirrors applyOutcome, which refuses an agent overwrite of a settled
+   * outcome for the same reason: an agent had its chance before the row was
+   * settled, and disagreeing afterwards is a person's move. Here the argument is
+   * stronger, because the thing being protected is a human's judgment about
+   * whether their own prediction came true.
+   *
+   * `.is("forecast_resolution", null)` also makes a repeat call harmless, which
+   * is the closest this tool gets to idempotency: the second call reports
+   * already_settled instead of quietly rewriting the first verdict with a new
+   * timestamp.
+   */
+  const { data: rows, error } = await supabaseClient
+    .from("decisions")
+    .update(patch)
+    .eq("id", p.decision_id)
+    .not("forecast_claim", "is", null)
+    .is("forecast_resolution", null)
+    .select("id");
+  if (error) throw new Error(error.message);
+  if (!rows || rows.length === 0) {
+    /**
+     * Three different situations land here and the caller deserves to be able to
+     * tell them apart, so we look rather than guess: no such decision, no
+     * forecast on it, or a verdict already recorded. Returning a bare failure
+     * would send an agent to retry a call that can never succeed.
+     */
+    const { data: probe } = await supabaseClient
+      .from("decisions")
+      .select("id,forecast_claim,forecast_resolution")
+      .eq("id", p.decision_id)
+      .maybeSingle();
+    const row = probe as {
+      forecast_claim: string | null;
+      forecast_resolution: string | null;
+    } | null;
+    if (!row) throw new Error("No decision with that id is visible to this token.");
+    if (row.forecast_claim == null) {
+      throw new Error(
+        "That decision carries no forecast, so there is nothing to settle. Use record_forecast first, and note that it must be recorded before the horizon passes.",
+      );
+    }
+    return { status: "already_settled", decisionId: p.decision_id };
+  }
+  return { status: "stored", decisionId: p.decision_id };
+}
+
+export async function listDueForecastsForAgent(
+  supabaseClient: any,
+  _workspace_id: string,
+  args: unknown,
+): Promise<
+  Array<{
+    decision_id: string;
+    title: string;
+    claim: string;
+    how_we_will_know: string;
+    horizon_date: string;
+    days_late: number;
+    drafted_verdict: string | null;
+    drafted_confidence: number | null;
+  }>
+> {
+  // Clamped, not trusted. An unbounded limit from a caller is how a read tool
+  // becomes a way to pull the whole table one request at a time.
+  const raw = Number((args as { limit?: unknown })?.limit ?? 20);
+  const limit = Number.isFinite(raw) ? Math.max(1, Math.min(Math.trunc(raw), 100)) : 20;
+  const nowIso = new Date().toISOString();
+
+  const { dueCheckFilter, isForecastDue } = await import("@/lib/brain/forecast-resolution");
+  const { data, error } = await supabaseClient
+    .from("decisions")
+    .select(
+      "id,title,forecast_claim,forecast_how_we_will_know,forecast_horizon_date," +
+        "forecast_resolution,forecast_next_check_at,forecast_resolution_suggestion",
+    )
+    .not("forecast_claim", "is", null)
+    .is("forecast_resolution", null)
+    .lte("forecast_horizon_date", nowIso)
+    // The NULL-safe deferral clause, taken from the one place that owns it, so
+    // this tool and the Learn desk can never disagree about what is due. A bare
+    // .lte here would drop every never-deferred forecast, which is almost all of
+    // them, and still look like it worked.
+    .or(dueCheckFilter(nowIso))
+    .order("forecast_horizon_date", { ascending: true })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+
+  const nowMs = Date.parse(nowIso);
+  return ((data ?? []) as Array<Record<string, unknown>>)
+    .filter((r) => isForecastDue(r as never, nowIso))
+    .map((row) => {
+      const horizon = String(row.forecast_horizon_date);
+      const s = row.forecast_resolution_suggestion as {
+        verdict?: string;
+        confidence?: number;
+      } | null;
+      return {
+        decision_id: String(row.id),
+        title: String(row.title ?? ""),
+        claim: String(row.forecast_claim ?? ""),
+        how_we_will_know: String(row.forecast_how_we_will_know ?? ""),
+        horizon_date: horizon,
+        days_late: Math.floor((nowMs - Date.parse(horizon)) / 86_400_000),
+        drafted_verdict: s?.verdict ?? null,
+        drafted_confidence: typeof s?.confidence === "number" ? s.confidence : null,
+      };
+    });
+}

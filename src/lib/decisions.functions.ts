@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import { track } from "@/lib/observability";
@@ -423,60 +424,80 @@ export const createDecision = createServerFn({ method: "POST" })
  * re-scoring on better evidence is legitimate. What must not move is what was
  * believed beforehand.
  */
+export const setDecisionForecastSchema = z
+  .object({
+    decisionId: z.string().uuid(),
+    forecast_claim: z.string().min(1).max(500),
+    forecast_how_we_will_know: z.string().min(1).max(500),
+    forecast_horizon_date: z.string().datetime({ offset: true }),
+  })
+  // All three are required by the object above, so only the horizon rule
+  // can fire here. Shared with the insert path rather than restated.
+  .superRefine((v, ctx) => {
+    const bad = forecastRefusal(v);
+    if (bad) ctx.addIssue({ code: z.ZodIssueCode.custom, path: [bad.path], message: bad.message });
+  });
+
+/**
+ * THE IMPLEMENTATION, SEPARATED FROM THE DOOR, because for its whole life this
+ * function had no door at all.
+ *
+ * Written 2026-08-11 and shipped with ZERO CALLERS: a repo-wide grep found the
+ * symbol in its own definition and in two documents claiming it was wired.
+ * Meanwhile the documented reason for its existence stayed true and unaddressed
+ * -- nine of the ten paths that write a decision cannot attach a forecast, so
+ * every decision an agent captured was permanently forecast-less, which is
+ * exactly the case the docblock above says this exists to solve.
+ *
+ * Taking the client and user id as parameters rather than reading them from a
+ * request context is what lets the MCP tool reuse this instead of writing a
+ * second copy against a token-scoped client. One implementation, two doors, the
+ * same shape settleOutcome uses to reach applyOutcome.
+ */
+export async function setDecisionForecastImpl(
+  db: SupabaseClient,
+  userId: string,
+  input: z.infer<typeof setDecisionForecastSchema>,
+): Promise<{ ok: true; decisionId: string }> {
+  const { data: row } = await db
+    .from("decisions")
+    .select("id,forecast_claim")
+    .eq("id", input.decisionId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!row) throw new Error("We could not find that decision, so nothing changed.");
+  if ((row as { forecast_claim: string | null }).forecast_claim != null) {
+    throw new Error(
+      "This decision already records what you expected to happen, and that cannot be rewritten. A forecast you can edit after the outcome is known is a retrospective.",
+    );
+  }
+
+  const { data: written, error } = await db
+    .from("decisions")
+    .update({
+      forecast_claim: input.forecast_claim,
+      forecast_how_we_will_know: input.forecast_how_we_will_know,
+      forecast_horizon_date: input.forecast_horizon_date,
+    })
+    .eq("id", input.decisionId)
+    .eq("user_id", userId)
+    .is("forecast_claim", null)
+    .select("id");
+  if (error) throw new Error(error.message);
+  if (!written || written.length === 0) {
+    throw new Error(
+      "We could not confirm that the forecast was recorded, so treat it as not recorded.",
+    );
+  }
+  return { ok: true as const, decisionId: input.decisionId };
+}
+
 export const setDecisionForecast = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z
-      .object({
-        decisionId: z.string().uuid(),
-        forecast_claim: z.string().min(1).max(500),
-        forecast_how_we_will_know: z.string().min(1).max(500),
-        forecast_horizon_date: z.string().datetime({ offset: true }),
-      })
-      // All three are required by the object above, so only the horizon rule
-      // can fire here. Shared with the insert path rather than restated.
-      .superRefine((v, ctx) => {
-        const bad = forecastRefusal(v);
-        if (bad)
-          ctx.addIssue({ code: z.ZodIssueCode.custom, path: [bad.path], message: bad.message });
-      })
-      .parse(input),
-  )
-  .handler(async ({ context, data }) => {
-    const { supabase, userId } = context;
-
-    const { data: row } = await supabase
-      .from("decisions")
-      .select("id,forecast_claim")
-      .eq("id", data.decisionId)
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (!row) throw new Error("We could not find that decision, so nothing changed.");
-    if (row.forecast_claim != null) {
-      throw new Error(
-        "This decision already records what you expected to happen, and that cannot be rewritten. A forecast you can edit after the outcome is known is a retrospective.",
-      );
-    }
-
-    const { data: written, error } = await supabase
-      .from("decisions")
-      .update({
-        forecast_claim: data.forecast_claim,
-        forecast_how_we_will_know: data.forecast_how_we_will_know,
-        forecast_horizon_date: data.forecast_horizon_date,
-      })
-      .eq("id", data.decisionId)
-      .eq("user_id", userId)
-      .is("forecast_claim", null)
-      .select("id");
-    if (error) throw new Error(error.message);
-    if (!written || written.length === 0) {
-      throw new Error(
-        "We could not confirm that the forecast was recorded, so treat it as not recorded.",
-      );
-    }
-    return { ok: true as const, decisionId: data.decisionId };
-  });
+  .inputValidator((input: unknown) => setDecisionForecastSchema.parse(input))
+  .handler(async ({ context, data }) =>
+    setDecisionForecastImpl(context.supabase as unknown as SupabaseClient, context.userId, data),
+  );
 
 export const updateDecision = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { forecastAuditPrompt, parseAuditReply, AUDITOR_SLUG } from "./forecast-audit.server";
+import {
+  forecastAuditPrompt,
+  parseAuditReply,
+  AUDITOR_SLUG,
+  linkedOutcomeIsSettled,
+} from "./forecast-audit.server";
 import { AUTO_SETTLE_CONFIDENCE_FLOOR, canAutoSettle } from "./forecast-resolution";
 
 describe("parseAuditReply (FC-01)", () => {
@@ -96,5 +101,68 @@ describe("AUDITOR_SLUG (FC-01)", () => {
   test("is a non-empty stable identifier", () => {
     expect(AUDITOR_SLUG).toBe("forecast-auditor");
     expect(AUDITOR_SLUG.length).toBeGreaterThan(0);
+  });
+});
+
+describe("linkedOutcomeIsSettled (FC-01 gate, first half)", () => {
+  const prdDb = (outcome: unknown) =>
+    ({
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            maybeSingle: async () => ({
+              data: { outcome, title: "Ship the new onboarding" },
+              error: null,
+            }),
+          }),
+        }),
+      }),
+    }) as never;
+
+  test("a human-settled outcome opens the gate", async () => {
+    const r = await linkedOutcomeIsSettled(prdDb({ verdict: "validated", settled_by: "human" }), "p1");
+    expect(r.settled).toBe(true);
+  });
+
+  /**
+   * THE PIN THAT MATTERED, and the reason the gate's own comment was wrong for
+   * four days. Two agent paths write prds.outcome: the historian sweep and the
+   * MCP settle_outcome tool. The old check asked only whether `outcome` was
+   * non-null, so an agent-settled spec authorized an agent-settled forecast and
+   * the whole "a person already judged this" argument evaporated. Proven by
+   * planting it: delete the settled_by check and this goes green on a chain with
+   * no human in it.
+   */
+  test("an agent-settled outcome does NOT open the gate", async () => {
+    const r = await linkedOutcomeIsSettled(
+      prdDb({ verdict: "validated", settled_by: "agent", settled_by_agent_slug: "historian" }),
+      "p1",
+    );
+    expect(r.settled).toBe(false);
+    // Still handed to the model as context: it is what is known, it just is not
+    // permission to settle unattended.
+    expect(r.evidence).toContain("recorded by an agent rather than a person");
+  });
+
+  test("an outcome predating the settled_by field counts as human", async () => {
+    // Every such row came from the Learn desk, the only door at the time.
+    const r = await linkedOutcomeIsSettled(prdDb({ verdict: "validated" }), "p1");
+    expect(r.settled).toBe(true);
+  });
+
+  test("no linked spec means no gate and no evidence", async () => {
+    const r = await linkedOutcomeIsSettled(prdDb(null), null);
+    expect(r.settled).toBe(false);
+    expect(r.evidence).toBe("");
+  });
+
+  test("an unsettled spec does not open the gate", async () => {
+    const r = await linkedOutcomeIsSettled(prdDb(null), "p1");
+    expect(r.settled).toBe(false);
+  });
+
+  test("an agent verdict cannot reach canAutoSettle however confident it is", async () => {
+    const r = await linkedOutcomeIsSettled(prdDb({ settled_by: "agent" }), "p1");
+    expect(canAutoSettle({ linkedOutcomeSettled: r.settled, confidence: 1 })).toBe(false);
   });
 });

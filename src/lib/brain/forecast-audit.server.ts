@@ -82,11 +82,28 @@ type DueRow = {
 };
 
 /**
- * The first half of the gate, and the reason it is safe: prds.outcome is written
- * by the human settle path alone, since agent drafts live in
- * prds.outcome_suggestion. A true here means a person already judged the thing
- * this forecast was about, so the agent applies a stated observable to existing
+ * The first half of the gate: a person already judged the thing this forecast
+ * was about, so the agent applies a stated observable to existing human
  * judgment rather than originating any.
+ *
+ * THIS COMMENT USED TO SAY prds.outcome IS WRITTEN BY THE HUMAN PATH ALONE, AND
+ * THAT WAS FALSE. Two agent paths write it through `applyOutcome`: the
+ * autonomous historian sweep (ai/outcome-review.server.ts, stamping
+ * HISTORIAN_AGENT_SLUG) and the MCP `settle_outcome` tool (stamping
+ * "mcp-agent"). The check below only asked whether `outcome` was non-null, so an
+ * agent-settled outcome satisfied "a person already judged this" and the chain
+ * became agent-judges-outcome then agent-judges-forecast, with no human anywhere
+ * in it. Nothing caught this because the auto leg has never executed: it is
+ * gated on `auto_derive_enabled`, which no code in this repo can set.
+ *
+ * So the gate now reads the field that records WHO settled it. `applyOutcome`
+ * writes `settled_by: "human" | "agent"` into the payload, and the codebase
+ * already filters on `outcome->>settled_by` elsewhere, so this is the
+ * established key rather than a new convention.
+ *
+ * AN AGENT-SETTLED OUTCOME IS EVIDENCE, JUST NOT PERMISSION. It is still passed
+ * to the model as context, because it genuinely is what is known about the
+ * spec. It simply cannot be the thing that authorizes an unattended verdict.
  */
 export async function linkedOutcomeIsSettled(
   supabase: SupabaseClient,
@@ -101,9 +118,22 @@ export async function linkedOutcomeIsSettled(
   if (error) return { settled: false, evidence: "" };
   const row = data as { outcome: unknown; title: string | null } | null;
   if (!row || row.outcome == null) return { settled: false, evidence: "" };
+
+  const settledBy = (row.outcome as { settled_by?: unknown } | null)?.settled_by;
+  /**
+   * Missing counts as human. Rows settled before `settled_by` was written carry
+   * no key, and every one of them came from the Learn desk, which was the only
+   * door at the time. Treating an absent field as "agent" would silently refuse
+   * to auto-settle against the entire historical record; treating it as human
+   * matches how those rows were actually produced.
+   */
+  const byHuman = settledBy !== "agent";
+
   return {
-    settled: true,
-    evidence: `The linked spec "${row.title ?? ""}" has a settled outcome: ${JSON.stringify(row.outcome)}`,
+    settled: byHuman,
+    evidence: `The linked spec "${row.title ?? ""}" has a settled outcome${
+      byHuman ? "" : ", recorded by an agent rather than a person"
+    }: ${JSON.stringify(row.outcome)}`,
   };
 }
 

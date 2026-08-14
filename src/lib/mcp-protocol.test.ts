@@ -193,6 +193,10 @@ describe("result builders", () => {
       "outcome_history",
       "get_governing_decision",
       "get_contradiction_history",
+      // FC-01. The queue behind settle_forecast. A write tool whose subjects
+      // cannot be discovered is a tool nobody can drive, so the read ships
+      // alongside the writes rather than after them.
+      "list_due_forecasts",
     ]);
   });
 
@@ -226,8 +230,13 @@ describe("result builders", () => {
 });
 
 describe("MCP_TOOLS catalog integrity", () => {
-  test("exactly eleven (read-only) tools, each well-formed", () => {
-    expect(MCP_TOOLS).toHaveLength(11);
+  // The count is a deliberate tripwire: adding a tool to the agent surface
+  // should be a decision somebody makes on purpose, not a diff that slips by.
+  // The number lives in the assertion and NOT in the test name, so widening the
+  // catalog does not also require renaming the test, which is how the previous
+  // "eleven" outlived two additions in the docs.
+  test("the read-only catalog is the expected size, each tool well-formed", () => {
+    expect(MCP_TOOLS).toHaveLength(12);
     for (const t of MCP_TOOLS) {
       expect(typeof t.name).toBe("string");
       expect(t.name.length).toBeGreaterThan(0);

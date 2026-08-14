@@ -182,6 +182,27 @@ export const MCP_TOOLS: McpTool[] = [
       required: ["topic"],
     },
   },
+  {
+    // FC-01. A settle tool with no way to find what needs settling is a tool
+    // nobody can use: an agent cannot discover that a forecast exists, let alone
+    // that one came due, from any other read here. list_decisions and
+    // search_decisions both select a fixed column list that omits every forecast
+    // column, so before this the moat was invisible to the agent surface as well
+    // as unwritable by it.
+    //
+    // A READ, so no scope and no write gate. Knowing which of your own calls are
+    // overdue is not a privileged action, and gating it would mean a token that
+    // may settle a forecast still could not tell you which ones are waiting.
+    name: "list_due_forecasts",
+    description:
+      "List forecasts whose horizon has passed and which nobody has settled yet, oldest first. Each carries what was expected, the observable chosen to settle it, how many days late it is, and any verdict an agent has drafted. This is the queue behind settle_forecast.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        limit: { type: "number", default: 20 },
+      },
+    },
+  },
 ];
 
 export const MCP_READ_TOOL_NAMES: readonly string[] = MCP_TOOLS.map((t) => t.name);
@@ -212,6 +233,18 @@ export const WRITE_SCOPE_BY_TOOL: Readonly<Record<string, string>> = {
   record_decision: "write:decision",
   draft_spec: "write:spec",
   settle_outcome: "write:outcome",
+  // FC-01, 2026-08-14. The forecast is the one artifact the positioning calls
+  // unrebuildable, and it was the only station with NO agent surface at all:
+  // not one of the fifteen tools touched a forecast column, so the moat was
+  // reachable exclusively through one collapsed form on one route. That is
+  // backwards for a product whose decisions are mostly captured by agents.
+  //
+  // TWO SCOPES, NOT ONE, for the same reason record_decision and settle_outcome
+  // are separate. Recording what you expect and grading whether it happened are
+  // different permissions, and a token that may state a belief must not thereby
+  // be able to mark that belief correct.
+  record_forecast: "write:forecast",
+  settle_forecast: "write:forecast_resolution",
 };
 
 /**
@@ -291,6 +324,49 @@ export const MCP_WRITE_TOOLS: McpTool[] = [
     },
   },
 ];
+
+const FORECAST_WRITE_TOOLS: McpTool[] = [
+  {
+    name: "record_forecast",
+    description:
+      "Attach a forecast to a decision that does not carry one (governed write). Requires the write:forecast scope and the workspace's outward-write gate. All three parts are required together: what you expect, the observable that will settle it, and the horizon date. SET ONCE and never editable afterwards, because a forecast you can revise once the outcome is known is a retrospective. The horizon must still be in the future.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        decision_id: { type: "string" },
+        claim: { type: "string", description: "What you expect to happen." },
+        how_we_will_know: {
+          type: "string",
+          description: "The observable that will settle this, chosen before the answer is known.",
+        },
+        horizon_date: {
+          type: "string",
+          description: "ISO 8601 timestamp with offset. Must be in the future.",
+        },
+      },
+      required: ["decision_id", "claim", "how_we_will_know", "horizon_date"],
+    },
+  },
+  {
+    name: "settle_forecast",
+    description:
+      "Record whether a forecast came true, once its horizon has passed (governed write). Requires the write:forecast_resolution scope and the workspace's outward-write gate. Refuses to overwrite a verdict already on the record: disagreeing with a settled forecast is a person's move. Use inconclusive only when the stated observable arrived and did not settle the claim.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        decision_id: { type: "string" },
+        resolution: { type: "string", enum: ["hit", "miss", "inconclusive"] },
+        rationale: { type: "string", description: "The one fact that decided it." },
+        agent_slug: { type: "string" },
+      },
+      required: ["decision_id", "resolution", "rationale"],
+    },
+  },
+];
+
+// Appended rather than inlined so the forecast pair reads as one addition with
+// one rationale above it, instead of two entries buried in a list of four.
+MCP_WRITE_TOOLS.push(...FORECAST_WRITE_TOOLS);
 
 export const MCP_WRITE_TOOL_NAMES: readonly string[] = MCP_WRITE_TOOLS.map((t) => t.name);
 
