@@ -414,3 +414,33 @@ Neither is destructive and neither touches a row on apply.
 - **I did not arm the connector cap.** Flipping `connector_limit_enabled()` starts refusing a fourth source on Free, and the standing rule is that a free user is never capped without a live upgrade path.
 - **I did not touch the tier or pricing slugs.** Register row 32 is still open and is a founder ruling, not a defect.
 - **I did not fix the eleven stub connector adapters**, so "Test it" still reports failure on a perfectly good connection for eleven providers. It is real and it is a day of work per adapter, so it wants its own pass rather than a rushed one.
+
+---
+
+## 15. Third pass, same evening: two findings that are corrections to the first pass's own fixes
+
+**Baseline `c622a190`, gate at close: tsc 0, 9,073 pass, 0 fail, production build green.**
+
+| # | P | Finding | Status |
+| --- | --- | --- | --- |
+| 47 | P0 | **The writers built to fix `auto_derive_enabled` had no door.** `getWorkspaceAutomation` and `setWorkspaceAutomation` are correct, RLS-enforced, zero-row-checked and tested, and were called by NOTHING in `src/components` or `src/routes`. `grep -rn "auto_sense_enabled\|auto_scout_enabled\|auto_derive_enabled\|auto_trigger_enabled" src/components src/routes` returns only the cron hooks that READ them. So arming any of the four still required SQL | **Closed.** `components/governance/AutomationBoundary.tsx`, mounted on `/boundary` |
+| 48 | P1 | **A flag can be armed while the platform cannot do the work, and nothing said so.** Market watching is gated on `auto_scout_enabled` AND on `FIRECRAWL_API_KEY`. The switch reads on; both sweeps return before their job ledger is opened; `job_runs` therefore cannot distinguish "off on purpose" from "never scheduled" | **Closed on the surface.** `automationRunState` answers off / grounded / on. **Open in the ledger**: the ticks still return before `withJobRun`, pinned by a test so moving it is deliberate |
+| 49 | P1 | **No idempotency key on any external write.** `record_decision` twice made two decisions. `withIdempotency` had existed for months and was used on nine INTERNAL tool paths; no external write reached it | **Closed.** One wrapper at `dispatchWriteTool`, so all six inherit it and a seventh does too |
+
+### Why 47 is the most important finding in this whole document
+
+The first pass's headline was *"the switches that would start them were never given a way to be flipped"*. It built the switches. **It did not build the switch panel**, and no test noticed, because the guard it wrote asks whether a gating flag has a writer and not whether a person can reach one.
+
+So the defect did not close. It moved one layer outward, from *no code can write this* to *no human can reach the code that writes it*, and the second is harder to see because the grep that finds the first comes back clean.
+
+**This is the sixth variant of section 9's pattern**, and it is the one worth remembering, because the subject is our own repair:
+
+> A fix that makes a capability *possible* is not the same as a fix that makes it *reachable*. When you close a "nothing can write this" finding, the next question is "and who presses it", asked before the commit rather than in the next audit.
+
+### The countdown now counts down
+
+`KNOWN_UNREACHED` in `surface-registry.test.ts` lost its first entry, and it lost it the right way: the shrink-only guard **failed on its own** the moment `workspace-automation` became reachable, and demanded the removal. What left and why is now recorded above the list, so the debt reads as a countdown rather than a permanent cost of doing business. **26 modules remain.**
+
+### One correction I owe to my own work in this pass
+
+The first version of the test pinning the scout-tick ledger ordering compared `indexOf("FIRECRAWL_API_KEY")` against `indexOf("withJobRunHttp")`. The first match for the key is in a header comment and the first match for the wrapper is its import, so the test compared a comment against an import and answered backwards. It now compares the guard statement against the wrapper call. **Two of my findings this session were wrong on first measurement** (this, and the withdrawn 43), both because the search was aimed slightly beside the question. Both were caught by running the thing rather than by reading it again.
