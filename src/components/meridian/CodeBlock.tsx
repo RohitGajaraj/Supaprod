@@ -131,9 +131,7 @@ export function CodeBlock({
           <span className="truncate font-mrd-mono text-[12px] font-medium text-mrd-ink">
             {filename}
           </span>
-          {language && (
-            <span className="shrink-0 text-[11px] text-mrd-mute">{language}</span>
-          )}
+          {language && <span className="shrink-0 text-[11px] text-mrd-mute">{language}</span>}
         </span>
 
         <button

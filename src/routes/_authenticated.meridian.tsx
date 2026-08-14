@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { LoadingState } from "@/components/meridian/LoadingState";
 import { StalledWork, type StalledItem } from "@/components/meridian/StalledWork";
 
@@ -26,20 +26,27 @@ import { StalledWork, type StalledItem } from "@/components/meridian/StalledWork
  *
  * NOT IN THE RAIL, deliberately. This is a workbench, not a station.
  *
- * WHY IT IS NOT BEHIND AUTH, and why that is still safe. Behind
- * `_authenticated` it renders the auth spinner to any tool without a session,
- * which is exactly the "reasoned from tokens, never rendered" failure it exists
- * to prevent. It holds no user data, reads no query and calls no server
- * function; every value on it is a literal in this file. So it is public in
- * development and ABSENT in production.
+ * IT LIVES BEHIND AUTH, and it briefly did not. Making it public was a
+ * shortcut so a headless browser without a session could screenshot it, and two
+ * repo invariants caught it inside one test run, both correctly:
+ *
+ *   route-inventory  every PUBLIC route must be reachable by an inbound link.
+ *                    A workbench nothing links to is exactly the orphan that
+ *                    guard exists to find. Behind `_authenticated` it is not a
+ *                    public route and the question does not arise.
+ *   reserved-slugs   a root path shadows the workspace-slug namespace. This one
+ *                    applies EITHER WAY and is not solved by moving the file,
+ *                    so it is reserved in a migration alongside this surface,
+ *                    following the `boundary` precedent. Without that row, a
+ *                    workspace called "meridian" would find /meridian resolving
+ *                    to this gallery instead of to their workspace: a silent,
+ *                    account-specific routing collision.
+ *
+ * The right way to look at it is to open it in a browser that HAS a session,
+ * not to remove the session requirement.
  */
 
-export const Route = createFileRoute("/meridian")({
-  beforeLoad: () => {
-    // Dev only. In a production build the route does not exist at all, rather
-    // than existing and rendering nothing, so it cannot be found by guessing.
-    if (!import.meta.env.DEV) throw notFound();
-  },
+export const Route = createFileRoute("/_authenticated/meridian")({
   component: MeridianGallery,
 });
 

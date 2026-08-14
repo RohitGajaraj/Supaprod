@@ -105,9 +105,7 @@ export function DiffTable({
   const [phase, setPhase] = useState(() => {
     if (!animate) return 2;
     if (typeof window === "undefined") return 2;
-    return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-      ? 2
-      : 0;
+    return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? 2 : 0;
   });
 
   useEffect(() => {
@@ -131,9 +129,7 @@ export function DiffTable({
         style={{ boxShadow: "var(--mrd-shadow-card)" }}
       >
         <div className="flex items-center justify-between gap-2 border-b border-mrd-line px-2.5 py-1.5">
-          <span className="min-w-0 truncate text-[12px] font-medium text-mrd-ink">
-            {title}
-          </span>
+          <span className="min-w-0 truncate text-[12px] font-medium text-mrd-ink">{title}</span>
 
           {status === "proposed" ? (
             /*
@@ -141,16 +137,11 @@ export function DiffTable({
              * reader of a proposal needs before reading any of it.
              */
             <span className="flex shrink-0 items-center gap-1.5 text-[11px] font-medium text-mrd-you">
-              <span
-                aria-hidden
-                className="size-1.5 rounded-full bg-mrd-you"
-              />
+              <span aria-hidden className="size-1.5 rounded-full bg-mrd-you" />
               Waiting on you
             </span>
           ) : (
-            <span className="shrink-0 text-[11px] text-mrd-mute">
-              {RESOLVED_NOTE[status]}
-            </span>
+            <span className="shrink-0 text-[11px] text-mrd-mute">{RESOLVED_NOTE[status]}</span>
           )}
         </div>
 
@@ -171,10 +162,7 @@ export function DiffTable({
             <thead>
               <tr className="border-b border-mrd-line">
                 {columns.map((h) => (
-                  <th
-                    key={h}
-                    className="px-2.5 py-1.5 text-[12px] font-medium text-mrd-mute"
-                  >
+                  <th key={h} className="px-2.5 py-1.5 text-[12px] font-medium text-mrd-mute">
                     {h}
                   </th>
                 ))}
@@ -254,10 +242,7 @@ export function DiffTable({
                         transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
                       }}
                     >
-                      <div
-                        className="overflow-hidden"
-                        style={{ background: WASH.added }}
-                      >
+                      <div className="overflow-hidden" style={{ background: WASH.added }}>
                         {addedRows.map((row) => (
                           <div
                             key={row.id}
@@ -281,9 +266,7 @@ export function DiffTable({
                                 <span
                                   key={i}
                                   className={`truncate px-2.5 py-1.5 text-mrd-pass ${
-                                    i === 0
-                                      ? "text-[13px] font-medium tabular-nums"
-                                      : "text-[12px]"
+                                    i === 0 ? "text-[13px] font-medium tabular-nums" : "text-[12px]"
                                   }`}
                                 >
                                   {value}

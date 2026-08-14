@@ -196,9 +196,7 @@ export function ToolChips({
             {runSummary(rows.length, messageCount, true)}
           </span>
         ) : (
-          <span className="tabular-nums">
-            {runSummary(rows.length, messageCount, false)}
-          </span>
+          <span className="tabular-nums">{runSummary(rows.length, messageCount, false)}</span>
         )}
       </button>
 
@@ -219,9 +217,7 @@ export function ToolChips({
         <div className="-mx-1 overflow-hidden px-1.5 pb-1">
           {rows.length === 0 ? (
             <p className="mt-1.5 px-[3px] text-[12px] text-mrd-mute">
-              {working
-                ? "Nothing called yet."
-                : "This run called no tools."}
+              {working ? "Nothing called yet." : "This run called no tools."}
             </p>
           ) : (
             <div className="mt-1.5 flex flex-col gap-1">
@@ -232,8 +228,7 @@ export function ToolChips({
                   <div
                     key={row.id}
                     style={{
-                      animation:
-                        "mrd-fade-up 300ms cubic-bezier(0.23,1,0.32,1) both",
+                      animation: "mrd-fade-up 300ms cubic-bezier(0.23,1,0.32,1) both",
                     }}
                   >
                     <button
@@ -278,9 +273,7 @@ export function ToolChips({
                               rowOpen ? "opacity-100" : "opacity-0"
                             }`}
                             style={{
-                              transform: rowOpen
-                                ? "rotate(0deg)"
-                                : "rotate(-90deg)",
+                              transform: rowOpen ? "rotate(0deg)" : "rotate(-90deg)",
                             }}
                           >
                             <path d="M6 9l6 6 6-6" />
@@ -313,8 +306,7 @@ export function ToolChips({
                         style={{
                           gridTemplateRows: rowOpen ? "1fr" : "0fr",
                           opacity: rowOpen ? 1 : 0,
-                          transitionTimingFunction:
-                            "cubic-bezier(0.23, 1, 0.32, 1)",
+                          transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
                         }}
                       >
                         <div className="min-h-0 overflow-hidden">
@@ -324,11 +316,7 @@ export function ToolChips({
                                 key={`${i}-${line.text}`}
                                 className={`truncate text-[11px] leading-[1.6] ${
                                   row.detailMono ? "font-mrd-mono" : ""
-                                } ${
-                                  line.tone === "add"
-                                    ? "text-mrd-pass"
-                                    : "text-mrd-body"
-                                }`}
+                                } ${line.tone === "add" ? "text-mrd-pass" : "text-mrd-body"}`}
                               >
                                 {line.text}
                               </span>
@@ -350,14 +338,10 @@ export function ToolChips({
                   <>
                     <span className="min-w-0 truncate">{d.file}</span>
                     {d.add !== undefined && d.add > 0 && (
-                      <span className="shrink-0 tabular-nums text-mrd-pass">
-                        +{d.add}
-                      </span>
+                      <span className="shrink-0 tabular-nums text-mrd-pass">+{d.add}</span>
                     )}
                     {d.del !== undefined && d.del > 0 && (
-                      <span className="shrink-0 tabular-nums text-mrd-fail">
-                        -{d.del}
-                      </span>
+                      <span className="shrink-0 tabular-nums text-mrd-fail">-{d.del}</span>
                     )}
                   </>
                 );

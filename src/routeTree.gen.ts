@@ -20,7 +20,6 @@ import { Route as ProofRouteImport } from './routes/proof'
 import { Route as ProductRouteImport } from './routes/product'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
-import { Route as MeridianRouteImport } from './routes/meridian'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InvestorsRouteImport } from './routes/investors'
@@ -61,6 +60,7 @@ import { Route as AuthenticatedOpportunitiesRouteImport } from './routes/_authen
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated.onboarding'
 import { Route as AuthenticatedObserveRouteImport } from './routes/_authenticated.observe'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
+import { Route as AuthenticatedMeridianRouteImport } from './routes/_authenticated.meridian'
 import { Route as AuthenticatedMemoryRouteImport } from './routes/_authenticated.memory'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated.meetings'
 import { Route as AuthenticatedLearnRouteImport } from './routes/_authenticated.learn'
@@ -247,11 +247,6 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MeridianRoute = MeridianRouteImport.update({
-  id: '/meridian',
-  path: '/meridian',
   getParentRoute: () => rootRouteImport,
 } as any)
 const McpRoute = McpRouteImport.update({
@@ -458,6 +453,11 @@ const AuthenticatedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMeridianRoute = AuthenticatedMeridianRouteImport.update({
+  id: '/meridian',
+  path: '/meridian',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedMemoryRoute = AuthenticatedMemoryRouteImport.update({
   id: '/memory',
   path: '/memory',
@@ -1202,7 +1202,6 @@ export interface FileRoutesByFullPath {
   '/investors': typeof InvestorsRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
-  '/meridian': typeof MeridianRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/product': typeof ProductRoute
@@ -1250,6 +1249,7 @@ export interface FileRoutesByFullPath {
   '/learn': typeof AuthenticatedLearnRoute
   '/meetings': typeof AuthenticatedMeetingsRouteWithChildren
   '/memory': typeof AuthenticatedMemoryRoute
+  '/meridian': typeof AuthenticatedMeridianRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/observe': typeof AuthenticatedObserveRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -1387,7 +1387,6 @@ export interface FileRoutesByTo {
   '/investors': typeof InvestorsRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
-  '/meridian': typeof MeridianRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/product': typeof ProductRoute
@@ -1434,6 +1433,7 @@ export interface FileRoutesByTo {
   '/learn': typeof AuthenticatedLearnRoute
   '/meetings': typeof AuthenticatedMeetingsRouteWithChildren
   '/memory': typeof AuthenticatedMemoryRoute
+  '/meridian': typeof AuthenticatedMeridianRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/observe': typeof AuthenticatedObserveRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -1572,7 +1572,6 @@ export interface FileRoutesById {
   '/investors': typeof InvestorsRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
-  '/meridian': typeof MeridianRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/product': typeof ProductRoute
@@ -1620,6 +1619,7 @@ export interface FileRoutesById {
   '/_authenticated/learn': typeof AuthenticatedLearnRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRouteWithChildren
   '/_authenticated/memory': typeof AuthenticatedMemoryRoute
+  '/_authenticated/meridian': typeof AuthenticatedMeridianRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/observe': typeof AuthenticatedObserveRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
@@ -1759,7 +1759,6 @@ export interface FileRouteTypes {
     | '/investors'
     | '/login'
     | '/mcp'
-    | '/meridian'
     | '/pricing'
     | '/privacy'
     | '/product'
@@ -1807,6 +1806,7 @@ export interface FileRouteTypes {
     | '/learn'
     | '/meetings'
     | '/memory'
+    | '/meridian'
     | '/notifications'
     | '/observe'
     | '/onboarding'
@@ -1944,7 +1944,6 @@ export interface FileRouteTypes {
     | '/investors'
     | '/login'
     | '/mcp'
-    | '/meridian'
     | '/pricing'
     | '/privacy'
     | '/product'
@@ -1991,6 +1990,7 @@ export interface FileRouteTypes {
     | '/learn'
     | '/meetings'
     | '/memory'
+    | '/meridian'
     | '/notifications'
     | '/observe'
     | '/onboarding'
@@ -2128,7 +2128,6 @@ export interface FileRouteTypes {
     | '/investors'
     | '/login'
     | '/mcp'
-    | '/meridian'
     | '/pricing'
     | '/privacy'
     | '/product'
@@ -2176,6 +2175,7 @@ export interface FileRouteTypes {
     | '/_authenticated/learn'
     | '/_authenticated/meetings'
     | '/_authenticated/memory'
+    | '/_authenticated/meridian'
     | '/_authenticated/notifications'
     | '/_authenticated/observe'
     | '/_authenticated/onboarding'
@@ -2315,7 +2315,6 @@ export interface RootRouteChildren {
   InvestorsRoute: typeof InvestorsRoute
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
-  MeridianRoute: typeof MeridianRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ProductRoute: typeof ProductRoute
@@ -2483,13 +2482,6 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/meridian': {
-      id: '/meridian'
-      path: '/meridian'
-      fullPath: '/meridian'
-      preLoaderRoute: typeof MeridianRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -2770,6 +2762,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/meridian': {
+      id: '/_authenticated/meridian'
+      path: '/meridian'
+      fullPath: '/meridian'
+      preLoaderRoute: typeof AuthenticatedMeridianRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/memory': {
@@ -3802,6 +3801,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedLearnRoute: typeof AuthenticatedLearnRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRouteWithChildren
   AuthenticatedMemoryRoute: typeof AuthenticatedMemoryRoute
+  AuthenticatedMeridianRoute: typeof AuthenticatedMeridianRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedObserveRoute: typeof AuthenticatedObserveRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
@@ -3872,6 +3872,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedLearnRoute: AuthenticatedLearnRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRouteWithChildren,
   AuthenticatedMemoryRoute: AuthenticatedMemoryRoute,
+  AuthenticatedMeridianRoute: AuthenticatedMeridianRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedObserveRoute: AuthenticatedObserveRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
@@ -3937,7 +3938,6 @@ const rootRouteChildren: RootRouteChildren = {
   InvestorsRoute: InvestorsRoute,
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
-  MeridianRoute: MeridianRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ProductRoute: ProductRoute,
