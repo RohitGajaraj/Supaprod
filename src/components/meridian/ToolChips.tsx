@@ -39,7 +39,10 @@ import { useState } from "react";
  * on the shimmer of a run still going.
  */
 
-const ICONS: Record<string, ReactNode> = {
+/** What the call was. Four kinds, because a fifth glyph nobody can name is noise. */
+export type ToolKind = "think" | "write" | "run" | "read";
+
+const ICONS: Record<ToolKind, ReactNode> = {
   think: <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z" />,
   write: (
     <g
@@ -76,8 +79,6 @@ const ICONS: Record<string, ReactNode> = {
     </g>
   ),
 };
-
-export type ToolKind = keyof typeof ICONS;
 
 export type ToolDetailLine = {
   text: string;

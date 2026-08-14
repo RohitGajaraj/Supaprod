@@ -42,9 +42,13 @@ import { useState, type ReactNode } from "react";
  *           from a green result would tell a reader the recommendation had
  *           already worked. Nobody knows that yet. This is the one objection
  *           that is about our grammar rather than about taste, so it holds.
- *   orange  has no token to render it. Not a ban, just an absence: adding one
- *           means editing the shared stylesheet, which is a decision above
- *           this file. Flagged rather than worked around.
+ *   orange  IS BANNED, and this is not an absence to be filled in. Founder
+ *           ruling 2026-08-14 removed yellow, mustard, amber and gold from the
+ *           entire system: they read as a generated palette rather than a
+ *           considered one. There is no orange token because there must not be
+ *           one. Do not add it to meridian.css to make this meter match the
+ *           reference. If a state seems to need an amber, it needs structure
+ *           instead: elevation, weight, or position.
  *
  * So the bars carry `--mrd-agent`. Confidence is the machine's report on its
  * own answer, and azure is exactly the hue this system gives to a machine
