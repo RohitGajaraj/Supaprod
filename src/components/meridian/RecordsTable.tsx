@@ -378,13 +378,25 @@ export function RecordsTable<Row>({
        * The scroll container is focusable and named. A grid that only scrolls
        * under a pointer is a grid a keyboard reader cannot finish reading, and
        * a wide one always scrolls.
+       *
+       * ── SIDEWAYS ONLY. THE HEIGHT IS NEVER CAPPED. ────────────────────────
+       * This carried `max-h-[28rem]`, which put a second vertical scroller
+       * inside the page's own. The founder ruled that out on this exact
+       * surface: commit 37feadff, "one scroll, not a scroll inside a scroll",
+       * took the same cap off the Runs board and wrote the rule into the CSS
+       * beside it. An opened list grows and THE PAGE scrolls.
+       *
+       * It also made "Show all N" a worse control than the one it replaced.
+       * The old All 43 grew the page; a capped box turns the same click into
+       * 43 rows posted through a 448px slot, so lifting the cap revealed
+       * almost nothing and cost a person their place on the page.
+       *
+       * `overflow-auto` stays, because the horizontal scroll is not optional:
+       * the identity column is `position: sticky` and needs this element to be
+       * its scroll container. With no height limit there is nothing to overflow
+       * vertically, so no second wheel trap can appear.
        */}
-      <div
-        role="region"
-        tabIndex={0}
-        aria-label={caption}
-        className={`max-h-[28rem] overflow-auto ${FOCUS}`}
-      >
+      <div role="region" tabIndex={0} aria-label={caption} className={`overflow-auto ${FOCUS}`}>
         <table className="w-full border-separate border-spacing-0 text-left">
           <caption className="sr-only">{caption}</caption>
           <colgroup>

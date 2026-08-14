@@ -265,7 +265,11 @@ export function Search<Item>({
       </button>
     </div>
   ) : (
-    <ul className="max-h-72 overflow-y-auto p-1">
+    /* No inner scroll here either, same ruling as the grid's. The list is short
+       by construction now: it renders only once somebody types and it stops at
+       `maxResults`, which is five or six at both call sites. Lifting the cap
+       grows the panel and the page scrolls, which is the one behaviour. */
+    <ul className="p-1">
       {shown.map((item, index) => (
         <li key={itemKey(item)}>
           <button
