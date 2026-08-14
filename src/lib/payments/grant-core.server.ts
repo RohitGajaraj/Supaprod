@@ -18,6 +18,7 @@ import {
   subscriptionStatusGrantsCredits,
   tierFromLookupKey,
 } from "@/lib/billing-tier";
+import { readCreditRpcResult } from "./credit-rpc-envelope";
 
 export type PaymentsEnv = "sandbox" | "live";
 export type PaymentsProviderId = "stripe" | "paddle";
@@ -67,22 +68,41 @@ export async function applyTierForUser(
     .eq("owner_id", userId);
 }
 
-/** Resolve the caller's account id (service-role; creates the default account if missing). */
+/**
+ * Resolve the caller's account id (service-role; creates the default account if missing).
+ *
+ * CHECKED, AND NO LONGER SWALLOWED. This used to catch everything and answer
+ * null, which every caller then read as "this user has no account" and turned
+ * into a silent return with the webhook still answering 200. A refused lookup
+ * and a genuinely absent account are different events: the first is retryable
+ * and the second is not, and a charged customer whose grant was skipped depends
+ * on that difference being visible. Returns null ONLY when the RPC ran and
+ * answered nothing, which callers treat as the hard failure it is.
+ */
 export async function resolveAccountId(userId: string): Promise<string | null> {
-  try {
-    const admin = getServiceClient() as unknown as SupabaseClient;
-    const { data } = await admin.rpc("ensure_user_default_account", { _user_id: userId });
-    return (data as string | null) ?? null;
-  } catch (e) {
-    console.error("resolveAccountId failed:", e);
-    return null;
+  const admin = getServiceClient() as unknown as SupabaseClient;
+  const { data, error } = await admin.rpc("ensure_user_default_account", { _user_id: userId });
+  if (error) {
+    throw new Error(`ensure_user_default_account failed for user ${userId}: ${error.message}`);
   }
+  return (data as string | null) ?? null;
 }
 
 /**
  * Grant the bundle's monthly credit allowance on an active subscription.
  * Idempotent (the RPC no-ops when the allowance already matches) and UNGATED:
  * it only sets the included balance, harmless while metering is off.
+ *
+ * THROWS ON A REFUSED GRANT. The previous try/catch could never fire, because
+ * supabase-js resolves a refused RPC rather than throwing, so a permission
+ * error and a completed grant left this function looking identical. The
+ * webhook route turns a throw into a non-2xx, which is the only thing that
+ * makes the provider redeliver the event; swallowing it meant a subscriber who
+ * had been billed silently kept a zero allowance.
+ *
+ * The four early returns above are NOT failures: an event with no user or no
+ * recognizable price, a status that does not grant, or a bundle with no credit
+ * volume all describe nothing to do, and a retry would find the same.
  */
 export async function grantForSubscription(
   userId: string | undefined,
@@ -94,13 +114,26 @@ export async function grantForSubscription(
   const credits = creditsFromLookupKey(lookupKey);
   if (!credits || credits <= 0) return;
   const accountId = await resolveAccountId(userId);
-  if (!accountId) return;
-  try {
-    const admin = getServiceClient() as unknown as SupabaseClient;
-    await admin.rpc("grant_subscription_credits", { _account_id: accountId, _credits: credits });
-  } catch (e) {
-    console.error("grantForSubscription failed:", e);
+  if (!accountId) {
+    throw new Error(
+      `grantForSubscription: no account for user ${userId}, so ${credits} subscription credits were not granted`,
+    );
   }
+  const admin = getServiceClient() as unknown as SupabaseClient;
+  const { data, error } = await admin.rpc("grant_subscription_credits", {
+    _account_id: accountId,
+    _credits: credits,
+  });
+  const verdict = readCreditRpcResult({
+    rpc: "grant_subscription_credits",
+    successKey: "granted",
+    // 'unchanged' is the RPC reporting the allowance already equals this
+    // bundle's volume, which is the idempotent replay path, not a refusal.
+    benignReasons: ["unchanged"],
+    result: data,
+    error,
+  });
+  if (!verdict.ok) throw new Error(verdict.failure);
 }
 
 /**
@@ -120,11 +153,15 @@ export async function applyTopupPurchase(args: {
 }): Promise<void> {
   const accountId = await resolveAccountId(args.userId);
   if (!accountId) {
-    console.error("applyTopupPurchase: no account for user", args.userId);
-    return;
+    // Was a console.error and a return, which the route rendered as 200. The
+    // customer's card had already been charged at this point, so the only
+    // honest answer is one the provider will redeliver.
+    throw new Error(
+      `applyTopupPurchase: no account for user ${args.userId}, so a paid top-up of ${args.credits} credits granted nothing (session ${args.sessionId})`,
+    );
   }
   const admin = getServiceClient() as unknown as SupabaseClient;
-  await admin.rpc("apply_topup_credits", {
+  const { data, error } = await admin.rpc("apply_topup_credits", {
     _user_id: args.userId,
     _account_id: accountId,
     _session_id: args.sessionId,
@@ -135,6 +172,19 @@ export async function applyTopupPurchase(args: {
     _lookup_key: args.lookupKey,
     _env: args.env,
   });
+  const verdict = readCreditRpcResult({
+    rpc: "apply_topup_credits",
+    successKey: "applied",
+    // 'duplicate' is the unique(stripe_session_id) guard recognizing a redelivery
+    // of a purchase already granted. Every other refusal, cap_exceeded above
+    // all, means a paid customer was not credited and a human has to act: the
+    // RPC leaves the purchase row at status 'capped' for exactly that reason,
+    // and a non-2xx here is what puts the incident in front of someone.
+    benignReasons: ["duplicate"],
+    result: data,
+    error,
+  });
+  if (!verdict.ok) throw new Error(`${verdict.failure} (session ${args.sessionId})`);
 }
 
 /**
@@ -152,20 +202,28 @@ export async function applyRefundClawback(args: {
   note: string;
   topupSessionId?: string | null;
 }): Promise<void> {
-  try {
-    const admin = getServiceClient() as unknown as SupabaseClient;
-    await admin.rpc("apply_refund_clawback", {
-      _account_id: args.accountId,
-      _user_id: args.userId,
-      _refund_ref: args.refundRef,
-      _credits: args.credits,
-      _provider: args.provider,
-      _note: args.note,
-      _topup_session: args.topupSessionId ?? null,
-    });
-  } catch (e) {
-    console.error("applyRefundClawback failed:", e);
-  }
+  const admin = getServiceClient() as unknown as SupabaseClient;
+  const { data, error } = await admin.rpc("apply_refund_clawback", {
+    _account_id: args.accountId,
+    _user_id: args.userId,
+    _refund_ref: args.refundRef,
+    _credits: args.credits,
+    _provider: args.provider,
+    _note: args.note,
+    _topup_session: args.topupSessionId ?? null,
+  });
+  const verdict = readCreditRpcResult({
+    rpc: "apply_refund_clawback",
+    successKey: "applied",
+    // 'duplicate' is credit_refunds.refund_ref recognizing a redelivered refund.
+    benignReasons: ["duplicate"],
+    result: data,
+    error,
+  });
+  // A swallowed clawback leaves refunded credits spendable, which is the mirror
+  // image of a swallowed grant and just as expensive. Throw so the provider
+  // redelivers; the refund_ref key makes the redelivery a no-op once it lands.
+  if (!verdict.ok) throw new Error(`${verdict.failure} (refund ${args.refundRef})`);
 }
 
 /**

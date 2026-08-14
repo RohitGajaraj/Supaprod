@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { withJobRun } from "@/lib/observability";
+import { withJobRunHttp } from "@/lib/observability";
 import { calibrateExpiredInsights } from "@/lib/brain/calibrate-insights.server";
 import { auditDueForecasts } from "@/lib/brain/forecast-audit.server";
 
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/public/hooks/calibrate-tick")({
         const unauth = await requireHookCaller(request);
         if (unauth) return unauth;
 
-        return withJobRun("brain.calibrate-tick", async () => {
+        return withJobRunHttp("brain.calibrate-tick", async () => {
           const { data: workspaces, error } = await supabaseAdmin
             .from("workspaces")
             .select("id, owner_id")
@@ -20,7 +20,12 @@ export const Route = createFileRoute("/api/public/hooks/calibrate-tick")({
             .limit(20);
 
           if (error) {
-            return json({ ok: false, error: error.message }, 500);
+            // Thrown, not returned as a 500. Returning a Response RESOLVES,
+            // and withJobRun scored any resolved callback as status='ok', so
+            // this line wrote a green ledger row for a tick that could not read
+            // its own inputs. withJobRunHttp rebuilds the identical JSON 500
+            // outside the wrapper, so pg_cron sees exactly what it saw before.
+            throw new Error(`workspaces read failed: ${error.message}`);
           }
 
           let totalScored = 0;

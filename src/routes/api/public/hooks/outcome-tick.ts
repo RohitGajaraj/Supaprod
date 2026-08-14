@@ -4,7 +4,7 @@ import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { markRoutineRun } from "@/lib/routines.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
-import { withJobRun } from "@/lib/observability";
+import { withJobRunHttp, recordErrorEvent } from "@/lib/observability";
 import { generateOutcomeSuggestion } from "@/lib/outcome-suggestion.server";
 import { runOutcomeReviews, type OutcomeReviewResult } from "@/lib/ai/outcome-review.server";
 import {
@@ -31,14 +31,31 @@ import { recordStageEvent } from "@/lib/stage-events.server";
  * (generateOutcomeSuggestion chains the Historian draft with SEN-05 usage
  * deltas + the BYO-P3 changeset join). Best-effort per PRD; one failure never
  * blocks the rest of the sweep.
+ *
+ * Every best-effort failure in here is now RECORDED (recordErrorEvent) rather
+ * than printed. A console.error in a Worker reaches nobody the founder can read,
+ * so three of the four passes below could fail on every PRD, every hour, and the
+ * only evidence would be a zero in a JSON body nobody reads.
  */
+const SURFACE = "cron.outcome-tick";
+const REQUEST_PATH = "/api/public/hooks/outcome-tick";
+
+/** Record, never print. */
+async function note(err: unknown, failureKind: string, workspaceId?: string | null) {
+  await recordErrorEvent(err, {
+    surface: SURFACE,
+    failure_kind: failureKind,
+    request_path: REQUEST_PATH,
+    ...(workspaceId ? { workspace_id: workspaceId } : {}),
+  });
+}
 export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         const unauth = await requireHookCaller(request);
         if (unauth) return unauth;
-        return withJobRun("cron.outcome-tick", async () => {
+        return withJobRunHttp(SURFACE, async () => {
           try {
             const admin = supabaseAdmin as unknown as SupabaseClient;
             const { data: prds } = await admin
@@ -88,8 +105,18 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
               let gh: Awaited<ReturnType<typeof resolveGitHub>>;
               try {
                 gh = await resolveGitHub({ workspaceId, userId: null });
-              } catch {
-                // No binding and no env fallback for this workspace — skip silently.
+              } catch (e) {
+                // WHY THIS IS NO LONGER SILENT: the comment used to say "no
+                // binding and no env fallback", but the catch caught EVERY way
+                // resolveGitHub can fail -- a token that will not decrypt, a
+                // revoked installation, a network fault, a malformed repo string.
+                // A workspace whose GitHub credential had been revoked looked
+                // exactly like one that had never connected GitHub, so its PRDs
+                // simply stopped being marked shipped and nothing anywhere said
+                // why. Still `continue`, because one workspace's broken binding
+                // must not stop the other workspaces' sweep, but the reason is on
+                // the record now.
+                await note(e, "connector_error", workspaceId);
                 continue;
               }
               for (const prd of group) {
@@ -203,7 +230,7 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
                   const suggestion = await generateOutcomeSuggestion(admin, ownerId, prd.id);
                   if (suggestion) suggested++;
                 } catch (e) {
-                  console.error(`outcome-tick: suggestion generation failed for ${prd.id}:`, e);
+                  await note(e, "tool_error", prd.workspace_id);
                 }
               }
             }
@@ -228,7 +255,7 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
             try {
               reviews = await runOutcomeReviews(admin);
             } catch (e) {
-              console.error("outcome-tick: outcome-review pass failed:", e);
+              await note(e, "tool_error");
             }
 
             // Mission 3.8b fourth pass: the compounding sweep. When >= 3
@@ -241,7 +268,7 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
             try {
               compound = await runLearningCompoundPass(admin);
             } catch (e) {
-              console.error("outcome-tick: learning-compound pass failed:", e);
+              await note(e, "tool_error");
             }
 
             return new Response(
@@ -251,10 +278,14 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
               },
             );
           } catch (e) {
-            return new Response(
-              JSON.stringify({ ok: false, error: e instanceof Error ? e.message : String(e) }),
-              { status: 500, headers: { "Content-Type": "application/json" } },
-            );
+            // Rethrown on purpose, the house-rules-tick rule: withJobRun writes
+            // status='error' on a throw and used to write 'ok' on a RETURNED
+            // 500, because returning a Response is resolving. This tick sweeps
+            // hourly, so answering its own failure with a 500 from in here bought
+            // an unbroken run of green rows for a job doing nothing.
+            // withJobRunHttp turns this throw back into the identical JSON 500.
+            await note(e, "tool_error");
+            throw e;
           }
         });
       },

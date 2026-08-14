@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { withJobRun } from "@/lib/observability";
+import { withJobRunHttp, recordErrorEvent } from "@/lib/observability";
 import {
   computeSelfImprovementForWorkspace,
   enrichProposalCore,
@@ -42,6 +42,9 @@ const MAX_AI_WORKSPACES_PER_TICK = 5;
 /** Per workspace per pass, enrich/auto-apply at most this many (top by severity). */
 const MAX_FLAGS_PER_PASS = 3;
 
+const SURFACE = "self-improve.tick";
+const REQUEST_PATH = "/api/public/hooks/self-improve-tick";
+
 export const Route = createFileRoute("/api/public/hooks/self-improve-tick")({
   server: {
     handlers: {
@@ -49,7 +52,7 @@ export const Route = createFileRoute("/api/public/hooks/self-improve-tick")({
         const unauth = await requireHookCaller(request);
         if (unauth) return unauth;
 
-        return withJobRun("self-improve.tick", async () => {
+        return withJobRunHttp(SURFACE, async () => {
           // self_improve_proposals postdates the generated Database types, so the
           // admin client is used untyped for it (same cast the other ticks use).
           const admin = supabaseAdmin as unknown as SupabaseClient;
@@ -60,7 +63,10 @@ export const Route = createFileRoute("/api/public/hooks/self-improve-tick")({
             .limit(50);
 
           if (error) {
-            return json({ ok: false, error: error.message }, 500);
+            // Thrown, not returned: a returned Response resolves, and withJobRun
+            // wrote status='ok' for a resolved callback, so a tick that could not
+            // even list its workspaces was recorded as a healthy daily run.
+            throw new Error(`workspaces read failed: ${error.message}`);
           }
 
           // Preload every workspace's governance row once (mode + the two clocks).
@@ -162,8 +168,22 @@ export const Route = createFileRoute("/api/public/hooks/self-improve-tick")({
                       );
                       if (applied.applied && !applied.cached) autoApplied++;
                     }
-                  } catch {
-                    // One flag's AI pass failing must not abort the workspace or tick.
+                  } catch (e) {
+                    // One flag's AI pass failing must not abort the workspace or
+                    // tick, and that part has not changed. What has changed is
+                    // that it is no longer swallowed whole: this catch covers the
+                    // model call AND applyFixCore, so a revoked provider key, an
+                    // exhausted budget, or an auto-apply that keeps failing could
+                    // hit every flag of every workspace on every run while the
+                    // tick reported `auto_applied: 0` -- a number that reads as
+                    // "nothing needed fixing", not as "the engine is dead".
+                    await recordErrorEvent(e, {
+                      surface: SURFACE,
+                      failure_kind: "tool_error",
+                      request_path: REQUEST_PATH,
+                      workspace_id: ws.id,
+                      extras: { kind: f.kind, subject_ref: f.subject_ref },
+                    });
                   }
                 }
                 // Stamp the auto-run clock (preserve mode; seed the default on first insert).

@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { markRoutineRun } from "@/lib/routines.server";
-import { withJobRun } from "@/lib/observability";
+import { withJobRunHttp } from "@/lib/observability";
 import { hashContent, diffSnapshots } from "@/lib/scout/diff";
 import { listDueTargets, markChecked, type ScoutTargetRow } from "@/lib/scout/targets.server";
 import {
@@ -60,7 +60,7 @@ export const Route = createFileRoute("/api/public/hooks/scout-tick")({
           return json({ ok: true, skipped: true, reason: "scout dormant, no firecrawl key" });
         }
 
-        return withJobRun("ambient.scout-tick", async () => {
+        return withJobRunHttp("ambient.scout-tick", async () => {
           const { data: rawWorkspaces, error } = await db
             .from("workspaces")
             .select("id, owner_id, scout_daily_fetch_cap, last_auto_scout_at")
@@ -74,7 +74,12 @@ export const Route = createFileRoute("/api/public/hooks/scout-tick")({
             if (code === "42703" || code === "PGRST204") {
               return json({ ok: true, processed: 0, note: "auto_scout not migrated yet" });
             }
-            return json({ ok: false, error: error.message }, 500);
+            // Thrown, not returned as a 500. Returning a Response RESOLVES,
+            // and withJobRun scored any resolved callback as status='ok', so
+            // this line wrote a green ledger row for a tick that could not read
+            // its own inputs. withJobRunHttp rebuilds the identical JSON 500
+            // outside the wrapper, so pg_cron sees exactly what it saw before.
+            throw new Error(`workspaces read failed: ${error.message}`);
           }
 
           const workspaces = (rawWorkspaces ?? []) as unknown as WsRow[];

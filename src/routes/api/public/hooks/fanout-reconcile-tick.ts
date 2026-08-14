@@ -9,7 +9,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { callModel } from "@/lib/ai/runtime.server";
-import { withJobRun } from "@/lib/observability";
+import { withJobRunHttp, recordErrorEvent } from "@/lib/observability";
 
 const db = supabaseAdmin as unknown as SupabaseClient;
 const TERMINAL_RUN_STATUSES = ["complete", "completed", "completed_with_failures", "failed"];
@@ -58,7 +58,7 @@ export const Route = createFileRoute("/api/public/hooks/fanout-reconcile-tick")(
         // died, nothing anywhere would ever have said so, and the health page
         // would have gone on reporting that every scheduled job was running.
         // Found by the feature-liveness audit, which is the point of that audit.
-        return withJobRun("fanout.reconcile-tick", async () => {
+        return withJobRunHttp("fanout.reconcile-tick", async () => {
           const now = new Date();
           const staleCutoff = new Date(
             now.getTime() - BATCH_STALE_HOURS * 60 * 60 * 1000,
@@ -71,7 +71,17 @@ export const Route = createFileRoute("/api/public/hooks/fanout-reconcile-tick")(
             .update({ status: "failed" })
             .eq("status", "pending")
             .lt("created_at", staleCutoff);
-          if (staleError) console.error("Failed to mark stale batches:", staleError);
+          // Recorded, not printed: a console.error in a Worker reaches nobody
+          // the founder can read, and a stale-batch sweep that silently stops
+          // leaves every wedged batch pending forever. Not thrown, because the
+          // reconciliation below is independent of it and still worth running.
+          if (staleError) {
+            await recordErrorEvent(staleError, {
+              surface: "fanout.reconcile-tick",
+              failure_kind: "db_error",
+              request_path: "/api/public/hooks/fanout-reconcile-tick",
+            });
+          }
 
           // FIX #2: Fair per-workspace batch selection to prevent cross-tenant head-of-line starvation.
           // Sample batches across all workspaces using random ordering to avoid always hitting the
@@ -81,7 +91,11 @@ export const Route = createFileRoute("/api/public/hooks/fanout-reconcile-tick")(
           const { data: batches, error } = await db.rpc("get_pending_fanout_batches", {
             batch_limit: MAX_BATCHES_PER_TICK,
           });
-          if (error) return json({ ok: false, error: error.message }, 500);
+          // Thrown, not returned as a 500. Returning a Response RESOLVES, and
+          // withJobRun scored a resolved callback as status='ok' -- so this tick,
+          // wrapped in 2026-08-02 precisely BECAUSE it was invisible, went on
+          // being invisible whenever it actually failed.
+          if (error) throw new Error(`get_pending_fanout_batches failed: ${error.message}`);
 
           let reconciled = 0;
           for (const batch of batches ?? []) {

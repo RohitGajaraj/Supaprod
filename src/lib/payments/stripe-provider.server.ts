@@ -26,6 +26,22 @@ import {
   grantForSubscription,
   type PaymentsEnv,
 } from "./grant-core.server";
+import { readCreditRpcResult } from "./credit-rpc-envelope";
+
+/**
+ * How long the line-items lookup may hold the webhook open. Stripe abandons a
+ * webhook delivery well inside a minute; a request with no deadline can outlive
+ * that and burn the retry on a connection nobody is listening to any more.
+ */
+const LINE_ITEMS_TIMEOUT_MS = 10_000;
+
+/**
+ * The verified Stripe event, as much of it as this file reads. `id` is typed
+ * unknown rather than string on purpose: it is the field whose absence used to
+ * be invisible, and narrowing it at the one place it is read is what makes a
+ * malformed payload impossible to process by accident.
+ */
+type StripeEventEnvelope = { id?: unknown; type: string; data: { object: any } };
 
 function hasKeys(env: PaymentsEnv): boolean {
   const key =
@@ -165,7 +181,21 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   if (!isTopupCheckout(session)) return;
   const userId = session.metadata?.userId;
 
-  const lineItems = await fetch(
+  /**
+   * A REFUSED LOOKUP IS NOT AN EMPTY CART.
+   *
+   * This was `fetch(...).then(r => r.json())` with no status check and no
+   * deadline. A 401, a 429 or a 500 from the gateway returns a body that parses
+   * as JSON perfectly well, so `data` came back undefined, `lookup_key` came
+   * back undefined, `resolveTopupCredits` answered null, and the handler logged
+   * and RETURNED. The route then answered 200. The customer's card had been
+   * charged, no credits were granted, and because 200 means "handled" Stripe
+   * never redelivered, so the loss was permanent and invisible.
+   *
+   * Throwing is the fix, not the symptom: the route turns it into a non-2xx and
+   * the redelivery gets another chance at a transient gateway failure.
+   */
+  const response = await fetch(
     `https://connector-gateway.lovable.dev/stripe/v1/checkout/sessions/${session.id}/line_items`,
     {
       headers: {
@@ -175,16 +205,30 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
             : process.env.STRIPE_LIVE_API_KEY!,
         "Lovable-API-Key": process.env.LOVABLE_API_KEY!,
       },
+      signal: AbortSignal.timeout(LINE_ITEMS_TIMEOUT_MS),
     },
-  ).then(
-    (r) => r.json() as Promise<{ data: Array<{ price: { lookup_key?: string; id: string } }> }>,
   );
+  if (!response.ok) {
+    const body = await response.text().catch(() => "");
+    throw new Error(
+      `Stripe line_items lookup failed for paid session ${session.id}: ${response.status} ${body.slice(0, 300)}`,
+    );
+  }
+  const lineItems = (await response.json()) as {
+    data?: Array<{ price?: { lookup_key?: string; id?: string } }>;
+  };
 
   const lookupKey = lineItems.data?.[0]?.price?.lookup_key;
   const credits = resolveTopupCredits(lookupKey);
   if (!credits) {
-    console.error("Webhook: top-up has unknown lookup_key", lookupKey);
-    return;
+    // Same money, different cause: the lookup succeeded and named a price the
+    // catalog does not know, which means a paid top-up cannot be sized. A retry
+    // will not fix a mis-registered price, but a 200 would bury it forever,
+    // and a failing delivery in the Stripe dashboard is the only alarm that
+    // reaches a person.
+    throw new Error(
+      `Stripe top-up session ${session.id} was paid against an unknown lookup_key ${String(lookupKey)}, so no credits could be granted`,
+    );
   }
 
   await applyTopupPurchase({
@@ -226,15 +270,36 @@ async function handleInvoicePaymentSucceeded(invoice: any, env: StripeEnv) {
     .eq("environment", env)
     .maybeSingle();
   const userId = (sub as { user_id?: string } | null)?.user_id;
-  if (!userId) return;
+  if (!userId) {
+    // Not thrown: a renewal for a subscription this database never recorded is
+    // not something a redelivery can repair. It IS logged, because it used to
+    // be a bare return and the missed refill left the subscriber short.
+    console.error("Webhook: renewal invoice for unknown subscription", subId);
+    return;
+  }
   const { resolveAccountId } = await import("./grant-core.server");
   const accountId = await resolveAccountId(userId);
-  if (!accountId) return;
-  try {
-    await admin.rpc("reset_subscription_cycle", { _account_id: accountId });
-  } catch (e) {
-    console.error("reset_subscription_cycle failed:", e);
+  if (!accountId) {
+    throw new Error(
+      `reset_subscription_cycle: no account for user ${userId}, so the renewal of ${subId} refilled nothing`,
+    );
   }
+  // The try/catch here was decorative for the same reason it was in grant-core:
+  // supabase-js resolves a refused RPC. A renewal that silently fails to refill
+  // is a paid month the subscriber cannot spend.
+  const { data: reset, error: resetError } = await admin.rpc("reset_subscription_cycle", {
+    _account_id: accountId,
+  });
+  const verdict = readCreditRpcResult({
+    rpc: "reset_subscription_cycle",
+    successKey: "reset",
+    // 'no_grant' is an account that has never been granted an allowance, which
+    // grantForSubscription owns; there is nothing for a reset to refill.
+    benignReasons: ["no_grant"],
+    result: reset,
+    error: resetError,
+  });
+  if (!verdict.ok) throw new Error(verdict.failure);
 }
 
 /**
@@ -263,8 +328,92 @@ async function handleChargeRefunded(charge: any, _env: StripeEnv) {
   });
 }
 
+/**
+ * Take the exactly-once claim on a Stripe event id. True means this delivery
+ * owns the event; false means another delivery already processed it.
+ *
+ * The insert-and-count idiom is the one already proven in this repo by
+ * `apply_topup_credits` and `apply_refund_clawback`: ON CONFLICT DO NOTHING
+ * plus GET DIAGNOSTICS row_count, decided inside one statement. A
+ * SELECT-then-INSERT here would reproduce, at the outermost layer, precisely
+ * the race every inner guard exists to close.
+ */
+async function claimStripeEvent(eventId: string, type: string): Promise<boolean> {
+  const admin = getServiceClient() as unknown as SupabaseClient;
+  const { data, error } = await admin.rpc("claim_stripe_event", {
+    _event_id: eventId,
+    _type: type,
+  });
+  if (error) {
+    // Never assume the claim succeeded. Assuming it failed would re-run a grant
+    // that may already have landed; assuming it succeeded would drop the event
+    // entirely. Refusing the delivery keeps both doors shut and lets Stripe retry.
+    throw new Error(`claim_stripe_event failed for ${eventId}: ${error.message}`);
+  }
+  return data === true;
+}
+
+/**
+ * Give the claim back after a handler failed, so the redelivery Stripe is about
+ * to send is not discarded as a duplicate of a delivery that did nothing.
+ *
+ * This is the hinge between the two fixes in this file. Without it, adding
+ * idempotency would CANCEL the retry that answering non-2xx exists to trigger,
+ * and a transient database blip during a paid top-up would become the same
+ * permanent silent loss it was before, just by a new route.
+ */
+async function releaseStripeEvent(eventId: string): Promise<void> {
+  const admin = getServiceClient() as unknown as SupabaseClient;
+  const { error } = await admin.rpc("release_stripe_event", { _event_id: eventId });
+  if (error) {
+    // Deliberately not thrown: the handler's own failure is the one worth
+    // reporting to the route. But an unreleased claim means the retry will be
+    // ignored, so this line is the operator's only warning that the event needs
+    // replaying by hand.
+    console.error(
+      `release_stripe_event failed for ${eventId}, so its Stripe redelivery will be dropped as a duplicate:`,
+      error.message,
+    );
+  }
+}
+
+/**
+ * STRIPE DELIVERS AT LEAST ONCE, SO THIS FUNCTION MUST ACT AT MOST ONCE.
+ *
+ * Verified on 2026-08-14: nothing here read `event.id` (the type cast did not
+ * even name the field) and no table recorded which events had been handled. The
+ * cost was not theoretical. `reset_subscription_cycle` sets
+ * `balance_credits = monthly_grant` unconditionally, so a redelivered
+ * `invoice.payment_succeeded` after a customer had spent their month restored
+ * the full balance, free, every time Stripe retried.
+ *
+ * The claim is taken BEFORE the switch, so it covers every handler including
+ * ones added later, and it is released if the handler throws. The window
+ * between claim and release is the only thing a concurrent duplicate delivery
+ * can lose to, which is the correct trade: a duplicate that arrives mid-flight
+ * is dropped rather than doubled.
+ */
 async function stripeGrantFromEvent(event: unknown, env: PaymentsEnv): Promise<void> {
-  const e = event as { type: string; data: { object: any } };
+  const e = event as StripeEventEnvelope;
+  const eventId = typeof e.id === "string" && e.id.length > 0 ? e.id : null;
+  if (!eventId) {
+    // Every event Stripe signs carries an id, so this is a malformed or
+    // hand-rolled payload. Processing it would mean granting credits with no
+    // way to recognize the same grant arriving twice.
+    throw new Error(
+      `Stripe event of type ${String(e.type)} carries no id, so it cannot be processed exactly once`,
+    );
+  }
+  if (!(await claimStripeEvent(eventId, e.type))) return;
+  try {
+    await dispatchStripeEvent(e, env);
+  } catch (err) {
+    await releaseStripeEvent(eventId);
+    throw err;
+  }
+}
+
+async function dispatchStripeEvent(e: StripeEventEnvelope, env: PaymentsEnv): Promise<void> {
   switch (e.type) {
     case "customer.subscription.created":
       await handleSubscriptionCreated(e.data.object, env);

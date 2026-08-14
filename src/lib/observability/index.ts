@@ -15,5 +15,6 @@ export {
   type GateContext,
 } from "./gates";
 export { heartbeat } from "./uptime";
-export { withJobRun } from "./jobs";
+export { withJobRun, withJobRunHttp, type JobRunOptions } from "./jobs";
+export { isMissingDatabaseObject, type PostgrestLikeError } from "./absence";
 export { observabilityGateOn, readObservabilityConfig } from "./config";

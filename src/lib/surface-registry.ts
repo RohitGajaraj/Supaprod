@@ -149,6 +149,17 @@ export const SURFACE_REGISTRY = {
     opensFrom: "top-bar-workspace-switcher",
     status: "live",
   },
+  // The switches for the background work a workspace does on its own. Registered
+  // as `planned` rather than `live` because the server half exists and nothing
+  // renders it yet: the writers were built on 2026-08-14 after auto_derive_enabled
+  // was found to have been readable and unwritable for six weeks, which left two
+  // cron jobs selecting zero rows on every run. Lane 1 owns the control.
+  "workspace-automation": {
+    kind: "route",
+    home: "settings",
+    opensFrom: "settings-automation-section",
+    status: "planned",
+  },
   // The claim lives under Plan rather than Workspace: the person deciding
   // whether to hand a year of solo work to their employer is standing in front
   // of what their plan is and what it could be, and that is where the question

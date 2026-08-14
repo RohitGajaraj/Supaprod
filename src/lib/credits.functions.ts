@@ -26,6 +26,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "../integrations/supabase/client.server";
 import { entitlementsFor, type PlanTier } from "./entitlements";
+// Pure, dependency-free reader for the {applied|granted|reset, reason} envelope
+// every credit RPC answers with. It lives under payments/ because that is where
+// the webhook callers of the same RPCs are; the credit tick reads the identical
+// envelope and must not grow a second interpretation of it.
+import { readCreditRpcResult } from "./payments/credit-rpc-envelope";
 
 /**
  * The monthly INCLUDED credit allowance for a tier. Returns 0 when the tier carries no
@@ -40,6 +45,12 @@ export function monthlyGrantCredits(tier: PlanTier): number {
  * The signed ledger delta that moves an account's included balance from
  * `currentIncluded` to its `monthlyGrant` (positive = top back up, negative = a
  * leftover above the grant is reset down). Pure: `currentIncluded + resetDelta == grant`.
+ *
+ * This states the invariant; it no longer performs it. `resetCreditCycle` used
+ * to compute the delta here from an unlocked read, which is the race documented
+ * on that function. `reset_subscription_cycle` now computes the same delta
+ * inside its `FOR UPDATE`, and this remains the executable statement of what
+ * that SQL is supposed to be doing.
  */
 export function resetDelta(currentIncluded: number, monthlyGrant: number): number {
   return Math.floor(monthlyGrant) - Math.floor(currentIncluded);
@@ -76,6 +87,30 @@ export function sumRunDebits(rows: RunLedgerRow[]): number {
  * never refunded twice. No-op where credits_enabled() is off (not production), while the run has
  * already been refunded, or when there is nothing to refund. Never throws (a metering
  * failure must not fail the caller's abandon/halt handling).
+ *
+ * CLAIM BEFORE PAY, NOT PAY THEN STAMP.
+ *
+ * THE DEFECT THIS PREVENTS, confirmed 2026-08-14. The order used to be: READ
+ * `credits_refunded`, sum the run's debits, call `refund_account_credits`, then
+ * `.update({credits_refunded:true}).eq("id", runId)` with no precondition and
+ * no `.select()`. `20260713010000_g_price_a1_refund_rpc.sql` states in its own
+ * header that the RPC is idempotent per call and the CALLER must not
+ * double-refund. The caller did not hold that. `loop.server.ts` reaches this
+ * from two call sites on one terminal run, and two callers that both read
+ * `false` both refunded the full amount, so the balance rose above what was
+ * ever debited. Credits minted from nothing.
+ *
+ * The flag is now the CLAIM, taken in a single conditional update whose matched
+ * rows say who won. The refund runs only for the winner. A guarded update is
+ * the only construct available here that reads and writes in one statement,
+ * which is what makes it a lock rather than another read.
+ *
+ * WHY THE CLAIM IS RETURNED ON SOME FAILURES AND NOT OTHERS. Anything that
+ * fails BEFORE the RPC call means no credits moved, so putting the flag back
+ * restores the exact prior state and a later pass can still refund. A failure
+ * of the RPC ITSELF is ambiguous, because a timeout cannot say whether the
+ * refund landed, and there the claim is kept: a refund lost is recoverable by
+ * hand, a refund doubled is money invented.
  */
 export async function refundAbandonedRunCredits(
   accountId: string,
@@ -83,51 +118,93 @@ export async function refundAbandonedRunCredits(
   runId: string,
   surface: string,
 ): Promise<void> {
-  if (!(await creditsEngineEnabled())) return;
   const admin = supabaseAdmin as unknown as SupabaseClient;
-  try {
-    const { data: run } = await admin
-      .from("agent_runs")
-      .select("credits_refunded")
-      .eq("id", runId)
-      .maybeSingle();
-    if ((run as { credits_refunded?: boolean } | null)?.credits_refunded) return;
+  if (!(await creditsEngineEnabled(admin))) return;
 
-    const { data: aiEvents } = await admin.from("ai_events").select("id").eq("surface_ref", runId);
-    const eventIds = ((aiEvents ?? []) as { id: string }[]).map((e) => e.id);
-    if (eventIds.length === 0) {
-      await admin.from("agent_runs").update({ credits_refunded: true }).eq("id", runId);
+  /** Hand the claim back, so a failure before any money moved is not final. */
+  const releaseClaim = async (why: string): Promise<void> => {
+    const { error } = await admin
+      .from("agent_runs")
+      .update({ credits_refunded: false })
+      .eq("id", runId)
+      .eq("credits_refunded", true)
+      .select("id");
+    if (error) {
+      console.error(
+        `refundAbandonedRunCredits: could not release the claim on run ${runId} after ${why}, so its credits will never be handed back:`,
+        error.message,
+      );
+    }
+  };
+
+  try {
+    const { data: claimed, error: claimError } = await admin
+      .from("agent_runs")
+      .update({ credits_refunded: true })
+      .eq("id", runId)
+      .eq("credits_refunded", false)
+      .select("id");
+    if (claimError) {
+      console.error("refundAbandonedRunCredits: claim refused:", claimError.message);
       return;
     }
+    // Zero rows is the answer to two different questions and the same action
+    // suits both: another caller holds the claim, or the run does not exist.
+    if (!((claimed ?? []) as unknown[]).length) return;
 
-    const { data: ledgerRows } = await admin
+    const { data: aiEvents, error: eventsError } = await admin
+      .from("ai_events")
+      .select("id")
+      .eq("surface_ref", runId);
+    if (eventsError) {
+      await releaseClaim("the run's event lookup failed");
+      console.error("refundAbandonedRunCredits: event lookup failed:", eventsError.message);
+      return;
+    }
+    const eventIds = ((aiEvents ?? []) as { id: string }[]).map((e) => e.id);
+    // A run that never called a model debited nothing. The claim already marks
+    // it settled, which is what stops a later pass from re-examining it.
+    if (eventIds.length === 0) return;
+
+    const { data: ledgerRows, error: ledgerError } = await admin
       .from("credit_ledger")
       .select("delta_credits, ai_event_id")
       .eq("account_id", accountId)
       .eq("reason", "debit")
       .in("ai_event_id", eventIds);
-    const total = sumRunDebits((ledgerRows ?? []) as RunLedgerRow[]);
-    if (total > 0) {
-      await admin.rpc("refund_account_credits", {
-        _account_id: accountId,
-        _credits: total,
-        _user_id: userId,
-        _surface: surface,
-        _ai_event_id: null,
-        _product_id: null,
-      });
+    if (ledgerError) {
+      // Was unchecked, so a refused read summed to zero and the run was stamped
+      // refunded having been handed back nothing.
+      await releaseClaim("the debit ledger read failed");
+      console.error("refundAbandonedRunCredits: ledger read failed:", ledgerError.message);
+      return;
     }
-    await admin.from("agent_runs").update({ credits_refunded: true }).eq("id", runId);
+    const total = sumRunDebits((ledgerRows ?? []) as RunLedgerRow[]);
+    if (total <= 0) return;
+
+    const { error: refundError } = await admin.rpc("refund_account_credits", {
+      _account_id: accountId,
+      _credits: total,
+      _user_id: userId,
+      _surface: surface,
+      _ai_event_id: null,
+      _product_id: null,
+    });
+    if (refundError) {
+      // The claim is NOT released here on purpose: see the ambiguity note above.
+      console.error(
+        `refundAbandonedRunCredits: refund_account_credits failed for run ${runId}, ${total} credits need handing back by hand:`,
+        refundError.message,
+      );
+    }
   } catch (e) {
     console.error("refundAbandonedRunCredits failed:", e);
   }
 }
 
-async function creditsEngineEnabled(): Promise<boolean> {
+async function creditsEngineEnabled(admin: SupabaseClient): Promise<boolean> {
   try {
-    const { data, error } = await (supabaseAdmin as unknown as SupabaseClient).rpc(
-      "credits_enabled",
-    );
+    const { data, error } = await admin.rpc("credits_enabled");
     return !error && data === true;
   } catch {
     return false;
@@ -135,37 +212,57 @@ async function creditsEngineEnabled(): Promise<boolean> {
 }
 
 /**
+ * A BALANCE READ IN ONE STATEMENT AND SET IN THE NEXT ERASES WHATEVER LANDED
+ * BETWEEN THEM.
+ *
+ * Both functions below used to SELECT `account_credits.balance_credits`, then
+ * blind-SET it, then write a ledger row for the difference. Three statements,
+ * no lock. A debit arriving between the read and the write was overwritten, and
+ * the ledger row described a movement that had not happened, so the ledger and
+ * the balance disagreed from that moment on. `grantMonthlyAllowance` was worse
+ * still: its delta came from an UNCHECKED read, so a refused SELECT read as a
+ * zero balance and it recorded a grant of the full allowance that nothing
+ * matched.
+ *
+ * The correct implementation already existed in SQL. `grant_subscription_credits`
+ * and `reset_subscription_cycle` do exactly this job with the row held under
+ * `FOR UPDATE`, write the ledger row from the delta they computed inside that
+ * lock, and are idempotent. Re-implementing them in JavaScript without the lock
+ * was the whole defect, so these now delegate instead.
+ *
+ * WHY THEY LOG RATHER THAN THROW. The one caller is the credit-tick cron, which
+ * sweeps up to a thousand accounts in a loop inside a single try/catch. A throw
+ * would abandon every account after the first failure, so a real refusal is
+ * reported with its cause and the sweep continues. That is a deliberate
+ * difference from the payments webhook, where a throw is what earns a retry.
+ */
+
+/**
  * Grant a tier's monthly INCLUDED allowance to an account (signup / plan change). Sets
  * the included balance to the tier amount, records the cycle anchor, and writes a
  * 'grant' ledger row; the purchased top-up balance is untouched. No-op where the gate is off.
  */
 export async function grantMonthlyAllowance(accountId: string, tier: PlanTier): Promise<void> {
-  if (!(await creditsEngineEnabled())) return;
+  const admin = supabaseAdmin as unknown as SupabaseClient;
+  if (!(await creditsEngineEnabled(admin))) return;
   const amount = monthlyGrantCredits(tier);
   if (amount <= 0) return;
-  const admin = supabaseAdmin as unknown as SupabaseClient;
   try {
-    const { data } = await admin
-      .from("account_credits")
-      .select("balance_credits")
-      .eq("account_id", accountId)
-      .maybeSingle();
-    const currentIncluded = Number(
-      (data as { balance_credits?: number } | null)?.balance_credits ?? 0,
-    );
-    await admin
-      .from("account_credits")
-      .update({
-        balance_credits: amount,
-        monthly_grant_credits: amount,
-        cycle_anchor: new Date().toISOString(),
-      })
-      .eq("account_id", accountId);
-    await admin.from("credit_ledger").insert({
-      account_id: accountId,
-      delta_credits: amount - currentIncluded,
-      reason: "grant",
+    const { data, error } = await admin.rpc("grant_subscription_credits", {
+      _account_id: accountId,
+      _credits: amount,
     });
+    const verdict = readCreditRpcResult({
+      rpc: "grant_subscription_credits",
+      successKey: "granted",
+      // 'unchanged' means this account's allowance already equals the tier
+      // amount, which is the whole point of an idempotent sweep.
+      benignReasons: ["unchanged"],
+      result: data,
+      error,
+    });
+    if (!verdict.ok)
+      console.error(`grantMonthlyAllowance (account ${accountId}):`, verdict.failure);
   } catch (e) {
     console.error("grantMonthlyAllowance failed:", e);
   }
@@ -178,29 +275,22 @@ export async function grantMonthlyAllowance(accountId: string, tier: PlanTier): 
  * Never-granted accounts (monthly grant 0) are left for `grantMonthlyAllowance`.
  */
 export async function resetCreditCycle(accountId: string): Promise<void> {
-  if (!(await creditsEngineEnabled())) return;
   const admin = supabaseAdmin as unknown as SupabaseClient;
+  if (!(await creditsEngineEnabled(admin))) return;
   try {
-    const { data } = await admin
-      .from("account_credits")
-      .select("balance_credits, monthly_grant_credits")
-      .eq("account_id", accountId)
-      .maybeSingle();
-    const row = (data ?? {}) as { balance_credits?: number; monthly_grant_credits?: number };
-    const monthlyGrant = Number(row.monthly_grant_credits ?? 0);
-    if (monthlyGrant <= 0) return;
-    const delta = resetDelta(Number(row.balance_credits ?? 0), monthlyGrant);
-    await admin
-      .from("account_credits")
-      .update({ balance_credits: monthlyGrant, cycle_anchor: new Date().toISOString() })
-      .eq("account_id", accountId);
-    if (delta !== 0) {
-      await admin.from("credit_ledger").insert({
-        account_id: accountId,
-        delta_credits: delta,
-        reason: "reset",
-      });
-    }
+    const { data, error } = await admin.rpc("reset_subscription_cycle", {
+      _account_id: accountId,
+    });
+    const verdict = readCreditRpcResult({
+      rpc: "reset_subscription_cycle",
+      successKey: "reset",
+      // 'no_grant' is an account that has never been granted anything, which is
+      // grantMonthlyAllowance's half of the tick, not a failure of this half.
+      benignReasons: ["no_grant"],
+      result: data,
+      error,
+    });
+    if (!verdict.ok) console.error(`resetCreditCycle (account ${accountId}):`, verdict.failure);
   } catch (e) {
     console.error("resetCreditCycle failed:", e);
   }

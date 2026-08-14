@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { withJobRun } from "@/lib/observability";
+import { withJobRunHttp, recordErrorEvent } from "@/lib/observability";
 
 /**
  * PC-06: the week_2_return activation-funnel writer.
@@ -53,7 +53,7 @@ export const Route = createFileRoute("/api/public/hooks/funnel-week2")({
         const unauth = await requireHookCaller(request);
         if (unauth) return unauth;
 
-        return withJobRun("funnel.week2-return", async () => {
+        return withJobRunHttp("funnel.week2-return", async () => {
           // Table not in the generated types yet (post-PC-06-migration).
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const db = supabaseAdmin as any;
@@ -70,7 +70,12 @@ export const Route = createFileRoute("/api/public/hooks/funnel-week2")({
             .limit(MAX_SIGNUPS);
 
           if (error) {
-            return json({ ok: false, error: error.message }, 500);
+            // Thrown, not returned as a 500. Returning a Response RESOLVES,
+            // and withJobRun scored any resolved callback as status='ok', so
+            // this line wrote a green ledger row for a tick that could not read
+            // its own inputs. withJobRunHttp rebuilds the identical JSON 500
+            // outside the wrapper, so pg_cron sees exactly what it saw before.
+            throw new Error(`funnel_milestones read failed: ${error.message}`);
           }
 
           const { trackFunnelMilestone } = await import("@/lib/activation-funnel.server");
@@ -86,7 +91,20 @@ export const Route = createFileRoute("/api/public/hooks/funnel-week2")({
             try {
               const { data } = await supabaseAdmin.auth.admin.getUserById(s.user_id);
               lastSignInAt = data?.user?.last_sign_in_at;
-            } catch {
+            } catch (e) {
+              // Still fail-safe per user (a deleted user must not stop the scan),
+              // but no longer silent. This catch also covers a revoked service
+              // key and an auth API outage, and under either of those EVERY user
+              // in the cohort is skipped: the tick would report checked=200,
+              // recorded=0, which reads as "nobody came back in week 2" rather
+              // than "this never asked".
+              await recordErrorEvent(e, {
+                surface: "funnel.week2-return",
+                failure_kind: "tool_error",
+                request_path: "/api/public/hooks/funnel-week2",
+                user_id: s.user_id,
+                workspace_id: s.workspace_id,
+              });
               continue;
             }
             if (!qualifiesForWeek2Return(s.completed_at, lastSignInAt)) continue;

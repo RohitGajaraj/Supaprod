@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { withJobRun } from "@/lib/observability";
+import { withJobRunHttp } from "@/lib/observability";
 import { pollDelegateJob, foldDelegateResult } from "@/lib/delegate/poll.server";
 
 /**
@@ -20,53 +20,52 @@ export const Route = createFileRoute("/api/public/hooks/delegate-poll-tick")({
       POST: async ({ request }) => {
         const unauth = await requireHookCaller(request);
         if (unauth) return unauth;
-        return withJobRun("cron.delegate-poll-tick", async () => {
-          try {
-            // Fetch runs that have an external delegate job but are not yet
-            // in a terminal state. delegate_meta->>'external_job_id' IS NOT NULL
-            // is the signal that submit succeeded and we need to poll.
-            const { data: runs, error: fetchErr } = await supabaseAdmin
-              .from("agent_runs")
-              .select("id, mission_id, delegate_meta")
-              .not("delegate_meta->external_job_id", "is", null)
-              .not("status", "in", '("done","failed","error","cancelled")');
+        // This is the tick whose silent death produced the incident that
+        // EXPECTED_JOBS was built for. The catch-all that used to wrap this body
+        // answered every failure with a 500 from INSIDE withJobRun, and a
+        // returned Response resolves, so the ledger recorded status='ok' anyway
+        // and the manifest's recency check stayed satisfied. Failures now travel
+        // out as throws; withJobRunHttp turns them back into the same JSON 500.
+        return withJobRunHttp("cron.delegate-poll-tick", async () => {
+          // Fetch runs that have an external delegate job but are not yet
+          // in a terminal state. delegate_meta->>'external_job_id' IS NOT NULL
+          // is the signal that submit succeeded and we need to poll.
+          const { data: runs, error: fetchErr } = await supabaseAdmin
+            .from("agent_runs")
+            .select("id, mission_id, delegate_meta")
+            .not("delegate_meta->external_job_id", "is", null)
+            .not("status", "in", '("done","failed","error","cancelled")');
 
-            if (fetchErr) throw fetchErr;
+          if (fetchErr) throw new Error(`agent_runs read failed: ${fetchErr.message}`);
 
-            let polled = 0;
-            let folded = 0;
-            for (const run of runs ?? []) {
-              const meta = run.delegate_meta as {
-                provider?: string;
-                external_job_id?: string;
-              } | null;
-              if (!meta?.external_job_id || !run.mission_id) continue;
+          let polled = 0;
+          let folded = 0;
+          for (const run of runs ?? []) {
+            const meta = run.delegate_meta as {
+              provider?: string;
+              external_job_id?: string;
+            } | null;
+            if (!meta?.external_job_id || !run.mission_id) continue;
 
-              const pollResult = await pollDelegateJob(meta.external_job_id);
-              polled++;
+            const pollResult = await pollDelegateJob(meta.external_job_id);
+            polled++;
 
-              if (pollResult.status === "done" || pollResult.status === "failed") {
-                await foldDelegateResult({
-                  runId: run.id,
-                  missionId: run.mission_id,
-                  provider: meta.provider ?? "openhands",
-                  externalJobId: meta.external_job_id,
-                  pollResult,
-                  supabase: supabaseAdmin as never,
-                });
-                folded++;
-              }
+            if (pollResult.status === "done" || pollResult.status === "failed") {
+              await foldDelegateResult({
+                runId: run.id,
+                missionId: run.mission_id,
+                provider: meta.provider ?? "openhands",
+                externalJobId: meta.external_job_id,
+                pollResult,
+                supabase: supabaseAdmin as never,
+              });
+              folded++;
             }
-
-            return new Response(JSON.stringify({ ok: true, polled, folded }), {
-              headers: { "Content-Type": "application/json" },
-            });
-          } catch (e) {
-            return new Response(
-              JSON.stringify({ ok: false, error: e instanceof Error ? e.message : String(e) }),
-              { status: 500, headers: { "Content-Type": "application/json" } },
-            );
           }
+
+          return new Response(JSON.stringify({ ok: true, polled, folded }), {
+            headers: { "Content-Type": "application/json" },
+          });
         });
       },
     },

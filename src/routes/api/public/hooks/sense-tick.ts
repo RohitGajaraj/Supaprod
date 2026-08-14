@@ -11,7 +11,7 @@ import { ingestGithubSignals } from "@/lib/connectors/providers/github-ingest.se
 import { ingestPostHogAnalytics } from "@/lib/analytics-ingest.server";
 import { PULL_INGESTORS } from "@/lib/connectors/providers/pull-ingestors.server";
 import { ingestMcpSignals } from "@/lib/connectors/mcp/ingest.server";
-import { withJobRun } from "@/lib/observability";
+import { withJobRunHttp, recordErrorEvent } from "@/lib/observability";
 
 /**
  * AMBIENT-SENSE (v11 #3) sense-tick: the continuous-sensing half of the ambient loop. For
@@ -33,6 +33,50 @@ const MAX_WORKSPACES = 5;
 const MAX_TAG_UPDATES = 50;
 const SCAN_LIMIT = 100;
 const DEMO_TOPUP_THRESHOLD = 3; // top up the demo feed only for a near-empty workspace
+
+const SURFACE = "ambient.sense-tick";
+const REQUEST_PATH = "/api/public/hooks/sense-tick";
+
+/** Either the ingestor's own result, or the error it died on. Never both, and
+ *  never neither -- which is the point. */
+type IngestOutcome<T> = { ok: true; value: T } | { ok: false };
+
+/**
+ * Run one connector ingest without letting it abort the sweep.
+ *
+ * THE THIRD STATE, added 2026-08-14. Every ingest call here used to end in
+ * `.catch(() => null)`, and the result object then reported `source: "none"` for
+ * a null. That collapsed five different situations into one word: never
+ * connected, credential revoked, Intercom answering 500, rate limited, and DNS
+ * failing all produced `{ inserted: 0, source: "none" }`. A dark connector fleet
+ * was indistinguishable from an unconfigured one, so nobody could tell that a
+ * customer's feed had stopped. The error object is recorded rather than
+ * discarded, and the caller reports `source: "error"`, which no healthy
+ * ingestor ever returns.
+ *
+ * Still caught, not thrown: one dead connector must not cost the workspace its
+ * other connectors, or the other four workspaces their sweep. The visibility
+ * comes from the recorded error and the distinguishable source, not from
+ * failing the tick.
+ */
+async function attemptIngest<T>(
+  connector: string,
+  workspaceId: string,
+  run: () => Promise<T>,
+): Promise<IngestOutcome<T>> {
+  try {
+    return { ok: true, value: await run() };
+  } catch (e) {
+    await recordErrorEvent(e, {
+      surface: SURFACE,
+      failure_kind: "tool_error",
+      request_path: REQUEST_PATH,
+      workspace_id: workspaceId,
+      extras: { connector },
+    });
+    return { ok: false };
+  }
+}
 
 /**
  * WHO COUNTS AS A DEMO ACCOUNT — asked of the database, never answered locally.
@@ -145,7 +189,7 @@ export const Route = createFileRoute("/api/public/hooks/sense-tick")({
         const unauth = await requireHookCaller(request);
         if (unauth) return unauth;
 
-        return withJobRun("ambient.sense-tick", async () => {
+        return withJobRunHttp(SURFACE, async () => {
           const { data: workspaces, error } = await supabaseAdmin
             .from("workspaces")
             .select("id, owner_id, last_auto_sense_at")
@@ -159,7 +203,12 @@ export const Route = createFileRoute("/api/public/hooks/sense-tick")({
             if (code === "42703" || code === "PGRST204") {
               return json({ ok: true, processed: 0, note: "auto_sense not migrated yet" });
             }
-            return json({ ok: false, error: error.message }, 500);
+            // Thrown, not returned as a 500: a returned Response RESOLVES, and
+            // withJobRun used to write status='ok' for a resolved callback, so
+            // this line reported a tick that could not read its own inputs as a
+            // healthy tick. withJobRunHttp turns the throw back into the same
+            // JSON 500 the caller used to get.
+            throw new Error(`workspaces read failed: ${error.message}`);
           }
 
           // PC-08: the "Overnight signal sweep" routine's per-workspace off
@@ -185,6 +234,8 @@ export const Route = createFileRoute("/api/public/hooks/sense-tick")({
             tagged?: number;
             seeded?: number;
             github_inserted?: number;
+            // "none" means not configured, "error" means it broke. Those were the
+            // same word until 2026-08-14; see attemptIngest.
             github_source?: string;
             // SF-CONNECTORS: per-provider {inserted, source} for the inside-out fleet,
             // keyed by provider id (intercom/stripe/slack/zendesk/hubspot/…).
@@ -192,9 +243,14 @@ export const Route = createFileRoute("/api/public/hooks/sense-tick")({
             // SF-MCP: per-server {inserted, source} for the absorbed hosted MCP fleet
             // (Linear/Gong/Granola/Enterpret), keyed by server id.
             mcp_servers?: Record<string, { inserted: number; source: string }>;
+            mcp_source?: string;
             posthog_rows?: number;
             posthog_signals?: number;
             posthog_skipped?: boolean;
+            posthog_source?: string;
+            /** How many of this workspace's ingestors threw this sweep. Zero is
+             *  the only number that means the fleet is healthy. */
+            connector_errors?: number;
             error?: string;
           }> = [];
 
@@ -208,27 +264,46 @@ export const Route = createFileRoute("/api/public/hooks/sense-tick")({
                 results.push({ workspace_id: ws.id, error: "routine disabled" });
                 continue;
               }
-              const tagged = await tagUntaggedSignals(ws.owner_id, ws.id);
-              const seeded = await topUpDemoFeed(ws.owner_id, ws.id);
-              const gh = await ingestGithubSignals(ws.owner_id, ws.id).catch(() => null);
-              const posthog = await ingestPostHogAnalytics(ws.id, ws.owner_id).catch(() => null);
+              const ownerId = ws.owner_id;
+              const tagged = await tagUntaggedSignals(ownerId, ws.id);
+              const seeded = await topUpDemoFeed(ownerId, ws.id);
+              let connectorErrors = 0;
+
+              const gh = await attemptIngest("github", ws.id, () =>
+                ingestGithubSignals(ownerId, ws.id),
+              );
+              if (!gh.ok) connectorErrors++;
+              const posthog = await attemptIngest("posthog", ws.id, () =>
+                ingestPostHogAnalytics(ws.id, ownerId),
+              );
+              if (!posthog.ok) connectorErrors++;
+
               // Inside-out customer-voice fleet: iterate the PULL_INGESTORS registry so a
               // new connector needs no edit here. Each fails safe (source "none") when the
-              // workspace has no credential or its tier lacks inflow, so this never throws.
-              // Run all ingestors in parallel instead of serially
+              // workspace has no credential or its tier lacks inflow; one that THROWS is a
+              // different thing and now reports source "error" instead of the same "none".
+              // Run all ingestors in parallel instead of serially.
               const ingestResults = await Promise.all(
-                PULL_INGESTORS.map((c) => c.ingest(ws.owner_id, ws.id).catch(() => null)),
+                PULL_INGESTORS.map((c) =>
+                  attemptIngest(c.provider, ws.id, () => c.ingest(ownerId, ws.id)),
+                ),
               );
               const connectors: Record<string, { inserted: number; source: string }> = {};
               for (let i = 0; i < PULL_INGESTORS.length; i++) {
                 const c = PULL_INGESTORS[i];
                 const r = ingestResults[i];
-                connectors[c.provider] = {
-                  inserted: r?.inserted ?? 0,
-                  source: r?.source ?? "none",
-                };
+                if (r.ok) {
+                  connectors[c.provider] = {
+                    inserted: r.value?.inserted ?? 0,
+                    source: r.value?.source ?? "none",
+                  };
+                } else {
+                  connectorErrors++;
+                  connectors[c.provider] = { inserted: 0, source: "error" };
+                }
               }
-              const mcp = await ingestMcpSignals(ws.owner_id, ws.id).catch(() => null);
+              const mcp = await attemptIngest("mcp", ws.id, () => ingestMcpSignals(ownerId, ws.id));
+              if (!mcp.ok) connectorErrors++;
               await supabaseAdmin
                 .from("workspaces")
                 .update({ last_auto_sense_at: new Date().toISOString() })
@@ -253,20 +328,24 @@ export const Route = createFileRoute("/api/public/hooks/sense-tick")({
                 workspace_id: ws.id,
                 tagged,
                 seeded,
-                github_inserted: gh?.inserted ?? 0,
-                github_source: gh?.source ?? "none",
+                github_inserted: gh.ok ? (gh.value?.inserted ?? 0) : 0,
+                github_source: gh.ok ? (gh.value?.source ?? "none") : "error",
                 connectors,
-                mcp_servers: mcp?.servers
-                  ? Object.fromEntries(
-                      Object.entries(mcp.servers).map(([k, v]) => [
-                        k,
-                        { inserted: v.inserted, source: v.source },
-                      ]),
-                    )
-                  : {},
-                posthog_rows: posthog?.rowsUpserted ?? 0,
-                posthog_signals: posthog?.signalsInserted ?? 0,
-                posthog_skipped: posthog?.skipped ?? false,
+                mcp_servers:
+                  mcp.ok && mcp.value?.servers
+                    ? Object.fromEntries(
+                        Object.entries(mcp.value.servers).map(([k, v]) => [
+                          k,
+                          { inserted: v.inserted, source: v.source },
+                        ]),
+                      )
+                    : {},
+                mcp_source: mcp.ok ? "ok" : "error",
+                posthog_rows: posthog.ok ? (posthog.value?.rowsUpserted ?? 0) : 0,
+                posthog_signals: posthog.ok ? (posthog.value?.signalsInserted ?? 0) : 0,
+                posthog_skipped: posthog.ok ? (posthog.value?.skipped ?? false) : false,
+                posthog_source: posthog.ok ? "ok" : "error",
+                connector_errors: connectorErrors,
               });
             } catch (e) {
               results.push({

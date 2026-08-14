@@ -10,7 +10,7 @@ import {
   type OutcomeState,
   type SignalSenseState,
 } from "@/lib/sensing/trigger";
-import { withJobRun } from "@/lib/observability";
+import { withJobRunHttp } from "@/lib/observability";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { decideDecisionReview, DECISION_RECORD_EFFECT } from "@/lib/decision-gate";
@@ -84,7 +84,7 @@ export const Route = createFileRoute("/api/public/hooks/trigger-tick")({
         const unauth = await requireHookCaller(request);
         if (unauth) return unauth;
 
-        return withJobRun("cron.trigger-tick", async () => {
+        return withJobRunHttp("cron.trigger-tick", async () => {
           const { data: workspaces, error } = await supabaseAdmin
             .from("workspaces")
             .select("id, owner_id, last_auto_trigger_at")
@@ -97,7 +97,12 @@ export const Route = createFileRoute("/api/public/hooks/trigger-tick")({
             if (code === "42703" || code === "PGRST204") {
               return json({ ok: true, processed: 0, note: "auto_trigger not migrated yet" });
             }
-            return json({ ok: false, error: error.message }, 500);
+            // Thrown, not returned as a 500. Returning a Response RESOLVES,
+            // and withJobRun scored any resolved callback as status='ok', so
+            // this line wrote a green ledger row for a tick that could not read
+            // its own inputs. withJobRunHttp rebuilds the identical JSON 500
+            // outside the wrapper, so pg_cron sees exactly what it saw before.
+            throw new Error(`workspaces read failed: ${error.message}`);
           }
 
           const results: Array<{ workspace_id: string; proposed?: number; error?: string }> = [];

@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { callModel } from "@/lib/ai/runtime.server";
-import { withJobRun, recordErrorEvent } from "@/lib/observability";
+import { withJobRunHttp, recordErrorEvent } from "@/lib/observability";
 import { assessAndQuarantine } from "@/lib/injection-classifier";
 import {
   selectDistillTargets,
@@ -294,7 +294,7 @@ export const Route = createFileRoute("/api/public/hooks/house-rules-tick")({
         const unauth = await requireHookCaller(request);
         if (unauth) return unauth;
 
-        return withJobRun(SURFACE, async () => {
+        return withJobRunHttp(SURFACE, async () => {
           const db = supabaseAdmin as unknown as SupabaseClient;
 
           let plan: Plan;
@@ -302,9 +302,12 @@ export const Route = createFileRoute("/api/public/hooks/house-rules-tick")({
             plan = await planPass(db);
           } catch (e) {
             // Rethrown on purpose: withJobRun writes status='error' to
-            // job_runs on a throw and 'ok' on a returned 500, and a pass that
-            // could not read its own inputs must not read as a healthy pass in
-            // the ledger the watchdog diffs.
+            // job_runs on a throw, and a pass that could not read its own
+            // inputs must not read as a healthy pass in the ledger the watchdog
+            // diffs. This was the only tick that got that right; the other
+            // fifteen answered with a returned 500, which RESOLVES and was
+            // therefore scored 'ok'. They all throw now, and withJobRunHttp
+            // gives this one the same JSON 500 body they get.
             await note(e, "db_error");
             throw e;
           }
