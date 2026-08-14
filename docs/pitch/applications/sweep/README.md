@@ -18,3 +18,7 @@
 `raw/` holds one untouched JSON file per completed agent. Nothing is merged into it and nothing overwrites it, so it is the recovery point if a roll-up above is ever wrong.
 
 The ranking, tiers and apply-now calls are **not** here. They are produced after every lane lands and go to the founder at Gate 2.
+
+> ### ⏳ This folder is temporary, by founder ruling 2026-08-14. Delete it when the run is done.
+>
+> It exists to stop a crash costing hours of live page checks, and it stops earning its keep the moment the sweep finishes and the ranked output is written. **It is a safety net for a run in flight, not a permanent record.** Leaving it here afterwards would put a second, staler copy of the programme list next to the tracker, which is exactly the parallel-copy rot the pitch folder's standing rules forbid.
