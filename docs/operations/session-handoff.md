@@ -1,6 +1,148 @@
 # Pick up here
 
-> _Created: 2026-08-07 · Last updated: 2026-08-14, 19:10 IST. **Three lanes closed within ten minutes of each other: funding, design, engineering — in that order below.**_
+> _Created: 2026-08-07 · Last updated: 2026-08-14, late. **A spine pass closed after the three lanes: twelve commits on main, and a list of live-database checks that only Claude Code can run.**
+
+## ✅ SPINE PASS CLOSED 2026-08-14 (after the three lanes above). Twelve commits on main. **Everything here needs one thing: a look at the live database.**
+
+> **If you are Claude Code and you have Lovable access, this section is addressed to you.** Skip to *The eleven checks*. Every one is a read. **No migration is owed by this pass at all.**
+
+### The one-sentence finding
+
+The loop's learning edge was broken in **four places in series**, each one hiding the next, and every one was a chain where every link was correct and the chain was one link short with nothing anywhere saying so.
+
+### What closed, and why each mattered
+
+| Commit | What it fixes |
+| --- | --- |
+| `914aef53` | A station could advance having filed the **wrong** artifact. Plan files a task instead of a spec, Design is handed nothing to design against, Build reports correctly that it was given nothing. New hold `nothing-to-hand-on`, and the advance predicate is now the **next** station's need |
+| `5a670d88` | The promotion sweep, which `promote.ts` calls "the one rule in the product that spends money with nobody watching", read three clustering numbers and nothing about whether acting on this evidence had ever worked. It now reads the history and **withholds autonomy** at support of -2 or worse |
+| `6dc546ce` | An autonomous verdict attached to **nothing**. Both existing recoveries are dead on the driver's route, so what remained was the driver naming the spec id in the prompt and the model choosing to copy it. `ToolCtx.trackId` now carries the track and the tool reads the spec off `spine_track_members` |
+| `f0698270` | The bar's join went through `opportunities.theme_id`, and `prd.draft` says outright that nothing in that toolset creates an opportunity. So on the autonomous route the bar read a structurally empty history and reported a confident zero. It now resolves spec to track to cluster as well |
+| `068818a3` | Records **why Discover's ranking gets no outcome term**, with a tripwire. It would be scored against an empty set, and `/decide`'s sign would be wrong here anyway |
+| `608fb56e` | Ship said "nothing has shipped" **six times** on a workspace holding nothing, with one door on the screen. Now one Gate, the precondition, and a drawing of a release row |
+| `b7beb183` | Learn was **grading against a title**. `HANDOFF_BODIES` counted from the end, so by Learn the newest two were the changeset and the deployment and the spec arrived as a bare id |
+| `ab7e1c03` | `HANDOFF_BODIES` reserved trailing **positions**, not bodies. The bodyless `mission` filed at Build spent a body slot and pushed the spec out of every Build **retry** |
+| `9fe762e6` `42c150fc` | A promoted cluster **walks all seven stations on all five route shapes**, briefed correctly at each. Validated by planting three real defects |
+| `cf1b6470` | A track that goes wrong **always settles**, for every station. Removing the correction budget makes six of seven spin |
+| `03866fd5` | The audit doc, section 16 |
+
+### The eleven checks. Each one says what a bad answer means.
+
+**1. Is anything stuck on the new hold, and should it be?**
+```sql
+select station, count(*) from spine_tracks where last_hold = 'nothing-to-hand-on' group by station;
+```
+Then for any that appear, list what they filed:
+```sql
+select t.id, t.station, m.artifact_kind, count(*)
+from spine_tracks t join spine_track_members m on m.track_id = t.id
+where t.last_hold = 'nothing-to-hand-on' group by 1,2,3 order by 1;
+```
+**A bad answer** is a track held here whose members DO satisfy the next station's need. That means the predicate is too strict in reality, and too strict is worse than too loose: it freezes work that was fine and teaches a person the loop cannot be trusted.
+
+**2. Do Plan runs actually file the spec as a track member?** The whole `6dc546ce` fix rests on this.
+```sql
+select artifact_kind, count(*) from spine_track_members group by artifact_kind order by 2 desc;
+```
+**A bad answer** is zero rows of `artifact_kind = 'prd'`. Then the new fallback resolves nothing and an autonomous verdict is still an orphan.
+
+**3. Is `agent_runs.track_id` populated on driver-run rows?** The fix threads it through `ToolCtx`.
+```sql
+select count(*) as runs, count(track_id) as with_track
+from agent_runs where created_at > now() - interval '30 days';
+```
+**A bad answer** is `with_track` near zero: the tool never receives a track and the fallback never fires.
+
+**4. Can the promotion bar learn anything today? Both routes, counted separately.**
+```sql
+-- Route A, the human one: learning -> bet -> cluster
+select count(*) from learnings l join opportunities o on o.id = l.opportunity_id
+where o.theme_id is not null and l.verdict in ('validated','missed');
+
+-- Route B, the loop's own: learning -> spec -> track -> cluster
+select count(*) from learnings l
+  join spine_track_members m on m.artifact_id = l.prd_id and m.artifact_kind = 'prd'
+  join spine_tracks t on t.id = m.track_id
+where t.theme_id is not null and l.verdict in ('validated','missed');
+```
+This is the number the sweep reports as `learnedFrom`. **Both zero is expected today** and is the honest state. What matters is that Route B becomes non-zero once a track completes a lap.
+
+**5. Would any cluster now be withheld from starting on its own?**
+```sql
+select theme_id, validated, missed
+from (
+  select o.theme_id,
+         count(*) filter (where l.verdict = 'validated') as validated,
+         count(*) filter (where l.verdict = 'missed')    as missed
+  from learnings l join opportunities o on o.id = l.opportunity_id
+  where l.verdict in ('validated','missed') and o.theme_id is not null
+  group by o.theme_id
+) x
+where least(validated, 3) - least(missed, 3) <= -2;
+```
+**Any row here is a behaviour change to confirm is wanted.** That cluster stays promotable by hand and the sweep will no longer start it on its own.
+
+**6. Is the moat pool still empty?** This is the number that decides whether "it learns" is true yet.
+```sql
+select kind, count(*) from agent_memory group by kind order by 2 desc;
+```
+In-repo comments, dated rather than queried by me, say **zero rows of kind `outcome`** against 846 reflections. **A good answer is that `outcome` has started to grow.**
+
+**7. Are verdicts still landing unattached?**
+```sql
+select count(*) as total,
+       count(*) filter (where prd_id is null)         as no_spec,
+       count(*) filter (where opportunity_id is null) as no_bet
+from learnings;
+```
+Comments quote 119 learnings, 35 with a spec. **Watch whether `no_spec` stops growing** for rows created after this ships.
+
+**8. Is the swallowed-memory report firing?**
+```sql
+select failure_kind, count(*), max(created_at) from error_events
+where failure_kind = 'outcome_memory_not_written' group by 1;
+```
+**A growing count with a recent `max` means the pool is still not filling**, and the reason is in that row's `extras`.
+
+**9. Does the Learn yardstick have anything to inline?** It reads `prds.body_md`.
+```sql
+select count(*) as specs, count(*) filter (where coalesce(body_md,'') = '') as empty_body from prds;
+```
+**A bad answer** is `empty_body` close to `specs`. Then the spec reaches Learn whole and whole means empty, and the real repair is upstream at Plan.
+
+**10. Do live routes match the shapes the walks cover?** Both walk tests cover the five `suggestRoute` outputs only.
+```sql
+select entry_station, path, waived, count(*) from spine_tracks group by 1,2,3 order by 4 desc;
+```
+**A bad answer** is any live combination `suggestRoute` would not produce. Those routes are covered by neither walk.
+
+**11. Did the money-frozen tracks recover?** `decideDrive` stopped applying the attempt ceiling to `out-of-credit` and `over-budget`.
+```sql
+select last_hold, count(*), min(driven_at), max(driven_at) from spine_tracks group by 1 order by 2 desc;
+```
+Measured 2026-08-14: **26 of 43 at `station-cannot-finish`** against an account at balance 0, frozen since 2026-08-01. **A good answer** is that they have moved off it.
+
+### One check that is not SQL
+
+**Ship on a workspace holding nothing.** `608fb56e` collapses five panels into one Gate plus a drawing, and the condition requires **every** read to have succeeded. Open `/ship` on a workspace with no releases: one question, not six statements of absence, and both doors work. Then open it on a workspace that HAS releases and confirm nothing was taken away. If a read fails, the old panels must come back with their retry.
+
+### What is open, and what is deliberately not being done
+
+- **Nothing in this pass is verified against production.** Every claim rests on tests with the defect planted first. Ten defects planted, each failing exactly the guard that owns it.
+- **The honest form of the whole pass**, and it should be used in any outward-facing sentence: the loop is wired and proven, and it begins accruing on first real use. It is not re-ranking anything yet, because the outcome pool is empty.
+- **Discover's visible ranking gets no outcome term.** A closed decision with the reasoning in `src/lib/brain/discover-outcome-term.test.ts`, not an open gap. Do not "fix" it by adding the term; the tripwire fires if the premise ever changes.
+- **The `{ data }` without `error` sweep is untouched.** Roughly 700 call sites destructure a read without checking its error, so a failed read renders as a legitimate zero. Same class as everything above, and mostly **off** the spine, which is why it was not picked up here. It is the obvious next pass.
+- **Suite connections still have no Verify control.** gmail, google_calendar, google_tasks, microsoft_mail and microsoft_outlook write to `user_calendar_connections`, which offers only Reconnect and Disconnect, so adapters for them would be code with no caller. **Founder call, not an engineering one.**
+
+### Two method lessons, both paid for in this pass
+
+1. **A planted defect must revert BEHAVIOUR, not break the file.** One plant cut a block in a way that left an undefined variable, so unrelated tests failed and the red proved nothing. Plant by making a branch unreachable or flipping a constant.
+2. **A walk that visits each station once cannot see a retry bug.** The first draft of the seven-station walk **passed with the body-slot defect planted**, because that defect only bites on Build's second tick, after `missionForTrack` has filed the bodyless mission. A test that cannot see a bug it was written for certifies what it missed.
+
+### Gate at close
+
+`bunx tsc --noEmit` 0 errors · `bun test` **9,290 pass, 0 fail** across 555 files · `bun run build` succeeds. Twelve commits, all on `origin/main`, tree clean at `cf1b6470`.
+
 
 ## ✅ FUNDING LANE CLOSED 2026-08-14 ~19:10 IST. 571 programmes swept, ranked and tiered.
 
