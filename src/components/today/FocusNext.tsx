@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Button, Failed, Num } from "@/components/shell/primitives";
+import { Action, Num, ReadFailed } from "@/components/meridian/surface-parts";
 import { getFocusNext, type FocusInsight } from "@/lib/brain/insights.functions";
 
 export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
@@ -40,10 +40,10 @@ export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
             Director&rsquo;s read
           </span>
         </div>
-        <Failed onRetry={() => void focus.refetch()}>
+        <ReadFailed onRetry={() => void focus.refetch()}>
           The brain did not answer, so there is no read on what to build next. This is a failed
           look-up, not a quiet morning.
-        </Failed>
+        </ReadFailed>
       </section>
     );
   }
@@ -90,7 +90,7 @@ export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
             <div className="today-recommendation-label">Recommended move</div>
             <div>{recommendation.recommendedAction.goal}</div>
           </div>
-          <Button
+          <Action
             title="Open supporting evidence in Discover"
             onClick={() =>
               navigate({
@@ -102,7 +102,7 @@ export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
             }
           >
             See evidence
-          </Button>
+          </Action>
         </div>
       ) : null}
     </section>

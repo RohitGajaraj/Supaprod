@@ -2,7 +2,7 @@ import * as React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Button, Failed } from "@/components/shell/primitives";
+import { Action, ReadFailed } from "@/components/meridian/surface-parts";
 import { serverMessage } from "@/components/shell/server-message";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { toast } from "@/lib/notify";
@@ -229,21 +229,21 @@ export function SendBackSheet({
             )}
           </span>
           <div className="sp-sendback-acts">
-            <Button variant="ghost" onClick={onClose}>
+            <Action variant="quiet" onClick={onClose}>
               Cancel
-            </Button>
-            <Button
+            </Action>
+            <Action
               disabled={blocked}
               onClick={() =>
                 mutation.mutate({ id: item.sourceId, kind: item.kindKey, note: trimmed })
               }
             >
               {mutation.isPending ? "Sending back" : "Send it back"}
-            </Button>
+            </Action>
           </div>
         </div>
 
-        {failure ? <Failed>{failure}</Failed> : null}
+        {failure ? <ReadFailed>{failure}</ReadFailed> : null}
       </div>
     </div>
   );

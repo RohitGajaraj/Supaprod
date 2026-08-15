@@ -5,7 +5,7 @@ import { getStudioPreview, type StudioChangesetSummary } from "@/lib/studio.func
 import { resolveBuildPreview } from "@/lib/exec/provider";
 import { MonoLabel } from "@/components/supaprod/Primitives";
 import { LOOM_CARD } from "./studio-ui";
-import { Empty, Failed, Loading } from "@/components/shell/primitives";
+import { NothingHere, ReadFailed, Reading } from "@/components/meridian/surface-parts";
 
 /**
  * SANDBOX — the Build "Preview" tab. Renders the best standalone HTML the
@@ -66,17 +66,17 @@ export function PreviewPanel({
   // They are the shell's primitives now, so the run surface reads as one page
   // whichever tab is open.
   if (!changeset) {
-    return <Empty>Nothing is staged yet, so there is no page to render.</Empty>;
+    return <NothingHere>Nothing is staged yet, so there is no page to render.</NothingHere>;
   }
 
-  if (preview.isPending) return <Loading>Reading the staged page.</Loading>;
+  if (preview.isPending) return <Reading>Reading the staged page.</Reading>;
 
   // An error never wears the empty state's clothes: name the cause, offer retry.
   if (preview.isError) {
     return (
-      <Failed onRetry={() => void preview.refetch()}>
+      <ReadFailed onRetry={() => void preview.refetch()}>
         {(preview.error as Error)?.message?.slice(0, 160)}
-      </Failed>
+      </ReadFailed>
     );
   }
 
@@ -84,13 +84,13 @@ export function PreviewPanel({
 
   if (!data) {
     return (
-      <Empty>
+      <NothingHere>
         Nothing in this changeset renders on its own. This pane shows a self-contained page the run
         produced, and this one produced none.{" "}
         {live.live
           ? `Running the whole repo goes through ${live.providerLabel}, which this pane does not read.`
           : "Running the whole repo needs an execution backend, and none is connected."}
-      </Empty>
+      </NothingHere>
     );
   }
 

@@ -40,7 +40,7 @@ import { listMissions } from "@/lib/missions.functions";
 import { missionProgress } from "@/lib/delegate-desk";
 import { RunBoard } from "@/components/runs/RunBoard";
 import { runState } from "@/components/runs/run-state";
-import { Failed, Loading } from "@/components/shell/primitives";
+import { ReadFailed, Reading } from "@/components/meridian/surface-parts";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 
 export function BoardPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -128,11 +128,11 @@ export function BoardPanel({ open, onClose }: { open: boolean; onClose: () => vo
         </div>
         <div className="sp-boardpanel-body">
           {sessions.isLoading ? (
-            <Loading>Reading the record.</Loading>
+            <Reading>Reading the record.</Reading>
           ) : sessions.isError ? (
-            <Failed onRetry={() => void sessions.refetch()}>
+            <ReadFailed onRetry={() => void sessions.refetch()}>
               The runs did not load, so this board is not the whole picture.
-            </Failed>
+            </ReadFailed>
           ) : (
             <RunBoard
               rows={rows}

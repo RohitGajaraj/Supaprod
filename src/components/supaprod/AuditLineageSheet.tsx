@@ -45,7 +45,7 @@ import { getLineageGraph, type LineageNodeView } from "@/lib/lineage-graph.funct
 import type { LineageStep } from "@/lib/lineage-graph";
 import { getMissionChain } from "@/lib/trust-chain.functions";
 import { MissionChain } from "@/components/trust/MissionChain";
-import { Empty, Failed, Loading } from "@/components/shell/primitives";
+import { NothingHere, ReadFailed, Reading } from "@/components/meridian/surface-parts";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { artifactWord, relationWord } from "@/lib/artifact-words";
 
@@ -349,11 +349,11 @@ export function AuditLineageSheet() {
 
       <div className="sp-lineage-body">
         {q.isLoading ? (
-          <Loading>Tracing the record.</Loading>
+          <Reading>Tracing the record.</Reading>
         ) : q.isError ? (
-          <Failed onRetry={() => void q.refetch()}>
+          <ReadFailed onRetry={() => void q.refetch()}>
             Could not trace this id. {(q.error as Error)?.message}
-          </Failed>
+          </ReadFailed>
         ) : d?.ambiguous ? (
           /* SIX CHARACTERS ARE NOT ENOUGH TO NAME ONE ROW, and until now this
            * branch did not exist, so the pane fell through to "no record for
@@ -404,10 +404,10 @@ export function AuditLineageSheet() {
             ) : null}
           </>
         ) : !d || !d.found ? (
-          <Empty>
+          <NothingHere>
             No record for {d?.ref ?? ref} in this workspace. Audit ids are scoped to your
             workspaces, so an id from somewhere else, or a mistyped one, shows nothing.
-          </Empty>
+          </NothingHere>
         ) : (
           <>
             <h3 className="sp-lineage-title">{stripAutoPrefix(d.title)}</h3>

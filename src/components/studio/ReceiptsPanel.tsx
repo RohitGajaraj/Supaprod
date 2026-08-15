@@ -2,7 +2,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getMissionChain } from "@/lib/trust-chain.functions";
 import { MissionChain } from "@/components/trust/MissionChain";
-import { Empty, Failed, Loading } from "@/components/shell/primitives";
+import { NothingHere, ReadFailed, Reading } from "@/components/meridian/surface-parts";
 
 /**
  * PC-22 — the provenance chain, surfaced on the run. Reuses SW-5's pipeline
@@ -29,18 +29,18 @@ export function ReceiptsPanel({ missionId }: { missionId: string }) {
     queryFn: () => fChain({ data: { missionId } }),
   });
 
-  if (chainQ.isPending) return <Loading>Walking the chain.</Loading>;
+  if (chainQ.isPending) return <Reading>Walking the chain.</Reading>;
 
   if (chainQ.isError) {
     return (
-      <Failed onRetry={() => void chainQ.refetch()}>
+      <ReadFailed onRetry={() => void chainQ.refetch()}>
         {(chainQ.error as Error)?.message ?? "The chain did not load."}
-      </Failed>
+      </ReadFailed>
     );
   }
 
   if (!chainQ.data) {
-    return <Empty>Nothing has been recorded against this run yet.</Empty>;
+    return <NothingHere>Nothing has been recorded against this run yet.</NothingHere>;
   }
 
   return <MissionChain chain={chainQ.data} />;
