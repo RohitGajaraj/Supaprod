@@ -48,6 +48,16 @@ export type ThemeLike = {
   severity: number | null;
   confidence: number | null;
   status: string | null;
+  /**
+   * What already HAPPENED when this evidence was acted on: validated bets minus
+   * missed ones, from `outcomeSupportFromCounts`, so this file and /decide read
+   * one rule rather than two copies of it.
+   *
+   * Optional, and absent means zero, which is why a workspace that has settled
+   * nothing behaves exactly as it did before this term existed. The counts come
+   * from `learnings` and the join lives with the caller, keeping this file pure.
+   */
+  outcomeSupport?: number | null;
 };
 
 /** The bar a cluster must clear before it becomes work on its own. */
@@ -76,6 +86,25 @@ export const DEFAULT_PROMOTION_BAR: PromotionBar = {
   // starts from a brief that is three unrelated complaints in a trenchcoat.
   minConfidence: 0.75,
 };
+
+/**
+ * How badly a theme's own history has to have gone before a person, rather than
+ * the bar, decides whether to try again.
+ *
+ * -2 means at least two more missed bets than validated ones on this same
+ * evidence. ONE miss is deliberately not enough: a first attempt failing is the
+ * normal cost of doing product work, and a platform that abandoned a real problem
+ * after a single bad swing would be worse at this than the person using it. Two,
+ * with nothing validated against them, is a pattern rather than an accident.
+ *
+ * AND IT WITHHOLDS AUTONOMY, IT DOES NOT CLOSE THE DOOR. A theme past this line
+ * stays fully promotable by hand at the Gate, and `qualifies` says why in a
+ * sentence the sweep reports. That is the governance rule as written: policy is
+ * set in advance and does not block, and the exception is what reaches a person.
+ * Refusing outright would be the platform overruling a person, which no bar here
+ * is allowed to do.
+ */
+export const AUTO_PROMOTE_STOPS_AT_SUPPORT = -2;
 
 /**
  * Statuses that are not eligible however strong the numbers.
@@ -128,9 +157,36 @@ export function qualifies(
     };
   }
 
+  /**
+   * WHAT HAPPENED LAST TIME, which until now this rule could not see.
+   *
+   * This is the one rule in the product that spends money with nobody watching,
+   * and it read three numbers the clustering computed and nothing about whether
+   * acting on this evidence had ever worked. So a theme whose bets had missed
+   * twice cleared the same bar as one whose bets had been validated twice, and
+   * kept clearing it, forever. The loop could not learn the thing it is for.
+   *
+   * Checked LAST, after the three evidence numbers, on purpose: the evidence is
+   * why the work is worth doing and history only decides who gets to say go.
+   */
+  const support = theme.outcomeSupport ?? 0;
+  if (support <= AUTO_PROMOTE_STOPS_AT_SUPPORT) {
+    return {
+      ok: false,
+      why: `bets on this evidence have missed more than they have landed (${support}), so this one is worth a person deciding rather than starting on its own`,
+    };
+  }
+
+  const evidence = `${freq} signals say it, severity ${sev}, and the cluster is ${Math.round(conf * 100)}% confident these belong together`;
   return {
     ok: true,
-    why: `${freq} signals say it, severity ${sev}, and the cluster is ${Math.round(conf * 100)}% confident these belong together`,
+    // Says what it learned only when it learned something. A "(0)" on every
+    // origin sentence would be noise on the majority of tracks, which have no
+    // settled outcomes behind them at all.
+    why:
+      support > 0
+        ? `${evidence}, and earlier bets on this evidence were validated (${support})`
+        : evidence,
   };
 }
 
@@ -179,6 +235,13 @@ export function rankForPromotion(themes: ThemeLike[], bar: PromotionBar = DEFAUL
       // product team over-trusts without help.
       const sev = (b.severity ?? 0) - (a.severity ?? 0);
       if (sev !== 0) return sev;
+      // WHAT ACTUALLY HAPPENED, above raw volume and below severity. Same
+      // placement /decide gives it: under the primary priority signal, over the
+      // count of people who said it, because what a bet DID beats how loud the
+      // evidence was. Zero for every theme in a workspace that has settled
+      // nothing, so this is a no-op until the loop has taught it something.
+      const support = (b.outcomeSupport ?? 0) - (a.outcomeSupport ?? 0);
+      if (support !== 0) return support;
       const freq = (b.frequency ?? 0) - (a.frequency ?? 0);
       if (freq !== 0) return freq;
       return (b.confidence ?? 0) - (a.confidence ?? 0);

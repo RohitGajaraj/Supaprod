@@ -72,6 +72,13 @@ function mockSupabase(config: {
   statusErr?: { code?: string; message?: string } | null;
   /** Refuse the origin-cluster member write, which must also never fail it. */
   memberErr?: { code?: string; message?: string } | null;
+  /**
+   * Settled verdicts, shaped as the embed the sweep reads: a verdict and the bet
+   * that carries the cluster it was about.
+   */
+  learnings?: Array<{ verdict: string; opportunity: { theme_id: string | null } | null }>;
+  /** Refuse the history read, which must leave the sweep running on evidence. */
+  learningsErr?: { code?: string; message?: string } | null;
 }) {
   const inserted: Array<Record<string, unknown>> = [];
   const statusMarked: Array<{ id: string; status: string }> = [];
@@ -175,6 +182,30 @@ function mockSupabase(config: {
             members.push(row);
             return { error: config.memberErr ?? null };
           },
+        };
+      }
+      if (table === "learnings") {
+        return {
+          /**
+           * WHAT ACTING ON THIS EVIDENCE ALREADY TAUGHT THE WORKSPACE.
+           *
+           * The sweep reads verdicts through the bet that carries the cluster, so
+           * the rows here are shaped as PostgREST returns that embed:
+           * `{ verdict, opportunity: { theme_id } }`.
+           *
+           * `learningsErr` exists because failing OPEN is a documented promise of
+           * this read -- an unreadable history must leave the sweep promoting on
+           * evidence alone rather than stopping -- and a promise nothing exercises
+           * is not a promise.
+           */
+          select: (_cols: string) => ({
+            eq: (_c: string, _v: unknown) => ({
+              in: async (_c2: string, _vals: unknown) => ({
+                data: config.learningsErr ? null : (config.learnings ?? []),
+                error: config.learningsErr ?? null,
+              }),
+            }),
+          }),
         };
       }
       throw new Error(`mockSupabase: unexpected table "${table}"`);
@@ -422,5 +453,141 @@ describe("the cluster a promoted track came from reaches the station that must w
     expect(promoted).toEqual(
       new Set(["track-for-theme-1:theme-1", "track-for-theme-2:theme-2"]),
     );
+  });
+});
+
+describe("the bar learns from what acting on the evidence actually did", () => {
+  /**
+   * THE MOAT'S OWN CLAIM, AT THE ONE PLACE THAT SPENDS MONEY UNATTENDED.
+   *
+   * AGENTS.md: "a verdict is settled [at Learn], written back against the decision
+   * that caused it, and used to re-rank what Discover and Decide surface next."
+   * The Decide half was wired. This sweep -- which decides what becomes autonomous
+   * work at all -- read three numbers the clustering computed and nothing about
+   * whether acting on this evidence had ever worked, so a theme whose bets had
+   * missed twice cleared the same bar as one whose bets had been validated twice,
+   * and kept clearing it forever.
+   */
+  const missedTwice = [
+    { verdict: "missed", opportunity: { theme_id: "theme-1" } },
+    { verdict: "missed", opportunity: { theme_id: "theme-1" } },
+  ];
+
+  it("does not start work on its own when bets on this evidence keep missing", async () => {
+    const db = mockSupabase({ themes: [strong()], learnings: missedTwice });
+    const sweep = await promoteClustersOnce(db, "user-1");
+
+    expect(sweep.outcomes).toEqual([]);
+    expect(sweep.qualified).toBe(0);
+    expect(db.__inserted).toHaveLength(0);
+    // Not blocked. The sweep ran and correctly chose to start nothing, which is a
+    // different fact from a sweep that could not run.
+    expect(sweep.blocked).toBeNull();
+  });
+
+  it("still promotes it after one miss, because one bad swing is not a pattern", async () => {
+    // The guard that keeps this from becoming timid. A platform that abandoned a
+    // real problem after a single failed attempt would be worse at product work
+    // than the person using it.
+    const db = mockSupabase({
+      themes: [strong()],
+      learnings: [{ verdict: "missed", opportunity: { theme_id: "theme-1" } }],
+    });
+    const sweep = await promoteClustersOnce(db, "user-1");
+
+    expect(sweep.outcomes[0]?.why).toBe("started");
+  });
+
+  it("a validated history is not held against a theme", async () => {
+    const db = mockSupabase({
+      themes: [strong()],
+      learnings: [
+        { verdict: "validated", opportunity: { theme_id: "theme-1" } },
+        { verdict: "validated", opportunity: { theme_id: "theme-1" } },
+      ],
+    });
+    const sweep = await promoteClustersOnce(db, "user-1");
+
+    expect(sweep.outcomes[0]?.why).toBe("started");
+    expect(sweep.learnedFrom).toBe(2);
+  });
+
+  it("says on the track that it learned this, not just that it qualified", async () => {
+    // `originFor` is load-bearing twice over -- validateRoute refuses a track with
+    // no stated reason, and Learn grades against what the work was for -- so what
+    // the bar learned belongs in that sentence rather than only in a log.
+    const db = mockSupabase({
+      themes: [strong()],
+      learnings: [{ verdict: "validated", opportunity: { theme_id: "theme-1" } }],
+    });
+    await promoteClustersOnce(db, "user-1");
+
+    const origin = String(db.__inserted[0]?.origin ?? "");
+    expect(origin).toContain("validated");
+  });
+
+  it("keeps its mouth shut about history it does not have", async () => {
+    // Zero settled outcomes is the majority state and the honest one. "(0)" on
+    // every origin sentence would be noise dressed as rigour.
+    const db = mockSupabase({ themes: [strong()] });
+    await promoteClustersOnce(db, "user-1");
+
+    const origin = String(db.__inserted[0]?.origin ?? "");
+    expect(origin).not.toContain("validated");
+    expect(origin).not.toContain("(0)");
+  });
+
+  it("promotes on evidence alone when the history cannot be read, and says so", async () => {
+    // FAILS OPEN, and the reporting is the other half. A secondary read failing
+    // must not stop a promotion sweep; claiming to have consulted a history it
+    // never saw would be worse than either.
+    const db = mockSupabase({
+      themes: [strong()],
+      learningsErr: { message: "permission denied for table learnings" },
+    });
+    const sweep = await promoteClustersOnce(db, "user-1");
+
+    expect(sweep.outcomes[0]?.why).toBe("started");
+    expect(sweep.learnedFrom).toBeNull();
+  });
+
+  it("tells an unread history apart from an empty one", async () => {
+    // The distinction the field exists for. Both promote; only one of them means
+    // "this workspace has settled nothing yet".
+    const empty = await promoteClustersOnce(mockSupabase({ themes: [strong()] }), "user-1");
+    expect(empty.learnedFrom).toBe(0);
+  });
+
+  it("ignores a verdict that attaches to no cluster", async () => {
+    // A learning with no bet behind it taught this sweep nothing, so counting it
+    // would overstate what the bar consulted. Live measurement in
+    // registry.server.ts: 119 learnings, 35 with a spec, 35 attached to nothing.
+    const db = mockSupabase({
+      themes: [strong()],
+      learnings: [
+        { verdict: "missed", opportunity: null },
+        { verdict: "missed", opportunity: { theme_id: null } },
+      ],
+    });
+    const sweep = await promoteClustersOnce(db, "user-1");
+
+    expect(sweep.learnedFrom).toBe(0);
+    expect(sweep.outcomes[0]?.why).toBe("started");
+  });
+
+  it("counts a miss against the cluster it was about and no other", async () => {
+    // The join is two hops and a bug in it would move a verdict onto the wrong
+    // cluster, which is worse than having no history at all: it would suppress
+    // work on evidence nobody has ever acted on.
+    const db = mockSupabase({
+      themes: [strong({ id: "theme-1" }), strong({ id: "theme-2", severity: 4 })],
+      learnings: [
+        { verdict: "missed", opportunity: { theme_id: "theme-2" } },
+        { verdict: "missed", opportunity: { theme_id: "theme-2" } },
+      ],
+    });
+    const sweep = await promoteClustersOnce(db, "user-1");
+
+    expect(sweep.outcomes.map((o) => o.themeId)).toEqual(["theme-1"]);
   });
 });

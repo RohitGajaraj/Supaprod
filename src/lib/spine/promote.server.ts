@@ -29,6 +29,10 @@ import {
   type PromotionBar,
   type ThemeLike,
 } from "@/lib/spine/promote";
+// The SAME rule /decide and /today fold outcomes with. A second copy of this
+// arithmetic here would let the promotion bar and the ranking disagree about what
+// a theme's history is, which is the one thing this term exists to prevent.
+import { outcomeSupportFromCounts } from "@/components/discover/ranking";
 
 export type PromotionOutcome = {
   themeId: string;
@@ -73,7 +77,66 @@ export type PromotionSweep = {
   qualified: number;
   /** How many clusters have already become work, so a zero can be read. */
   alreadyPromoted: number;
+  /**
+   * How many settled outcomes informed this sweep's ordering and its bar.
+   *
+   * Reported rather than inferred, because zero is the honest and CURRENT answer
+   * for most workspaces and it has to be distinguishable from "we could not read
+   * them". Null means the read failed and the sweep ran on evidence alone.
+   */
+  learnedFrom: number | null;
 };
+
+/**
+ * What acting on each cluster has already taught this workspace.
+ *
+ * A learning attaches to a bet (`learnings.opportunity_id`) and a bet carries the
+ * cluster it came from (`opportunities.theme_id`), so the theme a verdict is
+ * about is two hops away. This is the same join `brain/push-insights.server.ts`
+ * already makes for the /today lane, deliberately, so the two paths cannot
+ * disagree about what a theme's history is.
+ *
+ * FAILS OPEN AND SAYS SO. On any read error every theme gets support 0, which is
+ * exactly the behaviour this sweep had before the term existed, and `learnedFrom`
+ * comes back null so the caller can tell an unread history from an empty one. A
+ * promotion sweep must not stop because a secondary read failed; it must also not
+ * claim it consulted history it never saw.
+ */
+async function outcomeSupportByTheme(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<{ support: Map<string, number>; learnedFrom: number | null }> {
+  const { data, error } = await supabase
+    .from("learnings")
+    .select("verdict,opportunity:opportunities(theme_id)")
+    .eq("user_id", userId)
+    .in("verdict", ["validated", "missed"]);
+
+  if (error || !data) return { support: new Map(), learnedFrom: null };
+
+  const counts = new Map<string, { validated: number; missed: number }>();
+  for (const row of data as unknown as Array<{
+    verdict: string | null;
+    opportunity: { theme_id: string | null } | null;
+  }>) {
+    const themeId = row.opportunity?.theme_id ?? null;
+    if (!themeId) continue;
+    const seen = counts.get(themeId) ?? { validated: 0, missed: 0 };
+    if (row.verdict === "validated") seen.validated += 1;
+    else if (row.verdict === "missed") seen.missed += 1;
+    counts.set(themeId, seen);
+  }
+
+  const support = new Map<string, number>();
+  let attributed = 0;
+  for (const [themeId, c] of counts) {
+    support.set(themeId, outcomeSupportFromCounts(c.validated, c.missed));
+    // Counts the outcomes that could be ATTRIBUTED to a cluster, not every row
+    // read: a verdict with no bet behind it taught this sweep nothing.
+    attributed += c.validated + c.missed;
+  }
+  return { support, learnedFrom: attributed };
+}
 
 /**
  * Postgres and PostgREST for "that column is not there".
@@ -109,7 +172,7 @@ export async function promoteClustersOnce(
   userId: string,
   bar: PromotionBar = DEFAULT_PROMOTION_BAR,
 ): Promise<PromotionSweep> {
-  const nothing = { outcomes: [], qualified: 0, alreadyPromoted: 0 };
+  const nothing = { outcomes: [], qualified: 0, alreadyPromoted: 0, learnedFrom: null };
 
   // Only clusters that have never become work. Reading the tracks first and
   // excluding by id keeps this to two queries rather than one per theme.
@@ -169,9 +232,17 @@ export async function promoteClustersOnce(
     };
   }
 
+  // WHAT HAPPENED LAST TIME, read once for the whole sweep rather than per theme.
+  const learned = await outcomeSupportByTheme(supabase, userId);
+
   const candidates = (
     rows as unknown as Array<ThemeLike & { workspace_id: string | null; product_id: string | null }>
-  ).filter((t) => !already.has(t.id));
+  )
+    .filter((t) => !already.has(t.id))
+    // Stamped onto the candidate so the PURE rule decides. The alternative was a
+    // second filter here, which would put half the promotion policy in a file
+    // that cannot be tested without a database.
+    .map((t) => ({ ...t, outcomeSupport: learned.support.get(t.id) ?? 0 }));
 
   // Counted BEFORE the per-sweep bound, so the sweep can say "nine cleared the
   // bar and I took the two strongest" rather than only ever reporting two. A
@@ -257,6 +328,7 @@ export async function promoteClustersOnce(
     outcomes: done,
     qualified,
     alreadyPromoted: already.size,
+    learnedFrom: learned.learnedFrom,
     blocked: structural ? `Nothing could be started: ${done[0].why}` : null,
   };
 }
