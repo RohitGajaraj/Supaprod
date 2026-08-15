@@ -2,7 +2,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GitBranch, RefreshCw, Workflow } from "lucide-react";
 import { toast } from "@/lib/notify";
-import { Button } from "@/components/shell/primitives";
+import { Action } from "@/components/meridian/surface-parts";
 import { getFlowForPrd, generateFlow, type FlowStep } from "@/lib/flows.functions";
 
 type Props = {
@@ -64,14 +64,14 @@ export function FlowDiagram({ prdId }: Props) {
             the `sp-btn` the primitive sets (it spreads rest props after it),
             which is why that class is repeated here. The mark grew with the
             label, 12px to 14px, to sit at the size of the word beside it. */}
-        <Button
+        <Action
           onClick={() => generate.mutate()}
           disabled={generate.isPending}
           className="sp-btn gap-1.5"
         >
           <RefreshCw className="h-3.5 w-3.5" />
           {generate.isPending ? "Generating…" : flow ? "Regenerate" : "Generate flow"}
-        </Button>
+        </Action>
       </div>
 
       {flowQ.isLoading ? (

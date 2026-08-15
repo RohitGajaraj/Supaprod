@@ -17,7 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
-import { Button } from "@/components/shell/primitives";
+import { Action } from "@/components/meridian/surface-parts";
 import { gradeOutcomeContract, verifiabilityLabel } from "@/lib/outcome-contract-grade";
 import {
   compileContractOracles,
@@ -121,10 +121,10 @@ function ArdImportControl({
       // contract onto a spec that has none, standing under "Draft contract from
       // this spec". Someone arriving with an ARD in hand would legitimately pick
       // it instead of the drafter, and a ghost would draw that choice as a link.
-      <Button onClick={() => setOpen(true)} className="sp-btn gap-1.5">
+      <Action onClick={() => setOpen(true)} className="sp-btn gap-1.5">
         <Upload className="h-3.5 w-3.5" />
         Import ARD JSON
-      </Button>
+      </Action>
     );
   }
 
@@ -178,7 +178,7 @@ function ArdImportControl({
             `.sp-btn` brings its own height (--sp-ctl-md) and padding, and
             keeping both produces a control that is neither. Same for
             `disabled:opacity-50`: `.sp-btn:disabled` already dims to 0.45. */}
-        <Button
+        <Action
           onClick={() => {
             let json: unknown;
             try {
@@ -197,9 +197,9 @@ function ArdImportControl({
           disabled={importMut.isPending || !text.trim()}
         >
           {importMut.isPending ? "Importing…" : "Parse and apply"}
-        </Button>
-        <Button
-          variant="ghost"
+        </Action>
+        <Action
+          variant="quiet"
           onClick={() => {
             setOpen(false);
             setText("");
@@ -207,7 +207,7 @@ function ArdImportControl({
           }}
         >
           Cancel
-        </Button>
+        </Action>
       </div>
     </div>
   );
@@ -373,7 +373,7 @@ export function OutcomeContractPanel({ prdId, specTitle, bodyMd, contract, inval
               a pixel with the label: `.sp-btn` reads at --sp-text-prose (13.5px)
               rather than the 12px `text-xs` this used to force, and an icon is
               set at the size of the label it sits beside. */}
-          <Button
+          <Action
             onClick={() => draftMut.mutate()}
             disabled={draftMut.isPending || !bodyMd.trim()}
             className="sp-btn gap-1.5"
@@ -381,7 +381,7 @@ export function OutcomeContractPanel({ prdId, specTitle, bodyMd, contract, inval
           >
             <Sparkles className="h-3.5 w-3.5" />
             {draftMut.isPending ? "Drafting…" : "Draft contract from this spec"}
-          </Button>
+          </Action>
         </div>
         <div className="mt-3 text-left">
           <ArdImportControl prdId={prdId} invalidateKey={invalidateKey} />
@@ -406,15 +406,15 @@ export function OutcomeContractPanel({ prdId, specTitle, bodyMd, contract, inval
         <ContractBody contract={draft} />
         <VerifiabilityVerdict contract={draft} />
         <div className="mt-5 flex items-center gap-2">
-          <Button onClick={() => applyMut.mutate(draft)} disabled={applyMut.isPending}>
+          <Action onClick={() => applyMut.mutate(draft)} disabled={applyMut.isPending}>
             {applyMut.isPending ? "Applying…" : "Apply contract"}
-          </Button>
+          </Action>
           {/* The escape from a draft review, and the second door out of it: the
               X in this panel's own header does the same setDraft(null). A ghost
               is what an exit standing next to the act looks like here. */}
-          <Button variant="ghost" onClick={() => setDraft(null)} disabled={applyMut.isPending}>
+          <Action variant="quiet" onClick={() => setDraft(null)} disabled={applyMut.isPending}>
             Discard
-          </Button>
+          </Action>
         </div>
       </div>
     );
@@ -439,16 +439,16 @@ export function OutcomeContractPanel({ prdId, specTitle, bodyMd, contract, inval
             elsewhere in this file had no uppercase ancestor and went with the
             class. */}
         <div className="flex items-center gap-2">
-          <Button
+          <Action
             onClick={() => downloadArd(prdId, specTitle, contract as OutcomeContract)}
             className="sp-btn gap-1.5 normal-case tracking-normal"
             title="Download this contract as a portable ARD JSON file"
           >
             <Download className="h-3.5 w-3.5" />
             Export ARD
-          </Button>
+          </Action>
           {(contract?.success_metrics ?? []).some((c) => c.status === "standing") ? (
-            <Button
+            <Action
               onClick={() => compileMut.mutate()}
               disabled={compileMut.isPending || uncompiledCount === 0}
               className="sp-btn gap-1.5 normal-case tracking-normal"
@@ -460,7 +460,7 @@ export function OutcomeContractPanel({ prdId, specTitle, bodyMd, contract, inval
                 : uncompiledCount === 0
                   ? "Oracles compiled"
                   : `Compile ${uncompiledCount} oracle${uncompiledCount === 1 ? "" : "s"}`}
-            </Button>
+            </Action>
           ) : null}
         </div>
       </div>
@@ -752,10 +752,10 @@ function AddClauseControl({
       // word. `normal-case tracking-normal` went with the class -- unlike the
       // header pair above, nothing in ClauseList's ancestry is uppercase (the
       // Intent prose beside it would be too), so here they were a no-op.
-      <Button onClick={() => setOpen(true)} className="sp-btn mt-2 gap-1.5">
+      <Action onClick={() => setOpen(true)} className="sp-btn mt-2 gap-1.5">
         <Plus className="h-3.5 w-3.5" />
         {isMetric ? "Add a success metric" : "Add a non-goal"}
-      </Button>
+      </Action>
     );
   }
 
@@ -773,7 +773,7 @@ function AddClauseControl({
         autoFocus
       />
       <div className="flex flex-col gap-1 shrink-0">
-        <Button
+        <Action
           onClick={() => addMut.mutate(text)}
           disabled={addMut.isPending || contractIsStale || !text.trim()}
           title={
@@ -789,9 +789,9 @@ function AddClauseControl({
           }
         >
           {addMut.isPending ? "Adding…" : contractIsStale ? "Syncing…" : "Add"}
-        </Button>
-        <Button
-          variant="ghost"
+        </Action>
+        <Action
+          variant="quiet"
           onClick={() => {
             setOpen(false);
             setText("");
@@ -799,7 +799,7 @@ function AddClauseControl({
           disabled={addMut.isPending}
         >
           Cancel
-        </Button>
+        </Action>
       </div>
     </div>
   );
@@ -960,18 +960,18 @@ function ClauseRow({
           autoFocus
         />
         <div className="flex flex-col gap-1 shrink-0">
-          <Button onClick={() => supersede.mutate()} disabled={supersede.isPending || !text.trim()}>
+          <Action onClick={() => supersede.mutate()} disabled={supersede.isPending || !text.trim()}>
             Save
-          </Button>
-          <Button
-            variant="ghost"
+          </Action>
+          <Action
+            variant="quiet"
             onClick={() => {
               setEditing(false);
               setText(clause.text);
             }}
           >
             Cancel
-          </Button>
+          </Action>
         </div>
       </li>
     );

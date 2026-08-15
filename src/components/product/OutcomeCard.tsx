@@ -6,7 +6,7 @@ import { Target, Sparkles } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { recordOutcome, checkPrdShipped, suggestOutcomeVerdict } from "@/lib/outcome.functions";
 import { VerdictChip, type VerdictTone } from "@/components/supaprod/Primitives";
-import { Button } from "@/components/shell/primitives";
+import { Action } from "@/components/meridian/surface-parts";
 
 type Verdict = "validated" | "mixed" | "missed";
 
@@ -208,13 +208,13 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
             <span className="text-[11px] text-muted-foreground">
               Score this bet against what you predicted.
             </span>
-            <Button
+            <Action
               onClick={() => suggest.mutate()}
               disabled={suggest.isPending}
               title="Let the Historian draft a predicted-vs-actual verdict you can edit"
             >
               {suggest.isPending ? "Drafting…" : "Draft with Historian"}
-            </Button>
+            </Action>
           </div>
           {predicted && (
             <p className="text-xs text-muted-foreground">
@@ -298,12 +298,12 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
               editor -- and neither of these backs out of anything: one asks the
               Historian for a draft you can edit, the other reads GitHub. Every
               control here is a thing to do, so every control here is raised. */}
-          <Button
+          <Action
             onClick={() => record.mutate()}
             disabled={!verdict || !summary.trim() || record.isPending}
           >
             {record.isPending ? "Recording…" : "Record outcome"}
-          </Button>
+          </Action>
         </div>
       ) : (
         <div className="space-y-3">
@@ -311,9 +311,9 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
             Ships when the linked GitHub issue closes.
           </p>
           {prd.github_issue_url ? (
-            <Button onClick={() => check.mutate()} disabled={check.isPending}>
+            <Action onClick={() => check.mutate()} disabled={check.isPending}>
               {check.isPending ? "Checking…" : "Check ship status"}
-            </Button>
+            </Action>
           ) : (
             <p className="text-xs text-muted-foreground">Link a GitHub issue to track shipping.</p>
           )}
@@ -397,13 +397,13 @@ function OutcomeSuggestionBanner({
         </p>
       )}
       {highConfidence && (
-        <Button
+        <Action
           onClick={onConfirm}
           disabled={disabled || confirming}
           title="Record this outcome in one click"
         >
           {confirming ? "Confirming…" : "Confirm outcome"}
-        </Button>
+        </Action>
       )}
     </div>
   );
