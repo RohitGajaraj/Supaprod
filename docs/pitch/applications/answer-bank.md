@@ -535,8 +535,8 @@ Approving a pending gate is a **write**. Two programs on one login means the sec
 | `explore@supaprod.ai` | `Supaprod!Explore2026` | **Y Combinator** (already filed) | LOCKED, do not reuse |
 | `voyage@supaprod.ai` | `Supaprod!Voyage2026` | ~~South Park Commons~~ → **REUSABLE** (founder ruling 2026-08-14) | free, re-arm before sending |
 | `compass@supaprod.ai` | `Supaprod!Compass2026` | **Betaworks AI Camp** (2026-07-31, submitted) | held, never opened |
-| `meridian@supaprod.ai` | `Supaprod!Meridian2026` | _(assign)_ | free |
-| `lantern@supaprod.ai` | `Supaprod!Lantern2026` | _(assign)_ | free |
+| `meridian@supaprod.ai` | `Supaprod!Meridian2026` | **ikigai Launchpad** (drafted 2026-08-16, not yet sent) | reserved, re-arm before sending |
+| `lantern@supaprod.ai` | `Supaprod!Lantern2026` | **Campus Founders, CF Accelerator Batch #9** (drafted 2026-08-16) | reserved, re-arm before sending |
 | `harbor@supaprod.ai` | `Supaprod!Harbor2026` | founder rehearsal only | NEVER send |
 
 > ### 🔍 Measured 2026-08-14, and it changes what we assumed. **No reviewer has ever signed in.**
