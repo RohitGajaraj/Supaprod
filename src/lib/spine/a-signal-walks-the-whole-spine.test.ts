@@ -36,7 +36,13 @@ import {
   type HoldReason,
   type UpstreamArtifact,
 } from "./driver";
-import { nextStation, suggestRoute, validateRoute, type SpineRoute } from "./route";
+import {
+  nextStation,
+  suggestRoute,
+  validateRoute,
+  type SpineRoute,
+  type WorkShape,
+} from "./route";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
 
 /**
@@ -348,34 +354,62 @@ describe("a station that files the wrong thing stops the work", () => {
   });
 });
 
-describe("a track that enters below Discover still completes", () => {
-  it("walks a shape that waives stations, and is briefed at the ones that remain", () => {
-    // A waived route is the case an advance rule most easily breaks: if the rule
-    // asked for the previous station's artifact rather than the next station's need,
-    // every waived station would strand the work.
-    const route = suggestRoute("incident-fix", "Checkout throws on a saved address.");
-    expect(validateRoute(route)).toEqual([]);
+describe("every shape of work completes its own route", () => {
+  /**
+   * ALL FIVE SHAPES, not just the full one, because a waived route is where an
+   * advance rule breaks first. If the rule asked for the PREVIOUS station's artifact
+   * rather than the NEXT station's need, every waived station would strand the work
+   * and the only shape that still finished would be `new-capability`.
+   *
+   * Each shape is seeded with what its ENTRY station needs, which is what
+   * `validateRoute` means by refusing a track that enters below Discover with no
+   * reason: entering low is a claim that the earlier work already exists.
+   */
+  const shapes: WorkShape[] = [
+    "new-capability",
+    "existing-feature",
+    "interface-change",
+    "under-the-hood",
+    "incident-fix",
+  ];
 
-    const seed: UpstreamArtifact[] = route.path.includes("sense")
-      ? [originTheme]
-      : // Entering below Discover, whatever the entry station needs has to already be
-        // on the record; that is what `validateRoute` means by refusing a track that
-        // enters low with no reason. Seeded with the kinds the entry station needs.
-        STATION_NEEDS[route.entry].kinds.map((kind) => ({
-          kind,
-          id: `${kind}-seeded`,
-          title: `${kind} already on the record`,
-          body: `BODY(seed:${kind}): filed before this track existed.`,
-        }));
+  for (const shape of shapes) {
+    it(`${shape} reaches the end without stranding`, () => {
+      const route = suggestRoute(shape, "Checkout throws on a saved address.");
+      expect(validateRoute(route)).toEqual([]);
 
-    const result = walk(route, { seed });
+      const seed: UpstreamArtifact[] = route.path.includes("sense")
+        ? [originTheme]
+        : STATION_NEEDS[route.entry].kinds.map((kind) => ({
+            kind,
+            id: `${kind}-seeded`,
+            title: `${kind} already on the record`,
+            body: `BODY(seed:${kind}): filed before this track existed.`,
+          }));
 
-    expect(result.hold, `a waived route held at ${result.endedAt}`).toBeNull();
-    expect(result.finished).toBe(true);
-    expect(result.stops.map((s) => s.station)).toEqual(route.path);
-    for (const station of route.waived) {
-      expect(result.stops.map((s) => s.station)).not.toContain(station);
-    }
+      const result = walk(route, { seed });
+
+      expect(result.hold, `${shape} held at ${result.endedAt}`).toBeNull();
+      expect(result.finished).toBe(true);
+      expect(result.stops.map((st) => st.station)).toEqual(route.path);
+      for (const waived of route.waived) {
+        expect(result.stops.map((st) => st.station)).not.toContain(waived);
+      }
+    });
+  }
+
+  it("covers every shape the route model knows, so a new one cannot arrive untested", () => {
+    // A shape added to WorkShape and not to the list above would be a route nothing
+    // ever walks. The type is the register; this is the check that the list matches
+    // it, and it fails to compile rather than silently passing if a shape is removed.
+    const known: Record<WorkShape, true> = {
+      "new-capability": true,
+      "existing-feature": true,
+      "interface-change": true,
+      "under-the-hood": true,
+      "incident-fix": true,
+    };
+    expect([...shapes].sort()).toEqual(Object.keys(known).sort() as WorkShape[]);
   });
 });
 
@@ -446,5 +480,58 @@ describe("a station that has to try twice is briefed as well the second time", (
     const retry = result.stops.filter((s) => s.station === "build")[1];
     expect(retry.goal).not.toContain("BODY(origin)");
     expect(retry.goal).not.toContain("BODY(decide)");
+  });
+});
+
+describe("a station doing its job a different way is not punished", () => {
+  /**
+   * WHERE THE TWO CANDIDATE ADVANCE RULES ACTUALLY DIFFER, and the reason the one in
+   * the driver is the next station's NEED rather than this station's expected
+   * artifact.
+   *
+   * On a healthy run the two are indistinguishable, because every station files
+   * exactly what `STATION_ARTIFACT` says it produces. Planting the stricter rule
+   * against the walks above changes nothing, which is worth stating plainly: those
+   * walks do not cover this, and a reader could otherwise assume they did.
+   *
+   * They come apart here. Discover legitimately produces signals OR themes -- a
+   * clustering pass that files only themes has done real work, and `attach.ts`'s own
+   * header forbids using STATION_ARTIFACT as a filter for exactly this reason. Under
+   * the stricter rule Discover would hold `nothing-to-hand-on` on a clustering-only
+   * tick, three times, and then be sent to a person over a station that was working.
+   *
+   * That is the failure mode of being too strict, and it is worse than being too
+   * loose: too loose delivers nothing occasionally, too strict freezes work that was
+   * fine and teaches a person the loop is unreliable.
+   */
+  it("Discover hands on after a clustering pass that filed no new signal", () => {
+    const result = walk(promotedRoute(), {
+      seed: [originTheme],
+      files: (station) =>
+        station === "sense"
+          ? {
+              kind: "theme",
+              id: "theme-clustered",
+              title: "a second cluster",
+              body: "BODY(sense-as-theme): clustered what was already there.",
+            }
+          : filedBy(station),
+    });
+
+    expect(result.holds).not.toContain("nothing-to-hand-on");
+    expect(result.finished).toBe(true);
+    expect(result.stops.filter((s) => s.station === "sense").length).toBe(1);
+  });
+
+  it("Design hands on even though Build never asks for a prototype", () => {
+    // The same asymmetry one station further on, and the reason it cannot be the
+    // station's own artifact: STATION_NEEDS.build is prd and task, so Design can
+    // never satisfy the next station with its OWN output. A rule written against
+    // STATION_ARTIFACT would have frozen Design on every healthy run instead.
+    expect(STATION_NEEDS.build.kinds).not.toContain(STATION_ARTIFACT.design.kind);
+
+    const result = walk(promotedRoute(), { seed: [originTheme] });
+    expect(result.holds).not.toContain("nothing-to-hand-on");
+    expect(result.stops.map((s) => s.station)).toContain("build");
   });
 });
