@@ -214,7 +214,34 @@ function AuthedLayout() {
     // OBS-02: data-obsidian scopes the Obsidian token layer (OBS-01) to the
     // whole authenticated app. The shell is hoisted here ONCE — pages no
     // longer wrap <AppShell> individually (the old ~21-route pattern).
-    <div data-obsidian>
+    //
+    // ── `.sp-frame` MAKES THIS WRAPPER OWN THE VIEWPORT, 2026-08-15 ────────
+    //
+    // FOUNDER-REPORTED, with screenshots: with the low-credits banner showing,
+    // the bottom icons of the rail fall off the bottom of the screen. Dismiss
+    // the banner and they come back.
+    //
+    // MEASURED BEFORE ANYTHING CHANGED, at his own 683px window: the banner is
+    // 29px, `.sp-app` was `height: 100dvh` and so claimed 683 REGARDLESS,
+    // document height came to 712, and the rail foot's bottom edge sat at 712 —
+    // exactly one banner below the fold. This wrapper was a plain block box
+    // with no height and no display of its own, so nothing ever told the shell
+    // that something was sitting above it.
+    //
+    // NOT `calc(100dvh - 44px)`, WHICH IS THE ANSWER THAT LOOKS RIGHT. There
+    // are TWO banners here and both can show at once, so any single constant is
+    // wrong half the time; it is also wrong the moment someone edits a banner's
+    // padding, and wrong silently. The wrapper takes the viewport, the banners
+    // size to their content however many there are, and the shell takes what is
+    // left. No listener, no measurement, and dismissing a banner reflows for
+    // free.
+    //
+    // The rules live in shell.css beside `.sp-app`, because the two halves only
+    // work as a pair and splitting them across two files is how one of them
+    // gets edited alone. A CLASS and not `[data-obsidian]`: that attribute is
+    // also mounted on <html>, so styling it would give the document element a
+    // viewport-height flex column as well.
+    <div data-obsidian className="sp-frame">
       <WorkspaceProvider>
         <FlowModeProvider>
           <AskProvider>

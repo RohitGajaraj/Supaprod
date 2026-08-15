@@ -130,7 +130,6 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { stageHueForStation } from "./agent-glyphs";
 import { MarkStack } from "./primitives";
 import { StationGlyph, type StationGlyphKind } from "@/components/meridian/station-glyphs";
 import { RunStripProvider, STAGE_LABEL, STATION_ROUTE, type RunStripSpec } from "./run-strip";
@@ -139,6 +138,7 @@ import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { supabase } from "@/integrations/supabase/client";
 import { listMissions } from "@/lib/missions.functions";
 import { listAgents } from "@/lib/agents.functions";
+import { listCrew } from "@/lib/crew.functions";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { useTheme } from "@/hooks/use-theme";
 import {
@@ -158,10 +158,14 @@ import {
   IconCrew,
   IconEngine,
   IconBoard,
+  IconFind,
   IconGear,
+  IconKeyboard,
   IconMoon,
+  IconPlus,
+  IconRailCollapse,
+  IconRailExpand,
   IconSun,
-  IconPanel,
   IconRuns,
   IconToday,
 } from "./icons";
@@ -185,9 +189,14 @@ const OWNS_NOTHING: readonly string[] = [];
  *  stays lit when users navigate there. */
 const APPROVALS_PATHS: readonly string[] = ["/approvals"];
 
-/** Paths owned by the Crew row. Boundary (autonomy management) is reached from
- *  Crew and should keep the Crew row lit. */
+/** Boundary (autonomy management) is reached from Agents, so it belongs to
+ *  whichever control Agents belongs to. Since 2026-08-15 that is the Settings
+ *  door in the rail foot rather than a row. */
 const BOUNDARY_PATHS: readonly string[] = ["/boundary"];
+
+/** Paths that live behind the Settings door but are not under /settings.
+ *  Agents is the roster at /crew, which Settings now holds. */
+const SETTINGS_PATHS: readonly string[] = ["/crew"];
 
 /** Paths owned by the Brain row. Threads (conversation history) is reached from
  *  Brain and should keep the Brain row lit. */
@@ -239,6 +248,47 @@ const THREADS_PATHS: readonly string[] = ["/threads"];
  * axes. Remove the row and there is no door left to the list of work items,
  * only doors to stages. That confusion has a history here: it is what put
  * Build's engine at /runs and left the real one unbuilt.
+ *
+ * ── FOUR DOORS, 2026-08-15, AND CREW IS THE ONE THAT LEFT ───────────────
+ *
+ * Today · Runs · Brain · Guardrails. Crew, renamed Agents, moved into Settings.
+ * "Engine room" became "Guardrails" on the same pass; its reasoning is on the
+ * row itself.
+ *
+ * THE RAIL IS THE MOST EXPENSIVE REAL ESTATE IN THE PRODUCT and it should go to
+ * surfaces touched DURING work. Three measurements decided this rather than
+ * taste:
+ *
+ *   1. AUTONOMY IS CONFIGURATION, NOT WORK. Across all 77 agents,
+ *      `agent_autonomy.set_at` covers 14 distinct days between 2026-06-04 and
+ *      2026-08-06, and nothing in the nine days since. That is a set-and-revisit
+ *      cadence. A door you open twice a month does not earn a permanent row
+ *      above the door to everything the product knows.
+ *
+ *   2. ITS ONE DECISION-SHAPED SECTION IS NOT A QUEUE. "Asking for more room"
+ *      reads urgent and is not: `asking` is derived client-side in
+ *      `_authenticated.crew.tsx` from each agent's own track record — it has
+ *      done the same thing cleanly enough times to propose it stops asking.
+ *      Nothing is blocked while it sits, there is no counterparty and no clock.
+ *      It is the product proposing an optimisation, not an agent at a gate.
+ *
+ *   3. WHAT GENUINELY BLOCKS IS ALREADY VISIBLE. `agent_approvals` has pending
+ *      rows, they live at /approvals, and they already light the seven-station
+ *      strip as "waiting on you". Crew was never carrying that load, so moving
+ *      it costs no urgency.
+ *
+ * WHAT THE MOVE MUST NOT LOSE, and this is the half a demotion usually drops:
+ * the suggestion is genuinely valuable, so the rail foot's Settings control
+ * carries a QUIET COUNT of agents asking. Not the gate treatment: orchid means
+ * a person is REQUIRED, and by (2) this is available rather than owed. Zero
+ * draws nothing at all, per the standing ruling that an empty chip stays blank
+ * rather than saying "none".
+ *
+ * AND `railOwnerOf` NO LONGER ANSWERS FOR /crew. The keyboard still binds `g c`
+ * to it, so the foot's Settings control takes ownership of /crew and /boundary
+ * instead — see `settingsOwns` below. Without that the chord would land
+ * somewhere the shell cannot name, which is the exact defect
+ * `AppFrame.rail-covers-keys.test.ts` exists to catch.
  */
 /*
  * ── STATION ID -> ITS MARK ──────────────────────────────────────────────
@@ -299,17 +349,39 @@ const RAIL = [
     owns: THREADS_PATHS,
     tier: "primary",
   },
-  {
-    to: "/crew",
-    label: "Crew",
-    Icon: IconCrew,
-    count: null,
-    owns: BOUNDARY_PATHS,
-    tier: "secondary",
-  },
+  /*
+   * ── "GUARDRAILS", NOT "ENGINE ROOM" ───────────────────────────────────
+   *
+   * FOUNDER, 2026-08-15: "Engine Room is a ratifying word. I don't know what
+   * word we need to use to make it simple, one word which would do the job."
+   * He rejected "Controls" on the way here, and rightly: controls is the
+   * language of a mechanical or physical product, and this is software.
+   *
+   * THE EVIDENCE IS IN THE SCHEMA AGAIN. `guardrail_hits` carries 340 rows, so
+   * the data model has been using this word while the UI said something else —
+   * the same shape of defect as Crew above, found the same way. It is also
+   * native to agentic software rather than borrowed from machinery.
+   *
+   * WHAT IS BEHIND THE DOOR agrees: Quality, Safety, Spend, Routines, Verify
+   * and Record. That is not an engine. It is where you set what agents may do
+   * and what they may cost, and check afterwards that they held.
+   *
+   * "ENGINE" WAS ALREADY TAKEN, which is the argument against keeping any part
+   * of it. `use-spine-strip.ts` carries the founder's ruling that clicking a
+   * station "must open that station's engine" — seven stations, seven engines,
+   * and the strip that draws them sits TEN PIXELS above this row. A door called
+   * Engine anything is a second, different meaning of the word inside one
+   * glance.
+   *
+   * THE LABEL ONLY. Route, folder, components and test ids stay
+   * `/engine-room`. `nav-model.ts` has meanwhile been calling this door
+   * "Pulse", so the product was already saying two things; it now says one.
+   * The bound letter survives the rename intact: `u`, for pUlse, is also in
+   * gUardrails.
+   */
   {
     to: "/engine-room",
-    label: "Engine room",
+    label: "Guardrails",
     Icon: IconEngine,
     count: null,
     owns: ENGINE_ROOM_PATHS,
@@ -341,9 +413,33 @@ function under(path: string, base: string): boolean {
 }
 
 /**
+ * THE SETTINGS DOOR'S OWN TERRITORY, which is not a rail row's.
+ *
+ * Agents moved inside Settings on 2026-08-15, so /crew and /boundary are now
+ * behind the gear rather than behind a row. `railOwnerOf` deliberately only
+ * answers for ROWS — returning a row for a path no row draws would have the
+ * rail claim a place it cannot point at — so the foot needs its own answer and
+ * this is it.
+ *
+ * Two tokens, the same pair the rows use: "page" is the door you are standing
+ * on, "true" is the door whose territory contains you. A screen reader gets the
+ * difference; both draw identically.
+ *
+ * Exported for the colocated guard, which is what stops the move quietly
+ * costing `g c` its lit control.
+ */
+export function settingsOwns(path: string): "page" | "true" | undefined {
+  if (under(path, "/settings")) return "page";
+  for (const owned of [...SETTINGS_PATHS, ...BOUNDARY_PATHS]) {
+    if (under(path, owned)) return "true";
+  }
+  return undefined;
+}
+
+/**
  * PURE - which rail row must be lit for this path. Approvals is owned by Today,
- * Threads by Brain, Boundary by Crew. Previously these were unreachable dead zones;
- * now each is owned by a rail row so the row stays lit when navigating there.
+ * Threads by Brain. Previously these were unreachable dead zones; now each is
+ * owned by a rail row so the row stays lit when navigating there.
  *
  * A row's OWN path wins over any other row's ownership claim, which is why
  * this is two passes and not one: /runs owns /build, and if /build ever became
@@ -597,6 +693,237 @@ function since(iso: string | null): string | null {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
+/**
+ * ── "NEW WORK ITEM", THE FIRST OF THE THREE ─────────────────────────────
+ *
+ * Founder, reviewing the rail: it needs an action that starts a new piece of
+ * work. It had none, on any surface reachable from the chrome.
+ *
+ * WHERE IT GOES, AND WHY IT IS A LINK RATHER THAN A HANDLER. `/runs` carries
+ * the product's only real dispatcher: the "Hand work over" composer, with its
+ * two doors (from a goal, from a spec) and the repo gate behind them. So this
+ * is a door to the place work actually starts, and it is a real `<Link>` so
+ * middle click, copy link address and open-in-new-tab all work — none of which
+ * work on a button.
+ *
+ * WHAT IT DELIBERATELY IS NOT: a second Ask. The header already has Ask, on
+ * Cmd+K, and Ask is a CONVERSATION. Wiring this to `openAsk()` would have made
+ * two controls that do one thing, and the one labelled "New work item" would
+ * open something that is not a new work item — the exact shape of lie this
+ * file's own comments record twice (the Ask button that opened the palette, the
+ * chevron that opened a navigation).
+ *
+ * THE HONEST LIMIT, stated rather than papered over: this lands you on /runs
+ * with the composer as the second block on the page, not with the caret already
+ * in it. Focusing it from here would mean reaching into another surface's DOM
+ * with a loose selector, which is how a shell comes to depend on a page it does
+ * not own. A `?compose` search param on the runs route is the right fix and it
+ * belongs to that route.
+ */
+function RailNew({ narrow }: { narrow: boolean }) {
+  return (
+    <Link
+      to="/runs"
+      className="sp-new"
+      /* Named out loud only when the label is not on screen, so a screen
+         reader is never handed the same words twice. */
+      aria-label={narrow ? "New work item" : undefined}
+      title={narrow ? "New work item" : undefined}
+    >
+      <span className="sp-new-label">New work item</span>
+      <IconPlus />
+    </Link>
+  );
+}
+
+/** What a found thing is, said in one word beside it. A run title and a
+ *  station name are otherwise two identical rows and the reader has to guess
+ *  which one goes where. */
+type FoundKind = "run" | "go";
+type Found = {
+  key: string;
+  label: string;
+  kind: FoundKind;
+  to: string;
+  params?: { missionId: string };
+};
+
+/**
+ * ── SEARCH, THE SECOND OF THE THREE ─────────────────────────────────────
+ *
+ * WHAT IT SEARCHES, AND WHY THAT IS THE ONLY HONEST ANSWER. Meridian's rail
+ * filters its own rows; this rail has five, and a field that narrows five
+ * visible rows is theatre. There is no workspace-wide search service in this
+ * product and inventing a UI for one would be a door onto nothing.
+ *
+ * So it searches the two things the shell ALREADY HOLDS and can therefore
+ * answer for truthfully:
+ *   · RUNS, off the `missions` read the live line is already polling. No new
+ *     query, no new server function, no second cache key — the header and the
+ *     field are reading one fact.
+ *   · DESTINATIONS, off `RAIL` and `STATION_ROUTE`, the same two lists the
+ *     rail and the strip draw from. Typing "disc" jumps to Discover, which is
+ *     the other half of what anyone means by search in a rail.
+ *
+ * A run wins over a destination when both match, because a person who types
+ * four words is naming a thing, not a place.
+ *
+ * NO KEYCAP, and it is not an oversight. `/` is bound to nothing here and
+ * `key-model.ts` holds a drift test over what each surface binds, in both
+ * directions. Drawing a `/` cap would promise a key that does not fire, which
+ * is this shell's own definition of a lie. The cap arrives with the binding.
+ */
+function RailFind({
+  narrow,
+  runs,
+  onExpand,
+}: {
+  narrow: boolean;
+  runs: ReadonlyArray<{ id: string; title: string }>;
+  onExpand: () => void;
+}) {
+  const navigate = useNavigate();
+  const [q, setQ] = React.useState("");
+  const [cursor, setCursor] = React.useState(0);
+  const box = React.useRef<HTMLInputElement | null>(null);
+
+  const found = React.useMemo<Found[]>(() => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return [];
+    const out: Found[] = [];
+    for (const m of runs) {
+      // The title as a person reads it. `[auto]` is a dedup marker from the
+      // trigger pipeline and must never reach a user, here included.
+      const clean = stripAutoPrefix(m.title);
+      if (!clean.toLowerCase().includes(needle)) continue;
+      out.push({
+        key: `run:${m.id}`,
+        label: clean,
+        kind: "run",
+        to: "/runs/$missionId",
+        params: { missionId: m.id },
+      });
+      if (out.length === 6) break;
+    }
+    for (const row of RAIL) {
+      if (row.label.toLowerCase().includes(needle)) {
+        out.push({ key: `go:${row.to}`, label: row.label, kind: "go", to: row.to });
+      }
+    }
+    for (const [station, to] of Object.entries(STATION_ROUTE)) {
+      const label = STAGE_LABEL[station as AgentStation];
+      if (label.toLowerCase().includes(needle)) {
+        out.push({ key: `go:${to}`, label, kind: "go", to });
+      }
+    }
+    return out;
+  }, [q, runs]);
+
+  const open = found.length > 0 || q.trim().length > 0;
+
+  const go = React.useCallback(
+    (hit: Found) => {
+      setQ("");
+      void navigate({ to: hit.to, params: hit.params } as never);
+    },
+    [navigate],
+  );
+
+  if (narrow) {
+    return (
+      <button
+        type="button"
+        className="sp-findbtn"
+        onClick={() => {
+          onExpand();
+          // The rail animates its width, so the field is not in the layout the
+          // frame this fires. One frame later it is.
+          requestAnimationFrame(() => box.current?.focus());
+        }}
+        title="Find a run"
+        aria-label="Find a run, opens the rail"
+      >
+        <IconFind />
+      </button>
+    );
+  }
+
+  return (
+    <div className="sp-find">
+      <IconFind />
+      <input
+        ref={box}
+        type="text"
+        value={q}
+        placeholder="Find a run"
+        aria-label="Find a run or a station"
+        onChange={(e) => {
+          setQ(e.target.value);
+          setCursor(0);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            setQ("");
+            return;
+          }
+          if (found.length === 0) return;
+          /*
+           * The cursor is clamped ONCE, here, rather than trusted. Typing
+           * shortens the list under it, so the index held from the last render
+           * can be past the end by the time a key arrives.
+           *
+           * WRITTEN AS A VALUE, NOT A FUNCTIONAL UPDATER, and that is
+           * deliberate rather than stylistic. `no-fabricated-agent-steps.test`
+           * bans `setX(c => (c + 1) % list.length)` in any file that also holds
+           * a timer, because that is the exact shape of a fake agent walking a
+           * label list on an interval -- and this file does hold a timer, for
+           * the live line's clock. The guard cannot tell a keypress from a
+           * tick, and it is right not to try: the shape is the tell. `cursor`
+           * is stable inside one handler, so the updater bought nothing here
+           * anyway.
+           */
+          const at = Math.min(cursor, found.length - 1);
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setCursor(at === found.length - 1 ? 0 : at + 1);
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setCursor(at === 0 ? found.length - 1 : at - 1);
+          } else if (e.key === "Enter") {
+            e.preventDefault();
+            go(found[at]);
+          }
+        }}
+      />
+      {open ? (
+        <div className="sp-findlist" role="listbox" aria-label="Results">
+          {found.length === 0 ? (
+            /* A search that matched nothing says so. A blank panel reads as a
+               broken component rather than as an answer. */
+            <p className="sp-findnone">Nothing here matches that.</p>
+          ) : (
+            found.map((hit, i) => (
+              <button
+                key={hit.key}
+                type="button"
+                role="option"
+                aria-selected={i === cursor}
+                className="sp-findrow mrd-focus-inset"
+                data-on={i === cursor ? "true" : "false"}
+                onMouseEnter={() => setCursor(i)}
+                onClick={() => go(hit)}
+              >
+                <span className="sp-findrow-text">{hit.label}</span>
+                <span className="sp-findrow-kind">{hit.kind === "run" ? "run" : "go"}</span>
+              </button>
+            ))
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
@@ -638,6 +965,15 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       window.localStorage.setItem(RAIL_KEY, v ? "0" : "1");
       return !v;
     });
+  }, []);
+  /** Open the rail, and remember that it is open. Pressing the collapsed
+   *  search glyph is an explicit choice to widen, so it persists like any
+   *  other; a rail that silently snapped shut again on the next reload would
+   *  be the product changing shape on its own, which is the behaviour the
+   *  auto-collapse was retired for. */
+  const expandRail = React.useCallback(() => {
+    window.localStorage.setItem(RAIL_KEY, "0");
+    setNarrow(false);
   }, []);
 
   // The seven-stage strip. The shell owns the region, a run owns the content:
@@ -734,6 +1070,52 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const rows = React.useMemo(() => missions.data?.missions ?? [], [missions.data]);
   const running = React.useMemo(() => rows.filter((m) => WORKING.has(m.status)), [rows]);
   const gateCount = queue.data?.items.length ?? 0;
+
+  /*
+   * ── WHAT AGENTS MOVING INTO SETTINGS MUST NOT COST ──────────────────────
+   *
+   * "Asking for more room" is the product noticing an agent has earned more
+   * independence, and it was the one genuinely valuable thing on the surface
+   * that just left the rail. Burying it behind a gear with no signal would
+   * waste it, so the gear carries the count.
+   *
+   * THE SAME QUERY KEY THE ROSTER SURFACE USES, deliberately. `/crew` reads
+   * `["crew","roster",workspaceId]` with `listCrew`; this joins that cache
+   * entry rather than opening a second read of the same table, so the number in
+   * the foot and the list you land on cannot disagree, and opening Agents costs
+   * no extra round trip.
+   *
+   * NO POLL, AND A LONG STALE TIME. `asking` is derived from an agent's own
+   * track record over many runs. It does not change second to second, so
+   * refetching it on the live line's cadence would be paying the four-second
+   * price for a fact that moves weekly. Measured on the live workspace:
+   * `agent_autonomy.set_at` covers 14 distinct days in two months.
+   */
+  const fetchCrew = useServerFn(listCrew);
+  const crew = useQuery({
+    // Written as the literal `/crew` already writes it, character for
+    // character, because sharing the cache entry IS the point. A helper in
+    // query-keys.ts would be the tidier home and belongs in the same commit as
+    // the roster surface adopting it; inventing a second spelling here would
+    // give the two surfaces two caches and one of them would go stale.
+    queryKey: ["crew", "roster", workspaceId],
+    queryFn: () => fetchCrew({ data: { workspaceId } }),
+    staleTime: 5 * 60_000,
+  });
+  const askingCount = React.useMemo(
+    () => (crew.data?.members ?? []).filter((m) => m.asking.length > 0).length,
+    [crew.data],
+  );
+
+  /* One string, said twice, because `title` and `aria-label` must never drift:
+   * a pointer user and a screen-reader user are being told the same thing. */
+  const settingsTitle = React.useMemo(() => {
+    const key = SETTINGS_KEY ? `, shortcut ${NAV_CHORD_PREFIX} then ${SETTINGS_KEY}` : "";
+    if (askingCount === 0) return `Settings${key}`;
+    return askingCount === 1
+      ? `Settings${key}. 1 agent is asking for more room`
+      : `Settings${key}. ${askingCount} agents are asking for more room`;
+  }, [askingCount]);
 
   // WHO is working. `missions.current_agent_id` is a uuid, so the roster is the
   // only way to turn it into a slug the catalog can draw and name; without it
@@ -1095,17 +1477,43 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     <RunStripProvider value={stripCtx}>
       <div
         className="sp-app"
+        /*
+         * THE SYSTEM TRAVELS WITH THE PART, and this is the line that moves the
+         * whole shell onto it.
+         *
+         * meridian.css scopes its focus treatment, its caret and accent
+         * colours, its selection colour and its neutralisation of the legacy
+         * `--focus-ring` alias chain to `[data-mrd]`. Every Meridian component
+         * carries the attribute; the chrome that frames all of them did not, so
+         * the shell was the one surface still picking up `[data-obsidian]
+         * :focus-visible` out of the unlayered part of styles.css — an ember
+         * ring on every tab press, in the product that retired ember from every
+         * interaction state.
+         *
+         * `[data-mrd][data-mrd] :focus-visible` scores (0,3,0) against that
+         * rule's (0,2,0), so it wins outright rather than on source order. The
+         * descendant reach is deliberate and is the migration working as
+         * designed: an unported surface mounted inside this shell stops glowing
+         * too, without being touched.
+         */
+        data-mrd=""
         data-rail={narrow ? "narrow" : "wide"}
         data-strip={strip ? "on" : "none"}
       >
         <header className="sp-top">
-          <Link to="/today" className="sp-brand" aria-label="Supaprod, go to Today">
-            {/* mono + no glow: the mark is identity, not an event, and colour
+          {/* THE BRAND AND THE RAIL TOGGLE, AS ONE BLOCK. Founder, 2026-08-15:
+            the collapse control belongs at the top, next to the logo. See
+            `.sp-collapse` in shell.css for why the rail foot was the wrong home
+            for it — chiefly that below 640px the rail is `display: none`, so the
+            control that reveals the rail vanished with the rail. */}
+          <div className="sp-lede">
+            <Link to="/today" className="sp-brand" aria-label="Supaprod, go to Today">
+              {/* mono + no glow: the mark is identity, not an event, and colour
               arrives only when something happens. The glow is also a recorded
               defect on the auth door (session-handoff.md), so it is not
               carried into the chrome. */}
-            <span className="sp-logo">
-              {/* THE REAL MARK, not the watermark. `mono` was set here and it
+              <span className="sp-logo">
+                {/* THE REAL MARK, not the watermark. `mono` was set here and it
                   is a documented switch that REPLACES the Brain+Pulse core with
                   a grey circle ("silver/gray spiral + core, no ember/gold").
                   So the wordmark in the top left was the brand with its centre
@@ -1115,10 +1523,28 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                   The ember core is the ONE piece of brand colour the rebuild's
                   monochrome default does not govern: a logo's own colour is
                   identity, not interface state. */}
-              <SupaprodMark size={21} glow={false} />
-            </span>
-            <span className="sp-wordmark">Supaprod</span>
-          </Link>
+                <SupaprodMark size={21} glow={false} />
+              </span>
+              <span className="sp-wordmark">Supaprod</span>
+            </Link>
+            {/* ONE GLYPH SOURCE, which is the other half of what he asked for.
+              The mark beside it and this control were drawn by two different
+              hands — `IconPanel` here, and a second inline drawing inside
+              Meridian's own SidebarNav. Both are now the one drawing in
+              icons.tsx, mirrored for the two directions so the icon is a
+              promise about the next press rather than a picture of the current
+              state. `IconPanel` is deleted rather than deprecated. */}
+            <button
+              type="button"
+              className="sp-collapse"
+              onClick={toggleRail}
+              title={narrow ? "Expand the rail" : "Collapse the rail"}
+              aria-label={narrow ? "Expand the rail" : "Collapse the rail"}
+              aria-pressed={narrow}
+            >
+              {narrow ? <IconRailExpand /> : <IconRailCollapse />}
+            </button>
+          </div>
 
           {/* The chevron is a menu now. It was a Link to /settings wearing a
             chevron, which promises a menu and delivers a navigation. See
@@ -1256,11 +1682,31 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                   role={asTab ? "tab" : undefined}
                   aria-selected={asTab ? on : undefined}
                   aria-pressed={asTab ? undefined : on}
-                  className="sp-stage"
+                  /* `mrd-focus-inset` is Meridian's own hook and is not
+                     decoration here. The strip becomes a horizontal scroller at
+                     640px, and an OUTSET ring on the first or last chip is
+                     sheared off by that overflow, which reads as a broken
+                     half-drawn edge rather than as focus. Written as the class
+                     rather than as an `outline-offset` in shell.css because
+                     `[data-mrd][data-mrd] :focus-visible` scores (0,3,0) and
+                     would win over `.sp-stage:focus-visible` at (0,2,0) --
+                     verified in the browser, where the offset came back 1px
+                     instead of -2px. The system already solved this; the hook
+                     is how it is asked for. */
+                  className="sp-stage mrd-focus-inset"
                   data-state={stage.state}
                   data-on={on ? "true" : "false"}
+                  /* NO `--sp-hue` HERE ANY MORE, 2026-08-15. This chip used to
+                     set a per-station colour inline, from `stageHueForStation`,
+                     and shell.css painted three things with it: the active
+                     station's bar, the working note, and the status dot. That
+                     is a station IDENTITY drawn as a seven-colour ramp, on the
+                     one control that is on screen everywhere — the exact thing
+                     the comment forty lines below says the system may not do,
+                     contradicted by this line. The bar is neutral now, and the
+                     working note and dot take the machine hue, which is what
+                     "a machine is working" means in every other surface. */
                   onClick={() => strip.onSelect(stage.station)}
-                  style={{ "--sp-hue": stageHueForStation(stage.station) } as React.CSSProperties}
                 >
                   <span className="sp-stage-n">
                     {String(i + 1).padStart(2, "0")}
@@ -1340,6 +1786,19 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
 
         <div className="sp-mid">
           <aside className="sp-rail">
+            {/* ── THE HEAD OF THE RAIL ─────────────────────────────────────
+              Two controls the founder asked for on review and that did not
+              exist: a way to START a piece of work, and a way to FIND one.
+
+              NEITHER IS A ROW, and that is the contract rather than a layout
+              preference. nav-model.ts's law is that features never add nav
+              items, because the loop is the fixed spine of the product. An
+              action and a field are not destinations, so they sit above the
+              rows where Meridian's own rail (SidebarNav.tsx) puts them. */}
+            <div className="sp-railhead">
+              <RailNew narrow={narrow} />
+              <RailFind narrow={narrow} runs={rows} onExpand={expandRail} />
+            </div>
             <nav className="sp-nav" aria-label="Main">
               {[
                 { rows: RAIL_PRIMARY, divider: false },
@@ -1479,7 +1938,13 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                 for an annotation, and a keycap crammed under a gear would be
                 the noise the founder is already complaining about. Derived
                 from the same lookup as the rows above, so it cannot drift
-                either. */}
+                either.
+
+                IT NOW HOLDS AGENTS TOO (2026-08-15). The Crew row left the rail
+                and its surface lives behind this door, so this control lights
+                for /crew and /boundary as well as for /settings, and carries
+                the count of agents asking for more room. Both of those are what
+                stop a demotion becoming a disappearance. See `settingsOwns`. */}
               <Link
                 to="/settings"
                 className="sp-setbtn"
@@ -1489,28 +1954,52 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                    it draws no keycap (three 34px buttons in a 236px foot have
                    no room) and the command palette that used to list it is not
                    mounted -- so this string was the whole affordance, and it
-                   was wrong. */
-                title={
-                  SETTINGS_KEY
-                    ? `Settings, shortcut ${NAV_CHORD_PREFIX} then ${SETTINGS_KEY}`
-                    : "Settings"
-                }
-                aria-label={
-                  SETTINGS_KEY
-                    ? `Settings, shortcut ${NAV_CHORD_PREFIX} then ${SETTINGS_KEY}`
-                    : "Settings"
-                }
+                   was wrong.
+
+                   THE COUNT IS SPOKEN, NEVER LEFT AS A BARE NUMBER. A dot in a
+                   corner says nothing out loud, and "2" on its own is a number
+                   with no noun. */
+                title={settingsTitle}
+                aria-label={settingsTitle}
+                aria-current={settingsOwns(pathname)}
                 activeProps={{ "aria-current": "page" }}
               >
                 <IconGear />
+                {/* THE QUIET COUNT, and deliberately not the gate treatment.
+                  `data-hot="false"` is the same neutral the Runs row's count
+                  wears; orchid is reserved for "a person is REQUIRED" and an
+                  agent proposing that it stops asking is available rather than
+                  owed. Nothing at all is drawn at zero, per the standing ruling
+                  that an empty chip stays blank rather than saying "none". */}
+                {askingCount > 0 ? (
+                  <span
+                    /* Keyed on the number so a CHANGE remounts the disc and
+                       replays its arrival. Without the key it mounts once and
+                       the count going from one to two changes a glyph in
+                       silence, which is the whole event. */
+                    key={askingCount}
+                    className="sp-setcount"
+                    data-hot="false"
+                    aria-hidden="true"
+                  >
+                    {askingCount}
+                  </span>
+                ) : null}
               </Link>
               {/* THE DOOR ONTO THE KEYBOARD, and it is drawn rather than left
                 to be guessed. `?` is what Gmail, GitHub, Linear, Jira, Slack,
                 Notion and Superhuman all bind, so most people will try it --
                 but "most people will try it" is not a door, it is a hope, and
-                this repo's signature defect is a capability with no door. The
-                keycap IS the affordance: it is the only mark in the shell that
-                is its own instruction. */}
+                this repo's signature defect is a capability with no door.
+
+                IT IS A KEYBOARD NOW, NOT A QUESTION MARK (founder, 2026-08-15).
+                The old glyph was the character itself, which was clever and was
+                also the wrong word: "?" means HELP generically -- docs, support,
+                a tour -- and this door opens exactly one thing. A keyboard says
+                which one. The key that opens it is unchanged and still spoken in
+                the accessible name, so nothing is lost to a reader who cannot
+                see the glyph; and the button stops being the one control in the
+                foot holding a text character among three stroked icons. */}
               <button
                 type="button"
                 className="sp-setbtn sp-keysbtn"
@@ -1520,18 +2009,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                 aria-haspopup="dialog"
                 aria-expanded={keysOpen}
               >
-                <span aria-hidden="true">?</span>
+                <IconKeyboard />
               </button>
-              <button
-                type="button"
-                className="sp-collapse"
-                onClick={toggleRail}
-                title={narrow ? "Expand the rail" : "Collapse the rail"}
-                aria-label={narrow ? "Expand the rail" : "Collapse the rail"}
-                aria-pressed={narrow}
-              >
-                <IconPanel />
-              </button>
+              {/* The rail collapse used to be the fifth control here. It is in
+                the header now, beside the brand — see `.sp-lede` above and the
+                note on `.sp-collapse` in shell.css. */}
             </div>
           </aside>
 

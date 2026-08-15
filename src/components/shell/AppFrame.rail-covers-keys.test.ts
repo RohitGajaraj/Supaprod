@@ -33,7 +33,7 @@
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { railOwnerOf } from "./AppFrame";
+import { railOwnerOf, settingsOwns } from "./AppFrame";
 import { STATION_ROUTE } from "./run-strip";
 import { ENGINE_ROOM_PATHS, FOOTER_NAV, PRIMARY_NAV, navKeyHint } from "@/lib/nav-model";
 
@@ -78,10 +78,21 @@ function litFootDoors(): string[] {
 
 describe("every bound key lands somewhere the rail can light", () => {
   it("finds a lit control for all thirteen bound doors", () => {
+    /*
+     * THREE WAYS A DOOR CAN BE LIT, and the third arrived on 2026-08-15 when
+     * Agents moved off the rail and into Settings. A row can own it, a foot
+     * control can BE it, or a foot control can own its TERRITORY -- which is
+     * what `settingsOwns` answers for /crew and /boundary now that the roster
+     * lives behind the gear.
+     *
+     * The third arm is read from the exported function rather than from a list
+     * here, for the same reason the first is: this file must not become the
+     * second place the answer is written down.
+     */
     const foot = new Set(litFootDoors());
-    const dark = BOUND.filter((d) => railOwnerOf(d.to) === null && !foot.has(d.to)).map(
-      (d) => `${navKeyHint(d)} -> ${d.to}`,
-    );
+    const dark = BOUND.filter(
+      (d) => railOwnerOf(d.to) === null && !foot.has(d.to) && settingsOwns(d.to) === undefined,
+    ).map((d) => `${navKeyHint(d)} -> ${d.to}`);
     // Empty, and it is the whole point. A new binding whose destination no row
     // owns and no foot control matches shows up here by name and key, which is
     // enough to fix it without opening a browser.
@@ -109,7 +120,11 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // NEIGHBOUR is the same bug seen from the other side - that row could
     // never light at all. Both are caught by the same assertion.
     const rows = [...railBlock().matchAll(/to:\s*"([^"]+)"/g)].map((m) => m[1]);
-    expect(rows.length).toBe(5);
+    // FOUR since 2026-08-15: Today, Runs, Brain, Guardrails. Crew was the
+    // fifth and moved into Settings; the count is asserted rather than left
+    // open because an empty or halved rail is exactly the failure this file
+    // exists to catch, and a `>= 1` would sail past it.
+    expect(rows.length).toBe(4);
     for (const r of rows) expect(railOwnerOf(r)).toBe(r);
   });
 
@@ -131,7 +146,7 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     expect(block).not.toMatch(/owns:\s*\[/);
     const owns = [...block.matchAll(/owns:\s*([A-Z][A-Z_]*)\b/g)].map((m) => m[1]);
     // One per row, so a row cannot drop the field and quietly go dark.
-    expect(owns.length).toBe(5);
+    expect(owns.length).toBe(4);
   });
 
   it("owns exactly the seven stations the strip navigates to", () => {
@@ -166,13 +181,52 @@ describe("the rail's ownership is derived, and unambiguous", () => {
 
   it("lights the appropriate row for surfaces that own paths (dead zone fix)", () => {
     // Previously, Approvals, Boundary, and Threads were unreachable dead zones.
-    // Now each is owned by a rail row: Today owns Approvals, Crew owns Boundary,
-    // Brain owns Threads. This ensures the rail row stays lit when navigating there.
+    // Now each is owned: Today owns Approvals, Brain owns Threads, and the
+    // Settings door owns Boundary since Agents moved behind it on 2026-08-15.
     expect(railOwnerOf("/approvals")).toBe("/today");
-    expect(railOwnerOf("/boundary")).toBe("/crew");
     expect(railOwnerOf("/threads")).toBe("/brain");
 
-    // Settings is a special case: it's not owned by any row, it's a foot icon.
+    // Settings is a special case: it's not a row, it's a foot icon, so
+    // `railOwnerOf` is silent about it and its own territory by design.
     expect(railOwnerOf("/settings")).toBeNull();
+    expect(railOwnerOf("/crew")).toBeNull();
+    expect(railOwnerOf("/boundary")).toBeNull();
+  });
+
+  /**
+   * THE HALF A DEMOTION USUALLY DROPS.
+   *
+   * Crew came off the rail on 2026-08-15 and became Agents inside Settings.
+   * The keyboard did not move with it: `g c` still fires at /crew, and
+   * /boundary is still reached from that surface. Before this, both were owned
+   * by the Crew ROW, and a foot control gets no ownership for free — so the
+   * move would have left two destinations the shell could not name, which is
+   * the precise defect this whole file was written after.
+   *
+   * Asserted on the exported function rather than on the markup, so it holds
+   * whichever control ends up drawing it.
+   */
+  describe("the Settings door speaks for what moved behind it", () => {
+    it("lights itself on its own page and on the territory it holds", () => {
+      expect(settingsOwns("/settings")).toBe("page");
+      expect(settingsOwns("/settings/anything")).toBe("page");
+      expect(settingsOwns("/crew")).toBe("true");
+      expect(settingsOwns("/boundary")).toBe("true");
+    });
+
+    it("claims nothing it does not hold", () => {
+      expect(settingsOwns("/today")).toBeUndefined();
+      expect(settingsOwns("/runs")).toBeUndefined();
+      expect(settingsOwns("/engine-room")).toBeUndefined();
+    });
+
+    it("never lets the two altitudes both answer for one path", () => {
+      // A row and the foot both claiming a path would say you are in two
+      // places. The rows are the authority; the foot only picks up what no row
+      // owns.
+      for (const path of ["/crew", "/boundary", "/settings"]) {
+        expect(railOwnerOf(path)).toBeNull();
+      }
+    });
   });
 });

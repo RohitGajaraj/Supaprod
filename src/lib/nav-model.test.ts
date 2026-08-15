@@ -287,9 +287,23 @@ describe("nav-model - one key, one door, across the WHOLE nav model", () => {
     expect(end).toBeGreaterThan(start);
     const paths = [...src.slice(start, end).matchAll(/to:\s*"([^"]+)"/g)].map((m) => m[1]);
 
-    expect(paths.length).toBeGreaterThanOrEqual(5);
+    /*
+     * WHAT THIS HOLDS, RESTATED 2026-08-15 SO IT PINS THE CLAIM AND NOT A ROSTER.
+     *
+     * It used to require at least five rows including /crew. That was a copy of
+     * the rail's SHAPE, and the shape is a product decision that moved: the
+     * founder took Crew off the rail and into Settings, measuring that
+     * `agent_autonomy.set_at` covers 14 distinct days in two months, which is a
+     * configuration cadence rather than a working one.
+     *
+     * The invariant underneath it never moved and is what is asserted now:
+     * EVERY RAIL ROW IS A DOOR THE KEYBOARD CAN REACH. /runs stays named
+     * because it is the one row whose presence has been argued twice and is
+     * load-bearing (the strip navigates to a STATION; /runs lists RUNS, and
+     * removing it leaves no door to the list of work items at all).
+     */
+    expect(paths.length).toBeGreaterThanOrEqual(4);
     expect(paths).toContain("/runs");
-    expect(paths).toContain("/crew");
     for (const p of paths) {
       const door = DOORS.find((d) => d.to === p);
       expect(door).toBeDefined();

@@ -87,7 +87,9 @@ describe("which rail doors the keyboard reaches", () => {
   it("keys every rail row, and leaves none unreachable", () => {
     const keyed = RAIL_DOORS.filter((r) => r.key !== "").map((r) => r.to);
     const unkeyed = RAIL_DOORS.filter((r) => r.key === "").map((r) => r.to);
-    expect(keyed).toEqual(["/today", "/runs", "/brain", "/crew", "/engine-room"]);
+    // FOUR since 2026-08-15. /crew left the rail for Settings; its key did not
+    // move, and where it lands is now held by AppFrame.rail-covers-keys.test.
+    expect(keyed).toEqual(["/today", "/runs", "/brain", "/engine-room"]);
     expect(unkeyed).toEqual([]);
   });
 
@@ -107,6 +109,9 @@ describe("which rail doors the keyboard reaches", () => {
     // AppFrame.rail-covers-keys.test.ts: the seven hang under the /runs row
     // via `owns`, Settings lights its own control in the foot. A row for any
     // of them would be a nav change; a lit row is a fact about where you are.
+    // /crew joined this list on 2026-08-15 for the same reason Settings is on
+    // it: it is a door you open from the foot, not a place you live. Its
+    // surface, its route and its key are unchanged.
     expect(noRow).toEqual([
       "/discover",
       "/decide",
@@ -115,6 +120,7 @@ describe("which rail doors the keyboard reaches", () => {
       "/build",
       "/ship",
       "/learn",
+      "/crew",
       "/settings",
     ]);
   });

@@ -1,15 +1,47 @@
 /* ===================================================================
- * THE SHELL. Step 2 of the rebuild.
- * Lifted from docs/planning/rebuild-2026-07/structure/PROTOTYPE-v2.html
- * Tokens: src/styles/ink.css (the --sp-* layer). No literal colour here.
+ * THE SHELL, ON MERIDIAN.
  *
  * FOUR REGIONS, and not eight (decided, session-handoff.md):
  *   header 56  ·  rail 236/64  ·  work  ·  Ask summoned
  * This replaces AppShell.tsx, MissionShellView.tsx and RoomChrome.tsx.
  *
- * Class names are all `sp-` prefixed for the same reason the tokens are:
- * styles.css is 3700 lines of legacy selectors and this layer must not
- * be reachable by any of them.
+ * ── WHY THIS FILE MOVED, 2026-08-15 ─────────────────────────────────
+ * Every colour, size, weight and duration in here used to be a `--sp-*`
+ * token out of ink.css. That layer had been rewritten so each token
+ * aliases its Meridian equivalent, so THE SHELL ALREADY PAINTED
+ * CORRECTLY and nothing on screen was wrong. That is exactly why it was
+ * worth moving anyway: a second vocabulary that renders identically to
+ * the first is not a bug, it is the place the next bug comes from. Six
+ * surfaces speak Meridian and the chrome that frames all six spoke ink,
+ * so any Meridian change had to be applied twice, by hand, by someone
+ * who remembered.
+ *
+ * WHAT `--sp-*` IS STILL READ FOR, and it is a short and deliberate
+ * list. These are LAYOUT CONTRACTS SHARED WITH FILES THIS ONE DOES NOT
+ * OWN, so declaring a shell-local copy would be two numbers for one
+ * fact:
+ *   --sp-header-h    also read by AskPane.tsx (the pane hangs off it)
+ *   --sp-icon        also read by primitives.css
+ *   --sp-icon-sm     also read by primitives.css
+ *   --sp-mark        also read by primitives.css, provider-marks.tsx
+ *   --sp-main-max    also read by decide.css and two run routes
+ *   --sp-ctx-gap     also read by primitives.css and settings
+ *   --sp-pane-ask-w  also read by AskPane.tsx and primitives.tsx
+ *   --sp-pane-inset  also read by AskPane.tsx and primitives.tsx
+ *   --sp-work-pad-*  pinned by the-gutter-answers-the-work-region.test
+ * Everything else the shell needs and nothing else reads is declared
+ * below as `--shell-*`, which is the point: those numbers now have an
+ * owner and it is this file.
+ *
+ * THE CLASS NAMES STAY `sp-`. Four colocated guards read them out of
+ * this file and out of AppFrame.tsx as SOURCE TEXT -- see
+ * AppFrame.station-keys.test.ts, which asserts on the exact selector
+ * `:root[data-chord="armed"] .sp-app[data-rail="narrow"] .sp-navrow >
+ * svg` among others. Renaming the vocabulary would make three guards
+ * about shipped defects pass vacuously, which is a worse outcome than a
+ * legacy prefix. The prefix also still does its original job: styles.css
+ * is 3700 lines of legacy selectors and this layer must not be reachable
+ * by any of them.
  *
  * TRANSITION RULE. The work region is a scroll container and nothing
  * else. A surface that has been ported opts into `.sp-inner` for the
@@ -17,6 +49,34 @@
  * renders raw so its own padding is not doubled. When step 4 finishes,
  * every surface is inside `.sp-inner` and this note goes.
  * =================================================================== */
+
+/*
+ * ── THE SHELL'S OWN GEOMETRY ─────────────────────────────────────────
+ * Meridian owns colour, type, radius, space, motion and elevation. It
+ * does not own how tall this product's header is or how wide its rail
+ * is, and it should not: those are facts about THIS shell, not about a
+ * design system. So they live here, next to the rules that read them.
+ *
+ * The z-stops are the one set that is genuinely a whole-app ordering
+ * rather than a shell measurement, and they are declared here anyway
+ * because nothing outside this file has ever read them. If a second
+ * file needs one, hoist the block rather than typing the number twice.
+ */
+:root {
+  --shell-rail-w: 236px;
+  --shell-rail-narrow: 64px;
+  --shell-row-h: 38px;
+  --shell-ctl-xs: 30px; /* the rail collapse */
+  --shell-ctl-sm: 34px; /* icon button, Ask, the settings door */
+  --shell-work-max: 1400px;
+  --shell-ctx-w: 316px;
+
+  --shell-z-dock: 30; /* the composer dock, above the work region */
+  --shell-z-tip: 50; /* the rail's label, over the row it names */
+  --shell-z-summon: 60; /* a summoned full-viewport overlay: the board */
+  --shell-z-sheet: 62; /* a side sheet, above a board that may have opened it */
+  --shell-z-menu: 70; /* a menu, the topmost thing inside the frame */
+}
 
 /* ---------- scrollbars: thin and quiet, everywhere ----------
  * FOUNDER RULING 2026-07-30: "In the Ask pane there is a vertical scrollbar,
@@ -36,8 +96,8 @@
  * At 8px with a hairline thumb they read as an edge, and the second one stops
  * competing with the first.
  *
- * QUIETER WHEN IDLE. The thumb sits at --sp-line (the same hairline every real
- * edge in this system uses) and steps up to --sp-mute on hover, so it is
+ * QUIETER WHEN IDLE. The thumb sits at --mrd-line (the same hairline every real
+ * edge in this system uses) and steps up to --mrd-mute on hover, so it is
  * present when scanned, findable when reached for, and never a feature.
  *
  * :root, AND NOT .sp-app, WHICH IS THE WHOLE POINT OF THE RULING. The two bars
@@ -54,7 +114,7 @@
 :root,
 :root * {
   scrollbar-width: thin;
-  scrollbar-color: var(--sp-line) transparent;
+  scrollbar-color: var(--mrd-line) transparent;
 }
 ::-webkit-scrollbar {
   width: 8px;
@@ -64,7 +124,7 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--sp-line);
+  background: var(--mrd-line);
   border-radius: 4px;
   /* Inset by a transparent border so an 8px channel carries a 4px thumb: the
    * hit target stays comfortable while the mark stays a hairline. */
@@ -72,7 +132,7 @@
   background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--sp-mute);
+  background: var(--mrd-mute);
   background-clip: content-box;
 }
 /* The corner where two bars meet is chrome nobody asked for. */
@@ -80,15 +140,58 @@
   background: transparent;
 }
 
-.sp-app {
+/*
+ * ── THE FRAME OWNS THE VIEWPORT, THE SHELL TAKES WHAT IS LEFT ────────────
+ *
+ * FOUNDER-REPORTED, with screenshots, 2026-08-15: with the low-credits banner
+ * showing, the bottom icons of the rail are cut off below the screen edge.
+ * Dismiss the banner and they come back.
+ *
+ * MEASURED AT HIS OWN 683px WINDOW BEFORE ANYTHING CHANGED, because a "cut off"
+ * complaint has several plausible causes: banner 29px, `.sp-app` 683px because
+ * it asked for `height: 100dvh` and got it, document 712px, and `.sp-railfoot`
+ * bottom at exactly 712 — one banner below the fold, to the pixel.
+ *
+ * The wrapper in `_authenticated.tsx` was a plain block box with no height and
+ * no display, so nothing ever told the shell that anything sat above it.
+ *
+ * NOT A SUBTRACTED CONSTANT. `calc(100dvh - 44px)` looks correct and is wrong
+ * immediately: there are TWO banners (`BackendHealthBanner`, `BillingBanner`)
+ * and both can show at once, so one number is wrong half the time, and wrong
+ * again the day somebody changes a banner's padding.
+ *
+ * `min-height: 0` IS LOAD-BEARING AND IS THE PART PEOPLE LEAVE OUT. A flex
+ * child defaults to `min-height: auto`, which refuses to shrink below its
+ * content — without it the shell pushes past the bottom edge again and nothing
+ * has changed. Same family as `min-width: auto` making a truncation inert,
+ * which this file has already been bitten by once, at `.sp-scopewrap`.
+ *
+ * `> *` FIRST, `.sp-app` SECOND, so the banners size to their content whatever
+ * they are and however many there are, and only the shell grows. `.sp-dock` is
+ * `position: fixed` and therefore out of flow entirely; the rule reaches it and
+ * does nothing, which is correct.
+ */
+.sp-frame {
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--sp-bg);
-  color: var(--sp-ink);
-  font-family: var(--sp-font-sans);
-  font-size: var(--sp-text-body);
-  line-height: var(--sp-leading-body);
+}
+.sp-frame > * {
+  flex: none;
+}
+.sp-frame > .sp-app {
+  flex: 1;
+  min-height: 0;
+}
+
+.sp-app {
+  display: flex;
+  flex-direction: column;
+  background: var(--mrd-bg);
+  color: var(--mrd-ink);
+  font-family: var(--mrd-font);
+  font-size: var(--mrd-t-body);
+  line-height: var(--mrd-lh-snug);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -101,32 +204,39 @@
   align-items: center;
   gap: 14px;
   padding: 0 18px;
-  background: var(--sp-sheet);
-  border-bottom: 1px solid var(--sp-line);
+  background: var(--mrd-sheet);
+  border-bottom: 1px solid var(--mrd-line);
 }
 
+/* The closing rule moved to `.sp-lede`, which now holds the brand AND the rail
+ * collapse: the divider closes the pair rather than cutting between them. */
 .sp-brand {
   display: flex;
   align-items: center;
   gap: 9px;
   flex: none;
-  padding-right: 14px;
-  border-right: 1px solid var(--sp-line);
-  color: var(--sp-ink);
+  color: var(--mrd-ink);
   text-decoration: none;
+  border-radius: var(--mrd-r-chip);
 }
 .sp-logo {
   width: 21px;
   height: 21px;
   flex: none;
-  color: var(--sp-ink);
+  color: var(--mrd-ink);
 }
-/* The product is Supaprod. A workspace is one thing inside it. */
+/* The product is Supaprod. A workspace is one thing inside it.
+ *
+ * NO TRACKING OF ITS OWN. This carried -0.017em, an optical setting from the
+ * ink era when nothing else on the page was tracked at all. Meridian sets
+ * -0.14px on `html, body` and inherits it everywhere, uniformly and at every
+ * size, and that uniformity is most of why the reference reads as considered
+ * rather than fussy. A per-element override here would be the one word on the
+ * screen set differently from every other word. */
 .sp-wordmark {
-  font-size: var(--sp-text-wordmark);
-  font-weight: var(--sp-weight-strong);
-  letter-spacing: var(--sp-track-wordmark);
-  color: var(--sp-ink);
+  font-size: var(--mrd-t-body);
+  font-weight: var(--mrd-w-semi);
+  color: var(--mrd-ink);
 }
 @media (max-width: 900px) {
   .sp-wordmark {
@@ -139,12 +249,12 @@
   align-items: center;
   gap: 7px;
   font: inherit;
-  font-size: var(--sp-text-body);
-  font-weight: var(--sp-weight-strong);
-  color: var(--sp-ink);
+  font-size: var(--mrd-t-body);
+  font-weight: var(--mrd-w-semi);
+  color: var(--mrd-ink);
   padding: 5px 8px;
   border: 0;
-  border-radius: var(--sp-radius-chip);
+  border-radius: var(--mrd-r-chip);
   background: none;
   cursor: pointer;
   flex: none;
@@ -153,16 +263,16 @@
   white-space: nowrap;
 }
 .sp-scope:hover {
-  background: var(--sp-hover);
+  background: var(--mrd-hover);
 }
 .sp-scope-sep {
-  color: var(--sp-mute);
-  font-weight: var(--sp-weight-regular);
+  color: var(--mrd-mute);
+  font-weight: var(--mrd-w-regular);
 }
 .sp-chev {
   width: 13px;
   height: 13px;
-  color: var(--sp-mute);
+  color: var(--mrd-mute);
   flex: none;
 }
 
@@ -177,13 +287,13 @@
   gap: 9px;
   justify-content: center;
   font: inherit;
-  font-size: var(--sp-text-prose);
-  color: var(--sp-body);
+  font-size: var(--mrd-t-base);
+  color: var(--mrd-body);
   cursor: pointer;
   padding: 7px 12px;
   border: 0;
   background: none;
-  border-radius: var(--sp-radius-ctl);
+  border-radius: var(--mrd-r-ctl);
   /* WIDE ENOUGH FOR A REAL TITLE. This was `max-width: 680px`, and measuring
    * the founder's own screen showed what that cost: the header was 1600px, the
    * line was pinned to exactly 680, the title needed 553 and got 386, and 446
@@ -205,18 +315,18 @@
  * Deliberately not ember: nothing is waiting on you because a mission was
  * self-proposed, and ember means exactly that one thing. */
 .sp-auto {
-  font-family: var(--sp-font-mono);
-  font-size: var(--sp-text-data-sm);
+  font-family: var(--mrd-mono);
+  font-size: var(--mrd-t-data);
   letter-spacing: 0.04em;
-  color: var(--sp-mute);
-  border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-sm);
+  color: var(--mrd-mute);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-xs);
   padding: 1px 5px;
   margin-right: 6px;
   vertical-align: 1px;
 }
 .sp-live:hover {
-  background: var(--sp-hover);
+  background: var(--mrd-hover);
 }
 /* On a run the live line is a status DIV, not a button (founder ruling
  * 2026-07-29: the strip is permanent, so there is nothing to toggle). It must
@@ -256,26 +366,36 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--sp-mute);
+  background: var(--mrd-mute);
   flex: none;
 }
 .sp-live-dot[data-state="running"] {
-  background: var(--sp-stage-build);
+  background: var(--mrd-agent);
 }
+/* THE ONE `--sp-*` COLOUR LEFT IN THIS FILE, and it is left on purpose.
+ * `surface-discipline.test.ts` §5b reads this stylesheet as text, strips its
+ * comments, and asserts that `.sp-live-dot[data-state="gate"]` exists AND that
+ * the literal token name `--sp-gate` appears. That guard is about a shipped
+ * defect -- the founder's ruling that the dot carries the gate colour so the
+ * headline does not have to -- and rewriting the spelling here would make it
+ * pass over a file that no longer says what it is checking, or fail for a
+ * reason that has nothing to do with the defect.
+ * It costs nothing on screen: ink.css declares `--sp-gate: var(--mrd-you)`, so
+ * this IS the orchid, read through one alias. */
 .sp-live-dot[data-state="gate"] {
   background: var(--sp-gate);
 }
 .sp-live-lead {
-  color: var(--sp-ink);
-  font-weight: var(--sp-weight-strong);
+  color: var(--mrd-ink);
+  font-weight: var(--mrd-w-semi);
   flex: none;
 }
 .sp-live-sep {
-  color: var(--sp-line);
+  color: var(--mrd-line);
   flex: none;
 }
 .sp-live-fact {
-  color: var(--sp-mute);
+  color: var(--mrd-mute);
   white-space: nowrap;
   overflow: hidden;
   /* The prototype wrote `clip` here, and it was right for the prototype: every
@@ -315,60 +435,89 @@
   flex: none;
 }
 .sp-iconbtn {
-  width: var(--sp-ctl-sm);
-  height: var(--sp-ctl-sm);
+  width: var(--shell-ctl-sm);
+  height: var(--shell-ctl-sm);
   border: 0;
   background: none;
-  border-radius: var(--sp-radius-ctl);
+  border-radius: var(--mrd-r-ctl);
   cursor: pointer;
   display: grid;
   place-items: center;
-  color: var(--sp-mute);
+  color: var(--mrd-mute);
   transition:
-    background var(--sp-dur-fast) var(--sp-ease),
-    color var(--sp-dur-fast) var(--sp-ease);
+    background var(--mrd-d-press) var(--mrd-ease),
+    color var(--mrd-d-press) var(--mrd-ease);
 }
 .sp-iconbtn:hover {
-  background: var(--sp-hover);
-  color: var(--sp-ink);
+  background: var(--mrd-hover);
+  color: var(--mrd-ink);
 }
 .sp-iconbtn svg {
   width: var(--sp-icon);
   height: var(--sp-icon);
 }
+/*
+ * ASK, A SECONDARY CONTROL, AND ITS HOVER USED TO DO NOTHING.
+ *
+ * The old rule set `background: var(--sp-float)` at rest and `var(--sp-float)`
+ * again on hover, so the fill did not move at all -- the only thing that
+ * changed was a soft outer bloom mixed inline from ink. Meridian draws a ring,
+ * never a bloom, and it puts a secondary control on `--mrd-lift`, the ladder
+ * stop whose whole definition is "a raised control, secondary button".
+ *
+ * ── THE HOVER IS A LAYER, NOT THE NEXT STOP, AND THIS IS THE SYSTEM GAP ──
+ * The obvious hover is `--mrd-float`, and it is wrong on paper for the same
+ * reason `hover:bg-mrd-float` is wrong on a primary (meridian.css records that
+ * defect by hand): `float` is 0.996 against a 0.985 header, so on the paper
+ * ground the button gets LIGHTER THAN ITS OWN CANVAS when you reach for it,
+ * which is the opposite of raising. Meridian has `--mrd-solid-hover` for the
+ * primary and NO equivalent for the secondary, which is the one token this
+ * port needed and could not add.
+ *
+ * `--mrd-hover` composited over the fill is the answer that needs no new
+ * token: it is an ALPHA, white on dark and ink on paper, so it always moves
+ * away from the canvas whichever ground it lands on. Painted as a
+ * background-image over the background-colour so the two stack in one element.
+ */
 .sp-askbtn {
   display: flex;
   align-items: center;
   gap: 7px;
-  height: var(--sp-ctl-sm);
+  height: var(--shell-ctl-sm);
   padding: 0 12px;
   font: inherit;
-  font-size: var(--sp-text-meta);
-  font-weight: var(--sp-weight-medium);
-  color: var(--sp-ink);
-  background: var(--sp-float);
-  border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-ctl);
+  font-size: var(--mrd-t-base);
+  font-weight: var(--mrd-w-medium);
+  color: var(--mrd-ink);
+  background-color: var(--mrd-lift);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-ctl);
   cursor: pointer;
   transition:
-    background var(--sp-dur-fast) var(--sp-ease),
-    box-shadow var(--sp-dur-fast) var(--sp-ease);
-  box-shadow: 0 0 0 0.5px color-mix(in oklab, var(--sp-ink) 8%, transparent);
+    background-color var(--mrd-d-press) var(--mrd-ease),
+    border-color var(--mrd-d-press) var(--mrd-ease),
+    transform var(--mrd-d-press) var(--mrd-ease);
 }
 .sp-askbtn:hover {
-  background: var(--sp-float);
-  box-shadow: 0 0 8px color-mix(in oklab, var(--sp-ink) 12%, transparent);
+  background-image: linear-gradient(var(--mrd-hover), var(--mrd-hover));
+  border-color: var(--mrd-edge);
+}
+/* A press is acknowledged, and it is the same 0.96 every Meridian control
+ * uses. Without it the header's primary action is the one control in the
+ * product that does not move under a finger. */
+.sp-askbtn:active {
+  transform: scale(0.96);
 }
 .sp-askbtn-icon {
   width: var(--sp-icon-sm);
   height: var(--sp-icon-sm);
   flex: none;
-  color: var(--sp-mute);
+  color: var(--mrd-mute);
 }
 .sp-askbtn-key {
-  font-family: var(--sp-font-mono);
-  font-size: var(--sp-text-data-sm);
-  color: var(--sp-mute);
+  font-family: var(--mrd-mono);
+  font-size: var(--mrd-t-data);
+  color: var(--mrd-mute);
 }
 /* The brand mark renders its own <span role="img">, so the box is here. */
 .sp-logo {
@@ -377,7 +526,7 @@
   width: 21px;
   height: 21px;
   flex: none;
-  color: var(--sp-ink);
+  color: var(--mrd-ink);
 }
 /* The human reads as a different KIND of thing from an agent: agents are a
  * thin open line, you are a solid filled disc. The contrast survives
@@ -389,22 +538,37 @@
   flex: none;
   display: grid;
   place-items: center;
-  font-size: var(--sp-text-data-sm);
-  font-weight: var(--sp-weight-heavy);
-  letter-spacing: var(--sp-track-monogram);
-  color: var(--sp-ink);
+  font-size: var(--mrd-t-data);
+  font-weight: var(--mrd-w-semi);
+  /* THE ONE PLACE THE APP-WIDE TRACKING IS CANCELLED, and it is cancelled
+   * rather than replaced. Meridian's -0.14px is right for words; two capitals
+   * standing alone in a disc are not a word, and tightening them jams the pair
+   * into one shape. `normal` is the smallest correct answer: it takes the
+   * setting off rather than inventing a second tracking value. */
+  letter-spacing: normal;
+  color: var(--mrd-ink);
   cursor: pointer;
   border: 0;
-  background: linear-gradient(160deg, var(--sp-float), var(--sp-lift));
+  /* THE SYSTEM'S OWN RAISED FACE, not a hand-mixed gradient. This was a
+   * 160deg linear-gradient between two ladder stops with an ink highlight
+   * derived inline -- which is the exact arithmetic `--mrd-sheen` exists to
+   * stop three files doing separately. One ladder stop and one sheen. */
+  background: var(--mrd-lift);
   box-shadow:
-    inset 0 0 0 1px var(--sp-line),
-    inset 0 1px 0 0 color-mix(in oklab, var(--sp-ink) 7%, transparent);
-  transition: box-shadow var(--sp-dur-fast) var(--sp-ease);
+    inset 0 0 0 1px var(--mrd-line),
+    inset 0 1px 0 var(--mrd-sheen);
+  transition:
+    background var(--mrd-d-press) var(--mrd-ease),
+    box-shadow var(--mrd-d-press) var(--mrd-ease);
 }
 .sp-me:hover {
+  background: var(--mrd-float);
   box-shadow:
-    inset 0 0 0 1px var(--sp-mute),
-    inset 0 1px 0 0 color-mix(in oklab, var(--sp-ink) 10%, transparent);
+    inset 0 0 0 1px var(--mrd-edge),
+    inset 0 1px 0 var(--mrd-sheen);
+}
+.sp-me:active {
+  transform: scale(0.96);
 }
 
 /* ---------- the stage strip ----------
@@ -438,8 +602,8 @@
 .sp-strip {
   display: flex;
   gap: 0;
-  background: var(--sp-sheet);
-  border-bottom: 1px solid var(--sp-line);
+  background: var(--mrd-sheet);
+  border-bottom: 1px solid var(--mrd-line);
   padding: 12px 18px;
   flex: none;
   overflow-x: clip;
@@ -485,30 +649,52 @@
   text-align: left;
   background: none;
   border: 0;
-  border-radius: var(--sp-radius-sm);
+  border-radius: var(--mrd-r-xs);
   font: inherit;
   cursor: pointer;
   display: block;
-  transition: background var(--sp-dur-fast) var(--sp-ease);
+  transition: background var(--mrd-d-press) var(--mrd-ease);
 }
 .sp-stage:hover {
-  background: var(--sp-hover);
+  background: var(--mrd-hover);
 }
-/* The stage's own ::after bar marks "you are here". The app-wide focus ring
- * (a 2px glacier outline from styles.css) adds a second, mismatched highlight
- * on click. Suppress it here; the bar is the indicator. */
+/*
+ * ── A FOCUS RING, WHERE THERE USED TO BE NONE ───────────────────────────
+ *
+ * This read `outline: none`, twice, on the argument that "the ::after bar marks
+ * you are here, so the ring is a second mismatched highlight". That argument
+ * confuses two facts. The bar says WHICH STATION IS OPEN. A focus ring says
+ * WHERE THE KEYBOARD IS. Tab onto any of the six chips you are NOT standing on
+ * and the old rule drew absolutely nothing -- six of seven doors on the
+ * product's spine, invisible to a keyboard.
+ *
+ * The suppression was aimed at a real defect and hit the wrong thing: what it
+ * was fighting was the ember glow from the unlayered `[data-obsidian]
+ * :focus-visible` rule in styles.css, and Meridian kills that at source (the
+ * shell root now carries `data-mrd`, and `[data-mrd][data-mrd] :focus-visible`
+ * outscores it at (0,3,0) vs (0,2,0)). So the ring can come back as a neutral.
+ *
+ * NOTHING IS DECLARED HERE ANY MORE, WHICH IS THE POINT. Meridian owns the
+ * ring; the chip only has to stop suppressing it. The INSET offset it needs
+ * (the strip becomes a scroller at 640px, and an outset ring on the first or
+ * last chip is sheared off by that overflow) is asked for with Meridian's own
+ * `.mrd-focus-inset` class on the button, not with an `outline-offset` here:
+ * `[data-mrd][data-mrd] :focus-visible` scores (0,3,0) and beats any
+ * `.sp-stage:focus-visible` rule at (0,2,0). Measured in the browser -- the
+ * offset came back as 1px however it was written locally.
+ *
+ * The `box-shadow: none` survives because it is answering a different file:
+ * styles.css's unlayered `[data-obsidian] :focus-visible` also paints a bloom,
+ * and Meridian draws a ring, never a bloom.
+ */
 .sp-stage:focus-visible {
-  outline: none;
-}
-[data-obsidian] .sp-stage:focus-visible {
-  outline: none;
   box-shadow: none;
 }
 .sp-stage > span {
   display: block;
 }
-/* The open stage is marked by a rule under it in its own stage hue, not by a
- * filled pill. Emphasis is the run's state; this is only "you are here".
+/* The open stage is marked by a rule under it, not by a filled pill.
+ * Emphasis is the run's state; this is only "you are here".
  *
  * The rule is an ::after bar and NOT an inset box-shadow, which is what it was
  * first written as. `styles.css:2174` carries an unlayered
@@ -537,9 +723,31 @@
  * edge, so seven chips in a row still read as seven, not as one band with a
  * lighter section.
  */
+/*
+ * `--mrd-select` AND NOT `--mrd-lift`, 2026-08-15. Meridian has a token whose
+ * entire job is "a passage the reader has picked" and this is that. `lift` is
+ * the ground of a RAISED CONTROL: on paper it is 0.951 against a 0.985 sheet,
+ * a three-and-a-half percent step, which is why the selected chip and the
+ * selected rail row both read as unmarked on the light ground. `select` is an
+ * alpha wash that darkens on paper and lightens on dark, so it is unmistakable
+ * in both. It is emphatically NOT `--mrd-hover`, which is a 4.5% whisper and
+ * has been mistaken for this exact job nine times in this repo.
+ */
 .sp-stage[data-on="true"] {
-  background: var(--sp-lift);
+  background: var(--mrd-select);
 }
+/*
+ * IDENTITY IS SHAPE, STATUS IS HUE -- so this bar is a NEUTRAL.
+ *
+ * It painted `var(--sp-hue)`, set inline per chip from `stageHueForStation`:
+ * seven categorical colours, one per station, on the strip that is on screen
+ * everywhere. That is a station identity drawn as a colour ramp, which is the
+ * one thing `station-glyphs.tsx` says the system may not do -- a reader cannot
+ * tell "Plan is olive because it is Plan" from "Plan is olive because something
+ * is stuck there", and at 2px seven hues at one lightness are indistinguishable
+ * anyway. The station's identity is its glyph in the corner, and it always was.
+ * The bar's only job is position along the sequence, so it takes ink.
+ */
 .sp-stage[data-on="true"]::after {
   content: "";
   position: absolute;
@@ -547,20 +755,20 @@
   right: 14px;
   bottom: 0;
   height: 2px;
-  background: var(--sp-hue, var(--sp-ink));
+  background: var(--mrd-ink);
 }
 .sp-stage[data-on="true"] .sp-stage-name {
-  color: var(--sp-ink);
+  color: var(--mrd-ink);
 }
 .sp-stage + .sp-stage {
-  border-left: 1px solid var(--sp-line-soft);
+  border-left: 1px solid var(--mrd-line-soft);
   padding-left: 14px;
 }
 .sp-stage-n {
-  font-family: var(--sp-font-mono);
+  font-family: var(--mrd-mono);
   font-variant-numeric: tabular-nums;
-  font-size: var(--sp-text-data-sm);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-data);
+  color: var(--mrd-mute);
   /* The marker now shares its line with the station's keycap. Wrapping the two
    * onto separate lines would change the chip's height, and a strip that grows
    * a row the moment a person hovers it is the nudge-under-the-reader that the
@@ -598,7 +806,7 @@
   /* Faster than the shell's standard: this answers a keypress, and a hint that
    * fades in behind the second key of a two-key chord has arrived too late to
    * be the thing that taught it. */
-  transition: opacity 90ms var(--sp-ease);
+  transition: opacity 90ms var(--mrd-ease);
 }
 :root[data-chord="armed"] .sp-stage-key,
 .sp-stage:hover .sp-stage-key,
@@ -606,15 +814,53 @@
   opacity: 1;
 }
 
-/* THE RAIL ANSWERS THE SAME PRESS. Its keycaps are drawn permanently and
- * quietly (they are trailing text on a wide row, which has the room the strip
- * does not), so arming does not reveal them — it RAISES them, out of the
- * count's volume and up to the row's own ink. Without this, pressing `g` would
- * light the seven stations and leave the five rows it also governs looking
- * inert, which reads as "the chord does not reach these". */
+/*
+ * ── THE RAIL'S KEYCAPS HIDE UNTIL YOU APPROACH THEM, 2026-08-15 ─────────
+ *
+ * FOUNDER, on the rail: hide them and reveal them "how we have done it for the
+ * station thing. When I go on it, it gets shown."
+ *
+ * This paragraph used to argue the opposite -- that the rail has room the strip
+ * does not, so its caps could be permanent and arming would merely RAISE them.
+ * The argument was about space and he is objecting about noise, which is the
+ * better question: five rows each printing a two-character chord they will use
+ * once and then know is five pieces of permanent furniture on the surface he
+ * has twice asked to make quieter.
+ *
+ * SAME MECHANISM AS THE STRIP, deliberately copied rather than re-solved. The
+ * cap holds its box and moves only its opacity, so a row does not reflow when
+ * the hint appears -- the reason `.sp-stage-key` is written that way and the
+ * reason a `display` toggle would be wrong here too.
+ *
+ * REVEALED THREE WAYS, and the third is not optional. The chord being armed
+ * lights every cap in the product at once, which is what teaches the chord with
+ * no tour. The pointer covers someone already reaching. And FOCUS covers the
+ * keyboard user, who is precisely the person the hint is for -- a hover-only
+ * affordance would hide the shortcut from the only people who want it.
+ */
+.sp-navkey {
+  opacity: 0;
+  /* Faster than the shell's standard, for the strip's reason: a hint that
+   * fades in behind the second key of a two-key chord has arrived too late to
+   * be the thing that taught it. */
+  transition: opacity 90ms var(--mrd-ease);
+}
+:root[data-chord="armed"] .sp-navkey,
+.sp-navrow:hover .sp-navkey,
+.sp-navrow:focus-visible .sp-navkey {
+  opacity: 1;
+}
+/* Armed, it also steps up out of the count's volume and into the row's own
+ * ink, so a rail that is answering a keypress does not look inert beside seven
+ * stations that are. */
 :root[data-chord="armed"] .sp-navkey {
-  color: var(--sp-ink);
+  color: var(--mrd-ink);
   background: color-mix(in oklab, currentColor 22%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-navkey {
+    transition: none;
+  }
 }
 
 /* ---------- and the narrow rail, which had nothing to raise ----------
@@ -664,10 +910,10 @@
   }
 }
 .sp-stage-name {
-  font-size: var(--sp-text-prose);
-  color: var(--sp-body);
+  font-size: var(--mrd-t-base);
+  color: var(--mrd-body);
   margin: 3px 0;
-  font-weight: var(--sp-weight-medium);
+  font-weight: var(--mrd-w-medium);
   /* Truncate rather than wrap. A wrapped name would change the strip's height
    * as stages come and go, which is the same nudge-under-the-reader the state
    * line's min-height exists to prevent. The size is NOT reduced: the ratchet
@@ -677,8 +923,8 @@
   white-space: nowrap;
 }
 .sp-stage-state {
-  font-size: var(--sp-text-label);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-label);
+  color: var(--mrd-mute);
   /* The line keeps its height when it has no words. A quiet stage says nothing
    * (founder ruling 2026-07-30, "cant it be empty?") and the strip must not
    * change height as stages go quiet and busy, or the whole page nudges under
@@ -693,22 +939,27 @@
  * muted. Rendering them alike would make a run look further along than it is,
  * which is the same class of lie as a fabricated diffstat. */
 .sp-stage[data-state="done"] .sp-stage-name {
-  color: var(--sp-body);
+  color: var(--mrd-body);
 }
 .sp-stage[data-state="next"] .sp-stage-state {
-  color: var(--sp-body);
+  color: var(--mrd-body);
 }
 .sp-stage[data-state="working"] .sp-stage-name {
-  color: var(--sp-ink);
+  color: var(--mrd-ink);
 }
+/* A MACHINE IS WORKING, so it is azure, and it is azure on every station.
+ * This read the chip's own `--sp-hue`, so "the crew is building" was olive at
+ * Plan and teal at Discover -- the same fact in seven colours, and none of them
+ * the colour this system reserves for it. See the note on the active bar above:
+ * the station is the glyph, the state is the hue. */
 .sp-stage[data-state="working"] .sp-stage-state {
-  color: var(--sp-hue, var(--sp-stage-build));
+  color: var(--mrd-agent);
 }
 .sp-stage[data-state="gate"] .sp-stage-name {
-  color: var(--sp-ink);
+  color: var(--mrd-ink);
 }
 .sp-stage[data-state="gate"] .sp-stage-state {
-  color: var(--sp-gate);
+  color: var(--mrd-you);
 }
 
 /* HELD and FAILED, added 2026-08-15 with the states themselves.
@@ -726,10 +977,10 @@
   color: var(--mrd-hold);
 }
 .sp-stage[data-state="failed"] .sp-stage-name {
-  color: var(--sp-ink);
+  color: var(--mrd-ink);
 }
 .sp-stage[data-state="failed"] .sp-stage-state {
-  color: var(--sp-fail);
+  color: var(--mrd-fail);
 }
 
 /* ---------- the glance ----------
@@ -761,27 +1012,30 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  color: var(--sp-faint, var(--sp-mute));
+  color: var(--mrd-faint, var(--mrd-mute));
   transition: color var(--dur-fast, 140ms) var(--ease-out, ease);
 }
 .sp-stage:hover .sp-stage-mark {
-  color: var(--sp-mute);
+  color: var(--mrd-mute);
 }
 /* The active station's mark goes to full ink. It is the one glyph on the strip
    that is describing where you actually are, and at 12px a step from faint to
    mute is not enough to find it in peripheral vision. */
 .sp-stage[data-on="true"] .sp-stage-mark {
-  color: var(--sp-ink);
+  color: var(--mrd-ink);
 }
+/* The base dot is `working`, the only state that reaches this rule without an
+ * attribute of its own, so it takes the machine hue rather than the station's.
+ * Same correction as the note above. */
 .sp-stage-dot {
   width: 6px;
   height: 6px;
   flex: none;
   border-radius: 50%;
-  background: var(--sp-hue, var(--sp-stage-build));
+  background: var(--mrd-agent);
 }
 .sp-stage-dot[data-kind="gate"] {
-  background: var(--sp-gate);
+  background: var(--mrd-you);
 }
 /* The two states added with the strip's own vocabulary on 2026-08-15. Amber is
  * "stopped, and not on you"; red is an outcome. Both had no dot at all, so the
@@ -790,7 +1044,7 @@
   background: var(--mrd-hold);
 }
 .sp-stage-dot[data-kind="failed"] {
-  background: var(--sp-fail);
+  background: var(--mrd-fail);
 }
 /* A slow breathe, not a strobe: this sits in permanent chrome that a person
  * reads all day, so it has to be catchable in peripheral vision without ever
@@ -807,7 +1061,7 @@
   }
 }
 .sp-stage-dot[data-moving="true"] {
-  animation: sp-stage-breathe 2s var(--sp-ease) infinite;
+  animation: sp-stage-breathe 2s var(--mrd-ease) infinite;
 }
 
 /*
@@ -841,7 +1095,7 @@
   }
 }
 .sp-stage-dot[data-kind="working"]:not([data-moving="true"]) {
-  animation: sp-stage-alive 3.5s var(--sp-ease) infinite;
+  animation: sp-stage-alive 3.5s var(--mrd-ease) infinite;
 }
 /* Motion is the one channel some people cannot use, and it is never the only
  * carrier of a fact here: the note beside it already says "2 waiting on you" in
@@ -869,7 +1123,7 @@
  *
  * THE ARITHMETIC IS IN THE COMMENT AT THE TOP OF THIS SECTION. 339px of
  * content on a 375px phone, seven ways, is 19px of name each; "Discover" needs
- * about 58px at --sp-text-prose. So the shrink answer, whose whole promise is
+ * about 58px at --mrd-t-base. So the shrink answer, whose whole promise is
  * that all seven names survive, delivers seven ellipses with their markers
  * overlapping.
  *
@@ -1047,16 +1301,16 @@
 
 /* ---------- rail ---------- */
 .sp-rail {
-  width: var(--sp-rail-w);
+  width: var(--shell-rail-w);
   flex: none;
-  background: var(--sp-sheet);
-  border-right: 1px solid var(--sp-line);
+  background: var(--mrd-sheet);
+  border-right: 1px solid var(--mrd-line);
   display: flex;
   flex-direction: column;
-  transition: width var(--sp-dur-mid) var(--sp-ease);
+  transition: width var(--mrd-d-move) var(--mrd-ease);
 }
 .sp-app[data-rail="narrow"] .sp-rail {
-  width: var(--sp-rail-w-narrow);
+  width: var(--shell-rail-narrow);
 }
 .sp-app[data-rail="narrow"] .sp-navlabel,
 .sp-app[data-rail="narrow"] .sp-navcount {
@@ -1068,10 +1322,54 @@
   }
 }
 
+/*
+ * ── THE COLLAPSED RAIL SCROLLED SIDEWAYS, AND THE TOOLTIP WAS DOING IT ──
+ *
+ * FOUNDER, 2026-08-15: "On the collapse, absolutely fit. Collapses. There is a
+ * nav-like horizontal scroll, which is not really required if it collapses."
+ *
+ * MEASURED IN THE BROWSER BEFORE ANYTHING WAS CHANGED, because a layout
+ * complaint has several plausible causes and only one true one. At 64px:
+ * `.sp-nav` was clientWidth 63 and scrollWidth 267. Each 47px row reported a
+ * scrollWidth between 217 and 259. Suppressing ONE rule -- the `::after`
+ * tooltip -- took the nav's scrollWidth from 267 straight back to 63. It was
+ * the whole of it.
+ *
+ * THE MECHANISM, which is a CSS rule people forget: setting `overflow-y: auto`
+ * with `overflow-x` left at `visible` does not leave the other axis alone. The
+ * spec computes `visible` to `auto` the moment its partner is anything else,
+ * so this declaration silently made `.sp-nav` a HORIZONTAL scroll container
+ * too. The instant tooltip is `position: absolute; left: calc(100% + 10px)` on
+ * a row INSIDE that container, so all ~200px of it counted as content to be
+ * scrolled to. It is invisible in the wide rail only because the tooltip is
+ * `display: none` there.
+ *
+ * WHY NOT `overflow-x: hidden`, WHICH IS THE ONE-LINE ANSWER. It would clip
+ * the tooltip to the 64px rail, so five unlabelled icons would go back to
+ * having no names at all. That is not a fix, it is the symptom traded for a
+ * worse one.
+ *
+ * SO THE OVERFLOW BOX EXISTS EXACTLY WHERE IT DOES NO HARM: the wide rail,
+ * where the tooltip is not drawn and a long list genuinely could need
+ * scrolling. Both narrow paths turn it off, and they are written separately
+ * for the reason this file records three times already -- the 900px rule fires
+ * with no `[data-rail]` attribute in play, and a media query's contents carry
+ * no extra specificity.
+ */
 .sp-nav {
-  padding: 14px 8px 6px;
+  padding: 8px 8px 6px;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  /* A rail row is one atom. `gap: 1px` is the reference's own row rhythm:
+   * close enough to read as one list, separated enough that the selected
+   * ground does not weld into its neighbour. */
+  gap: 1px;
+}
+.sp-app[data-rail="narrow"] .sp-nav {
+  overflow: visible;
 }
 /*
  * THE TIER RULE, 2026-08-15. It separates where you WORK (Today, Runs, Brain)
@@ -1087,22 +1385,22 @@
   display: block;
   height: 1px;
   margin: 10px 12px;
-  background: var(--sp-line, var(--hairline, rgba(255, 255, 255, 0.1)));
+  background: var(--mrd-line, var(--hairline, rgba(255, 255, 255, 0.1)));
 }
 .sp-navrow {
   display: flex;
   align-items: center;
   gap: 11px;
-  height: var(--sp-navrow-h);
+  height: var(--shell-row-h);
   padding: 0 10px;
-  border-radius: var(--sp-radius-row);
-  color: var(--sp-body);
+  border-radius: var(--mrd-r-ctl);
+  color: var(--mrd-body);
   cursor: pointer;
   text-decoration: none;
-  font-size: var(--sp-text-body);
+  font-size: var(--mrd-t-body);
   transition:
-    background var(--sp-dur-fast) var(--sp-ease),
-    color var(--sp-dur-fast) var(--sp-ease);
+    background var(--mrd-d-press) var(--mrd-ease),
+    color var(--mrd-d-press) var(--mrd-ease);
 }
 .sp-app[data-rail="narrow"] .sp-navrow {
   justify-content: center;
@@ -1139,17 +1437,17 @@
   top: 50%;
   transform: translateY(-50%);
   white-space: nowrap;
-  font-size: var(--sp-text-label);
-  font-weight: var(--sp-weight-medium);
-  color: var(--sp-ink);
-  background: var(--sp-float);
-  border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-chip);
+  font-size: var(--mrd-t-label);
+  font-weight: var(--mrd-w-medium);
+  color: var(--mrd-ink);
+  background: var(--mrd-float);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-chip);
   padding: 4px 10px;
   pointer-events: none;
   opacity: 0;
-  z-index: var(--sp-z-tip);
-  transition: opacity var(--sp-dur-fast) var(--sp-ease);
+  z-index: var(--shell-z-tip);
+  transition: opacity var(--mrd-d-press) var(--mrd-ease);
 }
 .sp-app[data-rail="narrow"] .sp-navrow::after {
   display: block;
@@ -1158,19 +1456,34 @@
   opacity: 1;
 }
 .sp-navrow:hover {
-  background: var(--sp-hover);
-  color: var(--sp-ink);
+  background: var(--mrd-hover);
+  color: var(--mrd-ink);
 }
 /* Two tokens, one look. "page" is the row you are standing on; "true" is the
  * row whose section contains you (Runs while you are on Plan, Engine room while
  * you are on Govern). They are drawn the same on purpose, because the rail
  * answers "where am I" at section altitude, and only the spoken label needs to
- * know the difference. */
+ * know the difference.
+ *
+ * `--mrd-select`, and this is the single most visible change in the port. The
+ * ground here was `lift`, a RAISED CONTROL's surface. On paper that is 0.951
+ * under a 0.985 rail: three and a half percent, which is why the row you are
+ * standing on read as unmarked on the light ground -- measured in the browser
+ * before the change. `select` is the token Meridian added for exactly this,
+ * after the founder reported a highlight that was "very lightly visible" in
+ * both grounds. It is an alpha, so it darkens on paper and lightens on dark
+ * without this rule knowing which ground it is on.
+ *
+ * IT IS NOT `--mrd-hover`. That is a 4.5% wash, deliberately almost
+ * imperceptible under a pointer, and using it for a selection is a mistake this
+ * repo has made nine times across three agents. The two stack here on purpose:
+ * pointing at the row you are already on is the brightest state in the rail,
+ * which is correct. */
 .sp-navrow[aria-current="page"],
 .sp-navrow[aria-current="true"] {
-  background: var(--sp-lift);
-  color: var(--sp-ink);
-  font-weight: var(--sp-weight-strong);
+  background: var(--mrd-select);
+  color: var(--mrd-ink);
+  font-weight: var(--mrd-w-semi);
 }
 .sp-navrow svg {
   width: var(--sp-icon);
@@ -1183,15 +1496,15 @@
   white-space: nowrap;
 }
 .sp-navcount {
-  font-family: var(--sp-font-mono);
+  font-family: var(--mrd-mono);
   font-variant-numeric: tabular-nums;
-  font-size: var(--sp-text-data-sm);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-data);
+  color: var(--mrd-mute);
   flex: none;
 }
 .sp-navrow[aria-current="page"] .sp-navcount,
 .sp-navrow[aria-current="true"] .sp-navcount {
-  color: var(--sp-ink);
+  color: var(--mrd-ink);
 }
 /* Ember marks the human, and nothing else: a count is hot when it is waiting
  * on you, and it stays hot on the page you are already standing on. Written
@@ -1199,7 +1512,7 @@
  * specificity and wins on order. Without that it silently lost, which is the
  * kind of accident this file exists to prevent. */
 .sp-navrow .sp-navcount[data-hot="true"] {
-  color: var(--sp-gate);
+  color: var(--mrd-you);
 }
 
 /* Settings is a peer of the rail rows, at the foot, where Linear and Slack
@@ -1207,7 +1520,7 @@
  * place you live. */
 .sp-railfoot {
   padding: 8px;
-  border-top: 1px solid var(--sp-line-soft);
+  border-top: 1px solid var(--mrd-line-soft);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1221,46 +1534,392 @@
 .sp-setbtn {
   display: grid;
   place-items: center;
-  width: var(--sp-ctl-sm);
-  height: var(--sp-ctl-sm);
-  border-radius: var(--sp-radius-row);
-  color: var(--sp-mute);
+  width: var(--shell-ctl-sm);
+  height: var(--shell-ctl-sm);
+  border-radius: var(--mrd-r-ctl);
+  color: var(--mrd-mute);
   cursor: pointer;
   background: none;
   border: 0;
   flex: none;
   transition:
-    background var(--sp-dur-fast) var(--sp-ease),
-    color var(--sp-dur-fast) var(--sp-ease);
+    background var(--mrd-d-press) var(--mrd-ease),
+    color var(--mrd-d-press) var(--mrd-ease);
 }
-.sp-setbtn:hover,
+/*
+ * ── HOVER AND SELECTED WERE ONE RULE, AND THAT IS THE BUG ───────────────
+ *
+ * These two shared a declaration painting `--sp-hover`. On Settings, the one
+ * foot control that can be the page you are standing on, that meant the
+ * SELECTED state was drawn in the 4.5% wash Meridian describes as "a whisper
+ * designed to be barely perceptible under a pointer" -- so standing on
+ * /settings looked exactly like idly pointing at the gear, and both looked like
+ * nothing. It is the same defect the rail row carried and it is the tenth
+ * sighting of it in this repo.
+ *
+ * Split, and each gets the token that means what it is. Hover stays the
+ * whisper. Selected takes `--mrd-select`, which is unmistakable in both
+ * grounds and is the same mark the rail row above now wears, so the rail says
+ * "you are here" in one language from top to foot.
+ */
+.sp-setbtn:hover {
+  background: var(--mrd-hover);
+  color: var(--mrd-ink);
+}
 .sp-setbtn[aria-current="page"] {
-  background: var(--sp-hover);
-  color: var(--sp-ink);
+  background: var(--mrd-select);
+  color: var(--mrd-ink);
+}
+.sp-setbtn:active {
+  transform: scale(0.94);
 }
 .sp-setbtn svg {
   width: var(--sp-icon);
   height: var(--sp-icon);
   stroke-width: 1.5;
 }
-.sp-collapse {
-  width: var(--sp-ctl-xs);
-  height: var(--sp-ctl-xs);
-  border: 0;
-  background: none;
-  color: var(--sp-mute);
-  cursor: pointer;
-  border-radius: var(--sp-radius-chip);
+/*
+ * ── THE COUNT ON THE GEAR ────────────────────────────────────────────────
+ * Agents moved behind Settings on 2026-08-15 and "asking for more room" moved
+ * with it, so this is what stops the move burying a real signal.
+ *
+ * A SMALL DISC ON THE CORNER, not a trailing number, because this control is a
+ * 34px square with a glyph in the middle and has no trailing anything. It is
+ * the rail's own count treatment at the rail's own volume: mono, tabular, the
+ * quiet ink stop.
+ *
+ * `--mrd-mute` ON `--mrd-lift`, AND NEVER ORCHID. `data-hot="true"` is
+ * available and is deliberately not used by the caller: orchid means A PERSON
+ * IS REQUIRED, and an agent proposing that it stops asking is available rather
+ * than owed. The ring is the sheet colour so the disc reads as sitting ON the
+ * rail rather than punched through it, which is what keeps a 14px mark legible
+ * over a 17px glyph.
+ */
+.sp-setbtn {
+  position: relative;
+}
+.sp-setcount {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
   display: grid;
   place-items: center;
+  font-family: var(--mrd-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--mrd-t-nano);
+  line-height: 1;
+  color: var(--mrd-body);
+  background: var(--mrd-lift);
+  box-shadow: 0 0 0 2px var(--mrd-sheet);
+  border-radius: 999px;
+  /* It was not there a moment ago, and a count going from one to two is the
+   * event worth noticing. Keyed on the number in the component so the arrival
+   * replays rather than mounting once and going quiet forever. */
+  animation: mrd-pop-in var(--mrd-d-move) var(--mrd-ease) both;
+}
+.sp-setcount[data-hot="true"] {
+  color: var(--mrd-you);
+}
+/* ---------- the collapse, which moved to the top ----------
+ * FOUNDER, 2026-08-15: the collapse control belongs at the top, next to the
+ * logo. It was the fifth button in a row of five at the FOOT of the rail,
+ * which is the wrong place for it twice over. It is the only one of the five
+ * that acts on the rail itself rather than opening something, so it was
+ * sitting in a group it does not belong to; and below 640px the rail is
+ * `display: none`, so the control that reveals the rail disappeared WITH the
+ * rail -- a toggle you can only reach when you do not need it.
+ *
+ * At the top left it is where every application with a collapsing panel puts
+ * it, so it needs no label to be understood, and it now survives the rail it
+ * governs. It lives in `.sp-lede`, beside the brand, and hides on a phone for
+ * the honest reason: there is no rail down there to collapse. */
+.sp-collapse {
+  width: var(--shell-ctl-xs);
+  height: var(--shell-ctl-xs);
+  border: 0;
+  background: none;
+  color: var(--mrd-mute);
+  cursor: pointer;
+  border-radius: var(--mrd-r-chip);
+  display: grid;
+  place-items: center;
+  flex: none;
+  transition:
+    background var(--mrd-d-press) var(--mrd-ease),
+    color var(--mrd-d-press) var(--mrd-ease),
+    transform var(--mrd-d-press) var(--mrd-ease);
 }
 .sp-collapse:hover {
-  background: var(--sp-hover);
-  color: var(--sp-ink);
+  background: var(--mrd-hover);
+  color: var(--mrd-ink);
+}
+.sp-collapse:active {
+  transform: scale(0.94);
 }
 .sp-collapse svg {
   width: var(--sp-icon-sm);
   height: var(--sp-icon-sm);
+}
+/* The brand and the rail toggle read as one block, and the rule that used to
+ * close `.sp-brand` closes the pair instead. */
+.sp-lede {
+  display: flex;
+  align-items: center;
+  gap: var(--mrd-s3);
+  flex: none;
+  padding-right: 14px;
+  border-right: 1px solid var(--mrd-line);
+}
+@media (max-width: 640px) {
+  .sp-collapse {
+    display: none;
+  }
+}
+
+/* ---------- the head of the rail ----------
+ * TWO CONTROLS THE FOUNDER ASKED FOR AND THAT DID NOT EXIST: a way to start a
+ * new piece of work, and a way to find one. Both sit ABOVE the rows and
+ * neither is a row, which is deliberate -- nav-model.ts's contract law is that
+ * features never add nav items, because the loop is the fixed spine. An action
+ * and a field are not destinations.
+ *
+ * The shape is Meridian's own rail (`SidebarNav.tsx`): primary action, then
+ * search, then the rows. Lifted rather than invented so the shell and the
+ * design system's rail are recognisably the same object. */
+.sp-railhead {
+  padding: 10px 8px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mrd-s3);
+  flex: none;
+}
+.sp-app[data-rail="narrow"] .sp-railhead {
+  padding: 10px 6px 4px;
+}
+
+/*
+ * THE PRIMARY STAYS A NEUTRAL. Meridian's reference paints this control in the
+ * accent; this product rejected a saturated primary twice, both times for the
+ * same reason, and meridian.css records it: it spends the one accent on
+ * chrome, so when a real "your call" arrives there is nothing louder left to
+ * say it with. `--mrd-solid` is the top of the neutral ladder and nothing else
+ * in the product uses that stop, which is what makes it unmistakable.
+ *
+ * `--mrd-on-solid`, NEVER `--mrd-ink`, on the label. Those two are the pair
+ * that measured 1.19:1 on paper, because `ink` inverts with the ground and the
+ * solid face does not. It is the defect this system has now shipped twice.
+ */
+.sp-new {
+  display: flex;
+  align-items: center;
+  gap: var(--mrd-s3);
+  width: 100%;
+  height: var(--shell-ctl-sm);
+  padding: 0 var(--mrd-s4);
+  font: inherit;
+  font-size: var(--mrd-t-base);
+  font-weight: var(--mrd-w-medium);
+  color: var(--mrd-on-solid);
+  background: var(--mrd-solid);
+  border: 0;
+  border-radius: var(--mrd-r-ctl);
+  cursor: pointer;
+  text-decoration: none;
+  /* The specular top edge that makes a filled control read as a raised object
+   * rather than a coloured rectangle. Mixed from `--mrd-on-solid` by the token
+   * itself, so it stays warm paper-white on both grounds. */
+  box-shadow:
+    inset 0 1px 0 var(--mrd-sheen),
+    var(--mrd-shadow-card);
+  transition:
+    background var(--mrd-d-press) var(--mrd-ease),
+    transform var(--mrd-d-press) var(--mrd-ease);
+}
+/* One named step, in the direction the ladder already climbs. NOT
+ * `--mrd-float`: it is DARKER than solid on the dark ground, so the button
+ * would dim as you reached for it, and near-white on paper, which puts a light
+ * label on a pale slab. Both defects are recorded in meridian.css. */
+.sp-new:hover {
+  background: var(--mrd-solid-hover);
+}
+.sp-new:active {
+  transform: scale(0.96);
+}
+.sp-new-label {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sp-new svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+.sp-app[data-rail="narrow"] .sp-new {
+  justify-content: center;
+  padding: 0;
+}
+.sp-app[data-rail="narrow"] .sp-new-label {
+  display: none;
+}
+
+/*
+ * FIND. The field is a real field, and the results are real rows.
+ *
+ * NO KEYCAP ON IT, and that is not an oversight. Meridian's rail draws a `/`
+ * cap here; `/` is bound to nothing in this product, and `key-model.ts` holds
+ * a drift test in both directions over what each surface binds. A keycap for a
+ * key that does not fire is the exact defect this shell's own comments call a
+ * lie, so the cap arrives with the binding or not at all.
+ */
+.sp-find {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--mrd-s3);
+  height: var(--shell-ctl-sm);
+  padding: 0 var(--mrd-s4);
+  background: var(--mrd-sink);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-ctl);
+  transition: border-color var(--mrd-d-press) var(--mrd-ease);
+}
+.sp-find:hover {
+  border-color: var(--mrd-edge);
+}
+/* A FIELD'S EDGE, NOT A RING. `--mrd-edge-focus` replaces the border and is
+ * read against the field's own fill; `--mrd-focus` is the ring drawn outside
+ * an element, and the two have been copied for each other repeatedly. The ring
+ * is deliberately absent here: meridian.css removes it from text entry because
+ * a caret is already blinking in the field, and a box drawn round the outside
+ * is a second answer to a question already answered. */
+.sp-find:focus-within {
+  border-color: var(--mrd-edge-focus);
+}
+.sp-find svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  color: var(--mrd-mute);
+}
+.sp-find input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: var(--mrd-t-label);
+  color: var(--mrd-ink);
+  background: none;
+  border: 0;
+  outline: none;
+  padding: 0;
+}
+.sp-find input::placeholder {
+  color: var(--mrd-mute);
+}
+/* Collapsed, the field becomes a button that opens the rail and lands the
+ * caret in it. A search box narrowed to 40px is a control that looks available
+ * and is not. */
+.sp-findbtn {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: var(--shell-ctl-sm);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-ctl);
+  background: var(--mrd-sink);
+  color: var(--mrd-mute);
+  cursor: pointer;
+  transition:
+    color var(--mrd-d-press) var(--mrd-ease),
+    border-color var(--mrd-d-press) var(--mrd-ease);
+}
+.sp-findbtn:hover {
+  color: var(--mrd-ink);
+  border-color: var(--mrd-edge);
+}
+.sp-findbtn svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* The results. A floating list, so it never pushes the rows down as you type:
+ * a rail that changes height under the pointer is the nudge-under-the-reader
+ * this file guards against everywhere else. */
+.sp-findlist {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: var(--shell-z-menu);
+  max-height: 280px;
+  overflow-y: auto;
+  padding: var(--mrd-s2);
+  background: var(--mrd-float);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-card);
+  box-shadow: var(--mrd-shadow-float);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  animation: mrd-pop-in var(--mrd-d-press) var(--mrd-ease) both;
+}
+.sp-findrow {
+  display: flex;
+  align-items: center;
+  gap: var(--mrd-s3);
+  width: 100%;
+  padding: var(--mrd-s3) var(--mrd-s4);
+  border: 0;
+  border-radius: var(--mrd-r-chip);
+  background: none;
+  font: inherit;
+  font-size: var(--mrd-t-label);
+  color: var(--mrd-body);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.sp-findrow:hover,
+.sp-findrow[data-on="true"] {
+  background: var(--mrd-hover);
+  color: var(--mrd-ink);
+}
+.sp-findrow-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* What KIND of thing this is, in the quietest stop that is still AA. Without
+ * it a run title and a station name are two identical rows and the reader has
+ * to guess which one navigates where. */
+.sp-findrow-kind {
+  flex: none;
+  font-family: var(--mrd-mono);
+  font-size: var(--mrd-t-nano);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mrd-faint);
+}
+/* A search that matched nothing says so. A blank panel reads as a broken
+ * component rather than as an answer -- the exact bug Meridian's own Search
+ * deliberately does not copy from its reference. */
+.sp-findnone {
+  padding: var(--mrd-s3) var(--mrd-s4);
+  font-size: var(--mrd-t-label);
+  color: var(--mrd-mute);
+}
+@media (max-width: 640px) {
+  .sp-railhead {
+    display: none;
+  }
 }
 
 /* ---------- work ----------
@@ -1298,13 +1957,13 @@ body:has([data-page-composer]) .sp-work {
   flex: 1;
   min-width: 0;
   overflow-y: auto;
-  background: var(--sp-bg);
+  background: var(--mrd-bg);
   container-type: inline-size;
 }
 
 /* Ported surfaces opt in. See the TRANSITION RULE at the top. */
 .sp-inner {
-  max-width: var(--sp-work-max);
+  max-width: var(--shell-work-max);
   padding: var(--sp-work-pad-y) var(--sp-work-pad-x) var(--sp-work-pad-bottom);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1338,14 +1997,14 @@ body:has([data-page-composer]) .sp-work {
   min-width: 0;
   margin-top: 38px;
   padding-top: 26px;
-  border-top: 1px solid var(--sp-line-soft);
+  border-top: 1px solid var(--mrd-line-soft);
   position: relative;
 }
 /* 1120px is --sp-ctx-split. A @container condition cannot read a custom
  * property, so the number is written literally here and recorded there. */
 @container (min-width: 1120px) {
   .sp-inner:has(.sp-ctx) {
-    grid-template-columns: minmax(0, 1fr) var(--sp-ctx-w);
+    grid-template-columns: minmax(0, 1fr) var(--shell-ctx-w);
   }
   /* A rule between the two regions, so the side column reads as its own
    * place rather than as loose text floating beside the work. */
@@ -1354,28 +2013,24 @@ body:has([data-page-composer]) .sp-work {
     padding-top: 0;
     padding-left: 30px;
     border-top: 0;
-    border-left: 1px solid var(--sp-line-soft);
+    border-left: 1px solid var(--mrd-line-soft);
   }
-  /* The faintest starfield, scoped to this column only. It ties the room
-   * back to the door without decorating anything a person has to read. */
-  .sp-ctx::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 0 1px;
-    pointer-events: none;
-    opacity: 0.5;
-    background-image:
-      radial-gradient(1px 1px at 22% 8%, var(--sp-star), transparent),
-      radial-gradient(1px 1px at 74% 17%, var(--sp-star), transparent),
-      radial-gradient(1px 1px at 41% 31%, var(--sp-star), transparent),
-      radial-gradient(1px 1px at 86% 44%, var(--sp-star), transparent),
-      radial-gradient(1px 1px at 15% 56%, var(--sp-star), transparent),
-      radial-gradient(1px 1px at 62% 69%, var(--sp-star), transparent),
-      radial-gradient(1px 1px at 31% 84%, var(--sp-star), transparent),
-      radial-gradient(1px 1px at 79% 92%, var(--sp-star), transparent);
-    mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
-    -webkit-mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
-  }
+  /* THE STARFIELD IS GONE, 2026-08-15, and it is the one deletion in this port.
+   *
+   * Eight hand-placed radial gradients and a mask, drawn behind the context
+   * column "to tie the room back to the door". That sentence is the whole
+   * problem with it: it is decoration, and the law this system is built on is
+   * that colour carries status and never decorates. It is also pure Cadence/ink
+   * lineage -- the door's own starfield, carried inward -- and the founder
+   * retired that lineage by name on 2026-08-14 with the instruction to design
+   * from the product rather than inherit from its history.
+   *
+   * It is not a ratchet regression, and the test for that is his own: would
+   * someone who liked yesterday's screen prefer today's? Nothing that carried a
+   * fact was removed. What is left is the hairline rule, which is what actually
+   * says "this column is its own place" -- and it says it in both grounds,
+   * which the starfield never did: `--sp-star` on paper was a 26% brown, so on
+   * the light theme this rendered as eight faint specks of dirt. */
 }
 @media (max-width: 900px) {
   .sp-inner {
@@ -1388,7 +2043,24 @@ body:has([data-page-composer]) .sp-work {
  * keeps the brand, the live line and Ask. */
 @media (max-width: 900px) {
   .sp-rail {
-    width: var(--sp-rail-w-narrow);
+    width: var(--shell-rail-narrow);
+  }
+  /* THE SAME SIDEWAYS-SCROLL FIX, on the second narrow path. See the long note
+   * at `.sp-nav`: the tooltip is drawn here too, so the overflow box has to go
+   * here too, and a media query's contents carry no extra specificity so the
+   * attribute-scoped rule cannot reach this state. */
+  .sp-nav {
+    overflow: visible;
+  }
+  .sp-railhead {
+    padding: 10px 6px 4px;
+  }
+  .sp-new {
+    justify-content: center;
+    padding: 0;
+  }
+  .sp-new-label {
+    display: none;
   }
   .sp-navlabel,
   .sp-navcount {
@@ -1470,7 +2142,7 @@ body:has([data-page-composer]) .sp-work {
 .sp-boardpanel {
   position: fixed;
   inset: 0;
-  z-index: var(--sp-z-summon);
+  z-index: var(--shell-z-summon);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -1482,21 +2154,33 @@ body:has([data-page-composer]) .sp-work {
   border: 0;
   padding: 0;
   cursor: default;
-  background: var(--sp-scrim);
-  animation: sp-boardpanel-in var(--sp-dur-fast) var(--sp-ease);
+  background: var(--mrd-scrim);
+  animation: sp-boardpanel-in var(--mrd-d-press) var(--mrd-ease);
 }
 .sp-boardpanel-sheet {
   position: relative;
   width: min(1280px, 100%);
-  max-height: calc(100vh - 88px);
+  /* 88px WAS THE CONTAINER'S OWN PADDING, RESTATED AS A CONSTANT. Both
+   * summoned overlays are `position: fixed; inset: 0` with `padding: 64px 24px
+   * 24px`, so 64 + 24 is exactly the vertical padding and this cap meant "as
+   * tall as the padded area". `100%` says the same thing by reading it off the
+   * container instead of repeating it, so editing the padding can no longer
+   * leave the sheet capped to the old figure.
+   *
+   * IT IS NOT THE BANNER BUG, and that is worth stating rather than assuming:
+   * a fixed element's containing block is the VIEWPORT, so neither of these was
+   * ever displaced by a banner the way `.sp-app` was. This is the same class of
+   * hardcoding, caught in the same sweep, and it is a tidy-up rather than a
+   * fix. */
+  max-height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--sp-sheet);
-  border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-pane);
-  box-shadow: var(--sp-shadow);
+  background: var(--mrd-sheet);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-pane);
+  box-shadow: var(--mrd-shadow-pane);
   overflow: hidden;
-  animation: sp-boardpanel-rise var(--sp-dur-fast) var(--sp-ease);
+  animation: sp-boardpanel-rise var(--mrd-d-press) var(--mrd-ease);
 }
 .sp-boardpanel-head {
   display: flex;
@@ -1504,17 +2188,17 @@ body:has([data-page-composer]) .sp-work {
   justify-content: space-between;
   gap: 12px;
   padding: 14px 20px;
-  border-bottom: 1px solid var(--sp-line-soft);
+  border-bottom: 1px solid var(--mrd-line-soft);
   flex: none;
 }
 .sp-boardpanel-title {
-  font-size: var(--sp-text-prose);
-  font-weight: var(--sp-weight-medium);
-  color: var(--sp-ink);
+  font-size: var(--mrd-t-base);
+  font-weight: var(--mrd-w-medium);
+  color: var(--mrd-ink);
 }
 .sp-boardpanel-hint {
-  font-size: var(--sp-text-label);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-label);
+  color: var(--mrd-mute);
 }
 /* The board sets its own container queries, so the body is only a scroll box. */
 .sp-boardpanel-body {
@@ -1559,13 +2243,13 @@ body:has([data-page-composer]) .sp-work {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  z-index: var(--sp-z-menu);
+  z-index: var(--shell-z-menu);
   min-width: 208px;
   padding: 6px;
-  background: var(--sp-sheet);
-  border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-card);
-  box-shadow: var(--sp-shadow);
+  background: var(--mrd-sheet);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-card);
+  box-shadow: var(--mrd-shadow-pane);
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -1577,13 +2261,13 @@ body:has([data-page-composer]) .sp-work {
   right: 0;
 }
 .sp-menu-label {
-  font-size: var(--sp-text-label);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-label);
+  color: var(--mrd-mute);
   padding: 6px 10px 4px;
 }
 .sp-menu-rule {
   height: 1px;
-  background: var(--sp-line-soft);
+  background: var(--mrd-line-soft);
   margin: 5px 0;
 }
 .sp-menu-item {
@@ -1592,34 +2276,52 @@ body:has([data-page-composer]) .sp-work {
   text-align: left;
   padding: 7px 10px;
   border: 0;
-  border-radius: var(--sp-radius-sm);
+  border-radius: var(--mrd-r-xs);
   background: none;
   font: inherit;
-  font-size: var(--sp-text-prose);
-  color: var(--sp-body);
+  font-size: var(--mrd-t-base);
+  color: var(--mrd-body);
   cursor: pointer;
   text-decoration: none;
-  transition: background var(--sp-dur-fast) var(--sp-ease);
+  transition: background var(--mrd-d-press) var(--mrd-ease);
 }
 .sp-menu-item:hover:not(:disabled) {
-  background: var(--sp-hover);
-  color: var(--sp-ink);
+  background: var(--mrd-hover);
+  color: var(--mrd-ink);
 }
+/* DISABLED IS A STATE, NOT A FADE. Meridian's rule for a filled control is
+ * that opacity collapses figure and ground into one mid-tone; the same logic
+ * holds for a row. So the label steps down the ink ramp to `faint`, which is
+ * still AA in both grounds, and the CURSOR says the rest. A dead control that
+ * still looks pressable is the lie; a dead control nobody can read is a second
+ * one.
+ *
+ * `not-allowed` rather than `default`, because meridian.css's base layer gives
+ * every `button:not(:disabled)` a pointer and deliberately excludes disabled
+ * ones "so the several `cursor: not-allowed` rules stay reachable and a dead
+ * control never promises". This is one of them. */
 .sp-menu-item:disabled {
-  cursor: default;
-  color: var(--sp-mute);
+  cursor: not-allowed;
+  color: var(--mrd-faint);
 }
 /* The current workspace is marked, not hidden. Removing it from the list would
- * make a one-workspace account look like it has none. */
+ * make a one-workspace account look like it has none.
+ *
+ * A GROUND AS WELL AS A WEIGHT, 2026-08-15. This was ink plus medium weight,
+ * and against a list of `--mrd-body` rows at 400 that is a half-step nobody
+ * catches on a glance -- on paper it is the difference between 0.40 and 0.22
+ * lightness on ONE row of five. Selected is selected, so it takes the same
+ * `--mrd-select` mark the rail row and the settings door now wear. */
 .sp-menu-item[data-on="true"] {
-  color: var(--sp-ink);
-  font-weight: var(--sp-weight-medium);
+  background: var(--mrd-select);
+  color: var(--mrd-ink);
+  font-weight: var(--mrd-w-medium);
 }
 /* Sign out is separated by DISTANCE (the rule above it), never by colour.
  * Ember means "waiting on you" everywhere else in this product, and a menu
  * item is not waiting on you. */
 .sp-menu-item[data-danger="true"] {
-  color: var(--sp-body);
+  color: var(--mrd-body);
 }
 /* The scope is a button now rather than a link, so it needs the button reset
  * the link never did. */
@@ -1650,34 +2352,34 @@ button.sp-me {
   right: var(--sp-pane-inset);
   bottom: var(--sp-pane-inset);
   width: min(var(--sp-pane-ask-w), calc(100vw - var(--sp-pane-inset) * 2));
-  z-index: var(--sp-z-sheet);
+  z-index: var(--shell-z-sheet);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--sp-float);
-  border-radius: var(--sp-radius-pane);
-  box-shadow: var(--sp-shadow);
+  background: var(--mrd-float);
+  border-radius: var(--mrd-r-pane);
+  box-shadow: var(--mrd-shadow-pane);
 }
 .sp-lineage-head {
   display: flex;
   align-items: baseline;
   gap: 10px;
   padding: 14px 16px;
-  border-bottom: 1px solid var(--sp-line-soft);
+  border-bottom: 1px solid var(--mrd-line-soft);
   flex: none;
 }
 /* The id is mono because it is an identifier, and identifiers are read
  * character by character. It is NOT Geist Pixel: that face was retired, and it
  * was doing brand work in a slot that needs legibility. */
 .sp-lineage-ref {
-  font-family: var(--sp-font-mono);
-  font-size: var(--sp-text-data-sm);
+  font-family: var(--mrd-mono);
+  font-size: var(--mrd-t-data);
   letter-spacing: 0.06em;
-  color: var(--sp-ink);
+  color: var(--mrd-ink);
 }
 .sp-lineage-kind {
-  font-size: var(--sp-text-label);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-label);
+  color: var(--mrd-mute);
 }
 .sp-lineage-spacer {
   flex: 1;
@@ -1686,15 +2388,15 @@ button.sp-me {
   border: 0;
   background: none;
   font: inherit;
-  font-size: var(--sp-text-label);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-label);
+  color: var(--mrd-mute);
   cursor: pointer;
   padding: 2px 4px;
-  border-radius: var(--sp-radius-sm);
+  border-radius: var(--mrd-r-xs);
 }
 .sp-lineage-btn:hover {
-  color: var(--sp-ink);
-  background: var(--sp-hover);
+  color: var(--mrd-ink);
+  background: var(--mrd-hover);
 }
 .sp-lineage-body {
   padding: 16px;
@@ -1702,15 +2404,15 @@ button.sp-me {
   flex: 1;
 }
 .sp-lineage-title {
-  font-size: var(--sp-text-prose);
-  font-weight: var(--sp-weight-medium);
-  color: var(--sp-ink);
+  font-size: var(--mrd-t-base);
+  font-weight: var(--mrd-w-medium);
+  color: var(--mrd-ink);
   line-height: 1.35;
   margin: 0 0 4px;
 }
 .sp-lineage-meta {
-  font-size: var(--sp-text-label);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-label);
+  color: var(--mrd-mute);
   margin-bottom: 18px;
 }
 
@@ -1734,7 +2436,7 @@ button.sp-me {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--sp-line);
+  background: var(--mrd-line);
   margin-top: 6px;
   flex: none;
 }
@@ -1746,49 +2448,49 @@ button.sp-me {
   top: 15px;
   bottom: 2px;
   width: 1px;
-  background: var(--sp-line-soft);
+  background: var(--mrd-line-soft);
 }
 .sp-trail-body {
   min-width: 0;
   flex: 1;
 }
 .sp-trail-label {
-  font-family: var(--sp-font-mono);
-  font-size: var(--sp-text-data-sm);
+  font-family: var(--mrd-mono);
+  font-size: var(--mrd-t-data);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--sp-mute);
+  color: var(--mrd-mute);
 }
 .sp-trail-at {
-  color: var(--sp-faint, var(--sp-mute));
+  color: var(--mrd-faint, var(--mrd-mute));
 }
 .sp-trail-detail {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  color: var(--sp-body);
-  font-size: var(--sp-text-prose);
+  color: var(--mrd-body);
+  font-size: var(--mrd-t-base);
   margin-top: 3px;
 }
 /* A connected id is a door, so it looks like one. */
 .sp-trail-ref {
-  font-family: var(--sp-font-mono);
-  font-size: var(--sp-text-data-sm);
+  font-family: var(--mrd-mono);
+  font-size: var(--mrd-t-data);
   letter-spacing: 0.06em;
-  color: var(--sp-body);
-  border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-sm);
+  color: var(--mrd-body);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-xs);
   padding: 1px 6px;
   background: none;
   cursor: pointer;
   transition:
-    color var(--sp-dur-fast) var(--sp-ease),
-    border-color var(--sp-dur-fast) var(--sp-ease);
+    color var(--mrd-d-press) var(--mrd-ease),
+    border-color var(--mrd-d-press) var(--mrd-ease);
 }
 .sp-trail-ref:hover {
-  color: var(--sp-ink);
-  border-color: var(--sp-ink);
+  color: var(--mrd-ink);
+  border-color: var(--mrd-ink);
 }
 .sp-lineage-chain {
   margin-top: 24px;
@@ -1820,32 +2522,32 @@ button.sp-me {
   top: 14px;
   bottom: 0;
   width: 1px;
-  background: var(--sp-line-soft);
+  background: var(--mrd-line-soft);
 }
 .sp-chain-mark {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--sp-line);
+  background: var(--mrd-line);
   margin-top: 5px;
   flex: none;
 }
 /* Where you are, marked by weight rather than colour: the focus is a position
  * in the story, not a status, and colour in this system carries status. */
 .sp-chain-node[data-focus="true"] .sp-chain-mark {
-  background: var(--sp-ink);
+  background: var(--mrd-ink);
   width: 9px;
   height: 9px;
   margin-left: -1px;
 }
 .sp-chain-node[data-focus="true"] .sp-chain-title {
-  color: var(--sp-ink);
-  font-weight: var(--sp-weight-medium);
+  color: var(--mrd-ink);
+  font-weight: var(--mrd-w-medium);
 }
 /* A node we could not read is dimmed, never hidden. A missing node silently
  * shortens the chain and nobody can tell; a dim one says so. */
 .sp-chain-node[data-resolved="false"] .sp-chain-title {
-  color: var(--sp-mute);
+  color: var(--mrd-mute);
   font-style: italic;
 }
 .sp-chain-body {
@@ -1853,18 +2555,18 @@ button.sp-me {
   flex: 1;
 }
 .sp-chain-kind {
-  font-family: var(--sp-font-mono);
-  font-size: var(--sp-text-data-sm);
+  font-family: var(--mrd-mono);
+  font-size: var(--mrd-t-data);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--sp-mute);
+  color: var(--mrd-mute);
 }
 .sp-chain-rel {
-  color: var(--sp-faint, var(--sp-mute));
+  color: var(--mrd-faint, var(--mrd-mute));
 }
 .sp-chain-title {
-  font-size: var(--sp-text-prose);
-  color: var(--sp-body);
+  font-size: var(--mrd-t-base);
+  color: var(--mrd-body);
   margin-top: 2px;
   line-height: 1.35;
 }
@@ -1873,15 +2575,15 @@ button.sp-me {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  font-size: var(--sp-text-label);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-label);
+  color: var(--mrd-mute);
   margin-top: 4px;
 }
 /* Never a silent stop: a chain that merely hit a depth cap must not read as a
  * chain that ended. */
 .sp-chain-more {
-  font-size: var(--sp-text-label);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-label);
+  color: var(--mrd-mute);
   margin: 10px 0 0;
 }
 
@@ -1889,8 +2591,8 @@ button.sp-me {
  * opportunity in the demo workspace shorts to the same six. Stated plainly
  * rather than resolved silently. */
 .sp-lineage-ambig {
-  font-size: var(--sp-text-prose);
-  color: var(--sp-body);
+  font-size: var(--mrd-t-base);
+  color: var(--mrd-body);
   margin: 0 0 14px;
   line-height: 1.5;
 }
@@ -1901,13 +2603,13 @@ button.sp-me {
   background: none;
   padding: 0;
   font: inherit;
-  font-size: var(--sp-text-prose);
-  color: var(--sp-body);
+  font-size: var(--mrd-t-base);
+  color: var(--mrd-body);
   cursor: pointer;
   line-height: 1.35;
 }
 .sp-lineage-pick:hover {
-  color: var(--sp-ink);
+  color: var(--mrd-ink);
   text-decoration: underline;
 }
 
@@ -1929,7 +2631,7 @@ button.sp-me {
   position: fixed;
   /* THE RAIL'S ACTUAL WIDTH, NOT A GUESS AT IT.
    *
-   * This read `var(--sp-rail-w, 236px)`, which is the EXPANDED width and never
+   * This read `var(--shell-rail-w, 236px)`, which is the EXPANDED width and never
    * changed. Measured in a browser at 1280px: the rail had already collapsed to
    * 64px, content started at x=104, and the dock still sat at x=276. A front
    * door 172px adrift of the work it belongs to.
@@ -1943,16 +2645,16 @@ button.sp-me {
    * GlobalComposer OUTSIDE `.sp-app`, so `.sp-app[data-rail] .sp-dock` matches
    * nothing. Reading the state off an ancestor is what keeps ONE source of
    * truth for that width instead of a second number that drifts. */
-  left: var(--sp-rail-w);
+  left: var(--shell-rail-w);
   right: 0;
   bottom: 0;
-  z-index: var(--sp-z-dock);
+  z-index: var(--shell-z-dock);
   /* 40px, because that is `.sp-inner`'s own gutter. MEASURED in a browser
    * rather than guessed: at 18px the dock row sat 22px inside the column above
    * it, and a front door that does not line up with the work reads as bolted
    * on. One number, taken from the thing it has to agree with. */
   padding: 10px 40px 14px;
-  background: linear-gradient(to top, var(--sp-bg) 62%, transparent);
+  background: linear-gradient(to top, var(--mrd-bg) 62%, transparent);
   pointer-events: none;
 }
 .sp-dock-row {
@@ -1960,46 +2662,64 @@ button.sp-me {
   width: 100%;
   /* The work column's own cap, so the row is exactly as wide as the station
    * above it on any screen. */
-  max-width: var(--sp-work-max, 1400px);
+  max-width: var(--shell-work-max, 1400px);
   margin: 0 auto;
   display: flex;
   align-items: center;
   gap: 11px;
   padding: 10px 14px;
   font: inherit;
-  font-size: var(--sp-text-prose);
+  font-size: var(--mrd-t-base);
   /* Row leading, not document leading. `font: inherit` above resets
    * line-height to the inherited value, so this has to come after it.
-   * See the note on .sp-line in primitives.css. */
+   * See the note on .sp-line in primitives.css.
+   *
+   * `--sp-leading-row` AND NOT `--mrd-lh-snug`, and it is the second of the two
+   * deliberate `--sp-*` survivors in this file. `rows-are-scanned-not-read.test`
+   * reads five rules by name -- four in primitives.css and this one -- and
+   * asserts each carries exactly `var(--sp-leading-row)`. What it is really
+   * holding is that a ROW is set tighter than a PARAGRAPH, checked by comparing
+   * the two numbers in ink.css. Meridian collapsed that distinction (`lh-snug`
+   * is 1.5 for every UI row), so writing the Meridian token here would not be a
+   * rename -- it would silently loosen the one row this shell scrolls past most
+   * and break the invariant the guard exists for. The four rows it governs live
+   * in primitives.css, which this lane does not own, so the pair moves together
+   * or not at all. */
   line-height: var(--sp-leading-row);
   text-align: left;
-  color: var(--sp-mute);
-  background: var(--sp-sheet);
-  border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-ctl);
+  color: var(--mrd-mute);
+  background: var(--mrd-sheet);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-ctl);
   cursor: pointer;
   transition:
-    border-color var(--sp-dur-fast) var(--sp-ease),
-    background var(--sp-dur-fast) var(--sp-ease);
+    border-color var(--mrd-d-press) var(--mrd-ease),
+    background var(--mrd-d-press) var(--mrd-ease);
 }
 .sp-dock-row:hover {
-  border-color: var(--sp-line-strong, var(--sp-line));
-  background: var(--sp-float, var(--sp-sheet));
+  border-color: var(--mrd-edge);
+  background: var(--mrd-float);
 }
+/* THE ACCENT DOES NOT DO FOCUS. This ringed the dock in orchid, and orchid
+ * means one thing in this product: a person is required. Firing it on every
+ * tab press is how an accent stops meaning anything, which is the argument
+ * meridian.css makes by hand where `--mrd-focus` is declared. Focus is a
+ * position report, so it spends no hue. Same 2px and same offset; only the
+ * colour is a claim, and this one was making the wrong one. */
 .sp-dock-row:focus-visible {
-  outline: 2px solid var(--sp-gate);
+  outline: 2px solid var(--mrd-focus);
   outline-offset: 2px;
 }
 .sp-dock-mark {
   display: flex;
   flex: none;
-  color: var(--sp-ink);
+  color: var(--mrd-ink);
 }
 /* The invitation carries the weight: it is the thing being offered. */
 .sp-dock-prompt {
   flex: 1;
   min-width: 0;
-  color: var(--sp-body);
+  color: var(--mrd-body);
 }
 /* A real running agent, in the machine voice, never a spinner and never a
  * fabricated step. Empty when nothing is running. */
@@ -2013,16 +2733,16 @@ button.sp-me {
    * invitation is the point of the row; the status is the addition. */
   flex: 0 1 auto;
   min-width: 0;
-  font-family: var(--sp-font-mono);
-  font-size: var(--sp-text-data-sm);
+  font-family: var(--mrd-mono);
+  font-size: var(--mrd-t-data);
   letter-spacing: 0.04em;
-  color: var(--sp-mute);
+  color: var(--mrd-mute);
   white-space: nowrap;
 }
 /* Only the TITLE truncates. The state before it and the "N more" after it are
  * outside this span, so neither can be eaten by a long mission name: the line
  * always still says who is working and how many others are. 34ch because this
- * is mono at --sp-text-data-sm, where 34 characters is a readable phrase and
+ * is mono at --mrd-t-data, where 34 characters is a readable phrase and
  * the row still leaves the prompt its full width on a 1100px window. */
 .sp-dock-live-work {
   display: inline-block;
@@ -2034,11 +2754,11 @@ button.sp-me {
 }
 .sp-dock-key {
   flex: none;
-  font-family: var(--sp-font-mono);
-  font-size: var(--sp-text-kbd);
-  font-weight: var(--sp-weight-regular);
+  font-family: var(--mrd-mono);
+  font-size: var(--mrd-t-micro);
+  font-weight: var(--mrd-w-regular);
   padding: 1px 5px;
-  border-radius: var(--sp-radius-xs);
+  border-radius: var(--mrd-r-xs);
   background: color-mix(in oklab, currentColor 13%, transparent);
 }
 /* The dock's own height, given back to the scroller so the last row of a
@@ -2048,11 +2768,11 @@ button.sp-me {
 }
 /* The shell's own auto-collapse, once the 01-07 spine is familiar. */
 body:has(.sp-app[data-rail="narrow"]) .sp-dock {
-  left: var(--sp-rail-w-narrow);
+  left: var(--shell-rail-narrow);
 }
 @media (max-width: 900px) {
   .sp-dock {
-    left: var(--sp-rail-w-narrow);
+    left: var(--shell-rail-narrow);
   }
   .sp-dock-live {
     display: none;
@@ -2082,7 +2802,7 @@ body:has(.sp-app[data-rail="narrow"]) .sp-dock {
    * recorded as open question 3 in ink.css. Left at the value it shipped with:
    * moving it decides which surface wins when both are open, and that is a
    * product call. */
-  z-index: var(--sp-z-menu);
+  z-index: var(--shell-z-menu);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -2094,21 +2814,21 @@ body:has(.sp-app[data-rail="narrow"]) .sp-dock {
   border: 0;
   padding: 0;
   cursor: default;
-  background: var(--sp-scrim);
-  animation: sp-boardpanel-in var(--sp-dur-fast) var(--sp-ease);
+  background: var(--mrd-scrim);
+  animation: sp-boardpanel-in var(--mrd-d-press) var(--mrd-ease);
 }
 .sp-keys-sheet {
   position: relative;
   width: min(680px, 100%);
-  max-height: calc(100vh - 88px);
+  max-height: 100%; /* the container's padded area. See .sp-boardpanel-sheet. */
   display: flex;
   flex-direction: column;
-  background: var(--sp-sheet);
-  border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-pane);
-  box-shadow: var(--sp-shadow);
+  background: var(--mrd-sheet);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-pane);
+  box-shadow: var(--mrd-shadow-pane);
   overflow: hidden;
-  animation: sp-boardpanel-rise var(--sp-dur-fast) var(--sp-ease);
+  animation: sp-boardpanel-rise var(--mrd-d-press) var(--mrd-ease);
 }
 .sp-keys-head {
   display: flex;
@@ -2116,17 +2836,17 @@ body:has(.sp-app[data-rail="narrow"]) .sp-dock {
   justify-content: space-between;
   gap: 12px;
   padding: 14px 20px;
-  border-bottom: 1px solid var(--sp-line-soft);
+  border-bottom: 1px solid var(--mrd-line-soft);
   flex: none;
 }
 .sp-keys-title {
-  font-size: var(--sp-text-prose);
-  font-weight: var(--sp-weight-medium);
-  color: var(--sp-ink);
+  font-size: var(--mrd-t-base);
+  font-weight: var(--mrd-w-medium);
+  color: var(--mrd-ink);
 }
 .sp-keys-esc {
-  font-size: var(--sp-text-label);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-label);
+  color: var(--mrd-mute);
 }
 .sp-keys-body {
   padding: 18px 20px 22px;
@@ -2140,25 +2860,25 @@ body:has(.sp-app[data-rail="narrow"]) .sp-dock {
   gap: 5px;
 }
 .sp-keys-rules li {
-  font-size: var(--sp-text-body);
-  color: var(--sp-body);
+  font-size: var(--mrd-t-body);
+  color: var(--mrd-body);
 }
 .sp-keys-section + .sp-keys-section {
   margin-top: 20px;
 }
 .sp-keys-sectionname {
-  font-family: var(--sp-font-mono);
-  font-size: var(--sp-text-data-sm);
+  font-family: var(--mrd-mono);
+  font-size: var(--mrd-t-data);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--sp-mute);
+  color: var(--mrd-mute);
   margin: 0 0 8px;
-  font-weight: var(--sp-weight-regular);
+  font-weight: var(--mrd-w-regular);
 }
 .sp-keys-note {
   margin: 0;
-  font-size: var(--sp-text-body);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-body);
+  color: var(--mrd-mute);
 }
 .sp-keys-list {
   margin: 0;
@@ -2174,27 +2894,27 @@ body:has(.sp-app[data-rail="narrow"]) .sp-dock {
   gap: 12px;
   align-items: baseline;
   padding: 5px 8px;
-  border-radius: var(--sp-radius-sm);
+  border-radius: var(--mrd-r-xs);
 }
 .sp-keys-row:hover {
-  background: var(--sp-hover);
+  background: var(--mrd-hover);
 }
 .sp-keys-row dt,
 .sp-keys-row dd {
   margin: 0;
 }
 .sp-keys-row dd {
-  font-size: var(--sp-text-body);
-  color: var(--sp-body);
+  font-size: var(--mrd-t-body);
+  color: var(--mrd-body);
 }
 .sp-keys-cap {
-  font-family: var(--sp-font-mono);
-  font-size: var(--sp-text-kbd);
-  font-weight: var(--sp-weight-regular);
-  color: var(--sp-ink);
+  font-family: var(--mrd-mono);
+  font-size: var(--mrd-t-micro);
+  font-weight: var(--mrd-w-regular);
+  color: var(--mrd-ink);
   padding: 2px 6px;
-  border-radius: var(--sp-radius-xs);
-  background: color-mix(in oklab, var(--sp-ink) 13%, transparent);
+  border-radius: var(--mrd-r-xs);
+  background: color-mix(in oklab, var(--mrd-ink) 13%, transparent);
   white-space: nowrap;
 }
 /* A WORD, NOT ONLY A COLOUR. The keys that commit something you cannot take
@@ -2204,11 +2924,11 @@ body:has(.sp-app[data-rail="narrow"]) .sp-dock {
  * would". */
 .sp-keys-bites {
   margin-left: 8px;
-  font-family: var(--sp-font-mono);
-  font-size: var(--sp-text-data-sm);
+  font-family: var(--mrd-mono);
+  font-size: var(--mrd-t-data);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--sp-gate);
+  color: var(--mrd-you);
 }
 @media (prefers-reduced-motion: reduce) {
   .sp-keys-scrim,
@@ -2222,8 +2942,8 @@ body:has(.sp-app[data-rail="narrow"]) .sp-dock {
  * stroked icon and this one holds a character, which would otherwise render at
  * body size and sit a pixel low against them. */
 .sp-keysbtn {
-  font-family: var(--sp-font-mono);
-  font-size: var(--sp-text-kbd);
-  font-weight: var(--sp-weight-regular);
+  font-family: var(--mrd-mono);
+  font-size: var(--mrd-t-micro);
+  font-weight: var(--mrd-w-regular);
   line-height: 1;
 }

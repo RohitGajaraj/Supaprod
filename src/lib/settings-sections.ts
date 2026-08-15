@@ -195,7 +195,16 @@ export type SettingsGroup = {
 export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   {
     id: "crew",
-    label: "Crew",
+    /* "AGENTS", NOT "CREW", 2026-08-15. The substrate says agent everywhere —
+     * `agents`, `agent_runs`, `agent_tools`, `agent_autonomy`,
+     * `agent-vocabulary.ts` — and only the label said crew, which is a costume
+     * over the real word and the register split the 2026-08-11 vocabulary
+     * ruling retired. The group also became the HOME of the roster on the same
+     * day: the Crew row came off the rail and its surface now lives behind
+     * Settings, which is why the group carries the product's name for it
+     * rather than a house word. Ids are untouched; `?section=agents` already
+     * aliased to `staff` and still does. */
+    label: "Agents",
     desc: "How far each agent may reach, when it stops to ask you, and which model runs the work.",
     sections: [
       { id: "autonomy", label: "Autonomy and approvals" },

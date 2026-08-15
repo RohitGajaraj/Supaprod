@@ -148,12 +148,115 @@ export function IconChevron({ className }: IconProps) {
   );
 }
 
-/** The rail collapse: a panel with its edge column. */
-export function IconPanel({ className }: IconProps) {
+/**
+ * THE RAIL TOGGLE, AND THERE IS NOW ONE DRAWING OF IT RATHER THAN TWO.
+ *
+ * FOUNDER, 2026-08-15, on moving this control up beside the logo: its mark and
+ * the collapse icon "should be the same".
+ *
+ * He was reading a real split. Two glyphs meant "the rail" in this product and
+ * neither knew about the other: `IconPanel` here drew a rounded rectangle with
+ * an edge column, and Meridian's own `SidebarNav.tsx` drew two vertical rules
+ * with a chevron between them. Same act, two silhouettes, ten pixels apart once
+ * the control moved into the header. That is exactly the failure
+ * `station-glyphs.tsx` was written to end one layer down: "two renderings of
+ * the same seven things must not own two copies of the drawing".
+ *
+ * MERIDIAN'S DRAWING WINS, and not because it is prettier. `IconPanel` is a
+ * STATE (here is a panel) and says nothing about what pressing it will do;
+ * Meridian's carries a chevron, so it is a PROMISE about the next press, which
+ * is this repo's standing rule for a control's label. It also solves the thing
+ * a single static panel glyph cannot: expanding and collapsing are opposite
+ * acts and now draw as mirror images.
+ *
+ * `IconPanel` IS GONE rather than deprecated. Leaving it would leave the second
+ * lookalike sitting in the file for the next person to reach for, which is the
+ * whole defect. Its one caller was the rail collapse and it moved here.
+ *
+ * A REQUEST THIS PORT COULD NOT MAKE ITSELF: `SidebarNav.tsx` still inlines
+ * these two paths. It belongs to another lane, so it is named in the handoff
+ * rather than edited here -- but the third copy must not be written, and when
+ * that file next moves it should import from this one (or both should move to
+ * `components/meridian/`, which is the better home for a shared glyph).
+ */
+export function IconRailCollapse({ className }: IconProps) {
   return (
-    <svg {...base} className={className} strokeLinecap="round">
-      <rect x="3.2" y="4.2" width="17.6" height="15.6" rx="2.4" />
-      <path d="M9.6 4.4v15.2" />
+    <svg
+      {...base}
+      className={className}
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 4v16M20 4v16M15 9l-3 3 3 3" />
+    </svg>
+  );
+}
+
+/** The same drawing, mirrored. Expanding is the opposite act, so the chevron
+ *  points the opposite way and nothing else changes. */
+export function IconRailExpand({ className }: IconProps) {
+  return (
+    <svg
+      {...base}
+      className={className}
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 4v16M20 4v16M9 9l3 3-3 3" />
+    </svg>
+  );
+}
+
+/**
+ * Start a new piece of work. A plus, which is the one glyph every interface
+ * agrees means "add one of these", so it carries the collapsed rail on its own.
+ * Heavier stroke than the nav icons because it sits on a filled face, where a
+ * 1.5px line reads as a scratch.
+ */
+export function IconPlus({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeWidth={2.6} strokeLinecap="round">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+/** Find. A lens with its handle, at the reference's own proportions. */
+export function IconFind({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeWidth={2} strokeLinecap="round">
+      <circle cx="11" cy="11" r="7" />
+      <path d="M21 21l-4.3-4.3" />
+    </svg>
+  );
+}
+
+/**
+ * THE KEYBOARD SHEET'S OWN DOOR, WHICH USED TO BE A QUESTION MARK.
+ *
+ * FOUNDER, 2026-08-15: the question mark has to go. He is right and the reason
+ * is the one this file already argued once, when a sun was standing in for a
+ * cog: a glyph has to say which door it is. "?" says HELP, generically -- docs,
+ * support, a tour, an explanation of the page. This door opens exactly one
+ * thing, the keyboard shortcut sheet, so it draws a keyboard.
+ *
+ * It also stops the control being the odd one out geometrically: the other
+ * three in the rail foot hold a 17px stroked icon and this one held a text
+ * character, which needed its own font-size, weight and line-height rules to
+ * sit level with them.
+ *
+ * CHECKED AGAINST THE STATION-GLYPH RULE ("a mark that already means something
+ * else in software is not available, however apt it feels"): a keyboard outline
+ * is not a control shape and collides with nothing in this product. The `?` key
+ * still opens the sheet and is still spoken in the accessible name.
+ */
+export function IconKeyboard({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2.4" y="6" width="19.2" height="12" rx="2.2" />
+      <path d="M6.4 9.6h.01M9.6 9.6h.01M12.8 9.6h.01M16 9.6h.01M6.4 12.8h.01M9.6 12.8h.01M12.8 12.8h.01M16 12.8h.01M8.8 15.8h6.4" />
     </svg>
   );
 }
