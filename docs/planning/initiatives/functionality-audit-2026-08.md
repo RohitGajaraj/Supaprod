@@ -444,3 +444,37 @@ So the defect did not close. It moved one layer outward, from *no code can write
 ### One correction I owe to my own work in this pass
 
 The first version of the test pinning the scout-tick ledger ordering compared `indexOf("FIRECRAWL_API_KEY")` against `indexOf("withJobRunHttp")`. The first match for the key is in a header comment and the first match for the wrapper is its import, so the test compared a comment against an import and answered backwards. It now compares the guard statement against the wrapper call. **Two of my findings this session were wrong on first measurement** (this, and the withdrawn 43), both because the search was aimed slightly beside the question. Both were caught by running the thing rather than by reading it again.
+
+## 16. Fourth pass: the loop's learning edge was broken in four places in series
+
+This pass had one question behind it, from the founder: if a signal arrives from any source, does it reach Decide, get planned, designed, built, shipped, and then does what happened come back and change what surfaces next. The answer was no, and the break was not one bug. It was four, in series, each one hiding the next.
+
+**The Decide half of the moat was wired and the Discover half was not.** `AGENTS.md` states the claim as a verdict being "used to re-rank what Discover **and** Decide surface next". `/decide` genuinely passes real outcome support into `rankOpportunities`. Nothing that decides what Discover surfaces, in what order, or which clusters become work read a learning, a verdict or an outcome. The most important consumer was `promoteClustersOnce`, whose own header calls it "the one rule in the product that spends money with nobody watching": it read three numbers the clustering computed and nothing about whether acting on this evidence had ever worked, so a theme whose bets had missed twice cleared the same bar as one whose bets had been validated twice, forever.
+
+**Then the join it needed was one hop short.** With the bar reading `learnings.opportunity_id -> opportunities.theme_id`, it still learned nothing on the autonomous route, because `prd.draft`'s own description says it outright: "Nothing in this toolset creates an opportunity ... pass brief instead." A driver-run Plan writes a spec with `opportunity_id` null. The lineage existed one hop across instead of down (spec -> track member -> `spine_tracks.theme_id`) and nothing was using it.
+
+**Then the verdict that should have fed it attached to nothing.** `learning.record` had two recoveries for a missing `prd_id` and both are dead on the driver's route: `missionId` is null at Learn because the driver opens a mission only at Build, and `decisions.prd_id` is null by construction because at Decide the spec does not exist yet. What remained was the driver naming the spec id in `stationGoal` and the model choosing to copy it into a tool argument. Measured live and quoted in `registry.server.ts`: the one track that completed the loop autonomously recorded two verdicts with `prd_id`, `opportunity_id` and `mission_id` all null. A contract enforced by prose.
+
+**And Learn could not see what it was grading against.** `driver.ts` claims the handoff ended the failure where "Learn was asked to compare against what the spec said while never being shown the spec". It had not, at Learn. `HANDOFF_BODIES` is 2, counted from the end, and by Learn the record holds cluster, decision, spec, prototype, changeset and deployment. The newest two are the changeset and the deployment. The spec arrived as a bare id.
+
+### The pattern this pass adds to section 9
+
+Section 9 named a green test guarding something nobody reaches. This pass adds its sibling: **a chain where every link is correct and the chain is one link short, with nothing anywhere saying so.** Four separate fixes, each provably correct in isolation, composing into a loop that learned nothing. The tell in all four was the same, and it is cheap to look for: find the writer, then name the reader and the moment it reads. Where the answer is "a human, if they go looking" or "the model, if it complies", the loop is open.
+
+The counting bug is the sharpest example, because the name was right and the code was wrong. `HANDOFF_BODIES` reserved trailing POSITIONS, and a `mission` (no body column, filed at Build by `missionForTrack`) spent a body slot on nothing, pushing the spec out of every Build retry. Build's first attempt saw the spec; the retry, which is the attempt that needs it most, did not.
+
+### What I decided rather than escalated
+
+**Discover's visible ranking gets no outcome term**, and this is a decision, not a gap left open. A learning reaches a cluster only through a bet or a track; `promoteThemeToOpportunity` is the only writer of `opportunities.theme_id` and it sets `themes.status = 'promoted'` in the same function; Discover's ranking excludes promoted clusters. So the term would be evaluated against an empty set: it would typecheck, unit-test, read as the moat being wired, and change no row anyone sees. The direction would have been wrong anyway. `/decide` ranks bets, where a missed history sensibly sinks a new bet on the same evidence; Discover ranks PROBLEMS, and a missed bet means the problem is real and still unsolved, so the same sign would bury the thing most worth looking at. `src/lib/brain/discover-outcome-term.test.ts` records the argument and trips if the premise carrying it changes.
+
+**The promotion bar withholds autonomy, it does not refuse.** A cluster past the line stays promotable by hand and the sweep says why. One miss is deliberately not enough: a platform that abandoned a real problem after a single bad swing would be worse at product work than the person using it.
+
+### Ship's first day
+
+Separately, on a workspace holding nothing, Ship said "nothing has shipped" six times: a negated H1, the announcement Gate, and five Blocks, four of them deriving that emptiness from the same read. One door on the whole screen, and it was the second action of a Gate about announcements. Every panel was correct in isolation, which is why no test caught it. Same diagnosis Learn wrote when the identical shape was repaired there, so it got the same repair: one Gate naming what arrives, the hosting precondition, the fact that promoting is always a person's call, two doors, and a drawing of what a release row will look like. The panels are suppressed and never deleted, and the condition cannot be true unless every read actually succeeded, because a failed read also has zero rows.
+
+### Honest limits of this pass
+
+Nothing here is verified against the live database: this harness has no Lovable access, so every claim rests on tests with the defect planted first. Ten defects were planted and each failed exactly the guard that owns it. One plant was a false red I caused myself, by cutting a block in a way that broke the file rather than reverting the behaviour, and one guard passed for the wrong reason on first draft because a fixture reused the track's `origin` sentence, which the goal interpolates separately. Both were caught by running it rather than reading it again, which is the same lesson section 15 ends on.
+
+**The outcome pool is empty in production today.** The honest form of all of the above is that the loop is wired and proven and begins accruing on first real use, not that it is already re-ranking anything. **No migration is needed for any of this pass.**
