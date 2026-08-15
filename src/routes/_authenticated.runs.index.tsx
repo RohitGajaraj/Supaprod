@@ -277,22 +277,34 @@ import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
+/*
+ * `Surface` is the ONE shell primitive kept, and it is kept on purpose: it is
+ * the work region's LAYOUT -- the main column, its measure, and the context
+ * aside beside it -- rather than a token or a paint. The ported Approvals and
+ * Brain surfaces both still mount it for the same reason. Everything else this
+ * file used to import from that module was the `--sp-*` layer, which
+ * meridian.css calls life support, and it has moved to run-parts.tsx.
+ */
+import { Surface } from "@/components/shell/primitives";
+import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import {
-  Actions,
-  Block,
+  Acts,
   Button,
-  Empty,
-  Failed,
+  LINK_AS_CONTROL,
+  Commit,
+  ContextNote,
+  Door,
   Field,
-  Gate,
-  Loading,
-  Num,
-  PageHead,
-  Receipt,
-  Select,
-  Surface,
+  Figure,
+  NothingYet,
+  Picker,
+  Reading,
+  ReadFailed,
+  Region,
+  RunGate,
+  RunHead,
   Textarea,
-} from "@/components/shell/primitives";
+} from "@/components/runs/run-parts";
 // The run-state vocabulary is shared with the board rather than defined here,
 // so the two views cannot disagree about what a run is doing.
 import { runState } from "@/components/runs/run-state";
@@ -380,15 +392,19 @@ export const Route = createFileRoute("/_authenticated/runs/")({
       .parse(search),
   errorComponent: ({ error, reset }) => (
     <Surface>
-      <PageHead
-        title="Build did not load."
-        sub={(error as Error)?.message ?? "The reason did not come back with the error."}
-      />
-      <Block>
-        <Button variant="primary" onClick={reset}>
-          Try again
-        </Button>
-      </Block>
+      <div className="flex flex-col gap-mrd-6">
+        <RunHead
+          title="Build did not load."
+          sub={(error as Error)?.message ?? "The reason did not come back with the error."}
+        />
+        {/* A failed read always carries the way out. It used to be a bare
+            primary inside an empty Block, which drew a rule over nothing. */}
+        <Acts>
+          <Button variant="primary" onClick={reset}>
+            Try again
+          </Button>
+        </Acts>
+      </div>
     </Surface>
   ),
 });
@@ -589,7 +605,7 @@ function Composer({
           {mode === "ship" ? (
             <>
               <Field label="Spec">
-                <Select
+                <Picker
                   value={prdId ?? ""}
                   onChange={(e) => setPrdId(e.target.value || null)}
                   disabled={approvedPrds.length === 0}
@@ -600,27 +616,35 @@ function Composer({
                       {p.title}
                     </option>
                   ))}
-                </Select>
+                </Picker>
               </Field>
               {/* Loading, error and empty each speak for themselves rather than one
                 of them wearing another's clothes. */}
               {prds.isError ? (
-                <Failed onRetry={() => void prds.refetch()}>
+                <ReadFailed onRetry={() => void prds.refetch()}>
                   The approved specs did not load.
-                </Failed>
+                </ReadFailed>
               ) : !prds.isLoading && approvedPrds.length === 0 ? (
-                <Empty>
+                <NothingYet>
                   No spec is approved yet, so describe the work instead.{" "}
-                  <Link to="/plan" style={{ color: "var(--sp-ink)" }}>
+                  {/* The address inside the sentence, drawn as the house's quiet
+                      affordance rather than as an inline `--sp-ink` colour. It
+                      is a router Link, so the paint is applied here rather than
+                      through run-parts' Door, which owns its own element. */}
+                  <Link
+                    to="/plan"
+                    className="rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
+                    style={{ transitionDuration: "var(--mrd-d-press)" }}
+                  >
                     Approve one in Plan
                   </Link>
                   .
-                </Empty>
+                </NothingYet>
               ) : null}
             </>
           ) : null}
 
-          <Actions>
+          <Acts>
             <Button
               variant={startIsPrimary ? "primary" : "default"}
               // THE KEYCAP ARRIVES WITH THE KEY AND LEAVES WITH IT. `canStart` is
@@ -649,7 +673,7 @@ function Composer({
             >
               {isPending ? "Starting" : "Hand it over"}
             </Button>
-          </Actions>
+          </Acts>
         </TabPanel>
       </div>
 
@@ -939,7 +963,7 @@ function BuildPage() {
    * one thing to press. The board used to draw a primary here and this is the
    * correction. */
   const nothingYet = (
-    <Empty
+    <NothingYet
       action={
         <Button variant="ghost" onClick={focusComposer}>
           Describe the next build
@@ -948,7 +972,7 @@ function BuildPage() {
     >
       Nothing has been built here yet. Describe the work and the crew plans the steps, writes the
       change, and opens the pull request.
-    </Empty>
+    </NothingYet>
   );
 
   return (
@@ -969,69 +993,92 @@ function BuildPage() {
                  one precondition every dispatch depends on simply vanished
                  from the surface, and a reader who had read it a minute
                  earlier had no way to notice it had stopped being said. */
-              <>
-                <div className="sp-ctx-head">Where builds land</div>
-                <div className="sp-ctx-body">
-                  <Failed onRetry={() => void repoStatus.refetch()}>
-                    We could not check where builds land.
-                  </Failed>
-                </div>
-              </>
+              <ContextNote head="Where builds land">
+                <ReadFailed onRetry={() => void repoStatus.refetch()}>
+                  We could not check where builds land.
+                </ReadFailed>
+              </ContextNote>
             ) : repoStatus.data ? (
-              <>
-                <div className="sp-ctx-head">Where builds land</div>
-                <div className="sp-ctx-body">
-                  {/* Three states. "Not connected" and "could not tell" send a
-                    person to two different places, and saying the first when
-                    the truth is the second sends them to connect a repo they
-                    already have. See repo-gate.ts. */}
+              /* Three states. "Not connected" and "could not tell" send a person
+                 to two different places, and saying the first when the truth is
+                 the second sends them to connect a repo they already have. See
+                 repo-gate.ts. */
+              repoStatus.data.resolution === "not_connected" ? (
+                /*
+                 * THE ONE PRECONDITION ON THIS SURFACE, AND IT GETS THE MERIDIAN
+                 * COMPONENT BUILT FOR IT.
+                 *
+                 * `NeedsSetup` exists for the fact this product kept collapsing
+                 * into an empty state: not "nothing is here" and not "the read
+                 * failed", but "a precondition is missing, so this cannot ask
+                 * its question at all". That is exactly this. A build has to
+                 * land somewhere, and with no repo the spec door cannot finish
+                 * what it starts -- which the reader currently discovers as a
+                 * DISPATCH FAILURE, one click and one wait too late.
+                 *
+                 * It carries no accent, and meridian.css says why: connecting a
+                 * repo is a setup act, not a decision. Dressing it in orchid
+                 * sends someone hunting for a call to make, and there is no call
+                 * here, only a thing to plug in.
+                 *
+                 * The copy is unchanged; it is the same sentence, in the slot
+                 * the component keeps for it, with "Connect one" promoted from
+                 * an inline link to the act it always was.
+                 */
+                <NeedsSetup
+                  kind="upstream"
+                  title="Where builds land"
+                  body="No repo is connected, so a build has nowhere to open a pull request."
+                  thenWhat="a build opens its pull request there and this says which repo."
+                  // An anchor wearing the control's face, never a <button>
+                  // inside an <a>: this act is a NAVIGATION, so a middle click
+                  // and a modifier click have to keep working. See LINK_AS_CONTROL.
+                  action={
+                    <Link to="/sync" className={LINK_AS_CONTROL}>
+                      Connect one
+                    </Link>
+                  }
+                />
+              ) : (
+                <ContextNote head="Where builds land">
                   {repoStatus.data.resolution === "connected" ? (
                     (repoStatus.data.repo ?? "A connected repo.")
-                  ) : repoStatus.data.resolution === "not_connected" ? (
-                    <>
-                      No repo is connected, so a build has nowhere to open a pull request.{" "}
-                      <Link to="/sync" style={{ color: "var(--sp-ink)" }}>
-                        Connect one
-                      </Link>
-                      .
-                    </>
                   ) : (
                     <>
                       We could not read where builds land, so this is not a statement about your
                       setup. A build will still try, and will say what went wrong.
                     </>
                   )}
-                </div>
-              </>
+                </ContextNote>
+              )
             ) : null}
 
             {shipped?.changeset ? (
-              <>
-                <div className="sp-ctx-head">The last one that landed</div>
-                <div className="sp-ctx-body">
-                  {agentDisplayName("builder")} wrote it and it is merged into{" "}
-                  {shipped.changeset.repo}
-                  {shipped.changeset.pr_number ? (
-                    <>
-                      {" · "}
-                      <a
-                        href={shipped.changeset.pr_url ?? undefined}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: "var(--sp-ink)" }}
-                      >
-                        #{shipped.changeset.pr_number}
-                      </a>
-                    </>
-                  ) : null}
-                  {onDate(shipped.updated_at) ? ` · ${onDate(shipped.updated_at)}` : ""}
-                </div>
-              </>
+              <ContextNote head="The last one that landed">
+                {agentDisplayName("builder")} wrote it and it is merged into{" "}
+                {shipped.changeset.repo}
+                {shipped.changeset.pr_number ? (
+                  <>
+                    {" · "}
+                    {/* The one claim here a sceptic can click out of the product
+                        and check. An anchor rather than a painted span, because
+                        it leaves the app and a middle click has to work. */}
+                    <Door href={shipped.changeset.pr_url ?? undefined}>
+                      <Figure>#{shipped.changeset.pr_number}</Figure>
+                    </Door>
+                  </>
+                ) : null}
+                {onDate(shipped.updated_at) ? (
+                  <>
+                    {" · "}
+                    <Figure>{onDate(shipped.updated_at)}</Figure>
+                  </>
+                ) : null}
+              </ContextNote>
             ) : null}
 
             {spend > 0 ? (
-              <>
-                <div className="sp-ctx-head">What these runs cost</div>
+              <ContextNote head="What these runs cost">
                 {/* THIS SENTENCE USED TO READ "Each run stops at the ceiling set
                     in Build." It was unconditional, and this surface never reads
                     the spend policy at all -- there is no `getWorkspaceSpendPolicy`
@@ -1048,35 +1095,40 @@ function BuildPage() {
                     ceiling is set. Stating the ACTUAL ceiling here would be better
                     still and needs a policy read wired into this route; that is
                     logged for the engineering lane in HANDOFF-ENGINEERING.md. */}
-                <div className="sp-ctx-body">
-                  <Num>{usd(spend)}</Num> across <Num>{rows.length}</Num>{" "}
-                  {rows.length === 1 ? "run" : "runs"}. The ceiling that stops a run is set in
-                  Build.
-                </div>
-              </>
+                <Figure>{usd(spend)}</Figure> across <Figure>{rows.length}</Figure>{" "}
+                {rows.length === 1 ? "run" : "runs"}. The ceiling that stops a run is set in Build.
+              </ContextNote>
             ) : null}
           </>
         )
       }
     >
-      <PageHead
-        title={headline}
-        sub={
-          rows.length > 0 ? (
-            <>
-              <Num>{rows.length}</Num> {rows.length === 1 ? "run" : "runs"} on the record
-              {merged > 0 ? (
-                <>
-                  {" · "}
-                  <Num>{merged}</Num> merged
-                </>
-              ) : null}
-            </>
-          ) : null
-        }
-      />
+      {/* THE PAGE'S RHYTHM, STATED HERE RATHER THAN INHERITED.
+          The legacy primitives each carried their own margins in the stylesheet,
+          so the vertical spacing of this surface was assembled from six files
+          nobody could read at once. Meridian's ramp GROWS -- the gap between
+          groups is always visibly larger than the gap within one -- and that is
+          only true if one place decides it. `--mrd-s6` between the head and the
+          views; the panel sets its own `--mrd-s5` under the tab row. */}
+      <div className="flex flex-col gap-mrd-6">
+        <RunHead
+          title={headline}
+          sub={
+            rows.length > 0 ? (
+              <>
+                <Figure>{rows.length}</Figure> {rows.length === 1 ? "run" : "runs"} on the record
+                {merged > 0 ? (
+                  <>
+                    {" · "}
+                    <Figure>{merged}</Figure> merged
+                  </>
+                ) : null}
+              </>
+            ) : null
+          }
+        />
 
-      {/* The view switch. Same furniture as the composer's two doors, in the
+        {/* The view switch. Same furniture as the composer's two doors, in the
           same position on both views, because a toggle that moves when you use
           it does not read as one control.
 
@@ -1087,73 +1139,82 @@ function BuildPage() {
           walked a reader through the choice they had already declined. See
           components/runs/Tabs.tsx, which is the house's two existing answers
           generalised rather than a third copy. */}
-      <Tabs
-        group={VIEW_TABS}
-        label="How to read the runs"
-        active={board ? "board" : "list"}
-        onSelect={setView}
-        tabs={[
-          { id: "list", label: "List" },
-          { id: "board", label: "Board" },
-        ]}
-      />
+        <div>
+          <Tabs
+            group={VIEW_TABS}
+            label="How to read the runs"
+            active={board ? "board" : "list"}
+            onSelect={setView}
+            tabs={[
+              { id: "list", label: "List" },
+              { id: "board", label: "Board" },
+            ]}
+          />
 
-      <TabPanel group={VIEW_TABS} active={board ? "board" : "list"}>
-        {board ? (
-          firstLoad ? (
-            <Loading>Reading the record.</Loading>
-          ) : sessions.isError ? (
-            <Failed onRetry={() => void sessions.refetch()}>
-              The runs did not load, so this board is not the whole picture.
-            </Failed>
-          ) : rows.length === 0 ? (
-            nothingYet
-          ) : (
-            <RunBoard
-              rows={rows}
-              progressById={progressById}
-              showAll={showAll}
-              onShowAll={() => setShowAll((v) => !v)}
-              onOpen={openRun}
-            />
-          )
-        ) : firstLoad ? null : sessions.isError ? (
-          <Gate question="The runs did not load.">
-            <Button variant="primary" onClick={() => void sessions.refetch()}>
-              Try again
-            </Button>
-          </Gate>
-        ) : call ? (
-          <Gate
-            // The stored title carries a machine "[auto]" origin prefix when the
-            // loop raised it. That is provenance, not copy, and it never reaches
-            // the sentence a person is asked to judge.
-            question={`${stripAutoPrefix(call.title)} is waiting on you.`}
-            lines={
-              [
-                call.pending_approvals > 0 ? (
-                  <span key="calls">
-                    <Num>{call.pending_approvals}</Num>{" "}
-                    {call.pending_approvals === 1 ? "call" : "calls"} to settle before it goes on.
-                  </span>
+          <TabPanel group={VIEW_TABS} active={board ? "board" : "list"}>
+            <div className="flex flex-col gap-mrd-6">
+              {board ? (
+                firstLoad ? (
+                  <Reading>Reading the record.</Reading>
+                ) : sessions.isError ? (
+                  <ReadFailed onRetry={() => void sessions.refetch()}>
+                    The runs did not load, so this board is not the whole picture.
+                  </ReadFailed>
+                ) : rows.length === 0 ? (
+                  nothingYet
                 ) : (
-                  <span key="calls">It stopped and cannot go on until a person answers.</span>
-                ),
-                firstLine(call.goal) ? <span key="goal">{firstLine(call.goal)}</span> : null,
-                call.changeset ? (
-                  <span key="repo">
-                    {call.changeset.repo}
-                    {call.changeset.branch ? ` · ${call.changeset.branch}` : ""}
-                  </span>
-                ) : null,
-              ].filter(Boolean) as React.ReactNode[]
-            }
-          >
-            <Button variant="primary" onClick={() => openRun(call.mission_id)}>
-              Open the run
-            </Button>
-            {waiting.length > 1 ? (
-              /* NAME THE NOUN HERE TOO. `waiting.length` counts RUNS in a gate
+                  <RunBoard
+                    rows={rows}
+                    progressById={progressById}
+                    showAll={showAll}
+                    onShowAll={() => setShowAll((v) => !v)}
+                    onOpen={openRun}
+                  />
+                )
+              ) : firstLoad ? null : sessions.isError ? (
+                <RunGate standing="failed" question="The runs did not load.">
+                  <Button variant="primary" onClick={() => void sessions.refetch()}>
+                    Try again
+                  </Button>
+                </RunGate>
+              ) : call ? (
+                <RunGate
+                  // THE STANDING MARKER IS THE PORT'S ONE ADDITION HERE, and it is not
+                  // decoration. Meridian keeps three stopped states apart -- yours,
+                  // a condition's, and a failure's -- and this gate used to distinguish
+                  // them by the wording of its question alone, so "Nothing is waiting
+                  // on you" and "X is waiting on you" were one object in two moods.
+                  standing="you"
+                  // The stored title carries a machine "[auto]" origin prefix when the
+                  // loop raised it. That is where it came from, not copy, and it never
+                  // reaches the sentence a person is asked to judge.
+                  question={`${stripAutoPrefix(call.title)} is waiting on you.`}
+                  lines={
+                    [
+                      call.pending_approvals > 0 ? (
+                        <span key="calls">
+                          <Figure>{call.pending_approvals}</Figure>{" "}
+                          {call.pending_approvals === 1 ? "call" : "calls"} to settle before it goes
+                          on.
+                        </span>
+                      ) : (
+                        <span key="calls">It stopped and cannot go on until a person answers.</span>
+                      ),
+                      firstLine(call.goal) ? <span key="goal">{firstLine(call.goal)}</span> : null,
+                      call.changeset ? (
+                        <span key="repo">
+                          {call.changeset.repo}
+                          {call.changeset.branch ? ` · ${call.changeset.branch}` : ""}
+                        </span>
+                      ) : null,
+                    ].filter(Boolean) as React.ReactNode[]
+                  }
+                >
+                  <Button variant="primary" onClick={() => openRun(call.mission_id)}>
+                    Open the run
+                  </Button>
+                  {waiting.length > 1 ? (
+                    /* NAME THE NOUN HERE TOO. `waiting.length` counts RUNS in a gate
                state, and the line three rows above it counts CALLS on the one
                run being shown. A reader just told "3 calls to settle" read a
                bare "Settle all 5" as five calls, and then landed on /approvals,
@@ -1162,133 +1223,153 @@ function BuildPage() {
                on `headline`); the button was missed. It says "all" rather than
                "the other" on purpose: the destination queue holds every waiting
                run including the one on screen. */
-              <Button variant="ghost" onClick={() => navigate({ to: "/approvals" })}>
-                Settle all {waiting.length} runs
-              </Button>
-            ) : null}
-          </Gate>
-        ) : (
-          <Gate question="Nothing is waiting on you.">
-            <Button variant="ghost" onClick={focusComposer}>
-              Describe the next build
-            </Button>
-          </Gate>
-        )}
+                    <Button variant="ghost" onClick={() => navigate({ to: "/approvals" })}>
+                      Settle all {waiting.length} runs
+                    </Button>
+                  ) : null}
+                </RunGate>
+              ) : (
+                /* THE BEST STATE IN THE PRODUCT, AND IT IS THE QUIETEST THING ON THE
+             SCREEN. `clear` spends no accent: nothing is asking, so nothing
+             should look like it is. */
+                <RunGate standing="clear" question="Nothing is waiting on you.">
+                  <Button variant="ghost" onClick={focusComposer}>
+                    Describe the next build
+                  </Button>
+                </RunGate>
+              )}
 
-        {/* A textarea is prose and keeps the measure, so the composer holds it
-          back even where the board around it dropped it. */}
-        <div style={board ? { maxWidth: "var(--sp-main-max)" } : undefined}>
-          <Block title="Hand work over" sub="Anything risky comes back to you before it happens.">
-            <Composer
-              // One primary per screen. On the list the gate owns it when a run
-              // is waiting; on the board there is no gate, so the hand-over does.
-              startIsPrimary={(board || !call) && !sessions.isError}
-              onCommit={commit}
-            />
-          </Block>
+              {/* A textarea is prose and keeps the measure, so the composer holds it
+          back even where the board around it dropped it.
 
-          {receipts.length > 0 ? (
-            <Block title="What you set in motion">
-              {receipts.map((r, i) => (
-                <Receipt
-                  key={`${r.id}-${i}`}
-                  verb={r.verb}
-                  consequence={r.consequence}
-                  handoff={r.handoff}
-                  time={r.at}
-                  failed={r.failed}
-                />
-              ))}
-            </Block>
-          ) : null}
-        </div>
+          THE NUMBER IS WRITTEN OUT, and that is a reported gap rather than a
+          preference. It was `var(--sp-main-max)`, which is 74ch and is the
+          measure `.sp-main` itself uses; Meridian's own `--mrd-measure` is 68ch.
+          Taking the Meridian value here would make the composer NARROWER on the
+          board than on the list, which is the exact inconsistency this line was
+          added to remove. So the shell's measure is matched literally until the
+          shell layout moves to Meridian, which is another lane's file. */}
+              <div
+                className="flex flex-col gap-mrd-6"
+                style={board ? { maxWidth: "74ch" } : undefined}
+              >
+                <Region
+                  title="Hand work over"
+                  sub="Anything risky comes back to you before it happens."
+                >
+                  <Composer
+                    // One primary per screen. On the list the gate owns it when a run
+                    // is waiting; on the board there is no gate, so the hand-over does.
+                    startIsPrimary={(board || !call) && !sessions.isError}
+                    onCommit={commit}
+                  />
+                </Region>
 
-        {board ? null : (
-          <Block
-            title="Runs"
-            sub={
-              managing
-                ? "Archived runs are included. What a run decided stays on the record."
-                : undefined
-            }
-            /* THE REGION'S CONTROL IS IN THE REGION'S HEAD, which is where a
+                {receipts.length > 0 ? (
+                  <Region title="What you set in motion">
+                    {receipts.map((r, i) => (
+                      <Commit
+                        key={`${r.id}-${i}`}
+                        verb={r.verb}
+                        consequence={r.consequence}
+                        handoff={r.handoff}
+                        time={r.at}
+                        failed={r.failed}
+                      />
+                    ))}
+                  </Region>
+                ) : null}
+              </div>
+
+              {board ? null : (
+                <Region
+                  title="Runs"
+                  sub={
+                    managing
+                      ? "Archived runs are included. What a run decided stays on the record."
+                      : undefined
+                  }
+                  /* THE REGION'S CONTROL IS IN THE REGION'S HEAD, which is where a
                reader looks for one. It used to be the cap toggle ("All 43"),
                and the cap now belongs to the grid, which states both real
                numbers instead of one. Offered only above the cap, because a
                finder over a list you can already see whole is furniture. */
-            more={
-              rows.length > VISIBLE && !firstLoad && !sessions.isError
-                ? finding
-                  ? "Close the finder"
-                  : "Find a run"
-                : undefined
-            }
-            onMore={() => setFinding((v) => !v)}
-          >
-            {/* A COLD LOAD SAYS SO, in the list exactly as it does on the board.
-              This arm used to be `null`, so on a first load the Block printed
+                  more={
+                    rows.length > VISIBLE && !firstLoad && !sessions.isError
+                      ? finding
+                        ? "Close the finder"
+                        : "Find a run"
+                      : undefined
+                  }
+                  onMore={() => setFinding((v) => !v)}
+                >
+                  {/* A COLD LOAD SAYS SO, in the list exactly as it does on the board.
+              This arm used to be `null`, so on a first load the region printed
               its "Runs" heading over an empty body: a heading standing over
               nothing, which a person reads as "there is nothing here" rather
               than "we have not read it yet". The board branch above answers the
-              SAME `firstLoad` flag with this same Loading line, so pressing
+              SAME `firstLoad` flag with this same reading line, so pressing
               Board made the surface speak and pressing List made it go silent,
               off one variable. Fixed 2026-08-11. */}
-            {firstLoad ? (
-              <Loading>Reading the record.</Loading>
-            ) : sessions.isError ? (
-              // "Nothing here" and "we could not find out" are different facts and
-              // a person acts differently on each, so they never share a shape.
-              <Failed onRetry={() => void sessions.refetch()}>
-                The runs did not load, so this list is not the whole picture.
-              </Failed>
-            ) : rows.length === 0 ? (
-              nothingYet
-            ) : (
-              /* THE GRID ANSWERS THE OTHER TWO FACTS. A filter that hid
+                  {firstLoad ? (
+                    <Reading>Reading the record.</Reading>
+                  ) : sessions.isError ? (
+                    // "Nothing here" and "we could not find out" are different facts and
+                    // a person acts differently on each, so they never share a shape.
+                    <ReadFailed onRetry={() => void sessions.refetch()}>
+                      The runs did not load, so this list is not the whole picture.
+                    </ReadFailed>
+                  ) : rows.length === 0 ? (
+                    nothingYet
+                  ) : (
+                    /* THE GRID ANSWERS THE OTHER TWO FACTS. A filter that hid
                  everything and a cap that is holding rows back are states this
                  surface could not express at all, and both are the grid's:
                  `FilterTable` passes `isFiltered` and `totalBeforeFilter` down
                  so an empty result can never be printed as an empty workspace.
                  The two states above stay HERE, because an empty workspace
                  needs a door and a failed read needs the surface's own voice. */
-              <RunsGrid
-                rows={rows}
-                progressById={progressById}
-                // Exactly one mark on this surface may blink, and it is the one
-                // the Gate above is asking about. The old list gave every
-                // waiting run the `gate` state, so a workspace with a dozen
-                // open calls blinked a dozen marks in unison.
-                blinkingId={call?.mission_id ?? null}
-                managing={managing}
-                // Guarded by the same condition that draws its control. Left
-                // ungated, a finder opened over forty runs would still be on
-                // screen after thirty-seven of them were archived away, with
-                // the control that closes it no longer drawn.
-                finding={finding && rows.length > VISIBLE}
-                onOpen={openRun}
-                onArchive={(s) =>
-                  archive.mutate({ missionId: s.mission_id, archived: !s.archived })
-                }
-                onDelete={(s) => void askDelete(s)}
-                archivePending={archive.isPending}
-                deletingId={deleting}
-                maxRows={VISIBLE}
-              />
-            )}
+                    <RunsGrid
+                      rows={rows}
+                      progressById={progressById}
+                      // Exactly one mark on this surface may move, and it is the one
+                      // the gate above is asking about. The old list gave every
+                      // waiting run the animated state, so a workspace with a dozen
+                      // open calls blinked a dozen marks in unison.
+                      askingId={call?.mission_id ?? null}
+                      managing={managing}
+                      // Guarded by the same condition that draws its control. Left
+                      // ungated, a finder opened over forty runs would still be on
+                      // screen after thirty-seven of them were archived away, with
+                      // the control that closes it no longer drawn.
+                      finding={finding && rows.length > VISIBLE}
+                      onOpen={openRun}
+                      onArchive={(s) =>
+                        archive.mutate({ missionId: s.mission_id, archived: !s.archived })
+                      }
+                      onDelete={(s) => void askDelete(s)}
+                      archivePending={archive.isPending}
+                      deletingId={deleting}
+                      maxRows={VISIBLE}
+                    />
+                  )}
 
-            {/* The control that turns Managing on has to survive turning it on.
+                  {/* The control that turns Managing on has to survive turning it on.
               Gated on isLoading this button removed itself the instant it was
               pressed, so the toggle had no visible off switch for a beat. */}
-            {firstLoad || sessions.isError || rows.length === 0 ? null : (
-              <Actions>
-                <Button variant="ghost" onClick={() => setManaging((v) => !v)}>
-                  {managing ? "Done" : "Manage"}
-                </Button>
-              </Actions>
-            )}
-          </Block>
-        )}
-      </TabPanel>
+                  {firstLoad || sessions.isError || rows.length === 0 ? null : (
+                    <Acts>
+                      <Button variant="ghost" onClick={() => setManaging((v) => !v)}>
+                        {managing ? "Done" : "Manage"}
+                      </Button>
+                    </Acts>
+                  )}
+                </Region>
+              )}
+            </div>
+          </TabPanel>
+        </div>
+      </div>
     </Surface>
   );
 }

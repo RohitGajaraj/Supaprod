@@ -230,28 +230,42 @@ import { MissionOrchestratorDetail } from "@/components/missions/MissionOrchestr
 import { TestStationPanel } from "@/components/obsidian/TestStationPanel";
 import { fmtCost, summarizeArgs } from "@/components/studio/studio-format";
 import { traceRef } from "@/components/discover/format";
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  CtxBody,
-  Diffstat,
-  Door,
-  Empty,
-  Failed,
-  Gate,
-  Num,
-  PageHead,
-  Receipt,
-  Row,
-  Surface,
-  Textarea,
-  Who,
-  YouMark,
-  type MarkState,
-} from "@/components/shell/primitives";
+/*
+ * `Surface` is the ONE shell primitive kept, and it is kept on purpose: it is
+ * the work region's LAYOUT rather than a token or a paint, and both the ported
+ * Approvals and Brain surfaces still mount it. Everything else this file used to
+ * import from that module was the `--sp-*` layer, which meridian.css calls life
+ * support, and it has moved to components/runs/run-parts.tsx.
+ *
+ * `AgentPulse` stays too, and for a different reason: it is bound to a run
+ * genuinely being resumed, and it is out of this lane's files. Reported rather
+ * than repainted.
+ */
+import { Surface } from "@/components/shell/primitives";
 import { AgentPulse } from "@/components/shell/AgentPulse";
+import {
+  Actor,
+  Acts,
+  Button,
+  Commit,
+  ContextLine,
+  ContextNote,
+  Delta,
+  Door,
+  Figure,
+  NothingYet,
+  PersonMark,
+  Reading,
+  ReadFailed,
+  Region,
+  RunGate,
+  RunHead,
+  RunMark,
+  RunRow,
+  Textarea,
+  type RunMarkState,
+} from "@/components/runs/run-parts";
+import { Tabs, TabPanel } from "@/components/runs/Tabs";
 import { actorName, actorSlug, actorVerb } from "@/components/runs/run-state";
 
 /** The four views of this run worth opening. `steps` is the raw log, which used
@@ -284,7 +298,11 @@ function readTab(t: SearchTab | undefined): Tab | null {
   return t === "pr" || t === "cost" ? "changes" : null;
 }
 
-/** How many ledger rows open before the block offers the rest. */
+/** The tab row's id group. Every element id in the row and its panel is derived
+ *  from it, so a caller never holds one and two rows on one page cannot collide. */
+const PRODUCED_TABS = "run-produced";
+
+/** How many ledger rows open before the region offers the rest. */
 const VISIBLE = 12;
 
 type MissionRow = {
@@ -393,12 +411,24 @@ function clip(s: string, max = 180): string {
   return line.length > max ? `${line.slice(0, max - 1)}…` : line;
 }
 
-/** State is never a hue: the mark carries it. */
-function markFor(status: string): MarkState {
-  if (status === "running" || status === "queued") return "running";
+/**
+ * State is never a hue in the TEXT: the mark carries it, and under Meridian the
+ * mark carries it as one of the five meanings the system has rather than as the
+ * agent's loop stage.
+ *
+ * The vocabulary here is `agent_runs.status`, and it maps onto the run states
+ * the list and the board already use, so a run that reads "Working" one click
+ * back cannot read as something else here. `queued` folds into `working` on this
+ * surface deliberately: on the list a queued run is genuinely waiting for the
+ * crew to pick it up, but by the time you are inside a run its queued sub-run is
+ * part of one continuous piece of work, and amber there would claim a stall that
+ * is not happening.
+ */
+function markFor(status: string): RunMarkState {
+  if (status === "running" || status === "queued") return "working";
   if (status === "waiting_approval") return "gate";
-  if (status === "failed" || status === "halted") return "failed";
-  return "quiet";
+  if (status === "failed" || status === "halted") return "stopped";
+  return "done";
 }
 
 /** What the crew is doing, in plain words. NEVER "thinking": that is the word
@@ -503,7 +533,7 @@ function stageLines(
       ? "merged"
       : changeset.status === "pr_open"
         ? changeset.pr_number != null
-          ? ["open, ", <Num key="n">#{changeset.pr_number}</Num>]
+          ? ["open, ", <Figure key="n">#{changeset.pr_number}</Figure>]
           : "open"
         : "not opened yet";
 
@@ -547,29 +577,6 @@ function stageLines(
   ];
 }
 
-/** One line of the context column: an optional mark, a name, and a second line
- *  that carries DIFFERENT information. Local, because the same six lines of
- *  markup were being retyped for every context row on this surface. */
-function CtxRow({
-  mark,
-  name,
-  sub,
-}: {
-  mark?: React.ReactNode;
-  name: React.ReactNode;
-  sub: React.ReactNode;
-}) {
-  return (
-    <div className="sp-ctx-row">
-      {mark}
-      <span>
-        <span className="sp-ctx-name">{name}</span>
-        <span className="sp-ctx-sub">{sub}</span>
-      </span>
-    </div>
-  );
-}
-
 /** The one sentence the human is asked to judge. Plain words, never the tool
  *  name: that is provenance and it belongs in the evidence below. */
 function gateQuestion(tool: string): string {
@@ -607,7 +614,7 @@ function gateLines(a: StudioApproval, holder: string): React.ReactNode[] {
   if (args && args !== "(no args)") {
     lines.push(
       <span key="args">
-        <Num>{clip(args, 140)}</Num>
+        <Figure>{clip(args, 140)}</Figure>
       </span>,
     );
   }
@@ -975,10 +982,10 @@ function BuildRun() {
     const out: React.ReactNode[] = [];
     if (mission) {
       out.push(
-        <Row
+        <RunRow
           key="asked"
           tight
-          marks={<YouMark initials={initials} mine />}
+          mark={<PersonMark initials={initials} mine />}
           lead="You asked for it"
           sub={clip(mission.goal, 150)}
           time={ago(mission.created_at)}
@@ -988,24 +995,24 @@ function BuildRun() {
     for (const run of runs) {
       const alive = run.status === "running" || run.status === "queued";
       out.push(
-        <Row
+        <RunRow
           key={run.run_id}
-          marks={<AgentMark slug={holderSlug} name={holder} state={markFor(run.status)} />}
+          mark={<RunMark slug={holderSlug} name={holder} state={markFor(run.status)} />}
           lead={
             <>
-              <Who>{holder}</Who> {runPhrase(run, holderVerb)}
+              <Actor>{holder}</Actor> {runPhrase(run, holderVerb)}
             </>
           }
           sub={
             <>
-              <Num>{run.steps.length}</Num> {run.steps.length === 1 ? "step" : "steps"}
+              <Figure>{run.steps.length}</Figure> {run.steps.length === 1 ? "step" : "steps"}
               {alive && ago(run.last_checkpoint_at) ? (
                 <> · no step for {ago(run.last_checkpoint_at)}</>
               ) : null}
               {run.cost_usd > 0 ? (
                 <>
                   {" · "}
-                  <Num>{fmtCost(run.cost_usd)}</Num>
+                  <Figure>{fmtCost(run.cost_usd)}</Figure>
                 </>
               ) : null}
             </>
@@ -1038,23 +1045,33 @@ function BuildRun() {
         const failedStep = s.status === "error";
         const deniedStep = s.status === "denied";
         out.push(
-          <Row
+          <RunRow
             key={`${run.run_id}-${i}`}
             tight
-            marks={
-              <AgentMark
+            mark={
+              <RunMark
                 slug={holderSlug}
                 name={holder}
                 state={
-                  failedStep ? "failed" : alive && i === last && !isThought ? "running" : "quiet"
+                  failedStep ? "stopped" : alive && i === last && !isThought ? "working" : "done"
                 }
               />
             }
             lead={
               failedStep ? (
-                <span className="sp-fail">{lead}</span>
+                // Red is an OUTCOME, and a step that errored is the clearest one
+                // this page has.
+                <span className="text-mrd-fail">{lead}</span>
               ) : deniedStep ? (
-                <span className="sp-warn">{lead}</span>
+                /* A DENIED STEP IS ORCHID, NOT AMBER, AND THAT IS THE CORRECTION.
+                   It was `.sp-warn`, and this system has no warn colour: the only
+                   thing amber may say is "stopped, and NOT on you". A step that
+                   was denied stopped because A PERSON DECLINED IT, which is the
+                   one meaning orchid exists for — it is the trace of a human call,
+                   not a condition waiting to change. Reading it as amber told the
+                   reader to wait for something, when the thing had already been
+                   decided by them. */
+                <span className="text-mrd-you">{lead}</span>
               ) : (
                 lead
               )
@@ -1115,7 +1132,7 @@ function BuildRun() {
       {headline.duration ? (
         <>
           {" "}
-          <Num>{headline.duration}</Num>
+          <Figure>{headline.duration}</Figure>
         </>
       ) : null}
       {headline.ask ? <> · {headline.ask}</> : null}
@@ -1147,105 +1164,98 @@ function BuildRun() {
         spec that legitimately had no design contract, and that state renders as
         nothing rather than as a false pass. */}
       {parity.data?.available && parity.data.signal.verdict !== "no_context" ? (
-        <>
-          <div className="sp-ctx-head">Against the design</div>
-          <CtxBody>
-            {parity.data.signal.verdict === "aligned" ? (
-              <>
-                The returning work names <Num>{parity.data.signal.matched.length}</Num> of{" "}
-                <Num>{parity.data.signal.expected.length}</Num> thing
-                {parity.data.signal.expected.length === 1 ? "" : "s"} it was handed.
-              </>
-            ) : (
-              <>
-                None of the <Num>{parity.data.signal.expected.length}</Num> design reference
-                {parity.data.signal.expected.length === 1 ? "" : "s"} it was given appear in what
-                came back. That is worth a look before it merges, not a blocker.
-              </>
-            )}
-          </CtxBody>
-        </>
+        <ContextNote head="Against the design">
+          {parity.data.signal.verdict === "aligned" ? (
+            <>
+              The returning work names <Figure>{parity.data.signal.matched.length}</Figure> of{" "}
+              <Figure>{parity.data.signal.expected.length}</Figure> thing
+              {parity.data.signal.expected.length === 1 ? "" : "s"} it was handed.
+            </>
+          ) : (
+            <>
+              None of the <Figure>{parity.data.signal.expected.length}</Figure> design reference
+              {parity.data.signal.expected.length === 1 ? "" : "s"} it was given appear in what came
+              back. That is worth a look before it merges, not a blocker.
+            </>
+          )}
+        </ContextNote>
       ) : null}
 
-      <div className="sp-ctx-head">Who is on it</div>
-      <CtxRow
-        mark={
-          <AgentMark
-            slug={holderSlug}
-            name={holder}
-            state={isLive ? "running" : mission.status === "failed" ? "failed" : "quiet"}
-          />
-        }
-        name={holder}
-        sub={liveAction ?? stateWord}
-      />
+      <ContextNote head="Who is on it">
+        <ContextLine
+          mark={
+            <RunMark
+              slug={holderSlug}
+              name={holder}
+              state={isLive ? "working" : mission.status === "failed" ? "stopped" : "done"}
+            />
+          }
+          name={holder}
+          sub={liveAction ?? stateWord}
+        />
+      </ContextNote>
 
       {runs.length > 0 ? (
-        <>
-          <div className="sp-ctx-head">This run</div>
-          <div className="sp-ctx-body">
-            Started {started}. <Num>{runs.length}</Num> {runs.length === 1 ? "run" : "runs"},{" "}
-            <Num>{stepTotal}</Num> {stepTotal === 1 ? "step" : "steps"}. It has used{" "}
-            <Num>{fmtCost(totalCost)}</Num>.
-          </div>
-        </>
+        <ContextNote head="This run">
+          Started {started}. <Figure>{runs.length}</Figure> {runs.length === 1 ? "run" : "runs"},{" "}
+          <Figure>{stepTotal}</Figure> {stepTotal === 1 ? "step" : "steps"}. It has used{" "}
+          <Figure>{fmtCost(totalCost)}</Figure>.
+        </ContextNote>
       ) : null}
 
       {!isOrchestrator ? (
-        <>
-          <div className="sp-ctx-head">Where it stands</div>
+        <ContextNote head="Where it stands">
           {stageLines(runs, changeset, ci, production).map((s) => (
-            <CtxRow key={s.name} name={s.name} sub={s.state} />
+            <ContextLine key={s.name} name={s.name} sub={s.state} />
           ))}
-        </>
+        </ContextNote>
       ) : null}
 
       {/* Only rows that real data backs. No row here is a prediction, and no
           handoff is drawn to something that is not going to act. */}
       {call || isLive || mergeStillYours ? (
-        <>
-          <div className="sp-ctx-head">What happens next</div>
+        <ContextNote head="What happens next">
           {call ? (
-            <CtxRow
-              mark={<YouMark initials={initials} mine />}
+            <ContextLine
+              mark={<PersonMark initials={initials} mine />}
               name="You decide, now"
               sub="the call at the top of this page"
             />
           ) : isLive ? (
-            <CtxRow
-              mark={<AgentMark slug={holderSlug} name={holder} state="running" />}
+            <ContextLine
+              mark={<RunMark slug={holderSlug} name={holder} state="working" />}
               name={`${holder} carries on`}
               sub="it does not need you for this part"
             />
           ) : null}
           {mergeStillYours ? (
-            <CtxRow
-              mark={<YouMark initials={initials} />}
+            <ContextLine
+              mark={<PersonMark initials={initials} />}
               name="Then you merge it"
               sub="nothing merges itself"
             />
           ) : null}
-        </>
+        </ContextNote>
       ) : null}
 
-      <div className="sp-ctx-head">What you asked for</div>
-      <div className="sp-ctx-body">{mission.goal}</div>
-      {spec ? (
-        <Actions>
-          <Button
-            variant="ghost"
-            title={spec.title}
-            onClick={() => navigate({ to: "/plan/spec/$id", params: { id: spec.id } })}
-          >
-            Open the spec
-          </Button>
-        </Actions>
-      ) : null}
+      <ContextNote head="What you asked for">
+        {mission.goal}
+        {spec ? (
+          <Acts>
+            <Button
+              variant="ghost"
+              title={spec.title}
+              onClick={() => navigate({ to: "/plan/spec/$id", params: { id: spec.id } })}
+            >
+              Open the spec
+            </Button>
+          </Acts>
+        ) : null}
+      </ContextNote>
 
-      <div className="sp-ctx-head">Finding it again</div>
-      <div className="sp-ctx-body">
-        <Num>{traceRef(mission.id)}</Num>
-      </div>
+      <ContextNote head="Finding it again">
+        <Figure>{traceRef(mission.id)}</Figure>
+      </ContextNote>
     </>
   ) : null;
 
@@ -1253,10 +1263,10 @@ function BuildRun() {
   if (session.isError) {
     return (
       <Surface>
-        <PageHead title="This run did not load." />
-        <Failed onRetry={() => void session.refetch()}>
+        <RunHead title="This run did not load." />
+        <ReadFailed onRetry={() => void session.refetch()}>
           {clip((session.error as Error)?.message ?? "", 200)}
-        </Failed>
+        </ReadFailed>
       </Surface>
     );
   }
@@ -1264,7 +1274,16 @@ function BuildRun() {
   if (session.isLoading || !data || !mission) {
     return (
       <Surface>
-        <PageHead title="Reading the record." />
+        {/* A HEADING OVER NOTHING IS A BROKEN PROMISE, so the read says it is a
+            read. The title alone reads as an assertion that the page is done and
+            that the record is empty; the line under it is what makes it a wait.
+            `Reading` and not `LoadingState`: that Meridian component carries an
+            elapsed timer and its own header reserves it for work that genuinely
+            takes seconds, which a row read is not. */}
+        <div className="flex flex-col gap-mrd-4">
+          <RunHead title="Reading the record." />
+          <Reading />
+        </div>
       </Surface>
     );
   }
@@ -1284,26 +1303,42 @@ function BuildRun() {
        question, the page title, the block sub. Nothing on this page depends on
        the container to keep its line length readable. */
     <Surface context={context} wide>
-      <PageHead title={title} sub={sub} />
+      {/* THE PAGE'S RHYTHM, STATED HERE RATHER THAN INHERITED from six
+          stylesheets. Meridian's ramp grows, so the gap between regions is a
+          larger step than anything inside one. */}
+      <div className="flex flex-col gap-mrd-6">
+        <RunHead title={title} sub={sub} />
 
-      {call ? (
-        <Gate question={gateQuestion(call.tool_name)} lines={gateLines(call, holder)}>
-          <Button
-            variant="primary"
-            disabled={busy}
-            onClick={() =>
-              decide.mutate({ id: call.id, tool: call.tool_name, decision: "approve" })
-            }
+        {call ? (
+          <RunGate
+            standing="you"
+            question={gateQuestion(call.tool_name)}
+            lines={gateLines(call, holder)}
           >
-            {approveVerb(call.tool_name)}
-          </Button>
-          <Button
-            disabled={busy}
-            onClick={() => decide.mutate({ id: call.id, tool: call.tool_name, decision: "reject" })}
-          >
-            Decline
-          </Button>
-          {/* APPROVING RESUMES THE LOOP, so an agent starts running the moment
+            <Button
+              /* THE ACCENT ARRIVES ON THE CONTROL THAT ACTUALLY RELEASES THE RUN,
+               and this is the only place on either runs surface it does.
+               `decideApproval` executes the gated call and `resumeAgentLoop`
+               carries on from there, so pressing this IS the pending human
+               decision rather than a navigation dressed as one. Same rule
+               Approvals' GateAction sets for the same act. */
+              variant="settle"
+              disabled={busy}
+              onClick={() =>
+                decide.mutate({ id: call.id, tool: call.tool_name, decision: "approve" })
+              }
+            >
+              {approveVerb(call.tool_name)}
+            </Button>
+            <Button
+              disabled={busy}
+              onClick={() =>
+                decide.mutate({ id: call.id, tool: call.tool_name, decision: "reject" })
+              }
+            >
+              Decline
+            </Button>
+            {/* APPROVING RESUMES THE LOOP, so an agent starts running the moment
               this is pressed: `decideApproval` executes the gated call and
               `resumeAgentLoop` carries on from there, every step through the
               chokepoint. Both buttons only greyed out before, which is the state
@@ -1311,51 +1346,51 @@ function BuildRun() {
               THE DETAIL IS THE TOOL, because that is exactly what the person
               just authorised and the one fact that makes the wait legible. It is
               already in scope: the surface uses it for the verb on the button. */}
-          {busy ? (
-            <AgentPulse
-              label={`${holder} is carrying on`}
-              seed={holderSlug ?? missionId}
-              detail={call.tool_name}
-            />
-          ) : null}
-        </Gate>
-      ) : null}
+            {busy ? (
+              <AgentPulse
+                label={`${holder} is carrying on`}
+                seed={holderSlug ?? missionId}
+                detail={call.tool_name}
+              />
+            ) : null}
+          </RunGate>
+        ) : null}
 
-      {receipts.length > 0 ? (
-        <Block title="What you did just now">
-          {receipts.map((r) => (
-            <Receipt
-              key={r.key}
-              initials={initials}
-              verb={r.verb}
-              consequence={r.consequence}
-              handoff={r.handoff ? { slug: holderSlug, name: holder } : null}
-              time={r.at}
-              failed={r.failed}
-            />
-          ))}
-        </Block>
-      ) : null}
-
-      {pending.length > 1 ? (
-        <Block title="Also waiting on you">
-          {pending
-            .filter((a) => a.id !== call?.id)
-            .map((a) => (
-              <Row
-                key={a.id}
-                tight
-                marks={<AgentMark slug={holderSlug} name={holder} state="gate" />}
-                lead={gateQuestion(a.tool_name)}
-                sub={toolConsequence(a.tool_name).effect}
-                time={ago(a.created_at)}
-                onClick={() => setPicked(a.id)}
+        {receipts.length > 0 ? (
+          <Region title="What you did just now">
+            {receipts.map((r) => (
+              <Commit
+                key={r.key}
+                initials={initials}
+                verb={r.verb}
+                consequence={r.consequence}
+                handoff={r.handoff ? { slug: holderSlug, name: holder } : null}
+                time={r.at}
+                failed={r.failed}
               />
             ))}
-        </Block>
-      ) : null}
+          </Region>
+        ) : null}
 
-      {/* The work region follows the strip. Build keeps the full body it was
+        {pending.length > 1 ? (
+          <Region title="Also waiting on you">
+            {pending
+              .filter((a) => a.id !== call?.id)
+              .map((a) => (
+                <RunRow
+                  key={a.id}
+                  tight
+                  mark={<RunMark slug={holderSlug} name={holder} state="gate" />}
+                  lead={gateQuestion(a.tool_name)}
+                  sub={toolConsequence(a.tool_name).effect}
+                  time={ago(a.created_at)}
+                  onClick={() => setPicked(a.id)}
+                />
+              ))}
+          </Region>
+        ) : null}
+
+        {/* The work region follows the strip. Build keeps the full body it was
           redesigned to carry; the other six render what the record actually
           holds for this run, and a door to the surface that holds the rest.
           You never leave the run to walk its own lifecycle.
@@ -1367,18 +1402,18 @@ function BuildRun() {
           exists; a stage panel is a second thing to read, not a replacement
           for the first. Selecting Build in the strip collapses the panel and
           leaves the body where it already was. */}
-      {stage !== "build" ? (
-        <StagePanel
-          station={stage}
-          fact={stages?.find((s) => s.station === stage) ?? null}
-          evidence={stagesQ.data?.evidence ?? null}
-          initials={initials}
-          error={stagesQ.isError ? clip((stagesQ.error as Error)?.message ?? "", 200) : null}
-          onRetry={() => void stagesQ.refetch()}
-        />
-      ) : null}
+        {stage !== "build" ? (
+          <StagePanel
+            station={stage}
+            fact={stages?.find((s) => s.station === stage) ?? null}
+            evidence={stagesQ.data?.evidence ?? null}
+            initials={initials}
+            error={stagesQ.isError ? clip((stagesQ.error as Error)?.message ?? "", 200) : null}
+            onRetry={() => void stagesQ.refetch()}
+          />
+        ) : null}
 
-      {/* WHETHER IT MEETS THE SPEC (JNY-03). This surface is the one that
+        {/* WHETHER IT MEETS THE SPEC (JNY-03). This surface is the one that
           replaced MissionSlideOver, which is where the test station used to
           hang and which this rewrite deleted. Nothing carried the panel across,
           so `TestStationPanel` had no caller anywhere in the repo and neither
@@ -1401,73 +1436,73 @@ function BuildRun() {
           NO EMPTY SECTION EITHER WAY: the panel owns its own `Block`, so a run
           whose spec was never compiled — most runs — draws nothing here at all,
           not a heading over a rule over silence. */}
-      <TestStationPanel missionId={missionId} />
+        <TestStationPanel missionId={missionId} />
 
-      {isOrchestrator ? (
-        <Block title="What happened, in order">
-          <MissionOrchestratorDetail missionId={missionId} />
-        </Block>
-      ) : (
-        <>
-          {/* BEAT 1 AND 2 OF THE RETURN. The duration receipt is already on the
+        {isOrchestrator ? (
+          <Region title="What happened, in order">
+            <MissionOrchestratorDetail missionId={missionId} />
+          </Region>
+        ) : (
+          <>
+            {/* BEAT 1 AND 2 OF THE RETURN. The duration receipt is already on the
               headline, so what lands here is the agent's own account: whole, and
               short, with the rest one press away. This is the artefact that used
               to be a 180-character row two thirds of the way down a log. */}
-          <ReturnSummary
-            runs={runs}
-            live={isLive}
-            holder={holder}
-            holderSlug={holderSlug}
-            liveAction={liveAction}
-          />
+            <ReturnSummary
+              runs={runs}
+              live={isLive}
+              holder={holder}
+              holderSlug={holderSlug}
+              liveAction={liveAction}
+            />
 
-          {/* BEAT 3. What it ran to check itself, with the real exit codes, and
+            {/* BEAT 3. What it ran to check itself, with the real exit codes, and
               an honest empty state when it checked nothing — which is a finding
               rather than an absence for anyone about to merge. */}
-          <CheckedItself runs={runs} ci={ci?.checks ?? null} />
+            <CheckedItself runs={runs} ci={ci?.checks ?? null} />
 
-          <Block title="Tell it what to do next">
-            {closedReason ? (
-              <Empty>{closedReason}</Empty>
-            ) : (
-              <div onKeyDown={onNoteChord}>
-                <Textarea
-                  rows={2}
-                  value={note}
-                  aria-label="What it should do next"
-                  onChange={(e) => setNote(e.target.value)}
+            <Region title="Tell it what to do next">
+              {closedReason ? (
+                <NothingYet>{closedReason}</NothingYet>
+              ) : (
+                <div onKeyDown={onNoteChord}>
+                  <Textarea
+                    rows={2}
+                    value={note}
+                    aria-label="What it should do next"
+                    onChange={(e) => setNote(e.target.value)}
+                  />
+                  <Acts>
+                    <Button
+                      variant={call ? "default" : "primary"}
+                      // The same glyph the runs board and the spec surface draw,
+                      // and drawn on the same terms as the board: `canSend` is
+                      // the entire condition the chord tests, so the keycap and
+                      // the key cannot drift apart. An empty note has nothing to
+                      // send, and a keycap on that button would be promising a
+                      // press that does nothing.
+                      shortcut={canSend ? "⌘⏎" : undefined}
+                      disabled={!canSend}
+                      onClick={() => steer.mutate()}
+                    >
+                      Send the note
+                    </Button>
+                  </Acts>
+                </div>
+              )}
+              {steers.map((s) => (
+                <RunRow
+                  key={s.id}
+                  tight
+                  mark={<PersonMark initials={initials} mine />}
+                  lead={s.message}
+                  sub={s.consumed ? "It read this" : "Not read yet"}
+                  time={ago(s.created_at)}
                 />
-                <Actions>
-                  <Button
-                    variant={call ? "default" : "primary"}
-                    // The same glyph the runs board and the spec surface draw,
-                    // and drawn on the same terms as the board: `canSend` is
-                    // the entire condition the chord tests, so the keycap and
-                    // the key cannot drift apart. An empty note has nothing to
-                    // send, and a keycap on that button would be promising a
-                    // press that does nothing.
-                    shortcut={canSend ? "⌘⏎" : undefined}
-                    disabled={!canSend}
-                    onClick={() => steer.mutate()}
-                  >
-                    Send the note
-                  </Button>
-                </Actions>
-              </div>
-            )}
-            {steers.map((s) => (
-              <Row
-                key={s.id}
-                tight
-                marks={<YouMark initials={initials} mine />}
-                lead={s.message}
-                sub={s.consumed ? "It read this" : "Not read yet"}
-                time={ago(s.created_at)}
-              />
-            ))}
-          </Block>
+              ))}
+            </Region>
 
-          {/* THIS STAYS IN THE WORK COLUMN. It was briefly moved into a
+            {/* THIS STAYS IN THE WORK COLUMN. It was briefly moved into a
               full-width slot spanning the context column too, to give the code
               another 370px, and that broke layout containment: `.sp-inner`'s
               second track is an IMPLICIT grid column, so it is `auto`-sized, and
@@ -1493,100 +1528,103 @@ function BuildRun() {
               tab row is one press, and a `?tab=` link opens straight onto its
               view. What it stops is a screen of machinery standing between a
               person and the report they came for. */}
-          <Block
-            title="What it produced"
-            sub={
-              <>
-                {diff.files > 0 ? (
-                  <>
-                    <Diffstat added={diff.added} removed={diff.removed} /> lines across{" "}
-                    <Num>{diff.files}</Num> {diff.files === 1 ? "file" : "files"}.{" "}
-                  </>
-                ) : null}
-                {stepTotal > 0 ? (
-                  <>
-                    <Num>{stepTotal}</Num> {stepTotal === 1 ? "step" : "steps"}.{" "}
-                  </>
-                ) : null}
-                {changeset?.pr_url ? (
-                  <Door
-                    onClick={() =>
-                      window.open(changeset.pr_url as string, "_blank", "noopener,noreferrer")
-                    }
-                  >
-                    Open the pull request
-                  </Door>
-                ) : null}
-              </>
-            }
-            more={tab ? "Hide it" : "Look at it"}
-            onMore={() => (tab ? hideTabs() : openTab("changes"))}
-          >
-            {tab ? (
-              <>
-                <div className="sp-tabs" role="tablist" aria-label="What this run produced">
-                  {TAB_DISPLAY.map(([id, label]) => (
-                    <button
-                      key={id}
-                      type="button"
-                      role="tab"
-                      className="sp-tab"
-                      aria-selected={tab === id}
-                      onClick={() => openTab(id)}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                {/* NO SECOND MARGIN. `.sp-tabs` already carries its own
-                    `margin-top: var(--sp-space-4)`, and this wrapper added the
-                    same value again immediately below it, so the tab row sat in
-                    a double gap before any content. */}
-                <div>
-                  {tab === "changes" ? (
-                    <ChangesPanel
-                      changeset={changeset}
-                      changes={changes}
-                      missionId={missionId}
-                      fileSetPolicy={fileSetPolicy}
-                      constraints={constraints}
-                    />
+            <Region
+              title="What it produced"
+              sub={
+                <>
+                  {diff.files > 0 ? (
+                    <>
+                      <Delta added={diff.added} removed={diff.removed} /> lines across{" "}
+                      <Figure>{diff.files}</Figure> {diff.files === 1 ? "file" : "files"}.{" "}
+                    </>
                   ) : null}
-                  {/* THE LOG, WHOLE. Every row it ever had, the same marks, the
+                  {stepTotal > 0 ? (
+                    <>
+                      <Figure>{stepTotal}</Figure> {stepTotal === 1 ? "step" : "steps"}.{" "}
+                    </>
+                  ) : null}
+                  {changeset?.pr_url ? (
+                    <Door
+                      onClick={() =>
+                        window.open(changeset.pr_url as string, "_blank", "noopener,noreferrer")
+                      }
+                    >
+                      Open the pull request
+                    </Door>
+                  ) : null}
+                </>
+              }
+              more={tab ? "Hide it" : "Look at it"}
+              onMore={() => (tab ? hideTabs() : openTab("changes"))}
+            >
+              {tab ? (
+                <>
+                  {/* THE THIRD HALF-BUILT TABLIST IN THIS SURFACE, NOW A REAL ONE.
+                    It declared `role="tablist"` and `role="tab"` and delivered
+                    none of what those roles promise: a screen reader announced
+                    "tab, 1 of 4", a person pressed an arrow and nothing moved,
+                    and every tab was its own tab stop, so tabbing through the
+                    page walked a reader through four choices they had already
+                    declined. `components/runs/Tabs.tsx` is the contract the runs
+                    index already uses -- one tab stop, arrow keys, Home and End,
+                    manual activation, and a panel that names its tab -- so this
+                    is one implementation on the surface rather than two.
+                    `group` is distinct from the index's ids because every
+                    element id is derived from it and two rows on one page must
+                    not collide. */}
+                  <Tabs
+                    group={PRODUCED_TABS}
+                    label="What this run produced"
+                    active={tab}
+                    onSelect={openTab}
+                    tabs={TAB_DISPLAY.map(([id, label]) => ({ id, label }))}
+                  />
+                  <TabPanel group={PRODUCED_TABS} active={tab}>
+                    {tab === "changes" ? (
+                      <ChangesPanel
+                        changeset={changeset}
+                        changes={changes}
+                        missionId={missionId}
+                        fileSetPolicy={fileSetPolicy}
+                        constraints={constraints}
+                      />
+                    ) : null}
+                    {/* THE LOG, WHOLE. Every row it ever had, the same marks, the
                       same quoting of what the crew SAID versus what it DID, and
                       the same one control that opens the thoughts and the tail.
                       Nothing was deleted to make room for the report above it. */}
-                  {tab === "steps" ? (
-                    <>
-                      {ledger.length === 0 ? (
-                        <Empty>
-                          Nothing has run yet. {holder} picks this up on its own and the steps land
-                          here as they happen.
-                        </Empty>
-                      ) : (
-                        <>
-                          {showAll ? ledger : ledger.slice(0, VISIBLE)}
-                          {ledger.length > VISIBLE || hasThoughts ? (
-                            <Actions>
-                              <Door onClick={() => setShowAll((v) => !v)}>
-                                {showAll ? "Just what it did" : "Everything it did and said"}
-                              </Door>
-                            </Actions>
-                          ) : null}
-                        </>
-                      )}
-                    </>
-                  ) : null}
-                  {tab === "preview" ? (
-                    <PreviewPanel missionId={missionId} changeset={changeset} isLive={isLive} />
-                  ) : null}
-                  {tab === "receipts" ? <ReceiptsPanel missionId={missionId} /> : null}
-                </div>
-              </>
-            ) : null}
-          </Block>
-        </>
-      )}
+                    {tab === "steps" ? (
+                      <>
+                        {ledger.length === 0 ? (
+                          <NothingYet>
+                            Nothing has run yet. {holder} picks this up on its own and the steps
+                            land here as they happen.
+                          </NothingYet>
+                        ) : (
+                          <>
+                            {showAll ? ledger : ledger.slice(0, VISIBLE)}
+                            {ledger.length > VISIBLE || hasThoughts ? (
+                              <Acts>
+                                <Door onClick={() => setShowAll((v) => !v)}>
+                                  {showAll ? "Just what it did" : "Everything it did and said"}
+                                </Door>
+                              </Acts>
+                            ) : null}
+                          </>
+                        )}
+                      </>
+                    ) : null}
+                    {tab === "preview" ? (
+                      <PreviewPanel missionId={missionId} changeset={changeset} isLive={isLive} />
+                    ) : null}
+                    {tab === "receipts" ? <ReceiptsPanel missionId={missionId} /> : null}
+                  </TabPanel>
+                </>
+              ) : null}
+            </Region>
+          </>
+        )}
+      </div>
     </Surface>
   );
 }
@@ -1609,21 +1647,21 @@ export const Route = createFileRoute("/_authenticated/runs/$missionId")({
     const missing = message === "Session not found";
     return (
       <Surface>
-        <PageHead title={missing ? "There is no run at this address." : "This run did not load."} />
+        <RunHead title={missing ? "There is no run at this address." : "This run did not load."} />
         {missing ? (
           <>
-            <Empty>
+            <NothingYet>
               It was deleted, or it belongs to another workspace. What it decided and learned stays
               in the record.
-            </Empty>
-            <Actions>
+            </NothingYet>
+            <Acts>
               <Button variant="primary" onClick={reset}>
                 Try again
               </Button>
-            </Actions>
+            </Acts>
           </>
         ) : (
-          <Failed onRetry={reset}>{clip(message, 200)}</Failed>
+          <ReadFailed onRetry={reset}>{clip(message, 200)}</ReadFailed>
         )}
       </Surface>
     );

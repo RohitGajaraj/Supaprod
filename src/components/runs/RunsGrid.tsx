@@ -8,7 +8,7 @@ import {
 } from "@/components/meridian/RecordsTable";
 import { FilterTable, type Facet } from "@/components/meridian/FilterTable";
 import { Search } from "@/components/meridian/Search";
-import { AgentMark, Num, Who } from "@/components/shell/primitives";
+import { Actor, Figure, RunMark, type RunMarkState } from "./run-parts";
 import { stripAutoPrefix } from "@/components/plan/format";
 import {
   completionEvidence,
@@ -17,7 +17,7 @@ import {
   type CompletionEvidence,
 } from "@/lib/build/verification";
 import type { StudioSessionListItem } from "@/lib/studio.functions";
-import { actorName, actorSlug, actorVerb, ago, MARK_STATE, runState } from "./run-state";
+import { actorName, actorSlug, actorVerb, ago, runState } from "./run-state";
 import { RowAction, RowActions } from "./RowActions";
 
 /*
@@ -86,12 +86,12 @@ function Meta({ parts }: { parts: React.ReactNode[] }) {
 /**
  * The completion-evidence flag, which used to be drawn in amber.
  *
- * `.sp-warn` resolves to a colour this system BANS. Founder ruling 2026-08-14
- * removed yellow, mustard, amber and gold outright, and there is no warn token
- * because there must not be one: this is a ban, not an absence waiting to be
- * filled in, and it does not get added to meridian.css to make this column
- * match the old drawing. The three states map onto meanings the product
- * already has:
+ * `.sp-warn` resolved to a colour this system does not have a general licence
+ * for. Founder ruling 2026-08-14 removed a warm gold as the PRIMARY ACCENT, and
+ * meridian.css revised that on 2026-08-15 to admit amber for exactly one
+ * meaning: stopped, and NOT on you. That is not this. An unverified Done claim
+ * is a person having to go and look, which is orchid, and the three states map
+ * onto meanings the product already has:
  *
  *   verified            an OUTCOME, and a checkable one: a merged pull request
  *                       with a real url behind it.
@@ -126,13 +126,18 @@ export type RunsGridProps = {
   progressById: Map<string, { done: number; total: number }>;
   /**
    * The one run the Gate above is showing, and the only mark on this surface
-   * allowed to blink. SYSTEM.md allows exactly one, and this list used to give
-   * every waiting run the `gate` state, so a workspace with a dozen open calls
+   * allowed to move. SYSTEM.md allows exactly one, and this list used to give
+   * every waiting run the animated state, so a workspace with a dozen open calls
    * blinked a dozen marks in unison and spent the whole restraint budget. The
-   * rest wear the same ember without the animation, which is what the rule
+   * rest wear the same orchid at rest (`--mrd-you-dim`), which is what the rule
    * prescribes for everything queued behind the one asking.
+   *
+   * It was called `blinkingId`. Renamed because the name described the drawing
+   * and the drawing is now two facts at once, the full accent AND the animation;
+   * `asking` is the thing that is actually true about this run and stays true if
+   * the motion is ever taken away.
    */
-  blinkingId: string | null;
+  askingId: string | null;
   /** Manage reveals archived runs AND the two acts on them. One mode. */
   managing: boolean;
   /** The finder is open. Owned by the surface, because its control is up in
@@ -154,7 +159,7 @@ const CHIPS_FROM = 4;
 export function RunsGrid({
   rows,
   progressById,
-  blinkingId,
+  askingId,
   managing,
   finding,
   onOpen,
@@ -190,17 +195,22 @@ export function RunsGrid({
              keeps its address. */
           <button
             type="button"
+            data-mrd=""
             onClick={() => onOpen(s.mission_id)}
-            className="flex w-full min-w-0 items-center gap-2 text-left transition-colors hover:text-mrd-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mrd-focus)]"
+            // `mrd-focus-inset` rather than an outline colour of its own: the
+            // grid clips, so an outset ring on a cell is sheared off and reads
+            // as a broken half-drawn edge. The COLOUR comes from `data-mrd`,
+            // which is the whole mechanism meridian.css describes, so this row
+            // cannot drift from the app's one focus token.
+            className="mrd-focus-inset flex w-full min-w-0 items-center gap-2 rounded-mrd-xs text-left transition-colors hover:text-mrd-ink"
             style={{ transitionDuration: "var(--mrd-d-press)" }}
           >
-            <AgentMark
+            <RunMark
               slug={actorSlug(s.kind)}
-              state={
-                // Exactly one blink on the surface. See `blinkingId`.
-                s.mission_id === blinkingId ? "gate" : markState(s)
-              }
+              state={markState(s)}
               name={s.title}
+              // Exactly one moving mark on the surface. See `askingId`.
+              asking={s.mission_id === askingId}
             />
             <span className="min-w-0 truncate">{stripAutoPrefix(s.title)}</span>
             {/* Archived is a property of the record, not of what is
@@ -281,7 +291,7 @@ export function RunsGrid({
         },
       },
     ];
-  }, [managing, progressById, blinkingId, archivePending, deletingId, onOpen, onArchive, onDelete]);
+  }, [managing, progressById, askingId, archivePending, deletingId, onOpen, onArchive, onDelete]);
 
   /*
    * The facet set is FIXED for a given mode rather than derived from what is
@@ -348,12 +358,22 @@ export function RunsGrid({
   );
 }
 
-/** The mark carries the state, and the mark owns the colour. */
-function markState(s: StudioSessionListItem) {
-  const state = runState(s);
-  // Waiting on you, but not the one being asked about above: the same ember
-  // without the blink.
-  return state === "gate" ? "waiting" : MARK_STATE[state];
+/**
+ * The mark carries the state, and the mark owns the colour.
+ *
+ * It used to translate through `MARK_STATE` into the shell's seven-value
+ * `MarkState`, which encoded the AGENT'S LOOP STAGE as the hue and left the run
+ * state to opacity plus an orbiting ring. Meridian's law is the opposite
+ * assignment: identity is shape, status is hue. So the `RunState` goes straight
+ * through and `RunMark` holds the mapping.
+ *
+ * That also removes the one lossy step in it. `queued` used to become "quiet",
+ * which is a 42% neutral, so the commonest state in the workspace rendered
+ * fainter than the label beside it and read as a plain count. It is amber now:
+ * stopped, and waiting on a condition rather than on you.
+ */
+function markState(s: StudioSessionListItem): RunMarkState {
+  return runState(s);
 }
 
 /**
@@ -371,7 +391,7 @@ function doing(
   const steps =
     p && p.total > 0 ? (
       <>
-        step <Num>{p.done}</Num> of <Num>{p.total}</Num>
+        step <Figure>{p.done}</Figure> of <Figure>{p.total}</Figure>
       </>
     ) : null;
   const evidence = completionEvidence({
@@ -384,7 +404,7 @@ function doing(
   if (state === "working") {
     return [
       <>
-        <Who>{actorName(s.kind)}</Who> is {actorVerb(s.kind)}
+        <Actor>{actorName(s.kind)}</Actor> is {actorVerb(s.kind)}
       </>,
       steps,
     ];
@@ -394,7 +414,7 @@ function doing(
       "Waiting on you",
       s.pending_approvals > 0 ? (
         <>
-          <Num>{s.pending_approvals}</Num> {s.pending_approvals === 1 ? "call" : "calls"}
+          <Figure>{s.pending_approvals}</Figure> {s.pending_approvals === 1 ? "call" : "calls"}
         </>
       ) : null,
     ];
@@ -404,11 +424,11 @@ function doing(
 
   return [
     <>
-      <Who>{actorName(s.kind)}</Who> finished
+      <Actor>{actorName(s.kind)}</Actor> finished
     </>,
     files > 0 ? (
       <>
-        <Num>{files}</Num> {files === 1 ? "file" : "files"}
+        <Figure>{files}</Figure> {files === 1 ? "file" : "files"}
       </>
     ) : null,
     // The one element that calls out a Done claim with nothing behind it. Its

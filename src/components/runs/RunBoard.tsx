@@ -86,19 +86,55 @@
  * -------------------------------------------------------------------
  * COLOUR ARRIVES ONLY WHEN SOMETHING IS HAPPENING.
  *
- * A done card is quiet and recessed. A working card is raised and its mark
- * carries its agent's stage hue. "Waiting on you" is the one place ember is
- * spent on this surface: its heading, its count and its rule go ember, and
- * only while it holds something. Exactly ONE card blinks, the one that has
- * been waiting longest, because the blink is the only one in the system and a
- * dozen of them stops it meaning "look here" (primitives.tsx, MarkState).
- * Everything behind it wears the same ember without the animation.
+ * Every card sits on one ground and the MARK carries the state, so a done card
+ * is quiet because its mark is neutral, a working one is azure, a queued one is
+ * amber and a waiting one is orchid. "Waiting on you" is the one place a HEADING
+ * takes a hue: its name, its count and its rule go orchid, and only while it
+ * holds something. Exactly ONE card's mark moves, the one that has been waiting
+ * longest, because a dozen of them in unison stops the motion meaning "look
+ * here". Everything behind it wears the same orchid at rest.
+ *
+ * WHAT CHANGED HERE ON THE MERIDIAN PORT, said plainly, because the paragraph
+ * above used to describe the opposite assignment. A working card's mark used to
+ * carry ITS AGENT'S STAGE HUE, which spent seven colours on category and left
+ * the reader unable to tell "azure because Engineer" from "azure because it is
+ * running". Identity is shape now, status is hue, and the queued column stopped
+ * being a faded neutral that read as a plain count.
  *
  * Styles ship with the component rather than in `src/styles/`, because a
  * container query cannot be written as an inline style and this board is the
  * only thing in the product that needs one. `href` + `precedence` is React
  * 19's own hoisting contract; where it is not honoured the tag still renders
  * in place and the rules still apply, so it degrades to working.
+ *
+ * -------------------------------------------------------------------
+ * PORTED TO MERIDIAN 2026-08-15, and what that changed.
+ *
+ * Every value in the sheet below was a `--sp-*` token, which meridian.css calls
+ * life support: "no new surface may use it, every migrated surface drops it".
+ * `--sp-*` is currently aliased onto `--mrd-*`, so the board already inherited
+ * Meridian's palette and looked broadly right; that alias is a floor, and a port
+ * that stopped there would have kept the indirection and none of the components.
+ * The sheet now names `--mrd-*` directly. Where a step had no exact twin the
+ * nearest Meridian stop was taken rather than a literal pixel written in, and
+ * the two that moved are the card gap (8px to 6px) and the wrapped-row gap
+ * (32px to 40px). Meridian's ramp GROWS on purpose, so the gap between groups is
+ * always visibly larger than the gap within one, and both moves are in that
+ * direction.
+ *
+ * THE CARD IS NO LONGER THE SHELL'S `Cell`. The reason is already recorded
+ * below: `Cell`'s recessed tone is built for a recess sitting on already-raised
+ * ground and this board sits on the canvas, so the settled columns read as a
+ * failed render. `RunCard` in run-parts.tsx is the same two-line shape drawn on
+ * one ground, and it carries `mrd-focus-inset` because a column clips.
+ *
+ * THE MARK CARRIES A DIFFERENT THING NOW, and this is the substantive change.
+ * The shell's `AgentMark` painted the agent's LOOP STAGE as the hue, so a board
+ * of runs came out a stage rainbow and the work state was left to opacity.
+ * Meridian assigns it the other way round: identity is shape, status is hue. The
+ * founder's 2026-07-30 ruling that this board should colour by status is
+ * therefore no longer a board-only exception; it is what the system does
+ * everywhere, and the board is simply the first place it was asked for.
  */
 
 import * as React from "react";
@@ -111,16 +147,9 @@ import {
   COMPLETION_EVIDENCE_LABEL,
   COMPLETION_EVIDENCE_REASON,
 } from "@/lib/build/verification";
-import { AgentMark, Cell, Num, Who, type MarkState } from "@/components/shell/primitives";
-import {
-  actorName,
-  actorSlug,
-  actorVerb,
-  ago,
-  MARK_STATE,
-  runState,
-  type RunState,
-} from "./run-state";
+import { RecordStatus } from "@/components/meridian/RecordsTable";
+import { Actor, Door, Figure, RunCard, RunMark, type RunMarkState } from "./run-parts";
+import { actorName, actorSlug, actorVerb, ago, runState, type RunState } from "./run-state";
 
 const BOARD_CSS = `
 .rb-canvas { container-type: inline-size; }
@@ -130,15 +159,29 @@ const BOARD_CSS = `
   align-items: baseline;
   justify-content: space-between;
   gap: 14px;
-  margin-top: var(--sp-space-6);
 }
 .rb-note {
-  font-size: var(--sp-text-meta);
-  color: var(--sp-mute);
-  max-width: 68ch;
+  font-size: var(--mrd-t-base);
+  line-height: var(--mrd-lh-snug);
+  color: var(--mrd-mute);
+  max-width: var(--mrd-measure);
 }
-.rb-note a { color: var(--sp-body); }
-.rb-note a:hover { color: var(--sp-ink); }
+/* The one address in this paragraph. A dotted rule that goes solid on hover is
+ * the house's quiet affordance, and it is written here rather than reached for
+ * from run-parts because a router <Link> renders its own anchor. */
+.rb-note a {
+  color: var(--mrd-body);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--mrd-line);
+  text-underline-offset: 3px;
+  transition: color var(--mrd-d-press) var(--mrd-ease);
+}
+.rb-note a:hover {
+  color: var(--mrd-ink);
+  text-decoration-style: solid;
+  text-decoration-color: var(--mrd-edge);
+}
 
 /* Three across is the base, so the narrow reading is the one that needs no
  * query to be correct. Row gap is the between-groups value; at five across
@@ -146,9 +189,9 @@ const BOARD_CSS = `
 .rb-board {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--sp-space-8) var(--sp-space-3);
+  gap: var(--mrd-s7) var(--mrd-s4);
   align-items: start;
-  margin-top: var(--sp-space-4);
+  margin-top: var(--mrd-s5);
 }
 @container (max-width: 560px) {
   .rb-board { grid-template-columns: minmax(0, 1fr); }
@@ -165,60 +208,70 @@ const BOARD_CSS = `
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--sp-space-2);
+  gap: var(--mrd-s3);
   padding-bottom: 9px;
-  margin-bottom: var(--sp-space-3);
-  border-bottom: 1px solid var(--sp-line-soft);
+  margin-bottom: var(--mrd-s4);
+  border-bottom: 1px solid var(--mrd-line-soft);
 }
 .rb-col-name {
-  font-size: var(--sp-text-label);
-  font-weight: var(--sp-weight-medium);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-label);
+  font-weight: var(--mrd-w-medium);
+  color: var(--mrd-mute);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .rb-col-count {
   flex: none;
-  font-family: var(--sp-font-mono);
+  font-family: var(--mrd-mono);
   font-variant-numeric: tabular-nums;
-  font-size: var(--sp-text-data-sm);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-data);
+  color: var(--mrd-mute);
 }
-/* The one call in front of you. Ember, and only while it holds something. */
+/* THE ONE CALL IN FRONT OF YOU. Orchid, and only while the column holds
+ * something, which is what makes an empty "Waiting on you" the quietest thing on
+ * the board rather than a wide grey hole.
+ *
+ * This is the one place a heading takes a hue, and it is the one heading that
+ * means "a person is required" rather than naming a category. Nothing else on
+ * this board is coloured by its column: the marks carry state, and a column
+ * tinted to repeat what its own heading says is the redundant-writing ban
+ * wearing a colour. */
 .rb-col[data-calling="true"] .rb-col-head {
-  border-bottom-color: color-mix(in oklab, var(--sp-gate) 45%, transparent);
+  border-bottom-color: color-mix(in oklab, var(--mrd-you) 45%, transparent);
 }
 .rb-col[data-calling="true"] .rb-col-name,
 .rb-col[data-calling="true"] .rb-col-count {
-  color: var(--sp-gate);
+  color: var(--mrd-you);
 }
 
 .rb-cards {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-space-2);
+  gap: var(--mrd-s3);
   min-height: 26px;
 }
 /* The count of what is hidden IS the control that reveals it. */
 .rb-rest {
-  font-family: var(--sp-font-mono);
+  font-family: var(--mrd-mono);
   font-variant-numeric: tabular-nums;
-  font-size: var(--sp-text-data-sm);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-data);
+  color: var(--mrd-mute);
   padding: 4px 6px;
   margin-top: 2px;
   align-self: flex-start;
   background: none;
   border: 0;
-  border-radius: var(--sp-radius-sm);
+  border-radius: var(--mrd-r-xs);
   cursor: pointer;
   font-weight: inherit;
-  transition: color var(--sp-dur-fast) var(--sp-ease);
+  transition:
+    color var(--mrd-d-press) var(--mrd-ease),
+    background-color var(--mrd-d-press) var(--mrd-ease);
 }
 .rb-rest:hover {
-  color: var(--sp-ink);
-  background: var(--sp-hover);
+  color: var(--mrd-ink);
+  background: var(--mrd-hover);
 }
 /* NO INNER SCROLL. An opened column grows and the page scrolls, one scroll
  * context for the whole surface.
@@ -304,7 +357,7 @@ function cardSub(
   const steps =
     progress && progress.total > 0 ? (
       <>
-        step <Num>{progress.done}</Num> of <Num>{progress.total}</Num>
+        step <Figure>{progress.done}</Figure> of <Figure>{progress.total}</Figure>
       </>
     ) : null;
 
@@ -313,7 +366,7 @@ function cardSub(
   if (state === "working") {
     return (
       <>
-        <Who>{actorName(s.kind)}</Who>
+        <Actor>{actorName(s.kind)}</Actor>
         {/* The verb only when there is no progress to report, because then it
             is the only thing known about the work and a name alone says less
             than the mark beside it already does. */}
@@ -326,7 +379,8 @@ function cardSub(
     if (s.pending_approvals > 0) {
       return (
         <>
-          <Num>{s.pending_approvals}</Num> {s.pending_approvals === 1 ? "call" : "calls"} to settle
+          <Figure>{s.pending_approvals}</Figure> {s.pending_approvals === 1 ? "call" : "calls"} to
+          settle
         </>
       );
     }
@@ -360,16 +414,23 @@ function cardSub(
   // truncates exactly where the warning is. The agent is on the card already:
   // the mark is the attribution, and the reason is the tooltip.
   if (evidence === "needs-verification") {
+    /* IT IS NOT AMBER, and the correction outlives the token that carried it.
+       `.sp-warn` painted a warn colour, and this system has none: the only thing
+       amber may say is "stopped, and NOT on you". A Done claim nobody has
+       checked is the opposite fact -- a person has to go and look before it can
+       be believed, and until one does, it does not move. That is orchid, which
+       is exactly what `RecordStatus` draws for the "you" tone, and it is the
+       same drawing the list grid gives this flag one click away. */
     return (
-      <span className="sp-warn" title={COMPLETION_EVIDENCE_REASON[evidence]}>
-        {COMPLETION_EVIDENCE_LABEL[evidence]}
+      <span title={COMPLETION_EVIDENCE_REASON[evidence]}>
+        <RecordStatus tone="you" label={COMPLETION_EVIDENCE_LABEL[evidence]} />
       </span>
     );
   }
   const when = ago(s.updated_at);
   return (
     <>
-      <Who>{actorName(s.kind)}</Who>
+      <Actor>{actorName(s.kind)}</Actor>
       {when ? <> &middot; {when}</> : null}
     </>
   );
@@ -472,9 +533,7 @@ export function RunBoard({
           , and does not appear here.
         </span>
         {truncated || showAll ? (
-          <button type="button" className="sp-block-more" onClick={onShowAll}>
-            {showAll ? "Show fewer" : "Every run"}
-          </button>
+          <Door onClick={onShowAll}>{showAll ? "Show fewer" : "Every run"}</Door>
         ) : null}
       </div>
 
@@ -489,12 +548,13 @@ export function RunBoard({
               </div>
               <div className="rb-cards">
                 {c.shown.map((s, i) => {
-                  // The one blink in the system, spent on the run that has
-                  // been waiting longest. Everything behind it wears the same
-                  // ember without the animation.
-                  /* COLOUR BY STATUS, on this board only (founder ruling
-                   * 2026-07-30: "should we also change the colors for already
-                   * done, the agent color... only in this dashboard").
+                  /* COLOUR BY STATUS, which used to be a board-only exception
+                   * (founder ruling 2026-07-30: "should we also change the
+                   * colors for already done, the agent color... only in this
+                   * dashboard") and is now simply what the system does. The
+                   * mark takes the run's state straight from the column it is
+                   * standing in, so the card and the heading above it cannot
+                   * disagree.
                    *
                    * Green is NOT "the Done column". It is "done and we can
                    * prove it": a merged changeset with a real pull request,
@@ -502,7 +562,7 @@ export function RunBoard({
                    * A run that claims done with nothing behind it keeps the
                    * neutral mark, because the board already flags that case
                    * and painting it green would assert a success nobody
-                   * checked. The colour and the flag now agree instead of the
+                   * checked. The colour and the flag agree rather than the
                    * colour overruling the flag. */
                   const proven =
                     c.state === "done" &&
@@ -512,20 +572,26 @@ export function RunBoard({
                       changesetStatus: s.changeset?.status ?? null,
                       prUrl: s.changeset?.pr_url ?? null,
                     }) === "verified";
-                  const mark: MarkState =
-                    c.state === "gate"
-                      ? i === 0
-                        ? "gate"
-                        : "waiting"
-                      : proven
-                        ? "verified"
-                        : MARK_STATE[c.state];
+                  const mark: RunMarkState = proven ? "verified" : c.state;
                   const title = stripAutoPrefix(s.title);
                   return (
-                    <Cell
+                    <RunCard
                       key={s.mission_id}
                       title={title}
-                      mark={<AgentMark slug={actorSlug(s.kind)} state={mark} name={s.title} />}
+                      mark={
+                        <RunMark
+                          slug={actorSlug(s.kind)}
+                          state={mark}
+                          name={s.title}
+                          // The one moving mark on the board, spent on the run
+                          // that has been waiting longest. Everything behind it
+                          // wears the same orchid at rest, which is what the
+                          // rule prescribes for a queue standing behind the one
+                          // asking: a dozen of them in unison stops the motion
+                          // meaning "look here".
+                          asking={c.state === "gate" && i === 0}
+                        />
+                      }
                       lead={title}
                       sub={cardSub(s, c.state, progressById.get(s.mission_id))}
                       onClick={() => onOpen(s.mission_id)}

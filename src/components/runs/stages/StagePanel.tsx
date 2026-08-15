@@ -89,10 +89,27 @@
  *                                pull request. Not passed, not failed.
  *   - `deployments === []`       read, and nothing has deployed.
  *
- * COLOUR. Monochrome throughout. Green and red appear only on `Value` where
- * the value IS an outcome (a check verdict, a deployment status, a learning's
- * verdict). Ember appears exactly once in the whole set: the design gate that
- * is genuinely waiting on the person reading it.
+ * COLOUR, RESTATED FOR MERIDIAN 2026-08-15. Monochrome throughout. Green and
+ * red appear only on `Stat` where the value IS an outcome (a check verdict, a
+ * deployment status, a learning's verdict). Orchid appears exactly once in the
+ * whole set: the design gate that is genuinely waiting on the person reading it.
+ *
+ * WHAT THE PORT CHANGED, beyond the tokens. The legacy `Value` carried a `warn`
+ * tone painting `--sp-warn`, and this system has no warn colour: the only thing
+ * amber may say is "stopped, and NOT on you". Every caller of that tone here was
+ * in fact saying exactly that — a check that has not reported, a deploy still in
+ * flight, a verdict nobody has recorded — so the tone is `hold` now and the
+ * meaning is narrower and true rather than a catch-all. The `live` tone also
+ * moved off green: "still running" and "it worked" were the same colour, so a
+ * deploy in flight read as a deploy that had succeeded. It is azure, which is
+ * the system's word for a machine still working.
+ *
+ * ONE FILE'S WORTH OF PARTS MOVED, NOT REDRAWN. Every primitive this panel used
+ * came from `src/components/shell/primitives.tsx`, which is the `--sp-*` layer
+ * meridian.css calls life support. They are the same shapes in
+ * `components/runs/run-parts.tsx`, which is also what the run detail, the runs
+ * index, the grid and the board now draw from — so this panel cannot drift from
+ * the page it is embedded in.
  */
 
 import { useNavigate } from "@tanstack/react-router";
@@ -111,21 +128,21 @@ import type {
   StageEvidence,
 } from "@/lib/run-stages.functions";
 import {
-  AgentMark,
-  Block,
   Button,
-  Cell,
-  Empty,
-  Failed,
-  Grid,
-  Line,
-  Loading,
-  Num,
-  Record as RecordRecess,
-  Row,
-  Value,
-  YouMark,
-} from "@/components/shell/primitives";
+  Cards,
+  Fact,
+  Figure,
+  NothingYet,
+  PersonMark,
+  Reading,
+  ReadFailed,
+  Recess,
+  Region,
+  RunCard,
+  RunMark,
+  RunRow,
+  Stat,
+} from "@/components/runs/run-parts";
 
 /* ------------------------------------------------------------------ *
  * Formatting. Local on purpose, the same reason the run surface keeps
@@ -219,17 +236,17 @@ function actorName(actor: string): string {
  *  its own, and "system" gets nothing: a cron is machinery, and machinery
  *  stays behind the Engine Room door. */
 function ActorMark({ actor, initials }: { actor: string; initials: string }) {
-  if (actor === "human") return <YouMark initials={initials} />;
+  if (actor === "human") return <PersonMark initials={initials} />;
   if (actor === "system") return null;
-  return <AgentMark slug={actor} state="quiet" />;
+  return <RunMark slug={actor} state="done" />;
 }
 
 /** The last transition the record holds for this artifact, as one row. */
 function MovedRow({ moved, initials }: { moved: StageActor; initials: string }) {
   return (
-    <Row
+    <RunRow
       tight
-      marks={<ActorMark actor={moved.actor} initials={initials} />}
+      mark={<ActorMark actor={moved.actor} initials={initials} />}
       lead={`${actorName(moved.actor)} moved it to ${moved.to.replace(/_/g, " ")}`}
       sub={moved.from ? `it was ${moved.from.replace(/_/g, " ")} before` : "it started there"}
       time={ago(moved.at)}
@@ -251,14 +268,14 @@ function Discover({
   onOpen: () => void;
 }) {
   return (
-    <Block
+    <Region
       title={STAGE_LABEL.sense}
       sub={e.problem ?? e.hypothesis}
       more="Open Discover"
       onMore={onOpen}
     >
-      <Row
-        marks={e.lastAgentSlug ? <AgentMark slug={e.lastAgentSlug} state="quiet" /> : undefined}
+      <RunRow
+        mark={e.lastAgentSlug ? <RunMark slug={e.lastAgentSlug} state="done" /> : undefined}
         lead={e.title}
         sub={
           e.lastAgentSlug
@@ -270,12 +287,12 @@ function Discover({
       />
 
       {e.iceScore != null ? (
-        <Line label="Scored">
-          <Value>
-            <Num>{e.iceScore}</Num> from impact <Num>{e.impact}</Num>, confidence{" "}
-            <Num>{e.confidence}</Num>, ease <Num>{e.ease}</Num>
-          </Value>
-        </Line>
+        <Fact label="Scored">
+          <Stat>
+            <Figure>{e.iceScore}</Figure> from impact <Figure>{e.impact}</Figure>, confidence{" "}
+            <Figure>{e.confidence}</Figure>, ease <Figure>{e.ease}</Figure>
+          </Stat>
+        </Fact>
       ) : null}
 
       {/* The three shapes of "no signals", kept apart. The middle one is the
@@ -283,23 +300,23 @@ function Discover({
           theme was never counted, and saying "0 signals" there would be a
           measurement nobody took. */}
       {e.signalCount == null ? (
-        <Line label="Signals behind it" sub="signals and opportunities meet on a theme">
-          <Value>none counted, nothing links it to a theme</Value>
-        </Line>
+        <Fact label="Signals behind it" sub="signals and opportunities meet on a theme">
+          <Stat>none counted, nothing links it to a theme</Stat>
+        </Fact>
       ) : e.signalCount === 0 ? (
-        <Line label="Signals behind it" sub={e.theme ? `on ${e.theme.title}` : undefined}>
-          <Value>its theme holds none yet</Value>
-        </Line>
+        <Fact label="Signals behind it" sub={e.theme ? `on ${e.theme.title}` : undefined}>
+          <Stat>its theme holds none yet</Stat>
+        </Fact>
       ) : (
-        <Line label="Signals behind it" sub={e.theme ? `on ${e.theme.title}` : undefined}>
-          <Value>
-            <Num>{e.signalCount}</Num> {e.signalCount === 1 ? "signal" : "signals"}
-          </Value>
-        </Line>
+        <Fact label="Signals behind it" sub={e.theme ? `on ${e.theme.title}` : undefined}>
+          <Stat>
+            <Figure>{e.signalCount}</Figure> {e.signalCount === 1 ? "signal" : "signals"}
+          </Stat>
+        </Fact>
       )}
 
       {e.signals.map((s) => (
-        <Row
+        <RunRow
           key={s.id}
           tight
           lead={s.excerpt || s.title || "a signal"}
@@ -309,15 +326,15 @@ function Discover({
       ))}
 
       {e.signalCount != null && e.signalCount > e.signals.length ? (
-        <Line label="The rest">
-          <Value>
-            <Num>{e.signalCount - e.signals.length}</Num> more, on Discover
-          </Value>
-        </Line>
+        <Fact label="The rest">
+          <Stat>
+            <Figure>{e.signalCount - e.signals.length}</Figure> more, on Discover
+          </Stat>
+        </Fact>
       ) : null}
 
       {e.moved ? <MovedRow moved={e.moved} initials={initials} /> : null}
-    </Block>
+    </Region>
   );
 }
 
@@ -336,35 +353,36 @@ function Decide({
 }) {
   const who = e.decidedByAgentSlug ? agentDisplayName(e.decidedByAgentSlug) : "you";
   return (
-    <Block title={STAGE_LABEL.decide} sub={e.title} more="Open Decide" onMore={onOpen}>
+    <Region title={STAGE_LABEL.decide} sub={e.title} more="Open Decide" onMore={onOpen}>
       {/* The recess, earned. This is the record genuinely speaking: the
           sentence someone wrote about WHY, which is the answer you come back
           for months later and the only thing here that is a claim rather than
           a statistic. Drawn only when a rationale exists, never as a frame
           around an empty middle. */}
       {e.rationale ? (
-        <RecordRecess
+        <Recess
           evidence={
             e.citedByCount > 0 ? (
               <>
-                cited <Num>{e.citedByCount}</Num> {e.citedByCount === 1 ? "time" : "times"} since
+                cited <Figure>{e.citedByCount}</Figure> {e.citedByCount === 1 ? "time" : "times"}{" "}
+                since
               </>
             ) : undefined
           }
         >
           {e.rationale}
-        </RecordRecess>
+        </Recess>
       ) : null}
 
       {/* Attribution, with the mark, and stated ONCE. It is not repeated inside
           the recess above: the recess carries what the record SAID and what
           backs it, and who said it is a different fact belonging to a row. */}
-      <Row
-        marks={
+      <RunRow
+        mark={
           e.decidedByAgentSlug ? (
-            <AgentMark slug={e.decidedByAgentSlug} state="quiet" />
+            <RunMark slug={e.decidedByAgentSlug} state="done" />
           ) : (
-            <YouMark initials={initials} />
+            <PersonMark initials={initials} />
           )
         }
         lead={`${who} made the call`}
@@ -372,20 +390,20 @@ function Decide({
         time={ago(e.at)}
       />
 
-      <Line label="Where it stands">
-        <Value>{say(DECISION_STATUS, e.status)}</Value>
-      </Line>
+      <Fact label="Where it stands">
+        <Stat>{say(DECISION_STATUS, e.status)}</Stat>
+      </Fact>
 
       {e.alternatives.length > 0 ? (
         <>
-          <Line label="Considered instead">
-            <Value>
-              <Num>{e.alternatives.length}</Num>{" "}
+          <Fact label="Considered instead">
+            <Stat>
+              <Figure>{e.alternatives.length}</Figure>{" "}
               {e.alternatives.length === 1 ? "option" : "options"}
-            </Value>
-          </Line>
+            </Stat>
+          </Fact>
           {e.alternatives.map((a, i) => (
-            <Row
+            <RunRow
               key={`${a.title}-${i}`}
               tight
               lead={a.title}
@@ -394,17 +412,17 @@ function Decide({
           ))}
         </>
       ) : (
-        <Line label="Considered instead" sub="a call with no alternatives on it was not compared">
-          <Value>the record lists none</Value>
-        </Line>
+        <Fact label="Considered instead" sub="a call with no alternatives on it was not compared">
+          <Stat>the record lists none</Stat>
+        </Fact>
       )}
 
       {e.viaMission ? (
-        <Line label="Where it hangs">
-          <Value>on this run, not on a spec</Value>
-        </Line>
+        <Fact label="Where it hangs">
+          <Stat>on this run, not on a spec</Stat>
+        </Fact>
       ) : null}
-    </Block>
+    </Region>
   );
 }
 
@@ -414,14 +432,14 @@ function Decide({
 
 function Plan({ e, initials, onOpen }: { e: PlanEvidence; initials: string; onOpen: () => void }) {
   return (
-    <Block title={STAGE_LABEL.define} sub={e.title} more="Open the spec" onMore={onOpen}>
-      <Line label="Where it stands">
-        <Value>{say(SPEC_STATUS, e.status)}</Value>
-      </Line>
+    <Region title={STAGE_LABEL.define} sub={e.title} more="Open the spec" onMore={onOpen}>
+      <Fact label="Where it stands">
+        <Stat>{say(SPEC_STATUS, e.status)}</Stat>
+      </Fact>
 
       {e.flow ? (
         <>
-          <Line
+          <Fact
             label="The flow"
             sub={
               since(e.flow.updatedAt)
@@ -429,42 +447,42 @@ function Plan({ e, initials, onOpen }: { e: PlanEvidence; initials: string; onOp
                 : "drawn from the spec's own words"
             }
           >
-            <Value>
-              <Num>{e.flow.stepCount}</Num> {e.flow.stepCount === 1 ? "step" : "steps"},{" "}
-              <Num>{e.flow.edgeCount}</Num> {e.flow.edgeCount === 1 ? "link" : "links"}
-            </Value>
-          </Line>
+            <Stat>
+              <Figure>{e.flow.stepCount}</Figure> {e.flow.stepCount === 1 ? "step" : "steps"},{" "}
+              <Figure>{e.flow.edgeCount}</Figure> {e.flow.edgeCount === 1 ? "link" : "links"}
+            </Stat>
+          </Fact>
           {/* A flow is scanned across, not read down: ten steps in a column is
               ten rows of scrolling and the founder named scrolling twice. */}
-          <Grid>
+          <Cards>
             {e.flow.steps.map((s, i) => (
-              <Cell
+              <RunCard
                 key={s.id}
                 lead={
                   <>
-                    <Num>{i + 1}</Num> {s.label}
+                    <Figure>{i + 1}</Figure> {s.label}
                   </>
                 }
                 sub={FLOW_KIND[s.kind]}
               />
             ))}
-          </Grid>
+          </Cards>
           {e.flow.stepCount > e.flow.steps.length ? (
-            <Line label="The rest">
-              <Value>
-                <Num>{e.flow.stepCount - e.flow.steps.length}</Num> more, on the spec
-              </Value>
-            </Line>
+            <Fact label="The rest">
+              <Stat>
+                <Figure>{e.flow.stepCount - e.flow.steps.length}</Figure> more, on the spec
+              </Stat>
+            </Fact>
           ) : null}
         </>
       ) : (
-        <Line label="The flow" sub="the spec's steps and forks, as a graph">
-          <Value>never drawn on this spec</Value>
-        </Line>
+        <Fact label="The flow" sub="the spec's steps and forks, as a graph">
+          <Stat>never drawn on this spec</Stat>
+        </Fact>
       )}
 
       {e.moved ? <MovedRow moved={e.moved} initials={initials} /> : null}
-    </Block>
+    </Region>
   );
 }
 
@@ -483,7 +501,7 @@ function Design({
 }) {
   const waiting = e.gateStatus === "pending";
   return (
-    <Block
+    <Region
       title={STAGE_LABEL.design}
       sub={
         e.scaffold
@@ -495,11 +513,13 @@ function Design({
       more="Open the spec"
       onMore={onOpen}
     >
-      {/* The one ember in the whole set, and only when a human really is the
-          thing standing between this drawing and the build. */}
+      {/* THE ONE ORCHID IN THE WHOLE SET, and only when a human really is the
+          thing standing between this drawing and the build. `PersonMark mine`
+          is the accent, and it is spent here because this is the definition of
+          the case it exists for: the moment is yours, and touching it moves it. */}
       {waiting ? (
-        <Row
-          marks={<YouMark initials={initials} mine />}
+        <RunRow
+          mark={<PersonMark initials={initials} mine />}
           lead="Waiting on your call"
           sub="nothing builds from this drawing until you decide"
         />
@@ -509,61 +529,61 @@ function Design({
         <>
           {e.scaffold.screens.length > 0 ? (
             <>
-              <Line
+              <Fact
                 label="What it drew"
                 sub={
                   since(e.scaffold.updatedAt) ? `updated ${since(e.scaffold.updatedAt)}` : undefined
                 }
               >
-                <Value>
-                  <Num>{e.scaffold.screenCount}</Num>{" "}
+                <Stat>
+                  <Figure>{e.scaffold.screenCount}</Figure>{" "}
                   {e.scaffold.screenCount === 1 ? "surface" : "surfaces"},{" "}
-                  <Num>{e.scaffold.controlCount}</Num>{" "}
+                  <Figure>{e.scaffold.controlCount}</Figure>{" "}
                   {e.scaffold.controlCount === 1 ? "control" : "controls"}
-                </Value>
-              </Line>
-              <Grid>
+                </Stat>
+              </Fact>
+              <Cards>
                 {e.scaffold.screens.map((s, i) => (
-                  <Cell key={`${s}-${i}`} lead={s} />
+                  <RunCard key={`${s}-${i}`} lead={s} />
                 ))}
-              </Grid>
+              </Cards>
               {e.scaffold.screenCount > e.scaffold.screens.length ? (
-                <Line label="The rest">
-                  <Value>
-                    <Num>{e.scaffold.screenCount - e.scaffold.screens.length}</Num> more, on the
-                    spec
-                  </Value>
-                </Line>
+                <Fact label="The rest">
+                  <Stat>
+                    <Figure>{e.scaffold.screenCount - e.scaffold.screens.length}</Figure> more, on
+                    the spec
+                  </Stat>
+                </Fact>
               ) : null}
             </>
           ) : (
-            <Line
+            <Fact
               label="What it drew"
               sub={
                 since(e.scaffold.updatedAt) ? `updated ${since(e.scaffold.updatedAt)}` : undefined
               }
             >
-              <Value>
-                a scaffold with no headings in it, <Num>{e.scaffold.controlCount}</Num>{" "}
+              <Stat>
+                a scaffold with no headings in it, <Figure>{e.scaffold.controlCount}</Figure>{" "}
                 {e.scaffold.controlCount === 1 ? "control" : "controls"}
-              </Value>
-            </Line>
+              </Stat>
+            </Fact>
           )}
         </>
       ) : (
-        <Line label="What it drew" sub="a scaffold is drawn from the spec's flow">
-          <Value>nothing was drawn for this spec</Value>
-        </Line>
+        <Fact label="What it drew" sub="a scaffold is drawn from the spec's flow">
+          <Stat>nothing was drawn for this spec</Stat>
+        </Fact>
       )}
 
       {waiting ? null : (
-        <Line label="Your call" sub={since(e.gateDecidedAt) ?? undefined}>
-          <Value>
+        <Fact label="Your call" sub={since(e.gateDecidedAt) ?? undefined}>
+          <Stat>
             {e.gateStatus ? say(GATE_STATUS, e.gateStatus) : "no design call was recorded"}
-          </Value>
-        </Line>
+          </Stat>
+        </Fact>
       )}
-    </Block>
+    </Region>
   );
 }
 
@@ -571,17 +591,17 @@ function Design({
  * 06 Ship: the pull request, the checks, and production
  * ------------------------------------------------------------------ */
 
-function checkTone(overall: string): "pass" | "fail" | "warn" | "quiet" {
+function checkTone(overall: string): "pass" | "fail" | "hold" | "quiet" {
   if (overall === "success") return "pass";
   if (overall === "failure") return "fail";
-  if (overall === "pending") return "warn";
+  if (overall === "pending") return "hold";
   return "quiet";
 }
 
-function deployTone(status: string): "pass" | "fail" | "warn" | "quiet" {
+function deployTone(status: string): "pass" | "fail" | "hold" | "quiet" {
   if (status === "success") return "pass";
   if (status === "failure" || status === "error") return "fail";
-  if (status === "pending" || status === "in_progress" || status === "queued") return "warn";
+  if (status === "pending" || status === "in_progress" || status === "queued") return "hold";
   return "quiet";
 }
 
@@ -590,7 +610,7 @@ function Ship({ e }: { e: ShipEvidence }) {
   const liveOne = production.find((d) => d.status === "success") ?? null;
 
   return (
-    <Block
+    <Region
       title={STAGE_LABEL.ship}
       sub={
         liveOne
@@ -602,73 +622,74 @@ function Ship({ e }: { e: ShipEvidence }) {
       more={e.prUrl ? "Open the pull request" : undefined}
       onMore={() => window.open(e.prUrl as string, "_blank", "noopener,noreferrer")}
     >
-      <Line label="Pull request" sub={e.repo || undefined}>
-        <Value>
+      <Fact label="Pull request" sub={e.repo || undefined}>
+        <Stat>
           {e.prNumber != null ? (
             <>
-              <Num>#{e.prNumber}</Num>, {say(CHANGESET_STATUS, e.status)}
+              <Figure>#{e.prNumber}</Figure>, {say(CHANGESET_STATUS, e.status)}
             </>
           ) : (
             say(CHANGESET_STATUS, e.status)
           )}
-        </Value>
-      </Line>
+        </Stat>
+      </Fact>
 
       {/* Null is not zero and it is not green. No snapshot has been read for
           this pull request, and saying anything else would be a verdict
           nobody reached. */}
       {e.checks == null ? (
-        <Line label="Checks" sub="the repo's own CI, read through the connection">
-          <Value>no result has been read for this pull request</Value>
-        </Line>
+        <Fact label="Checks" sub="the repo's own CI, read through the connection">
+          <Stat>no result has been read for this pull request</Stat>
+        </Fact>
       ) : (
-        <Line label="Checks" sub={since(e.checks.at) ? `read ${since(e.checks.at)}` : undefined}>
-          <Value tone={checkTone(e.checks.overall)}>
+        <Fact label="Checks" sub={since(e.checks.at) ? `read ${since(e.checks.at)}` : undefined}>
+          <Stat tone={checkTone(e.checks.overall)}>
             {e.checks.total === 0 ? (
               "none are configured on this repo"
             ) : e.checks.overall === "success" ? (
               <>
-                all <Num>{e.checks.total}</Num> passed
+                all <Figure>{e.checks.total}</Figure> passed
               </>
             ) : e.checks.overall === "pending" ? (
               <>
-                <Num>{e.checks.running}</Num> still running of <Num>{e.checks.total}</Num>
+                <Figure>{e.checks.running}</Figure> still running of{" "}
+                <Figure>{e.checks.total}</Figure>
               </>
             ) : (
               <>
-                <Num>{e.checks.passed}</Num> of <Num>{e.checks.total}</Num> passed
+                <Figure>{e.checks.passed}</Figure> of <Figure>{e.checks.total}</Figure> passed
               </>
             )}
-          </Value>
-        </Line>
+          </Stat>
+        </Fact>
       )}
 
       {e.checks?.notGreen.map((name, i) => (
-        <Row key={`${name}-${i}`} tight lead={name} sub="did not pass" />
+        <RunRow key={`${name}-${i}`} tight lead={name} sub="did not pass" />
       ))}
 
       {e.deployments.length === 0 ? (
-        <Line label="Deployed" sub="a merge is not a release">
-          <Value>nothing has deployed from this run</Value>
-        </Line>
+        <Fact label="Deployed" sub="a merge is not a release">
+          <Stat>nothing has deployed from this run</Stat>
+        </Fact>
       ) : (
         e.deployments.map((d) => (
-          <Row
+          <RunRow
             key={d.id}
             tight
             lead={d.environment}
-            sub={<Value tone={deployTone(d.status)}>{d.status.replace(/_/g, " ")}</Value>}
+            sub={<Stat tone={deployTone(d.status)}>{d.status.replace(/_/g, " ")}</Stat>}
             time={ago(d.at)}
           />
         ))
       )}
 
       {since(e.shippedAt) ? (
-        <Line label="Marked shipped">
-          <Value>{since(e.shippedAt)}</Value>
-        </Line>
+        <Fact label="Marked shipped">
+          <Stat>{since(e.shippedAt)}</Stat>
+        </Fact>
       ) : null}
-    </Block>
+    </Region>
   );
 }
 
@@ -688,60 +709,65 @@ function Learn({
   const who = e.recordedByAgentSlug ? agentDisplayName(e.recordedByAgentSlug) : "you";
   const moved = e.priorIce != null && e.newIce != null && e.priorIce !== e.newIce;
   return (
-    <Block title={STAGE_LABEL.learn} more="Open Learn" onMore={onOpen}>
+    <Region title={STAGE_LABEL.learn} more="Open Learn" onMore={onOpen}>
       {/* The second and last recess in the product's run screen. This is the
           crescendo the brain canon names: not where the record lives, but the
           record telling you what the bet turned out to be worth, which is what
           it uses to warn you next time. The metric is NOT repeated up here as
           a subtitle: it is one fact and it gets one place. */}
-      <RecordRecess
+      <Recess
         evidence={
           moved ? (
             <>
-              scored <Num>{e.priorIce}</Num> before, <Num>{e.newIce}</Num> after
+              scored <Figure>{e.priorIce}</Figure> before, <Figure>{e.newIce}</Figure> after
             </>
           ) : undefined
         }
       >
         {e.summary}
-      </RecordRecess>
+      </Recess>
 
-      <Line label="The verdict">
-        <Value tone={e.verdict === "validated" ? "pass" : e.verdict === "missed" ? "fail" : "warn"}>
+      <Fact label="The verdict">
+        {/* THE THIRD ARM IS `hold`, NOT A WARNING, and the rename fixed the
+            meaning rather than the token. Anything that is neither validated nor
+            missed is a verdict NOBODY HAS RECORDED YET: stopped, waiting on a
+            condition, and not on you. That is the one thing amber may say in
+            this system, and it is exactly what this arm means. */}
+        <Stat tone={e.verdict === "validated" ? "pass" : e.verdict === "missed" ? "fail" : "hold"}>
           {say(VERDICT, e.verdict)}
-        </Value>
-      </Line>
+        </Stat>
+      </Fact>
 
       {e.metricLabel && e.metricValue ? (
-        <Line label={e.metricLabel}>
-          <Value>
-            <Num>{e.metricValue}</Num>
-          </Value>
-        </Line>
+        <Fact label={e.metricLabel}>
+          <Stat>
+            <Figure>{e.metricValue}</Figure>
+          </Stat>
+        </Fact>
       ) : (
-        <Line label="The measure" sub="a learning with no number is an opinion with a date on it">
-          <Value>none was recorded</Value>
-        </Line>
+        <Fact label="The measure" sub="a learning with no number is an opinion with a date on it">
+          <Stat>none was recorded</Stat>
+        </Fact>
       )}
 
       {e.recordedByAgentSlug ? (
-        <Row
+        <RunRow
           tight
-          marks={<AgentMark slug={e.recordedByAgentSlug} state="quiet" />}
+          mark={<RunMark slug={e.recordedByAgentSlug} state="done" />}
           lead={`${who} measured it`}
           sub={e.viaMission ? "against this run" : "against the spec"}
           time={ago(e.at)}
         />
       ) : (
-        <Row
+        <RunRow
           tight
-          marks={<YouMark initials={initials} />}
+          mark={<PersonMark initials={initials} />}
           lead="You recorded it"
           sub={e.viaMission ? "against this run" : "against the spec"}
           time={ago(e.at)}
         />
       )}
-    </Block>
+    </Region>
   );
 }
 
@@ -816,17 +842,17 @@ export function StagePanel({
 
   if (error) {
     return (
-      <Block title={label}>
-        <Failed onRetry={onRetry}>{error}</Failed>
-      </Block>
+      <Region title={label}>
+        <ReadFailed onRetry={onRetry}>{error}</ReadFailed>
+      </Region>
     );
   }
 
   if (!evidence) {
     return (
-      <Block title={label}>
-        <Loading>Reading what this run did at {label.toLowerCase()}.</Loading>
-      </Block>
+      <Region title={label}>
+        <Reading>Reading what this run did at {label.toLowerCase()}.</Reading>
+      </Region>
     );
   }
 
@@ -867,13 +893,13 @@ export function StagePanel({
   // leads to is where you would go to give this run an origin it lacks.
   const door = fact?.href ?? DOOR[station] ?? null;
   return (
-    <Block title={label}>
-      <Empty
+    <Region title={label}>
+      <NothingYet
         action={door ? <Button onClick={open(door)}>Open {label.toLowerCase()}</Button> : undefined}
       >
         {emptyWords(station, fact)}
-      </Empty>
-    </Block>
+      </NothingYet>
+    </Region>
   );
 }
 
