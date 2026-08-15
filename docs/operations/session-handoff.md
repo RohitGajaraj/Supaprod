@@ -1213,3 +1213,63 @@ selection and value-keyed count badge INTO `shell.css`.
 - **Point a new guard at something you believe is clean.** The ratchet's first version reported
   `/today` as clean while that surface was built entirely from retired components. Closing that
   hole added 91 invisible files and moved the honest total from 2,283 to 2,460.
+
+## 🔧 THE LANE TOPOLOGY CHANGED at the end of 2026-08-16. Read this before you `git status`.
+
+**All three worktrees are 0/0 and sit on the same commit (`8090a20b`).** If a lane ever reads
+"N behind / N ahead" again, this section explains which ruler it is using.
+
+| worktree | branch | tracks |
+|---|---|---|
+| `Supaprod` | `main` | `origin/main` |
+| `cadence-lane-0` | `parallel/lane-0-fresh` | **`origin/main`** |
+| `cadence-lane-1` | `parallel/lane-1-fresh` | **`origin/main`** |
+
+**Both lanes now track `origin/main`, not their own remote branch, and that is deliberate.**
+Git reports ahead/behind against a branch's UPSTREAM. While the lanes tracked
+`origin/parallel/lane-N-fresh`, they reported alarming counts (lane 1 read "34 behind / 80
+ahead") that measured nothing anyone cares about — those pointers are stale bookmarks. The
+founder's instruction was that everything should live on main and nothing should read behind.
+
+`main` is checked out in `Supaprod` and git forbids the same branch in two worktrees, so the
+lanes keep their own NAMES while tracking main. **A push from a lane now targets main.**
+
+### Nothing was lost, and here is how that was established rather than assumed
+
+`git cherry` compares by PATCH CONTENT, not commit hash, so a rebased commit is correctly seen
+as already present. Both lane branches held **zero** commits not on main. That is why moving
+the pointers was safe: there was nothing in them to move.
+
+**Backup tags were pushed BEFORE anything moved, and they are permanent:**
+
+```
+backup/lane-0-fresh-2026-08-16  -> 91f40d87
+backup/lane-1-fresh-2026-08-16  -> 4eead884   (the ORIGINAL pre-rebase hashes of the 35 Meridian commits)
+```
+
+No force-push and no branch deletion was used. The stale `origin/parallel/lane-*-fresh`
+branches still exist on the remote; they are redundant now that the tags exist, and they were
+left alone rather than deleted.
+
+### Two refs DO hold content that is not on main. Both were left alone on purpose.
+
+- `origin/archive/final-sweep-2026-07-18` — **25 commits**, deliberately archived in July.
+- `origin/wip/safety-snapshot` — **1 commit**, a stash-style index snapshot from 2026-08-06
+  (`index on main: …`). Not a branch of work.
+
+Neither is lane work. If either matters, it needs a decision, not a merge.
+
+### ⚠️ A landmine in the `Supaprod` worktree, untracked, NOT created by this lane
+
+`docs/pitch/applications/sweep/all-programmes-ranked.csv` is **123 lines** and untracked, which
+matches the standing warning that Excel once cut that dataset from 571 rows to 124.
+
+**It is a false alarm, and only checking proved it.** That file begins `Funding Programme
+Tracker` and carries an illegal byte sequence: it is an Excel export of the TRACKER, saved
+under the DATASET's filename in the wrong folder. The real dataset is intact and tracked at
+`docs/pitch/applications/all-programmes-ranked.csv` — **572 lines = 571 rows + header**.
+
+**Delete or rename the stray file.** It sits under a name the whole funding lane is warned
+about, and the next person to find it will lose an hour proving what is above. It was left in
+place because it belongs to the funding lane and deleting another lane's untracked file is not
+this lane's call.
