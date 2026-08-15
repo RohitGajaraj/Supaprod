@@ -24,7 +24,8 @@
     "predev": "node scripts/check-dev-node.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "design:ratchet": "bun run scripts/update-meridian-baseline.ts"
+    "design:ratchet": "bun run scripts/update-meridian-baseline.ts",
+    "design:adoption": "bun run scripts/meridian-adoption.ts"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.45.0",
