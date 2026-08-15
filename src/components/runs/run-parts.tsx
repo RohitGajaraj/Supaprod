@@ -151,26 +151,30 @@ export function RunMark({
         transitionDuration: "var(--mrd-d-move)",
         /*
          * THE ONE ANIMATED MARK IN THE PRODUCT, and it is set INLINE rather than
-         * as a class on purpose: meridian.css's reduced-motion block matches
-         * `[style*="mrd-pixel-on"]`, so an animation declared in a utility would
-         * keep running for someone who asked it not to.
+         * as a class on purpose: meridian.css's reduced-motion block matches on
+         * the style attribute, so an animation declared in a utility would keep
+         * running for someone who asked it not to.
          *
-         * 1600ms is the legacy cadence, held still so the beat a reader already
-         * knows does not change under them. The AMPLITUDE does change and it is
-         * reported rather than approximated: `mrd-pixel-on` troughs at 0.15
-         * where the legacy attention keyframe troughed at 0.32, so this reads a
-         * little deeper than it used to. A `mrd-attention` keyframe at 1 → 0.32
-         * would be the correct home for it and belongs in meridian.css, which
-         * this lane does not own.
+         * BOTH CASES USE `mrd-attention`, WHICH IS THE POINT OF IT. The obvious
+         * reach here is `mrd-pixel-on`, and it is wrong for a mark: it troughs
+         * at 0.15, so half of every cycle the GLYPH is gone — and the glyph is
+         * what says which station this is, because identity is shape in this
+         * system. An animation that periodically deletes a mark's identity to
+         * report its status has traded the more important fact for the lesser
+         * one. `mrd-attention` inverts the envelope: full at rest, a shallow dip
+         * to 0.32, back. Legible throughout.
+         *
+         * The two cadences carry the whole difference, and they are the legacy
+         * ones, held still so the beat a reader already knows does not move
+         * under them.
          */
         animation: asking
-          ? "mrd-pixel-on 1600ms var(--mrd-ease-soft) infinite"
+          ? "mrd-attention 1600ms var(--mrd-ease-soft) infinite"
           : state === "working"
-            ? // A machine working is ambient. The same breath the legacy mark
-              // carried, at the same 2400ms, and nothing else: no orbiting
-              // spinner ring, which was decoration that reported nothing the
-              // hue was not already reporting.
-              "mrd-pixel-on 2400ms var(--mrd-ease-soft) infinite"
+            ? // A machine working is ambient, so it breathes slower than a thing
+              // asking for a person. Nothing else: no orbiting spinner ring,
+              // which was decoration reporting nothing the hue did not already.
+              "mrd-attention 2400ms var(--mrd-ease-soft) infinite"
             : undefined,
       }}
     >

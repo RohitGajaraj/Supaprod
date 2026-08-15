@@ -737,6 +737,34 @@
   }
 }
 
+/*
+ * ASKING, which is not the same shape as PULSING.
+ *
+ * `mrd-pixel-on` starts at 0.15 and peaks at 1: a thing that is absent most of
+ * the time and flashes into being. That is right for a pixel in a loading
+ * lattice and wrong for a run that is waiting on a person, which must be
+ * legible AT REST and merely breathe. Reusing it on the Runs mark made the
+ * one run actually asking spend half its cycle nearly invisible — the loudest
+ * thing on the surface, disappearing.
+ *
+ * So this inverts the envelope: full strength at rest, a shallow dip, back. The
+ * trough is 0.32 rather than 0.15 because that is where the legacy attention
+ * animation sat and it was tuned; going deeper reads as a fault light.
+ *
+ * Distinct from `sp-stage-alive` (3.5s, a station quietly working) and from the
+ * gate's 2s blink by both amplitude and speed, which is the standing rule here:
+ * two motions on one screen must differ in more than duration.
+ */
+@keyframes mrd-attention {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.32;
+  }
+}
+
 @keyframes mrd-shimmer {
   0% {
     background-position: 200% 0;
@@ -816,6 +844,7 @@
  */
 @media (prefers-reduced-motion: reduce) {
   [style*="mrd-pixel-on"],
+  [style*="mrd-attention"],
   [style*="mrd-shimmer"],
   [style*="mrd-fade-up"],
   [style*="mrd-fade-in"],
