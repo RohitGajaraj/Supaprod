@@ -441,6 +441,7 @@ export function StreamingText({
   if (error) {
     return (
       <div
+        data-mrd=""
         role="alert"
         className="w-full rounded-mrd-card bg-mrd-sink p-4"
         style={{ borderLeft: "2px solid var(--mrd-fail)" }}
@@ -472,7 +473,7 @@ export function StreamingText({
    */
   if (chunks.length === 0) {
     return (
-      <div className="w-full py-2">
+      <div data-mrd="" className="w-full py-2">
         <p className="text-[13px] font-medium text-mrd-body">{emptyLabel}</p>
         <p className="mt-1 max-w-[68ch] text-[13px] leading-[1.65] text-mrd-mute">{emptyHint}</p>
       </div>

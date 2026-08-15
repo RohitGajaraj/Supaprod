@@ -191,7 +191,7 @@ export function RunsGrid({
           <button
             type="button"
             onClick={() => onOpen(s.mission_id)}
-            className="flex w-full min-w-0 items-center gap-2 text-left transition-colors hover:text-mrd-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mrd-edge-focus)]"
+            className="flex w-full min-w-0 items-center gap-2 text-left transition-colors hover:text-mrd-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mrd-focus)]"
             style={{ transitionDuration: "var(--mrd-d-press)" }}
           >
             <AgentMark

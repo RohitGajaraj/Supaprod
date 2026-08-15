@@ -13,12 +13,19 @@
  * visible and changeable." So it is stated in plain words, once, with the door
  * to change it, and it is not dismissible. Nothing renders for a paid plan or
  * while the plan is unknown.
+ *
+ * PORTED TO MERIDIAN, 2026-08-15. The line was three raw `--sp-*` custom
+ * properties in an inline style plus `.sp-block-more` on the link, which is the
+ * layer meridian.css calls life support: "no new surface may use it, every
+ * migrated surface drops it." Colour, size and rhythm now come from `--mrd-*`
+ * through utilities, so this line re-resolves on the paper ground with the rest
+ * of the surface instead of holding one foot in the old system.
  */
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getBillingState } from "@/lib/billing.functions";
 import { FREE_MEMORY_RETENTION_DAYS } from "@/lib/entitlements";
-import { Num } from "@/components/shell/primitives";
+import { Figure } from "@/components/brain/record-parts";
 
 export function RetentionLine() {
   const f = useServerFn(getBillingState);
@@ -31,15 +38,20 @@ export function RetentionLine() {
   if ((billing.data?.planTier ?? null) !== "free") return null;
 
   return (
-    <p
-      style={{
-        fontSize: "var(--sp-text-meta)",
-        color: "var(--sp-mute)",
-        marginTop: "var(--sp-space-3)",
-      }}
-    >
-      On the free plan this record fades after <Num>{FREE_MEMORY_RETENTION_DAYS}</Num> days.{" "}
-      <a href="/pricing" className="sp-block-more" style={{ display: "inline" }}>
+    /* `data-mrd` is what gives the link below the system's neutral focus ring
+       without this file naming a colour. See the note at the top of
+       record-parts.tsx: the attribute outranks the unlayered legacy
+       `:focus-visible` rule that would otherwise paint an accent here. */
+    <p data-mrd="" className="text-[12.5px] leading-relaxed text-mrd-mute">
+      On the free plan this record fades after <Figure>{FREE_MEMORY_RETENTION_DAYS}</Figure> days.{" "}
+      {/* A real anchor, not a Door: /pricing is a page with an address, and the
+          Door primitive next door is a <button> for something this surface does
+          to itself. The two look identical on purpose. */}
+      <a
+        href="/pricing"
+        className="rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
+        style={{ transitionDuration: "var(--mrd-d-press)" }}
+      >
         Keep it
       </a>
     </p>

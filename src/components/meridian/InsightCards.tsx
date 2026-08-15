@@ -1106,7 +1106,10 @@ function NothingSettledYet({
   awaitingVerdict?: number;
 }) {
   return (
-    <div className="rounded-mrd-card border border-mrd-line bg-mrd-sheet p-[var(--mrd-s5)]">
+    <div
+      data-mrd=""
+      className="rounded-mrd-card border border-mrd-line bg-mrd-sheet p-[var(--mrd-s5)]"
+    >
       <span className="block text-[16px] font-medium text-mrd-ink">
         No outcome has been settled yet
       </span>
@@ -1145,6 +1148,7 @@ function NothingSettledYet({
 function CouldNotRead({ reason, onRetry }: { reason: string; onRetry?: () => void }) {
   return (
     <div
+      data-mrd=""
       role="alert"
       className="rounded-mrd-card border border-mrd-line bg-mrd-sheet p-[var(--mrd-s5)]"
     >

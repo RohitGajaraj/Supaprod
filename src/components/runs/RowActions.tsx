@@ -41,7 +41,7 @@ import * as React from "react";
  */
 
 const FOCUS =
-  "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-edge-focus)]";
+  "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
 
 export function RowAction({
   destructive = false,

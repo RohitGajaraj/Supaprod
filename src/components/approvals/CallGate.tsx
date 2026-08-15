@@ -58,7 +58,7 @@ import { isOverdue, stoppedFor } from "./stopped-for";
  * half done. Exported so every control in this directory rings the same way.
  */
 export const FOCUS_RING =
-  "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--mrd-edge-focus)]";
+  "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--mrd-focus)]";
 
 function Icon({ children }: { children: ReactNode }) {
   return (

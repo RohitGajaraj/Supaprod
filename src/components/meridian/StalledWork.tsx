@@ -261,7 +261,7 @@ export function StalledWork({
      * exclamation mark, or a call to action. It gets one sentence and silence.
      */
     return (
-      <p className="text-[13px] text-mrd-mute">
+      <p data-mrd="" className="text-[13px] text-mrd-mute">
         Nothing is stopped, and nothing is waiting on you.
       </p>
     );

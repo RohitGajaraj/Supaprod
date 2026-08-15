@@ -22,6 +22,25 @@
  *
  * Both read one server function on one query key, so mounting both costs one
  * request.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * PORTED TO MERIDIAN, 2026-08-15. Nothing about what these two regions CLAIM
+ * has changed; the parts they are drawn with have.
+ *
+ * The shell primitives this file used are the `--sp-*` layer, which meridian.css
+ * calls life support: "no new surface may use it, every migrated surface drops
+ * it." So Block, Row, Empty, Failed, Loading, Num, Button and Actions are gone,
+ * replaced by the Meridian parts in `./record-parts`, and the two hue classes
+ * `sp-pass` / `sp-fail` are now `text-mrd-pass` / `text-mrd-fail`. Those two
+ * were the only colour this file ever spent and they still mean exactly what
+ * they meant: an OUTCOME, which is the one thing green and red are allowed to
+ * report in this system.
+ *
+ * The agent mark also changed, and that is a real design decision rather than a
+ * repaint. The shell's `AgentMark` encodes the agent as a shape AND its loop
+ * stage as one of seven hues, so a column of standing rules drew a stage
+ * rainbow down its left edge. Meridian spends colour on one distinction only,
+ * and `CrewMark` keeps the shape while dropping the hue. See its own note.
  */
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
@@ -31,16 +50,16 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { getStandingRecord, type StandingRule } from "@/lib/brain-standing.functions";
 import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Loading,
-  Num,
-  Row,
-} from "@/components/shell/primitives";
+  Act,
+  Acts,
+  CrewMark,
+  Figure,
+  NothingYet,
+  ReadFailed,
+  Reading,
+  RecordLine,
+  Region,
+} from "@/components/brain/record-parts";
 
 /** Anti-scroll: three rules, then a click. The full set is never a wall. */
 const VISIBLE_RULES = 3;
@@ -72,7 +91,7 @@ function provenance(rule: StandingRule): ReactNode {
   if (rule.fromOutcomes === 0) return binds;
   return (
     <>
-      from <Num>{rule.fromOutcomes}</Num> recorded{" "}
+      from <Figure>{rule.fromOutcomes}</Figure> recorded{" "}
       {rule.fromOutcomes === 1 ? "outcome" : "outcomes"}
       {" · "}
       {binds}
@@ -96,15 +115,15 @@ export function StandingRules() {
 
   if (q.isLoading) {
     return (
-      <Block title={title} lead>
-        <Loading>Reading the standing rules.</Loading>
-      </Block>
+      <Region title={title} lead>
+        <Reading>Reading the standing rules.</Reading>
+      </Region>
     );
   }
 
   if (q.isError) {
     return (
-      <Block title={title} lead>
+      <Region title={title} lead>
         {/* THE WHOLE VISIBLE COPY USED TO BE THE EXCEPTION STRING. This was
             `<Failed>{(q.error as Error).message}</Failed>` and nothing else, on
             the FIRST region a reader meets on this surface. Against a backend
@@ -119,43 +138,44 @@ export function StandingRules() {
             that read successfully and found nothing, and on THIS region that
             mistaken reading is "the record tells the crew nothing". Naming what
             did not load is what stops a dead read being heard as a verdict. */}
-        <Failed onRetry={() => void q.refetch()}>
+        <ReadFailed onRetry={() => void q.refetch()}>
           The standing rules did not load, so this is not a claim that nothing is standing.{" "}
           {(q.error as Error).message}
-        </Failed>
-      </Block>
+        </ReadFailed>
+      </Region>
     );
   }
 
   if (rules.length === 0) {
     return (
-      <Block title={title} lead>
-        <Empty
+      <Region title={title} lead>
+        <NothingYet
           action={
             pending > 0 ? (
-              <Button variant="primary" onClick={openDrafts}>
+              <Act variant="primary" onClick={openDrafts}>
                 Read {pending === 1 ? "the draft" : `the ${pending} drafts`}
-              </Button>
+              </Act>
             ) : undefined
           }
         >
           {pending > 0
             ? "Nothing standing yet. The steward has written a rule out of what shipped, and it is waiting on a human."
             : "Nothing standing yet. The steward reads validated outcomes each week and proposes a rule when the same lesson turns up twice."}
-        </Empty>
-      </Block>
+        </NothingYet>
+      </Region>
     );
   }
 
   const shown = showAll ? rules : rules.slice(0, VISIBLE_RULES);
 
   return (
-    <Block title={title} lead sub="Every one of these goes into an agent's prompt before it acts.">
+    <Region title={title} lead sub="Every one of these goes into an agent's prompt before it acts.">
       {shown.map((rule) => (
-        <Row
+        <RecordLine
           key={rule.id}
-          tight
-          marks={<AgentMark slug={rule.agentSlug} name="the crew" state="quiet" />}
+          mark={
+            <CrewMark slug={rule.agentSlug} name={agentDisplayName(rule.agentSlug, "the crew")} />
+          }
           lead={rule.text}
           sub={provenance(rule)}
           time={day(rule.decidedAt ?? rule.createdAt)}
@@ -163,26 +183,26 @@ export function StandingRules() {
       ))}
 
       {rules.length > VISIBLE_RULES || pending > 0 ? (
-        <Actions>
+        <Acts>
           {rules.length > VISIBLE_RULES ? (
-            <Button variant="ghost" onClick={() => setShowAll((v) => !v)}>
+            <Act variant="quiet" onClick={() => setShowAll((v) => !v)}>
               {showAll ? (
                 "Show fewer"
               ) : (
                 <>
-                  Show <Num>{rules.length - VISIBLE_RULES}</Num> more
+                  Show <Figure>{rules.length - VISIBLE_RULES}</Figure> more
                 </>
               )}
-            </Button>
+            </Act>
           ) : null}
           {pending > 0 ? (
-            <Button variant="ghost" onClick={openDrafts}>
-              Decide <Num>{pending}</Num> the steward wrote
-            </Button>
+            <Act variant="quiet" onClick={openDrafts}>
+              Decide <Figure>{pending}</Figure> the steward wrote
+            </Act>
           ) : null}
-        </Actions>
+        </Acts>
       ) : null}
-    </Block>
+    </Region>
   );
 }
 
@@ -213,25 +233,28 @@ function recallLine(
   const rated = r.helped > 0 || r.contradicted > 0;
   return (
     <>
-      A run has read <Num>{r.memoriesReached}</Num> of these back
+      A run has read <Figure>{r.memoriesReached}</Figure> of these back
       {r.events > 0 ? (
         <>
           {" · "}
-          <Num>{r.events}</Num> {r.events === 1 ? "recall" : "recalls"} on the record
+          <Figure>{r.events}</Figure> {r.events === 1 ? "recall" : "recalls"} on the record
         </>
       ) : null}
       {rated ? (
         <>
           {" · "}
+          {/* The only colour on this line, and both halves report an OUTCOME:
+              what a rating said actually happened. Green and red are never a
+              need in this system, and nothing here asks for a person. */}
           {r.helped > 0 ? (
-            <span className="sp-pass">
-              <Num>{r.helped}</Num> helped
+            <span className="text-mrd-pass">
+              <Figure>{r.helped}</Figure> helped
             </span>
           ) : null}
           {r.helped > 0 && r.contradicted > 0 ? ", " : null}
           {r.contradicted > 0 ? (
-            <span className="sp-fail">
-              <Num>{r.contradicted}</Num> contradicted by what happened
+            <span className="text-mrd-fail">
+              <Figure>{r.contradicted}</Figure> contradicted by what happened
             </span>
           ) : null}
         </>
@@ -245,8 +268,8 @@ export function CrewCarries({ children }: { children: ReactNode }) {
   const q = useStandingRecord();
   const sub = recallLine(q.data?.recall);
   return (
-    <Block title="What the crew carries" sub={sub ?? undefined}>
+    <Region title="What the crew carries" sub={sub ?? undefined}>
       {children}
-    </Block>
+    </Region>
   );
 }

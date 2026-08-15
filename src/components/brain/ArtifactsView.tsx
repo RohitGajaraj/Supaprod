@@ -47,10 +47,12 @@
  *          fail to recognise it IS the moment you fix it.
  *    KEEP  delete, on the item in focus. This is the only view that sees all
  *          three families at once, so it is the only place you can tidy up.
- *    MOVE  the product filter, from a second `sp-tabs` row to `Choices`. Two
+ *    MOVE  the product filter, off a second tab row and onto a chip row. Two
  *          identical tab rows stacked, Brain's doors and then a product
  *          filter, is two things competing to be the navigation and neither
- *          winning. A radio group reads as a control, which is what it is.
+ *          winning. A chip carrying its own count reads as a control, which is
+ *          what it is. (It was a `Choices` radio group between the 2026-07-30
+ *          pass and the Meridian port; same semantics, system paint.)
  *    MOVE  "What came out of it" and the live crew line, out of the context
  *          rail and into the body. Brain's Surface has no aside, and a tab
  *          body cannot grow one without lifting this view's focus state up
@@ -75,10 +77,12 @@
  * 4. ONE CLICK AWAY. A row is one line, its name, plus a second line carrying
  *    DIFFERENT information, the product it belongs to. Its maker, its source,
  *    and what it led to appear when it becomes the item in focus, which is one
- *    click. Each family is capped at six rows with an explicit "show all", so
- *    the view has a bottom on day one and on day four hundred. Above twelve
- *    artifacts a find field appears, because past one screen a filter is the
- *    only thing that actually answers "too much scrolling".
+ *    click. Each family is capped at six rows, and the cap states its own
+ *    arithmetic under the last row with the way out beside it, so the view has
+ *    a bottom on day one and on day four hundred and nobody has to guess how
+ *    much is behind it. Above twelve artifacts a find field appears, because
+ *    past one screen a filter is the only thing that actually answers "too much
+ *    scrolling".
  *
  * 5. THE MOMENT, AND THE CONFUSION. The moment is opening a spec you half
  *    remember and reading "Writer made this. From: the churn cluster from
@@ -118,11 +122,45 @@
  *    in plain words: things your crew has made.
  *
  * THE COMMIT (agents/FINAL-agent-presence.md R10, anti-slop.md section 5).
- * Renaming and deleting each leave a Receipt that stays in the region, and a
+ * Renaming and deleting each leave a receipt that stays in the region, and a
  * failed write still writes one and goes honest immediately. NO handoff arrow
  * is drawn on either: nothing in the repo picks up a rename or a delete, so
  * the receipt says what changed instead. An arrow to nowhere is worse than no
  * arrow.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * PORTED TO MERIDIAN, 2026-08-15. Same data, same reads, same handlers. Three
+ * things are now drawn by a component instead of by hand, and each replaces
+ * something the old part could not do.
+ *
+ *   THE SHELF IS A `RecordsTable`, one per family. The three groups were lists
+ *   of `Row`, capped at six, with a "Show all 14" in the region heading. That
+ *   heading control is the exact defect the grid's own header names: a list
+ *   that quietly stops at six teaches its reader that six is all there is,
+ *   because the cap was stated in a control at the TOP of the region while the
+ *   truncation happened at the BOTTOM. RecordsTable prints the real arithmetic
+ *   under the last row -- "Showing 6 of 14 rows. 8 not shown." -- and puts the
+ *   way out beside it. It also gives the shelf sorting it never had: on a shelf
+ *   of near-identical auto-generated names, sorting by when a thing last
+ *   changed is how a person tells two drafts apart, and this view's own header
+ *   says exactly that about the timestamps.
+ *
+ *   THE PRODUCT FILTER IS A CHIP ROW, not `Choices`. Same control, same one-of
+ *   semantics, and it now carries its count inside the chip the way every other
+ *   narrowing control in Meridian does.
+ *
+ *   `unattributed` IS A `RecordTag`. It used to be the mono `Num` primitive,
+ *   which is how the ugliness was drawn. Meridian reserves mono for numbers,
+ *   durations, counts, ids and timestamps and nothing else, so the refusal
+ *   moves to the system's colourless categorical chip: still visibly not a
+ *   name, still not a guess, and no longer borrowing the figure face.
+ *
+ * WHAT DID NOT SURVIVE THE PORT, stated rather than hidden: opening one family
+ * used to CLOSE the others, because a single `openGroup` held the state for all
+ * three. Each grid now owns its own cap, so all three can stand open at once.
+ * Nothing is hidden by the change and nothing new is reachable; only the
+ * closing of a group you did not touch is gone, and that was a side effect of
+ * one piece of state rather than a decision anybody made.
  */
 
 import { useServerFn } from "@tanstack/react-start";
@@ -137,22 +175,18 @@ import { savePrd, deletePrd } from "@/lib/discovery.functions";
 import { updateDoc, deleteDoc } from "@/lib/docs.functions";
 import { useConfirm } from "@/hooks/use-confirm";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { RecordsTable, RecordTag, type RecordColumn } from "@/components/meridian/RecordsTable";
 import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  Choices,
-  Empty,
-  Failed,
-  Field,
-  Input,
-  Loading,
-  Num,
-  Receipt,
-  Row,
-  Who,
-} from "@/components/shell/primitives";
+  Act,
+  Acts,
+  CrewMark,
+  Figure,
+  NothingYet,
+  ReadFailed,
+  Reading,
+  RecordLine,
+  Region,
+} from "@/components/brain/record-parts";
 
 /**
  * Said once, on the group heading, instead of on a chip on every row.
@@ -215,15 +249,115 @@ function relTime(iso: string | null): string {
 
 const keyOf = (a: ArtifactSummary) => `${a.kind}:${a.id}`;
 
-/** A count riding a filter label. Spaced and quietened the way every other
- *  count in the shell is (the retired tab row used 5px and 0.7): the name is
- *  the label, the number is the evidence, and a mono digit set flush against
- *  a sans word reads as one token rather than two facts. */
-function Count({ n }: { n: number }) {
+/**
+ * WHICH PRODUCT'S SHELF YOU ARE LOOKING AT.
+ *
+ * The one control that turns a workspace-wide shelf into the shelf you actually
+ * want, so the scoping decision is made here and nowhere else.
+ *
+ * Chips rather than the shell's `Choices` radio group, and the chip carries its
+ * own count. Two things follow from Meridian's own rules and are worth stating:
+ *
+ *   NO HUE. A count is not a status. Orchid means a person is required, azure
+ *   means a machine is working, green and red report an outcome, and a number of
+ *   specs belonging to a product is none of those. The chosen chip is separated
+ *   by GROUND, by ink weight and by an edge instead, which is what an active
+ *   control is separated by anyway and what keeps it legible in greyscale.
+ *
+ *   THE PRESSED CHIP HAS TO LOOK PRESSED. Fill alone is four points of
+ *   lightness on the dark ground and one and a half on paper, which is a chip
+ *   that is arguably a different colour rather than one that is obviously
+ *   chosen. The three shadows are all inset except the drop, so nothing reflows
+ *   when the choice moves along the row.
+ */
+function ShelfFilter({
+  options,
+  value,
+  onPick,
+}: {
+  options: { id: string; label: string; count: number }[];
+  value: string;
+  onPick: (id: string) => void;
+}) {
   return (
-    <span style={{ marginLeft: 5, opacity: 0.72 }}>
-      <Num>{n}</Num>
-    </span>
+    <div
+      data-mrd=""
+      role="group"
+      aria-label="Which product"
+      className="-mx-1 flex items-center gap-1 overflow-x-auto px-1 py-1"
+      style={{ scrollbarWidth: "none" }}
+    >
+      {options.map((option) => {
+        const on = value === option.id;
+        return (
+          <button
+            key={option.id}
+            type="button"
+            aria-pressed={on}
+            onClick={() => onPick(option.id)}
+            className={`flex h-6.5 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium transition-[background-color,box-shadow,color] ${
+              on
+                ? "bg-mrd-lift text-mrd-ink"
+                : "text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
+            }`}
+            style={{
+              boxShadow: on
+                ? "inset 0 0 0 1px var(--mrd-line), inset 0 1px 0 var(--mrd-sheen), var(--mrd-shadow-card)"
+                : "none",
+              transitionDuration: "var(--mrd-d-move)",
+            }}
+          >
+            {option.label}
+            <span
+              className={`rounded-mrd-xs px-1 font-mrd-mono text-[10.5px] tabular-nums ${
+                on ? "bg-mrd-sink text-mrd-body" : "text-mrd-mute"
+              }`}
+            >
+              {option.count}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** One labelled text field. ONE label: a second line here would carry different
+ *  information, never a restatement.
+ *
+ *  It draws NO focus ring, and that is the system rule rather than an omission.
+ *  meridian.css removes the ring from text entry only, because a field already
+ *  answers "where is the keyboard" twice and better than a ring can: a caret is
+ *  blinking in it, which no other control has, and its border steps up. A third
+ *  answer drawn around the outside visibly doubles the field's edge. */
+function NameField({
+  label,
+  id,
+  value,
+  autoFocus,
+  onChange,
+  onKeyDown,
+}: {
+  label: string;
+  id: string;
+  value: string;
+  autoFocus?: boolean;
+  onChange: (next: string) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <label data-mrd="" htmlFor={id} className="flex flex-col gap-mrd-2">
+      <span className="text-[11px] font-medium tracking-wide text-mrd-mute uppercase">{label}</span>
+      <input
+        id={id}
+        value={value}
+        autoFocus={autoFocus}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
+        className="h-8 w-full max-w-[46ch] rounded-mrd-ctl border border-mrd-edge bg-mrd-sink px-2.5 text-[13px] text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-edge-focus"
+        style={{ transitionDuration: "var(--mrd-d-press)" }}
+      />
+    </label>
   );
 }
 
@@ -234,6 +368,55 @@ type Settled = {
   at: string;
   failed?: boolean;
 };
+
+/**
+ * WHAT YOU CHANGED, this session.
+ *
+ * The shell's `Receipt` drawn in Meridian, and the ruling it carries is not
+ * this file's to change: renaming or deleting must not vanish into a toast. A
+ * toast confirms that your click REGISTERED; this renders what your click
+ * CAUSED. An act that erases itself teaches you that your judgment left no
+ * trace, and judgment is the product.
+ *
+ * `role="status"` is the polite register: it waits for a pause rather than
+ * interrupting, which is right for a confirmation of something the person just
+ * did deliberately. A failed line keeps status too, because the failure is the
+ * answer to their own click and it is on screen where they are already looking.
+ *
+ * A FAILED WRITE GETS THE FAILED SHAPE IMMEDIATELY, never a success shape over
+ * a failed write, which is the one thing that makes the successful ones
+ * trustworthy. Red is an OUTCOME here, the only thing red is allowed to be.
+ */
+function ChangedTrail({ lines }: { lines: Settled[] }) {
+  if (lines.length === 0) return null;
+  return (
+    <Region title="What you changed">
+      <ul data-mrd="" className="flex flex-col gap-mrd-2">
+        {lines.map((line, i) => (
+          <li
+            key={`${line.id}-${i}`}
+            role="status"
+            aria-live="polite"
+            className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 rounded-mrd-ctl border border-mrd-line bg-mrd-sink px-mrd-5 py-mrd-3"
+            style={{ animation: "mrd-fade-up 300ms var(--mrd-ease) both" }}
+          >
+            <span
+              className={`text-[13px] font-medium ${line.failed ? "text-mrd-fail" : "text-mrd-ink"}`}
+            >
+              {line.verb}
+            </span>
+            <span className="min-w-0 text-[12.5px] leading-snug text-mrd-body">
+              {line.consequence}
+            </span>
+            <span className="font-mrd-mono ml-auto shrink-0 text-[12px] tabular-nums text-mrd-faint">
+              {line.at}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Region>
+  );
+}
 
 export function ArtifactsView() {
   const qc = useQueryClient();
@@ -251,7 +434,6 @@ export function ArtifactsView() {
   const [productFilter, setProductFilter] = useState<string>(ALL);
   const [find, setFind] = useState("");
   const [focusedKey, setFocusedKey] = useState<string | null>(null);
-  const [openGroup, setOpenGroup] = useState<ArtifactKind | null>(null);
   /** null = not renaming. A string = the draft, including the empty one. */
   const [draft, setDraft] = useState<string | null>(null);
   // THE COMMIT. Session-local on purpose: the durable record is each family's
@@ -405,76 +587,128 @@ export function ArtifactsView() {
           ? "Nobody is making anything right now."
           : undefined;
 
+  /**
+   * THREE COLUMNS, AND THE ONE THAT OPENS SOMETHING IS A REAL CONTROL.
+   *
+   * A whole-row door is not available in this grid: the identity column is
+   * pinned so it survives a sideways scroll, and a `<tr>` cannot be a button.
+   * So the name is the button, which is also the only thing on the row worth
+   * opening. It is tabbable, it answers Space and Enter, and it takes the
+   * system focus ring; a styled `<span>` with an onClick would have none of
+   * those. `mrd-focus-inset` because the grid clips, and an outset ring on a
+   * cell inside a scrolling container is sheared off and reads as a broken
+   * edge rather than as focus.
+   *
+   * `sortValue` returns something genuinely comparable and never the printed
+   * string, which is the trap the grid's own header names: "2h ago" sorts ahead
+   * of "9 Jun" alphabetically, which is backwards, and the column looks like it
+   * works. The changed column returns epoch ms.
+   *
+   * The product is a DIFFERENT fact from the name, not more of it. The maker
+   * belongs to the one item in focus, which is one click away.
+   */
+  const shelfColumns: RecordColumn<ArtifactSummary>[] = useMemo(
+    () => [
+      {
+        key: "name",
+        header: "Name",
+        width: "34ch",
+        sortValue: (a) => a.name.toLowerCase(),
+        cell: (a) => (
+          <button
+            type="button"
+            onClick={() => {
+              setDraft(null);
+              setFocusedKey(keyOf(a));
+            }}
+            className="mrd-focus-inset block w-full truncate rounded-mrd-xs text-left transition-colors hover:text-mrd-ink"
+            style={{ transitionDuration: "var(--mrd-d-press)" }}
+          >
+            {a.name}
+          </button>
+        ),
+      },
+      {
+        key: "product",
+        header: "Product",
+        width: "18ch",
+        sortValue: (a) => (a.productId ? (productName.get(a.productId) ?? "") : ""),
+        cell: (a) => (a.productId ? (productName.get(a.productId) ?? "Unassigned") : "Unassigned"),
+      },
+      {
+        key: "changed",
+        header: "Changed",
+        width: "12ch",
+        numeric: true,
+        sortValue: (a) => (a.updatedAt ? new Date(a.updatedAt).getTime() : 0),
+        cell: (a) => relTime(a.updatedAt),
+      },
+    ],
+    [productName],
+  );
+
   return (
-    <>
-      <Block title={heading} sub={liveLine}>
-        {/* The failure is stated ONCE now, here, so this sentence has to carry
-            the whole thing: what did not load, and the claim it is refusing to
-            make. It also drops "artifacts", the one word section 7 above says a
-            stranger may not carry -- the heading avoids it deliberately and the
-            error arm was reaching for it one line below. */}
-        {q.isError ? (
-          <Failed onRetry={() => void q.refetch()}>
-            The shelf did not load, so this is not a claim that your crew has made nothing.{" "}
-            {(q.error as Error).message}
-          </Failed>
-        ) : null}
+    <div className="flex flex-col gap-mrd-7">
+      <Region title={heading} sub={liveLine}>
+        <div className="flex flex-col gap-mrd-5">
+          {/* The failure is stated ONCE, here, so this sentence has to carry
+              the whole thing: what did not load, and the claim it is refusing to
+              make. It also drops "artifacts", the one word section 7 above says a
+              stranger may not carry -- the heading avoids it deliberately and the
+              error arm was reaching for it one line below. */}
+          {q.isError ? (
+            <ReadFailed onRetry={() => void q.refetch()}>
+              The shelf did not load, so this is not a claim that your crew has made nothing.{" "}
+              {(q.error as Error).message}
+            </ReadFailed>
+          ) : null}
 
-        {q.isLoading ? <Loading>Reading the shelf.</Loading> : null}
+          {q.isLoading ? <Reading>Reading the shelf.</Reading> : null}
 
-        {!q.isLoading && !q.isError && n === 0 ? (
-          <Empty>
-            Your crew has not made anything yet. Specs, prototypes and docs land here as they are
-            written.
-          </Empty>
-        ) : null}
+          {!q.isLoading && !q.isError && n === 0 ? (
+            <NothingYet>
+              Your crew has not made anything yet. Specs, prototypes and docs land here as they are
+              written.
+            </NothingYet>
+          ) : null}
 
-        {products.length > 0 ? (
-          <div>
-            <Choices
-              label="Which product"
-              mode="one"
+          {products.length > 0 ? (
+            <ShelfFilter
               value={productFilter}
               onPick={setProductFilter}
               options={[
-                {
-                  id: ALL,
-                  label: (
-                    <>
-                      All
-                      <Count n={n} />
-                    </>
-                  ),
-                },
-                ...products.map((p) => ({
-                  id: p.id,
-                  label: (
-                    <>
-                      {p.name}
-                      <Count n={p.count} />
-                    </>
-                  ),
-                })),
+                { id: ALL, label: "All", count: n },
+                ...products.map((p) => ({ id: p.id, label: p.name, count: p.count })),
               ]}
             />
-          </div>
-        ) : null}
+          ) : null}
 
-        {n > FIND_FROM ? (
-          <Field label="Find by name" htmlFor="artifact-find">
-            <Input id="artifact-find" value={find} onChange={(e) => setFind(e.target.value)} />
-          </Field>
-        ) : null}
+          {/* DELIBERATELY NOT MERIDIAN'S `Search`. That component's own header
+              draws the line and it is the right one: search answers "show me
+              the one I already have in mind" and returns a result list you pick
+              from, while a filter answers "show me the ones like this" and
+              narrows the grid in place. This field is a FILTER -- it narrows all
+              three shelves at once, and this view's header says so ("past one
+              screen a filter is the only thing that actually answers too much
+              scrolling"). Adopting Search here would change what typing does. */}
+          {n > FIND_FROM ? (
+            <NameField label="Find by name" id="artifact-find" value={find} onChange={setFind} />
+          ) : null}
 
-        {n > 0 && shown.length === 0 ? (
-          <Empty>
-            Nothing here matches. Clear the filter to see all <Num>{n}</Num>.
-          </Empty>
-        ) : null}
-      </Block>
+          {n > 0 && shown.length === 0 ? (
+            <NothingYet>
+              Nothing here matches. Clear the filter to see all <Figure>{n}</Figure>.
+            </NothingYet>
+          ) : null}
+        </div>
+      </Region>
 
+      {/* THE ITEM IN FOCUS. Deliberately NOT a `lead` region: `lead` is the one
+          rung between the page title and everything else, and Brain already
+          spends it on StandingRules above the tab strip. A surface that marks
+          two regions has marked neither. */}
       {focused ? (
-        <Block
+        <Region
           title={focused.name}
           sub={`${KIND_ONE[focused.kind]} · changed ${relTime(focused.updatedAt)}${
             focused.productId ? ` · ${productName.get(focused.productId) ?? "Unassigned"}` : ""
@@ -501,8 +735,12 @@ export function ArtifactsView() {
 
               KEEP THE isError ARM ABOVE THE makerSlug BRANCH. `unattributed` is
               reachable only from a read that RETURNED and named no agent. */}
-          <Row
-            marks={makerSlug ? <AgentMark slug={makerSlug} state="quiet" /> : undefined}
+          <RecordLine
+            mark={
+              makerSlug ? (
+                <CrewMark slug={makerSlug} name={agentDisplayName(makerSlug)} />
+              ) : undefined
+            }
             lead={
               lineage.isLoading ? (
                 "Reading who made it."
@@ -510,10 +748,16 @@ export function ArtifactsView() {
                 "Could not read who made this one."
               ) : makerSlug ? (
                 <>
-                  <Who>{agentDisplayName(makerSlug)}</Who> made this.
+                  <span className="font-medium">{agentDisplayName(makerSlug)}</span> made this.
                 </>
               ) : (
-                <Num>unattributed</Num>
+                /* The honest refusal, and it must not look like a name. It was
+                   the mono `Num` primitive; Meridian keeps mono for numbers,
+                   durations, counts, ids and timestamps and nothing else, so it
+                   moves to the system's colourless categorical chip. Colourless
+                   matters: one invented byline makes every real byline
+                   worthless, and a tinted refusal would read as a status. */
+                <RecordTag label="unattributed" />
               )
             }
             sub={
@@ -531,21 +775,22 @@ export function ArtifactsView() {
             }
             action={
               lineage.isError ? (
-                <Button variant="ghost" onClick={() => void lineage.refetch()}>
+                <Act variant="quiet" onClick={() => void lineage.refetch()}>
                   Try again
-                </Button>
+                </Act>
               ) : undefined
             }
           />
 
           {draft !== null ? (
             <>
-              <Field label="New name" htmlFor="artifact-name">
-                <Input
+              <div className="mt-mrd-5">
+                <NameField
+                  label="New name"
                   id="artifact-name"
                   value={draft}
                   autoFocus
-                  onChange={(e) => setDraft(e.target.value)}
+                  onChange={setDraft}
                   onKeyDown={(e) => {
                     if (e.key === "Escape") setDraft(null);
                     if (e.key === "Enter" && draft.trim() && !busy) {
@@ -553,64 +798,72 @@ export function ArtifactsView() {
                     }
                   }}
                 />
-              </Field>
-              <Actions>
-                <Button
+              </div>
+              <Acts>
+                <Act
                   variant="primary"
                   disabled={!draft.trim() || draft.trim() === focused.name || busy}
                   onClick={() => rename.mutate({ a: focused, name: draft.trim() })}
                 >
                   Save the name
-                </Button>
-                <Button variant="ghost" onClick={() => setDraft(null)}>
+                </Act>
+                <Act variant="quiet" onClick={() => setDraft(null)}>
                   Cancel
-                </Button>
-              </Actions>
+                </Act>
+              </Acts>
             </>
           ) : (
-            <Actions
+            <Acts
               trailing={
-                <Button variant="ghost" disabled={busy} onClick={() => void onDelete(focused)}>
+                <Act variant="quiet" disabled={busy} onClick={() => void onDelete(focused)}>
                   Delete
-                </Button>
+                </Act>
               }
             >
-              <Button variant="primary" onClick={() => window.location.assign(focused.href)}>
+              <Act variant="primary" onClick={() => window.location.assign(focused.href)}>
                 Open
-              </Button>
-              <Button disabled={busy} onClick={() => setDraft(focused.name)}>
+              </Act>
+              <Act disabled={busy} onClick={() => setDraft(focused.name)}>
                 Rename
-              </Button>
-            </Actions>
+              </Act>
+            </Acts>
           )}
-        </Block>
+        </Region>
       ) : null}
 
       {/* Consequence, directly under cause. This was the context rail on the
           standalone surface; Brain's Surface has no aside, and the record
           reads better as one column anyway. */}
       {focused ? (
-        <Block title="What came out of it">
+        <Region title="What came out of it">
           {!lineageKind ? (
-            <Empty>Docs are not on the lineage graph yet, so nothing can be traced from one.</Empty>
+            <NothingYet>
+              Docs are not on the lineage graph yet, so nothing can be traced from one.
+            </NothingYet>
           ) : lineage.isLoading ? (
-            <Loading>Reading the record.</Loading>
+            <Reading>Reading the record.</Reading>
           ) : lineage.isError ? (
-            <Failed onRetry={() => void lineage.refetch()}>
+            <ReadFailed onRetry={() => void lineage.refetch()}>
               Could not read what came out of this one.
-            </Failed>
+            </ReadFailed>
           ) : descendants.length === 0 ? (
-            <Empty>Nothing has been made from this one yet.</Empty>
+            <NothingYet>Nothing has been made from this one yet.</NothingYet>
           ) : (
+            /* Attributed lines rather than a grid, and the choice is the shape
+               of the fact. This is at most five things, each carrying WHO made
+               it, which is the system's grammar for an event; a RecordsTable is
+               for a list nobody can scan by eye, and five rows is not that. */
             descendants
               .slice(0, 5)
               .map((e) => (
-                <Row
+                <RecordLine
                   key={e.id}
-                  tight
-                  marks={
+                  mark={
                     e.created_by_agent ? (
-                      <AgentMark slug={e.created_by_agent} state="quiet" />
+                      <CrewMark
+                        slug={e.created_by_agent}
+                        name={agentDisplayName(e.created_by_agent)}
+                      />
                     ) : undefined
                   }
                   lead={e.peer_title || "Untitled"}
@@ -622,59 +875,31 @@ export function ArtifactsView() {
                 />
               ))
           )}
-        </Block>
+        </Region>
       ) : null}
 
-      {settled.length > 0 ? (
-        <Block title="What you changed">
-          {settled.map((r, i) => (
-            <Receipt
-              key={`${r.id}-${i}`}
-              verb={r.verb}
-              consequence={r.consequence}
-              time={r.at}
-              failed={r.failed}
-            />
-          ))}
-        </Block>
-      ) : null}
+      <ChangedTrail lines={settled} />
 
       {KIND_ORDER.map((kind) => {
         const items = rest.filter((a) => a.kind === kind);
         if (items.length === 0) return null;
-        const open = openGroup === kind;
-        const visible = open ? items : items.slice(0, GROUP_CAP);
         return (
-          <Block
-            key={kind}
-            title={KIND_MANY[kind]}
-            more={
-              items.length > GROUP_CAP
-                ? open
-                  ? "Show fewer"
-                  : `Show all ${items.length}`
-                : undefined
-            }
-            onMore={() => setOpenGroup(open ? null : kind)}
-          >
-            {visible.map((a) => (
-              <Row
-                key={keyOf(a)}
-                tight
-                lead={a.name}
-                // A DIFFERENT fact, not more of the first. The maker belongs to
-                // the one item in focus, which is one click away.
-                sub={a.productId ? (productName.get(a.productId) ?? "Unassigned") : "Unassigned"}
-                time={relTime(a.updatedAt)}
-                onClick={() => {
-                  setDraft(null);
-                  setFocusedKey(keyOf(a));
-                }}
-              />
-            ))}
-          </Block>
+          <Region key={kind} title={KIND_MANY[kind]}>
+            {/* `maxRows` is the whole reason this is a grid. The cap is stated
+                at the BOTTOM, with both real numbers and the way out, instead of
+                as a "Show all 14" in the heading above rows the reader has not
+                reached yet. `caption` is read before the grid and says what the
+                grid IS, never that it is a grid. */}
+            <RecordsTable
+              rows={items}
+              columns={shelfColumns}
+              rowKey={keyOf}
+              caption={`${KIND_MANY[kind]} your crew has made`}
+              maxRows={GROUP_CAP}
+            />
+          </Region>
         );
       })}
-    </>
+    </div>
   );
 }

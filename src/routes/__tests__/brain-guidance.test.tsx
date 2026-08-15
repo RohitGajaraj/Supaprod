@@ -78,6 +78,11 @@ const lineByKey = (lines: ReturnType<typeof guidanceLines>, key: string) =>
 const allCopy = (lines: ReturnType<typeof guidanceLines>) =>
   lines.map((l) => `${text(l.lead)} ${text(l.sub)}`).join(" ");
 
+/* The two outcome tones, named once so the guard below reads as a claim about
+ * MEANING rather than as two loose strings. Meridian's tokens since 2026-08-15. */
+const PASS_TONE = "text-mrd-pass";
+const FAIL_TONE = "text-mrd-fail";
+
 describe("Brain headline: guidance outranks the manifest", () => {
   it("still leads with a re-scored call, which is the strongest claim there is", () => {
     const head = recordHeadline(summary({ rescoreCount: 4 }), recall(), 49, 8, false);
@@ -220,8 +225,17 @@ describe("Brain guidance: a zero never stands in for an unreadable read", () => 
     const rated = lineByKey(lines, "rated")!;
     expect(text(rated.lead)).toBe("Your ratings have moved what the crew reaches for first.");
     const markup = renderToStaticMarkup(<>{rated.sub}</>);
-    expect(markup).toContain("sp-pass");
-    expect(markup).toContain("sp-fail");
+    /*
+     * THE CLAIM IS "each side is drawn in its OWN tone", and the class name is
+     * only the thing a rendered-markup test can see. These two literals moved
+     * from `sp-pass`/`sp-fail` to the Meridian tokens when Brain was ported on
+     * 2026-08-15; if they ever move again, update them HERE and keep the
+     * assertion — the guard exists so that a refactor cannot quietly collapse
+     * the two sides into one colour, which is the reading that would tell
+     * somebody their contradicted ratings had helped.
+     */
+    expect(markup).toContain(PASS_TONE);
+    expect(markup).toContain(FAIL_TONE);
     expect(text(rated.sub)).toContain("12 helped");
     expect(text(rated.sub)).toContain("3 contradicted by what happened");
   });
@@ -233,8 +247,8 @@ describe("Brain guidance: a zero never stands in for an unreadable read", () => 
       recallSaidBelow: false,
     });
     const sub = renderToStaticMarkup(<>{lineByKey(lines, "rated")!.sub}</>);
-    expect(sub).toContain("sp-pass");
-    expect(sub).not.toContain("sp-fail");
+    expect(sub).toContain(PASS_TONE);
+    expect(sub).not.toContain(FAIL_TONE);
     expect(sub).not.toContain("0");
   });
 });

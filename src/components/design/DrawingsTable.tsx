@@ -66,7 +66,7 @@ const ROWS_ON_SCREEN = 12;
 const FINDER_FLOOR = 10;
 
 const FOCUS =
-  "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-edge-focus)]";
+  "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
 
 /**
  * Plain-words relative time. Mono and alignment are the column's job, not this

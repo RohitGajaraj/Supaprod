@@ -302,9 +302,10 @@
  * AND THE SUBSTRATE GRID STOPPED COUNTING ZEROES AT PEOPLE. Six cells reading
  * 0 chat threads, 0 signals, 0 meetings, 0 specs, 0 saved notes, 0 live
  * connections, in the shape this system reserves for things you SCAN, which
- * promises there is something to scan. That is the rule Diffstat already states
- * twenty lines from here ("a zero rendered as if it were a finding"), broken
- * six times at once. A zero draws no cell now, and all-zero draws one sentence.
+ * promises there is something to scan. That is the rule the diff shape on the
+ * record recess already states ("a zero rendered as if it were a finding"),
+ * broken six times at once. A zero draws no cell now, and all-zero draws one
+ * sentence.
  *
  * WHY recordHeadline, guidanceLines, graphPreview AND recordIsBlank ARE
  * EXPORTED. All four decide what this page is allowed to CLAIM, and every rule
@@ -314,12 +315,48 @@
  * src/routes/__tests__/brain-graph-preview.test.tsx. That costs a few
  * react-refresh warnings on this file, which is the same trade CompoundingPanel
  * beside it already makes for whenOf and deltaOf, and for the same reason.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * PORTED TO MERIDIAN, 2026-08-15. NOT ONE CLAIM ON THIS SURFACE MOVED.
+ *
+ * Every sentence, every guard, every query key, every deep link and every one of
+ * the four exported pure functions is untouched. What changed is what the page
+ * is DRAWN with: it was built entirely from `src/components/shell/primitives`,
+ * which is the `--sp-*` layer, and meridian.css states the migration rule in its
+ * own header -- that layer is life support, "no new surface may use it, every
+ * migrated surface drops it, and the layer is deleted when the last one moves".
+ * A surface that keeps one foot in it does not re-resolve on the paper ground
+ * with the rest of the app, which is the whole reason the rule exists.
+ *
+ * So Block, Row, Empty, Failed, Loading, Num, Door, Diffstat, Cell, Grid,
+ * PageHead and Record are replaced by the Meridian parts in
+ * `@/components/brain/record-parts`, the four raw `--sp-*` inline styles on this
+ * file (the tab skeleton, the canvas reservation, the disclosure's negative
+ * margin, the substrate caption) are gone, and `.sp-tabs` is gone with them.
+ *
+ * TWO MERIDIAN COMPONENTS ARE ADOPTED OUTRIGHT, and each does something the
+ * part it replaces could not:
+ *
+ *   NeedsSetup, on the substrate's all-zero state. That state's whole point is
+ *   that the crew has nothing else to READ, and the act that changes it is
+ *   connecting a source. NeedsSetup exists for exactly the fact this product
+ *   kept collapsing into an empty state: a precondition is missing, so the
+ *   surface cannot ask its question at all. It also carries no accent, which is
+ *   correct here -- connecting a source is setup, not a decision, and dressing
+ *   it in orchid sends someone hunting for a call to make.
+ *
+ *   RecordsTable, inside the Artifacts tab. See that file's own header.
+ *
+ * `Surface` stays, and it is the one shell primitive kept on purpose: it is the
+ * work region's LAYOUT, the same one the ported Approvals surface still mounts,
+ * and it is not a token or a paint. `CrewWorking` stays for the same reason and
+ * because src/routes/__tests__/autonomous-work-is-visible.test.ts requires this
+ * exact import.
  */
 import { lazy, Suspense, useState, type ReactNode } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight } from "lucide-react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
 import { getCompounding } from "@/lib/today.functions";
@@ -330,22 +367,22 @@ import type { GraphNodeKind, KnowledgeGraph } from "@/lib/knowledge-graph-view";
 import { RetentionLine } from "@/components/brain/RetentionLine";
 import { CrewCarries, StandingRules } from "@/components/brain/StandingRecord";
 import {
-  AgentMark,
-  Block,
-  Button,
-  Cell,
-  Diffstat,
+  Act,
+  CrewMark,
+  Delta,
+  Disclosure,
   Door,
-  Empty,
-  Failed,
-  Grid,
-  Loading,
-  Num,
-  PageHead,
-  Record as RecordRecess,
-  Row,
-  Surface,
-} from "@/components/shell/primitives";
+  Figure,
+  NothingYet,
+  ReadFailed,
+  Reading,
+  RecordDoors,
+  RecordLine,
+  RecordSpeaks,
+  Region,
+} from "@/components/brain/record-parts";
+import { NeedsSetup } from "@/components/meridian/NeedsSetup";
+import { Surface } from "@/components/shell/primitives";
 import { CrewWorking } from "@/components/shell/CrewWorking";
 
 // Every tab panel is code-split: only the active tab's module loads.
@@ -477,60 +514,41 @@ const TAB_LABEL: Record<Tab, string> = {
   graph: "Graph",
 };
 
-/** One collapsed door. Depth is a click away, never stacked on the surface. */
-function Disclosure({ label, id, children }: { label: string; id: string; children: ReactNode }) {
-  const [open, setOpen] = useState(false);
-  const Chevron = open ? ChevronDown : ChevronRight;
-  return (
-    <Block>
-      <Button
-        variant="ghost"
-        aria-expanded={open}
-        aria-controls={id}
-        onClick={() => setOpen((o) => !o)}
-        style={{ marginLeft: "calc(var(--sp-space-4) * -1)" }}
-      >
-        <Chevron
-          size={15}
-          strokeWidth={1.6}
-          aria-hidden="true"
-          style={{ marginRight: 7, flexShrink: 0 }}
-        />
-        {label}
-      </Button>
-      {open ? (
-        <div id={id} style={{ marginTop: "var(--sp-space-3)" }}>
-          {children}
-        </div>
-      ) : null}
-    </Block>
-  );
-}
-
 /** The Suspense fallback. Static, not a shimmer: it holds the height so the
  *  page does not jump, and motion in this system confirms rather than fills. */
 function TabSkeleton() {
   const bar = (h: number, w?: string) => (
     <div
       aria-hidden="true"
-      style={{
-        width: w ?? "100%",
-        height: h,
-        borderRadius: "var(--sp-radius-card)",
-        background: "var(--sp-lift)",
-      }}
+      className="rounded-mrd-card bg-mrd-lift"
+      style={{ width: w ?? "100%", height: h }}
     />
   );
   return (
-    <div
-      role="status"
-      style={{ display: "flex", flexDirection: "column", gap: "var(--sp-space-3)" }}
-    >
+    <div role="status" className="flex flex-col gap-mrd-3">
       <span className="sr-only">Reading the record.</span>
       {bar(56)}
       {bar(96)}
       {bar(96, "72%")}
     </div>
+  );
+}
+
+/**
+ * The page's one h1, and its second line.
+ *
+ * This replaces the shell's `PageHead`. The size is `--mrd-t-h2`, which is the
+ * step the ported surfaces put a page title on, and the sub sits at the body
+ * stop rather than at a metadata one: Brain's second line is a row of doors
+ * into the record, and a control set two steps below the sentence around it
+ * reads as a typo rather than as an affordance.
+ */
+function RecordHead({ title, sub }: { title: ReactNode; sub?: ReactNode }) {
+  return (
+    <header data-mrd="">
+      <h1 className="text-[25px] leading-tight font-medium text-mrd-ink">{title}</h1>
+      {sub ? <p className="mt-mrd-3 text-[13px] leading-relaxed text-mrd-body">{sub}</p> : null}
+    </header>
   );
 }
 
@@ -566,27 +584,37 @@ export const Route = createFileRoute("/_authenticated/brain")({
   head: () => ({ meta: [{ title: "Brain · Supaprod" }] }),
   errorComponent: ({ error, reset }) => (
     <Surface wide>
-      <PageHead title="The record did not load." sub="Nothing it holds is lost." />
-      <Block>
-        <Empty>{(error as Error)?.message ?? "The read failed."}</Empty>
-        <Button variant="primary" onClick={reset}>
-          Try again
-        </Button>
-      </Block>
+      <div className="flex flex-col gap-mrd-6">
+        <RecordHead title="The record did not load." sub="Nothing it holds is lost." />
+        <NothingYet
+          action={
+            <Act variant="primary" onClick={reset}>
+              Try again
+            </Act>
+          }
+        >
+          {(error as Error)?.message ?? "The read failed."}
+        </NothingYet>
+      </div>
     </Surface>
   ),
   notFoundComponent: () => (
     <Surface wide>
-      <PageHead
-        title="That record is not here."
-        sub="It was removed, or the link points at something that never existed."
-      />
-      <Block>
-        <Empty>Everything the record holds is behind the five doors on Brain.</Empty>
-        <Button variant="primary" onClick={() => window.location.assign("/brain")}>
-          Open the record
-        </Button>
-      </Block>
+      <div className="flex flex-col gap-mrd-6">
+        <RecordHead
+          title="That record is not here."
+          sub="It was removed, or the link points at something that never existed."
+        />
+        <NothingYet
+          action={
+            <Act variant="primary" onClick={() => window.location.assign("/brain")}>
+              Open the record
+            </Act>
+          }
+        >
+          Everything the record holds is behind the five doors on Brain.
+        </NothingYet>
+      </div>
     </Surface>
   ),
 });
@@ -813,8 +841,8 @@ export function guidanceLines(args: {
             key: "read-back",
             lead: (
               <>
-                <Num>{recall.memoriesReached}</Num> of <Num>{recall.memoriesTotal}</Num> lessons on
-                the record have gone back into a later run.
+                <Figure>{recall.memoriesReached}</Figure> of <Figure>{recall.memoriesTotal}</Figure>{" "}
+                lessons on the record have gone back into a later run.
               </>
             ),
             sub: "Each one is written into the agent's prompt before it acts, not looked up afterwards.",
@@ -839,16 +867,20 @@ export function guidanceLines(args: {
             key: "rated",
             lead: "Your ratings have moved what the crew reaches for first.",
             sub: (
+              /* The only hue in this whole region, and both halves report an
+                 OUTCOME: what a rating said actually happened. Green and red are
+                 never a need in this system, and nothing on these rows asks for
+                 a person. `sp-pass` / `sp-fail` until the Meridian port. */
               <>
                 {recall.helped > 0 ? (
-                  <span className="sp-pass">
-                    <Num>{recall.helped}</Num> helped
+                  <span className="text-mrd-pass">
+                    <Figure>{recall.helped}</Figure> helped
                   </span>
                 ) : null}
                 {recall.helped > 0 && recall.contradicted > 0 ? " · " : null}
                 {recall.contradicted > 0 ? (
-                  <span className="sp-fail">
-                    <Num>{recall.contradicted}</Num> contradicted by what happened
+                  <span className="text-mrd-fail">
+                    <Figure>{recall.contradicted}</Figure> contradicted by what happened
                   </span>
                 ) : null}
               </>
@@ -1011,15 +1043,11 @@ export function recordIsBlank(args: {
  * cheap direction: it never pushes away something the reader is already looking
  * at, and it happens once, on workspaces that have no map to wait for anyway.
  */
-const PREVIEW_RESERVE = {
-  height: "clamp(420px, 58vh, 640px)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  background: "var(--sp-sink)",
-  border: "1px solid var(--sp-line)",
-  borderRadius: "var(--sp-radius-panel)",
-};
+const PREVIEW_RESERVE =
+  "flex items-center justify-center rounded-mrd-card border border-mrd-line bg-mrd-sink";
+/* The height is the one value that has to stay a literal: it is copied from
+ * GraphForceCanvas and there is no spacing token for "as tall as a canvas". */
+const PREVIEW_RESERVE_HEIGHT = { height: "clamp(420px, 58vh, 640px)" };
 
 function MemoryPage() {
   const search = Route.useSearch();
@@ -1195,7 +1223,7 @@ function MemoryPage() {
       : null;
 
   // Only the counts that found something. See the note at the render for why a
-  // zero draws no cell at all: it is this file's own Diffstat rule ("a zero
+  // zero draws no cell at all: it is this surface's own diff rule ("a zero
   // rendered as if it were a finding"), and six of them at once was the whole
   // disclosure on every real account.
   const substrateShown = (substrate ?? []).filter((s) => s.value > 0);
@@ -1260,28 +1288,28 @@ function MemoryPage() {
   if (counts && counts.decisions > 0) {
     sizeClauses.push(
       <Door key="calls" title="Open the decisions" onClick={() => setTab("decisions")}>
-        <Num>{counts.decisions}</Num> {counts.decisions === 1 ? "call" : "calls"}
+        <Figure>{counts.decisions}</Figure> {counts.decisions === 1 ? "call" : "calls"}
       </Door>,
     );
   }
   if (learningCount) {
     sizeClauses.push(
       <Door key="learnings" title="Open the outcomes" onClick={() => setTab("learnings")}>
-        <Num>{learningCount}</Num> {learningCount === 1 ? "learning" : "learnings"}
+        <Figure>{learningCount}</Figure> {learningCount === 1 ? "learning" : "learnings"}
       </Door>,
     );
   }
   if (counts && counts.docs > 0) {
     sizeClauses.push(
       <Door key="docs" title="Open what is written" onClick={() => setTab("docs")}>
-        <Num>{counts.docs}</Num> docs
+        <Figure>{counts.docs}</Figure> docs
       </Door>,
     );
   }
   if (lastAdded) {
     sizeClauses.push(
       <span key="added">
-        last added <Num>{lastAdded}</Num>
+        last added <Figure>{lastAdded}</Figure>
       </span>,
     );
   }
@@ -1306,15 +1334,26 @@ function MemoryPage() {
 
   return (
     <Surface wide>
-      {/* THE AUTONOMOUS PATH, VISIBLE, ON THE SURFACE THAT IS ABOUT THE CREW.
+      {/* THE PAGE'S RHYTHM, WHICH USED TO BELONG TO A COMPONENT.
+          `Block` carried the gap between regions in `.sp-block`'s own margin,
+          so every region on this page was spaced by the part rather than by the
+          composition. Meridian's `Region` draws no outer margin on purpose: the
+          page decides how far apart its own regions sit, and it decides ONCE
+          here. `gap-mrd-7` is 40px, the step the space ramp reserves for the
+          distance BETWEEN groups, which is always visibly larger than the
+          distance within one. That growth is the whole reason the ramp is not a
+          linear 4/8/12/16: uniform padding everywhere is the single most
+          reliable way to make a dense product look machine-generated. */}
+      <div className="flex flex-col gap-mrd-7">
+        {/* THE AUTONOMOUS PATH, VISIBLE, ON THE SURFACE THAT IS ABOUT THE CREW.
           Renders nothing unless a mission row in this workspace is running, so
           it costs no space when the crew is idle and cannot show a step that
           did not happen.
 
           THIS PAGE HAD NO LIVE ELEMENT AT ALL, which on the record surface is
           the sharpest version of the gap: every agent mark it draws above the
-          tabs is in the `quiet` state -- the guidance rows here, the rules in
-          `StandingRules` -- and quiet is precisely the state that claims
+          tabs is at rest -- the guidance rows here, the rules in
+          `StandingRules` -- and a mark at rest is precisely what claims
           nothing is happening. Every sentence here is in the past tense, what
           the record has changed and what the crew carries, while the crew that
           wrote it could be mid-run with no sign of it anywhere on the page.
@@ -1323,15 +1362,15 @@ function MemoryPage() {
           the line reads in the same place whichever station you walked in
           from. It does NOT claim the running mission is reading this record:
           it reports a mission mid-run and nothing more. See use-live-agents.ts. */}
-      <CrewWorking />
-      <PageHead title={headline} sub={sub} />
+        <CrewWorking />
+        <RecordHead title={headline} sub={sub} />
 
-      {/* A NAKED "Try again" IS NOT AN ERROR STATE. This rendered one ghost
+        {/* A NAKED "Try again" IS NOT AN ERROR STATE. This rendered one ghost
           button under the headline and said nothing at all about what had
           failed, so the page read as a working page with a stray control on it:
           the headline had already fallen back to the honest manifest, the tabs
           below still worked, and nothing told the reader that the counts they
-          could not see were counts we could not read. `Failed` is the primitive
+          could not see were counts we could not read. `ReadFailed` is the part
           for exactly this, and its whole reason for existing is that "nothing
           here" and "we could not find out" are different facts.
 
@@ -1342,24 +1381,24 @@ function MemoryPage() {
           stopped counting one half without saying so. A banner that says "the
           size of the record did not load" while half the size is rendered two
           lines above it is its own small lie, so each half is named. */}
-      {countsFailed ? (
-        <Failed
-          onRetry={() => {
-            void brain.refetch();
-            void stats.refetch();
-          }}
-        >
-          {brain.isError && stats.isError
-            ? "The size of the record did not load. Everything it holds is still behind the five doors below."
-            : brain.isError
-              ? "The count of calls and docs did not load, so the line above leaves them out. Both are still behind the doors below."
-              : "The count of what has come back did not load, so the line above leaves it out. Every outcome is still behind the Outcomes door below."}
-        </Failed>
-      ) : null}
+        {countsFailed ? (
+          <ReadFailed
+            onRetry={() => {
+              void brain.refetch();
+              void stats.refetch();
+            }}
+          >
+            {brain.isError && stats.isError
+              ? "The size of the record did not load. Everything it holds is still behind the five doors below."
+              : brain.isError
+                ? "The count of calls and docs did not load, so the line above leaves them out. Both are still behind the doors below."
+                : "The count of what has come back did not load, so the line above leaves it out. Every outcome is still behind the Outcomes door below."}
+          </ReadFailed>
+        ) : null}
 
-      <RetentionLine />
+        <RetentionLine />
 
-      {/* THE RECESS OPENS ITSELF NOW. This was a hand-rolled twelve-line inline
+        {/* THE RECESS OPENS ITSELF NOW. This was a hand-rolled twelve-line inline
           button reset wrapped around the Record, which is the precise
           duplication the primitives were written to end: Record has carried its
           own `onClick` since the audit, it renders a real <button> with the
@@ -1370,26 +1409,26 @@ function MemoryPage() {
           hovered.
 
           THE PRIORITY MOVE IS A DIFF, so it wears the diff. "priority +3" was
-          rendered in flat metadata grey while `Diffstat` colours the identical
-          signal everywhere else in the product, which taught the eye that a
-          re-ranking here is a different kind of fact from a re-ranking
+          rendered in flat metadata grey while the diff shape colours the
+          identical signal everywhere else in the product, which taught the eye
+          that a re-ranking here is a different kind of fact from a re-ranking
           anywhere else. Green for a bet the outcome pushed up, red for one it
           pushed down, and NOTHING when the outcome moved it nowhere: a "+0" is
-          a zero rendered as if it were a finding, which is the rule Diffstat's
+          a zero rendered as if it were a finding, which is the rule `Delta`'s
           own guard already states.
 
-          The Block is the section rhythm the removed wrapper was faking with an
-          inline margin. Every other region on this page is one, so the recess
-          gets the same rule above it rather than a bespoke gap. */}
-      {showRecord && latest ? (
-        <Block>
-          <RecordRecess
+          IT NO LONGER SITS INSIDE A REGION. The wrapper existed only to buy the
+          gap above it out of `.sp-block`'s margin; the page's own flex rhythm
+          gives it the same distance and this recess is not a section with a
+          heading, so it should never have been one. */}
+        {showRecord && latest ? (
+          <RecordSpeaks
             title="Open this outcome"
             onClick={() => navigate({ search: { tab: "learnings", learning: latest.id } })}
             evidence={
               <>
                 {latest.delta !== 0 ? (
-                  <Diffstat
+                  <Delta
                     added={latest.delta > 0 ? latest.delta : 0}
                     removed={latest.delta < 0 ? -latest.delta : 0}
                     unit="points of priority"
@@ -1403,11 +1442,10 @@ function MemoryPage() {
           >
             {verdictLine(latest.verdict, latest.opportunity_title ?? "A call you shipped")}{" "}
             {latest.summary}
-          </RecordRecess>
-        </Block>
-      ) : null}
+          </RecordSpeaks>
+        ) : null}
 
-      {/* WHERE THE RECORD IS REACHING THE WORK. Above the tabs, because it is
+        {/* WHERE THE RECORD IS REACHING THE WORK. Above the tabs, because it is
           true whichever door you are behind, and above StandingRules because
           this is the mechanism that has data on every workspace today while a
           standing rule is the distilled thing that comes later: the crew reads
@@ -1415,18 +1453,18 @@ function MemoryPage() {
           every agent carries. Cause, then consequence, in that order.
 
           NOTHING HERE IS A STAT STRIP. The substrate disclosure at the foot of
-          this page is the Grid-of-Cells inventory shape and keeps it; these are
-          Rows, which is this system's grammar for who did what, because every
-          line is an event or the honest absence of one. The mark is the crew in
-          its `quiet` state on every row including the "not yet" ones: it names
-          whose behaviour the line is about, and quiet is precisely the state
-          that claims nothing is happening right now.
+          this page is the scanning grid and keeps that shape; these are
+          attributed lines, which is this system's grammar for who did what,
+          because every line is an event or the honest absence of one. The mark
+          is on every row including the "not yet" ones: it names whose behaviour
+          the line is about, and a mark at rest is precisely what claims nothing
+          is happening right now.
 
           A row is clickable only when it has somewhere real to go, and the one
           door here is already-open on the Outcomes tab, so it stops being an
           affordance there rather than becoming one that does nothing. */}
-      {blank ? (
-        /* THE ZERO STATE IS THE MAJORITY VIEW, SO IT IS DESIGNED AS THE PRIMARY
+        {blank ? (
+          /* THE ZERO STATE IS THE MAJORITY VIEW, SO IT IS DESIGNED AS THE PRIMARY
            ONE. This single region stands in for the four that used to stack
            here, and it is built the way an operator reads: not a description of
            what the record does, and not an apology, but the act, the control by
@@ -1441,45 +1479,47 @@ function MemoryPage() {
            the record genuinely starts: every later link on this surface is
            written by the work moving, so pointing anywhere else would be
            inventing an onboarding the product does not have. */
-        <Block title="How the first thing gets onto the record">
-          <Empty
-            action={
-              <Button variant="primary" onClick={() => navigate({ to: "/discover" })}>
-                Capture a signal
-              </Button>
-            }
-          >
-            Nothing here is set up in advance. The record fills from the work: open Discover, type
-            what you heard and where from, and press <b>Capture</b>. Everything on this page is
-            written by the crew as that moves.
-            <span style={{ display: "block", marginTop: "var(--sp-space-3)" }}>
-              Worked through: you capture &ldquo;three trials asked for SSO this week&rdquo;. That
-              becomes a bet, the bet becomes a spec, the spec ships, and on Learn you press{" "}
-              <b>Record it</b> to say how it landed. From that one pass this page holds a call you
-              can search, an outcome with the calls that led to it, a map with the thread drawn
-              between them, and a rule the crew reads before it acts next time.
-            </span>
-          </Empty>
-        </Block>
-      ) : null}
-
-      {!blank && guidance.length > 0 ? (
-        <Block title="What the record has changed so far">
-          {guidance.map((g) => (
-            <Row
-              key={g.key}
-              marks={<AgentMark slug={null} name="the crew" state="quiet" />}
-              lead={g.lead}
-              sub={g.sub}
-              onClick={
-                g.door === "outcomes" && tab !== "learnings" ? () => setTab("learnings") : undefined
+          <Region title="How the first thing gets onto the record">
+            <NothingYet
+              action={
+                <Act variant="primary" onClick={() => navigate({ to: "/discover" })}>
+                  Capture a signal
+                </Act>
               }
-            />
-          ))}
-        </Block>
-      ) : null}
+            >
+              Nothing here is set up in advance. The record fills from the work: open Discover, type
+              what you heard and where from, and press <b>Capture</b>. Everything on this page is
+              written by the crew as that moves.
+              <span className="mt-mrd-4 block">
+                Worked through: you capture &ldquo;three trials asked for SSO this week&rdquo;. That
+                becomes a bet, the bet becomes a spec, the spec ships, and on Learn you press{" "}
+                <b>Record it</b> to say how it landed. From that one pass this page holds a call you
+                can search, an outcome with the calls that led to it, a map with the thread drawn
+                between them, and a rule the crew reads before it acts next time.
+              </span>
+            </NothingYet>
+          </Region>
+        ) : null}
 
-      {/* What changed BECAUSE of all that. The outcome speaks in the recess
+        {!blank && guidance.length > 0 ? (
+          <Region title="What the record has changed so far">
+            {guidance.map((g) => (
+              <RecordLine
+                key={g.key}
+                mark={<CrewMark slug={null} name="the crew" />}
+                lead={g.lead}
+                sub={g.sub}
+                onClick={
+                  g.door === "outcomes" && tab !== "learnings"
+                    ? () => setTab("learnings")
+                    : undefined
+                }
+              />
+            ))}
+          </Region>
+        ) : null}
+
+        {/* What changed BECAUSE of all that. The outcome speaks in the recess
           above; this is the sentence the record has since written into every
           agent's prompt. Cause, then consequence, and it stands above the tabs
           because it is true whichever door you are behind.
@@ -1489,9 +1529,9 @@ function MemoryPage() {
           one region above says what fills it. `blank` already requires zero
           active rules AND zero pending drafts, so nothing this region would
           have drawn is being hidden. */}
-      {!blank ? <StandingRules /> : null}
+        {!blank ? <StandingRules /> : null}
 
-      {/* THE RECORD, DRAWN, and the last thing before the doors.
+        {/* THE RECORD, DRAWN, and the last thing before the doors.
 
           Every other region on this page states the record's work in a
           sentence. This one shows it, and it is the only element in the product
@@ -1516,171 +1556,156 @@ function MemoryPage() {
           empty, which was the fourth of the five stacked admissions. Its
           loading, failed, thin and drawn states are all untouched, because each
           of them makes `blank` false. */}
-      {!blank && preview.state !== "hidden" ? (
-        <Block
-          title="What led to what"
-          sub={
-            preview.state === "drawn" ? (
-              <>
-                <Num>{preview.nodes}</Num> pieces of work and the <Num>{preview.edges}</Num> links
-                between them. Double click any one to open it on the full map, with the reason the
-                link was drawn and the agent that drew it.
-              </>
-            ) : undefined
-          }
-          more={preview.state === "drawn" ? "Open the full map" : undefined}
-          onMore={() => setTab("graph")}
-        >
-          {/* A read in flight, holding the shape of what is coming. */}
-          {preview.state === "loading" ? (
-            <div style={PREVIEW_RESERVE}>
-              <Loading>Drawing what the record connects.</Loading>
-            </div>
-          ) : null}
+        {!blank && preview.state !== "hidden" ? (
+          <Region
+            title="What led to what"
+            sub={
+              preview.state === "drawn" ? (
+                <>
+                  <Figure>{preview.nodes}</Figure> pieces of work and the{" "}
+                  <Figure>{preview.edges}</Figure> links between them. Double click any one to open
+                  it on the full map, with the reason the link was drawn and the agent that drew it.
+                </>
+              ) : undefined
+            }
+            more={preview.state === "drawn" ? "Open the full map" : undefined}
+            onMore={() => setTab("graph")}
+          >
+            {/* A read in flight, holding the shape of what is coming. */}
+            {preview.state === "loading" ? (
+              <div className={PREVIEW_RESERVE} style={PREVIEW_RESERVE_HEIGHT}>
+                <Reading>Drawing what the record connects.</Reading>
+              </div>
+            ) : null}
 
-          {/* NOT an empty state. The map exists; this read of it failed. */}
-          {preview.state === "failed" ? (
-            <Failed onRetry={() => void graphQ.refetch()}>
-              The map did not load. Nothing it draws is lost, and the Graph tab still holds it.
-            </Failed>
-          ) : null}
+            {/* NOT an empty state. The map exists; this read of it failed. */}
+            {preview.state === "failed" ? (
+              <ReadFailed onRetry={() => void graphQ.refetch()}>
+                The map did not load. Nothing it draws is lost, and the Graph tab still holds it.
+              </ReadFailed>
+            ) : null}
 
-          {/* THE STATE EVERY NEW WORKSPACE IS IN. Naming the act that draws the
+            {/* THE STATE EVERY NEW WORKSPACE IS IN. Naming the act that draws the
               first thread is the difference between a surface that reads as
               broken and one that reads as waiting for you. The act named is one
               the product genuinely performs: Discover clustering a signal onto
               a bet writes that lineage row itself. */}
-          {preview.state === "empty" ? (
-            <Empty
-              action={
-                <Button variant="primary" onClick={() => navigate({ to: "/discover" })}>
-                  Turn a signal into a bet
-                </Button>
-              }
-            >
-              Nothing on the record is linked to anything else yet. The first thread is drawn the
-              moment one piece of work comes from another: a signal becomes a bet, a bet becomes a
-              spec, an outcome comes back on a call you shipped.
-            </Empty>
-          ) : null}
+            {preview.state === "empty" ? (
+              <NothingYet
+                action={
+                  <Act variant="primary" onClick={() => navigate({ to: "/discover" })}>
+                    Turn a signal into a bet
+                  </Act>
+                }
+              >
+                Nothing on the record is linked to anything else yet. The first thread is drawn the
+                moment one piece of work comes from another: a signal becomes a bet, a bet becomes a
+                spec, an outcome comes back on a call you shipped.
+              </NothingYet>
+            ) : null}
 
-          {/* Enough to count, not enough to be a shape. Said plainly, with the
+            {/* Enough to count, not enough to be a shape. Said plainly, with the
               full map still one click away, so the thin state hides nothing the
               tab used to offer. */}
-          {preview.state === "thin" ? (
-            <Empty
-              action={
-                <Button variant="ghost" onClick={() => setTab("graph")}>
-                  Open the map
-                </Button>
-              }
-            >
-              {preview.edges === 1 ? "One link is" : `${preview.edges} links are`} on the record so
-              far, which is a list and not yet a shape. The map draws itself as the work connects,
-              and every thread on it carries why it was drawn.
-            </Empty>
-          ) : null}
-
-          {/* The canvas itself, and the ONLY place the heavy module is
-              referenced, so nothing above ever pays to load it. */}
-          {preview.state === "drawn" && graphQ.data ? (
-            <Suspense
-              fallback={
-                <div style={PREVIEW_RESERVE}>
-                  <Loading>Drawing what the record connects.</Loading>
-                </div>
-              }
-            >
-              <GraphRecordPreview
-                graph={graphQ.data}
-                onOpenNode={(kind, id) =>
-                  navigate({ search: { tab: "graph", focusKind: kind, focusId: id } })
+            {preview.state === "thin" ? (
+              <NothingYet
+                action={
+                  <Act variant="quiet" onClick={() => setTab("graph")}>
+                    Open the map
+                  </Act>
                 }
-              />
-            </Suspense>
-          ) : null}
-        </Block>
-      ) : null}
+              >
+                {preview.edges === 1 ? "One link is" : `${preview.edges} links are`} on the record
+                so far, which is a list and not yet a shape. The map draws itself as the work
+                connects, and every thread on it carries why it was drawn.
+              </NothingYet>
+            ) : null}
 
-      <div className="sp-tabs" role="tablist" aria-label="What the record holds">
-        {TABS.map((id) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            className="sp-tab"
-            aria-selected={tab === id}
-            onClick={() => setTab(id)}
-          >
-            {TAB_LABEL[id]}
-          </button>
-        ))}
-      </div>
+            {/* The canvas itself, and the ONLY place the heavy module is
+              referenced, so nothing above ever pays to load it. */}
+            {preview.state === "drawn" && graphQ.data ? (
+              <Suspense
+                fallback={
+                  <div className={PREVIEW_RESERVE} style={PREVIEW_RESERVE_HEIGHT}>
+                    <Reading>Drawing what the record connects.</Reading>
+                  </div>
+                }
+              >
+                <GraphRecordPreview
+                  graph={graphQ.data}
+                  onOpenNode={(kind, id) =>
+                    navigate({ search: { tab: "graph", focusKind: kind, focusId: id } })
+                  }
+                />
+              </Suspense>
+            ) : null}
+          </Region>
+        ) : null}
 
-      <Suspense
-        fallback={
-          <Block>
-            <TabSkeleton />
-          </Block>
-        }
-      >
-        {tab === "decisions" && (
-          <Block>{decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />}</Block>
-        )}
+        {/* THE FIVE DOORS. The open one is marked with `--mrd-select`, which is
+          the stop the system reserves for a thing that has been picked, and NOT
+          with `--mrd-hover`. meridian.css names that substitution as a recurring
+          bug in this codebase: hover is a 4.5% whisper meant to be barely
+          perceptible under a pointer, and everything rendered below this strip
+          is about exactly which door is open, so it has to be unmistakable on
+          the dark ground. `.sp-tabs` drew it with a legacy underline and could
+          not be told apart from the surface's own rules. */}
+        <RecordDoors
+          doors={TABS.map((id) => ({ id, label: TAB_LABEL[id] }))}
+          active={tab}
+          onOpen={setTab}
+          label="What the record holds"
+        />
 
-        {tab === "learnings" &&
-          (learning ? (
-            <Block>
+        <Suspense fallback={<TabSkeleton />}>
+          {tab === "decisions" &&
+            (decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />)}
+
+          {tab === "learnings" &&
+            (learning ? (
               <LearningDetail id={learning} />
-            </Block>
-          ) : (
-            <>
-              <Block>
+            ) : (
+              <div className="flex flex-col gap-mrd-7">
                 <CompoundingPanel />
-              </Block>
-              {/* The region says what was USED; the list inside says what is
+                {/* The region says what was USED; the list inside says what is
                   STORED. Two different facts, and the used one leads. */}
-              <CrewCarries>
-                <MemoryList />
-              </CrewCarries>
-              {/* The composer that writes to memory by hand, and whatever is
+                <CrewCarries>
+                  <MemoryList />
+                </CrewCarries>
+                {/* The composer that writes to memory by hand, and whatever is
                   waiting on you. Closed by default: the reading comes first. */}
-              <Disclosure label="Add to the record" id="brain-memory-composer">
-                <MemoryReviewQueue />
-              </Disclosure>
-            </>
-          ))}
+                <Disclosure label="Add to the record" id="brain-memory-composer">
+                  <MemoryReviewQueue />
+                </Disclosure>
+              </div>
+            ))}
 
-        {/* What we MADE, next to what we decided and learned. This tab draws
-            its own regions rather than one Block, because its first region is
-            the shelf's own claim plus the scoping control and its second is
-            the one item in focus. */}
-        {tab === "artifacts" && <ArtifactsView />}
+          {/* What we MADE, next to what we decided and learned. This tab draws
+            its own regions and its own rhythm rather than sitting inside one,
+            because its first region is the shelf's own claim plus the scoping
+            control and its second is the one item in focus. */}
+          {tab === "artifacts" && <ArtifactsView />}
 
-        {tab === "docs" && (
-          <>
-            <Block title="Brief">
-              <BriefPanel />
-            </Block>
-            <Block title="Documents">
-              <DocsPanel />
-            </Block>
-          </>
-        )}
+          {tab === "docs" && (
+            <div className="flex flex-col gap-mrd-7">
+              <Region title="Brief">
+                <BriefPanel />
+              </Region>
+              <Region title="Documents">
+                <DocsPanel />
+              </Region>
+            </div>
+          )}
 
-        {tab === "graph" && (
-          <Block>
-            <GraphPanel focusKind={focusKind} focusId={focusId} />
-          </Block>
-        )}
-      </Suspense>
+          {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
+        </Suspense>
 
-      {substrate ? (
-        <Disclosure label="The rest of the substrate" id="brain-substrate">
-          {/* THE FILE'S OWN RULE, APPLIED TO ITS OWN GRID. Twenty lines up,
-              Diffstat refuses to draw a "+0" because "a zero rendered as if it
-              were a finding" is a lie about what was found. This grid was
-              breaking that rule six times at once: on a real account today
+        {substrate ? (
+          <Disclosure label="The rest of the substrate" id="brain-substrate">
+            {/* THE SURFACE'S OWN RULE, APPLIED TO ITS OWN GRID. The diff on the
+              record recess above refuses to draw a "+0" because "a zero
+              rendered as if it were a finding" is a lie about what was found.
+              This grid was breaking that rule six times at once: on a real account today
               every one of these reads 0, so the disclosure opened onto six
               cells saying nothing, in the system's SCANNING shape, which
               promises there is something here to scan.
@@ -1693,56 +1718,93 @@ function MemoryPage() {
               grid. `substrate` itself is null until both reads land, so a
               count we could not make never reaches this and never renders as a
               zero either. */}
-          {substrateShown.length > 0 ? (
-            <>
-              <p
-                style={{
-                  fontSize: "var(--sp-text-meta)",
-                  color: "var(--sp-mute)",
-                  marginBottom: "var(--sp-space-3)",
-                }}
-              >
-                What the crew reads before it acts, beyond the five doors above.
-              </p>
-              {/* A Grid of Cells, which is the system's shape for things that are
-                  SCANNED, rather than six inline spans styled from raw tokens. It
-                  is what makes the door possible at all: Cell is a real <button>
-                  when it does something, so it is tabbable, it answers Space and
-                  Enter and it takes the app focus ring, none of which a styled
-                  <span> with an onClick would have. Recessed, because these sit on
-                  ground the disclosure already raised. */}
-              <Grid>
-                {substrateShown.map((s) => (
-                  <Cell
-                    key={s.label}
-                    tone="recessed"
-                    lead={<Num>{s.value}</Num>}
-                    sub={s.label}
-                    onClick={s.open}
-                  />
-                ))}
-              </Grid>
-            </>
-          ) : (
-            <Empty
-              action={
-                <Button
-                  variant="primary"
-                  onClick={() =>
-                    navigate({ to: "/settings", search: { section: "connections" } as never })
-                  }
-                >
-                  Connect a source
-                </Button>
-              }
-            >
-              The crew has nothing else to read yet: no threads, no signals, no meetings, no specs
-              and nothing connected. This fills on its own as you work, and a connected source
-              starts it filling without you.
-            </Empty>
-          )}
-        </Disclosure>
-      ) : null}
+            {substrateShown.length > 0 ? (
+              <>
+                <p className="mb-mrd-4 text-[12.5px] text-mrd-mute">
+                  What the crew reads before it acts, beyond the five doors above.
+                </p>
+                {/* A GRID, which is the system's shape for things that are SCANNED
+                  rather than read down: nineteen items in a column is nineteen
+                  rows of scrolling and the same nineteen at four across is five.
+                  Deliberately NOT a RecordsTable, which is the shape for a list
+                  nobody can scan by eye; six counts is exactly the size a person
+                  takes in at a glance, and a sortable grid with a sticky head
+                  over six rows is machinery around a fact.
+
+                  A cell that opens something is a real <button>, so it is
+                  tabbable, it answers Space and Enter and it takes the system
+                  focus ring, none of which a styled <span> with an onClick would
+                  have. A cell that opens nothing stays a div and never lights up
+                  under the cursor: an affordance is a promise, and `meetings`
+                  and `saved notes` have nowhere to send anybody.
+
+                  TINTED, NEVER BORDERED. Six bordered boxes in one region is six
+                  bordered containers, and the standard caps a region at one. It
+                  reads as a cell because the ground under it changes, and these
+                  sit at `sink` because the disclosure already raised the ground
+                  they are on. */}
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-mrd-3">
+                  {substrateShown.map((s) => {
+                    const body = (
+                      <>
+                        <span className="block text-[17px] leading-tight text-mrd-ink">
+                          <Figure>{s.value}</Figure>
+                        </span>
+                        <span className="mt-0.5 block text-[12px] text-mrd-mute">{s.label}</span>
+                      </>
+                    );
+                    return s.open ? (
+                      <button
+                        key={s.label}
+                        type="button"
+                        onClick={s.open}
+                        className="rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4 text-left transition-colors hover:bg-mrd-lift"
+                        style={{ transitionDuration: "var(--mrd-d-press)" }}
+                      >
+                        {body}
+                      </button>
+                    ) : (
+                      <div key={s.label} className="rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
+                        {body}
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              /* NOT AN EMPTY STATE, AND THAT IS THE WHOLE POINT OF THE COMPONENT.
+               "Nothing is here" and "this cannot have anything in it yet" send a
+               person in opposite directions, and the second one has exactly one
+               act that changes it. `NeedsSetup` is the Meridian part for that
+               third fact, and it was written after production was found with 39
+               of 43 work items standing at the first station for want of a
+               connected source. It carries no accent, which is correct: orchid
+               means a decision is yours to make, and plugging something in is
+               setup, not judgement.
+
+               The copy is passed rather than defaulted, because this region
+               knows something the component cannot: WHICH six things are empty.
+               `substrate` is null until both reads land, so a count we could not
+               make never reaches here and never renders as a zero. */
+              <NeedsSetup
+                kind="no-source"
+                title="The crew has nothing else to read yet"
+                body="No threads, no signals, no meetings, no specs and nothing connected. This fills on its own as you work, and a connected source starts it filling without you."
+                action={
+                  <Act
+                    variant="primary"
+                    onClick={() =>
+                      navigate({ to: "/settings", search: { section: "connections" } as never })
+                    }
+                  >
+                    Connect a source
+                  </Act>
+                }
+              />
+            )}
+          </Disclosure>
+        ) : null}
+      </div>
     </Surface>
   );
 }
