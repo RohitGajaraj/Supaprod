@@ -66,6 +66,20 @@ export function ToolTrace({
         // overrides only when there is a failure the shut line has to carry.
         summary={failed > 0 ? `${ran}, ${failed} failed` : undefined}
         onSelectRow={(_row, i) => onPick(tools[i].id)}
+        /*
+         * NO FLOOR HERE, and this is the one place that must opt out.
+         *
+         * `Thinking` defaults to a 176px minimum, which is the reference's
+         * value and is right for a block standing on its own: it stops the
+         * trace resizing the page as rows arrive. Inline in a conversation it
+         * is wrong — a two-row trace would reserve 176px and render as a large
+         * unexplained gap under the message, which is the exact complaint the
+         * founder already raised about the code block on 2026-08-15.
+         *
+         * Here the surrounding thread supplies the rhythm, so the trace should
+         * be exactly as tall as it has content for.
+         */
+        minHeight={0}
       />
     </div>
   );

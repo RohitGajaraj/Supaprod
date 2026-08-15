@@ -148,10 +148,7 @@ export function AuthScaffold({
       >
         <div style={header}>
           {intro ? (
-            <div
-              className="mono-label"
-              style={{ color: "var(--text-subtle)", marginBottom: 12 }}
-            >
+            <div className="mono-label" style={{ color: "var(--text-subtle)", marginBottom: 12 }}>
               {intro}
             </div>
           ) : null}
@@ -159,10 +156,7 @@ export function AuthScaffold({
           {/* Geist Pixel brand moment (DESIGN-TEMPO.md §3/§8): the auth
               headline is a genuine hero moment, one short line, shown once
               per screen, no other Pixel use on this surface. */}
-          <h1
-            className="font-pixel"
-            style={{ marginTop: 14, color: "var(--text-primary)" }}
-          >
+          <h1 className="font-pixel" style={{ marginTop: 14, color: "var(--text-primary)" }}>
             {title}
           </h1>
           <div className="mono-label" style={{ marginTop: 6 }}>

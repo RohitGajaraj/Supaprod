@@ -482,7 +482,17 @@ export function StreamingText({
   const done = count >= chunks.length;
 
   return (
-    <div data-mrd="" ref={hostRef} className="w-full">
+    /*
+     * ── A FLOOR, SO THE ANSWER DOES NOT PUSH THE PAGE DOWN ──────────────
+     * The reference sets `min-h-[15.5rem]` here and the port dropped it. It
+     * matters most precisely when the reveal is working: the paragraph grows a
+     * word at a time, and without a floor everything below the answer — the
+     * actions, the sources, the follow-ups, and whatever the host surface puts
+     * underneath — walks down the page for the whole four seconds it is being
+     * written. Reserving the space makes the reveal feel like writing into a
+     * page rather than like the page inflating.
+     */
+    <div data-mrd="" ref={hostRef} className="w-full" style={{ minHeight: "15.5rem" }}>
       <p
         className="text-[13px] leading-[1.65] text-mrd-ink"
         style={{ maxWidth: "var(--mrd-measure)" }}

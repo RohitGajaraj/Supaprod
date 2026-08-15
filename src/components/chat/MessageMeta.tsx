@@ -317,7 +317,7 @@ export function MessageMetaFooter({
     <div>
       {meta.sources.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5" style={{ marginTop: 10 }}>
-          <span className="mono-label" style={{ }}>
+          <span className="mono-label" style={{}}>
             Sources
           </span>
           {meta.sources.map((s) => (
@@ -410,10 +410,7 @@ export function MessageMetaFooter({
               // Popover anatomy (DESIGN-TEMPO §5): 6px pad, 36px rows.
               style={{ width: 190, padding: 6 }}
             >
-              <span
-                className="mono-label"
-                style={{ display: "block", padding: "3px 8px 5px" }}
-              >
+              <span className="mono-label" style={{ display: "block", padding: "3px 8px 5px" }}>
                 Replay · the reply lands in this thread
               </span>
               {MODELS.filter((m) => m.live).map((m) => (

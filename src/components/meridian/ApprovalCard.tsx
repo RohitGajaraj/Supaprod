@@ -443,9 +443,7 @@ export function ApprovalCard({
                  * gets the card shadow instead: it is sitting IN the footer,
                  * not standing on it.
                  */
-                boxShadow: hasAnswer
-                  ? "inset 0 1px 0 color-mix(in oklab, var(--mrd-on-solid) 16%, transparent)"
-                  : "var(--mrd-shadow-card)",
+                boxShadow: hasAnswer ? "inset 0 1px 0 var(--mrd-sheen)" : "var(--mrd-shadow-card)",
               }}
             >
               {last ? confirmLabel : "Next"}

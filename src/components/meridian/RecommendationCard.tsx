@@ -322,8 +322,7 @@ export function RecommendationCard({
                * `--mrd-on-solid` rather than written as a literal white so the
                * highlight stays warm paper-white on the paper ground.
                */
-              boxShadow:
-                "inset 0 1px 0 color-mix(in oklab, var(--mrd-on-solid) 16%, transparent), var(--mrd-shadow-card)",
+              boxShadow: "inset 0 1px 0 var(--mrd-sheen), var(--mrd-shadow-card)",
             }}
           >
             {/*

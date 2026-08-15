@@ -134,7 +134,6 @@
   }
 }
 
-
 .sp-scope {
   display: flex;
   align-items: center;
@@ -691,6 +690,27 @@
   color: var(--sp-gate);
 }
 
+/* HELD and FAILED, added 2026-08-15 with the states themselves.
+ *
+ * `held` is amber: stopped, and NOT on you — queued behind a condition rather
+ * than a decision. It deliberately does not brighten its station NAME the way
+ * `gate` and `working` do. Those two are asking for attention; held is
+ * reporting that attention would not help, so the note carries the colour and
+ * the name stays where an untouched station's name sits.
+ *
+ * `failed` takes the outcome red and DOES brighten the name, because a broken
+ * station is one a person has to look at even though nothing is asking them to
+ * decide anything. */
+.sp-stage[data-state="held"] .sp-stage-state {
+  color: var(--mrd-hold);
+}
+.sp-stage[data-state="failed"] .sp-stage-name {
+  color: var(--sp-ink);
+}
+.sp-stage[data-state="failed"] .sp-stage-state {
+  color: var(--sp-fail);
+}
+
 /* ---------- the glance ----------
  * FOUNDER RULING 2026-07-30: "some sort of small status while agents is
  * running, small blue dot in pulsing, and if something is gated for human, some
@@ -965,6 +985,22 @@
   padding: 14px 8px 6px;
   flex: 1;
   overflow-y: auto;
+}
+/*
+ * THE TIER RULE, 2026-08-15. It separates where you WORK (Today, Runs, Brain)
+ * from where you VISIT (Crew, Engine room). One hairline, inset to the rows'
+ * own text column rather than run edge to edge, so it reads as a break in a
+ * list instead of a border on the rail.
+ *
+ * A rule and not a heading. The reference labels its one group because it has
+ * only one; here a second word ("Manage", "System") would be a category name
+ * invented to justify a line, and the line says the same thing for free.
+ */
+.sp-navrule {
+  display: block;
+  height: 1px;
+  margin: 10px 12px;
+  background: var(--sp-line, var(--hairline, rgba(255, 255, 255, 0.1)));
 }
 .sp-navrow {
   display: flex;

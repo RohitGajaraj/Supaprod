@@ -1235,7 +1235,28 @@ export function InsightCards({
   }
 
   return (
-    <section data-mrd="" aria-label="Insights" className="w-full max-w-86">
+    /*
+     * ── A FLOOR, SO PAGING DOES NOT MOVE THE CARD ───────────────────────
+     *
+     * The three insights are different shapes — a trend chart with a stat
+     * block, a threshold frame, a segmented breakdown — so they are naturally
+     * different heights. Measured in the browser on 2026-08-15 while paging
+     * the dense case: 524px, then 448px, then 424px. A HUNDRED PIXEL jump, and
+     * the pager arrows are at the TOP of the card, so every press moved
+     * everything below the card while the reader's pointer stayed put.
+     *
+     * The reference solves this the same way, with `min-h-[408px]` on its own
+     * pager. Ours is 528 because our cards carry more: a frame header, a stat
+     * block and a figures row the reference does not have. The number is the
+     * measured tallest rounded up, not a guess, and it is a FLOOR — content
+     * taller than this still grows, it simply cannot shrink below it.
+     */
+    <section
+      data-mrd=""
+      aria-label="Insights"
+      className="w-full max-w-86"
+      style={{ minHeight: 528 }}
+    >
       <div className="flex items-center justify-between gap-2">
         <span className="text-[13px] font-semibold text-mrd-ink">Insights</span>
 

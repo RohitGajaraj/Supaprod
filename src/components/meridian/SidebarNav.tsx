@@ -70,6 +70,20 @@ export type RailItem = {
    * here; a machine being busy is not a call for you and must not look like one.
    */
   waiting?: number;
+  /**
+   * A quick "add one of these" that lives on the row itself. The reference has
+   * this and the port had dropped it, which cost the rail its only way to start
+   * work at a station without first navigating to it.
+   *
+   * It is a REAL button here, where the reference draws a hover-revealed span
+   * with no handler on it — an affordance that looks pressable, is not, and
+   * cannot be reached from the keyboard at all. That is why the row is wrapped
+   * rather than the control nested: a button inside a button is invalid markup
+   * and browsers resolve it by dropping the inner one.
+   */
+  onAdd?: () => void;
+  /** Names that button out loud. Defaults to "New <label>". */
+  addLabel?: string;
 };
 
 /*
@@ -186,7 +200,8 @@ export function SidebarNav({
   const [ownCollapsed, setOwnCollapsed] = useState(defaultCollapsed);
   const [hovered, setHovered] = useState<string | null>(null);
   const [tip, setTip] = useState<string | null>(null);
-  const [box, setBox] = useState<{ top: number; height: number } | null>(null);
+  const [selBox, setSelBox] = useState<{ top: number; height: number } | null>(null);
+  const [hoverBox, setHoverBox] = useState<{ top: number; height: number } | null>(null);
   const [query, setQuery] = useState("");
 
   const active = activeKey ?? ownActive;
@@ -199,25 +214,54 @@ export function SidebarNav({
   const tipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /*
-   * One travelling highlight rather than a background on each row. The reason
-   * is not polish: with a per-row background the eye has to find which of nine
-   * rectangles changed, and with one that slides the movement itself points at
-   * the answer. It follows keyboard focus as well as the pointer, so tabbing
-   * through the rail reads the same as pointing at it.
+   * ── TWO BLOCKS, NOT ONE, AND THIS IS A CORRECTION ───────────────────────
+   *
+   * The reference draws a SINGLE travelling block, positioned at
+   * `hovered ?? active` and painted in its hover wash. The port copied that
+   * shape onto `--mrd-hover`, and on this ground it is the exact bug
+   * meridian.css names by hand: hover here is a 4.5% whisper, engineered to be
+   * barely perceptible under a pointer, so the rail's SELECTED station — the
+   * one fact the whole control exists to report — was marked with the faintest
+   * value in the system and read as unmarked.
+   *
+   * Raising the single block to `--mrd-select` would have swapped one lie for a
+   * worse one: a 17% block that slides onto whatever the pointer touches says
+   * "you just selected that", which is false, and it abandons the real
+   * selection while the pointer is anywhere else in the rail.
+   *
+   * So the two meanings get two blocks. The SELECT block is pinned to the
+   * active row at 17% and never leaves it; it animates only when the selection
+   * genuinely moves, which is the one time that motion is telling the truth.
+   * The HOVER wash travels at 4.5% and is the pointer's trail. Hovering the
+   * active row stacks them, which is correct: a selected row under the pointer
+   * should be the brightest thing in the rail.
+   *
+   * The travelling wash still follows keyboard focus as well as the pointer, so
+   * tabbing through the rail reads the same as pointing at it.
    */
   useLayoutEffect(() => {
     const container = navRef.current;
-    const target = rowRefs.current[hovered ?? active];
-    if (!container || !target) {
-      setBox(null);
-      return;
-    }
+    if (!container) return;
     const containerRect = container.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-    setBox({
-      top: targetRect.top - containerRect.top,
-      height: targetRect.height,
-    });
+
+    const measure = (key: string | null) => {
+      const el = key ? rowRefs.current[key] : null;
+      if (!el) return null;
+      const rect = el.getBoundingClientRect();
+      return { top: rect.top - containerRect.top, height: rect.height };
+    };
+
+    setSelBox(measure(active));
+
+    /*
+     * Deliberately NOT cleared when the pointer leaves. Clearing it would reset
+     * `top` to zero, and because opacity and position animate together the wash
+     * would visibly fly to the top of the rail as it faded. Leaving the last
+     * measurement in place lets it fade out where it stood, and slide in from
+     * there when the pointer comes back.
+     */
+    const next = measure(hovered);
+    if (next) setHoverBox(next);
   }, [hovered, active, isCollapsed, items]);
 
   /* A pending tooltip must not outlive the rail that scheduled it. */
@@ -432,7 +476,18 @@ export function SidebarNav({
           onBlur={closeTip}
           aria-label={isCollapsed ? primaryAction.label : undefined}
           className={`relative flex w-full items-center gap-2 rounded-mrd-ctl bg-mrd-solid px-2 py-1.5 text-[13px] font-medium text-mrd-on-solid transition-[filter,transform] duration-100 hover:brightness-110 active:scale-[0.96] ${isCollapsed ? "justify-center" : ""} ${FOCUS_RING}`}
-          style={{ marginBottom: "var(--mrd-s2)" }}
+          style={{
+            marginBottom: "var(--mrd-s2)",
+            /*
+             * The specular top edge every filled control in this system carries,
+             * and this one was missing it. Without the sheen `--mrd-solid` is a
+             * flat slab a shade lighter than the rail, which is what the
+             * reference's accent-filled action never looks like; with it the
+             * button reads as a raised object, which is the whole reason the
+             * primary stays a neutral rather than spending the accent.
+             */
+            boxShadow: "inset 0 1px 0 var(--mrd-sheen), var(--mrd-shadow-card)",
+          }}
         >
           {!isCollapsed && (
             <span className="min-w-0 flex-1 truncate text-left">{primaryAction.label}</span>
@@ -467,13 +522,27 @@ export function SidebarNav({
         className="relative flex flex-col"
         style={{ gap: "var(--mrd-s4)" }}
       >
+        {/* The selection. Pinned to the active row, at the stop the system
+            reserves for "a thing the reader has picked". */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 rounded-[7px] bg-mrd-select"
+          style={{
+            top: selBox?.top ?? 0,
+            height: selBox?.height ?? 0,
+            opacity: selBox ? 1 : 0,
+            transition:
+              "top var(--mrd-d-move) var(--mrd-ease), height var(--mrd-d-move) var(--mrd-ease), opacity var(--mrd-d-press) linear",
+          }}
+        />
+        {/* The pointer's trail, and nothing more. */}
         <span
           aria-hidden
           className="pointer-events-none absolute inset-x-0 rounded-[7px] bg-mrd-hover"
           style={{
-            top: box?.top ?? 0,
-            height: box?.height ?? 0,
-            opacity: box ? 1 : 0,
+            top: hoverBox?.top ?? 0,
+            height: hoverBox?.height ?? 0,
+            opacity: hovered && hoverBox ? 1 : 0,
             transition:
               "top var(--mrd-d-move) var(--mrd-ease), height var(--mrd-d-move) var(--mrd-ease), opacity var(--mrd-d-press) linear",
           }}
@@ -491,10 +560,28 @@ export function SidebarNav({
                  * nothing and just reads as a stray line.
                  */
                 sectionIndex > 0 && (
-                  <div aria-hidden className="mx-2 mb-1.5 h-px bg-mrd-line-soft" />
+                  /*
+                   * `--mrd-line`, not `--mrd-line-soft`. `line-soft` is the
+                   * system's rule BETWEEN SECTIONS and would be the obvious
+                   * pick, but it is 5.5% and here it is doing a job it is never
+                   * asked to do elsewhere: with the heading word gone, this
+                   * hairline is the ONLY thing keeping two groups of stations
+                   * apart in the collapsed rail. A separator that is the sole
+                   * carrier of a grouping has to be a real edge.
+                   */
+                  <div aria-hidden className="mx-2 mb-1.5 h-px bg-mrd-line" />
                 )
               ) : (
-                <div className="px-2 pt-1 pb-1 text-[11px] font-medium tracking-[0.08em] text-mrd-mute uppercase">
+                /*
+                 * 10.5px, which is `--mrd-t-micro` and is what the reference
+                 * sets here. The port had drifted to 11px — `--mrd-t-tiny`, the
+                 * stop reserved for mono counts and stage numerals — which put
+                 * the group heading within two and a half pixels of the 13px
+                 * rows it heads. Half a pixel sounds like nothing and is the
+                 * difference between a heading that sits behind its rows and one
+                 * that competes with them.
+                 */
+                <div className="px-2 pt-1 pb-1 text-[10.5px] font-medium tracking-[0.08em] text-mrd-mute uppercase">
                   {section}
                 </div>
               ))}
@@ -506,6 +593,13 @@ export function SidebarNav({
                   const isActive = item.key === active;
                   const waiting = item.waiting ?? 0;
                   /*
+                   * Never collapsed. A 56px icon rail has no room to put a
+                   * second target beside the glyph without the two overlapping,
+                   * and a control the pointer cannot hit cleanly is worse than
+                   * one that is honestly absent until the rail opens.
+                   */
+                  const showAdd = Boolean(item.onAdd) && !isCollapsed;
+                  /*
                    * The count folds into the name rather than riding beside it.
                    * An orchid dot in a corner is silent, and "3" on its own is a
                    * number with no noun.
@@ -515,13 +609,26 @@ export function SidebarNav({
 
                   const body = (
                     <>
+                      {/* The glyph transitions with the label rather than
+                          snapping. Selecting a station moves the whole row up
+                          one step in the text ramp, and half of it arriving a
+                          frame early reads as a flicker. */}
                       <span
                         aria-hidden
-                        className={`relative shrink-0 ${isActive ? "text-mrd-ink" : "text-mrd-mute"}`}
+                        className={`relative shrink-0 transition-colors duration-150 ${isActive ? "text-mrd-ink" : "text-mrd-mute"}`}
                       >
                         {item.icon && <Icon kind={item.icon} />}
                         {isCollapsed && waiting > 0 && (
-                          <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-mrd-you ring-2 ring-mrd-sheet" />
+                          <span
+                            /* Keyed on the number so a CHANGE in the count
+                               remounts the dot and replays its arrival. See the
+                               badge below for why that matters. */
+                            key={waiting}
+                            className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-mrd-you ring-2 ring-mrd-sheet"
+                            style={{
+                              animation: "mrd-pop-in var(--mrd-d-move) var(--mrd-ease) both",
+                            }}
+                          />
                         )}
                       </span>
 
@@ -534,12 +641,26 @@ export function SidebarNav({
                           </span>
                           {waiting > 0 && (
                             <span
+                              /*
+                               * KEYED ON THE NUMBER, which the port had missed
+                               * and which the reference gets right. Without the
+                               * key the badge mounts once and the animation
+                               * never runs again, so the count going from two
+                               * to three — a new thing arriving that is waiting
+                               * on a PERSON, the single most important event
+                               * this rail reports — changed one glyph silently.
+                               * Remounting on the value replays the arrival.
+                               */
+                              key={waiting}
                               aria-hidden
-                              className={`flex h-4.5 min-w-4.5 shrink-0 items-center justify-center rounded-full px-1 text-[11px] font-semibold tabular-nums ${
+                              className={`flex h-4.5 min-w-4.5 shrink-0 items-center justify-center rounded-full px-1 text-[10.5px] font-semibold tabular-nums ${
                                 isActive ? "bg-mrd-lift text-mrd-body" : "bg-mrd-you text-mrd-bg"
                               }`}
                               style={{
-                                animation: "mrd-fade-up var(--mrd-d-move) var(--mrd-ease) both",
+                                /* Scale, not slide. `mrd-pop-in` is the system's
+                                   "this was not here a moment ago", and it comes
+                                   from 0.98 so it lands without bouncing. */
+                                animation: "mrd-pop-in var(--mrd-d-move) var(--mrd-ease) both",
                               }}
                             >
                               {waiting}
@@ -570,12 +691,25 @@ export function SidebarNav({
                     "aria-current": isActive ? ("page" as const) : undefined,
                     /* Only when the label is off screen, never both at once. */
                     "aria-label": isCollapsed ? accessibleName : undefined,
-                    className: `group relative z-10 flex w-full items-center gap-2 rounded-[7px] px-2 py-1.5 text-left transition-transform duration-150 active:scale-[0.96] ${isCollapsed ? "justify-center" : ""} ${FOCUS_RING}`,
+                    /*
+                     * The reference asks for `transition-[color,transform]`
+                     * here and the `color` half of that is inert: this element
+                     * sets no colour of its own, the glyph and the label each
+                     * set theirs, and a transition does not reach across into a
+                     * child's own declaration. So the transitions live where the
+                     * colours do — see both children above, the glyph having
+                     * just been given one — and this stays transform only rather
+                     * than carrying a property it cannot animate.
+                     *
+                     * The right padding opens only when the quick-add is there
+                     * to occupy it, so a rail without one keeps its full label
+                     * width instead of reserving space for nothing.
+                     */
+                    className: `relative z-10 flex w-full items-center gap-2 rounded-[7px] py-1.5 pl-2 text-left transition-transform duration-150 active:scale-[0.96] ${showAdd ? "pr-7" : "pr-2"} ${isCollapsed ? "justify-center" : ""} ${FOCUS_RING}`,
                   };
 
-                  return item.href ? (
+                  const row = item.href ? (
                     <a
-                      key={item.key}
                       href={item.href}
                       onClick={() => select(item.key)}
                       {...shared}
@@ -585,7 +719,6 @@ export function SidebarNav({
                     </a>
                   ) : (
                     <button
-                      key={item.key}
                       type="button"
                       onClick={() => select(item.key)}
                       {...shared}
@@ -593,6 +726,62 @@ export function SidebarNav({
                     >
                       {body}
                     </button>
+                  );
+
+                  /*
+                   * The wrapper exists so the quick-add can be a SIBLING of the
+                   * row rather than a child of it. Nesting one inside the other
+                   * is invalid markup — the parser drops the inner control — and
+                   * it is almost certainly why the reference's plus is an inert
+                   * span with no handler on it. It also gives the absolutely
+                   * positioned control something to be positioned against that
+                   * is not the row itself, which shrinks under `active:scale`
+                   * and would drag the plus with it mid-press.
+                   */
+                  return (
+                    <div key={item.key} className="relative">
+                      {row}
+                      {showAdd && (
+                        <button
+                          type="button"
+                          onClick={item.onAdd}
+                          onMouseEnter={() => setHovered(item.key)}
+                          onFocus={() => setHovered(item.key)}
+                          onBlur={() => setHovered(null)}
+                          aria-label={item.addLabel ?? `New ${item.label}`}
+                          className={`absolute top-1/2 right-1 z-20 flex size-4.5 -translate-y-1/2 items-center justify-center rounded-[5px] text-mrd-mute transition-[background-color,color,opacity] duration-100 hover:bg-mrd-lift hover:text-mrd-ink ${FOCUS_RING}`}
+                          style={{
+                            /*
+                             * Revealed by the row's own hover state rather than
+                             * by `group-hover`, so it also appears when the row
+                             * is reached by keyboard — `onFocus` on the row sets
+                             * exactly the same state. The active row keeps it
+                             * open permanently, because that is the station a
+                             * person is most likely to add to.
+                             *
+                             * Pointer events follow the opacity. An invisible
+                             * button that still swallows clicks is a hole in the
+                             * row's right edge that nobody can see.
+                             */
+                            opacity: isActive || hovered === item.key ? 1 : 0,
+                            pointerEvents: isActive || hovered === item.key ? "auto" : "none",
+                          }}
+                        >
+                          <svg
+                            aria-hidden
+                            width="10"
+                            height="10"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          >
+                            <path d="M12 5v14M5 12h14" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   );
                 })}
             </div>

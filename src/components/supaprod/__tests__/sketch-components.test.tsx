@@ -394,11 +394,7 @@ function buildSketchBarChart({
             zIndex: 2,
           },
         },
-        React.createElement(
-          "span",
-          { style: { display: "block" } },
-          formatValue(active.value),
-        ),
+        React.createElement("span", { style: { display: "block" } }, formatValue(active.value)),
         React.createElement(
           "span",
           { style: { display: "block", color: "var(--text-subtle)" } },

@@ -171,7 +171,15 @@ function SourceChip({ source }: { source: ContextSource }) {
       href={source.href}
       target="_blank"
       rel="noreferrer"
-      className={`${shell} transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
+      /*
+       * `--mrd-lift` on hover, not `--mrd-hover`. This chip is the one thing on
+       * the card that LEAVES the page, and at 4.5% over a recess the pointer
+       * landing on it changed nothing a reader would notice — so the only chip
+       * that is a link looked exactly like the ones that are not. Stepping the
+       * fill from `sink` to `lift` moves it a whole rung of the surface ladder,
+       * which is legible on both grounds.
+       */
+      className={`${shell} transition-colors hover:bg-mrd-lift hover:text-mrd-ink ${FOCUS}`}
       style={{ transitionDuration: "var(--mrd-d-press)" }}
     >
       {inner}
@@ -214,19 +222,38 @@ export function ContextCards({
 
   return (
     <section data-mrd="" className="flex w-full flex-col gap-2" aria-label={title}>
-      <div className="flex items-center gap-2 px-0.5">
+      {/*
+       * The heading arrives too. The reference fades it in over 400ms and the
+       * port had it appear instantly above a stack that then animated in
+       * underneath it, which reads as the cards being late rather than as the
+       * group arriving. It is the first beat of a three-beat entrance: heading,
+       * then cards, then each card's source chip after the hold below.
+       */}
+      <div
+        className="flex items-center gap-2 px-0.5"
+        style={{ animation: "mrd-fade-in var(--mrd-d-enter) var(--mrd-ease) both" }}
+      >
         <h2 className="text-[13px] font-semibold text-mrd-ink">{title}</h2>
         {/* The count is what is on screen over what exists, never a fixed figure. */}
         {!failure && chunks.length > 0 && (
-          <span className="inline-flex h-5 items-center rounded-mrd-xs border border-mrd-line bg-mrd-sink px-1.5 font-mrd-mono text-[11.5px] text-mrd-body tabular-nums">
+          <span className="inline-flex h-5 items-center rounded-mrd-xs border border-mrd-line bg-mrd-sink px-1.5 font-mrd-mono text-[11.5px] font-medium text-mrd-body tabular-nums">
             {shown.length === chunks.length ? chunks.length : `${shown.length} of ${chunks.length}`}
           </span>
         )}
         {toolbar && <div className="ml-auto">{toolbar}</div>}
       </div>
 
+      {/*
+       * The three state panels below arrive exactly as a first card would, with
+       * the same shadow and the same entrance. They are the body of this
+       * section, so a heading that fades in above a panel that snaps into place
+       * would read as two unrelated things landing.
+       */}
       {failure ? (
-        <div className="flex flex-col items-center gap-2 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-8 text-center">
+        <div
+          className="flex flex-col items-center gap-2 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-8 text-center shadow-mrd-card"
+          style={{ animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }}
+        >
           <span className="text-[13px] font-medium" style={{ color: "var(--mrd-fail)" }}>
             {failure.message}
           </span>
@@ -238,14 +265,23 @@ export function ContextCards({
               type="button"
               onClick={failure.onRetry}
               className={`mt-1 rounded-mrd-ctl bg-mrd-solid px-2.5 py-1 text-[12.5px] font-medium text-mrd-on-solid transition-opacity hover:opacity-90 ${FOCUS}`}
-              style={{ transitionDuration: "var(--mrd-d-press)" }}
+              style={{
+                transitionDuration: "var(--mrd-d-press)",
+                /* The specular top edge every filled control in this system
+                   carries. It was missing, so the one control on a failed read
+                   was the flattest thing on the panel. */
+                boxShadow: "inset 0 1px 0 var(--mrd-sheen), var(--mrd-shadow-card)",
+              }}
             >
               Try again
             </button>
           )}
         </div>
       ) : chunks.length === 0 && isFiltered ? (
-        <div className="flex flex-col items-center gap-1.5 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-8 text-center">
+        <div
+          className="flex flex-col items-center gap-1.5 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-8 text-center shadow-mrd-card"
+          style={{ animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }}
+        >
           <span className="text-[13px] font-medium text-mrd-ink">
             No excerpt matches this filter
           </span>
@@ -266,7 +302,10 @@ export function ContextCards({
           )}
         </div>
       ) : chunks.length === 0 ? (
-        <div className="flex flex-col items-center gap-1.5 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-8 text-center">
+        <div
+          className="flex flex-col items-center gap-1.5 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-8 text-center shadow-mrd-card"
+          style={{ animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }}
+        >
           <span className="text-[13px] font-medium text-mrd-ink">{emptyTitle}</span>
           {emptyDetail && <span className="text-[12px] text-mrd-mute">{emptyDetail}</span>}
         </div>
@@ -281,11 +320,30 @@ export function ContextCards({
                  * Staggered by index so the stack arrives as a sequence rather
                  * than a flash. It runs once on arrival and never loops: a card
                  * that keeps moving after it has landed reads as still working.
+                 *
+                 * 100ms per card, which is the reference's figure; the port had
+                 * shortened it to 60 and at that spacing the cards read as one
+                 * blurred event rather than as a stack being dealt. Capped at
+                 * 600ms because the reference only ever shows two cards and this
+                 * one can be handed a dozen, where an uncapped stagger would
+                 * leave the last card still arriving a second and a half after
+                 * the reader started looking.
                  */
-                animation: `mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) ${index * 60}ms both`,
+                animation: `mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) ${Math.min(index * 100, 600)}ms both`,
+                /* Cards sit off the ground. The reference gives them a shadow
+                   and the port had only the border, which on the dark ground
+                   left the stack flush with the page. */
+                boxShadow: "var(--mrd-shadow-card)",
               }}
             >
-              <div className="flex items-center gap-2.5 border-b border-mrd-line-soft px-3 py-2">
+              {/*
+               * `--mrd-line`, not `--mrd-line-soft`. This rule separates a card's
+               * header from its body, which is the reference's `border-line` and
+               * is a real edge, not a rule between sections. At 5.5% it was below
+               * the threshold where the eye reads a division on the dark ground
+               * at all, so the title and the excerpt ran together as one block.
+               */}
+              <div className="flex items-center gap-2.5 border-b border-mrd-line px-3 py-2">
                 <span className="flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-mrd-ink">
                   <span className="shrink-0 text-mrd-mute">
                     <LinesIcon />

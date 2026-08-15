@@ -69,13 +69,10 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
               <span style={{ color: "var(--text-body)" }}>
                 {e.from_stage ? `${e.from_stage} -> ${e.to_stage}` : e.to_stage}
               </span>
-              <span className="mono-label" style={{ }}>
+              <span className="mono-label" style={{}}>
                 {e.actor}
               </span>
-              <span
-                className="mono-label tabular-nums"
-                style={{ marginLeft: "auto" }}
-              >
+              <span className="mono-label tabular-nums" style={{ marginLeft: "auto" }}>
                 {fmtAt(e.at)}
               </span>
             </div>

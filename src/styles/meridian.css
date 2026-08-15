@@ -146,6 +146,20 @@
   --mrd-lift: oklch(0.215 0.007 70); /* a raised control, secondary button */
   --mrd-float: oklch(0.255 0.008 70); /* genuinely floating: menu, pane */
   --mrd-solid: oklch(0.325 0.009 70); /* the primary button face */
+  /*
+   * WHAT A PRIMARY DOES ON HOVER, and it exists because the obvious answer is
+   * wrong. `hover:bg-mrd-float` looks right in a class list and is a defect in
+   * BOTH grounds: `float` is DARKER than `solid` on dark, so the button dims
+   * when you reach for it, and it is near-white on paper, which puts the light
+   * `--mrd-on-solid` label on a pale slab — the invisible-label defect again.
+   * It was found shipped in two components on 2026-08-15.
+   *
+   * One named step, in the same direction the ladder already climbs: away from
+   * the canvas. Lightening on dark, darkening on paper. `opacity-90` is the
+   * other acceptable answer and is weaker, because it fades the LABEL along
+   * with the fill.
+   */
+  --mrd-solid-hover: oklch(0.375 0.009 70);
 
   /*
    * The primary action is the next stop on the ladder the surfaces already
@@ -249,6 +263,21 @@
    * alpha over whatever ground it lands on, so one component works on sheet,
    * sink and float without knowing which it is sitting on.
    */
+  /*
+   * ── THE SHEEN ON A FILLED CONTROL ───────────────────────────────────────
+   * A one-pixel specular top edge, which is what makes a filled button read as
+   * a raised object rather than a coloured rectangle. Mixed from
+   * `--mrd-on-solid` rather than from white, because the face it sits on is
+   * dark in BOTH grounds — so the highlight has to be the same warm paper-white
+   * in both, and a plain white would go cold on paper.
+   *
+   * A token because two components had already derived this inline and a third
+   * was about to. Three files doing the same colour arithmetic is three files
+   * that drift.
+   *
+   * Use as: `inset 0 1px 0 var(--mrd-sheen)`.
+   */
+  --mrd-sheen: color-mix(in oklab, var(--mrd-on-solid) 16%, transparent);
   --mrd-select: oklch(0.98 0.003 70 / 0.17);
   /* Handed to a machine: the agent hue, so the words in flight are identifiable
      without reading the toolbar underneath them. */
@@ -455,6 +484,7 @@
   --mrd-lift: oklch(0.951 0.009 85);
   --mrd-float: oklch(0.996 0.003 85);
   --mrd-solid: oklch(0.28 0.012 70);
+  --mrd-solid-hover: oklch(0.22 0.012 70);
 
   /* Solved against `sink`, the darkest paper stop, which is the worst case
      here exactly as `lift` is on dark. See the note on the dark ramp. */
@@ -546,6 +576,7 @@
   --color-mrd-lift: var(--mrd-lift);
   --color-mrd-float: var(--mrd-float);
   --color-mrd-solid: var(--mrd-solid);
+  --color-mrd-solid-hover: var(--mrd-solid-hover);
 
   --color-mrd-ink: var(--mrd-ink);
   --color-mrd-on-solid: var(--mrd-on-solid);
@@ -559,6 +590,7 @@
   --color-mrd-edge-focus: var(--mrd-edge-focus);
   --color-mrd-focus: var(--mrd-focus);
   --color-mrd-hover: var(--mrd-hover);
+  --color-mrd-sheen: var(--mrd-sheen);
   --color-mrd-select: var(--mrd-select);
   --color-mrd-select-agent: var(--mrd-select-agent);
   --color-mrd-scrim: var(--mrd-scrim);
@@ -668,6 +700,24 @@
   }
 }
 
+/*
+ * A LEVEL METER THAT ACTUALLY MOVES. Dictation draws three bars, and they were
+ * animated with `mrd-pixel-on` — which only changes OPACITY, so the bars
+ * flickered in place instead of bouncing. A level meter whose levels do not
+ * move is reporting nothing; it is a decoration wearing an instrument's shape.
+ * Scale rather than height, so it animates on the compositor and never asks
+ * the row to re-lay-out sixty times a second.
+ */
+@keyframes mrd-eq {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
 @keyframes mrd-spin {
   to {
     transform: rotate(360deg);
@@ -704,6 +754,7 @@
   [style*="mrd-fade-up"],
   [style*="mrd-fade-in"],
   [style*="mrd-pop-in"],
+  [style*="mrd-eq"],
   [style*="mrd-spin"] {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;

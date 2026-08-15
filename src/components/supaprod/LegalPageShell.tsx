@@ -96,10 +96,7 @@ export function LegalPageShell({
             >
               <SupaprodWordmark tier="public" />
             </Link>
-            <Link
-              to="/"
-              style={{ color: C.muted, textDecoration: "none" }}
-            >
+            <Link to="/" style={{ color: C.muted, textDecoration: "none" }}>
               ← Back to home
             </Link>
           </div>
@@ -129,9 +126,7 @@ export function LegalPageShell({
             >
               {title}
             </h1>
-            <p style={{ color: C.faint, margin: "0 0 40px" }}>
-              Last updated {updated}
-            </p>
+            <p style={{ color: C.faint, margin: "0 0 40px" }}>Last updated {updated}</p>
             <div
               style={{
                 lineHeight: 1.75,
@@ -166,11 +161,7 @@ export function LegalPageShell({
               { href: "/privacy", label: "Privacy" },
               { href: "/terms", label: "Terms" },
             ].map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                style={{ color: C.faint, textDecoration: "none" }}
-              >
+              <a key={l.href} href={l.href} style={{ color: C.faint, textDecoration: "none" }}>
                 {l.label}
               </a>
             ))}

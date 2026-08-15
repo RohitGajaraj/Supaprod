@@ -217,8 +217,8 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               agent reads on every task.
             </p>
             <p style={{ color: "var(--text-subtle)", lineHeight: 1.55, margin: 0 }}>
-              Each call also grows watched assumptions that Supaprod checks against incoming signals,
-              so a strategy drifting out of date surfaces itself.
+              Each call also grows watched assumptions that Supaprod checks against incoming
+              signals, so a strategy drifting out of date surfaces itself.
             </p>
             <div className="flex items-center" style={{ gap: 10, marginTop: 20 }}>
               <Button variant="accent" onClick={advance}>
@@ -350,7 +350,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                 value={betTitle}
                 onChange={(e) => setBetTitle(e.target.value)}
                 placeholder="Bet title"
-                style={{ }}
+                style={{}}
               />
               <textarea
                 className="input"
@@ -407,21 +407,14 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                       {bets.length > 0 ? (
                         <ul style={{ margin: "6px 0 0", paddingLeft: 16 }}>
                           {bets.map((b) => (
-                            <li
-                              key={b.id}
-                              style={{ color: "var(--text-body)", lineHeight: 1.5 }}
-                            >
+                            <li key={b.id} style={{ color: "var(--text-body)", lineHeight: 1.5 }}>
                               <strong style={{ fontWeight: 500 }}>{b.title}</strong>
                               {b.body ? `: ${b.body}` : ""}
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p
-                          style={{ color: "var(--text-faint)", margin: "4px 0 0" }}
-                        >
-                          None set.
-                        </p>
+                        <p style={{ color: "var(--text-faint)", margin: "4px 0 0" }}>None set.</p>
                       )}
                     </div>
                   );

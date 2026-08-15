@@ -32,6 +32,17 @@ import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "r
  * ── AND ONE STATE IT NEVER HAD ──────────────────────────────────────────
  * A search over a list that failed to load is not a search over an empty list.
  * It must not wear the empty state's clothes, and it must offer a retry.
+ *
+ * ── THE REFERENCE'S 248px FLOOR IS NOT COPIED, AND THAT IS ON PURPOSE ────
+ * Their root is `min-h-[248px]`, which stops the card resizing as its panel
+ * swaps between five results and the empty state. That floor is correct for a
+ * component standing alone on a gallery page, and wrong for every place this
+ * one is mounted: RunsGrid and DrawingsTable summon it INLINE, directly above
+ * the grid it searches, so a floor would open a quarter of a screen of empty
+ * card above the rows the moment anyone pressed find. Our panel's resting state
+ * is a single line by design, so the floor would be visible almost all the
+ * time. The jump the floor exists to prevent is real; it is paid for here with
+ * an entrance on each panel instead, which is cheaper than a permanent hole.
  */
 
 export type SearchProps<Item> = {
@@ -197,8 +208,23 @@ export function Search<Item>({
     }
   };
 
+  /*
+   * ── WHY EVERY BRANCH BELOW CARRIES A KEY ────────────────────────────────
+   *
+   * These panels all land in the same slot, and four of the five are a plain
+   * `div`. React reconciles by type and position, so switching from the resting
+   * line to "No matches" PATCHED THE SAME ELEMENT: the `animation` declaration
+   * was already on it and unchanged, so the browser had nothing to restart and
+   * the entrance never played. The state that most needs to announce itself —
+   * you typed something and it excluded everything — was the one that arrived
+   * without a frame of motion, and it only ever looked right on first mount,
+   * which is the one case nobody tests by typing.
+   *
+   * A distinct key per branch forces the unmount/mount, and a CSS animation on
+   * a freshly mounted node runs. It costs one string per branch.
+   */
   const panel = failure ? (
-    <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
+    <div key="failure" className="flex flex-col items-center gap-2 px-4 py-8 text-center">
       <span className="text-[13px] font-medium" style={{ color: "var(--mrd-fail)" }}>
         {failure.message}
       </span>
@@ -210,14 +236,25 @@ export function Search<Item>({
           type="button"
           onClick={failure.onRetry}
           className={`mt-1 rounded-mrd-ctl bg-mrd-solid px-2.5 py-1 text-[12.5px] font-medium text-mrd-on-solid transition-opacity hover:opacity-90 ${FOCUS}`}
-          style={{ transitionDuration: "var(--mrd-d-press)" }}
+          style={{
+            transitionDuration: "var(--mrd-d-press)",
+            /* The specular top edge a filled control carries in this system.
+               Without it the retry is a flat slab, which is the one control on
+               this panel that most needs to look pressable. */
+            boxShadow: "inset 0 1px 0 var(--mrd-sheen), var(--mrd-shadow-card)",
+          }}
         >
           Try again
         </button>
       )}
     </div>
   ) : items.length === 0 ? (
-    <div className="flex flex-col items-center gap-1.5 px-4 py-8 text-center">
+    <div
+      key="empty"
+      className="flex flex-col items-center gap-1.5 px-4 py-8 text-center"
+      /* The reference fades its empty panel in and the port had dropped it. */
+      style={{ animation: "mrd-fade-in var(--mrd-d-enter) var(--mrd-ease) both" }}
+    >
       <span
         aria-hidden
         className="mb-1 flex size-8 items-center justify-center rounded-mrd-ctl border border-mrd-line bg-mrd-sink text-mrd-mute"
@@ -233,7 +270,11 @@ export function Search<Item>({
      * the pool so a person knows whether what they want is even in scope, and
      * then gets out of the way of the grid it is sitting on top of.
      */
-    <div className="px-3 py-4 text-center">
+    <div
+      key="resting"
+      className="px-3 py-4 text-center"
+      style={{ animation: "mrd-fade-in var(--mrd-d-move) var(--mrd-ease) both" }}
+    >
       <span className="text-[12.5px] text-mrd-mute">
         Type to search {items.length === 1 ? `the 1 ${noun}` : `all ${items.length} ${many}`}.
       </span>
@@ -245,6 +286,7 @@ export function Search<Item>({
      * has a way back, so only the second one offers a button.
      */
     <div
+      key="no-matches"
       className="flex flex-col items-center gap-1.5 px-4 py-8 text-center"
       style={{ animation: "mrd-fade-in var(--mrd-d-enter) var(--mrd-ease) both" }}
     >
@@ -269,7 +311,7 @@ export function Search<Item>({
        by construction now: it renders only once somebody types and it stops at
        `maxResults`, which is five or six at both call sites. Lifting the cap
        grows the panel and the page scrolls, which is the one behaviour. */
-    <ul className="p-1">
+    <ul key="results" className="p-1">
       {shown.map((item, index) => (
         <li key={itemKey(item)}>
           <button
@@ -305,7 +347,25 @@ export function Search<Item>({
       data-mrd=""
       className="w-full overflow-hidden rounded-mrd-card border border-mrd-line bg-mrd-sheet"
     >
-      <div className="flex h-10 items-center gap-2 border-b border-mrd-line px-3">
+      {/*
+       * A LABEL, not a div, and it carries the reference's row hover.
+       *
+       * The reference paints the whole strip on hover, which is the right
+       * signal — the strip IS the field — but it draws it on an inert div, so
+       * the twelve pixels of padding and the magnifier light up and then do
+       * nothing when pressed. Nesting the input in a label makes that true
+       * instead of decorative: clicking anywhere on the strip, magnifier
+       * included, lands the caret. The input keeps its own `aria-label`, and the
+       * wrapper adds no second name because it holds no text of its own.
+       *
+       * `cursor-text` rather than the pointer the system gives `label[for]`,
+       * because what the strip does when pressed is put a caret in a field, and
+       * a hand cursor over a text field promises a click target instead.
+       */}
+      <label
+        className="flex h-10 cursor-text items-center gap-2 border-b border-mrd-line px-3 transition-colors hover:bg-mrd-hover"
+        style={{ transitionDuration: "var(--mrd-d-press)" }}
+      >
         <span className="text-mrd-mute">
           <MagnifierIcon />
         </span>
@@ -330,7 +390,16 @@ export function Search<Item>({
               setQuery("");
               inputRef.current?.focus();
             }}
-            className={`flex size-5.5 items-center justify-center rounded-full text-mrd-mute transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
+            /*
+             * `--mrd-lift`, not `--mrd-hover`. The reference fills this on hover
+             * at roughly 8% of its line colour; our hover token is 4.5% and was
+             * chosen to be almost imperceptible under a pointer, which is right
+             * for a full-width row and wrong for a 22px circle where it is the
+             * only thing saying the target was found. `lift` is the system's
+             * "this now has a control's face", and it steps clear of the sheet
+             * in both grounds.
+             */
+            className={`flex size-5.5 items-center justify-center rounded-full text-mrd-mute transition-colors hover:bg-mrd-lift hover:text-mrd-ink ${FOCUS}`}
             style={{
               transitionDuration: "var(--mrd-d-press)",
               animation: "mrd-fade-in var(--mrd-d-press) var(--mrd-ease) both",
@@ -350,7 +419,7 @@ export function Search<Item>({
             </svg>
           </button>
         )}
-      </div>
+      </label>
 
       {/*
        * Politely announced, not assertively. The count changing on every
@@ -372,7 +441,16 @@ export function Search<Item>({
 
       {withheld > 0 && (
         <div className="flex items-center justify-between gap-3 border-t border-mrd-line bg-mrd-sink px-3 py-2">
-          <span className="font-mrd-mono text-[12px] text-mrd-mute tabular-nums">
+          {/*
+           * A SENTENCE, so the sans face with tabular figures — not mono. The
+           * system's rule is that mono carries a number, a duration, an id or a
+           * timestamp and nothing else; a clause that merely contains figures is
+           * prose and setting it in mono makes the whole line read as machine
+           * output. `tabular-nums` is what keeps the digits from jittering as
+           * the count changes, and it is all that was ever needed here. This is
+           * the third time this exact defect has been found in this repo.
+           */}
+          <span className="text-[12px] text-mrd-mute tabular-nums">
             Showing {shown.length} of {matched.length}. {withheld} not shown.
           </span>
           <button

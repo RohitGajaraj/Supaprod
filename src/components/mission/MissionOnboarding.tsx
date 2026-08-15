@@ -82,10 +82,16 @@ export function MissionOnboarding() {
       style={{ background: "var(--ink-bg)", color: "var(--ink-body)" }}
     >
       <div className="w-full max-w-xl">
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em]" style={{ color: "var(--ink-subtle)" }}>
+        <p
+          className="font-mono text-[11px] uppercase tracking-[0.14em]"
+          style={{ color: "var(--ink-subtle)" }}
+        >
           Step one of one
         </p>
-        <h1 className="mt-3 text-[26px] font-medium leading-tight" style={{ color: "var(--ink-text)" }}>
+        <h1
+          className="mt-3 text-[26px] font-medium leading-tight"
+          style={{ color: "var(--ink-text)" }}
+        >
           What are you building?
         </h1>
         <p className="mt-2 text-[13.5px] leading-[1.55]" style={{ color: "var(--ink-subtle)" }}>

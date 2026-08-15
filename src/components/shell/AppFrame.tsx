@@ -217,25 +217,92 @@ const THREADS_PATHS: readonly string[] = ["/threads"];
  *  the row went dark on all three. Same defect, and it is fixed by the same
  *  field rather than by a second mechanism.
  */
+/*
+ * ── TWO TIERS, DECIDED 2026-08-15 ───────────────────────────────────────
+ *
+ * This was five equal rows. The founder's objection was that it read as a
+ * menu rather than as a place to work, and he is right: Crew and Engine room
+ * are not daily destinations, they are places you VISIT to configure
+ * something. Sitting them at the same altitude as Today told the reader all
+ * five mattered equally, every day, which is false.
+ *
+ * PRIMARY is where the work happens. SECONDARY is everything else that still
+ * deserves a named row rather than an unlabelled glyph in the foot — which is
+ * the other half of the complaint, and the reason these did not simply move
+ * down there.
+ *
+ * RUNS STAYS PRIMARY, against the founder's instinct, and this is the one
+ * place I am pushing back. His reasoning was that the strip already covers the
+ * stations so the row is redundant. The strip navigates to a STATION; `/runs`
+ * lists RUNS — one piece of work walking all seven. Those are perpendicular
+ * axes. Remove the row and there is no door left to the list of work items,
+ * only doors to stages. That confusion has a history here: it is what put
+ * Build's engine at /runs and left the real one unbuilt.
+ */
 const RAIL = [
-  { to: "/today", label: "Today", Icon: IconToday, count: "gates", owns: APPROVALS_PATHS },
+  {
+    to: "/today",
+    label: "Today",
+    Icon: IconToday,
+    count: "gates",
+    owns: APPROVALS_PATHS,
+    tier: "primary",
+  },
   // Runs points at /runs, NOT at /m. /m is Mission Control, the one surface the
   // rebuild never ported, so the rail's own row for the engine's spine was
   // landing on the legacy five-region shell. That is the founder's "the run
   // section is still rendering in the legacy design", and this line is where it
   // started. /runs is the same surface the route used to call /build, renamed
   // because a run is the whole lifecycle and never was the build leg.
-  { to: "/runs", label: "Runs", Icon: IconRuns, count: "runs", owns: LOOP_STATIONS },
-  { to: "/brain", label: "Brain", Icon: IconBrain, count: null, owns: THREADS_PATHS },
-  { to: "/crew", label: "Crew", Icon: IconCrew, count: null, owns: BOUNDARY_PATHS },
+  {
+    to: "/runs",
+    label: "Runs",
+    Icon: IconRuns,
+    count: "runs",
+    owns: LOOP_STATIONS,
+    tier: "primary",
+  },
+  {
+    to: "/brain",
+    label: "Brain",
+    Icon: IconBrain,
+    count: null,
+    owns: THREADS_PATHS,
+    tier: "primary",
+  },
+  {
+    to: "/crew",
+    label: "Crew",
+    Icon: IconCrew,
+    count: null,
+    owns: BOUNDARY_PATHS,
+    tier: "secondary",
+  },
   {
     to: "/engine-room",
     label: "Engine room",
     Icon: IconEngine,
     count: null,
     owns: ENGINE_ROOM_PATHS,
+    tier: "secondary",
   },
 ] as const;
+
+/*
+ * ONE LITERAL, A `tier` FIELD, NOT TWO ARRAYS — and the colocated guards are
+ * the reason. `AppFrame.rail-covers-keys.test.ts` and the nav-model suite read
+ * this block out of the SOURCE TEXT, by finding `const RAIL = [` and slicing to
+ * `] as const;`. Splitting the rail into `RAIL_PRIMARY` and `RAIL_SECONDARY`
+ * with `const RAIL = [...a, ...b]` left that marker matching a block containing
+ * no rows at all, so three guards that enforce "every rail row has a key" and
+ * "no row's ownership swallows another's door" quietly passed over an empty
+ * list. They failed loudly instead, which is exactly what they are for.
+ *
+ * Keeping one literal keeps those guards reading the real rows, and the tier is
+ * just a field the render groups on.
+ */
+const RAIL_PRIMARY = RAIL.filter((r) => r.tier === "primary");
+const RAIL_SECONDARY = RAIL.filter((r) => r.tier === "secondary");
 
 /** True when `path` is `base` or lives underneath it, so /runs/<id> and
  *  /plan/spec/<id> keep the row that owns them lit. The same shape as
@@ -1222,32 +1289,46 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
         <div className="sp-mid">
           <aside className="sp-rail">
             <nav className="sp-nav" aria-label="Main">
-              {RAIL.map(({ to, label, Icon, count }) => {
-                const n = count ? counts[count] : 0;
-                // The key this row is actually bound to, read off the binding
-                // itself. "" for a row the keyboard does not reach.
-                const shortcut = doorKey(to);
-                // THE ROW THAT STAYS LIT. `activeProps` only knows this row's
-                // own route, so pressing 3 for Plan - or opening /govern - used
-                // to leave the whole rail dark. `railOwnerOf` answers the wider
-                // question the rail is actually asking, "which section am I
-                // in", and it is written on the same attribute the CSS already
-                // draws so nothing about the look is invented here.
-                // "page" is a promise that THIS row is the page you are on, so a
-                // row that is merely the section containing it says "true"
-                // instead. Both are drawn identically (shell.css matches the two
-                // tokens), so the rail looks the same and stops telling a screen
-                // reader you are on Runs when you are standing on Plan.
-                const owner = railOwnerOf(pathname) === to;
-                const current = owner ? (under(pathname, to) ? "page" : "true") : undefined;
-                return (
-                  <Link
-                    key={to}
-                    to={to}
-                    className="sp-navrow"
-                    activeProps={{ "aria-current": "page" }}
-                    aria-current={current}
-                    /* The name carries the key, and that is not decoration. In
+              {[
+                { rows: RAIL_PRIMARY, divider: false },
+                /*
+                 * The divider is the whole point of the second tier: it says
+                 * "these are a different kind of thing" without spending a
+                 * word, a colour or an indent on saying it. Hidden when the
+                 * rail is narrow, where there are no labels to separate and a
+                 * rule between two icons reads as damage.
+                 */
+                { rows: RAIL_SECONDARY, divider: true },
+              ].flatMap(({ rows, divider }) => [
+                divider && !narrow ? (
+                  <span key="sp-tier-rule" aria-hidden className="sp-navrule" />
+                ) : null,
+                ...rows.map(({ to, label, Icon, count }) => {
+                  const n = count ? counts[count] : 0;
+                  // The key this row is actually bound to, read off the binding
+                  // itself. "" for a row the keyboard does not reach.
+                  const shortcut = doorKey(to);
+                  // THE ROW THAT STAYS LIT. `activeProps` only knows this row's
+                  // own route, so pressing 3 for Plan - or opening /govern - used
+                  // to leave the whole rail dark. `railOwnerOf` answers the wider
+                  // question the rail is actually asking, "which section am I
+                  // in", and it is written on the same attribute the CSS already
+                  // draws so nothing about the look is invented here.
+                  // "page" is a promise that THIS row is the page you are on, so a
+                  // row that is merely the section containing it says "true"
+                  // instead. Both are drawn identically (shell.css matches the two
+                  // tokens), so the rail looks the same and stops telling a screen
+                  // reader you are on Runs when you are standing on Plan.
+                  const owner = railOwnerOf(pathname) === to;
+                  const current = owner ? (under(pathname, to) ? "page" : "true") : undefined;
+                  return (
+                    <Link
+                      key={to}
+                      to={to}
+                      className="sp-navrow"
+                      activeProps={{ "aria-current": "page" }}
+                      aria-current={current}
+                      /* The name carries the key, and that is not decoration. In
                        the narrow rail this string IS the tooltip (shell.css
                        draws it from attr(aria-label)), so collapsing the rail
                        stops costing you the hint instead of hiding it, and a
@@ -1264,18 +1345,21 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                        scheme the chord replaced. "g then t" rather than "g t":
                        spoken, the space is inaudible and the two would run
                        together into one word. */
-                    aria-label={
-                      shortcut ? `${label}, shortcut ${NAV_CHORD_PREFIX} then ${shortcut}` : label
-                    }
-                  >
-                    <Icon />
-                    <span className="sp-navlabel">{label}</span>
-                    {count && n > 0 ? (
-                      <span className="sp-navcount" data-hot={count === "gates" ? "true" : "false"}>
-                        {n}
-                      </span>
-                    ) : null}
-                    {/* THE HINT, on the door it opens.
+                      aria-label={
+                        shortcut ? `${label}, shortcut ${NAV_CHORD_PREFIX} then ${shortcut}` : label
+                      }
+                    >
+                      <Icon />
+                      <span className="sp-navlabel">{label}</span>
+                      {count && n > 0 ? (
+                        <span
+                          className="sp-navcount"
+                          data-hot={count === "gates" ? "true" : "false"}
+                        >
+                          {n}
+                        </span>
+                      ) : null}
+                      {/* THE HINT, on the door it opens.
                         `sp-navcount` is worn for ONE property and it is not
                         colour: it is the only selector in shell.css that drops
                         a rail row's trailing text at 64px and under 900px, and
@@ -1284,24 +1368,25 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                         keycap's own look is the inline style; the class is the
                         responsive rule. aria-hidden because the accessible
                         name above already says it, in better words. */}
-                    {shortcut ? (
-                      /* THE PREFIX IS DRAWN, not assumed. A keycap reading a
-                       * bare "d" would be a promise the keyboard does not
-                       * keep: `d` alone does nothing, `g` then `d` opens
-                       * Discover. Showing both is also what teaches the chord
-                       * without a tour, the way Gmail's "g i" does. */
-                      <kbd
-                        className="sp-navcount sp-navkey"
-                        data-shortcut={`${NAV_CHORD_PREFIX} ${shortcut}`}
-                        aria-hidden="true"
-                        style={KEYCAP}
-                      >
-                        {NAV_CHORD_PREFIX} {shortcut}
-                      </kbd>
-                    ) : null}
-                  </Link>
-                );
-              })}
+                      {shortcut ? (
+                        /* THE PREFIX IS DRAWN, not assumed. A keycap reading a
+                         * bare "d" would be a promise the keyboard does not
+                         * keep: `d` alone does nothing, `g` then `d` opens
+                         * Discover. Showing both is also what teaches the chord
+                         * without a tour, the way Gmail's "g i" does. */
+                        <kbd
+                          className="sp-navcount sp-navkey"
+                          data-shortcut={`${NAV_CHORD_PREFIX} ${shortcut}`}
+                          aria-hidden="true"
+                          style={KEYCAP}
+                        >
+                          {NAV_CHORD_PREFIX} {shortcut}
+                        </kbd>
+                      ) : null}
+                    </Link>
+                  );
+                }),
+              ])}
             </nav>
             <div className="sp-railfoot">
               {/* THE BOARD, one click from anywhere (founder ruling

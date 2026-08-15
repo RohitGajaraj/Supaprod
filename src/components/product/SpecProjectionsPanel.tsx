@@ -204,9 +204,7 @@ export function SpecProjectionsPanel({
       </div>
 
       <div style={{ marginBottom: 16 }}>{stamp}</div>
-      <p
-        style={{ color: "var(--text-muted)", lineHeight: 1.6, margin: "0 0 18px" }}
-      >
+      <p style={{ color: "var(--text-muted)", lineHeight: 1.6, margin: "0 0 18px" }}>
         {set.drift.detail}
       </p>
 

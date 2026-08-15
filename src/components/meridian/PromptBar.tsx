@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 /*
@@ -111,6 +111,17 @@ const CONTROL_GAP = 4;
 const INPUT_MIN_H = 28;
 const INPUT_MAX_H = 100;
 
+/*
+ * The composer clips itself — it has to, because it carries a full radius in
+ * the pill variant and its controls sit six pixels from that curve. An outset
+ * focus ring on a control that close to a clipping rounded edge comes back with
+ * its outer half sheared off, which reads as a broken border rather than as
+ * focus. `mrd-focus-inset` draws the ring inside the control instead, which is
+ * exactly what that class is for.
+ */
+const FOCUS_INSET =
+  "mrd-focus-inset focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
+
 export function PromptBar({
   sources = [],
   commands = [],
@@ -163,6 +174,7 @@ export function PromptBar({
   const [modelBox, setModelBox] = useState<{ top: number; height: number } | null>(null);
   const [modelHovered, setModelHovered] = useState<number | null>(null);
 
+  const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const measureRef = useRef<HTMLSpanElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
@@ -173,6 +185,16 @@ export function PromptBar({
 
   const model = models.find((m) => m.key === modelKey) ?? models[0];
   const modelIndex = models.findIndex((m) => m.key === model?.key);
+
+  /*
+   * The menu is a listbox the textarea drives, so the two need to be joined by
+   * id: without `aria-activedescendant` a screen reader hears nothing at all as
+   * the arrow keys walk the rows, and the field is announced as a plain
+   * multi-line text box with a menu nobody mentioned. `useId` rather than a
+   * counter, because two composers on one page must not collide.
+   */
+  const listId = useId();
+  const rowId = (index: number) => `${listId}-row-${index}`;
 
   const token = dismissed ? null : parseToken(draft);
   const menu: "at" | "slash" | null = plusOpen ? "at" : (token?.kind ?? null);
@@ -210,6 +232,44 @@ export function PromptBar({
   useEffect(() => {
     if (!modelOpen) setModelHovered(null);
   }, [modelOpen]);
+
+  /*
+   * ── A MENU CLOSES WHEN YOU LOOK AWAY FROM IT ────────────────────────────
+   * Neither menu had any way out except picking a row or pressing the control
+   * that opened it. The reference can live with that because it is a demo on a
+   * page with nothing else on it; in a pane, a menu that survives a click on
+   * the document behind it is a panel of stray buttons floating over whatever
+   * the reader moved on to.
+   *
+   * Escape is handled here as well as in the textarea's own key handler, and
+   * that is not a duplicate: the textarea's copy only fires while the caret is
+   * in it, and once someone has tabbed into the menu itself there is nothing
+   * listening. Focus returns to the field rather than being dropped on the
+   * body, because a keyboard user who loses the ring loses their place.
+   */
+  useEffect(() => {
+    if (!menu && !modelOpen) return;
+    const dismiss = () => {
+      setDismissed(true);
+      setPlusOpen(false);
+      setModelOpen(false);
+    };
+    function onPointerDown(event: PointerEvent) {
+      if (rootRef.current?.contains(event.target as Node)) return;
+      dismiss();
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      dismiss();
+      inputRef.current?.focus();
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [menu, modelOpen]);
 
   /*
    * Move the text onto its own line once it outgrows the inline slot, then let
@@ -287,8 +347,18 @@ export function PromptBar({
           setPlusOpen((open) => !open);
           inputRef.current?.focus();
         }}
-        className={`flex size-7 shrink-0 items-center justify-center text-mrd-mute transition-[background-color,color,transform] duration-150 hover:bg-mrd-hover hover:text-mrd-ink active:scale-[0.94] ${btnRadius} ${
-          plusOpen ? "bg-mrd-hover text-mrd-ink" : ""
+        /*
+         * HELD OPEN IS NOT HOVER. This wore `--mrd-hover` while its menu was
+         * open — a 4.5% wash tuned to be almost imperceptible under a pointer —
+         * so the one control holding a panel open looked exactly like the one
+         * the mouse happened to be resting on. `--mrd-select` is the token for
+         * a held-open toggle, and it is the difference between a button that
+         * looks pressed and a button that looks brushed.
+         */
+        className={`flex size-7 shrink-0 items-center justify-center transition-[background-color,color,transform] duration-150 active:scale-[0.94] ${btnRadius} ${FOCUS_INSET} ${
+          plusOpen
+            ? "bg-mrd-select text-mrd-ink"
+            : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-ink"
         }`}
       >
         <Icon size={16} strokeWidth={2}>
@@ -309,7 +379,14 @@ export function PromptBar({
             setPlusOpen(false);
             setModelOpen((open) => !open);
           }}
-          className={`flex h-7 shrink-0 items-center gap-1 px-1.5 text-[12px] font-medium text-mrd-body transition-colors duration-150 hover:bg-mrd-hover hover:text-mrd-ink ${btnRadius}`}
+          /* Open is a held state here too, and it takes the same stop the plus
+             button takes, so the two never disagree about what "open" looks
+             like inside one composer. */
+          className={`flex h-7 shrink-0 items-center gap-1 px-1.5 text-[12px] font-medium transition-colors duration-150 ${btnRadius} ${FOCUS_INSET} ${
+            modelOpen
+              ? "bg-mrd-select text-mrd-ink"
+              : "text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
+          }`}
         >
           {model.name}
           <span className="text-mrd-mute">
@@ -326,9 +403,17 @@ export function PromptBar({
           aria-label={listening ? "Stop dictation" : "Start dictation"}
           aria-pressed={listening}
           onClick={onDictate}
-          className={`flex size-7 shrink-0 items-center justify-center transition-[background-color,color,transform] duration-150 active:scale-[0.94] ${btnRadius} ${
+          /*
+           * A LIVE MIC IS A MACHINE WORKING, AND IT HAS TO LOOK LIKE ONE. The
+           * pressed state was `--mrd-hover`, which is the wash a pointer leaves
+           * behind: the single loudest state this control has was drawn at 4.5%
+           * and vanished on the dark ground. It now takes a tint of the agent
+           * hue, which is the meaning it already carries in its glyph colour —
+           * something is listening, and no person is being asked for anything.
+           */
+          className={`flex size-7 shrink-0 items-center justify-center transition-[background-color,color,transform] duration-150 active:scale-[0.94] ${btnRadius} ${FOCUS_INSET} ${
             listening
-              ? "bg-mrd-hover text-mrd-agent"
+              ? "bg-mrd-agent/15 text-mrd-agent"
               : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-ink"
           }`}
         >
@@ -366,8 +451,15 @@ export function PromptBar({
         aria-label="Send"
         disabled={!canSend}
         onClick={send}
-        className={`flex size-7 shrink-0 items-center justify-center transition-[background-color,color,transform] duration-200 enabled:active:scale-[0.94] ${btnRadius} ${
-          canSend ? "bg-mrd-solid text-mrd-on-solid" : "bg-mrd-lift text-mrd-faint"
+        className={`flex size-7 shrink-0 items-center justify-center transition-[background-color,color,transform] duration-200 enabled:active:scale-[0.94] ${btnRadius} ${FOCUS_INSET} ${
+          canSend
+            ? /* The live face takes the specular top edge every filled control
+                 in this system carries, which is what makes it read as a raised
+                 object rather than a lighter square. The dead face deliberately
+                 does not: it is not a dimmed copy of the live button, it is a
+                 different object, sitting IN the composer rather than on it. */
+              "bg-mrd-solid text-mrd-on-solid shadow-[inset_0_1px_0_var(--mrd-sheen)]"
+            : "bg-mrd-lift text-mrd-faint"
         }`}
       >
         <Icon size={16} strokeWidth={2.4}>
@@ -378,7 +470,12 @@ export function PromptBar({
   );
 
   return (
-    <div data-mrd="" className="w-full" style={maxWidth === undefined ? undefined : { maxWidth }}>
+    <div
+      data-mrd=""
+      ref={rootRef}
+      className="w-full"
+      style={maxWidth === undefined ? undefined : { maxWidth }}
+    >
       {/* The composer is the anchor. Menus are measured off its edge. */}
       <div className="relative">
         {menu && (
@@ -387,13 +484,30 @@ export function PromptBar({
             className={`absolute inset-x-0 z-10 rounded-mrd-ctl bg-mrd-float p-1 ${menuPos}`}
             style={{
               boxShadow: "var(--mrd-shadow-float)",
-              animation: "mrd-fade-up var(--mrd-d-move) var(--mrd-ease) both",
+              /*
+               * `pop-in` scales from 98, so the menu grows out of the composer
+               * edge it is anchored to — which is the only reason the
+               * `transformOrigin` below means anything. Set against `fade-up`,
+               * as this was, the origin was decorating an animation with no
+               * transform in it.
+               */
+              animation: "mrd-pop-in var(--mrd-d-move) var(--mrd-ease) both",
               transformOrigin: menuOrigin,
             }}
           >
+            {/*
+             * THE HIGHLIGHT IS THE CURSOR, NOT A HOVER WASH. It was painted
+             * `--mrd-hover`, 4.5%, which is deliberately almost imperceptible —
+             * and this bar is not reporting where the pointer is resting, it is
+             * reporting the row that Enter will pick, moved by the arrow keys
+             * with no pointer involved at all. `--mrd-select` is the stop for a
+             * thing that has been picked, solved for both grounds. It still
+             * waits for `engaged`, so nothing is preselected before the reader
+             * has hovered or arrowed: the strength changed, not the timing.
+             */}
             <span
               aria-hidden
-              className="pointer-events-none absolute inset-x-1 rounded-mrd-xs bg-mrd-hover"
+              className="pointer-events-none absolute inset-x-1 rounded-mrd-xs bg-mrd-select"
               style={{
                 top: rowBox?.top ?? 0,
                 height: rowBox?.height ?? 0,
@@ -402,61 +516,77 @@ export function PromptBar({
                   "top var(--mrd-d-move) var(--mrd-ease), height var(--mrd-d-move) var(--mrd-ease), opacity 150ms ease",
               }}
             />
-            {rows.map((row, i) => {
-              const source = menu === "at" ? sources.find((s) => s.key === row.key) : undefined;
-              return (
-                <button
-                  key={row.key}
-                  type="button"
-                  ref={(el) => {
-                    rowRefs.current[i] = el;
-                  }}
-                  onMouseDown={(event) => event.preventDefault()}
-                  onMouseEnter={() => {
-                    setActive(i);
-                    setEngaged(true);
-                  }}
-                  onClick={() => pick(row)}
-                  className="relative z-10 flex h-9 w-full items-center gap-2.5 rounded-mrd-xs px-2 text-left"
-                >
-                  {source?.icon && (
-                    <span className="flex size-5 shrink-0 items-center justify-center text-mrd-body">
-                      {source.icon}
+            {/*
+             * The listbox wraps the ROWS ONLY, not the whole panel. A listbox
+             * may contain options and nothing else, and the panel also holds
+             * the empty line and the footer hint below — put the role on the
+             * panel and those two become stray text inside a list of choices,
+             * which is how a screen reader ends up reading a hint as an option.
+             * The wrapper adds no box of its own, so every measurement the
+             * gliding highlight takes off `offsetTop` is unchanged.
+             */}
+            <div id={listId} role="listbox" aria-label={menu === "at" ? "Sources" : "Commands"}>
+              {rows.map((row, i) => {
+                const source = menu === "at" ? sources.find((s) => s.key === row.key) : undefined;
+                return (
+                  <button
+                    key={row.key}
+                    id={rowId(i)}
+                    role="option"
+                    aria-selected={i === active}
+                    type="button"
+                    ref={(el) => {
+                      rowRefs.current[i] = el;
+                    }}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onMouseEnter={() => {
+                      setActive(i);
+                      setEngaged(true);
+                    }}
+                    onClick={() => pick(row)}
+                    className="relative z-10 flex h-9 w-full items-center gap-2.5 rounded-mrd-xs px-2 text-left"
+                  >
+                    {source?.icon && (
+                      <span className="flex size-5.5 shrink-0 items-center justify-center text-mrd-body">
+                        {source.icon}
+                      </span>
+                    )}
+                    <span className="shrink-0 text-[12.5px] font-medium text-mrd-ink">
+                      {row.name}
                     </span>
-                  )}
-                  <span className="shrink-0 text-[12.5px] font-medium text-mrd-ink">
-                    {row.name}
-                  </span>
-                  {row.desc && (
-                    <span className="min-w-0 flex-1 truncate text-[12px] text-mrd-mute">
-                      {row.desc}
-                    </span>
-                  )}
-                  {/*
-                   * "Connect" is a job only a person can do, which is exactly
-                   * what `--mrd-you` means everywhere else in this product, so
-                   * it is used with no reinterpretation. "Connected" is an
-                   * outcome and asks for nothing, so it hands off to the
-                   * outcome hue rather than staying in the person family.
-                   */}
-                  {source?.connect && (
-                    <span
-                      role="button"
-                      tabIndex={-1}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onConnect?.(source);
-                      }}
-                      className={`ml-auto shrink-0 text-[12px] font-medium transition-colors duration-100 ${
-                        source.connect === "done" ? "text-mrd-pass" : "text-mrd-you hover:underline"
-                      }`}
-                    >
-                      {source.connect === "done" ? "Connected" : "Connect"}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+                    {row.desc && (
+                      <span className="min-w-0 flex-1 truncate text-[12px] text-mrd-mute">
+                        {row.desc}
+                      </span>
+                    )}
+                    {/*
+                     * "Connect" is a job only a person can do, which is exactly
+                     * what `--mrd-you` means everywhere else in this product, so
+                     * it is used with no reinterpretation. "Connected" is an
+                     * outcome and asks for nothing, so it hands off to the
+                     * outcome hue rather than staying in the person family.
+                     */}
+                    {source?.connect && (
+                      <span
+                        role="button"
+                        tabIndex={-1}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onConnect?.(source);
+                        }}
+                        className={`ml-auto shrink-0 text-[12px] font-medium transition-colors duration-100 ${
+                          source.connect === "done"
+                            ? "text-mrd-pass"
+                            : "text-mrd-you hover:underline"
+                        }`}
+                      >
+                        {source.connect === "done" ? "Connected" : "Connect"}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
 
             {/*
              * EMPTY, which on a fresh workspace is what both menus look like:
@@ -488,17 +618,26 @@ export function PromptBar({
             className={`absolute right-0 z-10 w-44 rounded-mrd-ctl bg-mrd-float p-1 ${menuPos}`}
             style={{
               boxShadow: "var(--mrd-shadow-float)",
-              animation: "mrd-fade-up var(--mrd-d-move) var(--mrd-ease) both",
+              animation: "mrd-pop-in var(--mrd-d-move) var(--mrd-ease) both",
               transformOrigin: menuPlacement === "above" ? "bottom right" : "top right",
             }}
           >
+            {/*
+             * This highlight now stands on the CURRENT model the moment the
+             * menu opens, and glides to whatever is hovered. It used to be
+             * invisible until a pointer arrived, which meant opening the menu
+             * from the keyboard showed nothing at all about where you already
+             * were — the tick on the right was the only clue, and it is nine
+             * pixels wide. Same `--mrd-select` stop as the source menu, so one
+             * composer has one idea of what "this row" looks like.
+             */}
             <span
               aria-hidden
-              className="pointer-events-none absolute inset-x-1 rounded-mrd-xs bg-mrd-hover"
+              className="pointer-events-none absolute inset-x-1 rounded-mrd-xs bg-mrd-select"
               style={{
                 top: modelBox?.top ?? 0,
                 height: modelBox?.height ?? 0,
-                opacity: modelBox && modelHovered !== null ? 1 : 0,
+                opacity: modelBox ? 1 : 0,
                 transition:
                   "top var(--mrd-d-move) var(--mrd-ease), height var(--mrd-d-move) var(--mrd-ease), opacity 150ms ease",
               }}
@@ -517,7 +656,7 @@ export function PromptBar({
                   setModelOpen(false);
                   inputRef.current?.focus();
                 }}
-                className="relative z-10 flex h-7 w-full items-center gap-2 rounded-mrd-xs px-2 text-left"
+                className="relative z-10 flex h-7.5 w-full items-center gap-2 rounded-mrd-xs px-2 text-left"
               >
                 <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-mrd-ink">
                   {m.name}
@@ -552,10 +691,21 @@ export function PromptBar({
               {attachments.map((file, i) => (
                 <span
                   key={`${file}-${i}`}
-                  className={`flex h-6 items-center gap-1.5 bg-mrd-sink py-1 pr-1 pl-1.5 text-[11.5px] text-mrd-body ${
+                  /*
+                   * The hairline is drawn as an inset shadow rather than a
+                   * border so it costs no layout: the chip is 26px because the
+                   * controls beside it are, and a 1px border would make it 28
+                   * and break that alignment. Without an edge of some kind the
+                   * chip is a fill one step off the composer's own — legible on
+                   * neither ground at a glance, which is what the reference's
+                   * hairline is there to prevent.
+                   */
+                  className={`flex h-6.5 items-center gap-1.5 bg-mrd-sink py-1 pr-1 pl-1.5 text-[11.5px] text-mrd-body shadow-[inset_0_0_0_1px_var(--mrd-line)] ${
                     pill ? "rounded-full" : "rounded-mrd-chip"
                   }`}
-                  style={{ animation: "mrd-fade-up var(--mrd-d-move) var(--mrd-ease) both" }}
+                  /* A file appearing on the composer is something arriving that
+                     was not there, which is the case `pop-in` exists for. */
+                  style={{ animation: "mrd-pop-in var(--mrd-d-move) var(--mrd-ease) both" }}
                 >
                   <Icon size={12}>
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -567,7 +717,16 @@ export function PromptBar({
                       type="button"
                       aria-label={`Remove ${file}`}
                       onClick={() => onRemoveAttachment(i)}
-                      className={`flex size-4 items-center justify-center text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-ink ${
+                      /*
+                       * A 16px target needs a hover it can actually show. At
+                       * `--mrd-hover`'s 4.5% over an already recessed chip
+                       * there was nothing to see, and this is the control that
+                       * throws a file away — it has to acknowledge the pointer
+                       * before the click. `--mrd-line` is the weakest stop that
+                       * reads at this size, and the reference reaches for its
+                       * own line colour here for the same reason.
+                       */
+                      className={`flex size-4 items-center justify-center text-mrd-mute transition-colors duration-100 hover:bg-mrd-line hover:text-mrd-ink ${FOCUS_INSET} ${
                         pill ? "rounded-full" : "rounded-mrd-xs"
                       }`}
                     >
@@ -631,6 +790,20 @@ export function PromptBar({
               }}
               placeholder={listening ? "Listening" : placeholder}
               aria-label="Prompt"
+              /*
+               * The field is the menu's keyboard: the arrow keys move a
+               * selection it owns and never leaves. That is a combobox, and
+               * saying so is what makes the row under the cursor audible —
+               * `aria-activedescendant` is the only mechanism that announces a
+               * selection which lives somewhere other than the focused element.
+               * Without these four attributes the menu is, to a screen reader,
+               * a panel of buttons that nobody mentioned appearing.
+               */
+              role="combobox"
+              aria-expanded={menu !== null}
+              aria-controls={menu ? listId : undefined}
+              aria-activedescendant={menu && rows.length > 0 ? rowId(active) : undefined}
+              aria-autocomplete="list"
               className={`min-h-7 min-w-0 resize-none bg-transparent px-1 py-[5px] text-[13px] leading-[18px] text-mrd-ink outline-none [overflow-wrap:anywhere] placeholder:text-mrd-mute ${
                 expanded ? "order-1 w-full" : "order-2 w-full flex-1"
               }`}

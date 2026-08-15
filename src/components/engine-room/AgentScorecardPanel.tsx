@@ -40,13 +40,9 @@ function RateStat({
   const p = pct(fraction);
   return (
     <div style={{ minWidth: 128, flex: "1 1 128px" }}>
-      <div style={{ fontFamily: "var(--font-mono)", color: "var(--text-subtle)" }}>
-        {label}
-      </div>
+      <div style={{ fontFamily: "var(--font-mono)", color: "var(--text-subtle)" }}>{label}</div>
       {p == null ? (
-        <div style={{ color: "var(--text-subtle)", marginTop: 3 }}>
-          no history yet
-        </div>
+        <div style={{ color: "var(--text-subtle)", marginTop: 3 }}>no history yet</div>
       ) : (
         <>
           <div
@@ -111,9 +107,7 @@ function ToolChips({ tools }: { tools: ToolRecord[] }) {
         </span>
       ))}
       {extra > 0 ? (
-        <span style={{ color: "var(--text-subtle)", alignSelf: "center" }}>
-          +{extra} more
-        </span>
+        <span style={{ color: "var(--text-subtle)", alignSelf: "center" }}>+{extra} more</span>
       ) : null}
     </div>
   );
@@ -133,9 +127,7 @@ function ScorecardRow({ card }: { card: AgentScorecard }) {
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         <AgentMark slug={card.slug} size={26} />
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontWeight: 560, color: hue }}>
-            {agentDisplayName(card.slug)}
-          </div>
+          <div style={{ fontWeight: 560, color: hue }}>{agentDisplayName(card.slug)}</div>
           {stationLabel ? (
             <div
               style={{
@@ -208,14 +200,10 @@ export function AgentScorecardPanel() {
       </p>
 
       {query.isLoading ? (
-        <div style={{ color: "var(--text-subtle)", marginTop: 16 }}>
-          Reading the record...
-        </div>
+        <div style={{ color: "var(--text-subtle)", marginTop: 16 }}>Reading the record...</div>
       ) : query.isError ? (
         <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ color: "var(--text-body)" }}>
-            Could not load the scorecard.
-          </span>
+          <span style={{ color: "var(--text-body)" }}>Could not load the scorecard.</span>
           <button
             type="button"
             onClick={() => void query.refetch()}

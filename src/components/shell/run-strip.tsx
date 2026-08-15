@@ -132,7 +132,20 @@ import { WorkspaceSpine } from "./use-spine-strip";
  * not started. Rendering them the same way would tell you a run is further
  * along than it is.
  */
-export type RunStageState = "done" | "working" | "gate" | "next" | "quiet";
+/*
+ * `held` and `failed` were added 2026-08-15, and they close a real hole rather
+ * than adding decoration. The strip used to report only three things — a gate,
+ * something running, and a bare count — so a station holding five QUEUED runs
+ * and a station holding five FAILED ones both read "5 runs", in the same
+ * neutral, as a station holding five healthy ones. Two different bad states
+ * were wearing the good state's clothes.
+ *
+ *   held    stopped, and NOT on you: queued, waiting on a condition rather
+ *           than a decision. Amber. This is the most common real state in the
+ *           workspace and it had no voice at all.
+ *   failed  an outcome. Red. It never surfaced here either.
+ */
+export type RunStageState = "done" | "working" | "gate" | "held" | "failed" | "next" | "quiet";
 
 export type RunStage = {
   station: AgentStation;

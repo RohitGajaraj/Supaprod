@@ -100,8 +100,20 @@ export function useSpineStrip(active: AgentStation | null): void {
     // claim, not a loading state.
     if (!rows) return null;
 
-    const tally = new Map<AgentStation, { total: number; working: number; gate: number }>();
-    for (const st of AGENT_STATION_ORDER) tally.set(st, { total: 0, working: 0, gate: 0 });
+    /*
+     * `held` and `failed` are counted here for the first time. `runState` has
+     * always returned five values and this tally read two of them, so a queued
+     * run and a failed run both fell through to the plain total and the chip
+     * said "5 runs" — the same words, in the same neutral, as five healthy
+     * ones. A station full of failures reading as a station full of work is
+     * the same class of lie as a fabricated count.
+     */
+    const tally = new Map<
+      AgentStation,
+      { total: number; working: number; gate: number; held: number; failed: number }
+    >();
+    for (const st of AGENT_STATION_ORDER)
+      tally.set(st, { total: 0, working: 0, gate: 0, held: 0, failed: 0 });
     for (const s of rows) {
       const bucket = s.station ? tally.get(s.station) : undefined;
       if (!bucket) continue;
@@ -109,10 +121,16 @@ export function useSpineStrip(active: AgentStation | null): void {
       const state = runState(s);
       if (state === "working") bucket.working += 1;
       if (state === "gate") bucket.gate += 1;
+      /* Queued is "stopped, and not on you": it is waiting on a condition —
+         a source, a worker, capacity — never on a decision. That is exactly
+         the amber role, and it is why this is `held` rather than `queued`
+         here: the chip names what the reader experiences, not the enum. */
+      if (state === "queued") bucket.held += 1;
+      if (state === "stopped") bucket.failed += 1;
     }
 
     return AGENT_STATION_ORDER.map((station) => {
-      const b = tally.get(station) ?? { total: 0, working: 0, gate: 0 };
+      const b = tally.get(station) ?? { total: 0, working: 0, gate: 0, held: 0, failed: 0 };
       const isLearn = station === "learn";
       // For Learn station, add pending outcomes to the note
       const learnExtra =
@@ -136,22 +154,49 @@ export function useSpineStrip(active: AgentStation | null): void {
       // "9 clusters are waiting on a call". Both numbers were right about
       // different objects, and with the same six words between them the screen
       // read as a contradiction. Saying "runs" costs one word and removes it.
+      /*
+       * ONE LINE, AND IT IS THE MOST URGENT TRUE THING. The order below is the
+       * order a reader needs, not the order the enum happens to be in:
+       *
+       *   waiting on you   a person is blocking it. Nothing outranks this,
+       *                    because the strip exists for that person.
+       *   failed           an outcome, and one somebody has to look at. It
+       *                    beats "running" because a station that is both
+       *                    running something and has broken something needs
+       *                    the breakage said out loud.
+       *   running          a machine is working. Ambient, not urgent.
+       *   held             stopped, waiting on a condition rather than a
+       *                    decision. Said plainly so nobody hunts for a button.
+       *   a count          present and idle.
+       *   nothing          empty, and deliberately blank — founder, 2026-07-30:
+       *                    "why do we need to display 'none' when nothing is
+       *                    pending". The chip's muted styling already says it.
+       */
+      const runWord = (n: number) => (n === 1 ? "run" : "runs");
       const note = b.gate
-        ? `${b.gate} ${b.gate === 1 ? "run" : "runs"} waiting on you`
-        : b.working
-          ? `${b.working} running`
-          : b.total
-            ? `${b.total} ${b.total === 1 ? "run" : "runs"}${learnExtra}`
-            : isLearn && pendingCount > 0
-              ? `${pendingCount} ${pendingCount === 1 ? "outcome" : "outcomes"} to record`
-              : "";
+        ? `${b.gate} ${runWord(b.gate)} waiting on you`
+        : b.failed
+          ? `${b.failed} failed`
+          : b.working
+            ? `${b.working} running`
+            : b.held
+              ? `${b.held} held`
+              : b.total
+                ? `${b.total} ${runWord(b.total)}${learnExtra}`
+                : isLearn && pendingCount > 0
+                  ? `${pendingCount} ${pendingCount === 1 ? "outcome" : "outcomes"} to record`
+                  : "";
       const state: RunStage["state"] = b.gate
         ? "gate"
-        : b.working
-          ? "working"
-          : b.total
-            ? "done"
-            : "quiet";
+        : b.failed
+          ? "failed"
+          : b.held && !b.working
+            ? "held"
+            : b.working
+              ? "working"
+              : b.total
+                ? "done"
+                : "quiet";
       return { station, state, note };
     });
   }, [rows, pendingCount, sessionsFailed]);

@@ -185,9 +185,7 @@ export function SurfaceHeader({
       <h1 className="text-heading-26" style={{ marginTop: 7 }}>
         {title}
       </h1>
-      <p style={{ color: "var(--ds-gray-900)", marginTop: 3, maxWidth: 520 }}>
-        {sub}
-      </p>
+      <p style={{ color: "var(--ds-gray-900)", marginTop: 3, maxWidth: 520 }}>{sub}</p>
     </header>
   );
 }

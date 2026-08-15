@@ -56,6 +56,30 @@ const TONE: Record<CodeTone, string> = {
   dim: "var(--mrd-faint)",
 };
 
+/*
+ * The code line's own metrics, written out because two other measurements are
+ * derived from them and both break silently if either number moves.
+ *
+ *   the gutter's leading   a numeral in a smaller face only sits on the code's
+ *                          baseline if its line BOX is the same height, so the
+ *                          gutter carries this figure in px rather than a ratio
+ *                          of its own smaller size.
+ *   the reveal's floor     the height the block will occupy once every line has
+ *                          been written, reserved up front. See the note there.
+ */
+const LINE_H = 20.4; /* 12px text at the 1.7 leading below */
+const PAD_Y = 20; /* py-2.5, top and bottom */
+
+/*
+ * The keystroke that copies, named for the machine the reader is actually on.
+ * A failed copy that says "Press ⌘C" on Windows has replaced doing nothing with
+ * telling someone to press a key their keyboard does not have, which is worse.
+ * Read once at module scope and guarded, because this file renders under a
+ * Worker build where `navigator` is not defined.
+ */
+const COPY_CHORD =
+  typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent) ? "⌘C" : "Ctrl+C";
+
 export function CodeBlock({
   filename,
   language,
@@ -187,7 +211,18 @@ export function CodeBlock({
   useEffect(() => {
     if (!reveal) return;
     if (shown < lines.length) {
-      const t = window.setTimeout(() => setShown((n) => n + 1), revealPerLineMs);
+      /*
+       * A beat before the first line, which the reference also takes (400ms
+       * against its 240ms cadence). It is not a delay for its own sake: writing
+       * that begins the instant the block appears reads as a file that was
+       * already there, and the pause is what makes the first line read as
+       * something being typed. It also lands on every repeat of the loop, so
+       * the restart has the same two-beat shape as the first pass.
+       */
+      const t = window.setTimeout(
+        () => setShown((n) => n + 1),
+        shown === 0 ? 400 : revealPerLineMs,
+      );
       return () => window.clearTimeout(t);
     }
     if (loop) {
@@ -225,70 +260,124 @@ export function CodeBlock({
       className="w-full max-w-95 overflow-hidden rounded-mrd-card bg-mrd-sheet font-mrd"
       style={{ boxShadow: "var(--mrd-shadow-card)" }}
     >
-      <div className="flex items-center justify-between gap-2 border-b border-mrd-line px-2.5 py-1.5">
+      {/*
+       * `min-h-9` is holding the header at the height it has WITH the copy
+       * button, so it does not grow by six pixels the moment the first line
+       * lands and the button appears. A header that changes height while code
+       * is arriving nudges the whole block, which reads as a glitch in the
+       * streaming rather than as a control appearing.
+       */}
+      <div className="flex min-h-9 items-center justify-between gap-2 border-b border-mrd-line px-2.5 py-1.5">
         <span className="flex min-w-0 items-baseline gap-2">
           <span className="truncate font-mrd-mono text-[12px] font-medium text-mrd-ink">
             {filename}
           </span>
-          {language && <span className="shrink-0 text-[11px] text-mrd-mute">{language}</span>}
+          {language && <span className="shrink-0 text-[11.5px] text-mrd-mute">{language}</span>}
         </span>
 
-        <button
-          type="button"
-          aria-label="Copy code"
-          onClick={copy}
-          disabled={empty}
-          className={`flex h-6 shrink-0 items-center gap-1 rounded-mrd-xs px-1.5 text-[11px] font-medium transition-colors duration-100 enabled:hover:bg-mrd-hover disabled:cursor-default disabled:opacity-40 ${
-            copied === "yes"
-              ? "text-mrd-pass"
-              : copied === "failed"
-                ? "text-mrd-fail"
-                : "text-mrd-mute enabled:hover:text-mrd-ink"
-          }`}
-        >
-          {copied === "yes" ? (
-            <svg
-              aria-hidden
-              width="10"
-              height="10"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
-          ) : (
-            <svg
-              aria-hidden
-              width="10"
-              height="10"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="9" y="9" width="12" height="12" rx="2.5" />
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-            </svg>
-          )}
-          {copied === "yes" ? "Copied" : copied === "failed" ? "Press ⌘C" : "Copy"}
-        </button>
+        {/*
+         * NO COPY BUTTON WHEN THERE IS NOTHING TO COPY, rather than the live
+         * control held at low opacity. A dimmed button is still a button: it
+         * invites the click, takes it, and does nothing, which is the same
+         * dead-end this component's three copy states exist to remove. A
+         * control that cannot act is not drawn at all.
+         */}
+        {!empty && (
+          <button
+            type="button"
+            /*
+             * The name carries the state, because the label beside the glyph
+             * changes under a reader who is looking away from it. A screen
+             * reader announces an accessible name that changes on the focused
+             * element, so this is what tells someone using one that the copy
+             * failed — the colour cannot.
+             */
+            aria-label={
+              copied === "yes"
+                ? "Code copied"
+                : copied === "failed"
+                  ? `Copy failed, press ${COPY_CHORD} to copy the selection`
+                  : "Copy code"
+            }
+            onClick={copy}
+            className={`flex h-6 shrink-0 items-center gap-1 rounded-mrd-chip px-1.5 text-[11.5px] font-medium transition-colors duration-100 hover:bg-mrd-hover ${
+              copied === "yes"
+                ? "text-mrd-pass"
+                : copied === "failed"
+                  ? "text-mrd-fail"
+                  : "text-mrd-mute hover:text-mrd-ink"
+            }`}
+          >
+            {copied === "yes" ? (
+              <svg
+                aria-hidden
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+            ) : (
+              <svg
+                aria-hidden
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="9" y="9" width="12" height="12" rx="2.5" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            )}
+            {copied === "yes" ? "Copied" : copied === "failed" ? `Press ${COPY_CHORD}` : "Copy"}
+          </button>
+        )}
       </div>
 
       {/*
        * The cap and the scroll, which is the whole reason this replaces the
        * hand-rolled `<pre>`. `maxHeight` rather than a fixed height, so a four
        * line file stays four lines tall instead of sitting in a tall empty box.
+       *
+       * ── THE FLOOR, AND WHY ONLY DURING A REVEAL ─────────────────────────
+       * A block that is writing itself out grows by one line every tick, and a
+       * looping one then collapses back to a single line and climbs again. That
+       * is the card resizing under the reader roughly forty times a minute, and
+       * it drags whatever sits below it up and down with it. So when the line
+       * count is KNOWN — which is exactly the reveal case, where every line is
+       * already in hand and only the drawing is staged — the box reserves the
+       * height it is going to need and the code lands into a steady frame. The
+       * reference hard-codes 137px for its own six-line demo, which is the same
+       * arithmetic with the fixture's numbers baked in.
+       *
+       * It is NOT applied while `streaming`, and that is the distinction that
+       * matters: there the caller is still appending and the total is unknown,
+       * so any floor would be a guess, and a guess renders as an empty box
+       * under one line of code with no explanation for the gap.
        */}
       <pre
         ref={scroller}
-        className="overflow-auto bg-mrd-sink px-3 py-2.5 font-mrd-mono text-[12px] leading-[1.7]"
-        style={{ maxHeight }}
+        className="mrd-focus-inset overflow-auto bg-mrd-sink px-3 py-2.5 font-mrd-mono text-[12px] leading-[1.7]"
+        style={{
+          maxHeight,
+          minHeight: reveal ? Math.min(maxHeight, lines.length * LINE_H + PAD_Y) : undefined,
+        }}
+        /*
+         * Focusable because it scrolls: a region a mouse can scroll and a
+         * keyboard cannot is unreachable. `mrd-focus-inset` because it is flush
+         * to the edges of a rounded `overflow-hidden` card, and an outset ring
+         * there comes back with its outer half sheared off by the clip, which
+         * reads as a broken border rather than as focus.
+         */
         tabIndex={0}
       >
         {empty ? (
@@ -307,11 +396,21 @@ export function CodeBlock({
               {/*
                * The gutter is unselectable so that a drag-copy of the code
                * does not carry line numbers into whatever it is pasted in.
-               * 1.86 against the line's 1.7 is what sits the numeral on the
-               * baseline of a smaller glyph; it is an alignment value, not a
-               * rhythm one, and it moves if either size moves.
+               *
+               * The numeral is the quietest stop on the ladder and a size below
+               * the code, which is what stops a column of line numbers reading
+               * as content — the reference sets its gutter a full point under
+               * its code for the same reason. Its leading is written as the
+               * code line's own height IN PIXELS rather than as a ratio of the
+               * smaller size: two inline boxes only share a baseline if their
+               * line boxes are the same height, and a ratio quietly stops being
+               * true the moment either font size moves. This is an alignment
+               * value, not a rhythm one.
                */}
-              <span className="w-5 shrink-0 text-right text-[11px] leading-[1.86] text-mrd-faint select-none">
+              <span
+                className="w-5 shrink-0 text-right text-[10.5px] text-mrd-faint select-none"
+                style={{ lineHeight: `${LINE_H}px` }}
+              >
                 {i + 1}
               </span>
               <span className="pl-2.5 whitespace-pre">

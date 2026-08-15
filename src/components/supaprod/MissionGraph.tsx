@@ -194,12 +194,8 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
               close
             </button>
           </div>
-          <div style={{ color: "var(--ds-gray-800)", marginTop: 5 }}>
-            {sel.goal}
-          </div>
-          {sel.note ? (
-            <div style={{ color: "var(--rose)", marginTop: 3 }}>{sel.note}</div>
-          ) : null}
+          <div style={{ color: "var(--ds-gray-800)", marginTop: 5 }}>{sel.goal}</div>
+          {sel.note ? <div style={{ color: "var(--rose)", marginTop: 3 }}>{sel.note}</div> : null}
         </div>
       ) : (
         <div className="mono-label" style={{ marginTop: 8 }}>

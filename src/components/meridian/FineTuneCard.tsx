@@ -91,7 +91,22 @@ function ScrubField({
     <div
       className="flex h-6.5 min-w-0 items-center gap-1 rounded-mrd-chip py-1 pr-1 pl-0.5 transition-[background-color,box-shadow] duration-200"
       style={{
-        background: edited ? "var(--mrd-sheet)" : "var(--mrd-sink)",
+        /*
+         * AN EDITED FIELD IS TINTED, NOT MERELY LIFTED. This used to swap the
+         * fill from `sink` to `sheet`, which is one step on the neutral ladder:
+         * a 0.05 lightness change that a reader has to hunt for, leaving the
+         * 1px orchid ring to carry the whole signal on its own. The reference
+         * tints its field with the accent for exactly this reason, and the tint
+         * is what makes "everything orchid is yours" readable in one sweep
+         * rather than one field at a time.
+         *
+         * Mixed over `sink` rather than named as an alpha, so it lands on the
+         * field's own recessed stop in both grounds instead of on whatever
+         * happens to be behind the card.
+         */
+        background: edited
+          ? "color-mix(in oklab, var(--mrd-you) 14%, var(--mrd-sink))"
+          : "var(--mrd-sink)",
         boxShadow: edited ? "0 0 0 1px var(--mrd-you)" : "none",
       }}
     >
@@ -287,9 +302,24 @@ export function FineTuneCard({
     };
   }, [menuOpen]);
 
+  /*
+   * Opening the menu lands on the option that is already chosen, not on the
+   * first one. A listbox that always drops the keyboard at the top makes a
+   * reader count rows to find where they are, and it is the one place the
+   * component knows the answer already.
+   */
+  const chosenIndex = choices && currentChoice ? choices.indexOf(currentChoice) : -1;
   useEffect(() => {
-    if (menuOpen) optionRefs.current[0]?.focus();
-  }, [menuOpen]);
+    if (!menuOpen) return;
+    optionRefs.current[chosenIndex >= 0 ? chosenIndex : 0]?.focus();
+    /*
+     * The INDEX is the dependency, deliberately, and not the `choices` array it
+     * came from. A caller that passes an array literal hands us a new identity
+     * on every render, so depending on the array would re-run this — and pull
+     * focus back to the chosen row — every time anything above this card
+     * re-rendered, in the middle of someone arrowing down the list.
+     */
+  }, [menuOpen, chosenIndex]);
 
   function setValue(key: string, next: number) {
     setValues((current) => ({ ...current, [key]: next }));
@@ -308,9 +338,18 @@ export function FineTuneCard({
 
         {edited ? (
           <span
+            /*
+             * `pop-in`, not `fade-up`. The two keyframes answer different
+             * questions and this file had the wrong one: fade-up is for a row
+             * joining a list it already belongs to, while this chip REPLACES
+             * the agent's shimmer the instant a person takes the value over.
+             * That is something arriving that was not there, which is the case
+             * pop-in exists for, and the reference animates the same swap the
+             * same way.
+             */
             className="flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-mrd-you"
             style={{
-              animation: "mrd-fade-up var(--mrd-d-move) var(--mrd-ease) both",
+              animation: "mrd-pop-in var(--mrd-d-move) var(--mrd-ease) both",
             }}
           >
             <svg
@@ -370,7 +409,15 @@ export function FineTuneCard({
               width: "calc((100% - 4px) / 3)",
               left: 2,
               transform: `translateX(${LAYOUTS.indexOf(currentLayout) * 100}%)`,
-              boxShadow: "var(--mrd-shadow-card)",
+              /*
+               * The thumb takes the specular top edge as well as the shadow,
+               * which is what makes it read as a raised object sliding along a
+               * recessed track rather than as a lighter rectangle painted on
+               * one. It is the same one-pixel highlight every filled control in
+               * this system carries, and the reference gives its own thumb the
+               * button treatment for the same reason.
+               */
+              boxShadow: "inset 0 1px 0 var(--mrd-sheen), var(--mrd-shadow-card)",
               transition: "transform var(--mrd-d-move) var(--mrd-ease)",
             }}
           />
@@ -461,7 +508,15 @@ export function FineTuneCard({
                 className="absolute right-0 bottom-8 z-10 w-30 rounded-mrd-ctl border border-mrd-line bg-mrd-float p-1"
                 style={{
                   boxShadow: "var(--mrd-shadow-float)",
-                  animation: "mrd-fade-up var(--mrd-d-move) var(--mrd-ease) both",
+                  /*
+                   * `pop-in` scales from 98, which is what makes the menu grow
+                   * out of the control it belongs to — and it is the only
+                   * reason `transformOrigin` below means anything. Paired with
+                   * `fade-up`, as this was, the origin was set on an animation
+                   * with no transform in it and the menu simply slid up from
+                   * nowhere in particular.
+                   */
+                  animation: "mrd-pop-in var(--mrd-d-move) var(--mrd-ease) both",
                   transformOrigin: "bottom right",
                 }}
               >
@@ -489,10 +544,26 @@ export function FineTuneCard({
                       setMenuOpen(false);
                       triggerRef.current?.focus();
                     }}
-                    className={`flex h-6.5 w-full items-center rounded-mrd-xs px-2 text-left text-[12.5px] text-mrd-ink transition-colors duration-150 hover:bg-mrd-hover ${FOCUS_RING}`}
-                    style={{
-                      background: option === currentChoice ? "var(--mrd-hover)" : "transparent",
-                    }}
+                    /*
+                     * TWO BUGS IN ONE LINE, both fixed here.
+                     *
+                     * The row that is already chosen was painted `--mrd-hover`,
+                     * a 4.5% whisper tuned to be almost imperceptible under a
+                     * pointer. It is the recurring defect in this system: hover
+                     * standing in for a picked state, so the option the reader
+                     * is looking for is the one they cannot see. `--mrd-select`
+                     * is the token for a thing that has been chosen, solved per
+                     * ground, and roughly four times stronger.
+                     *
+                     * And it was set as an inline `background`, which outranks
+                     * every class — so `hover:bg-mrd-hover` could not paint on
+                     * ANY row, chosen or not, and the menu had no hover response
+                     * at all. Both states are classes now, so the cascade works
+                     * the way the rest of the file assumes it does.
+                     */
+                    className={`flex h-6.5 w-full items-center rounded-mrd-xs px-2 text-left text-[12.5px] text-mrd-ink transition-colors duration-150 ${
+                      option === currentChoice ? "bg-mrd-select" : "hover:bg-mrd-hover"
+                    } ${FOCUS_RING}`}
                   >
                     {option}
                   </button>

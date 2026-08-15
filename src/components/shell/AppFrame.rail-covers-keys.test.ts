@@ -171,7 +171,7 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     expect(railOwnerOf("/approvals")).toBe("/today");
     expect(railOwnerOf("/boundary")).toBe("/crew");
     expect(railOwnerOf("/threads")).toBe("/brain");
-    
+
     // Settings is a special case: it's not owned by any row, it's a foot icon.
     expect(railOwnerOf("/settings")).toBeNull();
   });

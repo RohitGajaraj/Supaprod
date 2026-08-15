@@ -59,10 +59,7 @@ export function UsageIndicator({ used, allowance, compact = false }: UsageIndica
           }}
         />
       </div>
-      <span
-        className="mono-label"
-        style={{ color: "var(--text-subtle)", letterSpacing: "0.02em" }}
-      >
+      <span className="mono-label" style={{ color: "var(--text-subtle)", letterSpacing: "0.02em" }}>
         {used} of {allowance} this month
       </span>
       {!compact && (

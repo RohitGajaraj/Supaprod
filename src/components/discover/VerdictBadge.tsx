@@ -17,7 +17,10 @@ export function VerdictBadge({
   confidence?: number | null;
 }) {
   // Map verdicts to appropriate badge colors and labels
-  const variantMap: Record<VerdictWord, { variant: "green" | "amber" | "red" | "gray" | "teal"; label: string }> = {
+  const variantMap: Record<
+    VerdictWord,
+    { variant: "green" | "amber" | "red" | "gray" | "teal"; label: string }
+  > = {
     SHIP: { variant: "green", label: "Ship" },
     REVISE: { variant: "amber", label: "Revise" },
     KILL: { variant: "red", label: "Kill" },
@@ -26,8 +29,7 @@ export function VerdictBadge({
   };
 
   const { variant, label } = variantMap[verdict];
-  const confidencePercent =
-    typeof confidence === "number" ? Math.round(confidence * 100) : null;
+  const confidencePercent = typeof confidence === "number" ? Math.round(confidence * 100) : null;
 
   return (
     <Badge variant={variant} contrast="solid" size="md">

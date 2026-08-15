@@ -173,8 +173,19 @@ function Icon({
   );
 }
 
-const control =
-  "inline-flex h-7 shrink-0 items-center gap-1 rounded-full px-2.5 text-[12px] text-mrd-ink transition-[background-color,color,transform] duration-150 hover:bg-mrd-hover active:scale-[0.96]";
+/*
+ * EVERY CONTROL IN THIS BAR TAKES AN INSET RING, and it is not a preference.
+ * The pill clips its own contents — it has to, because it animates its width
+ * between modes and un-clipped children would spill out of the rounded end
+ * while it narrows. A clipping parent shears the outer half off an outset focus
+ * ring, so a tabbed control comes back with a broken-looking half edge instead
+ * of a ring. `mrd-focus-inset` moves the ring inside the control, which is what
+ * that class exists for.
+ */
+const FOCUS_INSET =
+  "mrd-focus-inset focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
+
+const control = `inline-flex h-7 shrink-0 items-center gap-1 rounded-full px-2.5 text-[12px] text-mrd-ink transition-[background-color,color,transform] duration-150 hover:bg-mrd-hover active:scale-[0.96] ${FOCUS_INSET}`;
 
 /*
  * The primary is the next stop on the neutral ladder, not an inverted ink
@@ -182,9 +193,20 @@ const control =
  * primary twice on the record, both times because it spends the product's one
  * accent on chrome, and this product needs that accent free to mean "a person
  * is required" somewhere that actually blocks.
+ *
+ * It carries the specular top edge every filled control in this system carries,
+ * which is what stops it reading as a flat rectangle beside the unfilled
+ * controls it sits next to.
+ *
+ * HOVER IS OPACITY, AND THE PREVIOUS ANSWER WAS BROKEN IN BOTH GROUNDS. This
+ * used to hover to `--mrd-float`, which is a DARKER stop than `--mrd-solid` on
+ * the dark ground — so the primary dimmed when a pointer landed on it — and on
+ * paper `float` is very nearly white, so the same line turned a dark slab into
+ * a pale one under a label that stays light in both grounds: an invisible word,
+ * which is the exact defect `--mrd-on-solid` exists to prevent. Softening the
+ * whole control fades fill and label together and cannot invert either ground.
  */
-const primary =
-  "inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-mrd-solid px-2.5 text-[12.5px] text-mrd-on-solid transition-[background-color,transform] duration-150 hover:bg-mrd-float active:scale-[0.96]";
+const primary = `inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-mrd-solid px-2.5 text-[12.5px] text-mrd-on-solid shadow-[inset_0_1px_0_var(--mrd-sheen)] transition-[opacity,transform] duration-150 hover:opacity-90 active:scale-[0.96] ${FOCUS_INSET}`;
 
 type Box = { top: number; left: number; width: number; height: number };
 
@@ -223,7 +245,17 @@ export function SelectionActions({
   const [rects, setRects] = useState<Box[]>([]);
   const [expanded, setExpanded] = useState(false);
   const [instruction, setInstruction] = useState("");
+  /**
+   * The width the bar had at the moment the reader started typing, held so it
+   * does not shrink out from under them. See the note where it is captured.
+   */
+  const [typingWidth, setTypingWidth] = useState<number | null>(null);
   const frameRef = useRef<number | null>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const lastWidthRef = useRef(0);
+  const widthAnimation = useRef<Animation | null>(null);
+  const previousMode = useRef<string | null>(null);
 
   const primaryActions = actions.filter((a) => !a.secondary);
   const secondaryActions = actions.filter((a) => a.secondary);
@@ -292,11 +324,92 @@ export function SelectionActions({
   useEffect(() => {
     setInstruction("");
     setExpanded(false);
+    setTypingWidth(null);
   }, [range]);
+
+  /*
+   * ── THE BAR CHANGES WIDTH, AND IT DOES IT AS A MOVE ─────────────────────
+   *
+   * Every mode swaps the entire contents of the pill: five actions and a field
+   * become one spinner, then become Keep / Discard / retry. Left alone the pill
+   * SNAPS from 380 pixels to 120 and back between paints, which reads as three
+   * different objects appearing in the same place rather than as one object
+   * responding. The reference animates the width across that swap and it is
+   * most of why its bar feels like a physical thing; ours had dropped it.
+   *
+   * The mechanism is the reference's: measure the intrinsic width of the new
+   * contents, animate from the width the bar actually had to that figure, and
+   * let it return to `auto` afterwards so nothing is pinned. It runs in a
+   * layout effect, before the browser paints, so the old width is never shown
+   * against the new contents.
+   *
+   * REDUCED MOTION IS HONOURED HERE IN CODE rather than by the stylesheet's
+   * keyframe rule, because a Web Animations API call is invisible to CSS. The
+   * width is not information — the contents are — so it is decoration and it
+   * stops.
+   */
+  const mode = error ? "error" : phase;
+
+  useLayoutEffect(() => {
+    const bar = barRef.current;
+    const content = contentRef.current;
+    if (!bar || !content) return;
+
+    /* `+ 8` is the pill's own `p-1` on both sides: the frame around content. */
+    const next = Math.ceil(content.getBoundingClientRect().width) + 8;
+    const previous = lastWidthRef.current || Math.ceil(bar.getBoundingClientRect().width);
+    const changed = previousMode.current !== null && previousMode.current !== mode;
+    previousMode.current = mode;
+
+    const still =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (!changed || still || Math.abs(next - previous) <= 1) {
+      lastWidthRef.current = next;
+      return;
+    }
+
+    widthAnimation.current?.cancel();
+    const animation = bar.animate([{ width: `${previous}px` }, { width: `${next}px` }], {
+      duration: 320,
+      /* `--mrd-ease` written out: the Web Animations API takes a string, and a
+         var() reference in it is silently ignored rather than resolved. */
+      easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+    });
+    widthAnimation.current = animation;
+    animation.onfinish = () => {
+      lastWidthRef.current = next;
+      widthAnimation.current = null;
+    };
+  }, [mode]);
+
+  /*
+   * Keep the remembered width current while the CSS-driven parts of the bar
+   * resize — opening the overflow, collapsing the presets — so the next mode
+   * change animates from where the bar really is rather than from where it was
+   * the last time a mode changed.
+   */
+  useEffect(() => {
+    const content = contentRef.current;
+    if (!content) return;
+    const observer = new ResizeObserver(() => {
+      if (widthAnimation.current?.playState === "running") return;
+      lastWidthRef.current = Math.ceil(content.getBoundingClientRect().width) + 8;
+    });
+    observer.observe(content);
+    return () => {
+      observer.disconnect();
+      widthAnimation.current?.cancel();
+    };
+  }, []);
 
   if (!range || !anchor) return null;
 
   const working = phase === "working";
+  /* While typing, the bar holds the width it had when the first character
+     landed. See the note where `typingWidth` is captured. */
+  const pinnedWidth = mode === "idle" && hasInstruction && typingWidth ? typingWidth : undefined;
 
   return (
     <>
@@ -344,164 +457,199 @@ export function SelectionActions({
           willChange: "transform",
         }}
       >
+        {/*
+         * `overflow-hidden` is load-bearing rather than tidy: the pill animates
+         * its own width between modes, and without a clip the outgoing contents
+         * hang out of the rounded end while it narrows. `justify-center` is the
+         * other half of the same effect — contents that are centred stay
+         * centred through the move instead of being pinned to the left edge
+         * while the right edge travels. Every control inside therefore carries
+         * `mrd-focus-inset`; see the note on FOCUS_INSET.
+         */}
         <div
+          ref={barRef}
           role="toolbar"
           aria-label="Actions for the selected passage"
-          className="flex h-9 w-fit max-w-[calc(100vw-48px)] items-center gap-0.5 rounded-full bg-mrd-float p-1 font-mrd text-mrd-ink"
+          className="flex h-9 w-fit max-w-[calc(100vw-48px)] items-center justify-center gap-0.5 overflow-hidden rounded-full bg-mrd-float p-1 font-mrd text-mrd-ink"
           style={{
+            width: pinnedWidth,
             boxShadow: "var(--mrd-shadow-float)",
-            animation: "mrd-fade-up var(--mrd-d-move) var(--mrd-ease) both",
+            /*
+             * `pop-in`, not `fade-up`. A bar that attaches itself under a
+             * passage is something arriving that was not there a moment ago,
+             * which is the case that keyframe exists for; fade-up is for a row
+             * joining a list it already belongs to.
+             */
+            animation: "mrd-pop-in var(--mrd-d-move) var(--mrd-ease) both",
           }}
         >
-          {/*
-           * A FAILED EDIT. It states the outcome and offers the way back. It
-           * does not fall silently to the idle bar, because a bar that simply
-           * reappears unchanged reads as "nothing happened" rather than as
-           * "that did not work", and the reader tries the same thing again.
-           */}
-          {error ? (
-            <>
-              <span className="inline-flex h-7 items-center gap-1.5 px-2.5 text-[12.5px] whitespace-nowrap text-mrd-body">
-                <span className="text-mrd-fail">
-                  <Icon size={13} strokeWidth={2.2}>
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 8v4M12 16h.01" />
-                  </Icon>
+          <div
+            ref={contentRef}
+            className="flex w-fit shrink-0 items-center justify-center gap-0.5"
+            style={{ width: pinnedWidth === undefined ? undefined : pinnedWidth - 8 }}
+          >
+            {/*
+             * A FAILED EDIT. It states the outcome and offers the way back. It
+             * does not fall silently to the idle bar, because a bar that simply
+             * reappears unchanged reads as "nothing happened" rather than as
+             * "that did not work", and the reader tries the same thing again.
+             */}
+            {error ? (
+              <>
+                <span className="inline-flex h-7 items-center gap-1.5 px-2.5 text-[12.5px] whitespace-nowrap text-mrd-body">
+                  <span className="text-mrd-fail">
+                    <Icon size={13} strokeWidth={2.2}>
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 8v4M12 16h.01" />
+                    </Icon>
+                  </span>
+                  {error}
                 </span>
-                {error}
+                {onRetry && (
+                  <button type="button" onClick={onRetry} className={primary}>
+                    <Icon>
+                      <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
+                    </Icon>
+                    Try again
+                  </button>
+                )}
+                {onDiscard && (
+                  <button type="button" onClick={onDiscard} className={control}>
+                    <Icon>
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </Icon>
+                    Dismiss
+                  </button>
+                )}
+              </>
+            ) : working ? (
+              <span className="inline-flex h-7 items-center gap-1.5 px-2.5 text-[12.5px] whitespace-nowrap">
+                <span
+                  aria-hidden
+                  className="size-3 shrink-0 rounded-full border-[1.5px] border-mrd-edge border-t-mrd-agent"
+                  style={{ animation: "mrd-spin 700ms linear infinite" }}
+                />
+                {/*
+                 * Shimmer rather than pulse, for the reason LoadingState gives:
+                 * a pulse changes the whole label's brightness and pulls the eye,
+                 * a highlight travelling through it reads as "still going" in
+                 * peripheral vision and stays quiet when looked at directly.
+                 */}
+                <span
+                  className="bg-clip-text font-medium text-transparent"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(90deg, var(--mrd-mute) 35%, var(--mrd-ink) 50%, var(--mrd-mute) 65%)",
+                    backgroundSize: "200% 100%",
+                    animation: "mrd-shimmer 1.4s linear infinite",
+                  }}
+                >
+                  {workingLabel}
+                </span>
               </span>
-              {onRetry && (
-                <button type="button" onClick={onRetry} className={primary}>
+            ) : phase === "result" ? (
+              <>
+                <button type="button" onClick={onKeep} className={primary}>
                   <Icon>
-                    <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
+                    <path d="M20 6L9 17l-5-5" />
                   </Icon>
-                  Try again
+                  Keep
                 </button>
-              )}
-              {onDiscard && (
                 <button type="button" onClick={onDiscard} className={control}>
                   <Icon>
                     <path d="M18 6L6 18M6 6l12 12" />
                   </Icon>
-                  Dismiss
+                  Discard
                 </button>
-              )}
-            </>
-          ) : working ? (
-            <span className="inline-flex h-7 items-center gap-1.5 px-2.5 text-[12.5px] whitespace-nowrap">
-              <span
-                aria-hidden
-                className="size-3 shrink-0 rounded-full border-[1.5px] border-mrd-edge border-t-mrd-agent"
-                style={{ animation: "mrd-spin 700ms linear infinite" }}
-              />
-              {/*
-               * Shimmer rather than pulse, for the reason LoadingState gives:
-               * a pulse changes the whole label's brightness and pulls the eye,
-               * a highlight travelling through it reads as "still going" in
-               * peripheral vision and stays quiet when looked at directly.
-               */}
-              <span
-                className="bg-clip-text font-medium text-transparent"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(90deg, var(--mrd-mute) 35%, var(--mrd-ink) 50%, var(--mrd-mute) 65%)",
-                  backgroundSize: "200% 100%",
-                  animation: "mrd-shimmer 1.4s linear infinite",
-                }}
-              >
-                {workingLabel}
-              </span>
-            </span>
-          ) : phase === "result" ? (
-            <>
-              <button type="button" onClick={onKeep} className={primary}>
-                <Icon>
-                  <path d="M20 6L9 17l-5-5" />
-                </Icon>
-                Keep
-              </button>
-              <button type="button" onClick={onDiscard} className={control}>
-                <Icon>
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </Icon>
-                Discard
-              </button>
-              {onRetry && (
-                <>
-                  <span aria-hidden className="mx-0.5 h-4 w-px shrink-0 bg-mrd-line" />
-                  <button
-                    type="button"
-                    aria-label="Try again"
-                    onClick={onRetry}
-                    className="flex size-7 shrink-0 items-center justify-center rounded-full text-mrd-mute transition-[background-color,color,transform] duration-150 hover:bg-mrd-hover hover:text-mrd-body active:scale-[0.96]"
-                  >
-                    <Icon>
-                      <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
-                    </Icon>
-                  </button>
-                </>
-              )}
-            </>
-          ) : (
-            <>
-              {onInstruction && (
-                <form
-                  className="flex h-7 shrink-0 items-center"
-                  style={{ width: hasInstruction ? 180 : 140 }}
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    if (hasInstruction) onInstruction(instruction.trim());
-                  }}
-                >
-                  <input
-                    value={instruction}
-                    onChange={(event) => setInstruction(event.target.value)}
-                    aria-label="Describe the edit"
-                    placeholder={placeholder}
-                    className="h-7 w-full bg-transparent pr-2.5 pl-3 text-[12.5px] text-mrd-ink outline-none placeholder:text-mrd-mute"
-                  />
-                </form>
-              )}
-
-              {/*
-               * The preset actions collapse away entirely once the reader
-               * starts typing, because at that point they have told us they
-               * want something the presets do not cover.
-               */}
-              <div
-                className="flex min-w-0 items-center gap-0.5 overflow-hidden transition-[max-width,opacity] duration-300"
-                style={{
-                  maxWidth: hasInstruction ? 0 : expanded ? 460 : 240,
-                  opacity: hasInstruction ? 0 : 1,
-                  transitionTimingFunction: "var(--mrd-ease)",
-                }}
-              >
+                {onRetry && (
+                  <>
+                    <span aria-hidden className="mx-0.5 h-4 w-px shrink-0 bg-mrd-line" />
+                    <button
+                      type="button"
+                      aria-label="Try again"
+                      onClick={onRetry}
+                      className={`flex size-7 shrink-0 items-center justify-center rounded-full text-mrd-mute transition-[background-color,color,transform] duration-150 hover:bg-mrd-hover hover:text-mrd-body active:scale-[0.96] ${FOCUS_INSET}`}
+                    >
+                      <Icon>
+                        <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
+                      </Icon>
+                    </button>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
                 {onInstruction && (
-                  <span aria-hidden className="mx-1 h-4 w-px shrink-0 bg-mrd-edge" />
+                  <form
+                    /*
+                     * The field takes over the width the presets are giving up,
+                     * rather than the bar shrinking to fit the field. See the
+                     * capture below: `- 40` is the send button and its gap, which
+                     * is the one control that arrives as the presets leave.
+                     */
+                    className="flex h-7 shrink-0 items-center transition-[width] duration-300"
+                    style={{
+                      width: hasInstruction && typingWidth ? typingWidth - 40 : 140,
+                      transitionTimingFunction: "var(--mrd-ease)",
+                    }}
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      if (hasInstruction) onInstruction(instruction.trim());
+                    }}
+                  >
+                    <input
+                      value={instruction}
+                      /*
+                       * ── THE BAR MUST NOT SHRINK UNDER THE FIRST KEYSTROKE ───
+                       * Typing collapses five preset buttons and a divider, which
+                       * is most of the pill's width. Without this the bar lurches
+                       * inward on the first character — the reader watches the
+                       * thing they are typing into get smaller — and lurches back
+                       * out if they delete it. So the width the bar HAD at that
+                       * moment is captured once and held for as long as there is
+                       * text, and released when the field is emptied. It is the
+                       * reference's behaviour and this port had dropped it.
+                       */
+                      onChange={(event) => {
+                        const next = event.target.value;
+                        if (!hasInstruction && next.trim()) {
+                          setTypingWidth(
+                            Math.ceil(barRef.current?.getBoundingClientRect().width ?? 0),
+                          );
+                        } else if (!next.trim()) {
+                          setTypingWidth(null);
+                        }
+                        setInstruction(next);
+                      }}
+                      aria-label="Describe the edit"
+                      placeholder={placeholder}
+                      className="h-7 w-full bg-transparent pr-2.5 pl-3 text-[12.5px] text-mrd-ink outline-none placeholder:text-mrd-mute"
+                    />
+                  </form>
                 )}
 
-                {primaryActions.map((action) => (
-                  <button
-                    key={action.key}
-                    type="button"
-                    onClick={() => onAction?.(action)}
-                    className={control}
-                  >
-                    {action.icon}
-                    {action.label}
-                  </button>
-                ))}
-
+                {/*
+                 * The preset actions collapse away entirely once the reader
+                 * starts typing, because at that point they have told us they
+                 * want something the presets do not cover.
+                 */}
                 <div
-                  className="flex min-w-0 items-center gap-0.5 overflow-hidden transition-[max-width,opacity,margin] duration-300"
+                  className="flex min-w-0 items-center gap-0.5 overflow-hidden transition-[max-width,opacity,transform] duration-300"
                   style={{
-                    maxWidth: expanded ? 260 : 0,
-                    opacity: expanded ? 1 : 0,
-                    marginLeft: expanded ? 2 : 0,
+                    maxWidth: hasInstruction ? 0 : expanded ? 460 : 240,
+                    opacity: hasInstruction ? 0 : 1,
+                    /* They travel a few pixels as they go, which is what makes
+                     the collapse read as the presets LEAVING rather than as a
+                     column of buttons being cropped in place. */
+                    transform: hasInstruction ? "translateX(-8px)" : "translateX(0)",
                     transitionTimingFunction: "var(--mrd-ease)",
                   }}
                 >
-                  {secondaryActions.map((action) => (
+                  {onInstruction && (
+                    <span aria-hidden className="mx-1 h-4 w-px shrink-0 bg-mrd-edge" />
+                  )}
+
+                  {primaryActions.map((action) => (
                     <button
                       key={action.key}
                       type="button"
@@ -512,63 +660,93 @@ export function SelectionActions({
                       {action.label}
                     </button>
                   ))}
+
+                  <div
+                    className="flex min-w-0 items-center gap-0.5 overflow-hidden transition-[max-width,opacity,margin] duration-300"
+                    style={{
+                      maxWidth: expanded ? 260 : 0,
+                      opacity: expanded ? 1 : 0,
+                      marginLeft: expanded ? 2 : 0,
+                      transitionTimingFunction: "var(--mrd-ease)",
+                    }}
+                  >
+                    {secondaryActions.map((action) => (
+                      <button
+                        key={action.key}
+                        type="button"
+                        onClick={() => onAction?.(action)}
+                        className={control}
+                      >
+                        {action.icon}
+                        {action.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {secondaryActions.length > 0 && (
+                    <>
+                      <span aria-hidden className="mx-0.5 h-4 w-px shrink-0 bg-mrd-line" />
+                      <button
+                        type="button"
+                        aria-label={expanded ? "Show fewer actions" : "Show more actions"}
+                        aria-expanded={expanded}
+                        onClick={() => setExpanded((open) => !open)}
+                        /*
+                         * The open state takes `--mrd-select`, not `--mrd-hover`.
+                         * This chevron is a held-open toggle — the overflow stays
+                         * out until it is pressed again — and a 4.5% wash is not
+                         * a pressed state, it is a whisper under a pointer. The
+                         * rotation says which way it is pointing; the fill says
+                         * it is holding something open.
+                         */
+                        className={`flex size-7 shrink-0 items-center justify-center rounded-full text-mrd-ink transition-[background-color,transform] duration-200 active:scale-[0.96] ${expanded ? "bg-mrd-select" : "hover:bg-mrd-hover"} ${FOCUS_INSET}`}
+                      >
+                        <span
+                          className="flex transition-transform duration-300"
+                          style={{
+                            transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+                            transitionTimingFunction: "var(--mrd-ease)",
+                          }}
+                        >
+                          <Icon>
+                            <path d="M9 6l6 6-6 6" />
+                          </Icon>
+                        </span>
+                      </button>
+                    </>
+                  )}
                 </div>
 
-                {secondaryActions.length > 0 && (
-                  <>
-                    <span aria-hidden className="mx-0.5 h-4 w-px shrink-0 bg-mrd-line" />
+                {/*
+                 * Send appears only once there is something to send, which keeps
+                 * the collapsed bar as short as it can be. A pane is narrow and
+                 * this bar floats inside prose; every control that is not needed
+                 * yet is one that pushes the useful ones off the line.
+                 */}
+                {onInstruction && (
+                  <div
+                    className="flex min-w-0 items-center overflow-hidden transition-[max-width,opacity] duration-300"
+                    style={{
+                      maxWidth: hasInstruction ? 30 : 0,
+                      opacity: hasInstruction ? 1 : 0,
+                      transitionTimingFunction: "var(--mrd-ease)",
+                    }}
+                  >
                     <button
                       type="button"
-                      aria-label={expanded ? "Show fewer actions" : "Show more actions"}
-                      aria-expanded={expanded}
-                      onClick={() => setExpanded((open) => !open)}
-                      className="flex size-7 shrink-0 items-center justify-center rounded-full text-mrd-ink transition-[background-color,transform] duration-200 hover:bg-mrd-hover active:scale-[0.96]"
+                      aria-label="Send edit instruction"
+                      onClick={() => hasInstruction && onInstruction(instruction.trim())}
+                      className={`flex size-7 shrink-0 items-center justify-center rounded-full bg-mrd-solid text-mrd-on-solid shadow-[inset_0_1px_0_var(--mrd-sheen)] transition-[opacity,transform] duration-200 hover:opacity-90 active:scale-[0.94] ${FOCUS_INSET}`}
                     >
-                      <span
-                        className="flex transition-transform duration-300"
-                        style={{
-                          transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-                          transitionTimingFunction: "var(--mrd-ease)",
-                        }}
-                      >
-                        <Icon>
-                          <path d="M9 6l6 6-6 6" />
-                        </Icon>
-                      </span>
+                      <Icon size={16} strokeWidth={2.4}>
+                        <path d="M12 19V5M5 12l7-7 7 7" />
+                      </Icon>
                     </button>
-                  </>
+                  </div>
                 )}
-              </div>
-
-              {/*
-               * Send appears only once there is something to send, which keeps
-               * the collapsed bar as short as it can be. A pane is narrow and
-               * this bar floats inside prose; every control that is not needed
-               * yet is one that pushes the useful ones off the line.
-               */}
-              {onInstruction && (
-                <div
-                  className="flex min-w-0 items-center overflow-hidden transition-[max-width,opacity] duration-300"
-                  style={{
-                    maxWidth: hasInstruction ? 30 : 0,
-                    opacity: hasInstruction ? 1 : 0,
-                    transitionTimingFunction: "var(--mrd-ease)",
-                  }}
-                >
-                  <button
-                    type="button"
-                    aria-label="Send edit instruction"
-                    onClick={() => hasInstruction && onInstruction(instruction.trim())}
-                    className="flex size-7 shrink-0 items-center justify-center rounded-full bg-mrd-solid text-mrd-on-solid transition-transform duration-200 active:scale-[0.94]"
-                  >
-                    <Icon size={16} strokeWidth={2.4}>
-                      <path d="M12 19V5M5 12l7-7 7 7" />
-                    </Icon>
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </>

@@ -343,9 +343,21 @@ export function Chat({
               aria-label="Send"
               disabled={!canSend}
               onClick={send}
-              className={`flex size-7 items-center justify-center rounded-mrd-ctl transition-[background-color,color,transform] duration-200 enabled:active:scale-[0.96] ${
-                canSend ? "bg-mrd-solid text-mrd-on-solid" : "bg-mrd-lift text-mrd-faint"
+              /*
+               * `mrd-focus-inset`, because this control sits flush inside the
+               * composer's rounded, clipping shell — an outset ring is shorn
+               * off by that clip and comes back as a broken half edge.
+               *
+               * The sheen only on the LIVE face. A disabled control should be a
+               * different kind of object, not a dimmed copy of the live one, so
+               * it takes the recessed surface and no specular edge at all.
+               */
+              className={`mrd-focus-inset flex size-7 items-center justify-center rounded-mrd-ctl transition-[background-color,color,transform] duration-200 enabled:active:scale-[0.96] ${
+                canSend
+                  ? "bg-mrd-solid text-mrd-on-solid enabled:hover:bg-mrd-solid-hover"
+                  : "bg-mrd-lift text-mrd-faint"
               }`}
+              style={canSend ? { boxShadow: "inset 0 1px 0 var(--mrd-sheen)" } : undefined}
             >
               <Icon size={16}>
                 <path d="M12 19V5M5 12l7-7 7 7" />

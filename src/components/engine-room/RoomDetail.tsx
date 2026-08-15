@@ -254,7 +254,9 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
               minHeight: "14px",
             }}
           >
-            {status?.error ? "This room's summary did not load." : (status?.glance?.verdict ?? "\u00A0")}
+            {status?.error
+              ? "This room's summary did not load."
+              : (status?.glance?.verdict ?? "\u00A0")}
           </p>
           {/* The single next step, plain-spoken, only when the room is on
               watch. Neutral gray per the 2026-07-11 glacier narrowing - this

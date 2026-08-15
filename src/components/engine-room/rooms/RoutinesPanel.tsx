@@ -102,18 +102,10 @@ function RoutineRowView({ routine }: { routine: RoutineRow }) {
     >
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-          <span
-            style={{ fontWeight: 600, color: "var(--text-primary)" }}
-          >
-            {routine.name}
-          </span>
-          <span style={{ color: "var(--text-faint)" }}>
-            {routine.castOwner}
-          </span>
+          <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{routine.name}</span>
+          <span style={{ color: "var(--text-faint)" }}>{routine.castOwner}</span>
         </div>
-        <p style={{ color: "var(--text-muted)", margin: "3px 0 0" }}>
-          {routine.whatItDoes}
-        </p>
+        <p style={{ color: "var(--text-muted)", margin: "3px 0 0" }}>{routine.whatItDoes}</p>
         <p
           style={{
             color: "var(--text-faint)",

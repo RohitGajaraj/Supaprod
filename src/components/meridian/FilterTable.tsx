@@ -38,11 +38,21 @@ import { RecordsTable, type RecordColumn } from "./RecordsTable";
  * the reader has read a word.
  *
  * The second is that a per-status palette has to invent a hue for every state,
- * and the hue it always invents is the one this system does not have. There is
- * no amber here and no `warn`. The chips are separated by fill, weight and
+ * and the reference's four dots are four hues chosen to look distinct rather
+ * than to mean anything. The chips are separated by fill, weight, elevation and
  * position instead, which is what an active control is separated by anyway,
  * and the accent is left for the cells, where `RecordStatus` spends it on
  * status that is genuinely status.
+ *
+ * CORRECTING THIS HEADER, 2026-08-15. It used to close that paragraph with
+ * "there is no amber here and no `warn`", and as of the same day that is simply
+ * false: meridian.css admits `--mrd-hold`, an amber that means "stopped, and
+ * NOT on you", after production was found with thirty-nine of forty-three work
+ * items in exactly that state and no colour for it. The RULING above survives
+ * the correction untouched — a count of the held rows is still a number about
+ * rows and not itself a held thing — but a header that argues from a palette
+ * fact that stopped being true is a header the next reader cannot trust on the
+ * parts that are still right.
  */
 
 export type Facet<Row> = {
@@ -123,12 +133,39 @@ export function FilterTable<Row>({
         type="button"
         aria-pressed={isActive}
         onClick={() => setActive(key)}
-        className={`flex h-6.5 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium transition-colors ${FOCUS} ${
+        className={`flex h-6.5 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium transition-[background-color,box-shadow,color] ${FOCUS} ${
           isActive
             ? "bg-mrd-lift text-mrd-ink"
             : "text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
         }`}
-        style={{ transitionDuration: "var(--mrd-d-press)" }}
+        style={{
+          /*
+           * ── THE PRESSED CHIP HAS TO LOOK PRESSED ──────────────────────────
+           *
+           * The reference's active chip is `bg-surface shadow-btn`: it steps up
+           * off the strip AND takes an edge and a shadow, so it reads as a key
+           * held down. The port kept only the fill, and on our dark ground the
+           * step from sheet to lift is four points of lightness with no edge on
+           * it — which is a chip that is arguably differently coloured, not one
+           * that is obviously chosen. On paper it is worse: `lift` sits BELOW
+           * the canvas there, so the only cue was a one-and-a-half point
+           * darkening.
+           *
+           * Three shadows, all inset except the drop, so nothing reflows when
+           * the selection moves between chips: the hairline is the chip's edge,
+           * the sheen is the specular top the system gives every filled control,
+           * and the card shadow lifts it off the strip. A border would have cost
+           * two pixels of width and shunted every chip to its right.
+           */
+          boxShadow: isActive
+            ? "inset 0 0 0 1px var(--mrd-line), inset 0 1px 0 var(--mrd-sheen), var(--mrd-shadow-card)"
+            : "none",
+          /* The reference runs this at 200ms; `--mrd-d-move` is the system's
+             stop for something changing state and is the nearest thing to it.
+             At `d-press` the fill and the shadow arrived faster than the eye
+             tracks the pointer, which is what made the old chip snap. */
+          transitionDuration: "var(--mrd-d-move)",
+        }}
       >
         {label}
         <span
