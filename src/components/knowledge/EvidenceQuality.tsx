@@ -6,40 +6,66 @@
  * through, rather than out of what a model reasoned or what is broadly true of
  * teams in general. That claim is made at page level in prose everywhere on
  * Brain, and prose is exactly where it cannot be checked. Marked per assertion
- * it becomes falsifiable: a reader counts the ember and sees for themselves how
+ * it becomes falsifiable: a reader counts the marks and sees for themselves how
  * much of the screen is theirs.
  *
- * THE THREE SOURCES, and the tokens are already defined for this and had no
- * consumer anywhere in the app (src/styles/ink.css, --sp-eviq-*):
+ * THE THREE SOURCES:
  *
- *   MINE       your own settled outcomes and your own recorded calls. Ember,
- *              which in this shell marks the human and nothing else.
- *   INFERRED   an agent reasoned it from what it read. Stage-build blue, which
- *              already means an agent is working.
+ *   MINE       your own settled outcomes and your own recorded calls.
+ *   INFERRED   an agent reasoned it from what it read.
  *   BORROWED   a population prior: true of teams like yours, not known to be
- *              true of you. Deliberately neutral, and the weakest of the three.
+ *              true of you. Deliberately the weakest of the three.
  *
  * IT IS HONEST ON DAY ONE PRECISELY BECAUSE IT SAYS SO. On a new account almost
- * nothing is ember, and that is the point: the mark is not a badge, it is a
- * measurement, and a screen with no ember on it is telling the truth about a
+ * nothing is marked mine, and that is the point: the mark is not a badge, it is
+ * a measurement, and a screen with none of it is telling the truth about a
  * record that has not been lived in yet.
  *
- * RENDERED AS A 2px LEFT RULE OR A DOT, NEVER A FILL. ink.css states that as an
- * invariant and gives the reason: at fill area three more colours would become
- * the loudest thing on screen and blow the shell's own colour budget.
+ * ── PROVENANCE IS A CATEGORY, AND IT IS NOT ONE OF THE FIVE ─────────────
+ * This was `--sp-eviq-mine/-inferred/-borrowed`, which resolved through
+ * `--sp-gate` (the human accent), `--sp-stage-build` and `--sp-mute`. Under
+ * Meridian neither of the first two is available and the reason is worth
+ * writing down, because the mapping looks obvious and is wrong:
  *
- * WHY IT IS INLINE STYLE AND NOT A CLASS. The stylesheet is not this lane's to
- * edit, and every token here resolves the same either way. If this outlives the
- * pass it should become `.sp-eviq` rules in primitives.css and lose the objects.
+ *   `--mrd-you` means A PERSON IS REQUIRED, and nothing else. An assertion that
+ *   came out of your own record is not asking you for anything; it already
+ *   happened. Spending the human accent on it is exactly the drift that put
+ *   ember on every focus ring in the old shell.
+ *
+ *   `--mrd-agent` means A MACHINE IS WORKING, present tense. An agent having
+ *   reasoned something last Tuesday is not a machine working now.
+ *
+ * So this is categorical colour, which Meridian keeps as a separate system for
+ * this case: `--mrd-viz-*`, explicitly never status.
+ *
+ * ── AND COLOUR IS NOT ALLOWED TO BE THE ONLY CARRIER ────────────────────
+ * The three marks were three 6px dots differing ONLY in hue, which fails the
+ * greyscale test the contract requires by name: in greyscale, and to the
+ * commonest colour vision deficiencies, they are one mark repeated three times.
+ * The header above asks a reader to COUNT them, which is the one thing that
+ * cannot be done when they are indistinguishable.
+ *
+ * Each now has its own silhouette as well, which is the same rule
+ * `station-glyphs.tsx` states for the seven stations: identity is shape.
+ *   mine      a filled disc, solid because the fact is settled
+ *   inferred  a hollow ring, open because nothing has closed it yet
+ *   borrowed  a bar, which is not about you at all and does not pretend to be
+ *
+ * RENDERED AS A SMALL MARK OR A 2px LEFT RULE, NEVER A FILL. At fill area three
+ * more colours would become the loudest thing on screen and spend the whole
+ * restraint budget on a footnote.
  */
 import type { ReactNode } from "react";
 
 export type EvidenceSource = "mine" | "inferred" | "borrowed";
 
 const HUE: Record<EvidenceSource, string> = {
-  mine: "var(--sp-eviq-mine)",
-  inferred: "var(--sp-eviq-inferred)",
-  borrowed: "var(--sp-eviq-borrowed)",
+  mine: "var(--mrd-viz-1)",
+  inferred: "var(--mrd-viz-2)",
+  // Not a viz stop, deliberately. A population prior is the absence of anything
+  // learned about you, and the honest paint for that is the ink ramp rather
+  // than a third series colour that would read as a third finding.
+  borrowed: "var(--mrd-mute)",
 };
 
 /**
@@ -54,39 +80,72 @@ const MEANING: Record<EvidenceSource, string> = {
 };
 
 /**
- * The dot. For a line of running text or a row's sub, where a rule would have
- * nothing to run down.
+ * The mark itself, sized to sit on a line of running text.
  *
- * `aria-hidden` on the mark plus a real word in the accessible name: a colour
- * is not information to a screen reader, and a second visible legend would cost
- * more room than the fact is worth.
+ * `borrowed` is drawn as a bar rather than a shape with a middle, because it is
+ * the one of the three that makes no claim about this workspace, and a bar is
+ * the quietest thing that is still unmistakably not a dot.
  */
-export function Provenance({ source }: { source: EvidenceSource }) {
-  return (
-    <span title={MEANING[source]} style={{ whiteSpace: "nowrap" }}>
+function Mark({ source }: { source: EvidenceSource }) {
+  const hue = HUE[source];
+  if (source === "borrowed") {
+    return (
       <span
         aria-hidden="true"
         style={{
           display: "inline-block",
-          width: 6,
-          height: 6,
-          borderRadius: "50%",
-          background: HUE[source],
+          width: 7,
+          height: 2,
+          background: hue,
           marginRight: 5,
           verticalAlign: "middle",
         }}
       />
+    );
+  }
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        display: "inline-block",
+        width: 7,
+        height: 7,
+        borderRadius: "50%",
+        // The ring is drawn with a border rather than a second element so the
+        // two marks occupy exactly the same box and a column of them lines up.
+        background: source === "mine" ? hue : "transparent",
+        border: source === "inferred" ? `1.5px solid ${hue}` : undefined,
+        marginRight: 5,
+        verticalAlign: "middle",
+      }}
+    />
+  );
+}
+
+/**
+ * The inline mark. For a line of running text or a row's sub, where a rule
+ * would have nothing to run down.
+ *
+ * `aria-hidden` on the mark plus a real sentence in the accessible name: a
+ * colour is not information to a screen reader, and a second visible legend
+ * would cost more room than the fact is worth.
+ */
+export function Provenance({ source }: { source: EvidenceSource }) {
+  return (
+    <span title={MEANING[source]} style={{ whiteSpace: "nowrap" }}>
+      <Mark source={source} />
       <span className="sr-only">{MEANING[source]}</span>
     </span>
   );
 }
 
 /**
- * The 2px left rule. For a BLOCK of assertion -- a quoted finding, a recess --
+ * The 2px left rule. For a BLOCK of assertion, a quoted finding or a recess,
  * where the mark should run the height of the thing it is about.
  *
- * The padding is the rule's own weight plus a space, so the text sits off the
- * rule rather than against it, and it is the only geometry this component owns.
+ * The padding matches Meridian's own `RecordSpeaks`, which draws the same
+ * gesture for the same reason, so a rule and a record quote sitting in one
+ * column start their text on the same line.
  */
 export function EvidenceRule({
   source,
@@ -99,8 +158,8 @@ export function EvidenceRule({
     <div
       title={MEANING[source]}
       style={{
-        borderLeft: `var(--sp-eviq-rule) solid ${HUE[source]}`,
-        paddingLeft: "var(--sp-space-3)",
+        borderLeft: `2px solid ${HUE[source]}`,
+        paddingLeft: "var(--mrd-s5)",
       }}
     >
       <span className="sr-only">{MEANING[source]}</span>

@@ -5,8 +5,8 @@
     "It only ever moves DOWN. A file absent from this list must be clean.",
     "Do not hand-edit; do not regenerate to silence a failure."
   ],
-  "totalOccurrences": 2288,
-  "fileCount": 219,
+  "totalOccurrences": 2283,
+  "fileCount": 218,
   "files": {
     "src/components/admin/admin-ui.tsx": {
       "--text-": 2,
@@ -154,9 +154,6 @@
     },
     "src/components/knowledge/DocsPanel.tsx": {
       "--sp-": 2
-    },
-    "src/components/knowledge/EvidenceQuality.tsx": {
-      "--sp-": 5
     },
     "src/components/knowledge/graph-visual.ts": {
       "--sp-": 6,
