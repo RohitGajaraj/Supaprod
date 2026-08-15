@@ -23,7 +23,8 @@
     "design:slop": "node .kiro/skills/impeccable/scripts/detect.mjs src/",
     "predev": "node scripts/check-dev-node.mjs",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "design:ratchet": "bun run scripts/update-meridian-baseline.ts"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.45.0",
