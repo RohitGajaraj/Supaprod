@@ -123,3 +123,81 @@ describe("the runtime reaches the atomic meters", () => {
     expect(code).toContain("[budget] surface meter did not record for");
   });
 });
+
+describe("the RPCs the runtime calls exist in the live schema, with these argument names", () => {
+  /**
+   * ADDED AFTER THE MIGRATION WAS APPLIED, 2026-08-15, and this is the one check
+   * that could not be written before.
+   *
+   * `tsc` cannot see a wrong RPC name or a misspelled argument: `supabase.rpc()`
+   * takes strings, so `record_ai_budget_usage` and `record_ai_budgets_usage`
+   * typecheck identically and only one of them exists. That is the runtime-fatal
+   * class this repo's own trap list opens with, and a meter that silently fails
+   * every call would look exactly like a meter with nothing to record.
+   *
+   * `integrations/supabase/types.ts` is REGENERATED FROM THE LIVE DATABASE by
+   * Lovable when a migration is applied, so it is ground truth here rather than a
+   * hand-kept mirror. Asserting the runtime's call against it is asserting against
+   * the real schema.
+   *
+   * WHY THE ARGUMENT NAMES AND NOT JUST THE FUNCTION NAME. PostgREST matches
+   * named arguments, so a correct function name with one wrong key returns a
+   * "function not found" against a function that plainly exists. Both halves have
+   * to agree, so both are pinned.
+   */
+  const TYPES = readFileSync(join(ROOT, "src/integrations/supabase/types.ts"), "utf8");
+
+  const declared = (fn: string): string => {
+    const i = TYPES.indexOf(`      ${fn}: {`);
+    expect(i, `${fn} is absent from the generated types, so it is not in the database`).toBeGreaterThan(-1);
+    return TYPES.slice(i, i + 500);
+  };
+
+  it("record_ai_budget_usage takes the three arguments the runtime sends", () => {
+    const d = declared("record_ai_budget_usage");
+    for (const arg of ["_user_id", "_tokens", "_usd"]) expect(d).toContain(arg);
+    // And the runtime sends exactly those keys.
+    const call = runtime().slice(runtime().indexOf('rpc("record_ai_budget_usage"'));
+    for (const arg of ["_user_id:", "_tokens:", "_usd:"]) expect(call.slice(0, 300)).toContain(arg);
+  });
+
+  it("record_ai_surface_usage takes the three arguments the runtime sends", () => {
+    const d = declared("record_ai_surface_usage");
+    for (const arg of ["_user_id", "_surface", "_usd"]) expect(d).toContain(arg);
+    const call = runtime().slice(runtime().indexOf('rpc("record_ai_surface_usage"'));
+    for (const arg of ["_user_id:", "_surface:", "_usd:"]) expect(call.slice(0, 300)).toContain(arg);
+  });
+
+  it("both return a SET, which is why the runtime unwraps the first row", () => {
+    // A plpgsql function `returns table (...)` comes back as an array. Reading it
+    // as an object would leave every field undefined, the caps would read as zero,
+    // and the soft-cap alert would silently never fire.
+    for (const fn of ["record_ai_budget_usage", "record_ai_surface_usage"]) {
+      expect(declared(fn)).toContain("}[]");
+    }
+    expect(runtime()).toContain("Array.isArray(metered) ? metered[0] : metered");
+  });
+
+  it("returns the fields the alert logic reads, by these exact names", () => {
+    const d = declared("record_ai_budget_usage");
+    for (const col of [
+      "new_daily_usd",
+      "new_monthly_usd",
+      "daily_usd_cap",
+      "monthly_usd_cap",
+      "alert_at_pct",
+    ]) {
+      expect(d, `the runtime reads ${col} off this RPC`).toContain(col);
+    }
+  });
+
+  it("the connector cap's SQL side is in the database too, and still dormant", () => {
+    // Applied in the same batch. `connector_limit_enabled` returning false is
+    // what makes the trigger a no-op, and flipping it is a pricing decision, so
+    // its presence here is worth confirming and its VALUE is not this test's to
+    // assert (the migration holds that).
+    for (const fn of ["connector_limit_enabled", "tier_connector_limit", "connected_source_count"]) {
+      expect(TYPES).toContain(fn);
+    }
+  });
+});
