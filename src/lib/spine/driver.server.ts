@@ -1177,8 +1177,15 @@ export async function driveTrackOnce(
     // at Learn, so `learning.record`'s mission -> decision -> spec recovery
     // cannot fire on this route. Hoisting the mission out of this ternary is NOT
     // the fix — it revives the first hop and the second stays dead, because
-    // `decisions.prd_id` is null by construction at Decide. The fix is `specId`
-    // in the loop below.
+    // `decisions.prd_id` is null by construction at Decide.
+    //
+    // THE FIX IS NO LONGER `specId` BELOW, and that correction matters because the
+    // old one was a contract enforced by prose: it handed the analyst the id and
+    // asked it to pass `prd_id`, which works when the model complies and silently
+    // produces an orphan verdict when it does not. `learning.record` now reads the
+    // spec off `spine_track_members` using `ToolCtx.trackId`, which this loop
+    // already passes. `specId` stays in the brief because telling the agent which
+    // spec it is grading is worth doing on its own.
     const missionId =
       station === "build" ? await missionForTrack(supabase, row, decision.agentSlug) : null;
 
@@ -1210,10 +1217,15 @@ export async function driveTrackOnce(
       // hoisting the mission out of the Build ternary above would not revive it:
       // it would revive the first hop only, because `decision.record` at Decide
       // has no spec to name and `decisions.prd_id` is null by construction on
-      // this route. So the durable fix is the one below — hand the analyst the
-      // id and tell it, in `stationGoal`, to pass it. Live: the one track that
-      // completed the loop autonomously recorded two verdicts with prd_id,
-      // opportunity_id and mission_id all null.
+      // this route. Live: the one track that completed the loop autonomously
+      // recorded two verdicts with prd_id, opportunity_id and mission_id all null.
+      //
+      // WHAT THIS LINE IS AND IS NOT. It tells the agent which spec it is looking
+      // at, which is worth doing. It is NOT what guarantees the verdict attaches:
+      // that was the old claim here, and it rested on the model choosing to copy
+      // the id into a tool argument. `learning.record` now reads the spec off the
+      // track through `ToolCtx.trackId`, so the link holds whether or not the
+      // agent cooperates.
       //
       // Read off `brief`, not with a query. It is the same list the agent is
       // being shown, so the brief can never name a spec the agent was not given,

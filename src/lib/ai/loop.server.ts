@@ -781,6 +781,9 @@ export async function runAgentLoop(
     agentId: agent.id,
     traceId,
     missionId: input.missionId ?? null,
+    // So a tool can resolve what this run is about from the record rather than
+    // from its prompt. See ToolCtx.trackId.
+    trackId: input.trackId ?? null,
     workspaceId,
     authCache,
   };
@@ -1914,6 +1917,9 @@ export async function resumeAgentLoop(
     agentId: agent.id,
     traceId,
     missionId: run.mission_id ?? null,
+    // The RESUMED path needs it as much as the fresh one: a Learn run that paused
+    // on an approval and came back must still be able to attach its verdict.
+    trackId: (run as { track_id?: string | null }).track_id ?? null,
     workspaceId: run.workspace_id ?? null,
     authCache,
   };

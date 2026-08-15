@@ -102,6 +102,24 @@ export type ToolCtx = {
   runId?: string | null;
   stepIndex?: number | null;
   missionId?: string | null;
+  /**
+   * The piece of work this run belongs to, when the autonomous driver started it.
+   *
+   * ADDED BECAUSE THE MOAT'S ONLY LINK DEPENDED ON PROSE. `learning.record` needs
+   * the spec its verdict is about, or the outcome attaches to nothing and can
+   * never re-rank the bet that produced it. On the driver's route the two existing
+   * recoveries are both dead -- `missionId` is null at Learn, and
+   * `decisions.prd_id` is null by construction at Decide -- so the only remaining
+   * link was the driver naming the id in `stationGoal` and the model choosing to
+   * copy it into a tool argument. Live: the one track that completed the loop
+   * autonomously recorded two verdicts with prd_id, opportunity_id and mission_id
+   * all null.
+   *
+   * The driver already FILES the spec as a track member, so the id is on the
+   * record either way. Handing the track down lets a tool read it instead of
+   * trusting the prompt, which is the difference between a link and a hope.
+   */
+  trackId?: string | null;
   workspaceId?: string | null;
   /** Per-run cache for provider auth to avoid redundant credential chain re-queries across multiple tool calls within the same agent run. */
   authCache?: ProviderAuthCache;
@@ -3931,7 +3949,7 @@ const learningRecord = def({
   }),
   preview: (a) =>
     `Record learning (${a.verdict}): "${a.summary.slice(0, 60)}${a.summary.length > 60 ? "..." : ""}"`,
-  run: async (a, { supabase, userId, agentSlug, missionId, workspaceId }) => {
+  run: async (a, { supabase, userId, agentSlug, missionId, trackId, workspaceId }) => {
     // THE LOOP HAS TO CLOSE FOR THE AGENT, NOT ONLY FOR THE HUMAN.
     //
     // This used to insert a learnings row carrying prd_id and nothing else. That
@@ -3988,9 +4006,12 @@ const learningRecord = def({
     // Live: the one track that completed the loop autonomously recorded two
     // verdicts, both with prd_id, opportunity_id and mission_id all NULL.
     //
-    // The fix for that is in the driver, not here — this tool cannot see a track
-    // — so what this file does about it is the branch below: report the miss
-    // instead of swallowing it. See the block above `outcomeMemoryId`.
+    // CLOSED 2026-08-14, and the sentence that used to be here was "the fix for
+    // that is in the driver, not here — this tool cannot see a track". It can now:
+    // `ToolCtx.trackId` carries it, and the third recovery below reads the spec off
+    // `spine_track_members`, which the driver has already filed. The reporting
+    // branch above `outcomeMemoryId` stays either way, because a resolution that
+    // finds nothing must still say so.
     let resolvedPrdId: string | null = a.prd_id ?? null;
     if (!resolvedPrdId && missionId) {
       const { data: fromMission } = await supabase
@@ -4002,6 +4023,38 @@ const learningRecord = def({
         .limit(1)
         .maybeSingle();
       resolvedPrdId = (fromMission as { prd_id?: string | null } | null)?.prd_id ?? null;
+    }
+    /**
+     * AND THE ROUTE THE OTHER TWO CANNOT REACH: read it off the track.
+     *
+     * The paragraph above ends "the fix for that is in the driver, not here --
+     * this tool cannot see a track". It can now. `ToolCtx.trackId` carries the
+     * piece of work a driver-started run belongs to, and the driver FILES the spec
+     * as a track member the moment Plan produces one, so the id this needs is
+     * already on the record by the time Learn runs.
+     *
+     * WHY THIS IS THE DURABLE FIX AND THE EXISTING ONE IS NOT. The driver hands
+     * the analyst the spec id in `stationGoal` and asks it to pass `prd_id`. That
+     * works when the model complies and silently produces an orphan verdict when
+     * it does not, which is the same shape as the nine features this repo found
+     * doing nothing in production: correct code whose contract was a hope. Reading
+     * the record needs no cooperation.
+     *
+     * Newest spec wins, matching `newestSpecId`, which is what the driver put in
+     * the brief the agent was looking at. Fail-soft like both recoveries above: an
+     * unlinked verdict is worth less than a linked one and far more than a lost
+     * one, so nothing here may block the write.
+     */
+    if (!resolvedPrdId && trackId) {
+      const { data: fromTrack } = await supabase
+        .from("spine_track_members" as never)
+        .select("artifact_id")
+        .eq("track_id", trackId)
+        .eq("artifact_kind", "prd")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      resolvedPrdId = (fromTrack as { artifact_id?: string | null } | null)?.artifact_id ?? null;
     }
 
     if (resolvedPrdId) {
