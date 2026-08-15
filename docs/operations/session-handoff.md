@@ -1,6 +1,64 @@
 # Pick up here
 
-> _Created: 2026-08-07 · Last updated: 2026-08-14, late. **A spine pass closed after the three lanes: twelve commits on main, and a list of live-database checks that only Claude Code can run.**
+> _Created: 2026-08-07 · Last updated: 2026-08-16, late. **Funding lane: two applications drafted for deadlines that both turned out to be softer than the board said. The founder has seen the work and is NOT fully happy with it, and did not say why.**
+
+---
+
+# ⏸️ FUNDING LANE, 2026-08-16 — drafted, pushed, and NOT yet filed
+
+**Commit `5ccfd95b`, pushed to origin/main.** Two applications drafted in full. **Nothing was submitted.**
+
+## 🔴 Read this before touching the drafts
+
+> **The founder read the work and said: *"I did see the work you have done, but I'm not fully happy with it."* He asked to save and close rather than iterate, and he did not say what was wrong.**
+>
+> **Do not guess and do not rewrite.** Ask him which part misses, then fix that specific thing. [`../pitch/applications/how-to-draft-the-next-one.md`](../pitch/applications/how-to-draft-the-next-one.md) correction 4 is exactly this case: *"I asked you to build on top of the existing one… I wanted you to combine both things"* — a full replacement loses the parts that were working, and he notices.
+>
+> **The likeliest candidates, in order, so the question can be specific:** the application was drafted **blind against the published selection criteria rather than the live form**, because the form sits behind an account gate; the answers may read long for a form whose fields are unknown; and the register may still be too composed for him.
+
+## What the pages said that the board did not
+
+| | Board said | The page actually says |
+| --- | --- | --- |
+| **CF Accelerator Batch #9** | closes 2026-08-16 | **The apply FORM says "Please apply before Aug 17, 2026."** The programme page says 16.08. **The form governs** |
+| **ikigai Launchpad** | closes 2026-08-16 | **16.08 is the close of the SECOND ROUND of acceptances, not the batch.** Acceptances are rolling and the batch is nowhere stated as full |
+
+**Which Campus Founders programme: settled, and it does not need re-deriving.** **AI Founders has merged into the CF Accelerator** and its page now redirects to the same apply link. AI Scale already ran, 14 July to 6 August. Venture Studio, Pre-Seed BW and Leadership Talent Academy are not funding routes today. **There is one door.**
+
+## What exists now
+
+| File | What it holds |
+| --- | --- |
+| [`../pitch/applications/campus-founders/APPLICATION-FINAL.md`](../pitch/applications/campus-founders/APPLICATION-FINAL.md) | 17 answers, paste-ready, plus a pre-submit checklist |
+| [`../pitch/applications/campus-founders/positioning.md`](../pitch/applications/campus-founders/positioning.md) | The programme read off its own pages, the five selection criteria, where we win and lose |
+| [`../pitch/applications/campus-founders/how-to-apply.md`](../pitch/applications/campus-founders/how-to-apply.md) | The account gate, and a paste-ready brief for Claude-in-Chrome |
+| [`../pitch/applications/ikigai-launchpad/APPLICATION-FINAL.md`](../pitch/applications/ikigai-launchpad/APPLICATION-FINAL.md) | All seven Tally parts, deliberately a different application from CF's |
+
+## 🔑 The blocker that is structural, not a bug
+
+**The founder signed up to AcceleratorApp with Google, so the account has no password, so no other browser session can ever sign into it.** Claude Code drives its own isolated Chrome profile and **cannot attach to a normally-launched Chrome** — a debug port has to be set at launch, and macOS blocks the shell from the real Chrome profile directory. All three MCP browser paths (`use_browser`, chrome-devtools-mcp, Playwright) spawn their own instance.
+
+> **The generalisable rule, and it belongs in the craft log: for any application an agent is meant to fill, sign up with EMAIL AND PASSWORD, never with Google or any OAuth button.** A Google signup permanently hands the form to whoever holds that browser session.
+
+## Two canon conflicts found while drafting, both resolved toward the later ruling
+
+1. **`answer-bank.md` puts the commit count inside the "why solo" answer.** That is the exact adjacency [`../pitch/applications/positioning-doctrine.md`](../pitch/applications/positioning-doctrine.md) **Rule 6** bans: a number next to "agents write the code" reads as measuring the agents rather than the founder. **The drafts split them into different fields. The answer bank itself is still wrong and was not fixed.**
+2. **Several `answer-bank.md` blocks still use "remembers" as a verb of the brain** (§1 two-sentence block, §1 three-layers block), which `CLAUDE.md` bans **everywhere**. The drafts say *learns and guides*. **The answer bank was not fixed.**
+
+**Both are open. Fixing them is cheap and stops the next application inheriting them.**
+
+## Waiting on the founder
+
+- [ ] **Say what is not right about the drafts.** Blocking everything else.
+- [ ] **Test `lantern@supaprod.ai` in incognito** and confirm the approval queue is armed. Allocated to Campus Founders; `meridian@` allocated to ikigai. Both recorded in [`../pitch/applications/answer-bank.md`](../pitch/applications/answer-bank.md).
+- [ ] **Record the ikigai intro video** (Tally part 4b). The long pole, and rolling rounds mean it can wait for a good take.
+- [ ] **Re-pull numbers at submit.** Today's: **5,280 commits · 545 migrations · first commit 2026-06-02**.
+
+## Dates that matter
+
+**CF pitch invitations 24 to 26 August · acceptances 28 August · cohort 30.09 to 18.12.2026 in Heilbronn.** The approval-queue runway holds to late September, so a pitch invite lands inside it. **CF bans parallel accelerator participation and runs to 18 December, which collides with EF The Bridge SF in October.** Founder ruling 2026-08-16: **apply anyway, say nothing.** The clause binds participants, not applicants.
+
+---
 
 ## ✅ SPINE PASS CLOSED 2026-08-14 (after the three lanes above). Twelve commits on main. **Everything here needs one thing: a look at the live database.**
 
