@@ -377,9 +377,29 @@ export function describeUpstream(
 ): string {
   if (!upstream.length) return "";
 
-  // The tail gets the full text; the head is named only. Counted from the end so
-  // the freshest work is always the work that arrives whole.
-  const inlineFrom = Math.max(0, upstream.length - HANDOFF_BODIES);
+  /**
+   * The newest few that get their full text. The rest are named only.
+   *
+   * COUNTED IN BODIES, NOT IN POSITIONS, and that distinction is a bug fix. This
+   * was `upstream.length - HANDOFF_BODIES`, which reserves the last two SLOTS
+   * whether or not the artifacts in them have any text. Several kinds have no body
+   * column at all in `ARTIFACT_SOURCE`: a mission is a container, and a deployment
+   * is an address.
+   *
+   * WHAT THAT COST, at the station that writes the code. `missionForTrack` files
+   * the mission as a track member at Build, so from Build's SECOND tick onward the
+   * newest two were the prototype and the mission -- and the mission, carrying no
+   * text whatsoever, spent a body slot and pushed the SPEC out of the brief. Build's
+   * first attempt saw the spec and every retry did not, which is precisely the
+   * attempt that needs it most, because the first one failed.
+   *
+   * The constant is called HANDOFF_BODIES. Counting bodies is what it always said
+   * it did.
+   */
+  const inline = new Set<number>();
+  for (let i = upstream.length - 1; i >= 0 && inline.size < HANDOFF_BODIES; i--) {
+    if ((upstream[i].body ?? "").trim()) inline.add(i);
+  }
 
   /**
    * The NEWEST of each always-whole kind, not every one of them.
@@ -402,7 +422,7 @@ export function describeUpstream(
   const parts = upstream.map((a, i) => {
     const head = `${a.kind} "${a.title}" (id ${a.id})`;
     const body = (a.body ?? "").trim();
-    if ((i < inlineFrom && !whole.has(i)) || !body) return head;
+    if ((!inline.has(i) && !whole.has(i)) || !body) return head;
     const clipped =
       body.length > HANDOFF_BODY_CHARS ? `${body.slice(0, HANDOFF_BODY_CHARS)}\n[truncated]` : body;
     return `${head}:\n${clipped}`;
