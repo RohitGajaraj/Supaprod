@@ -230,6 +230,7 @@ export type Database = {
           escalated_at: string | null
           escalated_to: string | null
           escalation_state: string
+          execution_claimed_at: string | null
           expires_at: string | null
           expiry_notified_at: string | null
           id: string
@@ -257,6 +258,7 @@ export type Database = {
           escalated_at?: string | null
           escalated_to?: string | null
           escalation_state?: string
+          execution_claimed_at?: string | null
           expires_at?: string | null
           expiry_notified_at?: string | null
           id?: string
@@ -284,6 +286,7 @@ export type Database = {
           escalated_at?: string | null
           escalated_to?: string | null
           escalation_state?: string
+          execution_claimed_at?: string | null
           expires_at?: string | null
           expiry_notified_at?: string | null
           id?: string
@@ -566,6 +569,7 @@ export type Database = {
           model: string | null
           output: string | null
           resume_count: number | null
+          resume_lease_at: string
           spend_used_usd: number
           status: string
           step_index: number
@@ -595,6 +599,7 @@ export type Database = {
           model?: string | null
           output?: string | null
           resume_count?: number | null
+          resume_lease_at?: string
           spend_used_usd?: number
           status?: string
           step_index?: number
@@ -624,6 +629,7 @@ export type Database = {
           model?: string | null
           output?: string | null
           resume_count?: number | null
+          resume_lease_at?: string
           spend_used_usd?: number
           status?: string
           step_index?: number
@@ -3760,6 +3766,53 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
+      }
+      forecast_resolution_log: {
+        Row: {
+          decision_id: string
+          id: string
+          reason: string
+          reopened_at: string
+          reopened_by: string | null
+          resolution: string
+          resolution_rationale: string | null
+          resolved_at: string | null
+          resolved_by_agent_slug: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          decision_id: string
+          id?: string
+          reason: string
+          reopened_at?: string
+          reopened_by?: string | null
+          resolution: string
+          resolution_rationale?: string | null
+          resolved_at?: string | null
+          resolved_by_agent_slug?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          decision_id?: string
+          id?: string
+          reason?: string
+          reopened_at?: string
+          reopened_by?: string | null
+          resolution?: string
+          resolution_rationale?: string | null
+          resolved_at?: string | null
+          resolved_by_agent_slug?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forecast_resolution_log_decision_id_fkey"
+            columns: ["decision_id"]
+            isOneToOne: false
+            referencedRelation: "decisions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       funnel_milestones: {
         Row: {
@@ -7413,6 +7466,24 @@ export type Database = {
           },
         ]
       }
+      stripe_events: {
+        Row: {
+          event_id: string
+          received_at: string
+          type: string | null
+        }
+        Insert: {
+          event_id: string
+          received_at?: string
+          type?: string | null
+        }
+        Update: {
+          event_id?: string
+          received_at?: string
+          type?: string | null
+        }
+        Relationships: []
+      }
       studio_changes: {
         Row: {
           base_content: string | null
@@ -9500,6 +9571,10 @@ export type Database = {
         }
         Returns: string
       }
+      claim_stripe_event: {
+        Args: { _event_id: string; _type: string }
+        Returns: boolean
+      }
       claim_workspace_into_account: {
         Args: {
           _actor_id: string
@@ -9960,6 +10035,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      release_stripe_event: { Args: { _event_id: string }; Returns: undefined }
       release_workspace_claim: {
         Args: {
           _actor_id: string
