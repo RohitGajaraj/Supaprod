@@ -457,7 +457,7 @@ export function StreamingText({
           <button
             type="button"
             onClick={onRetry}
-            className="mt-3 inline-flex h-7 items-center gap-1.5 rounded-mrd-ctl bg-mrd-lift px-2.5 text-[12.5px] text-mrd-ink transition-colors duration-150 hover:bg-mrd-float"
+            className="mt-3 inline-flex h-7 items-center gap-1.5 rounded-mrd-ctl bg-mrd-lift px-2.5 text-[12.5px] text-mrd-ink transition-colors duration-150 hover:bg-mrd-lift-hover"
           >
             <Glyph d={RETRY_D} label="" />
             Try again

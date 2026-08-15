@@ -144,6 +144,31 @@
   --mrd-sink: oklch(0.125 0.006 70); /* a recess: the record, evidence */
   --mrd-sheet: oklch(0.175 0.006 70); /* chrome: header, rail */
   --mrd-lift: oklch(0.215 0.007 70); /* a raised control, secondary button */
+  /*
+   * ── WHAT A SECONDARY DOES ON HOVER ──────────────────────────────────────
+   * Added 2026-08-15 after two independent ports each reached for `--mrd-float`
+   * here, found it wrong, and worked around it locally. It is wrong, and the
+   * reason is worth writing down because the two grounds hide it from each
+   * other.
+   *
+   * THE LADDER DOES NOT RUN THE SAME WAY IN BOTH GROUNDS. Each theme steps AWAY
+   * from its own canvas, so "more raised" is LIGHTER on dark and DARKER on
+   * paper. `float` is the one stop that breaks the pattern, because a floating
+   * pane must lift off the page in both: it goes lighter in both, to 0.255 on
+   * dark and 0.996 on paper.
+   *
+   * On dark that makes `float` a plausible-looking hover, which is exactly why
+   * two people used it. On paper it INVERTS THE DIRECTION: a secondary rests at
+   * 0.951, DARKER than its 0.965 canvas, and hovering it to 0.996 would make it
+   * jump to near-white and read as though it had detached from the page. The
+   * defect is invisible in the ground most people develop in.
+   *
+   * So this steps the way each ground already steps, and stops short of the
+   * neighbouring roles: on dark it stays under `solid` (0.325) so a hovered
+   * secondary never impersonates a primary, and on paper it stays clear of
+   * `sink` (0.932) so a hovered control never reads as a recess.
+   */
+  --mrd-lift-hover: oklch(0.247 0.008 70);
   --mrd-float: oklch(0.255 0.008 70); /* genuinely floating: menu, pane */
   --mrd-solid: oklch(0.325 0.009 70); /* the primary button face */
   /*
@@ -435,6 +460,29 @@
   /* The one that does the most work. Uniform, never per-size. */
   --mrd-track: -0.14px;
 
+  /*
+   * ── THE ONE EXCEPTION TO "NEVER PER-SIZE" ───────────────────────────────
+   * Added 2026-08-15, and the exception is real rather than a convenience.
+   * `--mrd-track` is slightly NEGATIVE, which is correct for lowercase text at
+   * reading sizes: it closes the gaps Inter leaves at 13px and up. Applied to a
+   * 10px UPPERCASE label it does the opposite of what is wanted, because
+   * capitals have no descenders or x-height variation to separate them and at
+   * that size they collide into a single grey bar.
+   *
+   * Every micro-label in the product had therefore opened its tracking by hand,
+   * and the three that existed had drifted to three different values: 0.025em
+   * via `tracking-wide`, 0.06em, and 0.08em. Three files solving one problem
+   * three ways is the condition this system exists to remove, and by the rule
+   * in the file header a second caller already earns a token.
+   *
+   * 0.06em is the middle and it is where 10px/650 uppercase actually resolves:
+   * `tracking-wide` is visibly tight on capitals, and 0.08em starts to read as
+   * a letterspaced logotype rather than as a label.
+   *
+   * Use with `--mrd-t-nano` and weight 650. The three properties are one idea.
+   */
+  --mrd-track-label: 0.06em;
+
   --mrd-t-nano: 10px; /* uppercase micro-label, always at weight 650 */
   --mrd-t-micro: 10.5px; /* keycaps, the quietest meta */
   --mrd-t-tiny: 11px; /* mono counts, stage numerals */
@@ -514,6 +562,10 @@
   --mrd-sink: oklch(0.932 0.011 85);
   --mrd-sheet: oklch(0.985 0.005 85);
   --mrd-lift: oklch(0.951 0.009 85);
+  /* Darker, not lighter: on paper a raised control steps AWAY from a light
+     canvas, so its hover continues in that direction. Held clear of `sink`
+     (0.932) so a hovered control never reads as a recess. See the dark ramp. */
+  --mrd-lift-hover: oklch(0.938 0.01 85);
   --mrd-float: oklch(0.996 0.003 85);
   --mrd-solid: oklch(0.28 0.012 70);
   --mrd-solid-hover: oklch(0.22 0.012 70);
@@ -632,6 +684,7 @@
   --color-mrd-sink: var(--mrd-sink);
   --color-mrd-sheet: var(--mrd-sheet);
   --color-mrd-lift: var(--mrd-lift);
+  --color-mrd-lift-hover: var(--mrd-lift-hover);
   --color-mrd-float: var(--mrd-float);
   --color-mrd-solid: var(--mrd-solid);
   --color-mrd-solid-hover: var(--mrd-solid-hover);
@@ -696,6 +749,8 @@
 
   --font-mrd: var(--mrd-font);
   --font-mrd-mono: var(--mrd-mono);
+  /* `tracking-mrd-label`, so a micro-label never hand-writes an em value. */
+  --tracking-mrd-label: var(--mrd-track-label);
 
   /*
    * Elevation as utilities, so `shadow-mrd-card` exists and nobody has to reach

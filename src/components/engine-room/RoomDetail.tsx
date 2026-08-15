@@ -224,7 +224,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
               is derived from the same real state as the verdict. */}
           {status?.glance?.action ? (
             <p className="mt-mrd-3 border-l-2 border-mrd-edge pl-mrd-4 text-[12.5px] leading-relaxed text-mrd-body">
-              <span className="mr-mrd-3 text-[10px] font-[650] tracking-wide text-mrd-mute uppercase">
+              <span className="mr-mrd-3 text-[10px] font-[650] tracking-mrd-label text-mrd-mute uppercase">
                 Next
               </span>
               {status.glance.action}

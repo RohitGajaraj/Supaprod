@@ -399,7 +399,7 @@ export function ToolChips({
                     key={d.file}
                     type="button"
                     onClick={() => onSelectFile(d)}
-                    className={`${chipClass} cursor-pointer transition-colors duration-100 hover:bg-mrd-float`}
+                    className={`${chipClass} cursor-pointer transition-colors duration-100 hover:bg-mrd-lift-hover`}
                     style={enter}
                   >
                     {face}

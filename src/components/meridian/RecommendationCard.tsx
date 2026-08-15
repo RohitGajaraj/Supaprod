@@ -289,7 +289,7 @@ export function RecommendationCard({
                * than as tinted.
                */
               className={`h-7 rounded-mrd-ctl px-2.5 text-[12.5px] font-medium text-mrd-ink transition-[background-color,box-shadow,transform] duration-100 active:scale-[0.96] ${
-                open ? "bg-mrd-select" : "bg-mrd-lift hover:bg-mrd-float"
+                open ? "bg-mrd-select" : "bg-mrd-lift hover:bg-mrd-lift-hover"
               }`}
               style={{ boxShadow: open ? "none" : "var(--mrd-shadow-card)" }}
             >

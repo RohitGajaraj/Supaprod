@@ -252,7 +252,7 @@ export function PersonMark({ initials, mine = false }: { initials: string; mine?
  * module that exports components may also export a constant and may not export a
  * helper.
  */
-export const LINK_AS_CONTROL = `${CONTROL_SHAPE} border border-mrd-line bg-mrd-lift text-mrd-body hover:bg-mrd-float hover:text-mrd-ink`;
+export const LINK_AS_CONTROL = `${CONTROL_SHAPE} border border-mrd-line bg-mrd-lift text-mrd-body hover:bg-mrd-lift-hover hover:text-mrd-ink`;
 
 /**
  * MERIDIAN'S `Action` UNDER THE NAME A GUARD READS, and nothing else.
@@ -360,7 +360,7 @@ export function RunRow({
 export function ContextNote({ head, children }: { head: string; children: React.ReactNode }) {
   return (
     <section data-mrd="" className="mt-mrd-5 first:mt-0">
-      <h2 className="text-[10px] font-[650] tracking-[0.06em] text-mrd-faint uppercase">{head}</h2>
+      <h2 className="text-[10px] font-[650] tracking-mrd-label text-mrd-faint uppercase">{head}</h2>
       <div className="mt-mrd-3 text-[12.5px] leading-relaxed text-mrd-body">{children}</div>
     </section>
   );

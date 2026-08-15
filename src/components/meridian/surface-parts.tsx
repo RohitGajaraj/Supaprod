@@ -83,7 +83,7 @@ export function Figure({ children }: { children: React.ReactNode }) {
  */
 export function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <span className="block text-[10px] font-[650] tracking-wide text-mrd-mute uppercase">
+    <span className="block text-[10px] font-[650] tracking-mrd-label text-mrd-mute uppercase">
       {children}
     </span>
   );
@@ -269,7 +269,7 @@ const ACTION_FACE: Record<ActionVariant, string> = {
   // can say what would unlock them.
   quiet: "text-mrd-mute enabled:hover:bg-mrd-hover enabled:hover:text-mrd-body",
   default:
-    "border border-mrd-line bg-mrd-lift text-mrd-body enabled:hover:bg-mrd-float enabled:hover:text-mrd-ink",
+    "border border-mrd-line bg-mrd-lift text-mrd-body enabled:hover:bg-mrd-lift-hover enabled:hover:text-mrd-ink",
 };
 
 /**
