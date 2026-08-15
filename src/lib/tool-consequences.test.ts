@@ -1,4 +1,5 @@
 import { describe, it, expect } from "bun:test";
+import { TOOL_DEFAULTS } from "@/lib/ai/tools/defaults";
 import {
   toolConsequence,
   isSideEffectingTool,
@@ -148,5 +149,64 @@ describe("delegate.openhands (governed delegate-out, #5 wiring)", () => {
     expect(isExternalTool("delegate.openhands")).toBe(true);
     expect(toolRisk("delegate.openhands")).toBe("high");
     expect(isHighRiskTool("delegate.openhands")).toBe(true);
+  });
+});
+
+/**
+ * EVERY TOOL THAT CAN REACH AN APPROVAL GATE MUST SAY WHAT IT DOES.
+ *
+ * THE DEFECT THIS PREVENTS, found on the rendered /today on 2026-08-16.
+ * `approvals-queue.functions.ts` sets a tool gate's `title` to
+ * `consequence.effect`. `title` becomes the `sp-gate-q` heading: 19px, the size
+ * this system reserves for "the gate question, biggest thing on a surface".
+ * So an uncatalogued tool printed
+ *
+ *     "Runs the tool with the agent's arguments."
+ *
+ * as the question a person was being asked to answer. It names no tool, no
+ * object and no consequence.
+ *
+ * Measured when it was found: 59 registered tools, 36 catalogued, 23 falling
+ * through, and SIX of those 23 in `confirm` or `review` mode -- so six tools
+ * that can actually reach a gate, including revising a decision, revising a
+ * spec, reverting a merged release and spawning sub-agents.
+ *
+ * THIS IS THE SAME DEFECT `every-tool-can-be-named.test.ts` WAS WRITTEN FOR,
+ * one map away. That one holds `ACTION_LABEL`, which had ten entries against 59
+ * tools and made six of the seven stations say "working". The fix there was
+ * derivation plus a guard; the guard could not see this map, so the shape
+ * recurred. A sparse lookup with a generic fallback fails silently and looks
+ * finished, which is why it needs a test rather than a review.
+ *
+ * SCOPED TO GATED TOOLS ON PURPOSE. An `auto` tool never renders an approval
+ * card, so requiring a blast-radius sentence for all 59 would be busywork that
+ * invites a wave of filler entries -- and a filler consequence is worse than
+ * none, because it is a claim. The rule is: if it can stop and ask a person,
+ * it must be able to tell them what they are approving.
+ */
+describe("every tool that can reach an approval gate is catalogued", () => {
+  const DEFAULT_EFFECT = "Runs the tool with the agent's arguments.";
+
+  it("has a real registry to check against", () => {
+    // A floor, so an emptied registry cannot make the next test pass vacuously.
+    expect(Object.keys(TOOL_DEFAULTS).length).toBeGreaterThan(40);
+  });
+
+  it("leaves no confirm or review tool on the generic default", () => {
+    const gated = Object.entries(TOOL_DEFAULTS)
+      .filter(([, d]) => d.mode !== "auto")
+      .map(([name]) => name);
+    expect(gated.length).toBeGreaterThan(0);
+
+    const generic = gated.filter((name) => toolConsequence(name).effect === DEFAULT_EFFECT);
+    // Named rather than counted: the failure should print WHICH tool needs an
+    // entry, since that is the whole work of fixing it.
+    expect(generic).toEqual([]);
+  });
+
+  it("keeps the default reachable for a tool that is not registered at all", () => {
+    // The default is not dead code. An unregistered or renamed tool must still
+    // degrade to a conservative sentence rather than crash or leak its id.
+    expect(toolConsequence("nope.not.a.tool").effect).toBe(DEFAULT_EFFECT);
   });
 });

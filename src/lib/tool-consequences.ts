@@ -217,6 +217,74 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     reversible: "partial",
     undo: "Remove the generated theme/opportunity. The source signals are untouched.",
   },
+
+  /*
+   * ── THE SIX GATED TOOLS THAT HAD NO ENTRY, ADDED 2026-08-16 ──────────────
+   * Found by reading the RENDERED /today, not the source: the `sp-gate-q`
+   * heading -- 19px, the size this system reserves for "the biggest thing on a
+   * surface", the question a person is there to answer -- was printing
+   *
+   *     "Runs the tool with the agent's arguments."
+   *
+   * `approvals-queue.functions.ts` sets a tool gate's `title` to
+   * `consequence.effect`, so an uncatalogued tool put the DEFAULT in the one
+   * slot on the surface that must never be generic.
+   *
+   * Measured against the registry: 59 tools, 36 catalogued, 23 falling through.
+   * Six of those 23 are `confirm` or `review` mode, so they are exactly the ones
+   * that can reach an approval gate, and they are not small: revising a
+   * decision, revising a spec, reverting a release, spawning agents.
+   *
+   * THIS IS THE SECOND TIME THIS DEFECT HAS BEEN FOUND, in a different map.
+   * `every-tool-can-be-named.test.ts` records the first: `ACTION_LABEL` held ten
+   * entries against 59 tools, so six of the seven stations said "working" while
+   * an agent drafted their spec. That was fixed by deriving from TOOL_DEFAULTS
+   * and guarded. The guard covers naming and does not reach this map, so the
+   * same shape recurred one file away. See the new guard in
+   * tool-consequences.test.ts.
+   *
+   * Each effect below is written from the tool's own definition in
+   * registry.server.ts rather than from its name, because this file's contract
+   * is that the claim never outruns the wiring.
+   */
+  "decision.revise": {
+    // registry.server.ts: overwrites the rationale, captures the prior one for
+    // a one-key Rewind, and does not touch status.
+    effect: "Rewrites a decision's rationale in place. Its status is not touched.",
+    reversible: "reversible",
+    undo: "Rewind the edit in one key. The previous rationale was captured, and the rewind lands on the audit trail.",
+  },
+  "prd.revise": {
+    effect: "Rewrites the spec's body in place, applying only the change that was asked for.",
+    reversible: "reversible",
+    undo: "Rewind the edit in one key. The previous body was captured, and the rewind lands on the audit trail.",
+  },
+  "roadmap.move": {
+    effect: "Moves an opportunity to Now, Next or Later, or back to the backlog.",
+    reversible: "reversible",
+    undo: "Rewind the move in one key. The previous placement was captured.",
+  },
+  "studio.revert": {
+    // Not a delete: it synthesizes an INVERSE changeset which then goes through
+    // commit, PR and the CI gate like any other.
+    effect:
+      "Rolls back a merged release by opening an inverse changeset, which goes through commit, the pull request and the CI gate like any other.",
+    reversible: "partial",
+    undo: "The revert is itself a change on the rails. Close its pull request before it merges; after that, going back means another changeset.",
+  },
+  "agent.spawn": {
+    effect:
+      "Starts several sub-agents at once, each working on its own and each spending a split of the mission's budget.",
+    reversible: "irreversible",
+    undo: "They have started and cannot be recalled. Halt the mission to stop the work that has not begun yet.",
+  },
+  "web.crawl": {
+    // category: "read" -- it changes nothing. The spend is the irreversible part,
+    // and saying so is the honest reading of "partial".
+    effect: "Reads up to 25 pages on one domain, following its links.",
+    reversible: "partial",
+    undo: "Nothing was changed anywhere. The credits it spends are not refundable.",
+  },
 };
 
 const DEFAULT: ToolConsequence = {
