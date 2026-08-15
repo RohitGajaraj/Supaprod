@@ -55,12 +55,29 @@ export const Route = createFileRoute("/api/public/hooks/scout-tick")({
         const unauth = await requireHookCaller(request);
         if (unauth) return unauth;
 
-        // ACTIVATION GATE: key absent = dormant by design.
-        if (!process.env.FIRECRAWL_API_KEY) {
-          return json({ ok: true, skipped: true, reason: "scout dormant, no firecrawl key" });
-        }
-
         return withJobRunHttp("ambient.scout-tick", async () => {
+          /**
+           * ACTIVATION GATE: key absent = dormant by design.
+           *
+           * MOVED INSIDE THE LEDGER 2026-08-15. It used to return BEFORE the
+           * wrapper opened a job run, so a dormant scout wrote no row at all, on
+           * any tick, ever, and its honest explanation went into a JSON body that
+           * only pg_cron reads.
+           *
+           * That left the ledger unable to tell two very different states apart:
+           * switched off on purpose, and the cron entry is gone. Both looked like
+           * silence, and `EXPECTED_JOBS` lists this job with a four-hour staleness
+           * window, so the one state it could never report is exactly the one it
+           * was watching for.
+           *
+           * Recorded as a healthy run, because it is one: the tick fired, decided
+           * correctly that there was nothing it could do, and said so. What the
+           * row buys is proof the schedule is alive, which nobody could establish
+           * before.
+           */
+          if (!process.env.FIRECRAWL_API_KEY) {
+            return json({ ok: true, skipped: true, reason: "scout dormant, no firecrawl key" });
+          }
           const { data: rawWorkspaces, error } = await db
             .from("workspaces")
             .select("id, owner_id, scout_daily_fetch_cap, last_auto_scout_at")

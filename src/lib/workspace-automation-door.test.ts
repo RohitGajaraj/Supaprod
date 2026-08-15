@@ -139,16 +139,22 @@ describe("armed and idle is a state, and it is said out loud", () => {
   });
 });
 
-describe("the gate this closes was invisible in the job ledger", () => {
-  it("both sweeps behind the scout flag still return before opening a job run", () => {
-    // NOT FIXED HERE, and pinned so the next person knows the shape and so that
-    // moving the check inside the ledger wrapper is a deliberate change rather
-    // than an accident. Both ticks test the platform key and return BEFORE they
-    // call the ledger wrapper, so a dormant tick records no run at all and its
-    // honest explanation goes into a body only pg_cron reads. Nothing in
-    // `job_runs` distinguishes "off on purpose" from "never scheduled". The
-    // surface above is what makes the state visible today; the ledger still
-    // cannot say it.
+describe("a dormant sweep records that it is dormant", () => {
+  it("both sweeps check the platform key INSIDE their job run, not before it", () => {
+    // FIXED 2026-08-15, and this test was inverted to pin the fix rather than
+    // the defect.
+    //
+    // Both ticks used to test the platform key and RETURN before calling the
+    // ledger wrapper, so a dormant sweep wrote no `job_runs` row at all, on any
+    // tick, ever, and its honest explanation went into a JSON body only pg_cron
+    // reads. That left the ledger unable to tell "switched off on purpose" from
+    // "the cron entry is gone": both are silence. `EXPECTED_JOBS` lists these two
+    // with four-hour and twenty-six-hour staleness windows, so the one state the
+    // ledger could never report was exactly the one it was watching for.
+    //
+    // The dormant tick is now recorded as a healthy run, because it is one: it
+    // fired, decided correctly that there was nothing it could do, and said so.
+    // What the row buys is proof the schedule is alive.
     //
     // Compared on the GUARD and the WRAPPER CALL, not on the first mention of
     // either: the import sits at the top of the file and a header comment names
@@ -160,7 +166,20 @@ describe("the gate this closes was invisible in the job ledger", () => {
       const wrapperCall = code.search(/return withJobRun(Http)?\(/);
       expect(guard, `${tick} should still carry the activation guard`).toBeGreaterThan(-1);
       expect(wrapperCall, `${tick} should still open a job run`).toBeGreaterThan(-1);
-      expect(guard, `${tick}: the guard runs before the ledger opens`).toBeLessThan(wrapperCall);
+      expect(
+        guard,
+        `${tick}: the guard must run INSIDE the job run, so a dormant tick still records one`,
+      ).toBeGreaterThan(wrapperCall);
+    }
+  });
+
+  it("still answers 200 with a named reason, so pg_cron sees no failure", () => {
+    // A dormant tick is not an error and must not be scored as one. The response
+    // stays exactly what it was; only where it is produced from has moved.
+    for (const tick of ["scout-tick.ts", "researcher-tick.ts"]) {
+      const code = readFileSync(join(SRC, "routes", "api", "public", "hooks", tick), "utf8");
+      expect(code).toContain("skipped: true");
+      expect(code).toMatch(/reason: "(scout dormant, no firecrawl key|FIRECRAWL_API_KEY not set)"/);
     }
   });
 });

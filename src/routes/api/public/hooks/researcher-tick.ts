@@ -52,12 +52,19 @@ export const Route = createFileRoute("/api/public/hooks/researcher-tick")({
         const unauth = await requireHookCaller(request);
         if (unauth) return unauth;
 
-        // ACTIVATION GATE: key absent = dormant by design
-        if (!process.env.FIRECRAWL_API_KEY) {
-          return json({ ok: true, skipped: true, reason: "FIRECRAWL_API_KEY not set" });
-        }
-
         return withJobRun("ambient.researcher-tick", async () => {
+          /**
+           * ACTIVATION GATE: key absent = dormant by design.
+           *
+           * Moved inside the ledger for the reason given at length on scout-tick:
+           * returning before the wrapper opened a run meant a dormant researcher
+           * recorded nothing on any tick, so the ledger could not tell "off on
+           * purpose" from "the cron entry is gone", and this job carries a
+           * twenty-six hour staleness window watching for exactly that.
+           */
+          if (!process.env.FIRECRAWL_API_KEY) {
+            return json({ ok: true, skipped: true, reason: "FIRECRAWL_API_KEY not set" });
+          }
           const cooldownCutoff = new Date(
             Date.now() - TICK_COOLDOWN_HOURS * 3600_000,
           ).toISOString();
