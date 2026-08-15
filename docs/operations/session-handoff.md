@@ -1234,6 +1234,37 @@ founder's instruction was that everything should live on main and nothing should
 `main` is checked out in `Supaprod` and git forbids the same branch in two worktrees, so the
 lanes keep their own NAMES while tracking main. **A push from a lane now targets main.**
 
+### 🚨 YOUR STATUS LINE MAY STILL SHOW BIG NUMBERS. THEY ARE COSMETIC. Read this.
+
+**There are TWO rulers and most tools do not use the one git is configured with.**
+
+`git status` compares against the branch's CONFIGURED upstream, which is now `origin/main`,
+and reads **0 / 0**. But many status lines, IDE indicators and prompts compare against the
+remote branch OF THE SAME NAME — `origin/parallel/lane-0-fresh` — which nobody updated and
+which nothing has pointed at since 2026-08-16. Measured that day, immediately after the lanes
+were already fully merged:
+
+| lane | vs configured upstream | vs `origin/<same name>` |
+|---|---|---|
+| lane-0 | **0 / 0** | 19 behind / 147 ahead |
+| lane-1 | **0 / 0** | 34 behind / 81 ahead |
+
+**Both rows describe a lane with zero unmerged work.** The right-hand column is measuring a
+stale bookmark, not your work.
+
+Those two remote branches were deliberately KEPT (the founder's call on 2026-08-16, choosing
+not to delete or force-push shared refs). They cannot be fast-forwarded away because they are
+behind as well as ahead, so clearing the display would require deleting them or force-pushing
+over them. Neither is necessary and neither was done.
+
+**Before believing any behind/ahead number, run the only question that matters:**
+
+```bash
+git rev-list --count origin/main..HEAD     # commits I have that main does not. Should be 0.
+git cherry origin/main <branch> | grep -c '^+'   # unmerged BY PATCH CONTENT, ignoring rebased hashes
+```
+
+
 ### Nothing was lost, and here is how that was established rather than assumed
 
 `git cherry` compares by PATCH CONTENT, not commit hash, so a rebased commit is correctly seen
