@@ -815,3 +815,87 @@ export function RecordSpeaks({
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ *
+ * THE TWO PARTS THE MIGRATION WAS BLOCKED ON
+ *
+ * Measured 2026-08-15: 137 files still import `components/shell/primitives`,
+ * the retired Cadence/ink component layer, and that is more files than carry
+ * any token debt at all. Going through the import list by frequency, most of
+ * it already had a Meridian answer -- Button is Action/Approve, Failed is
+ * ReadFailed, Loading is Reading, Block is Region, Empty is NothingHere.
+ *
+ * `Num` (25 importers) and `Value` (8) had none, so every port had to either
+ * keep the retired import or hand-roll a replacement. These are the two, and
+ * they are placed here rather than invented per surface for the reason this
+ * file exists: five surfaces each drawing their own chrome is how the product
+ * ended up with four copies of one component.
+ * ------------------------------------------------------------------ */
+
+/**
+ * EVERY NUMBER, DURATION, COUNT, IDENTIFIER AND TIMESTAMP. AND NOTHING ELSE.
+ *
+ * The second half of that sentence is the whole reason this is a component
+ * rather than a pair of utility classes. The rule is easy to state and it has
+ * already been broken in this codebase in the way it always gets broken: a
+ * PHRASE CONTAINING a duration was set in mono, so "stopped 3 days" and
+ * "waiting 1 day" rendered as typewriter text. JetBrains Mono's letterforms --
+ * the double-storey a, the tailed g -- make a short English sentence read as
+ * code. A sentence that contains a number is not a number.
+ *
+ * `tabular-nums` is the half that does invisible work: it stops digits
+ * jittering as a value ticks over, and it keeps a column of these aligned down
+ * a table. Tabular figures exist in the sans face too, so they were never the
+ * reason to reach for mono.
+ */
+export function Num({ children }: { children: React.ReactNode }) {
+  return <span className="font-mrd-mono tabular-nums">{children}</span>;
+}
+
+/**
+ * A FACT YOU CAN READ AND CANNOT SET FROM HERE.
+ *
+ * The right-hand side of a labelled row: a pinned tool, a plan only the owner
+ * can change, a model chosen for you. An empty right-hand slot says nothing
+ * about which, which is why this exists rather than a bare span.
+ *
+ * `tone` IS FOR A VALUE THAT IS ITSELF AN OUTCOME, which is the one case where
+ * colour carries information rather than decorating a fact. It sets the VOICE,
+ * not the face: numbers inside it still go in `Num`.
+ *
+ * ── THE VOCABULARY IS MERIDIAN'S FIVE, NOT THE RETIRED LAYER'S ──────────
+ * The version this replaces offered `quiet | pass | warn | fail | live`, and
+ * two of those five were wrong in ways that had already been fixed by hand on
+ * two separate surfaces before anyone changed the component:
+ *
+ *   `warn` BECAME `hold`. Every caller meant "waiting on a condition" -- spend
+ *       to come down, an eval to pass, a dependency to answer -- which is
+ *       exactly what Meridian's amber says. Orchid would have been the reflex
+ *       and it is wrong: orchid means A PERSON IS REQUIRED and promises a
+ *       control that moves the thing.
+ *   `live` CAME OFF GREEN ONTO `agent`. Green reports an OUTCOME here, so
+ *       "still deploying" and "deployed successfully" were rendering in one
+ *       colour. A machine working is `--mrd-agent`, present tense.
+ *
+ * No `you` tone, deliberately. A value is something you READ; if a person is
+ * required, that belongs on a control, not on a fact.
+ */
+export function Value({
+  children,
+  tone = "quiet",
+}: {
+  children: React.ReactNode;
+  tone?: "quiet" | "pass" | "fail" | "hold" | "agent";
+}) {
+  const paint =
+    tone === "pass"
+      ? "text-mrd-pass"
+      : tone === "fail"
+        ? "text-mrd-fail"
+        : tone === "hold"
+          ? "text-mrd-hold"
+          : tone === "agent"
+            ? "text-mrd-agent"
+            : "text-mrd-mute";
+  return <span className={`text-[12.5px] ${paint}`}>{children}</span>;
+}
