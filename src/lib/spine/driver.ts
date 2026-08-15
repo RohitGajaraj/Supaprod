@@ -350,17 +350,59 @@ export const HANDOFF_BODIES = 2;
  *
  * Ordered oldest first so it reads as the story of the work.
  */
-export function describeUpstream(upstream: UpstreamArtifact[]): string {
+export function describeUpstream(
+  upstream: UpstreamArtifact[],
+  /**
+   * Kinds that arrive WHOLE wherever they sit in the history, on top of the two
+   * newest.
+   *
+   * WHY THIS ARGUMENT EXISTS, and it is the defect this file's own header claims
+   * to have fixed, still live at the one station that matters most. "Counted from
+   * the end" is right for the handoff and wrong for a YARDSTICK. By Learn the
+   * record holds the cluster, the decision, the spec, the prototype, the changeset
+   * and the deployment, so the two newest are the changeset and the deployment and
+   * the SPEC arrives as a bare id.
+   *
+   * Learn's entire job is to grade what shipped against what the spec said it was
+   * for. The header of this function says the old failure was that "Learn was asked
+   * to compare against what the spec said while never being shown the spec" -- and
+   * with a constant counted from the end, that is still exactly what happened. The
+   * spec is not stale context at Learn; it is the measure.
+   *
+   * Kept as an ARGUMENT rather than a station lookup inside here so this stays a
+   * total function of its inputs, which is the same reason `specId` is passed in
+   * rather than derived.
+   */
+  alwaysWhole: readonly string[] = [],
+): string {
   if (!upstream.length) return "";
 
   // The tail gets the full text; the head is named only. Counted from the end so
   // the freshest work is always the work that arrives whole.
   const inlineFrom = Math.max(0, upstream.length - HANDOFF_BODIES);
 
+  /**
+   * The NEWEST of each always-whole kind, not every one of them.
+   *
+   * A track that has been round the loop carries several specs, and inlining all
+   * of them would put three supersded versions of the same document in one prompt
+   * and let the oldest contradict the newest. Newest wins for the same reason
+   * `newestSpecId` picks the newest: a spec that was rewritten was rewritten.
+   */
+  const whole = new Set<number>();
+  for (const kind of alwaysWhole) {
+    for (let i = upstream.length - 1; i >= 0; i--) {
+      if (upstream[i].kind === kind && (upstream[i].body ?? "").trim()) {
+        whole.add(i);
+        break;
+      }
+    }
+  }
+
   const parts = upstream.map((a, i) => {
     const head = `${a.kind} "${a.title}" (id ${a.id})`;
     const body = (a.body ?? "").trim();
-    if (i < inlineFrom || !body) return head;
+    if ((i < inlineFrom && !whole.has(i)) || !body) return head;
     const clipped =
       body.length > HANDOFF_BODY_CHARS ? `${body.slice(0, HANDOFF_BODY_CHARS)}\n[truncated]` : body;
     return `${head}:\n${clipped}`;
@@ -421,7 +463,17 @@ export function stationGoal(
 ): string {
   const why = track.origin ? ` It exists because: ${track.origin}` : "";
   const subject = `"${track.title}".${why}`;
-  const prior = describeUpstream(upstream);
+  /**
+   * WHAT THIS STATION IS MEASURED AGAINST, which must arrive whole however old it
+   * is. See `describeUpstream`'s second argument.
+   *
+   * Only Learn, deliberately. Every other station either sits next to the thing it
+   * needs (Design reads the spec Plan just wrote, Build reads the spec and the
+   * prototype) or has no yardstick at all, so the two-newest rule already hands it
+   * the right bodies. Learn is the only station whose measure is several artifacts
+   * behind it, and it is the station whose output the whole loop compounds on.
+   */
+  const prior = describeUpstream(upstream, station === "learn" ? ["prd"] : []);
   const seat = role ?? stationCrew(station)[0] ?? null;
 
   // The station's outcome first, so every agent on the crew knows what the
