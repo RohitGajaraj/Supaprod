@@ -323,64 +323,20 @@ export function RecordSpeaks({
  * The doors
  * ------------------------------------------------------------------ */
 
-/**
- * THE TAB STRIP, and the selected door is obvious on the dark ground.
+/*
+ * `RecordDoors` LIVED HERE AND IS GONE, 2026-08-15.
  *
- * `--mrd-select` rather than `--mrd-hover`, and that distinction is the point.
- * meridian.css names using hover as a selected state as a recurring bug in this
- * codebase: hover is a 4.5% whisper designed to be barely perceptible under a
- * pointer, and a selected thing must be unmistakable because everything below
- * it is about exactly that choice. Here the selected door also steps up the
- * neutral ladder and takes ink weight, so it survives greyscale.
+ * It drew Brain's five record doors and carried a KNOWN GAP note saying it
+ * declared `role="tablist"` and `role="tab"` while having neither a roving
+ * tab stop nor arrow keys. The Engine Room's `ViewTabs` carried the identical
+ * note. TWO FILES INDEPENDENTLY DOCUMENTING ONE DEFECT AND POINTING AT THE
+ * SAME FIX is the signal that the fix is owed rather than that the note is
+ * enough, so both were closed together.
  *
- * NO HUE ANYWHERE. These are five doors into one record, not five statuses.
- *
- * KNOWN GAP, AND IT IS NOT THIS LANE'S TO CLOSE. This declares `role="tablist"`
- * and `role="tab"` and carries neither a roving tab stop nor arrow keys, so it
- * promises a keyboard it does not have. `components/runs/Tabs.tsx` is the same
- * strip with that contract built, and the Engine Room's `ViewTabs` is a third
- * copy with the same gap. Consolidating the three needs `TabPanel` wiring at
- * every call site, which changes the DOM inside a Suspense boundary here.
+ * `components/meridian/Tabs.tsx` now serves this surface, with the roving tab
+ * stop, arrow keys, Home and End, and a `TabPanel` that names the tab it
+ * belongs to. The thing this file was waiting on -- `TabPanel` wiring inside
+ * Brain's Suspense boundary -- turned out to be one wrapper, because the
+ * panel id is per GROUP rather than per tab and does not change when the tab
+ * does.
  */
-export function RecordDoors<T extends string>({
-  doors,
-  active,
-  onOpen,
-  label,
-}: {
-  doors: { id: T; label: string }[];
-  active: T;
-  onOpen: (id: T) => void;
-  /** Names the set for assistive tech: what the doors are doors INTO. */
-  label: string;
-}) {
-  return (
-    <div
-      data-mrd=""
-      role="tablist"
-      aria-label={label}
-      className="flex flex-wrap items-center gap-mrd-2 border-b border-mrd-line pb-mrd-3"
-    >
-      {doors.map((door) => {
-        const on = active === door.id;
-        return (
-          <button
-            key={door.id}
-            type="button"
-            role="tab"
-            aria-selected={on}
-            onClick={() => onOpen(door.id)}
-            className={`inline-flex h-8 items-center rounded-mrd-chip px-3 text-[12.5px] transition-colors ${
-              on
-                ? "bg-mrd-select font-medium text-mrd-ink"
-                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-body"
-            }`}
-            style={{ transitionDuration: "var(--mrd-d-press)" }}
-          >
-            {door.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}

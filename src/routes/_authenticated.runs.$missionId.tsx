@@ -268,7 +268,7 @@ import {
   Reading,
   Region,
 } from "@/components/meridian/surface-parts";
-import { Tabs, TabPanel } from "@/components/runs/Tabs";
+import { Tabs, TabPanel } from "@/components/meridian/Tabs";
 import { actorName, actorSlug, actorVerb } from "@/components/runs/run-state";
 
 /** The four views of this run worth opening. `steps` is the raw log, which used

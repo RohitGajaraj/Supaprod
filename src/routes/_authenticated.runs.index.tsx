@@ -312,7 +312,7 @@ import {
 import { runState } from "@/components/runs/run-state";
 import { RunBoard } from "@/components/runs/RunBoard";
 import { RunsGrid } from "@/components/runs/RunsGrid";
-import { Tabs, TabPanel } from "@/components/runs/Tabs";
+import { Tabs, TabPanel } from "@/components/meridian/Tabs";
 
 /* ------------------------------------------------------------------ *
  * Formatting and mapping. Local on purpose: nothing here reaches into

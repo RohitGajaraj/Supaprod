@@ -247,40 +247,84 @@ export function FigureCard({
  * lift. The other two copies of this strip in the product, `RecordDoors` on
  * Brain and `Tabs` on Runs, both already used `--mrd-select`.
  *
- * KNOWN GAP, AND IT IS NOT THIS LANE'S TO CLOSE. This declares `role="tablist"`
- * and `role="tab"` and carries neither a roving tab stop nor arrow keys, so it
- * promises a keyboard it does not have. `components/runs/Tabs.tsx` is the same
- * strip with that contract built. Consolidating the three needs `TabPanel`
- * wiring at every call site, which is a DOM change in three files this lane is
- * not otherwise opening.
+ * ── THE GAP IS CLOSED, 2026-08-15, BY DELETING THIS COMPONENT ───────────
+ * This used to declare `role="tablist"` and `role="tab"` while carrying neither
+ * a roving tab stop nor arrow keys, and it said so in a KNOWN GAP note. Brain's
+ * `RecordDoors` carried the identical note. Two files independently documenting
+ * the same defect and pointing at the same fix is the signal that the fix is
+ * owed, not that the note is sufficient.
+ *
+ * `Tabs` and `TabPanel` in `components/meridian/Tabs.tsx` are that strip with
+ * the contract built, and they now serve every genuine tab row in the product.
+ * Nothing is re-drawn here.
+ *
+ * A HALF-BUILT TABLIST IS WORSE THAN PLAIN BUTTONS, which is why this could not
+ * simply be left. `role="tab"` PROMISES a keyboard: a screen reader announces
+ * "tab, 1 of 3" and the reader presses an arrow, and here nothing moved. Every
+ * tab was also its own tab stop, so tabbing through the page walked a reader
+ * through choices they had already declined instead of past them.
  */
-export function ViewTabs<T extends string>({
-  tabs,
+
+/**
+ * A FILTER IS NOT A TAB ROW, and telling them apart is the whole of this
+ * component's reason to exist.
+ *
+ * `ReceiptsPanel` reached for the tab strip to switch between All, Decisions
+ * and Actions. That is not a tab set and no amount of keyboard would have
+ * fixed it:
+ *
+ *   IT HAS AN "ALL". A tab set cannot have an "all tabs" tab, because tabs are
+ *       alternative VIEWS of different content and "all" is not one of them.
+ *   IT COMBINES. `kind` is read alongside an outcome picker and a search box
+ *       into one `narrowed` flag. Tabs do not combine with each other; filters
+ *       do, and this one does.
+ *   IT NARROWS ONE LIST IN PLACE. Nothing is swapped. There is no panel for
+ *       `aria-controls` to point at, so converting it to a real tablist would
+ *       have produced a broken reference where there is currently only a
+ *       missing keyboard. MORE WRONG, not less.
+ *
+ * So the SHAPE stays, because three options are faster to read as segments than
+ * as a select, and its sibling outcome filter three lines below is a `Picker`
+ * only because it has more options than fit. What changes is what it CLAIMS:
+ * a group of toggles, each saying whether it is currently applied. That is what
+ * a person operating it actually experiences, and it is true.
+ */
+/**
+ * THE SAME CHOICE THE RAIL ALREADY OFFERS, shown where the rail is not.
+ *
+ * `RoomDetail` draws this only under `md:hidden`, because on desktop the
+ * persistent room rail is the switcher. THAT IS WHY IT CANNOT BE A TABLIST:
+ * the `<Body>` it changes renders at EVERY width, outside the hidden wrapper,
+ * so a `tabpanel` here would carry an `aria-labelledby` pointing at a tab that
+ * is not in the document on desktop. A dangling reference is a worse defect
+ * than the missing keyboard it would have been fixing.
+ *
+ * It is navigation, so it says so with `aria-current`. No roving tab stop
+ * either, and that is correct rather than lazy: these are links-in-effect, and
+ * a reader tabbing through a short list of destinations expects each one to be
+ * a stop, exactly as they are in the rail this stands in for.
+ */
+export function ViewSwitch<T extends string>({
+  views,
   active,
   onSelect,
   label,
 }: {
-  tabs: { id: T; label: string }[];
+  views: { id: T; label: string }[];
   active: T;
   onSelect: (id: T) => void;
   label: string;
 }) {
   return (
-    <div
-      data-mrd=""
-      className="flex flex-wrap items-center gap-mrd-2"
-      role="tablist"
-      aria-label={label}
-    >
-      {tabs.map((t) => {
-        const on = t.id === active;
+    <nav data-mrd="" className="flex flex-wrap items-center gap-mrd-2" aria-label={label}>
+      {views.map((v) => {
+        const on = v.id === active;
         return (
           <button
-            key={t.id}
+            key={v.id}
             type="button"
-            role="tab"
-            aria-selected={on}
-            onClick={() => onSelect(t.id)}
+            aria-current={on ? "true" : undefined}
+            onClick={() => onSelect(v.id)}
             className={`inline-flex h-8 items-center rounded-mrd-chip px-3 text-[12.5px] transition-colors ${
               on
                 ? "bg-mrd-select font-medium text-mrd-ink"
@@ -288,7 +332,52 @@ export function ViewTabs<T extends string>({
             }`}
             style={{ transitionDuration: "var(--mrd-d-press)" }}
           >
-            {t.label}
+            {v.label}
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
+export function SegmentedFilter<T extends string>({
+  options,
+  active,
+  onSelect,
+  label,
+}: {
+  options: { id: T; label: string }[];
+  active: T;
+  onSelect: (id: T) => void;
+  /** Names what is being narrowed, not what the options are. */
+  label: string;
+}) {
+  return (
+    <div
+      data-mrd=""
+      className="flex flex-wrap items-center gap-mrd-2"
+      role="group"
+      aria-label={label}
+    >
+      {options.map((o) => {
+        const on = o.id === active;
+        return (
+          <button
+            key={o.id}
+            type="button"
+            /* Not `aria-selected`, which belongs to tabs, options and rows.
+               `aria-pressed` is the toggle's own word and it is the honest one:
+               this button reports whether its filter is applied. */
+            aria-pressed={on}
+            onClick={() => onSelect(o.id)}
+            className={`inline-flex h-8 items-center rounded-mrd-chip px-3 text-[12.5px] transition-colors ${
+              on
+                ? "bg-mrd-select font-medium text-mrd-ink"
+                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-body"
+            }`}
+            style={{ transitionDuration: "var(--mrd-d-press)" }}
+          >
+            {o.label}
           </button>
         );
       })}

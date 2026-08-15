@@ -366,13 +366,7 @@ import { getKnowledgeGraph } from "@/lib/knowledge-graph-view.functions";
 import type { GraphNodeKind, KnowledgeGraph } from "@/lib/knowledge-graph-view";
 import { RetentionLine } from "@/components/brain/RetentionLine";
 import { CrewCarries, StandingRules } from "@/components/brain/StandingRecord";
-import {
-  CrewMark,
-  Disclosure,
-  RecordDoors,
-  RecordLine,
-  RecordSpeaks,
-} from "@/components/brain/record-parts";
+import { CrewMark, Disclosure, RecordLine, RecordSpeaks } from "@/components/brain/record-parts";
 import {
   Action,
   Diffstat,
@@ -383,6 +377,7 @@ import {
   Reading,
   Region,
 } from "@/components/meridian/surface-parts";
+import { TabPanel, Tabs } from "@/components/meridian/Tabs";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { Surface } from "@/components/shell/primitives";
 import { CrewWorking } from "@/components/shell/CrewWorking";
@@ -1652,55 +1647,66 @@ function MemoryPage() {
           is about exactly which door is open, so it has to be unmistakable on
           the dark ground. `.sp-tabs` drew it with a legacy underline and could
           not be told apart from the surface's own rules. */}
-        <RecordDoors
-          doors={TABS.map((id) => ({ id, label: TAB_LABEL[id] }))}
+        {/* Meridian's `Tabs` since 2026-08-15, replacing Brain's own
+            `RecordDoors`. That copy declared `role="tablist"` and `role="tab"`
+            and carried neither a roving tab stop nor arrow keys, so it PROMISED
+            a keyboard that did not exist: a reader was told "tab, 1 of 5",
+            pressed an arrow, and nothing moved. These are real tabs by every
+            test -- the panel below swaps wholesale, there is no "all", and the
+            choice combines with nothing -- so the promise is now kept rather
+            than withdrawn. */}
+        <Tabs
+          group="brain-record"
+          tabs={TABS.map((id) => ({ id, label: TAB_LABEL[id] }))}
           active={tab}
-          onOpen={setTab}
+          onSelect={setTab}
           label="What the record holds"
         />
 
-        <Suspense fallback={<TabSkeleton />}>
-          {tab === "decisions" &&
-            (decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />)}
+        <TabPanel group="brain-record" active={tab}>
+          <Suspense fallback={<TabSkeleton />}>
+            {tab === "decisions" &&
+              (decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />)}
 
-          {tab === "learnings" &&
-            (learning ? (
-              <LearningDetail id={learning} />
-            ) : (
-              <div className="flex flex-col gap-mrd-7">
-                <CompoundingPanel />
-                {/* The region says what was USED; the list inside says what is
+            {tab === "learnings" &&
+              (learning ? (
+                <LearningDetail id={learning} />
+              ) : (
+                <div className="flex flex-col gap-mrd-7">
+                  <CompoundingPanel />
+                  {/* The region says what was USED; the list inside says what is
                   STORED. Two different facts, and the used one leads. */}
-                <CrewCarries>
-                  <MemoryList />
-                </CrewCarries>
-                {/* The composer that writes to memory by hand, and whatever is
+                  <CrewCarries>
+                    <MemoryList />
+                  </CrewCarries>
+                  {/* The composer that writes to memory by hand, and whatever is
                   waiting on you. Closed by default: the reading comes first. */}
-                <Disclosure label="Add to the record" id="brain-memory-composer">
-                  <MemoryReviewQueue />
-                </Disclosure>
-              </div>
-            ))}
+                  <Disclosure label="Add to the record" id="brain-memory-composer">
+                    <MemoryReviewQueue />
+                  </Disclosure>
+                </div>
+              ))}
 
-          {/* What we MADE, next to what we decided and learned. This tab draws
+            {/* What we MADE, next to what we decided and learned. This tab draws
             its own regions and its own rhythm rather than sitting inside one,
             because its first region is the shelf's own claim plus the scoping
             control and its second is the one item in focus. */}
-          {tab === "artifacts" && <ArtifactsView />}
+            {tab === "artifacts" && <ArtifactsView />}
 
-          {tab === "docs" && (
-            <div className="flex flex-col gap-mrd-7">
-              <Region title="Brief">
-                <BriefPanel />
-              </Region>
-              <Region title="Documents">
-                <DocsPanel />
-              </Region>
-            </div>
-          )}
+            {tab === "docs" && (
+              <div className="flex flex-col gap-mrd-7">
+                <Region title="Brief">
+                  <BriefPanel />
+                </Region>
+                <Region title="Documents">
+                  <DocsPanel />
+                </Region>
+              </div>
+            )}
 
-          {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
-        </Suspense>
+            {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
+          </Suspense>
+        </TabPanel>
 
         {substrate ? (
           <Disclosure label="The rest of the substrate" id="brain-substrate">

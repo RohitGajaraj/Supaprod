@@ -133,7 +133,8 @@ import { ROOM_NAMES, ROOM_QUESTIONS, ROOM_TAB_META, type RoomKey } from "@/lib/e
 import { listWorkspaceBindings } from "@/lib/connections.functions";
 import { listSyncMappings } from "@/lib/integrations.functions";
 import { Surface } from "@/components/shell/primitives";
-import { Crumb, StateWord, ViewTabs } from "@/components/engine-room/EngineChrome";
+import { Crumb, StateWord } from "@/components/engine-room/EngineChrome";
+import { TabPanel, Tabs } from "@/components/meridian/Tabs";
 import {
   Action,
   Actions,
@@ -373,7 +374,13 @@ function EngineRoomPage() {
             ) : null}
           </div>
 
-          <ViewTabs
+          {/* THE ONE GENUINE TAB ROW of the three that shared `ViewTabs`. It
+              swaps the panel below it wholesale, it has no "all", and it
+              combines with nothing, so it is what `role="tablist"` actually
+              describes. The other two turned out to be a filter and a
+              duplicated navigation control; see EngineChrome. */}
+          <Tabs
+            group={`room-${room}`}
             tabs={tabs.map((t) => ({ id: t.id, label: t.label }))}
             active={activeView}
             onSelect={(id) => void navigate({ search: { room, view: id } })}
@@ -382,9 +389,11 @@ function EngineRoomPage() {
 
           {/* The one plain line that says what this view answers, so a click
               never lands on a bare table with no context. */}
-          <Region sub={meta.descriptor}>
-            <Body view={activeView} suite={suite} agent={agent} surface={surface} />
-          </Region>
+          <TabPanel group={`room-${room}`} active={activeView}>
+            <Region sub={meta.descriptor}>
+              <Body view={activeView} suite={suite} agent={agent} surface={surface} />
+            </Region>
+          </TabPanel>
         </div>
       </Surface>
     );

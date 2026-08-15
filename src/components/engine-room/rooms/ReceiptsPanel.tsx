@@ -59,7 +59,7 @@ import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { glyphForSlug } from "@/components/shell/agent-glyphs";
-import { Field, TextInput, ViewTabs } from "../EngineChrome";
+import { Field, SegmentedFilter, TextInput } from "../EngineChrome";
 import {
   Action,
   Actions,
@@ -521,8 +521,8 @@ export function ReceiptsPanel() {
       ) : null}
 
       <div className="flex flex-col gap-mrd-4">
-        <ViewTabs
-          tabs={KIND_TABS}
+        <SegmentedFilter
+          options={KIND_TABS}
           active={kind}
           onSelect={setKind}
           label="Filter by what was recorded"

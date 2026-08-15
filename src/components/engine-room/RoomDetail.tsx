@@ -2,7 +2,7 @@ import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { RecordStatus, type RecordTone } from "@/components/meridian/RecordsTable";
-import { PanelReading, StateWord, ViewTabs } from "./EngineChrome";
+import { PanelReading, StateWord, ViewSwitch } from "./EngineChrome";
 import { ReadFailed } from "@/components/meridian/surface-parts";
 import {
   ROOM_QUESTIONS,
@@ -257,8 +257,8 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
       {/* The view switcher lives in the persistent room rail on desktop; this
           strip stays as the mobile sub-tab switcher, where the rail collapses. */}
       <div className="md:hidden">
-        <ViewTabs
-          tabs={tabs.map((t) => ({ id: t.id, label: t.label }))}
+        <ViewSwitch
+          views={tabs.map((t) => ({ id: t.id, label: t.label }))}
           active={activeView}
           onSelect={onSetView}
           label={`${ROOM_QUESTIONS[room]} views`}
