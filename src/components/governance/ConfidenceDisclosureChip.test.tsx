@@ -40,11 +40,17 @@ describe("ConfidenceDisclosureChip tone", () => {
     expect(toneOf(0.5, "medium")).toBe("quiet");
   });
 
-  test("an unsure verdict reads as a caution, and never as ember", () => {
-    // Ember marks the human. This is the machine reporting on itself, so the
-    // low tier takes the warn tone rather than the accent reserved for a call
-    // that is genuinely waiting on a person.
-    expect(toneOf(0.25, "low")).toBe("warn");
+  test("an unsure verdict reads as a caution, and never as the human accent", () => {
+    // The accent marks A PERSON IS REQUIRED. This is the machine reporting on
+    // itself, so the low tier takes the caution tone rather than the accent
+    // reserved for a call genuinely waiting on somebody.
+    //
+    // `hold` since 2026-08-15, and it is the same claim in Meridian's words
+    // rather than a changed one. The retired layer called this `warn`; Meridian
+    // has five status meanings and `hold` is the one that says STOPPED, AND
+    // WAITING ON A CONDITION RATHER THAN ON YOU -- which is exactly what low
+    // confidence is, since more evidence changes it and no decision does.
+    expect(toneOf(0.25, "low")).toBe("hold");
   });
 });
 

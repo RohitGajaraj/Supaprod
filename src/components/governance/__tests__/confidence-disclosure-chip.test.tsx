@@ -17,7 +17,7 @@ import { ConfidenceDisclosureChip } from "../ConfidenceDisclosureChip";
  */
 
 function tone(container: HTMLElement): string | null {
-  return container.querySelector(".sp-value")?.getAttribute("data-tone") ?? null;
+  return container.querySelector("[data-tone]")?.getAttribute("data-tone") ?? null;
 }
 
 describe("ConfidenceDisclosureChip", () => {
@@ -66,15 +66,15 @@ describe("ConfidenceDisclosureChip", () => {
     expect(tone(container)).toBe("quiet");
   });
 
-  test("carries the warn tone for the low tier, never ember", () => {
+  test("carries the hold tone for the low tier, never ember", () => {
     const { container } = render(<ConfidenceDisclosureChip confidence={0.3} tier="low" />);
-    expect(tone(container)).toBe("warn");
+    expect(tone(container)).toBe("hold");
   });
 
   test("puts every number in the mono data face", () => {
     // Every number, duration, count, identifier and timestamp goes in Num.
     const { container } = render(<ConfidenceDisclosureChip confidence={0.75} tier="high" />);
-    expect(container.querySelector(".sp-num")?.textContent).toBe("75%");
+    expect(container.querySelector("[data-num]")?.textContent).toBe("75%");
   });
 
   test("discloses the number in its title as well as its text", () => {

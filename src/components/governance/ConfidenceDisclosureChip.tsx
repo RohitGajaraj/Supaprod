@@ -17,15 +17,19 @@
  * `Num` where every number in the system sits.
  */
 
-import { Num, Value } from "@/components/shell/primitives";
+import { Num, Value } from "@/components/meridian/surface-parts";
 import type { ConfidenceTier } from "@/lib/confidence";
 
-/** Confidence is an outcome, so it takes a tone. Unsure is a caution, never
- *  ember: ember marks the human, and this is the machine reporting on itself. */
-const TIER_TONE: Record<ConfidenceTier, "quiet" | "pass" | "warn"> = {
+/** Confidence is an outcome, so it takes a tone. Low confidence is a CONDITION
+ *  rather than a decision -- more evidence would change it and nothing is
+ *  waiting on a person -- so it takes Meridian's amber `hold` and never the
+ *  accent. The accent means A PERSON IS REQUIRED, and this is the machine
+ *  reporting on itself. `warn` was the retired layer's word for the same
+ *  meaning; Meridian has five status words and `hold` is the one. */
+const TIER_TONE: Record<ConfidenceTier, "quiet" | "pass" | "hold"> = {
   high: "pass",
   medium: "quiet",
-  low: "warn",
+  low: "hold",
 };
 
 const TIER_LABEL: Record<ConfidenceTier, string> = {

@@ -31,7 +31,7 @@
  */
 import { useState } from "react";
 import { StripeEmbeddedCheckout } from "@/components/billing/StripeEmbeddedCheckout";
-import { Button, Num } from "@/components/shell/primitives";
+import { Action, Num } from "@/components/meridian/surface-parts";
 import { toast } from "@/lib/notify";
 import { getStripeEnvironment, paymentsConfigured } from "@/lib/stripe";
 import { priceForCredits, lookupKeyFor } from "@/lib/billing-tier";
@@ -358,7 +358,7 @@ function FreeCard({ isCurrent }: { isCurrent: boolean }) {
       <CardHeader name={p.name} tagline={p.tagline} forWhom={p.forWhom} isCurrent={isCurrent} />
       <Price amount={<Num>$0</Num>} unit="/month" />
       <p style={{ ...META, margin: 0 }}>No credit card needed</p>
-      <Button
+      <Action
         disabled
         title={
           isCurrent
@@ -368,7 +368,7 @@ function FreeCard({ isCurrent }: { isCurrent: boolean }) {
         style={{ width: "100%", justifyContent: "center" }}
       >
         {isCurrent ? "You are on Free" : "Start on Free"}
-      </Button>
+      </Action>
       <Divider />
       <ExpandableBullets items={p.highlights} />
     </CardShell>
@@ -418,24 +418,24 @@ function EnterpriseCard({
           <p style={{ ...META, margin: 0 }}>
             Reach your account manager to adjust seats or API rates.
           </p>
-          <Button
+          <Action
             onClick={() => {
               window.location.href = "mailto:sales@supaprod.ai?subject=Enterprise plan management";
             }}
             style={{ width: "100%", justifyContent: "center" }}
           >
             Contact account manager
-          </Button>
+          </Action>
         </>
       ) : (
-        <Button
+        <Action
           onClick={() => {
             window.location.href = "mailto:sales@supaprod.ai?subject=Enterprise enquiry";
           }}
           style={{ width: "100%", justifyContent: "center" }}
         >
           Talk to our team
-        </Button>
+        </Action>
       )}
       <Divider />
       <ExpandableBullets items={p.highlights} />
@@ -570,7 +570,7 @@ function PaidTierCard({
           all. The table stays a real comparison, and one quiet line says when
           checkout opens. A disabled buy is still a dead promise. */}
       {paymentsConfigured() || isCurrent ? (
-        <Button
+        <Action
           disabled={!canSelect || !lookupKey || isCurrent}
           title={
             isCurrent
@@ -585,7 +585,7 @@ function PaidTierCard({
           style={{ width: "100%", justifyContent: "center" }}
         >
           {ctaLabel}
-        </Button>
+        </Action>
       ) : (
         <p style={{ ...META, margin: 0 }}>
           Checkout opens when payments go live. Prices shown are final.

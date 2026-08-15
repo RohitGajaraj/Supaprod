@@ -5,8 +5,8 @@
     "It only ever moves DOWN. A file absent from this list must be clean.",
     "Do not hand-edit; do not regenerate to silence a failure."
   ],
-  "totalOccurrences": 2449,
-  "fileCount": 299,
+  "totalOccurrences": 2442,
+  "fileCount": 296,
   "files": {
     "src/components/admin/admin-ui.tsx": {
       "--text-": 2,
@@ -81,8 +81,7 @@
       "raw-colour": 6
     },
     "src/components/billing/PlanPicker.tsx": {
-      "--sp-": 27,
-      "import:shell/primitives": 1
+      "--sp-": 27
     },
     "src/components/billing/StripeEmbeddedCheckout.tsx": {
       "--hairline": 1,
@@ -205,14 +204,8 @@
       "--sp-": 2,
       "import:shell/primitives": 1
     },
-    "src/components/governance/ConfidenceDisclosureChip.tsx": {
-      "import:shell/primitives": 1
-    },
     "src/components/governance/ControlsPanel.tsx": {
       "--sp-": 9,
-      "import:shell/primitives": 1
-    },
-    "src/components/governance/CostIncidentBadge.tsx": {
       "import:shell/primitives": 1
     },
     "src/components/governance/CriticBadge.tsx": {
@@ -290,7 +283,6 @@
       "--sp-": 19,
       "--text-": 4,
       "--madder": 1,
-      "import:shell/primitives": 1,
       "raw-colour": 17
     },
     "src/components/knowledge/GraphNodeActions.tsx": {
@@ -310,7 +302,6 @@
       "--sp-": 17,
       "--text-": 1,
       "--madder": 1,
-      "import:shell/primitives": 1,
       "raw-colour": 28
     },
     "src/components/knowledge/LearningDetail.tsx": {
@@ -527,8 +518,7 @@
       "raw-colour": 4
     },
     "src/components/prds/RewindButton.tsx": {
-      "--sp-": 15,
-      "import:shell/primitives": 1
+      "--sp-": 15
     },
     "src/components/prds/SpecProse.tsx": {
       "--sp-": 65
@@ -736,9 +726,6 @@
       "import:shell/primitives": 1
     },
     "src/components/today/PushedInsights.tsx": {
-      "import:shell/primitives": 1
-    },
-    "src/components/today/QuietMorning.tsx": {
       "import:shell/primitives": 1
     },
     "src/components/trust/MissionChain.tsx": {

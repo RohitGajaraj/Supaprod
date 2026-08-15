@@ -299,7 +299,11 @@ describe("incidentTraceRefs", () => {
   });
 
   test("returns a ref for every id it was given", () => {
-    const ids = [seeded("000000000001"), seeded("000000000002"), "guard:ffffffff-0000-0000-0000-000000000000"];
+    const ids = [
+      seeded("000000000001"),
+      seeded("000000000002"),
+      "guard:ffffffff-0000-0000-0000-000000000000",
+    ];
     expect(incidentTraceRefs(ids).size).toBe(3);
   });
 });

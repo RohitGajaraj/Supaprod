@@ -1,4 +1,4 @@
-import { Num } from "@/components/shell/primitives";
+import { Num } from "@/components/meridian/surface-parts";
 
 /**
  * THE EMPTY MORNING, WHICH IS THE MAJORITY MORNING.

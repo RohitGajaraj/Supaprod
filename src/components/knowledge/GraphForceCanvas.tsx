@@ -43,7 +43,7 @@ import {
   type KnowledgeGraph,
 } from "@/lib/knowledge-graph-view";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Button, Num } from "@/components/shell/primitives";
+import { Action, Num } from "@/components/meridian/surface-parts";
 import {
   OUTCOME_TONE,
   RELATION_GROUP_DASH,
@@ -896,8 +896,8 @@ export function GraphForceCanvas({
         />
       ) : null}
       <div style={{ position: "absolute", right: 10, bottom: 8 }}>
-        <Button
-          variant="ghost"
+        <Action
+          variant="quiet"
           onClick={() => {
             userMovedCam.current = false;
             camRef.current = { x: 0, y: 0, k: 1 };
@@ -906,7 +906,7 @@ export function GraphForceCanvas({
           }}
         >
           Recentre
-        </Button>
+        </Action>
       </div>
     </div>
   );

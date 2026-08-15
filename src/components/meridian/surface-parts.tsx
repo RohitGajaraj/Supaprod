@@ -849,7 +849,16 @@ export function RecordSpeaks({
  * reason to reach for mono.
  */
 export function Num({ children }: { children: React.ReactNode }) {
-  return <span className="font-mrd-mono tabular-nums">{children}</span>;
+  /* `data-num` is the SEMANTIC hook, and it is not decoration. A guard that
+     wants to assert "every number goes in the data face" cannot read a Tailwind
+     class without testing the paint, and cannot read `font-family` at all in a
+     DOM without a stylesheet. The attribute states the claim in the markup, so
+     the rule stays checkable after the paint changes again. */
+  return (
+    <span data-num="" className="font-mrd-mono tabular-nums">
+      {children}
+    </span>
+  );
 }
 
 /**
@@ -897,5 +906,16 @@ export function Value({
           : tone === "agent"
             ? "text-mrd-agent"
             : "text-mrd-mute";
-  return <span className={`text-[12.5px] ${paint}`}>{children}</span>;
+  /* `data-tone` DECLARES the tone; the class only paints it. Dropping this
+     attribute in the first draft broke a guard that was right to exist: its own
+     header records that this test used to read `span.style.color` and expect
+     `var(--emerald)`, and was rewritten to read the tone instead, because
+     "reading the tone is the honest test; reading the paint was testing the old
+     system". A component that encodes its meaning ONLY in a colour class has
+     put the meaning back in the paint. */
+  return (
+    <span data-tone={tone} className={`text-[12.5px] ${paint}`}>
+      {children}
+    </span>
+  );
 }

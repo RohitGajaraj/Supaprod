@@ -45,7 +45,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
-import { Actions, Button } from "@/components/shell/primitives";
+import { Action, Actions } from "@/components/meridian/surface-parts";
 import { revertPrdToPrevious } from "@/lib/artifact-rewind.functions";
 
 export interface RewindButtonProps {
@@ -137,7 +137,7 @@ export function RewindButton({ prdId, hasSnapshot, onCommit, onReverted }: Rewin
           </AlertDialog.Description>
           <Actions>
             <AlertDialog.Action asChild>
-              <Button
+              <Action
                 variant="primary"
                 disabled={revert.isPending}
                 onClick={(e) => {
@@ -150,12 +150,12 @@ export function RewindButton({ prdId, hasSnapshot, onCommit, onReverted }: Rewin
                 }}
               >
                 {revert.isPending ? "Taking it back" : "Take it back"}
-              </Button>
+              </Action>
             </AlertDialog.Action>
             <AlertDialog.Cancel asChild>
-              <Button variant="ghost" disabled={revert.isPending}>
+              <Action variant="quiet" disabled={revert.isPending}>
                 Keep it as it is
-              </Button>
+              </Action>
             </AlertDialog.Cancel>
           </Actions>
         </AlertDialog.Content>

@@ -23,7 +23,7 @@ import {
   type SimulationNodeDatum,
 } from "d3-force-3d";
 import type { KnowledgeGraph } from "@/lib/knowledge-graph-view";
-import { Button, Num } from "@/components/shell/primitives";
+import { Action, Num } from "@/components/meridian/surface-parts";
 import {
   edgeWeight,
   kindCssColor,
@@ -1181,8 +1181,8 @@ export function GraphUniverseCanvas({
         </div>
       ) : null}
       <div style={{ position: "absolute", right: 10, bottom: 8 }}>
-        <Button
-          variant="ghost"
+        <Action
+          variant="quiet"
           onClick={() => {
             userMovedCam.current = false;
             camStateRef.current = { ...defaultCamRef.current };
@@ -1192,7 +1192,7 @@ export function GraphUniverseCanvas({
           }}
         >
           Recentre
-        </Button>
+        </Action>
       </div>
     </div>
   );

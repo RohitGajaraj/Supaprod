@@ -15,7 +15,7 @@
  * So it is one `Value` now, it says what the number IS, and the incident row
  * carries it as the trailing fact rather than as a badge inside the copy.
  */
-import { Num, Value } from "@/components/shell/primitives";
+import { Num, Value } from "@/components/meridian/surface-parts";
 import { fmtUsd } from "@/components/product/format";
 
 interface CostIncidentBadgeProps {
@@ -32,9 +32,9 @@ const WINDOW_WORD: Record<"day" | "month", string> = {
 export function CostIncidentBadge({ amountUsd, windowKind }: CostIncidentBadgeProps) {
   // No cap on the row means the alert carried none. Saying "$0" there would be
   // a number nobody set.
-  if (amountUsd == null) return <Value tone="warn">Spend</Value>;
+  if (amountUsd == null) return <Value tone="hold">Spend</Value>;
   return (
-    <Value tone="warn">
+    <Value tone="hold">
       <Num>{fmtUsd(amountUsd)}</Num> {windowKind ? WINDOW_WORD[windowKind] : "cap"}
     </Value>
   );
