@@ -160,6 +160,28 @@ export function Chevron({ open = false, className = "" }: { open?: boolean; clas
  * `lead` is the one rung between the page title and everything else, opt-in and
  * rare: a surface that marks every region has marked none, so it belongs to the
  * regions carrying an ARGUMENT and never to the ones carrying inventory.
+ *
+ * ── THERE IS NO `more`/`onMore`, AND THAT IS A REFUSAL RATHER THAN A GAP ─
+ * The retired `Block` this replaces carries a reveal control INSIDE its
+ * heading, and 14 files still import it partly for that. Adding it here would
+ * be the obvious way to unblock them and it is refused, because the pattern is
+ * a defect this system has already diagnosed and fixed once.
+ *
+ * Brain's port measured it: a shelf capped at six put "Show all 14" in the
+ * REGION HEADING, above rows the reader had not reached yet, SO THE WAY PAST A
+ * CAP WAS ANNOUNCED BEFORE THE CAP. A person reads an offer to see more of a
+ * list before they have seen any of it, and the number in that offer is the
+ * only place the real total appears.
+ *
+ * `RecordsTable` is the answer already built: it states the real arithmetic
+ * UNDER the last row and puts the way out beside it, where a reader arrives
+ * having actually hit the limit. A region that needs a reveal wants that, or a
+ * `Disclosure`, and either belongs to the CONTENT rather than to the frame
+ * around it.
+ *
+ * So the 14 `Block` callers are not blocked on a missing prop. They are each a
+ * decision about where their own reveal belongs, and porting them one at a time
+ * is the point rather than the cost.
  */
 export function Region({
   title,
