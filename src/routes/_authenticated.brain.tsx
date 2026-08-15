@@ -1565,8 +1565,8 @@ function MemoryPage() {
                 </>
               ) : undefined
             }
-            more={preview.state === "drawn" ? "Open the full map" : undefined}
-            onMore={() => setTab("graph")}
+            goTo={preview.state === "drawn" ? "Open the full map" : undefined}
+            onGoTo={() => setTab("graph")}
           >
             {/* A read in flight, holding the shape of what is coming. */}
             {preview.state === "loading" ? (

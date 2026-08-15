@@ -161,46 +161,81 @@ export function Chevron({ open = false, className = "" }: { open?: boolean; clas
  * rare: a surface that marks every region has marked none, so it belongs to the
  * regions carrying an ARGUMENT and never to the ones carrying inventory.
  *
- * ── THERE IS NO `more`/`onMore`, AND THAT IS A REFUSAL RATHER THAN A GAP ─
- * The retired `Block` this replaces carries a reveal control INSIDE its
- * heading, and 14 files still import it partly for that. Adding it here would
- * be the obvious way to unblock them and it is refused, because the pattern is
- * a defect this system has already diagnosed and fixed once.
+ * ── `goTo` IS A WAY OUT, NOT A WAY PAST A CAP, AND THE NAME IS THE POINT ──
+ * This slot was called `more`/`onMore` until 2026-08-16, inherited from the
+ * retired `Block`, and the rename fixes a defect that had gone one step further
+ * than a wrong name: the docstring here CLAIMED the prop did not exist at all
+ * ("there is no more/onMore, and that is a refusal") while the signature
+ * accepted it and rendered it. A comment that contradicts its own function is
+ * worse than either choice alone, because the next porter reads the refusal,
+ * the type system says otherwise, and neither is trustworthy afterwards.
  *
- * Brain's port measured it: a shelf capped at six put "Show all 14" in the
- * REGION HEADING, above rows the reader had not reached yet, SO THE WAY PAST A
- * CAP WAS ANNOUNCED BEFORE THE CAP. A person reads an offer to see more of a
- * list before they have seen any of it, and the number in that offer is the
- * only place the real total appears.
+ * The reason the refusal was written still stands, and it is measured. Brain's
+ * port found a shelf capped at six putting "Show all 14" in the REGION HEADING,
+ * above rows the reader had not reached yet, SO THE WAY PAST A CAP WAS
+ * ANNOUNCED BEFORE THE CAP. A person reads an offer to see more of a list
+ * before they have seen any of it, and the number in that offer is the only
+ * place the real total appears.
  *
- * `RecordsTable` is the answer already built: it states the real arithmetic
- * UNDER the last row and puts the way out beside it, where a reader arrives
- * having actually hit the limit. A region that needs a reveal wants that, or a
- * `Disclosure`, and either belongs to the CONTENT rather than to the frame
- * around it.
+ * But every live caller was doing something else. All four pass a whole
+ * surface: "Open Discover", "Open Decide", "Open the spec", "Open Learn". That
+ * is NAVIGATION OUT of the region, and it belongs in the heading, because the
+ * heading is what the destination is named after and a reader looking for the
+ * way out looks at the top.
  *
- * So the 14 `Block` callers are not blocked on a missing prop. They are each a
- * decision about where their own reveal belongs, and porting them one at a time
- * is the point rather than the cost.
+ * One prop was serving two controls, which is why the ban could not be stated
+ * without deleting something correct. Split by name and both become sayable:
+ *
+ *   goTo  -- leaves this region for a named destination. Correct here.
+ *   a cap -- has no prop, and will not be given one. `RecordsTable` already
+ *            answers it, by stating the real arithmetic UNDER the last row with
+ *            the way out beside it, where a reader arrives having actually hit
+ *            the limit. A reveal belongs to the CONTENT, never to the frame.
+ *
+ * This is the same move the product already made for `Action` and `Approve`:
+ * making the difference a different NAME rather than a different string is what
+ * stops it recurring.
  */
 export function Region({
   title,
   sub,
-  more,
-  onMore,
+  goTo,
+  onGoTo,
+  toggle,
+  onToggle,
+  toggled,
   lead = false,
   children,
 }: {
   title?: string;
   sub?: React.ReactNode;
-  more?: string;
-  onMore?: () => void;
+  /** The label for the way OUT of this region, naming where it goes ("Open
+   *  Decide"). A plain button: it navigates, so it has no state to announce.
+   *  Never a reveal past a cap -- see the note above. */
+  goTo?: string;
+  onGoTo?: () => void;
+  /** A control that acts on THIS region instead of leaving it: the finder on
+   *  Runs, the changes panel on a mission. Rendered identically to `goTo` and
+   *  kept separate from it for the reason that split exists at all -- this one
+   *  is a disclosure and must say so. */
+  toggle?: string;
+  onToggle?: () => void;
+  /** Whether what `toggle` controls is currently showing. Drives
+   *  `aria-expanded`, which is the half a shared prop could not emit: the two
+   *  live toggles ("Look at it"/"Hide it", "Find a run"/"Close the finder")
+   *  both changed a label a sighted reader can see and announced nothing at all
+   *  to anyone who could not. */
+  toggled?: boolean;
   lead?: boolean;
   children: React.ReactNode;
 }) {
+  const head = Boolean(title || goTo || toggle);
+  const controlFace =
+    "shrink-0 rounded-mrd-xs text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink";
+
   return (
     <section data-mrd="" className="flex flex-col">
-      {title || more ? (
+      {head ? (
         <div className="flex items-baseline justify-between gap-mrd-4">
           {title ? (
             <h2
@@ -215,28 +250,43 @@ export function Region({
           ) : (
             <span aria-hidden />
           )}
-          {more ? (
-            <button
-              type="button"
-              onClick={onMore}
-              className="shrink-0 rounded-mrd-xs text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink"
-              style={{ transitionDuration: "var(--mrd-d-press)" }}
-            >
-              {more}
-            </button>
+          {goTo || toggle ? (
+            <span className="flex shrink-0 items-baseline gap-mrd-3">
+              {toggle ? (
+                <button
+                  type="button"
+                  onClick={onToggle}
+                  aria-expanded={toggled ?? false}
+                  className={controlFace}
+                  style={{ transitionDuration: "var(--mrd-d-press)" }}
+                >
+                  {toggle}
+                </button>
+              ) : null}
+              {goTo ? (
+                <button
+                  type="button"
+                  onClick={onGoTo}
+                  className={controlFace}
+                  style={{ transitionDuration: "var(--mrd-d-press)" }}
+                >
+                  {goTo}
+                </button>
+              ) : null}
+            </span>
           ) : null}
         </div>
       ) : null}
 
       {sub ? (
         <div
-          className={`${title || more ? "mt-mrd-3" : ""} max-w-[68ch] text-[12.5px] leading-relaxed text-mrd-mute`}
+          className={`${head ? "mt-mrd-3" : ""} max-w-[68ch] text-[12.5px] leading-relaxed text-mrd-mute`}
         >
           {sub}
         </div>
       ) : null}
 
-      <div className={title || sub || more ? "mt-mrd-4" : undefined}>{children}</div>
+      <div className={head || sub ? "mt-mrd-4" : undefined}>{children}</div>
     </section>
   );
 }

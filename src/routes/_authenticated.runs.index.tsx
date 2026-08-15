@@ -1296,14 +1296,15 @@ function BuildPage() {
                and the cap now belongs to the grid, which states both real
                numbers instead of one. Offered only above the cap, because a
                finder over a list you can already see whole is furniture. */
-                  more={
+                  toggle={
                     rows.length > VISIBLE && !firstLoad && !sessions.isError
                       ? finding
                         ? "Close the finder"
                         : "Find a run"
                       : undefined
                   }
-                  onMore={() => setFinding((v) => !v)}
+                  toggled={finding}
+                  onToggle={() => setFinding((v) => !v)}
                 >
                   {/* A COLD LOAD SAYS SO, in the list exactly as it does on the board.
               This arm used to be `null`, so on a first load the region printed

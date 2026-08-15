@@ -273,8 +273,8 @@ function Discover({
     <Region
       title={STAGE_LABEL.sense}
       sub={e.problem ?? e.hypothesis}
-      more="Open Discover"
-      onMore={onOpen}
+      goTo="Open Discover"
+      onGoTo={onOpen}
     >
       <RunRow
         mark={e.lastAgentSlug ? <RunMark slug={e.lastAgentSlug} state="done" /> : undefined}
@@ -355,7 +355,7 @@ function Decide({
 }) {
   const who = e.decidedByAgentSlug ? agentDisplayName(e.decidedByAgentSlug) : "you";
   return (
-    <Region title={STAGE_LABEL.decide} sub={e.title} more="Open Decide" onMore={onOpen}>
+    <Region title={STAGE_LABEL.decide} sub={e.title} goTo="Open Decide" onGoTo={onOpen}>
       {/* The recess, earned. This is the record genuinely speaking: the
           sentence someone wrote about WHY, which is the answer you come back
           for months later and the only thing here that is a claim rather than
@@ -434,7 +434,7 @@ function Decide({
 
 function Plan({ e, initials, onOpen }: { e: PlanEvidence; initials: string; onOpen: () => void }) {
   return (
-    <Region title={STAGE_LABEL.define} sub={e.title} more="Open the spec" onMore={onOpen}>
+    <Region title={STAGE_LABEL.define} sub={e.title} goTo="Open the spec" onGoTo={onOpen}>
       <Fact label="Where it stands">
         <Stat>{say(SPEC_STATUS, e.status)}</Stat>
       </Fact>
@@ -512,8 +512,8 @@ function Design({
             : "It was drawn on request."
           : undefined
       }
-      more="Open the spec"
-      onMore={onOpen}
+      goTo="Open the spec"
+      onGoTo={onOpen}
     >
       {/* THE ONE ORCHID IN THE WHOLE SET, and only when a human really is the
           thing standing between this drawing and the build. `PersonMark mine`
@@ -621,8 +621,8 @@ function Ship({ e }: { e: ShipEvidence }) {
             ? "Merged, and nothing has promoted it yet."
             : undefined
       }
-      more={e.prUrl ? "Open the pull request" : undefined}
-      onMore={() => window.open(e.prUrl as string, "_blank", "noopener,noreferrer")}
+      goTo={e.prUrl ? "Open the pull request" : undefined}
+      onGoTo={() => window.open(e.prUrl as string, "_blank", "noopener,noreferrer")}
     >
       <Fact label="Pull request" sub={e.repo || undefined}>
         <Stat>
@@ -711,7 +711,7 @@ function Learn({
   const who = e.recordedByAgentSlug ? agentDisplayName(e.recordedByAgentSlug) : "you";
   const moved = e.priorIce != null && e.newIce != null && e.priorIce !== e.newIce;
   return (
-    <Region title={STAGE_LABEL.learn} more="Open Learn" onMore={onOpen}>
+    <Region title={STAGE_LABEL.learn} goTo="Open Learn" onGoTo={onOpen}>
       {/* The second and last recess in the product's run screen. This is the
           crescendo the brain canon names: not where the record lives, but the
           record telling you what the bet turned out to be worth, which is what

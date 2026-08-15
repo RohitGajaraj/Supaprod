@@ -1557,8 +1557,9 @@ function BuildRun() {
                   ) : null}
                 </>
               }
-              more={tab ? "Hide it" : "Look at it"}
-              onMore={() => (tab ? hideTabs() : openTab("changes"))}
+              toggle={tab ? "Hide it" : "Look at it"}
+              toggled={Boolean(tab)}
+              onToggle={() => (tab ? hideTabs() : openTab("changes"))}
             >
               {tab ? (
                 <>
