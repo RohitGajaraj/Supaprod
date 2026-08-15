@@ -103,6 +103,18 @@ const ZERO_LINE: Record<ThinkingVariant, string> = {
   Coding: "No tools were called.",
 };
 
+/*
+ * Every interactive row in this component sits inside the trace's own
+ * overflow-hidden box and runs flush to its right edge, so the system's default
+ * OUTSET ring is sheared off there and reads as a broken border rather than as
+ * focus. The inset variant is what meridian.css keeps for exactly this case: a
+ * control whose container clips. The explicit utilities restate what the
+ * `[data-mrd]` rule already says, so the treatment survives if this component is
+ * ever dropped onto a surface that rule has not reached.
+ */
+const FOCUS_INSET =
+  "mrd-focus-inset focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
+
 /** A source the agent read. One neutral glyph, see the note in the header. */
 function SourceGlyph() {
   return (
@@ -166,6 +178,7 @@ export function Thinking({
   label,
   summary,
   moreCount = 0,
+  minHeight = 176,
   onSelectRow,
 }: {
   variant?: ThinkingVariant;
@@ -183,6 +196,19 @@ export function Thinking({
   summary?: string;
   /** Sources read beyond the ones listed. Search variant only. */
   moreCount?: number;
+  /**
+   * The floor this block reserves, in px. 176 matches the reference and exists
+   * because this component OPENS ITSELF while the agent works and shuts when it
+   * settles: without a floor, the moment the run finishes everything below the
+   * trace jumps up by the height of the trace. Reserving the space means the
+   * settle is a fade rather than a lurch.
+   *
+   * Pass 0 where the trace is threaded inline through a conversation and the
+   * reserved space would read as the unexplained gap the founder already
+   * reported once. A floor is right for a block that stands alone and wrong for
+   * one that sits in a column of prose.
+   */
+  minHeight?: number;
   /** Fires when a Coding row is picked. Omit and the pick is visual only. */
   onSelectRow?: (row: ThinkingRow, index: number) => void;
 }) {
@@ -221,7 +247,11 @@ export function Thinking({
   }, [rows.length, expanded, variant, working, query]);
 
   return (
-    <div className="flex w-full max-w-95 flex-col font-mrd">
+    <div
+      data-mrd=""
+      className="flex w-full max-w-95 flex-col font-mrd"
+      style={{ minHeight: minHeight || undefined }}
+    >
       {/*
        * The live region sits on the button rather than on the label inside it,
        * because the label is two different elements that swap. A region that
@@ -343,12 +373,12 @@ export function Thinking({
                     <circle cx="11" cy="11" r="7" />
                     <path d="M21 21l-4.3-4.3" />
                   </svg>
-                  <span className="text-[12px] text-mrd-body">{query}</span>
+                  <span className="text-[12.5px] text-mrd-body">{query}</span>
                 </div>
               )}
 
               {showZero && (
-                <p className="px-1.5 py-0.5 text-[12px] text-mrd-mute">{ZERO_LINE[variant]}</p>
+                <p className="px-1.5 py-0.5 text-[12.5px] text-mrd-mute">{ZERO_LINE[variant]}</p>
               )}
 
               {rows.map((row, i) => {
@@ -365,13 +395,27 @@ export function Thinking({
                     {variant === "Steps" &&
                       (i < rows.length - 1 || !working ? <CheckGlyph /> : <SpinnerGlyph />)}
 
+                    {/*
+                     * 12.5 over 11.5 is the reference's own pairing for a row
+                     * and its qualifier, and it is not a rounding of 12 over
+                     * 11. The half stops are what let the qualifier sit under
+                     * the subject without either of them shouting; collapsing
+                     * them onto whole pixels flattens the two into one voice.
+                     *
+                     * The Search underline fades in by decoration colour
+                     * rather than appearing whole. text-decoration-color
+                     * transitions and text-decoration-line does not, so this
+                     * is the only underline that can arrive rather than snap.
+                     */}
                     <span
-                      className={`min-w-0 truncate text-[12px] ${
+                      className={`min-w-0 truncate text-[12.5px] ${
                         variant === "Reasoning"
                           ? "leading-relaxed whitespace-normal text-mrd-body"
                           : "font-medium text-mrd-ink"
                       } ${
-                        variant === "Search" ? "underline-offset-[3px] group-hover:underline" : ""
+                        variant === "Search"
+                          ? "underline decoration-transparent underline-offset-[3px] transition-colors duration-200 group-hover:decoration-current"
+                          : ""
                       }`}
                     >
                       {row.primary}
@@ -379,7 +423,7 @@ export function Thinking({
 
                     {row.secondary && (
                       <span
-                        className={`shrink-0 text-[11px] text-mrd-mute ${
+                        className={`shrink-0 text-[11.5px] text-mrd-mute ${
                           row.mono ? "font-mrd-mono" : ""
                         }`}
                       >
@@ -409,7 +453,7 @@ export function Thinking({
                       href={row.href}
                       target="_blank"
                       rel="noreferrer"
-                      className={`${rowClass} group transition-colors duration-150 hover:bg-mrd-hover`}
+                      className={`${rowClass} ${FOCUS_INSET} group transition-colors duration-150 hover:bg-mrd-hover`}
                       style={enter}
                     >
                       {content}
@@ -428,8 +472,19 @@ export function Thinking({
                         setSelected(isSelected ? null : i);
                         onSelectRow?.(row, i);
                       }}
-                      className={`${rowClass} transition-colors duration-150 ${
-                        isSelected ? "bg-mrd-sink" : "hover:bg-mrd-hover"
+                      /*
+                       * A picked row was drawn on `sink`, which is DARKER than
+                       * the canvas: on the dark ground the selected row read as
+                       * a hole in the surface rather than as the one row the
+                       * reader had chosen, and next to a 4.5% hover the two
+                       * were within a whisker of each other. `--mrd-select` is
+                       * the token the system keeps for a passage a reader has
+                       * picked, at 17% precisely so it cannot be mistaken for a
+                       * hover, and it is an alpha, so it reads the same whether
+                       * this trace lands on sheet, sink or paper.
+                       */
+                      className={`${rowClass} ${FOCUS_INSET} transition-colors duration-150 ${
+                        isSelected ? "bg-mrd-select" : "hover:bg-mrd-hover"
                       }`}
                       style={enter}
                     >

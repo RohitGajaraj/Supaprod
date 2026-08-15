@@ -176,7 +176,16 @@ export function RecommendationCard({
    */
   if (options.length === 0) {
     return (
-      <div className="w-full max-w-[380px] rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-4">
+      /*
+       * `data-mrd` belongs here too. An early return is how a root loses it,
+       * and this is the state the forecast desk shows most often, so without it
+       * the commonest rendering of this card was the one not wearing the
+       * system's focus treatment or its legacy alias neutralisation.
+       */
+      <div
+        data-mrd=""
+        className="w-full max-w-[380px] rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-4 font-mrd"
+      >
         <p className="text-[13px] font-medium text-mrd-body">No suggestion yet.</p>
         <p className="mt-1 text-[12px] leading-relaxed text-mrd-mute">
           Nothing has been proposed for this call. The gate is open and the decision is yours to
@@ -193,7 +202,8 @@ export function RecommendationCard({
 
   return (
     <div
-      className="w-full max-w-[380px] overflow-hidden rounded-mrd-card bg-mrd-sheet"
+      data-mrd=""
+      className="w-full max-w-[380px] overflow-hidden rounded-mrd-card bg-mrd-sheet font-mrd"
       style={{ boxShadow: "var(--mrd-shadow-card)" }}
     >
       <div className="px-4 pt-3.5 pb-3">
@@ -266,9 +276,22 @@ export function RecommendationCard({
               type="button"
               aria-expanded={open}
               onClick={() => setOpen((current) => !current)}
-              className={`h-7 rounded-mrd-ctl px-2.5 text-[12.5px] font-medium text-mrd-ink transition-[background-color,transform] duration-100 active:scale-[0.96] ${
-                open ? "bg-mrd-hover" : "bg-mrd-lift hover:bg-mrd-hover"
+              /*
+               * HELD OPEN HAS TO BE UNMISTAKABLE. The open state was a 4.5%
+               * hover wash sitting on the recessed footer, which is a whisper
+               * designed to be barely perceptible under a pointer — so the
+               * button looked identical whether the drawer below it was open or
+               * shut, and on the dark ground it vanished entirely. It now takes
+               * `--mrd-select`, the 17% token the system keeps for something a
+               * reader has picked, and it DROPS its shadow at the same time. A
+               * control that is being held down should stop standing up: the
+               * two changes agree, and together they read as pressed rather
+               * than as tinted.
+               */
+              className={`h-7 rounded-mrd-ctl px-2.5 text-[12.5px] font-medium text-mrd-ink transition-[background-color,box-shadow,transform] duration-100 active:scale-[0.96] ${
+                open ? "bg-mrd-select" : "bg-mrd-lift hover:bg-mrd-float"
               }`}
+              style={{ boxShadow: open ? "none" : "var(--mrd-shadow-card)" }}
             >
               Alternatives
             </button>
@@ -280,7 +303,7 @@ export function RecommendationCard({
               setAccepted(true);
               onAccept?.(active);
             }}
-            className="h-7 rounded-mrd-ctl px-3 text-[12.5px] font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
+            className="flex h-7 items-center rounded-mrd-ctl px-3 text-[12.5px] font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
             style={{
               /*
                * The one accent on this card. It is the pending human action,
@@ -289,8 +312,28 @@ export function RecommendationCard({
                */
               background: accepted ? "var(--mrd-pass)" : "var(--mrd-you)",
               color: "var(--mrd-bg)",
+              /*
+               * A specular top edge and the card shadow, which is what the
+               * reference gives its primary and ours had dropped: without them
+               * a filled control is a flat rectangle of colour lying in the
+               * footer rather than a thing standing on it, and next to the
+               * raised Alternatives button beside it the two read as different
+               * kinds of object when they are a pair. Mixed from
+               * `--mrd-on-solid` rather than written as a literal white so the
+               * highlight stays warm paper-white on the paper ground.
+               */
+              boxShadow:
+                "inset 0 1px 0 color-mix(in oklab, var(--mrd-on-solid) 16%, transparent), var(--mrd-shadow-card)",
             }}
           >
+            {/*
+             * NO GLYPH HERE, and that is a decision rather than an omission.
+             * The reference's primary is a word alone, the accepted state
+             * already changes both the word and the fill, and a tick added on
+             * top would be the third statement of one fact. The Approval card's
+             * confirm DOES take one, because there the control changes job
+             * between questions and the word alone carries that quietly.
+             */}
             {accepted ? "Done" : verb}
           </button>
         </span>

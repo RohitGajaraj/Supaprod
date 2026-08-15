@@ -50,6 +50,17 @@ import { useState } from "react";
  * to put one. Adding it is the reason this component was picked.
  */
 
+/*
+ * A row is a full-bleed button inside a container that is both rounded and
+ * overflow-hidden, so the system's default OUTSET focus ring is clipped on all
+ * four sides and comes back as four disconnected fragments. That is the exact
+ * failure meridian.css keeps the inset variant for. The explicit utilities
+ * restate what the `[data-mrd]` rule already says, so the treatment survives on
+ * a surface that rule has not reached.
+ */
+const FOCUS_INSET =
+  "mrd-focus-inset focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
+
 export type TaskStatus = "running" | "done" | "failed" | "blocked";
 
 export type TaskDetail = { label: string; meta?: string };
@@ -115,7 +126,14 @@ export function taskStatus(raw: string | null | undefined): TaskStatus {
 
 function Glyph({ d, size = 12, width = 3 }: { d: string; size?: number; width?: number }) {
   return (
+    /*
+     * Hidden from assistive technology at the source. The outcome disc is
+     * announced by the status pill beside it and the retry glyph sits on a
+     * button that says "Run it again", so an exposed graphic would only make a
+     * screen reader say the same thing twice.
+     */
     <svg
+      aria-hidden
       width={size}
       height={size}
       viewBox="0 0 24 24"
@@ -261,7 +279,17 @@ export function TaskRows({
    */
   if (tasks.length === 0) {
     return (
-      <div className="w-full max-w-[440px] rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-4">
+      /*
+       * `data-mrd` belongs on THIS root too. It is an early return, which is
+       * exactly how a component root loses the attribute: the eye reads the
+       * main return as the root and stops. Without it this box keeps the
+       * legacy focus ring and the legacy alias chain, so the one state a
+       * reviewer meets first is the one state not wearing the system.
+       */
+      <div
+        data-mrd=""
+        className="w-full max-w-[440px] rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-4 font-mrd"
+      >
         <p className="text-[13px] font-medium text-mrd-body">No work has run here yet.</p>
         <p className="mt-1 text-[12px] leading-relaxed text-mrd-mute">
           Each step an agent takes gets a line here, with whether it is running, finished, broken,
@@ -272,12 +300,27 @@ export function TaskRows({
   }
 
   return (
+    /*
+     * The 196px floor is on the capsule variant only, and the split is not an
+     * oversight. Capsules are loose cards that grow and shrink as rows open,
+     * and every one of those moves shoves the page; reserving the tall case
+     * means an opening row fills space that was already there. The List variant
+     * is a single bounded sheet whose own edge already states where it ends, so
+     * a floor there would only pad the bottom of a finished object.
+     *
+     * The sheet takes the card shadow as well as its border. On the dark ground
+     * the border is what separates it from the canvas and the shadow does
+     * almost nothing; on paper it is the reverse. Both, and it reads as a
+     * raised sheet on either.
+     */
     <div
-      className={`flex w-full max-w-[440px] flex-col ${
+      data-mrd=""
+      className={`flex w-full max-w-[440px] flex-col font-mrd ${
         list
-          ? "gap-0 overflow-hidden rounded-mrd-card border border-mrd-line bg-mrd-sheet"
-          : "gap-2"
+          ? "gap-0 self-start overflow-hidden rounded-mrd-card border border-mrd-line bg-mrd-sheet"
+          : "min-h-[196px] gap-2"
       }`}
+      style={list ? { boxShadow: "var(--mrd-shadow-card)" } : undefined}
     >
       {tasks.map((task, i) => {
         const open = openRows[task.id] ?? false;
@@ -286,7 +329,12 @@ export function TaskRows({
           <div
             key={task.id}
             className={`self-stretch overflow-hidden transition-[border-radius] duration-300 ${
-              list ? "border-b border-mrd-line-soft last:border-0" : "bg-mrd-sheet"
+              /* `line`, not `line-soft`. Soft is the token for a rule BETWEEN
+                 SECTIONS; these are the edges between records, and at 5.5% on
+                 the dark ground the four rows ran together into one slab with
+                 no visible seam. The reference draws this at its full edge
+                 weight for the same reason. */
+              list ? "border-b border-mrd-line last:border-0" : "bg-mrd-sheet"
             }`}
             style={{
               borderRadius: list ? 0 : open ? 14 : 22,
@@ -299,7 +347,7 @@ export function TaskRows({
               aria-expanded={hasDetails ? open : undefined}
               disabled={!hasDetails}
               onClick={() => setOpenRows((current) => ({ ...current, [task.id]: !open }))}
-              className="flex h-11 w-full items-center gap-2.5 px-2.5 text-left transition-colors duration-100 enabled:hover:bg-mrd-hover disabled:cursor-default"
+              className={`${FOCUS_INSET} flex h-11 w-full items-center gap-2.5 px-2.5 text-left transition-colors duration-100 enabled:hover:bg-mrd-hover disabled:cursor-default`}
             >
               <Marker status={task.status} step={task.step} />
 
@@ -307,8 +355,19 @@ export function TaskRows({
                 {task.label}
               </span>
 
+              {/*
+               * PROPORTIONAL, with tabular figures. This was set in mono, and
+               * mono is for a figure and nothing else. What this prop actually
+               * holds is a figure WITH ITS UNIT — "128 messages", "9 groups" —
+               * and a word set in mono reads as a machine token rather than as
+               * English. `tabular-nums` on the proportional face keeps the
+               * digits in a column down the list, which is the whole reason mono
+               * looked right here, without setting the noun in a typewriter.
+               * A bare duration like "86h" survives this fine; a noun does not
+               * survive the other way round.
+               */}
               {task.amount ? (
-                <span className="shrink-0 font-mrd-mono text-[12px] text-mrd-body tabular-nums">
+                <span className="shrink-0 text-[12.5px] text-mrd-body tabular-nums">
                   {task.amount}
                 </span>
               ) : null}
@@ -323,7 +382,7 @@ export function TaskRows({
               {hasDetails ? (
                 <span
                   aria-hidden
-                  className="-ml-1 flex size-6 shrink-0 items-center justify-center rounded-full text-mrd-mute"
+                  className="-ml-2 flex size-7 shrink-0 items-center justify-center rounded-full text-mrd-mute"
                 >
                   <svg
                     width="15"
@@ -341,7 +400,10 @@ export function TaskRows({
                   </svg>
                 </span>
               ) : (
-                <span aria-hidden className="-ml-1 size-6 shrink-0" />
+                /* The same box, empty, so a row without detail keeps its
+                   neighbours' column alignment instead of letting the pill
+                   slide right on that one line. */
+                <span aria-hidden className="-ml-2 size-7 shrink-0" />
               )}
             </button>
 

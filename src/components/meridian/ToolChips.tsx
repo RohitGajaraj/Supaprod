@@ -39,6 +39,17 @@ import { useState } from "react";
  * on the shimmer of a run still going.
  */
 
+/*
+ * The rows live inside an overflow-hidden clip box whose horizontal padding is
+ * spent entirely on the row's own negative margin, so an OUTSET focus ring has
+ * nothing left to draw into and comes out shaved. The inset variant is what
+ * meridian.css keeps for a control inside a clipping container. The explicit
+ * utilities restate what the `[data-mrd]` rule already says, so the treatment
+ * holds if this component is dropped on a surface that rule has not reached.
+ */
+const FOCUS_INSET =
+  "mrd-focus-inset focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
+
 /** What the call was. Four kinds, because a fifth glyph nobody can name is noise. */
 export type ToolKind = "think" | "write" | "run" | "read";
 
@@ -152,14 +163,22 @@ export function ToolChips({
   const showDiffs = !working && diffs.length > 0;
 
   return (
-    <div className="w-full max-w-80 pb-1 font-mrd">
+    /*
+     * The 220px floor is the reference's and it earns its place here for a
+     * reason the reference never had to state: this block GROWS THREE TIMES
+     * while a run goes — rows arrive one at a time, a row opens into its
+     * detail, and the file summary lands at the end. Without a floor every one
+     * of those pushes the page down under the reader's eye. Reserving the tall
+     * case means the run fills space that was already there.
+     */
+    <div data-mrd="" className="min-h-[220px] w-full max-w-80 pb-1 font-mrd">
       {/* The run header, which is also the only control that hides everything. */}
       <button
         type="button"
         aria-expanded={open}
         aria-live="polite"
         onClick={() => setOpen((current) => !current)}
-        className="-mx-1.5 flex w-fit items-center gap-1.5 rounded-mrd-ctl px-1.5 py-1 text-[12px] text-mrd-body transition-colors duration-100 hover:bg-mrd-hover"
+        className="-mx-1.5 flex w-fit items-center gap-1.5 rounded-mrd-ctl px-1.5 py-1 text-[12.5px] text-mrd-body transition-colors duration-100 hover:bg-mrd-hover"
       >
         <svg
           aria-hidden
@@ -216,7 +235,7 @@ export function ToolChips({
          */}
         <div className="-mx-1 overflow-hidden px-1.5 pb-1">
           {rows.length === 0 ? (
-            <p className="mt-1.5 px-[3px] text-[12px] text-mrd-mute">
+            <p className="mt-1.5 px-[3px] text-[12.5px] text-mrd-mute">
               {working ? "Nothing called yet." : "This run called no tools."}
             </p>
           ) : (
@@ -236,7 +255,7 @@ export function ToolChips({
                       aria-expanded={rowOpen}
                       disabled={!hasDetail}
                       onClick={() => toggleRow(row.id)}
-                      className="group/row -mx-[3px] flex h-7 w-[calc(100%+6px)] min-w-0 items-center gap-2 rounded-mrd-ctl px-[3px] text-left transition-colors duration-100 enabled:hover:bg-mrd-hover disabled:cursor-default"
+                      className={`group/row ${FOCUS_INSET} -mx-[3px] flex h-7 w-[calc(100%+6px)] min-w-0 items-center gap-2 rounded-mrd-ctl px-[3px] text-left transition-colors duration-100 enabled:hover:bg-mrd-hover disabled:cursor-default`}
                     >
                       {/*
                        * The glyph swaps for a chevron on hover, in place, so
@@ -281,7 +300,14 @@ export function ToolChips({
                         )}
                       </span>
 
-                      <span className="shrink-0 text-[12px] font-medium text-mrd-ink">
+                      {/*
+                       * 12.5 for the call, 11.5 for its argument. The half
+                       * stops are the reference's own pairing and they are what
+                       * let an argument chip sit beside a label without either
+                       * winning; rounding both to whole pixels closes the gap
+                       * and the row reads as one undifferentiated string.
+                       */}
+                      <span className="shrink-0 text-[12.5px] font-medium text-mrd-ink">
                         {row.label}
                       </span>
 
@@ -291,7 +317,7 @@ export function ToolChips({
                          * the span that used to claim to be clickable.
                          */
                         <span
-                          className={`inline-flex h-5.5 min-w-0 flex-1 items-center truncate rounded-mrd-chip border border-mrd-line bg-mrd-sink px-1.5 text-[11px] text-mrd-body ${
+                          className={`inline-flex h-5.5 min-w-0 flex-1 items-center truncate rounded-mrd-chip border border-mrd-line bg-mrd-sink px-1.5 text-[11.5px] text-mrd-body ${
                             row.mono ? "font-mrd-mono" : ""
                           }`}
                         >
@@ -314,7 +340,7 @@ export function ToolChips({
                             {row.detail?.map((line, i) => (
                               <span
                                 key={`${i}-${line.text}`}
-                                className={`truncate text-[11px] leading-[1.6] ${
+                                className={`truncate text-[11.5px] leading-[1.6] ${
                                   row.detailMono ? "font-mrd-mono" : ""
                                 } ${line.tone === "add" ? "text-mrd-pass" : "text-mrd-body"}`}
                               >
@@ -346,9 +372,18 @@ export function ToolChips({
                   </>
                 );
                 const chipClass =
-                  "inline-flex h-7 max-w-full items-center gap-1.5 rounded-mrd-chip bg-mrd-lift px-2 font-mrd-mono text-[11px] text-mrd-ink";
+                  "inline-flex h-7 max-w-full items-center gap-1.5 rounded-mrd-chip bg-mrd-lift px-2 font-mrd-mono text-[11.5px] text-mrd-ink";
+                /*
+                 * These POP in rather than rise. The distinction is the one
+                 * meridian.css draws between its two entrances: a row joining a
+                 * list it already belongs to rises, and something that was not
+                 * there a moment ago scales up from 98. A file summary is the
+                 * second kind — it appears only once the run has stopped, it is
+                 * a new object rather than another row, and the reference marks
+                 * it the same way.
+                 */
                 const enter = {
-                  animation: `mrd-fade-up 250ms cubic-bezier(0.23,1,0.32,1) ${i * 80}ms both`,
+                  animation: `mrd-pop-in 250ms cubic-bezier(0.23,1,0.32,1) ${i * 80}ms both`,
                   boxShadow: "var(--mrd-shadow-card)",
                 };
 
@@ -377,7 +412,7 @@ export function ToolChips({
                   <button
                     type="button"
                     onClick={onShowMore}
-                    className="inline-flex h-7 items-center rounded-mrd-chip px-1.5 font-mrd-mono text-[11px] text-mrd-mute underline decoration-transparent underline-offset-2 transition-colors duration-100 hover:text-mrd-body hover:decoration-current"
+                    className="inline-flex h-7 items-center rounded-mrd-chip px-1.5 font-mrd-mono text-[11.5px] text-mrd-mute underline decoration-transparent underline-offset-2 transition-colors duration-100 hover:text-mrd-body hover:decoration-current"
                     style={{
                       animation: `mrd-fade-in 300ms ease-out ${diffs.length * 80}ms both`,
                     }}
@@ -386,7 +421,7 @@ export function ToolChips({
                   </button>
                 ) : (
                   <span
-                    className="inline-flex h-7 items-center px-1.5 font-mrd-mono text-[11px] text-mrd-mute"
+                    className="inline-flex h-7 items-center px-1.5 font-mrd-mono text-[11.5px] text-mrd-mute"
                     style={{
                       animation: `mrd-fade-in 300ms ease-out ${diffs.length * 80}ms both`,
                     }}

@@ -69,7 +69,14 @@ function Icon({
   width?: number;
 }) {
   return (
+    /*
+     * Hidden from assistive technology at the source. Every glyph in this file
+     * sits either inside a button that already carries an aria-label or beside
+     * type that says the same thing, so an exposed graphic would only make a
+     * screen reader announce the label twice.
+     */
     <svg
+      aria-hidden
       width={size}
       height={size}
       viewBox="0 0 24 24"
@@ -132,7 +139,17 @@ export function ApprovalCard({
    */
   if (questions.length === 0) {
     return (
-      <div className="w-full max-w-80 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-4">
+      /*
+       * `data-mrd` belongs on this root as much as on the main one. An early
+       * return is how a component root quietly loses it, and this particular
+       * root is the one the approvals surface renders in production, so the
+       * omission put the ONE state a person actually meets outside the system's
+       * focus treatment and outside its legacy alias neutralisation.
+       */
+      <div
+        data-mrd=""
+        className="w-full max-w-80 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-4 font-mrd"
+      >
         <p className="text-[13px] font-medium text-mrd-body">Nothing is waiting on you.</p>
         <p className="mt-1 text-[12px] leading-relaxed text-mrd-mute">
           When an agent stops to ask something, the question arrives here and the run holds until
@@ -184,8 +201,9 @@ export function ApprovalCard({
     return (
       <button
         type="button"
+        data-mrd=""
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-mrd-ctl border border-mrd-line bg-mrd-sheet px-3 py-2 text-[12.5px] font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-hover"
+        className="flex items-center gap-2 rounded-mrd-ctl border border-mrd-line bg-mrd-sheet px-3 py-2 font-mrd text-[12.5px] font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-hover"
       >
         <span aria-hidden className="size-1.5 rounded-full bg-mrd-you" />
         Still waiting on you
@@ -194,7 +212,15 @@ export function ApprovalCard({
   }
 
   return (
-    <div className="flex w-full max-w-80 flex-col">
+    /*
+     * The 196px floor is the reference's, and the case for it here is stronger
+     * than in a demo: consecutive questions carry different numbers of options,
+     * so paging forward re-heights the card and everything under it steps up or
+     * down between one question and the next. With the floor the pager moves and
+     * nothing else does, which is what makes it read as one card with a queue in
+     * it rather than as a card being rebuilt each time.
+     */
+    <div data-mrd="" className="flex min-h-[196px] w-full max-w-80 flex-col items-stretch font-mrd">
       <div
         className="overflow-hidden rounded-mrd-card bg-mrd-sheet"
         style={{ boxShadow: "var(--mrd-shadow-card)" }}
@@ -370,19 +396,69 @@ export function ApprovalCard({
               type="button"
               disabled={!hasAnswer}
               onClick={() => (last ? approve() : setQi((current) => current + 1))}
-              className="flex h-7 items-center rounded-mrd-ctl px-3 text-[12.5px] font-medium transition-[background-color,color,transform] duration-200 enabled:active:scale-[0.96] disabled:cursor-default"
+              className="flex h-7 items-center gap-1.5 rounded-mrd-ctl px-3 text-[12.5px] font-medium transition-[background-color,color,box-shadow,transform] duration-200 enabled:active:scale-[0.96] disabled:cursor-default"
               style={{
                 /*
-                 * The accent arrives only when the control can actually do
-                 * something. An armed control IS the pending human action; a
-                 * dead one is furniture and gets the neutral primary face.
+                 * THREE FACES, and each one states a different fact.
+                 *
+                 * Dead, because nothing has been answered yet: a RECESSED face,
+                 * the same step a field sits on, with muted type. It used to be
+                 * the full primary face at opacity 0.4, and that is the failure
+                 * this system keeps catching — an alpha knocked back until the
+                 * control is a smudge nobody can name, which on the dark ground
+                 * left it hovering between "disabled" and "not drawn". A control
+                 * that cannot act should look like a different KIND of object,
+                 * not like a faded version of the one that can.
+                 *
+                 * Armed but not last: the neutral primary face, because moving
+                 * to the next question is not the act a person is here for.
+                 *
+                 * Armed and last: `--mrd-you`, because at that moment this
+                 * control IS the pending human action, and pressing it is what
+                 * releases the run.
+                 *
+                 * `--mrd-on-solid` and NOT `--mrd-ink`. This label was written
+                 * as ink, which inverts with the ground while `--mrd-solid` does
+                 * not: on paper the face is a dark slab and ink is dark type,
+                 * measured at 1.19 to 1 in the note meridian.css keeps on this
+                 * exact defect. It is the one token that is light on both
+                 * grounds and it exists for precisely this control.
                  */
-                background: hasAnswer && last ? "var(--mrd-you)" : "var(--mrd-solid)",
-                color: hasAnswer && last ? "var(--mrd-bg)" : "var(--mrd-ink)",
-                opacity: hasAnswer ? 1 : 0.4,
+                background: !hasAnswer
+                  ? "var(--mrd-lift)"
+                  : last
+                    ? "var(--mrd-you)"
+                    : "var(--mrd-solid)",
+                color: !hasAnswer
+                  ? "var(--mrd-mute)"
+                  : last
+                    ? "var(--mrd-bg)"
+                    : "var(--mrd-on-solid)",
+                /*
+                 * The armed face takes a one-pixel specular top edge, which is
+                 * what stops a filled control reading as a flat rectangle of
+                 * colour. Mixed from `--mrd-on-solid` rather than written as a
+                 * literal white, so it stays a warm paper-white on the paper
+                 * ground instead of a hole punched in the slab. The dead face
+                 * gets the card shadow instead: it is sitting IN the footer,
+                 * not standing on it.
+                 */
+                boxShadow: hasAnswer
+                  ? "inset 0 1px 0 color-mix(in oklab, var(--mrd-on-solid) 16%, transparent)"
+                  : "var(--mrd-shadow-card)",
               }}
             >
               {last ? confirmLabel : "Next"}
+              {/*
+               * The reference puts a glyph on this control and ours had dropped
+               * it. It is not decoration: the button changes JOB between
+               * questions and the word alone carries that quietly, while a
+               * chevron that becomes a check says "this one moves you along"
+               * and then "this one is the act" without being read.
+               */}
+              <Icon size={13} width={2.6}>
+                {last ? CheckPath : <path d="M9 6l6 6-6 6" />}
+              </Icon>
             </button>
           ) : null}
         </div>
