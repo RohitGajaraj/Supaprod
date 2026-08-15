@@ -138,7 +138,17 @@ export type ToolProduct = {
  *     a uuid, so there is nothing honest to put in it.
  */
 export const TOOL_PRODUCTS: Readonly<Record<string, ToolProduct>> = {
-  // .insert into signals, .select("id").single() -> { id }
+  // Goes through `writeSignals` (the sink) since 2026-08-15 and returns
+  // { inserted, skipped, id }, where `id` is the row the sink actually wrote.
+  // It used to insert by hand and return `{id}` from its own `.select("id")`.
+  //
+  // THE MIGRATION WAS ONLY SAFE BECAUSE OF THIS LINE. Routing the tool through the
+  // sink gained it the `stage_events` trail row, `source_kind`, dedup and an inline
+  // embedding, but the sink reports a BATCH and originally handed back only counts.
+  // A result with no `id` would have made the agent's own evidence unattachable, so
+  // Discover would file a signal and still be recorded as producing nothing, which
+  // is the freeze this file exists to prevent. `SinkResult.ids` was added for it,
+  // and `every-station-can-finish.test.ts` pins the field name against this entry.
   "signals.log": { kind: "signal", table: "signals", idField: "id" },
   // .insert into prds -> { prd_id, title, status, opportunity_id }
   "prd.draft": { kind: "prd", table: "prds", idField: "prd_id" },

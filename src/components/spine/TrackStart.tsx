@@ -50,7 +50,7 @@ import { TrackChain } from "@/components/spine/TrackChain";
 import { TrackActivity } from "@/components/spine/TrackActivity";
 import { nextStation, WORK_SHAPE_LABEL, type WorkShape } from "@/lib/spine/route";
 import { HOLD_LINE } from "@/lib/spine/driver";
-import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
+import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import {
   Actions,
   Block,
@@ -181,7 +181,13 @@ export function TrackStart() {
         // causes by returning only open work.
         setMoved({
           verb: "You closed it out",
-          consequence: `${t.title} reached the end of its route, so it leaves this list.`,
+          // THE CLAIM THIS PRODUCT MUST NEVER MAKE is a completed lap that did
+          // not happen, and closing a track out is the moment it would be made.
+          consequence: `${t.title} reached the end of its route, so it leaves this list.${
+            res.emptyStation
+              ? ` ${AGENT_STATIONS[res.emptyStation as AgentStation]?.name ?? res.emptyStation} filed nothing, so the record of this work has a gap at that station.`
+              : ""
+          }`,
         });
         return;
       }
@@ -189,13 +195,31 @@ export function TrackStart() {
       // Costs nothing, is provable, and is the one thing a person cannot see
       // from the row.
       const after = nextStation(res.track.route, res.track.station);
+      /**
+       * SAYS WHEN THE STATION YOU LEFT HANDED NOTHING ON.
+       *
+       * `advanceTrack` consults the kill switch and nothing else, so a person can
+       * walk a track through its whole remaining route with an empty member list
+       * and the board would report a completed lap that never happened. Refusing
+       * the move would be wrong: the canon is explicit that carrying your own work
+       * forward is a decision you are allowed to make. What was wrong was the
+       * silence, so the receipt now states it.
+       *
+       * Named as a FACT about the record rather than a warning, because the person
+       * chose this and does not need to be told off for it. What they need is to
+       * know the next station has nothing from this one to read, since that is
+       * what will make it stop.
+       */
+      const emptyNote = res.emptyStation
+        ? ` ${AGENT_STATIONS[res.emptyStation as AgentStation]?.name ?? res.emptyStation} filed nothing, so the next station has nothing from it to work from.`
+        : "";
       setMoved({
         verb: "You handed it on",
         consequence: `${t.title} is at ${AGENT_STATIONS[res.track.station].name}. ${
           after
             ? `Its route goes to ${AGENT_STATIONS[after].name} after that.`
             : "That is the last station on its route."
-        }`,
+        }${emptyNote}`,
       });
     },
     onError: (e: Error, t) =>

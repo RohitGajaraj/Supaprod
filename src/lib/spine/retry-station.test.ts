@@ -152,3 +152,81 @@ describe("the control is reachable, and only where it applies", () => {
     expect(code).toContain("Nothing has been charged for it yet");
   });
 });
+
+describe("advanceTrack stops reporting a lap that did not happen", () => {
+  /**
+   * THE DEFECT. `advanceTrack` consults the kill switch and nothing else: not
+   * `last_hold`, not `attempts`, and not whether the station being left produced
+   * anything. So a person could walk a track through its whole remaining route
+   * with an empty member list, and the board would report a completed lap that
+   * never happened. A completed lap that did not happen is the one claim this
+   * product must never make about itself.
+   *
+   * REFUSING WOULD BE THE WRONG FIX, and that is why this asserts a REPORT rather
+   * than a refusal. The governance canon is explicit that a person carrying their
+   * own work forward past a station is a decision they are allowed to make, and
+   * this handler's own header already argues exactly that for an open gate. What
+   * was wrong was not the permission. It was the silence.
+   */
+  const src = () => readFileSync(join(SPINE, "track.functions.ts"), "utf8");
+
+  function advanceBody(): string {
+    const s = src();
+    const start = s.indexOf("export const advanceTrack");
+    expect(start).toBeGreaterThan(-1);
+    const end = s.indexOf("export const retryStation", start);
+    expect(end).toBeGreaterThan(start);
+    return s.slice(start, end);
+  }
+
+  it("asks whether the station it is leaving filed anything", () => {
+    const body = advanceBody();
+    expect(body).toContain("spine_track_members");
+    // Scoped to the STATION, not the whole track: a track carrying a spec from
+    // Plan has members, and that says nothing about whether Design drew anything.
+    expect(body).toContain('.eq("station", track.station)');
+  });
+
+  it("asks BEFORE the move, because afterwards the row is somewhere else", () => {
+    const body = advanceBody();
+    expect(body.indexOf("spine_track_members")).toBeLessThan(body.indexOf(".update("));
+  });
+
+  it("still permits the move, because that is the person's decision to make", () => {
+    // If this ever starts refusing, the canon's own ruling has been reversed by a
+    // commit rather than by a decision.
+    const body = advanceBody();
+    expect(body).not.toContain('refused: "That station filed nothing');
+    expect(body).toContain("emptyStation,");
+  });
+
+  it("treats a failed member read as unknown, never as an empty station", () => {
+    // `count` is null when the read errored. Turning that into "the station
+    // produced nothing" would be this repo's signature defect: a failed read
+    // becoming a confident zero, here in the form of an accusation.
+    const body = advanceBody();
+    expect(body).toContain("(count ?? null) === 0");
+    expect(body).toContain("if (!memberErr");
+  });
+
+  it("carries the fact on every return path, so no caller can miss it", () => {
+    // A field present on the happy path only is a field a caller learns to not
+    // trust.
+    const body = advanceBody();
+    const returns = body.match(/emptyStation/g)?.length ?? 0;
+    expect(returns).toBeGreaterThanOrEqual(6);
+  });
+
+  it("is said out loud on the surface, not just returned", () => {
+    // A fact captured and never read is the shape this whole audit keeps closing.
+    const panel = readFileSync(
+      join(SPINE, "..", "..", "components", "spine", "TrackStart.tsx"),
+      "utf8",
+    );
+    expect(panel).toContain("res.emptyStation");
+    expect(panel).toContain("filed nothing, so the next station has nothing from it to work from");
+    // And when the track is CLOSED OUT, which is the moment the false claim of a
+    // completed lap would actually be made.
+    expect(panel).toContain("the record of this work has a gap at that station");
+  });
+});

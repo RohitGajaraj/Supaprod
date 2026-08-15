@@ -385,7 +385,34 @@ export const advanceTrack = createServerFn({ method: "POST" })
     async ({
       context,
       data,
-    }): Promise<{ track: Track | null; arrivedAt: string | null; refused: string | null }> => {
+    }): Promise<{
+      track: Track | null;
+      arrivedAt: string | null;
+      refused: string | null;
+      /**
+       * The station just left, when it filed nothing.
+       *
+       * WHY THIS IS REPORTED RATHER THAN REFUSED. `advanceTrack` consults the
+       * kill switch and nothing else: not `last_hold`, not `attempts`, and not
+       * whether the station produced anything. So a person could walk a track
+       * through its whole remaining route with an empty member list, and the
+       * board would report a completed lap that never happened. That is the one
+       * claim this product must never make about itself.
+       *
+       * Refusing would be the wrong correction. The governance canon is explicit
+       * that a person carrying their own work forward past a station is a
+       * decision they are allowed to make, and this handler's own header already
+       * argues that for the case of an open gate. What was wrong was not the
+       * permission, it was the SILENCE: the move happened and nothing said the
+       * station had handed nothing on.
+       *
+       * So the write is unchanged and the answer gained a fact. Null means the
+       * station filed something, or that we could not tell, which are reported
+       * the same way here on purpose: a member read that failed must not be
+       * turned into an accusation that a station produced nothing.
+       */
+      emptyStation: string | null;
+    }> => {
       const { supabase } = context;
       try {
         const { data: row } = await supabase
@@ -394,7 +421,12 @@ export const advanceTrack = createServerFn({ method: "POST" })
           .eq("id", data.trackId)
           .maybeSingle();
         if (!row) {
-          return { track: null, arrivedAt: null, refused: "That work could not be found." };
+          return {
+            track: null,
+            arrivedAt: null,
+            refused: "That work could not be found.",
+            emptyStation: null,
+          };
         }
 
         const raw = row as unknown as TrackRow;
@@ -420,11 +452,40 @@ export const advanceTrack = createServerFn({ method: "POST" })
               track,
               arrivedAt: null,
               refused: "Everything is paused for this workspace, so nothing moved.",
+              emptyStation: null,
             };
           }
         }
 
         const next = nextStation(track.route, track.station);
+
+        /**
+         * Did the station being left actually file anything?
+         *
+         * Read BEFORE the move, because after it the row says the work is
+         * somewhere else and this question is about where it has been. Scoped to
+         * the station rather than the whole track: a track carrying a spec from
+         * Plan has members, and that says nothing about whether Design drew
+         * anything.
+         *
+         * A FAILED READ IS NOT AN EMPTY STATION. `count` is null when the read
+         * errored, and that resolves to null below rather than to zero, so an
+         * unreadable table can never make this report a station produced nothing.
+         * This repo has turned a failed read into a confident zero often enough
+         * to name it as a class.
+         */
+        let emptyStation: string | null = null;
+        try {
+          const { count, error: memberErr } = await supabase
+            .from("spine_track_members" as never)
+            .select("artifact_id", { count: "exact", head: true })
+            .eq("track_id", data.trackId)
+            .eq("station", track.station);
+          if (!memberErr && (count ?? null) === 0) emptyStation = track.station;
+        } catch {
+          // Same direction: we do not know, so we claim nothing.
+        }
+
         const now = new Date().toISOString();
 
         const { data: updated, error: upErr } = await supabase
@@ -447,6 +508,7 @@ export const advanceTrack = createServerFn({ method: "POST" })
             track,
             arrivedAt: null,
             refused: "The move did not come back confirmed, so nothing here is certain.",
+            emptyStation: null,
           };
         }
 
@@ -464,6 +526,7 @@ export const advanceTrack = createServerFn({ method: "POST" })
           track: rowToTrack(updated as unknown as TrackRow),
           arrivedAt: next,
           refused: null,
+          emptyStation,
         };
       } catch (e) {
         console.error("advanceTrack failed:", e);
@@ -471,6 +534,7 @@ export const advanceTrack = createServerFn({ method: "POST" })
           track: null,
           arrivedAt: null,
           refused: "The move failed. Nothing on screen can be trusted until this list reloads.",
+          emptyStation: null,
         };
       }
     },

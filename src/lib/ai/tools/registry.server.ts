@@ -309,27 +309,71 @@ const logSignal = def({
    * tenant's evidence in another tenant's record. Saying so is the safe answer,
    * and the agent can surface it instead of burning its remaining steps.
    */
-  run: async (a, { supabase, userId, workspaceId }) => {
+  /**
+   * THROUGH THE SINK, NOT STRAIGHT INTO THE TABLE (changed 2026-08-15).
+   *
+   * This inserted a `signals` row by hand, and `writeSignals` exists precisely so
+   * that no source does. What the hand-rolled insert skipped, in the order it
+   * costs:
+   *
+   *   THE TRAIL ROW. The sink writes `stage_events` with `to_stage='sensed'`,
+   *   which is the first link of the record chain, and `loop-state.functions.ts`
+   *   renders "New signals came in" from exactly that row. So every signal the
+   *   AUTONOMOUS SPINE filed was invisible to the surface that reports where the
+   *   loop stands: Discover ran, evidence landed, the driver counted it and
+   *   advanced, and the loop view said nothing had come in. This is the tool
+   *   Discover's whole crew is told to call, so it was the one door where the
+   *   omission cost the most.
+   *
+   *   `source_kind`, which every read that filters the fabric by lane depends on.
+   *   A row without it is in no lane.
+   *
+   *   THE INLINE EMBEDDING, so a freshly filed signal is clusterable on this tick
+   *   rather than at the next backfill sweep. Discover's own next act is usually
+   *   clustering, so the gap was directly in the way.
+   *
+   *   Dedup on `externalId`, which lets a re-run of the same station file the same
+   *   evidence without duplicating it.
+   *
+   * `untrusted` is FALSE here, deliberately. The screen exists for text arriving
+   * from outside (web, webhook, external MCP); this text was composed by our own
+   * agent inside the loop, and screening it would mean treating the platform's own
+   * output as an attacker's. The agent's INPUTS are screened where they enter.
+   *
+   * The loud refusal on a missing workspace stays exactly as it was: there is
+   * nowhere correct to file without one, and filing it elsewhere would put one
+   * tenant's evidence in another tenant's record.
+   */
+  run: async (a, { userId, workspaceId }) => {
     if (!workspaceId) {
       throw new Error(
         "No workspace is in context, so there is nowhere to file this signal. This is a wiring fault, not something to retry.",
       );
     }
-    const { data, error } = await supabase
-      .from("signals")
-      .insert({
-        user_id: userId,
-        workspace_id: workspaceId,
-        content: a.content,
-        title: a.title ?? null,
+    const { writeSignals } = await import("@/lib/sources/sink.server");
+    const result = await writeSignals(userId, workspaceId, [
+      {
         source: a.source ?? "agent",
-        sentiment: a.sentiment ?? null,
+        sourceKind: "manual",
+        title: a.title ?? a.content.slice(0, 120),
+        content: a.content,
         tags: a.tags ?? [],
-      })
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    return data;
+        sentiment: a.sentiment ?? undefined,
+        untrusted: false,
+      },
+    ]);
+    /**
+     * REPORTED AS A COUNT, because the sink writes a batch and does not hand back
+     * ids. The previous shape returned `{id}` from its own insert.
+     *
+     * That matters to ONE caller and it is the important one: `collectAttachments`
+     * reads a step's result to file a member row, and `TOOL_PRODUCTS` maps
+     * `signals.log` to `{kind: "signal", idField: "id"}`. So a result with no `id`
+     * would make the driver see a station that filed nothing, which is the exact
+     * freeze this whole pass has been closing. The sink is therefore asked for the
+     * id it just wrote rather than being trusted to imply one.
+     */
+    return { inserted: result.inserted, skipped: result.skipped, id: result.ids[0] ?? null };
   },
 });
 

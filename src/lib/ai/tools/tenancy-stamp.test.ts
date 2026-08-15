@@ -111,7 +111,10 @@ describe("agent tool writes stamp the tenant", () => {
     // vacuously passes — the exact false-green this file exists to prevent.
     const sites = insertSites(SOURCE);
     expect(sites.length).toBeGreaterThan(8);
-    expect(sites.some((s) => s.table === "signals")).toBe(true);
+    // `tasks` stands in for the anchor `signals` used to provide. signals.log
+    // stopped inserting inline on 2026-08-15 when it moved onto the sink; see the
+    // block below, which checks the tenant is stamped on BOTH shapes.
+    expect(sites.some((s) => s.table === "tasks")).toBe(true);
   });
 
   it("sets workspace_id on every insert into a workspace-scoped table", () => {
@@ -126,11 +129,47 @@ describe("agent tool writes stamp the tenant", () => {
   it("keeps the two tools that caused the 2026-08-03 outage stamped", () => {
     // Named explicitly so a refactor that drops the field is reported as the
     // regression it is, rather than as an anonymous entry in the list above.
+    //
+    // `tasks` still inserts inline. `signals` no longer does: on 2026-08-15
+    // `signals.log` moved onto `writeSignals` to gain the `stage_events` trail row
+    // that loop-state renders "New signals came in" from, so its tenant is stamped
+    // by the sink instead. The property this file protects is unchanged, so the
+    // assertion below asks for the PROPERTY on whichever shape is present rather
+    // than for one shape.
     const byTable = (t: string) => insertSites(SOURCE).filter((s) => s.table === t);
-    for (const table of ["signals", "tasks"]) {
-      const sites = byTable(table);
-      expect(sites.length).toBeGreaterThan(0);
-      for (const site of sites) expect(site.body).toContain("workspace_id");
-    }
+    const sites = byTable("tasks");
+    expect(sites.length).toBeGreaterThan(0);
+    for (const site of sites) expect(site.body).toContain("workspace_id");
+  });
+
+  it("stamps the tenant on the sink path too, which cannot omit it", () => {
+    /**
+     * THE SINK IS A STRONGER GUARANTEE THAN AN INLINE INSERT, not a gap in this
+     * file's coverage, and stating why is the point of this test.
+     *
+     * `writeSignals(userId, workspaceId, candidates)` takes the tenant as a
+     * REQUIRED POSITIONAL ARGUMENT, so omitting it is a type error rather than a
+     * runtime surprise. That is the opposite of the shape that caused the
+     * 2026-08-03 outage, where the Supabase insert type accepted a partial row
+     * precisely BECAUSE the column has a default, so leaving `workspace_id` out
+     * typechecked clean and failed only in production.
+     *
+     * What still has to be checked is that the tool passes a REAL workspace rather
+     * than a fallback, and that it refuses when it has none. Filing evidence into
+     * the wrong tenant is worse than filing none.
+     */
+    const at = SOURCE.indexOf('name: "signals.log"');
+    expect(at, "signals.log has left the registry").toBeGreaterThan(-1);
+    // 7,000 rather than a tighter window: the tool carries a long header
+    // explaining why it files through the sink, and the call itself sits 4,300
+    // characters past its own name. A window that clipped it would fail for the
+    // wrong reason and read as a missing tenant stamp.
+    const body = SOURCE.slice(at, at + 7000);
+    expect(body).toContain("writeSignals(userId, workspaceId");
+    // And it still refuses loudly rather than guessing a tenant.
+    expect(body).toContain("if (!workspaceId)");
+    expect(body).toContain("nowhere to file this signal");
+    // No default or coalesce on the tenant anywhere in the call.
+    expect(body).not.toMatch(/workspaceId\s*(\?\?|\|\|)/);
   });
 });

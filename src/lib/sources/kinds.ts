@@ -54,6 +54,21 @@ export type SignalCandidate = {
 /** Outcome of one writeSignals() call. */
 export type SinkResult = {
   inserted: number;
+  /**
+   * The ids the sink just wrote, oldest first.
+   *
+   * ADDED 2026-08-15, because a caller that needs to point at what it filed had no
+   * way to. `signals.log` is the tool Discover's whole crew is told to call, and
+   * the driver files a member row from the step's result using `TOOL_PRODUCTS`,
+   * which reads an `id` field. A sink that reported only a COUNT would have made
+   * the agent's own evidence unattachable, so the station would file a signal and
+   * still be recorded as producing nothing.
+   *
+   * The sink already selects these; it was discarding them. Empty when nothing was
+   * inserted, which is the same answer `inserted: 0` gives and never a null to
+   * unwrap.
+   */
+  ids: string[];
   /** Already-present rows skipped by external_id dedup (stored + within-batch). */
   skipped: number;
   /** Structural injections rejected by the screen (never stored). */
