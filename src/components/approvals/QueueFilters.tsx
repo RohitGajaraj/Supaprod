@@ -1,4 +1,4 @@
-import { FOCUS_RING, GateAction } from "./CallGate";
+import { Action } from "@/components/meridian/surface-parts";
 
 /*
  * THE FILTER ROW, drawn in Meridian.
@@ -46,7 +46,8 @@ export function QueueFilters<T extends string>({
             role="tab"
             aria-selected={on}
             onClick={() => onSelect(f.id)}
-            className={`inline-flex h-8 items-center gap-2 rounded-mrd-chip px-3 text-[12.5px] transition-colors ${FOCUS_RING} ${
+            data-mrd=""
+            className={`inline-flex h-8 items-center gap-2 rounded-mrd-chip px-3 text-[12.5px] transition-colors ${
               on
                 ? "bg-mrd-lift font-medium text-mrd-ink"
                 : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-body"
@@ -95,7 +96,7 @@ export function FilterExcludedEverything({
           : `${total} calls are still waiting, under other headings.`}
       </p>
       <div className="mt-mrd-5">
-        <GateAction onClick={onClearFilter}>Show everything</GateAction>
+        <Action onClick={onClearFilter}>Show everything</Action>
       </div>
     </section>
   );

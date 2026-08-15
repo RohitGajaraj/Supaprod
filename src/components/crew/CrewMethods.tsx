@@ -97,7 +97,7 @@ import {
   ReadFailed,
   Reading,
   Region,
-} from "@/components/crew/CrewChrome";
+} from "@/components/meridian/surface-parts";
 
 /* ------------------------------------------------------------------ *
  * The honesty rules, as pure functions. Everything between here and

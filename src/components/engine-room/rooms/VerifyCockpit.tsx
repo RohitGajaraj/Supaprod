@@ -23,7 +23,8 @@ import {
   PanelPending,
   type RoomBodyProps,
 } from "../RoomDetail";
-import { Eyebrow, FOCUS_RING, QuietAction } from "../EngineChrome";
+import { QuietAction } from "../EngineChrome";
+import { Eyebrow } from "@/components/meridian/surface-parts";
 
 /**
  * RPT-31 - The Agent Inbox (verification cockpit).
@@ -113,7 +114,7 @@ const CARD = "overflow-hidden rounded-mrd-card border border-mrd-line bg-mrd-she
 
 /** The small neutral control this panel repeats: a file tab, a diff toggle, a
  *  reject. Sans, not mono, because none of them is a figure. */
-const SMALL_BTN = `inline-flex h-7 items-center rounded-mrd-chip border border-mrd-line px-2.5 text-[12px] whitespace-nowrap text-mrd-body transition-colors enabled:hover:bg-mrd-hover enabled:hover:text-mrd-ink disabled:cursor-not-allowed disabled:opacity-45 ${FOCUS_RING}`;
+const SMALL_BTN = `inline-flex h-7 items-center rounded-mrd-chip border border-mrd-line px-2.5 text-[12px] whitespace-nowrap text-mrd-body transition-colors enabled:hover:bg-mrd-hover enabled:hover:text-mrd-ink disabled:cursor-not-allowed disabled:opacity-45`;
 
 function SectionHead({ label, note }: { label: string; note?: string | null }) {
   return (
@@ -220,7 +221,7 @@ function PendingApprovals({
                 type="button"
                 disabled={busy}
                 onClick={() => decide.mutate({ approvalId: a.id, decision: "approve" })}
-                className={`inline-flex h-7 items-center rounded-mrd-chip bg-mrd-you px-2.5 text-[12px] font-medium whitespace-nowrap text-mrd-on-you transition-opacity enabled:hover:opacity-90 disabled:bg-mrd-solid disabled:text-mrd-on-solid ${FOCUS_RING}`}
+                className={`inline-flex h-7 items-center rounded-mrd-chip bg-mrd-you px-2.5 text-[12px] font-medium whitespace-nowrap text-mrd-on-you transition-opacity enabled:hover:opacity-90 disabled:bg-mrd-solid disabled:text-mrd-on-solid`}
                 style={{ transitionDuration: "var(--mrd-d-press)" }}
               >
                 {busy ? "Working..." : "Approve"}
@@ -322,7 +323,7 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          className={`min-w-0 flex-1 rounded-mrd-xs text-left transition-opacity hover:opacity-90 ${FOCUS_RING}`}
+          className="min-w-0 flex-1 rounded-mrd-xs text-left transition-opacity hover:opacity-90"
           style={{ transitionDuration: "var(--mrd-d-press)" }}
         >
           <div className="truncate text-[13px] font-medium text-mrd-ink">{change.title}</div>
@@ -347,7 +348,7 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
               href={change.pr_url}
               target="_blank"
               rel="noreferrer"
-              className={`font-mrd-mono rounded-mrd-xs text-[12px] text-mrd-mute transition-colors hover:text-mrd-ink ${FOCUS_RING}`}
+              className="font-mrd-mono rounded-mrd-xs text-[12px] text-mrd-mute transition-colors hover:text-mrd-ink"
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               {change.pr_number ? `PR #${change.pr_number}` : "PR"}
@@ -501,7 +502,7 @@ export function VerifyCockpit(_props: RoomBodyProps) {
   const summaryReady = !approvalsQ.isLoading && !appliedQ.isLoading;
 
   return (
-    <div className="flex flex-col gap-mrd-6">
+    <div data-mrd="" className="flex flex-col gap-mrd-6">
       {summaryReady ? (
         <VerdictSentence>{cockpitVerdict(pending.length, applied.length)}</VerdictSentence>
       ) : (

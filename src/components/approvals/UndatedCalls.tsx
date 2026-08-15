@@ -1,5 +1,3 @@
-import { FOCUS_RING } from "./CallGate";
-
 /*
  * CALLS WHOSE AGE IS NOT KNOWN.
  *
@@ -64,7 +62,8 @@ export function UndatedCalls({ calls }: { calls: UndatedCall[] }) {
             <button
               type="button"
               onClick={call.onOpen}
-              className={`shrink-0 rounded-mrd-ctl px-2 py-1 text-[12.5px] text-mrd-mute transition-colors hover:bg-mrd-hover hover:text-mrd-body ${FOCUS_RING}`}
+              data-mrd=""
+              className="shrink-0 rounded-mrd-ctl px-2 py-1 text-[12.5px] text-mrd-mute transition-colors hover:bg-mrd-hover hover:text-mrd-body"
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               Open

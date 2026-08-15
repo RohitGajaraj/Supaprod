@@ -127,7 +127,8 @@ import { ApprovalCard } from "@/components/meridian/ApprovalCard";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { StalledWork, type StalledItem } from "@/components/meridian/StalledWork";
 
-import { CallGate, GateAction, ReadFailed } from "@/components/approvals/CallGate";
+import { CallGate } from "@/components/approvals/CallGate";
+import { Action, Approve, ReadFailed } from "@/components/meridian/surface-parts";
 import { CallContext, Key } from "@/components/approvals/CallContext";
 import { FilterExcludedEverything, QueueFilters } from "@/components/approvals/QueueFilters";
 import { SettledTrail, type SettledLine } from "@/components/approvals/SettledTrail";
@@ -585,7 +586,12 @@ function ApprovalsSurface() {
             Reading the queue.
           </p>
         ) : queue.isError ? (
-          <ReadFailed onRetry={() => void queue.refetch()}>The queue did not load.</ReadFailed>
+          <ReadFailed
+            onRetry={() => void queue.refetch()}
+            detail="Nothing has been settled and nothing has been lost. The queue is still whatever it was a moment ago; this screen just could not read it."
+          >
+            The queue did not load.
+          </ReadFailed>
         ) : needsWorkspace ? (
           <NeedsSetup
             kind="no-workspace"
@@ -603,21 +609,20 @@ function ApprovalsSurface() {
             hiddenLineCount={focusedHidden}
             consequence={focused.approveConsequence}
           >
-            <GateAction
-              variant="primary"
+            <Approve
               shortcut="a"
               disabled={decide.isPending}
               onClick={() => decide.mutate({ item: focused, verdict: "approve" })}
             >
               Approve
-            </GateAction>
-            <GateAction
+            </Approve>
+            <Action
               shortcut="d"
               disabled={decide.isPending}
               onClick={() => decide.mutate({ item: focused, verdict: "reject" })}
             >
               Decline
-            </GateAction>
+            </Action>
           </CallGate>
         ) : allItems.length === 0 ? (
           /* NOTHING IS WAITING, which is good news and is drawn as such: no

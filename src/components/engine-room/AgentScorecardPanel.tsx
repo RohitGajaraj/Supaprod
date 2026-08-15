@@ -29,7 +29,7 @@ import {
 import { formatOutcomeRecord, formatTrackRecord } from "@/lib/agent-track-record";
 import { glyphForSlug } from "@/components/shell/agent-glyphs";
 import { AGENT_STATIONS, agentDisplayName, agentStation } from "@/lib/agent-vocabulary";
-import { Action, Eyebrow, Reading } from "./EngineChrome";
+import { Action, Eyebrow, Reading } from "@/components/meridian/surface-parts";
 
 const MAX_TOOLS_SHOWN = 4;
 

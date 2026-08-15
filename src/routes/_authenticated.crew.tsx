@@ -148,19 +148,24 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { Surface } from "@/components/shell/primitives";
 import { RecordsTable, type RecordColumn } from "@/components/meridian/RecordsTable";
 import {
-  Action,
-  Actions,
   CrewMark,
   CtxBody,
   CtxHead,
   CtxRow,
   CtxSection,
   DoorRow,
-  Figure,
-  FOCUS_RING,
-  FOCUS_RING_INSET,
   Gate,
   ListRow,
+  Setting,
+  Settled,
+  StationHeading,
+  type CrewMarkState,
+} from "@/components/crew/CrewChrome";
+import {
+  Action,
+  Actions,
+  Approve,
+  Figure,
   NothingHere,
   PageHeading,
   Picker,
@@ -168,12 +173,8 @@ import {
   Reading,
   RecordSpeaks,
   Region,
-  Setting,
-  Settled,
-  StationHeading,
   Toggle,
-  type CrewMarkState,
-} from "@/components/crew/CrewChrome";
+} from "@/components/meridian/surface-parts";
 import {
   listCrew,
   getCrewMember,
@@ -580,7 +581,8 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
                       type="button"
                       key={e.slug}
                       onClick={() => onOpen(e.slug)}
-                      className={`flex w-full items-center gap-mrd-4 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-4 py-mrd-3 text-left transition-colors hover:bg-mrd-lift ${FOCUS_RING}`}
+                      data-mrd=""
+                      className="flex w-full items-center gap-mrd-4 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-4 py-mrd-3 text-left transition-colors hover:bg-mrd-lift"
                       style={{ transitionDuration: "var(--mrd-d-press)" }}
                     >
                       <CrewMark slug={e.slug} name={e.name} size="lg" state={stateFor(e.slug)} />
@@ -839,14 +841,9 @@ function Proposals({ member, onDecided }: { member: CrewMember; onDecided: () =>
           {/* The keycaps are drawn because the keys are bound above. `shortcut`
               renders a <kbd> and binds nothing by itself, so it is never passed
               without the effect that makes it true. */}
-          <Action
-            variant="primary"
-            shortcut="a"
-            disabled={decide.isPending}
-            onClick={() => settle(true)}
-          >
+          <Approve shortcut="a" disabled={decide.isPending} onClick={() => settle(true)}>
             Give it the room
-          </Action>
+          </Approve>
           <Action shortcut="d" disabled={decide.isPending} onClick={() => settle(false)}>
             Not yet
           </Action>
@@ -1132,7 +1129,7 @@ function ToolPolicy({ member, onChanged }: { member: CrewMember; onChanged: () =
         cell: (t) =>
           t.offerable.length > 1 ? (
             <Picker
-              className={FOCUS_RING_INSET}
+              className="mrd-focus-inset"
               value={t.resolvedMode}
               disabled={mode.isPending}
               aria-label={`How ${t.label} runs`}

@@ -14,7 +14,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listRoutines, toggleRoutine, type RoutineRow } from "@/lib/routines.functions";
 import { EmptyRow, ErrorRetry, PanelPending } from "../RoomDetail";
-import { Toggle } from "../EngineChrome";
+import { Toggle } from "@/components/meridian/surface-parts";
 
 function relativeTime(iso: string | null, futureLabel: (d: Date) => string): string {
   if (!iso) return "not yet tracked";

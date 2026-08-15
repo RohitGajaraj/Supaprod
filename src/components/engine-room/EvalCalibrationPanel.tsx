@@ -31,7 +31,6 @@ import { listEvalSuites, getEvalCoverage } from "@/lib/evals.functions";
 import { EVAL_COVERAGE_TARGETS } from "@/lib/evals/coverage";
 import { ErrorRetry, PanelPending } from "./RoomDetail";
 import { RecordStatus, type RecordTone } from "@/components/meridian/RecordsTable";
-import { FOCUS_RING } from "./EngineChrome";
 
 // Surface labels (reused from QualityRoom for consistency)
 const SURFACE_LABELS: Record<string, string> = Object.fromEntries(
@@ -164,7 +163,7 @@ export function EvalCalibrationPanel() {
               onClick={() => drillToSurface(cal.surface)}
               // Hover in CSS, not JS mouse handlers, so keyboard focus and
               // reduced-motion behave; the transition names its properties.
-              className={`group flex items-center justify-between gap-mrd-4 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-4 text-left transition-colors hover:bg-mrd-lift ${FOCUS_RING}`}
+              className={`group flex items-center justify-between gap-mrd-4 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-4 text-left transition-colors hover:bg-mrd-lift`}
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               <span className="flex min-w-0 flex-1 flex-col gap-mrd-1">

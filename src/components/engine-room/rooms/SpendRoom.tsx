@@ -6,7 +6,8 @@ import { GraphSlider } from "@/components/obsidian";
 import { getAnalyticsOverview, getAgentSpendBreakdown } from "@/lib/analytics.functions";
 import { zeroFillDaily } from "@/lib/engine-room-glance";
 import { Row, EmptyRow, ErrorRetry, PanelPending, type RoomBodyProps } from "../RoomDetail";
-import { Eyebrow, FigureCard } from "../EngineChrome";
+import { FigureCard } from "../EngineChrome";
+import { Eyebrow } from "@/components/meridian/surface-parts";
 
 // LOOM W2 fold: /govern?tab=budgets lives here as CAPS (the one home for cap
 // management) and /govern?tab=analytics as USAGE (the full rollup), each

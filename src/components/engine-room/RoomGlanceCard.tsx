@@ -56,7 +56,8 @@
 
 import type { ReactNode } from "react";
 
-import { Figure, FOCUS_RING, StateWord } from "./EngineChrome";
+import { StateWord } from "./EngineChrome";
+import { Figure } from "@/components/meridian/surface-parts";
 import { ROOM_NAMES, type RoomKey, type RoomGlance } from "@/lib/engine-room-glance";
 
 /**
@@ -90,7 +91,7 @@ function ago(iso: string | null | undefined): string | null {
 function GlanceFigure({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <span className="block min-w-0">
-      <span className="block truncate text-[13px] leading-snug" title={value}>
+      <span className="block truncate text-[13px] leading-snug text-mrd-ink" title={value}>
         <Figure>{value}</Figure>
       </span>
       <span className="block text-[12px] leading-snug text-mrd-body">{label}</span>
@@ -118,12 +119,18 @@ function CardShell({
   const face =
     "flex w-full items-stretch rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-4 text-left";
 
-  if (!onOpen) return <div className={face}>{inner}</div>;
+  if (!onOpen)
+    return (
+      <div data-mrd="" className={face}>
+        {inner}
+      </div>
+    );
 
   return (
     <button
       type="button"
-      className={`${face} transition-colors hover:bg-mrd-lift ${FOCUS_RING}`}
+      data-mrd=""
+      className={`${face} transition-colors hover:bg-mrd-lift`}
       style={{ transitionDuration: "var(--mrd-d-press)" }}
       aria-label={label}
       onClick={onOpen}
@@ -239,7 +246,8 @@ export function RoomGlanceCardFailed({
         <button
           type="button"
           onClick={onRetry}
-          className={`rounded-mrd-xs text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink ${FOCUS_RING}`}
+          data-mrd=""
+          className="rounded-mrd-xs text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink"
           style={{ transitionDuration: "var(--mrd-d-press)" }}
         >
           Read this room again

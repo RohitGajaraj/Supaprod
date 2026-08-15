@@ -2,7 +2,8 @@ import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { RecordStatus, type RecordTone } from "@/components/meridian/RecordsTable";
-import { FOCUS_RING_INSET, PanelReading, ReadFailed, StateWord, ViewTabs } from "./EngineChrome";
+import { PanelReading, StateWord, ViewTabs } from "./EngineChrome";
+import { ReadFailed } from "@/components/meridian/surface-parts";
 import {
   ROOM_QUESTIONS,
   ROOM_TAB_META,
@@ -81,10 +82,11 @@ export function Row({ subject, value, statusWord, tone, onOpen }: RowProps) {
   return (
     <button
       type="button"
+      data-mrd=""
       onClick={onOpen}
       className={cn(
         "flex w-full items-center gap-mrd-4 border-b border-mrd-line-soft px-mrd-5 py-mrd-4 text-left transition-colors last:border-0 hover:bg-mrd-hover",
-        FOCUS_RING_INSET,
+        "mrd-focus-inset",
       )}
       style={{ transitionDuration: "var(--mrd-d-press)" }}
     >
@@ -206,7 +208,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
   }, [onBack]);
 
   return (
-    <div className="flex flex-col gap-mrd-6">
+    <div data-mrd="" className="flex flex-col gap-mrd-6">
       <div className="flex flex-wrap items-start justify-between gap-mrd-4">
         <div className="min-w-0 flex-1">
           <h2 className="text-[20px] leading-tight font-medium text-mrd-ink">
@@ -235,9 +237,10 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
           {room === "record" ? (
             <Link
               to="/proof"
+              data-mrd=""
               className={cn(
                 "rounded-mrd-xs text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink",
-                FOCUS_RING_INSET,
+                "mrd-focus-inset",
               )}
             >
               Public scorecard

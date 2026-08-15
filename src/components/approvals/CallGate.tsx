@@ -44,93 +44,15 @@ import { isOverdue, stoppedFor } from "./stopped-for";
  * Nothing else here carries colour. There is no warn hue in this system and no
  * token for one: a call that has waited too long is drawn with weight and with
  * a raised ground, never with amber.
- */
-
-/**
- * THE KEYBOARD RING, copied character for character from the ported Meridian
- * components that already carry it (ContextCards, FilterTable, RecordsTable,
- * Search, SidebarNav, InsightCards, FineTuneCard).
  *
- * Without it a control on this surface falls through to the app-wide
- * `:focus-visible` in styles.css, which paints an indigo ring from the `--sp-*`
- * layer this surface has otherwise left. That layer is life support, and a
- * migrated surface borrowing one colour back from it is how a migration stalls
- * half done. Exported so every control in this directory rings the same way.
+ * ── WHAT LEFT THIS FILE ON 2026-08-15 ───────────────────────────────────
+ * `GateAction`, `ReadFailed` and `FOCUS_RING`, into
+ * `components/meridian/surface-parts.tsx`, where the same three ideas from the
+ * other four ported surfaces now live once. `GateAction` split in two on the
+ * way, because it was two controls: the orchid one that RELEASES the run is
+ * `Approve`, and everything else is `Action`. The gate keeps only the thing no
+ * other surface has, which is the question, its age and its evidence.
  */
-export const FOCUS_RING =
-  "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--mrd-focus)]";
-
-function Icon({ children }: { children: ReactNode }) {
-  return (
-    <svg
-      width={13}
-      height={13}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      {children}
-    </svg>
-  );
-}
-
-/**
- * A control that settles the call.
- *
- * THE KEYCAP IS DRAWN BY THE CALLER, ON PURPOSE. `shortcut` renders a <kbd> and
- * binds nothing, which is how this product once shipped a Settings gear
- * promising a key that fired nothing. The rule the repo settled on is that the
- * file which BINDS a key is the file that DRAWS it, so these props are passed
- * from the route that registers the listener and never from a component that
- * cannot see it.
- */
-export function GateAction({
-  variant = "default",
-  shortcut,
-  children,
-  ...rest
-}: {
-  variant?: "default" | "primary";
-  shortcut?: string;
-  children: ReactNode;
-} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  const primary = variant === "primary";
-  return (
-    <button
-      type="button"
-      {...rest}
-      className={`inline-flex h-9 items-center gap-2 rounded-mrd-ctl px-4 text-[13px] font-medium transition-[background-color,opacity,transform] enabled:active:scale-[0.98] disabled:cursor-default disabled:opacity-45 ${FOCUS_RING} ${
-        primary
-          ? // The accent arrives on the control that actually releases the run.
-            // Disabled it falls back to the neutral primary face, because a
-            // dead control is furniture and must not keep shouting.
-            //
-            // The label goes to `--mrd-on-solid` and NEVER to `--mrd-ink`.
-            // Both `bg-mrd-solid` and `text-mrd-ink` inverate across the two
-            // grounds, so they travel together instead of apart: 11.26:1 on
-            // dark and 1.19:1 on paper, which is an invisible word. This gate
-            // sets `disabled` for the whole round trip of a decision, so on
-            // paper the label vanished on EVERY click. `--mrd-on-solid` is the
-            // one token that is light in both grounds and exists for this.
-            "bg-mrd-you text-mrd-on-you enabled:hover:opacity-90 disabled:bg-mrd-solid disabled:text-mrd-on-solid"
-          : "border border-mrd-line bg-mrd-lift text-mrd-body enabled:hover:bg-mrd-float enabled:hover:text-mrd-ink"
-      }`}
-      style={{ transitionDuration: "var(--mrd-d-press)" }}
-    >
-      {children}
-      {shortcut ? (
-        <kbd className="font-mrd-mono rounded-mrd-xs border border-current px-1 text-[11px] opacity-60">
-          {shortcut}
-        </kbd>
-      ) : null}
-    </button>
-  );
-}
-
 export function CallGate({
   question,
   subject,
@@ -161,7 +83,10 @@ export function CallGate({
   const overdue = since !== null && isOverdue(since, now);
 
   return (
-    <section className="rounded-mrd-pane border border-mrd-line bg-mrd-sheet px-mrd-6 py-mrd-6 shadow-mrd-card">
+    <section
+      data-mrd=""
+      className="rounded-mrd-pane border border-mrd-line bg-mrd-sheet px-mrd-6 py-mrd-6 shadow-mrd-card"
+    >
       <div className="flex flex-wrap items-center justify-between gap-mrd-4">
         <span className="flex min-w-0 items-center gap-1.5">
           <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-mrd-you" />
@@ -231,44 +156,7 @@ export function CallGate({
         </div>
       ) : null}
 
-      {children ? <div className="mt-mrd-5 flex flex-wrap gap-mrd-4">{children}</div> : null}
-    </section>
-  );
-}
-
-/**
- * THE READ FAILED, which is a different fact from an empty queue and must never
- * wear its clothes. It says we do not know, rather than that nothing is there,
- * and it carries the way out.
- *
- * Red is correct here and is not a warning: it reports an OUTCOME, which is the
- * only thing this system's red is ever allowed to mean.
- */
-export function ReadFailed({ children, onRetry }: { children: ReactNode; onRetry: () => void }) {
-  return (
-    <section
-      className="rounded-mrd-pane border border-mrd-line bg-mrd-sheet px-mrd-6 py-mrd-6"
-      role="status"
-      aria-live="polite"
-    >
-      <h2 className="flex items-center gap-mrd-3 text-[16px] leading-snug font-medium text-mrd-ink">
-        <span className="text-mrd-fail">
-          <Icon>
-            <path d="M12 8v5M12 16.5v.01" />
-            <circle cx="12" cy="12" r="9" />
-          </Icon>
-        </span>
-        {children}
-      </h2>
-      <p className="mt-mrd-3 max-w-[62ch] text-[13px] leading-relaxed text-mrd-body">
-        Nothing has been settled and nothing has been lost. The queue is still whatever it was a
-        moment ago; this screen just could not read it.
-      </p>
-      <div className="mt-mrd-5">
-        <GateAction variant="primary" onClick={onRetry}>
-          Try again
-        </GateAction>
-      </div>
+      {children ? <div className="mt-mrd-5 flex flex-wrap gap-mrd-3">{children}</div> : null}
     </section>
   );
 }

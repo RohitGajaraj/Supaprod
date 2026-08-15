@@ -133,19 +133,16 @@ import { ROOM_NAMES, ROOM_QUESTIONS, ROOM_TAB_META, type RoomKey } from "@/lib/e
 import { listWorkspaceBindings } from "@/lib/connections.functions";
 import { listSyncMappings } from "@/lib/integrations.functions";
 import { Surface } from "@/components/shell/primitives";
+import { Crumb, StateWord, ViewTabs } from "@/components/engine-room/EngineChrome";
 import {
   Action,
   Actions,
-  Crumb,
   Figure,
-  FOCUS_RING,
   PageHeading,
   ReadFailed,
   Reading,
   Region,
-  StateWord,
-  ViewTabs,
-} from "@/components/engine-room/EngineChrome";
+} from "@/components/meridian/surface-parts";
 
 const ROOM_KEYS: RoomKey[] = ["spend", "quality", "safety", "record"];
 
@@ -527,8 +524,9 @@ function SourcesLine({ onSync }: { onSync: (conflictId?: string) => void }) {
   return (
     <button
       type="button"
+      data-mrd=""
       onClick={() => onSync(conflicts[0]?.id)}
-      className={`group flex w-full items-center gap-mrd-4 rounded-mrd-ctl border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-4 text-left transition-colors hover:bg-mrd-lift ${FOCUS_RING}`}
+      className="group flex w-full items-center gap-mrd-4 rounded-mrd-ctl border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-4 text-left transition-colors hover:bg-mrd-lift"
       style={{ transitionDuration: "var(--mrd-d-press)" }}
     >
       <span className="min-w-0 flex-1">

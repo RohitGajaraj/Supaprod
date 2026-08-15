@@ -59,21 +59,18 @@ import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { glyphForSlug } from "@/components/shell/agent-glyphs";
+import { Field, TextInput, ViewTabs } from "../EngineChrome";
 import {
   Action,
   Actions,
-  Field,
   Figure,
-  FOCUS_RING,
   NothingHere,
   Picker,
   ReadFailed,
   Reading,
   RecordSpeaks,
   Region,
-  TextInput,
-  ViewTabs,
-} from "../EngineChrome";
+} from "@/components/meridian/surface-parts";
 import {
   listTrustReceipts,
   getLedgerSeal,
@@ -242,8 +239,9 @@ function ReceiptRow({
   return (
     <button
       type="button"
+      data-mrd=""
       onClick={onOpen}
-      className={`flex w-full items-center gap-mrd-4 border-b border-mrd-line-soft px-mrd-5 py-mrd-4 text-left transition-colors last:border-0 hover:bg-mrd-hover ${FOCUS_RING}`}
+      className="flex w-full items-center gap-mrd-4 border-b border-mrd-line-soft px-mrd-5 py-mrd-4 text-left transition-colors last:border-0 hover:bg-mrd-hover"
       style={{ transitionDuration: "var(--mrd-d-press)" }}
     >
       {marks}

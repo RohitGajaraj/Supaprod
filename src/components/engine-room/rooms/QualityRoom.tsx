@@ -7,7 +7,8 @@ import { getEvalHealth } from "@/lib/eval-health.functions";
 import { getGuardrailHitCount } from "@/lib/guardrails.functions";
 import { EVAL_COVERAGE_TARGETS } from "@/lib/evals/coverage";
 import { Row, ErrorRetry, PanelPending, type RoomBodyProps } from "../RoomDetail";
-import { Eyebrow, FigureCard } from "../EngineChrome";
+import { FigureCard } from "../EngineChrome";
+import { Eyebrow } from "@/components/meridian/surface-parts";
 
 // RPT-18: the canonical surface ids already used for eval coverage (evals/coverage.ts) get a
 // friendly label here too, so "Calibration by surface" reads as "Roadmap" not the raw "roadmap"

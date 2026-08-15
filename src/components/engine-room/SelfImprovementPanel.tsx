@@ -52,7 +52,7 @@ import {
 import type { ProposalSeverity } from "@/lib/self-improve";
 import { SELF_IMPROVE_MODES, type SelfImproveMode } from "@/lib/self-improve-governance";
 import { PanelPending, ErrorRetry } from "./RoomDetail";
-import { Eyebrow, FOCUS_RING } from "./EngineChrome";
+import { Eyebrow } from "@/components/meridian/surface-parts";
 
 /**
  * Severity, and the one hue here is an OUTCOME rather than an alarm.
@@ -127,7 +127,8 @@ function ProposalEnricher({
       <button
         type="button"
         onClick={() => enrich.mutate()}
-        className={`mt-mrd-4 inline-flex items-center gap-mrd-3 rounded-mrd-ctl text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink ${FOCUS_RING}`}
+        data-mrd=""
+        className="mt-mrd-4 inline-flex items-center gap-mrd-3 rounded-mrd-ctl text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink"
         style={{ transitionDuration: "var(--mrd-d-press)" }}
       >
         <Sparkles size={14} aria-hidden="true" />
@@ -202,7 +203,7 @@ function ProposalEnricher({
                      object rather than a coloured rectangle, and the label is
                      `--mrd-on-solid` because that is the only token that stays
                      light on the dark face in BOTH grounds. */
-                  className={`inline-flex h-9 items-center rounded-mrd-ctl bg-mrd-solid px-4 text-[13px] font-medium text-mrd-on-solid transition-colors hover:bg-mrd-solid-hover ${FOCUS_RING}`}
+                  className="inline-flex h-8 items-center rounded-mrd-ctl bg-mrd-solid px-3 text-[12.5px] font-medium text-mrd-on-solid transition-colors hover:bg-mrd-solid-hover"
                   style={{
                     boxShadow: "inset 0 1px 0 var(--mrd-sheen)",
                     transitionDuration: "var(--mrd-d-press)",
@@ -300,6 +301,7 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
       </div>
 
       <div
+        data-mrd=""
         role="radiogroup"
         aria-label="Self-improvement mode"
         /* `overflow-hidden` clips the segments to the group's radius, which is
@@ -329,7 +331,7 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
                  whichever mode happened to be current, on a panel nobody is
                  being asked to touch. Ground and full-strength ink say "this
                  one" without spending the accent, and it survives greyscale. */
-              className={`px-4 py-1.5 text-[12.5px] transition-colors disabled:cursor-wait mrd-focus-inset ${FOCUS_RING} ${
+              className={`mrd-focus-inset px-4 py-1.5 text-[12.5px] transition-colors disabled:cursor-wait ${
                 idx === 0 ? "" : "border-l border-mrd-edge"
               } ${
                 selected
@@ -379,7 +381,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
   const proposals = query.data?.proposals ?? [];
 
   return (
-    <div className="flex flex-col gap-mrd-5">
+    <div data-mrd="" className="flex flex-col gap-mrd-5">
       <div>
         <Eyebrow>What Supaprod would improve about itself</Eyebrow>
         {/* The honesty caption, plain-spoken: these are rule-fired flags, not AI
