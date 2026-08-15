@@ -1156,40 +1156,153 @@ const DecideSchema = z.object({
 
 export type DecideApprovalItemResult = { ok: boolean };
 
+/**
+ * Decide ONE gate. The whole body of the single-item entry point, extracted so
+ * the bulk door below cannot become a second write path.
+ *
+ * EXTRACTED RATHER THAN COPIED, and that is the load-bearing choice. `routeDecision`
+ * is the only place that knows how each of the ten gate families resolves, and a
+ * bulk endpoint that re-implemented any part of this would be a parallel
+ * decision path that drifts: a family added to one and not the other, or
+ * provenance read after the write in one of them. Both doors now run exactly
+ * these lines in exactly this order.
+ */
+async function decideOneApprovalItem(
+  db: SupabaseClient,
+  userId: string,
+  data: z.infer<typeof DecideSchema>,
+): Promise<void> {
+  // Provenance FIRST, while the row still describes the draft the human
+  // judged. Every resolver below rewrites status, and `prds` in particular
+  // moves to approved/draft, so the same read afterwards would attribute the
+  // decision rather than the thing decided on.
+  const attribution = await readGateAttribution(db, data.kind, data.id);
+
+  await routeDecision(db, data);
+
+  // Then the flywheel, and only once the gate has actually moved: a resolver
+  // that throws leaves no event, because a correction that never happened is
+  // not evidence about an agent. Best-effort by construction
+  // (recordGateSignalCore never throws), so telemetry cannot break the gate
+  // it observes. Skipped when the human wrote the draft themselves - that is
+  // a real decision but not an agent correction, and scoring it as one would
+  // bias every rate the ranking consumes.
+  if (attribution.agentDrafted) {
+    await recordGateSignalCore(db, userId, {
+      gateType: data.verdict === "approve" ? "approval" : "rejection",
+      subjectType: data.kind,
+      subjectRef: data.id,
+      agentSlug: attribution.agentSlug,
+      toolName: attribution.toolName,
+      verdict: data.verdict === "approve" ? "approved" : "rejected",
+      workspaceId: attribution.workspaceId,
+    });
+  }
+}
+
 /** One decide entry point for every gate kind, routing to the existing
  *  resolver for that gate (never a new write path). */
 export const decideApprovalItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: z.input<typeof DecideSchema>) => DecideSchema.parse(d))
   .handler(async ({ context, data }): Promise<DecideApprovalItemResult> => {
-    // Provenance FIRST, while the row still describes the draft the human
-    // judged. Every resolver below rewrites status, and `prds` in particular
-    // moves to approved/draft, so the same read afterwards would attribute the
-    // decision rather than the thing decided on.
     const db = context.supabase as unknown as SupabaseClient;
-    const attribution = await readGateAttribution(db, data.kind, data.id);
-
-    await routeDecision(db, data);
-
-    // Then the flywheel, and only once the gate has actually moved: a resolver
-    // that throws leaves no event, because a correction that never happened is
-    // not evidence about an agent. Best-effort by construction
-    // (recordGateSignalCore never throws), so telemetry cannot break the gate
-    // it observes. Skipped when the human wrote the draft themselves - that is
-    // a real decision but not an agent correction, and scoring it as one would
-    // bias every rate the ranking consumes.
-    if (attribution.agentDrafted) {
-      await recordGateSignalCore(db, context.userId, {
-        gateType: data.verdict === "approve" ? "approval" : "rejection",
-        subjectType: data.kind,
-        subjectRef: data.id,
-        agentSlug: attribution.agentSlug,
-        toolName: attribution.toolName,
-        verdict: data.verdict === "approve" ? "approved" : "rejected",
-        workspaceId: attribution.workspaceId,
-      });
-    }
+    await decideOneApprovalItem(db, context.userId, data);
     return { ok: true };
+  });
+
+/**
+ * How many gates one bulk call may decide.
+ *
+ * Bounded for the same reason the ingest webhook is bounded at fifty: an
+ * unbounded loop of writes behind one request is a way to hold a Worker open
+ * until it is killed between two of them, and the failure mode is a half-decided
+ * batch nobody can see the shape of. Fifty is enough to clear a real backlog in
+ * one or two presses and few enough to finish inside the request budget.
+ */
+export const MAX_BULK_DECISIONS = 50;
+
+/**
+ * What a bulk decision did, PER ITEM, never as one boolean.
+ *
+ * A caller that presses approve on forty gates and gets `{ok: true}` back knows
+ * nothing it can act on: it cannot tell forty successes from thirty-nine plus a
+ * silent refusal, and an agent cannot decide what to retry. So every id comes
+ * back in exactly one of the two lists, and a refusal carries its own reason.
+ */
+export type BulkDecideResult = {
+  decided: Array<{ kind: string; id: string }>;
+  refused: Array<{ kind: string; id: string; reason: string }>;
+};
+
+const BulkDecideSchema = z.object({
+  verdict: z.enum(["approve", "reject"]),
+  items: z
+    .array(DecideSchema.omit({ verdict: true }))
+    .min(1)
+    .max(MAX_BULK_DECISIONS),
+});
+
+/**
+ * Decide many gates in one call.
+ *
+ * WHY IT HAD TO EXIST. Every gate was one press, so a workspace holding two
+ * hundred pending approvals held two hundred clicks, and the machine surface had
+ * no bulk operation of any kind. The founder's bar for this product is that
+ * anything a human can do is available programmatically; a queue that can only
+ * be drained one row at a time fails that on both sides at once.
+ *
+ * ONE FAILURE DOES NOT ABORT THE REST, which is the whole reason the result is
+ * shaped the way it is. A batch that stopped at the first refusal would leave a
+ * partially decided set with no record of where it stopped, and the caller would
+ * have to diff the queue to find out. Each item is decided independently and
+ * reported independently.
+ *
+ * SEQUENTIAL, DELIBERATELY, and this is not a performance oversight. The ten
+ * resolvers write to different tables and several are not idempotent; the
+ * approvals path in particular was fixed this month for a double-execute that
+ * merged a customer pull request twice. Firing fifty of them at once multiplies
+ * exactly that risk for a saving nobody asked for on a bounded list.
+ *
+ * IT IS NOT A POLICY CHANGE, and that distinction matters more than the feature.
+ * The governance canon says a long queue is a policy failure to surface rather
+ * than a workload to render, and the right answer to "you approved fourteen of
+ * these without changes" is to offer to stop asking. This does not do that and
+ * must not be mistaken for it: it makes the existing backlog answerable in one
+ * press. Surfacing the policy offer is separate work and is still owed.
+ */
+export const decideApprovalItems = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: z.input<typeof BulkDecideSchema>) => BulkDecideSchema.parse(d))
+  .handler(async ({ context, data }): Promise<BulkDecideResult> => {
+    const db = context.supabase as unknown as SupabaseClient;
+    const decided: BulkDecideResult["decided"] = [];
+    const refused: BulkDecideResult["refused"] = [];
+
+    // DEDUPLICATED BEFORE ANYTHING RUNS. The same gate named twice in one batch
+    // would be decided twice, and several resolvers are not idempotent, so this
+    // is the cheapest place to stop a caller's own duplicate from becoming a
+    // double execution.
+    const seen = new Set<string>();
+    for (const item of data.items) {
+      const key = `${item.kind}:${item.id}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      try {
+        await decideOneApprovalItem(db, context.userId, { ...item, verdict: data.verdict });
+        decided.push({ kind: item.kind, id: item.id });
+      } catch (e) {
+        // The resolver's own sentence, not a generic one. It is what tells a
+        // person whether this gate was already answered, belongs to someone
+        // else, or hit a real failure, and those want three different responses.
+        refused.push({
+          kind: item.kind,
+          id: item.id,
+          reason: e instanceof Error ? e.message : "That gate could not be decided.",
+        });
+      }
+    }
+    return { decided, refused };
   });
 
 /** Routes one decided gate to the existing resolver for its family. Extracted
