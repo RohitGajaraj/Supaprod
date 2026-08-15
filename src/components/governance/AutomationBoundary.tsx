@@ -41,7 +41,29 @@ import {
   automationRunState,
   type AutomationFlag,
 } from "@/lib/workspace-automation";
-import { Block, Empty, Failed, Line, Loading, Row, Switch, Value } from "@/components/shell/primitives";
+/*
+ * PORTED TO MERIDIAN 2026-08-16, on the rebase that first put this file and the
+ * ratchet in one tree. The guard failed the moment they met: this file was born
+ * on the retired component layer, and the rule is that a file the baseline has
+ * never seen must be born clean.
+ *
+ * It is portable at all because `Row` and `Line` were built in Meridian earlier
+ * the same day. Before that there was nowhere for either to go.
+ *
+ * `tone="hold"` became `tone="hold"`, which is a rename of the SAME meaning
+ * rather than the nearest colour: Meridian spends `--mrd-hold` on "stopped, and
+ * not on you", and "armed, idle" is a condition rather than a decision anyone
+ * can make. Orchid there would send a reader hunting a button that is not there.
+ */
+import {
+  NothingYet,
+  ReadFailed,
+  Reading,
+  Region,
+  Toggle,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Line, Row } from "@/components/meridian/rows";
 
 type Receipt = { verb: string; consequence: string; failed?: boolean } | null;
 
@@ -108,15 +130,15 @@ export function AutomationBoundary({
   if (!workspaceId) return null;
 
   return (
-    <Block title={title} sub={sub}>
+    <Region title={title} sub={sub}>
       {q.isError ? (
-        <Failed onRetry={() => void q.refetch()}>
+        <ReadFailed onRetry={() => void q.refetch()}>
           {(q.error as Error)?.message ?? "The switches did not come back."}
-        </Failed>
+        </ReadFailed>
       ) : q.isLoading ? (
-        <Loading>Reading what runs without asking.</Loading>
+        <Reading>Reading what runs without asking.</Reading>
       ) : !q.data ? (
-        <Empty>These switches belong to a workspace, and none is open.</Empty>
+        <NothingYet>These switches belong to a workspace, and none is open.</NothingYet>
       ) : (
         <>
           {receipt ? <Line label={receipt.consequence} /> : null}
@@ -148,8 +170,8 @@ export function AutomationBoundary({
                         whether to arm something needs to know it costs money
                         before they press, not once it is running. */}
                     {flag.costsModelCalls ? <Value tone="quiet">spends</Value> : null}
-                    {state === "grounded" ? <Value tone="warn">armed, idle</Value> : null}
-                    <Switch
+                    {state === "grounded" ? <Value tone="hold">armed, idle</Value> : null}
+                    <Toggle
                       checked={enabled}
                       disabled={busy}
                       label={flag.label}
@@ -162,6 +184,6 @@ export function AutomationBoundary({
           })}
         </>
       )}
-    </Block>
+    </Region>
   );
 }
