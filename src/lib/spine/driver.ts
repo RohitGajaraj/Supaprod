@@ -216,6 +216,21 @@ export type HoldReason =
    * agent could not reach or a brief it satisfied in prose.
    */
   | "produced-nothing"
+  /**
+   * The station filed something, and not the thing the next station needs.
+   *
+   * DISTINCT FROM `produced-nothing`, and the distinction is the diagnosis. That
+   * one means the run's output went nowhere. This one means the run produced a
+   * real artifact that the next station cannot work from: Plan logging a signal
+   * instead of writing a spec, so Design has nothing to design against.
+   *
+   * The driver used to advance on ANY artifact, because it asked "did this station
+   * file something" when the question that matters is "can the next station work
+   * from what is now on the record". Those differ exactly when a station does the
+   * wrong job well, which is the case the loop cannot otherwise notice: everything
+   * downstream then reports, correctly, that it was handed nothing.
+   */
+  | "nothing-to-hand-on"
   /** The station ran and produced nothing, repeatedly. */
   | "stalled"
   /**
@@ -569,6 +584,10 @@ export const HOLD_LINE: Record<HoldReason, string> = {
   done: "The route is finished. This work has been graded.",
   "produced-nothing":
     "This station ran but filed nothing, so there is nothing to hand to the next one. It will try again.",
+  // Names what is MISSING rather than what arrived, because the next station is
+  // what a person has to unblock and the stray artifact is not the problem.
+  "nothing-to-hand-on":
+    "This station filed something, but not what the next station needs, so the work cannot move on yet. It will try again.",
   // NO LONGER TERMINAL, and the wording had to change with it. This used to read
   // "so it stopped trying", which was true and was the defect: nothing anywhere
   // handled the state and the work froze for good. A track that reaches the

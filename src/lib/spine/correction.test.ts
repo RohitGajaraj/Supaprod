@@ -42,30 +42,75 @@ const at = (station: AgentStation, over: Partial<CorrectionInputs> = {}): Correc
   ...over,
 });
 
+/**
+ * Holds the correction loop must leave alone AND that decideCorrection retries.
+ *
+ * Money, clocks, kill switches and open boundary calls are handled where they
+ * arise. Hoisted to module scope because the partition test below reads it: two
+ * hand-written copies of this list would drift, and the drift would show up as a
+ * hold nothing tests.
+ */
+const RETRIED_UNTOUCHED: HoldReason[] = [
+  "paused",
+  "waiting-on-a-person",
+  "done",
+  "no-agent",
+  "over-budget",
+  "out-of-time",
+  "out-of-credit",
+  "needs-evidence",
+  "given-up",
+];
+
+/**
+ * Holds it must also leave alone, but which do NOT simply retry: they end the
+ * track or wait on a person to widen the route. Kept apart from the list above
+ * rather than merged, because the assertion that fits them is a different one.
+ */
+const ENDS_OR_WAITS: HoldReason[] = [
+  "needs-a-waived-station",
+  "corrections-spent",
+  "station-cannot-finish",
+];
+
 describe("what the rule refuses to touch", () => {
   it("leaves every hold that is not a station failing alone", () => {
     // Money, clocks, kill switches and open boundary calls are handled where
     // they arise. A correction loop that reasoned past a kill switch would be
     // the single worst bug this feature could have.
-    const others: HoldReason[] = [
-      "paused",
-      "waiting-on-a-person",
-      "done",
-      "no-agent",
-      "over-budget",
-      "out-of-time",
-      "out-of-credit",
-      "needs-evidence",
-      "given-up",
-    ];
-    for (const hold of others) {
+    for (const hold of RETRIED_UNTOUCHED) {
       expect(decideCorrection(at("build", { hold })).action).toBe("retry");
       expect(CORRECTABLE_HOLDS.has(hold)).toBe(false);
     }
   });
 
-  it("owns exactly the two holds that mean a station ran and could not finish", () => {
-    expect([...CORRECTABLE_HOLDS].sort()).toEqual(["produced-nothing", "stalled"]);
+  it("owns exactly the three holds that mean a station ran and could not finish", () => {
+    // A CLOSED SET, deliberately. Adding a hold here widens what the correction
+    // loop is allowed to reroute, and this line is the place that decision has to
+    // be made on purpose. `nothing-to-hand-on` joined on 2026-08-14: a station
+    // that filed the wrong artifact ran and could not do its job, same as its two
+    // siblings, and the fix may equally live at an earlier station.
+    expect([...CORRECTABLE_HOLDS].sort()).toEqual([
+      "nothing-to-hand-on",
+      "produced-nothing",
+      "stalled",
+    ]);
+  });
+
+  it("sorts every hold that exists into correctable or left alone", () => {
+    // THE GUARD ON THE GUARD. The two lists above are hand-written, so a new hold
+    // could join HoldReason and appear in neither -- untested in both directions
+    // and silently retried forever. HOLD_LINE has to name every hold a person can
+    // hit (its own test enforces that), which makes it the register to check
+    // against. This is what turns two lists into an actual partition.
+    const everyHold = Object.keys(HOLD_LINE) as HoldReason[];
+    for (const hold of everyHold) {
+      const sorted =
+        CORRECTABLE_HOLDS.has(hold) ||
+        RETRIED_UNTOUCHED.includes(hold) ||
+        ENDS_OR_WAITS.includes(hold);
+      expect(sorted, `${hold} is in neither list, so nothing tests what it does`).toBe(true);
+    }
   });
 
   it("never corrects while the station still has attempts", () => {

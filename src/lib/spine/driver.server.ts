@@ -1461,6 +1461,67 @@ export async function driveTrackOnce(
 
   const arrivedAt = nextStation(route, station);
 
+  /**
+   * THE STATION FILED SOMETHING, AND NOT WHAT COMES NEXT NEEDS.
+   *
+   * The check above asks "did this station file anything". That is not the same
+   * question as "can the next station work from what is now on the record", and
+   * they come apart exactly when a station does the wrong job well.
+   *
+   * The live shape: Plan's crew is two seats, `prd-writer` filing a spec and
+   * `sprint-planner` filing tasks. If the spec never lands and a task does,
+   * `attached` is non-empty, the old rule advanced, and Design was handed nothing
+   * to design against. Build then reported -- correctly -- that it had been given
+   * nothing to build. That is the same "seven strangers" failure the handoff was
+   * built to end, arriving through the one door still open to it.
+   *
+   * WHY THE PREDICATE IS THE NEXT STATION'S OWN NEED, and not this station's
+   * expected artifact. `STATION_ARTIFACT` says what a station is FOR, and its own
+   * header forbids using it as a filter, for a good reason: Discover legitimately
+   * produces signals OR themes, and a clustering pass that files only themes has
+   * done real work. Asking `STATION_NEEDS[next]` instead is both looser and more
+   * honest -- it accepts any artifact the next station can actually use, and it is
+   * the same rule the correction loop already applies, so a track cannot be
+   * advanced into a station that the correction loop would immediately declare
+   * starved.
+   *
+   * IT COUNTS AN ATTEMPT, like produced-nothing, so a station doing the wrong job
+   * repeatedly reaches a person the same day rather than looping. And it is a
+   * SEPARATE hold, because "filed nothing" and "filed the wrong thing" have
+   * different causes and different fixes, and a record that flattens them hands a
+   * person a word instead of an answer.
+   *
+   * Nothing to check when the route is finished: there is no next station to be
+   * short of anything.
+   */
+  if (arrivedAt) {
+    // What the record holds NOW, which is what it held plus what this tick filed.
+    // `filed` was computed before the crew ran, so using it alone would judge the
+    // station on the state it inherited.
+    const filedNow = [...filed, ...attached.map((a) => a.artifactKind)];
+    if (!needIsMet(STATION_NEEDS[arrivedAt], filedNow)) {
+      await supabase
+        .from("spine_tracks" as never)
+        .update({
+          attempts: (row.attempts ?? 0) + 1,
+          last_hold: "nothing-to-hand-on",
+          driven_at: new Date().toISOString(),
+        } as never)
+        .eq("id", row.id);
+      return {
+        trackId: row.id,
+        station,
+        moved: false,
+        arrivedAt: null,
+        hold: "nothing-to-hand-on",
+        // Says what the NEXT station is short of, because that is the thing a
+        // person can act on. The stray artifact is not the problem.
+        line: `${station} filed something, but ${arrivedAt} still has no ${STATION_NEEDS[arrivedAt].missing}.`,
+        attached,
+      };
+    }
+  }
+
   // attempts resets on every move, in the same write, so a counter can never
   // leak across stations and strand work that was making progress.
   await supabase

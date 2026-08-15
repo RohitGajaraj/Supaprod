@@ -178,6 +178,10 @@ function label(station: AgentStation): string {
 export const CORRECTABLE_HOLDS: ReadonlySet<HoldReason> = new Set<HoldReason>([
   "stalled",
   "produced-nothing",
+  // Same family as produced-nothing: a station ran and could not do its job. The
+  // difference is that its output went to the wrong place rather than nowhere,
+  // and either way the fix may live at an earlier station.
+  "nothing-to-hand-on",
 ]);
 
 /**
