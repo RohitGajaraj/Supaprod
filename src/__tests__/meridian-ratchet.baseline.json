@@ -5,8 +5,8 @@
     "It only ever moves DOWN. A file absent from this list must be clean.",
     "Do not hand-edit; do not regenerate to silence a failure."
   ],
-  "totalOccurrences": 2460,
-  "fileCount": 309,
+  "totalOccurrences": 2453,
+  "fileCount": 303,
   "files": {
     "src/components/admin/admin-ui.tsx": {
       "--text-": 2,
@@ -142,9 +142,6 @@
       "--hairline": 1
     },
     "src/components/connections/WorkspaceBindingsSection.tsx": {
-      "import:shell/primitives": 1
-    },
-    "src/components/crew/CrewMethods.tsx": {
       "import:shell/primitives": 1
     },
     "src/components/decisions/queue-instruments.tsx": {
@@ -928,20 +925,11 @@
     "src/routes/_authenticated.admin.workspaces.tsx": {
       "import:shell/primitives": 1
     },
-    "src/routes/_authenticated.approvals.tsx": {
-      "import:shell/primitives": 1
-    },
     "src/routes/_authenticated.boundary.tsx": {
-      "import:shell/primitives": 1
-    },
-    "src/routes/_authenticated.brain.tsx": {
       "import:shell/primitives": 1
     },
     "src/routes/_authenticated.build.index.tsx": {
       "--sp-": 4,
-      "import:shell/primitives": 1
-    },
-    "src/routes/_authenticated.crew.tsx": {
       "import:shell/primitives": 1
     },
     "src/routes/_authenticated.decide.tsx": {
@@ -951,9 +939,6 @@
       "import:shell/primitives": 1
     },
     "src/routes/_authenticated.discover.tsx": {
-      "import:shell/primitives": 1
-    },
-    "src/routes/_authenticated.engine-room.tsx": {
       "import:shell/primitives": 1
     },
     "src/routes/_authenticated.learn.tsx": {
@@ -967,11 +952,7 @@
       "import:shell/primitives": 1
     },
     "src/routes/_authenticated.runs.$missionId.tsx": {
-      "import:shell/primitives": 1,
       "import:components/obsidian": 1
-    },
-    "src/routes/_authenticated.runs.index.tsx": {
-      "import:shell/primitives": 1
     },
     "src/routes/_authenticated.settings.tsx": {
       "--sp-": 51,

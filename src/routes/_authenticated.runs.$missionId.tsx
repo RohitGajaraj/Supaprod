@@ -241,7 +241,7 @@ import { traceRef } from "@/components/discover/format";
  * genuinely being resumed, and it is out of this lane's files. Reported rather
  * than repainted.
  */
-import { Surface } from "@/components/shell/primitives";
+import { Surface } from "@/components/meridian/Surface";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import {
   Actor,

@@ -87,7 +87,7 @@ import {
   type PlaybookStation,
 } from "@/lib/playbooks/registry";
 import { getPlaybooks } from "@/lib/playbooks.functions";
-import { Surface } from "@/components/shell/primitives";
+import { Surface } from "@/components/meridian/Surface";
 import {
   Action,
   Actions,

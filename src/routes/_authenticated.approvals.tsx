@@ -121,7 +121,7 @@ import {
 import { getLiveActivity } from "@/lib/agents.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Surface } from "@/components/shell/primitives";
+import { Surface } from "@/components/meridian/Surface";
 
 import { ApprovalCard } from "@/components/meridian/ApprovalCard";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";

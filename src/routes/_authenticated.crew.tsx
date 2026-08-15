@@ -145,7 +145,7 @@ import {
   type CatalogEntry,
 } from "@/lib/agent-vocabulary";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { Surface } from "@/components/shell/primitives";
+import { Surface } from "@/components/meridian/Surface";
 import { RecordsTable, type RecordColumn } from "@/components/meridian/RecordsTable";
 import {
   CrewMark,

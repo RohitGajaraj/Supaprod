@@ -132,7 +132,7 @@ import { RecordRoom } from "@/components/engine-room/rooms/RecordRoom";
 import { ROOM_NAMES, ROOM_QUESTIONS, ROOM_TAB_META, type RoomKey } from "@/lib/engine-room-glance";
 import { listWorkspaceBindings } from "@/lib/connections.functions";
 import { listSyncMappings } from "@/lib/integrations.functions";
-import { Surface } from "@/components/shell/primitives";
+import { Surface } from "@/components/meridian/Surface";
 import { Crumb, StateWord } from "@/components/engine-room/EngineChrome";
 import { TabPanel, Tabs } from "@/components/meridian/Tabs";
 import {

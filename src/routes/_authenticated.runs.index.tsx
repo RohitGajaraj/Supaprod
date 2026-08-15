@@ -285,7 +285,7 @@ import { useSpineStrip } from "@/components/shell/use-spine-strip";
  * file used to import from that module was the `--sp-*` layer, which
  * meridian.css calls life support, and it has moved to run-parts.tsx.
  */
-import { Surface } from "@/components/shell/primitives";
+import { Surface } from "@/components/meridian/Surface";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import {
   Button,

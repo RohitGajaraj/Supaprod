@@ -379,7 +379,7 @@ import {
 } from "@/components/meridian/surface-parts";
 import { TabPanel, Tabs } from "@/components/meridian/Tabs";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
-import { Surface } from "@/components/shell/primitives";
+import { Surface } from "@/components/meridian/Surface";
 import { CrewWorking } from "@/components/shell/CrewWorking";
 
 // Every tab panel is code-split: only the active tab's module loads.
