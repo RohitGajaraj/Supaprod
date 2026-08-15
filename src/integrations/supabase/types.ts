@@ -9595,10 +9595,12 @@ export type Database = {
           tbl: string
         }[]
       }
+      connected_source_count: { Args: { _user_id: string }; Returns: number }
       connection_owner_in_workspace: {
         Args: { p_connection_id: string; p_workspace_id: string }
         Returns: boolean
       }
+      connector_limit_enabled: { Args: never; Returns: boolean }
       create_workspace_invitation: {
         Args: { _email: string; _role?: string; _workspace_id: string }
         Returns: {
@@ -10091,6 +10093,7 @@ export type Database = {
       }
       seed_studio_tools: { Args: { _user_id: string }; Returns: undefined }
       slugify: { Args: { p_text: string }; Returns: string }
+      tier_connector_limit: { Args: { _tier: string }; Returns: number }
       tier_product_limit: { Args: { _tier: string }; Returns: number }
       tier_seat_limit: { Args: { _tier: string }; Returns: number }
       tier_workspace_limit: { Args: { _tier: string }; Returns: number }
