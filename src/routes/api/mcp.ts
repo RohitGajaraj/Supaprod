@@ -1,3 +1,5 @@
+import { MCP_ERROR_CODES } from "@/lib/mcp-protocol";
+import { checkRateLimit } from "@/lib/mcp-auth.server";
 import { withIdempotency } from "@/lib/runtime/idempotency.server";
 import { createFileRoute } from "@tanstack/react-router";
 import crypto from "crypto";
@@ -149,43 +151,22 @@ async function validateToken(
   }
 }
 
-/**
- * Check if a token has exceeded its rate limit in the current minute.
- * Fails closed on DB error (security over availability): returns false to
- * deny access if we cannot verify the rate limit. This prevents DoS or
- * abuse during database outages.
+/*
+ * checkRateLimit LIVED HERE, AS A SECOND COPY, and that is why it is gone.
+ *
+ * This file carried a private, byte-for-byte duplicate of
+ * `checkRateLimit` from lib/mcp-auth.server.ts, and because the local one
+ * shadowed the import-able one, the route used the copy. So a fix applied to the
+ * shared implementation changed nothing on the live path: adding an accurate
+ * Retry-After hint to the shared function was dead code until this duplicate was
+ * removed. Two implementations of one security control is the shape this repo
+ * keeps paying for, and a rate limiter is a bad place to keep it.
+ *
+ * STILL DUPLICATED, and named so the next person can finish it: `validateToken`
+ * exists twice as well, here and in lib/mcp-auth.server.ts, where the A2A routes
+ * use the shared one. Collapsing that is an auth change and wants its own pass
+ * rather than riding along with this one.
  */
-async function checkRateLimit(
-  supabase: any,
-  token_id: string,
-  rate_limit: number,
-): Promise<{ allowed: boolean; current_count: number }> {
-  try {
-    const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
-
-    const { count, error } = await supabase
-      .from("api_calls")
-      .select("*", { count: "exact", head: true })
-      .eq("token_id", token_id)
-      .gte("created_at", oneMinuteAgo);
-
-    if (error) {
-      console.error("Rate limit check failed:", error);
-      // Fail closed: deny the request rather than blindly allowing unlimited access
-      return { allowed: false, current_count: 0 };
-    }
-
-    const current_count = count || 0;
-    return {
-      allowed: current_count < rate_limit,
-      current_count,
-    };
-  } catch (err) {
-    console.error("Rate limit check error:", err);
-    // Fail closed: deny the request on unexpected errors
-    return { allowed: false, current_count: 0 };
-  }
-}
 
 /**
  * Dispatch an MCP tool call based on the method name.
@@ -604,16 +585,46 @@ export const Route = createFileRoute("/api/mcp")({
               supabase,
             );
 
+            /**
+             * A REFUSAL AN AGENT CAN ACT ON, rather than a sentence it has to
+             * parse.
+             *
+             * This answered 429 with the prose "Rate limit exceeded" and no
+             * Retry-After header at all, so a caller had two options: guess a
+             * backoff, or read English. Both are what a machine surface exists to
+             * remove, and guessing is the one that turns one throttled agent into
+             * a retry storm.
+             *
+             * THREE THINGS ARE NOW TRUE AT ONCE. The HTTP header carries the wait,
+             * because that is what every HTTP client and proxy already knows how
+             * to honour without reading a body. `error.data.code` carries a STABLE
+             * STRING, because the numeric JSON-RPC code is about transport and
+             * -32002 is the same for several conditions, so branching on it is
+             * branching on the wrong fact. And the wait is repeated inside the
+             * body, since an MCP client that only ever parses JSON-RPC never sees
+             * a header.
+             *
+             * The number is measured, not a constant: it is the time until the
+             * oldest call in the sliding window ages out. See checkRateLimit.
+             */
+            const retryAfter = rateLimitResult.retryAfterSeconds;
             return new Response(
               JSON.stringify({
                 jsonrpc: "2.0",
                 error: {
                   code: -32002,
-                  message: "Rate limit exceeded",
+                  message: `Rate limit exceeded. Retry in ${retryAfter}s.`,
+                  data: { code: MCP_ERROR_CODES.rateLimited, retry_after_seconds: retryAfter },
                 },
                 id: mcpReq.id,
               } as MCPResponse),
-              { status: 429, headers: { "Content-Type": "application/json" } },
+              {
+                status: 429,
+                headers: {
+                  "Content-Type": "application/json",
+                  "Retry-After": String(retryAfter),
+                },
+              },
             );
           }
 
@@ -702,7 +713,17 @@ export const Route = createFileRoute("/api/mcp")({
                   },
                   supabase,
                 );
-                const denied = buildToolCallResult(authz.reason ?? "Permission denied", true);
+                // Typed alongside the sentence, for the same reason as the 429
+                // above: a caller deciding whether to ask a human for a wider
+                // scope, or to stop trying, must not have to read English to tell
+                // which refusal this is.
+                const denied = buildToolCallResult(
+                  {
+                    code: MCP_ERROR_CODES.permissionDenied,
+                    message: authz.reason ?? "Permission denied",
+                  },
+                  true,
+                );
                 return new Response(JSON.stringify(jsonRpcResult(mcpReq.id, denied)), {
                   status: 200,
                   headers: JSON_HEADERS,

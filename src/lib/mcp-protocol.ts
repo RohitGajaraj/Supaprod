@@ -635,3 +635,27 @@ export function jsonRpcError(
   if (data !== undefined) error.data = data;
   return { jsonrpc: "2.0", id: id ?? null, error };
 }
+
+/**
+ * Stable string codes for the refusals this surface makes.
+ *
+ * WHY STRINGS WHEN JSON-RPC ALREADY HAS NUMBERS. The numeric code is about the
+ * TRANSPORT: -32002 is "server error" and several unrelated conditions share it,
+ * so an agent branching on it is branching on the wrong fact. These live in
+ * `error.data.code` (or in a tool result's payload) and answer the question a
+ * caller actually has, which is whether to back off, ask a human for a wider
+ * scope, fix its arguments, or stop.
+ *
+ * ONE PLACE, because the value is a contract. A caller writes `=== "rate_limited"`
+ * into its own retry logic, so changing a string here breaks somebody's client:
+ * add a code, never rename one.
+ */
+export const MCP_ERROR_CODES = {
+  /** Too many calls in the window. `retry_after_seconds` says when to return. */
+  rateLimited: "rate_limited",
+  /** The token lacks the scope, or the workspace write gate is shut. Asking again
+   *  changes nothing; a human has to widen the grant. */
+  permissionDenied: "permission_denied",
+} as const;
+
+export type McpErrorCode = (typeof MCP_ERROR_CODES)[keyof typeof MCP_ERROR_CODES];

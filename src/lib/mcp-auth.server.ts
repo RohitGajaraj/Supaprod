@@ -90,28 +90,87 @@ export async function validateToken(
  * abuse during database outages. Caller can retry with exponential backoff
  * or fallback to a degraded service mode.
  */
+/** The rate-limit window, in milliseconds. One place, because the retry hint
+ *  below is derived from it and a second copy would make the two disagree. */
+const RATE_WINDOW_MS = 60_000;
+
+/**
+ * Is this token inside its per-minute budget, and if not, WHEN may it try again?
+ *
+ * THE RETRY HINT IS COMPUTED, NOT GUESSED. This is a sliding window over
+ * `api_calls`, so the moment capacity returns is the moment the OLDEST call in
+ * the window falls out of it. A flat "wait 60 seconds" would be wrong almost
+ * always and wrong in the expensive direction: an agent told to wait a minute
+ * when a slot frees in three seconds sits idle for fifty-seven, and one told to
+ * retry immediately hammers a closed door. The extra read only happens on the
+ * throttled path, which is the rare one.
+ *
+ * FAIL-CLOSED KEEPS ITS FULL WINDOW. When the check itself errors this denies the
+ * request, and it must not then invite an immediate retry: we do not know the
+ * count, so the honest hint is the whole window rather than a number implying we
+ * measured something.
+ */
 export async function checkRateLimit(
   supabase: any,
   token_id: string,
   rate_limit: number,
-): Promise<{ allowed: boolean; current_count: number }> {
+): Promise<{ allowed: boolean; current_count: number; retryAfterSeconds: number }> {
+  const fullWindow = Math.ceil(RATE_WINDOW_MS / 1000);
   try {
-    const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
+    const windowStart = new Date(Date.now() - RATE_WINDOW_MS).toISOString();
     const { count, error } = await supabase
       .from("api_calls")
       .select("*", { count: "exact", head: true })
       .eq("token_id", token_id)
-      .gte("created_at", oneMinuteAgo);
+      .gte("created_at", windowStart);
     if (error) {
       console.error("Rate limit check failed:", error);
       // Fail closed: deny the request rather than blindly allowing unlimited access
-      return { allowed: false, current_count: 0 };
+      return { allowed: false, current_count: 0, retryAfterSeconds: fullWindow };
     }
-    return { allowed: (count || 0) < rate_limit, current_count: count || 0 };
+    const current = count || 0;
+    if (current < rate_limit) return { allowed: true, current_count: current, retryAfterSeconds: 0 };
+    return {
+      allowed: false,
+      current_count: current,
+      retryAfterSeconds: await secondsUntilCapacity(supabase, token_id, windowStart, fullWindow),
+    };
   } catch (err) {
     console.error("Rate limit check exception:", err);
     // Fail closed: deny the request on unexpected errors
-    return { allowed: false, current_count: 0 };
+    return { allowed: false, current_count: 0, retryAfterSeconds: fullWindow };
+  }
+}
+
+/**
+ * How long until the oldest call in the window ages out of it.
+ *
+ * Clamped to at least one second, because a `Retry-After: 0` is an invitation to
+ * retry inside the same window and get refused again, and to at most the full
+ * window, since nothing in a sliding window can take longer than that to clear.
+ * Falls back to the whole window on any failure, which is the cautious direction.
+ */
+async function secondsUntilCapacity(
+  supabase: any,
+  token_id: string,
+  windowStart: string,
+  fullWindow: number,
+): Promise<number> {
+  try {
+    const { data, error } = await supabase
+      .from("api_calls")
+      .select("created_at")
+      .eq("token_id", token_id)
+      .gte("created_at", windowStart)
+      .order("created_at", { ascending: true })
+      .limit(1);
+    const oldest = (data as Array<{ created_at: string }> | null)?.[0]?.created_at;
+    if (error || !oldest) return fullWindow;
+    const agedMs = Date.now() - new Date(oldest).getTime();
+    const remaining = Math.ceil((RATE_WINDOW_MS - agedMs) / 1000);
+    return Math.min(fullWindow, Math.max(1, remaining));
+  } catch {
+    return fullWindow;
   }
 }
 
