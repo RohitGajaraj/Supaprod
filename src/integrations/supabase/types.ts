@@ -10015,6 +10015,27 @@ export type Database = {
           metadata: Json
         }[]
       }
+      record_ai_budget_usage: {
+        Args: { _tokens: number; _usd: number; _user_id: string }
+        Returns: {
+          alert_at_pct: number
+          daily_usd_cap: number
+          monthly_usd_cap: number
+          new_daily_tokens: number
+          new_daily_usd: number
+          new_monthly_tokens: number
+          new_monthly_usd: number
+        }[]
+      }
+      record_ai_surface_usage: {
+        Args: { _surface: string; _usd: number; _user_id: string }
+        Returns: {
+          daily_usd_cap: number
+          monthly_usd_cap: number
+          new_daily_usd: number
+          new_monthly_usd: number
+        }[]
+      }
       record_mission_usage: {
         Args: { _cost_usd: number; _run_id: string; _tokens: number }
         Returns: undefined
