@@ -1791,6 +1791,50 @@ function Ship() {
    */
   const nothingShipped = changelog.isSuccess && notes.length === 0;
 
+  /**
+   * THIS STATION HOLDS NOTHING AT ALL, which is not the same fact as any one of
+   * its panels being empty and is the only state that earns a different screen.
+   *
+   * WHAT IT WAS LIKE WITHOUT THIS. Five Blocks, each correctly reporting its own
+   * emptiness, and FOUR of them deriving that emptiness from the same
+   * `notes.length === 0` off the same `changelog` read. A person opening Ship on
+   * their first day was told nothing had shipped six times: a negated H1, the
+   * announcement Gate, then "Where it is live" (heading, a paragraph of `sub`, and
+   * an Empty that repeats the hosting explanation the `sub` had just given), "Live
+   * releases", "What shipped", "The release document" and "Announcements". One
+   * door on the whole screen, buried as the second action of the Gate.
+   *
+   * Every one of those panels is right on its own, which is exactly why no test
+   * caught it: each asks "does this block behave correctly" and none asks "does
+   * this page still say one thing once they all decline". That is the diagnosis
+   * `_authenticated.learn.tsx` wrote when the same shape was fixed there, and this
+   * is the same repair, not a new idea.
+   *
+   * EVERY READ MUST HAVE ANSWERED, and any failure keeps the panels. A read that
+   * failed also has zero rows, so collapsing on emptiness alone would replace a
+   * reachable `Failed` and its retry with a confident first-run screen -- the
+   * product asserting a fact about the workspace from a question it never got an
+   * answer to. Keeping the panels is the safe direction to be wrong in: at worst a
+   * person sees the old noise, never a false story.
+   *
+   * DEPLOYS AND MERGES ARE CHECKED SEPARATELY FROM THE CHANGELOG on purpose. A
+   * workspace can hold deploy rows or merged changes with no release notes, and in
+   * that state the panels carry the only explanation of why nothing is listed. The
+   * first-run screen would be false there.
+   */
+  const stationEmpty =
+    changelog.isSuccess &&
+    notes.length === 0 &&
+    deployments.isSuccess &&
+    deployRows.length === 0 &&
+    posts.isSuccess &&
+    announcements.length === 0 &&
+    mergesKnown &&
+    unlisted.length === 0 &&
+    !releaseErrored &&
+    !applied.isError &&
+    !posts.isError;
+
   const untold = !changelog.isSuccess
     ? 0
     : notes.filter((e) => {
@@ -2118,6 +2162,90 @@ function Ship() {
         </Failed>
       ) : null}
 
+      {/* THE FIRST DAY ON THIS STATION, said once instead of six times.
+          See `stationEmpty` for what this replaces and why every read has to have
+          answered before it draws.
+
+          IT SITS AHEAD OF `composing` so a person who has opened the composer
+          keeps it. Writing an announcement before anything has shipped is allowed
+          on this surface by deliberate decision, and the first-run screen must not
+          close a door somebody already walked through.
+
+          THE QUESTION NAMES WHAT ARRIVES, not what is absent. The old H1 was a
+          negation, and every panel under it agreed; a person could read the whole
+          screen and still not know what the station is for. The two lines are the
+          sentences this file ALREADY had, moved rather than rewritten: what a
+          release is drawn from, and the hosting condition from `absenceSentence`,
+          which is the one precondition a person cannot infer.
+
+          TWO DOORS, ONE PRIMARY, matching Learn. Build is primary because a merged
+          change is what this station waits for and Build is where one comes from.
+          Plan is secondary, because a change with no spec behind it can ship and
+          then cannot be graded, which is the failure the station after this one
+          sees most. */}
+      {stationEmpty && !composing ? (
+        <>
+          <Gate
+            question="What will come here to ship?"
+            lines={[
+              <span key="what">
+                A release lands here the moment a merged change carries release notes: the preview
+                address, the one promote that puts it in front of customers, and the announcement
+                afterwards.
+              </span>,
+              <span key="hosting">
+                For a repo Supaprod hosts, a merged change deploys a preview on its own in about two
+                minutes, and promoting that preview is what ships it. For a repo it does not host,
+                Supaprod records the deploys your own pipeline publishes and you promote those where
+                they were built.
+              </span>,
+              <span key="gate">
+                Promoting is always a person&apos;s call. Customers see it immediately and undoing it
+                means a revert, so no agent here can take that step on its own.
+              </span>,
+            ]}
+          >
+            <Button variant="primary" onClick={() => navigate({ to: "/build" })}>
+              See what is being built
+            </Button>
+            <Button onClick={() => navigate({ to: "/plan" })}>Open the specs</Button>
+          </Gate>
+
+          {/* WHAT THE THING BEING WAITED FOR LOOKS LIKE, drawn rather than
+              described. Discover's empty desk established this and states the
+              measurement: "example" is the highest-frequency term across 5.72M
+              words of operator conversation, and two sentences about a release row
+              teach less than one drawn row.
+
+              IT IS NOT DATA AND IT NEVER TOUCHES THE RECORD. No id, no click, no
+              tick, no read, no write. It renders only while the station genuinely
+              holds nothing, and it says it is an illustration in the title, in the
+              subtitle and on the row itself, which is the same three-times rule
+              Discover's drawing follows. */}
+          <Block
+            title="What a release will look like here"
+            sub="A drawing, not a release. Nothing here is in your record, and nothing here can be promoted."
+          >
+            <Row
+              tight
+              lead={<Num>app.yourproduct.com</Num>}
+              sub={
+                <>
+                  <b>Illustration</b>
+                  {" · "}Live in production · Address re-confirm at checkout · PR <Num>128</Num>
+                </>
+              }
+              time="2h ago"
+            />
+            <CtxBody>
+              The lead is the address that is actually answering, because that is the thing you
+              copy, open and send to someone. Your own rows will carry the same facts from your own
+              releases, each with the promote that put it there and the way back if it goes wrong.
+            </CtxBody>
+          </Block>
+        </>
+      ) : null}
+
       {composing ? (
         <Block title={mode.kind === "new" ? "A new announcement" : "Editing the announcement"}>
           <Field label="What changed">
@@ -2260,6 +2388,12 @@ function Ship() {
          * somewhere else.
          */
         <Gate
+          /* NOT DRAWN AT ALL WHEN THE FIRST-RUN SCREEN IS UP. `stationEmpty`
+             already asks the station's one question with its own doors, and two
+             gates about the same absence on one screen is the contradiction this
+             surface's own notes keep warning about. Its `nothingShipped` arm still
+             owns the case where something HAS shipped, or a deploy or merge exists,
+             and only the announcements are empty. */
           question={
             nothingShipped
               ? "Nothing has gone out, because nothing has shipped yet."
@@ -2345,6 +2479,7 @@ function Ship() {
           single list that tried to be both would lead with a title and bury the
           address in a sub, which is how the URL became unreachable text on this
           surface in the first place. */}
+      {stationEmpty ? null : (
       <Block
         title="Where it is live"
         /* THE MERGE COUNT IS PASSED, AND `null` WHEN IT IS NOT KNOWN. Without
@@ -2488,6 +2623,7 @@ function Ship() {
           })
         )}
       </Block>
+      )}
 
       {/* THE MERGES NO LIST ABOVE CAN REACH, which is the hole this station's
           own prose used to describe and leave open.
@@ -2628,6 +2764,7 @@ function Ship() {
           takes it back. Rollback lived only inside the Changes tab of the run
           that produced the release, so undoing a bad ship meant first
           remembering which run it came from. Here it is a row on the station. */}
+      {stationEmpty ? null : (
       <Block
         title="Live releases"
         more={
@@ -2729,7 +2866,9 @@ function Ship() {
           })
         )}
       </Block>
+      )}
 
+      {stationEmpty ? null : (
       <Block
         title="What shipped"
         sub={
@@ -2844,6 +2983,7 @@ function Ship() {
           })
         )}
       </Block>
+      )}
 
       {/* THE RELEASE DOCUMENT. `WhatShipped` renders its own top-level Blocks --
           the release, why it was built, what it promised, who signed it off, the
@@ -2855,6 +2995,7 @@ function Ship() {
           decoration. The document's entire worth is that a reader can trace
           every line to a row, and a reader who does not know that reads it as
           generated prose and discounts all of it. */}
+      {stationEmpty ? null : (
       <Block
         title="The release document"
         /* THE REPAIR SITS WHERE THE DRIFT IS READ. Everything below is read
@@ -2939,6 +3080,7 @@ function Ship() {
           </Prose>
         )}
       </Block>
+      )}
       {!docReading && !changelog.isError && docEntry ? (
         <WhatShipped entry={docEntry} workspaceId={wid || null} />
       ) : null}
