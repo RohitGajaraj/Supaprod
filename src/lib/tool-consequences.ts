@@ -346,6 +346,18 @@ const EXTERNAL_TOOLS = new Set<string>([
   "calendar.create",
   "prd.link_issue",
   "delegate.openhands",
+  /*
+   * Added 2026-08-16 with its consequence and its risk profile, and it belongs
+   * here by this set's own definition: it opens a pull request on the repo,
+   * which is the same boundary `studio.pr.open` two rows up crosses.
+   *
+   * Left out, `assessTool` would have contradicted itself -- reporting
+   * `external: false` beside a profile whose `dataExposure` is `"external"` --
+   * and a surface showing all six axes would print both. The direction is safe:
+   * this tool is already `review` mode, the most gated there is, so nothing
+   * here can loosen what it takes to run it.
+   */
+  "studio.revert",
 ]);
 
 export type ToolRisk = "low" | "medium" | "high";
@@ -717,6 +729,69 @@ const RISK_PROFILE: Record<string, ToolRiskProfile> = {
     opsImpact: "none",
     verificationGap: "checkable",
     changeSurface: "moderate",
+  },
+
+  /*
+   * ── PROFILES FOR THE SIX GATED TOOLS CATALOGUED 2026-08-16 ───────────────
+   * Required, not optional, and the colocated guard said so within seconds of
+   * the consequences landing: a tool with a consequence and no profile scores
+   * worst-case on all four axes and can never be auto-approved, which "looks
+   * like a policy decision and is actually a missing row".
+   *
+   * The three internal revisions follow `decision.record` exactly, because they
+   * are the same act: a write to the user's own workspace, readable afterwards,
+   * touching one object. `internal` scores zero deliberately -- the axis
+   * measures BOUNDARY CROSSING, and the product working normally is not a risk.
+   */
+  "decision.revise": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "prd.revise": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "roadmap.move": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  // Opens a PR on the repo, so it crosses the same boundary `studio.pr.open`
+  // does. `production` because its SUBJECT is a live release, and `checkable`
+  // rather than `unverifiable` because the inverse changeset goes through the
+  // PR and the CI gate like any other -- nothing lands unseen.
+  "studio.revert": {
+    dataExposure: "external",
+    opsImpact: "production",
+    verificationGap: "checkable",
+    changeSurface: "moderate",
+  },
+  // Reasoned against `delegate.openhands`, which is its nearest neighbour and
+  // differs on exactly one axis. Both start work that runs on its own, so both
+  // are `unverifiable` and `broad`. This one stays `internal`: the sub-agents
+  // are Supaprod's own, under a split of the mission budget, where OpenHands is
+  // a third party getting repo access.
+  "agent.spawn": {
+    dataExposure: "internal",
+    opsImpact: "build",
+    verificationGap: "unverifiable",
+    changeSurface: "broad",
+  },
+  // `none` on both of the first two axes, and that is the honest reading rather
+  // than a lenient one. The exposure axis measures what LEAVES: a crawl sends a
+  // URL and brings public pages back, so nothing of the workspace crosses. It
+  // changes nothing anyone depends on. It is gated for cost, not for blast
+  // radius, and the risk model should not pretend otherwise.
+  "web.crawl": {
+    dataExposure: "none",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
   },
 };
 

@@ -287,6 +287,7 @@ import { useSpineStrip } from "@/components/shell/use-spine-strip";
  */
 import { Surface } from "@/components/meridian/Surface";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
+import { StalledWork, type StalledItem } from "@/components/meridian/StalledWork";
 import {
   Button,
   LINK_AS_CONTROL,
@@ -775,6 +776,47 @@ function BuildPage() {
     [rows],
   );
   const call = waiting[0] ?? null;
+
+  /*
+   * THE OTHER WAITING RUNS, WITH THEIR AGE, WHICH THIS SURFACE USED TO SWALLOW.
+   *
+   * `waiting` is every run in a gate state, sorted oldest first, and exactly one
+   * of them was rendered. The rest reached the reader as a single integer inside
+   * "Settle all N runs" -- so a call raised ten minutes ago and one that had sat
+   * through a weekend were the same character in that number.
+   *
+   * `/approvals` learned this on 2026-08-14 and its header records the finding:
+   * twelve gates, the oldest 86 hours, and NOTHING ANYWHERE IN THE PRODUCT TOLD
+   * ANYONE. It fixed it by pairing a gate for the focused call with StalledWork
+   * for the remainder, and that is copied here rather than reinvented.
+   *
+   * THE GATE STAYS. A recommendation to replace it outright with StalledWork was
+   * considered and refused: a gate is a decision with one primary action, and a
+   * list is a list. Swapping one for the other would trade the surface's focal
+   * call for an inventory. The two are complementary, which is precisely why
+   * approvals runs both.
+   *
+   * `onAllow` is deliberately not passed, following the same rule approvals
+   * wrote down: one primary action on screen, and a row that can allow but not
+   * decline is a lopsided pair.
+   *
+   * `updated_at` and not `created_at`. `created_at` is when the RUN began, which
+   * on a long build is hours before it stopped and would age every gate wrongly
+   * in the same direction. `updated_at` is its last state change, which is the
+   * closest this row gets to "when it stopped".
+   */
+  const stalledRuns: StalledItem[] = React.useMemo(
+    () =>
+      waiting.slice(1).map((s) => ({
+        id: s.mission_id,
+        asking: stripAutoPrefix(s.title),
+        since: Date.parse(s.updated_at),
+        blocking: s.changeset?.repo ?? firstLine(s.goal) ?? undefined,
+        onOpen: () => openRun(s.mission_id),
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [waiting],
+  );
   const running = React.useMemo(() => rows.filter((s) => runState(s) === "working").length, [rows]);
   const live = React.useMemo(
     () => rows.filter((s) => ["working", "queued"].includes(runState(s))).length,
@@ -1180,43 +1222,48 @@ function BuildPage() {
                   </Button>
                 </RunGate>
               ) : call ? (
-                <RunGate
-                  // THE STANDING MARKER IS THE PORT'S ONE ADDITION HERE, and it is not
-                  // decoration. Meridian keeps three stopped states apart -- yours,
-                  // a condition's, and a failure's -- and this gate used to distinguish
-                  // them by the wording of its question alone, so "Nothing is waiting
-                  // on you" and "X is waiting on you" were one object in two moods.
-                  standing="you"
-                  // The stored title carries a machine "[auto]" origin prefix when the
-                  // loop raised it. That is where it came from, not copy, and it never
-                  // reaches the sentence a person is asked to judge.
-                  question={`${stripAutoPrefix(call.title)} is waiting on you.`}
-                  lines={
-                    [
-                      call.pending_approvals > 0 ? (
-                        <span key="calls">
-                          <Figure>{call.pending_approvals}</Figure>{" "}
-                          {call.pending_approvals === 1 ? "call" : "calls"} to settle before it goes
-                          on.
-                        </span>
-                      ) : (
-                        <span key="calls">It stopped and cannot go on until a person answers.</span>
-                      ),
-                      firstLine(call.goal) ? <span key="goal">{firstLine(call.goal)}</span> : null,
-                      call.changeset ? (
-                        <span key="repo">
-                          {call.changeset.repo}
-                          {call.changeset.branch ? ` · ${call.changeset.branch}` : ""}
-                        </span>
-                      ) : null,
-                    ].filter(Boolean) as React.ReactNode[]
-                  }
-                >
-                  <Button variant="primary" onClick={() => openRun(call.mission_id)}>
-                    Open the run
-                  </Button>
-                  {waiting.length > 1 ? (
-                    /* NAME THE NOUN HERE TOO. `waiting.length` counts RUNS in a gate
+                <>
+                  <RunGate
+                    // THE STANDING MARKER IS THE PORT'S ONE ADDITION HERE, and it is not
+                    // decoration. Meridian keeps three stopped states apart -- yours,
+                    // a condition's, and a failure's -- and this gate used to distinguish
+                    // them by the wording of its question alone, so "Nothing is waiting
+                    // on you" and "X is waiting on you" were one object in two moods.
+                    standing="you"
+                    // The stored title carries a machine "[auto]" origin prefix when the
+                    // loop raised it. That is where it came from, not copy, and it never
+                    // reaches the sentence a person is asked to judge.
+                    question={`${stripAutoPrefix(call.title)} is waiting on you.`}
+                    lines={
+                      [
+                        call.pending_approvals > 0 ? (
+                          <span key="calls">
+                            <Figure>{call.pending_approvals}</Figure>{" "}
+                            {call.pending_approvals === 1 ? "call" : "calls"} to settle before it
+                            goes on.
+                          </span>
+                        ) : (
+                          <span key="calls">
+                            It stopped and cannot go on until a person answers.
+                          </span>
+                        ),
+                        firstLine(call.goal) ? (
+                          <span key="goal">{firstLine(call.goal)}</span>
+                        ) : null,
+                        call.changeset ? (
+                          <span key="repo">
+                            {call.changeset.repo}
+                            {call.changeset.branch ? ` · ${call.changeset.branch}` : ""}
+                          </span>
+                        ) : null,
+                      ].filter(Boolean) as React.ReactNode[]
+                    }
+                  >
+                    <Button variant="primary" onClick={() => openRun(call.mission_id)}>
+                      Open the run
+                    </Button>
+                    {waiting.length > 1 ? (
+                      /* NAME THE NOUN HERE TOO. `waiting.length` counts RUNS in a gate
                state, and the line three rows above it counts CALLS on the one
                run being shown. A reader just told "3 calls to settle" read a
                bare "Settle all 5" as five calls, and then landed on /approvals,
@@ -1225,11 +1272,13 @@ function BuildPage() {
                on `headline`); the button was missed. It says "all" rather than
                "the other" on purpose: the destination queue holds every waiting
                run including the one on screen. */
-                    <Button variant="quiet" onClick={() => navigate({ to: "/approvals" })}>
-                      Settle all {waiting.length} runs
-                    </Button>
-                  ) : null}
-                </RunGate>
+                      <Button variant="quiet" onClick={() => navigate({ to: "/approvals" })}>
+                        Settle all {waiting.length} runs
+                      </Button>
+                    ) : null}
+                  </RunGate>
+                  {stalledRuns.length > 0 ? <StalledWork items={stalledRuns} /> : null}
+                </>
               ) : (
                 /* THE BEST STATE IN THE PRODUCT, AND IT IS THE QUIETEST THING ON THE
              SCREEN. `clear` spends no accent: nothing is asking, so nothing

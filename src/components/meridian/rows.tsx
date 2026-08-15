@@ -251,7 +251,9 @@ export function Line({
   const labelBody = (
     <>
       {label}
-      {sub ? <span className="mt-0.5 block max-w-[56ch] text-[12.5px] text-mrd-mute">{sub}</span> : null}
+      {sub ? (
+        <span className="mt-0.5 block max-w-[56ch] text-[12.5px] text-mrd-mute">{sub}</span>
+      ) : null}
     </>
   );
 
@@ -270,9 +272,7 @@ export function Line({
       ) : (
         <span className={labelClass}>{labelBody}</span>
       )}
-      {children ? (
-        <span className="flex flex-none items-center gap-mrd-2">{children}</span>
-      ) : null}
+      {children ? <span className="flex flex-none items-center gap-mrd-2">{children}</span> : null}
     </div>
   );
 }

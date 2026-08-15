@@ -76,7 +76,9 @@ type Row = { component: string; gallery: boolean; product: string[] };
 const rows: Row[] = components.map((component) => {
   /* Matched on the import SOURCE. A bare identifier would over-count: Meridian
      reuses names the product already knows (Button, Actions, Door, Empty). */
-  const needle = new RegExp(`from\\s+["'](?:@/components|\\.{1,2}/[^"']*)/meridian/${component}["']`);
+  const needle = new RegExp(
+    `from\\s+["'](?:@/components|\\.{1,2}/[^"']*)/meridian/${component}["']`,
+  );
   const users = consumers.filter((f) => needle.test(sources.get(f) ?? ""));
   return {
     component,
