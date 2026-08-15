@@ -108,18 +108,83 @@ async function outcomeSupportByTheme(
 ): Promise<{ support: Map<string, number>; learnedFrom: number | null }> {
   const { data, error } = await supabase
     .from("learnings")
-    .select("verdict,opportunity:opportunities(theme_id)")
+    .select("verdict,prd_id,opportunity:opportunities(theme_id)")
     .eq("user_id", userId)
     .in("verdict", ["validated", "missed"]);
 
   if (error || !data) return { support: new Map(), learnedFrom: null };
 
-  const counts = new Map<string, { validated: number; missed: number }>();
-  for (const row of data as unknown as Array<{
+  const rows = data as unknown as Array<{
     verdict: string | null;
+    prd_id: string | null;
     opportunity: { theme_id: string | null } | null;
-  }>) {
-    const themeId = row.opportunity?.theme_id ?? null;
+  }>;
+
+  /**
+   * AND THE SECOND ROUTE TO A THEME, WITHOUT WHICH THIS TERM WOULD NEVER FIRE ON
+   * THE PATH IT WAS BUILT FOR.
+   *
+   * The bet route above is the human one. On the autonomous route there IS no bet:
+   * `prd.draft`'s own description says "nothing in this toolset creates an
+   * opportunity ... pass brief instead", so a driver-run Plan writes a spec with
+   * `opportunity_id` null, and a verdict against that spec reaches no theme however
+   * correctly it was attached. The sweep would have read a history that was
+   * structurally always empty and reported a confident zero.
+   *
+   * The lineage is already on the record, one hop across instead of down: the
+   * driver files the spec as a track member, and the track carries the cluster it
+   * was promoted from. So spec -> track -> theme resolves what bet -> theme cannot,
+   * with no schema change and no invented link.
+   *
+   * Two bounded reads, only for the learnings the first route could not place, and
+   * a failure here simply leaves those unattributed rather than discarding the ones
+   * that did resolve.
+   */
+  const orphanSpecIds = [
+    ...new Set(
+      rows.filter((r) => !r.opportunity?.theme_id && r.prd_id).map((r) => r.prd_id as string),
+    ),
+  ];
+  const themeBySpec = new Map<string, string>();
+  if (orphanSpecIds.length > 0) {
+    const { data: memberRows } = await supabase
+      .from("spine_track_members" as never)
+      .select("artifact_id,track_id")
+      .eq("artifact_kind", "prd")
+      .in("artifact_id", orphanSpecIds);
+    const trackBySpec = new Map<string, string>();
+    for (const m of (memberRows ?? []) as unknown as Array<{
+      artifact_id: string;
+      track_id: string;
+    }>) {
+      trackBySpec.set(m.artifact_id, m.track_id);
+    }
+    const trackIds = [...new Set(trackBySpec.values())];
+    if (trackIds.length > 0) {
+      const { data: trackRows } = await supabase
+        .from("spine_tracks" as never)
+        .select("id,theme_id")
+        .in("id", trackIds);
+      const themeByTrack = new Map<string, string>();
+      for (const t of (trackRows ?? []) as unknown as Array<{
+        id: string;
+        theme_id: string | null;
+      }>) {
+        if (t.theme_id) themeByTrack.set(t.id, t.theme_id);
+      }
+      for (const [specId, trackId] of trackBySpec) {
+        const themeId = themeByTrack.get(trackId);
+        if (themeId) themeBySpec.set(specId, themeId);
+      }
+    }
+  }
+
+  const counts = new Map<string, { validated: number; missed: number }>();
+  for (const row of rows) {
+    // The bet's theme first, so the human route's answer always wins where it has
+    // one, and the track is consulted only where it does not.
+    const themeId =
+      row.opportunity?.theme_id ?? (row.prd_id ? themeBySpec.get(row.prd_id) : null) ?? null;
     if (!themeId) continue;
     const seen = counts.get(themeId) ?? { validated: 0, missed: 0 };
     if (row.verdict === "validated") seen.validated += 1;

@@ -79,6 +79,14 @@ function mockSupabase(config: {
   learnings?: Array<{ verdict: string; opportunity: { theme_id: string | null } | null }>;
   /** Refuse the history read, which must leave the sweep running on evidence. */
   learningsErr?: { code?: string; message?: string } | null;
+  /**
+   * spec -> track, as `spine_track_members` holds it. This is the AUTONOMOUS
+   * route's lineage: a driver-run Plan writes a spec with no bet behind it, so
+   * spec -> track -> theme is the only way its verdict reaches a cluster.
+   */
+  specToTrack?: Record<string, string>;
+  /** track -> theme, as `spine_tracks` holds it. */
+  trackToTheme?: Record<string, string | null>;
 }) {
   const inserted: Array<Record<string, unknown>> = [];
   const statusMarked: Array<{ id: string; status: string }> = [];
@@ -98,6 +106,15 @@ function mockSupabase(config: {
                 data: config.takenErr ? null : (config.takenRows ?? []),
                 error: config.takenErr ?? null,
               }),
+            }),
+            // The SECOND read on this table: which cluster each track came from,
+            // used to place a verdict that has a spec and no bet.
+            in: async (_c: string, ids: unknown) => ({
+              data: (ids as string[]).map((id) => ({
+                id,
+                theme_id: config.trackToTheme?.[id] ?? null,
+              })),
+              error: null,
             }),
           }),
           // The write: startTrackCore's insert.
@@ -182,6 +199,21 @@ function mockSupabase(config: {
             members.push(row);
             return { error: config.memberErr ?? null };
           },
+          /**
+           * The spec filed against its track, read back to place a verdict that
+           * never had a bet. Without this hop the outcome term is structurally
+           * unreachable on the driver's own route.
+           */
+          select: (_cols: string) => ({
+            eq: (_c: string, _v: unknown) => ({
+              in: async (_c2: string, ids: unknown) => ({
+                data: (ids as string[])
+                  .filter((id) => config.specToTrack?.[id])
+                  .map((id) => ({ artifact_id: id, track_id: config.specToTrack![id] })),
+                error: null,
+              }),
+            }),
+          }),
         };
       }
       if (table === "learnings") {
@@ -589,5 +621,109 @@ describe("the bar learns from what acting on the evidence actually did", () => {
     const sweep = await promoteClustersOnce(db, "user-1");
 
     expect(sweep.outcomes.map((o) => o.themeId)).toEqual(["theme-1"]);
+  });
+});
+
+describe("the bar learns from the loop's own route, not only the human one", () => {
+  /**
+   * WITHOUT THIS THE WHOLE TERM IS DECORATION ON THE PATH IT WAS BUILT FOR.
+   *
+   * The bet route (learnings.opportunity_id -> opportunities.theme_id) is the
+   * HUMAN one. On the autonomous route there is no bet at all: prd.draft's own
+   * description says "nothing in this toolset creates an opportunity ... pass brief
+   * instead", so a driver-run Plan writes a spec with opportunity_id null. A
+   * verdict against that spec is correctly attached and still reaches no cluster,
+   * so the sweep would read a history that was structurally always empty and report
+   * a confident zero.
+   *
+   * The lineage was already on the record, one hop across instead of down: the
+   * driver files the spec as a track member and the track carries the cluster it
+   * was promoted from.
+   */
+  const SPEC = "spec-auto-1";
+
+  it("places a verdict that has a spec and no bet, through the track", async () => {
+    const db = mockSupabase({
+      themes: [strong()],
+      learnings: [
+        { verdict: "missed", opportunity: null, prd_id: SPEC },
+        { verdict: "missed", opportunity: null, prd_id: SPEC },
+      ],
+      specToTrack: { [SPEC]: "track-9" },
+      trackToTheme: { "track-9": "theme-1" },
+    });
+    const sweep = await promoteClustersOnce(db, "user-1");
+
+    // Two misses on this cluster, reached only through spec -> track -> theme.
+    expect(sweep.learnedFrom).toBe(2);
+    expect(sweep.outcomes).toEqual([]);
+    expect(db.__inserted).toHaveLength(0);
+  });
+
+  it("keeps the bet's own answer ahead of the track's", async () => {
+    // Where a learning HAS a bet, that bet names the cluster. The track hop exists
+    // for the rows the bet route cannot place, and must never overrule it.
+    const db = mockSupabase({
+      themes: [strong()],
+      learnings: [
+        { verdict: "validated", opportunity: { theme_id: "theme-1" }, prd_id: SPEC },
+        { verdict: "validated", opportunity: { theme_id: "theme-1" }, prd_id: SPEC },
+      ],
+      // Points somewhere else entirely. If the track hop won, these two validated
+      // outcomes would land on theme-2 and theme-1 would look untried.
+      specToTrack: { [SPEC]: "track-9" },
+      trackToTheme: { "track-9": "theme-2" },
+    });
+    const sweep = await promoteClustersOnce(db, "user-1");
+
+    expect(sweep.learnedFrom).toBe(2);
+    const origin = String(db.__inserted[0]?.origin ?? "");
+    expect(origin).toContain("validated");
+  });
+
+  it("does not chase a track for a learning that already has its cluster", async () => {
+    // Bounded work, not just a bounded answer: the extra reads happen only for the
+    // rows the first route could not place.
+    const db = mockSupabase({
+      themes: [strong()],
+      learnings: [{ verdict: "validated", opportunity: { theme_id: "theme-1" }, prd_id: SPEC }],
+    });
+    const sweep = await promoteClustersOnce(db, "user-1");
+
+    // specToTrack is unset, so had it looked it would have resolved nothing and
+    // learnedFrom would still be 1. The assertion that bites is that the sweep
+    // completes without the mock being asked for a lineage it was never given.
+    expect(sweep.learnedFrom).toBe(1);
+  });
+
+  it("leaves a verdict unplaced when its track carries no cluster", async () => {
+    // A track started by hand has no theme_id. Its verdicts are real and simply
+    // cannot be attributed to a cluster, which must read as zero rather than as a
+    // guess.
+    const db = mockSupabase({
+      themes: [strong()],
+      learnings: [
+        { verdict: "missed", opportunity: null, prd_id: SPEC },
+        { verdict: "missed", opportunity: null, prd_id: SPEC },
+      ],
+      specToTrack: { [SPEC]: "track-9" },
+      trackToTheme: { "track-9": null },
+    });
+    const sweep = await promoteClustersOnce(db, "user-1");
+
+    expect(sweep.learnedFrom).toBe(0);
+    expect(sweep.outcomes[0]?.why).toBe("started");
+  });
+
+  it("leaves a verdict unplaced when its spec was never filed against a track", async () => {
+    const db = mockSupabase({
+      themes: [strong()],
+      learnings: [{ verdict: "missed", opportunity: null, prd_id: SPEC }],
+      specToTrack: {},
+    });
+    const sweep = await promoteClustersOnce(db, "user-1");
+
+    expect(sweep.learnedFrom).toBe(0);
+    expect(sweep.outcomes[0]?.why).toBe("started");
   });
 });
