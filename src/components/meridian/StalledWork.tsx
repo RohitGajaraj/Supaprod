@@ -119,14 +119,36 @@ function Item({ item, now }: { item: StalledItem; now: number }) {
    * The dot fills as it ages. Outline means waiting, filled means overdue,
    * which is legible before any word is read and without relying on hue.
    */
+  /*
+   * WAITING ON A SOURCE NOW HAS ITS OWN HUE, 2026-08-15.
+   *
+   * This used to draw a bare neutral outline, on the reasoning that connecting
+   * a source is a setup act rather than a decision, so dressing it in the
+   * accent would send someone hunting a button that does not exist. That
+   * reasoning was right and its conclusion was too strong: the fix for "do not
+   * say YOUR CALL" is not "say nothing at all". A row stopped for want of a
+   * source is the most consequential thing on most of these lists, and it was
+   * rendering quieter than the rows around it.
+   *
+   * Amber says the true thing: stopped, and waiting on a condition rather than
+   * on you. It ages the same way orchid does, because a source that has been
+   * missing for four days is worse than one missing for an hour, and that is
+   * true whoever is responsible for it.
+   */
   const dotTone = !needsPerson
-    ? "border-mrd-edge"
+    ? tier === "stale" || tier === "late"
+      ? "bg-mrd-hold border-mrd-hold"
+      : "border-mrd-hold-dim"
     : tier === "stale" || tier === "late"
       ? "bg-mrd-you border-mrd-you"
       : "border-mrd-you-dim";
 
   const ageTone = !needsPerson
-    ? "text-mrd-mute"
+    ? tier === "stale"
+      ? "text-mrd-hold"
+      : tier === "late"
+        ? "text-mrd-hold-dim"
+        : "text-mrd-mute"
     : tier === "stale"
       ? "text-mrd-you"
       : tier === "late"
@@ -146,11 +168,30 @@ function Item({ item, now }: { item: StalledItem; now: number }) {
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <span className="text-[13px] font-medium text-mrd-ink">{item.asking}</span>
           {/*
-           * The age is the point of the row, so it is mono and tabular and it
-           * sits beside the subject rather than being exiled to a right rail
-           * where it reads as metadata.
+           * The age is the point of the row, so it sits beside the subject
+           * rather than being exiled to a right rail where it reads as
+           * metadata.
+           *
+           * ── NOT MONO, 2026-08-15 ────────────────────────────────────────
+           * This whole phrase used to be set in the mono face, so "stopped 3
+           * days" and "waiting 1 day" rendered as typewriter text. Founder
+           * called it on sight, and the system's own rule already agreed:
+           * mono is for "every number, duration, count, identifier and
+           * timestamp, AND FOR NOTHING ELSE". A sentence that CONTAINS a
+           * duration is not a duration, and JetBrains Mono's letterforms —
+           * the double-storey a, the tailed g — make a short English phrase
+           * read as code rather than as prose.
+           *
+           * `tabular-nums` STAYS. That is the half of the old treatment that
+           * was doing real work: it keeps the digits from jittering as an age
+           * ticks over, and it keeps a column of these rows aligned. Tabular
+           * figures are available in the sans face too; they were never the
+           * reason to reach for mono.
+           *
+           * The headline above still wraps its duration alone in mono, which
+           * is correct: there the mono span contains only "3 days".
            */}
-          <span className={`font-mrd-mono text-[12px] tabular-nums ${ageTone} ${ageWeight}`}>
+          <span className={`text-[12px] tabular-nums ${ageTone} ${ageWeight}`}>
             {needsPerson ? "stopped " : "waiting "}
             {stoppedFor(item.since, now)}
           </span>
@@ -227,7 +268,7 @@ export function StalledWork({
   }
 
   return (
-    <section>
+    <section data-mrd="">
       {/*
        * The headline states the cost before the list states the items. A person
        * who reads only this line should already know whether to act, and the

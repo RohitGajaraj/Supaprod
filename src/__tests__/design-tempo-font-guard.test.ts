@@ -17,13 +17,30 @@ const SKIP_DIRS = new Set(["__tests__", "node_modules", "fonts"]);
 const BANNED_FACES: Array<{ name: string; pattern: RegExp }> = [
   { name: "Newsreader", pattern: /Newsreader/ },
   { name: "Schibsted Grotesk", pattern: /Schibsted[\s+]Grotesk/ },
-  { name: "JetBrains Mono", pattern: /JetBrains[\s+]Mono/ },
   // IBM Plex Mono is NOT banned. It was retired by Tempo v5, then re-adopted
   // by the 2026-07-29 rebuild as the one mono face for every number,
   // duration, count, diff, identifier and timestamp. It is declared,
   // self-hosted and documented in src/styles/ink.css ("--sp-font-mono"),
   // with the woff2 files in public/fonts/plex/. Re-banning it would fail the
   // build on the live design system.
+  //
+  // JetBrains Mono is NOT banned either, as of 2026-08-15, and it is worth
+  // saying why rather than just deleting the row. It was on this list because
+  // TEMPO V5 retired it. Tempo v5 has itself been retired — every prior design
+  // system was, on 2026-08-14 — so the ban was a rule with no live system
+  // behind it, and it outlived the thing it was protecting.
+  //
+  // It is now the ADOPTED mono face of Meridian, on a founder ruling of
+  // 2026-08-15 to take beautifui.dev's typography across the whole app. It is
+  // declared and self-hosted exactly like Plex: see the @font-face block in
+  // src/styles/meridian.css ("--mrd-mono"), the woff2 in
+  // public/fonts/jetbrains/, and the OFL note beside it.
+  //
+  // THE GUARD ITSELF IS STILL RIGHT. The footgun it was written for — a
+  // literal font string quietly winning the cascade in a legacy block for
+  // months — is real and unchanged. Only the membership of the list moved.
+  // Add a face here when a face genuinely retires; do not add one back on the
+  // authority of a ruling from a system that no longer exists.
   { name: "Codystar", pattern: /Codystar/ },
   { name: "Caveat", pattern: /Caveat/ },
   { name: "Silkscreen", pattern: /Silkscreen/ },

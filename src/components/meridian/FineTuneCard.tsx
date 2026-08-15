@@ -62,7 +62,7 @@ export type FineTuneField = {
 };
 
 const FOCUS_RING =
-  "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--mrd-edge-focus)]";
+  "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--mrd-focus)]";
 
 function ScrubField({
   field,
@@ -298,6 +298,7 @@ export function FineTuneCard({
 
   return (
     <div
+      data-mrd=""
       className="relative w-full max-w-60 rounded-mrd-card border border-mrd-line bg-mrd-sheet"
       style={{ boxShadow: "var(--mrd-shadow-float)" }}
     >

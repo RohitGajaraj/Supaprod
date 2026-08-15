@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 /*
  * CONTEXT CARDS, the excerpts an answer was built from, each with its source.
@@ -86,7 +86,7 @@ export type ContextCardsProps = {
 };
 
 const FOCUS =
-  "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-edge-focus)]";
+  "mrd-focus-inset focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
 
 function LinesIcon() {
   return (
@@ -195,8 +195,25 @@ export function ContextCards({
   const shown = maxChunks ? chunks.slice(0, maxChunks) : chunks;
   const withheld = chunks.length - shown.length;
 
+  /*
+   * ── THE SECOND BEAT ─────────────────────────────────────────────────────
+   * The reference enters in two movements, and the port only had the first.
+   * The cards arrive staggered, and THEN — after a hold — each card's source
+   * chip scales up into place, itself staggered.
+   *
+   * It is worth restoring because the order matches how the card is read: the
+   * excerpt is the thing, and where it came from is the thing you check
+   * second. Landing both at once gives the reader two places to look and no
+   * order to look in. The hold is what turns two animations into a sequence.
+   */
+  const [chipsIn, setChipsIn] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setChipsIn(true), 700);
+    return () => window.clearTimeout(t);
+  }, []);
+
   return (
-    <section className="flex w-full flex-col gap-2" aria-label={title}>
+    <section data-mrd="" className="flex w-full flex-col gap-2" aria-label={title}>
       <div className="flex items-center gap-2 px-0.5">
         <h2 className="text-[13px] font-semibold text-mrd-ink">{title}</h2>
         {/* The count is what is on screen over what exists, never a fixed figure. */}
@@ -276,10 +293,10 @@ export function ContextCards({
                   <span className="truncate">{chunk.title}</span>
                 </span>
                 <span className="ml-auto flex shrink-0 items-center gap-2.5">
+                  {/* "241 characters", "lines 12 to 18" — a phrase, not a
+                      figure, so the sans face with tabular figures kept. */}
                   {chunk.extent && (
-                    <span className="font-mrd-mono text-[12px] text-mrd-mute tabular-nums">
-                      {chunk.extent}
-                    </span>
+                    <span className="text-[12px] text-mrd-mute tabular-nums">{chunk.extent}</span>
                   )}
                   {chunk.relevance !== undefined && <Relevance value={chunk.relevance} />}
                 </span>
@@ -290,7 +307,18 @@ export function ContextCards({
               </p>
 
               {chunk.source && (
-                <div className="px-3 pb-3">
+                <div
+                  className="px-3 pb-3 transition-[opacity,transform] duration-300"
+                  style={{
+                    opacity: chipsIn ? 1 : 0,
+                    /* From 0.95, never from 0: a chip that grows from nothing
+                       reads as a pop, and this system does not bounce. */
+                    transform: chipsIn ? "scale(1)" : "scale(0.95)",
+                    transformOrigin: "left center",
+                    transitionDelay: `${index * 80}ms`,
+                    transitionTimingFunction: "var(--mrd-ease)",
+                  }}
+                >
                   <SourceChip source={chunk.source} />
                 </div>
               )}
@@ -302,7 +330,8 @@ export function ContextCards({
       {/* Withheld cards are counted on screen, with the way past the cap. */}
       {withheld > 0 && (
         <div className="flex items-center justify-between gap-3 rounded-mrd-ctl border border-mrd-line bg-mrd-sink px-3 py-2">
-          <span className="font-mrd-mono text-[12px] text-mrd-mute tabular-nums">
+          {/* A sentence, so the sans face. See the note in StalledWork. */}
+          <span className="text-[12px] text-mrd-mute tabular-nums">
             {withheld} more excerpt{withheld === 1 ? "" : "s"} not shown.
           </span>
           {onShowAll && (

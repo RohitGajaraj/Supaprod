@@ -1,0 +1,11 @@
+JetBrains Mono — SIL Open Font License 1.1
+Copyright (c) 2020 The JetBrains Mono Project Authors
+(https://github.com/JetBrains/JetBrainsMono)
+
+File: JetBrainsMono-Variable.woff2
+  Variable weight axis 100..800, LATIN SUBSET ONLY.
+  Fetched 2026-08-15 from the Google Fonts CSS2 API (fonts.gstatic.com),
+  which serves the upstream OFL build. Self-hosted deliberately.
+
+Full licence text:
+https://github.com/JetBrains/JetBrainsMono/blob/master/OFL.txt

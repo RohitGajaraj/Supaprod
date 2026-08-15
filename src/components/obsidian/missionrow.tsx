@@ -40,7 +40,7 @@ export const MissionRow = React.forwardRef<HTMLButtonElement, MissionRowProps>(
       className={cn(
         "flex w-full items-center gap-3 text-left outline-none",
         "hover:[background-color:var(--hover)]",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]",
         className,
       )}
       style={{

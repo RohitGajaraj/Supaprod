@@ -219,7 +219,6 @@ const DECLARED_LOCAL = [
   // stopped writing, because that is the 2026-08-07 defect in miniature. Their
   // rows in cookie-and-storage-policy.md were removed in the same commit.
   "supaprod:rail-narrow", // functional
-  "supaprod:rail-visited", // functional
 ];
 
 /** Destroyed when the tab closes, which is what keeps the two measurement keys

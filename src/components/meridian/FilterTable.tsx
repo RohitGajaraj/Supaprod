@@ -72,7 +72,7 @@ export type FilterTableProps<Row> = {
 };
 
 const FOCUS =
-  "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-edge-focus)]";
+  "mrd-focus-inset focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
 
 export function FilterTable<Row>({
   rows,
@@ -143,7 +143,7 @@ export function FilterTable<Row>({
   };
 
   return (
-    <div className="flex w-full flex-col gap-2">
+    <div data-mrd="" className="flex w-full flex-col gap-2">
       {chipsUsable && (
         <div
           role="group"
@@ -157,27 +157,48 @@ export function FilterTable<Row>({
       )}
 
       {/*
+       * ── THE FILTER MOVES, IT DOES NOT SNAP ──────────────────────────────
+       *
+       * The reference keeps every row mounted and collapses the excluded ones
+       * with `grid-template-rows: 1fr -> 0fr`, so narrowing a list reads as the
+       * table reorganising itself. We cannot do that here, and the reason is
+       * deliberate: this component COMPOSES RecordsTable rather than
+       * reimplementing a grid, so the rows are not ours to keep mounted, and
+       * teaching that grid to render rows it has been told to exclude would put
+       * its sort, its cap, its selection and its empty-state logic all in
+       * disagreement about how many rows exist.
+       *
+       * So the motion moves up a level: the body plays a short settle whenever
+       * the chip changes, keyed on the active facet so React replays it. Same
+       * message — "this list just reorganised" — without two components
+       * disagreeing about what a row is.
+       *
        * `isFiltered` is passed straight through, and it is the whole reason
        * the grid below can tell "you have no rows" apart from "your chip hid
        * them all". Getting it wrong shows a reader an empty workspace that is
        * in fact full, and they will believe it.
        */}
-      <RecordsTable
-        rows={visible}
-        columns={columns}
-        rowKey={rowKey}
-        caption={caption}
-        selectable={selectable}
-        onSelectionChange={onSelectionChange}
-        isFiltered={active !== null}
-        onClearFilter={() => setActive(null)}
-        totalBeforeFilter={rows.length}
-        emptyTitle={emptyTitle}
-        emptyDetail={emptyDetail}
-        failure={failure}
-        maxRows={maxRows}
-        footer={footer}
-      />
+      <div
+        key={active ?? "__all"}
+        style={{ animation: "mrd-fade-up var(--mrd-d-move) var(--mrd-ease) both" }}
+      >
+        <RecordsTable
+          rows={visible}
+          columns={columns}
+          rowKey={rowKey}
+          caption={caption}
+          selectable={selectable}
+          onSelectionChange={onSelectionChange}
+          isFiltered={active !== null}
+          onClearFilter={() => setActive(null)}
+          totalBeforeFilter={rows.length}
+          emptyTitle={emptyTitle}
+          emptyDetail={emptyDetail}
+          failure={failure}
+          maxRows={maxRows}
+          footer={footer}
+        />
+      </div>
     </div>
   );
 }

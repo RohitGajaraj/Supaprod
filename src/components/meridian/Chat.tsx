@@ -115,6 +115,14 @@ function Step({ step }: { step: ChatStep }) {
   );
 }
 
+/*
+ * How tall the composer may grow before it scrolls internally. Five lines
+ * at the composer's 19.5px leading: enough that a real question is visible
+ * in full, bounded so a pasted block cannot push the send button out of the
+ * panel it lives in.
+ */
+const COMPOSER_MAX_H = 98;
+
 export function Chat({
   turns = [],
   tabs = [],
@@ -142,7 +150,7 @@ export function Chat({
   emptyHint?: string;
 }) {
   const [draft, setDraft] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   /** The scrolling box itself, so following the thread cannot move the page. */
   const streamRef = useRef<HTMLDivElement>(null);
@@ -184,7 +192,7 @@ export function Chat({
   };
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-mrd-sheet">
+    <div data-mrd="" className="flex h-full min-h-0 w-full flex-col bg-mrd-sheet">
       {showHeader && (
         <div className="flex shrink-0 items-center justify-between border-b border-mrd-line p-1.5">
           <div className="flex items-center">
@@ -279,16 +287,48 @@ export function Chat({
           onClick={() => inputRef.current?.focus()}
           className="flex cursor-text flex-col gap-2 rounded-mrd-ctl border border-mrd-line bg-mrd-sink p-2.5 transition-[border-color] duration-150 focus-within:border-mrd-edge"
         >
-          <input
+          {/*
+           * ── A TEXTAREA, NOT AN INPUT ──────────────────────────────────
+           *
+           * This was `<input>`, and a single-line input does not wrap: it
+           * scrolls sideways, so a long question walks off the left edge and
+           * the reader can no longer see what they typed. The founder reported
+           * exactly that on 2026-08-15 — "if I keep on typing it just gets
+           * extended in the same row". A composer is prose; prose wraps.
+           *
+           * It grows to fit and then stops, which is the standard behaviour
+           * and what the reference's own composer does: `rows={1}` so it
+           * starts at one line, `resize-none` so the drag handle never
+           * appears, height driven off `scrollHeight` so it tracks the
+           * content, and a max height so a pasted essay scrolls INSIDE the
+           * field instead of pushing the send button off the panel.
+           *
+           * `[overflow-wrap:anywhere]` is what stops an unbroken token — a
+           * URL, an id — reintroducing the sideways scroll this replaces.
+           *
+           * Enter still sends; Shift+Enter now makes a newline, which a
+           * textarea affords and an input never could.
+           */}
+          <textarea
             ref={inputRef}
+            rows={1}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
+            onInput={(event) => {
+              const el = event.currentTarget;
+              el.style.height = "auto";
+              el.style.height = `${Math.min(el.scrollHeight, COMPOSER_MAX_H)}px`;
+            }}
             onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.nativeEvent.isComposing) send();
+              if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                event.preventDefault();
+                send();
+              }
             }}
             placeholder={placeholder}
             aria-label="Ask a question"
-            className="min-h-4.5 bg-transparent text-[13px] leading-[1.4] text-mrd-ink outline-none placeholder:text-mrd-mute"
+            className="min-h-[18px] w-full resize-none bg-transparent text-[13px] leading-[1.5] text-mrd-ink outline-none [overflow-wrap:anywhere] placeholder:text-mrd-mute"
+            style={{ maxHeight: COMPOSER_MAX_H }}
           />
           <div className="flex items-center justify-end">
             {/*

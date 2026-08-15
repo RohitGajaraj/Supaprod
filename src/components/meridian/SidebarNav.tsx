@@ -146,7 +146,7 @@ function Icon({ kind }: { kind: RailIconKind }) {
  * or green on it would teach the reader a meaning that is not there.
  */
 const FOCUS_RING =
-  "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--mrd-edge-focus)]";
+  "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--mrd-focus)]";
 
 export function SidebarNav({
   items = STATIONS,
@@ -267,6 +267,7 @@ export function SidebarNav({
      * most wants to jump to.
      */
     <nav
+      data-mrd=""
       aria-label="Stations"
       className="flex flex-col rounded-mrd-card border border-mrd-line bg-mrd-sheet"
       style={{

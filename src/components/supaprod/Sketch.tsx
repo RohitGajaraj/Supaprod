@@ -404,7 +404,7 @@ export function SketchBarChart({
               onMouseLeave={() => setHover((h) => (h === i ? null : h))}
               onFocus={() => setHover(i)}
               onBlur={() => setHover((h) => (h === i ? null : h))}
-              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
+              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 flex: 1,
                 minWidth: 0,
@@ -460,9 +460,7 @@ export function SketchBarChart({
           }}
         >
           <span style={{ display: "block" }}>{formatValue(active.value)}</span>
-          <span style={{ display: "block", color: "var(--text-subtle)" }}>
-            {active.label}
-          </span>
+          <span style={{ display: "block", color: "var(--text-subtle)" }}>{active.label}</span>
         </div>
       </div>
 

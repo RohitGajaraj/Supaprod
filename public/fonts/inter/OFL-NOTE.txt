@@ -1,0 +1,10 @@
+Inter — SIL Open Font License 1.1
+Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter)
+
+File: Inter-Variable.woff2
+  Variable weight axis 100..900, LATIN SUBSET ONLY.
+  Fetched 2026-08-15 from the Google Fonts CSS2 API (fonts.gstatic.com),
+  which serves the upstream OFL build. Self-hosted deliberately: this repo
+  makes no CDN font request, so a font must live here to be used.
+
+Full licence text: https://github.com/rsms/inter/blob/master/LICENSE.txt

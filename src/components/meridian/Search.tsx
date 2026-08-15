@@ -66,7 +66,7 @@ export type SearchProps<Item> = {
 };
 
 const FOCUS =
-  "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-edge-focus)]";
+  "mrd-focus-inset focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
 
 function MagnifierIcon({ size = 14 }: { size?: number }) {
   return (
@@ -280,7 +280,18 @@ export function Search<Item>({
             onClick={() => onSelect?.(item)}
             onKeyDown={(event) => onRowKeyDown(event, index)}
             className={`flex min-h-8 w-full items-center rounded-mrd-xs px-2 py-1.5 text-left text-[13px] text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
-            style={{ transitionDuration: "var(--mrd-d-press)" }}
+            /*
+             * Each row fades in, which the port had dropped. It matters more
+             * here than it looks: results REPLACE each other as the query
+             * changes, and without a fade the list swaps contents in a single
+             * frame — the reader cannot tell whether it re-ranked or never
+             * moved. Short and un-staggered on purpose; a stagger on a list
+             * that re-renders on every keystroke reads as lag.
+             */
+            style={{
+              transitionDuration: "var(--mrd-d-press)",
+              animation: "mrd-fade-in var(--mrd-d-move) var(--mrd-ease) both",
+            }}
           >
             {renderItem ? renderItem(item) : <Hit text={itemText(item)} query={query.trim()} />}
           </button>
@@ -290,7 +301,10 @@ export function Search<Item>({
   );
 
   return (
-    <div className="w-full overflow-hidden rounded-mrd-card border border-mrd-line bg-mrd-sheet">
+    <div
+      data-mrd=""
+      className="w-full overflow-hidden rounded-mrd-card border border-mrd-line bg-mrd-sheet"
+    >
       <div className="flex h-10 items-center gap-2 border-b border-mrd-line px-3">
         <span className="text-mrd-mute">
           <MagnifierIcon />

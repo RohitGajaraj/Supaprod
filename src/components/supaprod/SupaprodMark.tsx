@@ -75,9 +75,15 @@ export function SupaprodMark({
             <stop offset="100%" stopColor="var(--text-primary, #f2f0ed)" />
           </linearGradient>
           <radialGradient id={`core-${id}`} cx="42%" cy="36%" r="72%">
-            <stop offset="0%" stopColor="color-mix(in oklab, #fff 60%, var(--ember, #ff6b2c))" />
-            <stop offset="56%" stopColor="var(--ember, #ff6b2c)" />
-            <stop offset="100%" stopColor="color-mix(in oklab, var(--ember, #ff6b2c) 82%, #000)" />
+            <stop
+              offset="0%"
+              stopColor="color-mix(in oklab, #fff 60%, var(--brand-mark-ember, #ff6b2c))"
+            />
+            <stop offset="56%" stopColor="var(--brand-mark-ember, #ff6b2c)" />
+            <stop
+              offset="100%"
+              stopColor="color-mix(in oklab, var(--brand-mark-ember, #ff6b2c) 82%, #000)"
+            />
           </radialGradient>
         </defs>
         {/* Petals = the loop; rotates in loader mode. */}
@@ -116,7 +122,7 @@ export function SupaprodMark({
           {animated ? (
             <path
               d={PATH}
-              stroke="var(--ember, #ff6b2c)"
+              stroke="var(--brand-mark-ember, #ff6b2c)"
               strokeWidth={strokeWidth * 0.7}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -146,7 +152,7 @@ export function SupaprodMark({
               transformBox: "fill-box",
               transformOrigin: "center",
               filter:
-                "drop-shadow(0 0 4px color-mix(in oklab, var(--ember, #ff6b2c) 55%, transparent))",
+                "drop-shadow(0 0 4px color-mix(in oklab, var(--brand-mark-ember, #ff6b2c) 55%, transparent))",
             }}
           >
             <circle cx="50" cy="50" r="6.2" fill={`url(#core-${id})`} />
@@ -154,10 +160,10 @@ export function SupaprodMark({
               cx="50"
               cy="50"
               r="2.15"
-              fill="var(--marigold, #e8b44c)"
+              fill="var(--brand-mark-gold, #e8b44c)"
               style={{
                 filter:
-                  "drop-shadow(0 0 2px color-mix(in oklab, var(--marigold, #e8b44c) 70%, transparent))",
+                  "drop-shadow(0 0 2px color-mix(in oklab, var(--brand-mark-gold, #e8b44c) 70%, transparent))",
               }}
             />
           </g>

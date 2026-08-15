@@ -41,19 +41,25 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 /**
  * The only colours a cell may carry, and they are the product's law rather
  * than a palette. Orchid means a person is required. Azure means a machine is
- * working. Green and red report an outcome and never a need. There is no fifth
- * meaning and no `warn`: a warning and a "your call" are one fact to a reader,
- * so they share the one hue.
+ * working. Green and red report an outcome and never a need.
+ *
+ * `hold` is the fifth, added 2026-08-15: stopped, and NOT on you. It is the
+ * difference between a row you can unblock by deciding something and a row
+ * that needs a condition to change — a source connected, a cap raised, a
+ * dependency to answer. Those used to share the `quiet` grey with genuinely
+ * uninteresting rows, which is how the most common state in the workspace
+ * ended up as the least visible thing in the table.
  *
  * Anything categorical (a tag, a team, a file type) is a neutral: it is not
  * status, and spending the accent on it makes the real status unreadable.
  * Reach for a token by NAME, never by picking a colour that looks about right.
  */
-export type RecordTone = "you" | "agent" | "pass" | "fail" | "quiet";
+export type RecordTone = "you" | "agent" | "hold" | "pass" | "fail" | "quiet";
 
 const TONE: Record<RecordTone, string> = {
   you: "var(--mrd-you)",
   agent: "var(--mrd-agent)",
+  hold: "var(--mrd-hold)",
   pass: "var(--mrd-pass)",
   fail: "var(--mrd-fail)",
   quiet: "var(--mrd-faint)",
@@ -174,7 +180,7 @@ function Chevron() {
 /* One focus treatment for every control in the file, so nothing is unreachable
  * by keyboard and nothing invents its own ring. */
 const FOCUS =
-  "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-edge-focus)]";
+  "mrd-focus-inset focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
 
 export function RecordsTable<Row>({
   rows,
@@ -248,6 +254,20 @@ export function RecordsTable<Row>({
     );
 
   const span = columns.length + (selectable ? 1 : 0);
+
+  /*
+   * The colgroup is only binding if EVERY column declared a width. With one
+   * column left open, `table-fixed` would hand it whatever is left over and
+   * the others their declared share, which is a different layout from the one
+   * the caller described — so in that case the table stays on auto layout and
+   * the browser's own sizing, which is the right answer when the description
+   * is incomplete. `2.25rem` is the selection column, and it is repeated from
+   * the colgroup below; if one changes the other must.
+   */
+  const allWidthsDeclared = columns.every((column) => Boolean(column.width));
+  const minTableWidth = allWidthsDeclared
+    ? `calc(${columns.map((column) => column.width).join(" + ")}${selectable ? " + 2.25rem" : ""})`
+    : undefined;
 
   /* Every state below fills one full-width body row, so the head stays visible
    * and the reader can still see which columns they are missing. */
@@ -373,7 +393,10 @@ export function RecordsTable<Row>({
   );
 
   return (
-    <div className="w-full overflow-hidden rounded-mrd-card border border-mrd-line bg-mrd-sheet">
+    <div
+      data-mrd=""
+      className="w-full overflow-hidden rounded-mrd-card border border-mrd-line bg-mrd-sheet"
+    >
       {/*
        * The scroll container is focusable and named. A grid that only scrolls
        * under a pointer is a grid a keyboard reader cannot finish reading, and
@@ -397,7 +420,36 @@ export function RecordsTable<Row>({
        * vertically, so no second wheel trap can appear.
        */}
       <div role="region" tabIndex={0} aria-label={caption} className={`overflow-auto ${FOCUS}`}>
-        <table className="w-full border-separate border-spacing-0 text-left">
+        {/*
+         * ── WHY `table-fixed` AND A MIN-WIDTH, AND NOT `w-full` ALONE ──────
+         *
+         * This table declared real column widths — 34ch for the work title,
+         * 13ch for the station — and did not get them. Under the default
+         * `table-layout: auto`, a `<col width>` is a SUGGESTION the browser is
+         * free to overrule, and `w-full` caps the table at its container. The
+         * declared widths here sum to about 600px; inside the two-up gallery
+         * ground each table gets about 430px. So the browser had to claw back
+         * 170px, and auto layout takes it from whichever column can still
+         * break — the prose one. The work title rendered about 90px wide, one
+         * word per line, six lines deep, while three columns beside it sat
+         * half empty.
+         *
+         * That is also why the horizontal scroll this component's own note
+         * promises never appeared: a table that shrinks to fit has nothing to
+         * overflow, so `overflow-auto` had no work to do and the sticky
+         * identity column had no scroll to stick against.
+         *
+         * `table-fixed` makes the colgroup binding. The min-width is the sum
+         * of what the columns actually asked for, so when the container is
+         * narrower than that the table keeps its shape and the region scrolls;
+         * when it is wider, `w-full` lets the columns grow proportionally.
+         * Computed from the declared widths rather than hardcoded, so it
+         * cannot drift out of agreement with the colgroup above it.
+         */}
+        <table
+          className={`w-full border-separate border-spacing-0 text-left ${allWidthsDeclared ? "table-fixed" : ""}`}
+          style={minTableWidth ? { minWidth: minTableWidth } : undefined}
+        >
           <caption className="sr-only">{caption}</caption>
           <colgroup>
             {selectable && <col style={{ width: "2.25rem" }} />}
@@ -480,7 +532,10 @@ export function RecordsTable<Row>({
        */}
       {withheld > 0 && (
         <div className="flex items-center justify-between gap-3 border-t border-mrd-line bg-mrd-sink px-3 py-2">
-          <span className="font-mrd-mono text-[12px] text-mrd-mute tabular-nums">
+          {/* Sans, not mono: this is a sentence that happens to contain
+              numbers, and mono is for the numbers themselves. `tabular-nums`
+              stays so the counts do not jitter as rows load. */}
+          <span className="text-[12px] text-mrd-mute tabular-nums">
             Showing {shown.length} of {sorted.length} rows. {withheld} not shown.
           </span>
           <button

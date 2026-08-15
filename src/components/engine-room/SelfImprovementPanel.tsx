@@ -381,8 +381,13 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
                 textTransform: "uppercase",
                 padding: "6px 14px",
                 borderLeft: idx === 0 ? "none" : "1px solid var(--hairline-strong)",
-                background: selected ? "var(--ember-text)" : "transparent",
-                color: selected ? "var(--ember-on, #fff)" : "var(--text-subtle)",
+                /* A chosen segment is a SELECTION, not a call to act. It used to
+                   fill ember, which put the accent on screen for whichever mode
+                   happened to be current — permanently, on a panel nobody is
+                   being asked to touch. A raised ground and full-strength text
+                   say "this one" without spending the accent. */
+                background: selected ? "var(--raised)" : "transparent",
+                color: selected ? "var(--text-primary)" : "var(--text-subtle)",
                 cursor: setMode.isPending ? "wait" : "pointer",
               }}
             >

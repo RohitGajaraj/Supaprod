@@ -63,6 +63,8 @@ export function CodeBlock({
   streaming = false,
   maxHeight = 320,
   emptyLabel = "No code was produced.",
+  revealPerLineMs,
+  loop = false,
 }: {
   filename: string;
   /** Shown beside the filename. Omit where the extension already says it. */
@@ -74,8 +76,22 @@ export function CodeBlock({
   /** The cap this component exists to enforce, in px. */
   maxHeight?: number;
   emptyLabel?: string;
+  /**
+   * Write the code out a line at a time, at this interval. Omit it and every
+   * line renders at once, which is right for a file that already exists.
+   *
+   * This is a DIFFERENT thing from `streaming`. `streaming` says the caller is
+   * still appending lines and drives the caret and the tail-follow; this says
+   * "reveal the lines I already have, progressively", which is what makes the
+   * behaviour demonstrable on a workbench and what the reference does.
+   */
+  revealPerLineMs?: number;
+  /** Only meaningful with `revealPerLineMs`: write it again after it settles. */
+  loop?: boolean;
 }) {
-  const [copied, setCopied] = useState(false);
+  /** Three states, because a copy that failed must not look like one that
+   *  never happened. See the note on `copy` below. */
+  const [copied, setCopied] = useState<"no" | "yes" | "failed">("no");
   const resetAt = useRef<number | undefined>(undefined);
   const scroller = useRef<HTMLPreElement>(null);
 
@@ -96,33 +112,116 @@ export function CodeBlock({
    * writes below the fold has replaced one problem with a worse one: the
    * reader can see that something is happening and not what.
    */
-  useEffect(() => {
-    if (!streaming || !scroller.current) return;
-    scroller.current.scrollTop = scroller.current.scrollHeight;
-  }, [lines.length, streaming]);
 
+  /*
+   * ── COPY, AND WHY IT HAS A SECOND PATH ──────────────────────────────────
+   *
+   * The founder's report on 2026-08-15 was that the copy button never works.
+   * The async clipboard API is not reliably available: it is undefined outside
+   * a secure context, it can be refused by permission policy, and inside an
+   * iframe without `clipboard-write` allowed it rejects. In every one of those
+   * cases the old code hit an early `return` or an empty rejection handler and
+   * the button simply did nothing — no copy, and no sign that anything had
+   * been attempted, which is the worst of the three possible outcomes.
+   *
+   * So there are now three states, not two: copied, FAILED, and idle. A button
+   * that cannot do its job has to say so, because a reader who believes they
+   * copied something and pastes stale content is worse off than one who knows
+   * it failed and selects the text by hand.
+   *
+   * The fallback is the old `execCommand` route via an off-screen textarea. It
+   * is deprecated and it is also the only thing that works in the contexts
+   * above, so it stays until it genuinely stops functioning. It is deliberately
+   * NOT the primary path: it forces a layout and a selection change, which the
+   * async API avoids.
+   */
   const copy = useCallback(() => {
-    /*
-     * Guarded on both sides. `navigator.clipboard` is undefined outside a
-     * secure context, and the write can be refused; their version calls
-     * `.then` on the result either way, so the failure path is an unhandled
-     * rejection and the button still claims success.
-     */
-    if (!raw || !navigator.clipboard?.writeText) return;
-    navigator.clipboard.writeText(raw).then(
-      () => {
-        setCopied(true);
-        window.clearTimeout(resetAt.current);
-        resetAt.current = window.setTimeout(() => setCopied(false), 1500);
-      },
-      () => setCopied(false),
-    );
+    if (!raw) return;
+
+    const settle = (ok: boolean) => {
+      setCopied(ok ? "yes" : "failed");
+      window.clearTimeout(resetAt.current);
+      resetAt.current = window.setTimeout(() => setCopied("no"), ok ? 1500 : 2400);
+    };
+
+    const legacy = () => {
+      try {
+        const pad = document.createElement("textarea");
+        pad.value = raw;
+        /* Off-screen rather than hidden: a `display:none` textarea cannot be
+           selected, so the copy silently yields an empty string. */
+        pad.setAttribute("readonly", "");
+        pad.style.position = "fixed";
+        pad.style.top = "-9999px";
+        pad.style.opacity = "0";
+        document.body.appendChild(pad);
+        pad.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(pad);
+        settle(ok);
+      } catch {
+        settle(false);
+      }
+    };
+
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(raw).then(() => settle(true), legacy);
+      return;
+    }
+    legacy();
   }, [raw]);
+
+  /*
+   * ── THE PROGRESSIVE REVEAL ──────────────────────────────────────────────
+   * Lines appear one at a time when the caller asks for it. The reference does
+   * this at 240ms a line with a 3.2s hold before it starts over, and the effect
+   * is most of why its code block reads as "an agent is writing" rather than as
+   * a static snippet.
+   *
+   * `shown` is capped at `lines.length` rather than being reset by it, so a
+   * caller that APPENDS while revealing does not restart from the top.
+   */
+  const [shown, setShown] = useState(0);
+  const reveal = revealPerLineMs !== undefined && lines.length > 0;
+
+  useEffect(() => {
+    if (!reveal) return;
+    if (shown < lines.length) {
+      const t = window.setTimeout(() => setShown((n) => n + 1), revealPerLineMs);
+      return () => window.clearTimeout(t);
+    }
+    if (loop) {
+      const t = window.setTimeout(() => setShown(0), 3200);
+      return () => window.clearTimeout(t);
+    }
+  }, [reveal, shown, lines.length, revealPerLineMs, loop]);
+
+  const visible = reveal ? lines.slice(0, shown) : lines;
+  /* The caret belongs on the last visible line while anything is still to come
+     — either the caller is appending, or the reveal has not caught up. */
+  const writing = streaming || (reveal && shown < lines.length);
+
+  /*
+   * Follow the tail. A block that caps its height and then writes below the
+   * fold has replaced one problem with a worse one: the reader can see that
+   * something is happening and not what.
+   *
+   * Declared HERE rather than beside the other effects because it depends on
+   * `shown`, and an effect placed above that `const` would read it in its own
+   * dependency array during render — before the binding is initialised, which
+   * is a temporal-dead-zone crash rather than a stale value.
+   */
+  useEffect(() => {
+    if (!scroller.current) return;
+    if (!streaming && revealPerLineMs === undefined) return;
+    scroller.current.scrollTop = scroller.current.scrollHeight;
+  }, [lines.length, shown, streaming, revealPerLineMs]);
 
   const empty = lines.length === 0;
 
   return (
     <div
+      data-mrd=""
       className="w-full max-w-95 overflow-hidden rounded-mrd-card bg-mrd-sheet font-mrd"
       style={{ boxShadow: "var(--mrd-shadow-card)" }}
     >
@@ -140,10 +239,14 @@ export function CodeBlock({
           onClick={copy}
           disabled={empty}
           className={`flex h-6 shrink-0 items-center gap-1 rounded-mrd-xs px-1.5 text-[11px] font-medium transition-colors duration-100 enabled:hover:bg-mrd-hover disabled:cursor-default disabled:opacity-40 ${
-            copied ? "text-mrd-pass" : "text-mrd-mute enabled:hover:text-mrd-ink"
+            copied === "yes"
+              ? "text-mrd-pass"
+              : copied === "failed"
+                ? "text-mrd-fail"
+                : "text-mrd-mute enabled:hover:text-mrd-ink"
           }`}
         >
-          {copied ? (
+          {copied === "yes" ? (
             <svg
               aria-hidden
               width="10"
@@ -173,7 +276,7 @@ export function CodeBlock({
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
             </svg>
           )}
-          {copied ? "Copied" : "Copy"}
+          {copied === "yes" ? "Copied" : copied === "failed" ? "Press ⌘C" : "Copy"}
         </button>
       </div>
 
@@ -193,7 +296,7 @@ export function CodeBlock({
             {streaming ? "Waiting for the first line." : emptyLabel}
           </span>
         ) : (
-          lines.map((line, i) => (
+          visible.map((line, i) => (
             <div
               key={i}
               className="flex"
@@ -223,7 +326,9 @@ export function CodeBlock({
                     {tok.t}
                   </span>
                 ))}
-                {streaming && i === lines.length - 1 && (
+                {/* On the last VISIBLE line: the caret marks where writing has
+                    reached, which during a reveal is not the end of the file. */}
+                {writing && i === visible.length - 1 && (
                   <span
                     aria-hidden
                     className="ml-0.5 inline-block h-3 w-[3px] translate-y-0.5 rounded-full bg-mrd-agent"

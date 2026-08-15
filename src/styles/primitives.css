@@ -1053,29 +1053,34 @@ button.sp-ctx-row:focus-visible {
 }
 /* ONE LINE ON FOCUS, NOT TWO.
  *
- * Founder, 2026-07-30, on Ask's composer: "the double ember line in the chat
- * text". He was reading it exactly right, and at 4x it is unmistakable: two
- * concentric rings around the box, a thick ember one outside and a second line
- * just inside it. They come from two different places that never knew about
- * each other. The inner one is ours, three rules up: focus moves the border
- * from --sp-line to --sp-mute and lifts the ground, which is a complete, quiet,
- * designed focus state. The outer one is the legacy app-wide
- * `[data-obsidian] :focus-visible { outline: 2px solid var(--focus-ring) }` in
- * styles.css, whose --focus-ring is aliased to ember.
+ * A field used to draw two concentric rings: ours, three rules up, where focus
+ * moves the border from --sp-line to --sp-field-edge-focus and lifts the
+ * ground — a complete, quiet, designed focus state — and a second one outside
+ * it from the legacy app-wide
+ * `[data-obsidian] :focus-visible { outline: 2px solid var(--focus-ring) }`.
+ * This rule removes the outer one on the three rebuilt text controls, which
+ * already have their own. When styles.css is purged it goes with them.
  *
- * DELETING THE EMBER ONE IS THE FIX, not softening it: ember means WAITING ON
- * YOU in this system, and a text box you just clicked into is not waiting on
- * anyone. It was ember by accident of an alias, and it spends the signal that
- * makes a real gate register.
+ * `[data-obsidian]` is in the selector to WIN, not to decorate: the legacy rule
+ * scores (0,2,0) and sits later in the cascade, so `.sp-textarea:focus-visible`
+ * alone would tie and silently lose.
  *
- * SCOPED, AND ONLY BECAUSE IT HAS TO BE. The legacy rule is the app-wide focus
- * indicator for every surface that has not been rebuilt yet, so it cannot be
- * removed at the source without leaving those surfaces with no visible focus at
- * all. This turns it off for the three rebuilt text controls, which have their
- * own, and nothing else. `[data-obsidian]` is in the selector to WIN, not to
- * decorate: the legacy rule scores (0,2,0) and sits later in the cascade, so
- * `.sp-textarea:focus-visible` alone would tie and silently lose. When
- * styles.css is purged, this whole block goes with it. */
+ * ── THE STANDING RULE, AND WHY THIS NOTE NO LONGER CITES ONE ────────────
+ * NO INTERACTION STATE IN THIS PRODUCT IS EVER EMBER. Not focus, not typing,
+ * not hover, not selected, not active — not on a field, a row, a card, a chip,
+ * a slider, a graph node or a caret. Founder ruling 2026-08-15, and it is a
+ * ban, not a preference: ember is spent on what needs a person, and an accent
+ * that also fires whenever a hand touches anything cannot carry that meaning.
+ *
+ * This note previously argued the fix had to be SCOPED, because removing ember
+ * at the source would leave un-rebuilt surfaces with no visible focus at all.
+ * That reasoning is what made the defect immortal: it fixed three controls and
+ * left the cause in place, so the same complaint came back on the next surface
+ * anyone looked at. The cause is now fixed properly — `--ds-focus-color` in
+ * styles.css is a status-free blue, so every surface keeps a focus indicator
+ * and none of them is orange. Do not re-scope this. Do not reintroduce ember
+ * here on the authority of any older ruling; they are superseded, and every
+ * design system that issued one has been retired. */
 [data-obsidian] .sp-input:focus-visible,
 [data-obsidian] .sp-select:focus-visible,
 [data-obsidian] .sp-textarea:focus-visible {

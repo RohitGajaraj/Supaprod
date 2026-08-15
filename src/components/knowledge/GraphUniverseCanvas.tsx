@@ -110,7 +110,7 @@ function makeGlowTexture(): THREE.Texture {
   return tex;
 }
 
-/** A thin billboarded ring for the focus (pearl) and selection (ember) markers. */
+/** A thin billboarded ring for the focus and selection markers, both neutral. */
 function makeRingTexture(): THREE.Texture {
   const size = 128;
   const c = document.createElement("canvas");
@@ -206,7 +206,7 @@ export function GraphUniverseCanvas({
     ground: toThreeColor(NEUTRAL_GROUND, NEUTRAL_GROUND),
     madder: toThreeColor("#e06557", "#e06557"),
     marigold: toThreeColor("#e8b44c", "#e8b44c"),
-    ember: toThreeColor("#FF6B2C", "#FF6B2C"),
+    selection: toThreeColor("#f2f0ed", "#f2f0ed"),
     pearl: toThreeColor("#edeae4", "#edeae4"),
   });
   const colorsRef = useRef<Map<string, string>>(new Map());
@@ -291,7 +291,7 @@ export function GraphUniverseCanvas({
       ground: toThreeColor(read("--sp-sink", NEUTRAL_GROUND), NEUTRAL_GROUND),
       madder: toThreeColor(read("--madder", "#e06557"), "#e06557"),
       marigold: toThreeColor(read("--marigold", "#e8b44c"), "#e8b44c"),
-      ember: toThreeColor(read("--ember", "#FF6B2C"), "#FF6B2C"),
+      selection: toThreeColor(read("--text-primary", "#f2f0ed"), "#f2f0ed"),
       pearl: toThreeColor(read("--pearl", "#edeae4"), "#edeae4"),
     };
 
@@ -465,7 +465,7 @@ export function GraphUniverseCanvas({
           const mat = ring.material as THREE.SpriteMaterial;
           let show = false;
           if (n.key === selected) {
-            mat.color.copy(chrome.ember);
+            mat.color.copy(chrome.selection);
             mat.opacity = 1 * dim;
             ring.scale.setScalar(n.r * (RING_SCALE + 0.7));
             show = true;
@@ -508,9 +508,13 @@ export function GraphUniverseCanvas({
           base = chrome.thread;
           intensity = litEdge ? 0.3 : 0.12;
         } else if (active && litEdge) {
-          // Tempo v5 glacier narrowing (2026-07-11): this fires on hover too,
-          // not only true selection, so it stays neutral (brightness alone
-          // carries the emphasis); the selected node's ring is the ember cue.
+          // This fires on hover too, not only on true selection, so it stays
+          // neutral and brightness alone carries the emphasis. The selected
+          // node's own ring is neutral as well, as of 2026-08-15: selection and
+          // focus separate by OPACITY (1.0 against 0.6) and RING SIZE, which
+          // still reads with the hue removed. The ring used to be ember, which
+          // meant clicking any node in the graph lit the product's one accent
+          // on whatever the pointer had just landed on.
           base = chrome.thread;
           intensity = 0.9;
         } else {

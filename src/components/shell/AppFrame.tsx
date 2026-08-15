@@ -385,37 +385,11 @@ const KEYCAP = {
 } as React.CSSProperties;
 
 const RAIL_KEY = "supaprod:rail-narrow";
-/** Familiarity signal for auto-collapse. Once the user has visited enough
- *  distinct stations, the rail starts narrow on the next load — they know
- *  the layout by then and the extra 172px of work area matters more. */
-const FAMILIARITY_KEY = "supaprod:rail-visited";
-const FAMILIARITY_THRESHOLD = 4;
-
-function trackFamiliarity(pathname: string) {
-  try {
-    const raw = window.localStorage.getItem(FAMILIARITY_KEY);
-    const visited: string[] = raw ? JSON.parse(raw) : [];
-    // Normalize to the first segment: /today, /runs, /brain, /crew, /discover, etc.
-    const station = "/" + (pathname.split("/")[1] ?? "");
-    if (!visited.includes(station)) {
-      visited.push(station);
-      window.localStorage.setItem(FAMILIARITY_KEY, JSON.stringify(visited));
-    }
-  } catch {
-    // localStorage unavailable — ignore
-  }
-}
-
-function isFamiliar(): boolean {
-  try {
-    const raw = window.localStorage.getItem(FAMILIARITY_KEY);
-    if (!raw) return false;
-    const visited: string[] = JSON.parse(raw);
-    return visited.length >= FAMILIARITY_THRESHOLD;
-  } catch {
-    return false;
-  }
-}
+/* The familiarity tracker that used to drive auto-collapse is gone with it
+ * (2026-08-15). It wrote a list of visited stations to localStorage purely to
+ * decide when to hide the rail's labels; nothing else ever read it. The stale
+ * `supaprod:rail-visited` key is harmless and is not migrated — it simply
+ * stops being written. */
 
 function initialsFrom(email: string | null | undefined, name?: string | null): string {
   const source = (name ?? "").trim() || (email ?? "").split("@")[0] || "";
@@ -534,23 +508,35 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // scope control now; keeping a second copy here is how two headers drift.
   const { activeWorkspace } = useWorkspace();
 
-  // The rail's collapsed state is the user's, so it survives a reload.
-  // AUTO-COLLAPSE: if the user has visited 4+ stations and has never explicitly
-  // toggled the rail, start narrow. Once they toggle, their explicit choice wins.
+  /*
+   * The rail's collapsed state is the user's, so it survives a reload.
+   *
+   * ── AUTO-COLLAPSE IS RETIRED, 2026-08-15 ──────────────────────────────
+   * This used to collapse the rail BY ITSELF once the user had visited four
+   * distinct stations, on the theory that a familiar reader knows the icons
+   * and would rather have the 172px. Founder verdict on looking at the result:
+   * the shell "is broken and it's not at all good", and he is right. Three
+   * things were wrong with it:
+   *
+   *   1. It made the product change shape on its own, on a schedule the user
+   *      could not see, for a reason they were never told. The nav they
+   *      learned on Monday is a column of unlabelled glyphs on Thursday.
+   *   2. Familiarity with a STATION is not familiarity with its ICON. Visiting
+   *      /runs four times teaches you the page, not which of ten similar
+   *      14px glyphs opens it.
+   *   3. It is the opposite of the reference this system is being held to.
+   *      beautifui.dev's left plane names every destination, always, and that
+   *      legibility is most of why it reads as premium rather than as dense.
+   *
+   * The manual toggle stays — a reader who wants the space can still take it,
+   * and their explicit choice still persists. What is gone is the product
+   * deciding for them. Default is now WIDE and named.
+   */
   const [narrow, setNarrow] = React.useState(false);
   React.useEffect(() => {
     const explicit = window.localStorage.getItem(RAIL_KEY);
-    if (explicit !== null) {
-      setNarrow(explicit === "1");
-    } else if (isFamiliar()) {
-      // First time auto-collapsing — the user has explored enough to know the icons
-      setNarrow(true);
-    }
+    if (explicit !== null) setNarrow(explicit === "1");
   }, []);
-  // Track which stations the user visits, for the familiarity signal
-  React.useEffect(() => {
-    trackFamiliarity(pathname);
-  }, [pathname]);
   const toggleRail = React.useCallback(() => {
     setNarrow((v) => {
       window.localStorage.setItem(RAIL_KEY, v ? "0" : "1");

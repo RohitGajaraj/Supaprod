@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 /*
  * STREAMING TEXT, an answer that arrives as it is being written.
@@ -53,12 +53,27 @@ import { useCallback, useEffect, useMemo, useState } from "react";
  * information; the reveal is decoration, and decoration is what stops.
  */
 
+/**
+ * What KIND of thing a source is, which is the only thing that picks its mark.
+ *
+ * The reference ships a favicon per source, because its sources are websites.
+ * Ours are the things this product actually reads, and they are not websites,
+ * so a favicon has nothing to fetch. A kind mark is the honest equivalent: it
+ * is recognisable at 12px the way a logo is, it is drawn in Meridian's own
+ * neutrals rather than in a colour a remote server chose, and it survives with
+ * no network at all — which matters, because a broken <img> in the middle of a
+ * sentence is worse than no mark.
+ */
+export type SourceKind = "doc" | "thread" | "call" | "ticket" | "code" | "board";
+
 export type AnswerSource = {
   /** What a reader would call it. A document name, not an id. */
   label: string;
   /** Where it sits, shown small and monospaced. Optional. */
   where?: string;
   href?: string;
+  /** Picks the mark. Falls back to a monogram when it is not known. */
+  kind?: SourceKind;
 };
 
 /**
@@ -115,6 +130,50 @@ export function chunkDelay(chunk: Chunk, index: number, revealMs: number): numbe
   return Math.round(base * wobble(index)) + beat;
 }
 
+/**
+ * Whether the block has ever been scrolled into view.
+ *
+ * ── WHY THIS EXISTS, and it is the whole bug the founder reported ───────
+ * The reveal used to start on mount. That is fine on the Ask pane, where the
+ * answer arrives while the reader is looking at it, and it is wrong everywhere
+ * else: on the gallery this component sits about thirty panels down, so the
+ * entire four-second reveal ran, finished and settled before anyone scrolled
+ * near it. What you then arrive at is a finished paragraph — which reads
+ * exactly like the whole block was pasted in at once, because from the
+ * reader's side it was. The reveal was never broken; nobody was in the room
+ * for it.
+ *
+ * Latching rather than tracking: once seen, it stays seen. A reveal that
+ * restarted every time the panel scrolled off and back would re-write a
+ * paragraph the reader has already read, which is worse than not animating.
+ */
+function useSeen(ref: { current: HTMLElement | null }, enabled: boolean): boolean {
+  const [seen, setSeen] = useState(false);
+
+  useEffect(() => {
+    if (!enabled || seen) return;
+    const el = ref.current;
+    if (!el) return;
+    /* No observer (jsdom, an old engine): reveal rather than stall. A component
+       that silently renders nothing because a browser API is missing is the
+       worse failure by far. */
+    if (typeof IntersectionObserver === "undefined") {
+      setSeen(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) if (entry.isIntersecting) setSeen(true);
+      },
+      { threshold: 0.2 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref, enabled, seen]);
+
+  return seen;
+}
+
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 function usePrefersReducedMotion(): boolean {
@@ -154,24 +213,77 @@ const COPY_D =
   "M9 9h10v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V9zM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1";
 const RETRY_D = "M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6";
 const REPLY_D = "M9 10l-5 5 5 5M20 4v7a4 4 0 0 1-4 4H4";
+const THUMB_UP_D =
+  "M7 10v11M14 4.88L13 9h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 16.5 21H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L11 3a2.5 2.5 0 0 1 3 1.88z";
+const THUMB_DOWN_D =
+  "M17 14V3M10 19.12L11 15H5.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 7.5 3H20a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L13 21a2.5 2.5 0 0 1-3-1.88z";
+
+/*
+ * ── THE SOURCE MARKS ────────────────────────────────────────────────────
+ * One glyph per kind, drawn on the same 24-unit grid as every other icon in
+ * this system so they sit at a common weight. They are deliberately literal —
+ * a page, a speech bubble, a waveform — because a mark that needs a legend is
+ * not doing a mark's job. Anything unrecognised falls back to a monogram,
+ * which is what the port carried for every source before kinds existed.
+ */
+const SOURCE_MARK_D: Record<SourceKind, string> = {
+  doc: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h4",
+  thread: "M21 12a8 8 0 0 1-8 8H4l2.2-2.6A8 8 0 1 1 21 12z",
+  call: "M3 12h2.5l2-5 3 12 2.5-9 2 6H21",
+  ticket:
+    "M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z",
+  code: "M9 17l-5-5 5-5M15 7l5 5-5 5",
+  board: "M4 5h16v14H4zM10 5v14M4 11h6",
+};
+
+/**
+ * A source's mark, at whatever size the caller needs.
+ *
+ * The tile is `bg-mrd-lift` in every case. Colour-coding the kinds was the
+ * obvious idea and it is banned here: this system spends hue on status only,
+ * and "this came from a call rather than a doc" is a category, not a status.
+ * Six tinted tiles would put six meaningless colours on screen and quietly
+ * teach the reader that hue means nothing.
+ */
+function SourceMark({ source, size }: { source: AnswerSource; size: 3 | 3.5 | 4 }) {
+  const box = size === 3 ? "size-3" : size === 3.5 ? "size-3.5" : "size-4";
+  const glyph = size === 3 ? 9 : size === 3.5 ? 10 : 11;
+  const d = source.kind ? SOURCE_MARK_D[source.kind] : undefined;
+
+  return (
+    <span
+      aria-hidden
+      className={`grid ${box} shrink-0 place-items-center rounded-mrd-xs bg-mrd-lift text-mrd-mute`}
+    >
+      {d ? (
+        <svg
+          width={glyph}
+          height={glyph}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d={d} />
+        </svg>
+      ) : (
+        <span className={size === 3 ? "text-[8px] font-medium" : "text-[9px] font-medium"}>
+          {source.label.slice(0, 1).toUpperCase()}
+        </span>
+      )}
+    </span>
+  );
+}
 
 /**
  * A citation sitting in the run of the text.
- *
- * The reference drew a favicon here. Ours draws a monogram built from the
- * label, because the sources in this product are internal documents rather
- * than websites, and because a remote image is a colour this file did not
- * choose and cannot resolve to a token.
  */
 function SourceChip({ source }: { source: AnswerSource }) {
   const body = (
     <>
-      <span
-        aria-hidden
-        className="grid size-3 shrink-0 place-items-center rounded-mrd-xs bg-mrd-lift text-[8px] font-medium text-mrd-mute"
-      >
-        {source.label.slice(0, 1).toUpperCase()}
-      </span>
+      <SourceMark source={source} size={3} />
       <span className="max-w-32 truncate">{source.where ?? source.label}</span>
     </>
   );
@@ -199,10 +311,14 @@ export function StreamingText({
   onFollowUp,
   onRetry,
   onCopy,
+  onRate,
+  rating = null,
   error = null,
   emptyLabel = "No answer yet",
   emptyHint = "Ask a question and the answer is written here as it arrives.",
   revealMs = DEFAULT_REVEAL_MS,
+  loop = false,
+  loopHoldMs = 3400,
 }: {
   /** The answer, as prose with its citations sitting inside the run. */
   parts?: AnswerPart[];
@@ -213,6 +329,16 @@ export function StreamingText({
   /** Also the way out of a failed read, so wire it whenever `error` can be set. */
   onRetry?: () => void;
   onCopy?: (text: string) => void;
+  /**
+   * Record what the reader thought of this answer. Passing `null` clears a
+   * rating the reader is taking back, which matters: a thumb you cannot undo
+   * is a thumb people stop pressing.
+   *
+   * Omit it and no rating controls render at all. See the note at the buttons.
+   */
+  onRate?: (rating: "up" | "down" | null) => void;
+  /** The rating already on record, so the control shows what was said before. */
+  rating?: "up" | "down" | null;
   /** Set when the answer could NOT be read. Never render this as an empty state. */
   error?: string | null;
   emptyLabel?: string;
@@ -223,12 +349,24 @@ export function StreamingText({
    * before changing it.
    */
   revealMs?: number;
+  /**
+   * Write the answer again after it settles. FOR DEMONSTRATION SURFACES ONLY —
+   * the workbench and anything else whose job is to show what streaming looks
+   * like. Never set it on a real answer: prose that rewrites itself under a
+   * reader who is halfway through a sentence is a defect.
+   */
+  loop?: boolean;
+  /** How long a looping answer stays complete before it rewrites. */
+  loopHoldMs?: number;
 }) {
   const reduced = usePrefersReducedMotion();
   const chunks = useMemo(() => toChunks(parts), [parts]);
   const [count, setCount] = useState(0);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  const seen = useSeen(hostRef, chunks.length > 0 && !reduced);
 
   // Restart the reveal whenever a new answer arrives, and skip it entirely
   // when the reader has asked for reduced motion.
@@ -237,10 +375,27 @@ export function StreamingText({
   }, [chunks, reduced]);
 
   useEffect(() => {
-    if (reduced || count >= chunks.length) return;
-    const t = setTimeout(() => setCount((c) => c + 1), chunkDelay(chunks[count], count, revealMs));
-    return () => clearTimeout(t);
-  }, [count, chunks, reduced, revealMs]);
+    if (reduced || !seen) return;
+
+    if (count < chunks.length) {
+      const t = setTimeout(
+        () => setCount((c) => c + 1),
+        chunkDelay(chunks[count], count, revealMs),
+      );
+      return () => clearTimeout(t);
+    }
+
+    /*
+     * The written answer holds, then writes itself again. Only where a surface
+     * asks for it — a real answer that rewrote itself under the reader would
+     * be a bug, not a demo. The workbench asks for it, because a component
+     * that streams once on mount cannot be looked at.
+     */
+    if (loop && chunks.length > 0) {
+      const t = setTimeout(() => setCount(0), loopHoldMs);
+      return () => clearTimeout(t);
+    }
+  }, [count, chunks, reduced, revealMs, seen, loop, loopHoldMs]);
 
   const plain = useMemo(
     () =>
@@ -265,6 +420,24 @@ export function StreamingText({
    * and offers the way out. Someone who lands here must never conclude that
    * the workspace is simply empty.
    */
+  /*
+   * ── THE LEFT EDGE ──────────────────────────────────────────────────────
+   * `border-left` on the rounded card, which is what this carried originally.
+   *
+   * It was briefly replaced with an inset pill-shaped bar held off the
+   * corners, on the argument that a straight border mitred into a 12px radius
+   * tapers at both ends. The founder looked at both on 2026-08-15 and called
+   * it: the taper is the better read, and the floating bar is worse. He is
+   * right, and the reasoning that replaced it was treating a property of the
+   * shape as a defect — the border FOLLOWS the card's curve, which is what
+   * ties it to the card instead of sitting on top of it. A detached bar has
+   * to be positioned, and anything positioned can drift.
+   *
+   * The failure glyph on the heading stays, because it is what makes the
+   * panel survive greyscale; that part was an addition, not a replacement.
+   *
+   * DO NOT "FIX" THIS BACK TO AN INSET BAR.
+   */
   if (error) {
     return (
       <div
@@ -272,7 +445,12 @@ export function StreamingText({
         className="w-full rounded-mrd-card bg-mrd-sink p-4"
         style={{ borderLeft: "2px solid var(--mrd-fail)" }}
       >
-        <p className="text-[13px] font-medium text-mrd-ink">The answer could not be read</p>
+        <p className="flex items-center gap-1.5 text-[13px] font-medium text-mrd-ink">
+          <span className="shrink-0 text-mrd-fail">
+            <Glyph d="M12 8v4M12 16h.01M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z" label="" />
+          </span>
+          The answer could not be read
+        </p>
         <p className="mt-1 text-[13px] leading-[1.65] text-mrd-body">{error}</p>
         {onRetry && (
           <button
@@ -304,12 +482,18 @@ export function StreamingText({
   const done = count >= chunks.length;
 
   return (
-    <div className="w-full">
+    <div data-mrd="" ref={hostRef} className="w-full">
       <p
         className="text-[13px] leading-[1.65] text-mrd-ink"
         style={{ maxWidth: "var(--mrd-measure)" }}
-        aria-live="polite"
-        aria-busy={!done}
+        /*
+         * A LOOPING ANSWER IS NOT ANNOUNCED. `aria-live` on prose that rewrites
+         * itself every few seconds would read the whole answer to a screen
+         * reader again on every pass, forever. The loop only ever runs on a
+         * demonstration surface, where there is no answer to announce.
+         */
+        aria-live={loop ? "off" : "polite"}
+        aria-busy={loop ? undefined : !done}
       >
         {chunks.slice(0, count).map((chunk, i) =>
           chunk.cite ? (
@@ -383,6 +567,47 @@ export function StreamingText({
         )}
 
         {/*
+         * ── WAS THIS ANSWER ANY GOOD ────────────────────────────────────
+         * The reference's third and fourth action icons, which the port had
+         * dropped. They are worth having here for a reason beyond parity: this
+         * product's whole argument is that a judgement recorded at the time is
+         * worth more than one reconstructed later, and "that answer was wrong"
+         * is exactly such a judgement — cheap to capture in the second the
+         * reader notices, and unrecoverable an hour afterwards.
+         *
+         * RENDERED ONLY WHEN `onRate` IS WIRED, and that is deliberate rather
+         * than defensive. A thumb that goes nowhere is a control that lies
+         * about being heard, and a surface with nowhere to put the rating
+         * should show no thumbs at all rather than swallow them.
+         */}
+        {onRate && (
+          <>
+            <button
+              type="button"
+              onClick={() => onRate(rating === "up" ? null : "up")}
+              aria-label="This answer was useful"
+              aria-pressed={rating === "up"}
+              className={`flex size-6 items-center justify-center rounded-mrd-xs transition-colors duration-100 hover:bg-mrd-hover ${
+                rating === "up" ? "text-mrd-ink" : "text-mrd-mute hover:text-mrd-body"
+              }`}
+            >
+              <Glyph d={THUMB_UP_D} label="" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onRate(rating === "down" ? null : "down")}
+              aria-label="This answer was not useful"
+              aria-pressed={rating === "down"}
+              className={`flex size-6 items-center justify-center rounded-mrd-xs transition-colors duration-100 hover:bg-mrd-hover ${
+                rating === "down" ? "text-mrd-ink" : "text-mrd-mute hover:text-mrd-body"
+              }`}
+            >
+              <Glyph d={THUMB_DOWN_D} label="" />
+            </button>
+          </>
+        )}
+
+        {/*
          * The count is the length of the list, never a figure typed in beside
          * it. The reference hardcoded "10 sources" above three rows, and a
          * count that disagrees with what opening it shows is the fastest way to
@@ -395,6 +620,28 @@ export function StreamingText({
             onClick={() => setSourcesOpen((open) => !open)}
             className="ml-1.5 flex items-center gap-1.5 rounded-mrd-xs px-1 py-0.5 text-[12px] text-mrd-body transition-colors duration-150 hover:bg-mrd-hover hover:text-mrd-ink"
           >
+            {/*
+             * The overlapping stack, which the port had dropped. It is not
+             * decoration: it says HOW MANY and WHAT KIND before the disclosure
+             * is opened, so a reader can tell an answer leaning on three call
+             * recordings from one leaning on three tickets without a click.
+             *
+             * Capped at three with the ring drawn in the CONTAINING surface's
+             * colour rather than in the page ground, so the overlap reads as a
+             * stack rather than as three tiles with holes punched in them. Four
+             * or more marks at 14px stop being separable and become a smudge,
+             * and the number beside them is the exact figure anyway.
+             */}
+            <span aria-hidden className="flex -space-x-1">
+              {sources.slice(0, 3).map((source) => (
+                <span
+                  key={source.label + (source.where ?? "")}
+                  className="rounded-mrd-xs ring-2 ring-mrd-bg"
+                >
+                  <SourceMark source={source} size={3.5} />
+                </span>
+              ))}
+            </span>
             {sources.length} {sources.length === 1 ? "source" : "sources"}
           </button>
         )}
@@ -413,15 +660,17 @@ export function StreamingText({
             {sources.map((source) => {
               const inner = (
                 <>
-                  <span
-                    aria-hidden
-                    className="grid size-4 shrink-0 place-items-center rounded-mrd-xs bg-mrd-lift text-[9px] font-medium text-mrd-mute"
-                  >
-                    {source.label.slice(0, 1).toUpperCase()}
-                  </span>
-                  <span className="truncate">{source.label}</span>
+                  <SourceMark source={source} size={4} />
+                  {/*
+                   * `min-w-0` is what actually lets the name truncate. A flex
+                   * child's default `min-width: auto` refuses to shrink below
+                   * its content, so without it a long source name pushes the
+                   * path out of the row instead of ellipsing — the same defect
+                   * the founder reported on the diff table.
+                   */}
+                  <span className="min-w-0 flex-1 truncate">{source.label}</span>
                   {source.where && (
-                    <span className="ml-auto shrink-0 font-mrd-mono text-[10.5px] text-mrd-mute">
+                    <span className="ml-auto max-w-[45%] shrink-0 truncate font-mrd-mono text-[10.5px] text-mrd-mute">
                       {source.where}
                     </span>
                   )}

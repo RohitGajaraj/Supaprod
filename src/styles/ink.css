@@ -77,8 +77,12 @@
 
 :root {
   /* ---- Families ---- (prototype: --sans / --mono / --px) */
-  --sp-font-sans: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
-  --sp-font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Repointed at Meridian 2026-08-15 (founder ruling: the reference
+     typography applies across the whole app). Mona Sans and IBM Plex Mono are
+     no longer the faces; their @font-face blocks above are now inert and go
+     when this layer does. */
+  --sp-font-sans: var(--mrd-font);
+  --sp-font-mono: var(--mrd-mono);
   --sp-font-px: "Geist Pixel Square", var(--sp-font-mono);
 
   /* ---- Type scale ----
@@ -261,7 +265,7 @@
   --sp-pass: #4fc47a;
   --sp-fail: #ef6a5f;
   --sp-warn: #e8b44c;
-  --sp-gate: #ff6b2c; /* ember. marks the human, and nothing else */
+  --sp-gate: oklch(0.72 0.16 315); /* orchid. marks the human, and nothing else */
 
   /* ---- Magnitude: the score ramp and the movement pair ----
    *
@@ -513,7 +517,11 @@
    * defined entirely by a human's attention. */
   --sp-seen-rule: var(--sp-gate);
   --sp-seen-weight: 1px;
-  --sp-seen-fade: rgba(255, 107, 44, 0.14); /* the wash below the rule */
+  --sp-seen-fade: color-mix(
+    in oklab,
+    var(--sp-gate) 14%,
+    transparent
+  ); /* the wash below the rule */
 
   /* ---- Stacking order ----
    * SALVAGED 2026-08-10 from src/styles/design-tokens.css, which a PARALLEL
@@ -617,7 +625,7 @@
   --sp-pass: #2a7648;
   --sp-fail: #af3b31;
   --sp-warn: #8f6a26;
-  --sp-gate: #c2500f;
+  --sp-gate: oklch(0.5 0.19 315);
 
   /* ---- Paper values for the 2026-08-10 additions ----
    * Only the tokens that RESOLVE TO A COLOUR appear here. The ring geometry,
@@ -639,13 +647,14 @@
    * reads as a hole cut in the sheet rather than as something resting on it.
    * These sit in the same family as --sp-shadow directly above. */
   --sp-shadow-menu: 0 4px 12px -4px rgba(80, 60, 25, 0.14), 0 1px 3px -1px rgba(80, 60, 25, 0.08);
-  --sp-shadow-sheet: 0 20px 48px -14px rgba(80, 60, 25, 0.22), 0 6px 14px -6px rgba(80, 60, 25, 0.12);
+  --sp-shadow-sheet:
+    0 20px 48px -14px rgba(80, 60, 25, 0.22), 0 6px 14px -6px rgba(80, 60, 25, 0.12);
 
   /* The session boundary's wash. Ember on paper is --sp-gate #c2500f, a deeper
    * and redder ember than the dark theme's #ff6b2c, so the same alpha would
    * read heavier here. Taken down to compensate: the rule should be findable
    * by scrolling to it, never loud enough to compete with the rows beneath. */
-  --sp-seen-fade: rgba(194, 80, 15, 0.09);
+  --sp-seen-fade: color-mix(in oklab, var(--sp-gate) 9%, transparent);
 }
 
 /* ---- The one atom that belongs with the tokens ----
@@ -745,12 +754,12 @@
   --ink-grid-coarse: rgba(255, 255, 255, 0.06);
 
   /* The three voices (color = who is speaking, never decoration) */
-  --voice-human: #ff6b2c;
-  --voice-human-hover: #ff8344;
-  --voice-human-dim: #c25a2b;
-  --voice-human-border: rgba(255, 107, 44, 0.4);
-  --voice-human-soft: #33150a;
-  --voice-human-faint: #200e07;
+  --voice-human: oklch(0.72 0.16 315);
+  --voice-human-hover: oklch(0.78 0.15 315);
+  --voice-human-dim: oklch(0.56 0.12 315);
+  --voice-human-border: color-mix(in oklab, var(--voice-human) 40%, transparent);
+  --voice-human-soft: oklch(0.26 0.07 315);
+  --voice-human-faint: oklch(0.21 0.05 315);
   --voice-machine: #6cb0f5;
   --voice-machine-dim: #4d7fb3;
   --voice-machine-border: rgba(108, 176, 245, 0.35);
@@ -807,11 +816,11 @@
   --ink-grid-fine: rgba(0, 0, 0, 0.03);
   --ink-grid-coarse: rgba(0, 0, 0, 0.05);
 
-  --voice-human: #f05a1a;
-  --voice-human-hover: #d94e12;
-  --voice-human-dim: #b34d15;
-  --voice-human-border: rgba(240, 90, 26, 0.45);
-  --voice-human-soft: #fce9dd;
+  --voice-human: oklch(0.5 0.19 315);
+  --voice-human-hover: oklch(0.44 0.185 315);
+  --voice-human-dim: oklch(0.58 0.14 315);
+  --voice-human-border: color-mix(in oklab, var(--voice-human) 45%, transparent);
+  --voice-human-soft: oklch(0.95 0.03 315);
   --voice-human-faint: #fdf2ec;
   --voice-machine: #2e6ed6;
   --voice-machine-dim: #5b86bd;

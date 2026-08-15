@@ -103,6 +103,7 @@ export function NeedsSetup({
 
   return (
     <section
+      data-mrd=""
       className="rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-6"
       // Not aria-live. This is the state on arrival, not a change to announce,
       // and a live region here would interrupt a screen reader mid-navigation.

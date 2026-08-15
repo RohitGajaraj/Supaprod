@@ -89,7 +89,7 @@ export function LoadingState({
   const { delays, dur, round } = PATTERNS[variant] ?? PATTERNS.Drive;
 
   return (
-    <div className="flex w-fit items-center gap-2.5" role="status" aria-live="polite">
+    <div data-mrd="" className="flex w-fit items-center gap-2.5" role="status" aria-live="polite">
       {/*
        * Hidden from assistive tech on purpose. The live region above already
        * announces the label and the figure; a nine-cell decorative grid has

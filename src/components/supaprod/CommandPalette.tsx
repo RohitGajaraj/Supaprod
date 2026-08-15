@@ -252,7 +252,9 @@ export function CommandPalette() {
               style={{
                 fontFamily: "var(--font-sans)",
                 color: "var(--text-primary)",
-                caretColor: "var(--ember)",
+                /* The caret follows the TEXT, not the brand. An ember caret put
+                   the accent on screen the instant anyone typed a character. */
+                caretColor: "var(--text-primary)",
               }}
             />
             <span
@@ -338,15 +340,25 @@ export function CommandPalette() {
                           minHeight: 36,
                           padding: "0 10px",
                           borderRadius: 6,
+                          /*
+                           * THE ACTIVE ROW IS NOT AN EMBER BOX. It used to draw
+                           * a 2px ember outline, so typing in the palette lit an
+                           * orange box around whichever row the query happened to
+                           * land on — an accent firing on ordinary keystrokes.
+                           * The row is already marked twice over: a raised ground
+                           * and `aria-selected`, which is what a screen reader
+                           * actually reads. The edge only has to make the lift
+                           * legible, so it is a neutral hairline.
+                           */
                           background: active ? "var(--surface-active)" : "transparent",
-                          outline: active ? "2px solid var(--ember)" : "none",
-                          outlineOffset: -2,
+                          outline: active ? "1px solid var(--hairline-strong)" : "none",
+                          outlineOffset: -1,
                         }}
                       >
                         <span
                           style={{
                             fontFamily: "var(--font-mono)",
-                            color: active ? "var(--ember)" : "var(--text-faint)",
+                            color: active ? "var(--text-primary)" : "var(--text-faint)",
                           }}
                         >
                           {index}

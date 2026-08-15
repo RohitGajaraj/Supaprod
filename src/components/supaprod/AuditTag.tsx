@@ -81,7 +81,7 @@ export function AuditTag({
         }}
         title={title ?? defaultTitle}
         aria-label={`Trace audit id ${tag}`}
-        className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] hover:[border-color:var(--ember-line)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] hover:[border-color:var(--hairline-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           fontFamily: "var(--font-mono)",
           letterSpacing: "0.06em",

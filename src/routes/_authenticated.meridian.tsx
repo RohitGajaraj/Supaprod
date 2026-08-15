@@ -170,67 +170,6 @@ const STALLED: StalledItem[] = [
 
 const SHORT = STALLED.slice(0, 3);
 
-/*
- * ── ACCENT CANDIDATES ───────────────────────────────────────────────────
- *
- * The accent answers one question and only one: A PERSON IS REQUIRED. It is
- * the loudest thing the product can say, so it is worth choosing rather than
- * defaulting into.
- *
- * Two have already been rejected on sight, and the reasons are worth keeping
- * because they narrow the search rather than just eliminating a swatch:
- *   gold / mustard   reads as a generated palette, the reflex every AI
- *                    dashboard reaches for
- *   orchid / violet  reads as consumer rather than instrument
- *
- * Red, green and blue were already spoken for by failure, success and machine
- * activity, so the space left was almost nothing. The way out was to stop
- * spending a hue on "a machine is working": that state is AMBIENT, it is
- * already carried by motion and by a live elapsed figure, and it never needed
- * a colour of its own. Retiring it reopens the entire cool half of the wheel
- * for the one state that genuinely competes for attention.
- *
- * Each candidate is given per-ground values. A hue that clears contrast on
- * near-black does not clear it on paper, so both are chosen, never derived.
- */
-type Candidate = {
-  name: string;
-  note: string;
-  dark: { you: string; dim: string };
-  light: { you: string; dim: string };
-};
-
-const CANDIDATES: Candidate[] = [
-  {
-    name: "Aqua",
-    note: "Instrument teal. Reads as a measuring device rather than a brand, and it is the furthest thing on the wheel from failure red, so 'this needs you' can never be misread as 'this broke'. The safest of the four, and the least surprising.",
-    dark: { you: "oklch(0.82 0.125 195)", dim: "oklch(0.62 0.085 195)" },
-    light: { you: "oklch(0.52 0.105 195)", dim: "oklch(0.64 0.075 195)" },
-  },
-  {
-    name: "Coral",
-    note: "Warm clay. The most human of the four and the only warm option left, which suits a signal that means a person is needed. Its risk is real and worth seeing: it sits nearest failure red, so judge these two side by side before choosing it.",
-    dark: { you: "oklch(0.75 0.145 42)", dim: "oklch(0.58 0.1 42)" },
-    light: { you: "oklch(0.56 0.16 42)", dim: "oklch(0.68 0.11 42)" },
-  },
-  {
-    name: "Chartreuse",
-    note: "Acid lime. The highest visibility of the four on a dark ground and genuinely uncommon in enterprise software. Its risk is the opposite of coral's: it is the closest to success green, so check that a stalled row never reads as a finished one.",
-    dark: { you: "oklch(0.88 0.17 122)", dim: "oklch(0.68 0.12 122)" },
-    light: { you: "oklch(0.52 0.13 122)", dim: "oklch(0.64 0.1 122)" },
-  },
-  {
-    name: "Ice",
-    note: "Near-white with a cool cast. Emphasis by luminance rather than by hue, so it is the only candidate that cannot clash with anything and the only one that survives greyscale perfectly. Quietest of the four, which is either its virtue or its failure.",
-    dark: { you: "oklch(0.93 0.045 210)", dim: "oklch(0.7 0.03 210)" },
-    light: { you: "oklch(0.42 0.06 210)", dim: "oklch(0.58 0.045 210)" },
-  },
-];
-
-function accentVars(v: { you: string; dim: string }): CSSProperties {
-  return { "--mrd-you": v.you, "--mrd-you-dim": v.dim } as CSSProperties;
-}
-
 function Ground({
   label,
   light,
@@ -335,7 +274,14 @@ const WORK_TONE: Record<WorkState, RecordTone> = {
   running: "agent",
   shipped: "pass",
   failed: "fail",
-  starved: "quiet",
+  /*
+   * `hold`, not `quiet`. This is the state 39 of 43 work items are actually in
+   * — stopped for want of a connected source — and it rendered in the same
+   * grey as a row with nothing to say. It is not your call, so it is not
+   * orchid; it has not failed, so it is not red; and it is emphatically not
+   * uninteresting, which is what grey claimed.
+   */
+  starved: "hold",
 };
 
 const WORK_LABEL: Record<WorkState, string> = {
@@ -625,6 +571,10 @@ const INSIGHTS: Insight[] = [
         values: [42, 44, 51, 60, 66, 69, 71],
       },
     ],
+    /* The stat block reads the series through this, so a percentage arrives
+       carrying its unit. Without it the headline said "71" beside a figure
+       below reading "71%", which is two answers to one question. */
+    format: (value: number) => `${value}%`,
     figures: [
       { label: "Forecast", value: "60%" },
       { label: "Settled at", value: "71%", tone: "pass" },
@@ -643,25 +593,87 @@ const INSIGHTS: Insight[] = [
     ),
     title: "Where the 43 work items are standing",
     headline: "39 of 43",
+    /*
+     * THREE SEGMENTS, NOT TWO, and the third is here to be a test as much as a
+     * fact. The reference's allocation card carries three (VAN / CHOC / MINT)
+     * and its smallest is 4.7% — narrow enough that the inset ring, the sliding
+     * wash and the rounded cap all have to still work in a sliver about 14px
+     * wide. Ours carried two fat segments, so none of that was ever exercised
+     * and the card looked finished while the hard case was untested.
+     *
+     * Each carries its own `amount`, so the hero figure answers the question
+     * the selection asks. `tone` is doing real work here: held-for-want-of-a-
+     * source is `hold`, shipped is `pass`, waiting on a person is `open` —
+     * three different reasons a work item is where it is.
+     */
     segments: [
       {
         id: "starved",
         label: "Held at Discover",
-        percent: 91,
-        tone: "open",
+        percent: 88,
+        amount: "39 items",
         detail:
           "Thirty-nine items have never left the first station, and the cause is the same one every time: no source is connected, so there is nothing for the crew to read. This is a setup gap, not a queue.",
       },
       {
-        id: "moving",
-        label: "Past Discover",
-        percent: 9,
-        tone: "pass",
+        id: "deciding",
+        label: "Waiting on a person",
+        percent: 7,
+        tone: "you" as const,
+        amount: "3 items",
         detail:
-          "Four items have reached a later station. Three of those are sitting at Decide waiting on a person, and the fourth shipped on 9 August.",
+          "Three items have reached Decide and stopped there. Each is holding one named piece of work, and the oldest has been standing since 18:31 on 10 August.",
+      },
+      {
+        id: "shipped",
+        label: "Shipped",
+        percent: 5,
+        tone: "pass" as const,
+        amount: "1 item",
+        detail:
+          "One item went live, on 9 August: the outage banner in the homeowner app. It is the only thing in this workspace that has reached the end of the loop.",
       },
     ],
     followUp: "Which source would unblock the most of them?",
+  },
+  /*
+   * The third card, which the first port left out. The reference's middle page
+   * is an anomaly against a threshold; ours is the same shape on a fact this
+   * product already records — a track's spend cap, and the run that went past
+   * it. Two views, because the money is the symptom and the retry count is the
+   * cause, and a reader who sees only the first will conclude the cap is too
+   * low rather than that something was looping.
+   */
+  {
+    kind: "threshold",
+    key: "i-cap",
+    lead: (
+      <>
+        The spend cap on the outage-group track was crossed on 2026-08-13, and the run kept going
+        for eleven minutes after it. The cap held the bill; it did not stop the work.
+      </>
+    ),
+    /* Short enough to sit beside the view toggle at this card's 344px without
+       ellipsing. The card is `max-w-86`, which is the reference's own width. */
+    title: "Outage-group spend",
+    limit: 5,
+    limitLabel: "$5.00 cap",
+    views: [
+      {
+        id: "spend",
+        label: "Spend",
+        values: [0.42, 0.71, 0.95, 1.34, 2.08, 3.9, 5.62, 6.87],
+        format: (v) => `$${v.toFixed(2)}`,
+      },
+      {
+        id: "retries",
+        label: "Retries",
+        values: [0, 0, 1, 1, 2, 6, 11, 14],
+        format: (v) => `${Math.round(v)}`,
+      },
+    ],
+    figure: { value: "$6.87", over: "+$1.87 over", note: "on one track, 2026-08-13" },
+    followUp: "What made that track retry fourteen times?",
   },
 ];
 
@@ -704,6 +716,24 @@ const CHUNKS: ContextChunk[] = [
 
 /* ── the proposed edit ─────────────────────────────────────────────────── */
 
+/*
+ * THE LAST THREE ROWS ARE THE OVERFLOW CASES, and they are here on purpose.
+ *
+ * The founder's report on 2026-08-15 was that long source names and two-line
+ * text did not sit cleanly inside this container, and the reason the defect
+ * survived a rendered review is that every fixture row was short enough to fit.
+ * A table only proves it handles overflow if something in it overflows, so:
+ *
+ *   d5  a source name far past the pill's width. The pill is a fixed height, so
+ *       this is the row that used to push a second line out through the bottom
+ *       of the capsule.
+ *   d6  a value that needs two lines in the widest column, which is the common
+ *       real case rather than the pathological one.
+ *   d7  an unbroken token with no spaces in it. This is the one a line clamp
+ *       alone does NOT fix: with nothing to break on it runs straight out of
+ *       the cell sideways, and only `break-words` stops it. Production ids and
+ *       slugs look exactly like this.
+ */
 const DIFF_ROWS: DiffTableRow[] = [
   { id: "d1", cells: ["128", "Support inbox", "Homeowners cannot tell a real outage"] },
   { id: "d2", cells: ["46", "App store reviews", "Checkout and notification friction"] },
@@ -717,6 +747,27 @@ const DIFF_ROWS: DiffTableRow[] = [
     cells: ["77", "Install telemetry", "SDK install is a drop-off cliff"],
     change: "added",
   },
+  {
+    id: "d5",
+    cells: [
+      "19",
+      "Northfield Creamery field engineering escalations",
+      "Install cannot be finished",
+    ],
+  },
+  {
+    id: "d6",
+    cells: [
+      "8",
+      "Call recordings",
+      "Installers abandon the checklist when a step needs a second person on site",
+    ],
+  },
+  {
+    id: "d7",
+    cells: ["4", "Webhook replay", "signal_cluster_promotion_backfill_2026_08_outage_group"],
+    change: "added",
+  },
 ];
 
 /* ── the answer ────────────────────────────────────────────────────────── */
@@ -726,17 +777,37 @@ const ANSWER_PARTS: AnswerPart[] = [
     kind: "text",
     text: "Twelve gates are pending and the oldest has been stopped since 18:31 on 10 August, which is eighty-six hours. Each one holds up exactly one named piece of work, and the oldest three are the same ask:",
   },
-  { kind: "cite", source: { label: "Decide queue", where: "decide/queue", href: "#" } },
+  {
+    kind: "cite",
+    source: { label: "Decide queue", where: "decide/queue", href: "#", kind: "board" },
+  },
   {
     kind: "text",
     text: "whether to group the outage reports under one work item. Nothing on any surface said so, which is why the rail now carries the count. The one to answer first is the outage group, because it is the only one of the three with a spec already drafted behind it.",
   },
 ];
 
+/*
+ * Three sources, three DIFFERENT kinds, and one name deliberately too long for
+ * its row. The reference lists three websites with three brand marks; ours are
+ * the things this product actually reads, so the mark is the kind. Three
+ * distinct kinds is the point — a stack of three identical marks would prove
+ * nothing about whether the mark is doing any work.
+ *
+ * The long name is not padding. Every source name in production is generated
+ * from a document title, and titles do not agree to be short; a fixture full of
+ * tidy two-word labels is exactly what hides a truncation bug until a customer
+ * finds it.
+ */
 const ANSWER_SOURCES: AnswerSource[] = [
-  { label: "Decide queue", where: "decide/queue", href: "#" },
-  { label: "Support inbox, ticket 4471", where: "inbox/4471", href: "#" },
-  { label: "Field notes, week 32", where: "notes/w32" },
+  { label: "Decide queue", where: "decide/queue", href: "#", kind: "board" },
+  {
+    label: "Support inbox, ticket 4471 — outage reports from three accounts on the same evening",
+    where: "inbox/4471",
+    href: "#",
+    kind: "ticket",
+  },
+  { label: "Field notes, week 32", where: "notes/w32", kind: "doc" },
 ];
 
 /* ── chat ──────────────────────────────────────────────────────────────── */
@@ -1079,32 +1150,28 @@ function MeridianGallery() {
           </p>
         </header>
 
-        <Panel
-          title="Pick the accent"
-          note="Four candidates on the same component, same data, both grounds. Gold was rejected as a generated palette and violet as consumer rather than instrument, so these avoid both. Judge them on one question: does the three-day row demand a person, without the nine-hour row shouting, and without either being mistaken for something that failed or something that finished."
-        >
-          <div className="flex flex-col gap-10">
-            {CANDIDATES.map((c) => (
-              <div key={c.name}>
-                <div className="mb-3">
-                  <h3 className="text-[16px] font-medium text-mrd-ink">{c.name}</h3>
-                  <p className="mt-0.5 max-w-[72ch] text-[12.5px] leading-relaxed text-mrd-mute">
-                    {c.note}
-                  </p>
-                </div>
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <Ground label={`${c.name} on dark`} style={accentVars(c.dark)}>
-                    <StalledWork items={SHORT} now={NOW} />
-                  </Ground>
-                  <Ground label={`${c.name} on paper`} light style={accentVars(c.light)}>
-                    <StalledWork items={SHORT} now={NOW} />
-                  </Ground>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Panel>
-
+        {/*
+         * ── THE ACCENT PICKER IS GONE, 2026-08-15 ──────────────────────────
+         *
+         * This page used to open with "Pick the accent": four candidate hues
+         * (Aqua, Coral, Chartreuse, Ice) rendered on eight grounds. It did its
+         * job — orchid was chosen against those four on 2026-08-14, and
+         * `meridian.css` records the comparison and marks it closed. It has
+         * been a stale artifact ever since, and a workbench that opens by
+         * asking a settled question reads as unfinished.
+         *
+         * It was also actively harmful, in a way worth writing down. Each
+         * candidate overrode `--mrd-you` and `--mrd-you-dim` on its own
+         * grounds, so eight of the page's twenty-six light grounds reported a
+         * teal or a lime when asked what the accent was. A contrast sweep run
+         * on 2026-08-15 sampled the FIRST light ground on the page, got Aqua,
+         * and concluded the orchid dim stop was failing AA on paper. It was
+         * not: measured on an honest ground it reads 4.26. An instrument aimed
+         * at a preview will describe the preview.
+         *
+         * The comparison survives where it belongs: in `meridian.css`, which
+         * states what was judged and why orchid won, and in git.
+         */}
         <Panel
           title="Loading state"
           note="An elapsed figure, because what shipped says what is being read and never how long, so a slow job and a hung job are the same pixels. Three variants, and the timings differ on purpose: the drive cycle is shorter than its sweep so two fronts are always in flight, and the orbit is slower because one travelling cell at the same speed reads as a glitch."
@@ -1120,7 +1187,7 @@ function MeridianGallery() {
 
         <Panel
           title="Stalled work, full"
-          note="Real gates measured in production on 2026-08-14. Twelve were pending, the oldest since 18:31 on 10 August, and nothing anywhere told anyone. Age drives the emphasis through elevation and weight as well as hue, so the oldest is still obviously the oldest in greyscale. One row is stopped for a different reason and deliberately carries no accent: connecting a source is a setup act, not a decision."
+          note="Real gates measured in production on 2026-08-14. Twelve were pending, the oldest since 18:31 on 10 August, and nothing anywhere told anyone. Age drives the emphasis through elevation and weight as well as hue, so the oldest is still obviously the oldest in greyscale. One row is stopped for a different reason and carries AMBER rather than orchid: it is waiting on a source being connected, which is a condition changing rather than a decision anyone can make. Orchid there would send the reader hunting a button that does not exist, and grey — which is what it used to be — hid the most common state in the workspace."
         >
           <Pair>
             <StalledWork items={STALLED} now={NOW} />
@@ -1429,7 +1496,7 @@ function MeridianGallery() {
                 <DiffTable
                   title="Proposed change to what Discover reads"
                   columns={["Signals", "Source", "Groups into"]}
-                  widths={["16%", "30%", "54%"]}
+                  widths={["21%", "31%", "48%"]}
                   rows={[]}
                   animate={false}
                 />
@@ -1438,7 +1505,7 @@ function MeridianGallery() {
                 <DiffTable
                   title="Proposed change to what Discover reads"
                   columns={["Signals", "Source", "Groups into"]}
-                  widths={["16%", "30%", "54%"]}
+                  widths={["21%", "31%", "48%"]}
                   rows={DIFF_ROWS}
                   animate={false}
                 />
@@ -1447,7 +1514,7 @@ function MeridianGallery() {
                 <DiffTable
                   title="Proposed change to what Discover reads"
                   columns={["Signals", "Source", "Groups into"]}
-                  widths={["16%", "30%", "54%"]}
+                  widths={["21%", "31%", "48%"]}
                   rows={DIFF_ROWS}
                   status="applied"
                   animate={false}
@@ -1473,6 +1540,19 @@ function MeridianGallery() {
                 />
               </Case>
               <Case label="An answer arriving">
+                {/*
+                 * `loop` is set HERE and nowhere in the product. This panel sits
+                 * about thirty panels down the page, and the reveal used to
+                 * start on mount — so it ran, finished and settled several
+                 * minutes before anyone scrolled to it, and what you arrived at
+                 * was a finished paragraph. That is the founder's report on
+                 * 2026-08-15 that streaming "pastes the entire block at once":
+                 * it was accurate, and the cause was that nobody was in the
+                 * room for the reveal. The component now waits until it is on
+                 * screen before it starts, which is the real fix; the loop is
+                 * what makes a WORKBENCH able to show the behaviour more than
+                 * once. The reference loops for the same reason.
+                 */}
                 <StreamingText
                   parts={ANSWER_PARTS}
                   sources={ANSWER_SOURCES}
@@ -1483,6 +1563,8 @@ function MeridianGallery() {
                   onFollowUp={noop}
                   onRetry={noop}
                   onCopy={noop}
+                  onRate={noop}
+                  loop
                 />
               </Case>
             </Stack>
@@ -1587,20 +1669,37 @@ function MeridianGallery() {
               <Case label="Streaming, first line not in yet">
                 <CodeBlock filename="group.ts" language="TypeScript" lines={[]} streaming />
               </Case>
-              <Case label="Fifteen lines against a 200px cap">
+              {/*
+               * THE CASE THAT LEADS IS THE ONE A READER WANTS TO SEE.
+               *
+               * This panel used to open on "Fifteen lines against a 200px cap"
+               * — a case that exists to prove a scroll constraint, not to show
+               * the component. The founder read it exactly that way on
+               * 2026-08-15: a 200px box with a gap in it, next to a reference
+               * whose block is alive and beautiful. He was right that it was
+               * the wrong thing to lead with; the cap is an engineering fact,
+               * not the product.
+               *
+               * So the block is written out a line at a time and starts over,
+               * which is what the reference does and what makes the caret and
+               * the neutral ladder legible at all. The cap keeps its own case
+               * below, where it belongs.
+               */}
+              <Case label="An agent writing it, a line at a time">
+                <CodeBlock
+                  filename="src/server/discover/group.ts"
+                  language="TypeScript"
+                  lines={CODE_LINES.slice(0, 9)}
+                  revealPerLineMs={240}
+                  loop
+                />
+              </Case>
+              <Case label="A long file, capped so it scrolls in place">
                 <CodeBlock
                   filename="src/server/discover/group.ts"
                   language="TypeScript"
                   lines={CODE_LINES}
                   maxHeight={200}
-                />
-              </Case>
-              <Case label="Still being written">
-                <CodeBlock
-                  filename="src/server/discover/group.ts"
-                  language="TypeScript"
-                  lines={CODE_LINES.slice(0, 9)}
-                  streaming
                 />
               </Case>
             </Stack>

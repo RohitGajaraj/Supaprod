@@ -175,10 +175,14 @@ export function GraphForceCanvas({
   const spriteCache = useRef(new Map<string, HTMLCanvasElement>());
   const colorsRef = useRef<Map<string, string>>(new Map());
   const chromeColors = useRef({
-    // Tempo v5 glacier narrowing (2026-07-11): the selection highlight is a
-    // genuinely selected-element accent, so it reads ember, not the
-    // now-status-only glacier blue.
-    selected: "#ff6b2c",
+    // The selection highlight is NEUTRAL, 2026-08-15. It read ember on the
+    // argument that a selected element deserves an accent; the argument is
+    // wrong, and it is the same one that put ember on every focus ring, caret
+    // and active row in the app. Selecting a node is the reader pointing at
+    // something, not the product asking them to decide anything, and a bright
+    // neutral against kind-coloured nodes separates better than a hue that has
+    // to compete with them.
+    selected: "#f2f0ed",
     madder: "#e06557",
     marigold: "#e8b44c",
     label: "#9c978f",
@@ -512,7 +516,7 @@ export function GraphForceCanvas({
     const read = (token: string, fallback: string) =>
       styles.getPropertyValue(token).trim() || fallback;
     chromeColors.current = {
-      selected: read("--ember", "#ff6b2c"),
+      selected: read("--text-primary", "#f2f0ed"),
       madder: read("--madder", "#e06557"),
       marigold: read("--marigold", "#e8b44c"),
       label: read("--text-muted", "#9c978f"),

@@ -44,7 +44,6 @@ That is the whole cookie surface. There is no session cookie, no analytics cooki
 | `cad-density` | [`src/hooks/use-density.ts:28`](../../../src/hooks/use-density.ts) | Comfortable or compact rows. | functional |
 | `supaprod:avatar` | [`src/hooks/use-avatar-choice.ts:30`](../../../src/hooks/use-avatar-choice.ts) | Which avatar the person picked. | functional |
 | `supaprod:rail-narrow` | [`src/components/shell/AppFrame.tsx:555`](../../../src/components/shell/AppFrame.tsx) | Rail collapsed or expanded. | functional |
-| `supaprod:rail-visited` | [`src/components/shell/AppFrame.tsx:403`](../../../src/components/shell/AppFrame.tsx) | Which rail destinations have been opened, so the rail can stop explaining itself. Local only, never sent anywhere. | functional |
 | `supaprod.flow.config` | [`src/hooks/use-flow-mode.tsx:96`](../../../src/hooks/use-flow-mode.tsx) | Focus-mode block length and preferences. | functional |
 | `supaprod.flow.session` | [`src/hooks/use-flow-mode.tsx:114`](../../../src/hooks/use-flow-mode.tsx) | The focus block currently running, so a reload does not lose it. | functional |
 | `supaprod.flow.history` | [`src/lib/flow/session.ts:127`](../../../src/lib/flow/session.ts) | A capped local ledger of finished focus blocks, so the Desk can say "2 blocks today". Never leaves the browser; a durable table is a recorded follow-up. | functional |

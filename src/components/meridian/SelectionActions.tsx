@@ -66,11 +66,85 @@ export type SelectionAction = {
 
 export type SelectionPhase = "idle" | "working" | "result";
 
+/*
+ * ── THE ACTIONS, WITH THEIR ICONS ───────────────────────────────────────
+ *
+ * The bar rendered `action.icon` from the very first port and DEFAULT_ACTIONS
+ * never supplied one, so every button shipped as a bare word. Founder caught
+ * it on 2026-08-15: the reference gives each action a mark, and it should.
+ *
+ * The set now matches the reference's — Explain, Improve, Shorten, Tone,
+ * Grammar — rather than the near-miss it carried before (which had "Tighten",
+ * a second word for Shorten, and no Grammar at all).
+ *
+ * The glyphs are the reference's iconoir choices redrawn as inline SVG on the
+ * same 24-unit grid as every other icon in this system. `iconoir-react` is not
+ * a dependency here and adding a 1,500-icon package for five marks would be a
+ * poor trade; redrawing five paths is not.
+ */
 const DEFAULT_ACTIONS: SelectionAction[] = [
-  { key: "explain", label: "Explain" },
-  { key: "improve", label: "Improve" },
-  { key: "shorten", label: "Shorten", secondary: true },
-  { key: "tighten", label: "Tighten", secondary: true },
+  {
+    key: "explain",
+    label: "Explain",
+    /* A question inside a speech bubble: ask about this passage. */
+    icon: (
+      <Icon>
+        <path d="M21 12a8 8 0 0 1-8 8H5l-2 2V9a5 5 0 0 1 5-5h5a8 8 0 0 1 8 8z" />
+        <path d="M10.4 9.4a1.9 1.9 0 1 1 2.6 1.8c-.6.3-1 .8-1 1.5" />
+        <path d="M12 16.2h.01" />
+      </Icon>
+    ),
+  },
+  {
+    key: "improve",
+    label: "Improve",
+    /* A spark: make it better. The four-point star reads as "enhance" far more
+       clearly at 14px than a wand or a plus does. */
+    icon: (
+      <Icon>
+        <path d="M12 3l1.9 5.3L19 10l-5.1 1.7L12 17l-1.9-5.3L5 10l5.1-1.7z" />
+        <path d="M18.5 15.5l.7 1.9 1.8.6-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.6z" />
+      </Icon>
+    ),
+  },
+  {
+    key: "shorten",
+    label: "Shorten",
+    /* Scissors: cut it down. */
+    icon: (
+      <Icon>
+        <circle cx="6" cy="6" r="2.6" />
+        <circle cx="6" cy="18" r="2.6" />
+        <path d="M20 4L8.6 16.4M8.6 7.6L20 20" />
+      </Icon>
+    ),
+    secondary: true,
+  },
+  {
+    key: "tone",
+    label: "Tone",
+    /* A face: change how it reads, not what it says. */
+    icon: (
+      <Icon>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M8.5 14.5a4.5 4.5 0 0 0 7 0" />
+        <path d="M9 9.5h.01M15 9.5h.01" />
+      </Icon>
+    ),
+    secondary: true,
+  },
+  {
+    key: "grammar",
+    label: "Grammar",
+    /* Lines in a box: fix the writing itself. */
+    icon: (
+      <Icon>
+        <rect x="3" y="4.5" width="18" height="15" rx="2.5" />
+        <path d="M7 9.5h10M7 14.5h6" />
+      </Icon>
+    ),
+    secondary: true,
+  },
 ];
 
 function Icon({
@@ -241,15 +315,28 @@ export function SelectionActions({
             left: r.left,
             width: r.width,
             height: r.height,
-            background: working
-              ? "color-mix(in oklab, var(--mrd-agent) 20%, transparent)"
-              : "var(--mrd-hover)",
+            /*
+             * A SELECTION, NOT A HOVER. This used to paint `--mrd-hover`, a
+             * 4.5% whisper tuned to be almost imperceptible under a pointer,
+             * so the passage the whole toolbar acts on was the faintest thing
+             * on screen in both grounds. `--mrd-select` is its own token,
+             * solved per ground, and roughly four times stronger.
+             */
+            background: working ? "var(--mrd-select-agent)" : "var(--mrd-select)",
             transitionTimingFunction: "var(--mrd-ease)",
           }}
         />
       ))}
 
+      {/*
+       * `data-mrd` goes here rather than on the component root, because the
+       * root is a fragment and the spans above it are `aria-hidden` decoration
+       * with nothing focusable in them. Every control this component owns is
+       * inside this positioned wrapper, so this is the smallest element that
+       * still covers all of them.
+       */}
       <div
+        data-mrd=""
         className="absolute top-0 left-0 z-10"
         style={{
           transform: `translate3d(${anchor.x}px, ${anchor.y}px, 0) translateX(-50%)`,

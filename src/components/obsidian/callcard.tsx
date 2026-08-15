@@ -99,7 +99,7 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
         className={cn(
           "flex flex-col",
           clickable &&
-            "loom-press cursor-pointer outline-none transition-transform hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]",
+            "loom-press cursor-pointer outline-none transition-transform hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]",
           className,
         )}
         role={clickable ? "button" : undefined}
@@ -138,7 +138,7 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
               padding: "3px 10px",
             }}
           >
-            <MonoLabel tone="ember" style={{ }}>
+            <MonoLabel tone="ember" style={{}}>
               {compact ? "YOUR CALL" : kind}
             </MonoLabel>
           </span>

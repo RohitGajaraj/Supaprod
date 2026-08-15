@@ -378,7 +378,7 @@ export function PromptBar({
   );
 
   return (
-    <div className="w-full" style={maxWidth === undefined ? undefined : { maxWidth }}>
+    <div data-mrd="" className="w-full" style={maxWidth === undefined ? undefined : { maxWidth }}>
       {/* The composer is the anchor. Menus are measured off its edge. */}
       <div className="relative">
         {menu && (

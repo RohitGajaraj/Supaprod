@@ -36,9 +36,10 @@
  * must decide. So that line is the colour system.
  *
  *      ORCHID   a person is required. Your call, your approval, your attention.
- *               It is the same hue whether the reason is a decision or a
- *               warning, because to the reader those are one fact: this will
- *               not move until you touch it.
+ *               Touch it and it moves.
+ *      AMBER    stopped, and NOT on you. No source connected, a cap nearly
+ *               spent, an approval expiring, a dependency that has not
+ *               answered. It needs a CONDITION to change, not a decision.
  *      AZURE    a machine is working. It sits at lower chroma than orchid on
  *               purpose: an agent running is ambient, not urgent, and should
  *               never compete with the one thing asking for a person.
@@ -64,9 +65,18 @@
  * two meanings are separated by hue distance and by chroma, not by temperature,
  * and claiming otherwise would be describing a system we no longer have.
  *
- * NO YELLOW, MUSTARD, AMBER OR GOLD ANYWHERE IN THIS SYSTEM. Not as an accent,
- * not as a warning, not as a chart series, not as a hover. If a state seems to
- * need one, it needs structure instead.
+ * AMBER IS A STATUS AND NEVER AN ACCENT. Revised 2026-08-15; this block used to
+ * read "no yellow, mustard, amber or gold anywhere in this system", and that
+ * over-corrected. What the founder rejected on 2026-08-14 was a warm gold as
+ * the PRIMARY ACCENT — the hero colour a generated dashboard reaches for — and
+ * that rejection stands: nothing amber may be the accent, a CTA, a hero, a
+ * hover or a decoration.
+ *
+ * What the blanket ban cost was the ability to say "stopped, but not on you",
+ * which is the most common state in the product and had no voice at all. So
+ * amber is admitted for exactly that one meaning, at a chroma held below both
+ * orchid and green so it can never out-shout the hue that asks for a person.
+ * If a state seems to need a SIXTH colour, it needs structure instead.
  *
  * ORCHID IS SETTLED. Founder ruling, 2026-08-14, and it went the long way
  * round: gold was rejected, this hue was rejected after it on the objection
@@ -97,6 +107,36 @@
  * colour, and above the threshold where the screen reads as dead grey. Pure
  * #000 and #fff appear nowhere.
  */
+
+/*
+ * ── THE FACES ───────────────────────────────────────────────────────────
+ * Inter and JetBrains Mono, which is the pairing the reference ships. Both
+ * SIL OFL 1.1, both self-hosted: this repo makes no CDN font request, so a
+ * face has to live in `public/fonts/` to be usable. Licences and provenance
+ * sit beside the files in OFL-NOTE.txt.
+ *
+ * VARIABLE, single file per family. One 48KB request covers 100..900 rather
+ * than four static cuts, which matters because this app asks for 400, 500,
+ * 600 and 650 — and 650 does not exist as a static weight anywhere, so a
+ * static build would silently round it to 700.
+ *
+ * `font-display: swap` so text is never invisible while the face loads; the
+ * fallback stack is metric-adjacent enough that the swap does not jump.
+ */
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/inter/Inter-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains/JetBrainsMono-Variable.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   /* ── GROUND. The ladder every surface climbs, dark. ──────────────────── */
@@ -176,39 +216,173 @@
   --mrd-line: oklch(0.98 0.003 70 / 0.11); /* a real edge */
   --mrd-line-soft: oklch(0.98 0.003 70 / 0.055); /* a rule between sections */
   --mrd-edge: oklch(0.98 0.003 70 / 0.22); /* a field's own edge */
-  --mrd-edge-focus: oklch(0.98 0.003 70 / 0.45);
+  --mrd-edge-focus: oklch(0.98 0.003 70 / 0.45); /* a FIELD's edge while focused */
+
+  /*
+   * THE FOCUS RING, and it is its own token rather than a reuse of `edge-focus`.
+   *
+   * Those two look like the same idea and are not. `edge-focus` replaces a
+   * field's own 1px border, so it is read against that field's fill and only
+   * has to beat the resting border. A focus RING is drawn outside the element,
+   * against whatever surface happens to be behind it, and WCAG 2.2 asks it to
+   * clear 3:1 there. `edge-focus` measured 2.9:1 against paper, which is the
+   * kind of near-miss that passes a glance and fails a person.
+   *
+   * Deliberately a NEUTRAL, and this is the whole point of the change. Focus is
+   * not an outcome and it is not a call to act; it reports where the keyboard
+   * is. Spending orchid on it would fire the product's one accent on every tab
+   * press, which is how an accent stops meaning anything. See the note on
+   * `--ds-focus-color` in `src/styles.css` for what this replaces.
+   */
+  --mrd-focus: oklch(0.98 0.003 70 / 0.62);
   --mrd-hover: oklch(0.98 0.003 70 / 0.045);
+
+  /*
+   * ── A PASSAGE THE READER HAS PICKED ─────────────────────────────────────
+   * Its own token, because `--mrd-hover` was being used for this and hover is
+   * a 4.5% whisper designed to be barely perceptible under a pointer. A
+   * SELECTION is the opposite: it must be unmistakable, because everything the
+   * next control does happens to exactly these words. Founder, 2026-08-15:
+   * the highlight was "very lightly visible" in both grounds, and it was.
+   *
+   * The reference mixes its accent into the surface at 14%. Ours stays an
+   * alpha over whatever ground it lands on, so one component works on sheet,
+   * sink and float without knowing which it is sitting on.
+   */
+  --mrd-select: oklch(0.98 0.003 70 / 0.17);
+  /* Handed to a machine: the agent hue, so the words in flight are identifiable
+     without reading the toolbar underneath them. */
+  --mrd-select-agent: oklch(0.68 0.11 235 / 0.3);
   --mrd-scrim: oklch(0.09 0.005 70 / 0.62);
 
-  /* ── SEMANTIC. Four meanings, and no fifth. ──────────────────────────── */
+  /* ── SEMANTIC. Five meanings, and no sixth. ──────────────────────────── */
   --mrd-you: oklch(0.72 0.16 315); /* ORCHID: a person is required */
-  --mrd-you-dim: oklch(0.56 0.11 315); /* the same meaning, at rest */
+  --mrd-you-dim: oklch(0.6 0.13 315); /* the same meaning, at rest */
   --mrd-agent: oklch(0.68 0.11 235); /* AZURE: a machine is working */
-  --mrd-agent-dim: oklch(0.54 0.08 235);
+  --mrd-agent-dim: oklch(0.58 0.1 235);
   --mrd-pass: oklch(0.74 0.15 152); /* outcome: it worked */
   --mrd-fail: oklch(0.66 0.19 27); /* outcome: it did not */
+  --mrd-hold: oklch(0.79 0.125 78); /* AMBER: stopped, and not on you */
+  --mrd-hold-dim: oklch(0.62 0.095 78);
 
   /*
-   * There is deliberately no separate `warn`, and there is no amber to put it
-   * in even if there were. A warning and a "your call" are one fact to the
-   * reader: this does not move until you touch it. One hue, one meaning, no
-   * lookup table to memorise.
+   * ── DATA VISUALISATION, WHICH IS NOT THE STATUS PALETTE ───────────────
+   *
+   * Founder ruling 2026-08-15, and it resolves a tension this file had been
+   * losing. The five semantic hues answer "what does this MEAN": your call,
+   * a machine working, stopped, worked, failed. A chart series answers a
+   * different question — "which of these is which" — and that is CATEGORICAL,
+   * not status. Forcing categories through the status palette does two bad
+   * things at once: it caps you at five series, and it tells the reader that
+   * "Chocolate" is a status.
+   *
+   * These are beautifui.dev's own values, read off that page in both themes on
+   * 2026-08-15, and used deliberately rather than re-derived. The founder asked
+   * for the reference's orange by name and confirmed it reads well on both
+   * grounds; re-solving it in OKLCH would land somewhere near it and not be it.
+   * That is the one place in this file where a literal hex is correct: the
+   * point is fidelity to a specific palette, not a value of our own.
+   *
+   * THE ACCENT RULE IS UNCHANGED. This orange is for a chart series, a
+   * segmented bar, a sparkline — data. It is NEVER an interaction state, never
+   * a focus ring, never a CTA, and never "waiting on you". The thing the
+   * founder retired was ember-as-accent, and that stays retired.
    */
-
-  /* ── TYPE. A scale with real contrast, not twelve adjacent sizes. ────── */
-  --mrd-font: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --mrd-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --mrd-viz-1: #f68f3c; /* the dominant series */
+  --mrd-viz-2: #3d9aff;
+  --mrd-viz-3: #3dbb72;
+  --mrd-viz-4: #ee5c61;
 
   /*
-   * Ratio 1.25 between steps. The previous system carried twelve sizes inside
-   * a 10px span, which is not a hierarchy, it is a gradient: nothing announced
-   * itself because every step was within noise of its neighbour. Eight stops,
-   * each visibly not the one below it.
+   * ── THE FIFTH ROLE, ADDED 2026-08-15, AND WHY IT IS NOT A "WARNING" ────
+   *
+   * This file used to say there was no fifth meaning: a warning and a "your
+   * call" are one fact to the reader, so one hue covered both. That reasoning
+   * was sound about WARNINGS and it hid a different fact underneath, which the
+   * product knows everywhere and had no way to say.
+   *
+   * The three states a reader must tell apart:
+   *
+   *   ORCHID   stopped, and YOU are the thing it is waiting for. A gate, an
+   *            approval, a call that is yours. Touch it and it moves.
+   *   AMBER    stopped, and you are NOT the thing it is waiting for. No source
+   *            is connected, a cap is nearly spent, an approval expires in six
+   *            hours, a dependency has not answered. Touching it does nothing;
+   *            it needs a condition to change, not a decision.
+   *   RED      it already failed. Nothing is waiting at all.
+   *
+   * Collapsing the middle one into orchid is not a shade of wrong, it is the
+   * opposite instruction: it sends someone hunting for a button that does not
+   * exist. Production had 39 of 43 work items standing at the first station for
+   * want of a connected source — the single most common state in the whole
+   * workspace — and the system had no colour for it, so it rendered as grey
+   * body text indistinguishable from a label. That is most of why these
+   * surfaces read flat: the busiest fact on screen had no voice.
+   *
+   * WHY AMBER IS ALLOWED NOW. The founder rejected a warm gold as the PRIMARY
+   * ACCENT on 2026-08-14 — correctly, because a mustard hero colour is the
+   * reflex every generated dashboard reaches for. That ruling was about the
+   * accent, and this is not the accent: it is a status that appears on a chip,
+   * a dot and a rule, never on a hero. Chroma is held to 0.125, below orchid's
+   * 0.16 and pass's 0.15, so it reads as brass rather than as highlighter, and
+   * it can never out-shout the one hue that asks for a person.
+   *
+   * SIXTH MEANING: NO. Hue separation is what keeps these legible — 51 degrees
+   * at the tightest pair (fail to hold), 83 at the widest. A sixth lands inside
+   * 40 of a neighbour, which is where the commonest colour vision deficiencies
+   * start merging them. An "informational" hue in particular is a trap: it
+   * reads blue, and blue already means a machine is working. If something needs
+   * to be noticed and carries none of these five meanings, it needs STRUCTURE —
+   * a Notice, a rule, a heading — not a new colour.
    */
-  --mrd-t-micro: 11px; /* keycaps, stage numerals */
-  --mrd-t-data: 12px; /* mono: counts, durations, ids */
-  --mrd-t-base: 13px; /* the working size, dense by intent */
-  --mrd-t-lead: 16px; /* a lead line, a card's subject */
+
+  /*
+   * ── TYPE, RE-SOLVED FROM THE REFERENCE 2026-08-15 ─────────────────────
+   *
+   * Founder ruling: use beautifui.dev's typography, and use it across the
+   * whole app, because it "looks ultra premium and it looks light and it's
+   * not overpowering". These values are MEASURED off that page rather than
+   * eyeballed — every rendered text node was walked and its computed
+   * size/weight/leading/tracking tallied, so this is what the reference
+   * actually ships, not what its source appears to ask for.
+   *
+   * WHAT MAKES IT READ AS PREMIUM, in the order the effect actually sits:
+   *
+   *   1. TRACKING. Every single text node on that page carries -0.14px,
+   *      uniformly, at every size. This is the biggest and least obvious
+   *      difference: we had no tracking token at all. Slightly negative
+   *      tracking is what stops a UI face looking like a default, and
+   *      applying it UNIFORMLY rather than per-size is what stops it looking
+   *      fussy.
+   *   2. LEADING. 1.5 on essentially everything, against our 1.4. The extra
+   *      tenth is most of the "light, not overpowering" quality — it is air.
+   *   3. A DENSE SMALL LADDER. 10 / 10.5 / 11 / 11.5 / 12 / 12.5 / 13 / 14,
+   *      with 14 as the base rather than our 13.
+   *
+   * NOTE THIS REVERSES THIS FILE'S OWN EARLIER ARGUMENT, deliberately. The
+   * scale below used to be an eight-stop 1.25 ratio, justified by "twelve
+   * sizes inside a 10px span is a gradient, not a hierarchy". That reasoning
+   * is sound for HEADINGS and wrong for a dense working UI, and the reference
+   * demonstrates why: it runs eight stops inside a 4px span and still reads
+   * as hierarchy, because the hierarchy is carried by WEIGHT and COLOUR while
+   * size carries density. Half-pixel steps are not noise here; they are how a
+   * chip sits against a label against a value without anything shouting.
+   */
+  --mrd-font: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --mrd-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* The one that does the most work. Uniform, never per-size. */
+  --mrd-track: -0.14px;
+
+  --mrd-t-nano: 10px; /* uppercase micro-label, always at weight 650 */
+  --mrd-t-micro: 10.5px; /* keycaps, the quietest meta */
+  --mrd-t-tiny: 11px; /* mono counts, stage numerals */
+  --mrd-t-data: 11.5px; /* mono: durations, ids, figures */
+  --mrd-t-small: 12px; /* secondary UI text. the most used stop */
+  --mrd-t-label: 12.5px; /* labels and dense row text */
+  --mrd-t-base: 13px; /* a card's subject, a row's title */
+  --mrd-t-body: 14px; /* THE BASE. prose and anything read at length */
+  --mrd-t-lead: 17px; /* a figure worth reading before the words */
   --mrd-t-h3: 20px;
   --mrd-t-h2: 25px;
   --mrd-t-h1: 32px;
@@ -216,11 +390,13 @@
 
   --mrd-w-regular: 400;
   --mrd-w-medium: 500;
-  --mrd-w-semi: 590; /* Geist reads thin at 600; 590 holds at 13px */
+  --mrd-w-semi: 600; /* Inter holds 600 cleanly; Geist did not, hence the old 590 */
+  --mrd-w-micro: 650; /* the 10px uppercase label, and nothing else */
 
   --mrd-lh-tight: 1.15; /* headings */
-  --mrd-lh-snug: 1.4; /* UI rows */
-  --mrd-lh-prose: 1.65; /* reading */
+  --mrd-lh-snug: 1.5; /* UI rows. Was 1.4; the reference's air lives here */
+  --mrd-lh-prose: 1.625; /* reading */
+  --mrd-lh-mono: 1.7; /* mono needs more, and the reference gives it more */
   --mrd-measure: 68ch; /* prose only, never a table or a row */
 
   /* ── SPACE. Grows, so composition has rhythm. ────────────────────────── */
@@ -299,7 +475,12 @@
   --mrd-line-soft: oklch(0.28 0.012 70 / 0.07);
   --mrd-edge: oklch(0.28 0.012 70 / 0.26);
   --mrd-edge-focus: oklch(0.28 0.012 70 / 0.55);
+  --mrd-focus: oklch(0.28 0.012 70 / 0.78);
   --mrd-hover: oklch(0.28 0.012 70 / 0.04);
+  /* Paper needs a DARKER tint at a lower alpha: the same 0.17 white that
+     reads correctly on near-black is invisible on near-white. */
+  --mrd-select: oklch(0.28 0.012 70 / 0.13);
+  --mrd-select-agent: oklch(0.48 0.13 235 / 0.22);
   --mrd-scrim: oklch(0.3 0.012 70 / 0.35);
 
   /*
@@ -314,11 +495,36 @@
    * under AA, so it moved to 0.50. Every semantic clears 4.5 on both grounds.
    */
   --mrd-you: oklch(0.5 0.19 315);
-  --mrd-you-dim: oklch(0.63 0.13 315);
   --mrd-agent: oklch(0.48 0.13 235);
-  --mrd-agent-dim: oklch(0.61 0.09 235);
+
+  /*
+   * ── THE `-dim` STOPS, RE-SOLVED 2026-08-15 ────────────────────────────
+   * These are MARKS, not text: a chart line, a resting dot, a rule. WCAG's
+   * floor for a non-text object that carries meaning is 3:1, and on paper two
+   * of the three missed it — `you-dim` measured 2.65 against `float` and
+   * `hold-dim` 2.91. `you-dim` draws the FORECAST line on the trend chart, so
+   * the one line representing what a person believed was the least visible
+   * thing in the frame on the paper ground. Measured, not computed; see the
+   * note on the dark ramp for why this is read back off a canvas.
+   * Worst case now: you-dim 3.71, agent-dim 3.52, hold-dim 3.64.
+   */
+  --mrd-you-dim: oklch(0.55 0.15 315);
+  --mrd-agent-dim: oklch(0.56 0.11 235);
   --mrd-pass: oklch(0.5 0.14 152);
   --mrd-fail: oklch(0.52 0.19 27);
+  /* Amber is the hue that suffers most on paper: at the dark theme's lightness
+     it is unreadable on white, so this drops much further than its neighbours.
+     Measured, like the rest of this block — see the note on the dark ramp. */
+  --mrd-hold: oklch(0.52 0.12 78);
+  --mrd-hold-dim: oklch(0.56 0.11 78);
+
+  /* The reference's own light-theme data palette. Each is darker and more
+     saturated than its dark-theme twin, which is what keeps a 2px series
+     line readable on white — the same reason our semantic hues re-darken. */
+  --mrd-viz-1: #ef720c;
+  --mrd-viz-2: #0285ff;
+  --mrd-viz-3: #189a4d;
+  --mrd-viz-4: #e3474c;
 
   /* Shadows on paper are a warm brown at low opacity, never black. */
   --mrd-shadow-card: 0 1px 2px oklch(0.45 0.04 60 / 0.14);
@@ -351,7 +557,10 @@
   --color-mrd-line-soft: var(--mrd-line-soft);
   --color-mrd-edge: var(--mrd-edge);
   --color-mrd-edge-focus: var(--mrd-edge-focus);
+  --color-mrd-focus: var(--mrd-focus);
   --color-mrd-hover: var(--mrd-hover);
+  --color-mrd-select: var(--mrd-select);
+  --color-mrd-select-agent: var(--mrd-select-agent);
   --color-mrd-scrim: var(--mrd-scrim);
 
   /*
@@ -370,6 +579,16 @@
   --color-mrd-agent-dim: var(--mrd-agent-dim);
   --color-mrd-pass: var(--mrd-pass);
   --color-mrd-fail: var(--mrd-fail);
+  --color-mrd-hold: var(--mrd-hold);
+  --color-mrd-hold-dim: var(--mrd-hold-dim);
+
+  --color-mrd-viz-1: var(--mrd-viz-1);
+  --color-mrd-viz-2: var(--mrd-viz-2);
+  --color-mrd-viz-3: var(--mrd-viz-3);
+  --color-mrd-viz-4: var(--mrd-viz-4);
+
+  /* What sits ON a hold fill, for the same reason `on-you` exists. */
+  --color-mrd-on-hold: var(--mrd-bg);
 
   --radius-mrd-xs: var(--mrd-r-xs);
   --radius-mrd-chip: var(--mrd-r-chip);
@@ -531,4 +750,152 @@
   label[for] {
     cursor: pointer;
   }
+}
+
+/*
+ * ── TRACKING, APP-WIDE ──────────────────────────────────────────────────
+ *
+ * The reference sets -0.14px on every text node it renders, at every size,
+ * and it is the single largest reason that page reads as considered rather
+ * than as a default. Set once on `html` and inherited, because that is what
+ * "uniform" means — a per-component tracking token would drift within a
+ * release and is the exact fussiness this avoids.
+ *
+ * UNLAYERED, so it survives the legacy stylesheets. Anything that genuinely
+ * needs different tracking (the pixel face at the auth door, a display
+ * heading with its own optical setting) still wins by being explicit.
+ *
+ * `body` IS LISTED SEPARATELY AND HAS TO BE. Setting this on `html` alone did
+ * nothing: an existing `@layer base` rule declares `body { letter-spacing: 0 }`,
+ * which does not just fail to inherit — it RESETS the whole document tree,
+ * because everything else inherits from body rather than from html. Verified in
+ * the browser, where html reported -0.14px and body reported normal.
+ *
+ * A LENGTH, NOT AN EM. -0.14px stays -0.14px at 10px and at 40px; `-0.01em`
+ * would scale, which is the wrong behaviour — large type needs proportionally
+ * LESS tightening, not the same amount, and a fixed length approximates that
+ * far better than an em does.
+ */
+html,
+body {
+  letter-spacing: var(--mrd-track);
+}
+
+/*
+ * ── FOCUS. One treatment, owned here, and the reason it is owned here ────
+ *
+ * WHAT WAS WRONG. Every Meridian component already asked for a neutral focus
+ * outline in its own class names, and not one of them got it. The authenticated
+ * app mounts `[data-obsidian]` on <html>, and `src/styles.css` carries an
+ * UNLAYERED `[data-obsidian] :focus-visible` rule. Unlayered CSS beats every
+ * layer regardless of specificity, and Tailwind emits utilities into its own
+ * `utilities` layer, so `focus-visible:outline-[var(--mrd-edge-focus)]` could
+ * not win no matter what colour it named. That rule painted `--focus-ring`,
+ * which resolved to the ember accent. So the accent fired on every tab press,
+ * every click into a field, every selected row — which is exactly the report:
+ * an ember highlight whenever anyone touched anything.
+ *
+ * The token is fixed at source (`--ds-focus-color` is no longer ember), so the
+ * app-wide floor is now a status-free blue. Meridian goes one further and
+ * spends NO hue: focus is a position report, not a meaning.
+ *
+ * WHY THE ATTRIBUTE IS WRITTEN TWICE. `[data-obsidian] :focus-visible` scores
+ * (0,2,0). A single `[data-mrd] :focus-visible` ties it, and ties resolve by
+ * source order — this file is @imported at the TOP of styles.css, so a tie
+ * LOSES. Repeating the attribute scores (0,3,0) and wins outright, without
+ * hard-coding an assumption about where `[data-obsidian]` is mounted or whether
+ * it is mounted at all. It is a deliberate specificity bump, not a typo.
+ *
+ * WHY A DATA ATTRIBUTE RATHER THAN THE ROUTE. Every Meridian component root
+ * carries `data-mrd`, so a component keeps its own focus treatment wherever it
+ * is dropped, including onto a legacy surface during the migration. That is the
+ * whole point: the system travels with the part, not with the page.
+ */
+[data-mrd][data-mrd] :focus-visible,
+[data-mrd][data-mrd]:focus-visible {
+  outline: 2px solid var(--mrd-focus);
+  outline-offset: 1px;
+  box-shadow: none;
+}
+
+/*
+ * ── A TEXT FIELD DOES NOT GET A FOCUS BOX ───────────────────────────────
+ *
+ * Founder, 2026-08-15: "a user wants to enter or type anything in the text
+ * field, there is a box appearing on the border lines — why is that box even
+ * required". It is not, and the reference agrees: beautifui.dev's composer
+ * moves its border one step, from `line` to `line-strong`, and draws nothing
+ * else.
+ *
+ * The reasoning, because this is a rule and not a preference. A focus ring
+ * exists to answer "where is the keyboard". A text field answers that twice
+ * already, and better than a ring can: a CARET IS BLINKING IN IT, which no
+ * other control has, and its border has stepped up. A third answer drawn
+ * around the outside is not reinforcement, it is a box appearing for no
+ * reason — and at 2px offset by 1px it visibly doubles the field's edge.
+ *
+ * SCOPED TO TEXT ENTRY ONLY. Buttons, links, rows, checkboxes and radios keep
+ * their ring, because none of them has a caret and the ring is the only thing
+ * telling a keyboard user where they are. Removing it there would be an
+ * accessibility regression; removing it here is the removal of a duplicate.
+ *
+ * The `:not()` clauses are carrying specificity, not filtering much: they take
+ * this to (0,3,1), which is what it needs to beat the unlayered
+ * `[data-obsidian] :focus-visible` at (0,2,0). They also correctly exclude
+ * checkbox and radio, which are `input` but have no caret.
+ */
+input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+textarea:not([readonly]):not([disabled]):focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/*
+ * The inset variant, for a control inside a clipping or scrolling container.
+ * An outset ring on a grid row is sheared off by the container's own overflow,
+ * which reads as a broken half-drawn edge rather than as focus. Carried as a
+ * class because it is a property of where the control SITS, which the component
+ * knows and the system cannot.
+ */
+[data-mrd][data-mrd] .mrd-focus-inset:focus-visible {
+  outline-offset: -2px;
+}
+
+/*
+ * The legacy alias chain, neutralised at the Meridian boundary. `--focus-ring`
+ * and friends are read by `src/styles.css`, `ink.css` and `primitives.css`, and
+ * custom properties resolve at the nearest ancestor — so redefining them here
+ * means any legacy-styled child that survives inside a Meridian surface during
+ * the migration also stops glowing. `--shadow-focus` is dropped to none because
+ * Meridian draws a ring, never a bloom.
+ */
+[data-mrd] {
+  --focus-ring: var(--mrd-focus);
+  --focus-blue: var(--mrd-focus);
+  --form-focus: var(--mrd-focus);
+  --ring: var(--mrd-focus);
+  --sidebar-ring: var(--mrd-focus);
+  --ds-focus-color: var(--mrd-focus);
+  --ds-focus-ring-outline: 2px solid var(--mrd-focus);
+  --ds-focus-ring: 0 0 0 2px var(--mrd-focus);
+  --shadow-focus: none;
+
+  /*
+   * The two the browser paints without asking anyone. `accent-color` drives a
+   * native checkbox, radio and range; left alone it is the UA blue, which is a
+   * fifth hue nobody chose. `caret-color` follows the text, not the accent.
+   */
+  accent-color: var(--mrd-body);
+  caret-color: var(--mrd-ink);
+}
+
+[data-mrd] ::selection {
+  background-color: oklch(0.98 0.003 70 / 0.18);
+  color: var(--mrd-ink);
+}
+
+[data-theme="light"] [data-mrd] ::selection,
+[data-mrd][data-theme="light"] ::selection {
+  background-color: oklch(0.28 0.012 70 / 0.16);
+  color: var(--mrd-ink);
 }

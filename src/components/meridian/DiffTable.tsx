@@ -59,6 +59,33 @@ const RESOLVED_NOTE: Record<Exclude<DiffStatus, "proposed">, string> = {
 };
 
 /*
+ * ── HOW A CELL HANDLES A VALUE TOO LONG FOR IT ──────────────────────────
+ *
+ * Every text cell in this table clamps to two lines. Three shapes were
+ * available and only this one is right for the content:
+ *
+ *   wrap freely   what the table did in column one, because that cell carried
+ *                 no rule at all. A real supplier name then took four lines and
+ *                 the row grew to match, so a table of five edits scrolled. It
+ *                 also broke the tag pill's alignment, since the pill sits at a
+ *                 fixed height beside a cell that no longer is.
+ *   one line      what the other columns did. Safe, and it hides too much: the
+ *                 values here are the whole point of a diff, and a name ellipsed
+ *                 at "Northfield Creamery Suppl…" is a name the reader has to
+ *                 hover to read, on every single row.
+ *   two lines     enough for essentially every real value to land in full, and
+ *                 a hard ceiling so a pathological one cannot grow the row.
+ *
+ * `break-words` is the part that is easy to leave out and the part that makes
+ * it hold: without it a single unbroken token — a URL, a slug, an id — refuses
+ * to break anywhere, so it overflows the cell horizontally no matter what the
+ * line clamp says. The clamp bounds height; only this bounds width.
+ *
+ * Every clamped cell also carries `title`, so nothing is ever unreachable.
+ */
+const CLAMP = "line-clamp-2 break-words";
+
+/*
  * A wash derived from the outcome token rather than a token of its own.
  * Meridian carries no tint pair, and inventing one would put two sources of
  * truth on the same hue: the next time `--mrd-fail` is tuned, a hand mixed
@@ -123,7 +150,7 @@ export function DiffTable({
   const addedRows = rows.filter((r) => r.change === "added");
 
   return (
-    <div className="w-full max-w-95 font-mrd">
+    <div data-mrd="" className="w-full max-w-95 font-mrd">
       <div
         className="relative overflow-hidden rounded-mrd-card bg-mrd-sheet"
         style={{ boxShadow: "var(--mrd-shadow-card)" }}
@@ -162,7 +189,11 @@ export function DiffTable({
             <thead>
               <tr className="border-b border-mrd-line">
                 {columns.map((h) => (
-                  <th key={h} className="px-2.5 py-1.5 text-[12px] font-medium text-mrd-mute">
+                  <th
+                    key={h}
+                    title={h}
+                    className="truncate px-2.5 py-1.5 text-[12px] font-medium whitespace-nowrap text-mrd-mute"
+                  >
                     {h}
                   </th>
                 ))}
@@ -181,13 +212,22 @@ export function DiffTable({
                       const value = row.cells[i] ?? "";
                       if (i === tagColumn) {
                         return (
-                          <td key={i} className="px-2.5 py-1.5">
+                          <td key={i} className="px-2.5 py-1.5 align-top">
                             {value && (
                               <span
-                                className="inline-flex h-5.5 items-center rounded-full border border-mrd-line bg-mrd-sink px-2 text-[11px] font-medium text-mrd-body transition-opacity duration-[400ms]"
+                                title={value}
+                                className="inline-flex h-5.5 max-w-full items-center rounded-full border border-mrd-line bg-mrd-sink px-2 text-[11px] font-medium text-mrd-body transition-opacity duration-[400ms]"
                                 style={{ opacity: out ? 0.55 : 1 }}
                               >
-                                {value}
+                                {/*
+                                 * The pill is a FIXED HEIGHT, so its label can
+                                 * never be allowed to wrap: a two-word supplier
+                                 * name inside `h-5.5` pushes its second line
+                                 * straight out through the bottom of the
+                                 * capsule. One line, ellipsed, full value on
+                                 * hover and in the accessible name.
+                                 */}
+                                <span className="min-w-0 truncate">{value}</span>
                               </span>
                             )}
                           </td>
@@ -197,19 +237,21 @@ export function DiffTable({
                         return (
                           <td
                             key={i}
-                            className="px-2.5 py-1.5 text-[13px] font-medium tabular-nums transition-colors duration-[400ms]"
+                            title={value}
+                            className="px-2.5 py-1.5 align-top text-[13px] font-medium tabular-nums transition-colors duration-[400ms]"
                             style={{
                               color: out ? "var(--mrd-fail)" : "var(--mrd-ink)",
                             }}
                           >
-                            {value}
+                            <span className={CLAMP}>{value}</span>
                           </td>
                         );
                       }
                       return (
                         <td
                           key={i}
-                          className="truncate px-2.5 py-1.5 text-[12px] whitespace-nowrap transition-colors duration-[400ms]"
+                          title={value}
+                          className="px-2.5 py-1.5 align-top text-[12px] transition-colors duration-[400ms]"
                           style={{
                             color: out ? "var(--mrd-fail)" : "var(--mrd-body)",
                             textDecorationLine: out ? "line-through" : "none",
@@ -217,7 +259,7 @@ export function DiffTable({
                               "color-mix(in oklab, var(--mrd-fail) 50%, transparent)",
                           }}
                         >
-                          {value}
+                          <span className={CLAMP}>{value}</span>
                         </td>
                       );
                     })}
@@ -246,17 +288,34 @@ export function DiffTable({
                         {addedRows.map((row) => (
                           <div
                             key={row.id}
-                            className="grid items-center border-t border-mrd-line"
+                            className="grid items-start border-t border-mrd-line"
                             style={{ gridTemplateColumns: grid }}
                           >
+                            {/*
+                             * `min-w-0` on every one of these, and it is the
+                             * defect that hid the longest. These are GRID
+                             * items, and a grid item's default `min-width` is
+                             * `auto`, which means it refuses to shrink below
+                             * its own content. So `truncate` here was inert:
+                             * the ellipsis never fired, the track grew past its
+                             * percentage instead, and a long added value pushed
+                             * the whole added-row block wider than the table it
+                             * is supposed to line up with — which is what put
+                             * the added columns out of register with the header
+                             * above them. The rule is the same one that governs
+                             * the source rows in StreamingText.
+                             */}
                             {columns.map((_, i) => {
                               const value = row.cells[i] ?? "";
                               if (i === tagColumn) {
                                 return (
-                                  <span key={i} className="px-2.5 py-1.5">
+                                  <span key={i} className="min-w-0 px-2.5 py-1.5">
                                     {value && (
-                                      <span className="inline-flex h-5.5 items-center rounded-full border border-mrd-line bg-mrd-sheet px-2 text-[11px] font-medium text-mrd-body">
-                                        {value}
+                                      <span
+                                        title={value}
+                                        className="inline-flex h-5.5 max-w-full items-center rounded-full border border-mrd-line bg-mrd-sheet px-2 text-[11px] font-medium text-mrd-body"
+                                      >
+                                        <span className="min-w-0 truncate">{value}</span>
                                       </span>
                                     )}
                                   </span>
@@ -265,7 +324,8 @@ export function DiffTable({
                               return (
                                 <span
                                   key={i}
-                                  className={`truncate px-2.5 py-1.5 text-mrd-pass ${
+                                  title={value}
+                                  className={`min-w-0 px-2.5 py-1.5 text-mrd-pass ${CLAMP} ${
                                     i === 0 ? "text-[13px] font-medium tabular-nums" : "text-[12px]"
                                   }`}
                                 >
