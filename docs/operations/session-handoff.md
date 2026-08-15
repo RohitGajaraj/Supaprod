@@ -1077,3 +1077,139 @@ the promotion bar that is mathematically unreachable (#5).
 pattern is wrong in both directions and it is what hid the product's largest gap.
 `artifact_lineage` now carries a `seeded` column; use it. Other tables still need
 the same treatment.
+
+---
+
+# 🎨 MERIDIAN LANE (lane-1), 2026-08-16 — the design system became mechanical, and started being adopted
+
+**Merged to `main` as a fast-forward at `da900d63`. 36 commits. tsc clean, 9299 pass / 0 fail
+across 556 files, verified on the REBASED tree and not on the lane's own.**
+
+## The reframe that governs everything below
+
+The founder corrected the job mid-session and the correction is the important part:
+**this is a REVAMP, not a MIGRATION.** Renaming `Button` to `Action` in a file that still
+dumps three metrics into a card moves zero distance. His words: *"across all our surfaces we
+are just dumping data and showing some metrics and some cards. It's not at all right."*
+
+Sequencing follows from it: **one pass per surface** (decide what belongs, then build it from
+the right components), never a mechanical rename pass followed by a UX pass.
+
+## Two instruments now exist. Run them.
+
+```bash
+bun run design:adoption    # how much of Meridian the PRODUCT uses. 15/27 today.
+bun test                   # the ratchet lives here, not in a hook
+```
+
+`design:adoption` answers the question the ratchet cannot. The ratchet counts retired
+vocabulary and only moves down; it can reach ZERO while the system is still unadopted,
+because deleting a `--sp-` token and reaching for a Meridian component are different acts.
+
+**When measured: eleven of Meridian's components were used in the gallery and NOWHERE in the
+product** — Chat, PromptBar, StreamingText, ToolChips, ContextCards, InsightCards,
+RecommendationCard, DiffTable, FineTuneCard, SelectionActions, SidebarNav. Precisely the ones
+that carry an experience rather than a paint. `REFERENCE-PATTERNS.md` names the destination
+surface for each and marks every row "ported"; not one destination imports it. **The founder's
+complaint is a documented plan that stopped at the gallery.**
+
+## What was built IN the design system (do this first, always)
+
+- **`meridian/rows.tsx`** — `Row`, `Line`, `Who`. A rebuild, not a move: their classes live in
+  the retired `primitives.css`. The measured density survives (`Line` is `py-[11px]` +
+  `leading-[1.4]` because 46.9px landed in a band the research says appears nowhere).
+- **`meridian/forms.tsx`** — `Field`, `Input`, `Textarea`, `Checkbox`, `Choices`. **Every form
+  in Settings, Boundary and governance/ was on the retired layer because there was nowhere to
+  port to.** `Choices` declares its mode: `one` is a radiogroup (ONE tab stop, arrow keys),
+  `any` is independent toggles keeping Tab. The ARIA differs; the decoration does not.
+- **`--mrd-field` / `--mrd-field-focus`** — solved for, not chosen. `--mrd-edge` is *named*
+  "a field's own edge" and measures **1.79:1 dark / 1.65:1 paper** against the 3:1 WCAG 1.4.11
+  asks. It was NOT raised: 14 files spend it on spinner rings, chart strokes and gridlines, and
+  a gridline at 3:1 shouts. New pair measures 3.05 at rest and 5.36 focused, both grounds.
+
+**beautifui.dev has NO form primitives.** It documents nineteen components and not one is an
+input, textarea, checkbox, select or field label; its inputs live only inside purposeful
+components. That is a position, not a gap — so the form mechanics were ported from the
+reference's own inputs, which this repo already carries at parity (Chat's composer, FineTune's
+sunken track and raised thumb).
+
+## The worst defect found, and how it was found
+
+Measuring the **rendered** `/today` returned this as an `<h2 class="sp-gate-q">` — 19px, the
+size reserved for *"the gate question, biggest thing on a surface"*:
+
+> **"Runs the tool with the agent's arguments."**
+
+59 registered tools, 36 catalogued, **6 gated ones falling through** to a generic default:
+revising a decision, revising a spec, moving a roadmap commitment, reverting a merged release,
+spawning sub-agents, crawling a site. Every one already had a written label.
+
+**This was the SECOND time this defect appeared, one file away.** `every-tool-can-be-named.test.ts`
+records the first (`ACTION_LABEL`: ten entries against 59 tools, so six of seven stations said
+"working"). That guard covers naming and could not see the consequences map, so the identical
+shape — sparse lookup behind a generic fallback — recurred next door. **A sparse map fails
+silently and looks finished.** Now guarded, scoped to gated tools, and the guard was verified
+by breaking it.
+
+## Read this before trusting any analysis in this lane
+
+Four parallel agents produced excellent surface-by-surface maps. **Three of their specific
+claims were wrong and only reading the code found it:**
+
+- `Diffstat` + `unit="files"` was called a drop-in by TWO independent agents. It is not:
+  `unit` reaches only the `aria-label`, so a sighted reader still sees `+2 −3`, which means
+  lines. **Agreement between agents is not evidence.**
+- `RunBoard`'s `aria-expanded={false}` was reported as a hard-coded lie. It is not — there are
+  two buttons in a ternary, each correctly paired.
+- "Replace `RunGate` with `StalledWork`" would have destroyed the surface's focal decision. A
+  gate is a decision with one primary action; a list is a list. `/approvals` runs BOTH, and
+  that pattern was copied instead.
+
+Also corrected, from me: I claimed the shell not using Meridian's `SidebarNav` proved
+non-adoption. **Wrong** — the shell rail is a functional superset (keycaps, the `g` chord,
+route ownership, a four-control foot). The gap runs the other way: port SidebarNav's animated
+selection and value-keyed count badge INTO `shell.css`.
+
+## What is next, ranked, verified, and NOT blocked
+
+1. **`ContextCards` on Decide's evidence recess** (`decide.tsx:2234-2254`) — `.slice(0,4)`
+   becomes a counted cap with a way past it. ~25 lines, all data present.
+2. **`StalledWork` on Build's "Stopped"** (`build.index.tsx:543-550`) — **67 halted missions
+   render age-blind today.** Near drop-in.
+3. **`StalledWork` on Today's "Stuck"** (`today.tsx:1101-1126`) — same defect, front door.
+4. **`ToolChips` + `ContextCards` in `AskRunCard.tsx:194-224`** — the card holds a full ordered
+   tool trail and shows ONE verb; holds N memories and shows TWO, uncounted. Every field is
+   already fetched. Highest visible change available.
+5. **`ToolChips` + `ContextCards` in `MissionOrchestratorDetail.tsx:531-582`** — same mapping,
+   and it retires ~76 units of ratchet debt, more than any other single file.
+6. **`Search` + facet chips on the connector catalog** (`AccountConnectionsSection.tsx:700-777`).
+7. **Adopt `meridian/forms` across Settings, Boundary and governance/** — now unblocked.
+
+## Meridian gaps found, each already built TWICE in the codebase (the system's own bar)
+
+- **A code diff.** `studio/CodeDiff.tsx` is the product's only real one, has two callers
+  already, and sits on 29 retired `sp-` references. `DiffTable` is a RECORD-SET diff and cannot
+  do this job — the brief's premise that they overlap is wrong.
+- **`status` on `ToolChipRow`** (`"ok" | "failed" | "denied"`). Without it, adopting ToolChips on
+  the run ledger DELETES the failed/denied register, which law 1 forbids.
+- **A bulk row-selection bar.** `SelectionActions` is a TEXT-selection prose toolbar, not this.
+  Three surfaces still import `SelectionBar` from the retired layer for want of it.
+- **`TaskRows` needs `onOpen`** — it has only `onRetry`, and every list in this product navigates.
+- **`RecommendationCard`'s `Confidence` meter is not exported**, so `decide.tsx` draws the same
+  number through `VerdictBadge`, which cannot tell `null` from a low score.
+- **`Gate`, `Receipt`, `AgentMark`, `Choices`-as-segmented** each exist twice already.
+
+## Rules this lane re-learned the hard way
+
+- **Verify on the merged tree.** This lane was 0 fail on its own and **1 fail after rebasing
+  onto main** — the ratchet caught `governance/AutomationBoundary.tsx`, a file ANOTHER lane
+  added on the retired layer. It was fixable only because `Row` and `Line` had been built hours
+  earlier.
+- **Suspect the instrument.** Two false readings were chased before any number was believed: a
+  contrast of 18.94:1 for a 0.36-alpha border (a probe that forgot to composite over its
+  ground), and `stepUp: 1` claiming focus did nothing (a same-task style-recalc artifact —
+  `matches(":focus")` was true while `getComputedStyle` still held the old value).
+- **A guard that cannot fail is worthless.** Every guard added here was verified by breaking it.
+- **Point a new guard at something you believe is clean.** The ratchet's first version reported
+  `/today` as clean while that surface was built entirely from retired components. Closing that
+  hole added 91 invisible files and moved the honest total from 2,283 to 2,460.
