@@ -22,6 +22,8 @@ import { hubspotAdapter } from "./hubspot.server";
 import { salesforceAdapter } from "./salesforce.server";
 import { cannyAdapter } from "./canny.server";
 import { productboardAdapter } from "./productboard.server";
+import { figmaAdapter } from "./figma.server";
+import { jiraAdapter } from "./jira.server";
 import {
   linearAdapter,
   notionAdapter,
@@ -55,8 +57,10 @@ export const CONNECTOR_ADAPTERS: Record<ProviderId, ConnectorAdapter> = {
   microsoft_outlook: stubAdapter,
   gmail: stubAdapter,
   microsoft_mail: stubAdapter,
-  figma: stubAdapter,
-  jira: stubAdapter,
+  // Real since 2026-08-15. Both write a `connections` row, so both are reachable
+  // from the Verify control, and both were telling a good connection it had failed.
+  figma: figmaAdapter,
+  jira: jiraAdapter,
   firecrawl: stubAdapter,
 };
 
