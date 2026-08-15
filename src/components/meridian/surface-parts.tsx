@@ -541,7 +541,7 @@ export function Picker({ className = "", ...rest }: React.SelectHTMLAttributes<H
     <select
       {...rest}
       data-mrd=""
-      className={`h-8 max-w-full rounded-mrd-ctl border border-mrd-edge bg-mrd-lift px-2 text-[12.5px] text-mrd-ink transition-colors disabled:cursor-default disabled:opacity-45 ${className}`}
+      className={`h-8 max-w-full rounded-mrd-ctl border border-mrd-field bg-mrd-lift px-2 text-[12.5px] text-mrd-ink transition-colors disabled:cursor-default disabled:opacity-45 ${className}`}
       style={{ transitionDuration: "var(--mrd-d-press)" }}
     />
   );
@@ -590,7 +590,7 @@ export function Toggle({
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full border transition-colors disabled:opacity-45 ${
         busy ? "disabled:cursor-wait" : "disabled:cursor-default"
-      } ${checked ? "border-transparent bg-mrd-solid" : "border-mrd-edge bg-mrd-lift"}`}
+      } ${checked ? "border-transparent bg-mrd-solid" : "border-mrd-field bg-mrd-lift"}`}
       style={{
         transitionDuration: "var(--mrd-d-press)",
         boxShadow: checked ? "inset 0 1px 0 var(--mrd-sheen)" : undefined,

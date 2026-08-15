@@ -625,7 +625,7 @@ export function Field({
  * declare the border step and stay out of its way.
  */
 const FIELD_FACE =
-  "w-full rounded-mrd-ctl border border-mrd-edge bg-mrd-sink px-mrd-4 py-mrd-3 text-[13px] text-mrd-ink transition-colors placeholder:text-mrd-faint focus-visible:border-mrd-edge-focus disabled:cursor-default disabled:opacity-45";
+  "w-full rounded-mrd-ctl border border-mrd-field bg-mrd-sink px-mrd-4 py-mrd-3 text-[13px] text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-field-focus disabled:cursor-default disabled:opacity-45";
 
 /** NAMED `Textarea` DELIBERATELY. See this file's header: the keycap guard reads
  *  every `<Textarea` opening tag on the two runs routes and asserts that none of

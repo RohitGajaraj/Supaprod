@@ -254,8 +254,55 @@
   /* ── STRUCTURE. Edges carry alpha so they sit on any ground. ─────────── */
   --mrd-line: oklch(0.98 0.003 70 / 0.11); /* a real edge */
   --mrd-line-soft: oklch(0.98 0.003 70 / 0.055); /* a rule between sections */
-  --mrd-edge: oklch(0.98 0.003 70 / 0.22); /* a field's own edge */
-  --mrd-edge-focus: oklch(0.98 0.003 70 / 0.45); /* a FIELD's edge while focused */
+  --mrd-edge: oklch(0.98 0.003 70 / 0.22); /* a drawn edge: chip, rule, ring */
+
+  /*
+   * ── A FORM CONTROL'S BOUNDARY, MEASURED RATHER THAN CHOSEN ──────────────
+   * Added 2026-08-16, and the reason is a number. WCAG 1.4.11 asks 3:1 of a
+   * UI component's boundary, and a field's border is the ONLY thing that says
+   * a control is there: the fill and the page are two shades of one near-black.
+   *
+   * Measured through a canvas, both grounds, against every ground a field can
+   * sit on (sink, lift, bg, sheet), worst case:
+   *
+   *              dark    paper
+   *   line       1.25    1.30      far under
+   *   edge       1.79    1.65      UNDER, and it was named "a field's own edge"
+   *   field      3.05    3.05      clears
+   *
+   * So every Meridian field shipped so far -- `Picker`, and the three
+   * hand-rolled copies in ArtifactsView, EngineChrome and run-parts -- rests on
+   * a boundary that does not meet the bar. `--mrd-edge` is not raised to fix it,
+   * because 14 files spend it on spinner rings, chart strokes, blockquote rules
+   * and a text-decoration colour, and a gridline at 3:1 shouts.
+   *
+   * The retired ink system reached the same conclusion and built `--sp-field-edge`
+   * for it. This is that token, re-measured on this palette.
+   */
+  --mrd-field: oklch(0.98 0.003 70 / 0.36); /* a form control at rest: 3.05:1 */
+
+  /*
+   * FOCUS MUST STEP UP, AND THAT IS THE OTHER HALF OF THE DEFECT.
+   * ink.css records what happens when it does not: once the resting edge was
+   * raised to clear 3:1, the old focus colour was LIGHTER than rest on paper,
+   * so focusing a field made its border RECEDE. A focus indicator that gets
+   * quieter on focus is worse than one that never changed.
+   *
+   * 0.52 measures 5.29:1 against 3.05 at rest -- a step of about 1.7x on both
+   * grounds, which is visible without being a second ring. It replaces the old
+   * `--mrd-edge-focus` (0.45 / 0.55), which two components had already measured
+   * at 2.9:1 on paper and written down.
+   *
+   * THERE IS NO RING ON A FIELD. It answers "where is the keyboard" twice
+   * already: a caret is blinking in it and its border has stepped up. Buttons,
+   * links and rows keep their ring, because they have no caret.
+   */
+  --mrd-field-focus: oklch(0.98 0.003 70 / 0.52); /* a form control focused: 5.29:1 */
+
+  /* DEPRECATED, and kept only so a stray caller cannot break while it moves.
+   * Every consumer in this repo was migrated in the same commit that added the
+   * pair above. Delete this line once nothing outside src/ reads it. */
+  --mrd-edge-focus: var(--mrd-field-focus);
 
   /*
    * THE FOCUS RING, and it is its own token rather than a reuse of `edge-focus`.
@@ -588,7 +635,12 @@
   --mrd-line: oklch(0.28 0.012 70 / 0.14);
   --mrd-line-soft: oklch(0.28 0.012 70 / 0.07);
   --mrd-edge: oklch(0.28 0.012 70 / 0.26);
-  --mrd-edge-focus: oklch(0.28 0.012 70 / 0.55);
+  /* Paper needs a higher alpha for the same ratio: the ground is brighter, so a
+   * dark ink at 0.36 measures 2.07:1 here against 3.05:1 on the dark ground.
+   * Solved for, not carried across: 0.52 -> 3.05:1, 0.70 -> 5.01:1. */
+  --mrd-field: oklch(0.28 0.012 70 / 0.52);
+  --mrd-field-focus: oklch(0.28 0.012 70 / 0.7);
+  --mrd-edge-focus: var(--mrd-field-focus);
   --mrd-focus: oklch(0.28 0.012 70 / 0.78);
   --mrd-hover: oklch(0.28 0.012 70 / 0.04);
   /* Paper needs a DARKER tint at a lower alpha: the same 0.17 white that
@@ -698,6 +750,8 @@
   --color-mrd-line: var(--mrd-line);
   --color-mrd-line-soft: var(--mrd-line-soft);
   --color-mrd-edge: var(--mrd-edge);
+  --color-mrd-field: var(--mrd-field);
+  --color-mrd-field-focus: var(--mrd-field-focus);
   --color-mrd-edge-focus: var(--mrd-edge-focus);
   --color-mrd-focus: var(--mrd-focus);
   --color-mrd-hover: var(--mrd-hover);

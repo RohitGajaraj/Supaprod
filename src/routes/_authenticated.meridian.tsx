@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { ApprovalCard, type ApprovalQuestion } from "@/components/meridian/ApprovalCard";
@@ -37,6 +37,7 @@ import {
 import { TaskRows, type Task } from "@/components/meridian/TaskRows";
 import { Thinking, type ThinkingRow } from "@/components/meridian/Thinking";
 import { ToolChips, type ToolChipDiff, type ToolChipRow } from "@/components/meridian/ToolChips";
+import { Field, Input, Textarea, Checkbox, Choices } from "@/components/meridian/forms";
 
 /*
  * THE MERIDIAN GALLERY, at /meridian.
@@ -1137,6 +1138,142 @@ function SelectionCase({ phase, error }: { phase: SelectionPhase; error?: string
   );
 }
 
+/* ------------------------------------------------------------------ *
+ * Forms: the vocabulary Settings, Boundary and governance had nowhere
+ * to port to. Stateful so the states are real rather than described.
+ * ------------------------------------------------------------------ */
+
+function FormsDemo() {
+  /* The gallery renders every panel TWICE, once per ground, so a hard-coded
+     id appears twice in one document and every `htmlFor` binds to whichever
+     copy parses first. That is the exact defect `Field` exists to prevent,
+     so the demo may not commit it. `useId` is per instance. */
+  const uid = useId();
+  const [name, setName] = useState("Homeowner platform");
+  const [why, setWhy] = useState(
+    "Cap the weekly spend so a runaway loop stops before it costs a month.",
+  );
+  const [ticked, setTicked] = useState(true);
+  const [some, setSome] = useState(false);
+  const [lens, setLens] = useState<"now" | "next" | "later">("next");
+  const [reach, setReach] = useState<Array<"email" | "slack" | "inapp">>(["slack"]);
+
+  const flip = (id: "email" | "slack" | "inapp") =>
+    setReach((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-start gap-6">
+        <Case label="Field and input">
+          <div className="w-[280px]">
+            <Field label="Workspace name" htmlFor={`${uid}-name`}>
+              <Input
+                id={`${uid}-name`}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Name this workspace"
+              />
+            </Field>
+          </div>
+        </Case>
+        <Case label="With a hint, and disabled">
+          <div className="flex w-[280px] flex-col gap-4">
+            <Field
+              label="Weekly ceiling"
+              hint="Dollars. A run that would cross it stops and asks."
+              htmlFor={`${uid}-cap`}
+            >
+              <Input id={`${uid}-cap`} defaultValue="250.00" inputMode="decimal" />
+            </Field>
+            <Field
+              label="Owner"
+              hint="Only the workspace owner can change this."
+              htmlFor={`${uid}-owner`}
+            >
+              <Input id={`${uid}-owner`} defaultValue="rohit@supaprod.ai" disabled />
+            </Field>
+          </div>
+        </Case>
+        <Case label="Textarea">
+          <div className="w-[300px]">
+            <Field label="Why this boundary exists" htmlFor={`${uid}-why`}>
+              <Textarea
+                id={`${uid}-why`}
+                value={why}
+                onChange={(e) => setWhy(e.target.value)}
+                rows={3}
+              />
+            </Field>
+          </div>
+        </Case>
+      </div>
+
+      <div className="flex flex-wrap items-start gap-6">
+        <Case label="Checkbox, three states">
+          <div className="flex flex-col gap-3 text-[13px] text-mrd-body">
+            <label className="flex cursor-pointer items-center gap-2.5">
+              <Checkbox
+                id={`${uid}-c1`}
+                checked={ticked}
+                onChange={setTicked}
+                label="Ask before an agent merges"
+              />
+              <span>Ask before an agent merges</span>
+            </label>
+            <label className="flex cursor-pointer items-center gap-2.5">
+              <Checkbox
+                id={`${uid}-c2`}
+                checked={some}
+                onChange={setSome}
+                label="Select all rows"
+                indeterminate={!some}
+              />
+              <span>Select all rows {!some ? "(some picked)" : ""}</span>
+            </label>
+            <label className="flex items-center gap-2.5 opacity-60">
+              <Checkbox
+                checked={false}
+                onChange={noop}
+                label="Locked by the workspace owner"
+                disabled
+              />
+              <span>Locked by the workspace owner</span>
+            </label>
+          </div>
+        </Case>
+
+        <Case label="Choices: one of">
+          <Choices
+            mode="one"
+            label="Where this sits on the roadmap"
+            options={[
+              { id: "now", label: "Now" },
+              { id: "next", label: "Next" },
+              { id: "later", label: "Later" },
+            ]}
+            value={lens}
+            onChange={setLens}
+          />
+        </Case>
+
+        <Case label="Choices: any of">
+          <Choices
+            mode="any"
+            label="Where an approval reaches you"
+            options={[
+              { id: "email", label: "Email" },
+              { id: "slack", label: "Slack" },
+              { id: "inapp", label: "In app", title: "The bell in the header" },
+            ]}
+            value={reach}
+            onChange={flip}
+          />
+        </Case>
+      </div>
+    </div>
+  );
+}
+
 function MeridianGallery() {
   return (
     /*
@@ -1835,6 +1972,15 @@ function MeridianGallery() {
                 />
               </Case>
             </div>
+          </Pair>
+        </Panel>
+
+        <Panel
+          title="Forms: field, input, textarea, checkbox, choices"
+          note="The vocabulary every settings surface in the product was missing. beautifui.dev documents nineteen components and not one is a form control, so these are ported from the reference's own inputs instead: the Chat composer's sunken ground and stepping border, and Fine-tune's sunken track carrying a raised thumb. A field is a recess you fill, not a slab you press. Click into a text control and watch the border STEP UP rather than gain a ring, because a caret already answers where the keyboard is. The resting border is a measured token, not a chosen one: --mrd-edge reads 1.79:1 on dark and 1.65:1 on paper against the 3:1 a UI boundary owes, so --mrd-field was solved for at 3.05:1 both grounds and focus at 5.29. The two Choices modes differ in ARIA and keyboard, not decoration: one of is a radiogroup with a single tab stop and arrow keys, any of is independent toggles that keep Tab. Tab into each and try the arrows."
+        >
+          <Pair>
+            <FormsDemo />
           </Pair>
         </Panel>
       </div>

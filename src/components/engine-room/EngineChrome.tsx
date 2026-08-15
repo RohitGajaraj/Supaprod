@@ -150,7 +150,7 @@ export function TextInput({
   return (
     <input
       {...rest}
-      className={`h-8 rounded-mrd-ctl border border-mrd-edge bg-mrd-sink px-2.5 text-[12.5px] text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-edge-focus ${className}`}
+      className={`h-8 rounded-mrd-ctl border border-mrd-field bg-mrd-sink px-2.5 text-[12.5px] text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-field-focus ${className}`}
       style={{ transitionDuration: "var(--mrd-d-press)" }}
     />
   );

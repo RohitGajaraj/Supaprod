@@ -353,7 +353,7 @@ function NameField({
         autoFocus={autoFocus}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}
-        className="h-8 w-full max-w-[46ch] rounded-mrd-ctl border border-mrd-edge bg-mrd-sink px-2.5 text-[13px] text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-edge-focus"
+        className="h-8 w-full max-w-[46ch] rounded-mrd-ctl border border-mrd-field bg-mrd-sink px-2.5 text-[13px] text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-field-focus"
         style={{ transitionDuration: "var(--mrd-d-press)" }}
       />
     </label>
