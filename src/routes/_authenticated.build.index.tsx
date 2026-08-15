@@ -375,11 +375,20 @@ function BuildEngine() {
     // COLOURED, BUT STILL PLAIN WORDS, and the distinction is the whole point.
     // Founder ruling 2026-08-01 puts green and red on every diff number so it is
     // evident at a glance, and these counts get it. What they do NOT get is
-    // `Diffstat`'s "+2 −0" shape, for the two reasons this row already recorded
-    // and which the colour ruling does not touch: the shape reads as LINES to
-    // anyone who has used a diff and these are FILES, and "−0" renders a zero as
-    // if it were a fact. So the colour comes, the pill and the fake zero stay
-    // away. Only the non-zero side is drawn at all.
+    // `Diffstat`'s "+2 −3" shape, because THE SHAPE READS AS LINES to anyone who
+    // has used a diff, and these are FILES.
+    //
+    // RE-EXAMINED 2026-08-16 and the refusal holds, but only half of it. This
+    // note used to give a second reason -- that "−0" renders a zero as if it
+    // were a fact -- and Meridian's `Diffstat` now guards exactly that
+    // ("A ZERO SIDE IS NOT DRAWN", surface-parts.tsx), so that half is dead and
+    // is removed rather than left to be re-argued.
+    //
+    // The surviving reason is not answered by `unit`, which is the obvious
+    // rebuttal and does not work: `unit` reaches only the `aria-label`, so a
+    // sighted reader still sees "+2 −3" whatever it is set to. Until the glyphs
+    // themselves can say files, words are the honest shape here.
+    // Only the non-zero side is drawn at all.
     if (item.added > 0) {
       parts.push(
         <span className="sp-pass">

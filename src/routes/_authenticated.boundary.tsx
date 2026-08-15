@@ -97,9 +97,9 @@ import {
   PageHead,
   Receipt,
   Row,
-  Surface,
   Value,
 } from "@/components/shell/primitives";
+import { Surface } from "@/components/meridian/Surface";
 
 /** How many tools a block shows before it counts the rest. A boundary is read,
  *  not browsed, and forty rows in one block is a settings page again. */
