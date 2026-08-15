@@ -132,8 +132,9 @@ import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { stageHueForStation } from "./agent-glyphs";
 import { MarkStack } from "./primitives";
+import { StationGlyph, type StationGlyphKind } from "@/components/meridian/station-glyphs";
 import { RunStripProvider, STAGE_LABEL, STATION_ROUTE, type RunStripSpec } from "./run-strip";
-import { agentDisplayName, agentStation } from "@/lib/agent-vocabulary";
+import { agentDisplayName, agentStation, type AgentStation } from "@/lib/agent-vocabulary";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { supabase } from "@/integrations/supabase/client";
 import { listMissions } from "@/lib/missions.functions";
@@ -239,6 +240,34 @@ const THREADS_PATHS: readonly string[] = ["/threads"];
  * only doors to stages. That confusion has a history here: it is what put
  * Build's engine at /runs and left the real one unbuilt.
  */
+/*
+ * ── STATION ID -> ITS MARK ──────────────────────────────────────────────
+ *
+ * The internal ids are NOT the words on screen, and this is the seam where
+ * that bites. `sense` is displayed as Discover and `define` as Plan — founder
+ * ruling 2026-08-01, which changed the display names and deliberately kept the
+ * ids stable so no migration was needed. Meridian's glyph set is named after
+ * what a reader calls the station, because it is a generic design system and
+ * has never heard of `sense`.
+ *
+ * EXPLICIT, NOT DERIVED FROM THE LABEL. Lowercasing `STAGE_LABEL` would work
+ * today and would silently break the first time somebody improves a label —
+ * copy changes, and a drawing should not vanish because a word did.
+ *
+ * `Record<AgentStation, …>` rather than a partial map, so adding an eighth
+ * station to the vocabulary fails the build HERE until somebody draws it,
+ * instead of shipping one chip with an empty corner.
+ */
+const STATION_MARK: Record<AgentStation, StationGlyphKind> = {
+  sense: "discover",
+  decide: "decide",
+  define: "plan",
+  design: "design",
+  build: "build",
+  ship: "ship",
+  learn: "learn",
+};
+
 const RAIL = [
   {
     to: "/today",
@@ -1272,14 +1301,37 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                     the glance that does not read. It is aria-hidden for the
                     same reason: a screen reader gets "2 waiting on you" and
                     does not need "dot" after it. */}
-                  {stage.state === "gate" || stage.state === "working" ? (
-                    <span
-                      className="sp-stage-dot"
-                      data-kind={stage.state}
-                      data-moving={moving ? "true" : "false"}
-                      aria-hidden="true"
-                    />
-                  ) : null}
+                  {/*
+                    THE STATION'S OWN MARK, in the corner that was empty.
+                    Founder, 2026-08-15: there is dead space at the top right of
+                    every chip and nothing says which station this is except the
+                    word. The mark is the same drawing Meridian's rail uses for
+                    the same station — imported, not redrawn, so the two can
+                    never disagree about what Discover looks like.
+
+                    IDENTITY BY SHAPE, NOT BY HUE. He also asked whether each
+                    station could take its own colour. It cannot: colour in this
+                    product means STATUS, and seven categorical hues would leave
+                    a reader unable to tell "Plan is amber because it is Plan"
+                    from "Plan is amber because something is stuck there". Seven
+                    silhouettes separate better than seven hues at 13px anyway,
+                    and they survive a colour vision deficiency that the hues
+                    would not.
+                  */}
+                  <span className="sp-stage-mark">
+                    {stage.state === "gate" ||
+                    stage.state === "working" ||
+                    stage.state === "held" ||
+                    stage.state === "failed" ? (
+                      <span
+                        className="sp-stage-dot"
+                        data-kind={stage.state}
+                        data-moving={moving ? "true" : "false"}
+                        aria-hidden="true"
+                      />
+                    ) : null}
+                    <StationGlyph kind={STATION_MARK[stage.station]} size={12} />
+                  </span>
                 </button>
               );
             })}

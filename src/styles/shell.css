@@ -728,17 +728,43 @@
  * them without opening anything, which is what was asked for) and exactly one
  * of them moves. AppFrame picks it, because it is the only place that can see
  * all seven at once. */
-.sp-stage-dot {
+/* THE CORNER, 2026-08-15. The station's own mark lives here, with its status
+ * dot to the left of it when there is one. Absolutely positioned as one unit so
+ * the chip's three-line rhythm is untouched: adding a mark must not add height
+ * to permanent chrome. The mark is quiet by default — it is identity, not news
+ * — and lifts with the chip when the chip is the one you are standing on. */
+.sp-stage-mark {
   position: absolute;
   top: 2px;
   right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--sp-faint, var(--sp-mute));
+  transition: color var(--dur-fast, 140ms) var(--ease-out, ease);
+}
+.sp-stage[data-on="true"] .sp-stage-mark,
+.sp-stage:hover .sp-stage-mark {
+  color: var(--sp-mute);
+}
+.sp-stage-dot {
   width: 6px;
   height: 6px;
+  flex: none;
   border-radius: 50%;
   background: var(--sp-hue, var(--sp-stage-build));
 }
 .sp-stage-dot[data-kind="gate"] {
   background: var(--sp-gate);
+}
+/* The two states added with the strip's own vocabulary on 2026-08-15. Amber is
+ * "stopped, and not on you"; red is an outcome. Both had no dot at all, so the
+ * glance that does not read the note could not see them. */
+.sp-stage-dot[data-kind="held"] {
+  background: var(--mrd-hold);
+}
+.sp-stage-dot[data-kind="failed"] {
+  background: var(--sp-fail);
 }
 /* A slow breathe, not a strobe: this sits in permanent chrome that a person
  * reads all day, so it has to be catchable in peripheral vision without ever

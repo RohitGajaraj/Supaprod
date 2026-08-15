@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { StationGlyph, type StationGlyphKind } from "./station-glyphs";
 import type { ReactNode } from "react";
 
 /*
@@ -51,7 +52,9 @@ import type { ReactNode } from "react";
  * orchid dot in a corner says nothing out loud.
  */
 
-export type RailIconKind = "discover" | "decide" | "plan" | "design" | "build" | "ship" | "learn";
+/* One vocabulary for the seven marks, defined beside the drawings themselves so
+ * a station cannot be added to the type without a glyph existing for it. */
+export type RailIconKind = StationGlyphKind;
 
 export type RailItem = {
   key: string;
@@ -101,57 +104,13 @@ const STATIONS: RailItem[] = [
   { key: "learn", label: "Learn", section: "Loop", icon: "learn" },
 ];
 
-const GLYPHS: Record<RailIconKind, ReactNode> = {
-  discover: (
-    <g>
-      <circle cx="12" cy="12" r="2" />
-      <path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 15.5a5 5 0 0 0 0-7" />
-      <path d="M5.5 5.5a9 9 0 0 0 0 13M18.5 18.5a9 9 0 0 0 0-13" />
-    </g>
-  ),
-  decide: (
-    <g>
-      <path d="M12 21v-9" />
-      <path d="M12 12L6 4M12 12l6-8" />
-    </g>
-  ),
-  plan: <path d="M4 6h16M4 12h10M4 18h13" />,
-  design: (
-    <g>
-      <rect x="3" y="3" width="18" height="18" rx="2.5" />
-      <path d="M3 9.5h18M9.5 21V9.5" />
-    </g>
-  ),
-  build: <path d="M8 8l-4 4 4 4M16 8l4 4-4 4M14 4l-4 16" />,
-  ship: (
-    <g>
-      <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
-      <path d="M12 3v12M8 7l4-4 4 4" />
-    </g>
-  ),
-  learn: (
-    <g>
-      <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1" />
-      <path d="M20.5 3.5v5h-5" />
-    </g>
-  ),
-};
-
+/*
+ * The seven station marks now live in `station-glyphs.tsx`, because the app
+ * shell's horizontal strip draws the same seven and two copies of one drawing
+ * drift. See the note in that file.
+ */
 function Icon({ kind }: { kind: RailIconKind }) {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      {GLYPHS[kind]}
-    </svg>
-  );
+  return <StationGlyph kind={kind} />;
 }
 
 /*

@@ -219,14 +219,14 @@
   --sp-icon-sm: 15px;
 
   /* ---- Radius ---- */
-  --sp-radius-xs: 4px; /* keycap */
+  --sp-radius-xs: var(--mrd-r-xs); /* keycap */
   --sp-radius-sm: 5px; /* diffstat cell */
-  --sp-radius-chip: 7px; /* chips, run chip, agent mark */
+  --sp-radius-chip: var(--mrd-r-chip); /* chips, run chip, agent mark */
   --sp-radius-ctl: 8px; /* buttons, inputs, live line */
-  --sp-radius-row: 9px; /* nav rows, list rows */
+  --sp-radius-row: var(--mrd-r-ctl); /* nav rows, list rows */
   --sp-radius-card: 10px; /* agent card, ask composer */
-  --sp-radius-panel: 12px; /* record recess, gate detail */
-  --sp-radius-pane: 16px; /* floating panes */
+  --sp-radius-panel: var(--mrd-r-card); /* record recess, gate detail */
+  --sp-radius-pane: var(--mrd-r-pane); /* floating panes */
 
   /* ---- Motion ----
    * Motion confirms, it never performs. The prototype carried ten
@@ -262,10 +262,10 @@
   --sp-stage-learn: #a89f66;
 
   /* ---- Outcomes and gates ---- never on an agent mark */
-  --sp-pass: #4fc47a;
-  --sp-fail: #ef6a5f;
+  --sp-pass: var(--mrd-pass);
+  --sp-fail: var(--mrd-fail);
   --sp-warn: #e8b44c;
-  --sp-gate: oklch(0.72 0.16 315); /* orchid. marks the human, and nothing else */
+  --sp-gate: var(--mrd-you); /* orchid. marks the human, and nothing else */
 
   /* ---- Magnitude: the score ramp and the movement pair ----
    *
@@ -306,11 +306,11 @@
   /* ---- Surfaces (dark: the design target) ----
    * prototype: --bg --sheet --lift --sink --float
    * Never #000 or #fff; every neutral is tinted. */
-  --sp-bg: #0b0b0d; /* the canvas */
-  --sp-sheet: #111114; /* header, rail: the chrome that frames work */
-  --sp-lift: #17171b; /* a raised control */
-  --sp-sink: #0d0d10; /* a recess: the record, the gate detail */
-  --sp-float: #1c1c21; /* something genuinely floating */
+  --sp-bg: var(--mrd-bg); /* the canvas */
+  --sp-sheet: var(--mrd-sheet); /* header, rail: the chrome that frames work */
+  --sp-lift: var(--mrd-lift); /* a raised control */
+  --sp-sink: var(--mrd-sink); /* a recess: the record, the gate detail */
+  --sp-float: var(--mrd-float); /* something genuinely floating */
 
   /* ---- The one solid control ----
    * THE PRIMARY BUTTON NEEDS A FACE, and the two obvious candidates were both
@@ -329,18 +329,18 @@
    * Each theme moves AWAY from its own canvas: lighter on the dark target,
    * inked on paper. Same rule, opposite direction, which is how the rest of
    * this file already behaves. */
-  --sp-solid: #2b2b34; /* the primary button's face */
-  --sp-solid-hover: #35353f;
-  --sp-solid-ink: #f4f4f7; /* what is written on it */
-  --sp-solid-edge: rgba(255, 255, 255, 0.18);
+  --sp-solid: var(--mrd-solid); /* the primary button's face */
+  --sp-solid-hover: var(--mrd-solid-hover);
+  --sp-solid-ink: var(--mrd-on-solid); /* what is written on it */
+  --sp-solid-edge: var(--mrd-sheen);
 
   /* ---- Text ramp ---- prototype: --ink --body --mute */
-  --sp-ink: #f4f4f7; /* the thing itself */
-  --sp-body: #b4b4bd; /* supporting prose */
-  --sp-mute: #8e8e99; /* labels, metadata, quiet state */
+  --sp-ink: var(--mrd-ink); /* the thing itself */
+  --sp-body: var(--mrd-body); /* supporting prose */
+  --sp-mute: var(--mrd-mute); /* labels, metadata, quiet state */
 
   /* ---- Structure ---- prototype: --line --line2 --hover */
-  --sp-line: rgba(255, 255, 255, 0.1); /* a real edge */
+  --sp-line: var(--mrd-line); /* a real edge */
   /* A FIELD EDGE THAT CAN BE SEEN, which --sp-line cannot be.
    *
    * WCAG 1.4.11 asks 3:1 for the boundary of a control when the boundary is the
@@ -578,25 +578,24 @@
  * comes from elevation, not from a hard value gap. Low chroma
  * throughout is the line between paper stock and a beige template. */
 [data-theme="light"] {
-  --sp-bg: #efe9dc;
-  --sp-sheet: #faf6ed;
-  --sp-lift: #f4efe3;
-  --sp-sink: #e8e1d0;
-  --sp-float: #fffdf7;
+  /*
+   * ── THE PAPER OVERRIDES ARE GONE, 2026-08-15 ─────────────────────────
+   * Every token this block used to restate — bg, sheet, lift, sink, float,
+   * solid and its three companions, ink, body, mute, line, pass, fail, gate —
+   * now resolves through `var(--mrd-*)` in the root block above, and Meridian
+   * redefines those under THIS EXACT SELECTOR. So the paper values were being
+   * written twice, and the second copy could only ever drift away from the
+   * first.
+   *
+   * What remains below is what Meridian does not carry: the warm parchment
+   * washes, the grid and star fields, the stage hues and the shadow recipes
+   * that belong to this layer alone and die with it.
+   */
 
   /* Paper's furthest step is DOWN, not up: the emphatic control on a sheet is
    * the inked one. A shade softer than --sp-ink so the button is not the same
    * value as the headline above it, and it darkens toward full ink on hover. */
-  --sp-solid: #3b3227;
-  --sp-solid-hover: #2b2318;
-  --sp-solid-ink: #faf6ed;
-  --sp-solid-edge: rgba(20, 14, 5, 0.28);
 
-  --sp-ink: #2b2318;
-  --sp-body: #5f5647;
-  --sp-mute: #8a8071;
-
-  --sp-line: rgba(70, 55, 30, 0.13);
   /* The same rule on paper: warm, so it belongs to this theme's family rather
    * than reading as a grey imported from the dark one. */
   --sp-field-edge: #7a6f5d;
@@ -622,10 +621,7 @@
   --sp-stage-ship: #8a5060;
   --sp-stage-learn: #756d33;
 
-  --sp-pass: #2a7648;
-  --sp-fail: #af3b31;
   --sp-warn: #8f6a26;
-  --sp-gate: oklch(0.5 0.19 315);
 
   /* ---- Paper values for the 2026-08-10 additions ----
    * Only the tokens that RESOLVE TO A COLOUR appear here. The ring geometry,
