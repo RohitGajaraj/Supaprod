@@ -245,26 +245,29 @@ import { Surface } from "@/components/shell/primitives";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import {
   Actor,
-  Acts,
   Button,
   Commit,
   ContextLine,
   ContextNote,
-  Delta,
-  Door,
-  Figure,
-  NothingYet,
   PersonMark,
-  Reading,
-  ReadFailed,
-  Region,
   RunGate,
-  RunHead,
   RunMark,
   RunRow,
   Textarea,
   type RunMarkState,
 } from "@/components/runs/run-parts";
+import {
+  Actions,
+  Approve,
+  Diffstat,
+  Door,
+  Figure,
+  NothingYet,
+  PageHeading,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
 import { Tabs, TabPanel } from "@/components/runs/Tabs";
 import { actorName, actorSlug, actorVerb } from "@/components/runs/run-state";
 
@@ -1241,15 +1244,15 @@ function BuildRun() {
       <ContextNote head="What you asked for">
         {mission.goal}
         {spec ? (
-          <Acts>
+          <Actions className="mt-mrd-4">
             <Button
-              variant="ghost"
+              variant="quiet"
               title={spec.title}
               onClick={() => navigate({ to: "/plan/spec/$id", params: { id: spec.id } })}
             >
               Open the spec
             </Button>
-          </Acts>
+          </Actions>
         ) : null}
       </ContextNote>
 
@@ -1263,10 +1266,10 @@ function BuildRun() {
   if (session.isError) {
     return (
       <Surface>
-        <RunHead title="This run did not load." />
-        <ReadFailed onRetry={() => void session.refetch()}>
+        <PageHeading title="This run did not load." />
+        <ReadFailedLine onRetry={() => void session.refetch()}>
           {clip((session.error as Error)?.message ?? "", 200)}
-        </ReadFailed>
+        </ReadFailedLine>
       </Surface>
     );
   }
@@ -1281,7 +1284,7 @@ function BuildRun() {
             elapsed timer and its own header reserves it for work that genuinely
             takes seconds, which a row read is not. */}
         <div className="flex flex-col gap-mrd-4">
-          <RunHead title="Reading the record." />
+          <PageHeading title="Reading the record." />
           <Reading />
         </div>
       </Surface>
@@ -1307,7 +1310,7 @@ function BuildRun() {
           stylesheets. Meridian's ramp grows, so the gap between regions is a
           larger step than anything inside one. */}
       <div className="flex flex-col gap-mrd-6">
-        <RunHead title={title} sub={sub} />
+        <PageHeading title={title} sub={sub} />
 
         {call ? (
           <RunGate
@@ -1315,21 +1318,21 @@ function BuildRun() {
             question={gateQuestion(call.tool_name)}
             lines={gateLines(call, holder)}
           >
-            <Button
+            <Approve
               /* THE ACCENT ARRIVES ON THE CONTROL THAT ACTUALLY RELEASES THE RUN,
                and this is the only place on either runs surface it does.
                `decideApproval` executes the gated call and `resumeAgentLoop`
                carries on from there, so pressing this IS the pending human
-               decision rather than a navigation dressed as one. Same rule
-               Approvals' GateAction sets for the same act. */
-              variant="settle"
+               decision rather than a navigation dressed as one. It is a
+               different COMPONENT rather than a variant, which is what stops
+               the accent from being one string away on every other control. */
               disabled={busy}
               onClick={() =>
                 decide.mutate({ id: call.id, tool: call.tool_name, decision: "approve" })
               }
             >
               {approveVerb(call.tool_name)}
-            </Button>
+            </Approve>
             <Button
               disabled={busy}
               onClick={() =>
@@ -1472,7 +1475,7 @@ function BuildRun() {
                     aria-label="What it should do next"
                     onChange={(e) => setNote(e.target.value)}
                   />
-                  <Acts>
+                  <Actions className="mt-mrd-4">
                     <Button
                       variant={call ? "default" : "primary"}
                       // The same glyph the runs board and the spec surface draw,
@@ -1487,7 +1490,7 @@ function BuildRun() {
                     >
                       Send the note
                     </Button>
-                  </Acts>
+                  </Actions>
                 </div>
               )}
               {steers.map((s) => (
@@ -1534,7 +1537,7 @@ function BuildRun() {
                 <>
                   {diff.files > 0 ? (
                     <>
-                      <Delta added={diff.added} removed={diff.removed} /> lines across{" "}
+                      <Diffstat added={diff.added} removed={diff.removed} /> lines across{" "}
                       <Figure>{diff.files}</Figure> {diff.files === 1 ? "file" : "files"}.{" "}
                     </>
                   ) : null}
@@ -1604,11 +1607,11 @@ function BuildRun() {
                           <>
                             {showAll ? ledger : ledger.slice(0, VISIBLE)}
                             {ledger.length > VISIBLE || hasThoughts ? (
-                              <Acts>
+                              <Actions className="mt-mrd-4">
                                 <Door onClick={() => setShowAll((v) => !v)}>
                                   {showAll ? "Just what it did" : "Everything it did and said"}
                                 </Door>
-                              </Acts>
+                              </Actions>
                             ) : null}
                           </>
                         )}
@@ -1647,21 +1650,23 @@ export const Route = createFileRoute("/_authenticated/runs/$missionId")({
     const missing = message === "Session not found";
     return (
       <Surface>
-        <RunHead title={missing ? "There is no run at this address." : "This run did not load."} />
+        <PageHeading
+          title={missing ? "There is no run at this address." : "This run did not load."}
+        />
         {missing ? (
           <>
             <NothingYet>
               It was deleted, or it belongs to another workspace. What it decided and learned stays
               in the record.
             </NothingYet>
-            <Acts>
+            <Actions className="mt-mrd-4">
               <Button variant="primary" onClick={reset}>
                 Try again
               </Button>
-            </Acts>
+            </Actions>
           </>
         ) : (
-          <ReadFailed onRetry={reset}>{clip(message, 200)}</ReadFailed>
+          <ReadFailedLine onRetry={reset}>{clip(message, 200)}</ReadFailedLine>
         )}
       </Surface>
     );

@@ -25,7 +25,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getBillingState } from "@/lib/billing.functions";
 import { FREE_MEMORY_RETENTION_DAYS } from "@/lib/entitlements";
-import { Figure } from "@/components/brain/record-parts";
+import { Figure } from "@/components/meridian/surface-parts";
 
 export function RetentionLine() {
   const f = useServerFn(getBillingState);

@@ -176,17 +176,16 @@ import { updateDoc, deleteDoc } from "@/lib/docs.functions";
 import { useConfirm } from "@/hooks/use-confirm";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { RecordsTable, RecordTag, type RecordColumn } from "@/components/meridian/RecordsTable";
+import { CrewMark, RecordLine } from "@/components/brain/record-parts";
 import {
-  Act,
-  Acts,
-  CrewMark,
+  Action,
+  Actions,
   Figure,
   NothingYet,
-  ReadFailed,
+  ReadFailedLine,
   Reading,
-  RecordLine,
   Region,
-} from "@/components/brain/record-parts";
+} from "@/components/meridian/surface-parts";
 
 /**
  * Said once, on the group heading, instead of on a chip on every row.
@@ -657,10 +656,10 @@ export function ArtifactsView() {
               stranger may not carry -- the heading avoids it deliberately and the
               error arm was reaching for it one line below. */}
           {q.isError ? (
-            <ReadFailed onRetry={() => void q.refetch()}>
+            <ReadFailedLine onRetry={() => void q.refetch()}>
               The shelf did not load, so this is not a claim that your crew has made nothing.{" "}
               {(q.error as Error).message}
-            </ReadFailed>
+            </ReadFailedLine>
           ) : null}
 
           {q.isLoading ? <Reading>Reading the shelf.</Reading> : null}
@@ -775,9 +774,9 @@ export function ArtifactsView() {
             }
             action={
               lineage.isError ? (
-                <Act variant="quiet" onClick={() => void lineage.refetch()}>
+                <Action variant="quiet" onClick={() => void lineage.refetch()}>
                   Try again
-                </Act>
+                </Action>
               ) : undefined
             }
           />
@@ -799,34 +798,35 @@ export function ArtifactsView() {
                   }}
                 />
               </div>
-              <Acts>
-                <Act
+              <Actions className="mt-mrd-4">
+                <Action
                   variant="primary"
                   disabled={!draft.trim() || draft.trim() === focused.name || busy}
                   onClick={() => rename.mutate({ a: focused, name: draft.trim() })}
                 >
                   Save the name
-                </Act>
-                <Act variant="quiet" onClick={() => setDraft(null)}>
+                </Action>
+                <Action variant="quiet" onClick={() => setDraft(null)}>
                   Cancel
-                </Act>
-              </Acts>
+                </Action>
+              </Actions>
             </>
           ) : (
-            <Acts
+            <Actions
+              className="mt-mrd-4"
               trailing={
-                <Act variant="quiet" disabled={busy} onClick={() => void onDelete(focused)}>
+                <Action variant="quiet" disabled={busy} onClick={() => void onDelete(focused)}>
                   Delete
-                </Act>
+                </Action>
               }
             >
-              <Act variant="primary" onClick={() => window.location.assign(focused.href)}>
+              <Action variant="primary" onClick={() => window.location.assign(focused.href)}>
                 Open
-              </Act>
-              <Act disabled={busy} onClick={() => setDraft(focused.name)}>
+              </Action>
+              <Action disabled={busy} onClick={() => setDraft(focused.name)}>
                 Rename
-              </Act>
-            </Acts>
+              </Action>
+            </Actions>
           )}
         </Region>
       ) : null}
@@ -843,9 +843,9 @@ export function ArtifactsView() {
           ) : lineage.isLoading ? (
             <Reading>Reading the record.</Reading>
           ) : lineage.isError ? (
-            <ReadFailed onRetry={() => void lineage.refetch()}>
+            <ReadFailedLine onRetry={() => void lineage.refetch()}>
               Could not read what came out of this one.
-            </ReadFailed>
+            </ReadFailedLine>
           ) : descendants.length === 0 ? (
             <NothingYet>Nothing has been made from this one yet.</NothingYet>
           ) : (

@@ -131,18 +131,20 @@ import {
   Button,
   Cards,
   Fact,
-  Figure,
-  NothingYet,
   PersonMark,
-  Reading,
-  ReadFailed,
   Recess,
-  Region,
   RunCard,
   RunMark,
   RunRow,
   Stat,
 } from "@/components/runs/run-parts";
+import {
+  Figure,
+  NothingYet,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
 
 /* ------------------------------------------------------------------ *
  * Formatting. Local on purpose, the same reason the run surface keeps
@@ -843,7 +845,7 @@ export function StagePanel({
   if (error) {
     return (
       <Region title={label}>
-        <ReadFailed onRetry={onRetry}>{error}</ReadFailed>
+        <ReadFailedLine onRetry={onRetry}>{error}</ReadFailedLine>
       </Region>
     );
   }

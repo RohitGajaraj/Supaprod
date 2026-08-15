@@ -49,17 +49,16 @@ import { useQuery } from "@tanstack/react-query";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { getStandingRecord, type StandingRule } from "@/lib/brain-standing.functions";
+import { CrewMark, RecordLine } from "@/components/brain/record-parts";
 import {
-  Act,
-  Acts,
-  CrewMark,
+  Action,
+  Actions,
   Figure,
   NothingYet,
-  ReadFailed,
+  ReadFailedLine,
   Reading,
-  RecordLine,
   Region,
-} from "@/components/brain/record-parts";
+} from "@/components/meridian/surface-parts";
 
 /** Anti-scroll: three rules, then a click. The full set is never a wall. */
 const VISIBLE_RULES = 3;
@@ -138,10 +137,10 @@ export function StandingRules() {
             that read successfully and found nothing, and on THIS region that
             mistaken reading is "the record tells the crew nothing". Naming what
             did not load is what stops a dead read being heard as a verdict. */}
-        <ReadFailed onRetry={() => void q.refetch()}>
+        <ReadFailedLine onRetry={() => void q.refetch()}>
           The standing rules did not load, so this is not a claim that nothing is standing.{" "}
           {(q.error as Error).message}
-        </ReadFailed>
+        </ReadFailedLine>
       </Region>
     );
   }
@@ -152,9 +151,9 @@ export function StandingRules() {
         <NothingYet
           action={
             pending > 0 ? (
-              <Act variant="primary" onClick={openDrafts}>
+              <Action variant="primary" onClick={openDrafts}>
                 Read {pending === 1 ? "the draft" : `the ${pending} drafts`}
-              </Act>
+              </Action>
             ) : undefined
           }
         >
@@ -183,9 +182,9 @@ export function StandingRules() {
       ))}
 
       {rules.length > VISIBLE_RULES || pending > 0 ? (
-        <Acts>
+        <Actions className="mt-mrd-4">
           {rules.length > VISIBLE_RULES ? (
-            <Act variant="quiet" onClick={() => setShowAll((v) => !v)}>
+            <Action variant="quiet" onClick={() => setShowAll((v) => !v)}>
               {showAll ? (
                 "Show fewer"
               ) : (
@@ -193,14 +192,14 @@ export function StandingRules() {
                   Show <Figure>{rules.length - VISIBLE_RULES}</Figure> more
                 </>
               )}
-            </Act>
+            </Action>
           ) : null}
           {pending > 0 ? (
-            <Act variant="quiet" onClick={openDrafts}>
+            <Action variant="quiet" onClick={openDrafts}>
               Decide <Figure>{pending}</Figure> the steward wrote
-            </Act>
+            </Action>
           ) : null}
-        </Acts>
+        </Actions>
       ) : null}
     </Region>
   );

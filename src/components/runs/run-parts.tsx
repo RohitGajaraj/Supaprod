@@ -1,36 +1,55 @@
 import * as React from "react";
 
 import { glyphForSlug } from "@/components/shell/agent-glyphs";
+import { Action, CONTROL_SHAPE, Eyebrow } from "@/components/meridian/surface-parts";
 import { agentBlurb, agentDisplayName } from "@/lib/agent-vocabulary";
 import type { RunState } from "./run-state";
 
 /*
- * THE RUNS SURFACE'S PARTS, DRAWN IN MERIDIAN.
+ * WHAT IS LEFT OF THE RUNS SURFACE'S OWN PARTS.
  *
- * ── WHAT THIS FILE REPLACES, AND WHY IT IS A FILE ───────────────────────
- * /runs and its two views were built entirely out of
- * `src/components/shell/primitives.tsx`, which IS the `--sp-*` layer.
- * meridian.css states the migration rule plainly: that layer is life support,
- * "no new surface may use it, every migrated surface drops it". `--sp-*` is
- * currently aliased onto `--mrd-*`, so these surfaces already inherited
- * Meridian's palette and looked roughly right; that alias is a FLOOR, not the
- * finish line, and a port that stopped there would leave the indirection and
- * none of the components.
+ * ── THE THRESHOLD THIS FILE NAMED IS CROSSED, 2026-08-15 ────────────────
+ * Its old header said it outright: "Everything here is a candidate to move into
+ * `src/components/meridian/` the moment a third surface needs it. THREE COPIES
+ * OF THIS IDEA NOW EXIST (Brain, Approvals, Runs), which is past the threshold
+ * that file names for itself." It reached five. `Figure`, `Region`, `Reading`,
+ * `NothingYet`, `ReadFailed`, `Acts`, `Door`, `Delta` and `RunHead` are now in
+ * `components/meridian/surface-parts.tsx`, drawn once for all five ported
+ * surfaces. `RunHead` is `PageHeading` there, which is what Crew and the Engine
+ * Room already called the same header.
  *
- * Meridian ships the parts a DENSE DATA surface needs -- RecordsTable,
- * FilterTable, Search -- and RunsGrid already adopts all three. It does not
- * ship the parts a HAND-OVER surface needs: a page head, a region with a
- * heading, a gate, a receipt, a labelled field, a card that is a door. Runs is
- * mostly made of those. Rather than write the same markup four times across the
- * route, the grid, the board and the tab strip, they live here once, which is
- * the shape the Brain port settled on in `src/components/brain/record-parts.tsx`
- * and the Approvals port settled on in `src/components/approvals/`.
+ * ── WHAT DID NOT MOVE, AND WHY ──────────────────────────────────────────
+ * Everything below is drawn on Runs and nowhere else, and three of them would
+ * have to be bent out of shape to be shared:
  *
- * Everything here is a candidate to move into `src/components/meridian/` the
- * moment a third surface needs it. THREE COPIES OF THIS IDEA NOW EXIST (Brain,
- * Approvals, Runs), which is past the threshold that file names for itself, and
- * that is reported rather than fixed here: `src/components/meridian/` belongs to
- * another lane.
+ *   `RunGate` carries a three-way STANDING (yours, clear, failed) that neither
+ *   of the other two gates has, and deliberately carries no age line. A shared
+ *   gate would be the union of three information models with everything
+ *   defaulted off, which is a flag pile wearing the biggest element on three
+ *   screens.
+ *
+ *   `Recess` is the record speaking WITHOUT the lamp. Brain's `RecordSpeaks` is
+ *   the same recess with it, and the lamp is a scarcity rule rather than a
+ *   setting: Meridian permits ONE lit object in the product and Brain holds the
+ *   licence. A `lamp` prop would turn that into a switch.
+ *
+ *   `Picker` here is a FIELD, on `bg-mrd-sink` with the same face as `Textarea`
+ *   and a drawn chevron. Meridian's `Picker` is a toolbar filter on
+ *   `bg-mrd-lift`. Same element, two controls.
+ *
+ * ── TWO NAMES ARE DELIBERATELY THE LEGACY ONES ──────────────────────────
+ * `Button` and `Textarea`. `src/routes/__tests__/runs-keycaps-match-bindings.test.ts`
+ * reads both route files as TEXT and counts `<Button` opening tags to hold a
+ * real invariant: the ⌘⏎ keycap is drawn on exactly one control, on exactly the
+ * expression the chord tests, and the listener is hoisted off the textarea.
+ * That guard is about a defect that shipped, not about a class spelling, so
+ * renaming these would silently make it pass vacuously.
+ *
+ * `Button` is therefore the one shim in this file: it is Meridian's `Action`
+ * under the name the guard reads, and it holds no paint of its own. The one
+ * control on either runs surface that genuinely RELEASES something, the merge
+ * on a run's gate, is Meridian's `Approve` at the call site, because it is a
+ * different component rather than a fourth string in a variant union.
  *
  * ── FOCUS IS INHERITED, NOT HAND-WRITTEN ────────────────────────────────
  * Every root here carries `data-mrd`, which is the whole mechanism meridian.css
@@ -43,15 +62,6 @@ import type { RunState } from "./run-state";
  * `mrd-focus-inset` is added wherever a control sits flush inside a rounded,
  * clipping parent, because an outset ring there is sheared off and reads as a
  * broken half-drawn edge rather than as focus.
- *
- * ── TWO NAMES ARE DELIBERATELY THE LEGACY ONES ──────────────────────────
- * `Button` and `Textarea`. `src/routes/__tests__/runs-keycaps-match-bindings.test.ts`
- * reads both route files as TEXT and counts `<Button` opening tags to hold a
- * real invariant: the ⌘⏎ keycap is drawn on exactly one control, on exactly the
- * expression the chord tests, and the listener is hoisted off the textarea.
- * That guard is about a defect that shipped, not about a class spelling, so
- * renaming these to `Act`/`Prompt` would silently make it pass vacuously. The
- * paint moved; the names stayed so the guard keeps holding.
  */
 
 /* ------------------------------------------------------------------ *
@@ -183,19 +193,6 @@ export function RunMark({
   );
 }
 
-/**
- * Every number, duration, count, id and timestamp, and NOTHING else.
- *
- * meridian.css draws the line the legacy `.sp-num` did not: mono is for those
- * things "and nothing else. A sentence containing a number is not mono." So this
- * wraps the figure and stops, and the words on either side of it stay in the
- * sans face. It sets no colour and no size, because it is used INSIDE sentences
- * that already have both.
- */
-export function Figure({ children }: { children: React.ReactNode }) {
-  return <span className="font-mrd-mono tabular-nums">{children}</span>;
-}
-
 /** The actor's name inside a row lead. It replaces the shell's `Who`, which
  *  painted `--sp-body` over an already-body line; here the name steps UP to ink
  *  so the crew reads as the subject of the sentence rather than as more of it. */
@@ -229,124 +226,9 @@ export function PersonMark({ initials, mine = false }: { initials: string; mine?
   );
 }
 
-/**
- * WHAT MOVED, AND WHICH WAY. It replaces the shell's `Diffstat`.
- *
- * A ZERO SIDE IS NOT DRAWN. "+10 -0" presents a zero as if it were a finding:
- * nothing was removed because there was nothing there to remove.
- *
- * Green and red are OUTCOMES here, which is the only thing they are allowed to
- * be in this system. The chips are mixed from the semantic tokens rather than
- * given a literal tint, so they follow both grounds without a second definition.
- */
-export function Delta({ added, removed }: { added: number; removed: number }) {
-  const both = added === 0 && removed === 0;
-  const chip = "rounded-mrd-xs px-1 font-medium";
-  return (
-    <span
-      data-mrd=""
-      className="font-mrd-mono inline-flex items-center gap-1 text-[11.5px] tabular-nums"
-      aria-label={`${added} lines added, ${removed} lines removed`}
-    >
-      {added > 0 || both ? (
-        <b
-          className={`${chip} text-mrd-pass`}
-          style={{
-            background: "color-mix(in oklab, var(--mrd-pass) 16%, transparent)",
-            boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--mrd-pass) 26%, transparent)",
-          }}
-        >
-          +{added}
-        </b>
-      ) : null}
-      {removed > 0 ? (
-        <b
-          className={`${chip} text-mrd-fail`}
-          style={{
-            background: "color-mix(in oklab, var(--mrd-fail) 16%, transparent)",
-            boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--mrd-fail) 26%, transparent)",
-          }}
-        >
-          &minus;{removed}
-        </b>
-      ) : null}
-    </span>
-  );
-}
-
 /* ------------------------------------------------------------------ *
  * Controls
  * ------------------------------------------------------------------ */
-
-/**
- * A control the surface is asking you to press.
- *
- * `primary` takes the NEUTRAL primary face, never the accent. meridian.css is
- * explicit that `--mrd-solid` is the primary and that the accent is never spent
- * on chrome; Approvals' `GateAction` puts orchid on its primary because that one
- * control IS the pending human action. Nothing on the runs index is: "Hand it
- * over" starts work, "Open the run" navigates, "Try again" re-reads. The one
- * control here that genuinely releases a stopped run is `Open the run` inside
- * the gate, and it opens a page rather than settling the call, so it stays
- * neutral too.
- *
- * The hover goes to `--mrd-solid-hover` and NEVER to `bg-mrd-float`, which
- * meridian.css records as a defect found shipped in two components: `float` is
- * DARKER than `solid` on dark, so the button dims as you reach for it, and it is
- * near-white on paper, which puts the light label on a pale slab.
- *
- * The label is `--mrd-on-solid` and never `--mrd-ink`. Both `bg-mrd-solid` and
- * `text-mrd-ink` invert with the ground, so they travel together instead of
- * apart: 11.26:1 on dark, 1.19:1 on paper, which is a slab with the ghost of a
- * word on it.
- *
- * NAMED `Button` DELIBERATELY. See this file's header: a source-reading guard
- * counts `<Button` tags on the two runs routes to hold the keycap invariant.
- */
-export type ButtonVariant = "default" | "primary" | "ghost" | "settle";
-
-/**
- * The shape of a control: everything about it except what colour it is.
- *
- * `active:scale-[0.98]` and nothing bouncier. Meridian's motion is ease-out
- * exponential with no elastic anywhere, and a press is 120ms.
- */
-const CONTROL_SHAPE =
-  "inline-flex h-8 items-center gap-2 rounded-mrd-ctl px-3 text-[12.5px] font-medium whitespace-nowrap transition-[background-color,color,opacity,transform] active:scale-[0.98]";
-
-const BUTTON_FACE: Record<ButtonVariant, string> = {
-  // `enabled:hover:` and not a bare `hover:`. A dead control that still lights
-  // up under the pointer is promising something it will not do, and this
-  // surface deliberately keeps a disabled Start button pointer-reachable so its
-  // `title` can say what would unlock it -- so `pointer-events-none` is not
-  // available as the cheaper answer.
-  primary: "bg-mrd-solid text-mrd-on-solid enabled:hover:bg-mrd-solid-hover",
-  /*
-   * THE ONE CONTROL ON EITHER RUNS SURFACE THAT MAY WEAR THE ACCENT, and it is
-   * a narrow licence rather than a second primary.
-   *
-   * meridian.css spends orchid on one meaning: a person is required. Almost
-   * everything here is chrome by that test -- "Hand it over" starts work, "Open
-   * the run" navigates, "Try again" re-reads -- and dressing those in the accent
-   * is how an accent stops meaning anything. `settle` is for the control that IS
-   * the pending human decision: the Merge / Approve on the run's gate, which
-   * executes the gated call and resumes the loop. That is the same rule
-   * Approvals' `GateAction` sets for the same act, quoted here so the two
-   * surfaces cannot drift.
-   *
-   * DISABLED FALLS BACK TO THE NEUTRAL FACE, because a dead control is furniture
-   * and must not keep shouting. It also fixes a contrast trap: this gate sets
-   * `disabled` for the whole round trip of a decision, and `text-mrd-ink` on
-   * `bg-mrd-solid` measures 1.19:1 on paper, so the label would vanish on every
-   * click. `--mrd-on-solid` and `--mrd-on-you` are the two tokens that are light
-   * in both grounds and they exist for exactly this.
-   */
-  settle:
-    "bg-mrd-you text-mrd-on-you enabled:hover:opacity-90 disabled:bg-mrd-solid disabled:text-mrd-on-solid",
-  ghost: "text-mrd-mute enabled:hover:bg-mrd-hover enabled:hover:text-mrd-body",
-  default:
-    "border border-mrd-line bg-mrd-lift text-mrd-body enabled:hover:bg-mrd-float enabled:hover:text-mrd-ink",
-};
 
 /**
  * AN ADDRESS THAT HAS TO LOOK LIKE A CONTROL, and the one reason this is
@@ -372,186 +254,26 @@ const BUTTON_FACE: Record<ButtonVariant, string> = {
  */
 export const LINK_AS_CONTROL = `${CONTROL_SHAPE} border border-mrd-line bg-mrd-lift text-mrd-body hover:bg-mrd-float hover:text-mrd-ink`;
 
-export function Button({
-  variant = "default",
-  shortcut,
-  children,
-  ...rest
-}: {
-  variant?: ButtonVariant;
-  /** Drawn by the file that BINDS the key, never by a component that cannot see
-   *  the listener. That rule is why this is a prop rather than a lookup. */
-  shortcut?: string;
-  children: React.ReactNode;
-} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <button
-      type="button"
-      {...rest}
-      data-mrd=""
-      className={`${CONTROL_SHAPE} disabled:cursor-default disabled:opacity-45 ${BUTTON_FACE[variant]}`}
-      style={{
-        transitionDuration: "var(--mrd-d-press)",
-        // The specular top edge that makes a filled control read as a raised
-        // object rather than a coloured rectangle. Only the filled variant has a
-        // face for light to fall on.
-        boxShadow:
-          variant === "primary" || variant === "settle"
-            ? "inset 0 1px 0 var(--mrd-sheen)"
-            : undefined,
-      }}
-    >
-      {children}
-      {shortcut ? (
-        <kbd className="font-mrd-mono rounded-mrd-xs border border-current px-1 text-[11px] opacity-60">
-          {shortcut}
-        </kbd>
-      ) : null}
-    </button>
-  );
-}
-
-/** A row of controls. One primary among them, and only one. */
-export function Acts({ children }: { children: React.ReactNode }) {
-  return (
-    <div data-mrd="" className="mt-mrd-4 flex flex-wrap items-center gap-mrd-3">
-      {children}
-    </div>
-  );
-}
-
 /**
- * A WORD INSIDE A SENTENCE THAT GOES SOMEWHERE.
+ * MERIDIAN'S `Action` UNDER THE NAME A GUARD READS, and nothing else.
  *
- * The quiet end of the affordance scale: `Button` is for something the surface
- * is ASKING you to do, this is for a fact that happens to have an address of its
- * own. It inherits its size from the line it sits in rather than fixing one,
- * because a control that shrinks halfway through a sentence reads as a typo.
+ * It holds no paint. `runs-keycaps-match-bindings.test.ts` reads both route
+ * files as TEXT and counts `<Button` opening tags to hold a real invariant
+ * about a shipped defect, so the name has to survive; the styling it used to
+ * carry did not, because four other surfaces were carrying their own copy of
+ * the same three faces.
  *
- * `as="a"` exists because two of these are OUTBOUND: the merged pull request and
- * the repo. An anchor and a button are not interchangeable to a keyboard or to a
- * middle click, so the element follows the destination rather than the paint.
+ * The `settle` variant is gone rather than renamed. It was the accent, and the
+ * accent is now `Approve`, a separate component for the one act that RELEASES
+ * something. The single caller, the merge on a run's gate, says `<Approve>`.
  */
-export function Door({
-  children,
-  onClick,
-  href,
-  title,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  /** Present for an outbound address. Mutually exclusive with `onClick`. */
-  href?: string;
-  title?: string;
-}) {
-  const paint =
-    "rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid";
-  const timing = { transitionDuration: "var(--mrd-d-press)" };
-
-  if (href) {
-    return (
-      <a
-        data-mrd=""
-        href={href}
-        title={title}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={paint}
-        style={timing}
-      >
-        {children}
-      </a>
-    );
-  }
-  return (
-    <button
-      type="button"
-      data-mrd=""
-      title={title}
-      onClick={onClick}
-      className={paint}
-      style={timing}
-    >
-      {children}
-    </button>
-  );
+export function Button(props: React.ComponentProps<typeof Action>) {
+  return <Action {...props} />;
 }
 
 /* ------------------------------------------------------------------ *
  * Head and regions
  * ------------------------------------------------------------------ */
-
-/**
- * The page's one h1, and its second line.
- *
- * This replaces the shell's `PageHead`. The size is `--mrd-t-h2`, which is the
- * step every ported surface puts a page title on; matching Brain rather than
- * inventing a rung is the point, because two ported surfaces at two title sizes
- * is the drift a system exists to stop.
- */
-export function RunHead({ title, sub }: { title: React.ReactNode; sub?: React.ReactNode }) {
-  return (
-    <header data-mrd="">
-      <h1 className="text-[25px] leading-tight font-medium text-mrd-ink">{title}</h1>
-      {sub ? <p className="mt-mrd-3 text-[13px] leading-relaxed text-mrd-body">{sub}</p> : null}
-    </header>
-  );
-}
-
-/**
- * A region, with a heading that is a real heading.
- *
- * The shell primitive this replaces drew every region title as a `<span>`, so a
- * reader navigating by heading got exactly one stop on the whole surface. An
- * `<h2>` costs nothing and is the difference between a surface that can be
- * skimmed by a screen reader and one that cannot.
- *
- * `more` is the region's own quiet control, in the region's head, which is where
- * a reader looks for one. On this surface it is the finder.
- */
-export function Region({
-  title,
-  sub,
-  more,
-  onMore,
-  children,
-}: {
-  title?: string;
-  /** What this region is FOR, said once. If it restates the title it should not
-   *  exist: label, sublabel and helper all saying one thing is a hard ban. */
-  sub?: React.ReactNode;
-  more?: string;
-  onMore?: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <section data-mrd="" className="flex flex-col">
-      {title || more ? (
-        <div className="flex items-baseline justify-between gap-mrd-4">
-          {title ? <h2 className="text-[13px] font-medium text-mrd-mute">{title}</h2> : <span />}
-          {more ? (
-            <button
-              type="button"
-              onClick={onMore}
-              className="shrink-0 rounded-mrd-xs text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink"
-              style={{ transitionDuration: "var(--mrd-d-press)" }}
-            >
-              {more}
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-
-      {sub ? (
-        <div className="mt-mrd-3 max-w-[68ch] text-[12.5px] leading-relaxed text-mrd-mute">
-          {sub}
-        </div>
-      ) : null}
-
-      <div className={title || sub || more ? "mt-mrd-4" : undefined}>{children}</div>
-    </section>
-  );
-}
 
 /**
  * WHO DID WHAT, AND WHEN. The system's grammar for an event, and the shape the
@@ -882,9 +604,7 @@ export function Field({
 }) {
   return (
     <label data-mrd="" className="mt-mrd-4 flex flex-col gap-mrd-2" htmlFor={htmlFor}>
-      <span className="text-[10px] font-[650] tracking-[0.06em] text-mrd-mute uppercase">
-        {label}
-      </span>
+      <Eyebrow>{label}</Eyebrow>
       {children}
     </label>
   );
@@ -1207,87 +927,5 @@ export function Recess({
     >
       {body}
     </button>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * The three states a read can be in, kept apart
- * ------------------------------------------------------------------ */
-
-/**
- * NOTHING IS HERE YET, and who acts next.
- *
- * `action` is the door. An empty state that names who acts next and gives you no
- * way to act is only half honest.
- */
-export function NothingYet({
-  children,
-  action,
-}: {
-  children: React.ReactNode;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div data-mrd="" className="max-w-[62ch] text-[13px] leading-relaxed text-mrd-body">
-      {/* A div rather than a p, and that is a bug fix rather than a preference:
-          a `<p>` may only contain phrasing content, so the moment a caller passes
-          two paragraphs the markup is invalid and React refuses to hydrate. That
-          was caught in a browser on /today. */}
-      <div>{children}</div>
-      {action ? <div className="mt-mrd-5 flex flex-wrap gap-mrd-3">{action}</div> : null}
-    </div>
-  );
-}
-
-/**
- * THE READ FAILED, which is a different fact from an empty region and must never
- * wear its clothes. "Nothing here" and "we could not find out" send a person in
- * opposite directions, so this says which one it is and always carries the way
- * out.
- *
- * Red is correct and is not a warning: it reports an OUTCOME, which is the only
- * thing this system's red is ever allowed to mean.
- */
-export function ReadFailed({
-  children,
-  onRetry,
-  retryLabel = "Try again",
-}: {
-  children: React.ReactNode;
-  onRetry?: () => void;
-  retryLabel?: string;
-}) {
-  return (
-    <div
-      data-mrd=""
-      role="status"
-      aria-live="polite"
-      className="max-w-[68ch] text-[13px] leading-relaxed"
-    >
-      <span className="text-mrd-fail">{children}</span>
-      {onRetry ? (
-        <>
-          {" "}
-          <Door onClick={onRetry}>{retryLabel}</Door>
-        </>
-      ) : null}
-    </div>
-  );
-}
-
-/**
- * A READ STILL IN FLIGHT. The third fact, and the quiet one.
- *
- * DELIBERATELY NOT `LoadingState`. That Meridian component's own header forbids
- * this use: "an elapsed timer on a 200ms fetch is noise. Use this only where work
- * genuinely takes seconds and a person is waiting on the result. Ordinary reads
- * get a plain quiet state." Every read on this surface is an ordinary read of
- * rows on a five second poll, so an elapsed timer would be inventing suspense.
- */
-export function Reading({ children = "Reading." }: { children?: React.ReactNode }) {
-  return (
-    <p data-mrd="" role="status" aria-live="polite" className="text-[13px] text-mrd-mute">
-      {children}
-    </p>
   );
 }

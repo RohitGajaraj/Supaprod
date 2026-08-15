@@ -8,7 +8,8 @@ import {
 } from "@/components/meridian/RecordsTable";
 import { FilterTable, type Facet } from "@/components/meridian/FilterTable";
 import { Search } from "@/components/meridian/Search";
-import { Actor, Figure, RunMark, type RunMarkState } from "./run-parts";
+import { Actor, RunMark, type RunMarkState } from "./run-parts";
+import { Figure } from "@/components/meridian/surface-parts";
 import { stripAutoPrefix } from "@/components/plan/format";
 import {
   completionEvidence,

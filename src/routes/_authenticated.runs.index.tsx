@@ -288,23 +288,25 @@ import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { Surface } from "@/components/shell/primitives";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import {
-  Acts,
   Button,
   LINK_AS_CONTROL,
   Commit,
   ContextNote,
-  Door,
   Field,
-  Figure,
-  NothingYet,
   Picker,
-  Reading,
-  ReadFailed,
-  Region,
   RunGate,
-  RunHead,
   Textarea,
 } from "@/components/runs/run-parts";
+import {
+  Actions,
+  Door,
+  Figure,
+  NothingYet,
+  PageHeading,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
 // The run-state vocabulary is shared with the board rather than defined here,
 // so the two views cannot disagree about what a run is doing.
 import { runState } from "@/components/runs/run-state";
@@ -393,17 +395,17 @@ export const Route = createFileRoute("/_authenticated/runs/")({
   errorComponent: ({ error, reset }) => (
     <Surface>
       <div className="flex flex-col gap-mrd-6">
-        <RunHead
+        <PageHeading
           title="Build did not load."
           sub={(error as Error)?.message ?? "The reason did not come back with the error."}
         />
         {/* A failed read always carries the way out. It used to be a bare
             primary inside an empty Block, which drew a rule over nothing. */}
-        <Acts>
+        <Actions className="mt-mrd-4">
           <Button variant="primary" onClick={reset}>
             Try again
           </Button>
-        </Acts>
+        </Actions>
       </div>
     </Surface>
   ),
@@ -621,9 +623,9 @@ function Composer({
               {/* Loading, error and empty each speak for themselves rather than one
                 of them wearing another's clothes. */}
               {prds.isError ? (
-                <ReadFailed onRetry={() => void prds.refetch()}>
+                <ReadFailedLine onRetry={() => void prds.refetch()}>
                   The approved specs did not load.
-                </ReadFailed>
+                </ReadFailedLine>
               ) : !prds.isLoading && approvedPrds.length === 0 ? (
                 <NothingYet>
                   No spec is approved yet, so describe the work instead.{" "}
@@ -644,7 +646,7 @@ function Composer({
             </>
           ) : null}
 
-          <Acts>
+          <Actions className="mt-mrd-4">
             <Button
               variant={startIsPrimary ? "primary" : "default"}
               // THE KEYCAP ARRIVES WITH THE KEY AND LEAVES WITH IT. `canStart` is
@@ -673,7 +675,7 @@ function Composer({
             >
               {isPending ? "Starting" : "Hand it over"}
             </Button>
-          </Acts>
+          </Actions>
         </TabPanel>
       </div>
 
@@ -965,7 +967,7 @@ function BuildPage() {
   const nothingYet = (
     <NothingYet
       action={
-        <Button variant="ghost" onClick={focusComposer}>
+        <Button variant="quiet" onClick={focusComposer}>
           Describe the next build
         </Button>
       }
@@ -994,9 +996,9 @@ function BuildPage() {
                  from the surface, and a reader who had read it a minute
                  earlier had no way to notice it had stopped being said. */
               <ContextNote head="Where builds land">
-                <ReadFailed onRetry={() => void repoStatus.refetch()}>
+                <ReadFailedLine onRetry={() => void repoStatus.refetch()}>
                   We could not check where builds land.
-                </ReadFailed>
+                </ReadFailedLine>
               </ContextNote>
             ) : repoStatus.data ? (
               /* Three states. "Not connected" and "could not tell" send a person
@@ -1111,7 +1113,7 @@ function BuildPage() {
           only true if one place decides it. `--mrd-s6` between the head and the
           views; the panel sets its own `--mrd-s5` under the tab row. */}
       <div className="flex flex-col gap-mrd-6">
-        <RunHead
+        <PageHeading
           title={headline}
           sub={
             rows.length > 0 ? (
@@ -1157,9 +1159,9 @@ function BuildPage() {
                 firstLoad ? (
                   <Reading>Reading the record.</Reading>
                 ) : sessions.isError ? (
-                  <ReadFailed onRetry={() => void sessions.refetch()}>
+                  <ReadFailedLine onRetry={() => void sessions.refetch()}>
                     The runs did not load, so this board is not the whole picture.
-                  </ReadFailed>
+                  </ReadFailedLine>
                 ) : rows.length === 0 ? (
                   nothingYet
                 ) : (
@@ -1223,7 +1225,7 @@ function BuildPage() {
                on `headline`); the button was missed. It says "all" rather than
                "the other" on purpose: the destination queue holds every waiting
                run including the one on screen. */
-                    <Button variant="ghost" onClick={() => navigate({ to: "/approvals" })}>
+                    <Button variant="quiet" onClick={() => navigate({ to: "/approvals" })}>
                       Settle all {waiting.length} runs
                     </Button>
                   ) : null}
@@ -1233,7 +1235,7 @@ function BuildPage() {
              SCREEN. `clear` spends no accent: nothing is asking, so nothing
              should look like it is. */
                 <RunGate standing="clear" question="Nothing is waiting on you.">
-                  <Button variant="ghost" onClick={focusComposer}>
+                  <Button variant="quiet" onClick={focusComposer}>
                     Describe the next build
                   </Button>
                 </RunGate>
@@ -1316,9 +1318,9 @@ function BuildPage() {
                   ) : sessions.isError ? (
                     // "Nothing here" and "we could not find out" are different facts and
                     // a person acts differently on each, so they never share a shape.
-                    <ReadFailed onRetry={() => void sessions.refetch()}>
+                    <ReadFailedLine onRetry={() => void sessions.refetch()}>
                       The runs did not load, so this list is not the whole picture.
-                    </ReadFailed>
+                    </ReadFailedLine>
                   ) : rows.length === 0 ? (
                     nothingYet
                   ) : (
@@ -1358,11 +1360,11 @@ function BuildPage() {
               Gated on isLoading this button removed itself the instant it was
               pressed, so the toggle had no visible off switch for a beat. */}
                   {firstLoad || sessions.isError || rows.length === 0 ? null : (
-                    <Acts>
-                      <Button variant="ghost" onClick={() => setManaging((v) => !v)}>
+                    <Actions className="mt-mrd-4">
+                      <Button variant="quiet" onClick={() => setManaging((v) => !v)}>
                         {managing ? "Done" : "Manage"}
                       </Button>
-                    </Acts>
+                    </Actions>
                   )}
                 </Region>
               )}

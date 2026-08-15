@@ -367,20 +367,22 @@ import type { GraphNodeKind, KnowledgeGraph } from "@/lib/knowledge-graph-view";
 import { RetentionLine } from "@/components/brain/RetentionLine";
 import { CrewCarries, StandingRules } from "@/components/brain/StandingRecord";
 import {
-  Act,
   CrewMark,
-  Delta,
   Disclosure,
-  Door,
-  Figure,
-  NothingYet,
-  ReadFailed,
-  Reading,
   RecordDoors,
   RecordLine,
   RecordSpeaks,
-  Region,
 } from "@/components/brain/record-parts";
+import {
+  Action,
+  Diffstat,
+  Door,
+  Figure,
+  NothingYet,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { Surface } from "@/components/shell/primitives";
 import { CrewWorking } from "@/components/shell/CrewWorking";
@@ -588,9 +590,9 @@ export const Route = createFileRoute("/_authenticated/brain")({
         <RecordHead title="The record did not load." sub="Nothing it holds is lost." />
         <NothingYet
           action={
-            <Act variant="primary" onClick={reset}>
+            <Action variant="primary" onClick={reset}>
               Try again
-            </Act>
+            </Action>
           }
         >
           {(error as Error)?.message ?? "The read failed."}
@@ -607,9 +609,9 @@ export const Route = createFileRoute("/_authenticated/brain")({
         />
         <NothingYet
           action={
-            <Act variant="primary" onClick={() => window.location.assign("/brain")}>
+            <Action variant="primary" onClick={() => window.location.assign("/brain")}>
               Open the record
-            </Act>
+            </Action>
           }
         >
           Everything the record holds is behind the five doors on Brain.
@@ -1382,7 +1384,7 @@ function MemoryPage() {
           size of the record did not load" while half the size is rendered two
           lines above it is its own small lie, so each half is named. */}
         {countsFailed ? (
-          <ReadFailed
+          <ReadFailedLine
             onRetry={() => {
               void brain.refetch();
               void stats.refetch();
@@ -1393,7 +1395,7 @@ function MemoryPage() {
               : brain.isError
                 ? "The count of calls and docs did not load, so the line above leaves them out. Both are still behind the doors below."
                 : "The count of what has come back did not load, so the line above leaves it out. Every outcome is still behind the Outcomes door below."}
-          </ReadFailed>
+          </ReadFailedLine>
         ) : null}
 
         <RetentionLine />
@@ -1428,7 +1430,7 @@ function MemoryPage() {
             evidence={
               <>
                 {latest.delta !== 0 ? (
-                  <Delta
+                  <Diffstat
                     added={latest.delta > 0 ? latest.delta : 0}
                     removed={latest.delta < 0 ? -latest.delta : 0}
                     unit="points of priority"
@@ -1482,9 +1484,9 @@ function MemoryPage() {
           <Region title="How the first thing gets onto the record">
             <NothingYet
               action={
-                <Act variant="primary" onClick={() => navigate({ to: "/discover" })}>
+                <Action variant="primary" onClick={() => navigate({ to: "/discover" })}>
                   Capture a signal
-                </Act>
+                </Action>
               }
             >
               Nothing here is set up in advance. The record fills from the work: open Discover, type
@@ -1580,9 +1582,9 @@ function MemoryPage() {
 
             {/* NOT an empty state. The map exists; this read of it failed. */}
             {preview.state === "failed" ? (
-              <ReadFailed onRetry={() => void graphQ.refetch()}>
+              <ReadFailedLine onRetry={() => void graphQ.refetch()}>
                 The map did not load. Nothing it draws is lost, and the Graph tab still holds it.
-              </ReadFailed>
+              </ReadFailedLine>
             ) : null}
 
             {/* THE STATE EVERY NEW WORKSPACE IS IN. Naming the act that draws the
@@ -1593,9 +1595,9 @@ function MemoryPage() {
             {preview.state === "empty" ? (
               <NothingYet
                 action={
-                  <Act variant="primary" onClick={() => navigate({ to: "/discover" })}>
+                  <Action variant="primary" onClick={() => navigate({ to: "/discover" })}>
                     Turn a signal into a bet
-                  </Act>
+                  </Action>
                 }
               >
                 Nothing on the record is linked to anything else yet. The first thread is drawn the
@@ -1610,9 +1612,9 @@ function MemoryPage() {
             {preview.state === "thin" ? (
               <NothingYet
                 action={
-                  <Act variant="quiet" onClick={() => setTab("graph")}>
+                  <Action variant="quiet" onClick={() => setTab("graph")}>
                     Open the map
-                  </Act>
+                  </Action>
                 }
               >
                 {preview.edges === 1 ? "One link is" : `${preview.edges} links are`} on the record
@@ -1791,14 +1793,14 @@ function MemoryPage() {
                 title="The crew has nothing else to read yet"
                 body="No threads, no signals, no meetings, no specs and nothing connected. This fills on its own as you work, and a connected source starts it filling without you."
                 action={
-                  <Act
+                  <Action
                     variant="primary"
                     onClick={() =>
                       navigate({ to: "/settings", search: { section: "connections" } as never })
                     }
                   >
                     Connect a source
-                  </Act>
+                  </Action>
                 }
               />
             )}

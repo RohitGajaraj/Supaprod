@@ -148,7 +148,8 @@ import {
   COMPLETION_EVIDENCE_REASON,
 } from "@/lib/build/verification";
 import { RecordStatus } from "@/components/meridian/RecordsTable";
-import { Actor, Door, Figure, RunCard, RunMark, type RunMarkState } from "./run-parts";
+import { Actor, RunCard, RunMark, type RunMarkState } from "./run-parts";
+import { Door, Figure } from "@/components/meridian/surface-parts";
 import { actorName, actorSlug, actorVerb, ago, runState, type RunState } from "./run-state";
 
 const BOARD_CSS = `
