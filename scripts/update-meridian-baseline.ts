@@ -30,6 +30,25 @@ const current = scan();
 const first = Object.keys(previous).length === 0;
 const grew: string[] = [];
 const shrank: string[] = [];
+const newlyMeasured: string[] = [];
+
+/*
+ * WIDENING THE GUARD IS NOT RAISING THE DEBT, and telling the two apart is the
+ * whole subtlety of this script.
+ *
+ * When a marker is ADDED to the scanner -- as `import:shell/primitives` was on
+ * 2026-08-15, after the first version was found to report a file as clean while
+ * it composed entirely from retired components -- every file's count for that
+ * marker goes from an implicit zero to its real value. That looks identical to
+ * debt being added, and the refusal below would block it forever, which would
+ * mean THE GUARD COULD NEVER BE MADE HONEST once shipped.
+ *
+ * So a marker the baseline has never recorded ANYWHERE is treated as newly
+ * measured rather than newly incurred. It was always there; nothing was
+ * counting it. A marker the baseline already knows about may still only go
+ * down, which is the rule that does the work.
+ */
+const knownMarkers = new Set(Object.values(previous).flatMap((f) => Object.keys(f)));
 
 for (const file of new Set([...Object.keys(previous), ...Object.keys(current)])) {
   const markers = new Set([
@@ -39,9 +58,30 @@ for (const file of new Set([...Object.keys(previous), ...Object.keys(current)]))
   for (const m of markers) {
     const was = previous[file]?.[m] ?? 0;
     const now = current[file]?.[m] ?? 0;
-    if (now > was) grew.push(`  ${file}  ${m}: ${was} -> ${now}`);
+    if (now > was) {
+      if (!first && !knownMarkers.has(m)) newlyMeasured.push(`  ${file}  ${m}: ${now}`);
+      else grew.push(`  ${file}  ${m}: ${was} -> ${now}`);
+    }
     if (now < was) shrank.push(`  ${file}  ${m}: ${was} -> ${now}`);
   }
+}
+
+if (newlyMeasured.length > 0) {
+  console.log(
+    [
+      "",
+      `A NEW MARKER IS BEING MEASURED FOR THE FIRST TIME (${newlyMeasured.length} entries).`,
+      "This RAISES the recorded total without any debt having been added: the",
+      "scanner simply started counting something that was always there. The",
+      "baseline is being made more honest, not more permissive.",
+      "",
+      ...newlyMeasured.slice(0, 8),
+      newlyMeasured.length > 8 ? `  ... and ${newlyMeasured.length - 8} more` : "",
+      "",
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  );
 }
 
 if (!first && grew.length > 0) {

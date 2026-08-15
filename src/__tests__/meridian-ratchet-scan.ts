@@ -100,6 +100,46 @@ export const RETIRED_MARKERS: ReadonlyArray<{ id: string; pattern: RegExp; linea
   { id: "--font-pixel", pattern: /--font-pixel\b/g, lineage: "Tempo" },
   { id: "--raised", pattern: /--raised\b/g, lineage: "Obsidian" },
   { id: "data-obsidian", pattern: /data-obsidian/g, lineage: "Obsidian" },
+
+  /*
+   * ── THE HOLE THIS GUARD SHIPPED WITH, CLOSED 2026-08-15 ─────────────────
+   * The first version counted retired TOKENS and raw colour and stopped there,
+   * and it reported `_authenticated.today.tsx` as clean. It is not clean: it
+   * composes from `Block` and `PageHead`, which come from
+   * `components/shell/primitives.tsx` -- the Cadence/ink component layer, whose
+   * retirement is the same ruling that retired the `--sp-*` tokens it is drawn
+   * with.
+   *
+   * MEASURED WHEN THE HOLE WAS FOUND: 137 files import that module. That is
+   * more files than carry any token debt at all, and it is the more structural
+   * half, because a retired token is one string while a retired component
+   * brings its own markup, its own states and its own spacing with it.
+   *
+   * A guard with a known hole is worse than no guard, because it converts "we
+   * have not checked" into "we checked and it was fine". So imports of a
+   * retired module count as debt, on the same ratchet, and the baseline is
+   * re-frozen at the honest number rather than the flattering one.
+   *
+   * Matched on the import SOURCE rather than the symbol names, because the
+   * names collide with Meridian's own on purpose -- `Button`, `Actions`,
+   * `Door`, `Failed` and `Empty` all exist in both worlds, and counting bare
+   * identifiers would flag correct Meridian code.
+   */
+  {
+    id: "import:shell/primitives",
+    pattern: /from\s+["'](?:@\/components|\.{1,2}\/[^"']*)\/shell\/primitives["']/g,
+    lineage: "Cadence/ink components",
+  },
+  {
+    id: "import:components/ui",
+    pattern: /from\s+["'](?:@\/components|\.{1,2}\/[^"']*)\/ui\/[^"']+["']/g,
+    lineage: "Tempo v5 (shadcn)",
+  },
+  {
+    id: "import:components/obsidian",
+    pattern: /from\s+["'](?:@\/components|\.{1,2}\/[^"']*)\/obsidian\/[^"']+["']/g,
+    lineage: "Obsidian v3 components",
+  },
 ];
 
 /**
