@@ -227,6 +227,7 @@
  * the record, or an honest statement that there is nothing in it yet.
  */
 
+import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -3121,31 +3122,62 @@ export function DiscoverSurface({
             Line's own contract says a label pointing at a button makes the
             label a second way to fire it. The Switch carries its own
             accessible name instead. */}
+          {/* LABEL CORRECTED 2026-08-15. It read "Read new signals without
+            asking", and this switch does not read anything: `toggleAutoCluster`
+            writes `auto_cluster_enabled`, which decides whether captured signals
+            are GROUPED on a schedule. Reading connected sources is
+            `auto_sense_enabled`, a different column with a different cron job.
+
+            So somebody who wanted their sources polled turned this on, was told
+            "On", and nothing was ever read. The sub-line half-admitted it by
+            saying "nothing clusters", but the label is the part a person acts on,
+            and a label that promises the wrong mechanism is worse than a vague
+            one. The reading switch now sits underneath, where the question is
+            actually asked. */}
           <Line
-            label="Read new signals without asking"
+            label="Group new signals without asking"
             sub={
               clusterSettings.data.enabled ? (
                 clusterSettings.data.last_run_at ? (
                   <>
-                    On. Last read <Num>{since(clusterSettings.data.last_run_at)}</Num>, and it
-                    clusters without waiting for you.
+                    On. Last grouped <Num>{since(clusterSettings.data.last_run_at)}</Num>, and it
+                    keeps going without waiting for you.
                   </>
                 ) : (
-                  "On. It has not had a batch to read yet."
+                  "On. It has not had a batch to group yet."
                 )
               ) : (
-                "Off, so nothing clusters until you press the button yourself."
+                "Off, so nothing is grouped until you press the button yourself."
               )
             }
           >
             <Switch
               checked={clusterSettings.data.enabled}
               onChange={(next) => autoSense.mutate(next)}
-              label="Read new signals without asking"
+              label="Group new signals without asking"
               disabled={autoSense.isPending}
             />
           </Line>
         </Block>
+      ) : null}
+      {/* THE READING SWITCH, ON THE STATION WHOSE JOB IS READING.
+        It governs `auto_sense_enabled`, which decides whether connected sources
+        are polled on a schedule, and until now it existed nowhere a person could
+        reach except a governance page two sections away. Somebody standing on
+        Discover asking "why has nothing new arrived" was two sections from the
+        answer, on the one station where the question is obvious.
+
+        THE SAME COMPONENT /boundary RENDERS, filtered to this one flag rather
+        than reimplemented. A second control for one column is how two switches
+        for one setting come to disagree, which is the defect corrected directly
+        above this line. */}
+      {!picking && !loading && !loadError ? (
+        <AutomationBoundary
+          workspaceId={activeWorkspaceId ?? null}
+          only={["auto_sense_enabled"]}
+          title="Reading your sources"
+          sub="Whether connected sources are read on a schedule, without you asking each time."
+        />
       ) : null}
     </Surface>
   );

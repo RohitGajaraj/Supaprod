@@ -45,7 +45,30 @@ import { Block, Empty, Failed, Line, Loading, Row, Switch, Value } from "@/compo
 
 type Receipt = { verb: string; consequence: string; failed?: boolean } | null;
 
-export function AutomationBoundary({ workspaceId }: { workspaceId: string | null }) {
+export function AutomationBoundary({
+  workspaceId,
+  only,
+  title = "What runs on its own",
+  sub = "Set once, in advance. Each one is off until you say otherwise, and the ones that spend money say so.",
+}: {
+  workspaceId: string | null;
+  /**
+   * Render a SUBSET of the catalogue, for a station that owns one of these.
+   *
+   * WHY A FILTER RATHER THAN A SECOND COMPONENT. Discover's whole job is reading
+   * sources, so the switch that decides whether sources are read on a schedule
+   * belongs on Discover and not only on a governance page two sections away. But
+   * a second implementation of the same switch is how two controls for one column
+   * come to disagree, and this product already carries a scar from a Discover
+   * switch whose label promised reading while it wrote the clustering flag. One
+   * component, one pair of server functions, rendered in both places.
+   *
+   * Absent means the whole catalogue, which is what /boundary wants.
+   */
+  only?: readonly string[];
+  title?: string;
+  sub?: string;
+}) {
   const qc = useQueryClient();
   const fGet = useServerFn(getWorkspaceAutomation);
   const fSet = useServerFn(setWorkspaceAutomation);
@@ -85,10 +108,7 @@ export function AutomationBoundary({ workspaceId }: { workspaceId: string | null
   if (!workspaceId) return null;
 
   return (
-    <Block
-      title="What runs on its own"
-      sub="Set once, in advance. Each one is off until you say otherwise, and the ones that spend money say so."
-    >
+    <Block title={title} sub={sub}>
       {q.isError ? (
         <Failed onRetry={() => void q.refetch()}>
           {(q.error as Error)?.message ?? "The switches did not come back."}
@@ -100,7 +120,7 @@ export function AutomationBoundary({ workspaceId }: { workspaceId: string | null
       ) : (
         <>
           {receipt ? <Line label={receipt.consequence} /> : null}
-          {AUTOMATION_FLAGS.map((flag) => {
+          {AUTOMATION_FLAGS.filter((f) => !only || only.includes(f.column)).map((flag) => {
             const enabled = q.data.state[flag.column] === true;
             const platformReady = flag.requiresPlatform
               ? q.data.platform[flag.requiresPlatform.key]

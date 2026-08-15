@@ -68,12 +68,32 @@ describe("a person can reach the switches", () => {
   });
 
   it("offers every flag in the catalogue, so none can go dark unnoticed", () => {
-    // Rendered by iterating AUTOMATION_FLAGS rather than by four hand-written
+    // Rendered by ITERATING AUTOMATION_FLAGS rather than by four hand-written
     // rows, so a fifth flag added to the catalogue gets a switch for free. A
     // hand-written list is how the mint-path scope list fell a ruling behind.
+    //
+    // The assertion was loosened from `AUTOMATION_FLAGS.map(` on 2026-08-15, when
+    // the component gained an `only` filter so Discover could render the one flag
+    // it owns. That is a legitimate change and it broke a test about a different
+    // property, which is the same brittleness I loosened a select-column guard for
+    // earlier today. What matters is that the catalogue is the source, not the
+    // exact expression that walks it.
     const door = SURFACES.find((s) => s.file.endsWith("AutomationBoundary.tsx"));
     expect(door).toBeTruthy();
-    expect(door!.code).toContain("AUTOMATION_FLAGS.map(");
+    expect(door!.code).toContain("AUTOMATION_FLAGS.filter(");
+    expect(door!.code).toContain(".map((flag) =>");
+  });
+
+  it("the /boundary mount renders ALL of them, never a subset", () => {
+    // THE PROPERTY THE FILTER PUT AT RISK. A station may render one flag, but the
+    // governance page is the one place every flag has to appear, or a flag can go
+    // dark with nowhere to notice it. `/boundary` must pass no `only`.
+    const page = SURFACES.find((s) => s.file.endsWith("_authenticated.boundary.tsx"));
+    expect(page).toBeTruthy();
+    const mount = page!.code.slice(page!.code.indexOf("<AutomationBoundary"));
+    const tag = mount.slice(0, mount.indexOf("/>") + 2);
+    expect(tag).toContain("workspaceId=");
+    expect(tag, "/boundary must not filter the catalogue").not.toContain("only=");
   });
 
   it("states the spend before the switch, not after it", () => {
