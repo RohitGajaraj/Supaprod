@@ -61,6 +61,20 @@
  * editing the server function, which this lane does not own. Until it is
  * fixed, the copy here claims no workspace scope it cannot back: it says how
  * many times a method has been run, and never whose workspace that was.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * 2026-08-15: PORTED TO MERIDIAN. Every `--sp-*` shape is gone; only
+ * `Surface`, the shell's own region, is kept, exactly as /approvals keeps it.
+ *
+ * ONE THING CHANGED THAT IS NOT A RE-SKIN: the middle tone. `methodRecord`
+ * returns four tones and the old `Value` painted the middle one amber. Under
+ * Meridian amber means STOPPED AND NOT ON YOU — no source connected, a cap
+ * nearly spent — and a method validating at half its results is not stopped
+ * and is not waiting for a condition. Green and red are the only outcome hues
+ * this system has, so a rate between the two thresholds is drawn with no hue at
+ * all, which is the honest reading: it is an outcome that has not gone either
+ * way. The thresholds themselves are untouched and still pinned by the test
+ * beside this file; what changed is only what the middle band looks like.
  */
 
 import * as React from "react";
@@ -73,19 +87,17 @@ import {
   type PlaybookStation,
 } from "@/lib/playbooks/registry";
 import { getPlaybooks } from "@/lib/playbooks.functions";
+import { Surface } from "@/components/shell/primitives";
 import {
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Line,
-  Loading,
-  Num,
-  PageHead,
-  Prose,
-  Surface,
-  Value,
-} from "@/components/shell/primitives";
+  Action,
+  Actions,
+  Figure,
+  NothingHere,
+  PageHeading,
+  ReadFailed,
+  Reading,
+  Region,
+} from "@/components/crew/CrewChrome";
 
 /* ------------------------------------------------------------------ *
  * The honesty rules, as pure functions. Everything between here and
@@ -245,10 +257,28 @@ function runsPhrase(runs: number): React.ReactNode {
   if (runs === 1) return "Run once";
   return (
     <>
-      Run <Num>{runs}</Num> times
+      Run <Figure>{runs}</Figure> times
     </>
   );
 }
+
+/**
+ * What a tone looks like, and the middle band is the interesting one.
+ *
+ * Green and red are the only outcome hues Meridian has, and they mean it worked
+ * and it did not. `warn` is neither: a method validating between the two
+ * thresholds has an outcome that has not gone either way, so it takes the body
+ * ink and no hue. Amber would be the reflex and it would be wrong — in this
+ * system amber means stopped and NOT on you, which sends a reader hunting for a
+ * condition to change that does not exist here. `quiet` is for a record that is
+ * not a verdict at all: a run count with no result behind it.
+ */
+const TONE_INK: Record<MethodTone, string> = {
+  quiet: "text-mrd-faint",
+  pass: "text-mrd-pass",
+  warn: "text-mrd-body",
+  fail: "text-mrd-fail",
+};
 
 function SummaryLine({
   kind,
@@ -264,55 +294,85 @@ function SummaryLine({
   if (kind === "no-runs") {
     return (
       <>
-        <Num>{methods}</Num> named ways of working the crew can reach for. None of them has been run
-        yet, so nothing below is ranked. What you are reading is the order they ship in.
+        <Figure>{methods}</Figure> named ways of working the crew can reach for. None of them has
+        been run yet, so nothing below is ranked. What you are reading is the order they ship in.
       </>
     );
   }
   if (kind === "none-rated") {
     return (
       <>
-        <Num>{methods}</Num> named ways of working, run <Num>{runs}</Num> times so far. No result
-        has come back against any of them yet, so what you are reading is still the order they ship
-        in and not a league table.
+        <Figure>{methods}</Figure> named ways of working, run <Figure>{runs}</Figure> times so far.
+        No result has come back against any of them yet, so what you are reading is still the order
+        they ship in and not a league table.
       </>
     );
   }
   return (
     <>
-      <Num>{methods}</Num> named ways of working, run <Num>{runs}</Num> times so far.{" "}
-      <Num>{rated}</Num> of them have enough results to rank on. The rest keep the order they ship
-      in.
+      <Figure>{methods}</Figure> named ways of working, run <Figure>{runs}</Figure> times so far.{" "}
+      <Figure>{rated}</Figure> of them have enough results to rank on. The rest keep the order they
+      ship in.
     </>
   );
 }
 
-function MethodBody({ ranking }: { ranking: PlaybookRanking }) {
+/**
+ * ONE METHOD, AS A CARD RATHER THAN A LINE PLUS A PARAGRAPH.
+ *
+ * The shape this replaces was a `Line` (a label with a value on the right) with
+ * a `Prose` block underneath it, and the two were siblings: nothing in the
+ * markup said the steps belonged to the name above them, so six methods in one
+ * region read as twelve unrelated things. A method is one object with a name, a
+ * record, a procedure and a win condition, so it is drawn as one object.
+ *
+ * The record sits at the TOP RIGHT and never inside the procedure, because it
+ * is the fact a reader is scanning for and the steps are what they read once
+ * they have stopped.
+ */
+function MethodCard({ ranking }: { ranking: PlaybookRanking }) {
   const rec = methodRecord(ranking);
   const p = ranking.playbook;
   return (
-    <>
-      <Line label={p.name} sub={p.summary}>
-        <Value tone="quiet">{runsPhrase(rec.runs)}</Value>
-        {rec.recordText ? <Value tone={rec.tone}>{rec.recordText}</Value> : null}
-      </Line>
-      {/* Prose rather than a shape of its own. The steps and the win condition
-          are the answer to "what is this one FOR", they are the only content on
-          this surface that is genuinely a paragraph, and .sp-prose is the
-          system's own container for readable multi-element text: it already
-          styles ol, li and em. A new class here would be a new visual language
-          invented for four sentences. */}
-      <Prose>
-        <ol>
-          {p.steps.map((step) => (
-            <li key={step}>{step}</li>
-          ))}
-        </ol>
-        <p>
-          <em>What counts as this one working: {p.rankingSignal}.</em>
-        </p>
-      </Prose>
-    </>
+    <article className="rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-mrd-5 gap-y-mrd-1">
+        <h3 className="text-[13px] font-medium text-mrd-ink">{p.name}</h3>
+        <span className="flex shrink-0 items-baseline gap-mrd-4 text-[12px]">
+          {/* Mono and tabular, because both of these are counts and rates. The
+              run count is always true; the record beside it is printed only
+              when `methodRecord` says the numbers are allowed to speak. */}
+          <span className="font-mrd-mono text-mrd-faint tabular-nums">{runsPhrase(rec.runs)}</span>
+          {rec.recordText ? (
+            <span className={`font-mrd-mono tabular-nums ${TONE_INK[rec.tone]}`}>
+              {rec.recordText}
+            </span>
+          ) : null}
+        </span>
+      </div>
+
+      <p className="mt-mrd-2 max-w-[68ch] text-[12.5px] leading-relaxed text-mrd-mute">
+        {p.summary}
+      </p>
+
+      {/* The procedure, in a recess. The standard caps a region at one bordered
+          container, so the steps read as part of the card by sitting BELOW its
+          ground rather than inside a second border. The numerals are mono
+          because they are numbers; the steps are not. */}
+      <ol className="mt-mrd-4 flex list-none flex-col gap-mrd-2 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
+        {p.steps.map((step, i) => (
+          <li key={step} className="flex gap-mrd-4 text-[12.5px] leading-relaxed text-mrd-body">
+            <span className="font-mrd-mono shrink-0 text-[11px] text-mrd-faint tabular-nums">
+              {i + 1}
+            </span>
+            <span className="min-w-0">{step}</span>
+          </li>
+        ))}
+      </ol>
+
+      <p className="mt-mrd-3 text-[12px] leading-relaxed text-mrd-mute">
+        What counts as this one working: {p.rankingSignal}.
+      </p>
+    </article>
   );
 }
 
@@ -324,17 +384,15 @@ export function CrewMethods({ onBack }: { onBack: () => void }) {
     staleTime: 60_000,
   });
 
-  const back = (
-    <Button variant="ghost" onClick={onBack}>
-      Back to the crew
-    </Button>
-  );
+  const back = <Action onClick={onBack}>Back to the crew</Action>;
 
   if (q.isLoading) {
     return (
       <Surface>
-        <PageHead title={TITLE} />
-        <Loading>Reading what the crew has actually run.</Loading>
+        <div className="flex flex-col gap-mrd-7">
+          <PageHeading title={TITLE} />
+          <Reading>Reading what the crew has actually run.</Reading>
+        </div>
       </Surface>
     );
   }
@@ -342,13 +400,13 @@ export function CrewMethods({ onBack }: { onBack: () => void }) {
   if (q.isError) {
     return (
       <Surface>
-        <PageHead title={TITLE} />
-        <Block>
-          <Failed onRetry={() => q.refetch()}>
+        <div className="flex flex-col gap-mrd-7">
+          <PageHeading title={TITLE} />
+          <ReadFailed onRetry={() => void q.refetch()}>
             The record did not load, so no count below would be the real one.
-          </Failed>
-        </Block>
-        <Block>{back}</Block>
+          </ReadFailed>
+          <Actions>{back}</Actions>
+        </div>
       </Surface>
     );
   }
@@ -359,13 +417,13 @@ export function CrewMethods({ onBack }: { onBack: () => void }) {
   if (all.length === 0) {
     return (
       <Surface>
-        <PageHead title={TITLE} />
-        <Block>
-          <Empty action={back}>
+        <div className="flex flex-col gap-mrd-7">
+          <PageHeading title={TITLE} />
+          <NothingHere action={back}>
             Nothing came back from the registry. That is not an empty workspace, it is a read that
             found no methods at all, and the crew has been working to a method this whole time.
-          </Empty>
-        </Block>
+          </NothingHere>
+        </div>
       </Surface>
     );
   }
@@ -376,43 +434,48 @@ export function CrewMethods({ onBack }: { onBack: () => void }) {
 
   return (
     <Surface>
-      <PageHead
-        title={TITLE}
-        sub={<SummaryLine kind={kind} methods={all.length} runs={totalRuns} rated={rated} />}
-      />
+      <div className="flex flex-col gap-mrd-7">
+        <PageHeading
+          title={TITLE}
+          sub={<SummaryLine kind={kind} methods={all.length} runs={totalRuns} rated={rated} />}
+        />
 
-      {stations.map((s) =>
-        s.playbooks.length === 0 ? null : (
-          <Block key={s.station} title={STATION_WORDS[s.station]} sub={stationSub(s.station)}>
-            {s.playbooks.map((r) => (
-              <MethodBody key={r.playbook.id} ranking={r} />
-            ))}
-          </Block>
-        ),
-      )}
+        {stations.map((s) =>
+          s.playbooks.length === 0 ? null : (
+            <Region key={s.station} title={STATION_WORDS[s.station]} sub={stationSub(s.station)}>
+              <div className="flex flex-col gap-mrd-4">
+                {s.playbooks.map((r) => (
+                  <MethodCard key={r.playbook.id} ranking={r} />
+                ))}
+              </div>
+            </Region>
+          ),
+        )}
 
-      {/* The forward line, and the reason this page reads as "it sharpens" and
-          not as "it is broken". Both sentences are true of shipped code:
-          rankPlaybooksByOutcome puts any method with a decisive result ahead of
-          every method with none, and pickPlaybookForAgentStation hands that
-          leader to the orchestrator. Neither sentence promises the verdict
-          stamping, because a surface may not promise a mechanism the wiring
-          does not yet have. */}
-      <Block title="How one of these earns its place">
-        <Prose>
-          <p>
-            The moment a method has a result on the record, it moves ahead of every method that has
-            none, and the crew reaches for it first at that step. That is the whole ranking, and it
-            takes one result to start.
-          </p>
-          <p>
-            A rate is only printed here once there are {MIN_RESULTS_FOR_RATE} results to draw it
-            from. Two out of three is a fact worth showing, and it is not a rate.
-          </p>
-        </Prose>
-      </Block>
+        {/* The forward line, and the reason this page reads as "it sharpens" and
+            not as "it is broken". Both sentences are true of shipped code:
+            rankPlaybooksByOutcome puts any method with a decisive result ahead of
+            every method with none, and pickPlaybookForAgentStation hands that
+            leader to the orchestrator. Neither sentence promises the verdict
+            stamping, because a surface may not promise a mechanism the wiring
+            does not yet have. */}
+        <Region title="How one of these earns its place">
+          <div className="flex max-w-[68ch] flex-col gap-mrd-4 text-[13px] leading-relaxed text-mrd-body">
+            <p>
+              The moment a method has a result on the record, it moves ahead of every method that
+              has none, and the crew reaches for it first at that step. That is the whole ranking,
+              and it takes one result to start.
+            </p>
+            <p>
+              A rate is only printed here once there are <Figure>{MIN_RESULTS_FOR_RATE}</Figure>{" "}
+              results to draw it from. Two out of three is a fact worth showing, and it is not a
+              rate.
+            </p>
+          </div>
+        </Region>
 
-      <Block>{back}</Block>
+        <Actions>{back}</Actions>
+      </div>
     </Surface>
   );
 }

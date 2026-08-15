@@ -86,6 +86,31 @@
  *
  * The room bodies (SpendRoom, QualityRoom, SafetyRoom, RecordRoom) are
  * untouched: they are the dense tables the engineer came for.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * 2026-08-15: PORTED TO MERIDIAN. Every `--sp-*` shape is gone from this file;
+ * only `Surface`, the shell's own two-column region, is kept, exactly as
+ * /approvals keeps it. The parts are in components/engine-room/EngineChrome.tsx.
+ *
+ * ONE DEFECT WAS FOUND AND CLOSED IN THE PORT, and it is worth naming because
+ * nothing in the file admitted it. The next-step sentence was rendered TWICE —
+ * once in the context column under `.sp-er-next-aside`, once inline in the page
+ * sub under `.sp-er-next-inline` — with a long comment explaining that a
+ * container query in `styles/engine-room.css` shows exactly one of them. THAT
+ * STYLESHEET DOES NOT EXIST. Neither class is declared anywhere in src/styles,
+ * and neither is `.sp-er-crumb`. So the switch had never engaged: both copies
+ * drew, at every width, and the crumb had no layout at all. The sentence is now
+ * rendered ONCE, in the page sub beside the verdict it belongs to, which is
+ * also the position the comment itself called the safe one — the aside can
+ * stack below the fold and land under the fixed composer, and the sub never
+ * can.
+ *
+ * THE VERDICT WORDS ARE BOUND TO TOKENS RATHER THAN CHOSEN. "Needs a look" is
+ * `--mrd-hold`, amber, which in this system means stopped and NOT on you: a
+ * room needs a condition to change, not a decision, and orchid would promise a
+ * control that does not exist. "Not set up" carries no hue, because nothing has
+ * gone wrong. "Did not load" is `--mrd-fail`, an outcome. A clear room says
+ * nothing at all. The full argument is in EngineChrome.tsx's header.
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -107,17 +132,20 @@ import { RecordRoom } from "@/components/engine-room/rooms/RecordRoom";
 import { ROOM_NAMES, ROOM_QUESTIONS, ROOM_TAB_META, type RoomKey } from "@/lib/engine-room-glance";
 import { listWorkspaceBindings } from "@/lib/connections.functions";
 import { listSyncMappings } from "@/lib/integrations.functions";
+import { Surface } from "@/components/shell/primitives";
 import {
+  Action,
   Actions,
-  Block,
-  Button,
-  Failed,
-  Loading,
-  Num,
-  PageHead,
-  Row,
-  Surface,
-} from "@/components/shell/primitives";
+  Crumb,
+  Figure,
+  FOCUS_RING,
+  PageHeading,
+  ReadFailed,
+  Reading,
+  Region,
+  StateWord,
+  ViewTabs,
+} from "@/components/engine-room/EngineChrome";
 
 const ROOM_KEYS: RoomKey[] = ["spend", "quality", "safety", "record"];
 
@@ -165,13 +193,10 @@ export const Route = createFileRoute("/_authenticated/engine-room")({
   },
   errorComponent: ({ error, reset }) => (
     <Surface>
-      <PageHead
-        title="The engine room did not open."
-        sub={(error as Error)?.message ?? "The read failed."}
-      />
-      <Actions>
-        <Button onClick={reset}>Try again</Button>
-      </Actions>
+      <div className="flex flex-col gap-mrd-6">
+        <PageHeading title="The engine room did not open." />
+        <ReadFailed onRetry={reset}>{(error as Error)?.message ?? "The read failed."}</ReadFailed>
+      </div>
     </Surface>
   ),
 });
@@ -292,110 +317,78 @@ function EngineRoomPage() {
       <Surface
         wide
         context={
-          <>
-            {/* NEXT RIDES THE SUB WHEN THE ASIDE IS AT THE PAGE FLOOR, and this
-                pair of classes is the whole switch. Below `--sp-ctx-split` the
-                aside stacks under the entire room body: measured on ?room=record
-                at 1280 with the rail expanded, `.sp-ctx` was 983px wide at
-                y=786.3 of a 900px viewport, with its last line drawn beneath the
-                fixed composer. So the one line the reader came to act on sat at
-                eye level in one rail state and under the dock in the other. The
-                copy is rendered in both places and exactly one is shown; the
-                rules live in styles/engine-room.css beside the numbers. */}
-            {status?.glance?.action ? (
-              <>
-                <div className="sp-ctx-head sp-er-next-aside">Next</div>
-                <div className="sp-ctx-body sp-er-next-aside">{status.glance.action}</div>
-              </>
-            ) : null}
-            <div className="sp-ctx-head">The engine calls this</div>
-            <div className="sp-ctx-body">{meta.technical}</div>
-          </>
+          /* THE TECHNICAL WHISPER, AND ONLY THAT. The next step used to be
+             drawn here as well as in the sub above, under a pair of classes
+             that were supposed to show exactly one of them; the stylesheet
+             those classes needed does not exist, so both drew. The aside is the
+             wrong home for it anyway: below the split it stacks under the whole
+             room body and can land beneath the fixed composer, which is where
+             the original comment measured it. The sub always sits at eye
+             level. */
+          <div className="flex flex-col gap-mrd-3">
+            <h2 className="text-[11px] font-medium tracking-wide text-mrd-mute uppercase">
+              The engine calls this
+            </h2>
+            <p className="text-[12.5px] leading-relaxed text-mrd-body">{meta.technical}</p>
+          </div>
         }
       >
-        {/* WHERE YOU ARE, AND THE WAY BACK, ON ONE LINE ABOVE THE TITLE.
-            The room's NAME was rendered exactly once in the whole chassis, as
-            the tablist's `aria-label`, so a screen reader heard "Spend views"
-            and a sighted reader had no word for the room they were standing in:
-            the title is the question, the rail says "Engine room" on all four,
-            and the full `main` innerText of ?room=spend contained no "Spend".
-            The question is the room's PURPOSE and stays the title; the name is
-            its ADDRESS and belongs here, beside the way out. The back control
-            came from the Block head 224px down the page, right-aligned with an
-            empty cell to its left, which is not where anyone looks for it. */}
-        <div className="sp-er-crumb">
-          <button type="button" className="sp-block-more" onClick={back}>
-            All four rooms
-          </button>
-          <span aria-hidden="true">·</span>
-          <span className="sp-er-crumb-here">{ROOM_NAMES[room]}</span>
-        </div>
+        <div className="flex flex-col gap-mrd-6">
+          {/* WHERE YOU ARE, AND THE WAY BACK, ON ONE LINE ABOVE THE TITLE.
+              The room's NAME was rendered exactly once in the whole chassis, as
+              the tablist's `aria-label`, so a screen reader heard "Spend views"
+              and a sighted reader had no word for the room they were standing
+              in: the title is the question, the rail says "Engine room" on all
+              four, and the full `main` innerText of ?room=spend contained no
+              "Spend". The question is the room's PURPOSE and stays the title;
+              the name is its ADDRESS and belongs here, beside the way out. */}
+          <Crumb back={back} backLabel="All four rooms" here={ROOM_NAMES[room]} />
 
-        <PageHead
-          title={ROOM_QUESTIONS[room]}
-          sub={
-            status?.error != null ? (
-              <span className="sp-fail">This room&rsquo;s summary did not load.</span>
+          <div className="flex flex-col gap-mrd-4">
+            <PageHeading
+              title={ROOM_QUESTIONS[room]}
+              sub={
+                status?.error != null ? (
+                  "This room's summary did not load."
+                ) : status?.glance ? (
+                  <>
+                    {status.glance.verdict}
+                    {/* THE NEXT STEP, ONCE. It names a tab that is not on screen
+                        yet, and that is the point: this is the sentence that
+                        decides what the reader does after reading the verdict,
+                        so it sits directly after it. */}
+                    {status.glance.action ? <> {status.glance.action}</> : null}
+                  </>
+                ) : (
+                  "Reading."
+                )
+              }
+            />
+
+            {/* The state word rides its own line under the verdict rather than
+                being punctuated into it. It is the one fact on this header a
+                reader scans for, and a word wedged between two full stops is
+                the hardest possible place to find one. */}
+            {status?.error != null ? (
+              <StateWord state="failed" />
             ) : status?.glance ? (
-              <>
-                {/* The unconfigured state gets its own word here for the same
-                    reason it gets one on the card: it is the absence of a
-                    control, not a fault, and putting it in warn amber beside
-                    real trouble is how a governance surface teaches people to
-                    stop reading its colours. Without this clause a room in that
-                    state showed a bare verdict and the reader had to infer the
-                    state from the sentence. */}
-                {status.glance.state === "watch" ? (
-                  <>
-                    <span className="sp-warn">Needs a look</span>
-                    {" · "}
-                  </>
-                ) : status.glance.state === "unconfigured" ? (
-                  <>
-                    <span style={{ color: "var(--sp-mute)" }}>Not set up</span>
-                    {" · "}
-                  </>
-                ) : null}
-                {status.glance.verdict}
-                {/* The other half of the switch above. Shown only when the
-                    aside has stacked to the page floor. */}
-                {status.glance.action ? (
-                  <span className="sp-er-next-inline">
-                    {" · "}
-                    {status.glance.action}
-                  </span>
-                ) : null}
-              </>
-            ) : (
-              "Reading."
-            )
-          }
-        />
+              <StateWord state={status.glance.state} />
+            ) : null}
+          </div>
 
-        {/* Sub-views of one page, not a second rail. A filter strip stays quiet
-            until you reach for it, which is what seven of these need to do. */}
-        <div className="sp-tabs" role="tablist" aria-label={`${ROOM_NAMES[room]} views`}>
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              className="sp-tab"
-              aria-selected={t.id === activeView}
-              onClick={() => void navigate({ search: { room, view: t.id } })}
-            >
-              {t.label}
-            </button>
-          ))}
+          <ViewTabs
+            tabs={tabs.map((t) => ({ id: t.id, label: t.label }))}
+            active={activeView}
+            onSelect={(id) => void navigate({ search: { room, view: id } })}
+            label={`${ROOM_NAMES[room]} views`}
+          />
+
+          {/* The one plain line that says what this view answers, so a click
+              never lands on a bare table with no context. */}
+          <Region sub={meta.descriptor}>
+            <Body view={activeView} suite={suite} agent={agent} surface={surface} />
+          </Region>
         </div>
-
-        {/* No `more` here any more: the way out is the crumb above the title.
-            A Block with a `more` and no `title` renders a head whose left cell
-            is an empty <span>, so "All four rooms" sat alone at the far right of
-            a 983px band, which reads as a stray link rather than as the exit. */}
-        <Block sub={meta.descriptor}>
-          <Body view={activeView} suite={suite} agent={agent} surface={surface} />
-        </Block>
       </Surface>
     );
   }
@@ -463,33 +456,31 @@ function EngineRoomOverview({
     // content 347.4px wider, because line 277 already passes `wide`. One right
     // edge now, on the overview and in its own rooms alike.
     <Surface wide>
-      <PageHead title={headline} />
+      <div className="flex flex-col gap-mrd-7">
+        <PageHeading title={headline} />
 
-      {/* A column of cards rather than a row-list. The gap is the system's
-          between-components step; nothing sets a height, so a room with six
-          figures is as tall as it needs to be and a room with three is not
-          padded out to match it. */}
-      <Block>
-        <div style={{ display: "grid", gap: "var(--sp-space-2)" }}>
-          {rooms.map((r) => roomCard(r, openRoom))}
+        {/* A column of cards rather than a row-list. Nothing sets a height, so
+            a room with six figures is as tall as it needs to be and a room with
+            three is not padded out to match it. */}
+        <div className="flex flex-col gap-mrd-4">
+          <div className="grid gap-mrd-2">{rooms.map((r) => roomCard(r, openRoom))}</div>
+          {failed.length > 0 ? (
+            <Actions>
+              <Action
+                onClick={() => {
+                  for (const r of failed) r.retry();
+                }}
+              >
+                Read the rooms again
+              </Action>
+            </Actions>
+          ) : null}
         </div>
-        {failed.length > 0 ? (
-          <Actions>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                for (const r of failed) r.retry();
-              }}
-            >
-              Read the rooms again
-            </Button>
-          </Actions>
-        ) : null}
-      </Block>
 
-      <Block title="Reading from">
-        <SourcesLine onSync={openSync} />
-      </Block>
+        <Region title="Reading from">
+          <SourcesLine onSync={openSync} />
+        </Region>
+      </div>
     </Surface>
   );
 }
@@ -519,12 +510,12 @@ function SourcesLine({ onSync }: { onSync: (conflictId?: string) => void }) {
      was written carefully and the loading arm was not, which is the usual
      shape: failure gets designed because someone imagines it, and waiting gets
      skipped because the developer's own machine is fast. */
-  if (bindingsQ.isLoading) return <Loading>Reading the connections.</Loading>;
+  if (bindingsQ.isLoading) return <Reading>Reading the connections.</Reading>;
   if (bindingsQ.isError) {
     return (
-      <Failed onRetry={() => void bindingsQ.refetch()} retryLabel="Read it again">
+      <ReadFailed onRetry={() => void bindingsQ.refetch()} retryLabel="Read it again">
         The connection read failed, so this line is not the whole truth.
-      </Failed>
+      </ReadFailed>
     );
   }
 
@@ -534,33 +525,54 @@ function SourcesLine({ onSync }: { onSync: (conflictId?: string) => void }) {
   );
 
   return (
-    <Row
-      tight
-      lead={
-        count === 0 ? (
-          "Nothing is bound to this workspace yet"
-        ) : (
-          <>
-            <Num>{count}</Num> {count === 1 ? "source" : "sources"} bound to this workspace
-          </>
-        )
-      }
-      // A different fact, and only when there is one: sync stopped on something
-      // it cannot settle alone, or it could not tell us either way.
-      sub={
-        conflicts.length > 0 ? (
-          <span className="sp-warn">
+    <button
+      type="button"
+      onClick={() => onSync(conflicts[0]?.id)}
+      className={`group flex w-full items-center gap-mrd-4 rounded-mrd-ctl border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-4 text-left transition-colors hover:bg-mrd-lift ${FOCUS_RING}`}
+      style={{ transitionDuration: "var(--mrd-d-press)" }}
+    >
+      <span className="min-w-0 flex-1">
+        <span className="block text-[13px] font-medium text-mrd-ink">
+          {count === 0 ? (
+            "Nothing is bound to this workspace yet"
+          ) : (
+            <>
+              <Figure>{count}</Figure> {count === 1 ? "source" : "sources"} bound to this workspace
+            </>
+          )}
+        </span>
+        {/* A different fact, and only when there is one: sync stopped on
+            something it cannot settle alone, or it could not tell us either
+            way. A conflict is AMBER rather than orchid: it is stopped on a
+            condition somewhere else, and this row cannot settle it — it can
+            only carry you to the surface that can. A read that failed is red,
+            which is the outcome it is. */}
+        {conflicts.length > 0 ? (
+          <span className="mt-0.5 block text-[12px] text-mrd-hold">
             {conflicts.length === 1
               ? "One conflict is waiting on your call"
               : `${conflicts.length} conflicts are waiting on your call`}
           </span>
         ) : syncQ.isError ? (
-          <span className="sp-fail">
+          <span className="mt-0.5 block text-[12px] text-mrd-fail">
             Sync status did not load, so the conflict count is unknown
           </span>
-        ) : undefined
-      }
-      onClick={() => onSync(conflicts[0]?.id)}
-    />
+        ) : null}
+      </span>
+      <svg
+        width={13}
+        height={13}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+        className="shrink-0 text-mrd-faint transition-colors group-hover:text-mrd-body"
+      >
+        <path d="M9 6l6 6-6 6" />
+      </svg>
+    </button>
   );
 }

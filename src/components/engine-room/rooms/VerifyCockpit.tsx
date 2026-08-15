@@ -23,6 +23,7 @@ import {
   PanelPending,
   type RoomBodyProps,
 } from "../RoomDetail";
+import { Eyebrow, FOCUS_RING, QuietAction } from "../EngineChrome";
 
 /**
  * RPT-31 - The Agent Inbox (verification cockpit).
@@ -39,6 +40,27 @@ import {
  *
  * All server logic is reused; the only net-new capability is the cross-mission
  * listAppliedChanges query. No em/en dashes anywhere (humanized-output law).
+ *
+ * 2026-08-15: PORTED TO MERIDIAN, and two colour decisions were reversed.
+ *
+ * RISK IS NOT A HUE ANY MORE. The three risk levels were painted moss, marigold
+ * and madder, which claims three meanings this system does not have: green and
+ * red report an OUTCOME (it worked, it did not) and nothing on a call that has
+ * not run yet is an outcome, while amber means stopped and NOT on you, which a
+ * pending approval is the exact opposite of. meridian.css is explicit about the
+ * remedy: something that needs to be noticed and carries none of the five
+ * meanings needs STRUCTURE, not a sixth colour. So the three levels are
+ * separated by ink weight instead, which survives greyscale and leaves the one
+ * accent on this panel where it belongs.
+ *
+ * ROLL BACK IS NOT RED. Red is an outcome here, never an intent, and a
+ * destructive control is separated by DISTANCE rather than by colour: it sits
+ * last, behind a confirm, which is what actually protects someone. A red button
+ * that is safe to press teaches a reader to stop reading red.
+ *
+ * THE ONE ACCENT IS ON APPROVE, because it is the control that UNBLOCKS a run
+ * that has stopped for a person. That is the whole definition of `--mrd-you`,
+ * and it is the same rule /approvals follows on the same act.
  */
 
 type PendingApproval = Awaited<ReturnType<typeof listGovernApprovals>>["approvals"][number];
@@ -52,10 +74,12 @@ type DiffRow = {
   updated_at: string;
 };
 
-const RISK_TONE: Record<string, string> = {
-  low: "var(--moss)",
-  medium: "var(--marigold)",
-  high: "var(--madder)",
+/** Risk, separated by ink weight rather than by hue. High reads at full
+ *  strength, low reads quietest, and the order is legible in greyscale. */
+const RISK_INK: Record<string, string> = {
+  low: "text-mrd-mute",
+  medium: "text-mrd-body",
+  high: "text-mrd-ink",
 };
 
 /** Pure: relative time from an ISO string. `nowMs` is injectable for tests. */
@@ -84,64 +108,31 @@ export function cockpitVerdict(pending: number, applied: number): string {
   return `${p}, and ${a}. Everything the agents did, in one place.`;
 }
 
-const CARD: React.CSSProperties = {
-  border: "1px solid var(--hairline)",
-  borderRadius: 12,
-  overflow: "hidden",
-};
+/** One bordered container per region, which is the cap the standard sets. */
+const CARD = "overflow-hidden rounded-mrd-card border border-mrd-line bg-mrd-sheet";
 
-/** Shared interactive chrome for the small mono buttons: quiet hover lift,
- * pressed dim, honest disabled. Focus ring rides the global
- * [data-obsidian] :focus-visible rule (outline never removed). */
-const SMALL_BTN_CLASS =
-  "hover:enabled:[background-color:var(--raised)] active:enabled:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed";
-
-const SMALL_BTN: React.CSSProperties = {
-  padding: "4px 10px",
-  fontFamily: "var(--font-mono)",
-  borderRadius: 6,
-  border: "1px solid var(--hairline)",
-  background: "transparent",
-  color: "var(--text-body)",
-  cursor: "pointer",
-  whiteSpace: "nowrap",
-};
+/** The small neutral control this panel repeats: a file tab, a diff toggle, a
+ *  reject. Sans, not mono, because none of them is a figure. */
+const SMALL_BTN = `inline-flex h-7 items-center rounded-mrd-chip border border-mrd-line px-2.5 text-[12px] whitespace-nowrap text-mrd-body transition-colors enabled:hover:bg-mrd-hover enabled:hover:text-mrd-ink disabled:cursor-not-allowed disabled:opacity-45 ${FOCUS_RING}`;
 
 function SectionHead({ label, note }: { label: string; note?: string | null }) {
   return (
-    <div className="flex items-baseline gap-3" style={{ margin: "0 0 10px", paddingBottom: "2px" }}>
-      <span
-        className="uppercase"
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.11em",
-          color: "var(--text-body)",
-        }}
-      >
-        {label}
-      </span>
+    <div className="mb-mrd-4 flex items-baseline gap-mrd-3">
+      <Eyebrow>{label}</Eyebrow>
       {note ? (
-        <span
-          className="tabular-nums"
-          style={{
-            fontFamily: "var(--font-mono)",
-            color: "var(--text-subtle)",
-          }}
-        >
-          {note}
-        </span>
+        <span className="font-mrd-mono text-[11.5px] text-mrd-faint tabular-nums">{note}</span>
       ) : null}
     </div>
   );
 }
 
+/** A diff still loading. It reserves the height the diff will take, so the row
+ *  below it does not jump up and then back down as the read lands, and it says
+ *  so in words rather than reserving the height silently. */
 function DiffPending() {
   return (
-    <div
-      style={{ height: 360, display: "flex", alignItems: "center", justifyContent: "center" }}
-      aria-hidden="true"
-    >
-      <PanelPending />
+    <div className="flex h-[360px] items-center justify-center">
+      <PanelPending>Reading the diff.</PanelPending>
     </div>
   );
 }
@@ -188,68 +179,49 @@ function PendingApprovals({
   }
 
   return (
-    <div style={CARD}>
-      {approvals.map((a, i) => {
-        const tone = RISK_TONE[a.risk] ?? "var(--marigold)";
+    <div data-mrd="" className={CARD}>
+      {approvals.map((a) => {
         const busy = decide.isPending && decide.variables?.approvalId === a.id;
         return (
           <div
             key={a.id}
-            className="flex items-center gap-3 flex-wrap"
-            style={{
-              padding: "12px 16px",
-              borderBottom: i < approvals.length - 1 ? "1px solid var(--hairline)" : "none",
-            }}
+            className="flex flex-wrap items-center gap-mrd-4 border-b border-mrd-line-soft px-mrd-5 py-mrd-4 last:border-0"
           >
             <div className="min-w-0 flex-1">
-              <div
-                className="truncate"
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontWeight: 600,
-                  color: "var(--text-primary)",
-                }}
-              >
-                <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-body)" }}>
-                  {a.agent_slug ?? "agent"}
-                </span>{" "}
-                wants <span style={{ fontFamily: "var(--font-mono)" }}>{a.tool_name}</span>
+              {/* The agent slug and the tool name are IDENTIFIERS, which is one
+                  of the things mono is for. The verb between them is not. */}
+              <div className="truncate text-[13px] font-medium text-mrd-ink">
+                <span className="font-mrd-mono text-mrd-body">{a.agent_slug ?? "agent"}</span> wants{" "}
+                <span className="font-mrd-mono">{a.tool_name}</span>
               </div>
-              <div
-                className="truncate"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  color: "var(--text-subtle)",
-                  marginTop: 3,
-                }}
-              >
-                <span style={{ color: tone, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  {a.risk} risk
-                </span>
+              <div className="mt-0.5 truncate text-[12px] text-mrd-mute">
+                <span className={RISK_INK[a.risk] ?? "text-mrd-body"}>{a.risk} risk</span>
                 {a.mission_title ? ` · in ${a.mission_title}` : ""}
                 {a.rationale ? ` · ${a.rationale}` : ""}
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex shrink-0 items-center gap-mrd-3">
               <button
                 type="button"
                 disabled={busy}
                 onClick={() => decide.mutate({ approvalId: a.id, decision: "reject" })}
-                className={SMALL_BTN_CLASS}
-                style={{ ...SMALL_BTN, color: "var(--text-subtle)" }}
+                className={SMALL_BTN}
               >
                 Reject
               </button>
+              {/* THE ONE ACCENT ON THIS PANEL. Approving is what releases an
+                  agent that has stopped for a person, which is exactly what
+                  `--mrd-you` means. Disabled it falls back to the neutral
+                  primary face with `--mrd-on-solid` on it, because both
+                  `bg-mrd-solid` and `text-mrd-ink` invert with the ground and
+                  travel together: 1.19:1 on paper, an invisible label on every
+                  click of a control that disables for the whole round trip. */}
               <button
                 type="button"
                 disabled={busy}
                 onClick={() => decide.mutate({ approvalId: a.id, decision: "approve" })}
-                className={SMALL_BTN_CLASS}
-                style={{
-                  ...SMALL_BTN,
-                  color: "var(--text-primary)",
-                  borderColor: "var(--hairline-strong)",
-                }}
+                className={`inline-flex h-7 items-center rounded-mrd-chip bg-mrd-you px-2.5 text-[12px] font-medium whitespace-nowrap text-mrd-on-you transition-opacity enabled:hover:opacity-90 disabled:bg-mrd-solid disabled:text-mrd-on-solid ${FOCUS_RING}`}
+                style={{ transitionDuration: "var(--mrd-d-press)" }}
               >
                 {busy ? "Working..." : "Approve"}
               </button>
@@ -279,14 +251,16 @@ function JustHappened() {
     return <EmptyRow message="Nothing has shipped yet. Merged changes land here as they happen." />;
   }
   return (
-    <div style={CARD}>
+    <div data-mrd="" className={CARD}>
       {entries.map((e) => (
         <Row
           key={e.id}
           subject={e.title}
           value={[e.product_name ?? null, relTime(e.released_at)].filter(Boolean).join(" · ")}
           statusWord="shipped"
-          statusColor="var(--moss-bright)"
+          /* An outcome: it shipped. Red and green report outcomes in this
+             system and nothing else, so this one is entitled to the hue. */
+          tone="pass"
           onOpen={e.pr_url ? () => window.open(e.pr_url as string, "_blank") : undefined}
         />
       ))}
@@ -342,55 +316,39 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
   };
 
   return (
-    <div style={{ borderBottom: "1px solid var(--hairline)" }}>
-      <div className="flex items-center gap-3 flex-wrap" style={{ padding: "12px 16px" }}>
+    <div className="border-b border-mrd-line-soft last:border-0">
+      <div className="flex flex-wrap items-center gap-mrd-4 px-mrd-5 py-mrd-4">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          className="min-w-0 flex-1 text-left hover:opacity-90 active:opacity-80"
-          style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+          className={`min-w-0 flex-1 rounded-mrd-xs text-left transition-opacity hover:opacity-90 ${FOCUS_RING}`}
+          style={{ transitionDuration: "var(--mrd-d-press)" }}
         >
-          <div
-            className="truncate"
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontWeight: 600,
-              color: "var(--text-primary)",
-            }}
-          >
-            {change.title}
-          </div>
-          <div
-            className="truncate"
-            style={{
-              fontFamily: "var(--font-mono)",
-              color: "var(--text-subtle)",
-              marginTop: 3,
-            }}
-          >
-            {[
-              change.mission_title ? `in ${change.mission_title}` : null,
-              `${change.file_count} file${change.file_count === 1 ? "" : "s"}`,
-              relTime(change.merged_at),
-            ]
-              .filter(Boolean)
-              .join(" · ")}
+          <div className="truncate text-[13px] font-medium text-mrd-ink">{change.title}</div>
+          {/* A file COUNT and a timestamp are figures; the mission name is not,
+              so only the parts that are numbers wear mono. */}
+          <div className="mt-0.5 truncate text-[12px] text-mrd-mute">
+            {change.mission_title ? `in ${change.mission_title} · ` : ""}
+            <span className="font-mrd-mono tabular-nums">
+              {change.file_count} file{change.file_count === 1 ? "" : "s"}
+            </span>
+            {relTime(change.merged_at) ? (
+              <>
+                {" · "}
+                <span className="font-mrd-mono tabular-nums">{relTime(change.merged_at)}</span>
+              </>
+            ) : null}
           </div>
         </button>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-mrd-3">
           {change.pr_url ? (
             <a
               href={change.pr_url}
               target="_blank"
               rel="noreferrer"
-              className="uppercase hover:underline"
-              style={{
-                fontFamily: "var(--font-mono)",
-                letterSpacing: "0.08em",
-                color: "var(--text-muted)",
-                textDecoration: "none",
-              }}
+              className={`font-mrd-mono rounded-mrd-xs text-[12px] text-mrd-mute transition-colors hover:text-mrd-ink ${FOCUS_RING}`}
+              style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               {change.pr_number ? `PR #${change.pr_number}` : "PR"}
             </a>
@@ -399,17 +357,21 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
             type="button"
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
-            className={SMALL_BTN_CLASS}
-            style={SMALL_BTN}
+            className={SMALL_BTN}
           >
             {open ? "Hide diff" : "Verify diff"}
           </button>
+          {/* THE DESTRUCTIVE ONE IS SEPARATED BY POSITION, NOT BY COLOUR. It
+              used to be drawn in red, and red reports an OUTCOME in this
+              system rather than an intent: a control that has not been pressed
+              has no outcome to report, and a red button that is safe to press
+              is how a reader learns to stop reading red. What actually protects
+              someone here is that it sits last and opens a confirm. */}
           <button
             type="button"
             disabled={rollbackMut.isPending}
             onClick={triggerRollback}
-            className={SMALL_BTN_CLASS}
-            style={{ ...SMALL_BTN, color: "var(--madder-bright)" }}
+            className={SMALL_BTN}
           >
             {rollbackMut.isPending ? "Rolling back..." : "Roll back"}
           </button>
@@ -417,37 +379,38 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
       </div>
 
       {open ? (
-        <div style={{ borderTop: "1px solid var(--hairline)" }}>
+        <div className="border-t border-mrd-line-soft">
           {diff.isError ? (
-            <div style={{ padding: "14px 16px" }}>
+            <div className="px-mrd-5 py-mrd-4">
               <ErrorRetry message="The diff did not load." onRetry={() => void diff.refetch()} />
             </div>
           ) : diff.isLoading ? (
             <DiffPending />
           ) : files.length === 0 ? (
-            <EmptyRow message="This change has no file diff on the record." />
+            <div className="px-mrd-5">
+              <EmptyRow message="This change has no file diff on the record." />
+            </div>
           ) : (
             <>
               {files.length > 1 ? (
-                <div
-                  className="flex flex-wrap gap-2"
-                  style={{ padding: "10px 16px", borderBottom: "1px solid var(--hairline)" }}
-                >
+                <div className="flex flex-wrap gap-mrd-3 border-b border-mrd-line-soft px-mrd-5 py-mrd-3">
                   {files.map((f) => {
                     const active = f.path === selectedPath;
                     return (
+                      /* THE PICKED FILE TAKES `--mrd-select`, NOT A RAISED
+                         GROUND. Everything the panel below does happens to
+                         exactly this file, which is what a selection means; the
+                         ground it used to take is one the reader also sees
+                         under a pointer, so the picked file and the file being
+                         hovered were the same shade. */
                       <button
                         key={f.id}
                         type="button"
                         onClick={() => setSelectedPath(f.path)}
                         aria-pressed={active}
-                        className={`truncate ${SMALL_BTN_CLASS}`}
-                        style={{
-                          ...SMALL_BTN,
-                          maxWidth: 260,
-                          color: active ? "var(--text-primary)" : "var(--text-subtle)",
-                          background: active ? "var(--surface-raised)" : "transparent",
-                        }}
+                        className={`font-mrd-mono max-w-[260px] truncate ${SMALL_BTN} ${
+                          active ? "bg-mrd-select font-medium text-mrd-ink" : "text-mrd-mute"
+                        }`}
                       >
                         {f.path}
                       </button>
@@ -455,29 +418,12 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
                   })}
                 </div>
               ) : null}
-              <div
-                className="flex items-center gap-3"
-                style={{ padding: "8px 16px", borderBottom: "1px solid var(--hairline)" }}
-              >
-                <span
-                  className="truncate"
-                  style={{
-                    flex: 1,
-                    minWidth: 0,
-                    fontFamily: "var(--font-mono)",
-                    color: "var(--text-primary)",
-                  }}
-                >
+              <div className="flex items-center gap-mrd-4 border-b border-mrd-line-soft px-mrd-5 py-mrd-3">
+                {/* A path is an identifier, so it is mono. */}
+                <span className="font-mrd-mono min-w-0 flex-1 truncate text-[12px] text-mrd-ink">
                   {selectedPath ?? ""}
                 </span>
-                <span
-                  className="uppercase tabular-nums"
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    letterSpacing: "0.1em",
-                    color: "var(--text-subtle)",
-                  }}
-                >
+                <span className="font-mrd-mono shrink-0 text-[11.5px] text-mrd-mute tabular-nums">
                   {hunks.length} hunk{hunks.length === 1 ? "" : "s"} · base vs merged
                 </span>
               </div>
@@ -490,7 +436,7 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
                   alignment this cockpit already counts its hunks from, so the
                   number above and the rows below cannot disagree. */}
               {selected ? (
-                <div style={{ padding: "0 16px 12px" }}>
+                <div className="px-mrd-5 pb-mrd-4">
                   <CodeDiff base={selected.base_content ?? ""} next={selected.new_content ?? ""} />
                 </div>
               ) : null}
@@ -525,7 +471,7 @@ function AppliedChanges({
     );
   }
   return (
-    <div style={{ ...CARD, borderBottom: "none" }}>
+    <div data-mrd="" className={CARD}>
       {changes.map((c) => (
         <AppliedChangeRow key={c.id} change={c} onChanged={onChanged} />
       ))}
@@ -555,7 +501,7 @@ export function VerifyCockpit(_props: RoomBodyProps) {
   const summaryReady = !approvalsQ.isLoading && !appliedQ.isLoading;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+    <div className="flex flex-col gap-mrd-6">
       {summaryReady ? (
         <VerdictSentence>{cockpitVerdict(pending.length, applied.length)}</VerdictSentence>
       ) : (
@@ -595,22 +541,11 @@ export function VerifyCockpit(_props: RoomBodyProps) {
         />
       </section>
 
-      <button
-        type="button"
-        onClick={() => navigate({ to: "/traces" })}
-        className="uppercase self-start hover:underline active:opacity-80"
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.11em",
-          color: "var(--text-primary)",
-          background: "none",
-          border: "none",
-          padding: 0,
-          cursor: "pointer",
-        }}
-      >
-        Open the full run record
-      </button>
+      <div className="self-start">
+        <QuietAction onClick={() => navigate({ to: "/traces" })}>
+          Open the full run record
+        </QuietAction>
+      </div>
     </div>
   );
 }

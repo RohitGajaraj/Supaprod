@@ -1,14 +1,20 @@
 // PC-08: Routines, productized. The platform's background pg_cron jobs,
 // shown as plain-language routines with a real on/off per workspace.
 // Placement per Fable ruling (2026-07-10): inside Safety, not a new room --
-// the toggle is a standing grant of unattended permission, Safety's own
-// question ("what is it allowed to do?"); the last-run receipt is
-// supporting evidence for that call, not the point of the row.
-import * as React from "react";
+// the toggle is a standing grant of permission to run with nobody watching,
+// which is Safety's own question ("what is it allowed to do?"); the last-run
+// record is supporting evidence for that call, not the point of the row.
+//
+// 2026-08-15: PORTED TO MERIDIAN. The switch stopped being green, and that is
+// the one change that is not a re-skin: green reports an OUTCOME in this system
+// and a routine being switched on is a SETTING, drawn one inch from a last-run
+// line where green would mean the run succeeded. The argument, and the token it
+// moved to, are in EngineChrome.tsx beside `Toggle`.
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listRoutines, toggleRoutine, type RoutineRow } from "@/lib/routines.functions";
 import { EmptyRow, ErrorRetry, PanelPending } from "../RoomDetail";
+import { Toggle } from "../EngineChrome";
 
 function relativeTime(iso: string | null, futureLabel: (d: Date) => string): string {
   if (!iso) return "not yet tracked";
@@ -33,55 +39,6 @@ function nextRunLabel(iso: string): string {
   return `in ${Math.round(hours / 24)}d`;
 }
 
-function RoutineToggle({
-  on,
-  onToggle,
-  disabled,
-  name,
-}: {
-  on: boolean;
-  onToggle: () => void;
-  disabled?: boolean;
-  name: string;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      aria-label={`${on ? "Turn off" : "Turn on"} ${name}`}
-      aria-busy={disabled || undefined}
-      disabled={disabled}
-      onClick={onToggle}
-      style={{
-        width: 34,
-        height: 19,
-        borderRadius: 99,
-        background: on ? "var(--moss, #7fbf8e)" : "var(--surface-2, #1c1c1e)",
-        border: "1px solid var(--hairline)",
-        position: "relative",
-        flexShrink: 0,
-        transition: "background var(--dur-base, 160ms)",
-        opacity: disabled ? 0.5 : 1,
-        cursor: disabled ? "not-allowed" : "pointer",
-      }}
-    >
-      <span
-        style={{
-          position: "absolute",
-          top: 2,
-          left: on ? 16 : 2,
-          width: 13,
-          height: 13,
-          borderRadius: 99,
-          background: "var(--canvas, #0a0a0c)",
-          transition: "left var(--dur-base, 160ms)",
-        }}
-      />
-    </button>
-  );
-}
-
 function RoutineRowView({ routine }: { routine: RoutineRow }) {
   const qc = useQueryClient();
   const fToggle = useServerFn(toggleRoutine);
@@ -91,48 +48,34 @@ function RoutineRowView({ routine }: { routine: RoutineRow }) {
   });
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 14,
-        padding: "14px 18px",
-        borderBottom: "1px solid var(--hairline)",
-      }}
-    >
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-          <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{routine.name}</span>
-          <span style={{ color: "var(--text-faint)" }}>{routine.castOwner}</span>
+    <div className="flex items-center gap-mrd-5 border-b border-mrd-line-soft px-mrd-5 py-mrd-4 last:border-0">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline gap-mrd-3">
+          <span className="text-[13px] font-medium text-mrd-ink">{routine.name}</span>
+          <span className="text-[12px] text-mrd-faint">{routine.castOwner}</span>
         </div>
-        <p style={{ color: "var(--text-muted)", margin: "3px 0 0" }}>{routine.whatItDoes}</p>
-        <p
-          style={{
-            color: "var(--text-faint)",
-            margin: "4px 0 0",
-            fontFamily: "var(--font-mono)",
-          }}
-        >
+        <p className="mt-mrd-1 text-[12.5px] leading-snug text-mrd-mute">{routine.whatItDoes}</p>
+        {/* Mono, and it earns it: both halves of this line are timestamps. */}
+        <p className="font-mrd-mono mt-mrd-2 text-[11.5px] text-mrd-faint tabular-nums">
           Last run {relativeTime(routine.lastRunAt, () => "not yet tracked")} · Next run{" "}
           {nextRunLabel(routine.nextRunAt)}
         </p>
         {mut.isError ? (
-          <p
-            role="alert"
-            style={{
-              color: "var(--madder-bright)",
-              margin: "4px 0 0",
-            }}
-          >
+          /* `role="alert"` rather than status: this is trouble the person did
+             not choose, arriving after they looked away from the control. Red
+             reports the outcome of the write, which is the only thing red means
+             in this system. */
+          <p role="alert" className="mt-mrd-2 text-[12px] text-mrd-fail">
             The change did not save. Flip the switch again to retry.
           </p>
         ) : null}
       </div>
-      <RoutineToggle
-        on={routine.enabled}
+      <Toggle
+        checked={routine.enabled}
         disabled={mut.isPending}
-        name={routine.name}
-        onToggle={() => mut.mutate(!routine.enabled)}
+        busy={mut.isPending}
+        label={`${routine.enabled ? "Turn off" : "Turn on"} ${routine.name}`}
+        onChange={(next) => mut.mutate(next)}
       />
     </div>
   );
@@ -154,11 +97,8 @@ export function RoutinesPanel() {
   }
   return (
     <div
-      style={{
-        borderRadius: 12,
-        border: "1px solid var(--hairline)",
-        overflow: "hidden",
-      }}
+      data-mrd=""
+      className="overflow-hidden rounded-mrd-card border border-mrd-line bg-mrd-sheet"
     >
       {routines.map((r) => (
         <RoutineRowView key={r.id} routine={r} />

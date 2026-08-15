@@ -24,11 +24,31 @@
  *    you settled it, and the honest word "unattributed" when the record does
  *    not say. A row is never silent about its author and never invents one.
  *
- *  - COLOUR HAS JOBS. Monochrome by default. Ember only on a receipt still
- *    waiting on a human (the mark's gate state). Red on a rejected or failed
- *    outcome, green on a decision an outcome has proven. Nothing else.
+ *  - COLOUR HAS JOBS. Monochrome by default. The accent only on a record still
+ *    waiting on a human. Red on a rejected or failed outcome, green on a
+ *    decision an outcome has proven. Nothing else.
  *
  * Every server function, query key and exported signature is untouched.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * 2026-08-15: PORTED TO MERIDIAN, and one state that was missing is now drawn.
+ *
+ * A READ IN FLIGHT WAS A BLANK PAGE. The list rendered `query.isPending ? null`,
+ * so on a cold load this tab drew its filters and then nothing at all, for as
+ * long as the read took, with no signal that anything was coming. Nothing here,
+ * nothing matched, the read failed and the read is still running are four
+ * different facts in this product precisely so that a read in flight never
+ * wears the clothes of an empty record, and this panel was skipping straight
+ * past that rule. /approvals had the identical defect and fixed it the same
+ * way: a plain quiet line, in a live region, and never the elapsed-timer loader
+ * (that one belongs where an agent genuinely runs for seconds; on an ordinary
+ * row read it invents a wait).
+ *
+ * THE MARKS ARE NEUTRAL NOW. The shell's mark encodes the agent as a shape AND
+ * its loop stage as a hue. Meridian spends colour on one distinction, what a
+ * machine did against what a person must decide, and a stage rainbow down fifty
+ * rows competes with the one accent that says a record is still waiting on a
+ * person. The shape still carries the identity and survives greyscale alone.
  */
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -38,24 +58,22 @@ import { useDebouncedValue } from "@/components/admin/admin-ui";
 import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { glyphForSlug } from "@/components/shell/agent-glyphs";
 import {
+  Action,
   Actions,
-  AgentMark,
-  Block,
-  Button,
-  Empty,
-  Failed,
   Field,
-  Input,
-  Line,
-  Num,
-  PairMark,
-  Record as RecordVerdict,
-  Row,
-  Select,
-  YouMark,
-  type MarkState,
-} from "@/components/shell/primitives";
+  Figure,
+  FOCUS_RING,
+  NothingHere,
+  Picker,
+  ReadFailed,
+  Reading,
+  RecordSpeaks,
+  Region,
+  TextInput,
+  ViewTabs,
+} from "../EngineChrome";
 import {
   listTrustReceipts,
   getLedgerSeal,
@@ -116,20 +134,72 @@ function useInitials(): string {
   return initials;
 }
 
-/** State is never a hue (primitives.css): quiet for a call a later one
- *  replaced, ember for one still waiting on a human, red for one that was
- *  refused or that failed. Everything else stays monochrome.
+/**
+ * Four states, four tokens, and no fifth.
  *
- *  "waiting", not "gate". Both are ember, but "gate" BLINKS and it is the only
- *  blink in the system, so exactly one mark on a screen may wear it: the one
- *  thing actually asking. This is a LIST, and a workspace with a dozen open
- *  decisions blinked a dozen marks at once, which spends the whole restraint
- *  budget and stops the blink meaning "look here". */
-function markState(r: TrustReceipt): MarkState {
+ *  QUIET   a call a later one replaced. It is history, so it recedes.
+ *  ORCHID  still waiting on a human. The one meaning the accent has.
+ *  RED     refused, or it failed. An outcome, which is all red ever means.
+ *  NEUTRAL settled and unremarkable.
+ *
+ * NOTHING BLINKS HERE. The blink is the system's single reserved animation and
+ * exactly one mark on a screen may wear it: the one thing actually asking. This
+ * is a LIST, and a workspace with a dozen open decisions blinked a dozen marks
+ * at once, which spends the whole restraint budget and stops the blink meaning
+ * "look here".
+ */
+type ReceiptMarkState = "quiet" | "waiting" | "failed" | "idle";
+
+const MARK_INK: Record<ReceiptMarkState, string> = {
+  quiet: "text-mrd-faint",
+  waiting: "text-mrd-you",
+  failed: "text-mrd-fail",
+  idle: "text-mrd-mute",
+};
+
+function markState(r: TrustReceipt): ReceiptMarkState {
   if (r.outcome === "superseded") return "quiet";
   if (r.status === "rejected" || r.status === "failed") return "failed";
   if (r.status === "pending") return "waiting";
   return "idle";
+}
+
+/**
+ * THE AGENT, AND YOU, AS TWO DIFFERENT KINDS OF MARK.
+ *
+ * You are a filled disc carrying initials; an agent is its own silhouette in a
+ * bordered tile. That difference is structural rather than chromatic, which is
+ * what lets both survive greyscale and what keeps the colour free to say
+ * whether the record is still waiting on someone.
+ *
+ * DUPLICATED FROM components/crew/CrewChrome.tsx, deliberately and visibly. The
+ * right home for one agent mark drawn in Meridian is components/meridian/, and
+ * this lane does not own that folder; reaching into the Crew surface's parts
+ * from the Engine Room would couple two surfaces that must stay separately
+ * changeable. Recorded here rather than hidden, and flagged in the report.
+ */
+function AgentGlyphMark({ slug, state }: { slug: string; state: ReceiptMarkState }) {
+  const Glyph = glyphForSlug(slug);
+  return (
+    <span
+      aria-hidden
+      className={`inline-flex size-6 shrink-0 items-center justify-center rounded-mrd-chip border border-mrd-line bg-mrd-sink [&>svg]:size-3.5 ${MARK_INK[state]}`}
+    >
+      <Glyph />
+    </span>
+  );
+}
+
+function YouDisc({ initials }: { initials: string }) {
+  return (
+    <span
+      aria-hidden
+      className="font-mrd-mono inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-mrd-solid text-[10px] font-medium text-mrd-on-solid"
+      style={{ boxShadow: "inset 0 1px 0 var(--mrd-sheen)" }}
+    >
+      {initials}
+    </span>
+  );
 }
 
 /** WHO, in one phrase. The record either names an author or it does not, and
@@ -156,38 +226,55 @@ function ReceiptRow({
   // the same one. Both marks appear when the crew proposed it and you settled.
   const marks = r.humanDecided ? (
     r.actor ? (
-      <PairMark slug={r.actor} initials={initials} state={state} />
+      <span className="flex shrink-0 items-center -space-x-1.5">
+        <AgentGlyphMark slug={r.actor} state={state} />
+        <YouDisc initials={initials} />
+      </span>
     ) : (
-      <YouMark initials={initials} mine />
+      <YouDisc initials={initials} />
     )
   ) : r.actor ? (
-    <AgentMark slug={r.actor} state={state} />
+    <AgentGlyphMark slug={r.actor} state={state} />
   ) : null;
 
+  const stamp = since(r.occurredAt);
+
   return (
-    <Row
-      tight
-      marks={marks}
-      lead={stripAutoPrefix(r.title)}
-      // The second line is a different fact, never more of the first: who, what
-      // family of record, where it landed. The rationale, the evidence and the
-      // provenance belong to the one receipt you open, not to fifty rows.
-      sub={
-        <>
-          {attribution(r)} {"·"} {r.kind} {"·"}{" "}
-          <span className={failed ? "sp-fail" : undefined}>{receiptStatusLabel(r.status)}</span>
-          {r.outcome === "superseded" ? ` · superseded` : null}
+    <button
+      type="button"
+      onClick={onOpen}
+      className={`flex w-full items-center gap-mrd-4 border-b border-mrd-line-soft px-mrd-5 py-mrd-4 text-left transition-colors last:border-0 hover:bg-mrd-hover ${FOCUS_RING}`}
+      style={{ transitionDuration: "var(--mrd-d-press)" }}
+    >
+      {marks}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[13px] font-medium text-mrd-ink">
+          {stripAutoPrefix(r.title)}
+        </span>
+        {/* The second line is a different fact, never more of the first: who,
+            what family of record, and how it stands. The rationale, the
+            evidence and where it came from belong to the one record you open,
+            not to fifty rows. */}
+        <span className="mt-0.5 block truncate text-[12px] text-mrd-mute">
+          {attribution(r)} · {r.kind} ·{" "}
+          <span className={failed ? "text-mrd-fail" : undefined}>
+            {receiptStatusLabel(r.status)}
+          </span>
+          {r.outcome === "superseded" ? " · superseded" : null}
           {r.outcome === "proven" ? (
             <>
               {" · "}
-              <span className="sp-pass">proven by an outcome</span>
+              <span className="text-mrd-pass">proven by an outcome</span>
             </>
           ) : null}
-        </>
-      }
-      time={since(r.occurredAt) || null}
-      onClick={onOpen}
-    />
+        </span>
+      </span>
+      {stamp ? (
+        <span className="font-mrd-mono shrink-0 text-[11.5px] text-mrd-faint tabular-nums">
+          {stamp}
+        </span>
+      ) : null}
+    </button>
   );
 }
 
@@ -215,9 +302,9 @@ function SealPanel() {
   // one retry.
   if (sealQ.isError) {
     return (
-      <Block title="Tamper check">
-        <Failed onRetry={() => void sealQ.refetch()}>The tamper check did not load.</Failed>
-      </Block>
+      <Region title="Tamper check">
+        <ReadFailed onRetry={() => void sealQ.refetch()}>The tamper check did not load.</ReadFailed>
+      </Region>
     );
   }
   // Hide when there is nothing to fingerprint: an empty ledger hashes to a
@@ -231,82 +318,92 @@ function SealPanel() {
   const ready = paste.trim().length >= 8;
 
   return (
-    <Block
+    <Region
       title="Tamper check"
       sub="Save this fingerprint now. Re-check it later and it tells you whether anything on the record was quietly changed."
     >
-      <Line
-        label={
-          <>
-            Fingerprint <Num>{shortHead(seal.head)}</Num>
-          </>
-        }
-        sub={
-          <>
-            <Num>{seal.count}</Num> record{seal.count === 1 ? "" : "s"}
-            {sealedAt ? (
-              <>
-                , sealed <Num>{sealedAt}</Num>
-              </>
-            ) : null}
-          </>
-        }
-      >
-        <Button
-          variant="ghost"
-          title={seal.head}
-          onClick={async () => {
-            try {
-              await navigator.clipboard.writeText(seal.head);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 1500);
-            } catch {
-              /* clipboard blocked, the full head is in the title attribute */
-            }
-          }}
-        >
-          {copied ? "Copied" : "Copy"}
-        </Button>
-        <Button variant="ghost" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-          {open ? "Close" : "Verify"}
-        </Button>
-      </Line>
-
-      {open ? (
-        <>
-          <Field label="A fingerprint you saved earlier">
-            <Input
-              value={paste}
-              onChange={(e) => setPaste(e.target.value)}
-              placeholder="Paste it here"
-              spellCheck={false}
-            />
-          </Field>
-          <Actions>
-            <Button
-              disabled={verify.isPending || !ready}
-              title={ready ? undefined : "Paste a saved fingerprint first, at least 8 characters"}
-              onClick={() => ready && verify.mutate(paste)}
+      <div className="rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-4">
+        <div className="flex flex-wrap items-start justify-between gap-mrd-4">
+          <div className="min-w-0">
+            {/* A fingerprint, a count and a stamp are all figures, so all three
+                are mono. The words around them are not. */}
+            <p className="text-[13px] text-mrd-ink">
+              Fingerprint <Figure>{shortHead(seal.head)}</Figure>
+            </p>
+            <p className="mt-0.5 text-[12px] text-mrd-mute">
+              <Figure>{seal.count}</Figure> record{seal.count === 1 ? "" : "s"}
+              {sealedAt ? (
+                <>
+                  , sealed <Figure>{sealedAt}</Figure>
+                </>
+              ) : null}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-mrd-3">
+            <Action
+              title={seal.head}
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(seal.head);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 1500);
+                } catch {
+                  /* clipboard blocked, the full head is in the title attribute */
+                }
+              }}
             >
-              {verify.isPending ? "Checking" : "Check it"}
-            </Button>
-          </Actions>
-          {v ? (
-            <RecordVerdict evidence={diff ? <Num>{diff}</Num> : undefined}>
-              {v.ok ? (
-                "Unchanged. The record still matches the fingerprint you saved."
-              ) : (
-                <span className="sp-fail">
-                  Changed. {v.reason ?? "the record no longer matches that fingerprint"}.
-                </span>
-              )}
-            </RecordVerdict>
-          ) : verify.isError ? (
-            <Failed onRetry={() => ready && verify.mutate(paste)}>The check did not run.</Failed>
-          ) : null}
-        </>
-      ) : null}
-    </Block>
+              {copied ? "Copied" : "Copy"}
+            </Action>
+            <Action aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+              {open ? "Close" : "Verify"}
+            </Action>
+          </div>
+        </div>
+
+        {open ? (
+          <div className="mt-mrd-5 flex flex-col gap-mrd-4 border-t border-mrd-line-soft pt-mrd-5">
+            <Field label="A fingerprint you saved earlier" htmlFor="seal-paste">
+              <TextInput
+                id="seal-paste"
+                className="font-mrd-mono w-full max-w-[46ch]"
+                value={paste}
+                onChange={(e) => setPaste(e.target.value)}
+                placeholder="Paste it here"
+                spellCheck={false}
+              />
+            </Field>
+            <Actions>
+              <Action
+                disabled={verify.isPending || !ready}
+                title={ready ? undefined : "Paste a saved fingerprint first, at least 8 characters"}
+                onClick={() => ready && verify.mutate(paste)}
+              >
+                {verify.isPending ? "Checking" : "Check it"}
+              </Action>
+            </Actions>
+            {v ? (
+              /* The check is the record speaking, so it renders as a claim with
+                 its evidence rather than as a coloured sentence with an icon
+                 glued to it. Red on the negative answer is an OUTCOME: the
+                 comparison ran and it did not match. */
+              <RecordSpeaks evidence={diff ? <Figure>{diff}</Figure> : undefined}>
+                {v.ok ? (
+                  "Unchanged. The record still matches the fingerprint you saved."
+                ) : (
+                  <span className="text-mrd-fail">
+                    Changed. {v.reason ?? "the record no longer matches that fingerprint"}.
+                  </span>
+                )}
+              </RecordSpeaks>
+            ) : verify.isError ? (
+              <ReadFailed onRetry={() => ready && verify.mutate(paste)}>
+                The check did not run.
+              </ReadFailed>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    </Region>
   );
 }
 
@@ -355,34 +452,36 @@ function MissionChainPanel() {
   if (!missionsQ.isPending && !missionsQ.isError && missions.length === 0) return null;
 
   return (
-    <Block title="Mission chain" sub="A missing link is shown, never hidden.">
+    <Region title="Mission chain" sub="A missing link is shown, never hidden.">
       {missions.length > 0 ? (
-        <Select
-          aria-label="Choose a mission"
-          value={active ?? ""}
-          onChange={(e) => setSelected(e.target.value)}
-          style={{ maxWidth: 340, marginBottom: "var(--sp-space-3)" }}
-        >
-          {missions.map((m) => (
-            <option key={m.id} value={m.id}>
-              {stripAutoPrefix(m.title)}
-            </option>
-          ))}
-        </Select>
+        <div className="mb-mrd-4">
+          <Picker
+            aria-label="Choose a mission"
+            className="w-full max-w-[340px]"
+            value={active ?? ""}
+            onChange={(e) => setSelected(e.target.value)}
+          >
+            {missions.map((m) => (
+              <option key={m.id} value={m.id}>
+                {stripAutoPrefix(m.title)}
+              </option>
+            ))}
+          </Picker>
+        </div>
       ) : null}
 
       {missionsQ.isError ? (
-        <Failed onRetry={() => void missionsQ.refetch()}>
+        <ReadFailed onRetry={() => void missionsQ.refetch()}>
           The missions did not load. {(missionsQ.error as Error)?.message}
-        </Failed>
+        </ReadFailed>
       ) : chainQ.isError ? (
-        <Failed onRetry={() => void chainQ.refetch()}>
+        <ReadFailed onRetry={() => void chainQ.refetch()}>
           This mission&apos;s chain did not load. {(chainQ.error as Error)?.message}
-        </Failed>
+        </ReadFailed>
       ) : chainQ.data ? (
         <MissionChain chain={chainQ.data} />
       ) : null}
-    </Block>
+    </Region>
   );
 }
 
@@ -415,68 +514,73 @@ export function ReceiptsPanel() {
   };
 
   return (
-    <>
+    <div data-mrd="" className="flex flex-col gap-mrd-5">
       {/* What the record holds, in plain words, from real counts only. */}
       {!query.isPending && !query.isError && counts.all > 0 ? (
-        <p className="sp-subtitle">{ledgerSummary(counts)}</p>
+        <p className="max-w-[74ch] text-[13px] leading-relaxed text-mrd-body">
+          {ledgerSummary(counts)}
+        </p>
       ) : null}
 
-      <div className="sp-tabs" role="tablist" aria-label="Filter by what was recorded">
-        {KIND_TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            className="sp-tab"
-            aria-selected={kind === t.id}
-            onClick={() => setKind(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          gap: "var(--sp-space-3)",
-          marginTop: "var(--sp-space-3)",
-          flexWrap: "wrap",
-        }}
-      >
-        <Select
-          aria-label="Filter by outcome"
-          value={outcome}
-          onChange={(e) => setOutcome(e.target.value as Outcome)}
-          style={{ flex: "none", width: 210 }}
-        >
-          <option value="all">Every outcome</option>
-          <option value="standing">Standing{counts.standing ? ` · ${counts.standing}` : ""}</option>
-          <option value="proven">Proven{counts.proven ? ` · ${counts.proven}` : ""}</option>
-          <option value="superseded">
-            Superseded{counts.superseded ? ` · ${counts.superseded}` : ""}
-          </option>
-        </Select>
-        <Input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search what, why, or who"
-          aria-label="Search the record"
-          style={{ flex: 1, minWidth: 200, width: "auto" }}
+      <div className="flex flex-col gap-mrd-4">
+        <ViewTabs
+          tabs={KIND_TABS}
+          active={kind}
+          onSelect={setKind}
+          label="Filter by what was recorded"
         />
+
+        <div className="flex flex-wrap items-center gap-mrd-3">
+          <Picker
+            aria-label="Filter by outcome"
+            className="w-[210px] flex-none"
+            value={outcome}
+            onChange={(e) => setOutcome(e.target.value as Outcome)}
+          >
+            <option value="all">Every outcome</option>
+            <option value="standing">
+              Standing{counts.standing ? ` · ${counts.standing}` : ""}
+            </option>
+            <option value="proven">Proven{counts.proven ? ` · ${counts.proven}` : ""}</option>
+            <option value="superseded">
+              Superseded{counts.superseded ? ` · ${counts.superseded}` : ""}
+            </option>
+          </Picker>
+          <TextInput
+            className="min-w-[200px] flex-1"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search what, why, or who"
+            aria-label="Search the record"
+          />
+        </div>
       </div>
 
-      {query.isPending ? null : query.isError ? (
-        <Failed onRetry={() => void query.refetch()}>
+      {/* FOUR FACTS, NOT TWO, and the fourth is the one that was missing. A read
+          in flight used to render nothing at all, which is the blank-rectangle
+          defect /approvals fixed on the same argument: empty, failed, excluded
+          by a filter and still reading are four different things, and a person
+          acts differently on each. */}
+      {query.isPending ? (
+        <Reading>Reading the record.</Reading>
+      ) : query.isError ? (
+        <ReadFailed onRetry={() => void query.refetch()}>
           The record did not load. {(query.error as Error)?.message}
-        </Failed>
+        </ReadFailed>
       ) : receipts.length === 0 ? (
         narrowed ? (
-          <Empty>Nothing on the record matches that.</Empty>
+          <NothingHere>
+            Nothing on the record matches that. The rest of the record is still there, behind the
+            filters above.
+          </NothingHere>
         ) : (
-          <Empty
-            action={
-              <Button
+          <div className="flex flex-col gap-mrd-4">
+            <NothingHere>
+              Nothing on the record yet. A decision, or an autonomous action you let through, leaves
+              evidence the moment it happens.
+            </NothingHere>
+            <Actions>
+              <Action
                 onClick={() => {
                   // The approvals record lives one sub-tab over in this room.
                   navigate({
@@ -486,15 +590,12 @@ export function ReceiptsPanel() {
                 }}
               >
                 Open your decisions
-              </Button>
-            }
-          >
-            Nothing on the record yet. A decision, or an autonomous action you let through, leaves
-            evidence the moment it happens.
-          </Empty>
+              </Action>
+            </Actions>
+          </div>
         )
       ) : (
-        <div style={{ marginTop: "var(--sp-space-4)" }}>
+        <div className="overflow-hidden rounded-mrd-card border border-mrd-line bg-mrd-sheet">
           {receipts.map((r) => (
             <ReceiptRow
               key={`${r.kind}-${r.id}`}
@@ -520,6 +621,6 @@ export function ReceiptsPanel() {
           else toast("That record is not in the current list");
         }}
       />
-    </>
+    </div>
   );
 }

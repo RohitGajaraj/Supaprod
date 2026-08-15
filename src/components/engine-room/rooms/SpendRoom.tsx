@@ -2,10 +2,11 @@ import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { AuroraCard, MonoLabel, GraphSlider } from "@/components/obsidian";
+import { GraphSlider } from "@/components/obsidian";
 import { getAnalyticsOverview, getAgentSpendBreakdown } from "@/lib/analytics.functions";
 import { zeroFillDaily } from "@/lib/engine-room-glance";
 import { Row, EmptyRow, ErrorRetry, PanelPending, type RoomBodyProps } from "../RoomDetail";
+import { Eyebrow, FigureCard } from "../EngineChrome";
 
 // LOOM W2 fold: /govern?tab=budgets lives here as CAPS (the one home for cap
 // management) and /govern?tab=analytics as USAGE (the full rollup), each
@@ -69,22 +70,29 @@ function TrendView() {
   }
   if (cost7Q.isLoading) return <PanelPending />;
   return (
-    <div className="flex flex-col gap-3">
-      <AuroraCard label="SPEND THIS WEEK" value={fmtUsd(week)} note={trendNote} />
+    <div className="flex flex-col gap-mrd-5">
+      <FigureCard label="Spend this week" value={fmtUsd(week)} note={trendNote} />
       {filled.some((c) => c > 0) ? (
         <div>
-          <MonoLabel tone="muted">SPEND · LAST 7 DAYS</MonoLabel>
-          {/* Interactive trend (rauno graph-slider style), spend data-palette
-              tangerine: scrub to read each day, peak/low always shown. No
-              pencil (the machine's room; the PM's graphite ink lives on
-              Decide). */}
-          <div style={{ marginTop: 10 }}>
+          <Eyebrow>Spend, last 7 days</Eyebrow>
+          {/* Interactive trend: scrub to read each day, peak and low always
+              shown.
+
+              THE SERIES COLOUR IS `--mrd-viz-1`, NOT A STATUS HUE, and that is
+              the whole reason meridian.css keeps a second palette. This line
+              answers "which series is this", which is CATEGORICAL; the five
+              semantic hues answer "what does this MEAN", and painting a spend
+              line with one of them would tell a reader that spending money is
+              a status. It replaces `var(--tangerine)`, which was the same
+              instinct reaching into a retired layer for a colour nobody could
+              audit. */}
+          <div className="mt-mrd-4">
             <GraphSlider
               data={filled}
               labels={dayLabels}
               w={340}
               h={140}
-              color="var(--tangerine)"
+              color="var(--mrd-viz-1)"
               formatValue={fmtUsd}
               ariaLabel="Daily spend over the last 7 days"
             />
@@ -127,7 +135,7 @@ function ByAgentView({ agent }: { agent?: string }) {
           subject={a.name}
           value={fmtUsd(a.cost)}
           statusWord={`${Math.round(a.pct)}%`}
-          statusColor="var(--text-muted)"
+          /* No tone: a share of spend is a measurement, not a verdict. */
           onOpen={() =>
             navigate({
               to: "/engine-room",

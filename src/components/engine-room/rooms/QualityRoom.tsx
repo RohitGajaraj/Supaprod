@@ -2,11 +2,12 @@ import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { AuroraCard, MonoLabel, GraphSlider } from "@/components/obsidian";
+import { GraphSlider } from "@/components/obsidian";
 import { getEvalHealth } from "@/lib/eval-health.functions";
 import { getGuardrailHitCount } from "@/lib/guardrails.functions";
 import { EVAL_COVERAGE_TARGETS } from "@/lib/evals/coverage";
 import { Row, ErrorRetry, PanelPending, type RoomBodyProps } from "../RoomDetail";
+import { Eyebrow, FigureCard } from "../EngineChrome";
 
 // RPT-18: the canonical surface ids already used for eval coverage (evals/coverage.ts) get a
 // friendly label here too, so "Calibration by surface" reads as "Roadmap" not the raw "roadmap"
@@ -62,22 +63,16 @@ const SelfImprovementPanel = React.lazy(() =>
   })),
 );
 
-/** RPT-18: one rigor stat (a mono label above a real, tabular-nums figure). Local to this view —
- * not promoted to a shared primitive since AuroraCard already owns the "one hero number" slot and
- * this is deliberately a smaller, secondary figure beside it. */
+/** RPT-18: one rigor stat, a label above a real tabular figure. Local to this
+ * view rather than promoted, because `FigureCard` owns the one hero number slot
+ * and this is deliberately a smaller, secondary figure beside it. Only the
+ * VALUE is mono, which is the rule the old version broke: the label was mono
+ * too, and mono is for figures. */
 function RigorStat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1">
-      <MonoLabel tone="muted">{label}</MonoLabel>
-      <span
-        className="tabular-nums"
-        style={{
-          fontFamily: "var(--font-mono)",
-          color: "var(--text-primary)",
-        }}
-      >
-        {value}
-      </span>
+    <div className="flex flex-col gap-mrd-2">
+      <Eyebrow>{label}</Eyebrow>
+      <span className="font-mrd-mono text-[13px] text-mrd-ink tabular-nums">{value}</span>
     </div>
   );
 }
@@ -114,30 +109,39 @@ function ScoreView() {
       ? `across ${health.totalRuns} run${health.totalRuns === 1 ? "" : "s"} · ${TREND_WORDS[health.trend] ?? "too few runs to call a trend"}`
       : "no eval runs yet";
   return (
-    <div className="flex flex-col gap-3">
-      <AuroraCard
-        label="PASS RATE"
+    <div className="flex flex-col gap-mrd-5">
+      {/* The pass rate is genuinely an OUTCOME, which is the one case where a
+          figure is entitled to a hue. `watch` takes amber rather than the old
+          "attention" colour: quality slipping needs a condition to change (a
+          suite to pass) and not a decision, which is exactly what amber means
+          in this system. */}
+      <FigureCard
+        label="Pass rate"
         value={passRatePct != null ? `${passRatePct}%` : "-"}
         note={note}
-        hue={
-          health?.verdict === "at-risk"
-            ? "failing"
-            : health?.verdict === "watch"
-              ? "attention"
-              : "healthy"
+        tone={
+          health?.verdict === "at-risk" ? "fail" : health?.verdict === "watch" ? "hold" : "pass"
         }
       />
       {trend.length >= 2 ? (
         <div>
-          <MonoLabel tone="muted">SCORE · RECENT RUNS</MonoLabel>
-          {/* Interactive trend (teal, the machine-measured family): scrub to
-              read each run's score, peak/low always shown. */}
-          <div style={{ marginTop: 10 }}>
+          <Eyebrow>Score, recent runs</Eyebrow>
+          {/* Interactive trend: scrub to read each run's score, peak and low
+              always shown.
+
+              `--mrd-viz-2` rather than a semantic hue. A chart series answers
+              "which of these is which", which is CATEGORICAL; the five semantic
+              hues answer "what does this MEAN", and a score line painted in one
+              of them would tell a reader that a score is a status. It is
+              deliberately a different series colour from the Spend room's, and
+              that is the legitimate use of the data palette: two charts, two
+              subjects, told apart by hue with no meaning claimed either way. */}
+          <div className="mt-mrd-4">
             <GraphSlider
               data={trend}
               w={340}
               h={140}
-              color="var(--teal)"
+              color="var(--mrd-viz-2)"
               formatValue={(v) => String(Math.round(v))}
               ariaLabel="Eval score across recent runs"
             />
@@ -150,13 +154,13 @@ function ScoreView() {
           numbers are already running in production (eval runs, guardrail
           hits); this only exposes them together in the one screen that
           already answers the quality question. Exposure, not construction. */}
-      <div className="flex gap-8 flex-wrap" style={{ marginTop: 4 }}>
+      <div className="flex flex-wrap gap-mrd-7">
         <RigorStat
-          label="EVALS RUN"
+          label="Evals run"
           value={health ? health.totalRuns.toLocaleString("en-US") : "0"}
         />
         <RigorStat
-          label="GUARDRAIL HITS"
+          label="Guardrail hits"
           value={
             hitsQ.isError
               ? "not loaded"
@@ -168,14 +172,14 @@ function ScoreView() {
       </div>
 
       {calibration.length > 0 ? (
-        <div style={{ marginTop: 4 }}>
-          <MonoLabel tone="muted">CALIBRATION · BY SURFACE</MonoLabel>
+        <div>
+          <Eyebrow>Calibration, by surface</Eyebrow>
           {/* Drillable (RPT-18): each row opens What we test, straight into
               that surface's one suite when it has exactly one (reusing the
               existing suite detail's runs table + failing-case breakdown —
               no new detail view), or the suite list when a surface spans
               more than one suite. */}
-          <div style={{ marginTop: 8 }}>
+          <div className="mt-mrd-4 overflow-hidden rounded-mrd-card border border-mrd-line bg-mrd-sheet">
             {calibration.map((c) => (
               <Row
                 key={c.surface}
@@ -186,7 +190,8 @@ function ScoreView() {
                     ? `${Math.round(c.passRate * 100)}% pass`
                     : `${c.runs} run${c.runs === 1 ? "" : "s"}`
                 }
-                statusColor="var(--text-muted)"
+                /* No tone: a pass rate is a measurement, not a verdict. A
+                   coloured dot here would claim a threshold nobody set. */
                 onOpen={() =>
                   navigate({
                     to: "/engine-room",

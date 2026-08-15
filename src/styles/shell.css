@@ -519,6 +519,27 @@
 .sp-stage {
   position: relative;
 }
+/*
+ * ── THE STATION YOU ARE STANDING ON ─────────────────────────────────────
+ *
+ * Founder, 2026-08-15, and he called it his best suggestion: the rail marks its
+ * active row with a filled ground and the strip marked its active station with
+ * a 2px rule and nothing else. Two navigation controls, ten pixels apart,
+ * answering the same question in two different languages — and the strip's
+ * answer was the quieter one, on the control that is on screen everywhere.
+ *
+ * So the chip now takes the SAME treatment the rail row takes: a raised ground
+ * and full-strength ink. The 2px rule stays under it, because on a horizontal
+ * strip the rule is what says WHERE IN THE SEQUENCE you are — a ground alone
+ * marks one of seven, a rule marks a position along a line.
+ *
+ * The ground is inset from the chip's own padding rather than bleeding to the
+ * edge, so seven chips in a row still read as seven, not as one band with a
+ * lighter section.
+ */
+.sp-stage[data-on="true"] {
+  background: var(--sp-lift);
+}
 .sp-stage[data-on="true"]::after {
   content: "";
   position: absolute;
@@ -743,9 +764,14 @@
   color: var(--sp-faint, var(--sp-mute));
   transition: color var(--dur-fast, 140ms) var(--ease-out, ease);
 }
-.sp-stage[data-on="true"] .sp-stage-mark,
 .sp-stage:hover .sp-stage-mark {
   color: var(--sp-mute);
+}
+/* The active station's mark goes to full ink. It is the one glyph on the strip
+   that is describing where you actually are, and at 12px a step from faint to
+   mute is not enough to find it in peripheral vision. */
+.sp-stage[data-on="true"] .sp-stage-mark {
+  color: var(--sp-ink);
 }
 .sp-stage-dot {
   width: 6px;
@@ -783,11 +809,46 @@
 .sp-stage-dot[data-moving="true"] {
   animation: sp-stage-breathe 2s var(--sp-ease) infinite;
 }
+
+/*
+ * A MACHINE WORKING GETS ITS OWN, QUIETER BREATH, 2026-08-15.
+ *
+ * The founder asked for a pulse on the strip tied to status. The rule above —
+ * exactly one mark on a screen may blink, and it belongs to the gate — is not
+ * in the way of that, because it is a rule about the LOUD register. A gate
+ * blinking is the product asking for a person, and nothing else may compete
+ * with it. A running agent is ambient: it is the single most important thing
+ * this product claims to show, and it was rendering as a static dot, which is
+ * indistinguishable from a dot that means "there are some runs here".
+ *
+ * So the two are separated by AMPLITUDE and SPEED rather than by presence. The
+ * gate drops to 0.35 opacity and 0.82 scale over two seconds — a real pulse you
+ * catch across a desk. This one barely moves, over three and a half, which
+ * reads as breathing rather than as signalling. Put them side by side and the
+ * gate is still obviously the one asking for something.
+ *
+ * Deliberately NOT applied to `held` or `failed`: nothing is happening on
+ * either, and motion on a stopped thing is the product claiming progress it is
+ * not making.
+ */
+@keyframes sp-stage-alive {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.62;
+  }
+}
+.sp-stage-dot[data-kind="working"]:not([data-moving="true"]) {
+  animation: sp-stage-alive 3.5s var(--sp-ease) infinite;
+}
 /* Motion is the one channel some people cannot use, and it is never the only
  * carrier of a fact here: the note beside it already says "2 waiting on you" in
  * words. So it is safe to simply stop. */
 @media (prefers-reduced-motion: reduce) {
-  .sp-stage-dot[data-moving="true"] {
+  .sp-stage-dot[data-moving="true"],
+  .sp-stage-dot[data-kind="working"] {
     animation: none;
   }
 }

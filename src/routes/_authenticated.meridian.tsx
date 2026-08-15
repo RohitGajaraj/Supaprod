@@ -926,7 +926,11 @@ const kw = (t: string): CodeToken => ({ t, c: "kw" });
 const fn = (t: string): CodeToken => ({ t, c: "fn" });
 const str = (t: string): CodeToken => ({ t, c: "str" });
 const num = (t: string): CodeToken => ({ t, c: "num" });
-const dim = (t: string): CodeToken => ({ t, c: "dim" });
+const dim = (t: string): CodeToken => ({ t, c: "punc" });
+/* The two roles the fixture was missing, which is why the block looked
+   two-tone: a type and a comment are the stops that give code its structure. */
+const typ = (t: string): CodeToken => ({ t, c: "type" });
+const cmt = (t: string): CodeToken => ({ t, c: "comment" });
 const plain = (t: string): CodeToken => ({ t });
 
 const CODE_LINES: CodeToken[][] = [
@@ -934,7 +938,7 @@ const CODE_LINES: CodeToken[][] = [
     kw("import type"),
     plain(" "),
     dim("{ "),
-    fn("Signal"),
+    typ("Signal"),
     dim(" }"),
     plain(" "),
     kw("from"),
@@ -943,6 +947,7 @@ const CODE_LINES: CodeToken[][] = [
     dim(";"),
   ],
   [],
+  [cmt("// One cluster per symptom, and never fewer than three signals.")],
   [kw("const"), plain(" "), fn("SYMPTOM"), plain(" = "), str("/outage|reboot|offline/i"), dim(";")],
   [kw("const"), plain(" "), fn("MIN_GROUP"), plain(" = "), num("3"), dim(";")],
   [],
@@ -953,7 +958,7 @@ const CODE_LINES: CodeToken[][] = [
     dim("("),
     plain("input"),
     dim(": "),
-    fn("Signal"),
+    typ("Signal"),
     dim("[]) {"),
   ],
   [
@@ -962,11 +967,11 @@ const CODE_LINES: CodeToken[][] = [
     plain(" bySymptom = "),
     kw("new"),
     plain(" "),
-    fn("Map"),
+    typ("Map"),
     dim("<"),
-    fn("string"),
+    typ("string"),
     dim(", "),
-    fn("Signal"),
+    typ("Signal"),
     dim("[]>()"),
     dim(";"),
   ],

@@ -317,6 +317,38 @@
    * a focus ring, never a CTA, and never "waiting on you". The thing the
    * founder retired was ember-as-accent, and that stays retired.
    */
+  /*
+   * ── SYNTAX, WHICH IS ITS OWN PALETTE AGAIN ──────────────────────────────
+   *
+   * Not the status hues, and not the chart hues either. A keyword is not a
+   * verdict and it is not a data series; code colour is its own categorical
+   * system with its own conventions, and a reader arrives already fluent in
+   * them — strings green, numbers warm, keywords cool. Fighting that costs
+   * legibility for nothing.
+   *
+   * EIGHT ROLES, which is what a real theme needs. The founder's note on
+   * 2026-08-15 was that three colours is not a syntax theme, and he is right:
+   * with only keyword/string/number, a type reads as a variable and a function
+   * call reads as punctuation, so the eye gets no structure from the colour at
+   * all.
+   *
+   * TUNED TO THIS GROUND RATHER THAN LIFTED. Every popular theme is built for a
+   * cool or neutral near-black; ours is a warm graphite at hue 70. Dropping One
+   * Dark or Tokyo Night in whole would put a cool-cast palette on a warm sheet,
+   * which is exactly the "assembled from parts" look this system exists to
+   * avoid. So these are solved here: chroma held moderate so no single token
+   * shouts, and every one measured against `--mrd-sink`, the recess code sits
+   * in, in both grounds.
+   */
+  --mrd-code-kw: oklch(0.76 0.14 300); /* control flow: const, await, return */
+  --mrd-code-fn: oklch(0.78 0.12 242); /* a function being declared or called */
+  --mrd-code-str: oklch(0.79 0.13 152); /* string literals */
+  --mrd-code-num: oklch(0.81 0.12 62); /* numbers and constants */
+  --mrd-code-type: oklch(0.85 0.1 88); /* types, classes, interfaces */
+  --mrd-code-var: oklch(0.9 0.015 70); /* plain identifiers */
+  --mrd-code-punc: oklch(0.62 0.012 70); /* braces, operators, commas */
+  --mrd-code-comment: oklch(0.58 0.02 70); /* prose the compiler ignores */
+
   --mrd-viz-1: #f68f3c; /* the dominant series */
   --mrd-viz-2: #3d9aff;
   --mrd-viz-3: #3dbb72;
@@ -540,8 +572,23 @@
    */
   --mrd-you-dim: oklch(0.55 0.15 315);
   --mrd-agent-dim: oklch(0.56 0.11 235);
-  --mrd-pass: oklch(0.5 0.14 152);
-  --mrd-fail: oklch(0.52 0.19 27);
+  /*
+   * 0.47, not 0.50, and the three hundredths are load-bearing. Measured on
+   * 2026-08-15 across 1,256 rendered text nodes in both grounds: `pass` cleared
+   * 4.53 against the plain paper surfaces and fell to 4.21–4.43 wherever it is
+   * drawn ON ITS OWN TINT — the diff table's added rows and the completed chip,
+   * where green text sits on a green wash at 13%. Twelve nodes, all on paper,
+   * all just under the 4.5 floor.
+   *
+   * Darkening the stop fixes every one of them at once and costs nothing on the
+   * plain surfaces, which only get further clear. The alternative — thinning
+   * the wash — would have weakened the very signal the wash exists to carry.
+   */
+  --mrd-pass: oklch(0.47 0.145 152);
+  /* 0.50 for the same reason `pass` is 0.47 — see the note above. On its own
+     13% tint the failed chip measured 4.49 against a 4.5 floor: a hundredth
+     short, which is still short. Two hundredths of lightness buys it. */
+  --mrd-fail: oklch(0.5 0.195 27);
   /* Amber is the hue that suffers most on paper: at the dark theme's lightness
      it is unreadable on white, so this drops much further than its neighbours.
      Measured, like the rest of this block — see the note on the dark ramp. */
@@ -551,6 +598,17 @@
   /* The reference's own light-theme data palette. Each is darker and more
      saturated than its dark-theme twin, which is what keeps a 2px series
      line readable on white — the same reason our semantic hues re-darken. */
+  /* Syntax on paper: darker and a touch more saturated, the same correction
+     every semantic hue makes when the ground flips. Measured against `sink`. */
+  --mrd-code-kw: oklch(0.46 0.2 300);
+  --mrd-code-fn: oklch(0.45 0.16 242);
+  --mrd-code-str: oklch(0.42 0.14 152);
+  --mrd-code-num: oklch(0.48 0.15 62);
+  --mrd-code-type: oklch(0.45 0.12 88);
+  --mrd-code-var: oklch(0.26 0.012 70);
+  --mrd-code-punc: oklch(0.5 0.012 70);
+  --mrd-code-comment: oklch(0.52 0.02 70);
+
   --mrd-viz-1: #ef720c;
   --mrd-viz-2: #0285ff;
   --mrd-viz-3: #189a4d;
@@ -614,6 +672,14 @@
   --color-mrd-hold: var(--mrd-hold);
   --color-mrd-hold-dim: var(--mrd-hold-dim);
 
+  --color-mrd-code-kw: var(--mrd-code-kw);
+  --color-mrd-code-fn: var(--mrd-code-fn);
+  --color-mrd-code-str: var(--mrd-code-str);
+  --color-mrd-code-num: var(--mrd-code-num);
+  --color-mrd-code-type: var(--mrd-code-type);
+  --color-mrd-code-var: var(--mrd-code-var);
+  --color-mrd-code-punc: var(--mrd-code-punc);
+  --color-mrd-code-comment: var(--mrd-code-comment);
   --color-mrd-viz-1: var(--mrd-viz-1);
   --color-mrd-viz-2: var(--mrd-viz-2);
   --color-mrd-viz-3: var(--mrd-viz-3);

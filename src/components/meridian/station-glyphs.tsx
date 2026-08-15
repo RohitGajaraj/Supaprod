@@ -29,12 +29,18 @@ import type { ReactNode } from "react";
  * ── WHY THESE SHAPES ────────────────────────────────────────────────────
  * Each is the station's verb, not a decoration:
  *   discover  a signal spreading outward from a source
- *   decide    two paths converging into one
+ *   decide    a flowchart decision diamond, with the chosen branch leaving it
  *   plan      lines of decreasing length, a list being drawn up
  *   design    a frame with its first division
  *   build     angle brackets around a slash: code
- *   ship      something leaving upward through a door
- *   learn     a loop turning back on itself
+ *   ship      a sealed parcel: the release artefact
+ *   learn     an open book: what the station leaves for next time
+ *
+ * THREE OF THESE WERE REDRAWN ON 2026-08-15, and the reason is the same each
+ * time: a mark that already means something else in software is not available,
+ * however apt it feels. Decide was a Y (read as a keyboard shortcut), Ship was
+ * the platform share icon, Learn was the refresh arrow. A station glyph sits
+ * beside real controls; it may not borrow one of their shapes.
  */
 
 export type StationGlyphKind =
@@ -49,9 +55,18 @@ export const STATION_GLYPHS: Record<StationGlyphKind, ReactNode> = {
     </g>
   ),
   decide: (
+    /*
+     * A FLOWCHART DECISION DIAMOND with the chosen branch leaving it.
+     *
+     * This was two lines converging into one stem, and at 13px that is a
+     * capital Y — founder, 2026-08-15: people read it as a keyboard shortcut
+     * sitting where a shortcut would sit. The diamond is the one shape that
+     * means "a decision" to essentially everyone who has read a flowchart, and
+     * it cannot be mistaken for a letter.
+     */
     <g>
-      <path d="M12 21v-9" />
-      <path d="M12 12L6 4M12 12l6-8" />
+      <path d="M12 3l7 7-7 7-7-7z" />
+      <path d="M19 10h2M12 17v4" />
     </g>
   ),
   plan: <path d="M4 6h16M4 12h10M4 18h13" />,
@@ -63,15 +78,34 @@ export const STATION_GLYPHS: Record<StationGlyphKind, ReactNode> = {
   ),
   build: <path d="M8 8l-4 4 4 4M16 8l4 4-4 4M14 4l-4 16" />,
   ship: (
+    /*
+     * A SEALED PARCEL, not an upward arrow out of a tray.
+     *
+     * The old drawing was, character for character, the platform share icon —
+     * a box with an arrow rising out of it. Founder caught it: on a station
+     * chip, next to real controls, that reads as "share this" rather than "this
+     * shipped". A parcel with its seam and band is the release ARTEFACT, which
+     * is the thing this station actually produces, and it collides with nothing
+     * else in the product.
+     */
     <g>
-      <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
-      <path d="M12 3v12M8 7l4-4 4 4" />
+      <path d="M3.5 7.5l8.5-4.5 8.5 4.5v9L12 21l-8.5-4.5z" />
+      <path d="M3.5 7.5L12 12l8.5-4.5M12 12v9" />
     </g>
   ),
   learn: (
+    /*
+     * AN OPEN BOOK, not a circular arrow.
+     *
+     * The loop-back arrow was semantically right — Learn closes the loop — and
+     * visually wrong: a circular arrow with a head on it is the universal
+     * REFRESH/RETRY glyph, and this station sits in a strip beside states that
+     * genuinely offer a retry. Founder asked whether something better existed.
+     * A book is what the station leaves behind: the thing you consult next time.
+     */
     <g>
-      <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1" />
-      <path d="M20.5 3.5v5h-5" />
+      <path d="M12 6.5C10.5 5 8.4 4.3 4 4.3v13c4.4 0 6.5.7 8 2.2 1.5-1.5 3.6-2.2 8-2.2v-13c-4.4 0-6.5.7-8 2.2z" />
+      <path d="M12 6.5v13" />
     </g>
   ),
 };

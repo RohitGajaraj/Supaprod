@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { Loading } from "@/components/shell/primitives";
+import { PanelReading } from "../EngineChrome";
 import { BoundaryStatement } from "@/components/governance/BoundaryStatement";
 import { type RoomBodyProps } from "../RoomDetail";
 
@@ -35,13 +35,14 @@ const RoutinesPanel = React.lazy(() =>
 /**
  * EVERY VIEW SAYS WHICH OF SIX THINGS IT IS FETCHING.
  *
- * All six used to pass `PanelPending`, which is `aria-hidden="true"` around a
+ * All six used to pass `PanelPending`, which was `aria-hidden="true"` around a
  * single 220x3 shimmer with no text. Measured on this machine, that was the
  * whole work region for the entire load: room chrome and context column drawn,
  * and one hairline where the panel goes. Loading, Empty and Failed are meant to
- * be three distinguishable primitives, and a screen-reader user was told
- * nothing whatsoever. `Loading` is aria-live and says a sentence, which is the
- * same primitive these panels use inside themselves.
+ * be three distinguishable states, and a screen-reader user was told nothing
+ * whatsoever. `PanelReading` is a live region and says a sentence, and as of
+ * the Meridian port it is what `PanelPending` renders too, so the shimmer is
+ * gone everywhere rather than only where a caller remembered to override it.
  */
 export function SafetyRoom({ view }: RoomBodyProps) {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export function SafetyRoom({ view }: RoomBodyProps) {
 
   if (view === "controls") {
     return (
-      <React.Suspense fallback={<Loading>Reading the emergency controls.</Loading>}>
+      <React.Suspense fallback={<PanelReading>Reading the emergency controls.</PanelReading>}>
         <ControlsPanel
           /**
            * THE UNSETTLED QUEUE, NOT THE SETTLED RECORD. The row that sends
@@ -72,28 +73,28 @@ export function SafetyRoom({ view }: RoomBodyProps) {
   }
   if (view === "team") {
     return (
-      <React.Suspense fallback={<Loading>Reading the crew.</Loading>}>
+      <React.Suspense fallback={<PanelReading>Reading the crew.</PanelReading>}>
         <AgentRosterPanel workspaceId={activeWorkspace?.id ?? null} />
       </React.Suspense>
     );
   }
   if (view === "house-rules") {
     return (
-      <React.Suspense fallback={<Loading>Reading your house rules.</Loading>}>
+      <React.Suspense fallback={<PanelReading>Reading your house rules.</PanelReading>}>
         <HouseRulesPanel />
       </React.Suspense>
     );
   }
   if (view === "incidents") {
     return (
-      <React.Suspense fallback={<Loading>Reading what went wrong.</Loading>}>
+      <React.Suspense fallback={<PanelReading>Reading what went wrong.</PanelReading>}>
         <IncidentsPanel />
       </React.Suspense>
     );
   }
   if (view === "routines") {
     return (
-      <React.Suspense fallback={<Loading>Reading what runs on its own.</Loading>}>
+      <React.Suspense fallback={<PanelReading>Reading what runs on its own.</PanelReading>}>
         <RoutinesPanel />
       </React.Suspense>
     );
@@ -117,7 +118,7 @@ export function SafetyRoom({ view }: RoomBodyProps) {
   return (
     <>
       <BoundaryStatement />
-      <React.Suspense fallback={<Loading>Reading the content screening rules.</Loading>}>
+      <React.Suspense fallback={<PanelReading>Reading the content screening rules.</PanelReading>}>
         <GuardrailsPanel />
       </React.Suspense>
     </>

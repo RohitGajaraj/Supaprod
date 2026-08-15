@@ -1,7 +1,8 @@
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { VerdictChip, FlashlightTabs } from "@/components/obsidian";
+import { RecordStatus, type RecordTone } from "@/components/meridian/RecordsTable";
+import { FOCUS_RING_INSET, PanelReading, ReadFailed, StateWord, ViewTabs } from "./EngineChrome";
 import {
   ROOM_QUESTIONS,
   ROOM_TAB_META,
@@ -18,144 +19,112 @@ export interface RowProps {
   subject: string;
   value: string;
   statusWord: string;
-  statusColor: string;
+  /**
+   * WHAT THE STATUS WORD MEANS, not what colour it should be.
+   *
+   * This was `statusColor: string` and every caller passed a raw CSS variable
+   * off the Obsidian layer — `var(--madder-bright)`, `var(--moss-bright)`,
+   * `var(--text-muted)`. That is the exact shape meridian.css bans: a colour
+   * chosen at the call site is a colour nobody can audit, and it is how a
+   * product ends up with three greens that mean three different things. The
+   * tone is a MEANING now, and `RecordStatus` owns which token draws it.
+   *
+   * Omitting it leaves the word neutral, which is the honest default for a
+   * value that is a measurement rather than a verdict (a percentage, a count).
+   */
+  tone?: RecordTone;
   onOpen?: () => void;
 }
 
-/** Shared row anatomy (§7): subject + right-aligned mono value + a status
- * word. Every row is a real `<button>` (README §5.12); a row with no drill
- * target still renders as one, just non-interactive-looking (no hover). */
-export function Row({ subject, value, statusWord, statusColor, onOpen }: RowProps) {
+/**
+ * Shared row anatomy: subject, then a right-aligned mono value, then the status
+ * word. The subject truncates and the two right-hand facts never do, because
+ * the numbers are what a scan is for.
+ *
+ * IT IS A REAL `<button>` ONLY WHEN IT OPENS SOMETHING. It used to render as a
+ * disabled button either way, which is wrong twice over: a disabled control
+ * announces itself to a screen reader as a thing that could act and currently
+ * cannot, and it takes `cursor: default` while looking exactly like the row
+ * beside it that does open. A row that goes nowhere is a div.
+ *
+ * The status cell is `RecordStatus`, Meridian's own, which draws a dot in the
+ * tone's token plus the word — so the state survives greyscale and a caller
+ * never picks a colour.
+ */
+export function Row({ subject, value, statusWord, tone, onOpen }: RowProps) {
+  const body = (
+    <>
+      <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-mrd-ink">
+        {subject}
+      </span>
+      <span className="font-mrd-mono shrink-0 text-right text-[12px] text-mrd-mute tabular-nums">
+        {value}
+      </span>
+      <span className="shrink-0 text-right text-[12px]">
+        {tone ? (
+          <RecordStatus tone={tone} label={statusWord} />
+        ) : (
+          <span className="text-mrd-mute">{statusWord}</span>
+        )}
+      </span>
+    </>
+  );
+
+  if (!onOpen) {
+    return (
+      <div className="flex w-full items-center gap-mrd-4 border-b border-mrd-line-soft px-mrd-5 py-mrd-4 last:border-0">
+        {body}
+      </div>
+    );
+  }
+
   return (
     <button
       type="button"
       onClick={onOpen}
-      disabled={!onOpen}
       className={cn(
-        "flex w-full items-center gap-3 text-left outline-none",
-        onOpen && "hover:[background-color:var(--raised)] cursor-pointer active:scale-[0.995]",
-        !onOpen && "cursor-default",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]",
+        "flex w-full items-center gap-mrd-4 border-b border-mrd-line-soft px-mrd-5 py-mrd-4 text-left transition-colors last:border-0 hover:bg-mrd-hover",
+        FOCUS_RING_INSET,
       )}
-      style={{
-        padding: "14px 18px",
-        borderBottom: "1px solid var(--hairline)",
-        transitionProperty: "background-color, transform",
-        transitionDuration: "var(--dur-press)",
-        transitionTimingFunction: "var(--ease)",
-      }}
+      style={{ transitionDuration: "var(--mrd-d-press)" }}
     >
-      <span
-        className="min-w-0 flex-1 truncate"
-        style={{
-          fontFamily: "var(--font-sans)",
-          fontWeight: 600,
-          color: "var(--text-primary)",
-        }}
-      >
-        {subject}
-      </span>
-      <span
-        className="shrink-0 text-right tabular-nums"
-        style={{
-          fontFamily: "var(--font-mono)",
-          color: "var(--text-muted)",
-        }}
-      >
-        {value}
-      </span>
-      <span
-        className="shrink-0 text-right uppercase"
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.11em",
-          color: statusColor,
-        }}
-      >
-        {statusWord}
-      </span>
+      {body}
     </button>
   );
 }
 
+/** NOTHING EXISTS in this view, which is not a failed read and not a filter. */
 export function EmptyRow({ message }: { message: string }) {
-  return (
-    <p
-      style={{
-        fontFamily: "var(--font-sans)",
-        color: "var(--text-subtle)",
-        padding: "18px 0",
-      }}
-    >
-      {message}
-    </p>
-  );
+  return <p className="py-mrd-5 text-[13px] leading-relaxed text-mrd-mute">{message}</p>;
 }
 
-/** A failed read says so and offers one retry (LOOM §9b: an error may never
- * wear an empty state's clothes). Shared by all four rooms' views. */
+/** A failed read says so and offers one retry: an error may never wear an empty
+ *  state's clothes. Shared by all four rooms' views. */
 export function ErrorRetry({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div style={{ padding: "18px 0" }}>
-      <p
-        style={{
-          fontFamily: "var(--font-sans)",
-          color: "var(--madder-bright)",
-          marginBottom: "10px",
-        }}
-      >
+    <div className="py-mrd-4">
+      <ReadFailed onRetry={onRetry} retryLabel="Read it again">
         {message}
-      </p>
-      <button
-        type="button"
-        className="uppercase cursor-pointer hover:underline active:opacity-80"
-        onClick={onRetry}
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.11em",
-          color: "var(--text-primary)",
-          background: "none",
-          border: "none",
-          padding: 0,
-        }}
-      >
-        RETRY
-      </button>
+      </ReadFailed>
     </div>
   );
 }
 
-/** Suspense/loading fallback for a lazy room body: a quiet shimmer line at
- * the reading position, never a blank frame (LOOM §9). */
-export function PanelPending() {
-  return (
-    <div aria-hidden="true" style={{ padding: "24px 0" }}>
-      <span
-        className="block rounded-full"
-        style={{
-          width: 220,
-          height: 3,
-          background: "linear-gradient(90deg, transparent, var(--ds-gray-alpha-400), transparent)",
-          backgroundSize: "280% 100%",
-          animation: "cadShimmer 1.6s linear infinite",
-        }}
-      />
-    </div>
-  );
+/**
+ * A READ IN FLIGHT, at the reading position.
+ *
+ * It replaced a 220px shimmer bar drawn `aria-hidden`, which is the worst of
+ * both: a decorative pulse tells a sighted reader something is coming and never
+ * what, and tells a screen reader nothing at all. `PanelReading` says the word
+ * in a live region. The name is kept so every room panel keeps compiling.
+ */
+export function PanelPending({ children }: { children?: React.ReactNode }) {
+  return <PanelReading>{children ?? "Reading."}</PanelReading>;
 }
 
 export function VerdictSentence({ children }: { children: React.ReactNode }) {
   return (
-    <p
-      style={{
-        fontFamily: "var(--font-sans)",
-        lineHeight: 1.5,
-        color: "var(--text-body)",
-        marginBottom: "16px",
-      }}
-    >
-      {children}
-    </p>
+    <p className="mb-mrd-5 max-w-[74ch] text-[13px] leading-relaxed text-mrd-body">{children}</p>
   );
 }
 
@@ -195,9 +164,20 @@ export interface RoomDetailProps {
   onBack: () => void;
 }
 
-/** The room-detail chassis shared by all four rooms (extensions §5): back
- * affordance, question header, mono sub-tabs, and the active body. Depth
- * never exceeds glance -> room -> sub-tab -> row detail (four levels). */
+/**
+ * The room-detail chassis: question header, sub-tabs, and the active body.
+ * Depth never exceeds glance -> room -> sub-tab -> row detail.
+ *
+ * NOTHING RENDERS THIS TODAY. `_authenticated.engine-room.tsx` grew its own
+ * chassis on 2026-08-06 and this one has been unreachable since; the LIVE
+ * exports of this file are the row vocabulary above, which every room panel
+ * imports. It is ported rather than left on the old tokens for one reason: it
+ * was the last thing in this folder still drawing from the Obsidian layer
+ * (`--font-pixel`, `--glacier`, `--madder-bright`), and unreachable code in a
+ * ported file is exactly what gets copied into the next one. It is a candidate
+ * for deletion, and that is flagged in the report rather than done here, since
+ * removing an exported symbol is a wider change than a port.
+ */
 export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailProps) {
   const { rooms } = useEngineRoomGlance();
   const status = rooms.find((r) => r.key === room);
@@ -226,119 +206,65 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
   }, [onBack]);
 
   return (
-    <div>
-      <div
-        className="flex items-start justify-between"
-        style={{ gap: "16px", marginBottom: "20px" }}
-      >
-        <div>
-          <h2
-            style={{
-              fontFamily: "var(--font-pixel)",
-              fontWeight: 400,
-              lineHeight: 1.25,
-              color: "var(--text-primary)",
-              margin: 0,
-              letterSpacing: "0.01em",
-            }}
-          >
+    <div className="flex flex-col gap-mrd-6">
+      <div className="flex flex-wrap items-start justify-between gap-mrd-4">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-[20px] leading-tight font-medium text-mrd-ink">
             {ROOM_QUESTIONS[room]}
           </h2>
-          <p
-            className="tabular-nums"
-            style={{
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.04em",
-              color: status?.error ? "var(--madder-bright)" : "var(--text-muted)",
-              margin: "6px 0 0",
-              minHeight: "14px",
-            }}
-          >
+          <p className="mt-mrd-2 text-[12.5px] leading-relaxed text-mrd-body">
             {status?.error
               ? "This room's summary did not load."
               : (status?.glance?.verdict ?? "\u00A0")}
           </p>
-          {/* The single next step, plain-spoken, only when the room is on
-              watch. Neutral gray per the 2026-07-11 glacier narrowing - this
-              is guidance text, not a status control, so it no longer wears
-              the machine-voice accent. Derived from the same real state as
-              the verdict. */}
+          {/* The single next step, plain-spoken, only when the room is on watch.
+              Guidance text, not a status control, so it carries no accent: it
+              is derived from the same real state as the verdict. */}
           {status?.glance?.action ? (
-            <p
-              style={{
-                fontFamily: "var(--font-sans)",
-                lineHeight: 1.5,
-                color: "var(--text-body)",
-                margin: "10px 0 0",
-                paddingLeft: "10px",
-                borderLeft: "2px solid var(--hairline-strong)",
-              }}
-            >
-              <span
-                className="uppercase"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.12em",
-                  color: "var(--text-subtle)",
-                  marginRight: "8px",
-                }}
-              >
+            <p className="mt-mrd-3 border-l-2 border-mrd-edge pl-mrd-4 text-[12.5px] leading-relaxed text-mrd-body">
+              <span className="mr-mrd-3 text-[10px] font-[650] tracking-wide text-mrd-mute uppercase">
                 Next
               </span>
               {status.glance.action}
             </p>
           ) : null}
         </div>
-        <div className="flex shrink-0 items-center" style={{ gap: "12px" }}>
-          {/* The Record room's outward door: the public scorecard at /proof.
-              Glacier, the link role (2026-07-11 ruling); not a second CTA. */}
+        <div className="flex shrink-0 items-center gap-mrd-4">
+          {/* The Record room's outward door: the public scorecard at /proof. A
+              link role, never a second CTA, so it takes no fill and no accent. */}
           {room === "record" ? (
             <Link
               to="/proof"
               className={cn(
-                "uppercase outline-none hover:underline",
-                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]",
+                "rounded-mrd-xs text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink",
+                FOCUS_RING_INSET,
               )}
-              style={{
-                fontFamily: "var(--font-mono)",
-                letterSpacing: "0.1em",
-                color: "var(--glacier)",
-              }}
             >
               Public scorecard
             </Link>
           ) : null}
-          {status?.glance ? (
-            <VerdictChip tone={status.glance.state === "watch" ? "WATCH" : "VALIDATED"}>
-              {status.glance.state === "watch" ? "WATCH" : "HEALTHY"}
-            </VerdictChip>
+          {status?.error != null ? (
+            <StateWord state="failed" />
+          ) : status?.glance ? (
+            <StateWord state={status.glance.state} />
           ) : null}
         </div>
       </div>
 
-      {/* IA 2026-07-11: view switching moved into the persistent RoomRail on
-          desktop; this standard tab bar (FlashlightTabs) stays as the mobile
-          sub-tab switcher, where the rail collapses to a room strip. */}
-      <div className="md:hidden" style={{ marginBottom: "14px" }}>
-        <FlashlightTabs
+      {/* The view switcher lives in the persistent room rail on desktop; this
+          strip stays as the mobile sub-tab switcher, where the rail collapses. */}
+      <div className="md:hidden">
+        <ViewTabs
           tabs={tabs.map((t) => ({ id: t.id, label: t.label }))}
           active={activeView}
           onSelect={onSetView}
-          ariaLabel={`${ROOM_QUESTIONS[room]} views`}
-          size="sm"
+          label={`${ROOM_QUESTIONS[room]} views`}
         />
       </div>
 
       {/* Descriptor strip: the one plain line that says what this view answers,
           so a click never lands on a bare table with no context. */}
-      <p
-        style={{
-          fontFamily: "var(--font-sans)",
-          lineHeight: 1.5,
-          color: "var(--text-muted)",
-          margin: "0 0 18px",
-        }}
-      >
+      <p className="max-w-[74ch] text-[12.5px] leading-relaxed text-mrd-mute">
         {activeMeta.descriptor}
       </p>
 
@@ -347,23 +273,11 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
       {/* The technical trace, kept underneath and subtle (founder ruling
           2026-07-07): a PM reads the plain label above; an engineer finds the
           system term here. Plain on top, technical beneath, never at the front.
-          Neutral gray per the 2026-07-11 glacier narrowing (was blossom/glacier
-          coloring the two terms) - only the plain label lifts a step brighter
-          than the faint connective words, so the mapping still catches the
-          eye (Stress tests -> Gauntlet, Is it slipping? -> Drift) without a
-          chromatic tint. */}
-      <p
-        className="uppercase"
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.12em",
-          color: "var(--text-faint)",
-          margin: "32px 0 0",
-          paddingTop: "14px",
-          borderTop: "1px solid var(--hairline-faint)",
-        }}
-      >
-        <span style={{ color: "var(--text-subtle)" }}>{activeMeta.label}</span>
+          No hue on either term: only the plain label lifts a step brighter than
+          the connective words, so the mapping still catches the eye (Stress
+          tests -> Gauntlet, Is it slipping? -> Drift) without a tint. */}
+      <p className="border-t border-mrd-line-soft pt-mrd-4 text-[11.5px] text-mrd-faint">
+        <span className="text-mrd-mute">{activeMeta.label}</span>
         {" · the engine calls this "}
         <span>{activeMeta.technical}</span>
       </p>

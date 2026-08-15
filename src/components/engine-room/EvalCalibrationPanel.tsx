@@ -8,6 +8,18 @@
  * Data model: grouping listEvalSuites (surface + latest score) by surface +
  * overlaying getEvalCoverage (state per surface) to show both rigor (evals run)
  * and coverage (which surfaces have a guard at all).
+ *
+ * 2026-08-15: PORTED TO MERIDIAN. The three coverage dots used to be hand-picked
+ * colours off a retired palette (moss, faint, marigold); they are named meanings
+ * now and `RecordStatus` owns which token draws each one:
+ *
+ *   COVERED is `pass`. A guard exists and it has run: that is an outcome.
+ *   UNPROVEN is `quiet`. A guard exists and has proved nothing yet, which is an
+ *     absence of evidence rather than a bad result, and dressing it as either
+ *     green or amber would claim a verdict nobody has.
+ *   UNGUARDED is `hold`, amber. Nothing is watching this surface at all, and it
+ *     is the missing-precondition case amber exists for: it needs a suite to be
+ *     written, which is a condition, not a decision made here.
  */
 
 import * as React from "react";
@@ -18,6 +30,8 @@ import { ChevronRight } from "lucide-react";
 import { listEvalSuites, getEvalCoverage } from "@/lib/evals.functions";
 import { EVAL_COVERAGE_TARGETS } from "@/lib/evals/coverage";
 import { ErrorRetry, PanelPending } from "./RoomDetail";
+import { RecordStatus, type RecordTone } from "@/components/meridian/RecordsTable";
+import { FOCUS_RING } from "./EngineChrome";
 
 // Surface labels (reused from QualityRoom for consistency)
 const SURFACE_LABELS: Record<string, string> = Object.fromEntries(
@@ -123,13 +137,7 @@ export function EvalCalibrationPanel() {
 
   if (calibrations.length === 0) {
     return (
-      <p
-        style={{
-          fontFamily: "var(--font-sans)",
-          color: "var(--text-subtle)",
-          padding: "18px 0",
-        }}
-      >
+      <p className="py-mrd-5 text-[13px] leading-relaxed text-mrd-mute">
         No AI surfaces are registered for calibration yet. Add an eval suite under Quality, then its
         surface appears here with a coverage verdict.
       </p>
@@ -137,15 +145,15 @@ export function EvalCalibrationPanel() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <div data-mrd="" className="flex flex-col gap-mrd-4">
+      <div className="flex flex-col gap-mrd-3">
         {calibrations.map((cal) => {
-          const stateMeta =
+          const stateMeta: { tone: RecordTone; label: string } =
             cal.coverageState === "covered"
-              ? { dot: "var(--moss)", label: "Covered" }
+              ? { tone: "pass", label: "Covered" }
               : cal.coverageState === "stale"
-                ? { dot: "var(--text-faint)", label: "Unproven" }
-                : { dot: "var(--marigold)", label: "Unguarded" };
+                ? { tone: "quiet", label: "Unproven" }
+                : { tone: "hold", label: "Unguarded" };
 
           const passRatePct = cal.passRate != null ? Math.round(cal.passRate * 100) : null;
 
@@ -155,137 +163,58 @@ export function EvalCalibrationPanel() {
               type="button"
               onClick={() => drillToSurface(cal.surface)}
               // Hover in CSS, not JS mouse handlers, so keyboard focus and
-              // reduced-motion behave; the transition names its properties
-              // (checklist 1/2/8).
-              className="active:scale-[0.995] hover:[border-color:var(--text-faint)] hover:[background-color:var(--surface-2)]"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "12px 16px",
-                backgroundColor: "var(--card)",
-                border: "1px solid var(--hairline)",
-                borderRadius: "var(--radius-card)",
-                cursor: "pointer",
-                transitionProperty: "background-color, border-color, transform",
-                transitionDuration: "160ms",
-                transitionTimingFunction: "var(--ease)",
-              }}
+              // reduced-motion behave; the transition names its properties.
+              className={`group flex items-center justify-between gap-mrd-4 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-4 text-left transition-colors hover:bg-mrd-lift ${FOCUS_RING}`}
+              style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--geist-space-3x)",
-                  flex: 1,
-                  minWidth: 0,
-                }}
-              >
-                {/* Coverage state dot */}
-                <div
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "100%",
-                    backgroundColor: stateMeta.dot,
-                    flex: "none",
-                  }}
-                  title={stateMeta.label}
-                />
+              <span className="flex min-w-0 flex-1 flex-col gap-mrd-1">
+                <span className="truncate text-[13px] font-medium text-mrd-ink">{cal.label}</span>
+                {/* The dot and its word travel together, so the state never
+                    reads by colour alone and survives greyscale. */}
+                <RecordStatus tone={stateMeta.tone} label={stateMeta.label} />
+              </span>
 
-                {/* Surface name + coverage label */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontWeight: 500,
-                      color: "var(--text-primary)",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {cal.label}
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      color: "var(--text-faint)",
-                      letterSpacing: "0.01em",
-                    }}
-                  >
-                    {stateMeta.label}
-                  </div>
-                </div>
-              </div>
-
-              {/* Pass rate or "—" if uncovered */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--geist-space-3x)",
-                  flex: "none",
-                }}
-              >
-                <div
-                  style={{
-                    textAlign: "right",
-                    minWidth: 60,
-                  }}
-                >
+              <span className="flex flex-none items-center gap-mrd-4">
+                <span className="min-w-[60px] text-right">
                   {passRatePct != null ? (
-                    <div
-                      style={{
-                        fontWeight: 600,
-                        fontVariantNumeric: "tabular-nums",
-                        color: passRatePct >= 90 ? "var(--moss)" : "var(--text-primary)",
-                      }}
+                    <span
+                      className={`font-mrd-mono block text-[13px] font-medium tabular-nums ${
+                        /* Green only where it is an OUTCOME worth reporting: a
+                           surface passing at or above ninety. Below that the
+                           figure is a measurement and stays neutral, because a
+                           second threshold nobody set would be a verdict
+                           invented by the palette. */
+                        passRatePct >= 90 ? "text-mrd-pass" : "text-mrd-ink"
+                      }`}
                     >
                       {passRatePct}%
-                    </div>
+                    </span>
                   ) : (
-                    <div
-                      style={{
-                        color: "var(--text-faint)",
-                      }}
-                    >
-                      no runs
-                    </div>
+                    <span className="block text-[12px] text-mrd-faint">no runs</span>
                   )}
                   {cal.runCount > 0 ? (
-                    <div
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        color: "var(--text-faint)",
-                        marginTop: 2,
-                      }}
-                    >
+                    <span className="font-mrd-mono mt-0.5 block text-[11.5px] text-mrd-faint tabular-nums">
                       {cal.runCount} suite{cal.runCount === 1 ? "" : "s"}
-                    </div>
+                    </span>
                   ) : null}
-                </div>
+                </span>
                 <ChevronRight
-                  size={16}
-                  strokeWidth={1.5}
-                  style={{ color: "var(--text-faint)", flex: "none" }}
+                  size={15}
+                  strokeWidth={1.8}
+                  aria-hidden
+                  className="flex-none text-mrd-faint transition-colors group-hover:text-mrd-body"
                 />
-              </div>
+              </span>
             </button>
           );
         })}
       </div>
 
-      {/* Summary line when complete coverage */}
+      {/* Summary line when coverage is complete. */}
       {calibrations.every((c) => c.coverageState === "covered") ? (
-        <div
-          style={{
-            marginTop: 8,
-            paddingTop: 12,
-            borderTop: "1px solid var(--hairline)",
-            color: "var(--text-faint)",
-            fontFamily: "var(--font-mono)",
-          }}
-        >
+        <p className="border-t border-mrd-line-soft pt-mrd-4 text-[12px] text-mrd-mute">
           All canonical surfaces are guarded with evals.
-        </div>
+        </p>
       ) : null}
     </div>
   );

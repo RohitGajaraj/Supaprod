@@ -27,18 +27,17 @@
  *    frame of mind. Everything else on this page supports that or is gone.
  *
  * 3. KEEP / MOVE / KILL, every element.
- *    KEEP  the roster grid, the stage groups and the hue encoding. Decided by
- *          the prototype, and it is the one surface where colour is the
- *          subject: shape says which agent, colour says which stage.
- *    KEEP  the live mark states. A running agent wears its stage hue while it
- *          runs and stops when the run does.
+ *    KEEP  the roster grid and the stage groups. Decided by the prototype.
+ *    KEEP  the live mark states. A running agent is marked while it runs and
+ *          stops when the run does.
  *    KILL  the standing sentence "The shape is the agent, the colour is the
  *          stage it works in. Ember and blinking means it is waiting on you."
- *          Every stage group is already headed by its own coloured bar and its
- *          own name, so the legend teaches itself; and the ember half now sits
- *          next to the thing actually asking, where it is a fact rather than a
- *          rule to memorise. Three sentences of instruction for a legend that
- *          the layout already draws is scaffolding, not design.
+ *          Every stage group is already headed by its own mark and its own
+ *          name, so the legend teaches itself; and the half about what is
+ *          asking now sits next to the thing actually asking, where it is a
+ *          fact rather than a rule to memorise. Three sentences of instruction
+ *          for a legend that the layout already draws is scaffolding, not
+ *          design.
  *    KILL  the listMissions read. It answered "is this agent running" through a
  *          mission's current_agent_id, one indirection away from the truth. The
  *          run rows themselves are what the loop writes, so the surface reads
@@ -59,11 +58,11 @@
  *          any surface a product lead can reach.
  *
  * 4. WHAT IS ONE CLICK AWAY INSTEAD OF ON THE SURFACE.
- *    Everything about one agent. A roster card is a mark, a name and one line,
- *    and it never wraps. Its record, its boundary, its tool policy and what it
- *    is asking for all live on its own page, which is one click. The only thing
- *    promoted onto the roster is what genuinely needs a person: an agent asking
- *    for more room, which is drawn above the grid as a short queue.
+ *    Everything about one agent. A roster card is a mark, a name and one line.
+ *    Its record, its boundary, its tool policy and what it is asking for all
+ *    live on its own page, which is one click. The only thing promoted onto the
+ *    roster is what genuinely needs a person: an agent asking for more room,
+ *    which is drawn above the grid as a short queue.
  *
  * 5. WHAT WOULD DELIGHT, AND WHAT WOULD CONFUSE.
  *    The moment is an agent proposing its own promotion. "Engineer has opened
@@ -71,19 +70,19 @@
  *    is the product's whole thesis in one card: the machine earned something,
  *    the record proves it, and the human rules on the boundary rather than on
  *    the work. It is real (trust_graduation_proposals, written by the
- *    reflection pass) and it is rendered as a Gate with a Receipt, so the
- *    judgment leaves a mark instead of vanishing into a toast.
+ *    reflection pass) and it is rendered as a Gate whose settlement leaves a
+ *    mark, so the judgment is visible instead of vanishing into a toast.
  *    What would confuse, and is therefore refused: a control that draws a
  *    setting the runtime would silently override. Every per-tool control here
  *    offers only the modes that survive resolveToolMode unchanged, so a
- *    force-review tool shows its floor in words and no dropdown at all.
+ *    force-review tool states its floor in words and no dropdown at all.
  *
  * 6. WHERE DOES THE CREW APPEAR, AND WHAT DOES IT PROVE?
  *    This surface IS the crew, so the test has to be sharper than "are agents
  *    visible". It proves three things. Attribution: every boundary on the page
  *    is attached to a named worker with a face, never to an abstract setting.
- *    Work in motion: a running agent wears its hue while it runs, read from the
- *    run rows and not from a status column someone might forget to clear.
+ *    Work in motion: a running agent is marked while it runs, read from the run
+ *    rows and not from a status column someone might forget to clear.
  *    Judgment leaves a trace: deciding a graduation renders what the decision
  *    caused. And nothing overclaims: what an agent may do is composed by
  *    calling the loop's own resolveToolMode rather than by restating its rules,
@@ -96,6 +95,38 @@
  * (founder ruling 2026-07-08). computeAllAgentTrust, ten lines away in the same
  * file, defaults the same field to "observing". This surface follows the LOOP,
  * because it must describe what will happen. See crew.functions.ts's header.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * 2026-08-15: PORTED TO MERIDIAN.
+ *
+ * Every `--sp-*` shape is gone from this file. It keeps `Surface` alone, which
+ * is the app shell's two-column region and belongs to the shell rather than to
+ * this surface, and which /approvals — the house pattern for a ported surface —
+ * keeps for the same reason. Everything else is drawn from `--mrd-*` through
+ * the parts in components/crew/CrewChrome.tsx.
+ *
+ * TWO THINGS CHANGED THAT ARE NOT A RE-SKIN, and both are rulings this surface
+ * was on the wrong side of:
+ *
+ *   THE STAGE HUE IS GONE, from the marks and from the group heads. The KEEP
+ *   list above said the hue encoding survives verbatim, and that entry is now
+ *   struck. The founder was asked on 2026-08-15 whether each station could take
+ *   its own colour and ruled that it cannot: colour carries STATUS in this
+ *   product — waiting on you, running, held, failed — and seven categorical
+ *   hues spend the whole palette on category, so a reader can no longer tell
+ *   "Plan is amber because it is Plan" from "Plan is amber because something is
+ *   stuck there". The ruling is written into meridian/station-glyphs.tsx and it
+ *   names this exact encoding. Identity is carried by SHAPE, which is what the
+ *   glyphs were drawn for and which survives greyscale on its own; the colour
+ *   on this page is now spent on the four facts that change what a reader does.
+ *
+ *   THE TOOL LISTS ARE A GRID, not two hand-rolled columns with a show-all
+ *   toggle. `RecordsTable` sorts them, caps them, and prints the number of rows
+ *   it is withholding — which the bespoke version could not do, because "All
+ *   12" tells you the total and never that eight are hidden. It also carries
+ *   the empty and failed states as separate facts, which is the rule this
+ *   surface already followed by hand in two places and would have had to keep
+ *   following by hand in every place after.
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -114,33 +145,35 @@ import {
   type CatalogEntry,
 } from "@/lib/agent-vocabulary";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { stageHueForStation } from "@/components/shell/agent-glyphs";
+import { Surface } from "@/components/shell/primitives";
+import { RecordsTable, type RecordColumn } from "@/components/meridian/RecordsTable";
 import {
+  Action,
   Actions,
-  AgentMark,
-  Block,
-  Button,
+  CrewMark,
   CtxBody,
   CtxHead,
   CtxRow,
-  Empty,
-  Failed,
+  CtxSection,
+  DoorRow,
+  Figure,
+  FOCUS_RING,
+  FOCUS_RING_INSET,
   Gate,
-  Line,
-  Loading,
-  Num,
-  PageHead,
-  Receipt,
-  // Aliased: the primitive is a value, the TypeScript utility type of the same
-  // name is used all over this file, and one of them shadowing the other in a
-  // reader's head is a bug waiting to be written.
-  Record as RecordSays,
-  Row,
-  Select,
-  Surface,
-  Switch,
-  type MarkState,
-} from "@/components/shell/primitives";
+  ListRow,
+  NothingHere,
+  PageHeading,
+  Picker,
+  ReadFailed,
+  Reading,
+  RecordSpeaks,
+  Region,
+  Setting,
+  Settled,
+  StationHeading,
+  Toggle,
+  type CrewMarkState,
+} from "@/components/crew/CrewChrome";
 import {
   listCrew,
   getCrewMember,
@@ -230,20 +263,6 @@ function ago(iso: string | null | undefined): string | null {
   if (hours < 24) return `${hours}h`;
   return `${Math.floor(hours / 24)}d`;
 }
-
-/** A card is a button here, and the roster's own class carries the shape. The
- *  four properties below are the button reset, which the class cannot supply
- *  because it was written for a div and this lane does not own the stylesheet. */
-const CARD_RESET: React.CSSProperties = {
-  appearance: "none",
-  background: "none",
-  border: 0,
-  font: "inherit",
-  textAlign: "left",
-  width: "100%",
-  cursor: "pointer",
-  color: "inherit",
-};
 
 /* ------------------------------------------------------------------ *
  * The surface
@@ -355,7 +374,7 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
   // Exactly one mark on a screen may blink, so the blink means "look here".
   const blinkSlug = asking[0]?.slug ?? null;
 
-  function stateFor(slug: string): MarkState {
+  function stateFor(slug: string): CrewMarkState {
     const m = bySlug.get(slug);
     /* NO ROW IS NOT SWITCHED OFF, IT IS THE DEFAULT POLICY.
      *
@@ -373,7 +392,7 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
     if (!m) return "idle";
     if (m.asking.length > 0) return slug === blinkSlug ? "gate" : "waiting";
     if (m.runs.running > 0) return "running";
-    if (!m.enabled) return "quiet";
+    if (!m.enabled) return "off";
     return "idle";
   }
 
@@ -394,7 +413,7 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
      * asked. Said that way, the emptiest state in the product becomes the
      * clearest statement of what the product does. */
     <>
-      All <Num>{all.length}</Num> run without asking you. Nothing has been narrowed here yet.
+      All <Figure>{all.length}</Figure> run without asking you. Nothing has been narrowed here yet.
     </>
   ) : (
     /* "OF THEM" POINTED AT THE WRONG SET (2026-08-11). This used to end with a
@@ -408,18 +427,18 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
        nobody has configured is running on a default, and that deserves better
        than a bracket. */
     <>
-      <Num>{alone}</Num> run without asking you, <Num>{asks}</Num> ask first
+      <Figure>{alone}</Figure> run without asking you, <Figure>{asks}</Figure> ask first
       {off > 0 ? (
         <>
-          , <Num>{off}</Num> are switched off
+          , <Figure>{off}</Figure> are switched off
         </>
       ) : null}
       .
       {onDefaults > 0 ? (
         <>
           {" "}
-          <Num>{onDefaults}</Num> of the <Num>{all.length}</Num> have never been narrowed here, so
-          they run on the default policy.
+          <Figure>{onDefaults}</Figure> of the <Figure>{all.length}</Figure> have never been
+          narrowed here, so they run on the default policy.
         </>
       ) : null}
     </>
@@ -429,171 +448,166 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
     // wide: the roster is a grid, not prose, so it wants the room rather than
     // the 74ch measure.
     <Surface wide>
-      {/* SAY WHAT SIXTEEN OF. The title read "16 work here.", which omits the
-          noun entirely and leaves the one word a newcomer needs to the page
-          they would have to already understand to be here.
-          `count` returns a number WORD below ten, so the verb has to agree with
-          it: "one agent works here", "sixteen agents work here". */}
-      <PageHead
-        title={
-          all.length === 1
-            ? `${count(1)} agent works here.`
-            : `${count(all.length)} agents work here.`
-        }
-        sub={sub}
-      />
+      <div className="flex flex-col gap-mrd-7">
+        {/* SAY WHAT SIXTEEN OF. The title read "16 work here.", which omits the
+            noun entirely and leaves the one word a newcomer needs to the page
+            they would have to already understand to be here.
+            `count` returns a number WORD below ten, so the verb has to agree with
+            it: "one agent works here", "sixteen agents work here". */}
+        <PageHeading
+          title={
+            all.length === 1
+              ? `${count(1)} agent works here.`
+              : `${count(all.length)} agents work here.`
+          }
+          sub={sub}
+        />
 
-      {crew.isError ? (
-        <Block>
-          <Failed onRetry={() => crew.refetch()}>
+        {crew.isError ? (
+          <ReadFailed onRetry={() => void crew.refetch()}>
             The crew did not load, so nothing below is the real boundary.
-          </Failed>
-        </Block>
-      ) : null}
+          </ReadFailed>
+        ) : null}
 
-      {/* THE DOOR TO THE BOUNDARY.
-        Crew answers "who works here". The boundary answers "what may they do
-        without me", and until 2026-08-01 that question had no single surface:
-        it was spread across four Engine Room rooms and a settings page. The
-        two belong beside each other, and this is the only place in the product
-        where a reader is already thinking about the crew as a group.
+        {/* THE DOOR TO THE BOUNDARY.
+          Crew answers "who works here". The boundary answers "what may they do
+          without me", and until 2026-08-01 that question had no single surface:
+          it was spread across four Engine Room rooms and a settings page. The
+          two belong beside each other, and this is the only place in the product
+          where a reader is already thinking about the crew as a group.
 
-        A row rather than a rail entry on purpose. The rail's own comment says
-        the five rows are "decided, and not to be relitigated", and quietly
-        adding a sixth would be relitigating a founder ruling by commit rather
-        than by asking. */}
-      <Block title="What they may do without you">
-        <Row
-          tight
-          lead="The boundary"
-          sub="Every tool, across the whole crew. Set once, and it never interrupts work already running."
-          onClick={() => navigate({ to: "/boundary" })}
-        />
-      </Block>
+          A row rather than a rail entry on purpose. The rail's own comment says
+          the five rows are "decided, and not to be relitigated", and quietly
+          adding a sixth would be relitigating a founder ruling by commit rather
+          than by asking. */}
+        <Region title="What they may do without you">
+          <DoorRow
+            lead="The boundary"
+            sub="Every tool, across the whole crew. Set once, and it never interrupts work already running."
+            onClick={() => void navigate({ to: "/boundary" })}
+          />
+        </Region>
 
-      {/* THE DOOR TO THE METHODS.
-        The third standing question about the crew, beside "who works here" and
-        "what may they do without me": HOW do they work, and what has actually
-        held up. It had no door at all. `getPlaybooks` has been live server code
-        with zero UI callers, while the loop has been picking a method per
-        mission step on the reader's behalf the whole time
-        (orchestrator.server.ts, via rankPlaybooksByOutcome), so the one thing
-        the product calls its moat was invisible to the person it is meant to
-        convince. Capability built, door missing.
+        {/* THE DOOR TO THE METHODS.
+          The third standing question about the crew, beside "who works here" and
+          "what may they do without me": HOW do they work, and what has actually
+          held up. It had no door at all. `getPlaybooks` has been live server code
+          with zero UI callers, while the loop has been picking a method per
+          mission step on the reader's behalf the whole time
+          (orchestrator.server.ts, via rankPlaybooksByOutcome), so the one thing
+          the product calls its moat was invisible to the person it is meant to
+          convince. Capability built, door missing.
 
-        It sits on Crew rather than in the Engine Room or in Brain, and the
-        component's own header argues that choice out. Same shape as the
-        boundary door directly above, and for the same reason: a row here, not
-        a sixth rail entry.
+          It sits on Crew rather than in the Engine Room or in Brain, and the
+          component's own header argues that choice out. Same shape as the
+          boundary door directly above, and for the same reason: a row here, not
+          a sixth rail entry.
 
-        Its own Block rather than a second row under the boundary's, because
-        "what they may do without you" is a true title for exactly one of these
-        two and would have to be watered down to cover both. */}
-      <Block title="How they work">
-        <Row
-          tight
-          lead="The methods"
-          sub="The named ways of working the crew draws on, how often each has been used, and what has held up so far."
-          onClick={() => navigate({ to: "/crew", search: { view: "methods" } })}
-        />
-      </Block>
+          Its own region rather than a second row under the boundary's, because
+          "what they may do without you" is a true title for exactly one of these
+          two and would have to be watered down to cover both. */}
+        <Region title="How they work">
+          <DoorRow
+            lead="The methods"
+            sub="The named ways of working the crew draws on, how often each has been used, and what has held up so far."
+            onClick={() => void navigate({ to: "/crew", search: { view: "methods" } })}
+          />
+        </Region>
 
-      {asking.length > 0 ? (
-        <Block
-          title="Asking for more room"
-          sub="Each one has done the same thing cleanly enough times to propose it stops asking. Open it to rule."
-        >
-          {asking.map((m) => (
-            <Row
-              key={m.slug}
-              marks={
-                <AgentMark
-                  slug={m.slug}
-                  name={m.name}
-                  state={m.slug === blinkSlug ? "gate" : "waiting"}
-                />
-              }
-              lead={
-                // One ask reads as one sentence. Several would need one phrase
-                // per tool, and a row in a list never wraps, so the count goes
-                // here and the tools go on its own page.
-                m.asking.length === 1 ? (
-                  <>
-                    {agentDisplayName(m.slug, m.name)} wants to run {m.asking[0].toolLabel}{" "}
-                    {MODE_PHRASE[m.asking[0].toMode]}.
-                  </>
-                ) : (
-                  <>
-                    {agentDisplayName(m.slug, m.name)} is asking about {m.asking.length} tools.
-                  </>
-                )
-              }
-              sub={
-                m.runs.total > 0 ? (
-                  <>
-                    <Num>{m.runs.total}</Num> runs in this workspace
-                  </>
-                ) : (
-                  "No runs in this workspace yet"
-                )
-              }
-              tight
-              onClick={() => onOpen(m.slug)}
-            />
-          ))}
-        </Block>
-      ) : null}
-
-      {AGENT_STATION_ORDER.map((station) => {
-        const members = byStation.get(station);
-        if (!members?.length) return null;
-        const hue = stageHueForStation(station);
-        return (
-          <section
-            className="sp-stagegroup"
-            key={station}
-            style={{ "--sp-hue": hue } as React.CSSProperties}
+        {asking.length > 0 ? (
+          <Region
+            title="Asking for more room"
+            sub="Each one has done the same thing cleanly enough times to propose it stops asking. Open it to rule."
           >
-            <div className="sp-sg-head">
-              <span className="sp-sg-bar" aria-hidden="true" />
-              <span className="sp-sg-name">{AGENT_STATIONS[station].name}</span>
-              <span className="sp-sg-count">
-                <Num>{members.length}</Num>
-              </span>
+            <div className="flex flex-col gap-mrd-2">
+              {asking.map((m) => (
+                <DoorRow
+                  key={m.slug}
+                  marks={
+                    <CrewMark
+                      slug={m.slug}
+                      name={m.name}
+                      state={m.slug === blinkSlug ? "gate" : "waiting"}
+                    />
+                  }
+                  lead={
+                    // One ask reads as one sentence. Several would need one phrase
+                    // per tool, and a row in a list never wraps, so the count goes
+                    // here and the tools go on its own page.
+                    m.asking.length === 1 ? (
+                      <>
+                        {agentDisplayName(m.slug, m.name)} wants to run {m.asking[0].toolLabel}{" "}
+                        {MODE_PHRASE[m.asking[0].toMode]}.
+                      </>
+                    ) : (
+                      <>
+                        {agentDisplayName(m.slug, m.name)} is asking about {m.asking.length} tools.
+                      </>
+                    )
+                  }
+                  sub={
+                    m.runs.total > 0 ? (
+                      <>
+                        <Figure>{m.runs.total}</Figure> runs in this workspace
+                      </>
+                    ) : (
+                      "No runs in this workspace yet"
+                    )
+                  }
+                  onClick={() => onOpen(m.slug)}
+                />
+              ))}
             </div>
-            <div className="sp-agrid">
-              {members.map((e) => {
-                const m = bySlug.get(e.slug);
-                return (
-                  <button
-                    type="button"
-                    className="sp-acard"
-                    key={e.slug}
-                    style={CARD_RESET}
-                    onClick={() => onOpen(e.slug)}
-                  >
-                    <AgentMark slug={e.slug} size="lg" state={stateFor(e.slug)} />
-                    <span>
-                      <div className="sp-aname">{e.name}</div>
-                      <div className="sp-asub">
-                        {/* The blurb says what it does, which is what the roster
-                            teaches. The two exceptions are facts that
-                            contradict the blurb: it is switched off, or this
-                            account has no row for it at all. */}
-                        {!m
-                          ? `${agentBlurb(e.slug) ?? e.relayVerb} Runs on the default policy.`
-                          : !m.enabled
-                            ? "Switched off. It will not be dispatched."
-                            : (agentBlurb(e.slug) ?? e.relayVerb)}
-                      </div>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        );
-      })}
+          </Region>
+        ) : null}
+
+        {AGENT_STATION_ORDER.map((station) => {
+          const members = byStation.get(station);
+          if (!members?.length) return null;
+          return (
+            <section key={station}>
+              <StationHeading station={station} count={members.length} />
+              {/* The arithmetic that makes this a grid rather than a column:
+                  sixteen agents down a column is sixteen rows of scrolling, and
+                  the same sixteen at three or four across is four. The 232px
+                  measure is the prototype's and is kept; only the ground, the
+                  radius and the focus treatment moved to Meridian. */}
+              <div className="mt-mrd-4 grid gap-mrd-2 [grid-template-columns:repeat(auto-fill,minmax(232px,1fr))]">
+                {members.map((e) => {
+                  const m = bySlug.get(e.slug);
+                  return (
+                    <button
+                      type="button"
+                      key={e.slug}
+                      onClick={() => onOpen(e.slug)}
+                      className={`flex w-full items-center gap-mrd-4 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-4 py-mrd-3 text-left transition-colors hover:bg-mrd-lift ${FOCUS_RING}`}
+                      style={{ transitionDuration: "var(--mrd-d-press)" }}
+                    >
+                      <CrewMark slug={e.slug} name={e.name} size="lg" state={stateFor(e.slug)} />
+                      <span className="min-w-0">
+                        <span className="block truncate text-[13px] font-medium text-mrd-ink">
+                          {e.name}
+                        </span>
+                        <span className="mt-0.5 block text-[12px] leading-snug text-mrd-mute">
+                          {/* The blurb says what it does, which is what the roster
+                              teaches. The two exceptions are facts that
+                              contradict the blurb: it is switched off, or this
+                              account has no row for it at all. */}
+                          {!m
+                            ? `${agentBlurb(e.slug) ?? e.relayVerb} Runs on the default policy.`
+                            : !m.enabled
+                              ? "Switched off. It will not be dispatched."
+                              : (agentBlurb(e.slug) ?? e.relayVerb)}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
+      </div>
     </Surface>
   );
 }
@@ -623,17 +637,15 @@ function MemberView({ slug, onBack }: { slug: string; onBack: () => void }) {
     void qc.invalidateQueries({ queryKey: ["agents"] });
   }, [qc, slug, wsId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const back = (
-    <Button variant="ghost" onClick={onBack}>
-      All of them
-    </Button>
-  );
+  const back = <Action onClick={onBack}>All of them</Action>;
 
   if (member.isLoading) {
     return (
       <Surface>
-        <PageHead title={agentDisplayName(slug)} />
-        <Loading>Reading what this one is allowed to do.</Loading>
+        <div className="flex flex-col gap-mrd-7">
+          <PageHeading title={agentDisplayName(slug)} />
+          <Reading>Reading what this one is allowed to do.</Reading>
+        </div>
       </Surface>
     );
   }
@@ -641,13 +653,13 @@ function MemberView({ slug, onBack }: { slug: string; onBack: () => void }) {
   if (member.isError) {
     return (
       <Surface>
-        <PageHead title={agentDisplayName(slug)} />
-        <Block>
-          <Failed onRetry={() => member.refetch()}>
+        <div className="flex flex-col gap-mrd-7">
+          <PageHeading title={agentDisplayName(slug)} />
+          <ReadFailed onRetry={() => void member.refetch()}>
             This one did not load, so the boundary shown would not be the real one.
-          </Failed>
-        </Block>
-        <Block>{back}</Block>
+          </ReadFailed>
+          <Actions>{back}</Actions>
+        </div>
       </Surface>
     );
   }
@@ -656,47 +668,49 @@ function MemberView({ slug, onBack }: { slug: string; onBack: () => void }) {
   if (!m) {
     return (
       <Surface>
-        <PageHead title="No agent by that name." />
-        <Empty action={back}>
-          Nothing in this account answers to that name, and nothing in the catalog does either.
-        </Empty>
+        <div className="flex flex-col gap-mrd-7">
+          <PageHeading title="No agent by that name." />
+          <NothingHere action={back}>
+            Nothing in this account answers to that name, and nothing in the catalog does either.
+          </NothingHere>
+        </div>
       </Surface>
     );
   }
 
   return (
     <Surface context={<MemberRecord member={m} />}>
-      <PageHead
-        // The headline is the boundary in force, which is the one thing this
-        // page exists to change. It is never stated for an agent that has no
-        // row, because that one is not running under any boundary at all and
-        // saying otherwise would be the surface overclaiming.
-        title={
-          m.agentId === null
-            ? `${m.name} has not arrived yet.`
-            : !m.enabled
-              ? `${m.name} is switched off.`
-              : arcHeadline(m.name, m.arc)
-        }
-        sub={m.blurb}
-      />
+      <div className="flex flex-col gap-mrd-7">
+        <PageHeading
+          // The headline is the boundary in force, which is the one thing this
+          // page exists to change. It is never stated for an agent that has no
+          // row, because that one is not running under any boundary at all and
+          // saying otherwise would be the surface overclaiming.
+          title={
+            m.agentId === null
+              ? `${m.name} has not arrived yet.`
+              : !m.enabled
+                ? `${m.name} is switched off.`
+                : arcHeadline(m.name, m.arc)
+          }
+          sub={m.blurb}
+        />
 
-      {m.agentId === null ? (
-        <Block>
-          <Empty action={back}>
+        {m.agentId === null ? (
+          <NothingHere action={back}>
             The catalog knows this one, but this account has no row for it, so there is nothing to
             govern yet. It arrives with the first mission that needs it.
-          </Empty>
-        </Block>
-      ) : (
-        <>
-          <Proposals member={m} onDecided={invalidate} />
-          <Boundary member={m} onChanged={invalidate} />
-          <ToolPolicy member={m} onChanged={invalidate} />
-          <Lessons slug={m.slug} name={m.name} />
-          <Block>{back}</Block>
-        </>
-      )}
+          </NothingHere>
+        ) : (
+          <>
+            <Proposals member={m} onDecided={invalidate} />
+            <Boundary member={m} onChanged={invalidate} />
+            <ToolPolicy member={m} onChanged={invalidate} />
+            <Lessons slug={m.slug} name={m.name} />
+            <Actions>{back}</Actions>
+          </>
+        )}
+      </div>
     </Surface>
   );
 }
@@ -751,7 +765,7 @@ function Proposals({ member, onDecided }: { member: CrewMember; onDecided: () =>
    * running gate QUEUES with no keys bound and none drawn. This surface says
    * "Settle the one above and the next takes its place" over an accept/decline
    * pair, which is the exact shape Today binds `a` and `d` for, on the same
-   * `Gate` primitive. So a person who learned the keyboard on the front door
+   * `Gate` shape. So a person who learned the keyboard on the front door
    * arrived here and it silently stopped working. An inconsistent keyboard
    * teaches people not to trust the keyboard at all, which costs more than
    * never having had one.
@@ -812,7 +826,8 @@ function Proposals({ member, onDecided }: { member: CrewMember; onDecided: () =>
           question={`Let ${member.name} run ${live.toolLabel} ${MODE_PHRASE[live.toMode]}?`}
           lines={[
             <>
-              It has done this <Num>{live.cleanStreak}</Num> times in a row and you changed nothing.
+              It has done this <Figure>{live.cleanStreak}</Figure> times in a row and you changed
+              nothing.
             </>,
             <>
               Today it runs {MODE_PHRASE[live.fromMode]}. It is asking to run{" "}
@@ -824,71 +839,76 @@ function Proposals({ member, onDecided }: { member: CrewMember; onDecided: () =>
           {/* The keycaps are drawn because the keys are bound above. `shortcut`
               renders a <kbd> and binds nothing by itself, so it is never passed
               without the effect that makes it true. */}
-          <Button
+          <Action
             variant="primary"
             shortcut="a"
             disabled={decide.isPending}
             onClick={() => settle(true)}
           >
             Give it the room
-          </Button>
-          <Button shortcut="d" disabled={decide.isPending} onClick={() => settle(false)}>
+          </Action>
+          <Action shortcut="d" disabled={decide.isPending} onClick={() => settle(false)}>
             Not yet
-          </Button>
+          </Action>
         </Gate>
       ) : null}
 
       {behind.length > 0 ? (
-        <Block title="Behind it" sub="Settle the one above and the next takes its place.">
-          {behind.map((p) => (
-            <Row
-              key={p.id}
-              marks={<AgentMark slug={member.slug} name={member.name} state="waiting" />}
-              lead={
-                <>
-                  {p.toolLabel}, asking to run {MODE_PHRASE[p.toMode]}
-                </>
-              }
-              sub={
-                <>
-                  <Num>{p.cleanStreak}</Num> clean in a row
-                </>
-              }
-              time={ago(p.createdAt)}
-              tight
-            />
-          ))}
-        </Block>
+        <Region title="Behind it" sub="Settle the one above and the next takes its place.">
+          <div className="flex flex-col gap-mrd-2">
+            {behind.map((p) => (
+              <ListRow
+                key={p.id}
+                marks={<CrewMark slug={member.slug} name={member.name} state="waiting" />}
+                lead={
+                  <>
+                    {p.toolLabel}, asking to run {MODE_PHRASE[p.toMode]}
+                  </>
+                }
+                sub={
+                  <>
+                    <Figure>{p.cleanStreak}</Figure> clean in a row
+                  </>
+                }
+                time={ago(p.createdAt)}
+              />
+            ))}
+          </div>
+        </Region>
       ) : null}
 
       {decide.isError ? (
-        <Block>
-          <Failed>{(decide.error as Error).message}</Failed>
-        </Block>
+        <ReadFailed detail="Nothing was granted and nothing was refused. The proposal is still open.">
+          {(decide.error as Error).message}
+        </ReadFailed>
       ) : null}
 
       {/* THE COMMIT. A toast confirms that your click registered; this renders
           what your click caused. No arrow is drawn: nothing picks this up, it
           is a standing rule from now on, and an arrow to nowhere is worse than
           no arrow. */}
-      {decided.map((d, i) => (
-        <Receipt
-          key={`${d.at}-${i}`}
-          verb={d.accept ? "You gave it the room" : "You said not yet"}
-          consequence={
-            d.accept ? (
-              <>
-                {member.name} runs {d.toolLabel} {MODE_PHRASE[d.mode]} from now on.
-              </>
-            ) : (
-              <>
-                {member.name} still runs {d.toolLabel} {MODE_PHRASE[d.mode]}.
-              </>
-            )
-          }
-          time={ago(d.at)}
-        />
-      ))}
+      {decided.length > 0 ? (
+        <div className="flex flex-col gap-mrd-2">
+          {decided.map((d, i) => (
+            <Settled
+              key={`${d.at}-${i}`}
+              verb={d.accept ? "You gave it the room" : "You said not yet"}
+              consequence={
+                d.accept ? (
+                  <>
+                    {member.name} runs {d.toolLabel} {MODE_PHRASE[d.mode]} from now on.
+                  </>
+                ) : (
+                  <>
+                    {member.name} still runs {d.toolLabel} {MODE_PHRASE[d.mode]}.
+                  </>
+                )
+              }
+              time={ago(d.at)}
+            />
+          ))}
+        </div>
+      ) : null}
     </>
   );
 }
@@ -931,98 +951,108 @@ function Boundary({ member, onChanged }: { member: CrewMember; onChanged: () => 
         : ("down" as const)
       : null;
 
+  const arcId = `crew-arc-${member.slug}`;
+  const reachId = `crew-reach-${member.slug}`;
+
   return (
-    <Block
+    <Region
       title="The boundary"
       sub="Set once, and it holds inside every run. Nothing here asks you again in the moment."
     >
-      <Line
-        label="Working in this workspace"
-        sub={
-          member.enabled
-            ? "Switch it off and the loop will not dispatch it."
-            : "It is off. Nothing dispatches it and its tools are unreachable."
-        }
-      >
-        <Switch
-          checked={member.enabled}
-          disabled={enabled.isPending}
-          label={`${member.name} works in this workspace`}
-          onChange={(next) => enabled.mutate(next)}
-        />
-      </Line>
-
-      <Line
-        label="How much it decides by itself"
-        // Different information from the control beside it: who set this, not
-        // what it is set to. The dropdown already says what it is set to.
-        sub={
-          !member.enabled
-            ? "Only takes effect once it is switched back on."
-            : member.arcIsDefault
-              ? "Nobody set this. It is our default, and it is yours to change."
-              : "You set this."
-        }
-      >
-        <Select
-          value={member.arc}
-          disabled={arc.isPending}
-          aria-label={`How much ${member.name} decides by itself`}
-          onChange={(e) => arc.mutate(e.target.value as CrewArc)}
+      <div className="rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-1">
+        <Setting
+          label="Working in this workspace"
+          sub={
+            member.enabled
+              ? "Switch it off and the loop will not dispatch it."
+              : "It is off. Nothing dispatches it and its tools are unreachable."
+          }
         >
-          {ARC_ORDER.map((a) => (
-            <option key={a} value={a}>
-              {ARC_CHOICE[a]}
-            </option>
-          ))}
-        </Select>
-      </Line>
+          <Toggle
+            checked={member.enabled}
+            disabled={enabled.isPending}
+            label={`${member.name} works in this workspace`}
+            onChange={(next) => enabled.mutate(next)}
+          />
+        </Setting>
 
-      <Line
-        label="How far its tools may reach"
-        sub="Anything past this is removed from its hands before a run starts, not gated during one."
-      >
-        <Select
-          value={member.maxToolRisk ?? ""}
-          disabled={cap.isPending}
-          aria-label={`How far ${member.name} may reach`}
-          onChange={(e) => cap.mutate(e.target.value)}
+        <Setting
+          label="How much it decides by itself"
+          htmlFor={arcId}
+          // Different information from the control beside it: who set this, not
+          // what it is set to. The dropdown already says what it is set to.
+          sub={
+            !member.enabled
+              ? "Only takes effect once it is switched back on."
+              : member.arcIsDefault
+                ? "Nobody set this. It is our default, and it is yours to change."
+                : "You set this."
+          }
         >
-          {REACH_CHOICE.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </Select>
-      </Line>
+          <Picker
+            id={arcId}
+            value={member.arc}
+            disabled={arc.isPending}
+            onChange={(e) => arc.mutate(e.target.value as CrewArc)}
+          >
+            {ARC_ORDER.map((a) => (
+              <option key={a} value={a}>
+                {ARC_CHOICE[a]}
+              </option>
+            ))}
+          </Picker>
+        </Setting>
 
-      {failure ? <Failed>{(failure as Error).message}</Failed> : null}
+        <Setting
+          label="How far its tools may reach"
+          htmlFor={reachId}
+          sub="Anything past this is removed from its hands before a run starts, not gated during one."
+        >
+          <Picker
+            id={reachId}
+            value={member.maxToolRisk ?? ""}
+            disabled={cap.isPending}
+            onChange={(e) => cap.mutate(e.target.value)}
+          >
+            {REACH_CHOICE.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </Picker>
+        </Setting>
+      </div>
+
+      {failure ? (
+        <div className="mt-mrd-4">
+          <ReadFailed detail="The boundary on screen is still whatever it was a moment ago; the change did not land.">
+            {(failure as Error).message}
+          </ReadFailed>
+        </div>
+      ) : null}
 
       {suggestion && t ? (
-        <>
-          <RecordSays
+        <div className="mt-mrd-5 flex flex-col gap-mrd-4">
+          <RecordSpeaks
             evidence={
               <>
-                <Num>{t.score}</Num> out of <Num>100</Num>, from <Num>{t.samples}</Num> signals
+                <Figure>{t.score}</Figure> out of <Figure>100</Figure>, from{" "}
+                <Figure>{t.samples}</Figure> signals
               </>
             }
           >
             {suggestion === "up"
               ? `${member.name} has earned more room than you have given it. On what it has actually done, it belongs at "${ARC_CHOICE[t.suggestedArc]}".`
               : `${member.name} has more room than its record backs. On what it has actually done, it belongs at "${ARC_CHOICE[t.suggestedArc]}".`}
-          </RecordSays>
+          </RecordSpeaks>
           <Actions>
-            <Button
-              variant="ghost"
-              disabled={arc.isPending}
-              onClick={() => arc.mutate(t.suggestedArc)}
-            >
+            <Action disabled={arc.isPending} onClick={() => arc.mutate(t.suggestedArc)}>
               {suggestion === "up" ? "Give it that" : "Pull it back"}
-            </Button>
+            </Action>
           </Actions>
-        </>
+        </div>
       ) : null}
-    </Block>
+    </Region>
   );
 }
 
@@ -1045,45 +1075,105 @@ function Boundary({ member, onChanged }: { member: CrewMember; onChanged: () => 
  * person rather than leaving "approval" as an abstraction with no owner. A
  * capability with no named catcher is the shape of every autonomy incident.
  *
- * TWO BLOCKS RATHER THAN TWO LITERAL COLUMNS. Blocks are this system's
- * regions; a hand-rolled two-column grid inside one region would be a second
+ * TWO REGIONS RATHER THAN TWO LITERAL COLUMNS. Regions are this system's
+ * divisions; a hand-rolled two-column grid inside one region would be a second
  * layout grammar drawn on top of the first, and it would collapse to exactly
  * these two stacked regions on the narrow width anyway. The pairing is carried
  * by the titles and by them being adjacent, which is what a reader uses.
  *
- * How many rows before a list has a bottom. A tool list is read, not browsed,
- * and forty rows in one block is a settings page again.
+ * WHY EACH HALF IS A `RecordsTable` NOW. A tool list is read, not browsed, and
+ * forty rows in one region is a settings page again. That was already true and
+ * the bespoke answer to it was a "All 12" toggle, which states the total and
+ * never states that four rows are being withheld — the one thing a capped list
+ * may not do, and a defect this repo has shipped before. The grid states both
+ * numbers, sorts by any column, and keeps "nothing exists" and "the read
+ * failed" as separate facts without this file writing either by hand.
+ *
+ * How many rows before a list has a bottom.
  */
 const TOOLS_VISIBLE = 8;
 
 function ToolPolicy({ member, onChanged }: { member: CrewMember; onChanged: () => void }) {
   const fMode = useServerFn(setCrewToolMode);
-  const [showAll, setShowAll] = React.useState<Record<string, boolean>>({});
   const mode = useMutation({
     mutationFn: (v: { toolName: string; mode: CrewToolMode }) =>
       fMode({ data: { agentSlug: member.slug, ...v } }),
     onSuccess: onChanged,
   });
 
+  /**
+   * The three columns, and each says something the other two cannot.
+   *
+   * WHAT IT IS is the identity and stays pinned as the grid scrolls sideways.
+   * WHY carries the second-line information the old `Line` carried: why it is
+   * pinned, who pinned it, or what it would touch — never a restatement of the
+   * value the control already shows. HOW IT RUNS is the control itself, or, on
+   * a tool whose floor leaves exactly one option, the plain word: a dropdown
+   * with one entry is a control that cannot do the thing it draws, which is the
+   * exact defect the justification wave found in Settings.
+   */
+  const columns: RecordColumn<CrewToolPolicy>[] = React.useMemo(
+    () => [
+      {
+        key: "tool",
+        header: "What it is",
+        cell: (t) => t.label,
+        sortValue: (t) => t.label,
+      },
+      {
+        key: "why",
+        header: "Why it is set that way",
+        cell: (t) => <span className="text-mrd-mute">{noteFor(t)}</span>,
+        sortValue: (t) => noteFor(t),
+      },
+      {
+        key: "mode",
+        header: "How it runs",
+        cell: (t) =>
+          t.offerable.length > 1 ? (
+            <Picker
+              className={FOCUS_RING_INSET}
+              value={t.resolvedMode}
+              disabled={mode.isPending}
+              aria-label={`How ${t.label} runs`}
+              onChange={(e) =>
+                mode.mutate({ toolName: t.toolName, mode: e.target.value as CrewToolMode })
+              }
+            >
+              {t.offerable.map((m) => (
+                <option key={m} value={m}>
+                  {MODE_CHOICE[m]}
+                </option>
+              ))}
+            </Picker>
+          ) : (
+            <span className="text-mrd-body">{MODE_CHOICE[t.resolvedMode]}</span>
+          ),
+        sortValue: (t) => MODE_CHOICE[t.resolvedMode],
+      },
+    ],
+    [mode],
+  );
+
   if (member.noToolsEnabled) {
     return (
-      <Block title="What it may do without you">
-        <Empty>
+      <Region title="What it may do without you">
+        <NothingHere>
           No tools are switched on for this account, so there is nothing for it to do or to ask
           about yet.
-        </Empty>
-      </Block>
+        </NothingHere>
+      </Region>
     );
   }
 
   if (member.tools.length === 0) {
     return (
-      <Block title="What it may do without you">
-        <Empty>
+      <Region title="What it may do without you">
+        <NothingHere>
           Its reach is set narrow enough that none of the switched-on tools are in its hands. Widen
           the reach above to give it some.
-        </Empty>
-      </Block>
+        </NothingHere>
+      </Region>
     );
   }
 
@@ -1092,147 +1182,91 @@ function ToolPolicy({ member, onChanged }: { member: CrewMember; onChanged: () =
 
   // When the dial alone gates everything, listing sixty rows would be sixty
   // rows that all say the same thing and cannot be changed. Say it once.
-  const dialGatesAll = member.arc === "observing";
-
-  const column = (
-    key: string,
-    title: string,
-    sub: React.ReactNode,
-    tools: CrewToolPolicy[],
-    empty: React.ReactNode,
-  ) => {
-    const open = showAll[key] ?? false;
-    const shown = open ? tools : tools.slice(0, TOOLS_VISIBLE);
+  if (member.arc === "observing") {
     return (
-      <Block
-        title={title}
-        sub={sub}
-        more={
-          tools.length > TOOLS_VISIBLE ? (open ? "Show fewer" : `All ${tools.length}`) : undefined
-        }
-        onMore={() => setShowAll((s) => ({ ...s, [key]: !open }))}
-      >
-        {tools.length === 0 ? (
-          <Empty>{empty}</Empty>
-        ) : (
-          shown.map((t) => (
-            <ToolLine
-              key={t.toolName}
-              tool={t}
-              pending={mode.isPending}
-              onSet={(next) => mode.mutate({ toolName: t.toolName, mode: next })}
-            />
-          ))
-        )}
-      </Block>
-    );
-  };
-
-  // The whole dial has overridden every tool, so the two columns would be a
-  // lie in two parts. One statement instead.
-  if (dialGatesAll) {
-    return (
-      <Block
+      <Region
         title="What it may do without you"
         sub={
           <>
-            Nothing. All <Num>{member.tools.length}</Num> of its tools come to you.
+            Nothing. All <Figure>{member.tools.length}</Figure> of its tools come to you.
           </>
         }
       >
-        <Empty>
+        <NothingHere>
           While it waits for you on everything, every tool goes to review whatever each one is set
           to. Give it more room above to set them one at a time.
-        </Empty>
-      </Block>
+        </NothingHere>
+      </Region>
     );
   }
 
   return (
     <>
-      {column(
-        "alone",
-        "What it does alone",
-        <>
-          <Num>{alone.length}</Num> of <Num>{member.tools.length}</Num> tools, run with nobody
-          watching. This is the reach you are actually granting.
-        </>,
-        alone,
-        "Nothing runs on its own. Every tool in its hands comes back to a person first.",
-      )}
+      <Region
+        title="What it does alone"
+        sub={
+          <>
+            <Figure>{alone.length}</Figure> of <Figure>{member.tools.length}</Figure> tools, run
+            with nobody watching. This is the reach you are actually granting.
+          </>
+        }
+      >
+        <RecordsTable
+          rows={alone}
+          columns={columns}
+          rowKey={(t) => t.toolName}
+          caption={`Tools ${member.name} runs with nobody watching`}
+          maxRows={TOOLS_VISIBLE}
+          emptyTitle="Nothing runs on its own"
+          emptyDetail="Every tool in its hands comes back to a person first."
+        />
+      </Region>
 
-      {column(
-        "asks",
-        "What comes to you",
-        <>
-          {gated.length === 0 ? (
+      <Region
+        title="What comes to you"
+        sub={
+          gated.length === 0 ? (
             "Nothing stops for a person."
           ) : (
             <>
-              <Num>{gated.length}</Num>{" "}
+              <Figure>{gated.length}</Figure>{" "}
               {gated.length === 1 ? "tool stops and waits" : "tools stop and wait"} for a person
               before anything happens. Today that person is you.
             </>
-          )}
-        </>,
-        gated,
-        "Nothing. Every tool in its hands runs without asking. The safety floors still hold: a one way door would come back to you even here.",
-      )}
+          )
+        }
+      >
+        <RecordsTable
+          rows={gated}
+          columns={columns}
+          rowKey={(t) => t.toolName}
+          caption={`Tools ${member.name} brings to a person first`}
+          maxRows={TOOLS_VISIBLE}
+          emptyTitle="Nothing stops for a person"
+          emptyDetail="Every tool in its hands runs without asking. The safety floors still hold: a one way door would come back to you even here."
+        />
+      </Region>
 
       {mode.error ? (
-        <Block>
-          <Failed>{(mode.error as Error).message}</Failed>
-        </Block>
+        <ReadFailed detail="The tool is still set to whatever it was a moment ago; the change did not land.">
+          {(mode.error as Error).message}
+        </ReadFailed>
       ) : null}
     </>
   );
 }
 
-function ToolLine({
-  tool,
-  pending,
-  onSet,
-}: {
-  tool: CrewToolPolicy;
-  pending: boolean;
-  onSet: (mode: CrewToolMode) => void;
-}) {
-  // A floor that leaves one choice is not a choice. Drawing a dropdown there
-  // would be a control that cannot do the thing it draws, which is the exact
-  // defect the justification wave found in Settings.
-  const settable = tool.offerable.length > 1;
-
-  // The second line always carries DIFFERENT information from the control:
-  // why it is pinned, who pinned it, or what it would touch. Never a restating
-  // of the value the dropdown already shows.
-  const note = tool.floor
-    ? tool.floor === "review"
+/** Why a tool sits where it sits. Always DIFFERENT information from the control
+ *  beside it, never a restatement of the mode the control already shows. */
+function noteFor(tool: CrewToolPolicy): string {
+  if (tool.floor) {
+    return tool.floor === "review"
       ? "Pinned. There is no way back from this one."
-      : "Pinned. It reaches something outside this workspace."
-    : tool.storedSource === "operator"
-      ? "You set this one."
-      : tool.storedSource === "graduation"
-        ? "It earned this one."
-        : RISK_NOTE[tool.risk];
-
-  return (
-    <Line label={tool.label} sub={note}>
-      {settable ? (
-        <Select
-          value={tool.resolvedMode}
-          disabled={pending}
-          aria-label={`How ${tool.label} runs`}
-          onChange={(e) => onSet(e.target.value as CrewToolMode)}
-        >
-          {tool.offerable.map((m) => (
-            <option key={m} value={m}>
-              {MODE_CHOICE[m]}
-            </option>
-          ))}
-        </Select>
-      ) : null}
-    </Line>
-  );
+      : "Pinned. It reaches something outside this workspace.";
+  }
+  if (tool.storedSource === "operator") return "You set this one.";
+  if (tool.storedSource === "graduation") return "It earned this one.";
+  return RISK_NOTE[tool.risk];
 }
 
 /* ---------------- what it has learned --------------- */
@@ -1247,43 +1281,44 @@ function Lessons({ slug, name }: { slug: string; name: string }) {
 
   if (q.isLoading) {
     return (
-      <Block title="What it has learned">
-        <Loading>Reading its lessons.</Loading>
-      </Block>
+      <Region title="What it has learned">
+        <Reading>Reading its lessons.</Reading>
+      </Region>
     );
   }
   if (q.isError) {
     return (
-      <Block title="What it has learned">
-        <Failed onRetry={() => q.refetch()}>Its lessons did not load.</Failed>
-      </Block>
+      <Region title="What it has learned">
+        <ReadFailed onRetry={() => void q.refetch()}>Its lessons did not load.</ReadFailed>
+      </Region>
     );
   }
 
   const rows = q.data?.reflections ?? [];
   if (rows.length === 0) {
     return (
-      <Block title="What it has learned">
-        <Empty>
+      <Region title="What it has learned">
+        <NothingHere>
           {name} has written nothing down yet. It records a lesson after a run it can learn from.
-        </Empty>
-      </Block>
+        </NothingHere>
+      </Region>
     );
   }
 
   return (
-    <Block title="What it has learned" sub="Written by the agent itself, after its own runs.">
-      {rows.map((r) => (
-        <Row
-          key={r.id}
-          marks={<AgentMark slug={slug} name={name} />}
-          lead={r.content}
-          sub={r.metadata?.what_to_change ?? undefined}
-          time={ago(r.created_at)}
-          tight
-        />
-      ))}
-    </Block>
+    <Region title="What it has learned" sub="Written by the agent itself, after its own runs.">
+      <div className="flex flex-col gap-mrd-2">
+        {rows.map((r) => (
+          <ListRow
+            key={r.id}
+            marks={<CrewMark slug={slug} name={name} />}
+            lead={r.content}
+            sub={r.metadata?.what_to_change ?? undefined}
+            time={ago(r.created_at)}
+          />
+        ))}
+      </div>
+    </Region>
   );
 }
 
@@ -1295,41 +1330,43 @@ function MemberRecord({ member }: { member: CrewMember }) {
   const entry = catalogEntry(member.slug);
 
   return (
-    <>
-      <CtxHead>What it has done here</CtxHead>
+    <div className="flex flex-col gap-mrd-5">
+      <CtxSection>
+        <CtxHead>What it has done here</CtxHead>
 
-      {r.total === 0 ? (
-        <CtxBody>It has not run in this workspace yet.</CtxBody>
-      ) : (
-        <>
-          <CtxRow
-            name={
-              <>
-                <Num>{r.total}</Num> runs
-              </>
-            }
-            sub={
-              <>
-                <Num>{r.finished}</Num> finished
-                {r.failed > 0 ? (
-                  <>
-                    , <Num>{r.failed}</Num> failed
-                  </>
-                ) : null}
-                {r.running > 0 ? (
-                  <>
-                    , <Num>{r.running}</Num> running now
-                  </>
-                ) : null}
-              </>
-            }
-          />
-          {r.lastAt ? <CtxRow name="Last run" sub={`${ago(r.lastAt)} ago`} /> : null}
-        </>
-      )}
+        {r.total === 0 ? (
+          <CtxBody>It has not run in this workspace yet.</CtxBody>
+        ) : (
+          <>
+            <CtxRow
+              name={
+                <>
+                  <Figure>{r.total}</Figure> runs
+                </>
+              }
+              sub={
+                <>
+                  <Figure>{r.finished}</Figure> finished
+                  {r.failed > 0 ? (
+                    <>
+                      , <Figure>{r.failed}</Figure> failed
+                    </>
+                  ) : null}
+                  {r.running > 0 ? (
+                    <>
+                      , <Figure>{r.running}</Figure> running now
+                    </>
+                  ) : null}
+                </>
+              }
+            />
+            {r.lastAt ? <CtxRow name="Last run" sub={`${ago(r.lastAt)} ago`} /> : null}
+          </>
+        )}
+      </CtxSection>
 
       {t ? (
-        <>
+        <CtxSection>
           {/* A different scope, and it is labelled rather than blended into the
               numbers above: the roster, the dial and the record are per
               account, and only the run history is per workspace. */}
@@ -1344,12 +1381,12 @@ function MemberRecord({ member }: { member: CrewMember }) {
               <CtxRow
                 name={
                   <>
-                    <Num>{t.score}</Num> out of <Num>100</Num>
+                    <Figure>{t.score}</Figure> out of <Figure>100</Figure>
                   </>
                 }
                 sub={
                   <>
-                    from <Num>{t.samples}</Num> signals
+                    from <Figure>{t.samples}</Figure> signals
                   </>
                 }
               />
@@ -1357,8 +1394,8 @@ function MemberRecord({ member }: { member: CrewMember }) {
                 <CtxRow
                   name={
                     <>
-                      You said yes to <Num>{t.approvalsApproved}</Num> of{" "}
-                      <Num>{t.approvalsTotal}</Num>
+                      You said yes to <Figure>{t.approvalsApproved}</Figure> of{" "}
+                      <Figure>{t.approvalsTotal}</Figure>
                     </>
                   }
                   sub="calls it brought you"
@@ -1368,8 +1405,8 @@ function MemberRecord({ member }: { member: CrewMember }) {
                 <CtxRow
                   name={
                     <>
-                      <Num>{t.outcomesValidated}</Num> of <Num>{t.outcomesTotal}</Num> turned out
-                      right
+                      <Figure>{t.outcomesValidated}</Figure> of <Figure>{t.outcomesTotal}</Figure>{" "}
+                      turned out right
                     </>
                   }
                   sub="once real signal came in"
@@ -1377,22 +1414,22 @@ function MemberRecord({ member }: { member: CrewMember }) {
               ) : null}
             </>
           )}
-        </>
+        </CtxSection>
       ) : (
-        <>
+        <CtxSection>
           <CtxHead>Its record</CtxHead>
           <CtxBody>Not read. The boundary above is still yours to set.</CtxBody>
-        </>
+        </CtxSection>
       )}
 
       {entry ? (
-        <>
+        <CtxSection>
           <CtxHead>Where it works</CtxHead>
           <CtxBody>
             {AGENT_STATIONS[entry.station].name}. {AGENT_STATIONS[entry.station].blurb}
           </CtxBody>
-        </>
+        </CtxSection>
       ) : null}
-    </>
+    </div>
   );
 }

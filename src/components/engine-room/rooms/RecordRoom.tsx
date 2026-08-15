@@ -79,7 +79,9 @@ function TracesView() {
             .filter(Boolean)
             .join(" · ")}
           statusWord={t.errors > 0 ? "error" : "ok"}
-          statusColor={t.errors > 0 ? "var(--madder-bright)" : "var(--moss-bright)"}
+          /* An OUTCOME, which is the one thing red and green are allowed to
+             mean in this system. The tone names it; the token is Meridian's. */
+          tone={t.errors > 0 ? "fail" : "pass"}
           onOpen={() => navigate({ to: "/traces/$traceId", params: { traceId: t.trace_id } })}
         />
       ))}

@@ -19,7 +19,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
  * and scrolls inside it, which is the entire fix, and the streaming treatment
  * is what makes the cap tolerable while the code is still arriving.
  *
- * ── THE COLOURS, WHICH ARE NOT SYNTAX COLOURS ───────────────────────────
+ * ── THE COLOURS, WHICH ARE SYNTAX COLOURS AGAIN ─────────────────────────
+ * SUPERSEDED 2026-08-15 — see the note on `TONE` below, which explains why the
+ * greyscale argument that follows expired when the data-visualisation palette
+ * arrived. The paragraphs below are kept because the ranking they describe is
+ * still doing work underneath the hue.
+ *
  * Their scheme tints keywords, strings and numbers three different hues.
  * Meridian cannot spend hue that way: green and red are outcome, so a green
  * string literal reads as "this passed", and the number tint they use is a
@@ -43,17 +48,63 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
  * it reports an outcome that actually happened.
  */
 
-export type CodeTone = "kw" | "str" | "num" | "fn" | "dim";
+/*
+ * Eight roles, because three is not a syntax theme: with only keyword, string
+ * and number, a type reads as a variable and a call reads as punctuation, and
+ * the colour stops giving the eye any structure. `dim` is kept as an alias for
+ * `punc` so every existing caller keeps working unchanged.
+ */
+export type CodeTone =
+  | "kw"
+  | "fn"
+  | "str"
+  | "num"
+  | "type"
+  | "var"
+  | "punc"
+  | "comment"
+  | "dim";
 
 /** One run of characters, and how much of it the agent chose. */
 export type CodeToken = { t: string; c?: CodeTone };
 
+/*
+ * ── SYNTAX TAKES THE DATA PALETTE, 2026-08-15 ───────────────────────────
+ *
+ * This block was deliberately greyscale, and the reasoning was sound at the
+ * time: green means an OUTCOME in this product, so a green string literal
+ * would read as "this passed", and the reference's number tint was a colour
+ * the system did not have at all. So the ladder ranked by how much of each
+ * line the AGENT chose, and spent no hue.
+ *
+ * The founder rejected the result on sight on 2026-08-15 — the reference has
+ * colour in its code and ours is black and white — and the objection is
+ * correct, because the premise expired. `--mrd-viz-*` now exists precisely for
+ * things that are CATEGORIES rather than statuses, and syntax highlighting is
+ * the purest categorical colour there is: a keyword is not a verdict, a string
+ * is not a success. Reading a green string as "passed" was only ever a risk
+ * while green had exactly one meaning.
+ *
+ * So the mapping is the reference's, in our own values: keyword blue, string
+ * green, number orange, identifiers at full ink, punctuation at the quietest
+ * stop. The status palette is untouched and still means only what it meant.
+ *
+ * The old ladder's insight survives where it matters: what the agent CHOSE —
+ * names and literals — still sits brightest, and the language scaffolding it
+ * did not choose still recedes.
+ */
 const TONE: Record<CodeTone, string> = {
-  fn: "var(--mrd-ink)",
-  str: "var(--mrd-ink)",
-  num: "var(--mrd-ink)",
-  kw: "var(--mrd-mute)",
-  dim: "var(--mrd-faint)",
+  kw: "var(--mrd-code-kw)",
+  fn: "var(--mrd-code-fn)",
+  str: "var(--mrd-code-str)",
+  num: "var(--mrd-code-num)",
+  type: "var(--mrd-code-type)",
+  var: "var(--mrd-code-var)",
+  punc: "var(--mrd-code-punc)",
+  comment: "var(--mrd-code-comment)",
+  /* The original name for punctuation. Kept pointing at the same stop so no
+     caller had to be rewritten when the palette grew. */
+  dim: "var(--mrd-code-punc)",
 };
 
 /*
@@ -418,7 +469,7 @@ export function CodeBlock({
                   <span
                     key={j}
                     style={{
-                      color: tok.c ? TONE[tok.c] : "var(--mrd-body)",
+                      color: tok.c ? TONE[tok.c] : "var(--mrd-code-var)",
                       fontWeight: tok.c === "fn" ? 500 : undefined,
                     }}
                   >

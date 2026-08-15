@@ -6,18 +6,42 @@
 // first. Nothing here guesses or calls the AI chokepoint; every line traces to a
 // real number over a real sample, and the caption says so plainly.
 //
-// Idiom: matches the sibling Quality-room panels (rounded-lg card on a hairline
-// border, MonoLabel eyebrows, PanelPending on load, ErrorRetry on failure) and
-// stays inside the existing destructive/muted tokens. High wears the destructive
-// madder; medium and low stay on the muted grays. The severity word rides beside
-// the icon so state is never color-only (the RoomCard grayscale rule).
-import { useState, useEffect } from "react";
+// ─────────────────────────────────────────────────────────────────────────
+// 2026-08-15: PORTED TO MERIDIAN, and one real defect went with it.
+//
+// THE SELECTED MODE WAS DRAWN AS A HOVER. The three-segment mode control filled
+// the chosen segment with `var(--raised)`, which is the ground a row takes when
+// a pointer is merely passing over it. On a dark canvas that is a whisper: the
+// panel could not tell you whether the engine was on Auto or Off from across a
+// desk, on the one control that decides whether the product spends money on its
+// own. Meridian has a token for exactly this and it is not the hover one —
+// `--mrd-select` is 17% and deliberately unmistakable, because everything the
+// next control does happens to whatever is selected. `--mrd-hover` is 4.5% and
+// deliberately almost imperceptible. Using one for the other is a recurring bug
+// in this codebase and this was a live instance of it.
+//
+// THE OTHER TWO CHANGES ARE NOT A RE-SKIN EITHER:
+//
+//   THE ELAPSED PULSE IS `LoadingState` NOW. This file had its own: a dot, a
+//   mono label and a hand-rolled `setInterval` counting whole seconds. Meridian
+//   ships that exact idea, ticking in tenths so it visibly moves, with the
+//   label shimmering rather than pulsing (a pulse changes the whole label's
+//   brightness and pulls the eye off the content beside it) and with the figure
+//   in tabular mono so it does not jitter sideways. It also takes `startedAt`,
+//   which the local one could not: reopening this panel on a call that has been
+//   running for four minutes restarted the count at zero, which reported the
+//   age of the component rather than the age of the work.
+//
+//   THE KIND AND EVIDENCE CHIPS ARE `RecordTag`. Same idea, one implementation:
+//   a categorical chip is deliberately colourless, because a kind is not a
+//   status and spending an accent on it makes the real status unreadable.
+
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TriangleAlert, Circle, Sparkles } from "lucide-react";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { MonoLabel, type MonoLabelTone } from "@/components/obsidian";
-import { StepDot } from "@/components/supaprod/Primitives";
+import { LoadingState } from "@/components/meridian/LoadingState";
+import { RecordTag } from "@/components/meridian/RecordsTable";
 import {
   getSelfImprovementProposals,
   enrichSelfImproveProposal,
@@ -28,95 +52,29 @@ import {
 import type { ProposalSeverity } from "@/lib/self-improve";
 import { SELF_IMPROVE_MODES, type SelfImproveMode } from "@/lib/self-improve-governance";
 import { PanelPending, ErrorRetry } from "./RoomDetail";
-
-/** Severity presentation, held to the destructive/muted palette (no loud hues):
- * high = the destructive madder + a warning triangle; medium/low = muted grays +
- * a plain circle. The word is shown too, so the flag never reads by color alone. */
-const SEVERITY_META: Record<
-  ProposalSeverity,
-  { word: string; color: string; tone: MonoLabelTone; Icon: typeof TriangleAlert }
-> = {
-  high: { word: "HIGH", color: "var(--madder-bright)", tone: "madder", Icon: TriangleAlert },
-  medium: { word: "MEDIUM", color: "var(--text-muted)", tone: "muted", Icon: Circle },
-  low: { word: "LOW", color: "var(--text-faint)", tone: "faint", Icon: Circle },
-};
-
-function MonoChip({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      className="tabular-nums"
-      style={{
-        fontFamily: "var(--font-mono)",
-        color: "var(--text-muted)",
-        border: "1px solid var(--hairline)",
-        borderRadius: 6,
-        padding: "2px 7px",
-        whiteSpace: "nowrap",
-      }}
-    >
-      {children}
-    </span>
-  );
-}
+import { Eyebrow, FOCUS_RING } from "./EngineChrome";
 
 /**
- * RPT-50: a LIVE, pulsing status line for the async AI steps (Explain / Apply).
- * Rule (founder): never a grayed-out dead label. While work runs in the background,
- * this cycles through the REAL steps it's doing (reading records -> composing;
- * screening -> writing the rule -> recording) beside a pulsing ember dot, so the
- * user always sees motion + what's happening and never assumes it stalled.
+ * Severity, and the one hue here is an OUTCOME rather than an alarm.
+ *
+ * A high flag is fired by a suite that is failing, an agent that has been
+ * over-corrected, a playbook that is losing: each of those is a thing that did
+ * not work, which is the only meaning red carries in this system. Medium and
+ * low take no hue at all, because a middling signal is not an outcome that has
+ * gone either way and amber would be actively wrong — amber means stopped and
+ * NOT on you, and nothing here is stopped.
+ *
+ * The word rides beside the icon so the flag never reads by colour alone, and
+ * the icon differs by shape so it survives greyscale twice over.
  */
-function ActivePulse({ label }: { label: string }) {
-  /* THIS USED TO INVENT THE AGENT'S STEPS, and on this product that is the one
-   * unaffordable defect.
-   *
-   * It took a list of strings and cycled them on a 1500ms setInterval with NO
-   * server event behind any of them. So "Recording it on the Trust Ledger"
-   * appeared while nothing had been recorded, and then un-appeared as the
-   * modulo wrapped back to the first message. The whole claim of this product
-   * is that you can see what the agents are actually doing; a fabricated step
-   * cycle is the exact screenshot a skeptical reviewer needs to argue the
-   * opposite, and it would be a fair argument.
-   *
-   * It also wore `StepDot status="gate"`, which is the system's single reserved
-   * blink. That blink belongs to the one thing actually asking a human for
-   * something. A background task is not asking, so it takes `running`.
-   *
-   * THE FOUNDER'S RULE STILL HOLDS: never a grayed-out dead label, because a
-   * still surface reads as a stalled one. So this is not simply deleted. It
-   * keeps the motion and replaces the invented narration with the one thing
-   * here that is measurably true: how long this has actually been going. An
-   * honest elapsed second-count is better proof of life than a script, because
-   * it cannot be right when the work is wrong. */
-  const [seconds, setSeconds] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setSeconds((s) => s + 1), 1000);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "var(--geist-space-2x)",
-        marginTop: 12,
-      }}
-    >
-      <StepDot status="running" />
-      <span
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.06em",
-          textTransform: "uppercase",
-          color: "var(--text-muted)",
-        }}
-      >
-        {label}
-        {seconds > 1 ? ` · ${seconds}s` : ""}
-      </span>
-    </span>
-  );
-}
+const SEVERITY_META: Record<
+  ProposalSeverity,
+  { word: string; ink: string; Icon: typeof TriangleAlert }
+> = {
+  high: { word: "High", ink: "text-mrd-fail", Icon: TriangleAlert },
+  medium: { word: "Medium", ink: "text-mrd-mute", Icon: Circle },
+  low: { word: "Low", ink: "text-mrd-faint", Icon: Circle },
+};
 
 /**
  * RPT-50 AI rung (the LAYER over a flag): an on-demand, grounded "why + suggested
@@ -146,117 +104,115 @@ function ProposalEnricher({
 
   if (!data) {
     if (enrich.isPending) {
-      // One true label. The old three-step script claimed a sequence this call
-      // does not report back, so it named work that may not have happened in
-      // that order, or at all.
-      return <ActivePulse label="Reading the records" />;
+      /* ONE TRUE LABEL, and this is the rule the file was written around.
+       *
+       * An earlier version cycled three invented steps on a timer with no
+       * server event behind any of them, so "Recording it" appeared while
+       * nothing had been recorded and then un-appeared as the modulo wrapped.
+       * The whole claim of this product is that you can see what the agents are
+       * actually doing; a fabricated step cycle is the exact screenshot a
+       * skeptical reviewer needs to argue the opposite.
+       *
+       * The founder's rule still holds — never a grayed-out dead label, because
+       * a still surface reads as a stalled one — so the motion stays and the
+       * narration is replaced by the one thing here that is measurably true:
+       * how long this has actually been going. */
+      return (
+        <div className="mt-mrd-4">
+          <LoadingState label="Reading the records" />
+        </div>
+      );
     }
     return (
       <button
         type="button"
         onClick={() => enrich.mutate()}
-        className="loom-press outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 6,
-          marginTop: 12,
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.06em",
-          textTransform: "uppercase",
-          color: "var(--text-subtle)",
-          background: "none",
-          border: "none",
-          padding: 0,
-          cursor: "pointer",
-        }}
+        className={`mt-mrd-4 inline-flex items-center gap-mrd-3 rounded-mrd-ctl text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink ${FOCUS_RING}`}
+        style={{ transitionDuration: "var(--mrd-d-press)" }}
       >
-        <Sparkles size={16} aria-hidden="true" />
-        Explain + suggest a fix
+        <Sparkles size={14} aria-hidden="true" />
+        Explain and suggest a fix
       </button>
     );
   }
 
   return (
-    <div
-      style={{
-        marginTop: 12,
-        padding: "12px 14px",
-        borderRadius: "var(--radius-control)",
-        background: "var(--surface-recessed)",
-        border: "1px solid var(--hairline)",
-      }}
-    >
-      <MonoLabel style={{ display: "block", marginBottom: 5 }}>Why this is happening</MonoLabel>
-      <p style={{ color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>{data.explanation}</p>
+    /* A recess, not a second card. The standard caps a region at one bordered
+       container, and this reads as part of the flag above it by sitting below
+       the ground rather than on top of it. */
+    <div className="mt-mrd-4 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
+      <Eyebrow>Why this is happening</Eyebrow>
+      <p className="mt-mrd-2 text-[12.5px] leading-relaxed text-mrd-body">{data.explanation}</p>
       {data.suggested_fix ? (
         <>
-          <MonoLabel style={{ display: "block", margin: "10px 0 5px" }}>Suggested fix</MonoLabel>
-          <p style={{ color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>
+          <div className="mt-mrd-4">
+            <Eyebrow>Suggested fix</Eyebrow>
+          </div>
+          <p className="mt-mrd-2 text-[12.5px] leading-relaxed text-mrd-body">
             {data.suggested_fix}
           </p>
         </>
       ) : null}
-      {/* Transparency: this half IS AI-composed (unlike the flag), and it says how many
-          real records it was grounded on. */}
-      <span
-        style={{
-          display: "inline-block",
-          marginTop: 10,
-          fontFamily: "var(--font-mono)",
-          color: "var(--text-faint)",
-        }}
-      >
+
+      {/* Transparency: this half IS AI-composed (unlike the flag), and it says
+          how many real records it was grounded on. The count is mono because it
+          is a count; the sentence around it is not. */}
+      <p className="mt-mrd-4 text-[11.5px] text-mrd-faint">
         AI-composed ·{" "}
-        {data.grounded_on > 0 ? `grounded in ${data.grounded_on} records` : "not enough records"}
-      </span>
+        {data.grounded_on > 0 ? (
+          <>
+            grounded in <span className="font-mrd-mono tabular-nums">{data.grounded_on}</span>{" "}
+            records
+          </>
+        ) : (
+          "not enough records"
+        )}
+      </p>
 
       {/* RPT-50 rung 3 (increment 1): APPLY closes the loop. The fix becomes a
-          governed, injection-screened, reversible house rule (live in every agent's
-          prompt) + a receipted decision on the ledger. Human-triggered here (the
-          Apply click is the action); the unattended auto-apply mode is the Routine
-          toggle increment. */}
+          governed, injection-screened, reversible house rule (live in every
+          agent's prompt) and a recorded decision. Human-triggered here; the
+          hands-off auto-apply mode is the control further up this panel. */}
       {data.suggested_fix ? (
-        <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--hairline)" }}>
+        <div className="mt-mrd-4 border-t border-mrd-line-soft pt-mrd-4">
           {applied ? (
-            <p style={{ color: "var(--moss-bright)", margin: 0, lineHeight: 1.5 }}>
-              {/* The ledger clause is gone rather than reworded. applyFixCore
-                  (self-improve.functions.ts step 2) inserts the decision inside
-                  a try/catch whose own comment calls it a "best-effort ledger
-                  stamp", and a supabase insert returns its error instead of
-                  throwing, so an ordinary DB failure is swallowed with no
-                  signal here. The house rule IS guaranteed — a failed insert
-                  returns applied:false, so this branch only renders once the
-                  rule exists — and supersession makes it reversible. Those two
-                  are what the sentence now claims. */}
+            <p className="text-[12.5px] leading-relaxed text-mrd-pass">
+              {/* The claim is narrowed to what applyFixCore GUARANTEES. Its own
+                  comment calls the decision stamp best-effort, and a supabase
+                  insert returns its error instead of throwing, so an ordinary
+                  DB failure is swallowed with no signal here. The house rule IS
+                  guaranteed — a failed insert returns applied:false, so this
+                  branch only renders once the rule exists — and supersession
+                  makes it reversible. Those two are what the sentence claims.
+                  Green is correct: it reports an outcome that happened. */}
               Applied. Your agents now follow this as a house rule, and it is reversible.
             </p>
           ) : (
             <>
               {apply.isPending ? (
-                <ActivePulse label="Applying the fix" />
+                <LoadingState label="Applying the fix" />
               ) : (
                 <button
                   type="button"
                   onClick={() => apply.mutate()}
-                  className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                  /* THE NEUTRAL PRIMARY, NOT THE ACCENT. Meridian spends
+                     `--mrd-you` on a control that UNBLOCKS something waiting on
+                     a person; nothing is blocked here, the fix is offered. The
+                     sheen is what makes a filled control read as a raised
+                     object rather than a coloured rectangle, and the label is
+                     `--mrd-on-solid` because that is the only token that stays
+                     light on the dark face in BOTH grounds. */
+                  className={`inline-flex h-9 items-center rounded-mrd-ctl bg-mrd-solid px-4 text-[13px] font-medium text-mrd-on-solid transition-colors hover:bg-mrd-solid-hover ${FOCUS_RING}`}
                   style={{
-                    fontFamily: "var(--font-mono)",
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    color: "var(--text-body)",
-                    background: "transparent",
-                    border: "1px solid var(--hairline-strong)",
-                    borderRadius: "var(--radius-control)",
-                    padding: "6px 12px",
-                    cursor: "pointer",
+                    boxShadow: "inset 0 1px 0 var(--mrd-sheen)",
+                    transitionDuration: "var(--mrd-d-press)",
                   }}
                 >
                   Apply this fix
                 </button>
               )}
               {apply.data && !apply.data.applied && apply.data.reason ? (
-                <p style={{ color: "var(--text-subtle)", margin: "6px 0 0" }}>
+                <p className="mt-mrd-3 text-[12px] leading-snug text-mrd-mute">
                   {apply.data.reason}
                 </p>
               ) : null}
@@ -269,7 +225,7 @@ function ProposalEnricher({
 }
 
 /**
- * RPT-50 increment 2: the spend + autonomy control. The founder's requirement --
+ * RPT-50 increment 2: the spend and autonomy control. The founder's requirement:
  * give the owner an explicit choice with the trade-offs shown, and nudge if the
  * engine is left off so long it dies. Three modes, each with its outcome AND its
  * con stated plainly (no dark pattern nudging toward the expensive one).
@@ -280,7 +236,7 @@ const MODE_COPY: Record<SelfImproveMode, { label: string; outcome: string; con: 
     outcome:
       "Supaprod enriches and applies fixes on its own, as flags fire. You only step in for the exceptions.",
     // Same narrowing as the Applied line above: screening and reversibility are
-    // guaranteed by applyFixCore, the ledger stamp is best-effort, so only the
+    // guaranteed by applyFixCore, the decision stamp is best-effort, so only the
     // first two are claimed.
     con: "Highest AI spend, and changes land before you look (each one is screened and reversible).",
   },
@@ -319,48 +275,38 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
 
   return (
     <div
-      style={{
-        background: "var(--card)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
-        padding: "16px 18px",
-      }}
+      data-mrd=""
+      className="rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-5"
     >
       {nudge.stale && nudge.message ? (
-        <div
-          style={{
-            marginBottom: 12,
-            padding: "9px 11px",
-            borderRadius: "var(--radius-control)",
-            background: "var(--ember-wash, var(--surface-recessed))",
-            border: "1px solid var(--ember-line, var(--hairline-strong))",
-            lineHeight: 1.5,
-            color: "var(--ember-text)",
-          }}
-        >
+        /* ORCHID, AND IT IS THE ONE PLACE ON THIS PANEL THAT EARNS IT. The
+           engine has been off long enough to go stale, and the thing it is
+           waiting for is a person: the control that fixes it is four inches
+           below and touching it moves the thing. That is the whole definition
+           of `--mrd-you`. A rule and text rather than a fill, because a filled
+           accent block is a hero and this is a standing advisory. */
+        <p className="mb-mrd-5 border-l-2 border-mrd-you pl-mrd-4 text-[12.5px] leading-relaxed text-mrd-body">
           {nudge.message}
-        </div>
+        </p>
       ) : null}
 
-      <div className="flex items-baseline justify-between" style={{ gap: 12 }}>
-        <MonoLabel>How it runs</MonoLabel>
+      <div className="flex items-baseline justify-between gap-mrd-4">
+        <Eyebrow>How it runs</Eyebrow>
         {settings.data.open_flag_count > 0 ? (
-          <MonoLabel tone="muted" style={{ flexShrink: 0 }}>
+          <span className="font-mrd-mono shrink-0 text-[11.5px] text-mrd-mute tabular-nums">
             {settings.data.open_flag_count} open
-          </MonoLabel>
+          </span>
         ) : null}
       </div>
 
       <div
         role="radiogroup"
         aria-label="Self-improvement mode"
-        style={{
-          display: "inline-flex",
-          marginTop: 10,
-          border: "1px solid var(--hairline-strong)",
-          borderRadius: "var(--radius-control)",
-          overflow: "hidden",
-        }}
+        /* `overflow-hidden` clips the segments to the group's radius, which is
+           why every segment inside carries `mrd-focus-inset`: an outset ring
+           here would be sheared off by this element and read as a broken
+           half-drawn edge rather than as focus. */
+        className="mt-mrd-4 inline-flex overflow-hidden rounded-mrd-ctl border border-mrd-edge"
       >
         {SELF_IMPROVE_MODES.map((m, idx) => {
           const selected = m === current;
@@ -374,22 +320,23 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
               onClick={() => {
                 if (m !== settings.data!.mode) setMode.mutate(m);
               }}
-              className="loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{
-                fontFamily: "var(--font-mono)",
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                padding: "6px 14px",
-                borderLeft: idx === 0 ? "none" : "1px solid var(--hairline-strong)",
-                /* A chosen segment is a SELECTION, not a call to act. It used to
-                   fill ember, which put the accent on screen for whichever mode
-                   happened to be current — permanently, on a panel nobody is
-                   being asked to touch. A raised ground and full-strength text
-                   say "this one" without spending the accent. */
-                background: selected ? "var(--raised)" : "transparent",
-                color: selected ? "var(--text-primary)" : "var(--text-subtle)",
-                cursor: setMode.isPending ? "wait" : "pointer",
-              }}
+              /* A CHOSEN SEGMENT IS A SELECTION, AND `--mrd-select` IS THE STOP
+                 FOR ONE. This used to fill with the hover ground, which is 4.5%
+                 and designed to be barely perceptible under a pointer; a
+                 selection is the opposite, because everything this panel does
+                 next happens under whichever mode is lit. It also used to fill
+                 ember, which put the product's accent on screen permanently for
+                 whichever mode happened to be current, on a panel nobody is
+                 being asked to touch. Ground and full-strength ink say "this
+                 one" without spending the accent, and it survives greyscale. */
+              className={`px-4 py-1.5 text-[12.5px] transition-colors disabled:cursor-wait mrd-focus-inset ${FOCUS_RING} ${
+                idx === 0 ? "" : "border-l border-mrd-edge"
+              } ${
+                selected
+                  ? "bg-mrd-select font-medium text-mrd-ink"
+                  : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-body"
+              }`}
+              style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               {MODE_COPY[m].label}
             </button>
@@ -397,10 +344,10 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
         })}
       </div>
 
-      <p style={{ color: "var(--text-body)", margin: "12px 0 0", lineHeight: 1.55 }}>
+      <p className="mt-mrd-4 max-w-[68ch] text-[12.5px] leading-relaxed text-mrd-body">
         {copy.outcome}
       </p>
-      <p style={{ color: "var(--text-subtle)", margin: "5px 0 0", lineHeight: 1.5 }}>
+      <p className="mt-mrd-2 max-w-[68ch] text-[12px] leading-relaxed text-mrd-mute">
         Trade-off: {copy.con}
       </p>
     </div>
@@ -432,22 +379,13 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
   const proposals = query.data?.proposals ?? [];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div className="flex flex-col gap-mrd-5">
       <div>
-        <MonoLabel style={{ display: "block", marginBottom: 8 }}>
-          What Supaprod would improve about itself
-        </MonoLabel>
+        <Eyebrow>What Supaprod would improve about itself</Eyebrow>
         {/* The honesty caption, plain-spoken: these are rule-fired flags, not AI
             guesses. It stays true whether the list is full or empty. */}
-        <p
-          style={{
-            fontFamily: "var(--font-sans)",
-            lineHeight: 1.5,
-            color: "var(--text-muted)",
-            margin: 0,
-          }}
-        >
-          Deterministic flags from Supaprod's own quality signals: failing eval suites,
+        <p className="mt-mrd-3 max-w-[74ch] text-[12.5px] leading-relaxed text-mrd-mute">
+          Deterministic flags from Supaprod&rsquo;s own quality signals: failing eval suites,
           over-corrected agents, and losing playbooks. Each one fired on a real number over a real
           sample. Nothing here is an AI guess.
         </p>
@@ -456,77 +394,32 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
       {wsId ? <SelfImproveModeControl workspaceId={wsId} /> : null}
 
       {proposals.length === 0 ? (
-        <div
-          style={{
-            background: "var(--card)",
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-card)",
-            padding: "22px 20px",
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "var(--font-sans)",
-              lineHeight: 1.5,
-              color: "var(--text-subtle)",
-              margin: 0,
-            }}
-          >
-            No quality issues flagged. Signals are healthy or still gathering data.
-          </p>
+        <div className="rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-5 text-[13px] leading-relaxed text-mrd-body">
+          No quality issues flagged. Signals are healthy or still gathering data.
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div className="flex flex-col gap-mrd-4">
           {proposals.map((p) => {
             const meta = SEVERITY_META[p.severity];
             const { Icon } = meta;
             return (
               <article
                 key={p.id}
-                style={{
-                  background: "var(--card)",
-                  border: "1px solid var(--hairline)",
-                  borderRadius: "var(--radius-card)",
-                  padding: "16px 18px",
-                }}
+                className="rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-4"
               >
-                <div className="flex items-start" style={{ gap: 12 }}>
-                  <Icon
-                    size={16}
-                    aria-hidden="true"
-                    style={{ color: meta.color, flexShrink: 0, marginTop: 2 }}
-                  />
-                  <div className="min-w-0" style={{ flex: 1 }}>
-                    <div className="flex items-baseline justify-between" style={{ gap: 12 }}>
-                      <h3
-                        style={{
-                          fontFamily: "var(--font-sans)",
-                          fontWeight: 600,
-                          color: "var(--text-primary)",
-                          margin: 0,
-                        }}
-                      >
-                        {p.title}
-                      </h3>
-                      <MonoLabel tone={meta.tone} style={{ flexShrink: 0 }}>
-                        {meta.word}
-                      </MonoLabel>
+                <div className="flex items-start gap-mrd-4">
+                  <Icon size={15} aria-hidden="true" className={`mt-0.5 shrink-0 ${meta.ink}`} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-mrd-4">
+                      <h3 className="text-[13px] font-medium text-mrd-ink">{p.title}</h3>
+                      <span className={`shrink-0 text-[11.5px] ${meta.ink}`}>{meta.word}</span>
                     </div>
-                    <p
-                      style={{
-                        color: "var(--text-subtle)",
-                        marginTop: 8,
-                        lineHeight: 1.55,
-                      }}
-                    >
+                    <p className="mt-mrd-3 text-[12.5px] leading-relaxed text-mrd-mute">
                       {p.detail}
                     </p>
-                    <div
-                      className="flex items-center"
-                      style={{ gap: "var(--geist-space-2x)", marginTop: 10, flexWrap: "wrap" }}
-                    >
-                      <MonoChip>{p.kind}</MonoChip>
-                      <MonoChip>{p.evidence}</MonoChip>
+                    <div className="mt-mrd-3 flex flex-wrap items-center gap-mrd-3">
+                      <RecordTag label={p.kind} />
+                      <RecordTag label={p.evidence} />
                     </div>
                     {wsId && p.subject_ref ? (
                       <ProposalEnricher
