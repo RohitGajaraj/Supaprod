@@ -2,6 +2,13 @@
 
 _Conducted 2026-08-10 by design lane. Cross-referenced existing audits (Discover, Decide, Plan, Design, Build, Ship/Learn, Today). Sequenced for parallel execution with backend lane via HANDOFF-ENGINEERING.md._
 
+
+> **STALE ON DESIGN, 2026-08-15. This predates Meridian.** Where it names `--sp-*`, the
+> `ink.css` stack or `shell/primitives.tsx` as what to compose from, that instruction is retired and
+> now fails `bun test` via `src/__tests__/meridian-ratchet.test.ts`. The contract is
+> [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md). The **findings** below are still useful; the **styling
+> instructions** are not.
+
 ---
 
 ## AUDIT SCOPE & METHOD

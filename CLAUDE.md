@@ -41,6 +41,7 @@ bun run cost:track     # capture this session's token spend
 - **MCP added mid-session needs a restart.** `claude mcp list` reporting Connected is not evidence *this* session can call it. Verify with ToolSearch.
 - **Database access is through the Lovable MCP**, currently `mcp__plugin_lovable_lovable__*`. Do not ask the founder to authorize Supabase directly; he does not hold that credential.
 - **Project skills** live in `.claude/skills/`. `supaprod-tempo` and `supaprod-design` are **deprecated stubs**; the design contract is [`docs/design/DESIGN-SYSTEM.md`](./docs/design/DESIGN-SYSTEM.md).
+- **Meridian is the only design system, and this is enforced, not requested.** Every prior one is retired (v1, v3 Obsidian, v4 Loom, v5 Tempo, Cadence/ink). `bun test` fails if a **new** file carries a retired token (`--sp-*`, `--ds-*`, `--text-*`, `--hairline`, `--raised`, `data-obsidian`) or a raw colour, and fails if an **existing** file grows its count. If no `--mrd-*` token fits, that is a gap in Meridian: build it there. Never widen the baseline to pass.
 - **Hooks enforce repo invariants** (commit policy, migration safety, humanization). Treat a hook message as user feedback. Setup: [`docs/operations/hooks.md`](./docs/operations/hooks.md).
 - **Session handoff is a pair.** Write both `.remember/remember.md` (untracked; the plugin injects it at SessionStart and clears it as it reads, so never expect to find it on disk and never commit it) and [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md) (tracked, survives the read).
 

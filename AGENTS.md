@@ -211,13 +211,16 @@ Plus an adversarial read for **runtime-fatal** bugs, the class typechecking cann
 
 The short version, because it is easy to get wrong:
 
-- **The baseline is what is shipped**: `--sp-*` tokens in `src/styles/ink.css`, the primitives in `src/components/shell/primitives.tsx`. Compose from those.
-- **`--ds-*` in `src/styles.css` is the legacy Tempo layer** under `src/components/ui/`. It still runs. Never add to it, never style a new surface from it.
-- **Tempo v5, Loom v4, Obsidian v3 and Ember are retired**, rejected on 2026-07-28. They live in [`docs/design/archive/`](./docs/design/archive/README.md) as history. Never build from them, whatever an older doc or skill says.
+- **Meridian is the design system and there is no other one.** Tokens in [`src/styles/meridian.css`](./src/styles/meridian.css), components in [`src/components/meridian/`](./src/components/meridian/). **Compose from those.**
+- **Every prior system is retired**: v1 Ember, v3 Obsidian, v4 Loom, v5 Tempo, and Cadence/ink. That means `--sp-*`, `--ds-*`, `--text-*`, `--hairline`, `--madder*`, `--glacier`, `--font-pixel`, `--raised`, `[data-obsidian]`, and `src/components/shell/primitives.tsx`. They still run, because deleting them in one move is how the 2026-07 rebuild failed. **Never build from them, never extend them, whatever an older doc or skill says** — and this paragraph itself used to say the opposite, which is a large part of why 2,288 occurrences accumulated.
+- **This is enforced, not requested.** `src/__tests__/meridian-ratchet.test.ts` fails `bun test` when a **new** file carries a retired token or a raw colour, and when an **existing** file grows its count. Fix the code; never widen the baseline to pass. `bun run design:ratchet` is only for recording debt you have removed.
+- **No `--mrd-*` token fits? That is a gap in Meridian.** Build it there rather than reaching past it — standing founder ruling, 2026-08-15. A token earns its place on the second caller, is named for meaning rather than appearance, and is measured in both grounds before it ships.
 - **The ratchet:** today's design is the floor. "Tighten this" is a request for a better surface, never a smaller one. Shrinking type, stripping padding or hiding information to save rows is forbidden as an answer.
-- **Monochrome by default.** Ember is rare and is not the default for approvals or actions. Blue means agents running; green and red mean status. Colour must survive a greyscale test.
+- **Colour carries status, never decorates**, and must survive a greyscale test. Five status words and only five: `you` (a person is required), `agent` (a machine is working), `pass`/`fail` (an outcome that happened, never an intent), `hold` (waiting on a condition). Categorical colour (`--mrd-viz-*`, the syntax palette) is a separate system and is never status.
+- **Identity is shape, status is hue.** Never paint a station, agent or mission identity as a colour ramp. Found and removed three times.
+- **Look at it before you ship it.** The suite asks whether a component behaves, never whether anyone has looked at it. Twelve primary buttons once shipped a 1.19:1 label on paper with 8,787 tests green.
 
-Mechanics are enforced by `src/__tests__/surface-discipline.test.ts`, which was proven to fail by planting the defect.
+Surface mechanics are enforced by `src/__tests__/surface-discipline.test.ts`, which was proven to fail by planting the defect.
 
 ### Humanized output: consumer-facing only (explicit founder command, 2026-08-03)
 

@@ -1,210 +1,203 @@
 # The design system
 
-> _Created: 2026-08-03 · Last updated: 2026-08-14_
+> _Meridian. Contract since 2026-08-15 · This file replaced the 2026-08-03 contract, archived at [`archive/DESIGN-SYSTEM-2026-08-03-to-08-14.md`](./archive/DESIGN-SYSTEM-2026-08-03-to-08-14.md)._
 
-> ## ⚠️ SUPERSEDED IN PART, 2026-08-14. READ THIS BEFORE THE REST OF THE FILE.
->
-> The founder retired **every** prior design system on 2026-08-14, this one included, and
-> instructed that the platform be designed from the product rather than inherited from its own
-> history. The named lineage he retired: v1, v2, v3, Obsidian, Tempo, and Cadence/ink.
->
-> **The current system is Meridian: [`../../src/styles/meridian.css`](../../src/styles/meridian.css).**
-> Its header carries the reasoning, the scene that decided the ground, and the colour rule. Read it
-> before building anything.
->
-> **What Meridian replaces in this file:** the token layer. Every `--sp-*` reference below, the
-> `ink.css` / `primitives.css` / `shell.css` stack, and the "we are past the reskin" paragraph.
-> `--sp-*` is now **life support**, not a contract: 32 route files still render through it and
-> deleting it in one move would break every surface at once, which is exactly how the 2026-07
-> rebuild failed. So: no new surface may use it, every migrated surface drops it, and the layer is
-> deleted when the last one moves. **Never extend it.**
->
-> **What in this file still binds,** because it is a founder ruling about judgement rather than
-> about tokens:
-> - The **ratchet**: no change may make a surface worse to satisfy an instruction.
-> - The **standard**: the states nobody screenshots are composed, not merely handled.
-> - **Colour carries status, never decorates**, and must survive a greyscale test.
-> - **Look at it before you ship it.** Both rejected button designs were reasoned from tokens and
->   neither was ever rendered. **The gates cannot stand in for this and it is worth knowing why:
->   the suite asks whether each component behaves, never whether anyone has looked at it.** On
->   2026-08-14 every primary button in Meridian carried a **1.19:1** label on paper, because
->   `bg-mrd-solid` and `text-mrd-ink` both invert across the grounds and so travel together
->   instead of apart. Twelve controls, nine files, `tsc` clean and 8,787 tests green, and no
->   fixture had ever handed a primary button an action, so nothing rendered the broken state in
->   any run on any machine. Rendering it in both grounds found it in one pass. The gallery at
->   [`/meridian`](../../src/routes/_authenticated.meridian.tsx) exists for this and nothing else.
->   Lane 0 met the same shape one layer down the same day, in green tests guarding code nobody
->   reached: **coverage is not reach, and reach is not a look.**
-> - The **Engine-Room doctrine** and **humanized output**.
-> - The **open UX backlog** below, which is still largely undelivered.
-> - **Copy the proven pattern per surface**, and file the research in
->   [`REFERENCE-PATTERNS.md`](./REFERENCE-PATTERNS.md) in the same session. The 19-component
->   agentic reference library captured on 2026-08-14 is filed there, with its source and licence.
->
-> The rest of this file is kept because the *reasons* recorded in it are expensive and still true.
-> Read it as the record of how we got here, not as the contract for what to build next.
+**Meridian is the design system. There is no other one, and there is no surface exempt from it.**
 
-**This was the design contract from 2026-08-03 until 2026-08-14.** It replaced `DESIGN.md` (Ember), `DESIGN-OBSIDIAN.md` (v3), `DESIGN-LOOM.md` (v4) and `DESIGN-TEMPO.md` (v5 Tempo). All four are retired history, kept in [`archive/`](./archive/) for reference only. **Never build from them, and never cite them as authority.**
+Its source and its reasoning live in [`../../src/styles/meridian.css`](../../src/styles/meridian.css). Read that header before you build anything: it carries the scene that decided the ground, the colour law, and why each token exists. This file is the contract; that file is the system.
 
 ---
 
-## Why those four are dead
+## Everything else is retired, and "retired" now has teeth
 
-On **2026-07-28** the founder ruled the authenticated app rebuilt from zero and revoked every existing design constraint. He had abandoned a demo recording rather than screen-share the app.
-
-The diagnosis was not taste. The build was running **two complete app shells at once**, chosen by a hardcoded pathname allowlist in `src/routes/_authenticated.tsx`: ~68 routes rendered the retired Obsidian rail, 7 rendered the newer ink room. Underneath sat five design systems, four Buttons, three `VerdictChip`s, and three copies of the loop model, with no shared table or skeleton.
-
-On **2026-07-29** he reviewed four fresh authored directions and rejected all four:
-
-> "We have built all four directions only from the perspective of **assembling things**, not really thought through from a **user lens**." … "It looks like absolutely a designed one, which if I ask an AI to vibe code and design something, that is how we would do it."
-
-**The reusable lesson: parallelism does not buy a user lens.** Four directions in parallel produced four competent assemblies with no point of view. Start from a person doing a real task, walk their whole session, and let the composition fall out of that, taken to a high finish in **one** direction.
-
-Full record with verbatim quotes: [`../planning/rebuild-2026-07/FOUNDER-VERDICT-2026-07-29.md`](../planning/rebuild-2026-07/FOUNDER-VERDICT-2026-07-29.md).
-
----
-
-## The baseline is what is shipped
-
-**Read the code before you design anything.** The vocabulary is not in a document, it is in the app.
-
-| Layer | File | What it is |
+| Retired | Shipped as | Where it lives now |
 | --- | --- | --- |
-| **Tokens** | `src/styles/ink.css` | 146 `--sp-*` definitions. The single source of colour, space, type, motion. |
-| **Primitives** | `src/styles/primitives.css` | The styles behind the shell primitives. |
-| **Shell** | `src/styles/shell.css` | The app frame, rail, panes, sheets. |
-| **Components** | `src/components/shell/primitives.tsx` | 37 exports: `Block` `Row` `Grid` `Cell` `Gate` `Button` `Value` `Field` `Loading` `Surface` `Empty` `Failed` `PageHead` `Door` `Receipt` `Record` `Diffstat` `Num` and the rest. |
+| v1 Ember | `.btn-pill`, ember fills | [`archive/ember-editorial-landing.md`](./archive/ember-editorial-landing.md) |
+| v3 Obsidian | `--text-*`, `--hairline`, `--madder*`, `--glacier`, `[data-obsidian]` | [`archive/obsidian-v3.md`](./archive/obsidian-v3.md) |
+| v4 Loom | — | [`archive/loom-v4.md`](./archive/loom-v4.md) |
+| v5 Tempo | `--ds-*` (633 tokens), `--font-pixel`, `src/components/ui/` | [`archive/tempo-v5.md`](./archive/tempo-v5.md) |
+| Cadence / ink | `--sp-*` (146 tokens), `src/components/shell/primitives.tsx` | [`archive/DESIGN-SYSTEM-2026-08-03-to-08-14.md`](./archive/DESIGN-SYSTEM-2026-08-03-to-08-14.md) |
 
-**Compose from these primitives.** A surface that reaches for a raw `<div>` with hand-written colour is doing it wrong. `--sp-*` is the only namespace to write.
+**Never build from them. Never cite them as authority. Never extend them.**
 
-### The legacy layer, and how to treat it
+### Why this table used to be decoration, and is not any more
 
-`src/styles.css` is a **123 KB root stylesheet** holding 633 `--ds-*` tokens, consumed by the 49 shadcn files in `src/components/ui/`. It is the Tempo-era layer. It still runs, so do not rip it out, but:
+The founder retired all five on **2026-08-14**, and the previous version of this file said so in its own header: *"no new surface may use it... Never extend it."*
 
-- **Never add a new `--ds-*` token.**
-- **Never style a new app surface from `--ds-*`.** New work uses `--sp-*` and the shell primitives.
-- Touching a `src/components/ui/` file is fine; porting a whole surface onto it is a regression.
+Measured on **2026-08-15**, one day later, `src/components` and `src/routes` held **2,288 occurrences** of those retired vocabularies across **219 files**, including 524 raw colour literals.
 
-> **Trap:** `src/styles.css` is a *file*, and `src/styles/` is a *directory*. Both exist. Grepping only `src/styles/` misses the 123 KB root sheet and falsely reports tokens as dead.
+That was not a knowledge problem. In a single day four independent agents each rediscovered *the same rule* in four different folders, ten times between them. A constant named `FOCUS_RING` had been **inert** in six files for months: spelled correctly, aimed at the right token, painting nothing, because Tailwind emits utilities into a layer and an unlayered rule beats every layer. It passed every review it ever appeared in.
 
----
+**A design system becomes doctrine at the moment it can fail a build, not at the moment it is written down.**
 
-## The founder's live rulings
+### The mechanism
 
-These outrank anything written earlier.
+[`src/__tests__/meridian-ratchet.test.ts`](../../src/__tests__/meridian-ratchet.test.ts), inside `bun test`.
 
-**Colour.** Monochrome by default: black, grey, white, slate, silver, on a pure dark ground. **Ember is rare** and explicitly not the default for approval buttons, actions or tasks. **Blue means agents running. Green and red mean status** (diffs, counts, tick marks). Starfield and ink stay subtle by default, prominent only where earned.
+1. **A new file must be clean.** No retired token, no raw colour. No allowlist, no exception.
+2. **An existing file may not get worse.** It keeps the debt recorded in the baseline and not one occurrence more.
+3. **Reclaimed ground is re-frozen.** A count that drops takes the baseline down with it, so a ported surface cannot regress later to a number the baseline still permits.
 
-Colour must **carry status, never decorate**, and never add cognitive load. It must survive a greyscale test: if the screen stops making sense in greyscale, the colour was doing work that structure should have done.
+Comments are stripped before counting, so documenting a migration never counts as committing one. Tests are exempt, because a guard's job can be to assert a legacy literal is still present.
 
-**Buttons: the primary is a solid face on the neutral ladder** (founder ruling, 2026-08-06, given on a screenshot of `/today`). Two designs were rejected in one evening, and they were rejected for the same reason, so the reason is the rule.
+When it fails, **fix the code**. `bun run design:ratchet` records debt you have *removed* and refuses to raise any count.
 
-| Rejected | What it was | Why it went |
-| --- | --- | --- |
-| **The white slab** | `background: var(--sp-ink)` on the dark canvas, a raw ink inversion | "There is nothing like a white button within our platform." It rendered brighter than the headline above it and belonged to no palette in the product. |
-| **The ember edge** | `--sp-lift` face wearing a partial-ember inset ring and a soft halo | "A subtle ember color on the borders. It's not so great. It is not aligning with the theme." The fill was still the *secondary* fill, so a thin warm line was the only thing separating the main action from its neighbours, and a thin warm line is not an affordance. It also spent the product's one accent on chrome. |
-
-Both tried to make the primary special by **adding a property**: a different fill family, then a different edge family. This theme's separation mechanism is neither. It is **value on a single neutral ramp**, which is how every card, recess and float already distinguishes itself. So the primary is simply the next stop on the ladder the surfaces already climb:
-
-`--sp-bg` → `--sp-sink` → `--sp-sheet` → `--sp-lift` → `--sp-float` → **`--sp-solid`**
-
-Nothing else in the product uses that stop. A secondary button is `--sp-lift`, so the primary is unmistakably the raised one without an accent, a glow or a second vocabulary. Each theme steps **away from its own canvas**: lighter on the dark target, inked on paper. The founder's brief was "something simple, but still feels like a button", and simple here means it needed no new colour idea at all.
-
-Two consequences worth keeping:
-
-- **Ember stays a colour or an edge, never a fill, and never on a button.** `ink.css` declares it the mark that "marks the human, and nothing else". The ember-fill `.btn-pill` and the ember-gradient `.btn-primary` are the *retired* palette; inside the authenticated app they are a defect, and both were ported out on 2026-08-06. On unauthenticated marketing and auth surfaces `.btn-primary` remains correct, because restyling the signup and login heroes is a funnel change and not a cleanup.
-- **`.btn-pill-outline` went too, and for a different reason worth remembering.** An outline is not a fill, so it was never the colour defect and the first sweep correctly left it alone. It had to go because of what that sweep did *to* it: the converted halves stood at 38px and their Cancel and Discard partners stayed at roughly 26px, so four pairs on `/plan/spec/$id` ended up visibly mismatched. **Porting one half of a pair is not finishing the job.** All 14 sites moved: the four escape hatches to `variant="ghost"`, the ten real alternative actions to the raised default.
-- **A filled control cannot be disabled by opacity alone.** Every other button fades figure and ground together so the ratio survives. The primary is the one control whose face and label sit at opposite ends of the ramp, so fading both collapses them into one mid-tone and the label goes with it. Rendered on paper it was a taupe slab with a ghost of a word on it. A disabled primary therefore drops to the ordinary quiet surface, which is also the honest reading: a primary that cannot be pressed is not the main action right now.
-
-> **Look at it before you ship it.** Both rejected designs were reasoned from tokens and neither was ever rendered. The third was screenshotted in both themes before it was offered, and that is the only reason the broken disabled state on paper was caught rather than shipped.
-
-**Type.** Geist Sans for UI, Geist Mono for technical content. The bar for a typeface inside the product is whether it reads as an enterprise instrument.
-
-**Geist Pixel is retired from the APP and kept for MARKETING** (founder ruling, 2026-08-05). The split is by audience, not by taste:
-
-| Surface | Face | Why |
-| --- | --- | --- |
-| Authenticated app, every station | Geist Sans / Geist Mono | It is an instrument someone works in all day. Pixel is costume there. |
-| Public marketing: `/`, `/demo`, `/p/teardown`, `/brief`, `/investors` | **Geist Pixel allowed on hero moments** | These are a brand first impression, not a workspace. Pixel is the yellow hero face and it is doing its job. |
-
-> **This paragraph used to say Pixel was retired "including from hero moments" and that the `.woff2` files "are unused". Both were false.** The files are used in roughly thirty places and Pixel renders on all three public heroes in production. The doc was audited against the running site on 2026-08-05 and corrected rather than the code being changed to match a stale sentence. If you are about to "fix" a Pixel hero on a marketing page, do not: that is the ruling, not a defect.
-
-**Layout.** Ask lives **top right** and opens a pane; the bottom composer strip is rejected. Cards on a landing surface are **one or two lines**, with depth a click away. Compact with breathing space, never cramped. The rail collapses to icons, expanding to one line of label.
+**The baseline is the migration, and it may only go down.**
 
 ---
 
-## Two governing laws
+## No Meridian token fits? Then build Meridian.
+
+**Standing founder ruling, 2026-08-15.** When you reach for a retired token or a raw hex because Meridian has no word for what you need, that is a **gap in Meridian**, and the answer is to close it — not to reach past it.
+
+This is the rule that keeps the system whole. Every one of those 2,288 occurrences began as somebody needing a colour at 4pm.
+
+Adding to Meridian is deliberately not free:
+
+- **A token earns its place on the second caller, not the first.** One use is a value; two is a concept. `--mrd-sheen` records this rule in its own header.
+- **Name it for meaning, never appearance.** `--mrd-you` means *a person is required*. It is not "the purple one".
+- **A new stop must be measured in both grounds** before it ships, composited against the surface it will actually sit on.
+- **Say why in the file.** Every token in `meridian.css` carries its reasoning. A token with no argument is a token nobody can correctly retire later.
+
+---
+
+## The vocabulary
+
+88 tokens. The full set with its reasoning is in [`meridian.css`](../../src/styles/meridian.css); this is the map.
+
+| Role | Tokens |
+| --- | --- |
+| **Ground** (one neutral ladder) | `--mrd-bg` → `--mrd-sink` → `--mrd-sheet` → `--mrd-lift` → `--mrd-float` → `--mrd-solid` |
+| **Ink** | `--mrd-ink` `--mrd-body` `--mrd-mute` `--mrd-faint` `--mrd-on-solid` |
+| **Edges** | `--mrd-line` `--mrd-line-soft` `--mrd-edge` `--mrd-edge-focus` `--mrd-sheen` |
+| **Status** (five, and only five) | `--mrd-you` `--mrd-agent` `--mrd-pass` `--mrd-fail` `--mrd-hold` (+ `-dim` variants) |
+| **Interaction** | `--mrd-hover` `--mrd-select` `--mrd-select-agent` `--mrd-solid-hover` `--mrd-focus` |
+| **Category** (never status) | `--mrd-viz-1..4`, `--mrd-code-kw/fn/str/num/type/var/punc/comment` |
+| **Type** | `--mrd-font` `--mrd-mono` `--mrd-t-nano…display` `--mrd-w-*` `--mrd-lh-*` `--mrd-track` `--mrd-measure` |
+| **Space / shape / depth** | `--mrd-s1..s8` `--mrd-r-xs/chip/ctl/card/pane` `--mrd-shadow-card/float/pane` `--mrd-scrim` |
+| **Motion** | `--mrd-d-press/move/enter` `--mrd-ease` `--mrd-ease-soft` |
+
+Components: [`src/components/meridian/`](../../src/components/meridian/) — 23 of them, plus `surface-parts.tsx` for the chrome every surface shares. **Compose from these.** A surface reaching for a raw `<div>` with a hand-written colour is doing it wrong.
+
+---
+
+## The reference standard
+
+**beautifului.dev, literally.** Founder ruling, restated 2026-08-15: *"I want you to take what you have done in the Meridian system and get inspired from beautifului.dev. I literally want you to implement the same thing."*
+
+Port the **mechanics** from its real source, never from a screenshot — a screenshot loses the easing, the reveal order, the overflow behaviour and the focus model, which is most of what makes it good. The component-by-component mapping is [`MERIDIAN-REFERENCE-PARITY.md`](./MERIDIAN-REFERENCE-PARITY.md). Broader research goes in [`REFERENCE-PATTERNS.md`](./REFERENCE-PATTERNS.md), in the same session, so nobody pays for it twice.
+
+Per-surface, the standing rule from 2026-08-01 still holds: **research the best proven product in that category and lift its information model and verbs outright.** Build from Cursor and Claude Code, Design from Figma's fidelity ladder, Discover from Sentry's issue stream and Linear's triage inbox. Originality is not the goal.
+
+---
+
+## The laws
 
 ### 1. The ratchet: today's design is the floor
 
-**No change may make a surface worse in order to satisfy an instruction** (founder ruling 2026-08-01):
+**No change may make a surface worse in order to satisfy an instruction** (founder, 2026-08-01):
 
 > "That doesn't mean you need to compromise on the look and feel… Don't just compress and shrink it and make it worse. Your baseline is what we have today. You need to enhance it on top of that."
 
-"Reduce the vertical scroll", "tighten this", "fit more in" are requests for a **better** surface, never a smaller one. Shrinking type, stripping padding, capping heights, hiding information or dropping a state to save rows is **forbidden** as an answer. The allowed moves are structural: use the horizontal axis, collapse what nobody reads, escape the 74ch measure for non-prose, delete genuine duplication.
+"Reduce the scroll", "tighten this", "fit more in" are requests for a **better** surface, never a smaller one. Shrinking type, stripping padding, capping heights, hiding information or dropping a state is **forbidden** as an answer. The allowed moves are structural: use the horizontal axis, collapse what nobody reads, escape the 68ch measure for non-prose, delete genuine duplication.
 
 The test before committing: **would someone who liked yesterday's screen prefer today's?**
 
-### 2. The standard: Stripe, Google, Anthropic, at enterprise B2B scale
+### 2. The standard: the states nobody screenshots are composed
 
-The states nobody screenshots (empty, partial, failed, denied, very long, very short, slow) are each **composed**, not merely handled.
+Empty, partial, failed, denied, very long, very short, slow — each one **composed**, not merely handled. These are what production shows most often. Four early returns were found rendering outside the system entirely on 2026-08-15, and every one of them was a failed read or an empty workspace: *the states a person actually meets were the ones nobody had styled.*
 
-And: **we are past the reskin.** The `--sp-*` system is the built thing and work is now fine touches on top of it. Reaching for a new visual language on a surface that already has one is itself a ratchet regression.
+### 3. Colour carries status, never decorates
 
-Mechanics (one page scroller, `@container` not `@media` inside a pane, fit-to-content heights, the wait, agent indicators): [`../conventions/surface-discipline.md`](../conventions/surface-discipline.md). **These are enforced by `src/__tests__/surface-discipline.test.ts`**, which was proven to fail by planting the defect rather than only proven to pass, so it binds tomorrow's code and not only today's.
+Monochrome by default on a single neutral ladder. **Five status words and only five** — `you`, `agent`, `pass`, `fail`, `hold` — each meaning one thing everywhere:
+
+- **`you`** a person is required. Not "important", not "primary". If no decision unblocks it, it is not this colour.
+- **`agent`** a machine is working.
+- **`pass` / `fail`** an outcome that has happened. Never an *intent* — "roll back" is not red, because red reports a result and distance plus a confirm is what protects a destructive act.
+- **`hold`** stopped, waiting on a condition rather than on a person.
+
+Categorical colour (`--mrd-viz-*`, the syntax palette) is a **separate system** and must never be read as status.
+
+**It must survive a greyscale test.** If the screen stops making sense in greyscale, the colour was doing work that structure should have done.
+
+### 4. Identity is shape. Status is hue.
+
+A station, an agent or a mission is identified by its **glyph**. Painting identity as a colour ramp — seven stations, seven hues — has now been found and removed **three separate times**. See [`station-glyphs.tsx`](../../src/components/meridian/station-glyphs.tsx), which also carries the corollary learned the hard way: *a glyph sitting beside real controls may not borrow one of their shapes, however apt the metaphor feels.*
+
+### 5. Look at it before you ship it
+
+**The gates cannot stand in for this, and it is worth knowing why: the suite asks whether each component behaves, never whether anyone has looked at it.**
+
+On 2026-08-14 every primary button carried a **1.19:1** label on paper, because `--mrd-solid` and `--mrd-ink` both invert across the grounds and so travel together instead of apart. Twelve controls, nine files, `tsc` clean, 8,787 tests green, and no fixture had ever handed a primary button an action — so nothing rendered the broken state on any machine. Rendering it in both grounds found it in one pass.
+
+The gallery at [`/meridian`](../../src/routes/_authenticated.meridian.tsx) exists for this and nothing else. **Coverage is not reach, and reach is not a look.**
 
 ---
 
-## Copy the proven pattern, per surface
+## The defects that keep coming back
 
-Standing rule (2026-08-01): for each surface, **research the best proven product in that category and lift its information model and verbs outright**, even close to literally. Originality is not the goal; an experience customers already know and love is. Name the reference before building, then express it in our shipped primitives and voice.
+Each of these has been found more than once, by people who knew the rule. Check for them by name.
 
-| Surface | Lift from |
-| --- | --- |
-| Build | Cursor, Claude Code (including the diff view) |
-| Design | Figma's fidelity ladder |
-| Discover | Sentry's issue stream + Linear's triage inbox |
+| Defect | Sightings | The rule |
+| --- | --- | --- |
+| `--mrd-hover` used as a **selected** state | **10**, in one day | It is a 4.5% wash, deliberately almost imperceptible. Selection is `--mrd-select`. |
+| `--mrd-ink` on `--mrd-solid` | 3 | Both invert together, so they collapse to **1.19:1** on paper. The label on a solid is `--mrd-on-solid`. |
+| `--mrd-edge-focus` used as a focus **ring** | 5 | It is a **field's border**, read against that field's own fill, and measures 2.9:1 on paper. A ring is drawn against whatever is behind it and WCAG asks 3:1: that is `--mrd-focus`. |
+| A focus utility that paints nothing | 6 files | Unlayered CSS beats every `@layer`, and Tailwind emits utilities into a layer. Inherit the ring via `data-mrd` rather than declaring a per-component constant. |
+| Identity painted as a colour ramp | 3 | Law 4. |
+| A `100vh` child inside a taller document | 1, shipped | One ancestor owns the viewport; everything below takes shares. `min-height: 0` on the flex child is the part people leave out. |
 
-Every research pass is appended to [`REFERENCE-PATTERNS.md`](./REFERENCE-PATTERNS.md) **in the same session**, so the same research is never paid for twice. Read it before starting a new one.
-
----
-
-## The open UX backlog (founder brief, 2026-08-01)
-
-Largely **not yet delivered**. Fold these into feature work rather than running them as a separate pass. Ordered by his own emphasis:
-
-1. **Live agent status.** He called it "the only core USP of our platform". `AgentPulse` exists (`src/components/shell/AgentPulse.tsx`), but it is wired into `TrackActivity` only. He asked for it **across every surface and every depth**, plus the per-action detail: which file, which line, what moved to memory. 64 files use `<Loading>`; the ones where an agent genuinely runs need `working`, and **the rest must not have it, or the indicator becomes a lie**.
-2. **The Build terminal.** Expanding a touched file opens something he cannot locate, with unexplained blank space above it. It should sit inline or side by side with the file being touched and change with the selection. Reference to lift: Claude Code's own diff view.
-3. **Status colour everywhere**, not just the headline number. Red and green for lines added and deleted wherever they appear; colour on connected dots, threads and mission ids.
-4. **Unique shapes** for missions and cards. Not square, circle or triangle. Distinctive on a monotone ground, premium, and specifically not force-fitted.
-5. **Space and scroll discipline** across all seven stations.
-6. **Left rail auto-collapse** once the 01-07 spine is familiar, with instant hover tooltips.
-7. **Perceived speed.** Fix the latency, not just the spinner.
-
-Standing quality bar from the same brief: *"premium feel and premium experience, but at the same time do not feel like a force-fitting one"*, and a quick glance must not put cognitive load on the human to work out what something is and why it is like that.
+**Any component with an early return must carry `data-mrd=""` on that return too**, or its controls fall back to the legacy app-wide focus ring.
 
 ---
 
 ## Two doctrines that survive every design change
 
-**The Engine-Room doctrine.** Complexity lives in the engine, never in the experience. The user meets the *output* of the machine, never the machine. All observability, governance and internal machinery lives behind one recessed Engine Room door, revealed on demand. Labels name the **outcome**, not the mechanism. Every new surface runs the Engine-Room Test ("would a smart non-technical person feel this is for them?") and carries a greppable `Engine-Room:` line. Body: [`../conventions/engine-room-doctrine.md`](../conventions/engine-room-doctrine.md).
+**The Engine-Room doctrine.** Complexity lives in the engine, never in the experience. The user meets the *output* of the machine, never the machine. Labels name the **outcome**, not the mechanism. Every new surface runs the Engine-Room Test — *would a smart non-technical person feel this is for them?* — and carries a greppable `Engine-Room:` line. Body: [`../conventions/engine-room-doctrine.md`](../conventions/engine-room-doctrine.md).
 
-**Humanized output.** No em or en dashes, no invisible Unicode, no AI-cliché phrasing in UI copy, in source, or in anything the platform generates for a user. The runtime sanitizer at the AI chokepoint is the hard gate. Markdown docs are exempt. Body: [`../conventions/humanized-output.md`](../conventions/humanized-output.md), UI application: [`../conventions/ui-voice.md`](../conventions/ui-voice.md).
+**Humanized output.** No em or en dashes, no invisible Unicode, no AI-cliché phrasing in UI copy, in source, or in anything the platform generates for a user. The runtime sanitizer at the AI chokepoint is the hard gate; markdown docs are exempt. Body: [`../conventions/humanized-output.md`](../conventions/humanized-output.md), applied in [`../conventions/ui-voice.md`](../conventions/ui-voice.md).
+
+Surface mechanics — one page scroller, `@container` not `@media` inside a pane, fit-to-content heights, the wait, agent indicators — are in [`../conventions/surface-discipline.md`](../conventions/surface-discipline.md) and enforced by `src/__tests__/surface-discipline.test.ts`, which was proven to fail by planting the defect rather than only proven to pass.
+
+---
+
+## Still owed, from the founder's own brief
+
+Carried forward deliberately rather than dropped with the old contract: these are undelivered
+**product** asks, not retired design vocabulary. Fold them into feature work; do not run them as a
+separate pass. Ordered by his emphasis, with the full text in
+[`archive/DESIGN-SYSTEM-2026-08-03-to-08-14.md`](./archive/DESIGN-SYSTEM-2026-08-03-to-08-14.md).
+
+1. **Live agent status**, which he called *"the only core USP of our platform"* — across every
+   surface and every depth, with the per-action detail. The trap is stated in the original and is
+   still the trap: 64 files use a loading state, and **the ones where no agent is running must not
+   show it, or the indicator becomes a lie.**
+2. **The Build terminal**, inline or side by side with the file being touched, changing with the
+   selection.
+3. **Status colour everywhere**, not only the headline number.
+4. **Unique shapes** for missions and cards. Distinctive on a monotone ground, never force-fitted.
+5. **Space and scroll discipline** across all seven stations.
+6. **Perceived speed.** Fix the latency, not the spinner.
+
+Standing bar from the same brief: *"premium feel and premium experience, but at the same time do not
+feel like a force-fitting one"*, and a glance must not make anyone work out what something is.
 
 ---
 
 ## Working with the founder
 
-Observed and self-described: **he refines by seeing, not by specifying.** Ship a faithful attempt fast, then expect two or three taste passes. He reviews element by element and expects every item in a feedback batch closed or explicitly declined. He invites pushback but wants **a recommendation, not a survey**.
+**He refines by seeing, not by specifying.** Ship a faithful attempt fast, then expect two or three taste passes. He reviews element by element and expects every item in a feedback batch closed or explicitly declined. He invites pushback but wants **a recommendation, not a survey**.
 
-Prior attempts failed at **dispatch, not design**: 28 mockups and 13 work-order packets were authored and only 2 of 11 lanes ever ran. Produce code, not more documents.
+He has granted standing authority to overrule any doctrine — including his own past rulings and this file — where it blocks a premium outcome, and asks only that anything critical be flagged.
+
+Prior attempts failed at **dispatch, not design**: 28 mockups and 13 work-order packets were authored and only 2 of 11 lanes ever ran. **Produce code, not more documents.**
 
 ---
 
 ## Related
 
-- [`README.md`](./README.md), the station audits (unverified agent output, read its provenance warning)
+- [`MERIDIAN-REFERENCE-PARITY.md`](./MERIDIAN-REFERENCE-PARITY.md), the component map against the reference
 - [`REFERENCE-PATTERNS.md`](./REFERENCE-PATTERNS.md), verified research with source URLs
 - [`SEVEN-STATIONS-BLUEPRINT.md`](./SEVEN-STATIONS-BLUEPRINT.md)
-- [`../conventions/design-anatomy.md`](../conventions/design-anatomy.md), card and detail-view anatomy, the trace-ref registry
-- [`archive/`](./archive/), the four retired contracts
+- [`../conventions/design-anatomy.md`](../conventions/design-anatomy.md), card and detail-view anatomy
+- [`archive/`](./archive/), the five retired contracts — history, never authority

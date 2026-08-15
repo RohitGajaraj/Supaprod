@@ -1,5 +1,13 @@
 # Station design audits, 2026-08-01
 
+> ## The contract is [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md), and the system is Meridian.
+>
+> Read it before building anything. **Every prior design system is retired** — v1 Ember, v3
+> Obsidian, v4 Loom, v5 Tempo and Cadence/ink — and since 2026-08-15 that retirement is enforced
+> by `src/__tests__/meridian-ratchet.test.ts` rather than by prose: a new file carrying a retired
+> token or a raw colour fails `bun test`. Nothing in this folder overrides it, and the files below
+> predate it.
+
 > **PROVENANCE WARNING, read before using any file in this folder.**
 > These eight documents were written by autonomous audit subagents during the 2026-08-01 spine
 > depth session. **They are raw, UNVERIFIED agent output.** They were not reviewed line by line
