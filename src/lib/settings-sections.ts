@@ -188,9 +188,18 @@ export type SettingsGroup = {
  * The sentences were not wasted, they were just in the wrong slot: each one is
  * now the group's `desc`, which is where a sidebar can afford a sentence.
  *
- * "Crew" is kept rather than swapped for "Agents" because the rail already
- * carries Crew as a destination, and inventing a second word for one thing is
- * the confusion this change exists to remove.
+ * "Agents", not "Crew", since 2026-08-15 — and the paragraph that used to sit
+ * here argued the opposite, on a premise that has since stopped being true. It
+ * said Crew was kept BECAUSE THE RAIL ALREADY CARRIED CREW, so a second word
+ * would be the very confusion this file exists to remove. That reasoning was
+ * sound and its premise is gone: the rail no longer carries Crew at all. The
+ * row was renamed Agents and then moved in here.
+ *
+ * The rule it was applying still holds, which is why the conclusion flipped
+ * rather than the rule: ONE THING GETS ONE WORD. That word is now Agents,
+ * everywhere, because it is what the substrate has always said. Kept here
+ * verbatim rather than deleted, because a reader who finds only the new answer
+ * cannot tell whether the old one was considered.
  */
 export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   {

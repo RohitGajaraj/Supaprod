@@ -18,8 +18,8 @@ describe("ask-context - contextForPath", () => {
   });
 
   it("maps both engine-room paths to the same plain-words label", () => {
-    expect(contextForPath("/engine-room", null)).toBe("Pulse");
-    expect(contextForPath("/govern", null)).toBe("Pulse");
+    expect(contextForPath("/engine-room", null)).toBe("Guardrails");
+    expect(contextForPath("/govern", null)).toBe("Guardrails");
   });
 
   it("falls back to a generic label for an unrecognized path", () => {

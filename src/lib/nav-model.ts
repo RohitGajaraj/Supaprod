@@ -24,16 +24,25 @@
  *                                     no nav list at all, so no key reached
  *                                     them and their rows drew no keycap:
  *     Runs             work you handed over, and how far it got        [g r]
- *     Crew             how much rope each agent gets                   [g c]
+ *     Agents           how much rope each agent gets                   [g a]
  *   INTELLIGENCE  (always on)      — the compounding layers that make Supaprod
  *                                     more than a tracker:
  *     Brain            everything the product knows, one substrate     [g k]
- *     Pulse            the machine's vital signs: spend/quality/safety [g u]
+ *     Guardrails       what agents may do, may spend, and must clear   [g u]
  *   (footer)  Settings [g s] · Admin console (no key, see navKeyHint) · account chip
  *
- * (Brain + Pulse are one living system: the Brain is what the product KNOWS;
- * the Pulse is how it LIVES and runs — both always on. "Pulse" keeps the
- * `/engine-room` route + the calm-front/deep-engine doctrine underneath it.)
+ * (Brain + Guardrails are one living system: the Brain is what the product
+ * KNOWS; the Guardrails are what it is ALLOWED to do with that — both always
+ * on. The `/engine-room` route and the calm-front/deep-engine doctrine
+ * underneath it are unchanged; only the word a reader sees moved.)
+ *
+ * ALSO ON THE FOOTER SINCE 2026-08-15: Agents [g a], the roster at `/crew`,
+ * which Settings now holds. It left the rail because autonomy is CONFIGURATION
+ * rather than work — `agent_autonomy.set_at` covers 14 distinct days across
+ * ten weeks — and because its one decision-shaped section is a suggestion
+ * derived from each agent's own record, not a queue with anyone waiting on it.
+ * The things that genuinely block are `agent_approvals`, and they already live
+ * on /approvals and light the station strip.
  *
  * SHORTCUT LAW (rewritten 2026-08-05 on the founder's ruling): GO, THEN THE
  * LETTER. Press `g`, release, then a letter that appears in the door's own
@@ -185,7 +194,14 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
   },
   {
     to: "/crew",
-    label: "Crew",
+    // AGENTS, NOT CREW, 2026-08-15. The label is what the command palette
+    // prints, and it had drifted from the rail: the product's whole substrate
+    // already says agent -- the `agents` table, `agent_runs`, `agent_tools`,
+    // `agent_autonomy`, `agent-vocabulary.ts` -- while this one string said
+    // crew. That is the register split the 2026-08-11 canon retired, surviving
+    // in the furniture. The ROUTE stays `/crew`, because a URL change is a
+    // separate decision with link-rot attached and nobody has made it.
+    label: "Agents",
     index: "",
     zone: "operations",
     tagline: "How much rope each agent gets.",
@@ -204,7 +220,26 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
   },
   {
     to: "/engine-room",
-    label: "Pulse",
+    /*
+     * GUARDRAILS, 2026-08-15, and this destination had THREE NAMES AT ONCE.
+     * The rail row said "Engine room", this label said "Pulse", and the route
+     * says `/engine-room` -- so the command palette and the rail named the
+     * same door differently and neither matched the URL. Nobody noticed
+     * because no test compares them and each file reads only itself.
+     *
+     * The founder ruled out "Engine room" as jargon and rejected "Controls"
+     * as the language of a physical product. "Guardrails" is what the rooms
+     * underneath actually are -- quality, safety, spend, routines, verify,
+     * record -- it is native to agentic software rather than machinery, and
+     * this product's own schema was already using it: `guardrail_hits`, 340
+     * rows, while the UI said something else.
+     *
+     * The `u` binding survives the rename untouched, which is luck worth
+     * stating rather than hiding: it was chosen as pUlse and it is still a
+     * letter of the label in gUardrails, so the SHORTCUT LAW above still
+     * holds and no key had to move.
+     */
+    label: "Guardrails",
     index: "",
     zone: "intelligence",
     // Names the four rooms, not the machinery. "The machine's vital signs"
@@ -305,7 +340,19 @@ export function navKeyHint(item: NavItemDef): string {
     case "/runs":
       return "r"; // its own first letter, freed by the prefix
     case "/crew":
-      return "c"; // its own first letter, freed by the prefix
+      /*
+       * `a`, NOT `c`, SINCE 2026-08-15, and this is the SHORTCUT LAW being
+       * obeyed rather than a preference. The law above is "press `g`, then a
+       * letter that appears in the door's own label". The label became
+       * "Agents" and there is no `c` in it, so `g c` was a chord teaching a
+       * letter the door no longer contains -- exactly the "nobody can
+       * re-derive `u` for Runs" failure this file was rewritten to end.
+       *
+       * `g a` is free, and the `/admin` case below is the record of why: bare
+       * `a` was surrendered to Approve under the old law, and the chord prefix
+       * gave it back. Admin still takes no key, for its own separate reason.
+       */
+      return "a";
     case "/brain":
       return "k"; // what the product Knows; `b` is Build
     case "/engine-room":

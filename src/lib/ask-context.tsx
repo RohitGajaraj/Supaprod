@@ -102,7 +102,12 @@ export function contextForPath(pathname: string, missionId: string | null): stri
   if (pathname.startsWith("/build")) return missionId ? "a mission" : "Build";
   if (pathname.startsWith("/brain") || pathname.startsWith("/knowledge")) return "Brain";
   if (pathname.startsWith("/engine-room") || pathname.startsWith("/govern")) {
-    return "Pulse";
+    // "Guardrails" since 2026-08-15. This string is spoken back to the person
+    // in the Ask composer -- it completes a sentence about where they are
+    // standing -- so it must be the word the screen around them is using.
+    // Until today this said "Pulse" while the rail said "Engine room", which
+    // meant the composer named the room a third way.
+    return "Guardrails";
   }
   return "this screen";
 }

@@ -49,7 +49,7 @@ describe("ask-suggestions - suggestedAsksForContext", () => {
       "Build",
       "a mission",
       "Brain",
-      "Pulse",
+      "Guardrails",
       "this screen",
     ]) {
       expect(suggestedAsksForContext(ctx).length).toBeGreaterThan(0);

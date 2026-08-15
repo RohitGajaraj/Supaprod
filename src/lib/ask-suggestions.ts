@@ -40,7 +40,14 @@ const CONTEXT_SUGGESTIONS: Record<string, string[]> = {
   Build: ["What's the status of the last mission?", "Show me open pull requests"],
   "a mission": ["What's the status of this mission?", "Show me its evidence", "Why did this fail?"],
   Brain: ["Why did we decide this?", "What do we know about our top user?"],
-  Pulse: ["What's the current model routing?", "Show me recent guardrail triggers"],
+  /* Keyed "Guardrails" since 2026-08-15, and THIS KEY MUST MOVE WITH
+   * `contextForPath` OR THE COMPOSER GOES SILENT. The lookup below falls back
+   * to the generic "this screen" list on a miss, so a stale key here does not
+   * throw and does not fail a type check — it just quietly serves the wrong
+   * suggestions on a real screen. `ask-suggestions.test.ts` is what catches
+   * that: it walks every context `contextForPath` can return and requires each
+   * to have its own entry. */
+  Guardrails: ["What's the current model routing?", "Show me recent guardrail triggers"],
   "this screen": ["What am I looking at?", "What changed here recently?"],
 };
 

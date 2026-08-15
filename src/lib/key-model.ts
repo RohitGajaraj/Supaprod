@@ -145,7 +145,11 @@ export const SURFACE_KEYS: readonly SurfaceKeys[] = [
   },
   {
     path: "/crew",
-    label: "Crew",
+    // "Agents" since 2026-08-15, matching the rail, the command palette and
+    // Settings. This label is what the keyboard-shortcut sheet prints, so a
+    // stale word here sends someone looking for a screen by a name the product
+    // no longer uses. The path stays `/crew`.
+    label: "Agents",
     source: "src/routes/_authenticated.crew.tsx",
     keys: [
       { key: "a", does: "Gives the agent the room it asked for.", destructive: true },

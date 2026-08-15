@@ -39,9 +39,9 @@ describe("nav-model - the twelve primary destinations (the Loop)", () => {
       "Ship",
       "Learn",
       "Runs",
-      "Crew",
+      "Agents",
       "Brain",
-      "Pulse",
+      "Guardrails",
     ]);
     expect(PRIMARY_NAV.map((n) => n.to)).toEqual([
       "/today",
@@ -91,8 +91,8 @@ describe("nav-model - the twelve primary destinations (the Loop)", () => {
     }
   });
 
-  it("OPERATIONS is Runs and Crew, the two rail doors that are not loop stations", () => {
-    expect(OPERATIONS_NAV.map((n) => n.label)).toEqual(["Runs", "Crew"]);
+  it("OPERATIONS is Runs and Agents, the two doors that are not loop stations", () => {
+    expect(OPERATIONS_NAV.map((n) => n.label)).toEqual(["Runs", "Agents"]);
     expect(OPERATIONS_NAV.map((n) => n.to)).toEqual(["/runs", "/crew"]);
     for (const n of OPERATIONS_NAV) {
       expect(n.index).toBe("");
@@ -100,8 +100,8 @@ describe("nav-model - the twelve primary destinations (the Loop)", () => {
     }
   });
 
-  it("INTELLIGENCE is Brain and Pulse (always-on layers, unnumbered on the rail body)", () => {
-    expect(INTELLIGENCE_NAV.map((n) => n.label)).toEqual(["Brain", "Pulse"]);
+  it("INTELLIGENCE is Brain and Guardrails (always-on layers, unnumbered on the rail body)", () => {
+    expect(INTELLIGENCE_NAV.map((n) => n.label)).toEqual(["Brain", "Guardrails"]);
     expect(INTELLIGENCE_NAV.map((n) => n.to)).toEqual(["/brain", "/engine-room"]);
     for (const n of INTELLIGENCE_NAV) expect(n.index).toBe("");
   });
@@ -171,9 +171,9 @@ describe("nav-model - the twelve primary destinations (the Loop)", () => {
       "h", // sHip
       "l", // Learn
       "r", // Runs
-      "c", // Crew
+      "a", // Agents, renamed from Crew 2026-08-15; there is no `c` in it
       "k", // Brain, what the product Knows
-      "u", // pUlse
+      "u", // gUardrails, renamed from Pulse the same day; the letter survived
     ]);
   });
 
@@ -261,7 +261,17 @@ describe("nav-model - one key, one door, across the WHOLE nav model", () => {
     const byPath = new Map(DOORS.map((d) => [d.to, navKeyHint(d)]));
     // Each of these was previously impossible and is now the natural key.
     expect(byPath.get("/runs")).toBe("r"); // `r` is also Reject
-    expect(byPath.get("/crew")).toBe("c"); // `c` is also Challenge
+    /*
+     * `a` SINCE 2026-08-15, and it makes this test's point harder than the
+     * `c`/Challenge pair it replaces. Bare `a` is APPROVE on every gate, and
+     * nav-model.ts's `/admin` case records the live consequence: on
+     * 2026-07-29 pressing `a` on a gate approved the call AND navigated, both
+     * listeners firing. That is the worst collision the old law produced, and
+     * the chord holds it apart -- `a` alone still approves, `g` then `a` opens
+     * Agents. If the prefix ever stops separating them, this is the pair that
+     * breaks first and it breaks destructively.
+     */
+    expect(byPath.get("/crew")).toBe("a");
   });
 
   it("keeps the prefix off every surface's in-page action set", () => {
