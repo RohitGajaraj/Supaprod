@@ -1,6 +1,6 @@
 Funding Programme Tracker — Insights & Recommendations,,,,,,,,
 571 programmes tracked  ·  refreshed automatically from the all-programmes-ranked table  ·  all money in USD thousands,,,,,,,,
-"STALE AS OF 2026-08-14 19:05 — built before the relocation re-weighting. Tier 1 is now 39, not 17. Re-run Claude in Excel over all-programmes-ranked.csv to refresh.",,,,,,,,
+"STALE AS OF 2026-08-14 19:05 and NOT refreshed since. Decisions taken after this table was built: Campus Founders CF Accelerator Batch #9 SUBMITTED 2026-08-16. ikigai Launchpad SKIPPED 2026-08-16 (8% for $100K is a $1.25M post and the Taipei residency collides with the Heilbronn onsite commitment). Sequoia Arc is NOT OPEN, its apply page renders blank, and the 2026-08-17 deadline it carried was never verified. The live board is TRACKER.csv and the Notion Application Board. Re-run Claude in Excel over all-programmes-ranked.csv to refresh.",,,,,,,,
 ,,,,,,,,
 PIPELINE BY TIER,,,,BY CALL TYPE,,,DEADLINE URGENCY,
 Tier 1,17,3.0%,,apply-now,124,,Closing in 7 days or less,31
