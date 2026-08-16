@@ -31,11 +31,40 @@
 - **The debug-port browser path works**, provided Chrome is launched with an explicit `--user-data-dir`. Chrome 136+ silently refuses remote debugging on the default profile. `~/.chrome-cf-debug` exists and is signed into AcceleratorApp.
 - **`baseline.yml` parses**, checked with a real YAML parser after a structural eyeball check had wrongly reported it fine. It caught two defects.
 
+## Decisions taken after the filing, same evening
+
+**ikigai Launchpad is SKIPPED**, founder decision. $100K for 8% is a **$1.25M post**, the worst price of any equity programme tracked; a16z Speedrun offers five times the money for two more points. The Taipei residency collides with the Heilbronn onsite commitment filed the same day. Three India-accessible programmes already tracked offer more: Peak XV Surge, Accel Atoms X, Emergent Ventures India. **`meridian@` was never consumed and returns to the free pool.** The draft is preserved if it is ever reopened; the next batch is Fall 2026 and acceptances are rolling.
+
+**Sequoia Arc is NOT OPEN and the board said it closed the next day.** `sequoiacap.com/arc/apply` renders a **blank page**: nav, empty body, footer, 246 characters, no form and no closure notice, HTTP 200 so emptied rather than removed. Verified by browser render and screenshot. **This was nearly a wasted night.** The rule already existed: a listed deadline is a rumour until the form contradicts it. Its draft is also stale in three ways and is now marked so nobody pastes it.
+
+## The funding workbook is now the master, and the trackers were wrong
+
+**`docs/pitch/applications/funding-pipeline.xlsx`** came in from iCloud and is the single master for the programme research pipeline. **Six copies of the same pipeline existed and had drifted.**
+
+```bash
+python3 scripts/funding-sync.py            # export CSVs, then publish to iCloud
+python3 scripts/funding-sync.py --check    # exit 1 if any export is stale
+```
+
+**The script never writes to the workbook, deliberately.** `openpyxl` drops charts on resave and would have destroyed the Dashboard. It parses the sheet XML from the zip with the standard library instead. The one surgical edit made was verified: 36 zip parts before and after, none lost, all three charts intact.
+
+**Two lanes, separate on purpose.** The workbook owns **what to consider** (572 researched programmes). Notion owns **what we filed**. Most programmes we applied to have no row in the workbook and that is correct; its Y Combinator row is the Winter 2027 batch.
+
+> ### Three application statuses were wrong, and one was not a formatting slip
+>
+> - **South Park Commons read Submitted.** They rejected us on **2026-08-11 at 05:31 IST**, five days earlier. No reason was given and **we must not paraphrase one**. Measured: their `last_sign_in_at` was NULL, so they decided **without ever opening the product**.
+> - **Conviction Embed read Not started.** It was filed **2026-08-14** with a confirmation screen and application id on record.
+> - **Berkeley SkyDeck** had status and date crammed into one cell, so the date column was empty and no date filter would have found it.
+
 ## Open, and the next thing
 
-**ikigai Launchpad is still drafted and NOT filed.** Form https://tally.so/r/w5p4jQ, programme https://withikigai.com/. **Blocked on the part 4b intro video.** Login to allocate: `meridian@`.
+**Nothing has a deadline.** The next actionable items are all rolling and entity-free: **AWS Activate Credits**, **Cloudflare Workers Launchpad** (historically under five minutes), and **Emergent Ventures** (pure grant, ~2-3 hours).
 
-> ⚠️ **A conflict to resolve before filing ikigai.** It is 10 weeks **in person in Taipei**. Campus Founders has been told, in writing, that the founder will be **full-time onsite in Heilbronn from 30 September to 18 December**. **Check the batch dates before filing.** Unlike CF, ikigai does not require a co-founder.
+> ⚠️ **Corrected before acting on it.** An earlier recommendation named Cloudflare for Startups and Microsoft for Startups as the highest-value unclaimed items. **The workbook disagrees and it is better researched than the Notion Fit scores.** `Cloudflare for Startups` is **Blocked**: its own criteria require the company to be *"incorporated no more than 10 years ago"*, which implies an entity that does not exist yet. Microsoft and Claude for Startups are **Tier 3, apply-later, low expected value, revisit after public launch**. **Peak XV Surge is Blocked too** — its form makes co-founder details a required field, which is a wall for a solo founder.
+
+> 🛑 **The exclusivity clause, and it needs a decision before 28 August.** Campus Founders states applicants **"cannot participate in parallel accelerator programmes"** and must focus **"solely on the Accelerator program full-time."** Five other applications are live: YC Fall 2026, Betaworks, SkyDeck, The Residency, Conviction Embed. **Conviction Embed is already a hard collision**: its demo day is **12 November**, inside the CF cohort, and CF requires physical presence in Heilbronn.
+>
+> **The €25,000 is a loan, confirmed on their own page.** Milestone-disbursed in tranches, maturity **30.06.2029**, and **forgiven if the project is abandoned or the financial partner participates in or declines an equity round**. No equity is taken. The only repayment path is: keep operating, never raise an equity round, reach June 2029.
 
 > ⚠️ **Jurisdiction now has two true answers on the record.** YC says Delaware and US-based; Campus Founders says a **German entity by end of October**. Both are honest because nothing is incorporated. **Neither is safe in the wrong room.** The line that works everywhere is in the playbook §2.
 
