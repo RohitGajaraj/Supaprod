@@ -1,125 +1,84 @@
-Funding Programme Tracker — Insights & Recommendations,,,,,,,,
-571 programmes tracked  ·  refreshed automatically from the all-programmes-ranked table  ·  all money in USD thousands,,,,,,,,
-"STALE AS OF 2026-08-14 19:05 and NOT refreshed since. Decisions taken after this table was built: Campus Founders CF Accelerator Batch #9 SUBMITTED 2026-08-16. ikigai Launchpad SKIPPED 2026-08-16 (8% for $100K is a $1.25M post and the Taipei residency collides with the Heilbronn onsite commitment). Sequoia Arc is NOT OPEN, its apply page renders blank, and the 2026-08-17 deadline it carried was never verified. The live board is TRACKER.csv and the Notion Application Board. Re-run Claude in Excel over all-programmes-ranked.csv to refresh.",,,,,,,,
-,,,,,,,,
-PIPELINE BY TIER,,,,BY CALL TYPE,,,DEADLINE URGENCY,
-Tier 1,17,3.0%,,apply-now,124,,Closing in 7 days or less,31
-Tier 2,106,18.6%,,verify-first,212,,Closing in 8-21 days,24
-Tier 3,137,24.0%,,apply-later,152,,Closing in 22-45 days,14
-Tier 4,109,19.1%,,skip,83,,"Dated, more than 45 days",27
-Blocked,119,20.8%,,,,,No deadline recorded,475
-Closed,83,14.5%,,,,,,
-Total,571,,,,,,,
-,,,,,,,,
-APPLICATION STATUS,,,,FUNDING AVAILABLE,,,BY CATEGORY,
-Not started,571,,,"Total, all programmes",$104.5M,,accelerator,192
-Drafting,0,,,"Actionable (Tier 1-2, apply-now)",$30.0M,,credits,55
-Submitted,0,,,Closing within 45d (apply-now),$8.3M,,fellowship,39
-Interview,0,,,Median cheque (apply-now),$233k,,founder community,38
-Accepted,0,,,Largest cheque (apply-now),$5.0M,,grant,84
+GENERATED FILE. Do not hand-edit. Source: docs/pitch/applications/funding-pipeline.xlsx sheet 'Dashboard'. Regenerate with: python3 scripts/funding-sync.py
+Funding Programme Tracker — Insights & Recommendations
+571 programmes tracked  •  refreshed automatically from the all-programmes-ranked table  •  all money in USD thousands
+PIPELINE BY TIER,,,,BY CALL TYPE,,,DEADLINE URGENCY
+Tier 1,17,2.9772329246935202E-2,,apply-now,124,,Closing in 7 days or less,31
+Tier 2,106,0.18563922942206654,,verify-first,212,,Closing in 8-21 days,24
+Tier 3,137,0.23992994746059546,,apply-later,152,,Closing in 22-45 days,14
+Tier 4,109,0.19089316987740806,,skip,83,,"Dated, more than 45 days",27
+Blocked,119,0.2084063047285464,,,,,No deadline recorded,475
+Closed,83,0.14535901926444833
+Total,571
+APPLICATION STATUS,,,,FUNDING AVAILABLE,,,BY CATEGORY
+Not started,571,,,"Total, all programmes",104496884,,accelerator,192
+Drafting,0,,,"Actionable (Tier 1-2, apply-now)",29985950,,credits,55
+Submitted,0,,,Closing within 45d (apply-now),8286200,,fellowship,39
+Interview,0,,,Median cheque (apply-now),232500,,founder community,38
+Accepted,0,,,Largest cheque (apply-now),5000000,,grant,84
 Rejected,0,,,,,,incubator,49
 Skip,0,,,,,,non-dilutive scheme,74
 ,,,,,,,residency,40
-,,,,,,,,
-"PRIORITY SHORTLIST — Tier 1 & 2, call = apply-now, ranked by Score",,,,,,,,
-,,,,,,,,
-Programme,Tier,Score,Days left,Cash (USD),Category,Apply URL,,
-Supernova 0X Pitch Competition at Expand North Star,Tier 1,7.64,80,$200k,grant,https://expandnorthstar.com/supernova-0X,,
-Entrepreneur First - Bangalore Program,Tier 1,7.57,n/a,$250k,accelerator,https://apply.joinef.com/,,
-Hub71 Cohort 20,Tier 1,7.39,7,$135k,incubator,https://www.hub71.com/i-am-a-startup#programsSection,,
-Techstars Accelerators (general application),Tier 1,7.36,n/a,$220k,accelerator,https://apply.techstars.com/,,
-Workers Launchpad,Tier 1,7.36,n/a,$2.0M,accelerator,https://www.cloudflare.com/startups/workers-launchpad/,,
-CF Accelerator Batch #9,Tier 1,7.34,2,$27k,accelerator,https://campusfounders.acceleratorapp.co/apply/program/cf-accelerator-batch-9,,
-AIR (AI Residency),Tier 1,7.33,n/a,$500k,residency,https://docs.google.com/forms/d/e/1FAIpQLSc9037xpuD4bJ4NNbEtjaC-bJMkW24tb-d7ii4j9et0gQ2-2Q/viewform,,
-Solo Founders Program (SFP) - Fall 2026,Tier 1,7.29,18,$100k,accelerator,https://solofounders.com/program,,
-Forum Ventures Accelerator,Tier 1,7.29,n/a,$100k,accelerator,https://www.forumvc.com/pitch-us,,
-Flagship Accelerator,Tier 1,7.26,n/a,$273k,accelerator,https://app.dealum.com/#/company/application/new/65419/332vcs6q9qdc90pb7orc07m0qxnyuk7m,,
-Start it @KBC — Fall 2026,Tier 1,7.10,31,$327k,accelerator,https://startit.acceleratorapp.co/apply/program/1-year-program-start-it-fall-2026,,
-EWOR Fellowship,Tier 1,7.08,n/a,$545k,fellowship,https://www.ewor.com/apply/,,
-SparkLabs Taiwan Accelerator (Batch 11),Tier 1,7.05,n/a,$100k,accelerator,https://www.sparklabstaiwan.com/accelerator/program,,
-Slush 100 Startup Competition,Tier 1,7.02,24,$545k,grant,https://platform.slush.org/public/slush26/activities/launch?side_event_id=9e8289e3-c313-444e-8eea-cf9061d0c28d,,
-AltaLab - Fall 2026,Tier 1,7.02,21,$500k,accelerator,https://tally.so/r/xXBpq9,,
-,,,,,,,,
-,,,,,,,,
-"ACT THIS WEEK — apply-now with 21 days or fewer left, soonest first",,,,,,,,
-,,,,,,,,
-Programme,Tier,Score,Days left,Cash (USD),Category,Apply URL,,
-CF Accelerator Batch #9,Tier 1,7.34,2,$27k,accelerator,https://campusfounders.acceleratorapp.co/apply/program/cf-accelerator-batch-9,,
-ikigai Launchpad (Fall 2026),Tier 2,6.74,2,$100k,accelerator,https://tally.so/r/w5p4jQ,,
-Hub71 Cohort 20,Tier 1,7.39,7,$135k,incubator,https://www.hub71.com/i-am-a-startup#programsSection,,
-Hub71 Access Programme (Cohort 20),Tier 2,6.75,7,$68k,accelerator,https://www.hub71.com/program/access-programme/apply,,
-Hub71+ AI,Tier 2,6.49,7,$68k,accelerator,https://www.hub71.com/program/access-programme/apply,,
-Global FinTech Hackcelerator 2026,Tier 2,6.20,7,,non-dilutive scheme,https://www.fintechfestival.sg/global-fintech-hackcelerator,,
-Sanabil Startup Unlocked by 500 Global (Batch 5),Tier 2,6.54,9,,accelerator,https://sanabilstartupunlocked.aplica.500.co/,,
-Onward FX Fall 2026,Tier 3,5.77,10,,non-dilutive scheme,https://onward.nwacouncil.org/fx,,
-AI-BOOST — AI Challenge Competition (Challenges 1-4),Tier 3,5.83,11,,grant,https://www.f6s.com/ai-challenge-competition/,,
-Gemini Startup Forum,Tier 2,6.49,14,,non-dilutive scheme,https://startup.google.com/programs/forum/global/,,
-The Bridge Residency - Fall 26,Tier 2,6.90,16,$3.0M,residency,https://apply.joinef.com/app/san-francisco-thebridge-fall/,,
-Entrepreneur First - The Bridge Residency (Fall 2026) and XF2 Experienced Founders (London),Tier 3,5.54,16,,residency,https://apply.joinef.com/,,
-"Google for Startups Accelerator: Middle East, North Africa and Turkey",Tier 2,6.94,17,,accelerator,https://startup.google.com/programs/accelerator/middle-east-north-africa-turkey/,,
-NYC AI Nexus — Fall 2026 cohort,Tier 2,6.80,17,,accelerator,https://www.c10labs.com/apply,,
-Barclays Eagle Labs — Funding Readiness Programme,Tier 2,6.29,17,,non-dilutive scheme,https://labs.uk.barclays/what-we-offer/our-programmes/eagle-labs-funding-readiness-programme/,,
-German Accelerator - Kickstart (Scaling Clarity and Global Expansion Strategy),Tier 2,6.18,17,,accelerator,https://www.germanaccelerator.com/our-programs/kickstart,,
-Slush Startup Stage,Tier 2,6.02,17,,founder community,https://slush.typeform.com/to/ZZtRWeVd,,
-Solo Founders Program (SFP) - Fall 2026,Tier 1,7.29,18,$100k,accelerator,https://solofounders.com/program,,
-Founder Institute — Nordics Fall 2026,Tier 3,5.93,18,,accelerator,https://fi.co/join,,
-AI Launchpad Batch 4,Tier 3,5.29,18,,accelerator,https://elias-ai.eu/ai-launchpad/,,
-Innovate UK open competitions (Innovation Funding Service),Tier 2,6.40,20,$2.5M,grant,https://apply-for-innovation-funding.service.gov.uk/competition/search,,
-AceON Accelerator Batch #6,Tier 3,5.94,20,,accelerator,https://www.aceon.io/program,,
-AltaLab - Fall 2026,Tier 1,7.02,21,$500k,accelerator,https://tally.so/r/xXBpq9,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-BLOCKED BUT HIGH-SCORING — resolve the blocker and these become live,,,,,,,,
-,,,,,,,,
-Programme,Score,Hard blocker,Apply URL,,,,,
-Thiel Fellowship,6.37,"AGE AND EDUCATION. FAQ, in the programme's own words: ""Anyone aged 22 or younger (and without a university degree) is eligible to apply."" The founder holds a TUM degree and is well past 22. Two independent, published, binary walls.",https://thielfellowship.org/apply,,,,,
-Techstars Founder Catalyst Global Fall 2026,6.33,"GEOGRAPHIC ELIGIBILITY WALL, CONFIRMED VERBATIM. The programme is ""offered exclusively to founders from our partner communities in Istanbul, Sarajevo, Omaha, Uzbekistan, and Belfast"" and the eligible-communities section states it is ""for early-stage founders currently building in the following communities: Omaha, Sarajevo, Istanbul, Uzbekistan, Belfast."" Bangalore does not qualify. This is a published eligibility requirement, not a preference.",https://www.techstars.com/techstars-founder-catalyst-global-fall-2026-program,,,,,
-Startup Highway (pre-acceleration and incubation),6.15,Requires an existing company based specifically in Central or Western Lithuania (Kaunas-KlaipÄ—da corridor) — both an entity and a sub-national location gate.,https://www.rockitvilnius.com/startups,,,,,
-Techstars Founder Catalyst,6.15,"Geographic eligibility. The Global Fall 2026 page states ""Must be currently building in or from Omaha, Sarajevo, Istanbul, Uzbekistan, or Belfast"" - Bangalore is not on the list. This is a genuine eligibility wall for the currently-open cohorts, not a preference.",https://www.techstars.com/founder-catalyst,,,,,
-NVIDIA Inception,6.12,none,https://programs.nvidia.com/phoenix/application,,,,,
-Surge by Peak XV,6.04,null,https://surge.peakxv.com/apply,,,,,
-Slush 100 (and Slush 2026 startup programme),5.79,null,https://slush.org/audience/startups/startups,,,,,
-Baseten AI Startup Program,5.57,Stated criteria are 'Seed to Series A and you started less than 5 years ago' plus AI central to core product and net-new customer. The funding-stage phrasing may exclude a pre-raise founder - resolve in phase 2 rather than assuming.,https://www.baseten.co/talk-to-us/startup-program/,,,,,
-Edge City Inflection Fellowship (India cohort),5.56,"AGE. ""A three-week, fully-funded fellowship for exceptional builders under 25"" and ""You must be under 25 years old when you'll attend the popup village."" The founder is well past 25 given the ISRO to Infineon to Intellect career arc. Published, binary and disqualifying.",https://www.edgecity.live/blog/announcing-the-inflection-fellowship-2026-at-edge-esmeralda,,,,,
-"The Bridge Residency, San Francisco — Fall 2026",5.56,"Possible: positioned for 'young Europeans'. Verify whether an age band or a current-Europe-residence rule is actually published, since the founder is currently in Bangalore. This may be a real eligibility wall or merely marketing language — not resolved in this pass.",https://apply.joinef.com/,,,,,
-Morgan Stanley Inclusive Ventures Lab,5.55,"possible demographic eligibility screen - unresolved, see notes",https://www.morganstanley.com/what-we-do/inclusive-ventures-lab,,,,,
-Cyberport Creative Micro Fund (CCMF) - Hong Kong Programme,5.52,"A Hong Kong nexus is required, but which one depends on the route, and one route does not need an entity to apply: ""Individual Applicants: Principal applicant must be Hong Kong ID Card holder. Company Applicants: Limited company registered and incorporated in Hong Kong upon admission."" The founder holds no HK ID card, so the individual route is walled. The company route requires the HK company only upon admission, not to apply - so applying is possible, but accepting means incorporating in Hong Kong.",https://ems.cyberport.hk/form/?selected_lang=en,,,,,
+"PRIORITY SHORTLIST — Tier 1 & 2, call = apply-now, ranked by Score"
+Programme,Tier,Score,Days left,Cash (USD),Category,Apply URL
+Supernova 0X Pitch Competition at Expand North Star,Tier 1,7.64,80,200000,grant,https://expandnorthstar.com/supernova-0X
+Entrepreneur First - Bangalore Program,Tier 1,7.57,n/a,250000,accelerator,https://apply.joinef.com/
+Hub71 Cohort 20,Tier 1,7.39,7,135000,incubator,https://www.hub71.com/i-am-a-startup#programsSection
+Techstars Accelerators (general application),Tier 1,7.36,n/a,220000,accelerator,https://apply.techstars.com/
+Workers Launchpad,Tier 1,7.36,n/a,2000000,accelerator,https://www.cloudflare.com/startups/workers-launchpad/
+CF Accelerator Batch #9,Tier 1,7.34,2,27250,accelerator,https://campusfounders.acceleratorapp.co/apply/program/cf-accelerator-batch-9
+AIR (AI Residency),Tier 1,7.33,n/a,500000,residency,https://docs.google.com/forms/d/e/1FAIpQLSc9037xpuD4bJ4NNbEtjaC-bJMkW24tb-d7ii4j9et0gQ2-2Q/viewform
+Solo Founders Program (SFP) - Fall 2026,Tier 1,7.29,18,100000,accelerator,https://solofounders.com/program
+Forum Ventures Accelerator,Tier 1,7.29,n/a,100000,accelerator,https://www.forumvc.com/pitch-us
+Flagship Accelerator,Tier 1,7.26,n/a,272500,accelerator,https://app.dealum.com/#/company/application/new/65419/332vcs6q9qdc90pb7orc07m0qxnyuk7m
+Start it @KBC ‚Äî Fall 2026,Tier 1,7.1,31,327000,accelerator,https://startit.acceleratorapp.co/apply/program/1-year-program-start-it-fall-2026
+EWOR Fellowship,Tier 1,7.08,n/a,545000,fellowship,https://www.ewor.com/apply/
+SparkLabs Taiwan Accelerator (Batch 11),Tier 1,7.05,n/a,100000,accelerator,https://www.sparklabstaiwan.com/accelerator/program
+AltaLab - Fall 2026,Tier 1,7.02,21,500000,accelerator,https://tally.so/r/xXBpq9
+Slush 100 Startup Competition,Tier 1,7.02,24,545000,grant,https://platform.slush.org/public/slush26/activities/launch?side_event_id=9e8289e3-c313-444e-8eea-cf9061d0c28d
+"ACT THIS WEEK — apply-now with 21 days or fewer left, soonest first"
+Programme,Tier,Score,Days left,Cash (USD),Category,Apply URL
+CF Accelerator Batch #9,Tier 1,7.34,2,27250,accelerator,https://campusfounders.acceleratorapp.co/apply/program/cf-accelerator-batch-9
+ikigai Launchpad (Fall 2026),Tier 2,6.74,2,100000,accelerator,https://tally.so/r/w5p4jQ
+Hub71 Cohort 20,Tier 1,7.39,7,135000,incubator,https://www.hub71.com/i-am-a-startup#programsSection
+Hub71 Access Programme (Cohort 20),Tier 2,6.75,7,67500,accelerator,https://www.hub71.com/program/access-programme/apply
+Hub71+ AI,Tier 2,6.49,7,67500,accelerator,https://www.hub71.com/program/access-programme/apply
+Global FinTech Hackcelerator 2026,Tier 2,6.2,7,0,non-dilutive scheme,https://www.fintechfestival.sg/global-fintech-hackcelerator
+Sanabil Startup Unlocked by 500 Global (Batch 5),Tier 2,6.54,9,0,accelerator,https://sanabilstartupunlocked.aplica.500.co/
+Onward FX Fall 2026,Tier 3,5.77,10,0,non-dilutive scheme,https://onward.nwacouncil.org/fx
+AI-BOOST ‚Äî AI Challenge Competition (Challenges 1-4),Tier 3,5.83,11,0,grant,https://www.f6s.com/ai-challenge-competition/
+Gemini Startup Forum,Tier 2,6.49,14,0,non-dilutive scheme,https://startup.google.com/programs/forum/global/
+The Bridge Residency - Fall 26,Tier 2,6.9,16,3000000,residency,https://apply.joinef.com/app/san-francisco-thebridge-fall/
+Entrepreneur First - The Bridge Residency (Fall 2026) and XF2 Experienced Founders (London),Tier 3,5.54,16,0,residency,https://apply.joinef.com/
+"Google for Startups Accelerator: Middle East, North Africa and Turkey",Tier 2,6.94,17,0,accelerator,https://startup.google.com/programs/accelerator/middle-east-north-africa-turkey/
+NYC AI Nexus ‚Äî Fall 2026 cohort,Tier 2,6.8,17,0,accelerator,https://www.c10labs.com/apply
+Barclays Eagle Labs ‚Äî Funding Readiness Programme,Tier 2,6.29,17,0,non-dilutive scheme,https://labs.uk.barclays/what-we-offer/our-programmes/eagle-labs-funding-readiness-programme/
+German Accelerator - Kickstart (Scaling Clarity and Global Expansion Strategy),Tier 2,6.18,17,0,accelerator,https://www.germanaccelerator.com/our-programs/kickstart
+Slush Startup Stage,Tier 2,6.02,17,0,founder community,https://slush.typeform.com/to/ZZtRWeVd
+Solo Founders Program (SFP) - Fall 2026,Tier 1,7.29,18,100000,accelerator,https://solofounders.com/program
+Founder Institute ‚Äî Nordics Fall 2026,Tier 3,5.93,18,0,accelerator,https://fi.co/join
+AI Launchpad Batch 4,Tier 3,5.29,18,0,accelerator,https://elias-ai.eu/ai-launchpad/
+Innovate UK open competitions (Innovation Funding Service),Tier 2,6.4,20,2540000,grant,https://apply-for-innovation-funding.service.gov.uk/competition/search
+AceON Accelerator Batch #6,Tier 3,5.94,20,0,accelerator,https://www.aceon.io/program
+AltaLab - Fall 2026,Tier 1,7.02,21,500000,accelerator,https://tally.so/r/xXBpq9
+
+
+
+
+
+
+
+
+BLOCKED BUT HIGH-SCORING — resolve the blocker and these become live
+Programme,Score,Hard blocker,Apply URL
+Thiel Fellowship,6.37,"AGE AND EDUCATION. FAQ, in the programme's own words: ""Anyone aged 22 or younger (and without a university degree) is eligible to apply."" The founder holds a TUM degree and is well past 22. Two independent, published, binary walls.",https://thielfellowship.org/apply
+Techstars Founder Catalyst Global Fall 2026,6.33,"GEOGRAPHIC ELIGIBILITY WALL, CONFIRMED VERBATIM. The programme is ""offered exclusively to founders from our partner communities in Istanbul, Sarajevo, Omaha, Uzbekistan, and Belfast"" and the eligible-communities section states it is ""for early-stage founders currently building in the following communities: Omaha, Sarajevo, Istanbul, Uzbekistan, Belfast."" Bangalore does not qualify. This is a published eligibility requirement, not a preference.",https://www.techstars.com/techstars-founder-catalyst-global-fall-2026-program
+Startup Highway (pre-acceleration and incubation),6.15,Requires an existing company based specifically in Central or Western Lithuania (Kaunas-Klaipƒóda corridor) ‚Äî both an entity and a sub-national location gate.,https://www.rockitvilnius.com/startups
+Techstars Founder Catalyst,6.15,"Geographic eligibility. The Global Fall 2026 page states ""Must be currently building in or from Omaha, Sarajevo, Istanbul, Uzbekistan, or Belfast"" - Bangalore is not on the list. This is a genuine eligibility wall for the currently-open cohorts, not a preference.",https://www.techstars.com/founder-catalyst
+NVIDIA Inception,6.12,none,https://programs.nvidia.com/phoenix/application
+Surge by Peak XV,6.04,null,https://surge.peakxv.com/apply
+Slush 100 (and Slush 2026 startup programme),5.79,null,https://slush.org/audience/startups/startups
+Baseten AI Startup Program,5.57,Stated criteria are 'Seed to Series A and you started less than 5 years ago' plus AI central to core product and net-new customer. The funding-stage phrasing may exclude a pre-raise founder - resolve in phase 2 rather than assuming.,https://www.baseten.co/talk-to-us/startup-program/
+Edge City Inflection Fellowship (India cohort),5.56,"AGE. ""A three-week, fully-funded fellowship for exceptional builders under 25"" and ""You must be under 25 years old when you'll attend the popup village."" The founder is well past 25 given the ISRO to Infineon to Intellect career arc. Published, binary and disqualifying.",https://www.edgecity.live/blog/announcing-the-inflection-fellowship-2026-at-edge-esmeralda
+"The Bridge Residency, San Francisco ‚Äî Fall 2026",5.56,"Possible: positioned for 'young Europeans'. Verify whether an age band or a current-Europe-residence rule is actually published, since the founder is currently in Bangalore. This may be a real eligibility wall or merely marketing language ‚Äî not resolved in this pass.",https://apply.joinef.com/
+Morgan Stanley Inclusive Ventures Lab,5.55,"possible demographic eligibility screen - unresolved, see notes",https://www.morganstanley.com/what-we-do/inclusive-ventures-lab
+Cyberport Creative Micro Fund (CCMF) - Hong Kong Programme,5.52,"A Hong Kong nexus is required, but which one depends on the route, and one route does not need an entity to apply: ""Individual Applicants: Principal applicant must be Hong Kong ID Card holder. Company Applicants: Limited company registered and incorporated in Hong Kong upon admission."" The founder holds no HK ID card, so the individual route is walled. The company route requires the HK company only upon admission, not to apply - so applying is possible, but accepting means incorporating in Hong Kong.",https://ems.cyberport.hk/form/?selected_lang=en

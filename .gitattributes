@@ -1,0 +1,4 @@
+
+# Excel workbooks are binary. Never attempt a textual merge or diff.
+*.xlsx binary
+*.xls binary
