@@ -1,6 +1,24 @@
-# Sequoia Arc — the answers, ready to paste
+# Sequoia Arc — the answers, NOT ready to paste
 
-> _Created: 2026-08-13 · **Deadline 2026-08-17, 11:59pm PT** · Apply at `https://www.sequoiacap.com/arc/apply/`_
+> ## 🛑 RE-SCREENED 2026-08-16. The application is NOT OPEN, and this draft breaks two rulings.
+>
+> **The form is not live.** `sequoiacap.com/arc/apply` renders a **completely blank page**: nav, empty body, footer, 246 characters of content, no form and no closure notice. Verified by direct browser render and screenshot; the URL returns HTTP 200, so the page has been emptied rather than removed. **The 2026-08-17 deadline below is stale and was never checked against Sequoia's own page.**
+>
+> **Arc is a bi-annual open call.** Sequoia's own posts show a February close for the spring cohort and an early-August close for the autumn cohort, so the autumn 2026 window has most likely already shut. **Re-check the apply page itself, never an aggregator.**
+>
+> ### Three defects in the text below. Fix them before this is ever reused.
+>
+> | Defect | Where | The ruling it breaks |
+> | --- | --- | --- |
+> | *"No outside users and no revenue. I want that first rather than buried."* | Answer 4, first line | **Never volunteer the zero** (founder ruling 2026-08-13). Berkeley SkyDeck was supposed to be the last application carrying it |
+> | *"Supaprod's own roadmap runs inside Supaprod"* | Answer 4 | **Rule 6.** It does not survive its own database: 344 missions against 27 completed |
+> | 5,131 commits · 532 migrations | Answers 3 and 4 | **Stale.** 5,321 and 545 as of 2026-08-16 |
+>
+> ### One open question, and it is NOT a blocker
+>
+> Third-party guides and a Sequoia post from February 2024 say the open call is for founders in **the Americas and Europe/UK**, which would exclude a Bangalore-headquartered company. **Sequoia's own Arc page states no geography restriction anywhere in its five-question FAQ.** Screening ruling: only the programme's own page can justify a skip, quoted. **Resolve this when the form reopens.** The relocation to Germany would settle it either way.
+>
+> _Created: 2026-08-13 · ~~Deadline 2026-08-17, 11:59pm PT~~ · `https://www.sequoiacap.com/arc/apply/`_
 >
 > ⚠️ **The form sits behind a login and its exact fields are not public.** These answers are written against the five questions Arc is known to ask, at a length that trims cleanly. **Open the form first, then cut each block to its stated limit.** If a field asks something not covered here, pull from [`../answer-bank.md`](../answer-bank.md) rather than composing fresh.
 >
