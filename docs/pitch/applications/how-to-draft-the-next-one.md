@@ -315,7 +315,7 @@ Until all three pass: padlock, no Submit button, and **nothing typed is saved**.
 > - **Solo founder is one condition, not a stop.** A two-founder preference lowers the score; only a hard legal or eligibility wall skips.
 
 1. **Open the live form first.** Read every question and every dropdown option off the page. Record them verbatim in the programme's `APPLICATION-FINAL.md`.
-2. **Pull facts from [`answer-bank.md`](./answer-bank.md)**, never from memory or a screenshot. Re-derive live numbers: `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l`.
+2. **Load [`baseline.yml`](./baseline.yml) before anything else.** One small file: live numbers with their derive commands, the founder record, positioning, the Europe wedge, which asset to attach to whom, login allocation, banned vocabulary, standing rules. **Then** pull long-form answers from [`answer-bank.md`](./answer-bank.md), never from memory or a screenshot. Re-derive live numbers: `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l`. **Update the baseline in the same session** — a learning that does not reach it does not travel, which is the failure this whole file exists to prevent.
 3. **Check the seven rules in [`positioning-doctrine.md`](./positioning-doctrine.md)**, then this file.
 4. **Draft door → body → brain.** Cut any block that already appears in another field.
 5. **Read every answer aloud. Delete any sentence that stays true with a competitor's name swapped in.**

@@ -1,6 +1,43 @@
 # Pick up here
 
-> _Created: 2026-08-07 · Last updated: 2026-08-16, late. **Funding lane: two applications drafted for deadlines that both turned out to be softer than the board said. The founder has seen the work and is NOT fully happy with it, and did not say why.**
+> _Created: 2026-08-07 · Last updated: 2026-08-16 evening. **Campus Founders is FILED. The section below it, which says two applications are drafted and not filed, is superseded for Campus Founders and still current for ikigai.**
+
+---
+
+# ✅ FUNDING LANE, 2026-08-16 evening — Campus Founders SUBMITTED
+
+**Commit `c4d01b93`, pushed to `origin/main`.** The founder filled and submitted the form himself. Notion Application Board row created: https://app.notion.com/p/3be3f54c86c28162be83f1e51834557e
+
+## The one thing to hand on
+
+**The application argument and the form's questions were almost disjoint.** The night-before draft was written against the programme's **published criteria** because the real question set sat behind an account gate, and the founder's verdict on it was *"it does not have the difference thing."* He was right.
+
+**When the live form was finally read, there were no questions for problem, product, defensibility, market or competitors.** Those live in the uploaded PDF. **Only three text fields carried the case:** traction, "what are you aiming to achieve" (which wants numbered KPIs), and "Why Heilbronn?".
+
+**So the deck is the load-bearing artifact on this programme, and the moat self-correction has no field at all.** If the pitch invitation lands 24-26 August, that argument is the founder's to deliver out loud. It is written into [`../pitch/founder-answer-playbook.md`](../pitch/founder-answer-playbook.md) §2b.
+
+## What is now wired that was not before
+
+**[`../pitch/applications/baseline.yml`](../pitch/applications/baseline.yml) is new and it is step 0 of the outward procedure.** One small file: live numbers with their derive commands, positioning, the Europe wedge, which asset to attach to whom, login allocation, banned vocabulary, standing rules. **It is named in [`../pitch/README.md`](../pitch/README.md) step 0 and in the craft file's Part 5**, because a file outside the drafting path is buried rather than documented. **Standing rule 2b says it is updated in the same session as every application.**
+
+## Two founder rulings that reverse earlier guidance
+
+1. **Send `Supaprod-Brief.pdf` whenever any form asks for a deck or a PDF.** The 16-page deck renders badly (slides 3, 6, 15, 16 clip). The old `Supaprod-Investor-Briefing.pdf` cannot go to a programme either: its own content reads *"Pre-Seed Briefing · Confidential"* with `investors@` in the footer. The neutral variant is new; the original is preserved for real investors.
+2. **An optional field stays blank only when filling it would overstate.** The founder video was left blank on a solo application whose published bar is two co-founders, which was the worst available answer. Corrected.
+
+## Three things verified that had never been verified
+
+- **A demo login works.** `lantern@` was signed into at **11:25 IST on 2026-08-16** before submission and landed on a live workspace with the queue armed. **First time any demo login has been confirmed end to end.** The timestamp is recorded, so any later sign-in is Campus Founders, not us.
+- **The debug-port browser path works**, provided Chrome is launched with an explicit `--user-data-dir`. Chrome 136+ silently refuses remote debugging on the default profile. `~/.chrome-cf-debug` exists and is signed into AcceleratorApp.
+- **`baseline.yml` parses**, checked with a real YAML parser after a structural eyeball check had wrongly reported it fine. It caught two defects.
+
+## Open, and the next thing
+
+**ikigai Launchpad is still drafted and NOT filed.** Form https://tally.so/r/w5p4jQ, programme https://withikigai.com/. **Blocked on the part 4b intro video.** Login to allocate: `meridian@`.
+
+> ⚠️ **A conflict to resolve before filing ikigai.** It is 10 weeks **in person in Taipei**. Campus Founders has been told, in writing, that the founder will be **full-time onsite in Heilbronn from 30 September to 18 December**. **Check the batch dates before filing.** Unlike CF, ikigai does not require a co-founder.
+
+> ⚠️ **Jurisdiction now has two true answers on the record.** YC says Delaware and US-based; Campus Founders says a **German entity by end of October**. Both are honest because nothing is incorporated. **Neither is safe in the wrong room.** The line that works everywhere is in the playbook §2.
 
 ---
 

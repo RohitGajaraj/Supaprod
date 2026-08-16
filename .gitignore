@@ -264,3 +264,7 @@ docs/pitch/applications/sweep/.msg
 # Large media staged in shareables for upload. Masters live in videos/ and stay out of git.
 docs/pitch/shareables/*.mp4
 docs/pitch/shareables/*.mov
+
+# Skill-installer symlinks into .agents/, same pattern as the batch above.
+.claude/skills/brag
+.kiro/skills/brag

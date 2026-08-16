@@ -12,6 +12,12 @@ Deep reasoning stays in [`../strategy/`](../strategy/README.md). This folder hol
 
 Most work here is an accelerator, incubator, residency or grant application. There is a fixed procedure, because assembling one from memory produces a weaker application than assembling one from the track record, and produces two applications that contradict each other.
 
+> **0. Load [`applications/baseline.yml`](./applications/baseline.yml) first. It is one file and it is small.**
+>
+> It carries the live numbers with the commands that re-derive them, the founder record, the positioning and the moat, the Europe wedge, **which asset to attach to whom**, demo-login allocation, banned vocabulary, and every standing application rule. **Reading it costs a fraction of reading the four long files below and it prevents the errors that actually recur:** a stale commit count, a retired tagline, the wrong PDF, a claim we have already retired.
+>
+> **It does not replace the four files below, and where they disagree with it, they win and the YAML is stale.** Fix it in the same pass.
+
 **1. Check it is worth applying to.** [`applications/README.md`](./applications/README.md) tracks 144 programs researched against their own sites. Check two blockers first, because they kill most European and Indian programs before you write a word:
 
 - **Solo founder.** Many programs require a team of two. Check the team-size bar before scoring fit.
@@ -129,6 +135,7 @@ Most work here is an accelerator, incubator, residency or grant application. The
 
 1. **Update in place. Never fork a parallel copy.** Any session that produces outward-facing content routes the result into this folder in the same session. Git history is the version trail.
 2. **The answer playbook is updated after EVERY application and EVERY interview**, in the same session, while it is fresh. A question we could not answer well, a pushback, a rejection reason, a changed number: all of it lands in [`founder-answer-playbook.md`](./founder-answer-playbook.md). We are applying to many programmes over the coming weeks and that file is what compounds across them.
+2b. **[`applications/baseline.yml`](./applications/baseline.yml) is updated in the same session, by the same rule.** It is the file the next application reads FIRST, so a learning that does not reach it does not travel. **What lands in it:** a re-derived number, a retired claim, a new banned phrase, a founder ruling on which asset to send, a demo login allocated or verified, a programme filed. **What does not:** prose. The long-form reasoning belongs in the craft file; the YAML holds the decision, not the argument. **A baseline that is stale is worse than none**, because it is read first and trusted.
 2. **Every claim carries its wiring status.** `PROVEN` · `WIRING` · `ROADMAP`.
 3. **Cite artifacts and companies, never gurus.** The community's allergy to guru-citation is our tailwind.
 4. **Numbers trace to the live database or a dated source.** No run-rate theater; investors name it as a red flag themselves.
