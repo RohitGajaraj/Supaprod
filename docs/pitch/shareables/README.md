@@ -8,11 +8,50 @@
 
 ---
 
-## 1. The link card, and it is the default
+## 0. What to attach, by who is asking. **Founder rulings 2026-08-16.**
+
+| A form asks for | Send | Never send |
+| --- | --- | --- |
+| A deck or a PDF, **accelerator or programme** | **[`Supaprod-Brief.pdf`](./Supaprod-Brief.pdf)** | `Supaprod-Investor-Briefing.pdf` · `supaprod-pre-seed-deck-16pp.pdf` |
+| A deck, **an actual investor** | [`Supaprod-Investor-Briefing.pdf`](./Supaprod-Investor-Briefing.pdf) | |
+| A **product video file** | **`Supaprod-Product-Film.mp4`** (97.6MB, gitignored) | `video-v15.mp4`, it is **silent** |
+| A **product video link** | `https://youtu.be/x9WgGn0FyYU` | |
+| A **team intro or founder video** | `https://youtu.be/zBmtUtkTyBs` | |
+
+> ### Why the 16-page deck is retired from applications
+>
+> **It renders badly**: slides 3, 6, 15 and 16 clip, and slide 15 loses roughly three lines. Founder ruling: a malformed artifact costs more than a thin one. A recommendation to send it to Campus Founders was made and **overruled, correctly**.
+>
+> ### Why a NEW one-pager rather than the existing Investor Briefing
+>
+> **The filename was the smallest problem.** `Supaprod-Investor-Briefing.pdf`'s own content read **"Pre-Seed Briefing · Confidential"** with **`investors@supaprod.ai`** in the footer. A Campus Founders venture manager opening that reads it as being handed a fundraising document by mistake, and as being treated as a step toward a raise rather than as the programme.
+>
+> | Surface | Investor Briefing | Brief |
+> | --- | --- | --- |
+> | PDF title | `Supaprod · Investor Briefing` | `Supaprod · Brief` |
+> | Eyebrow | `Pre-Seed Briefing · Confidential` | `Company Brief` |
+> | Footer contact | `investors@supaprod.ai` | `founder@supaprod.ai` |
+>
+> **Both are kept.** The investor version is still right for investors. Source: [`Supaprod-Brief.src.html`](./Supaprod-Brief.src.html), same render command and the same three authoring rules below.
+>
+> **The name matches `supaprod.ai/brief`**, so file, link and in-page button carry one word.
+>
+> ### The video trap, and it nearly shipped
+>
+> **`renders/video-v15.mp4` is the final SILENT picture.** It sits beside the master, is dated within a minute of it, and carries a *higher* version number than `supaprod-film-v14-master.mp4`. **The two naming series are not comparable.** The master is `supaprod-film-final-1080.mp4` (byte-identical to `v14-master` and `supaprod-product-film-2026`, SHA-256 `ec1b18e5…`). **Probe for an audio stream before sending any render:**
+>
+> ```bash
+> ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 <file>
+> # must list BOTH: h264,video AND aac,audio
+> ```
+>
+> **Staged copies in this folder are gitignored** (`docs/pitch/shareables/*.mp4`), because `docs/` is tracked and a 93 MiB binary must not enter the repo. Masters stay in `videos/`.
+
+## 1. The link card, and it is the investor default
 
 **[`Supaprod-Investor-Briefing.pdf`](./Supaprod-Investor-Briefing.pdf)** · one page, 16:9, ~320KB
 
-**Send this when a form asks for a deck.** It is what is attached to the Berkeley SkyDeck application, classified *Investment*. It is a branded page whose orange button is a real PDF link annotation, so a click lands the reader on the live briefing where the deck is interactive.
+**Send this to investors.** It is what is attached to the Berkeley SkyDeck application, classified *Investment*. It is a branded page whose orange button is a real PDF link annotation, so a click lands the reader on the live briefing where the deck is interactive. **For accelerators and programmes, send `Supaprod-Brief.pdf` instead** (§0).
 
 | Link on the page | Target |
 | --- | --- |

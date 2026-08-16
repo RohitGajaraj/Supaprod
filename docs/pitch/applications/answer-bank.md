@@ -517,6 +517,10 @@ window on this specific seat is one or two quarters before it is crowded.
 | --- | --- |
 | Product | https://supaprod.ai |
 | Company brief / deck (one page) | https://supaprod.ai/brief (also /investors) |
+| **PDF to attach when a form asks for a deck** | **`docs/pitch/shareables/Supaprod-Brief.pdf`** — founder ruling 2026-08-16, see the note below |
+| **Video to attach when a form asks for a product video** | **`docs/pitch/shareables/Supaprod-Product-Film.mp4`** — 97.6MB, under the common 100MB cap |
+| Founder pitch video (team intro / founder video fields) | https://youtu.be/zBmtUtkTyBs (unlisted, 2:32) |
+| Product film (public link) | https://youtu.be/x9WgGn0FyYU (2:23) |
 | Founder email | founder@supaprod.ai |
 | Investor email | investors@supaprod.ai |
 | LinkedIn | https://linkedin.com/in/rohit-gajaraj |
@@ -525,6 +529,20 @@ window on this specific seat is one or two quarters before it is crowded.
 | Demo video | 4:51 cut, wedge front-loaded (see `docs/pitch/yc/video-scripts.md`) |
 | Founder video | 2:53 (needs a ≤1:00 re-cut for programs that cap it) |
 | Investor deck | `docs/pitch/investor-deck/supaprod-pre-seed-investor-deck.html` (frozen v19) |
+
+> ### 📎 The attachment rulings, 2026-08-16. **Do not re-litigate these on the next application.**
+>
+> **PDF: send `Supaprod-Brief.pdf`. Always.** Founder ruling: the 16-page `supaprod-pre-seed-deck-16pp.pdf` **renders badly** (slides 3, 6, 15 and 16 clip; slide 15 loses three lines) and a malformed artifact costs more than a thin one. A recommendation to send the 16pp deck was made and overruled, correctly.
+>
+> **Why `Supaprod-Brief.pdf` and not the old `Supaprod-Investor-Briefing.pdf`.** The filename was the smallest problem. The old one-pager's own content read **"Pre-Seed Briefing · Confidential"** with **`investors@supaprod.ai`** in the footer. To an accelerator reviewer that reads as being handed a fundraising document by mistake, and as being treated as a step toward a raise rather than as the programme itself. The variant changes three things: title → `Supaprod · Brief`, eyebrow → `Company Brief`, contact → `founder@supaprod.ai`. **The original is preserved and is still correct for real investor conversations.**
+>
+> **The name matches the canonical `supaprod.ai/brief` URL**, so the file, the link and the button inside it all carry one word.
+>
+> **No date in the eyebrow.** A first cut said "August 2026" and was corrected before render, per the shareables rule *"no dates, no counts, nothing that decays."*
+>
+> **Verify after any re-render:** 4 link annotations, zero occurrences of "investor" in the binary. The command is in [`../shareables/README.md`](../shareables/README.md).
+>
+> **Video: `Supaprod-Product-Film.mp4`, 97.6MB.** Copied byte-identical from `videos/supaprod-film/renders/supaprod-film-final-1080.mp4`. **Do not grab `video-v15.mp4` instead** — it sits in the same folder, is dated within a minute, has a higher version number, and is **the final SILENT picture with no audio track**. Version numbers across the two naming series are not comparable. **Probe for an audio stream before sending any render.**
 
 ### Demo login allocation — ONE PER PROGRAM, never reuse
 
@@ -536,8 +554,18 @@ Approving a pending gate is a **write**. Two programs on one login means the sec
 | `voyage@supaprod.ai` | `Supaprod!Voyage2026` | ~~South Park Commons~~ → **REUSABLE** (founder ruling 2026-08-14) | free, re-arm before sending |
 | `compass@supaprod.ai` | `Supaprod!Compass2026` | **Betaworks AI Camp** (2026-07-31, submitted) | held, never opened |
 | `meridian@supaprod.ai` | `Supaprod!Meridian2026` | **ikigai Launchpad** (drafted 2026-08-16, not yet sent) | reserved, re-arm before sending |
-| `lantern@supaprod.ai` | `Supaprod!Lantern2026` | **Campus Founders, CF Accelerator Batch #9** (drafted 2026-08-16) | reserved, re-arm before sending |
+| `lantern@supaprod.ai` | `Supaprod!Lantern2026` | **Campus Founders, CF Accelerator Batch #9** (SUBMITTED 2026-08-16) | **SENT. Verified working 2026-08-16 11:25 IST** — see the attribution note below |
 | `harbor@supaprod.ai` | `Supaprod!Harbor2026` | founder rehearsal only | NEVER send |
+
+> ### ✅ A demo login was finally verified end to end, 2026-08-16 11:25 IST. **It worked.**
+>
+> **`lantern@` was signed into before the Campus Founders application went out**, and it landed on a live workspace: **Helio Labs / Relay, 11 decisions ready for review, 2 runs waiting at Build**, all seven stations present. **The queue was armed and nothing had decayed.** Nothing was approved, so the reviewer's queue is intact.
+>
+> **This is the first time any demo login has been confirmed to work**, and it matters because the traction answer invites a reviewer to "walk the whole loop in about ten minutes". That sentence was previously a hope.
+>
+> **The cost, and how it is neutralised.** Signing in stamps `last_sign_in_at`, which is exactly what made `explore@` unattributable for YC. **The fix is the timestamp: we signed in at ~11:25 IST on 2026-08-16, so any later sign-in on `lantern@` is Campus Founders.** Record the timestamp every time a login is verified, and the attribution problem disappears.
+>
+> **Standing rule from this: verify the login before the application goes out, and write down when you did.** An unverified login behind a "walk the whole loop" claim is a worse risk than a stamped `last_sign_in_at`.
 
 > ### 🔍 Measured 2026-08-14, and it changes what we assumed. **No reviewer has ever signed in.**
 >

@@ -161,6 +161,91 @@ A visible option is not the best option. This cost a wrong selection once.
 
 ---
 
+## Part 1b — Corrections from Campus Founders, filed 2026-08-16
+
+**Five of these came from the founder mid-session. Two of them reversed a recommendation I had already argued for.**
+
+### 10. Drafting blind does not just cost rewrites. It can produce the wrong artifact entirely.
+
+The Campus Founders draft was written against the programme's **published criteria** because the question set sat behind an account gate. It was competent and it was generic: every answer would have survived a find-and-replace of the programme name. The founder's words were *"it does not have the difference thing."*
+
+**When the live form was finally read, the strategy changed completely:**
+
+| The draft assumed | The form actually had |
+| --- | --- |
+| Long answers for problem, product, defensibility, market, competitors | **None of those questions exist.** They live in the required pitch deck |
+| A "what would you use the €25,000 for" answer | **Not asked.** The 25k is a loan gated on a registered company |
+| One combined "why this programme" | Split into a **KPI** question and a separate **"Why Heilbronn?"** |
+| 38 fields | **38 in the rail plus 2 that appear only conditionally** — the AI-role question and the registration-timing question, neither visible until a prior answer triggers them |
+
+**The rule was already written and it was not followed, because the gate made it inconvenient.** *The form is the spec.* If an account gate blocks the questions, **getting past the gate is the first task, not a step to work around.**
+
+### 11. "Leave optional fields blank" has a limit, and the limit is whether the blank hides something true
+
+**Founder correction.** The Team Intro Video field was left blank on the reasoning that optional fields stay empty. That was mechanical application of a rule whose actual purpose is **never to imply traction that does not exist**. A founder video implies nothing false. It shows the person.
+
+**On a form whose published bar is one tech plus one business co-founder, applying solo, the one field that argues for an exception is the one that shows the founder.** Leaving it blank was the worst available answer.
+
+**The corrected rule: leave an optional field blank when filling it would overstate. Fill it when it shows something true that no other field carries.**
+
+### 12. When the documentation and the artifact disagree, the artifact wins
+
+**Two recommendations were reversed by the founder in one session, and both times he was right, for the same reason.** I was reasoning from a README; he was looking at the rendered file.
+
+- **The 16-page deck.** `shareables/README.md` documented it as the full deck, so I recommended it over the one-pager. It **renders badly** — four slides clip. He had seen it.
+- **The Investor Briefing.** Documented as *"send this when a form asks for a deck"*. Its own content reads **"Pre-Seed Briefing · Confidential"** with `investors@supaprod.ai`, which cannot go to an accelerator.
+
+**This is the same lesson as "the form is the spec", applied to assets instead of questions. Open the file before recommending it.**
+
+### 13. A programme-specific regulatory deadline is the strongest available differentiator, and it does not travel
+
+The answer that made this application specific to Heilbronn was the **EU AI Act**: transparency duties applied from **2 August 2026**, and deployer obligations land on the German customer rather than the vendor. That converts the merge gate, the audit trail, the customer-reachable stop and the refusal to score named humans from features into how a German company stays legal.
+
+**No US application can use this.** It was sitting unused in `docs/planning/rebuild-2026-07/governance/gov-c-frame-and-story.md` the whole time.
+
+**Look for the thing that is true for this programme's geography and nobody else's, before writing a word.**
+
+### 14. Reciting article numbers reads as homework. Stating the rule plainly reads as having built for it.
+
+**Founder correction.** The first version of the Heilbronn answer cited Articles 12, 14, 26 and Annex III point 4 in sequence. His objection: *"is it really that big of a requirement, or can we cut it down and sound confident."* He was right, and this is Rule 0b again.
+
+**Keep the one checkable specific — the date.** Describe what the law now demands in plain language, then show the product already answering it. **Save the article numbers for the live conversation**, where quoting them back at a reviewer who probes the claim lands far harder than it does in a form field.
+
+### 15. Read the verb in the question. "JOINED" is not "applied."
+
+The founder proposed listing YC, Sequoia and other **pending applications** under *"If you have JOINED any incubator, accelerator, or network program(s) before."* **Pushed back and the push-back held.** Three reasons that generalise:
+
+1. **It answers a question nobody asked.** The verb is JOINED. We have joined none.
+2. **It surfaces what we would not volunteer.** South Park Commons already rejected us; the natural follow-up is *"and how did those go?"*
+3. **Applications are free, so they signal nothing.** It reads as borrowed credibility, which is the opposite of the intended effect.
+
+### 16. Never put a number in an application that decays before it is read
+
+The demo-link answer was drafted as *"the workspace has 11 decisions waiting."* True on 16 August. **Reviewers open these between 24 August and late September.** A figure that is wrong when read is worse than no figure, and unlike a commit count the reader cannot re-derive it.
+
+**Written as "real calls waiting on your review" instead.** Same claim, cannot go stale.
+
+### 17. Verify the demo login before the application goes out, and write down when you did
+
+`lantern@` was signed into at **11:25 IST on 2026-08-16**, before submission. It worked: a live workspace, decisions ready, runs waiting, queue armed. **This was the first time any demo login had been confirmed to work at all.**
+
+**Why it matters:** the traction answer invites a reviewer to walk the whole loop in ten minutes. Until that check, that sentence was a hope, and `voyage@` and `compass@` both carry a NULL `last_sign_in_at` — **South Park Commons rejected us without ever opening the product.**
+
+**The attribution cost is neutralised by recording the timestamp.** That is what `explore@` lacked, which is why YC's sign-in is unattributable forever.
+
+### 18. Probe media for an audio stream. Version numbers across two naming series are not comparable.
+
+`renders/video-v15.mp4` sits beside the master, is dated within a minute of it, and carries a higher version number than `supaprod-film-v14-master.mp4`. **It is the final SILENT picture** — the pre-mux plate that audio-only changes get re-muxed against.
+
+```bash
+ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 <file>
+# must list BOTH h264,video AND aac,audio
+```
+
+**Never pick a render by filename or version number.**
+
+---
+
 ## Part 2 — What worked, and should be repeated
 
 **Read every question off the live form. Never draft against guessed questions.** [`application.md`](./berkeley-skydeck/application.md) was drafted blind and is kept only for comparison; every answer had to be rewritten once the real form was open. **The form is the spec.**

@@ -75,15 +75,59 @@ Refresh these against the live database the morning of any conversation. **A sta
 | Users | 8, all founder / internal / test. **Zero organic external users.** |
 | Revenue | None. Billing is built and deliberately dormant. |
 | Public launch | **mid-September 2026** |
-| Build scale | ~1,440 source files · 79 authenticated routes · 151 server-function modules · 512 migrations · 402 test files · 7,159 tests passing |
+| Build scale | ~1,440 source files · 79 authenticated routes · 151 server-function modules · **545 migrations** _(2026-08-16)_ · 402 test files · 7,159 tests passing |
 | Production data | **6 workspaces, all founder or test accounts. No customer data at all.** 18 missions · 5 decisions · **0 learnings · 0 learning citations.** The loop is wired and proven; it begins accruing on first real use. Query: `production_workspace_ids()`. |
 | TAM | $300B+/yr, the PM work budget (2.6M PMs x ~$115K loaded) |
 | SAM | $2B to $12B/yr, launch pricing to value pricing |
 | SOM | ~$47M ARR, the agent-native tenth at launch pricing |
-| Team | Solo founder. No entity incorporated yet. US-primary. |
+| Team | Solo founder. No entity incorporated yet. **Jurisdiction is answered per room, see the warning below.** |
 | Contact | founder@supaprod.ai · investors@supaprod.ai |
 
 **Never quote in these rooms:** commit counts, feature-register row counts. They sound like activity metrics and invite the question "so what?". The register is internal evidence, not an investor number.
+
+> ### 🛑 Jurisdiction: two different true answers are now on the record. Know which room you are in.
+>
+> **YC and the US applications say a Delaware C-corp and US-based.** **The Campus Founders application, filed 2026-08-16, says a registered GERMAN entity, process initiated on acceptance, targeting end of October.**
+>
+> **Both are honest** because nothing is incorporated and the jurisdiction follows the customers. **Neither is safe to say in the wrong room**, and contradicting a filed application in a live pitch is unrecoverable.
+>
+> **The line that is true everywhere, and the one to reach for if you are unsure:** *"Nothing is incorporated yet, deliberately. Registering in India first would mean unwinding it later through FEMA and RBI share-swap rules. I will register where the company actually operates, and I would rather decide that with the programme than guess ahead of it."*
+
+---
+
+## 2b. Campus Founders pitch, 24 to 26 August 2026
+
+**Submitted 2026-08-16. Pitch presentations 24-26 Aug, acceptances 28 Aug, move-in 30 Sep.** Filed record: [`applications/campus-founders/FILL-SHEET-38-FIELDS.md`](./applications/campus-founders/FILL-SHEET-38-FIELDS.md).
+
+### The one argument that is NOT on the form, so it is yours to deliver out loud
+
+**The form has no defensibility question.** The moat self-correction exists only inside the uploaded PDF. **It is the strongest thing in the whole application and no field is carrying it.** Rehearse it:
+
+> *I had the moat wrong at first. I was saying a competitor cannot rebuild your decision history. They can. Vercel's COO rebuilt why a deal was lost out of Slack, email and call recordings, using an agent he built in two days. What nobody can rebuild is what a team believed before they found out, because almost nobody writes it down. Now something does.*
+
+### Where the article numbers finally belong
+
+**The written answer deliberately states the EU AI Act in plain language and cites no articles**, because reciting them reads as homework. **In the room it is the opposite.** If a German reviewer probes the compliance claim, the specifics land hard:
+
+| Article | What it requires | What Supaprod already does |
+| --- | --- | --- |
+| **12** | Automatic logging over a high-risk system's lifetime | Audit trail on every agent action, append-only |
+| **14** | Provider must build so a human can oversee and halt | Merge gate no agent can cross; customer-reachable kill switch and workspace pause |
+| **26** | Deployer duties land on **their** company, not the vendor | The gate, the trail and the rollback are the customer's controls |
+| **Annex III pt 4** | AI in task allocation and performance evaluation is high-risk | **We deliberately do not score named human teammates**, which keeps the customer out of the category rather than documenting their way through it |
+| **50** | Transparency and machine-readable marking, live since **2 Aug 2026** | Committed at launch rather than retrofitted |
+
+### The three questions they are most likely to ask
+
+1. **"You are solo, and we ask for a tech and a business co-founder."** Carry both halves, with evidence, not with an argument: Mechatronics and ISRO satellite comms on one side; TUM MBA, Infineon and the Intellect AI platform 200+ financial institutions build on, on the other. Then the behaviour: **four complete versions built and thrown away**, and two years ago being unable to ship production software at all.
+2. **"What will you actually do in twelve weeks?"** The five filed milestones, in order: 10 German B2B pilot customers by week eight; first 3 paying conversions by week twelve; **200 graded decisions from customers who are not me**; public launch mid-September; German entity before December. **Say the third one slowly** — it is the one that shows you know what your own product still lacks.
+3. **"Why not just Notion or Atlassian?"** Structural, not featural: *grading a decision needs the call and its outcome inside one system, and a handoff is exactly where those two get separated.*
+
+### Before any pitch invitation is answered
+
+- [ ] **Re-arm the `lantern@` approval queue.** It was verified armed on 2026-08-16 at 11:25 IST; a queue opened weeks later can decay.
+- [ ] **Any sign-in on `lantern@` after 2026-08-16 11:25 IST is them, not us.** Check it before the call: knowing whether they opened the product changes which room you are in.
+- [ ] Re-derive the migration and commit counts.
 
 ---
 

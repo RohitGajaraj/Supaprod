@@ -260,3 +260,7 @@ videos/supaprod-film/renders/supaprod-film-final-4k.mp4
 !videos/supaprod-film/snapshots/**/*.jpg
 !videos/supaprod-film/capture/screenshots/**/*.png
 docs/pitch/applications/sweep/.msg
+
+# Large media staged in shareables for upload. Masters live in videos/ and stay out of git.
+docs/pitch/shareables/*.mp4
+docs/pitch/shareables/*.mov

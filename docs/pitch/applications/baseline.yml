@@ -1,0 +1,302 @@
+---
+# Supaprod application baseline
+#
+# READ THIS FIRST when drafting any outward application. It is the compact,
+# machine-readable source of truth so a session does not have to read 30K of
+# markdown to get a fact right.
+#
+# It does NOT replace:
+#   answer-bank.md              the long-form facts and reusable prose blocks
+#   positioning-doctrine.md     the seven rules
+#   how-to-draft-the-next-one.md  the craft, and every correction the founder made
+#
+# Where this file and those disagree, THOSE WIN and this file is stale. Fix it.
+
+meta:
+  updated: 2026-08-16
+  updated_after: "Campus Founders CF Accelerator Batch #9, submitted 2026-08-16"
+  refresh_rule: >-
+    Re-derive every value under `numbers` on the morning of any submission.
+    Two of them move daily. A number that cannot be re-derived on demand is
+    not evidence and must not be used.
+
+company:
+  name: Supaprod
+  url: https://supaprod.ai
+  brief_url: https://supaprod.ai/brief
+  film_url: https://supaprod.ai/film
+  hq_city: Bangalore
+  hq_country: India
+  incorporated: false
+  incorporation_plan: >-
+    Deliberately not incorporated. Registering an Indian Pvt Ltd first would
+    require unwinding through FEMA and RBI share-swap rules, which routinely
+    costs more in time, legal fees and tax than the entity is worth. Jurisdiction
+    is chosen to match where the company will actually operate.
+  stage_label: Users          # never "Prototype", never "Idea"
+  beta: private, invite-only
+  signup_closed: 2026-08-07
+  public_launch: mid-September 2026
+  revenue_eur: 0
+  outside_users: 0
+  funding_raised: none
+  grants: none
+  team_fulltime: 1
+
+founder:
+  name: Rohit Gajaraj
+  email: founder@supaprod.ai
+  investor_email: investors@supaprod.ai
+  linkedin: https://linkedin.com/in/rohit-gajaraj
+  x: https://twitter.com/rohit_gajaraj
+  github: https://github.com/RohitGajaraj
+  second_time_founder: false
+  education:
+    - BE Mechatronics Engineering
+    - MBA, TUM School of Management
+  career:
+    - org: ISRO (India's national space agency)
+      role: satellite communication systems, from age 21
+      note: >-
+        Say "Moon and Mars missions", NEVER the mission names. A reader outside
+        India has to look them up, and a name that stops the sentence is a defect.
+        Both missions flew.
+    - org: Infineon Technologies, Munich
+      role: product manager, semiconductors
+    - org: Intellect (BFSI technology company)
+      role: senior AI product manager
+      note: >-
+        The AI platform 200+ financial institutions across 70+ countries build
+        their own AI products on.
+  proof_of_persistence: >-
+    Built and threw away four complete working versions of this product before
+    this one, each rebuilt from scratch when the shape turned out to be wrong.
+    Two years ago could not ship production software at all; learned to build by
+    directing agents. SHOW THE BEHAVIOUR, never name the trait.
+
+numbers:
+  # Re-derive on the morning of any submission.
+  commits:
+    value: 5321
+    as_of: 2026-08-16
+    outward_form: "5,300+"
+    command: git rev-list --count origin/main
+  migrations:
+    value: 545
+    as_of: 2026-08-16
+    command: ls supabase/migrations/*.sql | wc -l
+  first_real_commit:
+    value: 2026-06-02
+    command: git log --reverse --format='%ad' --date=short | sed -n 2p
+    note: A template commit dated 2025-01-01 is scaffold, not work.
+  research_sources:
+    value: 679
+    note: Primary sources read, plus a private community of ~30,000 product managers.
+
+positioning:
+  order: door, then body, then brain. ALWAYS. The brain is the crescendo, never the opening.
+  layers:
+    - id: "01"
+      name: the director
+      claim: Tells you what to build from your own signals and market, with the evidence attached. Argues down weak bets before you commit.
+      note: This is the layer nobody else sells.
+    - id: "02"
+      name: the operating system
+      claim: Writes the spec, plans, designs, builds, opens a real pull request behind a merge gate no agent can cross.
+    - id: "03"
+      name: the brain
+      claim: Every decision recorded with the forecast that justified it, frozen at the moment of the call, then graded against what shipped.
+      note: The only layer defensible alone.
+  moat: >-
+    The forecast captured at decision time: what a team believed would happen,
+    recorded before the outcome was known. Not an artifact, leaves no trace unless
+    something caught it at the moment of the call.
+  moat_falsified_alternatives:
+    - claim: Storage is the moat
+      status: FALSE. Any vendor can store decisions.
+    - claim: The compounding record of what happened is the moat
+      status: >-
+        FALSE, falsified 2026-08-10. Causes survive in Slack, email and call
+        recordings. Vercel's COO reconstructed a lost deal's reasoning with an
+        agent built in two days.
+  hard_mechanisms:
+    # Say the mechanism, never the adjective.
+    - Forecast fields made immutable by a BEFORE UPDATE trigger in Postgres, not a check in application code, so the rule holds for every caller including our own agents.
+    - A merge gate no agent can cross; a person approves and merges.
+    - An audit trail on every agent action.
+    - One-key rollback on anything an agent produced.
+    - A customer-reachable kill switch and workspace pause that halt work in flight.
+    - Agents earn autonomy from their own track record, with floors on merge, revert and delegate.
+    - Deliberate refusal to compute performance scores about named human teammates.
+  taglines:
+    under_50_chars: "Agents run the product org. You keep the judgment."
+    under_100_chars: "Tells product teams what to build, builds it, then grades the call against what shipped."
+    note: >-
+      The "Cursor for PMs" anchor is RETIRED. Three readers killed it: it borrows
+      the do-the-work-faster frame that the competitors answer spends a paragraph
+      disowning.
+
+tech:
+  ai_coding_tools: [Claude Code, Codex, Lovable, Antigravity]
+  models:
+    retrieval: Cohere embed-v4
+    agent_loop: [Qwen-plus, Gemini 2.5 Flash]
+    deep_reasoning: GPT-5
+    note: One runtime chokepoint handles budget, cache, guardrails, tracing, fallback and feature gates. Models are interchangeable parts.
+  frontend: [TanStack Start, React 19, Vite, TypeScript, Tailwind, shadcn, Bun]
+  data: [Supabase Postgres with RLS, pgvector, pg_cron]
+  deploy: Cloudflare Workers
+  sandboxing: E2B, with secret redaction on every output stream
+  connectors_real: [GitHub, GitLab, Slack, Intercom, Zendesk, Canny, Productboard, Salesforce, HubSpot, Stripe]
+  connectors_stub_DO_NOT_NAME: [Linear, Notion, Jira, Figma, Gmail, Google Docs]
+
+competition:
+  primary: >-
+    The stitched stack, not a company. Discovery in one tool, spec in a second,
+    design in a third, code agents in a fourth, flags in a fifth, results in a sixth.
+    The tax is the seams, not the tools.
+  structural_gap: >-
+    Grading a decision needs the call and its outcome inside one system, and a
+    handoff is precisely where those two get separated. No feature ships past that.
+  named: [Notion Ship OS, Atlassian Product Collection, Linear, ChatPRD, Samepage, Brief]
+  second_competitor: >-
+    A folder of markdown files. Low-level tools are agent-writable but not
+    agent-governable.
+  never_say: "we have no competitors"
+  deliberate_non_goal: We do not build the code generator. The models keep absorbing that layer.
+
+market:
+  tam: $300B+/yr, the product management work budget (~2.6M PMs at ~$115K loaded cost), already paid for as headcount
+  sam: $2B growing to $12B/yr
+  som: ~$47M ARR at launch pricing
+  buyer: >-
+    The "product staff" seat: Instagram replaced its ~13-person canonical team
+    with pods of 4-6 engineers led by a PM who absorbs design, data and research
+    (Mosseri, July 2026). That seat has no system of record.
+  pricing: Workspace subscription plus credits for agent runs, so the bill tracks work done rather than seats. Untested until beta.
+  tailwind: Devin $37M to $492M ARR in twelve months; Cursor at $2B.
+
+europe_wedge:
+  # Use ONLY for European programmes. It does not travel to US applications.
+  law: EU AI Act
+  live_since: 2026-08-02
+  plain_statement: >-
+    A company running AI agents on real work must show automatic logs of what the
+    system did, prove a human could oversee and halt it, and carry that duty itself
+    as the deployer rather than pushing it to the vendor.
+  articles_for_live_conversation_only:
+    art_12: automatic logging over a high-risk system's lifetime
+    art_14: provider must build the system so a human can oversee and halt it
+    art_26: deployer duties land on the customer, not the vendor
+    art_50: transparency and machine-readable marking of generated content; fines to EUR 15M or 3% of worldwide turnover
+    annex_III_pt_4: AI used in task allocation and performance evaluation is high-risk
+  register_rule: >-
+    In writing, state the rule plainly and show the product answering it. Reciting
+    article numbers reads as homework. Save the numbers for the live conversation.
+  source: docs/planning/rebuild-2026-07/governance/gov-c-frame-and-story.md
+
+assets:
+  # What to attach, by who is asking. Founder rulings 2026-08-16.
+  deck_for_programmes: docs/pitch/shareables/Supaprod-Brief.pdf
+  deck_for_investors: docs/pitch/shareables/Supaprod-Investor-Briefing.pdf
+  product_video_file: docs/pitch/shareables/Supaprod-Product-Film.mp4   # 97.6MB, gitignored
+  product_video_link: https://youtu.be/x9WgGn0FyYU                       # public, 2:23
+  founder_video_link: https://youtu.be/zBmtUtkTyBs                       # unlisted, 2:32
+  retired:
+    - path: docs/pitch/shareables/supaprod-pre-seed-deck-16pp.pdf
+      reason: Renders badly. Slides 3, 6, 15 and 16 clip; slide 15 loses three lines.
+  traps:
+    - path: videos/supaprod-film/renders/video-v15.mp4
+      reason: >-
+        The final SILENT picture. Higher version number than the master and dated
+        within a minute of it. The two naming series are not comparable. Probe for
+        an audio stream before sending any render.
+    - rule: >-
+        Never send Supaprod-Investor-Briefing.pdf to an accelerator. Its content
+        reads "Pre-Seed Briefing - Confidential" with investors@ in the footer.
+
+demo_logins:
+  rule: One login per programme, never shared. Approving a gate is a write, so a second reviewer finds an emptied queue.
+  verify_before_sending: true
+  record_signin_timestamp: >-
+    Sign in to verify the queue is armed, then RECORD THE TIMESTAMP. Any later
+    sign-in is then attributable to the programme. This is what explore@ lacked.
+  allocated:
+    explore@supaprod.ai: Y Combinator (locked)
+    compass@supaprod.ai: Betaworks AI Camp
+    lantern@supaprod.ai: Campus Founders (verified working 2026-08-16 11:25 IST)
+    meridian@supaprod.ai: ikigai Launchpad (reserved)
+    harbor@supaprod.ai: founder rehearsal, NEVER send
+  free: [voyage@supaprod.ai]
+
+vocabulary:
+  banned_everywhere:
+    [receipts, ledger, company brain, decision layer, unattended, first run, provenance]
+  banned_brain_verbs: [remembers, stores, logs]
+  keep: [audit trail, shared brain]
+  approve_vs_review: >-
+    Use "approve" only where a click UNBLOCKS something. Use "review" where it
+    only shows you something.
+  banned_filler:
+    [leverage, utilize, robust, seamless, cutting-edge, revolutionize, game-changer,
+     unlock, empower, supercharge, delve, testament to]
+  punctuation: No em dashes, no en dashes, no invisible Unicode in anything pasted.
+
+never_claim:
+  - Accumulated learning in the present tense. The honest form is that the loop is wired and proven and begins accruing on first real use.
+  - The claim that Supaprod's own roadmap runs inside Supaprod. It does not survive its own database.
+  - Any count of human approvals. The gate is a principle as a feature and a liability as a count.
+  - Any product-usage number. Every one that ever existed was seed data.
+  - The mission names at ISRO. Moon and Mars missions only.
+  - Any number that decays before the reader sees it and that they cannot re-derive.
+
+application_rules:
+  form_is_the_spec: >-
+    Read every question, label, character limit and dropdown option off the LIVE
+    form before drafting. If an account gate blocks it, getting past the gate is
+    the first task, not something to work around.
+  scroll_dropdowns: A visible option is not the best option. Scroll to the bottom.
+  optional_fields: >-
+    Blank when filling would overstate. FILL when the field shows something true
+    that no other field carries. A founder video on a solo application is the
+    clearest case for filling.
+  numeric_fields: A required revenue or user field gets the TRUE figure. The never-volunteer-the-zero rule governs prose, not numbers.
+  never_volunteer_the_zero: >-
+    Banned in prose on every application: zero revenue, zero outside users, no
+    users, nobody has used it yet, or any sentence whose only job is to announce
+    an absence.
+  vulnerability_beats: 1     # exactly one, placed where the form invites it
+  self_corrections: 1        # exactly one
+  rule_6_adjacency: The commit count and "agents write the code" must never share a field.
+  unconditional_commitment: Never "if accepted, I will". The programme changes the speed and the postcode, never the decision.
+  read_the_verb: '"JOINED" is not "applied". Answer the question actually asked.'
+  founder_submits: Never submit an application. The founder submits.
+
+filed:
+  - programme: Y Combinator Fall 2026
+    date: 2026-08-11
+    status: submitted
+  - programme: South Park Commons
+    date: 2026-07-31
+    status: rejected 2026-08-11, no reason given
+    note: Rejected WITHOUT ever opening the product. last_sign_in_at was NULL.
+  - programme: Betaworks AI Camp
+    date: 2026-07-31
+    status: submitted
+  - programme: Berkeley SkyDeck Batch 23
+    date: 2026-08-13
+    status: submitted
+  - programme: The Residency
+    status: submitted
+  - programme: Conviction Embed
+    date: 2026-08-14
+    status: submitted
+  - programme: Campus Founders CF Accelerator Batch #9
+    date: 2026-08-16
+    status: submitted
+    deadline: 2026-08-17 03:29 IST
+    pitch_presentations: 2026-08-24 to 2026-08-26
+    decision: 2026-08-28
+    programme_start: 2026-09-30
+    terms: EUR 25K equity-free, milestone-disbursed founders-friendly loan, gated on a registered company by December
+    record: docs/pitch/applications/campus-founders/FILL-SHEET-38-FIELDS.md
