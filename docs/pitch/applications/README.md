@@ -129,6 +129,7 @@ Workflow({ name: 'application-pressure-test', args: {
 | [**`gate-2-ranking.md`**](./gate-2-ranking.md) | **The ranked list and the calls, 2026-08-14.** Tiers, apply-now versus apply-later per target with the reasoning, the ten pages only the founder can open, and the ask recommendation with comparables drawn from the sweep's own verified terms. **Start here before filing anything.** |
 | [**`sweep/`**](./sweep/README.md) | **The 2026-08 global sweep, harvested lane by lane while it runs.** Every programme checked against its own live apply page rather than a listed date. Written incrementally on purpose: a run that dies on the last lane must not take the earlier ones with it. |
 | [**`../../../.claude/workflows/application-pressure-test.js`**](../../../.claude/workflows/application-pressure-test.js) | **The pressure-test harness. Run it before any application sends.** Programme-agnostic; derives its own numbers. |
+| [`funding-pipeline.xlsx`](./funding-pipeline.xlsx) | **The programme research pipeline, and its master.** 572 programmes across three sheets: Dashboard, This month, all-programmes-ranked, with two charts and Status / Date applied / Notes columns. **Edit it here, in Excel, then run `python3 scripts/funding-sync.py`.** See the two-lane note below. |
 | [`baseline.yml`](./baseline.yml) | **Read this first.** The compact machine-readable source of truth: facts, live numbers with their derive commands, positioning, the Europe wedge, which asset to attach to whom, demo-login allocation, banned vocabulary, and every standing application rule. Written so a session does not have to read 30K of markdown to get one fact right. **Where it disagrees with the three files below, they win and the YAML is stale.** |
 | [`answer-bank.md`](./answer-bank.md) | Every reusable answer, at every length. Pull from here, never write from scratch. |
 | [`positioning-doctrine.md`](./positioning-doctrine.md) | How we get **selected**, not just how we apply. Asset track record, the counters to every objection, the per-program positioning axis, and the quality gate. |
@@ -144,6 +145,32 @@ Workflow({ name: 'application-pressure-test', args: {
 ## 📌 Read this before drafting anything
 
 **[`how-to-draft-the-next-one.md`](./how-to-draft-the-next-one.md)** is the craft log: every correction the founder made and why, what worked and should be repeated, what did not, and what the forms themselves do to you. It was written after Berkeley SkyDeck was filed and it is the file that stops the next application relearning the same nine things.
+
+## Two lanes, and they are separate on purpose. Set 2026-08-16.
+
+**Six copies of the same pipeline existed and they had drifted.** An XLSX and a CSV in iCloud, and four overlapping CSVs here, one of which was a byte-level duplicate of another in a different text encoding. The Notion board said South Park Commons was Submitted five days after they rejected us, and Conviction Embed sat at Not started after it was filed.
+
+| Lane | Master | Generates | Never hand-edit |
+| --- | --- | --- | --- |
+| **What to consider** — 572 researched programmes | **[`funding-pipeline.xlsx`](./funding-pipeline.xlsx)** | [`all-programmes-ranked.csv`](./all-programmes-ranked.csv) · [`FUNDING-TRACKER.csv`](./FUNDING-TRACKER.csv) · [`funding-this-month.csv`](./funding-this-month.csv) | those three CSVs |
+| **What we actually filed** | **[the Notion Application Board](https://app.notion.com/p/4014ff9cb1c240c9a3b761e790852970)** | — | — |
+| | mirrored by hand into [`TRACKER.csv`](./TRACKER.csv) | | |
+
+**Why the workbook rather than a CSV.** It is the only artifact with the analysis layer, and it carries Status, Date applied and Notes columns the exports never had.
+
+**Why the sync script never writes to it.** `openpyxl` silently drops charts, images and table formatting when it re-saves an existing file, so a single programmatic save would destroy the Dashboard. [`scripts/funding-sync.py`](../../../scripts/funding-sync.py) opens the workbook as a zip and parses the sheet XML with the standard library instead. **Verified after the one surgical edit that has been made: 36 zip parts before and after, none lost, all three charts intact.**
+
+```bash
+python3 scripts/funding-sync.py            # export the CSVs, then publish to iCloud
+python3 scripts/funding-sync.py --check    # exit 1 if any export is stale
+python3 scripts/funding-sync.py --no-icloud
+```
+
+**iCloud is a published copy, not a second master.** `~/Library/Mobile Documents/com~apple~CloudDocs/Supaprod/Funding/` holds a one-way copy for phone and iPad viewing, plus a `READ-ME-FIRST.txt` saying so. The two files that used to be masters there are preserved in `_superseded-2026-08-16/`. **Anything typed into the iCloud copy is overwritten on the next publish.**
+
+> ### Known limitation of the exporter
+>
+> **Dates come out as Excel serial numbers**, not as dates. `46250` is 2026-08-17. The exporter reads raw cell values and does not apply number formats, because applying them correctly needs the full styles chain and getting it half right is worse than leaving the serial visible. **Read dates from the workbook or from Notion, not from the CSV exports.**
 
 **The three files, and none replaces another.** [`answer-bank.md`](./answer-bank.md) owns the **facts** (numbers, bios, the founder record with dates). [`positioning-doctrine.md`](./positioning-doctrine.md) owns the **rules**, seven of them. [`how-to-draft-the-next-one.md`](./how-to-draft-the-next-one.md) owns the **craft**.
 
