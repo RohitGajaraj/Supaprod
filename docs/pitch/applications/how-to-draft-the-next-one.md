@@ -30,7 +30,7 @@ Each of these came back as a rejection of a draft. They are ordered by how much 
 
 **Say this instead. Every clause is verifiable, and none of it implies a number we could not give:**
 
-> **The product runs end to end today**: agents read the signals, argue down the weak bets, come back with a call and its evidence, write the spec, build it, open a real pull request, and a person merges. **Public launch is mid-September 2026.**
+> **The product runs end to end today**: agents read the signals, argue down the weak bets, come back with a call and its evidence, write the spec, build it, open a real pull request, and a person merges. **Public launch is 30 September 2026.**
 
 > ⚠️ **The block that stood here until 2026-08-17 carried two retired claims and is gone.** It said *"private beta, invite-only, signup closed on 2026-08-07 and entry is by invite code"* (banned by rule 0a below) and *"Supaprod's roadmap is built inside Supaprod"* (removed by YC rule 6, because it does not survive its own database: 344 missions against 27 completed).
 
@@ -67,7 +67,7 @@ Each of these came back as a rejection of a draft. They are ordered by how much 
 
 **Say this instead. It asserts capability and a date, both checkable, and implies no quantity:**
 
-> **The product runs end to end today**: agents read the signals, argue down the weak bets, come back with a call and its evidence, write the spec, build it, open a real pull request, and a person merges. **Public launch is mid-September 2026.**
+> **The product runs end to end today**: agents read the signals, argue down the weak bets, come back with a call and its evidence, write the spec, build it, open a real pull request, and a person merges. **Public launch is 30 September 2026.**
 
 **Why this is stronger, not just safer.** Capability is the thing we actually have and it is rare: most applicants at this stage have a Figma file. A launch date is a commitment a reviewer can hold us to. **Neither one raises a question we would have to duck.**
 

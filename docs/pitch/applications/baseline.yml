@@ -47,12 +47,12 @@ company:
     costs more in time, legal fees and tax than the entity is worth. Jurisdiction
     is chosen to match where the company will actually operate.
   stage_label: Users          # never "Prototype", never "Idea"
-  public_launch: mid-September 2026
+  public_launch: 30 September 2026
   product_state_outward: >-
     The product runs end to end today: agents read the signals, argue down the
     weak bets, come back with a call and its evidence, write the spec, build it,
     open a real pull request, and a person merges. Public launch is
-    mid-September 2026.
+    30 September 2026.
   # FOUNDER RULING 2026-08-17. The fields `beta: private, invite-only` and
   # `signup_closed: 2026-08-07` are DELETED, not moved. They were being pasted
   # into applications as "private beta, invite-only, signup closed 7 August,
@@ -128,7 +128,7 @@ numbers:
     command: git rev-list --count origin/main
   migrations:
     value: 545
-    as_of: 2026-08-16
+    as_of: 2026-08-17
     command: ls supabase/migrations/*.sql | wc -l
   first_real_commit:
     value: 2026-06-02

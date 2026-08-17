@@ -440,13 +440,13 @@ gate no agent can cross, and every call along the way is on the record with its
 evidence.
 
 Where I stand today: the beta is live, and building and listening run in
-parallel. Public launch in September 2026.
+parallel. Public launch 30 September 2026.
 ```
 
 ### How far along (short form, under 50 words)
 ```
 Working end to end and live at supaprod.ai. Eleven weeks of building, 5,300+
-commits, solo. Public launch mid-September 2026. I run my own product work
+commits, solo. Public launch 30 September 2026. I run my own product work
 through it every day.
 ```
 
@@ -459,7 +459,7 @@ through it every day.
 ```
 The product runs end to end today: agents read the signals, argue down the weak
 bets, come back with a call and its evidence, write the spec, build it, open a
-real pull request, and a person merges. Public launch is mid-September 2026.
+real pull request, and a person merges. Public launch is 30 September 2026.
 
 I am user zero and I mean it literally. I run my own product work through it
 every day, which shows the thing works rather than that anyone wants it, and I

@@ -216,16 +216,20 @@ tested under supervision. Regulated finance is where I come from.
 > **On the February 2027 gap.** The field asks what stage the company is at **today**, so it gets today's answer. The trajectory to the programme start does not belong in a radio button; it belongs in Q15, where it is now stated as a dated plan. **Answer the question that was asked, and put the argument in the field whose question invites it.**
 
 ## 13. When did you launch your MVP and started monetizing?
-**`September 2026`** — founder-confirmed 2026-08-17. **Not August.**
+**`30 September 2026`** — founder-confirmed 2026-08-17.
 
 > Conditional date field, renders only for some stage selections. It may not appear at all under `Post-launch and Pre-revenue`.
 >
-> **This is the public launch date**, which is the one a reviewer can check against `supaprod.ai`, and it stays consistent with the three revenue fields reading 0: the launch is the event, monetization has not started. The question bundles the two and only the first has a date.
+> ### ⚠️ This date forced a correction elsewhere on the form, and it was the right kind to catch
 >
-> ### ⚠️ Two things to watch when you reach this field
+> **The draft said "public launch is mid-September 2026" in six places.** Setting the MVP date to **30 September** would have put the MVP launching *after* the public launch, one screen apart on the same form. **Everything is now aligned to 30 September 2026**, in this file, `baseline.yml` and `answer-bank.md`.
 >
-> 1. **It is a future date on a past-tense question.** Some pickers refuse a future date outright, the way F6S rejects any end date in the future. **If it will not accept September 2026, do not back-date it to make the widget happy.** Leave it, or pick the earliest date it allows and say so nowhere else on the form. A wrong date sitting beside three zeroes is the one inconsistency a reviewer can catch without leaving the page.
-> 2. **If the field appears, re-check that `Post-launch and Pre-revenue` is still the right stage selection.** A form that asks when you launched, immediately after you said post-launch, is consistent. If the field only renders for `Generating Revenue`, the stage answer is wrong and Q12 needs revisiting rather than this one.
+> **A specific date is also the stronger answer.** "Mid-September" is an estimate a reader discounts; "30 September 2026" is a commitment they can hold you to, and Rule 2 says numbers argue.
+>
+> ### Two things to watch when you reach this field
+>
+> 1. **It is a future date on a past-tense question** (*"when did you launch"*). Some pickers refuse future dates outright, the way F6S rejects any end date in the future. **If it will not accept 30 September 2026, do not back-date it to satisfy the widget.** A date that contradicts the three zero-revenue fields is worse than a blank.
+> 2. **"and started monetizing" is the second half of the question and it has not happened.** The date answers the launch half only, which is consistent with Q16, Q17 and Q18 all reading 0. Do not let the field imply revenue began.
 
 ## 14. What was the last round of funding you closed?
 **`We are bootstrapped`**
@@ -244,7 +248,7 @@ moment of the call and locked by a database trigger. The system brings each
 forecast back when it falls due and settles it against what shipped. The loop is
 proven end to end and begins accruing on first real use.
 
-Public launch is mid-September. From then the numbers are activation, retention
+Public launch is 30 September 2026. From then the numbers are activation, retention
 and graded decisions per workspace from teams that are not me. Cohort 20 starts
 February 2027, more than four months after that, so the revenue figures on this
 form describe the company applying and not the one that would arrive.
