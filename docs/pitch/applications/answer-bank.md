@@ -130,26 +130,46 @@ Agents that know what to build, ship it, and learn.
 | --- | --- | --- |
 | **01** | the director | tells / knows / decides **what to build** |
 | **02** | the operating system | **builds it, ships it** (agents do it) |
-| **03** | the brain | **learns and guides the next call**, never "stores" and never "remembers" |
+| **03** | the brain | **guides the next call**, never "stores", never "remembers", **and never only "warns"** |
+
+### 🛑 "warn you" is retired as the third clause. **Founder ruling 2026-08-17.**
+
+> _"'warn you' is not the good thing. We should use something else. It does not just warn; it also guides you."_
+
+**"Warn" carries only the negative half of the third layer.** It says the product stops a repeat of something that went wrong, and says nothing about the larger half: it re-ranks what to build next and tells a team what is right, not just what is not. **"Guide" carries both directions in one word.**
+
+**The founder's own deck already had this right.** The cover of the 16-page deck reads *"agents that know what to build, ship it, and guide the next call"*, and the close slide reads *"LEARNS, AND GUIDES THE NEXT CALL"*. The answer bank was behind the deck. **Close on "guide the next call".**
 
 > **On the founder's phrase "company brain".** The concept is exactly right and it is the third layer. **The words are banned in outward copy** (`CLAUDE.md`, and it is YC's phrase, not our brand identity). Write the mechanism instead: *learns and guides the next call*. "Shared brain" is the kept alternative if a noun is needed.
 
-### Under 50 characters — every line below passes the three-layer test
+### ⭐ The canonical line, and it is already live on the deck cover
+
+```
+Agents that know what to build, ship it, and guide the next call.
+```
+_65 characters._ **Use this wherever the field allows 65.** All three layers, names the actor, closes on guiding. It is on the cover of the 16-page deck and the Hub71 deck, so the shortest line and the strongest artifact now say the same thing.
+
+### Under 50 characters, when the cap forces it
 
 | Line | Chars | Notes |
 | --- | --- | --- |
-| **`Agents that know what to build, ship it, warn you`** | **49** | ⭐ **The default.** All three layers, names the actor, closes on the brain guiding rather than storing |
-| `AI that knows what to build, ships it, warns you` | 48 | Same line if the reader prefers "AI" to "Agents" |
-| `Decides what to build, builds it, guides the next` | 49 | Blunter, and "guides" is the sharpest statement of layer 03 |
-| `Agents that know what to build, ship it, guide you` | 50 | Only where the cap is inclusive of 50. Verify the field accepts it |
-| `Decides what to build, builds it, learns.` | 41 | When the cap is tighter than 50. Weakest of the set: "learns" does not say it guides |
+| **`Agents know what to build, ship it, and guide`** | **45** | ⭐ **The safe pick.** Comfortably under a 50 cap, names the actor, all three layers |
+| `Agents know what to build, ship it, guide next` | 46 | Sharper ending, slightly clipped register |
+| `Decides what to build, ships it, guides the next` | 48 | Blunter. Drops the actor, so only use it where a sentence surrounds it |
+| `Agents know what to build, ship it, guide the next` | 50 | Fullest reading, but **only where the cap is inclusive of 50.** Verify the field accepts it |
 
-### Under 100 characters
+> ⚠️ **Never close on "warn you", "remember", "stores" or "logs".** See the ruling above.
+
+### Under 100 characters, with product substance
+
+**Founder direction 2026-08-17: the short lines are too thin on their own. Where there is room, say what the product actually runs on.**
 
 | Line | Chars | Notes |
 | --- | --- | --- |
-| **`Tells product teams what to build, builds it, then grades the call against what shipped.`** | **88** | ⭐ **Filed on Campus Founders 2026-08-16.** The strongest three-layer line in the corpus. `baseline.yml` carries it as `under_100_chars` |
-| `Agents that decide what to build, ship it, and guide the next call.` | 67 | Closes on guiding rather than grading, if the field wants the forward-looking half |
+| **`Tells product teams what to build from their own signals, ships it, guides the next call.`** | **89** | ⭐ **The richest three-layer line.** Names the buyer, names the input the director reads, and closes on guiding. Passes Rule 1: no "you" |
+| `Tells product teams what to build, ships it, then grades the call and guides the next.` | 86 | Carries both halves of layer 03: the grading mechanism **and** the forward guidance |
+| `Tells product teams what to build, builds it, then grades the call against what shipped.` | 88 | **Filed on Campus Founders 2026-08-16.** Most concrete on mechanism, but stops at grading and never says it guides |
+| `Tells product teams what to build, ships it with agents, then guides the next call.` | 83 | Names the agents doing the work, which is Rule 5 |
 
 > ### 🛑 `Cursor for PMs` is RETIRED on every surface. Do not reach for it.
 >
@@ -161,9 +181,9 @@ Agents that know what to build, ship it, and learn.
 >
 > The full canon tagline, `Agents that know what to build, ship it, and remember.`, is **54 characters** and does not fit a 50 cap.
 >
-> ⚠️ **Always name the actor.** A standalone form field has no sentence around it, so `Knows what to build, ships it, warns you` reads as a fragment and the reader asks *what* knows. Start with "Agents" or "AI".
+> ⚠️ **Always name the actor.** A standalone form field has no sentence around it, so `Knows what to build, ships it, guides the next` reads as a fragment and the reader asks *what* knows. Start with "Agents" or "AI".
 >
-> ⚠️ **Never close on "remember".** It describes where data sits. The third layer **guides**: it warns you before you repeat what did not work. Close on "warn you", "learn", or "warns on repeats".
+> ⚠️ **Never close on "remember".** It describes where data sits. **Close on "guide the next call".** The third layer does two things and "guide" is the only short word carrying both: it re-ranks what is worth building next, and it flags a call the team has made before. **"Warn" carries only the second half and is retired as a closing clause** (founder ruling 2026-08-17).
 
 ### One sentence
 ```

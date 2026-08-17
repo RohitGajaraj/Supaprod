@@ -105,7 +105,7 @@ The canon already carried this and it was under-used. Two lines to reach for:
 | --- | --- | --- | --- |
 | **01** | **The director** | Tells you what to build, from your feedback, product data, competitors and market, with evidence attached. **This is the sharpest claim.** | Almost everyone has shipped something that mattered to nobody. Not from carelessness; nobody could see the whole picture at once. |
 | **02** | **The operating system** | Runs the whole lifecycle as one governed loop: sense, decide, define, build, ship, learn. | The glue work between five tools is invisible and it grinds people down. |
-| **03** | **The brain** | Remembers **and guides**: tells you what worked, warns before you repeat what did not, re-ranks the next bets. | Your judgment stops living in one person's head and stops walking out when they leave. |
+| **03** | **The brain** | **Learns, then guides**: grades what shipped against the call that caused it, re-ranks the next bets, and flags a call the team has made before. | Your judgment stops living in one person's head and stops walking out when they leave. |
 
 **Door then body then brain. One headline per surface. The brain is the crescendo, never the opening.**
 

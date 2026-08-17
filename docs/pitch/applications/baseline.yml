@@ -60,6 +60,12 @@ founder:
   name: Rohit Gajaraj
   email: founder@supaprod.ai
   investor_email: investors@supaprod.ai
+  # Recorded 2026-08-17 so no future application has to stop and ask for it.
+  # This repo is PRIVATE (verified before writing). Never paste this into an
+  # outward document, a deck, or anything published; forms only.
+  phone: "+91 8892298119"
+  phone_local: "8892298119"          # type this where a country code is prefilled
+  nationality: Indian
   linkedin: https://linkedin.com/in/rohit-gajaraj
   x: https://twitter.com/rohit_gajaraj
   github: https://github.com/RohitGajaraj
@@ -147,9 +153,14 @@ positioning:
     # layer sells one third of the product. Test any candidate against all three:
     #   01 tells/knows what to BUILD · 02 BUILDS and ships it · 03 LEARNS and GUIDES the next call
     three_layer_rule: mandatory
-    under_50_chars: "Agents that know what to build, ship it, warn you"
-    under_100_chars: "Tells product teams what to build, builds it, then grades the call against what shipped."
-    ten_words: "Agents that know what to build, ship it, and learn."
+    # FOUNDER RULING 2026-08-17: close on GUIDE, never on "warn". "Warn" carries
+    # only the negative half of layer 03. The product also re-ranks what to build
+    # next, which "guide" carries in one word. This line is already on the deck
+    # cover, so the shortest surface and the strongest artifact now agree.
+    canonical: "Agents that know what to build, ship it, and guide the next call."   # 65
+    under_50_chars: "Agents know what to build, ship it, and guide"                  # 45
+    under_100_chars: "Tells product teams what to build from their own signals, ships it, guides the next call."  # 89
+    ten_words: "Agents that know what to build, ship it, and guide."
     retired:
       - line: "Cursor for PMs, the whole product org."
         reason: >-
@@ -168,7 +179,12 @@ positioning:
         reason: >-
           Closes on a banned verb of the brain. The third layer guides, it does not
           hold a record.
-    never_close_on: [remember, remembers, stores, logs]
+      - line: "Agents that know what to build, ship it, warn you"
+        reason: >-
+          Founder ruling 2026-08-17. "Warn" carries only the negative half of layer
+          03. It says the product stops a repeat of something that went wrong and
+          says nothing about re-ranking what to build next. Close on "guide".
+    never_close_on: [remember, remembers, stores, logs, warn, "warn you", warns]
 
 tech:
   ai_coding_tools: [Claude Code, Codex, Lovable, Antigravity]

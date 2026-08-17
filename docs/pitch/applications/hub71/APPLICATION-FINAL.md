@@ -213,9 +213,16 @@ from.
 > Correction 6: *"Prototype as a stage is too modest."* The product runs end to end and a reviewer can walk the whole loop. `Building MVP` understates it and is the wrong answer.
 
 ## 13. When did you launch your MVP and started monetizing?
-**⚠️ FOUNDER INPUT NEEDED.** Conditional date field, renders only for some stage selections.
+**`September 2026`** — founder-confirmed 2026-08-17. **Not August.**
 
-> Use the date the private beta actually went live. `baseline.yml` records **signup closed 2026-08-07** but not the open date. Do not guess a date onto a form that also asks three revenue questions.
+> Conditional date field, renders only for some stage selections. It may not appear at all under `Post-launch and Pre-revenue`.
+>
+> **This is the public launch date**, which is the one a reviewer can check against `supaprod.ai`, and it stays consistent with the three revenue fields reading 0: the launch is the event, monetization has not started. The question bundles the two and only the first has a date.
+>
+> ### ⚠️ Two things to watch when you reach this field
+>
+> 1. **It is a future date on a past-tense question.** Some pickers refuse a future date outright, the way F6S rejects any end date in the future. **If it will not accept September 2026, do not back-date it to make the widget happy.** Leave it, or pick the earliest date it allows and say so nowhere else on the form. A wrong date sitting beside three zeroes is the one inconsistency a reviewer can catch without leaving the page.
+> 2. **If the field appears, re-check that `Post-launch and Pre-revenue` is still the right stage selection.** A form that asks when you launched, immediately after you said post-launch, is consistent. If the field only renders for `Generating Revenue`, the stage answer is wrong and Q12 needs revisiting rather than this one.
 
 ## 14. What was the last round of funding you closed?
 **`We are bootstrapped`**
@@ -349,7 +356,7 @@ city. I would rather sit next to that than sell into it from elsewhere.
 | --- | --- |
 | Primary Contact Name | `Rohit Gajaraj` |
 | Primary Contact Email | `founder@supaprod.ai` (the page asks for a company email) |
-| Primary Contact Number | **⚠️ FOUNDER INPUT NEEDED.** Country code prefills to `India +91` |
+| Primary Contact Number | **`8892298119`** with the country code left on the prefilled `India +91`. Full number `+91 8892298119` |
 | Other emails to copy | leave blank, nothing true is carried by it |
 | Marketing updates checkbox | founder's call, no application consequence |
 

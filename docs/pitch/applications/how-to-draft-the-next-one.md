@@ -287,7 +287,17 @@ ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 <file>
 
 **Both read well, which is exactly why this is easy to get wrong.** A sharp single-layer line beats a clumsy three-layer one on the ear and loses on the pitch.
 
-**The test: 01 tells what to build, 02 builds and ships it, 03 learns and guides the next call. All three, in that order, in every short field.** The default is now `Agents that know what to build, ship it, warn you` (49), and the strongest in the corpus is the filed Campus Founders line, `Tells product teams what to build, builds it, then grades the call against what shipped` (88).
+**The test: 01 tells what to build, 02 builds and ships it, 03 learns and guides the next call. All three, in that order, in every short field.**
+
+**The canonical line is `Agents that know what to build, ship it, and guide the next call.` (65)**, which is already on the deck cover. Where a hard 50 cap forces it, `Agents know what to build, ship it, and guide` (45). Where there is room for product substance, `Tells product teams what to build from their own signals, ships it, guides the next call.` (89).
+
+### 20b. Close on "guide", never on "warn". Founder ruling, same day.
+
+> _"'warn you' is not the good thing. It does not just warn; it also guides you."_
+
+**A first pass promoted `Agents that know what to build, ship it, warn you` and that was wrong too.** It passes the three-layer test and still misstates the third layer: "warn" only says the product stops a repeat of something that went wrong. The larger half is that it re-ranks what is worth building next. **"Guide" carries both directions in one word.**
+
+**The founder's own deck already had it right**, on the cover and on the close slide. **When a rule and a shipped artifact disagree, check the artifact first** — that is correction 12 again, and it would have saved this round.
 
 **One caveat on his wording.** He said *"company brain"*, which is the right concept and a banned phrase in outward copy: it is YC's, not our brand identity. **Write the mechanism instead: learns and guides the next call.**
 
