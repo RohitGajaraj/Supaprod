@@ -250,27 +250,32 @@ tested under supervision. Regulated finance is where I come from.
 **`We are bootstrapped`**
 
 ## 15. What success metrics do you measure, and where are you with each of them?
-> _**No word limit on this field**, but crisp beats long. **211 words.** The hint asks for metrics (MRR, ARR, MAU, DAU), so the answer leads with the metrics that exist and are checkable rather than with prose. Carries the one vulnerability beat, on pricing, where the form invites it._
+> _**This field prints NO word limit**, unlike the five that do, so length is safe here. **225 words.** The hint asks for metrics, so the answer names each metric and where it stands rather than describing the product again. **`2 June 2026` was removed**: "eleven weeks" carries the claim and a third date only added clutter. The two dates left each do work, one a commitment and one theirs._
 ```
-The metrics I run the company on today, both reproducible from one command:
-5,300+ commits and 545 database migrations since 2 June 2026, directed and
-reviewed by one person in eleven weeks. A security review run separately from the
-agents that write the code held up.
+Commercial metrics begin at launch. The two I run on today are build throughput
+and forecast accuracy, and both reproduce from a single command.
 
-The product metric that decides this company is forecast accuracy. Every decision
-carries what the team expects, how they will know and by when, captured at the
-moment of the call and locked by a database trigger. The system brings each
-forecast back when it falls due and settles it against what shipped. The loop is
-proven end to end and begins accruing on first real use.
+Build throughput: 5,300+ commits and 545 database migrations in eleven weeks,
+directed and reviewed by one person. An independent security review of that
+codebase held up.
 
-Public launch is 30 September 2026. From then the numbers are activation, retention
-and graded decisions per workspace from teams that are not me. Cohort 20 starts
-February 2027, more than four months after that, so the revenue figures on this
-form describe the company applying and not the one that would arrive.
+Forecast accuracy is the metric that decides this company. Every decision carries
+what the team expects, how they will know and by when, locked by a database
+trigger at the moment of the call so it cannot be revised once the outcome is
+known. The system settles each forecast against what shipped when it falls due.
+The loop is proven end to end and begins accruing on first real use.
+
+From public launch on 30 September 2026 the numbers I will be held to are
+activation, retention, and graded decisions per workspace from teams other than
+mine.
+
+Cohort 20 begins in February 2027, by which point those metrics will have four
+months of live selling behind them. The revenue figures on this form describe the
+company applying, not the one that would arrive.
 
 The open question is pricing. Charging per closed decision loop rather than per
 seat is the right shape when agents do the work, but I have not tested what a team
-will pay for one. It is the number I most want to be wrong about early.
+will pay. It is the number I most want to be wrong about early.
 ```
 
 ## 16. Total revenue generated over the past 12 months (USD)
