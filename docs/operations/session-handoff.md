@@ -1,8 +1,64 @@
 # Pick up here
 
-> _Created: 2026-08-07 · Last updated: 2026-08-16 evening. **Campus Founders is FILED. The section below it, which says two applications are drafted and not filed, is superseded for Campus Founders and still current for ikigai.**
+> _Created: 2026-08-07 · Last updated: 2026-08-17 evening. **Campus Founders is FILED. The section below it, which says two applications are drafted and not filed, is superseded for Campus Founders and still current for ikigai.**
 
 ---
+# ✅ FUNDING LANE, 2026-08-17 — Hub71 SUBMITTED, EF The Bridge one step from submission
+
+**Pushed to `origin/main` at `dbe55b75`.** Everything below is on main and in the `Supaprod` worktree.
+
+## Two applications moved
+
+| | |
+| --- | --- |
+| **Hub71 Access + Hub71+ AI, Cohort 20** | 🚀 **SUBMITTED 2026-08-17**, four days before the 21 August deadline. AED 250K cash on a SAFE + AED 250K in kind + up to AED 250K top-up. Programme starts **February 2027**. Notion row updated. Record: [`../pitch/applications/hub71/APPLICATION-FINAL.md`](../pitch/applications/hub71/APPLICATION-FINAL.md) |
+| **EF The Bridge Residency, SF** | **13 of 13 text answers filled in the live form**, verified by DOM readback, none over the 100-word limit. Deadline **30 August**, residency starts **October 2026**. Record: [`../pitch/applications/ef-bridge-sf/APPLICATION-FINAL.md`](../pitch/applications/ef-bridge-sf/APPLICATION-FINAL.md) |
+
+### ⚠️ Three things block EF submission, and all three are founder-only
+
+1. **The one-minute video.** Script is written and timed at 164 words, roughly 63 seconds, in the fill sheet. **Do not reuse the existing founder video**: it is 2:32 against a one-minute ask and it pitches, which the question explicitly forbids.
+2. **Both toggles.** The alumni-contact one is preference. **The Privacy Policy one is a legal acknowledgement and an agent must never accept terms on his behalf.**
+3. **The save is UNCONFIRMED.** The browser refused a reload with "unsaved changes" twice, after both SAVE FOR LATER and NEXT. The save control is an `<a>` with no `href`. **It may be a blanket `beforeunload` guard rather than a real unsaved state, but the two cannot be distinguished without forcing the navigation, and forcing discards every answer. It was not forced.** Every answer is in the fill sheet, so the worst case is a ten-minute re-paste.
+
+## The bigger thing: the drafting system was rebuilt, because it was actively misleading
+
+**A Hub71 draft was written from `answer-bank.md` and thrown away whole.** It used "you" in product sentences (retired 2026-08-13), led with the forecast (retired 2026-08-11), and carried a competitor answer the filed version had already beaten. **The founder caught it. No checker did.**
+
+**The cause was structural.** Applications are filed weekly, each improves the material, and nothing carried the improvement back. Every gain died inside one programme folder while the next drafter started from older prose. **A stale source inside the drafting path does not go unused, it teaches the wrong thing.**
+
+**Three-part fix, and the third is the one that holds:**
+
+1. **A precedence table** at the top of the answer bank. The most recent `APPLICATION-FINAL.md` outranks it on register, structure and positioning order. The bank owns facts only.
+2. **A back-port step**, steps 9 and 10 of the procedure. A filing is not finished until what it taught is in the bank and in `baseline.yml`.
+3. **`bun run pitch:check`** ([`../../scripts/check-application-sources.py`](../../scripts/check-application-sources.py)). Fails when the bank's stamp is older than the newest filing, and sweeps every paste block for banned vocabulary, filler, em dashes, volunteered zeroes, implied demand and the banned falsification story. **Unit-tested against 12 violation cases and 7 false-positive guards.**
+
+## Seven founder rulings, all now doctrine rather than one-off edits
+
+| # | Ruling | Where |
+| --- | --- | --- |
+| **0a** | **Never imply demand you cannot put a number to.** "Private beta, invite-only, signup closed" implies a signup drive and a queue that do not exist. **Test: if the reviewer replies "how many?", is there a number we are happy to give?** | how-to-draft rule 0a, gated |
+| **24** | **Never leave a "no" as the last word.** The "none" answers the question, the next sentence opens the door it closed. Completes the rule-0 family | how-to-draft 24 |
+| **21** | **A self-correction that concedes the moat is an own goal.** The falsification story is BANNED outward: it told the reader the moat is two days of work for anyone with a team | how-to-draft 21, gated |
+| **20** | **Every one-liner carries all three layers.** Close on **guide**, never "warn": warn carries only the negative half | baseline `three_layer_rule` |
+| **22** | **The one-pager is the attachment for every application.** A required-contents list is not an exception. Ruled twice in two days | answer-bank §11 |
+| **23** | **Solo is the state today, never the intention.** Close every solo answer on the first hires, who direct agents rather than replace them | baseline `hiring_plan` |
+| **26** | **Give a hard constraint its physical scale.** ISRO now carries "hundreds of millions of kilometres", tied to his own contribution. **Never "billions": Mars maxes at ~401M km** | baseline, answer-bank, how-to-draft 26 |
+
+## Standing facts corrected
+
+- **Hub71's ADGM blocker was FALSE.** Verified on the live form: no entity field, it asks which country the HQ is in. A false blocker sat on a Tier 1 programme for three days because a correction reached `board-corrections.md` and never reached the tracker.
+- **EF's "Europe's next founders" is marketing, not eligibility.** Their FAQ says founders "based outside the US", non-Europe applicants considered.
+- **Public launch is 30 September 2026**, aligned across every file. "Mid-September" is retired.
+- **Runway is not a sequencing input.** `0-6 months` was answered for one Hub71 field. It is not a company constraint.
+
+## Next
+
+**a16z Speedrun**, rolling with a 4 to 6 week review, so no deadline pressure. Then the credits sweep. **The queue and the binding priority order live in [`../pitch/applications/what-to-apply-for-next.md`](../pitch/applications/what-to-apply-for-next.md).**
+
+**Before drafting anything: run `bun run pitch:check`, then read the newest `APPLICATION-FINAL.md` for register. The answer bank owns facts, not voice.**
+
+---
+
 
 # ✅ FUNDING LANE, 2026-08-16 evening — Campus Founders SUBMITTED
 
