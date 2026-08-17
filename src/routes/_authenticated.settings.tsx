@@ -1247,8 +1247,53 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
 
   // Read down the loop (station order, cast then conductor), not by insert
   // order. An agent the catalog has never heard of still renders, at the end.
+  /*
+   * ── THE WHOLE CREW, NOT ONLY THE ONES WITH A ROW ──────────────────────────
+   *
+   * Founder: "It just shows three cards ... clicking on Roster itself, it should land
+   * on the full set of agents here itself."
+   *
+   * He was looking at a real under-report, not a layout problem. This listed
+   * `crew.members`, which is STORED agent rows, and rows are written lazily -- the
+   * empty state below says so in its own words: "They arrive with the first mission
+   * that needs one, already running on the default policy." So a workspace with three
+   * rows saw three agents, while eighteen active agents in the catalog were doing the
+   * work. The roster was answering "who has a database row" and calling it the crew.
+   *
+   * It is worse than a miscount, because the missing ones are not idle. An agent with
+   * no row runs on the DEFAULT policy -- `loadAgentArc` returns `trusted` when no row
+   * exists -- so the fifteen a person could not see were the fifteen running with the
+   * most rope. A boundary surface that hides the agents operating unsupervised is
+   * telling the reader the opposite of the truth.
+   *
+   * So the CATALOG is the spine of this list and stored rows are merged onto it. An
+   * agent with no row is shown as running on the default, which is what it is doing.
+   */
   const catOrder = new Map(SPECIALIST_CATALOG.map((c, i) => [c.slug, i]));
-  const members = [...(crew.data?.members ?? [])]
+  const stored = new Map((crew.data?.members ?? []).map((m) => [m.slug, m]));
+  const members = SPECIALIST_CATALOG.filter((c) => c.status === "active")
+    .map((c) => {
+      const row = stored.get(c.slug);
+      return (
+        row ?? {
+          slug: c.slug,
+          name: c.name,
+          /* No row means nothing has been switched off, and the default arc is
+             `trusted` (loadAgentArc). Stating that is the honest default; showing it
+             as absent or disabled would invent a boundary nobody set. */
+          enabled: true,
+          arc: "trusted" as const,
+          asking: [] as string[],
+        }
+      );
+    })
+    /* Anything stored that the catalog has never heard of still renders, at the end,
+       so a custom or renamed agent is never silently dropped. */
+    .concat(
+      (crew.data?.members ?? []).filter(
+        (m) => !SPECIALIST_CATALOG.some((c) => c.slug === m.slug),
+      ),
+    )
     .filter((m) => catalogEntry(m.slug)?.status !== "deprecated")
     .sort((a, b) => (catOrder.get(a.slug) ?? 999) - (catOrder.get(b.slug) ?? 999));
 

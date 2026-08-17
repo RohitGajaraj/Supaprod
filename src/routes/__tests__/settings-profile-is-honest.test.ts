@@ -93,7 +93,7 @@ describe("the search keycap keeps its promise", () => {
   it("binds the key the keycap advertises", () => {
     // The field drew <kbd>/</kbd> and nothing was bound to it, so the rail advertised
     // a shortcut that did not exist. A keycap is a promise like a chevron is.
-    expect(rail.includes('if (key !== "/") return;'), "the / key is still unbound").toBe(true);
+    expect(rail.includes('event.key !== "/"'), "the / key is still unbound").toBe(true);
     expect(rail.includes("searchRef.current?.focus()")).toBe(true);
   });
 
@@ -103,11 +103,22 @@ describe("the search keycap keeps its promise", () => {
     expect(rail.includes("isContentEditable")).toBe(true);
   });
 
-  it("binds on the rail rather than the document", () => {
-    // A document-level shortcut from a component that can mount twice on one page
-    // fights itself.
-    expect(rail.includes("el.addEventListener(\"keydown\", onSlash)")).toBe(true);
-    expect(rail.includes('el.removeEventListener("keydown", onSlash)')).toBe(true);
+  it("binds on the DOCUMENT, because that is the only place the key is pressed", () => {
+    /*
+     * THIS ASSERTION USED TO REQUIRE THE OPPOSITE, AND IT PINNED A BUG. The first
+     * version listened on the rail's own <nav>, which meant the shortcut fired only
+     * when focus was already inside the rail -- useless -- and did nothing in the one
+     * case anybody presses it: reading the page with focus on the body. The founder
+     * reported it dead twice. The test agreed with the code and both were wrong.
+     */
+    expect(rail.includes('document.addEventListener("keydown", onSlash)')).toBe(true);
+    expect(rail.includes('document.removeEventListener("keydown", onSlash)')).toBe(true);
+  });
+
+  it("lets only one rail own the key, which is why scoping it was tempting", () => {
+    // Two rails on one page would otherwise race. The first in document order wins,
+    // so they cooperate instead, and the feature is not broken to avoid the race.
+    expect(rail.includes('nav[data-mrd] input[aria-label="Search"]')).toBe(true);
   });
 
   it("does not bind a shortcut to a field that is not there", () => {
