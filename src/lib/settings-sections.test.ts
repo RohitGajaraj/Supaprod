@@ -72,15 +72,25 @@ describe("settings-sections - the routing contract is preserved", () => {
   });
 });
 
-describe("settings-sections - the five groups are named by the boundary they set", () => {
-  it("presents exactly five groups, none recessed", () => {
-    expect(SETTINGS_GROUPS.length).toBe(5);
-    expect(PRIMARY_GROUPS.length).toBe(5);
+describe("settings-sections - the four groups are named by the boundary they set", () => {
+  /*
+   * FOUR SINCE 2026-08-17, and this block used to pin five. The founder asked for
+   * "flattening towards the reference shape with fewer, better-named groups", and
+   * the `plan` group was the one that did not earn a heading: it held the two money
+   * doors plus Diagnostics, and money belongs beside the account in every shipped
+   * settings surface this file already cites (GitBook, ClickUp, Toggl).
+   *
+   * The count is still pinned rather than loosened. A closed number is what makes a
+   * sixth group a decision somebody takes on purpose instead of a drift.
+   */
+  it("presents exactly four groups, none recessed", () => {
+    expect(SETTINGS_GROUPS.length).toBe(4);
+    expect(PRIMARY_GROUPS.length).toBe(4);
     expect(RECESSED_GROUPS.length).toBe(0);
   });
 
-  it("the five groups are crew, brief, reach, you, plan in order", () => {
-    expect(SETTINGS_GROUPS.map((g) => g.id)).toEqual(["crew", "brief", "reach", "you", "plan"]);
+  it("the four groups are crew, brief, reach, you in order", () => {
+    expect(SETTINGS_GROUPS.map((g) => g.id)).toEqual(["crew", "brief", "reach", "you"]);
   });
 
   it("every group has a label, a one-line desc, and at least one section", () => {
@@ -124,27 +134,43 @@ describe("settings-sections - the five groups are named by the boundary they set
     expect(groupForSection("notifications")).toBe("you");
   });
 
-  it("Diagnostics sits with the money: system health and cost are one neighbourhood", () => {
-    expect(groupForSection("billing")).toBe("plan");
-    expect(groupForSection("credits")).toBe("plan");
-    expect(groupForSection("health")).toBe("plan");
+  it("Diagnostics keeps its address and draws no door, because it reports rather than sets", () => {
+    /*
+     * IT USED TO SIT WITH THE MONEY, on the reasoning that system health and cost
+     * are one neighbourhood. They are not. Settings is where a person STATES what
+     * they want; Diagnostics reports whether the machine is achieving it, which is
+     * the engine-room doctrine's own dividing line. Its door is drawn from the
+     * Engine Room now and the pane stays here, so every saved `?section=health`
+     * link still answers.
+     */
+    expect(groupForSection("health")).toBe("you");
+    expect(NAV_DOOR_IDS).not.toContain("health");
+    expect(ALL_SECTION_IDS).toContain("health");
   });
 });
 
 describe("settings-sections - the nav ring", () => {
-  it("draws 14 doors: every section except the two that are address-only", () => {
-    expect(NAV_DOOR_IDS.length).toBe(14);
-    expect(NAV_DOOR_IDS).not.toContain("memory");
-    expect(NAV_DOOR_IDS).not.toContain("sync");
+  it("draws 12 doors: every section except the four that are address-only", () => {
+    expect(NAV_DOOR_IDS.length).toBe(12);
+    /*
+     * FOUR ADDRESS-ONLY SECTIONS, each for a stated reason, and the list is closed
+     * so a fifth has to be argued for:
+     *   memory  - dead pane, live address
+     *   sync    - folds into Connectors, same bindings
+     *   credits - folds into Billing, one money errand (2026-08-17)
+     *   health  - reports rather than sets; its door is in the Engine Room
+     */
+    const ADDRESS_ONLY: readonly SectionId[] = ["memory", "sync", "credits", "health"];
+    for (const id of ADDRESS_ONLY) expect(NAV_DOOR_IDS).not.toContain(id);
     // Everything else IS a door. A section with neither a door nor a documented
     // reason is a capability with no way in.
     for (const id of ORIGINAL_SECTION_IDS) {
-      if (id === "memory" || id === "sync") continue;
+      if (ADDRESS_ONLY.includes(id)) continue;
       expect(NAV_DOOR_IDS).toContain(id);
     }
   });
 
-  it("NAV_GROUPS is the same five headings, in the same order, with doors only", () => {
+  it("NAV_GROUPS is the same four headings, in the same order, with doors only", () => {
     expect(NAV_GROUPS.map((g) => g.id)).toEqual(SETTINGS_GROUPS.map((g) => g.id));
     expect(NAV_GROUPS.flatMap((g) => g.sections.map((s) => s.id))).toEqual([...NAV_DOOR_IDS]);
     for (const g of NAV_GROUPS) {
@@ -152,9 +178,11 @@ describe("settings-sections - the nav ring", () => {
     }
   });
 
-  it("Autonomy leads and Diagnostics is last, so Home and End reach both in one press", () => {
+  it("Autonomy leads and Billing is last, so Home and End reach both in one press", () => {
     expect(NAV_DOOR_IDS[0]).toBe("autonomy");
-    expect(NAV_DOOR_IDS[NAV_DOOR_IDS.length - 1]).toBe("health");
+    /* Billing, since Diagnostics stopped drawing a door. End must land on the last
+       DOOR, never on a section that is only an address. */
+    expect(NAV_DOOR_IDS[NAV_DOOR_IDS.length - 1]).toBe("billing");
   });
 
   // A bare /settings is an address people ARRIVE at - the account menu, `g s`,
@@ -181,11 +209,19 @@ describe("settings-sections - the nav ring", () => {
 });
 
 describe("settings-sections - the folded addresses still answer", () => {
-  it("sync renders the Connectors pane; everything else renders itself", () => {
-    expect(paneForSection("sync")).toBe("connections");
+  it("sync renders Connectors and credits renders Billing; everything else renders itself", () => {
+    /*
+     * TWO FOLDS SINCE 2026-08-17. `credits` joined `sync`, because a person does
+     * not arrive knowing whether their question is the tier they pay for or the
+     * credit left on it -- that is one errand, so it is one pane. Both addresses
+     * still answer, which is the whole point of folding rather than deleting.
+     */
+    const FOLDS: Partial<Record<SectionId, SectionId>> = {
+      sync: "connections",
+      credits: "billing",
+    };
     for (const id of ORIGINAL_SECTION_IDS) {
-      if (id === "sync") continue;
-      expect(paneForSection(id)).toBe(id);
+      expect(paneForSection(id)).toBe(FOLDS[id] ?? id);
     }
   });
 
@@ -199,7 +235,7 @@ describe("settings-sections - the folded addresses still answer", () => {
 });
 
 describe("settings-sections - derivations", () => {
-  it("groupForSection round-trips with primarySection for all five groups", () => {
+  it("groupForSection round-trips with primarySection for all four groups", () => {
     for (const g of SETTINGS_GROUPS) {
       const primary = primarySection(g.id);
       expect(groupForSection(primary)).toBe(g.id);
@@ -216,8 +252,10 @@ describe("settings-sections - derivations", () => {
     // Asserts the lookup resolves, not the copy. Pinning the exact label here
     // is what made a wording fix fail an unrelated test: this case is about
     // findGroup, and the labels are guarded on their own terms below.
-    expect(findGroup("plan")?.id).toBe("plan");
-    expect(findGroup("plan")?.sections.map((s) => s.id)).toContain("billing");
+    /* `plan` was retired as a GROUP; billing lives under the account now. The id
+       survives only as a `?section=` alias, which normalizeSection still honours. */
+    expect(findGroup("plan" as never)).toBeUndefined();
+    expect(findGroup("you")?.sections.map((s) => s.id)).toContain("billing");
     // @ts-expect-error - unknown id
     expect(findGroup("nope")).toBeUndefined();
   });
@@ -307,7 +345,9 @@ describe("settings-sections - normalizeSection (deep-link safety)", () => {
 
 describe("settings-sections - the nav is one tab stop, on every address", () => {
   it("the active door owns the tab stop", () => {
-    expect(navTabStop("health")).toBe("health");
+    /* Diagnostics draws no door, so the ring cannot put the tab stop on it; it falls
+       to the first door of the group that owns the address. */
+    expect(navTabStop("health")).toBe("autonomy");
     expect(navTabStop("profile")).toBe("profile");
     expect(navTabStop("autonomy")).toBe("autonomy");
   });
@@ -358,14 +398,14 @@ describe("settings-sections - Up, Down, Home and End", () => {
   });
 
   it("Down wraps at the end and Up wraps at the start", () => {
-    expect(stepDoor("health", "ArrowDown")).toBe("autonomy");
-    expect(stepDoor("autonomy", "ArrowUp")).toBe("health");
+    expect(stepDoor("billing", "ArrowDown")).toBe("autonomy");
+    expect(stepDoor("autonomy", "ArrowUp")).toBe("billing");
   });
 
   it("Home and End reach the ends from anywhere, which is the fix for the crawl", () => {
     for (const id of NAV_DOOR_IDS) {
       expect(stepDoor(id, "Home")).toBe("autonomy");
-      expect(stepDoor(id, "End")).toBe("health");
+      expect(stepDoor(id, "End")).toBe("billing");
     }
   });
 
@@ -373,7 +413,7 @@ describe("settings-sections - Up, Down, Home and End", () => {
     expect(stepDoor("memory", "ArrowDown")).toBe(NAV_DOOR_IDS[1]);
   });
 
-  it("walking Down through the whole ring visits all 14 doors exactly once", () => {
+  it("walking Down through the whole ring visits all 12 doors exactly once", () => {
     const seen: SectionId[] = [];
     let at: SectionId = NAV_DOOR_IDS[0]!;
     for (let i = 0; i < NAV_DOOR_IDS.length; i += 1) {
@@ -385,29 +425,43 @@ describe("settings-sections - Up, Down, Home and End", () => {
   });
 });
 
-describe("settings-sections - typeahead, the shortcut into any of the fifteen", () => {
+describe("settings-sections - typeahead, the shortcut into any of the twelve", () => {
   it("jumps to the first door whose label starts with what you typed", () => {
-    expect(doorByTypeahead("d", "autonomy")).toBe("health"); // Diagnostics
+    /*
+     * TYPEAHEAD MATCHES THE LABEL, NEVER THE ID, and this pair is the clearest
+     * demonstration of it: the section id is `data` and nothing reaches it with "d",
+     * because a person reads "Your data".
+     *
+     * "d" now reaches nothing at all. It used to reach Diagnostics, which no longer
+     * draws a door, and that is the honest answer rather than a nearest guess.
+     */
+    expect(doorByTypeahead("y", "autonomy")).toBe("data");
+    expect(doorByTypeahead("d", "autonomy")).toBeNull();
     expect(doorByTypeahead("br", "autonomy")).toBe("workspace"); // Brief and voice
-    expect(doorByTypeahead("cre", "autonomy")).toBe("credits");
+    // Credits folded into Billing, so "cre" has no door of its own to reach.
+    expect(doorByTypeahead("cre", "autonomy")).toBeNull();
   });
 
   it("a single repeated letter cycles through every door that starts with it", () => {
-    // Products, Profile and Plan all start with P: pressing p three times must
-    // visit all three and then come back round, not sit on the first.
-    const first = doorByTypeahead("p", "autonomy");
-    expect(first).toBe("products");
-    const second = doorByTypeahead("p", first!);
-    expect(second).toBe("profile");
-    const third = doorByTypeahead("p", second!);
-    expect(third).toBe("billing"); // labelled "Plan"
-    expect(doorByTypeahead("p", third!)).toBe("products");
+    /*
+     * B IS THE THREE-WAY NOW: "Brief and voice", "Brand" and "Billing". It used to
+     * be P, on Products/Profile/Plan, and renaming Plan to Billing left P with only
+     * two -- so the case this test exists for moved rather than disappeared.
+     * Pressing b three times must visit all three and come back round.
+     */
+    const first = doorByTypeahead("b", "autonomy");
+    expect(first).toBe("workspace"); // Brief and voice
+    const second = doorByTypeahead("b", first!);
+    expect(second).toBe("brand");
+    const third = doorByTypeahead("b", second!);
+    expect(third).toBe("billing");
+    expect(doorByTypeahead("b", third!)).toBe("workspace");
   });
 
   it("a refining buffer is allowed to keep matching the door you are on", () => {
-    // Typing "c" then "r" must not skip past Credits just because focus already
+    // Typing "c" then "o" must not skip past Connectors just because focus already
     // got there on the "c".
-    expect(doorByTypeahead("cr", "credits")).toBe("credits");
+    expect(doorByTypeahead("co", "connections")).toBe("connections");
   });
 
   it("returns null on a typo rather than jumping somewhere arbitrary", () => {
@@ -417,11 +471,11 @@ describe("settings-sections - typeahead, the shortcut into any of the fifteen", 
   });
 
   it("is case-insensitive", () => {
-    expect(doorByTypeahead("D", "autonomy")).toBe("health");
-    expect(doorByTypeahead("CRE", "autonomy")).toBe("credits");
+    expect(doorByTypeahead("Y", "autonomy")).toBe("data");
+    expect(doorByTypeahead("CO", "autonomy")).toBe("connections");
   });
 
-  it("reaches every one of the 14 doors by its own full label", () => {
+  it("reaches every one of the 12 doors by its own full label", () => {
     // The claim "type a name" in the nav's hint is only true if it is true for
     // all of them.
     for (const id of NAV_DOOR_IDS) {

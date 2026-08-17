@@ -617,8 +617,24 @@ function SettingsPage() {
         )}
         {active === "data" && <DataSection workspaceId={activeWorkspace?.id} />}
 
-        {active === "billing" && <PlanSection checkout={checkout} />}
-        {active === "credits" && <CreditsSection />}
+        {/*
+         * ONE PANE ANSWERS BOTH MONEY QUESTIONS, 2026-08-17.
+         *
+         * `credits` now folds into `billing` (settings-sections.ts), so
+         * `paneForSection` resolves both addresses to `billing` and there is no
+         * longer an `active === "credits"` branch to render. Dropping the second
+         * branch WITHOUT mounting CreditsSection here would have made the whole
+         * credits surface unreachable while every test still passed -- this repo's
+         * single most common defect, a capability built correctly with no door.
+         *
+         * The order is the reading order: what you are on, then what is left on it.
+         */}
+        {active === "billing" && (
+          <>
+            <PlanSection checkout={checkout} />
+            <CreditsSection />
+          </>
+        )}
         {active === "health" && <DiagnosticsSection />}
       </div>
     </div>
@@ -1967,8 +1983,22 @@ function PlanSection({ checkout }: { checkout?: string }) {
                 </Button>
               )
             ) : null}
+            {/*
+             * SCROLLS RATHER THAN NAVIGATES, since the fold. This used to send a
+             * person to `?section=credits`; that address now renders THIS pane, so
+             * the button would have looked like it did nothing -- the worst kind of
+             * broken control, because the reader blames themselves and stops
+             * trusting the others. The top-up is on this page now, further down.
+             */}
             {currentTier !== "free" ? (
-              <Button variant="ghost" onClick={() => navigate({ search: { section: "credits" } })}>
+              <Button
+                variant="ghost"
+                onClick={() =>
+                  document
+                    .getElementById(CREDITS_ANCHOR)
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }
+              >
                 Buy a credit top-up
               </Button>
             ) : null}
@@ -1991,6 +2021,16 @@ function PlanSection({ checkout }: { checkout?: string }) {
     </>
   );
 }
+
+/**
+ * Where "Buy a credit top-up" lands now that both live on one pane.
+ *
+ * A constant rather than a literal in two places, because the button and the
+ * target being spelled the same is the entire mechanism: a typo in either makes
+ * the control silently do nothing, which is exactly the failure the fold was
+ * supposed to remove.
+ */
+const CREDITS_ANCHOR = "settings-credits";
 
 function CreditsSection() {
   const fGetCredits = useServerFn(getMyCreditsView);
@@ -2130,7 +2170,12 @@ function CreditsSection() {
 
       <CreditCapsCard />
 
-      <Block title="Buy more">
+      {/* The target of "Buy a credit top-up" up in the plan block. A wrapper rather
+          than an id on Block, which takes no id prop and should not grow one for a
+          single caller's anchor. `scroll-mt` keeps the heading clear of the sticky
+          header instead of landing it underneath. */}
+      <div id={CREDITS_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+        <Block title="Buy more">
         {catalog.isLoading ? (
           <Loading>Reading the price list.</Loading>
         ) : catalog.error ? (
@@ -2251,7 +2296,8 @@ function CreditsSection() {
             if you need past the cap.
           </Empty>
         ) : null}
-      </Block>
+        </Block>
+      </div>
 
       <RedeemCodeCard />
 

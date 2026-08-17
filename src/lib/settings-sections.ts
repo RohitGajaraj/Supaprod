@@ -134,7 +134,16 @@ export type SectionId =
   | "notifications"
   | "memory";
 
-export type GroupId = "crew" | "brief" | "reach" | "you" | "plan";
+/**
+ * FOUR GROUPS SINCE 2026-08-17, down from five. `plan` was retired as a GROUP and
+ * its sections moved under `you`, which is where every shipped settings surface
+ * this file already cites puts money: GitBook, ClickUp and Toggl all keep billing
+ * beside the account rather than in a neighbourhood of its own.
+ *
+ * The id survives in `LEGACY_SECTION_MAP` so `?section=plan` still lands on
+ * Billing, which the signup checkout redirect and the account menu both depend on.
+ */
+export type GroupId = "crew" | "brief" | "reach" | "you";
 
 export type SettingsSection = {
   id: SectionId;
@@ -235,7 +244,12 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   },
   {
     id: "reach",
-    label: "Connections and data",
+    /* "DATA AND ACCESS", 2026-08-17. "Connections and data" was two nouns joined
+     * by an "and", which is the shape a group takes when nobody could name the
+     * one idea underneath it. The one idea is the BOUNDARY OF YOUR DATA: what
+     * comes in, what an outside agent may read, and what we hold. Naming that
+     * lets a person decide from the heading whether their errand is in here. */
+    label: "Data and access",
     desc: "What flows in, what an agent outside Supaprod may read, and what we keep of yours.",
     sections: [
       { id: "connections", label: "Connectors" },
@@ -248,20 +262,58 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   {
     id: "you",
     label: "Account",
-    desc: "Your name, your hours, and what is allowed to interrupt them.",
+    desc: "Your name, what may interrupt you, and what this workspace costs.",
     sections: [
       { id: "profile", label: "Profile" },
       { id: "notifications", label: "Notifications" },
-    ],
-  },
-  {
-    id: "plan",
-    label: "Plan and usage",
-    desc: "Your plan, what credit is left, and whether the loop is running clean.",
-    sections: [
-      { id: "billing", label: "Plan" },
-      { id: "credits", label: "Credits" },
-      { id: "health", label: "Diagnostics" },
+      /*
+       * "BILLING", NOT "PLAN", AND THIS IS A COLLISION FIX RATHER THAN A TIDY-UP.
+       *
+       * The product has a STATION called Plan -- the spine's third stop, at
+       * /plan, where specs are written -- and this door was also called Plan,
+       * meaning the subscription tier. Two unrelated things, one word, both
+       * reachable from the same shell. A person hunting for their spec and a
+       * person hunting for their invoice were being offered the same label.
+       *
+       * The id has always been `billing`, so only the label was ever wrong, and
+       * `?section=plan` still lands here through LEGACY_SECTION_MAP.
+       *
+       * ONE THING GETS ONE WORD is the rule this file already applies to Agents.
+       * This is the same rule catching a second offender.
+       */
+      { id: "billing", label: "Billing" },
+      /*
+       * CREDITS FOLDS INTO BILLING, 2026-08-17 (founder agreed on the same read).
+       *
+       * A person does not arrive at Settings knowing whether their question is
+       * about the tier they pay for or the credit left on it. They arrive wanting
+       * to know what this costs and how much is left, which is ONE errand. Two
+       * doors made them guess, and guessing wrong is a wasted click on the surface
+       * where friction is least forgivable.
+       *
+       * The address survives, so `?section=credits` still answers and every saved
+       * link lands: it renders the Billing pane, which now carries the balance, the
+       * top-up and the debit history under one heading.
+       *
+       * Same mechanism `sync` uses to fold into Connectors, and for the same
+       * reason: two addresses that answer one question should render one pane
+       * rather than two that can disagree.
+       */
+      { id: "credits", label: "Credits", door: false, foldsInto: "billing" },
+      /*
+       * DIAGNOSTICS KEEPS ITS ADDRESS AND LOSES ITS DOOR, 2026-08-17.
+       *
+       * It never belonged in Settings. Settings is where a person states what they
+       * want; Diagnostics reports whether the machine is achieving it, which is
+       * the engine-room doctrine's own dividing line -- complexity lives in the
+       * engine, and the user meets the output of the machine rather than the
+       * machine. Every other reading of that kind already lives behind that door.
+       *
+       * The door is drawn from the Engine Room instead. The pane stays here, so
+       * `?section=health` and every saved link still answer, and nothing was
+       * rebuilt to move a heading.
+       */
+      { id: "health", label: "Diagnostics", door: false },
     ],
   },
 ];
