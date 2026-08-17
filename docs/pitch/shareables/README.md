@@ -13,6 +13,7 @@
 | A form asks for | Send | Never send |
 | --- | --- | --- |
 | A deck or a PDF, **accelerator or programme** | **[`Supaprod-Brief.pdf`](./Supaprod-Brief.pdf)** | `Supaprod-Investor-Briefing.pdf` · `supaprod-pre-seed-deck-16pp.pdf` |
+| A programme that **enumerates required deck contents** | **a built variant, one per programme.** First one: [`Supaprod-Hub71-Deck.pdf`](./Supaprod-Hub71-Deck.pdf) | the one-page brief, which cannot carry nine mandated sections |
 | A deck, **an actual investor** | [`Supaprod-Investor-Briefing.pdf`](./Supaprod-Investor-Briefing.pdf) | |
 | A **product video file** | **`Supaprod-Product-Film.mp4`** (97.6MB, gitignored) | `video-v15.mp4`, it is **silent** |
 | A **product video link** | `https://youtu.be/x9WgGn0FyYU` | |
@@ -108,6 +109,16 @@ Rendered from [`../investor-deck/supaprod-pre-seed-investor-deck.html`](../inves
 > **Why the obvious fixes do not work.** `.slide` is `height:100vh` inside `@page{size:16in 9in}`. Page zoom scales the slide *and* the content together, so 0.90, 0.86 and 0.82 all changed nothing. Reducing `html{font-size}` does nothing either, because the deck is authored in `px`. Switching to `min-height` recovers every word but produces **23 pages** with orphan lines, which reads worse than the missing prose.
 >
 > **The real fix is in the deck source:** trim the copy on those four slides, or give them a smaller type scale. Until then this PDF shows exactly what a viewer sees at `/brief`, so it is faithful, not lossy.
+
+> ### ✅ Corrected 2026-08-17. The slide numbers above are stale, and there IS a print fix that works.
+>
+> **The numbers were measured on 2026-08-05 and the deck source changed on 2026-08-11**, so slides 3, 6, 15 and 16 no longer describe the artifact. **Read against the current rendered PDF, what actually clips is the field slide and the team slide.** The field slide loses the end of a sentence mid-word and hides an entire closing line, *"A frontier lab ships capability. The accountability layer across your tools is what it will not own."* The team slide loses its bottom card.
+>
+> **A number measured against one version of an artifact is not a fact about the next one.** Re-measure against the rendered file before trusting any of it.
+>
+> **The fix that works, and it does not add pages.** Page zoom and `min-height` were the right things to rule out. What was not tried is the print rule's own geometry: `.slide` keeps `6vh/12vh` padding while print pins it to `100vh`, so **reclaiming the padding to `4vh/4vh`, top-aligning, and capping the one oversized chart at `42vh` recovers every word at the same page count.** Implemented in [`../../../scripts/build-hub71-deck.py`](../../../scripts/build-hub71-deck.py), which derives a programme variant without touching the frozen source.
+>
+> ⚠️ **One trap it exposed:** reclaiming the padding lets content reach the page edge, and Chrome then **paints the scrollbar into the PDF** as a grey strip down every page. It is invisible on screen and obvious in the artifact. The build script suppresses it. **Always re-open the rendered PDF after any print-CSS change.**
 
 ## 3. Video, on YouTube and not in git
 

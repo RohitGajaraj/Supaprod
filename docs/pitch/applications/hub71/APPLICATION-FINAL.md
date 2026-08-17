@@ -59,11 +59,28 @@ https://supaprod.ai
 > Full 32-option dropdown scrolled per correction 9. Near misses were `RegTech`, `IT` and `Data Science`. `Artificial Intelligence` is honest and it reads consistently with Q7.
 
 ## 4. Please attach your pitch deck (PDF format)
-**⚠️ A Hub71 variant must be built. `Supaprod-Brief.pdf` cannot be sent as is.**
+✅ **BUILT AND VERIFIED 2026-08-17.** Upload:
+```
+docs/pitch/shareables/Supaprod-Hub71-Deck.pdf
+```
+_18 pages, 1.69MB against a 10MB cap, 4 link annotations intact._ Rebuild with `python3 scripts/build-hub71-deck.py` then the Chrome render command it prints.
 
-The page mandates the deck cover *problem, solution/value proposition, business model, competition, market, traction, founding team, previous and next fundraising, and **plans for Hub71 and Abu Dhabi***. The existing brief carries no Abu Dhabi section and no fundraising section. PDF only, 10MB cap.
+**Why a new variant rather than an existing asset.** Hub71 enumerates nine required contents. `Supaprod-Brief.pdf` is a one-page link card and cannot carry them. The frozen 16-page investor deck covers seven of the nine and carries framing that cannot go to a programme: its cover read **"Pre-seed briefing · August 2026 · Confidential"** and its close read **"Investor relations · investors@supaprod.ai"**. That is the exact defect that retired `Supaprod-Investor-Briefing.pdf` for Campus Founders.
 
-**Never send `Supaprod-Investor-Briefing.pdf`.** Its own content reads "Pre-Seed Briefing, Confidential" with `investors@` in the footer.
+**What the variant changes**, all of it in a script so it is reproducible:
+
+| | Was | Now |
+| --- | --- | --- |
+| Cover eyebrow | Pre-seed briefing · August 2026 · Confidential | **Company brief · Hub71 Access Programme · Cohort 20** |
+| Close contact | Investor relations · investors@supaprod.ai | **Rohit Gajaraj · founder@supaprod.ai** |
+| Slide 13 | — | **Fundraising**, the eighth required content |
+| Slide 14 | — | **Abu Dhabi and Hub71**, the ninth |
+
+**It also fixes real clipping the README had recorded wrongly.** The README names slides 3, 6, 15 and 16. Read against the rendered artifact, what actually clipped was the **field slide**, which lost the end of a sentence mid-word and hid an entire closing line (*"A frontier lab ships capability. The accountability layer across your tools is what it will not own."*), and the **team slide**, which lost its bottom card. Both now render complete.
+
+**Verified after render:** zero occurrences of "investor", "Confidential" or "Pre-seed" in the binary.
+
+**Never send `Supaprod-Investor-Briefing.pdf` or the raw 16-page deck.**
 
 ## 5. Describe in 280 characters what problem you are solving and how
 > **Hard cap enforced by the browser (`maxlength="280"`). Anything longer is silently truncated on paste.**
@@ -251,9 +268,15 @@ it is the number I most want to be wrong about early.
 > Required numeric fields get the true figure. The never-volunteer-the-zero ruling governs prose, not numbers, and a caught overstatement costs more than a weak answer ever did.
 
 ## 19. How much runway do you have left?
-**⚠️ FOUNDER INPUT NEEDED.** `0–6 months` · `7–12 months` · `More than a year`
+**`0–6 months`** — founder-confirmed 2026-08-17.
 
-> Personal runway against savings. Not recorded anywhere in the repo, and not a number to guess on a form that pairs it with three revenue questions.
+> **Answer it straight and do not dress it up.** It is checkable in diligence and the honest answer is the only one available.
+>
+> ### ⚠️ This answer has a strategic consequence bigger than the field
+>
+> **Hub71 Cohort 20 does not start until February 2027, which is roughly six months away.** A reviewer reading `0–6 months` next to a February start will ask how the company survives to the start line. **This does not weaken the application** and it is not something to hide or hedge in a text field. It does mean **Hub71 cannot be the plan for near-term cash**, and the sequencing has to reflect that. See [`../what-to-apply-for-next.md`](../what-to-apply-for-next.md).
+>
+> **What actually answers it, and it is already true:** he is going full time regardless, the company is happening either way, and the near-term programmes on the queue pay out well before February. Nothing in this application needs to argue that. The field is a number.
 
 ## 20. How much have you raised to date? (USD)
 ```
@@ -267,9 +290,13 @@ raising.
 ```
 
 ## 22. How did you hear about Hub71
-**⚠️ FOUNDER INPUT NEEDED.** `Hub71 Startup` · `Hub71 Partner (Investor / Corporate / Government Entity / Freezone)` · `Hub71 Team` · `Social Media` · `Event` · `News` · `Word of mouth` · `Google Search`
+**`Social Media`** — founder-confirmed 2026-08-17.
 
-> Truthful only. This field is checkable and a conditional "Please specify" textarea appears after some selections.
+> **A conditional "Please specify how you heard about us" textarea may appear after selecting this.** If it does, name the platform plainly and stop. One line, no pitch:
+```
+LinkedIn.
+```
+> Correction 0c: answer the question that was asked, and stop. This field is not an opportunity.
 
 ## 23. Have you gone through any incubator or accelerator program(s), if so which one(s)?
 > **Correction 15: read the verb. "GONE THROUGH" is not "applied to".** Do not list pending applications: it answers a question nobody asked, it invites *"and how did those go?"*, and applications are free so they signal nothing. There is one true answer and it belongs here.
@@ -343,9 +370,9 @@ city. I would rather sit next to that than sell into it from elsewhere.
 3. **How you heard about Hub71** (Q22)
 4. **Contact phone number**
 
-## One thing that has to be built
+## The deck is built
 
-**The Hub71 deck variant.** Mandatory, PDF, 10MB. It adds an **Abu Dhabi and Hub71 plans** section and a **previous and next fundraising** section to the existing brief. Build it as a variant from `Supaprod-Brief.src.html`. Never overwrite `Supaprod-Brief.pdf`.
+✅ `docs/pitch/shareables/Supaprod-Hub71-Deck.pdf`, 18 pages, verified. See Q4 above. The frozen investor deck was not touched.
 
 ## Demo login
 
