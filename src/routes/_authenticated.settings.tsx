@@ -160,7 +160,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
-import { agentDisplayName, catalogEntry, SPECIALIST_CATALOG } from "@/lib/agent-vocabulary";
+import {
+  agentDisplayName,
+  agentStation,
+  catalogEntry,
+  SPECIALIST_CATALOG,
+} from "@/lib/agent-vocabulary";
 import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { useDensity } from "@/hooks/use-density";
@@ -202,6 +207,7 @@ import {
 } from "@/lib/settings-sections";
 import { SidebarNav, type RailItem } from "@/components/meridian/SidebarNav";
 import { AgentCards } from "@/components/meridian/AgentCards";
+import { STAGE_LABEL } from "@/components/shell/run-strip";
 
 import {
   AccountConnectionsSection,
@@ -1370,6 +1376,16 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
             enabled: m.enabled,
             runsAlone: m.arc === "trusted" || m.arc === "ambient",
             waiting: m.asking.length,
+            /* The station, in the product's own words for it. Reading the roster down
+               the spine answers "who works on the part I am looking at", which an
+               eighteen-card alphabetical grid cannot. */
+            group: (() => {
+              const st = agentStation(m.slug);
+              /* STAGE_LABEL is the product's existing station-to-name map (Discover,
+                 Decide, Plan...). Reused rather than retyped: a second list of the
+                 seven names is how a rename lands in one place and not the other. */
+              return st ? STAGE_LABEL[st] : "Everywhere";
+            })(),
           }))}
           onOpen={(slug) => onOpenCrew(slug)}
         />

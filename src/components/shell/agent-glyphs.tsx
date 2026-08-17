@@ -29,7 +29,14 @@ const g: SVGProps<SVGSVGElement> = {
   viewBox: "0 0 16 16",
   fill: "none",
   stroke: "currentColor",
-  strokeWidth: 1.4,
+  /*
+   * 1.25, WAS 1.4. Founder, on the agent cards: the glyphs read "thicker" and not
+   * clean. At the 22px these were drawn for, 1.4 is right; the cards show them larger,
+   * where the same absolute weight reads as heavy. Thinning the line rather than
+   * shrinking the mark keeps the silhouette legible at both sizes, which is what the
+   * shape has to carry since it is the only thing encoding WHICH agent this is.
+   */
+  strokeWidth: 1.25,
   "aria-hidden": true,
   focusable: false,
 };
@@ -146,6 +153,77 @@ const Unknown = () => (
   </svg>
 );
 
+
+/*
+ * ── THE FIVE THAT SHARED ONE MARK ─────────────────────────────────────────────
+ * Founder: "it would be great if you could differentiate the logos for Archivist,
+ * Reactor, Guide, Verify, and Critique. All five hold the same logo".
+ *
+ * Exactly right, and the cause is in this file's own header: it was written for
+ * "thirteen distinct silhouettes" and the catalog now carries eighteen active agents.
+ * The five added since fell through `BY_NAME` to `Unknown`, so the one mark that means
+ * "no drawing exists" was standing in for a fifth of the crew -- and on a surface whose
+ * entire encoding is SHAPE = which agent, five agents sharing a silhouette is the one
+ * thing it must never do.
+ *
+ * Each is drawn for the JOB, not decorated, so the mark says something to a person who
+ * has never met that agent.
+ */
+
+/** Critique: a drawn eye over a frame. It looks at a design and says what is wrong. */
+function Critique() {
+  return (
+    <svg {...g}>
+      <rect x="2.5" y="3" width="11" height="8" rx="1.2" />
+      <path d="M4.6 7c1.2-1.5 4.6-1.5 5.8 0-1.2 1.5-4.6 1.5-5.8 0Z" />
+      <circle cx="7.5" cy="7" r="0.85" fill="currentColor" stroke="none" />
+      <path d="M5 13.5h6" />
+    </svg>
+  );
+}
+
+/** Verify: a tick inside a shield. It confirms a release is safe to go out. */
+function Verify() {
+  return (
+    <svg {...g}>
+      <path d="M8 2 13 3.8v4.1c0 3-2.1 5.2-5 6.1-2.9-.9-5-3.1-5-6.1V3.8L8 2Z" />
+      <path d="M5.6 7.9 7.4 9.7l3.1-3.4" />
+    </svg>
+  );
+}
+
+/** Guide: a compass needle. It points at what the record already learned. */
+function Guide() {
+  return (
+    <svg {...g}>
+      <circle cx="8" cy="8" r="5.6" />
+      <path d="M10.3 5.7 6.9 6.9 5.7 10.3l3.4-1.2 1.2-3.4Z" />
+    </svg>
+  );
+}
+
+/** Reactor: a bolt through a ring. It responds the moment something arrives. */
+function Reactor() {
+  return (
+    <svg {...g}>
+      <circle cx="8" cy="8" r="5.6" />
+      <path d="M8.9 4.4 6.2 8.3h2L7.1 11.6l2.8-3.9h-2l1-3.3Z" />
+    </svg>
+  );
+}
+
+/** Archivist: stacked layers with a spine. It keeps what happened, in order. */
+function Archivist() {
+  return (
+    <svg {...g}>
+      <rect x="2.6" y="3" width="10.8" height="3" rx="0.9" />
+      <rect x="2.6" y="7" width="10.8" height="3" rx="0.9" />
+      <path d="M2.6 11.6h10.8" />
+      <path d="M5.4 4.5h5.2M5.4 8.5h5.2" />
+    </svg>
+  );
+}
+
 const BY_NAME: Record<string, () => ReactElement> = {
   Watch,
   Research,
@@ -160,6 +238,11 @@ const BY_NAME: Record<string, () => ReactElement> = {
   Review,
   Announce,
   Measure,
+  Critique,
+  Verify,
+  Guide,
+  Reactor,
+  Archivist,
 };
 
 /** The glyph component for an agent slug, via its catalog display name. */

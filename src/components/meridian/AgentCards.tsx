@@ -49,6 +49,21 @@ export type AgentCard = {
   runsAlone?: boolean;
   /** How many things it is waiting on a person for. The one use of `you`. */
   waiting?: number;
+  /**
+   * Which station this one works at, used as a heading.
+   *
+   * ── WHY GROUP AT ALL ────────────────────────────────────────────────────
+   * Founder: "should we differentiate it based on the categories here?" -- naming
+   * Discover holding Watch, Research and Listen, and Decide holding Challenge and
+   * Chief of Staff.
+   *
+   * Eighteen cards in one grid is a wall, and the grouping is not invented for the
+   * layout: the station is what the agent IS in this product's own vocabulary, it is
+   * stored on every row, and it is the order the loop runs in. Reading the roster down
+   * the spine also answers the question a person actually has -- "who is working on the
+   * part I am looking at" -- which an alphabetical grid cannot.
+   */
+  group?: string;
 };
 
 /**
@@ -101,13 +116,29 @@ export function AgentCards({
 }) {
   if (cards.length === 0) return <div data-mrd="">{empty ?? null}</div>;
 
+  /* Groups in the order the cards arrive, so the caller owns the sequence and this
+     component never re-sorts the loop into alphabetical order. */
+  const groups: (string | undefined)[] = [];
+  for (const card of cards) if (!groups.includes(card.group)) groups.push(card.group);
+
   return (
-    <div
-      data-mrd=""
-      className="grid gap-2"
-      style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${minCardWidth}px, 1fr))` }}
-    >
-      {cards.map((card, index) => {
+    <div data-mrd="" className="flex flex-col" style={{ gap: "var(--mrd-s5)" }}>
+      {groups.map((group) => (
+        <div key={group ?? "__ungrouped"} className="flex flex-col gap-2">
+          {group && (
+            /* The same quiet micro heading the rail uses for its own groups, so a
+               station heading reads identically wherever it appears. */
+            <div className="text-[10.5px] font-medium tracking-[0.08em] text-mrd-mute uppercase">
+              {group}
+            </div>
+          )}
+          <div
+            className="grid gap-2"
+            style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${minCardWidth}px, 1fr))` }}
+          >
+            {cards
+              .filter((c) => c.group === group)
+              .map((card, index) => {
         const Glyph = glyphForSlug(card.slug);
         const isActive = card.slug === activeSlug;
         const off = card.enabled === false;
@@ -142,11 +173,53 @@ export function AgentCards({
                */}
               <span
                 aria-hidden
-                className="flex size-9 shrink-0 items-center justify-center rounded-[10px] border border-mrd-line bg-mrd-sink"
-                style={{ color: off ? "var(--mrd-faint)" : "var(--mrd-body)" }}
+                /*
+                 * ILLUMINATES ON HOVER, and the mark is SIZED rather than left to fill
+                 * the well.
+                 *
+                 * Founder, on the first version: the glyphs "look too big" and read
+                 * thicker than they should. Both were one cause -- the drawings carry a
+                 * 16px viewBox and no width, so they stretched to the full 36px well,
+                 * which scales the stroke with them. Constraining the mark to 18px
+                 * restores the weight it was drawn at and leaves the well as breathing
+                 * room instead of a frame around a swollen icon.
+                 *
+                 * The hover lift is his "illuminated with some brand color very subtly".
+                 * It is done on the NEUTRAL ladder rather than with an accent: the well
+                 * steps sink -> lift and the mark steps body -> ink. meridian.css records
+                 * that a saturated accent on chrome was tried twice and rejected twice,
+                 * because spending it here leaves nothing louder for "your call". This
+                 * reads as the mark catching the light, survives greyscale, and keeps
+                 * every status hue free.
+                 */
+                className="flex size-9 shrink-0 items-center justify-center rounded-[10px] border border-mrd-line bg-mrd-sink transition-[background-color,color] group-hover:bg-mrd-lift group-hover:text-mrd-ink"
+                style={{
+                  color: off ? "var(--mrd-faint)" : "var(--mrd-body)",
+                  transitionDuration: "var(--mrd-d-press)",
+                }}
               >
-                <Glyph />
+                <span className="flex size-[18px] items-center justify-center [&>svg]:size-full">
+                  <Glyph />
+                </span>
               </span>
+              {/*
+               * THE JOB LEADS, THE POLICY FOLLOWS, and the first version had it the
+               * other way round.
+               *
+               * Founder: every card said "Critic runs on its own / Verify runs on its
+               * own / Guide runs on its own" under the name, and "that should be
+               * somewhere down" -- the description of what it actually does belongs
+               * there instead.
+               *
+               * He is right on the merits. Three cards repeating one identical phrase
+               * is a column of noise that distinguishes nothing, and it was occupying
+               * the line the eye reads immediately after a name -- the line that should
+               * answer "what is this one for". The policy is worth knowing and worth
+               * knowing second.
+               *
+               * `you` is the exception and stays high: an agent WAITING on a person is
+               * not a policy, it is a call, and it must not be demoted below a blurb.
+               */}
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span
                   className="truncate text-[13.5px] font-medium"
@@ -154,20 +227,31 @@ export function AgentCards({
                 >
                   {card.name}
                 </span>
-                <StateLine card={card} />
+                {card.role ? (
+                  <span className="line-clamp-2 text-[12px] leading-snug text-mrd-mute">
+                    {card.role}
+                  </span>
+                ) : (
+                  <StateLine card={card} />
+                )}
               </span>
             </span>
 
+            {/* The policy, on its own line at the foot of the card, where a reader
+                scanning for "which of these needs me" finds it without it competing
+                with the name. Drawn only when the description already took the slot
+                above, so the fact is never stated twice. */}
             {card.role && (
-              /* Two lines, clamped. A card is scanned, and a paragraph in a grid cell
-                 is the "dump of content" this redesign exists to stop. */
-              <span className="line-clamp-2 text-[12px] leading-snug text-mrd-mute">
-                {card.role}
+              <span className="mt-auto flex w-full items-center pt-0.5">
+                <StateLine card={card} />
               </span>
             )}
           </button>
-        );
-      })}
+                );
+              })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
