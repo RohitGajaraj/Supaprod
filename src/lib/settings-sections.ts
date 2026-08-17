@@ -348,6 +348,27 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       { id: "sync", label: "Sync and bindings", door: false, foldsInto: "connections" },
       { id: "interop", label: "Agent access", keywords: ["mcp", "token", "api", "external agent", "outside"] },
       { id: "data", label: "Your data", keywords: ["export", "download", "delete", "privacy", "gdpr", "retention"] },
+      /*
+       * ── MODELS MOVED HERE, 2026-08-17 ─────────────────────────────────────
+       * Founder: "Models and keys would come in data and access only, right? Why is it
+       * under agent? It is not the right thing."
+       *
+       * Correct, and the group descriptions make it obvious once said out loud. Agents
+       * is about WHO works here and how much rope each has. A model is not an agent and
+       * a key is not a boundary: they are an outside service this workspace reaches and
+       * a credential it reaches with, which is precisely what this group governs -- the
+       * same shape as a connector, one rung further in.
+       *
+       * It also removes a genuine confusion the old placement created: a reader looking
+       * for "which model runs my work" was being sent to a group about permissions, and
+       * a reader auditing what leaves the workspace never looked in Agents for an API
+       * key.
+       */
+      {
+        id: "ai",
+        label: "Models and keys",
+        keywords: ["model", "models", "api key", "byo", "openai", "anthropic", "provider"],
+      },
     ],
   },
   {
@@ -362,18 +383,37 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
      * rather than a house word. Ids are untouched; `?section=agents` already
      * aliased to `staff` and still does. */
     label: "Agents",
-    desc: "How far each agent may reach, when it stops to ask you, and which model runs the work.",
+    desc: "Who works here, and how much each one may do without you.",
     sections: [
+      /*
+       * ── WHO WORKS HERE LEADS, 2026-08-17 ──────────────────────────────────
+       * Founder: "under the agent, I want this roaster thing to be on top, and
+       * whatever name you give, autonomy and approvals could be at the bottom one."
+       *
+       * Right on the reading order. A person arriving at Agents wants to see the crew
+       * before they can have an opinion about anybody's rope, and Autonomy was leading
+       * with a governance dial for agents the reader had not met yet.
+       *
+       * ── AND IT IS NOT CALLED "ROSTER" ANY MORE ────────────────────────────
+       * He asked whether "Roster" is right, and whether "Agents" would collide with the
+       * group heading. Both concerns are real and they pull opposite ways: "Roster" is
+       * a house word nobody types (the vocabulary rules retire exactly this kind), and
+       * "Agents" under a group called Agents is a door named after its own neighbourhood.
+       *
+       * "Who works here" answers it: it is the plainest English for the thing, it is
+       * what the pane's own first Block was already called, and it cannot collide with
+       * a heading because it is a phrase rather than a category. Nothing types "roster"
+       * to find their crew; the keywords carry that word so the search still lands.
+       */
+      {
+        id: "staff",
+        label: "Who works here",
+        keywords: ["agents", "crew", "roster", "who", "specialist"],
+      },
       {
         id: "autonomy",
         label: "Autonomy and approvals",
         keywords: ["approval", "approvals", "permission", "kill switch", "pause", "autopilot", "trust"],
-      },
-      { id: "staff", label: "Roster", keywords: ["agents", "crew", "who", "specialist", "tools"] },
-      {
-        id: "ai",
-        label: "Models and keys",
-        keywords: ["model", "models", "api key", "byo", "openai", "anthropic", "provider"],
       },
     ],
   },

@@ -1277,7 +1277,15 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
    */
   const catOrder = new Map(SPECIALIST_CATALOG.map((c, i) => [c.slug, i]));
   const stored = new Map((crew.data?.members ?? []).map((m) => [m.slug, m]));
-  const members = SPECIALIST_CATALOG.filter((c) => c.status === "active")
+  /*
+   * CAST ONLY, AND THIS CORRECTS MY OWN OVERREACH. Spanning the catalog fixed the
+   * three-card under-report and introduced the opposite error: it began listing tier
+   * `crew` agents, which the catalog itself labels "engine-only mechanisms, never
+   * user-facing (not seeded as loop agents)". Reactor and Archivist are plumbing.
+   * Presenting plumbing as a colleague is the Engine-Room doctrine's exact failure --
+   * the user meets the output of the machine, never the machine.
+   */
+  const members = SPECIALIST_CATALOG.filter((c) => c.status === "active" && c.tier === "cast")
     .map((c) => {
       const row = stored.get(c.slug);
       return (
@@ -1384,7 +1392,25 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
               /* STAGE_LABEL is the product's existing station-to-name map (Discover,
                  Decide, Plan...). Reused rather than retyped: a second list of the
                  seven names is how a rename lands in one place and not the other. */
-              return st ? STAGE_LABEL[st] : "Everywhere";
+              /*
+               * THE CONDUCTOR IS NOT AT A STATION, and the founder called this out:
+               * "Reactor and Chief of Staff ... work across all surfaces and all
+               * stations, why is that gated". He is right about Chief of Staff.
+               *
+               * The catalog files it at `decide` and that is a filing artifact, not a
+               * design: it carries `conductor: true`, its blurb is "Runs the loop and
+               * brings you the calls that need you", and `driver.test.ts` EXCLUDES
+               * conductors from station-crew coverage on purpose. It is dispatched
+               * through orchestrator.functions.ts, never as a station's crew. Showing
+               * it under Decide told a reader it works one seventh of the loop.
+               *
+               * Grouped separately rather than restationed: `station` is stored and the
+               * driver reads it, so changing the DATA would change dispatch. This
+               * changes only what the roster says, which is the thing that was wrong.
+               */
+              const entry = catalogEntry(m.slug);
+              if (entry?.conductor) return "Across the whole loop";
+              return st ? STAGE_LABEL[st] : "Across the whole loop";
             })(),
           }))}
           onOpen={(slug) => onOpenCrew(slug)}

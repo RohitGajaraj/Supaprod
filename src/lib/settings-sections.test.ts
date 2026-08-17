@@ -115,10 +115,23 @@ describe("settings-sections - the four groups are named by the boundary they set
     }
   });
 
-  it("What the crew may do holds Autonomy, the Roster and Models", () => {
-    expect(groupForSection("autonomy")).toBe("crew");
+  it("Agents holds who works here and their rope, and NOT the models", () => {
+    /*
+     * MODELS MOVED TO `reach` ON 2026-08-17. Founder: "Models and keys would come in
+     * data and access only, why is it under agent". A model is not an agent and a key
+     * is not a boundary -- they are an outside service this workspace reaches and the
+     * credential it reaches with, which is what that group governs.
+     */
     expect(groupForSection("staff")).toBe("crew");
-    expect(groupForSection("ai")).toBe("crew");
+    expect(groupForSection("autonomy")).toBe("crew");
+    expect(groupForSection("ai")).toBe("reach");
+  });
+
+  it("puts who works here BEFORE the rope they are given", () => {
+    // A person cannot have an opinion about anybody's autonomy before they have met
+    // the crew. Autonomy was leading with a dial for agents the reader had not seen.
+    const agents = SETTINGS_GROUPS.find((g) => g.id === "crew")!;
+    expect(agents.sections.map((sec) => sec.id)).toEqual(["staff", "autonomy"]);
   });
 
   it("What the crew reads holds the brief, brand, products and the memory address", () => {
@@ -295,7 +308,9 @@ describe("settings-sections - derivations", () => {
     // "Models and keys" on screen) because the route carried its own door list.
     // It reads this module now, so the two cannot drift again.
     expect(sectionLabel("ai")).toBe("Models and keys");
-    expect(sectionLabel("staff")).toBe("Roster");
+    /* "Who works here", not "Roster": a house word nobody types, and "Agents" would
+       have collided with its own group heading. The keywords still carry "roster". */
+    expect(sectionLabel("staff")).toBe("Who works here");
     expect(sectionLabel("workspace")).toBe("Brief and voice");
     expect(sectionLabel("autonomy")).toBe("Autonomy and approvals");
     // Founder ruling 2026-07-29 (commit 9900c049): "Sources is now Connectors,
@@ -397,11 +412,12 @@ describe("settings-sections - Up, Down, Home and End", () => {
   });
 
   it("Down and Up step one door, across group boundaries", () => {
-    expect(stepDoor("autonomy", "ArrowDown")).toBe("staff");
-    expect(stepDoor("staff", "ArrowUp")).toBe("autonomy");
-    // The last door of "What the crew may do" steps into the next group's first.
-    expect(stepDoor("ai", "ArrowDown")).toBe("workspace");
-    expect(stepDoor("workspace", "ArrowUp")).toBe("ai");
+    /* Order since 2026-08-17: ... data, ai | staff, autonomy | workspace ...
+       The pipes are group boundaries, and the ring must cross them without stopping. */
+    expect(stepDoor("ai", "ArrowDown")).toBe("staff");
+    expect(stepDoor("staff", "ArrowUp")).toBe("ai");
+    expect(stepDoor("autonomy", "ArrowDown")).toBe("workspace");
+    expect(stepDoor("workspace", "ArrowUp")).toBe("autonomy");
   });
 
   it("Down wraps at the end and Up wraps at the start", () => {
