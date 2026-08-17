@@ -1488,3 +1488,51 @@ own Block and fails on their use inside a Block extent.
 Your own provider keys, Appearance, Working hours.
 
 **HEAD `3afc6609`. tsc 0 - 9,393 pass 0 fail - build green.**
+
+### The doorless audit, closed (2026-08-17, HEAD `89030a06`)
+
+**Founder:** *"Certain features are kept doorless, and there is no option to reach that."*
+He was right, and the cause was mine, hidden behind my own comment.
+
+**Deletion audit first, across all eight commits this stretch:** zero files deleted, every
+file net-positive. Verified still present: Appearance, Working hours and People blocks;
+Theme and Density controls; all three provider-key mutations (save, test, delete) plus
+their empty state; "Reachable from/until"; both `/crew` doors. **One deliberate removal
+stands:** the general "Open Crew" more-door, replaced by a per-agent door at the foot of
+the open agent.
+
+**The real find.** I removed the Diagnostics door from the Settings rail with a comment
+claiming *"the door is drawn from the Engine Room instead"*. **Nothing drew it.** Nothing
+in `src` linked `?section=health` except that comment and a test quoting it. So
+`DiagnosticsSection` -- two real server reads -- was reachable only by typing a URL.
+**Second time in one session I wrote an intent in a comment and did not build it.**
+
+**Fixed by finishing the move, not reverting it.** Diagnostics is now the Quality room's
+leading tab ("Is it me or you?"), **mounted not copied**, so the two cannot disagree.
+`?section=health` forwards, naming where it went, as `memory` forwards to Brain. Uses
+Meridian `NeedsSetup` because the ratchet refused the retired trio at 134 -> 137.
+
+**Every settings pane audited.** Four have no rail door; three are legitimate:
+`credits` -> billing, `sync` -> connections (both `foldsInto`), `memory` (apology pane with
+a wired door to Brain). `health` was the only stranded one.
+
+**Routes audited too:** `/artifacts` is a redirect stub to `/brain?tab=artifacts`.
+`/meridian` is the 80KB internal design gallery and is deliberately URL-only -- giving it a
+user-facing door would breach the Engine-Room doctrine. The `*/test` routes are dev
+harnesses.
+
+**Guard: `src/lib/settings-doors.test.ts`.** A section may lack a rail door only if it
+declares how it is reached: `foldsInto`, an apology pane with a wired door, or a real link.
+
+**THE GUARD WAS WRONG TWICE BEFORE IT WAS RIGHT.** Both traps are now confirmed for the
+fifth and sixth time on this surface:
+1. It passed because a **comment** in `settings-sections.ts` contains `?section=health`.
+   A guard satisfied by the prose documenting the defect is worse than none. Reads through
+   `stripComments` now.
+2. Its "offers a door" half tested for `/onOpen/`, which the component's own **parameter**
+   satisfies, so cutting `onClick={onOpen}` to `onClick={() => {}}` left it green. It now
+   requires the handler to be attached to a control.
+
+**Standing rule this produced:** *a comment asserting a door is not a door.* When a door is
+removed, the replacement must be verified by a test that has been proven red, in the same
+commit.
