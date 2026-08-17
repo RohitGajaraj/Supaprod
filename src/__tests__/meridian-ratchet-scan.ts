@@ -143,6 +143,95 @@ export const RETIRED_MARKERS: ReadonlyArray<{ id: string; pattern: RegExp; linea
 ];
 
 /**
+ * ── THE SECOND HOLE, CLOSED 2026-08-16 ──────────────────────────────────
+ *
+ * The markers above count the import STATEMENT. One line per retired module,
+ * however much of that module the file goes on to render. So rule 2 of this
+ * guard, "an existing file may not get worse", was not enforced for the
+ * component layer at all: a file that already carried its one import line
+ * could add unlimited retired UI and the count never moved.
+ *
+ * MEASURED ON THE COMMIT THAT PROVED IT. `_authenticated.ship.tsx` went from 84
+ * to 92 rendered retired components in `608fb56e` while its ratchet debt stayed
+ * at exactly 6. A new first-run screen was composed entirely from `Gate`,
+ * `Block`, `Row`, `Num` and `CtxBody` -- eight new usages of a vocabulary
+ * retired two days earlier -- and every gate passed green.
+ *
+ * That is the same shape as the hole closed the day before, and the same
+ * argument applies: a guard with a known hole converts "we have not checked"
+ * into "we checked and it was fine".
+ *
+ * WHY THIS COUNTS SYMBOLS THE FILE ITSELF IMPORTED, and not bare identifiers.
+ * The note above is right that `Button`, `Actions`, `Door`, `Failed` and `Empty`
+ * exist in BOTH worlds on purpose, so counting `<Button` across a file would
+ * flag correct Meridian code. So the symbols are read out of that file's own
+ * retired import block first, and only those names are counted. A file that
+ * imports `Button` from Meridian and never from `shell/primitives` scores zero
+ * here, which is the whole point.
+ *
+ * Capitalised symbols are counted as OPENING JSX TAGS, so a paired tag counts
+ * once and the number reads as "components rendered". Lowercase symbols are
+ * counted at their call sites, which is how a retired hook shows up.
+ */
+const RETIRED_MODULES: ReadonlyArray<{ id: string; source: RegExp; lineage: string }> = [
+  { id: "shell/primitives", source: /\/shell\/primitives$/, lineage: "Cadence/ink components" },
+  { id: "components/ui", source: /\/ui\/[^/]+$/, lineage: "Tempo v5 (shadcn)" },
+  { id: "components/obsidian", source: /\/obsidian\/[^/]+$/, lineage: "Obsidian v3 components" },
+];
+
+/** `import { a, b as c, type D } from "..."`, including multi-line blocks. */
+const NAMED_IMPORT = /import\s+\{([^}]*)\}\s*from\s*["']([^"']+)["']/g;
+
+/**
+ * How many times a file actually leans on each retired module.
+ *
+ * Returns usage counts keyed `usage:<module id>`, and also hands back the import
+ * blocks it consumed so the caller can exclude them from the count. Without that
+ * exclusion the symbol list in the import statement would itself register as
+ * usage and every file would score at least its own import.
+ */
+function retiredUsage(code: string): { counts: Record<string, number>; stripped: string } {
+  const symbolsByModule = new Map<string, Set<string>>();
+  const importBlocks: string[] = [];
+
+  for (const match of code.matchAll(NAMED_IMPORT)) {
+    const [whole, clause, source] = match;
+    const mod = RETIRED_MODULES.find((m) => m.source.test(source));
+    if (!mod) continue;
+    importBlocks.push(whole);
+    const set = symbolsByModule.get(mod.id) ?? new Set<string>();
+    for (const raw of clause.split(",")) {
+      const part = raw.trim();
+      if (!part) continue;
+      // A type-only symbol renders nothing, so it is not usage. It is still
+      // retired vocabulary and is already counted by the import marker above.
+      if (/^type\s/.test(part)) continue;
+      // `X as Y` binds Y locally, so Y is the name that appears in the markup.
+      const local = part.split(/\s+as\s+/).pop()!.trim();
+      if (local) set.add(local);
+    }
+    symbolsByModule.set(mod.id, set);
+  }
+
+  let stripped = code;
+  for (const block of importBlocks) stripped = stripped.replace(block, "");
+
+  const counts: Record<string, number> = {};
+  for (const [id, symbols] of symbolsByModule) {
+    let total = 0;
+    for (const symbol of symbols) {
+      const escaped = symbol.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const pattern = /^[A-Z]/.test(symbol)
+        ? new RegExp(`<${escaped}\\b`, "g")
+        : new RegExp(`\\b${escaped}\\s*\\(`, "g");
+      total += stripped.match(pattern)?.length ?? 0;
+    }
+    if (total > 0) counts[`usage:${id}`] = total;
+  }
+  return { counts, stripped };
+}
+
+/**
  * RAW COLOUR, which is its own failure and not merely an old vocabulary.
  *
  * A hex in a component is worse than a retired token: a retired token at least
@@ -202,6 +291,9 @@ export function debtIn(source: string): FileDebt {
     const n = code.match(new RegExp(pattern.source, "g"))?.length ?? 0;
     if (n > 0) debt[id] = n;
   }
+  // How much of each retired module the file actually renders, which the import
+  // markers above cannot see. See `retiredUsage`.
+  for (const [marker, n] of Object.entries(retiredUsage(code).counts)) debt[marker] = n;
   const colours = code.match(RAW_COLOUR)?.length ?? 0;
   if (colours > 0) debt["raw-colour"] = colours;
   return debt;
