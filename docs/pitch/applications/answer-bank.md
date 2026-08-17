@@ -328,11 +328,33 @@ market, incubated at IIM Bangalore's NSRCEL and recognized under Startup India.
 ```
 
 ### The most impressive thing built or achieved (outside this startup)
+
+> **⭐ Updated 2026-08-17 on a founder ruling. Always carry the distance.**
+
 ```
-At 21 I was building satellite communication systems at ISRO, India's space
-agency, for its Moon and Mars missions, where the hardware launches once and
-there is no patch release and no second attempt. The systems I worked on flew.
+At 21 I built the communication link for spacecraft going to the Moon and Mars at
+ISRO, India's national space agency. My job was keeping a signal alive across
+hundreds of millions of kilometres. After launch there is no patch and no second
+attempt. The systems I worked on flew.
 ```
+
+> ### 🛑 "No patch, no second attempt" is not enough on its own. Add the kilometres.
+>
+> _Founder, 2026-08-17: "When you're harping about the Moon and Mars mission, you need to say that it is already millions of kilometres away, so they can understand the gravity of the problem and the complexity."_
+>
+> **The consequence line is abstract and a reader nods past it.** The distance makes it physical, and it is what actually conveys the difficulty.
+>
+> **Tie the distance to HIS contribution, not to space in general.** He built the communication link, so the distance is not colour, it is the engineering problem he was solving. *"Keeping a signal alive across hundreds of millions of kilometres"* is worth far more than *"space is hard"*.
+>
+> ### ⚠️ Say hundreds of MILLIONS. Never billions.
+>
+> | Body | Distance | Correct phrase |
+> | --- | --- | --- |
+> | Moon | ~384,400 km | hundreds of thousands |
+> | **Mars** | **~55M to ~401M km** | **hundreds of millions** |
+> | Saturn | ~1.2 to 1.6 billion km | this is where "billions" belongs, and it is not us |
+>
+> **The founder said "millions and billions" in conversation. The accurate figure is the stronger one.** Mars never exceeds roughly 401 million kilometres, a space-literate reviewer knows that, and an inflated number costs more than the bigger adjective buys. **Mission names stay banned.**
 
 ### Things built before
 ```

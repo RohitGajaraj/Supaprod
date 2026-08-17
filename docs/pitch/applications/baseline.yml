@@ -157,11 +157,35 @@ founder:
     - MBA, TUM School of Management
   career:
     - org: ISRO (India's national space agency)
-      role: satellite communication systems, from age 21
+      role: the communication link for spacecraft going to the Moon and Mars, from age 21
       note: >-
         Say "Moon and Mars missions", NEVER the mission names. A reader outside
         India has to look them up, and a name that stops the sentence is a defect.
         Both missions flew.
+      # FOUNDER RULING 2026-08-17. Always carry the DISTANCE.
+      carry_the_distance: >-
+        "No patch, no rollback, no second attempt" is abstract and a reader can
+        nod past it. The distance makes it physical, and it is the thing that
+        conveys the complexity. Always pair the consequence with the scale.
+      canonical_phrasing: >-
+        I built the communication link for spacecraft going to the Moon and Mars.
+        My job was keeping a signal alive across hundreds of millions of
+        kilometres. After launch there is no patch and no second attempt.
+      why_that_phrasing_is_strongest: >-
+        It ties the distance to HIS OWN contribution rather than to space in
+        general. He built the comms link, so the distance is not colour, it is
+        the engineering problem he was solving. A generic "space is hard" line
+        is worth far less.
+      distance_accuracy:
+        moon_km: 384400          # hundreds of THOUSANDS
+        mars_km_range: 55e6 to 401e6   # hundreds of MILLIONS
+        say: "hundreds of millions of kilometres"
+        never_say: >-
+          "billions of kilometres". Billions is Saturn territory, roughly 1.2 to
+          1.6 billion km. Mars never exceeds about 401 million. The founder said
+          "millions and billions" in conversation; the accurate figure is the
+          stronger one because a space-literate reviewer catches an inflated
+          number and the whole application pays for it.
     - org: Infineon Technologies, Munich
       role: product manager, semiconductors
     - org: Intellect (BFSI technology company)

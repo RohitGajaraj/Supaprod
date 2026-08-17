@@ -442,6 +442,28 @@ ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 <file>
 
 ⚠️ **The honesty limit.** Agents ran the sweep and a script ranked it. **Do not write that Supaprod did it.** The product did not run this, and the overstatement is exactly the kind a partner asks about in the room.
 
+### 26. Give a hard constraint its physical scale, or the reader nods past it
+
+**Founder ruling 2026-08-17, on the ISRO story.**
+
+> _"When you're harping about the Moon and Mars mission, you need to say that it is already millions of kilometres away, so they can understand the gravity of the problem or the complexity."_
+
+**The line in every draft was *"hardware launches once, there is no patch release and no second attempt."*** True, and a reader agrees with it without feeling it. **Constraints stated as rules are abstract. The same constraint given a number becomes physical.**
+
+**The rewrite, and it does two jobs at once:**
+
+> I built the communication link for spacecraft going to the Moon and Mars. **My job was keeping a signal alive across hundreds of millions of kilometres.** After launch there is no patch and no second attempt.
+
+**Why this version and not just "it was millions of kilometres away".** The distance is tied to **his own contribution**. He built the comms link, so the distance is not scene-setting, it is the engineering problem he personally solved. *"Space is hard"* is worth nothing; *"keeping a signal alive across hundreds of millions of kilometres"* is worth the whole paragraph.
+
+> ### ⚠️ The number has to be right, and the founder's spoken version was not
+>
+> He said *"millions and billions of kilometres"*. **Moon is ~384,400 km. Mars ranges ~55 million to ~401 million km. Billions is Saturn, at 1.2 to 1.6 billion.**
+>
+> **Say "hundreds of millions". Never "billions".** This is the numbers rule applied to a figure that sounds like colour: an ISRO story will be read by people who know planetary distances, an inflated number is caught instantly, and it costs more than the bigger adjective buys. **The accurate figure is also the more impressive one, because it is defensible.**
+
+**The generalisable form:** when an answer leans on a hard constraint (irreversibility, latency, regulation, scale), **find the physical number behind it and say that instead of the rule.** Then check the number.
+
 ---
 
 ## Part 2 — What worked, and should be repeated
