@@ -5,7 +5,7 @@
     "It only ever moves DOWN. A file absent from this list must be clean.",
     "Do not hand-edit; do not regenerate to silence a failure."
   ],
-  "totalOccurrences": 5816,
+  "totalOccurrences": 5799,
   "fileCount": 291,
   "files": {
     "src/components/admin/admin-ui.tsx": {
@@ -1046,7 +1046,7 @@
       "usage:components/obsidian": 1
     },
     "src/routes/_authenticated.settings.tsx": {
-      "--sp-": 51,
+      "--sp-": 34,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 139
     },

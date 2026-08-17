@@ -258,6 +258,7 @@ export function SidebarNav({
   tooltips = "auto",
   tooltipDelayMs = 0,
   onSearch,
+  onWorkspaceClick,
   primaryAction,
 }: {
   items?: RailItem[];
@@ -277,6 +278,24 @@ export function SidebarNav({
   /** 0 means the frame the pointer arrives, which is what was asked for. */
   tooltipDelayMs?: number;
   onSearch?: (query: string) => void;
+  /**
+   * What pressing the workspace row does. WITHOUT IT THE ROW IS NOT A CONTROL.
+   *
+   * THE DEFECT THIS PROP EXISTS TO FIX. That row was a `<button>` with no handler
+   * on it, carrying `aria-label="<name>, switch workspace"` when collapsed. So it
+   * had a hover wash, a press scale, a focus ring and a promise read out loud to a
+   * screen reader, and pressing it did nothing.
+   *
+   * This file already criticises the reference for exactly that shape -- "an
+   * affordance that looks pressable, is not, and cannot be reached from the keyboard
+   * at all" -- and then shipped a worse version of it, because a silent inert span
+   * at least does not tell anyone it switches workspace.
+   *
+   * A control that does nothing is not a small bug. The reader presses it, nothing
+   * happens, and they stop trusting the other controls in the rail. Same argument
+   * ContextCards makes about a source chip with no link.
+   */
+  onWorkspaceClick?: () => void;
   primaryAction?: { label: string; onClick: () => void };
 }) {
   const [ownActive, setOwnActive] = useState(defaultActiveKey ?? items[0]?.key ?? "");
@@ -549,10 +568,20 @@ export function SidebarNav({
        * answer "am I in the right workspace" without any label.
        */}
       <div className="flex items-center gap-1" style={{ marginBottom: "var(--mrd-s2)" }}>
-        <button
-          type="button"
-          aria-label={isCollapsed ? `${workspaceName}, switch workspace` : undefined}
-          className={`flex min-w-0 flex-1 items-center gap-2.5 rounded-mrd-ctl p-1.5 text-left transition-[background-color,transform] duration-100 hover:bg-mrd-hover active:scale-[0.96] ${FOCUS_RING}`}
+        {/*
+         * A BUTTON ONLY WHEN IT DOES SOMETHING. See `onWorkspaceClick`.
+         *
+         * With a handler this is the switcher it looks like. Without one it becomes a
+         * plain element that STATES which workspace you are in: no hover wash, no
+         * press scale, no focus ring, no tab stop, no chevron and no promise read out
+         * to a screen reader. The tag swap is the same shape `Row` uses in
+         * primitives.tsx for a row that may or may not be clickable.
+         */}
+        <WorkspaceRow
+          onClick={onWorkspaceClick}
+          collapsed={isCollapsed}
+          name={workspaceName}
+          focusRing={FOCUS_RING}
         >
           <span className="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-mrd-solid text-[13px] font-semibold text-mrd-on-solid">
             {workspaceName.slice(0, 1).toUpperCase()}
@@ -569,22 +598,27 @@ export function SidebarNav({
                   </span>
                 )}
               </span>
-              <svg
-                aria-hidden
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--mrd-mute)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M7 15l5 5 5-5M7 9l5-5 5 5" />
-              </svg>
+              {/* THE CHEVRON IS A PROMISE, so it is drawn only when the row can keep
+                  it. A switcher glyph on a row that switches nothing is the visual
+                  half of the same lie the missing handler was. */}
+              {onWorkspaceClick && (
+                <svg
+                  aria-hidden
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--mrd-mute)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M7 15l5 5 5-5M7 9l5-5 5 5" />
+                </svg>
+              )}
             </>
           )}
-        </button>
+        </WorkspaceRow>
 
         {!isCollapsed && (
           <button
@@ -1087,6 +1121,55 @@ export function SidebarNav({
         </button>
       )}
     </nav>
+  );
+}
+
+/**
+ * The workspace line: a real switcher when it has somewhere to go, a statement
+ * otherwise. See `onWorkspaceClick` for the defect this shape fixes.
+ *
+ * The tag swap rather than two copies of the markup, because the CHILDREN are
+ * identical in both cases and duplicating them is how the two drift.
+ */
+function WorkspaceRow({
+  onClick,
+  collapsed,
+  name,
+  focusRing,
+  children,
+}: {
+  onClick?: () => void;
+  collapsed: boolean;
+  name: string;
+  focusRing: string;
+  children: ReactNode;
+}) {
+  const shared = "flex min-w-0 flex-1 items-center gap-2.5 rounded-mrd-ctl p-1.5 text-left";
+
+  if (!onClick) {
+    /*
+     * No hover wash, no press scale, no ring, no tab stop. `aria-label` is dropped
+     * too: when collapsed the monogram alone is the whole content, so the name is
+     * carried by `title` for a pointer and by nothing at all for a screen reader
+     * that has the workspace named elsewhere in the shell. Announcing "switch
+     * workspace" on something that cannot is the bug.
+     */
+    return (
+      <div className={shared} title={collapsed ? name : undefined}>
+        {children}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={collapsed ? `${name}, switch workspace` : undefined}
+      className={`${shared} transition-[background-color,transform] duration-100 hover:bg-mrd-hover active:scale-[0.96] ${focusRing}`}
+    >
+      {children}
+    </button>
   );
 }
 

@@ -193,16 +193,12 @@ import { amIAdmin, getPricingCatalog } from "@/lib/pricing.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
 import {
-  doorByTypeahead,
-  groupForSection,
-  isNavKey,
-  navTabStop,
   NAV_GROUPS,
   normalizeSection,
   paneForSection,
-  stepDoor,
   type SectionId,
 } from "@/lib/settings-sections";
+import { SidebarNav, type RailItem } from "@/components/meridian/SidebarNav";
 
 import {
   AccountConnectionsSection,
@@ -314,93 +310,78 @@ export const Route = createFileRoute("/_authenticated/settings")({
 const PANE_ID = "settings-pane";
 
 /**
- * The left-hand index. The founder liked this shape, so it keeps it verbatim:
- * named groups, every door visible at once, no numbering and no fold. What
- * changed is underneath it.
+/**
+ * The left-hand index, now Meridian's own rail.
  *
- * ONE TAB STOP, NOT FOURTEEN. Every door used to be its own tab stop, so
- * reaching Diagnostics from the top of the surface was a fourteen-press crawl
- * and Tabbing "past" the nav to the actual settings took fourteen presses more.
- * This is the roving-tabindex pattern, taken from the repo's existing reference
- * implementation in components/obsidian/flashlight-tabs.tsx rather than invented
- * a second time: exactly one door holds tabIndex 0, and Up/Down/Home/End move
- * focus between them. The axis is Up/Down because this nav is a vertical list -
- * flashlight-tabs uses Left/Right because its row is horizontal, and copying the
- * axis rather than the pattern would have been the wrong kind of consistency.
+ * ── WHAT THIS REPLACED, AND WHY IT WAS NOT A LOSS ───────────────────────────
+ * A hand-rolled nav on retired Cadence/ink tokens (`--sp-lift`, `--sp-mute`,
+ * `sp-tab`) that had built, correctly and alone, the three things the design
+ * system's rail was missing: a roving tabindex, arrow keys and typeahead. Its own
+ * header recorded why -- "Diagnostics was a fourteen-press crawl".
  *
- * Focus MOVES, it does not select. Arrowing to a door focuses it; Enter or Space
- * opens it (native button activation). Manual activation, again as in
- * flashlight-tabs, so arrowing down the list does not fire fifteen route
- * navigations and fifteen sets of queries on the way past.
+ * So the rail was taught those first (see `stepRail`, `railTypeahead`,
+ * `isRailKey`), because swapping onto a rail without them would have taken this
+ * surface's one tab stop back to twelve. One implementation now, shared with every
+ * other nav in the product, which is the whole point of the exercise.
  *
- * TYPEAHEAD is the shortcut into any of the fifteen that this surface has never
- * had. Type "d" and focus lands on Diagnostics. The buffer clears after a second
- * of no typing, which is the standard listbox interval.
+ * ── WHAT IS DELIBERATELY GONE ───────────────────────────────────────────────
+ * The group DESCRIPTION paragraph. It rendered under whichever heading was active,
+ * so a 200px column carried a sentence of prose above a list of twelve rows. The
+ * founder's complaint about these surfaces was "just a dump of the content", and a
+ * paragraph explaining a heading is the shape that complaint takes in a sidebar. The
+ * descriptions still exist in `settings-sections.ts` and are still the right words;
+ * they are simply not chrome the reader has to scroll past to reach a door.
+ *
+ * The keyboard HINT line is gone for the same reason, and replaced by something
+ * better rather than deleted: the rail carries a search field with a `/` keycap on
+ * it, which is a visible affordance instead of a sentence describing invisible ones.
+ *
+ * ── THE SKIP LINK STAYS OUTSIDE THE RAIL ────────────────────────────────────
+ * It is this surface's own concern, not the rail's: it targets THIS page's pane.
+ * Pushing it into Meridian would put a Settings-shaped hole in a shared component.
  */
 function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: SectionId) => void }) {
-  const doorRefs = useRef<Map<SectionId, HTMLButtonElement>>(new Map());
-  const typeBuffer = useRef<{ text: string; at: number }>({ text: "", at: 0 });
   const [skipFocused, setSkipFocused] = useState(false);
+  const [query, setQuery] = useState("");
+  const { activeWorkspace } = useWorkspace();
 
-  // The single tab stop. Derived, not assumed: two of the fifteen sections draw
-  // no door, and on those addresses the active section is not in this ring.
-  const tabStop = navTabStop(active);
-  const activeGroup = groupForSection(paneForSection(active));
+  /*
+   * The doors, as rail rows. Read from NAV_GROUPS so there is still exactly one list
+   * of what Settings contains -- the defect this file's header describes at length is
+   * two lists drifting apart, and a private copy here would restore it.
+   */
+  const allItems: RailItem[] = NAV_GROUPS.flatMap((g) =>
+    g.sections.map((sec) => ({ key: sec.id, label: sec.label, section: g.label })),
+  );
 
-  const focusDoor = (id: SectionId | null) => {
-    if (id) doorRefs.current.get(id)?.focus();
-  };
-
-  const onKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
-    // Only a DOOR drives this. The skip link lives inside the same nav, and
-    // without this check pressing End while it held focus would jump focus to
-    // Diagnostics instead of scrolling the page, and typing would drag focus
-    // into the index from a link whose whole purpose is to leave it.
-    const focusedId = [...doorRefs.current.entries()].find(
-      ([, el]) => el === document.activeElement,
-    )?.[0];
-    if (!focusedId) return;
-
-    // Never swallow a key this nav does not own. preventDefault on an unowned
-    // key is how a nav silently breaks page scrolling and browser find.
-    if (isNavKey(e.key)) {
-      e.preventDefault();
-      focusDoor(stepDoor(focusedId, e.key));
-      return;
-    }
-
-    // A single printable character, with no modifier, is typeahead. Space is
-    // excluded: it activates the focused button, which is the ARIA contract.
-    if (e.key.length !== 1 || e.key === " " || e.metaKey || e.ctrlKey || e.altKey) return;
-    const now = Date.now();
-    const buf = now - typeBuffer.current.at > 1000 ? e.key : typeBuffer.current.text + e.key;
-    typeBuffer.current = { text: buf, at: now };
-    const match = doorByTypeahead(buf, focusedId);
-    if (match) {
-      e.preventDefault();
-      focusDoor(match);
-    }
-  };
+  /*
+   * FILTERED HERE, NOT IN THE RAIL. `onSearch` reports the query and leaves the
+   * caller to decide what it means, which is right: on another surface a query might
+   * search content rather than narrow a list.
+   *
+   * An empty result keeps the FULL list rather than showing an empty rail. A nav that
+   * can vanish is a set of doors that can vanish, and a person who mistypes should
+   * not lose the way out of the surface they are on.
+   */
+  const needle = query.trim().toLowerCase();
+  const matched = needle
+    ? allItems.filter((i) => i.label.toLowerCase().includes(needle))
+    : allItems;
+  const items = matched.length > 0 ? matched : allItems;
 
   return (
-    <nav
-      aria-label="Settings"
-      onKeyDown={onKeyDown}
+    <div
       style={{
-        flex: "0 1 200px",
-        maxWidth: 220,
-        minWidth: 168,
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--sp-space-5)",
+        flex: "0 1 240px",
+        minWidth: 200,
         position: "sticky",
         top: 0,
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--mrd-s3)",
       }}
     >
-      {/* Announced and reachable, drawn only while it holds focus. There is a
-          .sp-sr-only utility but no focus-visible variant of it in the sheet,
-          and the stylesheet is not this lane's to change, so the reveal is
-          done here. */}
+      {/* Announced and reachable, drawn only while it holds focus. */}
       <a
         href={`#${PANE_ID}`}
         onFocus={() => setSkipFocused(true)}
@@ -408,12 +389,12 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
         style={
           skipFocused
             ? {
-                fontSize: "var(--sp-text-meta)",
-                color: "var(--sp-ink)",
+                fontSize: "var(--mrd-t-micro)",
+                color: "var(--mrd-ink)",
                 padding: "4px 8px",
-                borderRadius: "var(--sp-radius-chip)",
-                background: "var(--sp-lift)",
-                boxShadow: "inset 0 0 0 1px var(--sp-line)",
+                borderRadius: "var(--mrd-r-chip)",
+                background: "var(--mrd-lift)",
+                boxShadow: "inset 0 0 0 1px var(--mrd-line)",
               }
             : {
                 position: "absolute",
@@ -428,89 +409,26 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
         Skip to the settings
       </a>
 
-      {NAV_GROUPS.map((g) => {
-        const headingId = `settings-group-${g.id}`;
-        return (
-          <div key={g.id}>
-            <div
-              id={headingId}
-              className="sp-ctx-head"
-              style={{ marginBottom: "var(--sp-space-2)" }}
-            >
-              {g.label}
-            </div>
-            {/* The active group says what it governs. A person who arrived on a
-                deep link needs to know which neighbourhood they are in before
-                they read four door labels; showing it for every group at once
-                would be five paragraphs in a 200px column. */}
-            {g.id === activeGroup ? (
-              <div
-                style={{
-                  fontSize: "var(--sp-text-label)",
-                  color: "var(--sp-mute)",
-                  lineHeight: "var(--sp-leading-body)",
-                  marginBottom: "var(--sp-space-2)",
-                }}
-              >
-                {g.desc}
-              </div>
-            ) : null}
-            <div
-              role="group"
-              aria-labelledby={headingId}
-              style={{ display: "flex", flexDirection: "column", gap: 1, margin: "0 -10px" }}
-            >
-              {g.sections.map((d) => {
-                const here = d.id === active;
-                return (
-                  <button
-                    key={d.id}
-                    ref={(el) => {
-                      if (el) doorRefs.current.set(d.id, el);
-                      else doorRefs.current.delete(d.id);
-                    }}
-                    type="button"
-                    // A nav, not a tablist: aria-current says where you are, so
-                    // the active look is set here rather than by sp-tab's
-                    // aria-selected rule.
-                    className="sp-tab"
-                    aria-current={here ? "page" : undefined}
-                    tabIndex={d.id === tabStop ? 0 : -1}
-                    onClick={() => onSet(d.id)}
-                    style={{
-                      textAlign: "left",
-                      ...(here
-                        ? {
-                            background: "var(--sp-lift)",
-                            color: "var(--sp-ink)",
-                            fontWeight: "var(--sp-weight-medium)",
-                          }
-                        : null),
-                    }}
-                  >
-                    {d.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
-
-      {/* The keys exist whether or not this line is here; without it nobody
-          finds them, and a shortcut nobody can find is not a shortcut. */}
-      <div
-        style={{
-          fontSize: "var(--sp-text-label)",
-          color: "var(--sp-mute)",
-          lineHeight: "var(--sp-leading-body)",
-        }}
-      >
-        Up and Down move, Home and End jump to the ends, or type a name.
-      </div>
-    </nav>
+      <SidebarNav
+        items={items}
+        activeKey={active}
+        onNavigate={(key) => onSet(key as SectionId)}
+        workspaceName={activeWorkspace?.name ?? "Workspace"}
+        /*
+         * NO `onWorkspaceClick`, on purpose, so the row states the workspace rather
+         * than pretending to switch it. Switching lives in the app shell's own scope
+         * menu, and a second switcher here would be two controls over one value.
+         */
+        onSearch={setQuery}
+        /* Never collapsed: this rail is already inside a page whose shell has its own
+           rail, and a collapse control on the inner one is a second, conflicting way
+           to narrow the same column. */
+        collapsed={false}
+      />
+    </div>
   );
 }
+
 
 function SettingsPage() {
   const { section, tab, connector, checkout } = Route.useSearch();
