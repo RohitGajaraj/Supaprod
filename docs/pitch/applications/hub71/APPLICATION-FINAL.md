@@ -86,27 +86,26 @@ Building got cheap. Deciding what to build did not. Supaprod tells a product tea
 ```
 
 ## 6. What are you building and how is it different than what is already out there?
-> **⚠️ Rewritten 2026-08-17 on two founder rulings. Measured at exactly 200 words.** The previous version ran to 236 and the form rejected it, and the thing pushing it over was a story that was also weakening the pitch. See the note below the block.
+> _**178 words / 200.** The hint also asks for IP "if relevant"; we have no patents, and the field is explicitly conditional, so it is correctly left unanswered rather than used to announce an absence._
 ```
 Supaprod tells a product team what to build, gets it built by agents, then grades
 the call against what shipped and guides the next one. The first of those three
 layers is the one nobody sells.
 
 A team points it at what they already have: user feedback, product analytics,
-sales and support conversations, and market movement. Agents cluster it into what
-is worth looking at. A critic argues down the weak ideas before anyone commits.
-Agents then write the spec with its evidence, design and build it, open the pull
-requests, and ship. A person approves and merges, the only place a human is
-required. Then they grade what shipped against the spec, and that verdict ranks
-the next bets.
+support conversations, market movement. Agents cluster it into what is worth
+building and argue down the weak bets before anyone commits. They write the spec
+with its evidence, build it, open the pull requests and ship. A person approves
+and merges, the only place a human is required. Then they grade what shipped
+against the spec, and that verdict ranks the next bets.
 
 Notion, Atlassian, Linear and ChatPRD all make the work faster. None records
-whether the call was right, or catches what a team expected before it found out.
+whether the call was right.
 
 A forecast is not an artifact. It exists only if something captured it at the
 moment of the call, so it cannot be backfilled by anyone starting later, at any
-budget. Those fields lock on write behind a database trigger, so not even our own
-agents can revise a prediction after the fact.
+budget. Those fields lock on write, so not even our own agents can revise a
+prediction after the fact.
 ```
 
 > ### 🛑 The Vercel self-correction is cut, and it was arguing against us
@@ -127,53 +126,46 @@ agents can revise a prediction after the fact.
 > **This is the answer that places the application in Hub71+ AI.** `Advanced AI Development` would claim we build core AI technologies and large language models. We do not, we deliberately do not, and the claim is checkable. Under-describing is a defect too, which is why `Non-AI Focus` is absurd here: AI is not a feature inside Supaprod, it is the workforce, and a person keeps the judgment.
 
 ## 8. What makes your team special and how are you best positioned to solve this problem?
-> _200 words. Leads with the person, per Rule 4. Shows the behaviour, never names the trait._
+> _**177 words / 200.** The hint asks for two things: **team background AND the inspiration behind the startup.** The earlier draft answered only the first and read as a career recital. The inspiration now opens the answer, because it is the thing only this founder can say._
 ```
-Close to a decade in product, in rooms where being wrong is expensive.
+Solo founder. The inspiration was not a market gap. It was ten years of being the
+person who had to answer for calls nobody could reconstruct.
 
-At 21 I was building satellite communication systems at ISRO, India's national
-space agency, for its Moon and Mars missions. Hardware launches once. There is no
-patch release, no rollback, no second attempt, and every decision has to survive
-review by people who will not accept "it should be fine". Both missions flew.
-Then semiconductors at Infineon in Munich. Most recently senior AI product
-manager at Intellect, on the AI platform that 200+ financial institutions across
-70+ countries build their own AI products on. That is AI governance inside
-regulated finance as a day job, which is the thing Abu Dhabi is standing up right
-now, and it is why ADGM is not a new world to me.
+At 21 I built satellite communication systems at ISRO, India's national space
+agency, for its Moon and Mars missions. Hardware launches once, with no patch
+release. Then semiconductors at Infineon in Munich. Most recently senior AI
+product manager at Intellect, on the AI platform that 200+ financial institutions
+across 70+ countries build their own AI products on. That is AI governance inside
+regulated finance as a day job, which is what Abu Dhabi is building now.
 
-The job underneath all three was the same. Hold the context across a dozen tools
-and a dozen people, then re-answer "why did we decide this" from memory months
-later, usually badly.
+The job underneath all three was the same: hold context across a dozen tools,
+then re-answer "why did we decide this" months later, from memory. Agents make it
+worse, because a person now answers for calls they did not fully make.
 
-Before this version I built and threw away four complete working ones, each
-rebuilt from scratch when the shape turned out to be wrong. Two years ago I could
-not ship production software. I learned to build by directing agents.
+I built the replacement alone, and threw away four complete working versions
+before this one. Supaprod claims one person directing agents can do what a team
+used to. I am the proof of it.
 ```
 
 ## 9. Who is responsible for building your product?
-> _200 words._ **Rule 6: the commit count must never share a field with "agents write the code", or the number reads as measuring the agents. It lives at Q15 instead.**
+> _**90 words / 200.** Short on purpose._
+>
+> ### ⚠️ This answer was rewritten because it was answering a different question
+>
+> The hint is *"(e.g., an in-house CTO, internal tech team, or external tech team)"*. **They are asking about the shape of the team that builds, and whether the company depends on outsiders.** The earlier draft answered with a tech stack: React 19, TypeScript, Cloudflare Workers, Supabase, pgvector, E2B, Cohere, Qwen, Gemini. **None of that was asked for.** That is correction 0c: answer the question that was asked, and stop.
+>
+> **Rule 6 still holds:** the commit count must never share a field with "agents write the code". It lives at Q15.
 ```
-I do, directing agents. No non-founder has touched any of it. Design,
-development, testing and the analysis of what people do with it, all in house.
+In-house, and it is me. No CTO, no internal tech team, no external agency, and no
+non-founder has touched this codebase.
 
-I make every call and review every change. A separate reviewer, independent of
-the agents that write, audits for security and holds every change against the
-test suite before it can merge.
+I direct the build and AI agents write the code. I make every call and review
+every change. A separate reviewer, independent of the agents that write, audits
+for security and holds every change against the test suite before anything can
+merge.
 
-Every model call goes through one runtime chokepoint that handles budget, cache,
-guardrails, tracing, fallback and feature gates, so models are interchangeable
-parts rather than a dependency. Retrieval vectors run on Cohere embed-v4, the
-agent loop on Qwen-plus and Gemini 2.5 Flash, and GPT-5 where reasoning depth
-earns its cost. A better model is a same-day drop-in at no engineering cost.
-
-Frontend is TanStack Start on React 19 with TypeScript, deployed to Cloudflare
-Workers. Data is Supabase Postgres with row level security, pgvector for
-retrieval, and pg_cron driving an engine that advances product missions on its
-own every minute. Agent-written code runs in E2B sandboxes with secret redaction
-on every output stream, so a token cannot reach a log.
-
-I deliberately do not build the code generator. The models keep absorbing that
-layer.
+I am an engineer by training, with a degree in Mechatronics and flight-hardware
+work at ISRO behind me, so I review the code rather than trust it.
 ```
 
 ## 10. Who are the (co-)founders and what are their roles? Please add all of their LinkedIn URLs.
@@ -186,25 +178,24 @@ have, and not waiting on one to build.
 ```
 
 ## 11. What is the 'Why Now' for your business?
-> _200 words. The question has two halves: why now for the business, **and** why Abu Dhabi and MENA. Both get answered. **This is the field that makes the application specific to Hub71 and it is the one that would be wrong anywhere else.**_
+> _**179 words / 200.** The question has two halves, why now for the business **and** why Abu Dhabi and MENA. Both are answered. **This is the field that makes the application specific to Hub71, and the one that would be wrong in any US application.**_
 ```
-Two curves crossed this year. Agents got good enough to do the work and the cost
+Two curves crossed this year. Agents got good enough to do the work, and the cost
 of building collapsed. Devin went from $37M to $492M ARR in twelve months and
-Cursor is at $2B. When building stops being the constraint, deciding what to
-build becomes the constraint, and someone still has to answer for the call. That
-seat gets decided in the next two years, not the next ten.
+Cursor is at $2B. When building stops being the constraint, deciding what to build
+becomes the constraint, and someone still answers for the call. That seat gets
+decided in the next two years, not the next ten.
 
-Abu Dhabi is where that question is being asked first, at scale, and against a
-published deadline. The emirate has committed to becoming the world's first fully
-AI-native government by 2027 on an AED 13 billion digital strategy. It has
-already put more than 100 AI use cases into service across more than 40
-government entities. And it has created a Chief Data and AI Officer inside every
-one of them. That is a named person, in every entity, who now answers for what
-the AI decided, in the year Cohort 20 runs. That seat has no system of record.
+Abu Dhabi is where that question is being asked first, against a published
+deadline. It has committed to becoming the world's first fully AI-native
+government by 2027 on an AED 13 billion strategy, with more than 100 AI use cases
+already live across more than 40 government entities and a Chief Data and AI
+Officer inside every one. That is a named person, in every entity, who now answers
+for what the AI decided, in the year Cohort 20 runs. That seat has no system of
+record.
 
-The same question is live on the ADGM side, where the FSRA runs a sandbox so
-autonomous AI can be tested under supervision. Regulated finance is where I come
-from.
+The same question is live at ADGM, where the FSRA sandbox lets autonomous AI be
+tested under supervision. Regulated finance is where I come from.
 ```
 
 ## 12. What product stage are you at?
@@ -240,39 +231,27 @@ from.
 **`We are bootstrapped`**
 
 ## 15. What success metrics do you measure, and where are you with each of them?
-> _No stated limit. Carries the one vulnerability beat, placed where the form invites it. The commit number lives here and nowhere near Q9._
+> _**No word limit on this field**, but crisp beats long. **211 words.** The hint asks for metrics (MRR, ARR, MAU, DAU), so the answer leads with the metrics that exist and are checkable rather than with prose. Carries the one vulnerability beat, on pricing, where the form invites it._
 ```
-The product runs end to end today: agents read the signals, argue down the weak
-bets, come back with a call and its evidence, write the spec, build it, open a
-real pull request, and a person merges. Public launch is mid-September 2026.
-
-Build metrics, both reproducible from a single command: 5,300+ commits and 545
-database migrations since 2 June 2026, directed and reviewed by one person in
-eleven weeks. A security review run separately from the agents that write the
-code held up. I quote these because a reader can check them in thirty seconds,
-not because volume is the point.
+The metrics I run the company on today, both reproducible from one command:
+5,300+ commits and 545 database migrations since 2 June 2026, directed and
+reviewed by one person in eleven weeks. A security review run separately from the
+agents that write the code held up.
 
 The product metric that decides this company is forecast accuracy. Every decision
-carries what the team expects, how they will know, and by when, captured at the
-moment of the call. Those fields are made immutable by a BEFORE UPDATE trigger in
-Postgres rather than a check in application code, so the rule holds for every
-caller including our own agents. The system brings each forecast back the day it
-falls due, drafts the verdict from what actually shipped, and files it against
-the decision that caused it. The loop is wired and proven end to end. It begins
-accruing on first real use, and every outcome in it today is my own.
+carries what the team expects, how they will know and by when, captured at the
+moment of the call and locked by a database trigger. The system brings each
+forecast back when it falls due and settles it against what shipped. The loop is
+proven end to end and begins accruing on first real use.
 
-From mid-September the numbers I will be held to are activation, retention, and
-graded decisions per workspace from teams that are not me.
+Public launch is mid-September. From then the numbers are activation, retention
+and graded decisions per workspace from teams that are not me. Cohort 20 starts
+February 2027, more than four months after that, so the revenue figures on this
+form describe the company applying and not the one that would arrive.
 
-Cohort 20 starts in February 2027. Public launch is mid-September, which leaves
-more than four months of selling before the programme begins, so the revenue
-figures above describe the company applying and not the one that would arrive in
-Abu Dhabi.
-
-The honest open question is pricing. Charging for closed decision loops rather
-than per seat is the right shape for a product where agents do the work, but I
-have not tested what a team will pay for one. That is what launch is for, and it
-is the number I most want to be wrong about early.
+The open question is pricing. Charging per closed decision loop rather than per
+seat is the right shape when agents do the work, but I have not tested what a team
+will pay for one. It is the number I most want to be wrong about early.
 ```
 
 ## 16. Total revenue generated over the past 12 months (USD)
@@ -332,31 +311,29 @@ under the Government of India's Startup India initiative.
 ```
 
 ## 24. What are your plans for Abu Dhabi and Hub71 specifically?
-> _200 words. The question asks what gets achieved in the **first 3 months** and **how**. Modelled on the Campus Founders milestone answer: every line carries a number he can be held to._
+> _**172 words / 200.** The question asks what gets achieved in the **first 3 months** and **how**. Every line carries a number he can be held to._
+>
+> **The Abu Dhabi statistics were cut from this answer.** Q11 already makes that argument, and repeating a block across fields is the defect the craft log names in Part 3: each field gets the material its own question asks for and nothing else.
 ```
-Four milestones for the first three months, each with a number I can be held to.
+Month one. Relocate, and set the company up locally with an ADGM licence as the
+intended route because that is where the buyers are. A move, not a visit.
 
-One. I move to Abu Dhabi for the start of the programme and set the company up
-locally, with an ADGM licence as the intended route because that is where the
-buyers sit. A move, not a visit.
+Month two. Fifteen design-partner conversations, and I know who with. Every Abu
+Dhabi government entity now has a Chief Data and AI Officer who answers for what
+the AI decided and has nothing built for it. Those are my first calls, through
+Hub71's government and corporate partners, which is the introduction I cannot
+make from Bangalore. In parallel, ADGM-licensed financial institutions, where I
+know the buying process from the inside.
 
-Two. Fifteen design-partner conversations by week six, and I know who with. More
-than 100 AI use cases are live across more than 40 Abu Dhabi government entities,
-each with a Chief Data and AI Officer who answers for what the AI decided and has
-nothing built for the job. Hub71's government and corporate partners are the
-introduction I cannot make from Bangalore. In parallel, ADGM-licensed financial
-institutions, where I know the buying process from the inside.
+Month three. Three paying pilots, one government entity and two in financial
+services, each running real decisions through the loop rather than a trial
+sitting idle.
 
-Three. Three paying pilots by week twelve, one government entity and two in
-financial services, each running real product decisions through the loop rather
-than a trial sitting idle.
-
-Four. Two hundred graded decisions from teams that are not me. This is the one
-that matters most, because the third layer only begins compounding on real
+Underneath all three, the milestone that matters most: two hundred graded
+decisions from teams that are not me. The third layer only compounds on real
 outcomes, and every outcome in it today is mine.
 
-The customer here is being created by policy, on a published deadline, in this
-city. I would rather sit next to that than sell into it from elsewhere.
+I would rather sit beside this customer than sell into them from elsewhere.
 ```
 
 ## 25. Which country is your HQ based in?
