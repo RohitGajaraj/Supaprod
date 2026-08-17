@@ -7,6 +7,26 @@
 > ⚠️ **[`application.md`](./application.md) in this folder is SUPERSEDED.** It was drafted 2026-08-14 against guessed questions and carries two retired claims: the falsification story banned on 2026-08-17, and *"Supaprod's roadmap runs inside Supaprod"*, removed by YC rule 6. **Do not paste from it.**
 >
 > **The founder submits. Never an agent.** The form is behind reCAPTCHA in any case.
+>
+> ## 📌 STATE AS OF 2026-08-17 19:45 IST
+>
+> **All 13 text answers are FILLED IN THE LIVE FORM** and verified by reading each field back out of the DOM. None exceeds 100 words. Page 2 is filled: Bangalore India, nationality India, and the "how did you hear" answer.
+>
+> **Three things remain, all founder-only:**
+>
+> | | |
+> | --- | --- |
+> | **Video URL** | Record tomorrow. Script is in "The video" below, 164 words, roughly 63 seconds |
+> | **Alumni-contact toggle** | Preference. Recommended ON |
+> | **Privacy Policy toggle** | **Required, and a legal acknowledgement in his name.** An agent must never accept terms on his behalf |
+>
+> ### ⚠️ THE SAVE IS UNCONFIRMED. Read this before assuming the work is safe.
+>
+> **The browser refused a reload with "this page has unsaved changes", twice, after both SAVE FOR LATER and NEXT were clicked.** The save control is an `<a>` with no `href`, driven by JavaScript, and it produced no visible confirmation.
+>
+> **It may be a blanket `beforeunload` guard rather than proof of an unsaved state**, but the two cannot be told apart without forcing the navigation, and forcing discards every answer. **It was not forced.**
+>
+> **The founder must click SAVE FOR LATER or NEXT himself and confirm EF's save email arrives at `founder@supaprod.ai`.** Every answer is committed to this file, so the worst case is a ten-minute re-paste, not a loss.
 
 ## What this programme is, verified on its own pages
 
@@ -51,19 +71,18 @@
 # The answers
 
 ## 1. Where did you learn what you know?
-_Hint: "Let us know what university you attended, company you worked at, or mentor you worked with."_ · **97 / 100 words**
+_Hint: "Let us know what university you attended, company you worked at, or mentor you worked with."_ · **99 / 100 words**
 ```
-A BE in Mechatronics, then an MBA at TUM School of Management, earned while
-working full time.
+A Bachelor of Engineering in Mechatronics, then an MBA from TUM School of
+Management, Munich, Germany, earned while working full time.
 
 Three rooms taught me the rest. At ISRO, India's national space agency, I built
-the communication link for spacecraft going to the Moon and Mars. At 21 my job
-was keeping a signal alive across hundreds of millions of kilometres. After
-launch there is no patch and no second attempt. Then semiconductors at Infineon
-in Munich, and Intellect, on the AI platform 200+ financial institutions across
-70+ countries build on.
+the communication link for Moon and Mars spacecraft. At 21 my job was keeping a
+signal alive across hundreds of millions of kilometres. After launch there is no
+patch. Then semiconductors at Infineon, Munich, where a wrong call becomes
+silicon. Then Intellect, on the AI platform 200+ banks build on.
 
-Every one of them punishes a decision you cannot defend.
+Each punished a decision I could not defend.
 ```
 
 ## 2. One-minute video introducing yourself
@@ -74,24 +93,24 @@ _"Do not pitch an idea or a CV. Help us understand who you are." Public link (Yo
 **Do not reuse the existing founder video** (`https://youtu.be/zBmtUtkTyBs`). It is **2:32 against a one-minute ask** and it pitches, which the question explicitly rules out. Sending an over-length video to a form that states a limit is a self-inflicted wound.
 
 ## 3. If you are technical: the most impressive technical product or project you've led/owned
-_Hint: "What was your role and contribution? Why was it technically impressive?"_ · **98 / 100 words**
+_Hint: "What was your role and contribution? Why was it technically impressive?"_ · **99 / 100 words**
 ```
-Supaprod, architected and shipped alone in eleven weeks: 5,300+ commits and 545
-database migrations, all directed and reviewed by me.
+Supaprod. Architected and shipped alone in eleven weeks: 5,300+ commits and
+9,400 tests across 563 files, all directed and reviewed by me.
 
 Two years ago I could not ship production software. I taught myself by directing
-agents, and it is the most useful skill I have.
+agents, the most useful skill I have.
 
-It runs a product lifecycle end to end. An engine advances work every minute with
-nobody starting it. Agents open real pull requests behind a merge gate no agent
-can cross. Forecast fields are immutable at database level.
+What makes it hard is the autonomy, not the code. An engine advances work every
+minute with nobody starting it. Agents open real pull requests behind a merge
+gate none can cross. Forecast fields are immutable at database level, so no
+prediction can be revised.
 
-The hard part was never writing it. It was making autonomy safe enough to leave
-running.
+Making it safe enough to leave running is the engineering.
 ```
 
 ## 4. If you are technical: tell us more about things you've built before
-_Hint: "For example apps you've built, models, open source contributions. Include URLs if possible."_ · **83 / 100 words**
+_Hint: "For example apps you've built, models, open source contributions. Include URLs if possible."_ · **99 / 100 words**
 ```
 Before this version of Supaprod I built and threw away four complete working
 ones, each rebuilt from scratch when the shape turned out to be wrong.
@@ -103,39 +122,42 @@ not the repository.
 Earlier, internal tools nobody asked me to build: a dashboard tracking why
 decisions were made, and reporting that replaced a recurring manual process.
 
-Live: supaprod.ai. Code: github.com/RohitGajaraj.
+Supaprod is live at supaprod.ai. The repository is private for now, and I will
+walk anyone through it.
 ```
 
 ## 5. The most impressive commercial outcome you've driven or revenue you've earned
-_Hint: "What was your role and contribution?"_ · **89 / 100 words**
+_Hint: "What was your role and contribution?"_ · **99 / 100 words**
 ```
-At Intellect I led product on the AI platform that 200+ financial institutions
-across 70+ countries build their own AI products on. My contribution was the
-product decisions: what shipped, in what order, and what we refused to build.
+At Intellect I was senior AI product manager on the platform that 200+ financial
+institutions across 70+ countries build their own AI products on. I owned what
+shipped and in what order.
 
-It is a licensed enterprise platform, so the outcome I drove is adoption at that
-scale inside regulated banking. Getting a bank to build its own products on your
-platform is a two-year sale and a ten-year commitment, and it is won on judgment
-and trust rather than on features.
+That is the outcome I am proudest of, because of who the buyer is. Getting a
+regulated bank to build its own products on your platform is a multi-year sale
+and a decade-long commitment, won on judgment and trust rather than on features.
+Every call I made there had a compliance officer on the other side of it.
 ```
 
 ## 6. What are you obsessed about?
-_Hint: "How did you get into it? How do you sustain it and keep learning? This can be a problem, a product, skill or hobby."_ · **96 / 100 words**
+_Hint: "How did you get into it? How do you sustain it and keep learning? This can be a problem, a product, skill or hobby."_ · **99 / 100 words**
 ```
 People being held responsible for decisions nobody can reconstruct.
 
-I got into it by being that person for a decade, in three industries, always the
-glue between product and engineering, always re-answering "why did we decide
-this" months later from memory. Agents make it worse, because now a person
-answers for calls they did not fully make.
+I got into it by being that person for a decade in three industries, always the
+glue between product and engineering, re-answering "why did we decide this"
+months later from memory. Agents make it worse: a person now answers for calls
+they did not fully make.
 
 I sustain it by reading rather than guessing: 679 primary sources this year, and
 a private community of about thirty thousand product managers whose complaints I
-read daily. Then I build against what they said, not what I assumed.
+read daily.
+
+My notice is in. I am leaving a senior role to do this full time.
 ```
 
 ## 7. Have you participated in national or international competitions?
-_Hint: "List any competitions/awards you have won, or papers you've published."_ · **73 / 100 words**
+_Hint: "List any competitions/awards you have won, or papers you've published."_ · **99 / 100 words**
 ```
 An earlier venture of mine was incubated at NSRCEL, the startup hub at the Indian
 Institute of Management Bangalore, and was recognised under the Government of
@@ -152,7 +174,7 @@ product itself, which is live and can be opened in a browser today.
 > **Rule 24 applied at the close.** *"I have not chased competitions"* is a "no", so the sentence after it opens the door: the product is the exhibit, and it is checkable today.
 
 ## 8. Have you ever started a business before?
-_Hint: "Tell us about it: outcomes, learnings."_ · **97 / 100 words**
+_Hint: "Tell us about it: outcomes, learnings."_ · **99 / 100 words**
 ```
 Yes, and I did not finish it. One of the first attempts to bring bubble tea to
 the Indian market: I took it from recipe formulation through unit economics, user
@@ -180,7 +202,7 @@ It is the whole reason I am quitting my job and applying now.
 > 3. **The correction is happening in front of them.** The notice is in. A story with a second act in progress beats any finished story he did not live.
 
 ## 9. A strong opinion you've held and acted on, even when smart people you respected told you were wrong
-_Hint: "What happened?"_ · **95 / 100 words**
+_Hint: "What happened?"_ · **99 / 100 words**
 ```
 That the money in AI would not be in generating code.
 
@@ -188,28 +210,30 @@ Through 2025 and 2026 nearly everyone I respected was building or backing code
 generation. I argued the opposite: models would absorb that layer, and the scarce
 thing would be deciding what to build and proving the call was right.
 
-I acted on it twice. I refused to put a code generator inside Supaprod, and I
-threw away four complete working versions until the product matched the argument
-rather than the market.
+I acted on it. I spent eleven weeks building the layer above code generation
+instead of inside it, and threw away four complete working versions until the
+product matched the argument rather than the market.
 
-Cursor and Devin are excellent, and commoditising. The judgment layer is still
-open.
+Coding agents are excellent now, and commoditising fast. The judgment layer is
+still open.
 ```
 
 > **The question is about cost, not cleverness.** An opinion nobody argued with is not an answer. This one names who disagreed, what acting on it cost (four rebuilt products, and declining the market's obvious lane), and what happened since.
 
 ## 10. Tell us about a time you got into a room you weren't invited to
-_Hint: "Why and how did you do it, and what did you do once you were inside?"_ · **96 / 100 words**
+_Hint: "Why and how did you do it, and what did you do once you were inside?"_ · **99 / 100 words**
 ```
 I was a communication systems engineer at ISRO and I wanted to be in product. I
-had neither the title nor an obvious path, and nobody was going to hand it to me.
+had neither the title nor a path, and nobody was going to hand it to me.
 
 So I did the work before anyone gave me permission. I wrote the product analysis
-nobody had asked for, took it to the people whose decisions it affected, and kept
-doing that until having me in the room was easier than keeping me out. I moved
-into an associate product manager role there.
+nobody had asked for and took it to the people whose decisions it affected.
 
-I have repeated that move at every industry switch since.
+Once inside I stopped behaving like a guest. I took the requirement trade-offs
+between the communication payload and the mission constraints, and moved into an
+associate product manager role there.
+
+I repeat that move at every industry switch.
 ```
 
 ## 11. The most undervalued commercial opportunity, or most important problem to work on in the next 10 years
@@ -231,7 +255,7 @@ Everyone is racing to make building faster. Almost nobody scores the calls.
 > **This is the one field where the company thesis belongs**, and it is written as a view about the world rather than a pitch. The question asks what he thinks, so it answers with an argument a reader can disagree with.
 
 ## 12. Do you have domain expertise or unusually high access / network to a field?
-_Hint: "What do you know about this space that few others know or believe? How do you know it?"_ · **97 / 100 words**
+_Hint: "What do you know about this space that few others know or believe? How do you know it?"_ · **99 / 100 words**
 ```
 A decade of AI product inside regulated industries, most recently the platform
 200+ financial institutions across 70+ countries build their own AI products on.
@@ -249,11 +273,42 @@ Access: a private community of roughly thirty thousand product managers.
 > **The hint asks two things and both are answered:** what he knows that few know (how AI clears a bank risk function), and what he believes that few believe (the forecast, not the record). The second is the company's whole thesis stated as a personal conviction, which is what this question actually wants.
 
 ## 13. Who would be the 2 best references we should call?
-_Hint: "People who know you personally, who've seen you excel in a work capacity, ideally one (if not both) is senior to you."_
+_Hint: "People who know you personally, who've seen you excel in a work capacity, ideally one (if not both) is senior to you."_ · **98 / 100 words** · **FOUNDER-SUPPLIED 2026-08-17, both consented**
+```
+Jai Ganesh, startup coach at TH Ingolstadt, Munich, and senior to me. He coached
+me through my MBA at TUM and has watched me take an idea from nothing, absorb
+hard feedback, and keep going when it was not working. jaiganesh468@gmail.com
 
-**⏳ FOUNDER TO SUPPLY.** Leave blank for now and save.
+Nitesh Kumar Jha, product management for Gen AI and multi-agent orchestration at
+IBM, Bengaluru. He was my counterpart on the same product at Intellect and can
+speak to how I make technical calls, ship under pressure, and carry a decision to
+a result. niteshjha97@gmail.com
 
-**What to send when you have them:** full name, role and company, how they know you, and whether they are senior to you. Give both a heads-up before EF calls; an unwarned reference is a weaker reference.
+Both know I have listed them and are happy to take the call.
+```
+
+> ### Each reference attests to three things, and deliberately different three
+>
+> | | Axis | What they can confirm |
+> | --- | --- | --- |
+> | **Jai Ganesh** | the founder axis | starts from nothing · absorbs hard feedback · keeps going when it is not working |
+> | **Nitesh Kumar Jha** | the operator axis | makes technical calls · ships under pressure · carries a decision to a result |
+>
+> **Two calls answer the two questions EF actually has about a solo applicant**, *can he found* and *can he build and ship*, without asking the applicant anything.
+>
+> ### 🛑 No friendship language, and that is deliberate. **Founder instinct 2026-08-17, and it was right.**
+>
+> _"If I say someone is very close, very friendly, if it affects the application, you need to draft it accordingly."_
+>
+> **A reference described warmly reads as a character witness and gets discounted.** EF asked for people who have seen him *excel in a work capacity*, so each entry is framed by **what they witnessed**, never by how well they get on. "Counterpart on the same product" does that work in three words: shared accountability, shipping pressure, no sentiment.
+>
+> **"Senior to me" is stated plainly** because EF's hint asks for it explicitly and nothing else in the answer carried the signal.
+>
+> **Nothing is claimed that a referee could not confirm on the call.** A reference that oversells is caught in the first two minutes and costs more than a plain one.
+>
+> ⚠️ **Nitesh's mobile is deliberately omitted.** Email is enough for EF to make contact, and a personal number is a step further than the form needs. **Both men have consented to being listed and contacted.**
+>
+> **Standing action: warn both before EF calls.** A warned referee gives a specific story; a cold-called one gives a vague answer. It is the cheapest quality gain available in this application.
 
 ## 14. The most impressive person you know who should start a technology company (optional)
 **Founder's call.** Optional, one person only, name plus LinkedIn or professional URL.
