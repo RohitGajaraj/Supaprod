@@ -193,9 +193,11 @@ import { amIAdmin, getPricingCatalog } from "@/lib/pricing.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
 import {
+  matchReason,
   NAV_GROUPS,
   normalizeSection,
   paneForSection,
+  searchSections,
   type SectionId,
 } from "@/lib/settings-sections";
 import { SidebarNav, type RailItem } from "@/components/meridian/SidebarNav";
@@ -355,19 +357,33 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
   );
 
   /*
-   * FILTERED HERE, NOT IN THE RAIL. `onSearch` reports the query and leaves the
-   * caller to decide what it means, which is right: on another surface a query might
-   * search content rather than narrow a list.
+   * SEARCH GOES INSIDE THE PANES, not across the twelve headings.
    *
-   * An empty result keeps the FULL list rather than showing an empty rail. A nav that
-   * can vanish is a set of doors that can vanish, and a person who mistypes should
-   * not lose the way out of the surface they are on.
+   * THE FIRST VERSION OF THIS WAS `label.includes(query)` AND THE FOUNDER BROKE IT IN
+   * A MINUTE: typing "credits" found nothing and "invite" found nothing, though this
+   * surface does both. Credits is inside Billing since the fold; inviting somebody is
+   * a People block on the Brief and voice pane. A search over door names answers
+   * "which door is called this", and nobody asks that.
+   *
+   * `searchSections` owns the matching and the ranking so the rule is testable
+   * without a DOM and cannot drift from the IA it searches. The reason a door matched
+   * is drawn on the row when the label alone does not explain it -- being offered
+   * "Billing" for "credits" is correct and baffling without the word that caught it.
+   *
+   * A query matching nothing keeps the FULL list. A nav that can empty itself is a
+   * set of doors that can vanish, and a mistype must not strand somebody on the
+   * surface they are standing on.
    */
-  const needle = query.trim().toLowerCase();
-  const matched = needle
-    ? allItems.filter((i) => i.label.toLowerCase().includes(needle))
+  const hits = searchSections(query);
+  const items = query.trim()
+    ? hits.length > 0
+      ? hits.map((id) => {
+          const found = allItems.find((i) => i.key === id)!;
+          const why = matchReason(id, query);
+          return why ? { ...found, label: `${found.label}  ${why}` } : found;
+        })
+      : allItems
     : allItems;
-  const items = matched.length > 0 ? matched : allItems;
 
   return (
     <div

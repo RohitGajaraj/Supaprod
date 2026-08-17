@@ -89,8 +89,14 @@ describe("settings-sections - the four groups are named by the boundary they set
     expect(RECESSED_GROUPS.length).toBe(0);
   });
 
-  it("the four groups are crew, brief, reach, you in order", () => {
-    expect(SETTINGS_GROUPS.map((g) => g.id)).toEqual(["crew", "brief", "reach", "you"]);
+  it("the four groups run account, data, agents, company: most used first", () => {
+    /*
+     * ORDERED BY HOW OFTEN A PERSON COMES FOR IT (founder ruling 2026-08-17), which
+     * puts governance BELOW plumbing and reads backwards until you count visits
+     * rather than importance. Account is where a bare /settings already lands; Company
+     * is written once and rarely reopened. The full argument is beside SETTINGS_GROUPS.
+     */
+    expect(SETTINGS_GROUPS.map((g) => g.id)).toEqual(["you", "reach", "crew", "brief"]);
   });
 
   it("every group has a label, a one-line desc, and at least one section", () => {
@@ -178,11 +184,12 @@ describe("settings-sections - the nav ring", () => {
     }
   });
 
-  it("Autonomy leads and Billing is last, so Home and End reach both in one press", () => {
-    expect(NAV_DOOR_IDS[0]).toBe("autonomy");
-    /* Billing, since Diagnostics stopped drawing a door. End must land on the last
-       DOOR, never on a section that is only an address. */
-    expect(NAV_DOOR_IDS[NAV_DOOR_IDS.length - 1]).toBe("billing");
+  it("Profile leads and Products is last, so Home and End reach both in one press", () => {
+    /* Profile, because that is where every bare entrance to this surface already
+       lands, and it was the eleventh row of twelve until 2026-08-17. */
+    expect(NAV_DOOR_IDS[0]).toBe("profile");
+    /* End must land on the last DOOR, never on a section that is only an address. */
+    expect(NAV_DOOR_IDS[NAV_DOOR_IDS.length - 1]).toBe("products");
   });
 
   // A bare /settings is an address people ARRIVE at - the account menu, `g s`,
@@ -346,8 +353,8 @@ describe("settings-sections - normalizeSection (deep-link safety)", () => {
 describe("settings-sections - the nav is one tab stop, on every address", () => {
   it("the active door owns the tab stop", () => {
     /* Diagnostics draws no door, so the ring cannot put the tab stop on it; it falls
-       to the first door of the group that owns the address. */
-    expect(navTabStop("health")).toBe("autonomy");
+       to the first door of the group that owns the address, which is Profile. */
+    expect(navTabStop("health")).toBe("profile");
     expect(navTabStop("profile")).toBe("profile");
     expect(navTabStop("autonomy")).toBe("autonomy");
   });
@@ -398,14 +405,14 @@ describe("settings-sections - Up, Down, Home and End", () => {
   });
 
   it("Down wraps at the end and Up wraps at the start", () => {
-    expect(stepDoor("billing", "ArrowDown")).toBe("autonomy");
-    expect(stepDoor("autonomy", "ArrowUp")).toBe("billing");
+    expect(stepDoor("products", "ArrowDown")).toBe("profile");
+    expect(stepDoor("profile", "ArrowUp")).toBe("products");
   });
 
   it("Home and End reach the ends from anywhere, which is the fix for the crawl", () => {
     for (const id of NAV_DOOR_IDS) {
-      expect(stepDoor(id, "Home")).toBe("autonomy");
-      expect(stepDoor(id, "End")).toBe("billing");
+      expect(stepDoor(id, "Home")).toBe("profile");
+      expect(stepDoor(id, "End")).toBe("products");
     }
   });
 

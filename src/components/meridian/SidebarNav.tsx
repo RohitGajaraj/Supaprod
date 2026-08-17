@@ -527,6 +527,26 @@ export function SidebarNav({
     setTip(null);
   }
 
+  /**
+   * CAN COLLAPSING ACTUALLY HAPPEN? Derived, never assumed, and the control is drawn
+   * only when the answer is yes.
+   *
+   * THE BUG THIS CLOSES, WHICH I SHIPPED MYSELF ONE COMMIT AFTER FIXING ITS TWIN.
+   * Settings adopted this rail with `collapsed={false}` and no `onCollapsedChange`.
+   * That is a CONTROLLED prop with no owner: `setCollapsed` cannot touch internal
+   * state, because the caller took control of it, and cannot report outward, because
+   * the caller supplied no handler. So the collapse button rendered, took a tab stop,
+   * washed on hover, and did nothing. The founder found it in a minute.
+   *
+   * It is precisely the inert-control defect fixed on the workspace row in the
+   * previous commit, and I reintroduced it through a prop combination rather than a
+   * missing handler. That is the interesting part: banning inert controls one element
+   * at a time does not work, so this derives the answer instead of trusting the call
+   * site. A caller that wants no collapse simply omits the handler, and there is
+   * nothing to press.
+   */
+  const canCollapse = collapsed === undefined || onCollapsedChange !== undefined;
+
   function setCollapsed(next: boolean) {
     if (collapsed === undefined) setOwnCollapsed(next);
     onCollapsedChange?.(next);
@@ -620,7 +640,8 @@ export function SidebarNav({
           )}
         </WorkspaceRow>
 
-        {!isCollapsed && (
+        {/* Drawn only when collapsing can actually happen. See `canCollapse`. */}
+        {!isCollapsed && canCollapse && (
           <button
             type="button"
             onClick={() => setCollapsed(true)}
@@ -1091,7 +1112,10 @@ export function SidebarNav({
         </div>
       </div>
 
-      {isCollapsed && (
+      {/* Same rule in reverse: a rail that cannot expand must not offer to. A caller
+          that hard-pins `collapsed` with no handler would otherwise trap a reader in
+          an icon strip with a dead way out, which is worse than the dead collapse. */}
+      {isCollapsed && canCollapse && (
         <button
           type="button"
           onClick={() => setCollapsed(false)}

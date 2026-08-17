@@ -79,18 +79,32 @@ describe("nothing the old nav earned was dropped", () => {
   });
 });
 
-describe("search narrows the doors without ever removing them all", () => {
-  it("filters in the caller, because the rail only reports the query", () => {
-    expect(ships("onSearch={setQuery}")).toBe(true);
-    expect(ships("i.label.toLowerCase().includes(needle)")).toBe(true);
+describe("search reaches inside the panes, not across the headings", () => {
+  it("asks the IA which doors match, rather than filtering labels here", () => {
+    /*
+     * THE FIRST VERSION WAS `label.includes(query)` AND THE FOUNDER BROKE IT IN A
+     * MINUTE: "credits" found nothing and "invite" found nothing, though the surface
+     * does both. A search over twelve door names answers "which door is called this",
+     * and nobody asks that.
+     */
+    expect(ships("searchSections(query)"), "the rail still searches door labels").toBe(true);
+    expect(ships("i.label.toLowerCase().includes(needle)"), "the old label filter is back").toBe(
+      false,
+    );
+  });
+
+  it("says WHY a door matched when its label does not explain it", () => {
+    // Being offered "Billing" for "credits" is correct and baffling on its own.
+    expect(ships("matchReason(id, query)")).toBe(true);
   });
 
   it("falls back to the full list when nothing matches", () => {
     /*
      * THE ASSERTION THAT MATTERS MOST HERE. A nav that can empty itself is a set of
-     * doors that can vanish, and a person who mistypes would lose the way out of the
-     * surface they are standing on.
+     * doors that can vanish, and a mistype must not strand somebody on the surface
+     * they are standing on.
      */
-    expect(ships("matched.length > 0 ? matched : allItems")).toBe(true);
+    expect(ships("hits.length > 0")).toBe(true);
+    expect(ships(": allItems")).toBe(true);
   });
 });
