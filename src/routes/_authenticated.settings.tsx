@@ -158,9 +158,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import { agentDisplayName, catalogEntry, SPECIALIST_CATALOG } from "@/lib/agent-vocabulary";
+import {
+  agentDisplayName,
+  agentStation,
+  AGENT_STATION_ORDER,
+  catalogEntry,
+  SPECIALIST_CATALOG,
+} from "@/lib/agent-vocabulary";
 import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { useDensity } from "@/hooks/use-density";
@@ -198,10 +204,13 @@ import {
   normalizeSection,
   paneForSection,
   searchSections,
+  subTargetFor,
   type SectionId,
 } from "@/lib/settings-sections";
 import { SidebarNav, type RailItem } from "@/components/meridian/SidebarNav";
 import { AgentCards } from "@/components/meridian/AgentCards";
+import { NeedsSetup } from "@/components/meridian/NeedsSetup";
+import { STAGE_LABEL } from "@/components/shell/run-strip";
 
 import {
   AccountConnectionsSection,
@@ -223,8 +232,9 @@ import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
 import { ControlsPanel } from "@/components/governance/ControlsPanel";
 import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
-import { ARC_CHOICE } from "@/components/crew/crew-words";
-import { listCrew } from "@/lib/crew.functions";
+import { ARC_CHOICE, MODE_CHOICE } from "@/components/crew/crew-words";
+import { stationCrew } from "@/lib/spine/driver";
+import { listCrew, type CrewMember } from "@/lib/crew.functions";
 
 import {
   Actions,
@@ -380,6 +390,15 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
     ? hits.length > 0
       ? hits.map((id) => {
           const found = allItems.find((i) => i.key === id)!;
+          /*
+           * NAME THE BLOCK WHEN THERE IS ONE. Founder: typing "invite" should offer
+           * "Invite teammates", not the pane that happens to contain it. A sub-target
+           * is a better answer than a keyword reason, so it wins: the row shows the
+           * heading the reader will actually arrive at, and `section` stays underneath
+           * it so the crumb still says which pane that is.
+           */
+          const target = subTargetFor(id, query);
+          if (target) return { ...found, label: target.label, section: found.label };
           const why = matchReason(id, query);
           return why ? { ...found, label: `${found.label}  ${why}` } : found;
         })
@@ -429,7 +448,30 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
       <SidebarNav
         items={items}
         activeKey={active}
-        onNavigate={(key) => onSet(key as SectionId)}
+        onNavigate={(key) => {
+          onSet(key as SectionId);
+          /*
+           * THEN LAND ON THE BLOCK. Founder: "when I click on that, it would literally
+           * point me to this section."
+           *
+           * Deferred one frame because the pane it is on has not mounted yet at the
+           * moment the door is chosen -- `getElementById` on this tick finds nothing
+           * and the reader arrives at the top of a long pane, which is the bug this
+           * exists to fix. Two frames, because the first commits the pane and the
+           * second lets layout settle before a smooth scroll is measured.
+           *
+           * `scrollMarginTop` on the anchor keeps the heading clear of the sticky head.
+           */
+          const target = subTargetFor(key as SectionId, query);
+          if (!target) return;
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() =>
+              document
+                .getElementById(target.anchor)
+                ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+            ),
+          );
+        }}
         workspaceName={activeWorkspace?.name ?? "Workspace"}
         /*
          * NO `onWorkspaceClick`, on purpose, so the row states the workspace rather
@@ -570,7 +612,13 @@ function SettingsPage() {
             <CreditsSection />
           </>
         )}
-        {active === "health" && <DiagnosticsSection />}
+        {active === "health" && (
+          <DiagnosticsMoved
+            onOpen={() =>
+              navigate({ to: "/engine-room", search: { room: "quality", view: "diagnostics" } })
+            }
+          />
+        )}
       </div>
     </div>
   );
@@ -828,47 +876,51 @@ function ProfileSection() {
         </Line>
       </Block>
 
-      <Block title="Working hours">
-        <Line
-          label="Reachable from"
-          sub="Outside it, a scheduled digest waits rather than pinging you."
-        >
-          <Input
-            aria-label="Reachable from"
-            type="number"
-            min={0}
-            max={23}
-            style={{ width: 88 }}
-            value={whStart}
-            onChange={(e) => setWhStart(Number(e.target.value))}
-          />
-        </Line>
-        <Line label="Until">
-          <Input
-            aria-label="Reachable until"
-            type="number"
-            min={1}
-            max={24}
-            style={{ width: 88 }}
-            value={whEnd}
-            onChange={(e) => setWhEnd(Number(e.target.value))}
-          />
-        </Line>
-        <Actions>
-          <Button variant="primary" type="submit" disabled={save.isPending}>
-            {save.isPending ? "Saving" : "Save profile"}
-          </Button>
-        </Actions>
-      </Block>
+      <div id={HOURS_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+        <Block title="Working hours">
+          <Line
+            label="Reachable from"
+            sub="Outside it, a scheduled digest waits rather than pinging you."
+          >
+            <Input
+              aria-label="Reachable from"
+              type="number"
+              min={0}
+              max={23}
+              style={{ width: 88 }}
+              value={whStart}
+              onChange={(e) => setWhStart(Number(e.target.value))}
+            />
+          </Line>
+          <Line label="Until">
+            <Input
+              aria-label="Reachable until"
+              type="number"
+              min={1}
+              max={24}
+              style={{ width: 88 }}
+              value={whEnd}
+              onChange={(e) => setWhEnd(Number(e.target.value))}
+            />
+          </Line>
+          <Actions>
+            <Button variant="primary" type="submit" disabled={save.isPending}>
+              {save.isPending ? "Saving" : "Save profile"}
+            </Button>
+          </Actions>
+        </Block>
+      </div>
 
-      <Block title="Appearance">
-        <Line label="Theme" sub="System follows your device. Dark is the default.">
-          <Choice value={theme} options={THEME_CHOICES} onPick={setTheme} label="Theme" />
-        </Line>
-        <Line label="Density" sub="Compact drops a row of breathing room. Type stays the same.">
-          <Choice value={density} options={DENSITY_CHOICES} onPick={setDensity} label="Density" />
-        </Line>
-      </Block>
+      <div id={APPEARANCE_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+        <Block title="Appearance">
+          <Line label="Theme" sub="System follows your device. Dark is the default.">
+            <Choice value={theme} options={THEME_CHOICES} onPick={setTheme} label="Theme" />
+          </Line>
+          <Line label="Density" sub="Compact drops a row of breathing room. Type stays the same.">
+            <Choice value={density} options={DENSITY_CHOICES} onPick={setDensity} label="Density" />
+          </Line>
+        </Block>
+      </div>
     </form>
   );
 }
@@ -1101,12 +1153,36 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
         )}
       </Block>
 
-      {/* People. Duplicated by /admin, which is gated on being an admin, so it
-          stays until it has a section of its own. */}
-      <Block title="People">
-        <MembersCard />
-        <TeamCard />
-      </Block>
+      {/*
+       * ── THE NESTED BLOCK IS GONE, 2026-08-17 ──────────────────────────────────
+       * Founder, twice: "in Brief and voice, if you go to the bottom, there is an
+       * Invite teammates button, so that is not at all working and opening."
+       *
+       * There is no broken button. TeamCard is fully wired -- email, role, a real
+       * `invite.mutate()`, the join link and the pending list. What was broken is what
+       * the surface LOOKED like: `TeamCard` draws its own `Block title="Invite
+       * teammates"`, and it sat inside `Block title="People"`. A Block renders card
+       * chrome and a heading, so nesting one produced a bordered, titled row inside
+       * another bordered, titled row -- which is the shape this product uses for a
+       * pressable thing everywhere else. He pressed a heading, correctly expecting it
+       * to open something, and nothing happened.
+       *
+       * A control that is not a control is still a defect, and this is the honest fix:
+       * the two cards are siblings at the same rung, each owning its own Block, so the
+       * invite form is visibly a form rather than a closed door.
+       *
+       * `id` so search can land on it: typing "invite" should arrive at this heading.
+       * Duplicated by /admin, which is gated on being an admin, so it stays here until
+       * it has a section of its own.
+       */}
+      <div id={PEOPLE_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+        {/* MembersCard draws no Block of its own, so it keeps this one. TeamCard does
+            draw one, which is exactly why it must not be inside this. */}
+        <Block title="People">
+          <MembersCard />
+        </Block>
+      </div>
+      <TeamCard />
 
       <AdminDoor />
     </div>
@@ -1172,6 +1248,52 @@ function AdminDoor() {
 }
 
 /** No door in the index any more. The address answers so old links land. */
+/**
+ * DIAGNOSTICS MOVED, AND THIS IS WHY THE ADDRESS STILL ANSWERS.
+ *
+ * Founder: "certain features are kept doorless, and there is no option to reach that."
+ *
+ * He was right, and the cause was mine. I removed the Diagnostics door from the Settings
+ * rail with a comment claiming "the door is drawn from the Engine Room instead". Nothing
+ * drew it. A live report making two real server reads was reachable only by typing a URL.
+ *
+ * The reasoning for moving it was sound and is unchanged: Settings is where a person
+ * states what they want, and Diagnostics reports whether the machine is achieving it,
+ * which is the engine-room doctrine's own dividing line. So the fix is to FINISH the move
+ * rather than put the door back where the reasoning says it does not belong.
+ * `DiagnosticsSection` is now mounted as the Quality room's leading tab -- mounted, not
+ * copied, so the two cannot disagree about the platform's health.
+ *
+ * That makes this pane a duplicate, and a duplicate is the one thing the founder said may
+ * be removed. What may NOT happen is the address going dark: `?section=health` is in saved
+ * links and in the search index. So it forwards, exactly as `memory` forwards to Brain,
+ * and it names where the thing went rather than saying it is gone.
+ */
+function DiagnosticsMoved({ onOpen }: { onOpen: () => void }) {
+  return (
+    <>
+      {/*
+       * Meridian's NeedsSetup rather than the retired PageHead/Empty/Button trio: the
+       * ratchet refused this file at 134 -> 137 and was right, new code may not carry a
+       * retired component. Fixed the code, never the baseline.
+       */}
+      <NeedsSetup
+        title="Diagnostics is read in the Engine Room now"
+        body="Whether the platform is having a bad day, the reliability window, and any run that went away with your credits all sit under Quality."
+        action={
+          <button
+            type="button"
+            onClick={onOpen}
+            className="rounded-mrd-pill border border-mrd-line bg-mrd-sink px-3 py-1.5 text-[12px] text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
+          >
+            Open Diagnostics
+          </button>
+        }
+      />
+    </>
+  );
+}
+
 function MemorySection({ onOpen }: { onOpen: () => void }) {
   return (
     <>
@@ -1212,6 +1334,12 @@ function MemorySection({ onOpen }: { onOpen: () => void }) {
  * ================================================================== */
 
 function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => void }) {
+  /*
+   * WHICH AGENT IS OPEN, HELD HERE RATHER THAN IN THE URL. Opening a colleague to read
+   * them is not a navigation: it does not deserve a history entry, and a Back press
+   * after reading three of them should leave Settings, not walk back up the roster.
+   */
+  const [openSlug, setOpenSlug] = useState<string | null>(null);
   const { activeWorkspace } = useWorkspace();
   const fList = useServerFn(listCrew);
   // Same key, same function, same cache entry as /crew. Not "a read that
@@ -1271,7 +1399,15 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
    */
   const catOrder = new Map(SPECIALIST_CATALOG.map((c, i) => [c.slug, i]));
   const stored = new Map((crew.data?.members ?? []).map((m) => [m.slug, m]));
-  const members = SPECIALIST_CATALOG.filter((c) => c.status === "active")
+  /*
+   * CAST ONLY, AND THIS CORRECTS MY OWN OVERREACH. Spanning the catalog fixed the
+   * three-card under-report and introduced the opposite error: it began listing tier
+   * `crew` agents, which the catalog itself labels "engine-only mechanisms, never
+   * user-facing (not seeded as loop agents)". Reactor and Archivist are plumbing.
+   * Presenting plumbing as a colleague is the Engine-Room doctrine's exact failure --
+   * the user meets the output of the machine, never the machine.
+   */
+  const members = SPECIALIST_CATALOG.filter((c) => c.status === "active" && c.tier === "cast")
     .map((c) => {
       const row = stored.get(c.slug);
       return (
@@ -1283,7 +1419,10 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
              as absent or disabled would invent a boundary nobody set. */
           enabled: true,
           arc: "trusted" as const,
-          asking: [] as string[],
+          /* The REAL shape, not `string[]`. The synthetic row claimed a type the
+             stored row does not have, and it compiled only because nothing read
+             `asking` off the union. The moment the detail panel did, it broke. */
+          asking: [] as CrewMember["asking"],
         }
       );
     })
@@ -1348,8 +1487,16 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
             "How much rope each one gets is set on Crew, one agent at a time."
           )
         }
-        more="Open Crew"
-        onMore={() => onOpenCrew(null)}
+        /*
+         * NO "OPEN CREW" DOOR ANY MORE. Founder: "why are there multiple steps, like
+         * click on Roster and see only three cards, and then click on Open Crew?"
+         *
+         * Everything that door was opened for -- what an agent is, what it may do
+         * without you, what it can touch, whether it has been any good -- is now one
+         * click away on this pane. What /crew still owns is CHANGING a tool boundary,
+         * and that is reached from the agent you are already reading, not from a
+         * general-purpose escape hatch at the top of the list.
+         */
       >
         {/*
          * ONE CARD PER AGENT, replacing a list of tight rows.
@@ -1370,8 +1517,43 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
             enabled: m.enabled,
             runsAlone: m.arc === "trusted" || m.arc === "ambient",
             waiting: m.asking.length,
+            /* The station, in the product's own words for it. Reading the roster down
+               the spine answers "who works on the part I am looking at", which an
+               eighteen-card alphabetical grid cannot. */
+            group: (() => {
+              const st = agentStation(m.slug);
+              /* STAGE_LABEL is the product's existing station-to-name map (Discover,
+                 Decide, Plan...). Reused rather than retyped: a second list of the
+                 seven names is how a rename lands in one place and not the other. */
+              /*
+               * THE CONDUCTOR IS NOT AT A STATION, and the founder called this out:
+               * "Reactor and Chief of Staff ... work across all surfaces and all
+               * stations, why is that gated". He is right about Chief of Staff.
+               *
+               * The catalog files it at `decide` and that is a filing artifact, not a
+               * design: it carries `conductor: true`, its blurb is "Runs the loop and
+               * brings you the calls that need you", and `driver.test.ts` EXCLUDES
+               * conductors from station-crew coverage on purpose. It is dispatched
+               * through orchestrator.functions.ts, never as a station's crew. Showing
+               * it under Decide told a reader it works one seventh of the loop.
+               *
+               * Grouped separately rather than restationed: `station` is stored and the
+               * driver reads it, so changing the DATA would change dispatch. This
+               * changes only what the roster says, which is the thing that was wrong.
+               */
+              const entry = catalogEntry(m.slug);
+              if (entry?.conductor) return "Across the whole loop";
+              return st ? STAGE_LABEL[st] : "Across the whole loop";
+            })(),
           }))}
-          onOpen={(slug) => onOpenCrew(slug)}
+          activeSlug={openSlug}
+          /* A second press on the open card closes it. The card is the control, so it
+             has to work both ways, or the only way to dismiss is to open another one. */
+          onOpen={(slug) => setOpenSlug((cur) => (cur === slug ? null : slug))}
+          renderDetail={(slug) => {
+            const m = members.find((x) => x.slug === slug);
+            return m ? <AgentDetail member={m} onOpenRecord={onOpenCrew} /> : null;
+          }}
         />
       </Block>
 
@@ -1380,6 +1562,252 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
         boundary across the whole crew at once lives on the boundary, not here.
       </Empty>
     </>
+  );
+}
+
+/**
+ * ── WHAT THIS AGENT IS, INLINE ────────────────────────────────────────────────
+ * Founder: "when I click on a particular agent, let's say I'm clicking on Verify, what
+ * is Verify all about? It needs to show there itself ... what is a system prompt, and
+ * what are the activities that are involved in that? That needs to be inline after
+ * clicking." And on the old shape: "where is the patience for a human?"
+ *
+ * ── THERE IS NO SYSTEM PROMPT COLUMN, SO NONE IS DRAWN ────────────────────────
+ * He asked for the system prompt. Nothing in this product stores a per-agent prompt a
+ * person may edit, and rendering an empty box labelled "System prompt" would be a
+ * control that writes nowhere -- the exact defect this repo has paid for nine times.
+ *
+ * What DOES exist is the thing a prompt would have said, and it is better than a
+ * prompt because the driver actually runs on it: `stationCrew` carries each role's
+ * `job` (what this one is asked to do, in its own terms) and `file` (what it must hand
+ * on). That is the brief, it is real, and it is what briefs the agent at run time.
+ *
+ * ── THE FOUR BLOCKS ARE THE FOUR QUESTIONS, IN ORDER ──────────────────────────
+ * What it is asked to do · what it may do without you · what it can actually touch ·
+ * whether it has been any good at it. His complaint about the old two loose panels was
+ * that they were "all like a card, but it needs to be really even and have a proper
+ * structure": one grid, one row shape, one label style, every block the same.
+ */
+/**
+ * What the roster actually holds, which is NOT uniformly a CrewMember.
+ *
+ * Agent rows are written lazily, so the roster is the catalog with stored rows merged
+ * onto it: an agent nobody has governed yet has a name and a default arc and no row at
+ * all. Typing this prop as CrewMember would have been a lie the compiler happily
+ * accepted for the stored half and crashed on for the other.
+ *
+ * The optional fields are exactly the ones that only exist once a row does, and the
+ * panel says so in words rather than drawing an empty section.
+ */
+type RosterEntry = {
+  slug: string;
+  name: string;
+  enabled: boolean;
+  arc: CrewMember["arc"];
+  /** What this one is waiting on a person for. A gate action, so it is never hidden. */
+  asking?: CrewMember["asking"];
+  arcIsDefault?: boolean;
+  tools?: CrewMember["tools"];
+  trust?: CrewMember["trust"];
+  noToolsEnabled?: boolean;
+};
+
+/**
+ * A figure inside a sentence, on Meridian's own tokens.
+ *
+ * The retired shell primitive `Num` was the reflex here and the ratchet refused it:
+ * new code may not carry a retired component, and Meridian has no Figure of its own
+ * yet. Tabular numerals so a count that ticks does not reflow the line around it.
+ */
+function Fig({ children }: { children: ReactNode }) {
+  return (
+    <span className="font-medium text-mrd-ink" style={{ fontVariantNumeric: "tabular-nums" }}>
+      {children}
+    </span>
+  );
+}
+
+function AgentDetail({
+  member,
+  onOpenRecord,
+}: {
+  member: RosterEntry;
+  /** Opens this agent's full record, deep-linked to the agent being read. */
+  onOpenRecord: (slug: string) => void;
+}) {
+  const entry = catalogEntry(member.slug);
+  const role = AGENT_STATION_ORDER.flatMap((st) => stationCrew(st)).find(
+    (r) => r.slug === member.slug,
+  );
+  /* No filter: `resolvedMode` is documented as "what resolveToolMode returns today,
+     floors included", so every row here is a thing this agent can genuinely reach, and
+     the mode beside it is the truth about how. There is no off state to exclude. */
+  const tools = member.tools ?? null;
+  const asking = member.asking?.length ?? 0;
+  const trust = member.trust;
+
+  /* Named Facet, not Row: this file imports a RETIRED `Row` from shell/primitives, and a
+     local shadowing it reads as that component to every human and every scanner. */
+  const Facet = ({ label, children }: { label: string; children: ReactNode }) => (
+    <div className="flex flex-col gap-1 border-t border-mrd-line pt-2.5 first:border-0 first:pt-0">
+      <div className="text-[10.5px] font-medium tracking-[0.08em] text-mrd-mute uppercase">
+        {label}
+      </div>
+      <div className="text-[12.5px] leading-relaxed text-mrd-body">{children}</div>
+    </div>
+  );
+
+  return (
+    <div
+      className="mt-1 flex flex-col rounded-mrd-card border border-mrd-edge bg-mrd-sheet p-3.5"
+      style={{
+        boxShadow: "var(--mrd-shadow-card)",
+        gap: "var(--mrd-s4)",
+        animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both",
+      }}
+    >
+      <Facet label={`What ${member.name} is asked to do`}>
+        {role?.job ?? entry?.blurb ?? "No brief is filed for this one yet."}
+        {role?.file ? (
+          <>
+            {" "}
+            It hands on <span className="text-mrd-ink">{role.file}</span>, which is what the
+            next station reads.
+          </>
+        ) : entry?.conductor ? (
+          <> It runs the loop itself rather than working one station of it.</>
+        ) : null}
+      </Facet>
+
+      <Facet label="What it may do without you">
+        {(member.arcIsDefault ?? true) ? (
+          <>
+            {ARC_CHOICE[member.arc]}. This is our default, not a rule you set, so it is
+            yours to change.
+          </>
+        ) : (
+          <>{ARC_CHOICE[member.arc]}. You set this.</>
+        )}
+      </Facet>
+
+      <Facet
+        label={
+          tools && tools.length > 0 ? `What it can touch (${tools.length})` : "What it can touch"
+        }
+      >
+        {tools === null ? (
+          /* No stored row, so there is no tool policy to read. Saying that is the whole
+             truth; an empty list here would read as "may touch nothing", which is the
+             opposite of what an ungoverned agent on the default arc is doing. */
+          `Nothing is stored for ${member.name} yet. It arrives with the first mission that needs it, already running on the default above.`
+        ) : member.noToolsEnabled ? (
+          "No tools are switched on for this workspace at all, so nobody here can touch anything yet."
+        ) : tools.length === 0 ? (
+          `${member.name} has no tools it may use, so it can read and reason but cannot act.`
+        ) : (
+          <span className="flex flex-wrap gap-1.5 pt-0.5">
+            {tools.map((t) => (
+              <span
+                key={t.toolName}
+                className="flex items-center gap-1.5 rounded-mrd-pill border border-mrd-line bg-mrd-sink px-2 py-1 text-[11.5px]"
+              >
+                <span className="text-mrd-ink">{t.label}</span>
+                <span className="text-mrd-mute">{MODE_CHOICE[t.resolvedMode]}</span>
+              </span>
+            ))}
+          </span>
+        )}
+      </Facet>
+
+      <Facet label="What it has learned">
+        {/*
+         * ── THIS FACET EXISTS BECAUSE I HAD ORPHANED IT ───────────────────────────
+         * Founder: "you have eliminated all the sections that were underneath ... I do
+         * not want you to eliminate any of the features without thinking twice ... you
+         * should not be removing anything or making a feature homeless."
+         *
+         * He is right, and the panel was worse than he could see. It answered four
+         * questions and had ZERO actions -- no button, no link. So removing the Open
+         * Crew door left a reader able to READ an agent from Settings and unable to
+         * change one thing about it, or to reach the place that can. My own commit
+         * message claimed the tweak path was "reached from the agent you are already
+         * reading". It was not. I wrote the intent and did not build it.
+         *
+         * What the agent's record owns and this pane does not: its lessons, its run
+         * history, the tool boundary you can actually edit, and its requests for more
+         * room. Lessons are named here rather than fetched, because inventing a second
+         * read of them would duplicate the record rather than point at it -- and a
+         * duplicate is the one thing he did say may be removed.
+         */}
+        Every verdict that came back on {member.name}'s work is written against the call
+        that caused it, on its record. That is what re-ranks its next run.
+      </Facet>
+
+      <Facet label="Track record">
+        {/*
+         * The honest form of a score. `samples` is how much this is standing on, and
+         * with nothing to stand on the number is not reported at all -- a track record
+         * built from zero runs is the claim this repo is least allowed to make.
+         */}
+        {!trust || trust.samples === 0 ? (
+          `${member.name} has not finished anything here yet, so there is nothing to judge it on.`
+        ) : (
+          <>
+            <Fig>{trust.missionsCompleted}</Fig> of <Fig>{trust.missionsTotal}</Fig> missions
+            finished
+            {trust.outcomesTotal > 0 ? (
+              <>
+                , and <Fig>{trust.outcomesValidated}</Fig> of <Fig>{trust.outcomesTotal}</Fig>{" "}
+                calls held up afterwards
+              </>
+            ) : null}
+            .
+            {trust.suggestedArc !== member.arc ? (
+              <>
+                {" "}
+                On that record it could run at{" "}
+                <span className="text-mrd-ink">
+                  {ARC_CHOICE[trust.suggestedArc].toLowerCase()}
+                </span>
+                .
+              </>
+            ) : null}
+          </>
+        )}
+      </Facet>
+      {/*
+       * ONE DOOR, AT THE FOOT, DEEP-LINKED TO THE AGENT BEING READ.
+       *
+       * Not the general "Open Crew" escape hatch that used to sit at the top of the
+       * list -- that was the three-click complaint. This opens THIS agent, and it is
+       * labelled with what is actually behind it rather than with the page's name, so
+       * nothing that lives there is homeless and nobody has to guess.
+       */}
+      <div className="flex flex-wrap items-center gap-2 border-t border-mrd-line pt-2.5">
+        {asking > 0 && (
+          /* A person is required. The one place `you` is spent in this panel, and it
+             leads straight to the thing that is waiting. */
+          <button
+            type="button"
+            onClick={() => onOpenRecord(member.slug)}
+            className="flex items-center gap-1.5 rounded-mrd-pill px-2.5 py-1 text-[11.5px] font-medium transition-colors"
+            style={{ color: "var(--mrd-you)", background: "var(--mrd-select)" }}
+          >
+            <span aria-hidden className="size-1.5 rounded-full" style={{ background: "var(--mrd-you)" }} />
+            {asking === 1
+              ? `${member.name} is asking for more room`
+              : `${member.name} is asking for more room on ${asking} tools`}
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => onOpenRecord(member.slug)}
+          className="rounded-mrd-pill border border-mrd-line bg-mrd-sink px-2.5 py-1 text-[11.5px] text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
+        >
+          Change what {member.name} may touch, and read its history
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -1649,138 +2077,140 @@ function ByoKeysBlock() {
   const keyList = keys.data?.keys ?? [];
 
   return (
-    <Block
-      title="Your own provider keys"
-      sub={
-        isEnterprise
-          ? "Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot, OpenRouter and anything with a compatible endpoint. Stored encrypted, per user. A base URL is only needed for providers that host their own."
-          : "An Enterprise boundary. Every other plan runs on Supaprod credits, with the same model-agnostic routing. It just uses our keys."
-      }
-    >
-      {isEnterprise ? (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (keyValue.trim()) mSaveKey.mutate();
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-              gap: "var(--sp-space-2)",
+    <div id={BYO_KEYS_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+      <Block
+        title="Your own provider keys"
+        sub={
+          isEnterprise
+            ? "Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot, OpenRouter and anything with a compatible endpoint. Stored encrypted, per user. A base URL is only needed for providers that host their own."
+            : "An Enterprise boundary. Every other plan runs on Supaprod credits, with the same model-agnostic routing. It just uses our keys."
+        }
+      >
+        {isEnterprise ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (keyValue.trim()) mSaveKey.mutate();
             }}
           >
-            <Select
-              value={keyProv}
-              onChange={(e) => setKeyProv(e.target.value)}
-              aria-label="Provider"
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                gap: "var(--sp-space-2)",
+              }}
             >
-              {BYO_PROVIDERS.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.label}
-                </option>
-              ))}
-            </Select>
-            <Input
-              value={keyLabel}
-              onChange={(e) => setKeyLabel(e.target.value)}
-              aria-label="Label"
-              placeholder="Label, optional"
-            />
-            <Input
-              value={keyValue}
-              onChange={(e) => setKeyValue(e.target.value)}
-              type="password"
-              aria-label="API key"
-              placeholder={BYO_PROVIDERS.find((p) => p.id === keyProv)?.placeholder}
-            />
-            <Input
-              value={keyBase}
-              onChange={(e) => setKeyBase(e.target.value)}
-              aria-label="Base URL"
-              placeholder="Base URL, self-hosted only"
-            />
-          </div>
-          {keyProv === "custom" || keyBase.trim() ? (
-            <Input
-              style={{ width: "100%", marginTop: "var(--sp-space-2)" }}
-              value={keyModelId}
-              onChange={(e) => setKeyModelId(e.target.value)}
-              aria-label="Model id"
-              placeholder="Model id, exactly as the provider names it"
-            />
-          ) : null}
-          <Actions>
-            {/* Not primary: the primary on this section is the model save. */}
-            <Button type="submit" disabled={mSaveKey.isPending || !keyValue.trim()}>
-              {mSaveKey.isPending ? "Saving" : "Add key"}
-            </Button>
-            <Button
-              disabled={mTestKey.isPending || !keyValue.trim()}
-              onClick={() => mTestKey.mutate()}
-            >
-              {mTestKey.isPending ? "Testing" : "Test it first"}
-            </Button>
-            {testResult ? (
-              <span
-                className={testResult.ok ? "sp-pass" : "sp-fail"}
-                style={{ fontSize: "var(--sp-text-meta)" }}
+              <Select
+                value={keyProv}
+                onChange={(e) => setKeyProv(e.target.value)}
+                aria-label="Provider"
               >
-                {testResult.ok ? (
-                  <>
-                    Answered in <Num>{testResult.latency_ms}ms</Num>
-                  </>
-                ) : (
-                  (testResult.error ?? "Test failed").slice(0, 90)
-                )}
-              </span>
+                {BYO_PROVIDERS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.label}
+                  </option>
+                ))}
+              </Select>
+              <Input
+                value={keyLabel}
+                onChange={(e) => setKeyLabel(e.target.value)}
+                aria-label="Label"
+                placeholder="Label, optional"
+              />
+              <Input
+                value={keyValue}
+                onChange={(e) => setKeyValue(e.target.value)}
+                type="password"
+                aria-label="API key"
+                placeholder={BYO_PROVIDERS.find((p) => p.id === keyProv)?.placeholder}
+              />
+              <Input
+                value={keyBase}
+                onChange={(e) => setKeyBase(e.target.value)}
+                aria-label="Base URL"
+                placeholder="Base URL, self-hosted only"
+              />
+            </div>
+            {keyProv === "custom" || keyBase.trim() ? (
+              <Input
+                style={{ width: "100%", marginTop: "var(--sp-space-2)" }}
+                value={keyModelId}
+                onChange={(e) => setKeyModelId(e.target.value)}
+                aria-label="Model id"
+                placeholder="Model id, exactly as the provider names it"
+              />
             ) : null}
-          </Actions>
-        </form>
-      ) : null}
-
-      {isEnterprise || keyList.length > 0 ? (
-        <>
-          {keys.isLoading ? (
-            <Loading>Reading your keys.</Loading>
-          ) : keys.isError ? (
-            <Failed onRetry={() => void keys.refetch()}>
-              Your keys did not load. {(keys.error as Error)?.message ?? "The read failed."}
-            </Failed>
-          ) : keyList.length === 0 ? (
-            <Empty>No key of your own yet. Until there is one, runs use ours.</Empty>
-          ) : (
-            keyList.map((k) => (
-              <Line
-                key={k.id}
-                label={
-                  <>
-                    {BYO_PROVIDERS.find((p) => p.id === k.provider)?.label ?? k.provider}
-                    {k.label ? <span style={{ color: "var(--sp-mute)" }}> · {k.label}</span> : null}
-                  </>
-                }
-                sub={
-                  <Num>
-                    {k.preview}
-                    {k.model_id ? ` · ${k.model_id}` : ""}
-                    {k.base_url ? ` · ${k.base_url}` : ""}
-                  </Num>
-                }
+            <Actions>
+              {/* Not primary: the primary on this section is the model save. */}
+              <Button type="submit" disabled={mSaveKey.isPending || !keyValue.trim()}>
+                {mSaveKey.isPending ? "Saving" : "Add key"}
+              </Button>
+              <Button
+                disabled={mTestKey.isPending || !keyValue.trim()}
+                onClick={() => mTestKey.mutate()}
               >
-                <Button
-                  variant="ghost"
-                  disabled={mDelKey.isPending && mDelKey.variables === k.id}
-                  onClick={() => mDelKey.mutate(k.id)}
+                {mTestKey.isPending ? "Testing" : "Test it first"}
+              </Button>
+              {testResult ? (
+                <span
+                  className={testResult.ok ? "sp-pass" : "sp-fail"}
+                  style={{ fontSize: "var(--sp-text-meta)" }}
                 >
-                  Remove
-                </Button>
-              </Line>
-            ))
-          )}
-        </>
-      ) : null}
-    </Block>
+                  {testResult.ok ? (
+                    <>
+                      Answered in <Num>{testResult.latency_ms}ms</Num>
+                    </>
+                  ) : (
+                    (testResult.error ?? "Test failed").slice(0, 90)
+                  )}
+                </span>
+              ) : null}
+            </Actions>
+          </form>
+        ) : null}
+
+        {isEnterprise || keyList.length > 0 ? (
+          <>
+            {keys.isLoading ? (
+              <Loading>Reading your keys.</Loading>
+            ) : keys.isError ? (
+              <Failed onRetry={() => void keys.refetch()}>
+                Your keys did not load. {(keys.error as Error)?.message ?? "The read failed."}
+              </Failed>
+            ) : keyList.length === 0 ? (
+              <Empty>No key of your own yet. Until there is one, runs use ours.</Empty>
+            ) : (
+              keyList.map((k) => (
+                <Line
+                  key={k.id}
+                  label={
+                    <>
+                      {BYO_PROVIDERS.find((p) => p.id === k.provider)?.label ?? k.provider}
+                      {k.label ? <span style={{ color: "var(--sp-mute)" }}> · {k.label}</span> : null}
+                    </>
+                  }
+                  sub={
+                    <Num>
+                      {k.preview}
+                      {k.model_id ? ` · ${k.model_id}` : ""}
+                      {k.base_url ? ` · ${k.base_url}` : ""}
+                    </Num>
+                  }
+                >
+                  <Button
+                    variant="ghost"
+                    disabled={mDelKey.isPending && mDelKey.variables === k.id}
+                    onClick={() => mDelKey.mutate(k.id)}
+                  >
+                    Remove
+                  </Button>
+                </Line>
+              ))
+            )}
+          </>
+        ) : null}
+      </Block>
+    </div>
   );
 }
 
@@ -2023,6 +2453,18 @@ function PlanSection({ checkout }: { checkout?: string }) {
  * supposed to remove.
  */
 const CREDITS_ANCHOR = "settings-credits";
+/*
+ * WHERE SEARCH LANDS INSIDE A PANE. Founder: "that's how the search should work, not
+ * just for this entire thing, so that a user can just type whatever I want."
+ *
+ * Each of these is a real block on a real pane, and `settings-search.test.ts` asserts
+ * every one is actually rendered here -- an anchor nothing draws is a door to nowhere.
+ */
+const HOURS_ANCHOR = "settings-hours";
+const APPEARANCE_ANCHOR = "settings-appearance";
+const BYO_KEYS_ANCHOR = "settings-byo-keys";
+/** Where "invite", "team" and "member" land on the Brief and voice pane. */
+const PEOPLE_ANCHOR = "settings-people";
 
 function CreditsSection() {
   const fGetCredits = useServerFn(getMyCreditsView);

@@ -195,6 +195,14 @@ describe("Engine Room naming model (plain outcome on top, technical trace beneat
       "usage",
     ]);
     expect(ROOM_TAB_META.quality.map((t) => t.id)).toEqual([
+      /*
+       * "diagnostics" leads since 2026-08-17. The Diagnostics door was taken out of the
+       * Settings rail with a comment claiming the Engine Room drew it instead; nothing
+       * did, and nothing linked `?section=health`, so a live report with two real server
+       * reads was reachable only by typing a URL. QualityRoom now mounts the same
+       * component the Settings address renders, so the two cannot disagree.
+       */
+      "diagnostics",
       "score",
       "calibration",
       "suites",

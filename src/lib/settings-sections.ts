@@ -145,6 +145,30 @@ export type SectionId =
  */
 export type GroupId = "crew" | "brief" | "reach" | "you";
 
+/**
+ * A named block INSIDE a pane, which search can name and land on.
+ *
+ * Founder: "if someone types invite in the search bar, it should open up the section
+ * where it is exactly ... it would literally point me to this section. That's how the
+ * search should work, not just for this entire thing."
+ *
+ * Before this, "invite" resolved to the pane that contains the invite form and said
+ * "Brief and voice", leaving the reader to find it among five blocks. The pane was
+ * right and the answer was useless.
+ *
+ * `anchor` is a real element id on that pane, so landing is a scroll rather than a
+ * promise. An anchor nothing renders is a door to nowhere, which is this repo's
+ * most-paid-for defect, so the search test asserts every anchor here exists in the
+ * route source.
+ */
+export type SettingsSubTarget = {
+  /** The heading a reader will actually see when they arrive. */
+  label: string;
+  /** The `id` of the element to scroll to. */
+  anchor: string;
+  keywords: readonly string[];
+};
+
 export type SettingsSection = {
   id: SectionId;
   label: string;
@@ -179,6 +203,8 @@ export type SettingsSection = {
    * pins each one against the pane it claims.
    */
   keywords?: readonly string[];
+  /** Named blocks inside this pane that search can land on. */
+  subs?: readonly SettingsSubTarget[];
 };
 
 export type SettingsGroup = {
@@ -269,6 +295,18 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
     sections: [
       {
         id: "profile",
+        subs: [
+          {
+            label: "Working hours",
+            anchor: "settings-hours",
+            keywords: ["hours", "working hours", "schedule", "timezone", "time zone", "quiet"],
+          },
+          {
+            label: "Appearance",
+            anchor: "settings-appearance",
+            keywords: ["appearance", "theme", "dark", "light", "avatar", "mark", "picture"],
+          },
+        ],
         label: "Profile",
         keywords: ["name", "avatar", "picture", "identity", "theme", "dark", "light", "density", "appearance", "timezone", "working hours", "quiet hours"],
       },
@@ -290,6 +328,15 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
        */
       {
         id: "billing",
+        subs: [
+          {
+            /* The founder's own failing example: "typing credits found nothing". It
+               found the pane once keywords landed; this lands on the block. */
+            label: "Credits and top-ups",
+            anchor: "settings-credits",
+            keywords: ["credit", "credits", "top-up", "topup", "balance", "buy", "refill"],
+          },
+        ],
         label: "Billing",
         // Credits folded in here, so every word for the balance and the top-up has to
         // reach this door or the fold made them unfindable.
@@ -348,6 +395,34 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       { id: "sync", label: "Sync and bindings", door: false, foldsInto: "connections" },
       { id: "interop", label: "Agent access", keywords: ["mcp", "token", "api", "external agent", "outside"] },
       { id: "data", label: "Your data", keywords: ["export", "download", "delete", "privacy", "gdpr", "retention"] },
+      /*
+       * ── MODELS MOVED HERE, 2026-08-17 ─────────────────────────────────────
+       * Founder: "Models and keys would come in data and access only, right? Why is it
+       * under agent? It is not the right thing."
+       *
+       * Correct, and the group descriptions make it obvious once said out loud. Agents
+       * is about WHO works here and how much rope each has. A model is not an agent and
+       * a key is not a boundary: they are an outside service this workspace reaches and
+       * a credential it reaches with, which is precisely what this group governs -- the
+       * same shape as a connector, one rung further in.
+       *
+       * It also removes a genuine confusion the old placement created: a reader looking
+       * for "which model runs my work" was being sent to a group about permissions, and
+       * a reader auditing what leaves the workspace never looked in Agents for an API
+       * key.
+       */
+      {
+        id: "ai",
+        label: "Models and keys",
+        subs: [
+          {
+            label: "Your own provider keys",
+            anchor: "settings-byo-keys",
+            keywords: ["api key", "key", "keys", "byo", "openai", "anthropic", "provider", "token"],
+          },
+        ],
+        keywords: ["model", "models", "api key", "byo", "openai", "anthropic", "provider"],
+      },
     ],
   },
   {
@@ -362,18 +437,37 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
      * rather than a house word. Ids are untouched; `?section=agents` already
      * aliased to `staff` and still does. */
     label: "Agents",
-    desc: "How far each agent may reach, when it stops to ask you, and which model runs the work.",
+    desc: "Who works here, and how much each one may do without you.",
     sections: [
+      /*
+       * ── WHO WORKS HERE LEADS, 2026-08-17 ──────────────────────────────────
+       * Founder: "under the agent, I want this roaster thing to be on top, and
+       * whatever name you give, autonomy and approvals could be at the bottom one."
+       *
+       * Right on the reading order. A person arriving at Agents wants to see the crew
+       * before they can have an opinion about anybody's rope, and Autonomy was leading
+       * with a governance dial for agents the reader had not met yet.
+       *
+       * ── AND IT IS NOT CALLED "ROSTER" ANY MORE ────────────────────────────
+       * He asked whether "Roster" is right, and whether "Agents" would collide with the
+       * group heading. Both concerns are real and they pull opposite ways: "Roster" is
+       * a house word nobody types (the vocabulary rules retire exactly this kind), and
+       * "Agents" under a group called Agents is a door named after its own neighbourhood.
+       *
+       * "Who works here" answers it: it is the plainest English for the thing, it is
+       * what the pane's own first Block was already called, and it cannot collide with
+       * a heading because it is a phrase rather than a category. Nothing types "roster"
+       * to find their crew; the keywords carry that word so the search still lands.
+       */
+      {
+        id: "staff",
+        label: "Who works here",
+        keywords: ["agents", "crew", "roster", "who", "specialist"],
+      },
       {
         id: "autonomy",
         label: "Autonomy and approvals",
         keywords: ["approval", "approvals", "permission", "kill switch", "pause", "autopilot", "trust"],
-      },
-      { id: "staff", label: "Roster", keywords: ["agents", "crew", "who", "specialist", "tools"] },
-      {
-        id: "ai",
-        label: "Models and keys",
-        keywords: ["model", "models", "api key", "byo", "openai", "anthropic", "provider"],
       },
     ],
   },
@@ -384,6 +478,13 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
     sections: [
       {
         id: "workspace",
+        subs: [
+          {
+            label: "Invite teammates",
+            anchor: "settings-people",
+            keywords: ["invite", "invitation", "teammate", "team", "member", "people", "seat"],
+          },
+        ],
         label: "Brief and voice",
         // People lives on this pane (MembersCard, TeamCard), which is why "invite"
         // and "member" belong here and nowhere else.
@@ -636,7 +737,19 @@ export function searchSections(query: string): readonly SectionId[] {
   for (const group of NAV_GROUPS) {
     for (const section of group.sections) {
       const label = section.label.toLowerCase();
-      const words = (section.keywords ?? []).map((k) => k.toLowerCase());
+      /*
+       * SUB-TARGET WORDS COUNT AS THIS PANE'S WORDS, and leaving them out was a real
+       * bug: "teammate" and "seat" matched nothing at all, because they live only on
+       * the Invite teammates block. Founder: "when I type in invite ... Brief and voice
+       * should display Invite teammates."
+       *
+       * A block's own heading counts too, so the heading a reader is shown is also one
+       * they can find by typing it.
+       */
+      const words = [
+        ...(section.keywords ?? []),
+        ...(section.subs ?? []).flatMap((t) => [t.label, ...t.keywords]),
+      ].map((k) => k.toLowerCase());
 
       if (label.startsWith(needle)) tiers[0]!.push(section.id);
       else if (label.includes(needle)) tiers[1]!.push(section.id);
@@ -668,3 +781,29 @@ export function matchReason(section: SectionId, query: string): string | null {
     null
   );
 }
+
+/**
+ * The block inside a pane that best answers this query, or null for the pane itself.
+ *
+ * Startswith beats contains, exactly as the section ranking does, so "inv" lands on
+ * Invite teammates rather than on whatever merely mentions it.
+ */
+export function subTargetFor(section: SectionId, query: string): SettingsSubTarget | null {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return null;
+  const def = NAV_GROUPS.flatMap((g) => g.sections).find((sec) => sec.id === section);
+  const subs = def?.subs ?? [];
+  if (subs.length === 0) return null;
+  return (
+    subs.find((t) => t.label.toLowerCase().startsWith(needle)) ??
+    subs.find((t) => t.keywords.some((k) => k.toLowerCase().startsWith(needle))) ??
+    subs.find((t) => t.label.toLowerCase().includes(needle)) ??
+    subs.find((t) => t.keywords.some((k) => k.toLowerCase().includes(needle))) ??
+    null
+  );
+}
+
+/** Every anchor any sub-target points at, for the reachability test. */
+export const ALL_SUB_ANCHORS: readonly string[] = NAV_GROUPS.flatMap((g) =>
+  g.sections.flatMap((sec) => (sec.subs ?? []).map((t) => t.anchor)),
+);

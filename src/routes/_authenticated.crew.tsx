@@ -470,51 +470,57 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
           </ReadFailed>
         ) : null}
 
-        {/* THE DOOR TO THE BOUNDARY.
-          Crew answers "who works here". The boundary answers "what may they do
-          without me", and until 2026-08-01 that question had no single surface:
-          it was spread across four Engine Room rooms and a settings page. The
-          two belong beside each other, and this is the only place in the product
-          where a reader is already thinking about the crew as a group.
-
-          A row rather than a rail entry on purpose. The rail's own comment says
-          the five rows are "decided, and not to be relitigated", and quietly
-          adding a sixth would be relitigating a founder ruling by commit rather
-          than by asking. */}
-        <Region title="What they may do without you">
+        {/*
+         * ── ONE REGION, TWO ROWS, 2026-08-17 ──────────────────────────────────────
+         * Founder: "if you click on Open Crew, it says What they may do without you.
+         * How they work. This is all like a card, but it needs to be really even and
+         * have a proper structure. It does not hold proper structure." And again, on
+         * the whole surface: "those things also can be brought into one layer hub so
+         * that everything would be in the same section."
+         *
+         * He is describing a real fault. These were two Regions holding exactly ONE
+         * DoorRow each: a full heading, its own sub, and its own vertical band spent on
+         * a single link, twice in a row. That is scaffolding heavier than the thing it
+         * holds, and it made two closely related doors read as two unrelated topics.
+         *
+         * ── THIS REVERSES A DECISION, AND THE OLD REASON IS ANSWERED ──────────────
+         * The previous comment kept them apart because "what they may do without you"
+         * is a true title for exactly one of the two and "would have to be watered down
+         * to cover both". That reasoning was sound and its conclusion was that no
+         * shared title existed. One does. Both of these are crew-WIDE: the boundary is
+         * every tool across everybody, and the methods are the ways the whole crew
+         * draws on. Neither is about one agent, which is exactly what distinguishes
+         * them from every other row on this page.
+         *
+         * "Across the whole crew" is therefore not a watered-down cover, it is the
+         * precise thing the two have in common, and it is already this product's phrase
+         * for the same idea -- the roster files the conductor under "Across the whole
+         * loop". The sub carries the distinction the two titles used to carry.
+         *
+         * ── WHAT THE ROWS STILL OWN, UNCHANGED ────────────────────────────────────
+         * The boundary: until 2026-08-01 "what may they do without me" was spread over
+         * four Engine Room rooms and a settings page. Rows rather than rail entries,
+         * because the rail's five rows are a founder ruling and adding a sixth by
+         * commit would be relitigating it.
+         * The methods: `getPlaybooks` was live server code with zero UI callers while
+         * the loop picked a method per mission step on the reader's behalf, so the
+         * thing this product calls its moat had no door at all.
+         */}
+        <Region
+          title="Across the whole crew"
+          sub="Two settings that are not about any one agent: what every one of them may reach, and the ways they all work."
+        >
           <DoorRow
             lead="The boundary"
             sub="Every tool, across the whole crew. Set once, and it never interrupts work already running."
             onClick={() => void navigate({ to: "/boundary" })}
           />
-        </Region>
-
-        {/* THE DOOR TO THE METHODS.
-          The third standing question about the crew, beside "who works here" and
-          "what may they do without me": HOW do they work, and what has actually
-          held up. It had no door at all. `getPlaybooks` has been live server code
-          with zero UI callers, while the loop has been picking a method per
-          mission step on the reader's behalf the whole time
-          (orchestrator.server.ts, via rankPlaybooksByOutcome), so the one thing
-          the product calls its moat was invisible to the person it is meant to
-          convince. Capability built, door missing.
-
-          It sits on Crew rather than in the Engine Room or in Brain, and the
-          component's own header argues that choice out. Same shape as the
-          boundary door directly above, and for the same reason: a row here, not
-          a sixth rail entry.
-
-          Its own region rather than a second row under the boundary's, because
-          "what they may do without you" is a true title for exactly one of these
-          two and would have to be watered down to cover both. */}
-        <Region title="How they work">
           <DoorRow
             lead="The methods"
             sub="The named ways of working the crew draws on, how often each has been used, and what has held up so far."
             onClick={() => void navigate({ to: "/crew", search: { view: "methods" } })}
           />
         </Region>
-
         {asking.length > 0 ? (
           <Region
             title="Asking for more room"

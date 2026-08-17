@@ -1370,3 +1370,169 @@ under the DATASET's filename in the wrong folder. The real dataset is intact and
 about, and the next person to find it will lose an hour proving what is above. It was left in
 place because it belongs to the funding lane and deleting another lane's untracked file is not
 this lane's call.
+
+## 2026-08-17 - the agent audit, and two controls that were not controls
+
+**On `main`, pushed: `64b5abf0`, `84fea3fe`, `4a92425a`. tsc 0 - 9,387 pass 0 fail - build green.**
+
+### The agent audit, measured rather than read
+
+18 active agents, **15 dispatched by the station driver, 3 never**. Measured with a
+throwaway test over `stationCrew` x `SPECIALIST_CATALOG`, not by reading code.
+
+| Agent | Tier | Why it never dispatches |
+| --- | --- | --- |
+| Chief of Staff | cast | `conductor: true`. Runs the loop via `orchestrator.functions.ts`. `driver.test.ts:158` excludes conductors from crew coverage **on purpose**. |
+| Reactor | crew | Catalog's own words: "engine-only mechanisms, never user-facing (not seeded as loop agents)". |
+| Archivist | crew | Same. Referenced nowhere outside the catalog. |
+
+**So all 16 user-facing agents genuinely run.** The three that do not are two pieces of
+plumbing and one conductor, and none of them is a gap.
+
+**Founder was right that Chief of Staff should not read as gated to Decide.** Its
+`station: "decide"` is a filing artifact. The roster now groups it "Across the whole
+loop". The stored `station` is untouched: the driver reads that column, so changing the
+data would change dispatch.
+
+**And it caught my own regression.** Widening the roster to span the catalog (commit
+`c079989b`) fixed a three-of-eighteen under-report and started listing Reactor and
+Archivist as colleagues. Roster is now `tier === "cast"` only.
+
+### Two controls that were not controls
+
+- **Agent cards open INLINE.** Was three clicks and two screens to read one colleague.
+  `AgentCards` gained a `renderDetail` slot placed under the active card's group;
+  `AgentDetail` shows what the agent is asked to do (the driver's real `stationCrew`
+  `job` and `file`), its autonomy, its tools with resolved modes, and its track record
+  reported only when `samples > 0`. **No system-prompt box**: nothing stores a
+  per-agent prompt, so drawing one would be a control that writes nowhere. The
+  "Open Crew" door is gone.
+- **"Invite teammates" was never broken.** TeamCard is fully wired. It drew its own
+  `Block` *inside* `Block title="People"`, so its heading rendered with card chrome and
+  read as a pressable row. Un-nested.
+
+### Search names the block now
+
+`SettingsSubTarget` (label + real anchor + keywords). A hit resolves to the heading the
+reader will arrive at; selecting scrolls to it, deferred **two** rAF because the pane
+has not mounted on the tick the door is chosen. Fell out of it: `searchSections` only
+read section-level keywords, so **"teammate" and "seat" matched nothing at all**. Sub
+words and the block heading now count as the pane's words.
+
+### Traps confirmed again
+
+- **Ratchet refused my new code** (settings 134 -> 142) and it was right twice: `Num` is
+  retired (became a Meridian `Fig`), and my local `Row` helper **shadowed the retired
+  imported `Row`**, so the scanner counted it. Renamed `Facet`. Fixed the code, never
+  the baseline.
+- The roster is **not uniformly `CrewMember`**. Rows are written lazily, so it is the
+  catalog with stored rows merged on. `RosterEntry` makes row-only fields optional.
+- `ToolMode` is `auto | confirm | review`. **There is no `off`.**
+- A guard was satisfied by my own comment again ("System prompt" in prose).
+
+### Next, in order
+
+1. Fold the two loose `/crew` blocks ("What they may do without you", "How they work")
+   into one hub, and restructure `/crew` now that Settings answers the read.
+2. More sub-targets: only `workspace` has them. Billing/credits and Connectors next.
+3. Brand: design-system upload taking **Markdown and other design-language formats**,
+   not only PDF.
+4. Engine Room restructure (28KB route, never audited).
+5. Profile spacing uniformity; Connectors landing page.
+6. 11 unadopted Meridian components; `forms` matters most for Settings' hand-rolled inputs.
+
+### Correction, same day: removing a door is only allowed if the capability keeps one
+
+**Founder ruling, and it is now a standing rule:** *"You should not be removing anything
+or making a feature homeless or doorless ... If there is a duplicate, you can eliminate
+it, but if there is no home or if it is not there at all, then you don't have the right
+to remove anything."*
+
+**What I got wrong.** Collapsing the roster's three clicks to one was right. Removing the
+general "Open Crew" button was right. What shipped with it was an inline panel with
+**zero actions** -- no `onClick`, no link, no navigate anywhere in it. The surface that
+had just taken over the *reading* of an agent silently stopped offering the *doing* of
+anything, and offered no route to the surface that can. My commit message asserted the
+tweak path was "reached from the agent you are already reading". I wrote the intent and
+did not build it.
+
+**Blast radius, stated accurately:** `/crew` was **never orphaned**. It keeps its rail
+door (`nav-model.ts:196`), plus TrustDial, AgentRosterPanel, Today and the `/agents`
+redirect. Nothing was doorless. What was missing was the door from where the founder now
+stands.
+
+**Fixed:** "What it has learned" restored as a facet (the real omission -- it is the Learn
+write-back, the moat, and the panel never said it exists); one door at the foot carrying
+the slug, labelled by what is behind it; `asking` raised inline in `you` because it is a
+gate action. Guard at `src/__tests__/agent-detail-keeps-its-doors.test.ts`, proven red
+three ways.
+
+**A type lie fell out of it:** the synthetic roster row declared `asking: string[]` where
+a stored row carries `{ toolLabel, toMode }[]`. It compiled for weeks because nothing read
+`asking` off the union.
+
+**Also closed:** the two `/crew` Regions holding one DoorRow each are now one Region,
+"Across the whole crew". Both doors verified surviving. This reversed an earlier
+documented decision, and the old reason (no shared title exists that is not watered down)
+is answered in the code rather than ignored.
+
+**Sweep result, honest:** across every `.tsx`, **zero** inert `more` buttons and **zero**
+nested Blocks remain. Two candidate lists my first scans produced were entirely false
+positives -- a `[^>]*` tag match truncates at a `>` inside `sub={<>...</>}`, and a body
+window bleeds into the next function. **And the first version of my nesting guard passed
+when I re-planted the founder's exact bug**, because the nest is cross-file. Guard at
+`src/__tests__/block-chrome-discipline.test.ts` now resolves which components draw their
+own Block and fails on their use inside a Block extent.
+
+**Sub-targets now cover five blocks**, not one: Invite teammates, Credits and top-ups,
+Your own provider keys, Appearance, Working hours.
+
+**HEAD `3afc6609`. tsc 0 - 9,393 pass 0 fail - build green.**
+
+### The doorless audit, closed (2026-08-17, HEAD `89030a06`)
+
+**Founder:** *"Certain features are kept doorless, and there is no option to reach that."*
+He was right, and the cause was mine, hidden behind my own comment.
+
+**Deletion audit first, across all eight commits this stretch:** zero files deleted, every
+file net-positive. Verified still present: Appearance, Working hours and People blocks;
+Theme and Density controls; all three provider-key mutations (save, test, delete) plus
+their empty state; "Reachable from/until"; both `/crew` doors. **One deliberate removal
+stands:** the general "Open Crew" more-door, replaced by a per-agent door at the foot of
+the open agent.
+
+**The real find.** I removed the Diagnostics door from the Settings rail with a comment
+claiming *"the door is drawn from the Engine Room instead"*. **Nothing drew it.** Nothing
+in `src` linked `?section=health` except that comment and a test quoting it. So
+`DiagnosticsSection` -- two real server reads -- was reachable only by typing a URL.
+**Second time in one session I wrote an intent in a comment and did not build it.**
+
+**Fixed by finishing the move, not reverting it.** Diagnostics is now the Quality room's
+leading tab ("Is it me or you?"), **mounted not copied**, so the two cannot disagree.
+`?section=health` forwards, naming where it went, as `memory` forwards to Brain. Uses
+Meridian `NeedsSetup` because the ratchet refused the retired trio at 134 -> 137.
+
+**Every settings pane audited.** Four have no rail door; three are legitimate:
+`credits` -> billing, `sync` -> connections (both `foldsInto`), `memory` (apology pane with
+a wired door to Brain). `health` was the only stranded one.
+
+**Routes audited too:** `/artifacts` is a redirect stub to `/brain?tab=artifacts`.
+`/meridian` is the 80KB internal design gallery and is deliberately URL-only -- giving it a
+user-facing door would breach the Engine-Room doctrine. The `*/test` routes are dev
+harnesses.
+
+**Guard: `src/lib/settings-doors.test.ts`.** A section may lack a rail door only if it
+declares how it is reached: `foldsInto`, an apology pane with a wired door, or a real link.
+
+**THE GUARD WAS WRONG TWICE BEFORE IT WAS RIGHT.** Both traps are now confirmed for the
+fifth and sixth time on this surface:
+1. It passed because a **comment** in `settings-sections.ts` contains `?section=health`.
+   A guard satisfied by the prose documenting the defect is worse than none. Reads through
+   `stripComments` now.
+2. Its "offers a door" half tested for `/onOpen/`, which the component's own **parameter**
+   satisfies, so cutting `onClick={onOpen}` to `onClick={() => {}}` left it green. It now
+   requires the handler to be attached to a control.
+
+**Standing rule this produced:** *a comment asserting a door is not a door.* When a door is
+removed, the replacement must be verified by a test that has been proven red, in the same
+commit.
