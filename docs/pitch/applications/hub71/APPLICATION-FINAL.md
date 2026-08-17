@@ -1,5 +1,12 @@
 # Hub71 Access Programme, Cohort 20 — the complete fill sheet, all 26 fields
 
+> # ✅ SUBMITTED 2026-08-17 by the founder.
+> **Deadline was 21 August 2026, so it went in four days early.** Cohort 20 runs 12 months from **February 2027**.
+> Terms if selected: **AED 250,000 cash on a SAFE + AED 250,000 in kind**, plus a further AED 250,000 top-up for high performers.
+> One filing covers **Access + Hub71+ AI** (the `building_ai_solutions` radio at Q7).
+> **Attachment sent: `Supaprod-Brief.pdf`**, the one-pager. No demo login was requested and none was sent, so `voyage@` remains free.
+> **Diary: no decision date is published. Watch `founder@supaprod.ai`.**
+
 > _Created 2026-08-17. **This is the paste source.** Every question below was read off the live form at <https://www.hub71.com/program/access-programme/apply> on 2026-08-17, so these are the real questions, not inferred ones._
 >
 > **Deadline 21 August 2026. Programme runs 12 months from February 2027.**

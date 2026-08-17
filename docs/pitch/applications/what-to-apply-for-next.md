@@ -36,7 +36,7 @@
 | --- | --- | --- | --- |
 | **08-16, 2 days** | **CF Accelerator Batch #9** (Heilbronn) | €25K | Cost and equity-free. Germany, and it does not bar solo |
 | **08-16, 2 days** | **ikigai Launchpad** (Taipei) | $100K for 8% | Explicitly welcomes solo. 1–2 hours to apply |
-| **08-21, 7 days** | **Hub71 Access + Hub71+ AI** | AED 250K cash + AED 250K in-kind | One filing covers both. Only condition is a relocation commitment |
+| ~~08-21~~ | ~~**Hub71 Access + Hub71+ AI**~~ | AED 250K cash + AED 250K in-kind | 🚀 **SUBMITTED 2026-08-17**, four days early. Record: [`hub71/APPLICATION-FINAL.md`](./hub71/APPLICATION-FINAL.md) |
 | **08-23, 9 days** | Sanabil Startup Unlocked (500 Global, Riyadh) | none | 5-day bootcamp, 500 Global brand |
 | **08-28, 14 days** | Gemini Startup Forum | equity-free | Bay Area, ~1 hour |
 | **08-30, 16 days** | **EF The Bridge Residency, SF** | $125K/8% + $125K uncapped MFN | **Draft already exists in the repo.** Stage one is under 30 minutes |

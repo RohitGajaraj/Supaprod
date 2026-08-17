@@ -14,7 +14,7 @@
 
 meta:
   updated: 2026-08-17
-  updated_after: "Hub71 Access Programme Cohort 20, drafted 2026-08-17"
+  updated_after: "Hub71 Access Programme Cohort 20, SUBMITTED 2026-08-17"
   refresh_rule: >-
     Re-derive every value under `numbers` on the morning of any submission.
     Two of them move daily. A number that cannot be re-derived on demand is
@@ -467,6 +467,16 @@ filed:
   - programme: Conviction Embed
     date: 2026-08-14
     status: submitted
+  - programme: Hub71 Access Programme + Hub71+ AI, Cohort 20
+    date: 2026-08-17
+    status: submitted
+    deadline: 2026-08-21
+    programme_start: 2027-02
+    terms: AED 250K cash on a SAFE plus AED 250K in kind, plus a further AED 250K top-up
+    condition: at least one founder relocates long term to Abu Dhabi
+    attachment: docs/pitch/shareables/Supaprod-Brief.pdf
+    demo_login: none requested, none sent
+    record: docs/pitch/applications/hub71/APPLICATION-FINAL.md
   - programme: Campus Founders CF Accelerator Batch #9
     date: 2026-08-16
     status: submitted

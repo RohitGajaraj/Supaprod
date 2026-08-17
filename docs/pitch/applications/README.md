@@ -62,7 +62,7 @@
 
 | ❌ Never say | ✅ Say instead |
 | --- | --- |
-| the record / track record "cannot be backfilled", "cannot be copied quickly", "only accumulates with time" | **the forecast** cannot be backfilled — causes survive in Slack and call recordings and have been rebuilt with an agent made in two days |
+| the record / track record "cannot be backfilled", "cannot be copied quickly", "only accumulates with time" | **the forecast** cannot be backfilled: it is not an artifact, it exists only if something captured it at the moment of the call, so it cannot be reconstructed later by anyone starting now, at any budget |
 | "the labs decline this vertical" | they could not build it **securely** across someone else's tools; an independent has no such restriction |
 | "single-suite incumbents cannot be neutral" | the threat is **DIY** — the folder, and the belief that simpler tools are more agent-friendly |
 | "90–95% agentic" | graduated autonomy with gates, which is what we built and what the field wants |
@@ -227,7 +227,7 @@ python3 scripts/funding-sync.py --no-icloud
 | ~~08-17~~ | [~~Sequoia Arc, Fall 2026~~](./sequoia-arc/) | 8.5 | Pre-seed or seed, terms set per company | ❌ **NOT OPEN.** Verified live 2026-08-13: the apply page is empty and Arc is between calls. Removed from the queue |
 | **08-21** | **DIFC (Dubai).** Founder-named, deadline the 21st | ? | ? | **GATED on the founder.** Not on this tracker and not among the 144 researched; no public listing found for a close on the 21st. Needs the exact program name and apply link |
 | **08-21** | [**Berkeley SkyDeck, Batch 23**](./berkeley-skydeck/) | **8.5** | **$210K for 7.25%**, read off the live F6S sidebar. 50 startups a year | 🚀 **SUBMITTED 2026-08-13**, eight days early. Filed text of all 21 answers in [`APPLICATION-FINAL.md`](./berkeley-skydeck/APPLICATION-FINAL.md). Program 11-02 to 04-15; **interviews 09-08 to 10-05, which is past the approval-queue runway — re-arm in early September** |
-| **08-21** | [**Hub71 Access Programme + Hub71+ AI, Cohort 20**](./hub71/) (Abu Dhabi) | **7.4** | **AED 250K cash on a SAFE + AED 250K in kind**, plus a further AED 250K top-up for high performers. 12 months from **February 2027** | ✅ **NO ADGM BLOCKER.** Form read live 2026-08-17: **26 questions**, no entity field. One filing covers Access and Hub71+ AI. Fill sheet in [`APPLICATION-FINAL.md`](./hub71/APPLICATION-FINAL.md). **Mandatory PDF deck needs an Abu Dhabi section.** Only founder-side condition is long-term relocation |
+| **08-21** | [**Hub71 Access Programme + Hub71+ AI, Cohort 20**](./hub71/) (Abu Dhabi) | **7.4** | **AED 250K cash on a SAFE + AED 250K in kind**, plus a further AED 250K top-up for high performers. 12 months from **February 2027** | 🚀 **SUBMITTED 2026-08-17**, four days early. **No ADGM blocker:** Form read live 2026-08-17: **26 questions**, no entity field. One filing covers Access and Hub71+ AI. Fill sheet in [`APPLICATION-FINAL.md`](./hub71/APPLICATION-FINAL.md). **Mandatory PDF deck needs an Abu Dhabi section.** Only founder-side condition is long-term relocation |
 | 08-30 | [EF The Bridge Residency, San Francisco](./ef-bridge-sf/) | 6.0 | EF standard | Drafted and corrected. Ready to send |
 | 08-31 | Slush Startup Stage, Helsinki | 6.0 | Free to apply, €1.5K booth | Costs flights and Helsinki accommodation |
 | 09-22 | Antler UK Residency | 7.0 | £210K for 8.5% | UK right to work required by day one |
