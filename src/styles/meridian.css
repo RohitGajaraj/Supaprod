@@ -571,6 +571,26 @@
   --mrd-s7: 40px;
   --mrd-s8: 64px;
 
+  /*
+   * HOW FAR A PINNED SCROLLING COLUMN DISSOLVES AT ITS EDGE.
+   *
+   * The reference (beautifului.dev) does not end its rail, it fades it: rows
+   * further down lose contrast progressively until the last is barely there. It
+   * is the most recognisable thing about that column and the first port of it
+   * had none, so a long list ended in a hard edge.
+   *
+   * 44px, which is a little over two 13px rows. Measured rather than picked: at
+   * one row the fade reads as a clipped edge and looks like a bug, and past
+   * three the row a person is reaching for is already too pale to click
+   * confidently. Two-and-a-bit dissolves without ever taking a target away.
+   *
+   * A DISTANCE, NOT A COLOUR, so it belongs in the space ramp rather than the
+   * ground ladder: it is consumed as a mask stop and never painted. That also
+   * means it is theme-invariant, which is correct — how far a column dissolves
+   * is a fact about its geometry and not about the light it sits in.
+   */
+  --mrd-fade-rail: 44px;
+
   /* ── RADIUS. ─────────────────────────────────────────────────────────── */
   --mrd-r-xs: 4px;
   --mrd-r-chip: 7px;
@@ -1153,4 +1173,59 @@ textarea:not([readonly]):not([disabled]):focus-visible {
 [data-mrd][data-theme="light"] ::selection {
   background-color: oklch(0.28 0.012 70 / 0.16);
   color: var(--mrd-ink);
+}
+
+/*
+ * ── A COLUMN THAT DISSOLVES INSTEAD OF ENDING ───────────────────────────────
+ *
+ * The mask itself is set inline, because which edges fade is measured state and
+ * changes as the column scrolls. What lives here is the part CSS has to own: the
+ * scrollbar, which cannot be reached from an inline style.
+ *
+ * ── WHY THIS HIDES A SCROLLBAR THE PRODUCT DELIBERATELY KEPT ────────────────
+ *
+ * `shell.css` carries a founder ruling from 2026-07-30 and an explicit refusal:
+ * scrollbars are thin and NOT invisible, because "`scrollbar-width: none` would
+ * have been a line of CSS, and it deletes the only standing signal that a
+ * surface has more content below the fold". That reasoning is right and this
+ * rule is not an exception to it.
+ *
+ * It is the one case that satisfies the ruling's actual condition. The refusal
+ * protects a SIGNAL, not a scrollbar, and a scroll-driven fade is that signal:
+ * it says "this continues" in the direction it continues, at the edge it
+ * continues past, and it says nothing at all when the column fits. The bar is
+ * removed only where something truthful has replaced its job.
+ *
+ * Hence the naming. This class may not be used to hide a scrollbar on its own;
+ * it is the second half of a fade, and a caller that sets no mask gets a column
+ * with no signal in either direction. That is why the fade distance and this
+ * rule sit in the same system and are documented against each other.
+ */
+.mrd-fade-scroll {
+  scrollbar-width: none; /* Firefox, and the standard */
+}
+
+.mrd-fade-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/*
+ * A mask clips the focus ring of whatever it contains, which would take the
+ * keyboard's only position indicator off a scrolling list of rows. The inset
+ * variant already exists in this file for the same reason on grids; rows inside
+ * a faded column inherit it here rather than each caller remembering to.
+ */
+.mrd-fade-scroll :focus-visible {
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /*
+   * The fade is not motion and stays. What goes is the transition on it, so an
+   * edge appearing or leaving is instant rather than animated.
+   */
+  .mrd-fade-scroll {
+    transition: none !important;
+  }
 }

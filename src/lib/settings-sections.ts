@@ -134,7 +134,16 @@ export type SectionId =
   | "notifications"
   | "memory";
 
-export type GroupId = "crew" | "brief" | "reach" | "you" | "plan";
+/**
+ * FOUR GROUPS SINCE 2026-08-17, down from five. `plan` was retired as a GROUP and
+ * its sections moved under `you`, which is where every shipped settings surface
+ * this file already cites puts money: GitBook, ClickUp and Toggl all keep billing
+ * beside the account rather than in a neighbourhood of its own.
+ *
+ * The id survives in `LEGACY_SECTION_MAP` so `?section=plan` still lands on
+ * Billing, which the signup checkout redirect and the account menu both depend on.
+ */
+export type GroupId = "crew" | "brief" | "reach" | "you";
 
 export type SettingsSection = {
   id: SectionId;
@@ -150,6 +159,26 @@ export type SettingsSection = {
    * which shows the bindings /sync used to duplicate.
    */
   foldsInto?: SectionId;
+  /**
+   * What a person might TYPE to look for something on this pane.
+   *
+   * ── WHY A DOOR LABEL IS NOT ENOUGH ──────────────────────────────────────
+   * Founder, testing the new rail: typing "credits" found nothing, and "invite"
+   * found nothing. Both are real things this surface can do. Credits is inside
+   * Billing since the fold, and inviting somebody is inside a People block on the
+   * Brief and voice pane. Searching twelve door labels could never have found
+   * either, so the search box was answering a question nobody asked -- "which door
+   * is called this" -- instead of the one everybody asks, "where is the thing I
+   * want".
+   *
+   * ── THE RULE FOR WHAT GOES IN HERE ──────────────────────────────────────
+   * Only words for things the pane ACTUALLY CONTAINS, taken from its own block and
+   * field labels. Not synonyms nobody types, and never an aspiration: a keyword for
+   * a control that is not there sends a person to a pane to hunt for something that
+   * does not exist, which is worse than finding nothing. `settings-search.test.ts`
+   * pins each one against the pane it claims.
+   */
+  keywords?: readonly string[];
 };
 
 export type SettingsGroup = {
@@ -202,6 +231,125 @@ export type SettingsGroup = {
  * cannot tell whether the old one was considered.
  */
 export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
+  /*
+   * ── WHY ACCOUNT LEADS, 2026-08-17 ─────────────────────────────────────────
+   * Founder, on the shipped rail: "don't you feel the profile section, which is at
+   * the bottom today, should be at the top? Sequentially, what our user uses should
+   * be there."
+   *
+   * That is an incoherence being reported, not a preference. `DEFAULT_SECTION` has
+   * been `profile` since 2026-08-10, so a bare /settings, the account menu, `g s`
+   * and the /notifications redirect ALL land on Profile -- and Profile was the
+   * eleventh row of twelve. The surface opened at the bottom of its own index, which
+   * is a large part of the "randomly dumped" feeling he described.
+   *
+   * ── THE WHOLE ORDER, BY HOW OFTEN A PERSON COMES FOR IT ───────────────────
+   * Founder ruling, same conversation: order the groups by frequency of use, "not
+   * just randomly moving around the things".
+   *
+   *   1. Account          your name, your theme, your hours, what this costs. Where a
+   *                       bare /settings already lands, and the shallowest errands.
+   *   2. Data and access  connectors, what an outside agent may read, what we hold.
+   *                       The group that grows: every new source, every new scope,
+   *                       every export request comes back here.
+   *   3. Agents           autonomy, the roster, the models. Set deliberately and
+   *                       revisited when a boundary turns out to be wrong.
+   *   4. Company          the brief, the brand, the products. The most consequential
+   *                       and the least frequent: written once and rarely reopened.
+   *
+   * Governance sits BELOW plumbing on purpose, which reads backwards until you count
+   * visits rather than importance. Autonomy is the pane a security reviewer is walked
+   * through; it is not the pane anybody opens on a Tuesday. The same argument made
+   * Profile the landing rather than Autonomy on 2026-08-10.
+   */
+  {
+    id: "you",
+    label: "Account",
+    desc: "Your name, what may interrupt you, and what this workspace costs.",
+    sections: [
+      {
+        id: "profile",
+        label: "Profile",
+        keywords: ["name", "avatar", "picture", "identity", "theme", "dark", "light", "density", "appearance", "timezone", "working hours", "quiet hours"],
+      },
+      { id: "notifications", label: "Notifications", keywords: ["email", "digest", "alert", "interrupt", "quiet"] },
+      /*
+       * "BILLING", NOT "PLAN", AND THIS IS A COLLISION FIX RATHER THAN A TIDY-UP.
+       *
+       * The product has a STATION called Plan -- the spine's third stop, at
+       * /plan, where specs are written -- and this door was also called Plan,
+       * meaning the subscription tier. Two unrelated things, one word, both
+       * reachable from the same shell. A person hunting for their spec and a
+       * person hunting for their invoice were being offered the same label.
+       *
+       * The id has always been `billing`, so only the label was ever wrong, and
+       * `?section=plan` still lands here through LEGACY_SECTION_MAP.
+       *
+       * ONE THING GETS ONE WORD is the rule this file already applies to Agents.
+       * This is the same rule catching a second offender.
+       */
+      {
+        id: "billing",
+        label: "Billing",
+        // Credits folded in here, so every word for the balance and the top-up has to
+        // reach this door or the fold made them unfindable.
+        keywords: ["plan", "tier", "upgrade", "downgrade", "cancel", "invoice", "payment", "card", "subscription", "credits", "credit", "balance", "top-up", "topup", "buy", "redeem"],
+      },
+      /*
+       * CREDITS FOLDS INTO BILLING, 2026-08-17 (founder agreed on the same read).
+       *
+       * A person does not arrive at Settings knowing whether their question is
+       * about the tier they pay for or the credit left on it. They arrive wanting
+       * to know what this costs and how much is left, which is ONE errand. Two
+       * doors made them guess, and guessing wrong is a wasted click on the surface
+       * where friction is least forgivable.
+       *
+       * The address survives, so `?section=credits` still answers and every saved
+       * link lands: it renders the Billing pane, which now carries the balance, the
+       * top-up and the debit history under one heading.
+       *
+       * Same mechanism `sync` uses to fold into Connectors, and for the same
+       * reason: two addresses that answer one question should render one pane
+       * rather than two that can disagree.
+       */
+      { id: "credits", label: "Credits", door: false, foldsInto: "billing" },
+      /*
+       * DIAGNOSTICS KEEPS ITS ADDRESS AND LOSES ITS DOOR, 2026-08-17.
+       *
+       * It never belonged in Settings. Settings is where a person states what they
+       * want; Diagnostics reports whether the machine is achieving it, which is
+       * the engine-room doctrine's own dividing line -- complexity lives in the
+       * engine, and the user meets the output of the machine rather than the
+       * machine. Every other reading of that kind already lives behind that door.
+       *
+       * The door is drawn from the Engine Room instead. The pane stays here, so
+       * `?section=health` and every saved link still answer, and nothing was
+       * rebuilt to move a heading.
+       */
+      { id: "health", label: "Diagnostics", door: false },
+    ],
+  },
+  {
+    id: "reach",
+    /* "DATA AND ACCESS", 2026-08-17. "Connections and data" was two nouns joined
+     * by an "and", which is the shape a group takes when nobody could name the
+     * one idea underneath it. The one idea is the BOUNDARY OF YOUR DATA: what
+     * comes in, what an outside agent may read, and what we hold. Naming that
+     * lets a person decide from the heading whether their errand is in here. */
+    label: "Data and access",
+    desc: "What flows in, what an agent outside Supaprod may read, and what we keep of yours.",
+    sections: [
+      {
+        id: "connections",
+        label: "Connectors",
+        keywords: ["connect", "integration", "integrations", "source", "sources", "sync", "binding", "oauth", "slack", "linear", "notion", "github", "calendar", "gmail"],
+      },
+      // Folded into Connectors, which shows the same bindings. Address only.
+      { id: "sync", label: "Sync and bindings", door: false, foldsInto: "connections" },
+      { id: "interop", label: "Agent access", keywords: ["mcp", "token", "api", "external agent", "outside"] },
+      { id: "data", label: "Your data", keywords: ["export", "download", "delete", "privacy", "gdpr", "retention"] },
+    ],
+  },
   {
     id: "crew",
     /* "AGENTS", NOT "CREW", 2026-08-15. The substrate says agent everywhere —
@@ -216,9 +364,17 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
     label: "Agents",
     desc: "How far each agent may reach, when it stops to ask you, and which model runs the work.",
     sections: [
-      { id: "autonomy", label: "Autonomy and approvals" },
-      { id: "staff", label: "Roster" },
-      { id: "ai", label: "Models and keys" },
+      {
+        id: "autonomy",
+        label: "Autonomy and approvals",
+        keywords: ["approval", "approvals", "permission", "kill switch", "pause", "autopilot", "trust"],
+      },
+      { id: "staff", label: "Roster", keywords: ["agents", "crew", "who", "specialist", "tools"] },
+      {
+        id: "ai",
+        label: "Models and keys",
+        keywords: ["model", "models", "api key", "byo", "openai", "anthropic", "provider"],
+      },
     ],
   },
   {
@@ -226,42 +382,17 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
     label: "Company",
     desc: "The standing instruction every mission starts by reading, before it does anything.",
     sections: [
-      { id: "workspace", label: "Brief and voice" },
-      { id: "brand", label: "Brand" },
-      { id: "products", label: "Products" },
+      {
+        id: "workspace",
+        label: "Brief and voice",
+        // People lives on this pane (MembersCard, TeamCard), which is why "invite"
+        // and "member" belong here and nowhere else.
+        keywords: ["brief", "voice", "tone", "constitution", "people", "members", "member", "invite", "team", "roles"],
+      },
+      { id: "brand", label: "Brand", keywords: ["design", "design system", "logo", "colour", "color"] },
+      { id: "products", label: "Products", keywords: ["product", "repo", "app", "ships"] },
       // Dead pane, live address. See section 4 of the header.
       { id: "memory", label: "Memory", door: false },
-    ],
-  },
-  {
-    id: "reach",
-    label: "Connections and data",
-    desc: "What flows in, what an agent outside Supaprod may read, and what we keep of yours.",
-    sections: [
-      { id: "connections", label: "Connectors" },
-      // Folded into Connectors, which shows the same bindings. Address only.
-      { id: "sync", label: "Sync and bindings", door: false, foldsInto: "connections" },
-      { id: "interop", label: "Agent access" },
-      { id: "data", label: "Your data" },
-    ],
-  },
-  {
-    id: "you",
-    label: "Account",
-    desc: "Your name, your hours, and what is allowed to interrupt them.",
-    sections: [
-      { id: "profile", label: "Profile" },
-      { id: "notifications", label: "Notifications" },
-    ],
-  },
-  {
-    id: "plan",
-    label: "Plan and usage",
-    desc: "Your plan, what credit is left, and whether the loop is running clean.",
-    sections: [
-      { id: "billing", label: "Plan" },
-      { id: "credits", label: "Credits" },
-      { id: "health", label: "Diagnostics" },
     ],
   },
 ];
@@ -464,3 +595,76 @@ export const PRIMARY_GROUPS: readonly SettingsGroup[] = SETTINGS_GROUPS;
 
 /** No group is recessed under the five-group model. */
 export const RECESSED_GROUPS: readonly SettingsGroup[] = [];
+
+/**
+ * WHICH DOORS A TYPED QUERY SHOULD OFFER, in the order they should be offered.
+ *
+ * ── WHY THIS IS NOT A `filter` AT THE CALL SITE ─────────────────────────────
+ * The rail's first version filtered on `label.includes(query)`, which is a search
+ * over twelve headings. The founder tested it in the obvious way and it failed in
+ * the obvious way: "credits" found nothing, "invite" found nothing, and both are
+ * real things this surface does. Credits is inside Billing since the fold, and
+ * inviting somebody is a People block on the Brief and voice pane.
+ *
+ * A search that only knows door names answers "which door is called this". Nobody
+ * asks that. They ask "where is the thing I want", which needs the search to know
+ * what is INSIDE each pane -- hence `keywords`.
+ *
+ * ── THE RANKING, AND WHY IT IS NOT ALPHABETICAL ─────────────────────────────
+ * Four tiers, strongest first, because a person typing three letters is usually
+ * partway through a word they can already see:
+ *
+ *   1. label starts with the query      "bil" -> Billing
+ *   2. label contains it                "voice" -> Brief and voice
+ *   3. a keyword starts with it         "cred" -> Billing
+ *   4. a keyword contains it            "invit" -> Brief and voice
+ *
+ * Nav order breaks every tie, so the answer is stable and a repeated query never
+ * reshuffles under the reader.
+ *
+ * Returns [] for a query that matches nothing, and the CALLER decides what that
+ * means. This function will not quietly hand back everything: "no match" and
+ * "everything matches" are different facts and a search that conflates them is how
+ * a nav silently stops filtering.
+ */
+export function searchSections(query: string): readonly SectionId[] {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return [];
+
+  const tiers: SectionId[][] = [[], [], [], []];
+
+  for (const group of NAV_GROUPS) {
+    for (const section of group.sections) {
+      const label = section.label.toLowerCase();
+      const words = (section.keywords ?? []).map((k) => k.toLowerCase());
+
+      if (label.startsWith(needle)) tiers[0]!.push(section.id);
+      else if (label.includes(needle)) tiers[1]!.push(section.id);
+      else if (words.some((w) => w.startsWith(needle))) tiers[2]!.push(section.id);
+      else if (words.some((w) => w.includes(needle))) tiers[3]!.push(section.id);
+    }
+  }
+
+  return tiers.flat();
+}
+
+/**
+ * Why a door matched, for the row that shows it.
+ *
+ * A result whose LABEL does not contain what was typed looks like a mistake unless
+ * the surface says which word caught it: typing "credits" and being offered
+ * "Billing" is correct and unexplained. Returns null when the label itself matched,
+ * because restating it under itself is noise.
+ */
+export function matchReason(section: SectionId, query: string): string | null {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return null;
+  const def = NAV_GROUPS.flatMap((g) => g.sections).find((s) => s.id === section);
+  if (!def) return null;
+  if (def.label.toLowerCase().includes(needle)) return null;
+  return (
+    (def.keywords ?? []).find((k) => k.toLowerCase().startsWith(needle)) ??
+    (def.keywords ?? []).find((k) => k.toLowerCase().includes(needle)) ??
+    null
+  );
+}

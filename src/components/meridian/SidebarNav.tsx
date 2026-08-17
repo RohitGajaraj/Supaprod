@@ -52,6 +52,130 @@ import type { ReactNode } from "react";
  * orchid dot in a corner says nothing out loud.
  */
 
+/**
+ * ── THE KEYBOARD, WHICH THIS RAIL SHIPPED WITHOUT ───────────────────────────
+ *
+ * Every row was its own tab stop and no arrow key did anything, so reaching the
+ * last station in a twelve-row rail was a twelve-press crawl, and Tabbing PAST the
+ * rail to the actual work took twelve more.
+ *
+ * That is not a hypothetical. `_authenticated.settings.tsx` hit it, measured it in
+ * its own header ("Diagnostics was a fourteen-press crawl"), and solved it by
+ * hand-rolling a roving tabindex over its own door list. So the product already had
+ * the fix, in one surface, in a form no other surface could use — which is the
+ * shape of every gap this design system exists to close. Adopting this rail there
+ * would have REGRESSED the keyboard, and that is what made this a Meridian gap
+ * rather than a Settings feature.
+ *
+ * Exported and pure so the ring can be tested without a DOM, the same way
+ * `settings-sections.ts` tests its own. The two will now agree because there is one
+ * implementation; a second copy of a focus ring is how two navs in one product end
+ * up answering End differently.
+ */
+
+/** The rows a keyboard can actually reach, in the order the rail draws them. */
+function railOrder(items: readonly RailItem[]): string[] {
+  const sections: (string | undefined)[] = [];
+  for (const item of items) if (!sections.includes(item.section)) sections.push(item.section);
+  return sections.flatMap((s) => items.filter((i) => i.section === s).map((i) => i.key));
+}
+
+/** Keys this rail owns. Anything else must fall through, or the rail silently
+ *  breaks page scrolling and browser find. */
+const RAIL_KEYS = ["ArrowDown", "ArrowUp", "Home", "End"] as const;
+
+export function isRailKey(key: string): boolean {
+  return (RAIL_KEYS as readonly string[]).includes(key);
+}
+
+/**
+ * Where focus goes for one arrow, Home or End. Wraps, because a rail is a ring and
+ * a person holding Down should not simply stop.
+ */
+export function stepRail(
+  items: readonly RailItem[],
+  from: string,
+  key: string,
+): string | null {
+  const order = railOrder(items);
+  if (order.length === 0) return null;
+  if (key === "Home") return order[0]!;
+  if (key === "End") return order[order.length - 1]!;
+  const at = order.indexOf(from);
+  if (at === -1) return order[0]!;
+  if (key === "ArrowDown") return order[(at + 1) % order.length]!;
+  if (key === "ArrowUp") return order[(at - 1 + order.length) % order.length]!;
+  return null;
+}
+
+/**
+ * The row a typed buffer reaches, searching FORWARD from where focus is and
+ * wrapping once.
+ *
+ * Forward-and-wrapping rather than first-match, because that is what makes a
+ * repeated letter cycle: pressing b three times in a rail with three b rows visits
+ * all three. First-match would sit on the first one forever.
+ *
+ * The row you are ON is searched LAST, so a refining buffer ("c" then "o") can keep
+ * matching it rather than skipping past to the next c.
+ */
+export function railTypeahead(
+  items: readonly RailItem[],
+  buffer: string,
+  from: string,
+): string | null {
+  const needle = buffer.trim().toLowerCase();
+  if (!needle) return null;
+  const order = railOrder(items);
+  const label = (key: string) => (items.find((i) => i.key === key)?.label ?? "").toLowerCase();
+  const at = order.indexOf(from);
+
+  /*
+   * ONE CHARACTER CYCLES, MORE THAN ONE REFINES, and getting that backwards is the
+   * bug this comment exists to stop coming back. It is the standard listbox rule and
+   * the two halves want opposite things from the row focus is on:
+   *
+   *   "b" pressed repeatedly must LEAVE the current row every time, or three rows
+   *   starting with b are unreachable past the first.
+   *
+   *   "b" then "r" must be allowed to STAY on Brief. Treating it as another cycle
+   *   step skips to Brand, so a person typing the name of the row they are already
+   *   looking at gets moved off it — which reads as the rail fighting them.
+   *
+   * So a single character searches from the NEXT row and wraps past the current one;
+   * a longer buffer searches from the current row inclusive.
+   */
+  const forward = order.slice(at + 1);
+  const behind = order.slice(0, Math.max(0, at));
+  const current = at === -1 ? [] : [order[at]!];
+  const ring = needle.length === 1 ? [...forward, ...behind, ...current] : [...current, ...forward, ...behind];
+
+  for (const key of ring) if (label(key).startsWith(needle)) return key;
+  return null;
+}
+
+/**
+ * The mask that makes a column dissolve at the edges it continues past.
+ *
+ * Exported so a test can assert the four states directly. That matters more than
+ * it looks: the whole honesty of this effect is that a fade means "there is more
+ * this way", and the failure mode is a fade painted when there is not. A test
+ * that can only see the rendered rail would have to fake layout to check it.
+ *
+ * `none` when the column fits, and that is the case worth naming. It is the
+ * common one, and returning a full-strength gradient instead would still clip a
+ * hair off both ends for no reason.
+ */
+export function edgeMask(edges: { top: boolean; bottom: boolean }): string {
+  const D = "var(--mrd-fade-rail)";
+  if (edges.top && edges.bottom) {
+    return `linear-gradient(to bottom, transparent 0, black ${D}, black calc(100% - ${D}), transparent 100%)`;
+  }
+  if (edges.bottom) return `linear-gradient(to bottom, black calc(100% - ${D}), transparent 100%)`;
+  if (edges.top) return `linear-gradient(to bottom, transparent 0, black ${D})`;
+  return "none";
+}
+
 /* One vocabulary for the seven marks, defined beside the drawings themselves so
  * a station cannot be added to the type without a glyph existing for it. */
 export type RailIconKind = StationGlyphKind;
@@ -134,6 +258,7 @@ export function SidebarNav({
   tooltips = "auto",
   tooltipDelayMs = 0,
   onSearch,
+  onWorkspaceClick,
   primaryAction,
 }: {
   items?: RailItem[];
@@ -153,6 +278,24 @@ export function SidebarNav({
   /** 0 means the frame the pointer arrives, which is what was asked for. */
   tooltipDelayMs?: number;
   onSearch?: (query: string) => void;
+  /**
+   * What pressing the workspace row does. WITHOUT IT THE ROW IS NOT A CONTROL.
+   *
+   * THE DEFECT THIS PROP EXISTS TO FIX. That row was a `<button>` with no handler
+   * on it, carrying `aria-label="<name>, switch workspace"` when collapsed. So it
+   * had a hover wash, a press scale, a focus ring and a promise read out loud to a
+   * screen reader, and pressing it did nothing.
+   *
+   * This file already criticises the reference for exactly that shape -- "an
+   * affordance that looks pressable, is not, and cannot be reached from the keyboard
+   * at all" -- and then shipped a worse version of it, because a silent inert span
+   * at least does not tell anyone it switches workspace.
+   *
+   * A control that does nothing is not a small bug. The reader presses it, nothing
+   * happens, and they stop trusting the other controls in the rail. Same argument
+   * ContextCards makes about a source chip with no link.
+   */
+  onWorkspaceClick?: () => void;
   primaryAction?: { label: string; onClick: () => void };
 }) {
   const [ownActive, setOwnActive] = useState(defaultActiveKey ?? items[0]?.key ?? "");
@@ -171,6 +314,89 @@ export function SidebarNav({
   const searchRef = useRef<HTMLInputElement>(null);
   const rowRefs = useRef<Record<string, HTMLElement | null>>({});
   const tipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /*
+   * ── THE FADE, WHICH THE PORT WAS MISSING ────────────────────────────────
+   *
+   * On the reference the list of rows does not end, it dissolves: rows further
+   * down lose contrast progressively until the last one is barely there. It is
+   * the single most recognisable thing about that rail and the port had none of
+   * it, so a long list ended in a hard edge and a scrollbar.
+   *
+   * IT IS INFORMATION, NOT DECORATION, AND THAT DECIDES THE IMPLEMENTATION. A
+   * fade painted permanently at the bottom would dim the final row of a list
+   * that fits, which tells the reader there is more below when there is not.
+   * So each edge fades only when there is genuinely content past it, measured
+   * from the element rather than assumed, and re-measured on scroll and on
+   * resize. A rail whose items all fit has no fade at all and no scrollbar.
+   *
+   * `--mrd-fade-rail` carries the distance. It earns a token rather than a
+   * literal because the same dissolve belongs on any pinned scrolling column,
+   * and the second caller is what the standing ruling asks for before a token
+   * exists. The scrollbar is hidden because the fade is the affordance; that is
+   * the reference's choice and it only works BECAUSE the fade is honest.
+   */
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState<{ top: boolean; bottom: boolean }>({
+    top: false,
+    bottom: false,
+  });
+
+  /*
+   * The typed buffer, and it is a ref rather than state on purpose: it must not
+   * re-render the rail on every keystroke, and nothing draws it.
+   *
+   * One second, which is the standard listbox interval. Shorter and a two-letter
+   * refinement becomes two separate jumps.
+   */
+  const typed = useRef<{ text: string; at: number }>({ text: "", at: 0 });
+
+  /**
+   * Which row holds the tab stop.
+   *
+   * The ACTIVE row, so Tab lands a person where they already are rather than at the
+   * top of a list they have already navigated. Falls back to the first row when the
+   * active key is not in this rail, which happens on a surface whose current address
+   * draws no row of its own.
+   */
+  const order = railOrder(items);
+  const tabStop = order.includes(active) ? active : (order[0] ?? "");
+
+  function onRailKeyDown(event: React.KeyboardEvent<HTMLElement>) {
+    /*
+     * ONLY A ROW DRIVES THIS. The search field and the primary action live inside
+     * the same landmark, and without this check typing in the search box would drag
+     * focus out of it into the rows, and End would jump to the last station instead
+     * of moving the caret.
+     */
+    const focused = Object.entries(rowRefs.current).find(
+      ([, el]) => el === document.activeElement,
+    )?.[0];
+    if (!focused) return;
+
+    if (isRailKey(event.key)) {
+      event.preventDefault();
+      const next = stepRail(items, focused, event.key);
+      if (next) rowRefs.current[next]?.focus();
+      return;
+    }
+
+    /*
+     * A single printable character is typeahead. Space is excluded because it
+     * activates the focused control, which is the ARIA contract and the one thing a
+     * person will not forgive being taken away.
+     */
+    if (event.key.length !== 1 || event.key === " ") return;
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    const now = Date.now();
+    const buffer = now - typed.current.at > 1000 ? event.key : typed.current.text + event.key;
+    typed.current = { text: buffer, at: now };
+    const match = railTypeahead(items, buffer, focused);
+    if (match) {
+      event.preventDefault();
+      rowRefs.current[match]?.focus();
+    }
+  }
 
   /*
    * ── TWO BLOCKS, NOT ONE, AND THIS IS A CORRECTION ───────────────────────
@@ -223,6 +449,98 @@ export function SidebarNav({
     if (next) setHoverBox(next);
   }, [hovered, active, isCollapsed, items]);
 
+  /*
+   * Which edges have content past them, measured rather than assumed.
+   *
+   * A ResizeObserver as well as a scroll listener, because the rail changes
+   * height without anyone scrolling it: collapsing hides the labels, a section
+   * arrives, the window shortens. Without the observer a list that becomes
+   * scrollable after mount would keep saying it fits.
+   *
+   * The 1px tolerance is not cosmetic. Fractional layout means `scrollTop` at
+   * the true bottom lands a hair under the arithmetic, so an exact comparison
+   * leaves a permanent bottom fade on a list scrolled all the way down, which is
+   * the same lie as a static one.
+   */
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const read = () => {
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      const overflowing = scrollHeight - clientHeight > 1;
+      setEdges({
+        top: overflowing && scrollTop > 1,
+        bottom: overflowing && scrollTop + clientHeight < scrollHeight - 1,
+      });
+    };
+
+    read();
+    el.addEventListener("scroll", read, { passive: true });
+
+    /*
+     * GUARDED because jsdom does not implement ResizeObserver, and a rail that
+     * throws on mount in a test environment is a rail nobody can write a test
+     * against. Not defensive padding: this component is about to be rendered by
+     * Settings, whose tests run in jsdom.
+     *
+     * The scroll listener above still works there, so the degradation is only
+     * that a rail which becomes scrollable WITHOUT being scrolled reports late.
+     * In a real browser the observer always exists.
+     */
+    const observer =
+      typeof ResizeObserver === "function"
+        ? new ResizeObserver(read)
+        : null;
+    if (observer) {
+      observer.observe(el);
+      for (const child of Array.from(el.children)) observer.observe(child);
+    }
+
+    return () => {
+      el.removeEventListener("scroll", read);
+      observer?.disconnect();
+    };
+  }, [items, isCollapsed]);
+
+  /**
+   * `/` PUTS THE CARET IN THE SEARCH FIELD, which the keycap has been promising.
+   *
+   * THE DEFECT. The field draws a `<kbd>/</kbd>` and nothing was bound to it, so the
+   * rail advertised a shortcut that did not exist. The founder pressed it and nothing
+   * happened. That is the same class as the inert workspace row and the dead collapse
+   * button: a control's APPEARANCE making a promise the code does not keep. A keycap
+   * is a promise in exactly the way a chevron is.
+   *
+   * Two things it must not do. It must not steal `/` from someone typing a path into
+   * another field, so it stands down whenever focus is already in an input, a textarea
+   * or anything contenteditable. And it is bound on this rail's own element rather
+   * than the window, because a document-level shortcut from a component that may be
+   * mounted twice on one page fights itself.
+   *
+   * Only when there is a search field to reach. A rail with no `onSearch` draws no
+   * field and no keycap, so binding the key would be a shortcut to nowhere.
+   */
+  useEffect(() => {
+    if (!onSearch || isCollapsed) return;
+    const el = navRef.current?.closest("nav");
+    if (!el) return;
+
+    const onSlash = (event: Event) => {
+      const key = (event as KeyboardEvent).key;
+      if (key !== "/") return;
+      const target = event.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      event.preventDefault();
+      searchRef.current?.focus();
+      searchRef.current?.select();
+    };
+
+    el.addEventListener("keydown", onSlash);
+    return () => el.removeEventListener("keydown", onSlash);
+  }, [onSearch, isCollapsed]);
+
   /* A pending tooltip must not outlive the rail that scheduled it. */
   useEffect(
     () => () => {
@@ -246,6 +564,26 @@ export function SidebarNav({
     if (tipTimer.current) clearTimeout(tipTimer.current);
     setTip(null);
   }
+
+  /**
+   * CAN COLLAPSING ACTUALLY HAPPEN? Derived, never assumed, and the control is drawn
+   * only when the answer is yes.
+   *
+   * THE BUG THIS CLOSES, WHICH I SHIPPED MYSELF ONE COMMIT AFTER FIXING ITS TWIN.
+   * Settings adopted this rail with `collapsed={false}` and no `onCollapsedChange`.
+   * That is a CONTROLLED prop with no owner: `setCollapsed` cannot touch internal
+   * state, because the caller took control of it, and cannot report outward, because
+   * the caller supplied no handler. So the collapse button rendered, took a tab stop,
+   * washed on hover, and did nothing. The founder found it in a minute.
+   *
+   * It is precisely the inert-control defect fixed on the workspace row in the
+   * previous commit, and I reintroduced it through a prop combination rather than a
+   * missing handler. That is the interesting part: banning inert controls one element
+   * at a time does not work, so this derives the answer instead of trusting the call
+   * site. A caller that wants no collapse simply omits the handler, and there is
+   * nothing to press.
+   */
+  const canCollapse = collapsed === undefined || onCollapsedChange !== undefined;
 
   function setCollapsed(next: boolean) {
     if (collapsed === undefined) setOwnCollapsed(next);
@@ -272,6 +610,9 @@ export function SidebarNav({
     <nav
       data-mrd=""
       aria-label="Stations"
+      /* One handler on the landmark rather than one per row: the ring is a property
+         of the LIST, and thirteen identical handlers is thirteen chances to drift. */
+      onKeyDown={onRailKeyDown}
       className="flex flex-col rounded-mrd-card border border-mrd-line bg-mrd-sheet"
       style={{
         width: isCollapsed ? "56px" : "240px",
@@ -285,10 +626,20 @@ export function SidebarNav({
        * answer "am I in the right workspace" without any label.
        */}
       <div className="flex items-center gap-1" style={{ marginBottom: "var(--mrd-s2)" }}>
-        <button
-          type="button"
-          aria-label={isCollapsed ? `${workspaceName}, switch workspace` : undefined}
-          className={`flex min-w-0 flex-1 items-center gap-2.5 rounded-mrd-ctl p-1.5 text-left transition-[background-color,transform] duration-100 hover:bg-mrd-hover active:scale-[0.96] ${FOCUS_RING}`}
+        {/*
+         * A BUTTON ONLY WHEN IT DOES SOMETHING. See `onWorkspaceClick`.
+         *
+         * With a handler this is the switcher it looks like. Without one it becomes a
+         * plain element that STATES which workspace you are in: no hover wash, no
+         * press scale, no focus ring, no tab stop, no chevron and no promise read out
+         * to a screen reader. The tag swap is the same shape `Row` uses in
+         * primitives.tsx for a row that may or may not be clickable.
+         */}
+        <WorkspaceRow
+          onClick={onWorkspaceClick}
+          collapsed={isCollapsed}
+          name={workspaceName}
+          focusRing={FOCUS_RING}
         >
           <span className="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-mrd-solid text-[13px] font-semibold text-mrd-on-solid">
             {workspaceName.slice(0, 1).toUpperCase()}
@@ -305,24 +656,30 @@ export function SidebarNav({
                   </span>
                 )}
               </span>
-              <svg
-                aria-hidden
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--mrd-mute)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M7 15l5 5 5-5M7 9l5-5 5 5" />
-              </svg>
+              {/* THE CHEVRON IS A PROMISE, so it is drawn only when the row can keep
+                  it. A switcher glyph on a row that switches nothing is the visual
+                  half of the same lie the missing handler was. */}
+              {onWorkspaceClick && (
+                <svg
+                  aria-hidden
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--mrd-mute)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M7 15l5 5 5-5M7 9l5-5 5 5" />
+                </svg>
+              )}
             </>
           )}
-        </button>
+        </WorkspaceRow>
 
-        {!isCollapsed && (
+        {/* Drawn only when collapsing can actually happen. See `canCollapse`. */}
+        {!isCollapsed && canCollapse && (
           <button
             type="button"
             onClick={() => setCollapsed(true)}
@@ -411,6 +768,8 @@ export function SidebarNav({
             aria-label="Search"
             className="min-w-0 flex-1 bg-transparent text-[12.5px] text-mrd-ink outline-none placeholder:text-mrd-mute"
           />
+          {/* Drawn only because the key is bound above. A keycap is a promise in
+              exactly the way a chevron is, and this one went unkept until 2026-08-17. */}
           <kbd className="flex size-4.5 items-center justify-center rounded-[5px] border border-mrd-line bg-mrd-lift text-[10px] text-mrd-mute">
             /
           </kbd>
@@ -472,15 +831,51 @@ export function SidebarNav({
        * one, which is the whole reason meridian's space ramp grows instead of
        * stepping by four.
        */}
+      {/*
+       * THE SCROLLING HALF, wrapped around the rows rather than applied to them.
+       *
+       * The order matters and is not stylistic. `navRef` is the box the selection
+       * and hover blocks are absolutely positioned against, and it must NOT be the
+       * element that scrolls: `measure()` computes `rect.top - containerRect.top`
+       * from two viewport rectangles, and an absolutely positioned child inside a
+       * scrolled box is placed from the content origin, not the visible top. Make
+       * the same element do both jobs and every block sits one `scrollTop` out of
+       * place, worst exactly when a person has scrolled to reach the row they are
+       * selecting.
+       *
+       * Wrapping instead keeps both rectangles moving together, so the existing
+       * measurement stays correct with no scroll term added to it.
+       *
+       * `min-h-0` is the part that is always left out. This is a flex child, and a
+       * flex item's default `min-height: auto` refuses to shrink below its content,
+       * so the box grows to fit the rows and never scrolls at all. meridian.css
+       * lists that as a shipped defect once already.
+       */}
       <div
-        ref={navRef}
-        onMouseLeave={() => {
-          setHovered(null);
-          closeTip();
+        ref={scrollRef}
+        className="mrd-fade-scroll min-h-0 flex-1 overflow-y-auto"
+        style={{
+          /*
+           * Built from measured state, so an edge is only soft when something is
+           * actually past it. `black` is a mask alpha channel here and not a
+           * colour: it means "keep this", `transparent` means "hide it". Nothing
+           * in the ground ladder can express that, which is why this is one of the
+           * few places a literal is correct.
+           */
+          maskImage: edgeMask(edges),
+          WebkitMaskImage: edgeMask(edges),
+          transition: "mask-image var(--mrd-d-move) var(--mrd-ease)",
         }}
-        className="relative flex flex-col"
-        style={{ gap: "var(--mrd-s4)" }}
       >
+        <div
+          ref={navRef}
+          onMouseLeave={() => {
+            setHovered(null);
+            closeTip();
+          }}
+          className="relative flex flex-col"
+          style={{ gap: "var(--mrd-s4)" }}
+        >
         {/* The selection. Pinned to the active row, at the stop the system
             reserves for "a thing the reader has picked". */}
         <span
@@ -651,6 +1046,14 @@ export function SidebarNav({
                     /* Only when the label is off screen, never both at once. */
                     "aria-label": isCollapsed ? accessibleName : undefined,
                     /*
+                     * THE ROVING TAB STOP. Exactly one row is reachable by Tab; the
+                     * arrows move between them. Without this every row is a stop,
+                     * and Tabbing past a twelve-row rail to the actual work costs
+                     * twelve presses -- the crawl Settings measured and hand-rolled
+                     * its own fix for before this rail had one.
+                     */
+                    tabIndex: item.key === tabStop ? 0 : -1,
+                    /*
                      * The reference asks for `transition-[color,transform]`
                      * here and the `color` half of that is inert: this element
                      * sets no colour of its own, the glyph and the label each
@@ -745,10 +1148,14 @@ export function SidebarNav({
                 })}
             </div>
           </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      {isCollapsed && (
+      {/* Same rule in reverse: a rail that cannot expand must not offer to. A caller
+          that hard-pins `collapsed` with no handler would otherwise trap a reader in
+          an icon strip with a dead way out, which is worse than the dead collapse. */}
+      {isCollapsed && canCollapse && (
         <button
           type="button"
           onClick={() => setCollapsed(false)}
@@ -778,6 +1185,55 @@ export function SidebarNav({
         </button>
       )}
     </nav>
+  );
+}
+
+/**
+ * The workspace line: a real switcher when it has somewhere to go, a statement
+ * otherwise. See `onWorkspaceClick` for the defect this shape fixes.
+ *
+ * The tag swap rather than two copies of the markup, because the CHILDREN are
+ * identical in both cases and duplicating them is how the two drift.
+ */
+function WorkspaceRow({
+  onClick,
+  collapsed,
+  name,
+  focusRing,
+  children,
+}: {
+  onClick?: () => void;
+  collapsed: boolean;
+  name: string;
+  focusRing: string;
+  children: ReactNode;
+}) {
+  const shared = "flex min-w-0 flex-1 items-center gap-2.5 rounded-mrd-ctl p-1.5 text-left";
+
+  if (!onClick) {
+    /*
+     * No hover wash, no press scale, no ring, no tab stop. `aria-label` is dropped
+     * too: when collapsed the monogram alone is the whole content, so the name is
+     * carried by `title` for a pointer and by nothing at all for a screen reader
+     * that has the workspace named elsewhere in the shell. Announcing "switch
+     * workspace" on something that cannot is the bug.
+     */
+    return (
+      <div className={shared} title={collapsed ? name : undefined}>
+        {children}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={collapsed ? `${name}, switch workspace` : undefined}
+      className={`${shared} transition-[background-color,transform] duration-100 hover:bg-mrd-hover active:scale-[0.96] ${focusRing}`}
+    >
+      {children}
+    </button>
   );
 }
 

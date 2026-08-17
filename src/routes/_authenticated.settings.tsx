@@ -193,16 +193,15 @@ import { amIAdmin, getPricingCatalog } from "@/lib/pricing.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
 import {
-  doorByTypeahead,
-  groupForSection,
-  isNavKey,
-  navTabStop,
+  matchReason,
   NAV_GROUPS,
   normalizeSection,
   paneForSection,
-  stepDoor,
+  searchSections,
   type SectionId,
 } from "@/lib/settings-sections";
+import { SidebarNav, type RailItem } from "@/components/meridian/SidebarNav";
+import { AgentCards } from "@/components/meridian/AgentCards";
 
 import {
   AccountConnectionsSection,
@@ -314,93 +313,92 @@ export const Route = createFileRoute("/_authenticated/settings")({
 const PANE_ID = "settings-pane";
 
 /**
- * The left-hand index. The founder liked this shape, so it keeps it verbatim:
- * named groups, every door visible at once, no numbering and no fold. What
- * changed is underneath it.
+/**
+ * The left-hand index, now Meridian's own rail.
  *
- * ONE TAB STOP, NOT FOURTEEN. Every door used to be its own tab stop, so
- * reaching Diagnostics from the top of the surface was a fourteen-press crawl
- * and Tabbing "past" the nav to the actual settings took fourteen presses more.
- * This is the roving-tabindex pattern, taken from the repo's existing reference
- * implementation in components/obsidian/flashlight-tabs.tsx rather than invented
- * a second time: exactly one door holds tabIndex 0, and Up/Down/Home/End move
- * focus between them. The axis is Up/Down because this nav is a vertical list -
- * flashlight-tabs uses Left/Right because its row is horizontal, and copying the
- * axis rather than the pattern would have been the wrong kind of consistency.
+ * ── WHAT THIS REPLACED, AND WHY IT WAS NOT A LOSS ───────────────────────────
+ * A hand-rolled nav on retired Cadence/ink tokens (`--sp-lift`, `--sp-mute`,
+ * `sp-tab`) that had built, correctly and alone, the three things the design
+ * system's rail was missing: a roving tabindex, arrow keys and typeahead. Its own
+ * header recorded why -- "Diagnostics was a fourteen-press crawl".
  *
- * Focus MOVES, it does not select. Arrowing to a door focuses it; Enter or Space
- * opens it (native button activation). Manual activation, again as in
- * flashlight-tabs, so arrowing down the list does not fire fifteen route
- * navigations and fifteen sets of queries on the way past.
+ * So the rail was taught those first (see `stepRail`, `railTypeahead`,
+ * `isRailKey`), because swapping onto a rail without them would have taken this
+ * surface's one tab stop back to twelve. One implementation now, shared with every
+ * other nav in the product, which is the whole point of the exercise.
  *
- * TYPEAHEAD is the shortcut into any of the fifteen that this surface has never
- * had. Type "d" and focus lands on Diagnostics. The buffer clears after a second
- * of no typing, which is the standard listbox interval.
+ * ── WHAT IS DELIBERATELY GONE ───────────────────────────────────────────────
+ * The group DESCRIPTION paragraph. It rendered under whichever heading was active,
+ * so a 200px column carried a sentence of prose above a list of twelve rows. The
+ * founder's complaint about these surfaces was "just a dump of the content", and a
+ * paragraph explaining a heading is the shape that complaint takes in a sidebar. The
+ * descriptions still exist in `settings-sections.ts` and are still the right words;
+ * they are simply not chrome the reader has to scroll past to reach a door.
+ *
+ * The keyboard HINT line is gone for the same reason, and replaced by something
+ * better rather than deleted: the rail carries a search field with a `/` keycap on
+ * it, which is a visible affordance instead of a sentence describing invisible ones.
+ *
+ * ── THE SKIP LINK STAYS OUTSIDE THE RAIL ────────────────────────────────────
+ * It is this surface's own concern, not the rail's: it targets THIS page's pane.
+ * Pushing it into Meridian would put a Settings-shaped hole in a shared component.
  */
 function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: SectionId) => void }) {
-  const doorRefs = useRef<Map<SectionId, HTMLButtonElement>>(new Map());
-  const typeBuffer = useRef<{ text: string; at: number }>({ text: "", at: 0 });
   const [skipFocused, setSkipFocused] = useState(false);
+  const [query, setQuery] = useState("");
+  const { activeWorkspace } = useWorkspace();
 
-  // The single tab stop. Derived, not assumed: two of the fifteen sections draw
-  // no door, and on those addresses the active section is not in this ring.
-  const tabStop = navTabStop(active);
-  const activeGroup = groupForSection(paneForSection(active));
+  /*
+   * The doors, as rail rows. Read from NAV_GROUPS so there is still exactly one list
+   * of what Settings contains -- the defect this file's header describes at length is
+   * two lists drifting apart, and a private copy here would restore it.
+   */
+  const allItems: RailItem[] = NAV_GROUPS.flatMap((g) =>
+    g.sections.map((sec) => ({ key: sec.id, label: sec.label, section: g.label })),
+  );
 
-  const focusDoor = (id: SectionId | null) => {
-    if (id) doorRefs.current.get(id)?.focus();
-  };
-
-  const onKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
-    // Only a DOOR drives this. The skip link lives inside the same nav, and
-    // without this check pressing End while it held focus would jump focus to
-    // Diagnostics instead of scrolling the page, and typing would drag focus
-    // into the index from a link whose whole purpose is to leave it.
-    const focusedId = [...doorRefs.current.entries()].find(
-      ([, el]) => el === document.activeElement,
-    )?.[0];
-    if (!focusedId) return;
-
-    // Never swallow a key this nav does not own. preventDefault on an unowned
-    // key is how a nav silently breaks page scrolling and browser find.
-    if (isNavKey(e.key)) {
-      e.preventDefault();
-      focusDoor(stepDoor(focusedId, e.key));
-      return;
-    }
-
-    // A single printable character, with no modifier, is typeahead. Space is
-    // excluded: it activates the focused button, which is the ARIA contract.
-    if (e.key.length !== 1 || e.key === " " || e.metaKey || e.ctrlKey || e.altKey) return;
-    const now = Date.now();
-    const buf = now - typeBuffer.current.at > 1000 ? e.key : typeBuffer.current.text + e.key;
-    typeBuffer.current = { text: buf, at: now };
-    const match = doorByTypeahead(buf, focusedId);
-    if (match) {
-      e.preventDefault();
-      focusDoor(match);
-    }
-  };
+  /*
+   * SEARCH GOES INSIDE THE PANES, not across the twelve headings.
+   *
+   * THE FIRST VERSION OF THIS WAS `label.includes(query)` AND THE FOUNDER BROKE IT IN
+   * A MINUTE: typing "credits" found nothing and "invite" found nothing, though this
+   * surface does both. Credits is inside Billing since the fold; inviting somebody is
+   * a People block on the Brief and voice pane. A search over door names answers
+   * "which door is called this", and nobody asks that.
+   *
+   * `searchSections` owns the matching and the ranking so the rule is testable
+   * without a DOM and cannot drift from the IA it searches. The reason a door matched
+   * is drawn on the row when the label alone does not explain it -- being offered
+   * "Billing" for "credits" is correct and baffling without the word that caught it.
+   *
+   * A query matching nothing keeps the FULL list. A nav that can empty itself is a
+   * set of doors that can vanish, and a mistype must not strand somebody on the
+   * surface they are standing on.
+   */
+  const hits = searchSections(query);
+  const items = query.trim()
+    ? hits.length > 0
+      ? hits.map((id) => {
+          const found = allItems.find((i) => i.key === id)!;
+          const why = matchReason(id, query);
+          return why ? { ...found, label: `${found.label}  ${why}` } : found;
+        })
+      : allItems
+    : allItems;
 
   return (
-    <nav
-      aria-label="Settings"
-      onKeyDown={onKeyDown}
+    <div
       style={{
-        flex: "0 1 200px",
-        maxWidth: 220,
-        minWidth: 168,
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--sp-space-5)",
+        flex: "0 1 240px",
+        minWidth: 200,
         position: "sticky",
         top: 0,
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--mrd-s3)",
       }}
     >
-      {/* Announced and reachable, drawn only while it holds focus. There is a
-          .sp-sr-only utility but no focus-visible variant of it in the sheet,
-          and the stylesheet is not this lane's to change, so the reveal is
-          done here. */}
+      {/* Announced and reachable, drawn only while it holds focus. */}
       <a
         href={`#${PANE_ID}`}
         onFocus={() => setSkipFocused(true)}
@@ -408,12 +406,12 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
         style={
           skipFocused
             ? {
-                fontSize: "var(--sp-text-meta)",
-                color: "var(--sp-ink)",
+                fontSize: "var(--mrd-t-micro)",
+                color: "var(--mrd-ink)",
                 padding: "4px 8px",
-                borderRadius: "var(--sp-radius-chip)",
-                background: "var(--sp-lift)",
-                boxShadow: "inset 0 0 0 1px var(--sp-line)",
+                borderRadius: "var(--mrd-r-chip)",
+                background: "var(--mrd-lift)",
+                boxShadow: "inset 0 0 0 1px var(--mrd-line)",
               }
             : {
                 position: "absolute",
@@ -428,89 +426,26 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
         Skip to the settings
       </a>
 
-      {NAV_GROUPS.map((g) => {
-        const headingId = `settings-group-${g.id}`;
-        return (
-          <div key={g.id}>
-            <div
-              id={headingId}
-              className="sp-ctx-head"
-              style={{ marginBottom: "var(--sp-space-2)" }}
-            >
-              {g.label}
-            </div>
-            {/* The active group says what it governs. A person who arrived on a
-                deep link needs to know which neighbourhood they are in before
-                they read four door labels; showing it for every group at once
-                would be five paragraphs in a 200px column. */}
-            {g.id === activeGroup ? (
-              <div
-                style={{
-                  fontSize: "var(--sp-text-label)",
-                  color: "var(--sp-mute)",
-                  lineHeight: "var(--sp-leading-body)",
-                  marginBottom: "var(--sp-space-2)",
-                }}
-              >
-                {g.desc}
-              </div>
-            ) : null}
-            <div
-              role="group"
-              aria-labelledby={headingId}
-              style={{ display: "flex", flexDirection: "column", gap: 1, margin: "0 -10px" }}
-            >
-              {g.sections.map((d) => {
-                const here = d.id === active;
-                return (
-                  <button
-                    key={d.id}
-                    ref={(el) => {
-                      if (el) doorRefs.current.set(d.id, el);
-                      else doorRefs.current.delete(d.id);
-                    }}
-                    type="button"
-                    // A nav, not a tablist: aria-current says where you are, so
-                    // the active look is set here rather than by sp-tab's
-                    // aria-selected rule.
-                    className="sp-tab"
-                    aria-current={here ? "page" : undefined}
-                    tabIndex={d.id === tabStop ? 0 : -1}
-                    onClick={() => onSet(d.id)}
-                    style={{
-                      textAlign: "left",
-                      ...(here
-                        ? {
-                            background: "var(--sp-lift)",
-                            color: "var(--sp-ink)",
-                            fontWeight: "var(--sp-weight-medium)",
-                          }
-                        : null),
-                    }}
-                  >
-                    {d.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
-
-      {/* The keys exist whether or not this line is here; without it nobody
-          finds them, and a shortcut nobody can find is not a shortcut. */}
-      <div
-        style={{
-          fontSize: "var(--sp-text-label)",
-          color: "var(--sp-mute)",
-          lineHeight: "var(--sp-leading-body)",
-        }}
-      >
-        Up and Down move, Home and End jump to the ends, or type a name.
-      </div>
-    </nav>
+      <SidebarNav
+        items={items}
+        activeKey={active}
+        onNavigate={(key) => onSet(key as SectionId)}
+        workspaceName={activeWorkspace?.name ?? "Workspace"}
+        /*
+         * NO `onWorkspaceClick`, on purpose, so the row states the workspace rather
+         * than pretending to switch it. Switching lives in the app shell's own scope
+         * menu, and a second switcher here would be two controls over one value.
+         */
+        onSearch={setQuery}
+        /* Never collapsed: this rail is already inside a page whose shell has its own
+           rail, and a collapse control on the inner one is a second, conflicting way
+           to narrow the same column. */
+        collapsed={false}
+      />
+    </div>
   );
 }
+
 
 function SettingsPage() {
   const { section, tab, connector, checkout } = Route.useSearch();
@@ -617,8 +552,24 @@ function SettingsPage() {
         )}
         {active === "data" && <DataSection workspaceId={activeWorkspace?.id} />}
 
-        {active === "billing" && <PlanSection checkout={checkout} />}
-        {active === "credits" && <CreditsSection />}
+        {/*
+         * ONE PANE ANSWERS BOTH MONEY QUESTIONS, 2026-08-17.
+         *
+         * `credits` now folds into `billing` (settings-sections.ts), so
+         * `paneForSection` resolves both addresses to `billing` and there is no
+         * longer an `active === "credits"` branch to render. Dropping the second
+         * branch WITHOUT mounting CreditsSection here would have made the whole
+         * credits surface unreachable while every test still passed -- this repo's
+         * single most common defect, a capability built correctly with no door.
+         *
+         * The order is the reading order: what you are on, then what is left on it.
+         */}
+        {active === "billing" && (
+          <>
+            <PlanSection checkout={checkout} />
+            <CreditsSection />
+          </>
+        )}
         {active === "health" && <DiagnosticsSection />}
       </div>
     </div>
@@ -681,7 +632,6 @@ function ProfileSection() {
 
   const [fullName, setFullName] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [role, setRole] = useState("");
   const [timezone, setTimezone] = useState("");
   const [whStart, setWhStart] = useState(9);
   const [whEnd, setWhEnd] = useState(18);
@@ -699,7 +649,6 @@ function ProfileSection() {
     if (!p) return;
     setFullName(p.full_name ?? "");
     setDisplayName(p.display_name ?? "");
-    setRole(p.role ?? "AI Product Manager");
     setTimezone(p.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
     setWhStart(p.working_hours_start ?? 9);
     setWhEnd(p.working_hours_end ?? 18);
@@ -711,7 +660,6 @@ function ProfileSection() {
         data: {
           full_name: fullName || undefined,
           display_name: displayName || undefined,
-          role: role || undefined,
           timezone: timezone || undefined,
           working_hours_start: whStart,
           working_hours_end: whEnd,
@@ -793,15 +741,23 @@ function ProfileSection() {
             placeholder="Jane"
           />
         </Line>
-        <Line label="Role">
-          <Input
-            aria-label="Role"
-            style={{ width: 240 }}
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            placeholder="AI Product Manager"
-          />
-        </Line>
+        {/*
+         * ROLE IS GONE, 2026-08-17, and it was collected for nothing.
+         *
+         * A free-text job title, defaulted to "AI Product Manager", written to the
+         * profiles row on every save -- and read by NOTHING. Grepped: `role` appears
+         * in profile.functions.ts only in the input schema and the type. Every other
+         * `role` in the product is a WORKSPACE role (owner, admin, member), which is a
+         * different fact entirely.
+         *
+         * data-minimalism.md: no field exists unless a named consumer needs it, and
+         * "collect now, use later" is not a reason. Asking a person for their job
+         * title and then never using it is worse than a wasted row: it is personal
+         * data held for no purpose, which is exactly the lens the founder applied.
+         *
+         * The column is not dropped here. Stopping the capture is this surface's
+         * decision; removing stored data is a migration and a separate one.
+         */}
         <Line label="Timezone" sub="Every time on every surface is read in it.">
           <Input
             aria-label="Timezone"
@@ -811,10 +767,40 @@ function ProfileSection() {
             placeholder="America/New_York"
           />
         </Line>
+        {/*
+         * THE CHOSEN MARK IS DRAWN AT SIZE, which is the bug the founder reported:
+         * "if you check and select some icon out of the available ones, it still gets
+         * selected, but it does not display on the profile".
+         *
+         * He was right, and the cause is worse than a missing preview. The picker
+         * saves to localStorage and `src/components/supaprod/Avatar.tsx` -- the only
+         * thing that renders an orb -- IS MOUNTED NOWHERE IN THE PRODUCT. The shell
+         * draws initials instead (`initialsFrom` in AppFrame). This route's own header
+         * records killing "the avatar identity header sitting above the fields", and
+         * that header was the one place the choice was ever shown. So a person could
+         * pick from twelve marks and never see one anywhere.
+         *
+         * Drawing the current mark beside the swatches gives the choice its first real
+         * consumer, and gives the reader the before/after a picker needs to be usable
+         * at all. The shell adopting it is the follow-up; this makes the control honest
+         * today rather than leaving it decorative for another pass.
+         */}
         <Line
           label="Mark"
           sub={name ? `Stands in for ${name} wherever you acted.` : "Stands in for you."}
         >
+          <span style={{ display: "flex", alignItems: "center", gap: "var(--mrd-s4)" }}>
+            <span
+              aria-hidden
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: "50%",
+                flexShrink: 0,
+                background: orbBackground(avatarChoice ?? defaultAvatarVariant(name)),
+                boxShadow: "inset 0 1px 0 var(--mrd-sheen), var(--mrd-shadow-card)",
+              }}
+            />
           <span style={{ display: "flex", flexWrap: "wrap", gap: 6, maxWidth: 240 }}>
             {Array.from({ length: AVATAR_VARIANTS }).map((_, i) => {
               const selected = (avatarChoice ?? defaultAvatarVariant(name)) === i;
@@ -837,6 +823,7 @@ function ProfileSection() {
                 />
               );
             })}
+          </span>
           </span>
         </Line>
       </Block>
@@ -1319,52 +1306,28 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
         more="Open Crew"
         onMore={() => onOpenCrew(null)}
       >
-        {members.map((m) => (
-          <Row
-            key={m.slug}
-            tight
-            marks={
-              <AgentMark
-                slug={m.slug}
-                name={m.name}
-                state={
-                  m.asking.length > 0
-                    ? m.slug === blinkSlug
-                      ? "gate"
-                      : "waiting"
-                    : m.runs.running > 0
-                      ? "running"
-                      : !m.enabled
-                        ? "quiet"
-                        : "idle"
-                }
-              />
-            }
-            lead={agentDisplayName(m.slug, m.name)}
-            // The DIFFERENT fact: the dial actually stored, whose choice it was,
-            // and what this one has done here. Never the blurb, which the
-            // roster on Crew already carries beside a picture of it.
-            sub={
-              !m.enabled ? (
-                "Switched off. Nothing dispatches it."
-              ) : (
-                <>
-                  {ARC_CHOICE[m.arc]}
-                  {m.arcIsDefault ? " · our default, not one you set" : ""}
-                  {m.runs.total > 0 ? (
-                    <>
-                      {" · "}
-                      <Num>{m.runs.total}</Num> runs here
-                    </>
-                  ) : (
-                    " · no runs here yet"
-                  )}
-                </>
-              )
-            }
-            onClick={() => onOpenCrew(m.slug)}
-          />
-        ))}
+        {/*
+         * ONE CARD PER AGENT, replacing a list of tight rows.
+         *
+         * Founder: "for each agent, it needs to be each agent card", the crew shown
+         * first, each opening onto that agent. A row cannot give a colleague any
+         * presence, and presence is the point: this product's claim is that these do
+         * the work. The grid also uses the width it is given rather than capping
+         * itself, which is his separate complaint about these surfaces.
+         *
+         * `blurb` is the catalog's own one-liner, so no copy is invented here.
+         */}
+        <AgentCards
+          cards={members.map((m) => ({
+            slug: m.slug,
+            name: m.name,
+            role: catalogEntry(m.slug)?.blurb,
+            enabled: m.enabled,
+            runsAlone: m.arc === "trusted" || m.arc === "ambient",
+            waiting: m.asking.length,
+          }))}
+          onOpen={(slug) => onOpenCrew(slug)}
+        />
       </Block>
 
       <Empty>
@@ -1967,8 +1930,22 @@ function PlanSection({ checkout }: { checkout?: string }) {
                 </Button>
               )
             ) : null}
+            {/*
+             * SCROLLS RATHER THAN NAVIGATES, since the fold. This used to send a
+             * person to `?section=credits`; that address now renders THIS pane, so
+             * the button would have looked like it did nothing -- the worst kind of
+             * broken control, because the reader blames themselves and stops
+             * trusting the others. The top-up is on this page now, further down.
+             */}
             {currentTier !== "free" ? (
-              <Button variant="ghost" onClick={() => navigate({ search: { section: "credits" } })}>
+              <Button
+                variant="ghost"
+                onClick={() =>
+                  document
+                    .getElementById(CREDITS_ANCHOR)
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }
+              >
                 Buy a credit top-up
               </Button>
             ) : null}
@@ -1991,6 +1968,16 @@ function PlanSection({ checkout }: { checkout?: string }) {
     </>
   );
 }
+
+/**
+ * Where "Buy a credit top-up" lands now that both live on one pane.
+ *
+ * A constant rather than a literal in two places, because the button and the
+ * target being spelled the same is the entire mechanism: a typo in either makes
+ * the control silently do nothing, which is exactly the failure the fold was
+ * supposed to remove.
+ */
+const CREDITS_ANCHOR = "settings-credits";
 
 function CreditsSection() {
   const fGetCredits = useServerFn(getMyCreditsView);
@@ -2130,7 +2117,12 @@ function CreditsSection() {
 
       <CreditCapsCard />
 
-      <Block title="Buy more">
+      {/* The target of "Buy a credit top-up" up in the plan block. A wrapper rather
+          than an id on Block, which takes no id prop and should not grow one for a
+          single caller's anchor. `scroll-mt` keeps the heading clear of the sticky
+          header instead of landing it underneath. */}
+      <div id={CREDITS_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+        <Block title="Buy more">
         {catalog.isLoading ? (
           <Loading>Reading the price list.</Loading>
         ) : catalog.error ? (
@@ -2251,7 +2243,8 @@ function CreditsSection() {
             if you need past the cap.
           </Empty>
         ) : null}
-      </Block>
+        </Block>
+      </div>
 
       <RedeemCodeCard />
 

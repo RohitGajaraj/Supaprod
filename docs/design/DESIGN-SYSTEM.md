@@ -26,6 +26,8 @@ The founder retired all five on **2026-08-14**, and the previous version of this
 
 Measured on **2026-08-15**, one day later, `src/components` and `src/routes` held **2,288 occurrences** of those retired vocabularies across **219 files**, including 524 raw colour literals.
 
+**Corrected 2026-08-16: the real figure was 5,816 across 291 files.** The scanner counted the retired *import statement*, one per module per file, however much of that module the file went on to render. So the more structural half was invisible: **3,264 rendered retired components**, which is more than every token and colour occurrence combined. The undercount was found by measuring a commit that added a first-run screen to Ship built entirely from `Gate`, `Block`, `Row`, `Num` and `CtxBody` — eight new usages of a vocabulary retired two days earlier — while the file's recorded debt stayed at exactly 6 and every gate passed green. Usages are now counted, so rule 2 applies to the component layer too.
+
 That was not a knowledge problem. In a single day four independent agents each rediscovered *the same rule* in four different folders, ten times between them. A constant named `FOCUS_RING` had been **inert** in six files for months: spelled correctly, aimed at the right token, painting nothing, because Tailwind emits utilities into a layer and an unlayered rule beats every layer. It passed every review it ever appeared in.
 
 **A design system becomes doctrine at the moment it can fail a build, not at the moment it is written down.**

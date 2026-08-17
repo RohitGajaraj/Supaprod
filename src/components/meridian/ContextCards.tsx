@@ -33,10 +33,41 @@ import { useEffect, useState, type ReactNode } from "react";
  */
 
 export type ContextSource = {
-  /** What a person would call the document. */
+  /**
+   * What a person would call the document, and PREFERABLY ITS FILENAME.
+   *
+   * The reference's own data is filenames — `Dairy Onboarding SOP.pdf`,
+   * `Sales Velocity Export.csv` — and that is not incidental. An extension is the
+   * most reliable thing a source carries, it needs no second field to be
+   * recognisable, and it is what lets `sourceMark` draw the right glyph without
+   * the caller thinking about it.
+   */
   label: string;
-  /** Short kind marker, e.g. "PDF", "SQL", "DOC". Rendered as a neutral chip. */
+  /**
+   * A word for the kind when the label is not a filename, e.g. "mail", "board".
+   * Used as a HINT for the glyph and no longer rendered as its own text chip:
+   * "MAIL" beside "Support inbox, ticket 4471" was the same fact twice.
+   */
   kind?: string;
+  /**
+   * Force the glyph, when the caller knows better than the filename does.
+   *
+   * The case this exists for is a provider: a `.eml` from Gmail and one from
+   * Outlook are the same extension and a different thing to check, and only the
+   * caller knows which mailbox it came out of.
+   */
+  mark?:
+    | "pdf"
+    | "sheet"
+    | "doc"
+    | "code"
+    | "mail"
+    | "gmail"
+    | "outlook"
+    | "web"
+    | "chat"
+    | "board"
+    | "unknown";
   /** Opens the real thing. Without it the source is stated but not reachable. */
   href?: string;
 };
@@ -105,6 +136,195 @@ function LinesIcon() {
   );
 }
 
+/**
+ * WHAT KIND OF THING THIS CAME FROM, DRAWN.
+ *
+ * ── WHY A GLYPH AND NOT THE REFERENCE'S COLOURED TILE ───────────────────
+ * The reference badges each source with a 14px tile filled `bg-red` for PDF and
+ * `bg-green` for CSV. The colour is doing real work there: it is the only thing
+ * that makes a format recognisable at a glance in a 380px column.
+ *
+ * Meridian cannot spend red and green on a file extension — they report an
+ * OUTCOME, so a green CSV would say a spreadsheet succeeded at something. The
+ * first port answered that by dropping to a neutral text chip, and in doing so
+ * threw away the recognisability along with the colour. Two decisions were
+ * collapsed into one.
+ *
+ * Law 4 separates them: identity is SHAPE, status is hue. So the format keeps a
+ * distinct mark and gives up only its colour, which is both faithful to the
+ * reference's intent and stronger than its execution — a drawn envelope is
+ * legible to someone who cannot distinguish red from green, and a red tile is
+ * not.
+ *
+ * ── WHY THE PROVIDERS ARE HERE TOO ──────────────────────────────────────
+ * A source is not always a file. An excerpt pulled from a mailbox came from
+ * Gmail or from Outlook, and which one is the first thing a person checks when
+ * they doubt it. These are drawn, never a fetched brand asset: a logo loaded
+ * from a third party is a request that can fail, a licence to honour, and a
+ * layout that shifts when it does not arrive.
+ */
+type SourceMark =
+  | "pdf"
+  | "sheet"
+  | "doc"
+  | "code"
+  | "mail"
+  | "gmail"
+  | "outlook"
+  | "web"
+  | "chat"
+  | "board"
+  | "unknown";
+
+/**
+ * Read the mark off whatever the caller actually has, filename first.
+ *
+ * FILENAME FIRST, because the reference's own data is filenames and an extension
+ * is the most reliable thing on a source: `Dairy Onboarding SOP.pdf` needs no
+ * separate field to be recognisable. `kind` is the fallback for a source that has
+ * no filename at all, like a mailbox or a board.
+ */
+export function sourceMark(source: ContextSource): SourceMark {
+  const explicit = (source.mark ?? "").toLowerCase();
+  if (explicit) return (explicit as SourceMark) ?? "unknown";
+
+  const label = source.label.toLowerCase();
+  const hint = `${label} ${(source.kind ?? "").toLowerCase()}`;
+
+  if (/\bgmail\b/.test(hint)) return "gmail";
+  if (/\boutlook\b/.test(hint)) return "outlook";
+  if (/\.pdf\b/.test(label) || /\bpdf\b/.test(hint)) return "pdf";
+  if (/\.(csv|xlsx?|tsv|numbers)\b/.test(label) || /\b(csv|sheet|spreadsheet)\b/.test(hint))
+    return "sheet";
+  if (/\.(tsx?|jsx?|py|rb|go|rs|sql|sh|css|json|ya?ml)\b/.test(label) || /\bcode\b/.test(hint))
+    return "code";
+  if (/\.(docx?|md|rtf|pages|txt)\b/.test(label) || /\b(doc|document|spec|sop)\b/.test(hint))
+    return "doc";
+  if (/\b(mail|inbox|ticket|email)\b/.test(hint)) return "mail";
+  if (/^https?:\/\//.test(source.href ?? "") && !/\bboard\b/.test(hint)) return "web";
+  if (/\b(slack|thread|chat|call|transcript)\b/.test(hint)) return "chat";
+  if (/\b(board|queue|station)\b/.test(hint)) return "board";
+  return "unknown";
+}
+
+/** One drawing per mark, all on a 14px box so the chip never reflows. */
+function SourceGlyph({ mark }: { mark: SourceMark }) {
+  const common = {
+    width: 13,
+    height: 13,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.9,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true as const,
+  };
+
+  switch (mark) {
+    case "pdf":
+      /* A page with a folded corner and a filled bar: the bar is what separates
+         it from `doc` at 13px, where a corner fold alone is two pixels. */
+      return (
+        <svg {...common}>
+          <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+          <path d="M14 3v5h5" />
+          <path d="M8.5 15.5h5" strokeWidth="2.6" />
+        </svg>
+      );
+    case "sheet":
+      /* A grid, because a spreadsheet's whole identity is cells. */
+      return (
+        <svg {...common}>
+          <rect x="4" y="4" width="16" height="16" rx="2" />
+          <path d="M4 10h16M4 15h16M10 4v16" />
+        </svg>
+      );
+    case "doc":
+      return (
+        <svg {...common}>
+          <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+          <path d="M14 3v5h5M8.5 13h7M8.5 17h4" />
+        </svg>
+      );
+    case "code":
+      return (
+        <svg {...common}>
+          <path d="M9 8l-4 4 4 4M15 8l4 4-4 4" />
+        </svg>
+      );
+    case "mail":
+      return (
+        <svg {...common}>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="M3.5 7l8.5 6 8.5-6" />
+        </svg>
+      );
+    case "gmail":
+      /* Gmail's mark is the envelope's inner M, and that shape is what people
+         actually recognise. Drawn open at the top so it reads as the M rather
+         than as a second envelope flap. */
+      return (
+        <svg {...common}>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="M3.5 6.5L12 13l8.5-6.5" />
+          <path d="M7.5 18V9.5M16.5 18V9.5" strokeWidth="1.6" />
+        </svg>
+      );
+    case "outlook":
+      /* Outlook's mark is a rounded square O beside a panel. */
+      return (
+        <svg {...common}>
+          <rect x="3" y="6" width="10" height="12" rx="2.5" />
+          <ellipse cx="8" cy="12" rx="2.2" ry="3" />
+          <path d="M14 8h7v8h-7" />
+        </svg>
+      );
+    case "web":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="8.5" />
+          <path d="M3.5 12h17M12 3.5c2.5 2.5 2.5 14 0 17M12 3.5c-2.5 2.5-2.5 14 0 17" />
+        </svg>
+      );
+    case "chat":
+      return (
+        <svg {...common}>
+          <path d="M20 12a7 7 0 0 1-7 7H9l-4 3v-4.5A7 7 0 0 1 6 6h7a7 7 0 0 1 7 6z" />
+        </svg>
+      );
+    case "board":
+      return (
+        <svg {...common}>
+          <rect x="4" y="4" width="16" height="16" rx="2" />
+          <path d="M9 8v8M15 8v5" />
+        </svg>
+      );
+    default:
+      /* Honest about not knowing, rather than guessing a file type. */
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="8.5" strokeDasharray="2 2.5" />
+        </svg>
+      );
+  }
+}
+
+/** What each mark is called out loud, so the chip is not a silent picture. */
+const MARK_NAME: Record<SourceMark, string> = {
+  pdf: "PDF",
+  sheet: "Spreadsheet",
+  doc: "Document",
+  code: "Code",
+  mail: "Mail",
+  gmail: "Gmail",
+  outlook: "Outlook",
+  web: "Web page",
+  chat: "Conversation",
+  board: "Board",
+  unknown: "Source",
+};
+
 function OutIcon() {
   return (
     <svg
@@ -123,18 +343,72 @@ function OutIcon() {
   );
 }
 
+/** How many blocks the meter is made of. Four, and the count is a decision. */
+const MATCH_BLOCKS = 4;
+
 /**
- * The match score as a bar, neutral. It is a measurement, not a verdict, and
- * a green bar at 0.71 would read as "this is correct" when all it says is
- * "this was the closest text". The number is printed beside it because a bar
- * alone cannot be compared between two cards at a glance.
+ * THE MATCH AS FOUR BLOCKS, and the number beside them.
+ *
+ * ── WHY BLOCKS AND NOT THE THIN BAR THIS REPLACES ───────────────────────
+ * Founder, on seeing the bar: a percentage next to a hairline "does not make
+ * sense at all ... when you show it in the form of blocks and you mention 71%,
+ * it would understand".
+ *
+ * That is a real perceptual point, not a preference. A 40px continuous bar asks
+ * the reader to judge one length against another length on a different card, four
+ * rows apart, which is a comparison the eye is bad at. Four discrete blocks turn
+ * it into COUNTING, which the eye is good at and which survives a glance: three
+ * of four beats two of four without measuring anything.
+ *
+ * ── THE BLOCK COUNT IS A HONESTY DECISION ───────────────────────────────
+ * Four, because four blocks claim a precision of one quarter and that is roughly
+ * what an embedding similarity is worth. Ten blocks would claim decimal precision
+ * the number does not have; two could not tell a good match from a mediocre one.
+ * The exact figure is printed beside them for the reader who does want it, so the
+ * blocks carry the glance and the number carries the detail.
+ *
+ * ── STILL NEUTRAL ───────────────────────────────────────────────────────
+ * Unchanged from the bar it replaces, and worth restating because blocks look
+ * more like a verdict than a bar does: this is a MEASUREMENT. Filling three
+ * blocks green would say "this excerpt is correct" when all it says is "this was
+ * the closest text we held". Green and red are outcomes.
  */
 function Relevance({ value }: { value: number }) {
-  const pct = Math.round(Math.max(0, Math.min(1, value)) * 100);
+  const clamped = Math.max(0, Math.min(1, value));
+  const pct = Math.round(clamped * 100);
+  /*
+   * CEIL, so any non-zero match lights at least one block. A real but weak match
+   * rendering as four empty blocks is indistinguishable from no match at all,
+   * which is the one thing this meter must never say.
+   */
+  const lit = clamped === 0 ? 0 : Math.max(1, Math.ceil(clamped * MATCH_BLOCKS));
+
   return (
-    <span className="flex shrink-0 items-center gap-1.5" title={`Match ${pct} percent`}>
-      <span aria-hidden className="h-1 w-10 overflow-hidden rounded-full bg-mrd-sink">
-        <span className="block h-full rounded-full bg-mrd-faint" style={{ width: `${pct}%` }} />
+    <span
+      className="flex shrink-0 items-center gap-1.5"
+      /* One accessible string for the whole meter. Four blocks announced
+         individually is four meaningless words. */
+      role="img"
+      aria-label={`Match ${pct} percent`}
+      title={`Match ${pct} percent, ${lit} of ${MATCH_BLOCKS} blocks`}
+    >
+      <span aria-hidden className="flex items-end gap-[2px]">
+        {Array.from({ length: MATCH_BLOCKS }, (_, i) => (
+          <span
+            key={i}
+            className="w-[3px] rounded-[1px]"
+            style={{
+              /*
+               * A RISING STAIR, not four equal bars. Equal blocks read as a
+               * segmented progress bar, which implies the thing is loading;
+               * stepped heights read as strength, which is what this measures.
+               */
+              height: `${5 + i * 2}px`,
+              background: i < lit ? "var(--mrd-body)" : "var(--mrd-sink)",
+              transition: "background-color var(--mrd-d-press) linear",
+            }}
+          />
+        ))}
       </span>
       <span className="font-mrd-mono text-[11px] text-mrd-mute tabular-nums">{pct}%</span>
     </span>
@@ -142,13 +416,21 @@ function Relevance({ value }: { value: number }) {
 }
 
 function SourceChip({ source }: { source: ContextSource }) {
+  const mark = sourceMark(source);
   const inner = (
     <>
-      {source.kind && (
-        <span className="flex h-3.5 items-center rounded-mrd-xs bg-mrd-lift px-1 font-mrd-mono text-[8px] font-semibold tracking-wide text-mrd-body">
-          {source.kind}
-        </span>
-      )}
+      {/*
+       * The glyph replaces the text chip that used to sit here. "MAIL" printed
+       * beside "Support inbox, ticket 4471" was the same fact twice, and it spent
+       * the chip's scarce width on a word the label already implies.
+       *
+       * Named for assistive tech, because a drawing on its own is silent and the
+       * format is exactly the thing a doubting reader checks first.
+       */}
+      <span className="shrink-0 text-mrd-mute" title={MARK_NAME[mark]}>
+        <SourceGlyph mark={mark} />
+        <span className="sr-only">{MARK_NAME[mark]}: </span>
+      </span>
       <span className="truncate">{source.label}</span>
       {source.href && <OutIcon />}
     </>
