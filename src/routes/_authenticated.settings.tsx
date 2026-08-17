@@ -201,6 +201,7 @@ import {
   type SectionId,
 } from "@/lib/settings-sections";
 import { SidebarNav, type RailItem } from "@/components/meridian/SidebarNav";
+import { AgentCards } from "@/components/meridian/AgentCards";
 
 import {
   AccountConnectionsSection,
@@ -1305,52 +1306,28 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
         more="Open Crew"
         onMore={() => onOpenCrew(null)}
       >
-        {members.map((m) => (
-          <Row
-            key={m.slug}
-            tight
-            marks={
-              <AgentMark
-                slug={m.slug}
-                name={m.name}
-                state={
-                  m.asking.length > 0
-                    ? m.slug === blinkSlug
-                      ? "gate"
-                      : "waiting"
-                    : m.runs.running > 0
-                      ? "running"
-                      : !m.enabled
-                        ? "quiet"
-                        : "idle"
-                }
-              />
-            }
-            lead={agentDisplayName(m.slug, m.name)}
-            // The DIFFERENT fact: the dial actually stored, whose choice it was,
-            // and what this one has done here. Never the blurb, which the
-            // roster on Crew already carries beside a picture of it.
-            sub={
-              !m.enabled ? (
-                "Switched off. Nothing dispatches it."
-              ) : (
-                <>
-                  {ARC_CHOICE[m.arc]}
-                  {m.arcIsDefault ? " · our default, not one you set" : ""}
-                  {m.runs.total > 0 ? (
-                    <>
-                      {" · "}
-                      <Num>{m.runs.total}</Num> runs here
-                    </>
-                  ) : (
-                    " · no runs here yet"
-                  )}
-                </>
-              )
-            }
-            onClick={() => onOpenCrew(m.slug)}
-          />
-        ))}
+        {/*
+         * ONE CARD PER AGENT, replacing a list of tight rows.
+         *
+         * Founder: "for each agent, it needs to be each agent card", the crew shown
+         * first, each opening onto that agent. A row cannot give a colleague any
+         * presence, and presence is the point: this product's claim is that these do
+         * the work. The grid also uses the width it is given rather than capping
+         * itself, which is his separate complaint about these surfaces.
+         *
+         * `blurb` is the catalog's own one-liner, so no copy is invented here.
+         */}
+        <AgentCards
+          cards={members.map((m) => ({
+            slug: m.slug,
+            name: m.name,
+            role: catalogEntry(m.slug)?.blurb,
+            enabled: m.enabled,
+            runsAlone: m.arc === "trusted" || m.arc === "ambient",
+            waiting: m.asking.length,
+          }))}
+          onOpen={(slug) => onOpenCrew(slug)}
+        />
       </Block>
 
       <Empty>
