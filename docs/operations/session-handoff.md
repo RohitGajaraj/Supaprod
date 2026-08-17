@@ -1440,3 +1440,51 @@ words and the block heading now count as the pane's words.
 4. Engine Room restructure (28KB route, never audited).
 5. Profile spacing uniformity; Connectors landing page.
 6. 11 unadopted Meridian components; `forms` matters most for Settings' hand-rolled inputs.
+
+### Correction, same day: removing a door is only allowed if the capability keeps one
+
+**Founder ruling, and it is now a standing rule:** *"You should not be removing anything
+or making a feature homeless or doorless ... If there is a duplicate, you can eliminate
+it, but if there is no home or if it is not there at all, then you don't have the right
+to remove anything."*
+
+**What I got wrong.** Collapsing the roster's three clicks to one was right. Removing the
+general "Open Crew" button was right. What shipped with it was an inline panel with
+**zero actions** -- no `onClick`, no link, no navigate anywhere in it. The surface that
+had just taken over the *reading* of an agent silently stopped offering the *doing* of
+anything, and offered no route to the surface that can. My commit message asserted the
+tweak path was "reached from the agent you are already reading". I wrote the intent and
+did not build it.
+
+**Blast radius, stated accurately:** `/crew` was **never orphaned**. It keeps its rail
+door (`nav-model.ts:196`), plus TrustDial, AgentRosterPanel, Today and the `/agents`
+redirect. Nothing was doorless. What was missing was the door from where the founder now
+stands.
+
+**Fixed:** "What it has learned" restored as a facet (the real omission -- it is the Learn
+write-back, the moat, and the panel never said it exists); one door at the foot carrying
+the slug, labelled by what is behind it; `asking` raised inline in `you` because it is a
+gate action. Guard at `src/__tests__/agent-detail-keeps-its-doors.test.ts`, proven red
+three ways.
+
+**A type lie fell out of it:** the synthetic roster row declared `asking: string[]` where
+a stored row carries `{ toolLabel, toMode }[]`. It compiled for weeks because nothing read
+`asking` off the union.
+
+**Also closed:** the two `/crew` Regions holding one DoorRow each are now one Region,
+"Across the whole crew". Both doors verified surviving. This reversed an earlier
+documented decision, and the old reason (no shared title exists that is not watered down)
+is answered in the code rather than ignored.
+
+**Sweep result, honest:** across every `.tsx`, **zero** inert `more` buttons and **zero**
+nested Blocks remain. Two candidate lists my first scans produced were entirely false
+positives -- a `[^>]*` tag match truncates at a `>` inside `sub={<>...</>}`, and a body
+window bleeds into the next function. **And the first version of my nesting guard passed
+when I re-planted the founder's exact bug**, because the nest is cross-file. Guard at
+`src/__tests__/block-chrome-discipline.test.ts` now resolves which components draw their
+own Block and fails on their use inside a Block extent.
+
+**Sub-targets now cover five blocks**, not one: Invite teammates, Credits and top-ups,
+Your own provider keys, Appearance, Working hours.
+
+**HEAD `3afc6609`. tsc 0 - 9,393 pass 0 fail - build green.**
