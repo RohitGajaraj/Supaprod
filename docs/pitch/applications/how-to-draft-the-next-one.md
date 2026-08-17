@@ -246,6 +246,53 @@ ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 <file>
 
 ---
 
+## Part 1c — Corrections from Hub71, drafted 2026-08-17
+
+### 19. The answer bank went stale and MISLED a draft. A source in the drafting path is worse stale than missing.
+
+**The Hub71 draft was written from [`answer-bank.md`](./answer-bank.md) and thrown away whole.** The founder's words:
+
+> _"The answer bank is gifted, and it is very old. From that perspective, we would be missing out on a lot of strategy. I need to always tweak you guys again and again and again, so I do not want you to do that multiple times."_
+
+**Three retired things came straight out of the bank into the draft**, all of them ruled on days earlier:
+
+| In the draft | Retired on | Where the current version lived |
+| --- | --- | --- |
+| "you" in product sentences, eleven times | 2026-08-13, YC §A Rule 1 | `../yc/APPLICATION-FINAL.md` §A |
+| Leading with the forecast | 2026-08-11 positioning change | same file, §0 |
+| A generic stitched-stack competitor answer | 2026-08-13 | same file, §A 9b |
+
+**This is correction 0d, one level up.** That entry said a rule written outside the drafting path is buried. **This is worse: the bank IS the drafting path, so being stale meant it actively taught the wrong thing.** A drafter following the documented procedure exactly still produced a bad draft.
+
+**The structural cause: applications are filed weekly, each one improves the material, and there was no step that carried the improvement back.** Every gain died inside one programme folder while the next drafter started from older prose.
+
+**The fix, and it is three parts:**
+
+1. **A precedence table at the top of the bank.** The most recent `APPLICATION-FINAL.md` outranks the bank on register, structure and positioning order. The bank owns facts only.
+2. **A back-port step in the procedure.** A filing is not finished until what it taught is in the bank and in `baseline.yml`, in the same session.
+3. **`bun run pitch:check`**, which fails when the bank's `Last verified against` stamp is older than the newest filing, and sweeps every paste block for banned vocabulary, filler, dashes and volunteered zeroes. **Run it before drafting and before submitting.**
+
+> **The generalisable rule: a reusable source needs a freshness stamp and a gate, or it decays into a trap.** Nobody notices a stale fact file, because every sentence in it still reads as true.
+
+### 20. A one-liner names all three layers or it sells one third of the product
+
+**Founder correction, and it caught two lines I had just promoted.**
+
+> _"Say we have three layers: telling what to build, doing the entire product lifecycle built by agents, and the brain which learns and guides your next call. That's how it needs to be. As of now it's just one layer we are speaking about."_
+
+| Promoted | What it actually says |
+| --- | --- |
+| `Product decisions with a forecast you cannot edit` | **Layer 03 only.** A mechanism with no product around it |
+| `Agents run product work. You keep the judgment.` | **Layer 02 only.** Never says it decides what to build or learns from the result |
+
+**Both read well, which is exactly why this is easy to get wrong.** A sharp single-layer line beats a clumsy three-layer one on the ear and loses on the pitch.
+
+**The test: 01 tells what to build, 02 builds and ships it, 03 learns and guides the next call. All three, in that order, in every short field.** The default is now `Agents that know what to build, ship it, warn you` (49), and the strongest in the corpus is the filed Campus Founders line, `Tells product teams what to build, builds it, then grades the call against what shipped` (88).
+
+**One caveat on his wording.** He said *"company brain"*, which is the right concept and a banned phrase in outward copy: it is YC's, not our brand identity. **Write the mechanism instead: learns and guides the next call.**
+
+---
+
 ## Part 2 — What worked, and should be repeated
 
 **Read every question off the live form. Never draft against guessed questions.** [`application.md`](./berkeley-skydeck/application.md) was drafted blind and is kept only for comparison; every answer had to be rewritten once the real form was open. **The form is the spec.**
@@ -315,13 +362,17 @@ Until all three pass: padlock, no Submit button, and **nothing typed is saved**.
 > - **Solo founder is one condition, not a stop.** A two-founder preference lowers the score; only a hard legal or eligibility wall skips.
 
 1. **Open the live form first.** Read every question and every dropdown option off the page. Record them verbatim in the programme's `APPLICATION-FINAL.md`.
-2. **Load [`baseline.yml`](./baseline.yml) before anything else.** One small file: live numbers with their derive commands, the founder record, positioning, the Europe wedge, which asset to attach to whom, login allocation, banned vocabulary, standing rules. **Then** pull long-form answers from [`answer-bank.md`](./answer-bank.md), never from memory or a screenshot. Re-derive live numbers: `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l`. **Update the baseline in the same session** — a learning that does not reach it does not travel, which is the failure this whole file exists to prevent.
+2. **Load [`baseline.yml`](./baseline.yml) before anything else.** One small file: live numbers with their derive commands, the founder record, positioning, the Europe wedge, which asset to attach to whom, login allocation, banned vocabulary, standing rules. Re-derive live numbers: `git rev-list --count origin/main` and `ls supabase/migrations/*.sql | wc -l`. **Update the baseline in the same session** — a learning that does not reach it does not travel, which is the failure this whole file exists to prevent.
+
+   **2b. Then read the MOST RECENT filed application, and take the register from it, not from the answer bank.** Run `bun run pitch:check` first; it names the newest filing and fails if the bank is behind it. **[`answer-bank.md`](./answer-bank.md) owns facts. The newest filing owns voice, structure and positioning order.** Correction 19 exists because this step was missing and a whole draft was written in a retired register.
 3. **Check the seven rules in [`positioning-doctrine.md`](./positioning-doctrine.md)**, then this file.
 4. **Draft door → body → brain.** Cut any block that already appears in another field.
 5. **Read every answer aloud. Delete any sentence that stays true with a competitor's name swapped in.**
 6. **Verify each answer persisted** by reloading, then record the filed text.
 7. **The founder submits.** Never submit an application.
 8. **Log it**: the programme folder, [`README.md`](./README.md), and the [Notion Application Board](https://app.notion.com/p/4014ff9cb1c240c9a3b761e790852970) with status, dates and outcome detail.
+9. **BACK-PORT, and the filing is not finished until this is done.** Any answer that got better goes into [`answer-bank.md`](./answer-bank.md), replacing the older block rather than sitting beside it. Any new founder correction goes into Part 1 of this file. Add the filing to `baseline.yml` under `filed:`. **Bump the `Last verified against` stamp** at the top of the answer bank.
+10. **Run `bun run pitch:check`.** It fails if step 9 was skipped, and sweeps every paste block for banned vocabulary, filler, em dashes and volunteered zeroes. Green is the definition of done.
 
 ---
 

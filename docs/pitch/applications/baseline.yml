@@ -13,12 +13,25 @@
 # Where this file and those disagree, THOSE WIN and this file is stale. Fix it.
 
 meta:
-  updated: 2026-08-16
-  updated_after: "Campus Founders CF Accelerator Batch #9, submitted 2026-08-16"
+  updated: 2026-08-17
+  updated_after: "Hub71 Access Programme Cohort 20, drafted 2026-08-17"
   refresh_rule: >-
     Re-derive every value under `numbers` on the morning of any submission.
     Two of them move daily. A number that cannot be re-derived on demand is
     not evidence and must not be used.
+  source_precedence:
+    # Added 2026-08-17 after a draft was written from a stale answer bank and
+    # thrown away. The bank was six days behind the filed applications, so it did
+    # not merely go unused, it actively misled. Highest wins.
+    1: "the most recent APPLICATION-FINAL.md or FILL-SHEET-*.md (register, structure, positioning order)"
+    2: "this file (numbers, standing rules, banned vocabulary)"
+    3: "how-to-draft-the-next-one.md (craft, founder corrections)"
+    4: "positioning-doctrine.md (the seven rules, per-programme axis)"
+    5: "answer-bank.md (facts and blocks, only once back-ported from rank 1)"
+  back_port_rule: >-
+    A filing is not finished until what it taught is back in answer-bank.md and
+    this file, in the same session. Enforced by `bun run pitch:check`, which fails
+    when the answer bank's stamp is older than the newest filing.
 
 company:
   name: Supaprod
@@ -77,8 +90,8 @@ founder:
 numbers:
   # Re-derive on the morning of any submission.
   commits:
-    value: 5321
-    as_of: 2026-08-16
+    value: 5328
+    as_of: 2026-08-17
     outward_form: "5,300+"
     command: git rev-list --count origin/main
   migrations:
@@ -129,12 +142,33 @@ positioning:
     - Agents earn autonomy from their own track record, with floors on merge, revert and delegate.
     - Deliberate refusal to compute performance scores about named human teammates.
   taglines:
-    under_50_chars: "Agents run the product org. You keep the judgment."
+    # FOUNDER RULING 2026-08-17: every one-liner carries ALL THREE layers, in order.
+    # "As of now it's just one layer we are speaking about." A line that names one
+    # layer sells one third of the product. Test any candidate against all three:
+    #   01 tells/knows what to BUILD · 02 BUILDS and ships it · 03 LEARNS and GUIDES the next call
+    three_layer_rule: mandatory
+    under_50_chars: "Agents that know what to build, ship it, warn you"
     under_100_chars: "Tells product teams what to build, builds it, then grades the call against what shipped."
-    note: >-
-      The "Cursor for PMs" anchor is RETIRED. Three readers killed it: it borrows
-      the do-the-work-faster frame that the competitors answer spends a paragraph
-      disowning.
+    ten_words: "Agents that know what to build, ship it, and learn."
+    retired:
+      - line: "Cursor for PMs, the whole product org."
+        reason: >-
+          Three readers killed it. It borrows the do-the-work-faster frame that the
+          competitors answer spends a paragraph disowning, so it argues against
+          itself inside one application.
+      - line: "Product decisions with a forecast you cannot edit"
+        reason: >-
+          Layer 03 only, and it opens on the forecast, which the 2026-08-11
+          positioning change moved out of the lead.
+      - line: "Agents run the product org. You keep the judgment."
+        reason: >-
+          Layer 02 only. Never says the product decides what to build or learns
+          from the result.
+      - line: "Agents that know what to build, ship it, and remember."
+        reason: >-
+          Closes on a banned verb of the brain. The third layer guides, it does not
+          hold a record.
+    never_close_on: [remember, remembers, stores, logs]
 
 tech:
   ai_coding_tools: [Claude Code, Codex, Lovable, Antigravity]

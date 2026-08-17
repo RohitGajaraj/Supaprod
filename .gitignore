@@ -268,3 +268,9 @@ docs/pitch/shareables/*.mov
 # Skill-installer symlinks into .agents/, same pattern as the batch above.
 .claude/skills/brag
 .kiro/skills/brag
+
+# Python bytecode. scripts/ carries funding-sync.py, rank-funding-programmes.py and
+# check-application-sources.py; importing any of them writes a __pycache__ that was
+# showing up as untracked and would eventually be committed by a wide git add.
+__pycache__/
+*.py[cod]

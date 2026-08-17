@@ -38,7 +38,11 @@
 
 **This is how YC and most US programmes already work** — they incorporate you into a Delaware C-corp as part of the deal. Being unincorporated blocks the *money moving*, not the *applying*.
 
-**Record it as a blocker only when the programme's own page states an entity is required to submit.** Hub71's ADGM requirement is a real one. The DPIIT-gated India stack is a real one. Everything else is a post-selection step, and the US-primary ruling in the doctrine already says not to incorporate in India to unlock it.
+**Record it as a blocker only when the programme's own page states an entity is required to submit.** The DPIIT-gated India stack is a real one. Everything else is a post-selection step, and the US-primary ruling in the doctrine already says not to incorporate in India to unlock it.
+
+> ### ❌ Hub71's ADGM requirement was recorded here as real. It is not, and the live form settles it.
+>
+> **Verified 2026-08-17 by reading <https://www.hub71.com/program/access-programme/apply> end to end.** There is no entity field anywhere in the 26 questions. The form asks **"Which country is your HQ based in?"**, which is a fact about today, not a registration. [`sweep/board-corrections.md`](./sweep/board-corrections.md) caught this on 2026-08-14 and this file was never updated, so a false blocker sat on a Tier 1 programme for three days. **A correction that does not reach the tracker has not been made.**
 
 ### 3. Solo founder is one condition, not a stop.
 
@@ -223,7 +227,7 @@ python3 scripts/funding-sync.py --no-icloud
 | ~~08-17~~ | [~~Sequoia Arc, Fall 2026~~](./sequoia-arc/) | 8.5 | Pre-seed or seed, terms set per company | ❌ **NOT OPEN.** Verified live 2026-08-13: the apply page is empty and Arc is between calls. Removed from the queue |
 | **08-21** | **DIFC (Dubai).** Founder-named, deadline the 21st | ? | ? | **GATED on the founder.** Not on this tracker and not among the 144 researched; no public listing found for a close on the 21st. Needs the exact program name and apply link |
 | **08-21** | [**Berkeley SkyDeck, Batch 23**](./berkeley-skydeck/) | **8.5** | **$210K for 7.25%**, read off the live F6S sidebar. 50 startups a year | 🚀 **SUBMITTED 2026-08-13**, eight days early. Filed text of all 21 answers in [`APPLICATION-FINAL.md`](./berkeley-skydeck/APPLICATION-FINAL.md). Program 11-02 to 04-15; **interviews 09-08 to 10-05, which is past the approval-queue runway — re-arm in early September** |
-| 08-21 | Hub71 Access Programme, Cohort 20 (Abu Dhabi) | 7.0 | Cash plus housing, office, credits | **Hard blocker:** needs an ADGM entity and physical presence in Abu Dhabi. 33 questions |
+| **08-21** | [**Hub71 Access Programme + Hub71+ AI, Cohort 20**](./hub71/) (Abu Dhabi) | **7.4** | **AED 250K cash on a SAFE + AED 250K in kind**, plus a further AED 250K top-up for high performers. 12 months from **February 2027** | ✅ **NO ADGM BLOCKER.** Form read live 2026-08-17: **26 questions**, no entity field. One filing covers Access and Hub71+ AI. Fill sheet in [`APPLICATION-FINAL.md`](./hub71/APPLICATION-FINAL.md). **Mandatory PDF deck needs an Abu Dhabi section.** Only founder-side condition is long-term relocation |
 | 08-30 | [EF The Bridge Residency, San Francisco](./ef-bridge-sf/) | 6.0 | EF standard | Drafted and corrected. Ready to send |
 | 08-31 | Slush Startup Stage, Helsinki | 6.0 | Free to apply, €1.5K booth | Costs flights and Helsinki accommodation |
 | 09-22 | Antler UK Residency | 7.0 | £210K for 8.5% | UK right to work required by day one |

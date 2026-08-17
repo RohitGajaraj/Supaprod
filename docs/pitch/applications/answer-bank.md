@@ -1,8 +1,63 @@
 # The answer bank — every accelerator application, one source
 
-> _Created 2026-07-31. This is the single reusable source for every accelerator, incubator, residency and grant application. Each program folder pulls from here and adds only what is program-specific. Never write a new answer from scratch; pull the closest block, trim to the word limit, and adjust the emphasis._
+> _Created 2026-07-31._
+> **Last verified against: `docs/pitch/applications/hub71/APPLICATION-FINAL.md` (2026-08-17).**
+> _`bun run pitch:check` fails if a newer filing exists than that stamp. Bump it only after back-porting._
 
-> **This file owns the facts.** The rules are in [`positioning-doctrine.md`](./positioning-doctrine.md) and the craft is in [`how-to-draft-the-next-one.md`](./how-to-draft-the-next-one.md). Pull numbers and bios from here; pull the shape of an answer from those.
+> **This file owns the facts. It does NOT own the voice.** Pull numbers, bios and dates from here. **Pull the register and the shape of an answer from the most recent filed application**, which is always newer than this file.
+
+## ⚠️ Source precedence. Read this before pulling a single block.
+
+**This file went stale once and misled a draft.** On 2026-08-17 the Hub71 draft was written from the blocks below and had to be thrown away: it used "you" in product sentences (retired 2026-08-13), it led with the forecast (retired 2026-08-11), and its competitor answer was a generic paragraph the filed version had already beaten. **The founder caught it, not a checker.** That is what this precedence table and `pitch:check` exist to prevent.
+
+| Rank | Source | Owns |
+| --- | --- | --- |
+| **1** | **The most recent `APPLICATION-FINAL.md` or `FILL-SHEET-*.md`** | **The register, the structure, and the current positioning order.** Newest filing wins outright |
+| **2** | [`baseline.yml`](./baseline.yml) | Live numbers with their derive commands, the standing rules, banned vocabulary |
+| **3** | [`how-to-draft-the-next-one.md`](./how-to-draft-the-next-one.md) | The craft, and every founder correction |
+| **4** | [`positioning-doctrine.md`](./positioning-doctrine.md) | The seven rules and the per-programme axis |
+| **5** | **this file** | Facts, bios, dates, and reusable blocks **that have been back-ported from rank 1** |
+
+**Where this file and a filed application disagree, the filed application wins and this file is stale. Fix it in the same sitting.**
+
+## The process that keeps this file current
+
+**The rule: a filing is not finished until what it taught is back in this file.** Applications are drafted every week and each one improves the material. Without a back-port step, every improvement dies inside one programme folder and the next drafter starts from older prose.
+
+**After every submission, in the same session, before the folder is closed:**
+
+1. **Back-port any answer that got better** into the matching section here, replacing the older block rather than adding a second one.
+2. **Back-port any new founder correction** into `how-to-draft-the-next-one.md` Part 1.
+3. **Re-derive the numbers** in §0 and in `baseline.yml`.
+4. **Add the filing** to `baseline.yml` under `filed:`.
+5. **Bump the `Last verified against` stamp** at the top of this file to the application just filed.
+6. **Run `bun run pitch:check`.** It fails if any of the above was skipped.
+
+**If a block here is superseded, delete it. Do not leave two versions.** Two live versions of an answer is how the 2026-08-17 failure happened.
+
+---
+
+## The register, and the five rules that produce it
+
+> **Set by the founder 2026-08-13, each from a defect he caught. Back-ported from [`../yc/APPLICATION-FINAL.md`](../yc/APPLICATION-FINAL.md) §A on 2026-08-17.** These govern the voice of every block below. **Write it the way you would say it out loud to a partner across a table.**
+
+| # | Rule |
+| --- | --- |
+| **1** | **Write the product from the team's side, never the founder's, and never use "you" in a product sentence**, because a reviewer reads it as themselves. Name the team. `I` survives only where the question is about him |
+| **2** | **No word that exists only to fill space.** No runtimes, no file sizes, no invented vocabulary. And never make the plan sound small |
+| **3** | **Describe the product by what a team feeds it and gets back, never by the plumbing.** Naming four integrations implies the set stops there. Under-describing is as much a defect as overclaiming, and far harder to see, because a narrow sentence still reads as true |
+| **4** | **Never quantify the human gate on an autonomy story.** The gate is a feature as a principle and a liability as a count. A number is not automatically stronger than a sentence |
+| **5** | **Show the agent at every step, and never write the product as a form.** Naming only the build step makes every other step read as manual |
+
+**A sixth sits above all of them: if a claim is heavy, ask whether it is true today before polishing it.**
+
+### ⚠️ The positioning order changed on 2026-08-11 and the old order is still in older blocks
+
+**The application no longer LEADS with the forecast.** It leads with agents running the product work, and the forecast is the thing that makes that record uniquely useful, arriving third.
+
+**Why, and it is the sharpest reason in the corpus:** corporate prediction markets at Google beat expert forecasts by up to a 25 percent reduction in mean squared error **and died anyway**, because the transparency ran counter to the interests of the people who could have kept them. **A pitch that opens with "we record what you predicted so it can be checked later" is selling accountability to the person who would be held accountable.** Source: `../../research/market-validation-2026-08.md` §8.5.
+
+**Door, then body, then brain still holds.** The forecast is a mechanism inside the brain, not the door.
 
 ## The five laws (carried over from the YC application, they still govern)
 
@@ -20,11 +75,11 @@
 
 | Figure | Value | How to re-pull |
 | --- | --- | --- |
-| Commits | **5,131** _(2026-08-13)_ | `git rev-list --count origin/main` ← **origin/main, not HEAD.** HEAD counts whichever lane branch you are on and drifts from the real total |
-| Migrations | **532** _(2026-08-13)_ | `ls supabase/migrations/*.sql \| wc -l` |
-| Build duration | **10 weeks** _(first commit 2026-06-02, derived from git)_ | `git log --reverse --format='%ad' --date=short \| sed -n 2p` then count to today. **11 weeks from 2026-08-18.** |
+| Commits | **5,328** _(2026-08-17)_ · outward form **5,300+** | `git rev-list --count origin/main` ← **origin/main, not HEAD.** HEAD counts whichever lane branch you are on and drifts from the real total |
+| Migrations | **545** _(2026-08-17)_ | `ls supabase/migrations/*.sql \| wc -l` |
+| Build duration | **eleven weeks** _(first commit 2026-06-02, derived from git)_ | `git log --reverse --format='%ad' --date=short \| sed -n 2p` then count to today. **Twelve weeks from 2026-08-25.** |
 | ~~Feature register~~ | **DO NOT USE** | The register has not been maintained since `2026-08-04`, and `scripts/dashboard-tally.sh` **does not exist in the repo**. Volume claims are dropped outward; the demo login is the evidence. |
-| Homepage counters (strict, public) | 83 missions run · 26 decisions recorded · 16 outcomes graded · 840 AI calls | render live on supaprod.ai |
+| ~~Homepage counters~~ | **DO NOT USE IN AN APPLICATION** | They render live on supaprod.ai and they include seeded content. `baseline.yml` `never_claim` bans any product-usage number, because every one that ever existed was seed data. Quoting one is the exact failure that forced the YC rebuild. |
 | External paying users | **0** | fact |
 | Revenue | **$0** | fact |
 
@@ -54,19 +109,53 @@
 **Company:** Supaprod · **URL:** https://supaprod.ai · **Brief/deck:** https://supaprod.ai/brief
 
 ### 10 words
-Agents that know what to build, ship it, and remember.
+Agents that know what to build, ship it, and learn.
 
-### Under 50 characters — pick by audience, there is no single default
+> ⚠️ **The old version closed on "and remember" and is retired.** "Remembers" is a banned verb of the brain on every surface, because it claims less than the product delivers: the third layer does not hold a record, it grades outcomes and guides the next call. **Never close a one-liner on "remember".**
 
-| Line | Chars | Use it for |
+### The one-liner rule. **Founder ruling 2026-08-17, and it governs every short field.**
+
+> _"Say we have three layers: telling what to build, doing the entire product lifecycle built by agents, and the brain which learns and guides your next call. That's how it needs to be. As of now it's just one layer we are speaking about."_
+
+**A one-liner that names one layer sells one third of the product.** Both of these were promoted on 2026-08-17 and both were wrong, for the same reason:
+
+| Rejected | Why |
+| --- | --- |
+| `Product decisions with a forecast you cannot edit` | **Layer 03 only.** A mechanism with no product around it. It also opens on the forecast, which the 2026-08-11 positioning change moved out of the lead |
+| `Agents run product work. You keep the judgment.` | **Layer 02 only.** Says who does the work and who is accountable, and never says the product decides what to build or learns from the result |
+
+**The test, and it is not negotiable: every one-liner carries all three layers, in order.**
+
+| | Layer | Must appear as |
 | --- | --- | --- |
-| `Cursor for PMs, the whole product org.` | 38 | **Investors, VC-run accelerators, YC.** A partner thinks in categories and knows the PM budget exists, so the anchor does real work. |
-| `Agents that know what to build, ship it, warn you` | 49 | **Builder audiences: hacker houses, residencies, engineer-heavy programs.** All three layers, the third one **guides** rather than stores, and it keeps the ratified tagline's structure. |
-| `AI that knows what to build, ships it, warns you` | 48 | Same, with more headroom, if you prefer "AI" to "Agents". |
-| `Decides what to build, builds it, learns.` | 41 | When the cap is tighter than 50, or the form wants blunt. |
-| `Cursor for product managers.` | 28 | Anchor-only fallback when space is very tight and the reader is investor-side. |
+| **01** | the director | tells / knows / decides **what to build** |
+| **02** | the operating system | **builds it, ships it** (agents do it) |
+| **03** | the brain | **learns and guides the next call**, never "stores" and never "remembers" |
 
-> ⚠️ **Do not default to the Cursor line for builder audiences.** At YC it is the right anchor. At a house of young engineers, "product manager" is not an aspirational identity and for part of that room it names the person who slows them down, so it spends the 50 characters on the one word they may push back on.
+> **On the founder's phrase "company brain".** The concept is exactly right and it is the third layer. **The words are banned in outward copy** (`CLAUDE.md`, and it is YC's phrase, not our brand identity). Write the mechanism instead: *learns and guides the next call*. "Shared brain" is the kept alternative if a noun is needed.
+
+### Under 50 characters — every line below passes the three-layer test
+
+| Line | Chars | Notes |
+| --- | --- | --- |
+| **`Agents that know what to build, ship it, warn you`** | **49** | ⭐ **The default.** All three layers, names the actor, closes on the brain guiding rather than storing |
+| `AI that knows what to build, ships it, warns you` | 48 | Same line if the reader prefers "AI" to "Agents" |
+| `Decides what to build, builds it, guides the next` | 49 | Blunter, and "guides" is the sharpest statement of layer 03 |
+| `Agents that know what to build, ship it, guide you` | 50 | Only where the cap is inclusive of 50. Verify the field accepts it |
+| `Decides what to build, builds it, learns.` | 41 | When the cap is tighter than 50. Weakest of the set: "learns" does not say it guides |
+
+### Under 100 characters
+
+| Line | Chars | Notes |
+| --- | --- | --- |
+| **`Tells product teams what to build, builds it, then grades the call against what shipped.`** | **88** | ⭐ **Filed on Campus Founders 2026-08-16.** The strongest three-layer line in the corpus. `baseline.yml` carries it as `under_100_chars` |
+| `Agents that decide what to build, ship it, and guide the next call.` | 67 | Closes on guiding rather than grading, if the field wants the forward-looking half |
+
+> ### 🛑 `Cursor for PMs` is RETIRED on every surface. Do not reach for it.
+>
+> **All three readers killed it, and `baseline.yml` records the ruling.** It borrows the do-the-work-faster frame that the competitors answer then spends a whole paragraph disowning, so it argues against itself inside one application. It is still live on the filed YC form because that field is locked, which is the only reason it appears in that file.
+>
+> **The second reason, for builder audiences:** at a house of young engineers "product manager" is not an aspirational identity, and for part of that room it names the person who slows them down. It spends 50 characters on the one word they may push back on.
 >
 > **Never** use "agentic" or "AI-native" in a 50-character field. The vocabulary rules ban "agentic" from any first line, and builder audiences read category words as evasion.
 >
@@ -108,29 +197,39 @@ living in someone's head.
 ```
 
 ### The full telling (~200 words, for "what does your company do")
+
+> **⭐ THE CANONICAL BLOCK. Back-ported verbatim from the filed [`../yc/APPLICATION-FINAL.md`](../yc/APPLICATION-FINAL.md) §A 7f on 2026-08-17.** The version that stood here before was retired: it used "you" eleven times in product sentences, it led with the Cursor anchor, and it claimed compounding in the present tense. **Start every long product answer from this one.**
+
 ```
-Supaprod is the operating system a product team runs on when AI agents do the
-work. The closest familiar thing is Cursor, but for the whole product lifecycle
-instead of the code editor.
+Supaprod runs product work when agents do the building.
 
-It reads the signals from your users and your market and tells you what is
-worth building. It argues with you before you commit. Then it writes the spec,
-plans the work, builds it, ships it behind gates you control, and checks what
-actually happened.
+A team points it at everything they already have. User feedback, product
+analytics, sales and support conversations, market and competitor movement,
+and the direction they have already decided they want to go.
 
-The build lane is built in. Our own engine runs frontier models through one
-runtime chokepoint and delivers spec-shaped pull requests behind a merge gate
-no agent can cross, with an audit trail on every action and one-key rollback. Your
-team runs no second coding tool for it, and when a better model ships, Supaprod
-gets better the same day.
+From there agents run the work. They read all of it and cluster it into what is
+worth looking at. A critic argues against the weak ideas before anyone commits.
+Agents write the spec with the evidence attached, plan and design the work,
+build it, open the pull requests, ship it and write the release notes. When the
+result lands they grade what shipped against what the spec promised, and that
+verdict feeds the ranking of what to build next.
 
-What makes it compound: every decision is recorded with its evidence, and every
-outcome is checked and remembered. That record becomes the brain of your
-product org. It answers "why did we decide this" in seconds, it gets sharper
-about your next call with every outcome it records, and it warns you before you
-repeat something that did not work.
+A person approves and merges, and that is the only place a human is required.
+It is the smallest gate that still makes the rest safe to let run.
 
-Agents do the work. You answer for it. Supaprod is how you answer.
+What makes it a company is what gets kept. Every agent action is recorded, every
+decision carries the evidence behind it, and every gate records who cleared it.
+When agents do the work, being able to answer what was decided and on what stops
+being paperwork. It is the thing that lets a team let them run at all.
+
+One piece of it agents cannot produce, because it is not an artifact and they
+cannot know it: what a team believes is going to happen. So the belief goes down
+at the moment of the call. What they expect, how they will know, and by when. It
+locks. The system carries it from there and brings it back the day it falls due,
+settled against what actually shipped.
+
+Building got cheap. What a company runs on now is the calls it makes and whether
+they were right.
 ```
 
 ### The three layers (name and order them, always door then body then brain)
@@ -403,34 +502,35 @@ able to prove the call was right.
 
 ## 6. Competition
 
+> **⭐ THE CANONICAL BLOCK. Back-ported verbatim from the filed [`../yc/APPLICATION-FINAL.md`](../yc/APPLICATION-FINAL.md) §A 9b on 2026-08-17.** The retired version opened on the stitched stack and buried the folder in paragraph four. **The folder goes first: it is the answer a reviewer has not heard before, and leading with it proves we have done the work.** The stitched stack is still true and still used where a form asks specifically about tool sprawl.
+
 ```
-Nobody runs the whole loop. My real competitor is the stitched stack: Linear or
-Jira for tracking, Notion for docs, ChatPRD for specs, a coding agent for the
-build, and the product manager as the glue.
+The one I actually fear is not a company. It is a folder.
 
-The space is moving. Samepage raised a $4.85M seed to surface signals for
-product leaders. Brief captures decision context for agents. Productboard
-shipped Spark. Notion launched Ship OS, which promises customer feedback to a
-merged pull request.
+Teams hand-roll this in markdown and scripts, and it works. Every do-it-yourself
+success I found is one person in one context. Every failure is a second person or
+a fleet of agents. That transition is where we sell, and it is the honest read:
+on engineering forums the reflex is "just commit your agent files".
 
-What I understand that they do not: every one of them stops one step short. They
-surface, draft, remember, or dispatch. None of them checks the shipped outcome
-against the decision that caused it and feeds that back.
+The named ones are real and getting closer. Notion shipped Ship OS free in July.
+Atlassian launched Product Collection in May, positioned around better decisions.
+Linear hands issues to coding agents. ChatPRD drafts specs for over 100,000 PMs.
+All of them make doing the work faster.
 
-But the real competitor is not another product. It is the folder. Six product
-managers talked a buyer out of this category in a private thread last month:
-don't switch tools, use simpler ones, two systems of record create friction.
-One had tried four purpose-built tools and gone back to a plain Obsidian
-folder. Their sharpest argument was that lower-level tools are more AI-friendly,
-because agents drive them better.
+None of them records whether the call was right, and none catches what a team
+expected before it found out.
 
-They are right about the premise and wrong about the conclusion. An agent can
-write into a Notion page or a GitHub issue. It cannot write a decision carrying
-its evidence, its author, a verdict slot and a human gate into either.
-Low-level tools are agent-writable but not agent-governable. That seam opens
-the moment a second person or a fleet of agents touches the work, and it is
-where we sell.
+The other objection I get is that simpler tools are easier for agents to drive,
+so why add a layer. That is true and it is not enough. An agent can write into a
+Notion page or a GitHub issue. It cannot write a decision with its evidence, its
+author, a slot for the verdict and a human gate into either. Simple tools are
+agent-writable. They are not agent-governable.
+
+I deliberately do not build the code generator. That fight is expensive and the
+models keep absorbing it.
 ```
+
+**Never write "we have no competitors".** It is the most common red flag in that exact question, it is not true, and it claims without a mechanism.
 
 ---
 
@@ -600,10 +700,20 @@ Approving a pending gate is a **write**. Two programs on one login means the sec
 
 ## 12. Banned language (check every paste against this)
 
-Never write: leverage, utilize, robust, seamless, cutting-edge, revolutionize, game-changer, unlock, empower, supercharge, "in today's fast-paced world", "it's not just X, it's Y", "delve", "tapestry", "testament to".
+> **Synced with `CLAUDE.md` and `baseline.yml` on 2026-08-17. The register split is retired: these apply on EVERY surface, product and outward alike.** The audit that killed the split found we drifted worst in the shop window, not in the product.
 
-Never use: em dashes or en dashes in pasted copy. No invisible Unicode.
+**Filler, never write:** leverage, utilize, robust, seamless, cutting-edge, revolutionize, game-changer, unlock, empower, supercharge, delve, tapestry, testament to, "in today's fast-paced world", "it's not just X, it's Y".
 
-Product-name rules: the product is **Supaprod**, never "SupaProd". `Cadence` is the retired name and must not appear.
+**Vocabulary, banned everywhere:** receipts · ledger · company brain · decision layer · unattended · first run · provenance. They score at or near zero in the market's own writing, measured across 5.9M words.
 
-Positioning rules: "company brain" is YC's phrase, quoted and attributed, never our brand identity. Our owned words are the track record, the decision brain, evidence.
+**Verbs of the brain, banned everywhere:** remembers · stores · logs. They claim less than the product delivers. **Say "learns, then guides".**
+
+**Kept, everywhere:** audit trail · shared brain. A practitioner reached for the first of those unprompted, which is the whole test.
+
+**"Approve" versus "review":** settled by what the control does, not by word frequency. Use **approve** only where a click UNBLOCKS something. Use **review** where it only shows you something.
+
+**Never claim accumulated learning in the present tense.** The honest form is *the loop is wired and proven, and it begins accruing on first real use.*
+
+**Punctuation:** no em dashes, no en dashes, no invisible Unicode in anything pasted into a form.
+
+**Product name:** the product is **Supaprod**, never "SupaProd". `Cadence` is the retired name and must not appear.
