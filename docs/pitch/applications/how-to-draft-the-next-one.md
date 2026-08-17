@@ -369,6 +369,32 @@ ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 <file>
 
 > **The meta-lesson, and it is the expensive one.** The ruling was already in the repo, in `answer-bank.md` §11 and in the Campus Founders fill sheet, in the words *"the standing answer whenever any application asks for a deck or a PDF."* **It was read and reasoned past**, because a programme's explicit requirement felt like new information that overrode a standing decision. **A standing founder ruling is not a default to be beaten by a good argument. It is the answer until he changes it.** If the argument is genuinely strong, raise it in one sentence and let him rule again. Do not build the artifact first.
 
+### 23. Solo is the state today, never the intention. Close every solo answer on where the team goes.
+
+**Founder ruling 2026-08-17.**
+
+> _"I do not want to do everything on my own. As we scale I want to hire my first founding engineer, go-to-market engineer, and so on, working along with a crew of agents."_
+
+**The sentence that triggered it was true:** *"No non-founder has touched this codebase."* Standing alone at the end of an answer, **it says this founder intends to do everything himself forever.** A programme is funding a company that grows, and an applicant who reads as structurally unable to grow is a worse bet than one who is simply early.
+
+**The fix is one closing beat on any field that establishes solo building:**
+
+> This is not the end state and I do not want it to be. The first two hires are a founding engineer and a go-to-market engineer, each working the way I do now, directing a crew of agents rather than replacing them. **Agents scale the execution. Hiring is how I scale the judgment.**
+
+**Why that last line does real work.** It keeps the company's own thesis intact. A founder who says "then I hire ten engineers" is quietly conceding that agents do not scale; naming hires who *direct agents* says the opposite, and it is what the product claims.
+
+**Never give a headcount, a date or a hiring number.** There is no recruiting process and no offer out, so a figure is an implied demand claim under rule 0a. **Name the roles and the shape, nothing more.**
+
+**The cofounder answer is a separate question** and does not cover this. *"Open to a cofounder who adds a perspective I do not have, and not waiting on one"* answers whether he is looking for a peer. It says nothing about whether the company hires.
+
+### 23b. A credential that a reader cannot decode is not a credential
+
+**Same session, same field.** Q9 carried *"flight-hardware work at ISRO"*. **To a reader outside India, "ISRO" is four letters.** It now reads: *satellite communication systems at ISRO, India's national space agency, on its Moon and Mars missions, where hardware launches once and a wrong call is unrecoverable.*
+
+**Mission names stay banned**, per the standing rule: a reader has to look them up, and a name that stops the sentence is a defect. **Say what the organisation is and what made the work hard. That is what travels.**
+
+> **On repeating ISRO in two fields, which the no-repetition rule appears to forbid.** It does not, and this is the distinction worth keeping: **a block may never appear twice. A fact may, when two questions genuinely need it and it does different work each time.** Q8 uses ISRO to answer what shaped the founder. Q9 uses it to answer why he can review code an agent wrote. Different job, different wording, both earned.
+
 ---
 
 ## Part 2 — What worked, and should be repeated

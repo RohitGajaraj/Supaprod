@@ -148,24 +148,39 @@ used to. I am the proof of it.
 ```
 
 ## 9. Who is responsible for building your product?
-> _**90 words / 200.** Short on purpose._
+> _**160 words / 200.** Answers the question asked, then closes on where the team goes._
 >
 > ### ⚠️ This answer was rewritten because it was answering a different question
 >
 > The hint is *"(e.g., an in-house CTO, internal tech team, or external tech team)"*. **They are asking about the shape of the team that builds, and whether the company depends on outsiders.** The earlier draft answered with a tech stack: React 19, TypeScript, Cloudflare Workers, Supabase, pgvector, E2B, Cohere, Qwen, Gemini. **None of that was asked for.** That is correction 0c: answer the question that was asked, and stop.
 >
 > **Rule 6 still holds:** the commit count must never share a field with "agents write the code". It lives at Q15.
+>
+> ### Two founder additions, 2026-08-17, both now doctrine
+>
+> **1. The answer must not read as a permanent solo state.** *"No non-founder has touched this codebase"* is true and, left alone, it says this founder intends to do everything himself forever. **An accelerator funds a company that grows.** The close now names the first two hires, a founding engineer and a go-to-market engineer, working the way he does rather than instead of it. *"Agents scale the execution. Hiring is how I scale the judgment."*
+>
+> **2. The ISRO credential was too thin to do its job here.** It read *"flight-hardware work at ISRO"*, which means nothing to a reader who does not know what ISRO is. It now says national space agency, Moon and Mars missions, and why that is hard. **Mission names stay banned**, per the standing rule: a reader outside India has to look them up, and a name that stops the sentence is a defect.
+>
+> **On repeating ISRO in both Q8 and Q9.** This is the legitimate exception to the no-repetition rule. **A block may never appear twice; a fact may, when two questions genuinely need it and it does different work each time.** Q8 uses ISRO to answer what shaped the founder. Q9 uses it to answer why he can review code an agent wrote. The wording differs in both places.
 ```
-In-house, and it is me. No CTO, no internal tech team, no external agency, and no
-non-founder has touched this codebase.
+In-house, and today it is me. No CTO, no internal tech team, no external agency,
+and no non-founder has touched this codebase.
 
 I direct the build and AI agents write the code. I make every call and review
 every change. A separate reviewer, independent of the agents that write, audits
 for security and holds every change against the test suite before anything can
 merge.
 
-I am an engineer by training, with a degree in Mechatronics and flight-hardware
-work at ISRO behind me, so I review the code rather than trust it.
+I can review what they produce because I am an engineer by training: a degree in
+Mechatronics, and satellite communication systems at ISRO, India's national space
+agency, on its Moon and Mars missions, where hardware launches once and a wrong
+call is unrecoverable.
+
+This is not the end state and I do not want it to be. The first two hires are a
+founding engineer and a go-to-market engineer, each working the way I do now,
+directing a crew of agents rather than replacing them. Agents scale the
+execution. Hiring is how I scale the judgment.
 ```
 
 ## 10. Who are the (co-)founders and what are their roles? Please add all of their LinkedIn URLs.

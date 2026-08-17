@@ -379,13 +379,39 @@ product exists: ten weeks of one person directing a fleet of agents produced
 this is now possible, and I am the proof of it.
 ```
 
-### The "can you actually build it" defense
+### "Who builds it" and the "can you actually build it" defense
+
+> **⭐ Use this wherever a form asks who is responsible for building the product.** Its hint is usually *"an in-house CTO, internal tech team, or external tech team"*, so **it is asking about the shape of the team, not the tech stack.** A Hub71 draft answered it with React, Cloudflare, Supabase and model names on 2026-08-17 and was rejected. Correction 0c: answer the question that was asked, and stop.
+
 ```
-I direct all of it and agents write it. I read and review every line, everything
-goes through typecheck, build and a review pass before merge, and no non-founder
-has touched this codebase. A separate reviewer, independent of the agents that
-build, audits it for security and verifies the work against my build register.
+In-house, and today it is me. No CTO, no internal tech team, no external agency,
+and no non-founder has touched this codebase.
+
+I direct the build and AI agents write the code. I make every call and review
+every change. A separate reviewer, independent of the agents that write, audits
+for security and holds every change against the test suite before anything can
+merge.
+
+I can review what they produce because I am an engineer by training: a degree in
+Mechatronics, and satellite communication systems at ISRO, India's national space
+agency, on its Moon and Mars missions, where hardware launches once and a wrong
+call is unrecoverable.
+
+This is not the end state and I do not want it to be. The first two hires are a
+founding engineer and a go-to-market engineer, each working the way I do now,
+directing a crew of agents rather than replacing them. Agents scale the
+execution. Hiring is how I scale the judgment.
 ```
+
+> ### 🛑 Never let a solo answer read as permanent. **Founder ruling 2026-08-17.**
+>
+> _"I do not want to do everything on my own. As we scale I want to hire my first founding engineer, go-to-market engineer, and so on, working along with a crew of agents."_
+>
+> **"No non-founder has touched this codebase" is true and, standing alone, it says this founder intends to do everything himself forever.** A programme funds a company that grows, so every field that establishes solo building must close on where the team goes next. **Name the roles and the shape. Never a headcount, a date or a hiring number**, because there is no process and no offer out, and a figure would be an implied demand claim under rule 0a.
+>
+> **The cofounder answer is a different question and does not replace this one.**
+>
+> ⚠️ **The block that stood here claimed the reviewer "verifies the work against my build register".** The register has not been maintained since 2026-08-04 and the script named for checking it does not exist. **Removed**, replaced with the test suite, which is real.
 
 ---
 

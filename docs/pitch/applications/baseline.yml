@@ -82,6 +82,29 @@ company:
   grants: none
   team_fulltime: 1
 
+  # FOUNDER RULING 2026-08-17. Solo is the state today, NEVER the intention.
+  # "I do not want to do everything on my own. As we scale I want to hire my first
+  # founding engineer, go-to-market engineer, and so on, working along with a crew of
+  # agents."
+  hiring_plan:
+    rule: >-
+      Never let a solo answer read as permanent. Any field that establishes the
+      founder builds alone must close on where the team goes next. A programme
+      funds a company that grows; "no non-founder has touched this" is true and,
+      left alone, says he intends to do everything himself forever.
+    first_hires: [founding engineer, go-to-market engineer]
+    shape: >-
+      Each hire works the way the founder works now, directing a crew of agents
+      rather than replacing them. Headcount is not how the execution scales.
+    the_line: "Agents scale the execution. Hiring is how I scale the judgment."
+    do_not_say: >-
+      Never give a hiring number, a date, or a headcount plan. There is no
+      recruiting process and no offer out, so a figure would be an implied demand
+      claim under never_imply_demand. Name the roles and the shape, nothing more.
+    cofounder_stance_is_separate: >-
+      Open to a cofounder who adds a perspective he does not have, and not waiting
+      on one. That answer is about a COFOUNDER and does not replace this one.
+
 founder:
   name: Rohit Gajaraj
   email: founder@supaprod.ai
