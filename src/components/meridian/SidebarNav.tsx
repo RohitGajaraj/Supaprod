@@ -53,6 +53,108 @@ import type { ReactNode } from "react";
  */
 
 /**
+ * ── THE KEYBOARD, WHICH THIS RAIL SHIPPED WITHOUT ───────────────────────────
+ *
+ * Every row was its own tab stop and no arrow key did anything, so reaching the
+ * last station in a twelve-row rail was a twelve-press crawl, and Tabbing PAST the
+ * rail to the actual work took twelve more.
+ *
+ * That is not a hypothetical. `_authenticated.settings.tsx` hit it, measured it in
+ * its own header ("Diagnostics was a fourteen-press crawl"), and solved it by
+ * hand-rolling a roving tabindex over its own door list. So the product already had
+ * the fix, in one surface, in a form no other surface could use — which is the
+ * shape of every gap this design system exists to close. Adopting this rail there
+ * would have REGRESSED the keyboard, and that is what made this a Meridian gap
+ * rather than a Settings feature.
+ *
+ * Exported and pure so the ring can be tested without a DOM, the same way
+ * `settings-sections.ts` tests its own. The two will now agree because there is one
+ * implementation; a second copy of a focus ring is how two navs in one product end
+ * up answering End differently.
+ */
+
+/** The rows a keyboard can actually reach, in the order the rail draws them. */
+function railOrder(items: readonly RailItem[]): string[] {
+  const sections: (string | undefined)[] = [];
+  for (const item of items) if (!sections.includes(item.section)) sections.push(item.section);
+  return sections.flatMap((s) => items.filter((i) => i.section === s).map((i) => i.key));
+}
+
+/** Keys this rail owns. Anything else must fall through, or the rail silently
+ *  breaks page scrolling and browser find. */
+const RAIL_KEYS = ["ArrowDown", "ArrowUp", "Home", "End"] as const;
+
+export function isRailKey(key: string): boolean {
+  return (RAIL_KEYS as readonly string[]).includes(key);
+}
+
+/**
+ * Where focus goes for one arrow, Home or End. Wraps, because a rail is a ring and
+ * a person holding Down should not simply stop.
+ */
+export function stepRail(
+  items: readonly RailItem[],
+  from: string,
+  key: string,
+): string | null {
+  const order = railOrder(items);
+  if (order.length === 0) return null;
+  if (key === "Home") return order[0]!;
+  if (key === "End") return order[order.length - 1]!;
+  const at = order.indexOf(from);
+  if (at === -1) return order[0]!;
+  if (key === "ArrowDown") return order[(at + 1) % order.length]!;
+  if (key === "ArrowUp") return order[(at - 1 + order.length) % order.length]!;
+  return null;
+}
+
+/**
+ * The row a typed buffer reaches, searching FORWARD from where focus is and
+ * wrapping once.
+ *
+ * Forward-and-wrapping rather than first-match, because that is what makes a
+ * repeated letter cycle: pressing b three times in a rail with three b rows visits
+ * all three. First-match would sit on the first one forever.
+ *
+ * The row you are ON is searched LAST, so a refining buffer ("c" then "o") can keep
+ * matching it rather than skipping past to the next c.
+ */
+export function railTypeahead(
+  items: readonly RailItem[],
+  buffer: string,
+  from: string,
+): string | null {
+  const needle = buffer.trim().toLowerCase();
+  if (!needle) return null;
+  const order = railOrder(items);
+  const label = (key: string) => (items.find((i) => i.key === key)?.label ?? "").toLowerCase();
+  const at = order.indexOf(from);
+
+  /*
+   * ONE CHARACTER CYCLES, MORE THAN ONE REFINES, and getting that backwards is the
+   * bug this comment exists to stop coming back. It is the standard listbox rule and
+   * the two halves want opposite things from the row focus is on:
+   *
+   *   "b" pressed repeatedly must LEAVE the current row every time, or three rows
+   *   starting with b are unreachable past the first.
+   *
+   *   "b" then "r" must be allowed to STAY on Brief. Treating it as another cycle
+   *   step skips to Brand, so a person typing the name of the row they are already
+   *   looking at gets moved off it — which reads as the rail fighting them.
+   *
+   * So a single character searches from the NEXT row and wraps past the current one;
+   * a longer buffer searches from the current row inclusive.
+   */
+  const forward = order.slice(at + 1);
+  const behind = order.slice(0, Math.max(0, at));
+  const current = at === -1 ? [] : [order[at]!];
+  const ring = needle.length === 1 ? [...forward, ...behind, ...current] : [...current, ...forward, ...behind];
+
+  for (const key of ring) if (label(key).startsWith(needle)) return key;
+  return null;
+}
+
+/**
  * The mask that makes a column dissolve at the edges it continues past.
  *
  * Exported so a test can assert the four states directly. That matters more than
@@ -222,6 +324,62 @@ export function SidebarNav({
   });
 
   /*
+   * The typed buffer, and it is a ref rather than state on purpose: it must not
+   * re-render the rail on every keystroke, and nothing draws it.
+   *
+   * One second, which is the standard listbox interval. Shorter and a two-letter
+   * refinement becomes two separate jumps.
+   */
+  const typed = useRef<{ text: string; at: number }>({ text: "", at: 0 });
+
+  /**
+   * Which row holds the tab stop.
+   *
+   * The ACTIVE row, so Tab lands a person where they already are rather than at the
+   * top of a list they have already navigated. Falls back to the first row when the
+   * active key is not in this rail, which happens on a surface whose current address
+   * draws no row of its own.
+   */
+  const order = railOrder(items);
+  const tabStop = order.includes(active) ? active : (order[0] ?? "");
+
+  function onRailKeyDown(event: React.KeyboardEvent<HTMLElement>) {
+    /*
+     * ONLY A ROW DRIVES THIS. The search field and the primary action live inside
+     * the same landmark, and without this check typing in the search box would drag
+     * focus out of it into the rows, and End would jump to the last station instead
+     * of moving the caret.
+     */
+    const focused = Object.entries(rowRefs.current).find(
+      ([, el]) => el === document.activeElement,
+    )?.[0];
+    if (!focused) return;
+
+    if (isRailKey(event.key)) {
+      event.preventDefault();
+      const next = stepRail(items, focused, event.key);
+      if (next) rowRefs.current[next]?.focus();
+      return;
+    }
+
+    /*
+     * A single printable character is typeahead. Space is excluded because it
+     * activates the focused control, which is the ARIA contract and the one thing a
+     * person will not forgive being taken away.
+     */
+    if (event.key.length !== 1 || event.key === " ") return;
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    const now = Date.now();
+    const buffer = now - typed.current.at > 1000 ? event.key : typed.current.text + event.key;
+    typed.current = { text: buffer, at: now };
+    const match = railTypeahead(items, buffer, focused);
+    if (match) {
+      event.preventDefault();
+      rowRefs.current[match]?.focus();
+    }
+  }
+
+  /*
    * ── TWO BLOCKS, NOT ONE, AND THIS IS A CORRECTION ───────────────────────
    *
    * The reference draws a SINGLE travelling block, positioned at
@@ -375,6 +533,9 @@ export function SidebarNav({
     <nav
       data-mrd=""
       aria-label="Stations"
+      /* One handler on the landmark rather than one per row: the ring is a property
+         of the LIST, and thirteen identical handlers is thirteen chances to drift. */
+      onKeyDown={onRailKeyDown}
       className="flex flex-col rounded-mrd-card border border-mrd-line bg-mrd-sheet"
       style={{
         width: isCollapsed ? "56px" : "240px",
@@ -789,6 +950,14 @@ export function SidebarNav({
                     "aria-current": isActive ? ("page" as const) : undefined,
                     /* Only when the label is off screen, never both at once. */
                     "aria-label": isCollapsed ? accessibleName : undefined,
+                    /*
+                     * THE ROVING TAB STOP. Exactly one row is reachable by Tab; the
+                     * arrows move between them. Without this every row is a stop,
+                     * and Tabbing past a twelve-row rail to the actual work costs
+                     * twelve presses -- the crawl Settings measured and hand-rolled
+                     * its own fix for before this rail had one.
+                     */
+                    tabIndex: item.key === tabStop ? 0 : -1,
                     /*
                      * The reference asks for `transition-[color,transform]`
                      * here and the `color` half of that is inert: this element
