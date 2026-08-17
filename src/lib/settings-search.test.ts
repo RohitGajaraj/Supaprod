@@ -18,6 +18,7 @@
  * they conclude the product cannot do it. So the last block here reads the route and
  * fails if a keyword names a pane that does not mention it.
  */
+import { stripComments } from "../__tests__/meridian-ratchet-scan";
 import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "bun:test";
@@ -29,6 +30,8 @@ import {
   searchSections,
   sectionLabel,
   type SectionId,
+  subTargetFor,
+  ALL_SUB_ANCHORS,
 } from "./settings-sections";
 
 describe("the two queries that were broken", () => {
@@ -215,5 +218,52 @@ describe("every door is findable, and every keyword is true", () => {
       unfounded,
       "these keywords promise something the pane never mentions",
     ).toEqual([]);
+  });
+});
+
+/* ------------------------------------------------------------------ *
+ * Sub-targets: search names the BLOCK, and the block is really there
+ * ------------------------------------------------------------------ */
+describe("search lands on the block, not just the pane", () => {
+  it("offers Invite teammates by its own name for every word someone would type", () => {
+    /*
+     * Founder, twice: typing "invite" gave him the pane and left him hunting, and the
+     * heading he wanted was "Invite teammates". These are the words he named plus the
+     * ones on the block itself.
+     */
+    /* "inv" is deliberately absent: it is a genuine tie with Billing's "invoice", and
+       asserting a winner there would pin a coin toss rather than a rule. */
+    for (const q of ["invite", "invitation", "teammate", "team", "member", "people", "seat"]) {
+      const section = searchSections(q)[0];
+      const target = section ? subTargetFor(section, q) : null;
+      expect(target?.label, `"${q}" should offer a named block`).toBe("Invite teammates");
+    }
+  });
+
+  it("every anchor a sub-target points at is really rendered", () => {
+    /*
+     * THE DOOR-TO-NOWHERE GUARD. A sub-target promising to scroll to an id nothing
+     * renders is a control that does nothing, which is this repo's most common defect.
+     * Proven red by pointing the People sub-target at a made-up id.
+     *
+     * `stripComments` so a mention of the id inside a comment cannot satisfy this --
+     * that trap has already been hit three times on this surface.
+     */
+    const route = stripComments(
+      readFileSync(new URL("../routes/_authenticated.settings.tsx", import.meta.url), "utf8"),
+    );
+    for (const anchor of ALL_SUB_ANCHORS) {
+      const rendered =
+        route.includes(`id="${anchor}"`) ||
+        // Held in a constant, which is how the credits anchor is done.
+        new RegExp(`const \\w+ = "${anchor}"`).test(route);
+      expect(rendered, `nothing on the pane renders id "${anchor}"`).toBe(true);
+    }
+  });
+
+  it("returns no sub-target for a query the block has nothing to do with", () => {
+    // Otherwise every hit on a pane with subs would drag the same block along.
+    expect(subTargetFor("workspace", "brand")).toBeNull();
+    expect(subTargetFor("workspace", "voice")).toBeNull();
   });
 });

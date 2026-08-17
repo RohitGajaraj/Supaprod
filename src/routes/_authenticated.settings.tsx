@@ -204,6 +204,7 @@ import {
   normalizeSection,
   paneForSection,
   searchSections,
+  subTargetFor,
   type SectionId,
 } from "@/lib/settings-sections";
 import { SidebarNav, type RailItem } from "@/components/meridian/SidebarNav";
@@ -388,6 +389,15 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
     ? hits.length > 0
       ? hits.map((id) => {
           const found = allItems.find((i) => i.key === id)!;
+          /*
+           * NAME THE BLOCK WHEN THERE IS ONE. Founder: typing "invite" should offer
+           * "Invite teammates", not the pane that happens to contain it. A sub-target
+           * is a better answer than a keyword reason, so it wins: the row shows the
+           * heading the reader will actually arrive at, and `section` stays underneath
+           * it so the crumb still says which pane that is.
+           */
+          const target = subTargetFor(id, query);
+          if (target) return { ...found, label: target.label, section: found.label };
           const why = matchReason(id, query);
           return why ? { ...found, label: `${found.label}  ${why}` } : found;
         })
@@ -437,7 +447,30 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
       <SidebarNav
         items={items}
         activeKey={active}
-        onNavigate={(key) => onSet(key as SectionId)}
+        onNavigate={(key) => {
+          onSet(key as SectionId);
+          /*
+           * THEN LAND ON THE BLOCK. Founder: "when I click on that, it would literally
+           * point me to this section."
+           *
+           * Deferred one frame because the pane it is on has not mounted yet at the
+           * moment the door is chosen -- `getElementById` on this tick finds nothing
+           * and the reader arrives at the top of a long pane, which is the bug this
+           * exists to fix. Two frames, because the first commits the pane and the
+           * second lets layout settle before a smooth scroll is measured.
+           *
+           * `scrollMarginTop` on the anchor keeps the heading clear of the sticky head.
+           */
+          const target = subTargetFor(key as SectionId, query);
+          if (!target) return;
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() =>
+              document
+                .getElementById(target.anchor)
+                ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+            ),
+          );
+        }}
         workspaceName={activeWorkspace?.name ?? "Workspace"}
         /*
          * NO `onWorkspaceClick`, on purpose, so the row states the workspace rather
@@ -1109,12 +1142,36 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
         )}
       </Block>
 
-      {/* People. Duplicated by /admin, which is gated on being an admin, so it
-          stays until it has a section of its own. */}
-      <Block title="People">
-        <MembersCard />
-        <TeamCard />
-      </Block>
+      {/*
+       * ── THE NESTED BLOCK IS GONE, 2026-08-17 ──────────────────────────────────
+       * Founder, twice: "in Brief and voice, if you go to the bottom, there is an
+       * Invite teammates button, so that is not at all working and opening."
+       *
+       * There is no broken button. TeamCard is fully wired -- email, role, a real
+       * `invite.mutate()`, the join link and the pending list. What was broken is what
+       * the surface LOOKED like: `TeamCard` draws its own `Block title="Invite
+       * teammates"`, and it sat inside `Block title="People"`. A Block renders card
+       * chrome and a heading, so nesting one produced a bordered, titled row inside
+       * another bordered, titled row -- which is the shape this product uses for a
+       * pressable thing everywhere else. He pressed a heading, correctly expecting it
+       * to open something, and nothing happened.
+       *
+       * A control that is not a control is still a defect, and this is the honest fix:
+       * the two cards are siblings at the same rung, each owning its own Block, so the
+       * invite form is visibly a form rather than a closed door.
+       *
+       * `id` so search can land on it: typing "invite" should arrive at this heading.
+       * Duplicated by /admin, which is gated on being an admin, so it stays here until
+       * it has a section of its own.
+       */}
+      <div id={PEOPLE_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+        {/* MembersCard draws no Block of its own, so it keeps this one. TeamCard does
+            draw one, which is exactly why it must not be inside this. */}
+        <Block title="People">
+          <MembersCard />
+        </Block>
+      </div>
+      <TeamCard />
 
       <AdminDoor />
     </div>
@@ -2268,6 +2325,8 @@ function PlanSection({ checkout }: { checkout?: string }) {
  * supposed to remove.
  */
 const CREDITS_ANCHOR = "settings-credits";
+/** Where "invite", "team" and "member" land on the Brief and voice pane. */
+const PEOPLE_ANCHOR = "settings-people";
 
 function CreditsSection() {
   const fGetCredits = useServerFn(getMyCreditsView);

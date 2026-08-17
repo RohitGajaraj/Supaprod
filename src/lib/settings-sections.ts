@@ -145,6 +145,30 @@ export type SectionId =
  */
 export type GroupId = "crew" | "brief" | "reach" | "you";
 
+/**
+ * A named block INSIDE a pane, which search can name and land on.
+ *
+ * Founder: "if someone types invite in the search bar, it should open up the section
+ * where it is exactly ... it would literally point me to this section. That's how the
+ * search should work, not just for this entire thing."
+ *
+ * Before this, "invite" resolved to the pane that contains the invite form and said
+ * "Brief and voice", leaving the reader to find it among five blocks. The pane was
+ * right and the answer was useless.
+ *
+ * `anchor` is a real element id on that pane, so landing is a scroll rather than a
+ * promise. An anchor nothing renders is a door to nowhere, which is this repo's
+ * most-paid-for defect, so the search test asserts every anchor here exists in the
+ * route source.
+ */
+export type SettingsSubTarget = {
+  /** The heading a reader will actually see when they arrive. */
+  label: string;
+  /** The `id` of the element to scroll to. */
+  anchor: string;
+  keywords: readonly string[];
+};
+
 export type SettingsSection = {
   id: SectionId;
   label: string;
@@ -179,6 +203,8 @@ export type SettingsSection = {
    * pins each one against the pane it claims.
    */
   keywords?: readonly string[];
+  /** Named blocks inside this pane that search can land on. */
+  subs?: readonly SettingsSubTarget[];
 };
 
 export type SettingsGroup = {
@@ -424,6 +450,13 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
     sections: [
       {
         id: "workspace",
+        subs: [
+          {
+            label: "Invite teammates",
+            anchor: "settings-people",
+            keywords: ["invite", "invitation", "teammate", "team", "member", "people", "seat"],
+          },
+        ],
         label: "Brief and voice",
         // People lives on this pane (MembersCard, TeamCard), which is why "invite"
         // and "member" belong here and nowhere else.
@@ -676,7 +709,19 @@ export function searchSections(query: string): readonly SectionId[] {
   for (const group of NAV_GROUPS) {
     for (const section of group.sections) {
       const label = section.label.toLowerCase();
-      const words = (section.keywords ?? []).map((k) => k.toLowerCase());
+      /*
+       * SUB-TARGET WORDS COUNT AS THIS PANE'S WORDS, and leaving them out was a real
+       * bug: "teammate" and "seat" matched nothing at all, because they live only on
+       * the Invite teammates block. Founder: "when I type in invite ... Brief and voice
+       * should display Invite teammates."
+       *
+       * A block's own heading counts too, so the heading a reader is shown is also one
+       * they can find by typing it.
+       */
+      const words = [
+        ...(section.keywords ?? []),
+        ...(section.subs ?? []).flatMap((t) => [t.label, ...t.keywords]),
+      ].map((k) => k.toLowerCase());
 
       if (label.startsWith(needle)) tiers[0]!.push(section.id);
       else if (label.includes(needle)) tiers[1]!.push(section.id);
@@ -708,3 +753,29 @@ export function matchReason(section: SectionId, query: string): string | null {
     null
   );
 }
+
+/**
+ * The block inside a pane that best answers this query, or null for the pane itself.
+ *
+ * Startswith beats contains, exactly as the section ranking does, so "inv" lands on
+ * Invite teammates rather than on whatever merely mentions it.
+ */
+export function subTargetFor(section: SectionId, query: string): SettingsSubTarget | null {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return null;
+  const def = NAV_GROUPS.flatMap((g) => g.sections).find((sec) => sec.id === section);
+  const subs = def?.subs ?? [];
+  if (subs.length === 0) return null;
+  return (
+    subs.find((t) => t.label.toLowerCase().startsWith(needle)) ??
+    subs.find((t) => t.keywords.some((k) => k.toLowerCase().startsWith(needle))) ??
+    subs.find((t) => t.label.toLowerCase().includes(needle)) ??
+    subs.find((t) => t.keywords.some((k) => k.toLowerCase().includes(needle))) ??
+    null
+  );
+}
+
+/** Every anchor any sub-target points at, for the reachability test. */
+export const ALL_SUB_ANCHORS: readonly string[] = NAV_GROUPS.flatMap((g) =>
+  g.sections.flatMap((sec) => (sec.subs ?? []).map((t) => t.anchor)),
+);
