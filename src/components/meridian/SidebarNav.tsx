@@ -52,6 +52,28 @@ import type { ReactNode } from "react";
  * orchid dot in a corner says nothing out loud.
  */
 
+/**
+ * The mask that makes a column dissolve at the edges it continues past.
+ *
+ * Exported so a test can assert the four states directly. That matters more than
+ * it looks: the whole honesty of this effect is that a fade means "there is more
+ * this way", and the failure mode is a fade painted when there is not. A test
+ * that can only see the rendered rail would have to fake layout to check it.
+ *
+ * `none` when the column fits, and that is the case worth naming. It is the
+ * common one, and returning a full-strength gradient instead would still clip a
+ * hair off both ends for no reason.
+ */
+export function edgeMask(edges: { top: boolean; bottom: boolean }): string {
+  const D = "var(--mrd-fade-rail)";
+  if (edges.top && edges.bottom) {
+    return `linear-gradient(to bottom, transparent 0, black ${D}, black calc(100% - ${D}), transparent 100%)`;
+  }
+  if (edges.bottom) return `linear-gradient(to bottom, black calc(100% - ${D}), transparent 100%)`;
+  if (edges.top) return `linear-gradient(to bottom, transparent 0, black ${D})`;
+  return "none";
+}
+
 /* One vocabulary for the seven marks, defined beside the drawings themselves so
  * a station cannot be added to the type without a glyph existing for it. */
 export type RailIconKind = StationGlyphKind;
@@ -173,6 +195,33 @@ export function SidebarNav({
   const tipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /*
+   * ── THE FADE, WHICH THE PORT WAS MISSING ────────────────────────────────
+   *
+   * On the reference the list of rows does not end, it dissolves: rows further
+   * down lose contrast progressively until the last one is barely there. It is
+   * the single most recognisable thing about that rail and the port had none of
+   * it, so a long list ended in a hard edge and a scrollbar.
+   *
+   * IT IS INFORMATION, NOT DECORATION, AND THAT DECIDES THE IMPLEMENTATION. A
+   * fade painted permanently at the bottom would dim the final row of a list
+   * that fits, which tells the reader there is more below when there is not.
+   * So each edge fades only when there is genuinely content past it, measured
+   * from the element rather than assumed, and re-measured on scroll and on
+   * resize. A rail whose items all fit has no fade at all and no scrollbar.
+   *
+   * `--mrd-fade-rail` carries the distance. It earns a token rather than a
+   * literal because the same dissolve belongs on any pinned scrolling column,
+   * and the second caller is what the standing ruling asks for before a token
+   * exists. The scrollbar is hidden because the fade is the affordance; that is
+   * the reference's choice and it only works BECAUSE the fade is honest.
+   */
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState<{ top: boolean; bottom: boolean }>({
+    top: false,
+    bottom: false,
+  });
+
+  /*
    * ── TWO BLOCKS, NOT ONE, AND THIS IS A CORRECTION ───────────────────────
    *
    * The reference draws a SINGLE travelling block, positioned at
@@ -222,6 +271,60 @@ export function SidebarNav({
     const next = measure(hovered);
     if (next) setHoverBox(next);
   }, [hovered, active, isCollapsed, items]);
+
+  /*
+   * Which edges have content past them, measured rather than assumed.
+   *
+   * A ResizeObserver as well as a scroll listener, because the rail changes
+   * height without anyone scrolling it: collapsing hides the labels, a section
+   * arrives, the window shortens. Without the observer a list that becomes
+   * scrollable after mount would keep saying it fits.
+   *
+   * The 1px tolerance is not cosmetic. Fractional layout means `scrollTop` at
+   * the true bottom lands a hair under the arithmetic, so an exact comparison
+   * leaves a permanent bottom fade on a list scrolled all the way down, which is
+   * the same lie as a static one.
+   */
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const read = () => {
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      const overflowing = scrollHeight - clientHeight > 1;
+      setEdges({
+        top: overflowing && scrollTop > 1,
+        bottom: overflowing && scrollTop + clientHeight < scrollHeight - 1,
+      });
+    };
+
+    read();
+    el.addEventListener("scroll", read, { passive: true });
+
+    /*
+     * GUARDED because jsdom does not implement ResizeObserver, and a rail that
+     * throws on mount in a test environment is a rail nobody can write a test
+     * against. Not defensive padding: this component is about to be rendered by
+     * Settings, whose tests run in jsdom.
+     *
+     * The scroll listener above still works there, so the degradation is only
+     * that a rail which becomes scrollable WITHOUT being scrolled reports late.
+     * In a real browser the observer always exists.
+     */
+    const observer =
+      typeof ResizeObserver === "function"
+        ? new ResizeObserver(read)
+        : null;
+    if (observer) {
+      observer.observe(el);
+      for (const child of Array.from(el.children)) observer.observe(child);
+    }
+
+    return () => {
+      el.removeEventListener("scroll", read);
+      observer?.disconnect();
+    };
+  }, [items, isCollapsed]);
 
   /* A pending tooltip must not outlive the rail that scheduled it. */
   useEffect(
@@ -472,15 +575,51 @@ export function SidebarNav({
        * one, which is the whole reason meridian's space ramp grows instead of
        * stepping by four.
        */}
+      {/*
+       * THE SCROLLING HALF, wrapped around the rows rather than applied to them.
+       *
+       * The order matters and is not stylistic. `navRef` is the box the selection
+       * and hover blocks are absolutely positioned against, and it must NOT be the
+       * element that scrolls: `measure()` computes `rect.top - containerRect.top`
+       * from two viewport rectangles, and an absolutely positioned child inside a
+       * scrolled box is placed from the content origin, not the visible top. Make
+       * the same element do both jobs and every block sits one `scrollTop` out of
+       * place, worst exactly when a person has scrolled to reach the row they are
+       * selecting.
+       *
+       * Wrapping instead keeps both rectangles moving together, so the existing
+       * measurement stays correct with no scroll term added to it.
+       *
+       * `min-h-0` is the part that is always left out. This is a flex child, and a
+       * flex item's default `min-height: auto` refuses to shrink below its content,
+       * so the box grows to fit the rows and never scrolls at all. meridian.css
+       * lists that as a shipped defect once already.
+       */}
       <div
-        ref={navRef}
-        onMouseLeave={() => {
-          setHovered(null);
-          closeTip();
+        ref={scrollRef}
+        className="mrd-fade-scroll min-h-0 flex-1 overflow-y-auto"
+        style={{
+          /*
+           * Built from measured state, so an edge is only soft when something is
+           * actually past it. `black` is a mask alpha channel here and not a
+           * colour: it means "keep this", `transparent` means "hide it". Nothing
+           * in the ground ladder can express that, which is why this is one of the
+           * few places a literal is correct.
+           */
+          maskImage: edgeMask(edges),
+          WebkitMaskImage: edgeMask(edges),
+          transition: "mask-image var(--mrd-d-move) var(--mrd-ease)",
         }}
-        className="relative flex flex-col"
-        style={{ gap: "var(--mrd-s4)" }}
       >
+        <div
+          ref={navRef}
+          onMouseLeave={() => {
+            setHovered(null);
+            closeTip();
+          }}
+          className="relative flex flex-col"
+          style={{ gap: "var(--mrd-s4)" }}
+        >
         {/* The selection. Pinned to the active row, at the stop the system
             reserves for "a thing the reader has picked". */}
         <span
@@ -745,7 +884,8 @@ export function SidebarNav({
                 })}
             </div>
           </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {isCollapsed && (
