@@ -1,4 +1,5 @@
 import * as React from "react";
+import { DiagnosticsSection } from "@/components/settings/DiagnosticsSection";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -217,6 +218,15 @@ export function QualityRoom({ view, suite, surface }: RoomBodyProps) {
     return (
       <React.Suspense fallback={<PanelPending />}>
         {suite ? <EvalSuiteDetail id={suite} /> : <EvalsPanel />}
+      </React.Suspense>
+    );
+  }
+  if (view === "diagnostics") {
+    /* The same component the Settings address renders, mounted rather than copied, so
+       the two cannot drift into disagreeing about the platform's health. */
+    return (
+      <React.Suspense fallback={<PanelPending />}>
+        <DiagnosticsSection />
       </React.Suspense>
     );
   }

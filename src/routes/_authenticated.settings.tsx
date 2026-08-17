@@ -209,6 +209,7 @@ import {
 } from "@/lib/settings-sections";
 import { SidebarNav, type RailItem } from "@/components/meridian/SidebarNav";
 import { AgentCards } from "@/components/meridian/AgentCards";
+import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { STAGE_LABEL } from "@/components/shell/run-strip";
 
 import {
@@ -611,7 +612,13 @@ function SettingsPage() {
             <CreditsSection />
           </>
         )}
-        {active === "health" && <DiagnosticsSection />}
+        {active === "health" && (
+          <DiagnosticsMoved
+            onOpen={() =>
+              navigate({ to: "/engine-room", search: { room: "quality", view: "diagnostics" } })
+            }
+          />
+        )}
       </div>
     </div>
   );
@@ -1241,6 +1248,52 @@ function AdminDoor() {
 }
 
 /** No door in the index any more. The address answers so old links land. */
+/**
+ * DIAGNOSTICS MOVED, AND THIS IS WHY THE ADDRESS STILL ANSWERS.
+ *
+ * Founder: "certain features are kept doorless, and there is no option to reach that."
+ *
+ * He was right, and the cause was mine. I removed the Diagnostics door from the Settings
+ * rail with a comment claiming "the door is drawn from the Engine Room instead". Nothing
+ * drew it. A live report making two real server reads was reachable only by typing a URL.
+ *
+ * The reasoning for moving it was sound and is unchanged: Settings is where a person
+ * states what they want, and Diagnostics reports whether the machine is achieving it,
+ * which is the engine-room doctrine's own dividing line. So the fix is to FINISH the move
+ * rather than put the door back where the reasoning says it does not belong.
+ * `DiagnosticsSection` is now mounted as the Quality room's leading tab -- mounted, not
+ * copied, so the two cannot disagree about the platform's health.
+ *
+ * That makes this pane a duplicate, and a duplicate is the one thing the founder said may
+ * be removed. What may NOT happen is the address going dark: `?section=health` is in saved
+ * links and in the search index. So it forwards, exactly as `memory` forwards to Brain,
+ * and it names where the thing went rather than saying it is gone.
+ */
+function DiagnosticsMoved({ onOpen }: { onOpen: () => void }) {
+  return (
+    <>
+      {/*
+       * Meridian's NeedsSetup rather than the retired PageHead/Empty/Button trio: the
+       * ratchet refused this file at 134 -> 137 and was right, new code may not carry a
+       * retired component. Fixed the code, never the baseline.
+       */}
+      <NeedsSetup
+        title="Diagnostics is read in the Engine Room now"
+        body="Whether the platform is having a bad day, the reliability window, and any run that went away with your credits all sit under Quality."
+        action={
+          <button
+            type="button"
+            onClick={onOpen}
+            className="rounded-mrd-pill border border-mrd-line bg-mrd-sink px-3 py-1.5 text-[12px] text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
+          >
+            Open Diagnostics
+          </button>
+        }
+      />
+    </>
+  );
+}
+
 function MemorySection({ onOpen }: { onOpen: () => void }) {
   return (
     <>

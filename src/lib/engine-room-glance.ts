@@ -179,6 +179,35 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
     // (IA 2026-07-11). Deep links with ?view=funnel fall back to the trend view.
   ],
   quality: [
+    /*
+     * ── DIAGNOSTICS GOT ITS DOOR BUILT, 2026-08-17 ────────────────────────────
+     * On 2026-08-17 I took the Diagnostics door out of the Settings rail with the
+     * comment "the door is drawn from the Engine Room instead". Nothing in the Engine
+     * Room drew it. Nothing anywhere linked `?section=health`. So a live report -- two
+     * real server reads, `getReliabilitySlo` and `getRunawayMissions` -- was reachable
+     * only by typing a URL, which is this repo's most expensive defect and I introduced
+     * it while claiming the opposite.
+     *
+     * Founder: "certain features are kept doorless, and there is no option to reach
+     * that. Users or agents, if they want to go into these settings, it's not there at
+     * all."
+     *
+     * The REASONING for moving it was sound and is unchanged: Settings is where a person
+     * states what they want, and Diagnostics reports whether the machine is achieving
+     * it, which is the engine-room doctrine's own dividing line. DiagnosticsSection's
+     * own header says it "stays until the Engine room's Quality room can carry the whole
+     * question". This is that room, so the answer is to finish the move rather than to
+     * put the door back where the reasoning says it does not belong.
+     *
+     * It leads the room because "is it me or is it you" is the first question anybody
+     * arrives at Quality holding, and it is the cheapest one to answer.
+     */
+    {
+      id: "diagnostics",
+      label: "Is it me or you?",
+      technical: "Reliability SLO and runaway missions",
+      descriptor: "Whether the platform is having a bad day, before you go looking at your own work.",
+    },
     {
       id: "score",
       label: "Right now",
