@@ -621,6 +621,33 @@ Pricing gets its first real test in the beta.
 
 ---
 
+## 8b. Fundraising stance, and "who are your investors"
+
+> **⭐ Use this wherever a form asks about investors, cap table or fundraising status.** Hint is usually *"any institutional investors on your cap table, and the amounts invested by each"*.
+
+```
+None on the cap table. Supaprod is self-funded and I hold it outright, so there
+is no dilution to unwind and the cap table is clean for whoever comes first.
+
+I am working towards a pre-seed after the 30 September launch, priced against
+real usage rather than a projection, and I am open to the right investor before
+then.
+```
+
+**Append one programme-specific sentence** where it is true, e.g. *"Hub71's investor network is one of the reasons this is the right room to be in."*
+
+> ### 🛑 "I am not currently raising" is BANNED. **Founder ruling 2026-08-17.**
+>
+> _"When you say 'I'm not currently raising', that looks like a negative. You should say 'I'm open to raising and working towards it.' It has to be optimistic rather than shutting the doors and being negative."_
+>
+> **It is true and it closes a door**, inside programmes whose central value is their capital partners. A reviewer reads it as no ambition or no need for them, and neither is accurate.
+>
+> **This is the third member of the rule-0 family.** Rule 0 forbids **announcing** an absence. Rule 0a forbids **manufacturing** an appearance. This forbids **leaving** an absence as the last thing read. **A factual "none" answers the question; the next sentence opens the door it just closed.**
+>
+> ⚠️ **The door must be real. No target amount, no valuation, no date that cannot be held.** Pricing is untested, so a figure here is a claim we cannot defend and rule 0a already bans implied quantities. **Optimism is a direction, never a number.**
+
+---
+
 ## 9. Risk (the one vulnerability beat, use once per application)
 
 Pick exactly one of these per application. Never volunteer more.

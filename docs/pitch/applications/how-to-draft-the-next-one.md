@@ -395,6 +395,53 @@ ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 <file>
 
 > **On repeating ISRO in two fields, which the no-repetition rule appears to forbid.** It does not, and this is the distinction worth keeping: **a block may never appear twice. A fact may, when two questions genuinely need it and it does different work each time.** Q8 uses ISRO to answer what shaped the founder. Q9 uses it to answer why he can review code an agent wrote. Different job, different wording, both earned.
 
+### 24. Never leave a "no" as the last word. The rule-0 family has a third member.
+
+**Founder ruling 2026-08-17.**
+
+> _"When you say 'I'm not currently raising', that looks like a negative. You should say 'I'm open to raising and working towards it.' It has to be optimistic rather than shutting the doors and being negative."_
+
+**The Hub71 investors answer ended on *"I am not currently raising."*** Every word true. **And it closes a door inside a programme whose central value is its capital partners.** A reviewer reads it as one of two things: no ambition, or no need for them. Neither is what we want, and neither is accurate.
+
+**The family, now complete, and all three are about the same failure seen from different sides:**
+
+| | Rule | What it forbids |
+| --- | --- | --- |
+| **0** | Never volunteer the zero | **Announcing** an absence no form asked about |
+| **0a** | Never imply demand you cannot number | **Manufacturing** an appearance we cannot back |
+| **24** | Never end on a negative | **Leaving** an absence as the last thing read |
+
+**The mechanic: a factual "none" answers the question. The very next sentence opens the door it just closed.**
+
+| Field asks | The "none" | The door |
+| --- | --- | --- |
+| Notable investors | None on the cap table | Self-funded and held outright, so no dilution to unwind and the cap table is clean for whoever comes first. Working towards a pre-seed after launch |
+| Incorporated? | Not yet | And that is a decision: an Indian entity would have to be unwound through FEMA and RBI rules. It gets registered where the company will actually operate |
+| Prior programmes | Not with Supaprod | An earlier venture was incubated at NSRCEL and recognised under Startup India |
+| Revenue | 0 in the numeric field | Nothing in prose. The numeric field carries it and the door opens in the metrics answer |
+
+**The limit, and it matters.** The door has to be a real one. **No target raise amount, no valuation, no date the founder cannot hold.** Pricing is untested, so a number in a fundraising answer would be a claim we cannot defend, and rule 0a already bans implied quantities. **Optimism is a direction, never a figure.**
+
+### 25. A throwaway field is the cheapest place to demonstrate the product
+
+**Founder direction 2026-08-17, on "how did you hear about us".**
+
+> _"Instead of LinkedIn I want to say X and Instagram, that's honest. And I want to say my agent shortlisted this programme based on my preferences and my fitment."_
+
+**The draft answered `LinkedIn.` and stopped**, on correction 0c. That was right about the rule and wrong about the opportunity. **Correction 0c bans padding a factual question with argument. It does not ban answering it with something true that also shows the company working.**
+
+**What went in instead:** the channel first, in three words, then one sentence saying a fleet of agents swept 571 programmes, ranked them against his constraints, and Hub71 came out top.
+
+**Why it earns its space where a pitch would not:**
+
+1. **It answers the question first.** The channel is the first line. Nothing is displaced.
+2. **It is a live demonstration, not a claim.** Every other applicant writes "Google search". This one shows an agent-run selection loop, which is the product's own thesis, applied to the act of applying.
+3. **It is checkable in our own repo**, so it survives an interview probe: 571 rows in `all-programmes-ranked.csv`, eleven lanes in `sweep/`, ranked by `rank-funding-programmes.py`.
+
+> **The test for whether a low-stakes field earns an extra sentence:** does the sentence answer the question *and* prove something a reviewer would otherwise have to take on trust? If yes, spend it. If it only asserts, cut it back to the fact.
+
+⚠️ **The honesty limit.** Agents ran the sweep and a script ranked it. **Do not write that Supaprod did it.** The product did not run this, and the overstatement is exactly the kind a partner asks about in the room.
+
 ---
 
 ## Part 2 — What worked, and should be repeated

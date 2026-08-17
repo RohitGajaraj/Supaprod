@@ -308,18 +308,43 @@ will pay for one. It is the number I most want to be wrong about early.
 
 ## 21. Who are some notable investors?
 ```
-None. Supaprod is self-funded, I hold it outright, and I am not currently
-raising.
+None on the cap table. Supaprod is self-funded and I hold it outright, so there
+is no dilution to unwind and the cap table is clean for whoever comes first.
+
+I am working towards a pre-seed after the 30 September launch, priced against
+real usage rather than a projection, and I am open to the right investor before
+then. Hub71's investor network is one of the reasons this is the right room to
+be in.
 ```
+> ### 🛑 Never leave a "no" as the last word. **Founder ruling 2026-08-17.**
+>
+> _"When you say 'I'm not currently raising', that looks like a negative. You should say 'I'm open to raising and working towards it.' It has to be optimistic rather than shutting the doors."_
+>
+> **The answer used to end on *"I am not currently raising."*** It was true and it closed a door, in a room whose whole value is capital partners. **A programme reads that as either no ambition or no need for them.**
+>
+> **The rule, and it is the third of the rule-0 family:** rule 0 says do not announce the absence, rule 0a says do not manufacture the appearance, and this says **a factual "none" answers the question, and the very next sentence must open the door it just closed.** Never end a field on a negative.
+>
+> **The hint asks for institutional investors and amounts**, so "none on the cap table" is answering the question, not volunteering a deficit. The second paragraph is what makes it a strong answer instead of a flat one, and it turns the absence into the asset it actually is: a clean cap table.
+
 
 ## 22. How did you hear about Hub71
 **`Social Media`** — founder-confirmed 2026-08-17.
 
-> **A conditional "Please specify how you heard about us" textarea may appear after selecting this.** If it does, name the platform plainly and stop. One line, no pitch:
+A conditional **"Please specify how you heard about us"** textarea appears after this selection. Its own hint adds *"If referred by a partner, please specify both company and individual's name"*, so it wants the channel, not a pitch.
+
 ```
-LinkedIn.
+X and Instagram first.
+
+Then I ran the search the way I build everything: a fleet of agents swept 571
+programmes and ranked them against my constraints, and Hub71 came out at the top
+on cash, network and fit. This application is downstream of that.
 ```
-> Correction 0c: answer the question that was asked, and stop. This field is not an opportunity.
+
+> **Answers the question in the first three words, then earns its second paragraph.** Correction 0c still holds: this field is not an opportunity to pitch. It is an opportunity to *demonstrate*, which is different, and it costs one sentence.
+>
+> **Every part of it is true and re-derivable.** 571 rows in [`../all-programmes-ranked.csv`](../all-programmes-ranked.csv), swept across eleven lanes in [`../sweep/`](../sweep/), ranked by [`rank-funding-programmes.py`](../../../../scripts/rank-funding-programmes.py). Hub71 scores 7.39, Tier 1.
+>
+> ⚠️ **Do not claim Supaprod itself did this.** Agents ran it and a script ranked it; that is the honest wording and it is the wording above. Saying the product did it would be an overstatement a reviewer could ask about in the interview.
 
 ## 23. Have you gone through any incubator or accelerator program(s), if so which one(s)?
 > **Correction 15: read the verb. "GONE THROUGH" is not "applied to".** Do not list pending applications: it answers a question nobody asked, it invites *"and how did those go?"*, and applications are free so they signal nothing. There is one true answer and it belongs here.

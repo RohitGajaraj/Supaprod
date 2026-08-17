@@ -105,6 +105,39 @@ company:
       Open to a cofounder who adds a perspective he does not have, and not waiting
       on one. That answer is about a COFOUNDER and does not replace this one.
 
+  # FOUNDER RULING 2026-08-17. Never leave a "no" as the last word.
+  # "When you say 'I'm not currently raising', that looks like a negative. You
+  # should say 'I'm open to raising and working towards it.' It has to be
+  # optimistic rather than shutting the doors."
+  fundraising_stance:
+    outward: >-
+      Working towards a pre-seed after the 30 September launch, priced against
+      real usage rather than a projection, and open to the right investor before
+      then.
+    banned_phrasing: ["not currently raising", "not raising", "we are not raising"]
+    why: >-
+      True, and it closes a door in a room whose value is capital partners. A
+      programme reads it as either no ambition or no need for them.
+    cap_table_line: >-
+      Self-funded, held outright, so there is no dilution to unwind and the cap
+      table is clean for whoever comes first. Turn the absence into the asset.
+    do_not_say: >-
+      No target amount, no valuation, no date beyond "after launch". Pricing is
+      untested, so a number here would be a claim we cannot defend.
+
+  never_end_on_a_negative:
+    # The third of the rule-0 family, and the one that was missing.
+    #   rule 0   do not ANNOUNCE the absence
+    #   rule 0a  do not MANUFACTURE the appearance
+    #   this     do not LEAVE the absence as the last thing read
+    rule: >-
+      Where a form asks a question whose honest answer is "none", the "none"
+      answers the question and the very next sentence must open the door it just
+      closed. Never end a field on a negative.
+    applies_to: >-
+      investors, revenue, entity, users, prior programmes, grants, and any other
+      field whose true answer today is nothing.
+
 founder:
   name: Rohit Gajaraj
   email: founder@supaprod.ai
