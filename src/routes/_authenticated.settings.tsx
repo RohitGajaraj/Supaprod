@@ -869,47 +869,51 @@ function ProfileSection() {
         </Line>
       </Block>
 
-      <Block title="Working hours">
-        <Line
-          label="Reachable from"
-          sub="Outside it, a scheduled digest waits rather than pinging you."
-        >
-          <Input
-            aria-label="Reachable from"
-            type="number"
-            min={0}
-            max={23}
-            style={{ width: 88 }}
-            value={whStart}
-            onChange={(e) => setWhStart(Number(e.target.value))}
-          />
-        </Line>
-        <Line label="Until">
-          <Input
-            aria-label="Reachable until"
-            type="number"
-            min={1}
-            max={24}
-            style={{ width: 88 }}
-            value={whEnd}
-            onChange={(e) => setWhEnd(Number(e.target.value))}
-          />
-        </Line>
-        <Actions>
-          <Button variant="primary" type="submit" disabled={save.isPending}>
-            {save.isPending ? "Saving" : "Save profile"}
-          </Button>
-        </Actions>
-      </Block>
+      <div id={HOURS_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+        <Block title="Working hours">
+          <Line
+            label="Reachable from"
+            sub="Outside it, a scheduled digest waits rather than pinging you."
+          >
+            <Input
+              aria-label="Reachable from"
+              type="number"
+              min={0}
+              max={23}
+              style={{ width: 88 }}
+              value={whStart}
+              onChange={(e) => setWhStart(Number(e.target.value))}
+            />
+          </Line>
+          <Line label="Until">
+            <Input
+              aria-label="Reachable until"
+              type="number"
+              min={1}
+              max={24}
+              style={{ width: 88 }}
+              value={whEnd}
+              onChange={(e) => setWhEnd(Number(e.target.value))}
+            />
+          </Line>
+          <Actions>
+            <Button variant="primary" type="submit" disabled={save.isPending}>
+              {save.isPending ? "Saving" : "Save profile"}
+            </Button>
+          </Actions>
+        </Block>
+      </div>
 
-      <Block title="Appearance">
-        <Line label="Theme" sub="System follows your device. Dark is the default.">
-          <Choice value={theme} options={THEME_CHOICES} onPick={setTheme} label="Theme" />
-        </Line>
-        <Line label="Density" sub="Compact drops a row of breathing room. Type stays the same.">
-          <Choice value={density} options={DENSITY_CHOICES} onPick={setDensity} label="Density" />
-        </Line>
-      </Block>
+      <div id={APPEARANCE_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+        <Block title="Appearance">
+          <Line label="Theme" sub="System follows your device. Dark is the default.">
+            <Choice value={theme} options={THEME_CHOICES} onPick={setTheme} label="Theme" />
+          </Line>
+          <Line label="Density" sub="Compact drops a row of breathing room. Type stays the same.">
+            <Choice value={density} options={DENSITY_CHOICES} onPick={setDensity} label="Density" />
+          </Line>
+        </Block>
+      </div>
     </form>
   );
 }
@@ -1362,7 +1366,10 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
              as absent or disabled would invent a boundary nobody set. */
           enabled: true,
           arc: "trusted" as const,
-          asking: [] as string[],
+          /* The REAL shape, not `string[]`. The synthetic row claimed a type the
+             stored row does not have, and it compiled only because nothing read
+             `asking` off the union. The moment the detail panel did, it broke. */
+          asking: [] as CrewMember["asking"],
         }
       );
     })
@@ -1492,7 +1499,7 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
           onOpen={(slug) => setOpenSlug((cur) => (cur === slug ? null : slug))}
           renderDetail={(slug) => {
             const m = members.find((x) => x.slug === slug);
-            return m ? <AgentDetail member={m} /> : null;
+            return m ? <AgentDetail member={m} onOpenRecord={onOpenCrew} /> : null;
           }}
         />
       </Block>
@@ -1544,6 +1551,8 @@ type RosterEntry = {
   name: string;
   enabled: boolean;
   arc: CrewMember["arc"];
+  /** What this one is waiting on a person for. A gate action, so it is never hidden. */
+  asking?: CrewMember["asking"];
   arcIsDefault?: boolean;
   tools?: CrewMember["tools"];
   trust?: CrewMember["trust"];
@@ -1565,7 +1574,14 @@ function Fig({ children }: { children: ReactNode }) {
   );
 }
 
-function AgentDetail({ member }: { member: RosterEntry }) {
+function AgentDetail({
+  member,
+  onOpenRecord,
+}: {
+  member: RosterEntry;
+  /** Opens this agent's full record, deep-linked to the agent being read. */
+  onOpenRecord: (slug: string) => void;
+}) {
   const entry = catalogEntry(member.slug);
   const role = AGENT_STATION_ORDER.flatMap((st) => stationCrew(st)).find(
     (r) => r.slug === member.slug,
@@ -1574,6 +1590,7 @@ function AgentDetail({ member }: { member: RosterEntry }) {
      floors included", so every row here is a thing this agent can genuinely reach, and
      the mode beside it is the truth about how. There is no off state to exclude. */
   const tools = member.tools ?? null;
+  const asking = member.asking?.length ?? 0;
   const trust = member.trust;
 
   /* Named Facet, not Row: this file imports a RETIRED `Row` from shell/primitives, and a
@@ -1649,6 +1666,30 @@ function AgentDetail({ member }: { member: RosterEntry }) {
         )}
       </Facet>
 
+      <Facet label="What it has learned">
+        {/*
+         * ── THIS FACET EXISTS BECAUSE I HAD ORPHANED IT ───────────────────────────
+         * Founder: "you have eliminated all the sections that were underneath ... I do
+         * not want you to eliminate any of the features without thinking twice ... you
+         * should not be removing anything or making a feature homeless."
+         *
+         * He is right, and the panel was worse than he could see. It answered four
+         * questions and had ZERO actions -- no button, no link. So removing the Open
+         * Crew door left a reader able to READ an agent from Settings and unable to
+         * change one thing about it, or to reach the place that can. My own commit
+         * message claimed the tweak path was "reached from the agent you are already
+         * reading". It was not. I wrote the intent and did not build it.
+         *
+         * What the agent's record owns and this pane does not: its lessons, its run
+         * history, the tool boundary you can actually edit, and its requests for more
+         * room. Lessons are named here rather than fetched, because inventing a second
+         * read of them would duplicate the record rather than point at it -- and a
+         * duplicate is the one thing he did say may be removed.
+         */}
+        Every verdict that came back on {member.name}'s work is written against the call
+        that caused it, on its record. That is what re-ranks its next run.
+      </Facet>
+
       <Facet label="Track record">
         {/*
          * The honest form of a score. `samples` is how much this is standing on, and
@@ -1681,6 +1722,38 @@ function AgentDetail({ member }: { member: RosterEntry }) {
           </>
         )}
       </Facet>
+      {/*
+       * ONE DOOR, AT THE FOOT, DEEP-LINKED TO THE AGENT BEING READ.
+       *
+       * Not the general "Open Crew" escape hatch that used to sit at the top of the
+       * list -- that was the three-click complaint. This opens THIS agent, and it is
+       * labelled with what is actually behind it rather than with the page's name, so
+       * nothing that lives there is homeless and nobody has to guess.
+       */}
+      <div className="flex flex-wrap items-center gap-2 border-t border-mrd-line pt-2.5">
+        {asking > 0 && (
+          /* A person is required. The one place `you` is spent in this panel, and it
+             leads straight to the thing that is waiting. */
+          <button
+            type="button"
+            onClick={() => onOpenRecord(member.slug)}
+            className="flex items-center gap-1.5 rounded-mrd-pill px-2.5 py-1 text-[11.5px] font-medium transition-colors"
+            style={{ color: "var(--mrd-you)", background: "var(--mrd-select)" }}
+          >
+            <span aria-hidden className="size-1.5 rounded-full" style={{ background: "var(--mrd-you)" }} />
+            {asking === 1
+              ? `${member.name} is asking for more room`
+              : `${member.name} is asking for more room on ${asking} tools`}
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => onOpenRecord(member.slug)}
+          className="rounded-mrd-pill border border-mrd-line bg-mrd-sink px-2.5 py-1 text-[11.5px] text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
+        >
+          Change what {member.name} may touch, and read its history
+        </button>
+      </div>
     </div>
   );
 }
@@ -1951,138 +2024,140 @@ function ByoKeysBlock() {
   const keyList = keys.data?.keys ?? [];
 
   return (
-    <Block
-      title="Your own provider keys"
-      sub={
-        isEnterprise
-          ? "Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot, OpenRouter and anything with a compatible endpoint. Stored encrypted, per user. A base URL is only needed for providers that host their own."
-          : "An Enterprise boundary. Every other plan runs on Supaprod credits, with the same model-agnostic routing. It just uses our keys."
-      }
-    >
-      {isEnterprise ? (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (keyValue.trim()) mSaveKey.mutate();
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-              gap: "var(--sp-space-2)",
+    <div id={BYO_KEYS_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+      <Block
+        title="Your own provider keys"
+        sub={
+          isEnterprise
+            ? "Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot, OpenRouter and anything with a compatible endpoint. Stored encrypted, per user. A base URL is only needed for providers that host their own."
+            : "An Enterprise boundary. Every other plan runs on Supaprod credits, with the same model-agnostic routing. It just uses our keys."
+        }
+      >
+        {isEnterprise ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (keyValue.trim()) mSaveKey.mutate();
             }}
           >
-            <Select
-              value={keyProv}
-              onChange={(e) => setKeyProv(e.target.value)}
-              aria-label="Provider"
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                gap: "var(--sp-space-2)",
+              }}
             >
-              {BYO_PROVIDERS.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.label}
-                </option>
-              ))}
-            </Select>
-            <Input
-              value={keyLabel}
-              onChange={(e) => setKeyLabel(e.target.value)}
-              aria-label="Label"
-              placeholder="Label, optional"
-            />
-            <Input
-              value={keyValue}
-              onChange={(e) => setKeyValue(e.target.value)}
-              type="password"
-              aria-label="API key"
-              placeholder={BYO_PROVIDERS.find((p) => p.id === keyProv)?.placeholder}
-            />
-            <Input
-              value={keyBase}
-              onChange={(e) => setKeyBase(e.target.value)}
-              aria-label="Base URL"
-              placeholder="Base URL, self-hosted only"
-            />
-          </div>
-          {keyProv === "custom" || keyBase.trim() ? (
-            <Input
-              style={{ width: "100%", marginTop: "var(--sp-space-2)" }}
-              value={keyModelId}
-              onChange={(e) => setKeyModelId(e.target.value)}
-              aria-label="Model id"
-              placeholder="Model id, exactly as the provider names it"
-            />
-          ) : null}
-          <Actions>
-            {/* Not primary: the primary on this section is the model save. */}
-            <Button type="submit" disabled={mSaveKey.isPending || !keyValue.trim()}>
-              {mSaveKey.isPending ? "Saving" : "Add key"}
-            </Button>
-            <Button
-              disabled={mTestKey.isPending || !keyValue.trim()}
-              onClick={() => mTestKey.mutate()}
-            >
-              {mTestKey.isPending ? "Testing" : "Test it first"}
-            </Button>
-            {testResult ? (
-              <span
-                className={testResult.ok ? "sp-pass" : "sp-fail"}
-                style={{ fontSize: "var(--sp-text-meta)" }}
+              <Select
+                value={keyProv}
+                onChange={(e) => setKeyProv(e.target.value)}
+                aria-label="Provider"
               >
-                {testResult.ok ? (
-                  <>
-                    Answered in <Num>{testResult.latency_ms}ms</Num>
-                  </>
-                ) : (
-                  (testResult.error ?? "Test failed").slice(0, 90)
-                )}
-              </span>
+                {BYO_PROVIDERS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.label}
+                  </option>
+                ))}
+              </Select>
+              <Input
+                value={keyLabel}
+                onChange={(e) => setKeyLabel(e.target.value)}
+                aria-label="Label"
+                placeholder="Label, optional"
+              />
+              <Input
+                value={keyValue}
+                onChange={(e) => setKeyValue(e.target.value)}
+                type="password"
+                aria-label="API key"
+                placeholder={BYO_PROVIDERS.find((p) => p.id === keyProv)?.placeholder}
+              />
+              <Input
+                value={keyBase}
+                onChange={(e) => setKeyBase(e.target.value)}
+                aria-label="Base URL"
+                placeholder="Base URL, self-hosted only"
+              />
+            </div>
+            {keyProv === "custom" || keyBase.trim() ? (
+              <Input
+                style={{ width: "100%", marginTop: "var(--sp-space-2)" }}
+                value={keyModelId}
+                onChange={(e) => setKeyModelId(e.target.value)}
+                aria-label="Model id"
+                placeholder="Model id, exactly as the provider names it"
+              />
             ) : null}
-          </Actions>
-        </form>
-      ) : null}
-
-      {isEnterprise || keyList.length > 0 ? (
-        <>
-          {keys.isLoading ? (
-            <Loading>Reading your keys.</Loading>
-          ) : keys.isError ? (
-            <Failed onRetry={() => void keys.refetch()}>
-              Your keys did not load. {(keys.error as Error)?.message ?? "The read failed."}
-            </Failed>
-          ) : keyList.length === 0 ? (
-            <Empty>No key of your own yet. Until there is one, runs use ours.</Empty>
-          ) : (
-            keyList.map((k) => (
-              <Line
-                key={k.id}
-                label={
-                  <>
-                    {BYO_PROVIDERS.find((p) => p.id === k.provider)?.label ?? k.provider}
-                    {k.label ? <span style={{ color: "var(--sp-mute)" }}> · {k.label}</span> : null}
-                  </>
-                }
-                sub={
-                  <Num>
-                    {k.preview}
-                    {k.model_id ? ` · ${k.model_id}` : ""}
-                    {k.base_url ? ` · ${k.base_url}` : ""}
-                  </Num>
-                }
+            <Actions>
+              {/* Not primary: the primary on this section is the model save. */}
+              <Button type="submit" disabled={mSaveKey.isPending || !keyValue.trim()}>
+                {mSaveKey.isPending ? "Saving" : "Add key"}
+              </Button>
+              <Button
+                disabled={mTestKey.isPending || !keyValue.trim()}
+                onClick={() => mTestKey.mutate()}
               >
-                <Button
-                  variant="ghost"
-                  disabled={mDelKey.isPending && mDelKey.variables === k.id}
-                  onClick={() => mDelKey.mutate(k.id)}
+                {mTestKey.isPending ? "Testing" : "Test it first"}
+              </Button>
+              {testResult ? (
+                <span
+                  className={testResult.ok ? "sp-pass" : "sp-fail"}
+                  style={{ fontSize: "var(--sp-text-meta)" }}
                 >
-                  Remove
-                </Button>
-              </Line>
-            ))
-          )}
-        </>
-      ) : null}
-    </Block>
+                  {testResult.ok ? (
+                    <>
+                      Answered in <Num>{testResult.latency_ms}ms</Num>
+                    </>
+                  ) : (
+                    (testResult.error ?? "Test failed").slice(0, 90)
+                  )}
+                </span>
+              ) : null}
+            </Actions>
+          </form>
+        ) : null}
+
+        {isEnterprise || keyList.length > 0 ? (
+          <>
+            {keys.isLoading ? (
+              <Loading>Reading your keys.</Loading>
+            ) : keys.isError ? (
+              <Failed onRetry={() => void keys.refetch()}>
+                Your keys did not load. {(keys.error as Error)?.message ?? "The read failed."}
+              </Failed>
+            ) : keyList.length === 0 ? (
+              <Empty>No key of your own yet. Until there is one, runs use ours.</Empty>
+            ) : (
+              keyList.map((k) => (
+                <Line
+                  key={k.id}
+                  label={
+                    <>
+                      {BYO_PROVIDERS.find((p) => p.id === k.provider)?.label ?? k.provider}
+                      {k.label ? <span style={{ color: "var(--sp-mute)" }}> · {k.label}</span> : null}
+                    </>
+                  }
+                  sub={
+                    <Num>
+                      {k.preview}
+                      {k.model_id ? ` · ${k.model_id}` : ""}
+                      {k.base_url ? ` · ${k.base_url}` : ""}
+                    </Num>
+                  }
+                >
+                  <Button
+                    variant="ghost"
+                    disabled={mDelKey.isPending && mDelKey.variables === k.id}
+                    onClick={() => mDelKey.mutate(k.id)}
+                  >
+                    Remove
+                  </Button>
+                </Line>
+              ))
+            )}
+          </>
+        ) : null}
+      </Block>
+    </div>
   );
 }
 
@@ -2325,6 +2400,16 @@ function PlanSection({ checkout }: { checkout?: string }) {
  * supposed to remove.
  */
 const CREDITS_ANCHOR = "settings-credits";
+/*
+ * WHERE SEARCH LANDS INSIDE A PANE. Founder: "that's how the search should work, not
+ * just for this entire thing, so that a user can just type whatever I want."
+ *
+ * Each of these is a real block on a real pane, and `settings-search.test.ts` asserts
+ * every one is actually rendered here -- an anchor nothing draws is a door to nowhere.
+ */
+const HOURS_ANCHOR = "settings-hours";
+const APPEARANCE_ANCHOR = "settings-appearance";
+const BYO_KEYS_ANCHOR = "settings-byo-keys";
 /** Where "invite", "team" and "member" land on the Brief and voice pane. */
 const PEOPLE_ANCHOR = "settings-people";
 

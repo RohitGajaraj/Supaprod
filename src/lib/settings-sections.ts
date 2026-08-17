@@ -295,6 +295,18 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
     sections: [
       {
         id: "profile",
+        subs: [
+          {
+            label: "Working hours",
+            anchor: "settings-hours",
+            keywords: ["hours", "working hours", "schedule", "timezone", "time zone", "quiet"],
+          },
+          {
+            label: "Appearance",
+            anchor: "settings-appearance",
+            keywords: ["appearance", "theme", "dark", "light", "avatar", "mark", "picture"],
+          },
+        ],
         label: "Profile",
         keywords: ["name", "avatar", "picture", "identity", "theme", "dark", "light", "density", "appearance", "timezone", "working hours", "quiet hours"],
       },
@@ -316,6 +328,15 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
        */
       {
         id: "billing",
+        subs: [
+          {
+            /* The founder's own failing example: "typing credits found nothing". It
+               found the pane once keywords landed; this lands on the block. */
+            label: "Credits and top-ups",
+            anchor: "settings-credits",
+            keywords: ["credit", "credits", "top-up", "topup", "balance", "buy", "refill"],
+          },
+        ],
         label: "Billing",
         // Credits folded in here, so every word for the balance and the top-up has to
         // reach this door or the fold made them unfindable.
@@ -393,6 +414,13 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       {
         id: "ai",
         label: "Models and keys",
+        subs: [
+          {
+            label: "Your own provider keys",
+            anchor: "settings-byo-keys",
+            keywords: ["api key", "key", "keys", "byo", "openai", "anthropic", "provider", "token"],
+          },
+        ],
         keywords: ["model", "models", "api key", "byo", "openai", "anthropic", "provider"],
       },
     ],
