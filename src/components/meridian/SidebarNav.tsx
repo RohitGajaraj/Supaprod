@@ -503,6 +503,44 @@ export function SidebarNav({
     };
   }, [items, isCollapsed]);
 
+  /**
+   * `/` PUTS THE CARET IN THE SEARCH FIELD, which the keycap has been promising.
+   *
+   * THE DEFECT. The field draws a `<kbd>/</kbd>` and nothing was bound to it, so the
+   * rail advertised a shortcut that did not exist. The founder pressed it and nothing
+   * happened. That is the same class as the inert workspace row and the dead collapse
+   * button: a control's APPEARANCE making a promise the code does not keep. A keycap
+   * is a promise in exactly the way a chevron is.
+   *
+   * Two things it must not do. It must not steal `/` from someone typing a path into
+   * another field, so it stands down whenever focus is already in an input, a textarea
+   * or anything contenteditable. And it is bound on this rail's own element rather
+   * than the window, because a document-level shortcut from a component that may be
+   * mounted twice on one page fights itself.
+   *
+   * Only when there is a search field to reach. A rail with no `onSearch` draws no
+   * field and no keycap, so binding the key would be a shortcut to nowhere.
+   */
+  useEffect(() => {
+    if (!onSearch || isCollapsed) return;
+    const el = navRef.current?.closest("nav");
+    if (!el) return;
+
+    const onSlash = (event: Event) => {
+      const key = (event as KeyboardEvent).key;
+      if (key !== "/") return;
+      const target = event.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      event.preventDefault();
+      searchRef.current?.focus();
+      searchRef.current?.select();
+    };
+
+    el.addEventListener("keydown", onSlash);
+    return () => el.removeEventListener("keydown", onSlash);
+  }, [onSearch, isCollapsed]);
+
   /* A pending tooltip must not outlive the rail that scheduled it. */
   useEffect(
     () => () => {
@@ -730,6 +768,8 @@ export function SidebarNav({
             aria-label="Search"
             className="min-w-0 flex-1 bg-transparent text-[12.5px] text-mrd-ink outline-none placeholder:text-mrd-mute"
           />
+          {/* Drawn only because the key is bound above. A keycap is a promise in
+              exactly the way a chevron is, and this one went unkept until 2026-08-17. */}
           <kbd className="flex size-4.5 items-center justify-center rounded-[5px] border border-mrd-line bg-mrd-lift text-[10px] text-mrd-mute">
             /
           </kbd>

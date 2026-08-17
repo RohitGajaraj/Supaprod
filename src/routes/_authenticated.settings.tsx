@@ -631,7 +631,6 @@ function ProfileSection() {
 
   const [fullName, setFullName] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [role, setRole] = useState("");
   const [timezone, setTimezone] = useState("");
   const [whStart, setWhStart] = useState(9);
   const [whEnd, setWhEnd] = useState(18);
@@ -649,7 +648,6 @@ function ProfileSection() {
     if (!p) return;
     setFullName(p.full_name ?? "");
     setDisplayName(p.display_name ?? "");
-    setRole(p.role ?? "AI Product Manager");
     setTimezone(p.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
     setWhStart(p.working_hours_start ?? 9);
     setWhEnd(p.working_hours_end ?? 18);
@@ -661,7 +659,6 @@ function ProfileSection() {
         data: {
           full_name: fullName || undefined,
           display_name: displayName || undefined,
-          role: role || undefined,
           timezone: timezone || undefined,
           working_hours_start: whStart,
           working_hours_end: whEnd,
@@ -743,15 +740,23 @@ function ProfileSection() {
             placeholder="Jane"
           />
         </Line>
-        <Line label="Role">
-          <Input
-            aria-label="Role"
-            style={{ width: 240 }}
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            placeholder="AI Product Manager"
-          />
-        </Line>
+        {/*
+         * ROLE IS GONE, 2026-08-17, and it was collected for nothing.
+         *
+         * A free-text job title, defaulted to "AI Product Manager", written to the
+         * profiles row on every save -- and read by NOTHING. Grepped: `role` appears
+         * in profile.functions.ts only in the input schema and the type. Every other
+         * `role` in the product is a WORKSPACE role (owner, admin, member), which is a
+         * different fact entirely.
+         *
+         * data-minimalism.md: no field exists unless a named consumer needs it, and
+         * "collect now, use later" is not a reason. Asking a person for their job
+         * title and then never using it is worse than a wasted row: it is personal
+         * data held for no purpose, which is exactly the lens the founder applied.
+         *
+         * The column is not dropped here. Stopping the capture is this surface's
+         * decision; removing stored data is a migration and a separate one.
+         */}
         <Line label="Timezone" sub="Every time on every surface is read in it.">
           <Input
             aria-label="Timezone"
@@ -761,10 +766,40 @@ function ProfileSection() {
             placeholder="America/New_York"
           />
         </Line>
+        {/*
+         * THE CHOSEN MARK IS DRAWN AT SIZE, which is the bug the founder reported:
+         * "if you check and select some icon out of the available ones, it still gets
+         * selected, but it does not display on the profile".
+         *
+         * He was right, and the cause is worse than a missing preview. The picker
+         * saves to localStorage and `src/components/supaprod/Avatar.tsx` -- the only
+         * thing that renders an orb -- IS MOUNTED NOWHERE IN THE PRODUCT. The shell
+         * draws initials instead (`initialsFrom` in AppFrame). This route's own header
+         * records killing "the avatar identity header sitting above the fields", and
+         * that header was the one place the choice was ever shown. So a person could
+         * pick from twelve marks and never see one anywhere.
+         *
+         * Drawing the current mark beside the swatches gives the choice its first real
+         * consumer, and gives the reader the before/after a picker needs to be usable
+         * at all. The shell adopting it is the follow-up; this makes the control honest
+         * today rather than leaving it decorative for another pass.
+         */}
         <Line
           label="Mark"
           sub={name ? `Stands in for ${name} wherever you acted.` : "Stands in for you."}
         >
+          <span style={{ display: "flex", alignItems: "center", gap: "var(--mrd-s4)" }}>
+            <span
+              aria-hidden
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: "50%",
+                flexShrink: 0,
+                background: orbBackground(avatarChoice ?? defaultAvatarVariant(name)),
+                boxShadow: "inset 0 1px 0 var(--mrd-sheen), var(--mrd-shadow-card)",
+              }}
+            />
           <span style={{ display: "flex", flexWrap: "wrap", gap: 6, maxWidth: 240 }}>
             {Array.from({ length: AVATAR_VARIANTS }).map((_, i) => {
               const selected = (avatarChoice ?? defaultAvatarVariant(name)) === i;
@@ -787,6 +822,7 @@ function ProfileSection() {
                 />
               );
             })}
+          </span>
           </span>
         </Line>
       </Block>
