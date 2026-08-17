@@ -107,12 +107,37 @@ export function AgentCards({
   /** Min track width. 232px fits the longest agent name in the catalog on one line. */
   minCardWidth = 232,
   empty,
+  renderDetail,
 }: {
   cards: readonly AgentCard[];
   onOpen: (slug: string) => void;
   activeSlug?: string | null;
   minCardWidth?: number;
   empty?: ReactNode;
+  /**
+   * The open agent, drawn INLINE directly beneath its own group.
+   *
+   * ── WHY A SLOT AND NOT A ROUTE ──────────────────────────────────────────────
+   * Founder: "when I click on a particular agent, let's say I'm clicking on Verify,
+   * what is Verify all about? It needs to show there itself ... that needs to be
+   * inline after clicking", and on the shape it replaces: "why are there multiple
+   * steps, like click on Roster and see only three cards, and then click on Open
+   * Crew? Where is the patience for a human?"
+   *
+   * Three clicks and two screens to read one colleague. Now one click and none.
+   *
+   * ── WHY THE CONTENT IS THE CALLER'S ─────────────────────────────────────────
+   * This component stays presentation-only. An agent's detail is real stored policy,
+   * tool reach and track record, and pulling that query in here would make a Meridian
+   * primitive depend on the crew data layer. The slot places it; the caller fills it.
+   *
+   * ── WHY UNDER THE GROUP AND NOT UNDER THE CARD ──────────────────────────────
+   * The grid is `auto-fill`, so the column count is unknown at render time and there
+   * is no way to close a row and reopen it after the clicked card without measuring.
+   * Anchoring to the group keeps the panel a predictable distance from what was
+   * clicked, and never moves the card the reader just pressed.
+   */
+  renderDetail?: (slug: string) => ReactNode;
 }) {
   if (cards.length === 0) return <div data-mrd="">{empty ?? null}</div>;
 
@@ -250,6 +275,10 @@ export function AgentCards({
                 );
               })}
           </div>
+          {/* The open agent, inline, under the group it belongs to. */}
+          {renderDetail && activeSlug && cards.some((c) => c.group === group && c.slug === activeSlug)
+            ? renderDetail(activeSlug)
+            : null}
         </div>
       ))}
     </div>

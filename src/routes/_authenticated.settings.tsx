@@ -158,11 +158,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import {
   agentDisplayName,
   agentStation,
+  AGENT_STATION_ORDER,
   catalogEntry,
   SPECIALIST_CATALOG,
 } from "@/lib/agent-vocabulary";
@@ -229,8 +230,9 @@ import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
 import { ControlsPanel } from "@/components/governance/ControlsPanel";
 import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
-import { ARC_CHOICE } from "@/components/crew/crew-words";
-import { listCrew } from "@/lib/crew.functions";
+import { ARC_CHOICE, MODE_CHOICE } from "@/components/crew/crew-words";
+import { stationCrew } from "@/lib/spine/driver";
+import { listCrew, type CrewMember } from "@/lib/crew.functions";
 
 import {
   Actions,
@@ -1218,6 +1220,12 @@ function MemorySection({ onOpen }: { onOpen: () => void }) {
  * ================================================================== */
 
 function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => void }) {
+  /*
+   * WHICH AGENT IS OPEN, HELD HERE RATHER THAN IN THE URL. Opening a colleague to read
+   * them is not a navigation: it does not deserve a history entry, and a Back press
+   * after reading three of them should leave Settings, not walk back up the roster.
+   */
+  const [openSlug, setOpenSlug] = useState<string | null>(null);
   const { activeWorkspace } = useWorkspace();
   const fList = useServerFn(listCrew);
   // Same key, same function, same cache entry as /crew. Not "a read that
@@ -1362,8 +1370,16 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
             "How much rope each one gets is set on Crew, one agent at a time."
           )
         }
-        more="Open Crew"
-        onMore={() => onOpenCrew(null)}
+        /*
+         * NO "OPEN CREW" DOOR ANY MORE. Founder: "why are there multiple steps, like
+         * click on Roster and see only three cards, and then click on Open Crew?"
+         *
+         * Everything that door was opened for -- what an agent is, what it may do
+         * without you, what it can touch, whether it has been any good -- is now one
+         * click away on this pane. What /crew still owns is CHANGING a tool boundary,
+         * and that is reached from the agent you are already reading, not from a
+         * general-purpose escape hatch at the top of the list.
+         */
       >
         {/*
          * ONE CARD PER AGENT, replacing a list of tight rows.
@@ -1413,7 +1429,14 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
               return st ? STAGE_LABEL[st] : "Across the whole loop";
             })(),
           }))}
-          onOpen={(slug) => onOpenCrew(slug)}
+          activeSlug={openSlug}
+          /* A second press on the open card closes it. The card is the control, so it
+             has to work both ways, or the only way to dismiss is to open another one. */
+          onOpen={(slug) => setOpenSlug((cur) => (cur === slug ? null : slug))}
+          renderDetail={(slug) => {
+            const m = members.find((x) => x.slug === slug);
+            return m ? <AgentDetail member={m} /> : null;
+          }}
         />
       </Block>
 
@@ -1422,6 +1445,186 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
         boundary across the whole crew at once lives on the boundary, not here.
       </Empty>
     </>
+  );
+}
+
+/**
+ * ── WHAT THIS AGENT IS, INLINE ────────────────────────────────────────────────
+ * Founder: "when I click on a particular agent, let's say I'm clicking on Verify, what
+ * is Verify all about? It needs to show there itself ... what is a system prompt, and
+ * what are the activities that are involved in that? That needs to be inline after
+ * clicking." And on the old shape: "where is the patience for a human?"
+ *
+ * ── THERE IS NO SYSTEM PROMPT COLUMN, SO NONE IS DRAWN ────────────────────────
+ * He asked for the system prompt. Nothing in this product stores a per-agent prompt a
+ * person may edit, and rendering an empty box labelled "System prompt" would be a
+ * control that writes nowhere -- the exact defect this repo has paid for nine times.
+ *
+ * What DOES exist is the thing a prompt would have said, and it is better than a
+ * prompt because the driver actually runs on it: `stationCrew` carries each role's
+ * `job` (what this one is asked to do, in its own terms) and `file` (what it must hand
+ * on). That is the brief, it is real, and it is what briefs the agent at run time.
+ *
+ * ── THE FOUR BLOCKS ARE THE FOUR QUESTIONS, IN ORDER ──────────────────────────
+ * What it is asked to do · what it may do without you · what it can actually touch ·
+ * whether it has been any good at it. His complaint about the old two loose panels was
+ * that they were "all like a card, but it needs to be really even and have a proper
+ * structure": one grid, one row shape, one label style, every block the same.
+ */
+/**
+ * What the roster actually holds, which is NOT uniformly a CrewMember.
+ *
+ * Agent rows are written lazily, so the roster is the catalog with stored rows merged
+ * onto it: an agent nobody has governed yet has a name and a default arc and no row at
+ * all. Typing this prop as CrewMember would have been a lie the compiler happily
+ * accepted for the stored half and crashed on for the other.
+ *
+ * The optional fields are exactly the ones that only exist once a row does, and the
+ * panel says so in words rather than drawing an empty section.
+ */
+type RosterEntry = {
+  slug: string;
+  name: string;
+  enabled: boolean;
+  arc: CrewMember["arc"];
+  arcIsDefault?: boolean;
+  tools?: CrewMember["tools"];
+  trust?: CrewMember["trust"];
+  noToolsEnabled?: boolean;
+};
+
+/**
+ * A figure inside a sentence, on Meridian's own tokens.
+ *
+ * The retired shell primitive `Num` was the reflex here and the ratchet refused it:
+ * new code may not carry a retired component, and Meridian has no Figure of its own
+ * yet. Tabular numerals so a count that ticks does not reflow the line around it.
+ */
+function Fig({ children }: { children: ReactNode }) {
+  return (
+    <span className="font-medium text-mrd-ink" style={{ fontVariantNumeric: "tabular-nums" }}>
+      {children}
+    </span>
+  );
+}
+
+function AgentDetail({ member }: { member: RosterEntry }) {
+  const entry = catalogEntry(member.slug);
+  const role = AGENT_STATION_ORDER.flatMap((st) => stationCrew(st)).find(
+    (r) => r.slug === member.slug,
+  );
+  /* No filter: `resolvedMode` is documented as "what resolveToolMode returns today,
+     floors included", so every row here is a thing this agent can genuinely reach, and
+     the mode beside it is the truth about how. There is no off state to exclude. */
+  const tools = member.tools ?? null;
+  const trust = member.trust;
+
+  /* Named Facet, not Row: this file imports a RETIRED `Row` from shell/primitives, and a
+     local shadowing it reads as that component to every human and every scanner. */
+  const Facet = ({ label, children }: { label: string; children: ReactNode }) => (
+    <div className="flex flex-col gap-1 border-t border-mrd-line pt-2.5 first:border-0 first:pt-0">
+      <div className="text-[10.5px] font-medium tracking-[0.08em] text-mrd-mute uppercase">
+        {label}
+      </div>
+      <div className="text-[12.5px] leading-relaxed text-mrd-body">{children}</div>
+    </div>
+  );
+
+  return (
+    <div
+      className="mt-1 flex flex-col rounded-mrd-card border border-mrd-edge bg-mrd-sheet p-3.5"
+      style={{
+        boxShadow: "var(--mrd-shadow-card)",
+        gap: "var(--mrd-s4)",
+        animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both",
+      }}
+    >
+      <Facet label={`What ${member.name} is asked to do`}>
+        {role?.job ?? entry?.blurb ?? "No brief is filed for this one yet."}
+        {role?.file ? (
+          <>
+            {" "}
+            It hands on <span className="text-mrd-ink">{role.file}</span>, which is what the
+            next station reads.
+          </>
+        ) : entry?.conductor ? (
+          <> It runs the loop itself rather than working one station of it.</>
+        ) : null}
+      </Facet>
+
+      <Facet label="What it may do without you">
+        {(member.arcIsDefault ?? true) ? (
+          <>
+            {ARC_CHOICE[member.arc]}. This is our default, not a rule you set, so it is
+            yours to change.
+          </>
+        ) : (
+          <>{ARC_CHOICE[member.arc]}. You set this.</>
+        )}
+      </Facet>
+
+      <Facet
+        label={
+          tools && tools.length > 0 ? `What it can touch (${tools.length})` : "What it can touch"
+        }
+      >
+        {tools === null ? (
+          /* No stored row, so there is no tool policy to read. Saying that is the whole
+             truth; an empty list here would read as "may touch nothing", which is the
+             opposite of what an ungoverned agent on the default arc is doing. */
+          `Nothing is stored for ${member.name} yet. It arrives with the first mission that needs it, already running on the default above.`
+        ) : member.noToolsEnabled ? (
+          "No tools are switched on for this workspace at all, so nobody here can touch anything yet."
+        ) : tools.length === 0 ? (
+          `${member.name} has no tools it may use, so it can read and reason but cannot act.`
+        ) : (
+          <span className="flex flex-wrap gap-1.5 pt-0.5">
+            {tools.map((t) => (
+              <span
+                key={t.toolName}
+                className="flex items-center gap-1.5 rounded-mrd-pill border border-mrd-line bg-mrd-sink px-2 py-1 text-[11.5px]"
+              >
+                <span className="text-mrd-ink">{t.label}</span>
+                <span className="text-mrd-mute">{MODE_CHOICE[t.resolvedMode]}</span>
+              </span>
+            ))}
+          </span>
+        )}
+      </Facet>
+
+      <Facet label="Track record">
+        {/*
+         * The honest form of a score. `samples` is how much this is standing on, and
+         * with nothing to stand on the number is not reported at all -- a track record
+         * built from zero runs is the claim this repo is least allowed to make.
+         */}
+        {!trust || trust.samples === 0 ? (
+          `${member.name} has not finished anything here yet, so there is nothing to judge it on.`
+        ) : (
+          <>
+            <Fig>{trust.missionsCompleted}</Fig> of <Fig>{trust.missionsTotal}</Fig> missions
+            finished
+            {trust.outcomesTotal > 0 ? (
+              <>
+                , and <Fig>{trust.outcomesValidated}</Fig> of <Fig>{trust.outcomesTotal}</Fig>{" "}
+                calls held up afterwards
+              </>
+            ) : null}
+            .
+            {trust.suggestedArc !== member.arc ? (
+              <>
+                {" "}
+                On that record it could run at{" "}
+                <span className="text-mrd-ink">
+                  {ARC_CHOICE[trust.suggestedArc].toLowerCase()}
+                </span>
+                .
+              </>
+            ) : null}
+          </>
+        )}
+      </Facet>
+    </div>
   );
 }
 
