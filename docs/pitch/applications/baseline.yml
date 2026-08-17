@@ -47,9 +47,35 @@ company:
     costs more in time, legal fees and tax than the entity is worth. Jurisdiction
     is chosen to match where the company will actually operate.
   stage_label: Users          # never "Prototype", never "Idea"
-  beta: private, invite-only
-  signup_closed: 2026-08-07
   public_launch: mid-September 2026
+  product_state_outward: >-
+    The product runs end to end today: agents read the signals, argue down the
+    weak bets, come back with a call and its evidence, write the spec, build it,
+    open a real pull request, and a person merges. Public launch is
+    mid-September 2026.
+  # FOUNDER RULING 2026-08-17. The fields `beta: private, invite-only` and
+  # `signup_closed: 2026-08-07` are DELETED, not moved. They were being pasted
+  # into applications as "private beta, invite-only, signup closed 7 August,
+  # entry is by invite code", which reads as a company with more demand than
+  # capacity: a signup drive, a queue behind it, and a decision to close the
+  # doors. None of that exists. Founder: "If someone asks how many people have
+  # signed up, we do not have an answer. Literally we have zero users on the
+  # waitlist. This will put us in a weak spot."
+  never_imply_demand:
+    rule: >-
+      Never let a sentence imply a quantity, a queue or a level of demand that
+      cannot be put to a number. The twin of never_volunteer_the_zero: rule 0
+      says do not announce the absence, this says do not manufacture the
+      appearance either.
+    test: >-
+      Say the clause, then ask whether a reviewer replying "how many?" would get
+      a number we are happy to give. If not, the clause goes.
+    banned_everywhere:
+      ["signup closed", "sign-ups are closed", "invite-only", "by invite",
+       "invite code", waitlist, "early access list", "we are onboarding",
+       "first cohort of users"]
+    say_instead: see company.product_state_outward above
+    enforced_by: "bun run pitch:check fails on any paste block using them"
   revenue_eur: 0
   outside_users: 0
   funding_raised: none
@@ -276,8 +302,22 @@ europe_wedge:
   source: docs/planning/rebuild-2026-07/governance/gov-c-frame-and-story.md
 
 assets:
-  # What to attach, by who is asking. Founder rulings 2026-08-16.
+  # What to attach, by who is asking. Founder rulings 2026-08-16 and 2026-08-17.
+  #
+  # ABSOLUTE, NO EXCEPTIONS, RULED TWICE. Every application, every programme,
+  # every "attach your pitch deck" field gets the ONE-PAGE BRIEF. Do not build a
+  # variant. Do not send a multi-page deck. Do not reason from a programme's list
+  # of required deck contents to "therefore we need more pages" - that reasoning
+  # was tried on Hub71 on 2026-08-17, an 18-page deck was built, and the founder
+  # rejected it on the same grounds he rejected the 16-pager for Campus Founders:
+  # "the format is not good". A malformed or wrong-format artifact costs more
+  # than a thin one.
+  #
+  # Why the one-pager is not a compromise: its orange button is a real PDF link
+  # annotation into supaprod.ai/brief, a LIVING page. A reviewer who clicks gets
+  # the current full content. A PDF snapshot is stale the moment /brief changes.
   deck_for_programmes: docs/pitch/shareables/Supaprod-Brief.pdf
+  deck_for_programmes_rule: ABSOLUTE. No per-programme variants, ever.
   deck_for_investors: docs/pitch/shareables/Supaprod-Investor-Briefing.pdf
   product_video_file: docs/pitch/shareables/Supaprod-Product-Film.mp4   # 97.6MB, gitignored
   product_video_link: https://youtu.be/x9WgGn0FyYU                       # public, 2:23

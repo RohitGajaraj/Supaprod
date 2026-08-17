@@ -445,28 +445,28 @@ parallel. Public launch in September 2026.
 
 ### How far along (short form, under 50 words)
 ```
-Working end to end and live at supaprod.ai. Ten weeks of building, 5,000+
-commits, solo. In private beta by invite, public launch mid-September 2026.
-I run my own company on it daily.
+Working end to end and live at supaprod.ai. Eleven weeks of building, 5,300+
+commits, solo. Public launch mid-September 2026. I run my own product work
+through it every day.
 ```
 
 ### Where the product stands — USE THIS, and read the ruling below first
 
 > ⚠️ **Founder ruling 2026-08-13. The two blocks that used to sit here opened on *"zero paying users"* and *"no paying users and no revenue yet"*. Both are RETIRED.** Full reasoning: [`how-to-draft-the-next-one.md`](./how-to-draft-the-next-one.md) rule 0. **Never volunteer a deficit** — no form asks for one, it read as candour to us and as weakness to a reader, and the Berkeley SkyDeck application is the last one that will carry it.
+>
+> ⚠️ **Founder ruling 2026-08-17, and the replacement block also had to go.** It opened *"private beta, invite-only. Signup closed on 2026-08-07 and entry is by invite code"*, which implies a signup drive and a queue behind it. **Rule 0a: never imply demand you cannot put a number to.** It also carried *"Supaprod's own roadmap runs inside Supaprod"*, removed by YC rule 6 because it does not survive its own database.
 
 ```
-Supaprod is in private beta, invite-only. Signup closed on 2026-08-07 and entry
-is by invite code. Public launch is mid-September 2026.
+The product runs end to end today: agents read the signals, argue down the weak
+bets, come back with a call and its evidence, write the spec, build it, open a
+real pull request, and a person merges. Public launch is mid-September 2026.
 
-The product runs end to end today and a reviewer can open a login and walk the
-whole loop: agents read the signals, argue down the weak bets, come back with a
-call and its evidence, write the spec, build it, open the pull request, and a
-person merges.
-
-I am user zero and I mean it literally. Supaprod's own roadmap runs inside
-Supaprod, so every call I have made building it is on the record with the
-evidence behind it.
+I am user zero and I mean it literally. I run my own product work through it
+every day, which shows the thing works rather than that anyone wants it, and I
+am not going to blur those two.
 ```
+
+> **Add a reviewer login sentence ONLY where the form has a field for it.** If it does, append: *Anyone can open it right now with the login above and walk the whole loop.* If it does not, leave it out rather than promising access the form gives no way to hand over.
 
 > ### The line that does not move, and it protects the founder
 >
@@ -647,9 +647,15 @@ window on this specific seat is one or two quarters before it is crowded.
 | Founder video | 2:53 (needs a ≤1:00 re-cut for programs that cap it) |
 | Investor deck | `docs/pitch/investor-deck/supaprod-pre-seed-investor-deck.html` (frozen v19) |
 
-> ### 📎 The attachment rulings, 2026-08-16. **Do not re-litigate these on the next application.**
+> ### 📎 The attachment rulings, 2026-08-16 and **reaffirmed 2026-08-17**. **Do not re-litigate these on the next application.**
 >
-> **PDF: send `Supaprod-Brief.pdf`. Always.** Founder ruling: the 16-page `supaprod-pre-seed-deck-16pp.pdf` **renders badly** (slides 3, 6, 15 and 16 clip; slide 15 loses three lines) and a malformed artifact costs more than a thin one. A recommendation to send the 16pp deck was made and overruled, correctly.
+> ### 🛑 It was re-litigated anyway, and overruled again. Read this before touching an attachment.
+>
+> **On 2026-08-17 an 18-page Hub71-specific deck was built and rejected**, on the same ground the 16-pager was rejected the day before: *"the format is not good."*
+>
+> **The reasoning that produced it, both times, was content coverage**: the programme enumerates N required deck sections, the one-pager cannot hold N sections, therefore build a longer deck. **That inference is wrong and it will feel right again.** Format quality outranks section count, and the one-pager carries the content anyway: its button is a **live PDF link annotation into `supaprod.ai/brief`**, so a reviewer who clicks gets the current full page. **If a required-contents list feels like it forces a longer deck, answer the missing sections in the form's own fields instead.**
+>
+> **PDF: send `Supaprod-Brief.pdf`. Always. Every programme. No variants.** Founder ruling: the 16-page `supaprod-pre-seed-deck-16pp.pdf` **renders badly** (slides 3, 6, 15 and 16 clip; slide 15 loses three lines) and a malformed artifact costs more than a thin one. A recommendation to send the 16pp deck was made and overruled, correctly.
 >
 > **Why `Supaprod-Brief.pdf` and not the old `Supaprod-Investor-Briefing.pdf`.** The filename was the smallest problem. The old one-pager's own content read **"Pre-Seed Briefing · Confidential"** with **`investors@supaprod.ai`** in the footer. To an accelerator reviewer that reads as being handed a fundraising document by mistake, and as being treated as a step toward a raise rather than as the programme itself. The variant changes three things: title → `Supaprod · Brief`, eyebrow → `Company Brief`, contact → `founder@supaprod.ai`. **The original is preserved and is still correct for real investor conversations.**
 >

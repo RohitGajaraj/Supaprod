@@ -28,9 +28,11 @@ Each of these came back as a rejection of a draft. They are ordered by how much 
 
 **Banned, in prose, on every application:** *zero revenue* · *zero outside users* · *no users* · *nobody has used it yet* · *there is no history in it yet* · any sentence whose only job is to announce an absence.
 
-**Say this instead. Every clause is verifiable:**
+**Say this instead. Every clause is verifiable, and none of it implies a number we could not give:**
 
-> **Supaprod is in private beta, invite-only** — signup closed on 2026-08-07 and entry is by invite code. **Public launch is mid-September.** The product runs end to end today, and a reviewer can open a login and walk the whole loop. I run my own company on it daily, so Supaprod's roadmap is built inside Supaprod.
+> **The product runs end to end today**: agents read the signals, argue down the weak bets, come back with a call and its evidence, write the spec, build it, open a real pull request, and a person merges. **Public launch is mid-September 2026.**
+
+> ⚠️ **The block that stood here until 2026-08-17 carried two retired claims and is gone.** It said *"private beta, invite-only, signup closed on 2026-08-07 and entry is by invite code"* (banned by rule 0a below) and *"Supaprod's roadmap is built inside Supaprod"* (removed by YC rule 6, because it does not survive its own database: 344 missions against 27 completed).
 
 **What replaces the credibility the old opening bought:** the self-correction beat and the one vulnerability beat, both of which are still in force. Candour has to buy something. Announcing a deficit buys nothing, because the reader was going to work it out from the rest of the answer anyway.
 
@@ -44,6 +46,32 @@ Each of these came back as a rejection of a draft. They are ordered by how much 
 >
 > Written this way the ruling is not a softening. It is a stronger answer that happens to also be true.
 
+
+### 0a. Never imply demand you cannot put a number to. **Founder ruling 2026-08-17, and it is the twin of rule 0.**
+
+> _"We are saying signup closed on 7th August 2026 and entry is by invite code. That is not at all required. We did not even publicly make noise that people should sign up. If someone asks how many people have signed up, we do not have an answer. Literally we have zero users on the waitlist. This will put us in a weak spot."_
+
+**Rule 0 says do not announce the absence. Rule 0a says do not manufacture the appearance either.** Both fail the same way: they hand a reviewer something we cannot defend.
+
+**What the banned sentence actually did.** *"Private beta, invite-only. Signup closed on 2026-08-07 and entry is by invite code"* reads as a company with more demand than capacity. It implies a signup drive, a queue behind it, and a decision to close the doors. **Every one of those invites the single question we cannot answer: how many?** It was written to sound like traction and it is the opposite of the never-volunteer-the-zero ruling in effect, because it creates an expectation the numbers cannot meet.
+
+> ### The test, and it is one sentence
+>
+> **Say the clause, then ask: if the reviewer replies "how many?", is there a number I would be happy to give?**
+>
+> **If not, the clause goes.** Not softened, not hedged. Gone.
+
+**Banned, in prose, on every application** — this list sits alongside rule 0's:
+
+*signup closed* · *sign-ups are closed* · *invite-only* · *by invite* · *invite code* · *waitlist* · *early access list* · *we are onboarding* · *first cohort of users* · anything implying a queue, a list, a closed door or scarcity of access.
+
+**Say this instead. It asserts capability and a date, both checkable, and implies no quantity:**
+
+> **The product runs end to end today**: agents read the signals, argue down the weak bets, come back with a call and its evidence, write the spec, build it, open a real pull request, and a person merges. **Public launch is mid-September 2026.**
+
+**Why this is stronger, not just safer.** Capability is the thing we actually have and it is rare: most applicants at this stage have a Figma file. A launch date is a commitment a reviewer can hold us to. **Neither one raises a question we would have to duck.**
+
+> **The general form, worth carrying beyond applications:** never let a sentence imply a quantity, a queue or a level of demand you would not state outright. Implied numbers get probed exactly like stated ones, and an implied number you cannot back is worse than a stated small one, because the reviewer finds it themselves and concludes you were managing them.
 
 ### 0b. Write it confident, never braced for a fight (founder ruling, 2026-08-14)
 
@@ -324,6 +352,22 @@ ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 <file>
 3. **An application may now carry zero self-corrections.** The rule was "exactly one"; it is now "at most one, and only if it does not concede the moat."
 
 **The generalisable test, and it is worth applying to every candour beat:** say the sentence, then ask what a reviewer writes in their notes afterwards. If the note is *"founder checks his own claims"*, keep it. If the note is *"so an incumbent can build this"*, cut it.
+
+### 22. The one-pager is the attachment for every application, and a required-contents list is not an exception
+
+**Founder ruling 2026-08-17. It is the second time, and the first time was the day before.**
+
+> _"I am not using the deck you have given me. It is not at all good, and it is the same reason I rejected it for other applications: the format is not good. We did create a one-pager PDF. That's what I am going to use for all applications."_
+
+**Two decks were built and rejected in two days, and the inference behind both was identical:**
+
+> The programme enumerates N required deck sections → the one-page brief cannot hold N sections inside the PDF → therefore build a longer deck.
+
+**That inference is wrong, and it will feel right again**, because it is a correct reading of the programme's own words. **What it misses is that the one-pager is not thin.** Its button is a **real PDF link annotation into `supaprod.ai/brief`, a living page.** A reviewer who clicks gets the current full content; a reviewer who does not gets one clean page instead of eighteen they will not read. And a PDF snapshot is stale the moment `/brief` changes.
+
+**The rule, absolute: every application, every programme, every "attach your deck" field gets `Supaprod-Brief.pdf`.** If a required-contents list names sections the brief does not carry, **answer them in the form's own fields.** Hub71 wanted fundraising and an Abu Dhabi plan; both are full answers at Q21 and Q24.
+
+> **The meta-lesson, and it is the expensive one.** The ruling was already in the repo, in `answer-bank.md` §11 and in the Campus Founders fill sheet, in the words *"the standing answer whenever any application asks for a deck or a PDF."* **It was read and reasoned past**, because a programme's explicit requirement felt like new information that overrode a standing decision. **A standing founder ruling is not a default to be beaten by a good argument. It is the answer until he changes it.** If the argument is genuinely strong, raise it in one sentence and let him rule again. Do not build the artifact first.
 
 ---
 

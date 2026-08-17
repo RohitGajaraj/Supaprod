@@ -13,11 +13,22 @@
 | A form asks for | Send | Never send |
 | --- | --- | --- |
 | A deck or a PDF, **accelerator or programme** | **[`Supaprod-Brief.pdf`](./Supaprod-Brief.pdf)** | `Supaprod-Investor-Briefing.pdf` · `supaprod-pre-seed-deck-16pp.pdf` |
-| A programme that **enumerates required deck contents** | **a built variant, one per programme.** First one: [`Supaprod-Hub71-Deck.pdf`](./Supaprod-Hub71-Deck.pdf) | the one-page brief, which cannot carry nine mandated sections |
+| A programme that **enumerates required deck contents** | **still [`Supaprod-Brief.pdf`](./Supaprod-Brief.pdf).** A long list of required sections is not a reason to build a longer deck | a per-programme variant. Tried once, rejected. See below |
 | A deck, **an actual investor** | [`Supaprod-Investor-Briefing.pdf`](./Supaprod-Investor-Briefing.pdf) | |
 | A **product video file** | **`Supaprod-Product-Film.mp4`** (97.6MB, gitignored) | `video-v15.mp4`, it is **silent** |
 | A **product video link** | `https://youtu.be/x9WgGn0FyYU` | |
 | A **team intro or founder video** | `https://youtu.be/zBmtUtkTyBs` | |
+
+> ### 🛑 The one-pager is the answer for EVERY application. Ruled twice. Do not re-litigate.
+>
+> **2026-08-16, Campus Founders:** the 16-page deck was recommended and overruled.
+> **2026-08-17, Hub71:** an 18-page programme-specific variant was built and overruled again, on the same ground. *"It is not at all good, and it is the same reason I rejected it for other applications: the format is not good. We did create a one-pager PDF. That's what I am going to use for all applications."*
+>
+> **The reasoning that produced the mistake, both times, was content coverage:** the programme lists N required deck sections, the one-pager cannot hold N sections inside the PDF, therefore build a longer deck. **That reasoning is wrong here and the ruling outranks it.** Format quality beats section count, and the one-pager is not actually thin: its orange button is a **real PDF link annotation into `supaprod.ai/brief`, a living page.** A reviewer who clicks gets the current full content. A PDF snapshot is stale the moment `/brief` changes.
+>
+> **`Supaprod-Hub71-Deck.pdf` is kept in this folder and is NOT sent.** It stays so the two can be compared side by side, and as the record of a call that was made and reversed. `scripts/build-hub71-deck.py` still reproduces it.
+>
+> **If a future programme's required-contents list feels like it forces a longer deck, it does not.** Answer the missing sections in the form's own fields and attach the one-pager.
 
 > ### Why the 16-page deck is retired from applications
 >

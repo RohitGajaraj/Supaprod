@@ -58,6 +58,10 @@ GRANDFATHERED = {
     # Filed carrying the falsification story, before the 2026-08-17 ban. Sent text
     # is the historical record and is not rewritten. Never repeat it.
     "conviction-embed/APPLICATION-FINAL.md",
+    # SUBMITTED 2026-08-16 carrying "private beta, invite-only, signup closed
+    # 2026-08-07, entry is by invite code", which rule 0a banned the next day. The
+    # text is sent and cannot be edited on their form. Grandfathered as the record.
+    "campus-founders/FILL-SHEET-38-FIELDS.md",
 }
 
 BANNED_VOCAB = [
@@ -89,6 +93,22 @@ RETIRED_STRINGS = [
 # Say instead: "A forecast is not an artifact. It exists only if something captured
 # it at the moment of the call, so it cannot be backfilled by anyone starting later,
 # at any budget." That answers the objection rather than raising it.
+# FOUNDER RULING 2026-08-17, rule 0a. The twin of never-volunteer-the-zero: rule 0
+# says do not announce the absence, this says do not manufacture the appearance.
+# "Private beta, invite-only, signup closed 7 August, entry is by invite code"
+# reads as a company with more demand than capacity: a signup drive, a queue
+# behind it, and a decision to close the doors. None of it exists, and every
+# clause invites the one question that has no answer: how many?
+#
+# The test: say the clause, then ask whether a reviewer replying "how many?" gets
+# a number we are happy to give. If not, the clause goes.
+BANNED_DEMAND = [
+    "signup closed", "sign-up closed", "sign-ups are closed", "signups closed",
+    "invite-only", "invite only", "by invite", "invite code",
+    "waitlist", "wait list", "early access list", "we are onboarding",
+    "first cohort of users",
+]
+
 BANNED_STORY = [
     "vercel",
     "built in two days",
@@ -266,6 +286,13 @@ def check_paste_hygiene() -> None:
             for word in RETIRED_STRINGS:
                 if word in low:
                     FAIL.append(f'{rel}:{lineno} retired positioning in a paste block: "{word}"')
+            for phrase in BANNED_DEMAND:
+                if phrase in low:
+                    FAIL.append(
+                        f'{rel}:{lineno} implied demand in a paste block: "{phrase}" (rule 0a).\n'
+                        '       It implies a signup drive and a queue, and invites "how many?".\n'
+                        "       Say instead: the product runs end to end today, plus the launch date."
+                    )
             for phrase in BANNED_STORY:
                 if phrase in low:
                     FAIL.append(
