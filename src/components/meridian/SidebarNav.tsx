@@ -523,22 +523,45 @@ export function SidebarNav({
    */
   useEffect(() => {
     if (!onSearch || isCollapsed) return;
-    const el = navRef.current?.closest("nav");
-    if (!el) return;
 
-    const onSlash = (event: Event) => {
-      const key = (event as KeyboardEvent).key;
-      if (key !== "/") return;
+    /*
+     * ── BOUND ON THE DOCUMENT, AND THE FIRST VERSION WAS WRONG ────────────────
+     *
+     * This listened on the rail's own <nav>, and the founder reported twice that the
+     * key did nothing. He was right both times. A keydown only reaches an element if
+     * focus is already inside it, so the shortcut worked exactly when it was useless
+     * (the caret was already in the rail) and did nothing in the only case anybody
+     * presses it: reading the page, focus on the body.
+     *
+     * The reason I scoped it to the rail was a real worry -- a component that can
+     * mount twice on one page would fight itself over a document shortcut. That worry
+     * is answered properly below rather than by breaking the feature: the handler
+     * refuses unless this rail is the FIRST one in the document, so two rails
+     * cooperate instead of racing, and the one a reader sees first owns the key.
+     */
+    const onSlash = (event: KeyboardEvent) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+
+      /* Somebody typing a path, a timezone or a prompt keeps their slash. */
       const target = event.target as HTMLElement | null;
       const tag = target?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target?.isContentEditable) {
+        return;
+      }
+
+      /* One rail owns the key: the first in document order. */
+      const mine = searchRef.current?.closest("nav");
+      const first = document.querySelector('nav[data-mrd] input[aria-label="Search"]');
+      if (first && searchRef.current !== first) return;
+      if (!mine) return;
+
       event.preventDefault();
       searchRef.current?.focus();
       searchRef.current?.select();
     };
 
-    el.addEventListener("keydown", onSlash);
-    return () => el.removeEventListener("keydown", onSlash);
+    document.addEventListener("keydown", onSlash);
+    return () => document.removeEventListener("keydown", onSlash);
   }, [onSearch, isCollapsed]);
 
   /* A pending tooltip must not outlive the rail that scheduled it. */
