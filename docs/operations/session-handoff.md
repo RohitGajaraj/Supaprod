@@ -1370,3 +1370,73 @@ under the DATASET's filename in the wrong folder. The real dataset is intact and
 about, and the next person to find it will lose an hour proving what is above. It was left in
 place because it belongs to the funding lane and deleting another lane's untracked file is not
 this lane's call.
+
+## 2026-08-17 - the agent audit, and two controls that were not controls
+
+**On `main`, pushed: `64b5abf0`, `84fea3fe`, `4a92425a`. tsc 0 - 9,387 pass 0 fail - build green.**
+
+### The agent audit, measured rather than read
+
+18 active agents, **15 dispatched by the station driver, 3 never**. Measured with a
+throwaway test over `stationCrew` x `SPECIALIST_CATALOG`, not by reading code.
+
+| Agent | Tier | Why it never dispatches |
+| --- | --- | --- |
+| Chief of Staff | cast | `conductor: true`. Runs the loop via `orchestrator.functions.ts`. `driver.test.ts:158` excludes conductors from crew coverage **on purpose**. |
+| Reactor | crew | Catalog's own words: "engine-only mechanisms, never user-facing (not seeded as loop agents)". |
+| Archivist | crew | Same. Referenced nowhere outside the catalog. |
+
+**So all 16 user-facing agents genuinely run.** The three that do not are two pieces of
+plumbing and one conductor, and none of them is a gap.
+
+**Founder was right that Chief of Staff should not read as gated to Decide.** Its
+`station: "decide"` is a filing artifact. The roster now groups it "Across the whole
+loop". The stored `station` is untouched: the driver reads that column, so changing the
+data would change dispatch.
+
+**And it caught my own regression.** Widening the roster to span the catalog (commit
+`c079989b`) fixed a three-of-eighteen under-report and started listing Reactor and
+Archivist as colleagues. Roster is now `tier === "cast"` only.
+
+### Two controls that were not controls
+
+- **Agent cards open INLINE.** Was three clicks and two screens to read one colleague.
+  `AgentCards` gained a `renderDetail` slot placed under the active card's group;
+  `AgentDetail` shows what the agent is asked to do (the driver's real `stationCrew`
+  `job` and `file`), its autonomy, its tools with resolved modes, and its track record
+  reported only when `samples > 0`. **No system-prompt box**: nothing stores a
+  per-agent prompt, so drawing one would be a control that writes nowhere. The
+  "Open Crew" door is gone.
+- **"Invite teammates" was never broken.** TeamCard is fully wired. It drew its own
+  `Block` *inside* `Block title="People"`, so its heading rendered with card chrome and
+  read as a pressable row. Un-nested.
+
+### Search names the block now
+
+`SettingsSubTarget` (label + real anchor + keywords). A hit resolves to the heading the
+reader will arrive at; selecting scrolls to it, deferred **two** rAF because the pane
+has not mounted on the tick the door is chosen. Fell out of it: `searchSections` only
+read section-level keywords, so **"teammate" and "seat" matched nothing at all**. Sub
+words and the block heading now count as the pane's words.
+
+### Traps confirmed again
+
+- **Ratchet refused my new code** (settings 134 -> 142) and it was right twice: `Num` is
+  retired (became a Meridian `Fig`), and my local `Row` helper **shadowed the retired
+  imported `Row`**, so the scanner counted it. Renamed `Facet`. Fixed the code, never
+  the baseline.
+- The roster is **not uniformly `CrewMember`**. Rows are written lazily, so it is the
+  catalog with stored rows merged on. `RosterEntry` makes row-only fields optional.
+- `ToolMode` is `auto | confirm | review`. **There is no `off`.**
+- A guard was satisfied by my own comment again ("System prompt" in prose).
+
+### Next, in order
+
+1. Fold the two loose `/crew` blocks ("What they may do without you", "How they work")
+   into one hub, and restructure `/crew` now that Settings answers the read.
+2. More sub-targets: only `workspace` has them. Billing/credits and Connectors next.
+3. Brand: design-system upload taking **Markdown and other design-language formats**,
+   not only PDF.
+4. Engine Room restructure (28KB route, never audited).
+5. Profile spacing uniformity; Connectors landing page.
+6. 11 unadopted Meridian components; `forms` matters most for Settings' hand-rolled inputs.
