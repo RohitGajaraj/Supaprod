@@ -303,15 +303,15 @@ will pay. It is the number I most want to be wrong about early.
 > Required numeric fields get the true figure. The never-volunteer-the-zero ruling governs prose, not numbers, and a caught overstatement costs more than a weak answer ever did.
 
 ## 19. How much runway do you have left?
-**`0–6 months`** — founder-confirmed 2026-08-17.
+**`0-6 months`** — founder-confirmed 2026-08-17, and **filed as such.**
 
-> **Answer it straight and do not dress it up.** It is checkable in diligence and the honest answer is the only one available.
+> **Answer it straight.** It is checkable in diligence and the honest answer is the only one available.
 >
-> ### ⚠️ This answer has a strategic consequence bigger than the field
+> ### ⚠️ Do NOT treat this as a strategic input. Founder correction 2026-08-17, after submission.
 >
-> **Hub71 Cohort 20 does not start until February 2027, which is roughly six months away.** A reviewer reading `0–6 months` next to a February start will ask how the company survives to the start line. **This does not weaken the application** and it is not something to hide or hedge in a text field. It does mean **Hub71 cannot be the plan for near-term cash**, and the sequencing has to reflect that. See [`../what-to-apply-for-next.md`](../what-to-apply-for-next.md).
+> _"We don't have the runway for 0 to 6 months. That was just for Hub71, don't even consider that."_
 >
-> **What actually answers it, and it is already true:** he is going full time regardless, the company is happening either way, and the near-term programmes on the queue pay out well before February. Nothing in this application needs to argue that. The field is a number.
+> **An earlier note here argued the answer had a consequence bigger than the field**, and used it to reorder the whole application queue toward fast non-dilutive money. **That was over-reading one radio button.** The band was picked for this form; it is not a company constraint to sequence against. **Sequencing follows the founder's binding priority order** in [`../what-to-apply-for-next.md`](../what-to-apply-for-next.md): money first, then network, then credits.
 
 ## 20. How much have you raised to date? (USD)
 ```
