@@ -90,34 +90,38 @@ Building got cheap. Deciding what to build did not. Supaprod tells a product tea
 ```
 
 ## 6. What are you building and how is it different than what is already out there?
-> _200 words. **Opens on all three layers in one sentence, in order**, per the founder ruling 2026-08-17. The door is the layer nobody else sells and it opens every answer that describes the product. Carries the one self-correction. Does not lead with the forecast, per the 2026-08-11 positioning change._
+> **⚠️ Rewritten 2026-08-17 on two founder rulings. Measured at exactly 200 words.** The previous version ran to 236 and the form rejected it, and the thing pushing it over was a story that was also weakening the pitch. See the note below the block.
 ```
 Supaprod tells a product team what to build, gets it built by agents, then grades
-the call against what shipped and guides the next one. Three layers, in that
-order. The first is the one nobody else sells.
+the call against what shipped and guides the next one. The first of those three
+layers is the one nobody sells.
 
-A team points it at everything they already have: user feedback, product
-analytics, sales and support conversations, market and competitor movement, and
-the direction they have already chosen. Agents read all of it and cluster it into
-what is worth looking at. A critic argues against the weak ideas before anyone
-commits.
+A team points it at what they already have: user feedback, product analytics,
+sales and support conversations, and market movement. Agents cluster it into what
+is worth looking at. A critic argues down the weak ideas before anyone commits.
+Agents then write the spec with its evidence, design and build it, open the pull
+requests, and ship. A person approves and merges, the only place a human is
+required. Then they grade what shipped against the spec, and that verdict ranks
+the next bets.
 
-From there agents run the work. They write the spec with the evidence attached,
-plan and design it, build it, open the pull requests, ship, and write the release
-notes. A person approves and merges. That is the only place a human is required.
+Notion, Atlassian, Linear and ChatPRD all make the work faster. None records
+whether the call was right, or catches what a team expected before it found out.
 
-Then they grade what shipped against what the spec promised, and that verdict
-ranks what to build next.
-
-Notion, Atlassian, Linear and ChatPRD all make the work faster. None of them
-records whether the call was right.
-
-I had the defensible part wrong at first. I was telling people a competitor could
-not rebuild a decision history. They can. Vercel's COO rebuilt why a deal was
-lost out of Slack, email and call recordings with an agent built in two days.
-What nobody can rebuild is what a team believed before it found out. Now
-something does, and it locks on write.
+A forecast is not an artifact. It exists only if something captured it at the
+moment of the call, so it cannot be backfilled by anyone starting later, at any
+budget. Those fields lock on write behind a database trigger, so not even our own
+agents can revise a prediction after the fact.
 ```
+
+> ### 🛑 The Vercel self-correction is cut, and it was arguing against us
+>
+> **Founder ruling 2026-08-17:** *"When I call the name, they are like big players. For them it is not a big deal to just have that feature integrated, and what we are trying to say is our primary USP. From that perspective it is not great."*
+>
+> **He is right, and this is a positioning error, not a length one.** The beat was written to buy credibility by conceding a falsified claim. What a reader actually takes from *"a major engineering company rebuilt a year of decision history with an agent built in two days"* is that **the thing we are selling is two days of work for anyone with a team.** It hands the reviewer the strongest objection to our own moat, in our own words, in the field where we are supposed to be answering it.
+>
+> **What replaces it is stronger and it is already on slide 6 of the deck.** *A forecast is not an artifact. It exists only if something captured it at the moment of the call, so it cannot be backfilled by anyone starting later, at any budget.* That answers the big-player objection directly rather than raising it: the constraint is time, not engineering, and no budget shortens it.
+>
+> **Consequence for the craft rule.** This application now carries **no self-correction**, by design. The one vulnerability beat still sits at Q15 on pricing and it carries the candour. A self-correction is only worth its space when the correction does not also concede the moat.
 
 ## 7. Is your startup utilizing or building AI solutions as part of its core product offering?
 **`AI-Driven Solutions and Platforms`**

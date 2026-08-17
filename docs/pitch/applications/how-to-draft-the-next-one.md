@@ -301,6 +301,30 @@ ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 <file>
 
 **One caveat on his wording.** He said *"company brain"*, which is the right concept and a banned phrase in outward copy: it is YC's, not our brand identity. **Write the mechanism instead: learns and guides the next call.**
 
+### 21. A self-correction that concedes the moat is not candour, it is an own goal
+
+**Founder ruling 2026-08-17, and it removes a beat that had been in nine filed applications.**
+
+> _"When I call the name, they are like big players. For them it is not a big deal to just have that feature integrated, and what we are trying to say is our primary USP. From that perspective it is not great."_
+
+**The beat:** *"I had the defensible part wrong. I said a competitor could not rebuild your decision history. They can, and [named company]'s COO rebuilt a lost deal's reasoning with an agent built in two days."*
+
+**Why it read well to us and badly to a reviewer.** We heard a founder updating on evidence, which is the thing YC weights. **A reviewer hears the price of the moat: two days of engineering for anyone with a team.** It raises the strongest objection to our own defensibility, names a credible party who has already beaten it, and does so in the field where we are supposed to be answering it. **Conceding a falsified claim is good. Handing over the counter-example is not.**
+
+**What replaces it, and it was already on slide 6 of the deck the whole time:**
+
+> **A forecast is not an artifact. It exists only if something captured it at the moment of the call, so it cannot be backfilled by anyone starting later, at any budget.**
+
+**That answers the big-player objection rather than raising it.** The constraint is time, not engineering, and no budget shortens it.
+
+**Three things this changes:**
+
+1. **`bun run pitch:check` now fails** on any paste block naming it, so it cannot come back by copy-paste from an older application.
+2. **The nine already filed with it stay as sent.** YC, SkyDeck, Campus Founders, ikigai, Conviction Embed, The Residency, South Park Commons, Betaworks, Sequoia Arc. Do not rewrite history, do not repeat it.
+3. **An application may now carry zero self-corrections.** The rule was "exactly one"; it is now "at most one, and only if it does not concede the moat."
+
+**The generalisable test, and it is worth applying to every candour beat:** say the sentence, then ask what a reviewer writes in their notes afterwards. If the note is *"founder checks his own claims"*, keep it. If the note is *"so an incumbent can build this"*, cut it.
+
 ---
 
 ## Part 2 — What worked, and should be repeated
@@ -309,7 +333,9 @@ ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 <file>
 
 > ⚠️ **This section used to open with "lead with the bad number", citing the SkyDeck traction answer. That advice is RETIRED by founder ruling 2026-08-13.** See correction 10 below. Volunteering the deficit read as candour to us and as weakness to a reader, and no form ever asked for it.
 
-**One self-correction per application, and make it real.** The competitors answer says outright that an earlier version of the moat argument was wrong, names what refuted it (Vercel's COO rebuilt a lost deal's reasoning from Slack, email and call recordings with an agent built in two days), and states what survived. **A founder who corrects himself on the record reads as someone who checks.**
+**One self-correction per application, and make it real.** A founder who corrects himself on the record reads as someone who checks.
+
+> ⚠️ **The self-correction that used to sit here is BANNED as of 2026-08-17.** It named the company behind the moat falsification and the "built in two days" detail. **See correction 21.** A self-correction is only worth its space when the correction does not also concede the moat. **If no safe self-correction exists for a given form, ship without one.** The vulnerability beat carries the candour on its own.
 
 **One vulnerability beat, placed where the form invites it, never volunteered.** The SkyDeck version: *"The honest gap is not that there are no users. It is that I have had almost no contact with them."* It then converts into the reason for applying to that specific programme.
 

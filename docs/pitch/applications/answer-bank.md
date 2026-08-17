@@ -562,16 +562,13 @@ The decision-and-outcome record. Four reasons it holds:
 No fast oracle. Product judgment cannot be compile-tested, so it does not
 commoditize the way code generation did.
 
-The forecast cannot be backfilled. A competitor with every byte of your raw
-data can reconstruct what happened, because causes survive in Slack, email and
-call recordings. What no volume of data reconstructs is what your team believed
-would happen, recorded before the outcome was known. A forecast leaves no trace
-unless something captured it at the moment of the call. Time is an ingredient no
-model release shortcuts.
+The forecast cannot be backfilled. A forecast is not an artifact. It exists only
+if something captured it at the moment the call was made, so it cannot be
+reconstructed afterwards by anyone starting later, at any budget. Time is the
+ingredient, and no model release and no engineering team shortens it.
 
-The neutral seat. No frontier lab inside its own chat app, and no suite vendor
-like Atlassian or Notion, can be the honest judge across its competitors' tools,
-or publish its own miss record.
+The independent seat. A frontier lab inside its own chat app cannot build this
+securely across someone else's tools. An independent has no such restriction.
 
 The engine is ours; the models are interchangeable parts. One runtime
 chokepoint, so a better model is a same-day drop-in at zero engineering cost. We
@@ -733,6 +730,26 @@ Approving a pending gate is a **write**. Two programs on one login means the sec
 **"Approve" versus "review":** settled by what the control does, not by word frequency. Use **approve** only where a click UNBLOCKS something. Use **review** where it only shows you something.
 
 **Never claim accumulated learning in the present tense.** The honest form is *the loop is wired and proven, and it begins accruing on first real use.*
+
+### 🛑 The falsification story is BANNED OUTWARD. Founder ruling 2026-08-17.
+
+**Never name the company, the person, or the "built in two days" detail behind the 2026-08-10 moat falsification.** Not in a competitors answer, not as a self-correction, not in a deck, not in any form. `bun run pitch:check` fails on it.
+
+> _"When I call the name, they are like big players. For them it is not a big deal to just have that feature integrated, and what we are trying to say is our primary USP. From that perspective it is not great."_
+
+**Why it has to go, and it is positioning rather than style.** The beat was written to buy credibility by conceding a claim we had got wrong. What a reader actually takes from *"a large engineering org rebuilt a year of decision history with an agent built in two days"* is that **the thing being sold is two days of work for anyone with a team.** It hands the reviewer the strongest objection to our own moat, in our own words, in the field where we are supposed to be answering it.
+
+**Say this instead. It is already on slide 6 of the deck:**
+
+```
+A forecast is not an artifact. It exists only if something captured it at the
+moment of the call, so it cannot be backfilled by anyone starting later, at any
+budget.
+```
+
+**It answers the big-player objection instead of raising it.** The constraint is time, not engineering, and no budget shortens it.
+
+**The falsification itself is still true and still governs the internal positioning** (the moat is the forecast, not the record). What changed is that we stop handing the reader the example. **Already filed with it:** YC, Berkeley SkyDeck, Campus Founders, ikigai, Conviction Embed, The Residency, South Park Commons, Betaworks, Sequoia Arc. Those are sent. Leave them as the record, never repeat them.
 
 **Punctuation:** no em dashes, no en dashes, no invisible Unicode in anything pasted into a form.
 

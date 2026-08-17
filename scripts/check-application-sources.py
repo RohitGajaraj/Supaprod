@@ -55,6 +55,9 @@ GRANDFATHERED = {
     "campus-founders/APPLICATION-v2.md",  # superseded by the fill sheet
     "campus-founders/APPLICATION-FINAL.md",
     "ikigai-launchpad/APPLICATION-FINAL.md",
+    # Filed carrying the falsification story, before the 2026-08-17 ban. Sent text
+    # is the historical record and is not rewritten. Never repeat it.
+    "conviction-embed/APPLICATION-FINAL.md",
 }
 
 BANNED_VOCAB = [
@@ -73,6 +76,28 @@ VOLUNTEERED_ZERO = [
 ]
 RETIRED_STRINGS = [
     "cursor for pms",  # retired anchor, three readers killed it
+    "warn you",  # retired closing clause, carries only the negative half of layer 03
+]
+
+# FOUNDER RULING 2026-08-17. Naming the company behind the 2026-08-10 moat
+# falsification is a positioning error, not a style one. The beat concedes that a
+# large engineering org rebuilt a year of decision history in two days, which reads
+# to a reviewer as "this is two days of work for anyone with a team". It hands over
+# the strongest objection to our own moat, in our own words, in the field where we
+# are supposed to be answering it.
+#
+# Say instead: "A forecast is not an artifact. It exists only if something captured
+# it at the moment of the call, so it cannot be backfilled by anyone starting later,
+# at any budget." That answers the objection rather than raising it.
+BANNED_STORY = [
+    "vercel",
+    "built in two days",
+    "built it in two days",
+    "in two days",
+    "two-day agent",
+    "coo rebuilt",
+    "coo reconstructed",
+    "coo of vercel",
 ]
 
 
@@ -241,6 +266,15 @@ def check_paste_hygiene() -> None:
             for word in RETIRED_STRINGS:
                 if word in low:
                     FAIL.append(f'{rel}:{lineno} retired positioning in a paste block: "{word}"')
+            for phrase in BANNED_STORY:
+                if phrase in low:
+                    FAIL.append(
+                        f'{rel}:{lineno} banned falsification story in a paste block: "{phrase}".\n'
+                        "       It concedes the moat is two days of work for anyone with a team.\n"
+                        '       Say instead: "A forecast is not an artifact. It exists only if\n'
+                        "       something captured it at the moment of the call, so it cannot be\n"
+                        '       backfilled by anyone starting later, at any budget."'
+                    )
 
 
 def main() -> int:

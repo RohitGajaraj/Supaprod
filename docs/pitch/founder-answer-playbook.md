@@ -101,9 +101,17 @@ Refresh these against the live database the morning of any conversation. **A sta
 
 ### The one argument that is NOT on the form, so it is yours to deliver out loud
 
-**The form has no defensibility question.** The moat self-correction exists only inside the uploaded PDF. **It is the strongest thing in the whole application and no field is carrying it.** Rehearse it:
+**The form has no defensibility question**, so the moat argument is yours to deliver out loud. Rehearse this:
 
-> *I had the moat wrong at first. I was saying a competitor cannot rebuild your decision history. They can. Vercel's COO rebuilt why a deal was lost out of Slack, email and call recordings, using an agent he built in two days. What nobody can rebuild is what a team believed before they found out, because almost nobody writes it down. Now something does.*
+> *A forecast is not an artifact. It exists only if something captured it at the moment the call was made, so it cannot be backfilled by anyone starting later, at any budget. Everything else about a decision survives somewhere. What a team believed before it found out leaves no trace unless something caught it, and almost nobody writes it down. Now something does, and it locks on write.*
+
+> ### 🛑 The version rehearsed here until 2026-08-17 named a company and is RETIRED
+>
+> **Founder ruling:** *"When I call the name, they are like big players. For them it is not a big deal to just have that feature integrated, and what we are trying to say is our primary USP. From that perspective it is not great."*
+>
+> The old line conceded that a large engineering org rebuilt a year of decision history with an agent built in two days. **In a room that is worse than on paper**, because the interviewer can follow up immediately, and the follow-up writes itself. **Do not name it, and do not reach for it if pushed.** The full ban and the reasoning: [`applications/answer-bank.md`](./applications/answer-bank.md) §12.
+>
+> **If a reviewer asks directly whether an incumbent could just build this**, the answer is the paragraph above, then: *the constraint is time, not engineering. Anyone can build the capture in a week. Nobody can build the two years of captured forecasts that make it worth anything.* **That concedes nothing and it is true.**
 
 ### Where the article numbers finally belong
 
