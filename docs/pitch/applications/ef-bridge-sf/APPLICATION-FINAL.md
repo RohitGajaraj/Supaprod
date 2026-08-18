@@ -327,20 +327,19 @@ Every call I made had a compliance officer on the other side.
 
 
 ## 6. What are you obsessed about?
-_Hint: "How did you get into it? How do you sustain it and keep learning? This can be a problem, a product, skill or hobby."_ · **99 / 100 words**
+_Hint: "How did you get into it? How do you sustain it and keep learning? This can be a problem, a product, skill or hobby."_ · **100 / 100 words**
 ```
 Irreversible decisions. Work where you cannot take it back.
 
-I did not plan this, I noticed it. Spacecraft that cannot be patched after
-launch. Semiconductors where a wrong call becomes silicon you have paid for.
-Then banking, where a bad answer reaches a real customer and a regulator asks
-why. Three industries, and I chose every one of them.
+I did not choose that deliberately. I noticed it late: every job I had taken was
+one where a wrong call could not be undone, only paid for.
 
-The discipline is not caution. It is being able to say why. Reversible work lets
-you skip that. Irreversible work never does.
+What it teaches is not caution. It is that being able to say why you decided
+something is the whole job. Reversible work lets you skip that. Irreversible
+work never does.
 
-I stay in it. I build and ship now rather than specify, so I carry my own
-mistakes.
+I keep learning by staying exposed. I build and ship the thing myself now, so my
+own bad calls land on me within the week, not on somebody else in six months.
 ```
 
 > ### 🛑 "679 primary sources this year" was not true, and it appears nowhere in the answer bank
