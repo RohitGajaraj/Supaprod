@@ -535,6 +535,81 @@ application_rules:
   read_the_verb: '"JOINED" is not "applied". Answer the question actually asked.'
   founder_submits: Never submit an application. The founder submits.
 
+  # ============================================================================
+  # FOUNDER RULINGS 2026-08-18, given after reviewing a filled EF application.
+  # His words: "you are not efficient in incorporating it... keep it as a
+  # baseline so that it does not come back to back for you."
+  # These are NOT EF-specific. They govern EVERY field of EVERY application.
+  # Run them as a CHECKLIST over a finished draft, not as a vibe.
+  # ============================================================================
+
+  say_it_once:
+    rule: >-
+      No fact, phrase, number or story appears in two fields. One fact, one home.
+      Pick the field where it does the most work and delete it everywhere else.
+    why: >-
+      "Duplicacy would irritate people." A reader going field to field sees the
+      repeat immediately and concludes the applicant had less to say than the
+      form allowed. With a 100-word cap, a repeated sentence is also space
+      stolen from a claim that was never made.
+    also_applies_between: >-
+      The written answers AND the video. If the video repeats what the form
+      already says, it has spent its minute telling them what they just read.
+    how_to_check: >-
+      Before filing, list every proper noun, number and anecdote per field and
+      look for anything appearing twice. Do this mechanically; it is invisible
+      when reading the answers one at a time.
+
+  laymans_terms:
+    rule: >-
+      A non-technical reader must be able to follow every sentence. Technical
+      detail and metrics are welcome; jargon strings are not.
+    founder_words: >-
+      "Instead of making it sound very much like techno-reporting, techno guy...
+      if a layman wants to read and understand, how would that be?"
+    test: >-
+      Would an intelligent generalist know what this sentence means without
+      looking anything up? If not, say what the thing DOES before what it is
+      called.
+    example_bad: "a 500-test suite pairing LLM-as-judge with deterministic graders across factuality, safety, latency and cost"
+    example_good: "a 500-test harness that checks every model answer for accuracy, safety, speed and cost before it reaches a customer"
+
+  never_frame_growth_as_deficiency:
+    rule: >-
+      Never state what he could NOT do. State what he can do now. Growth is
+      shown by the present capability, not by naming a past hole.
+    banned_shape: '"Two years ago I could not ship production software."'
+    say_instead: '"I build and ship production software end to end myself, directing agents."'
+    why: >-
+      FOUNDER RULING, and it is a real credibility bug: beside "a decade in
+      product" the deficit sentence reads as an admission that the earlier
+      years were not effective. It was written to show learning RATE and it
+      buys that at too high a price. The slope is still visible from the facts
+      without confessing a floor.
+
+  discarded_work_carries_its_reason:
+    rule: >-
+      Never say "threw away" on its own. State WHY the thing was rebuilt and
+      what it taught. A bare discard reads as waste; a reasoned rebuild reads
+      as judgment.
+    founder_words: '"thrown away is a hard thing... if you are saying thrown away, for what reason you threw away."'
+    say_instead: >-
+      "Each one worked and each one was the wrong shape, so I rebuilt it" -
+      or name the specific thing each version got wrong.
+
+  hand_over_the_demo:
+    rule: >-
+      Where a form asks what he has built, GIVE a working demo login inline.
+      Never write "I will give access on request" or "happy to walk you
+      through it": both ask the reader to do work and to wait.
+    founder_words: '"Directly throw an account at them and ask them to check out."'
+    mechanics: See demo_logins above. One login per programme, re-armed and verified before sending.
+
+  no_deficit_no_apology: >-
+    Related to the above and already law 2 in answer-bank.md. Candour goes
+    where the form asks for it, stated as fact plus what happens next, never
+    as apology and never volunteered.
+
 filed:
   - programme: Y Combinator Fall 2026
     date: 2026-08-11

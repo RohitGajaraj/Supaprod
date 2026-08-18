@@ -75,6 +75,20 @@
 4. **Plain words.** No marketing-speak, no AI cadence, short sentences, exact numbers however small. **No em dashes in anything pasted into a form.**
 5. **Lead with the delta, land the scope.** First sentence carries the whole answer. Numbers argue.
 
+> ### Laws 6 to 10, added 2026-08-18 after a founder review of a finished application
+>
+> **He was blunt about why these are here:** *"Please consider all the feedback that I've given you so that you don't repeat these mistakes again and again… you are not efficient in incorporating it."* **These are not EF-specific. Run them as a checklist over any finished draft, mechanically, because none of them is visible when you read answers one at a time.**
+>
+> 6. **Say it once.** No fact, number, phrase or story appears in two fields, and nothing in the video repeats the written answers. **One fact, one home** — pick the field where it does the most work and cut it everywhere else. *"Duplicacy would irritate people."* With a 100-word cap a repeated sentence is also space stolen from a claim that never got made. **Check by listing every proper noun, number and anecdote per field and looking for doubles.**
+>
+> 7. **Layman's terms, always.** An intelligent generalist must follow every sentence without looking anything up. Metrics and technical detail are welcome; jargon strings are not. **Say what the thing does before what it is called.** *"a 500-test suite pairing LLM-as-judge with deterministic graders across factuality, safety, latency and cost"* becomes *"a 500-test harness that checks every model answer for accuracy, safety, speed and cost before it reaches a customer."*
+>
+> 8. **Never frame growth as a past deficiency.** Banned shape: *"Two years ago I could not ship production software."* Say the present capability instead: *"I build and ship production software end to end myself."* **Beside "a decade in product", the deficit sentence reads as an admission that the earlier years were not effective.** It was written to show learning rate and it buys that at too high a price; the slope is still visible from the facts without confessing a floor.
+>
+> 9. **Discarded work carries its reason.** Never *"threw away"* on its own — *"thrown away is a hard thing… for what reason you threw away."* A bare discard reads as waste. **Name what the version got wrong**, and it reads as judgment: *"each one worked and each one was the wrong shape."*
+>
+> 10. **Hand over the demo, do not offer it.** Where a form asks what he has built, **give a working login inline**. Never *"I will give access on request"* or *"happy to walk you through it"*: both ask the reader to do work and to wait. *"Directly throw an account at them and ask them to check out."* Allocation rules in [`baseline.yml`](./baseline.yml) `demo_logins`.
+
 **Customer-evidence rule (binding).** Zero first-party discovery interviews have happened. Never claim interviews, discovery-call counts, or "we spoke to N customers." Cite named-company hand-rollers instead (PMs at OpenAI and DoorDash building their own rigs out of Claude Code plus MCP plus memory files; one describing 1,500 hours on her setup). Dogfooding is first-party evidence and is fair game.
 
 ---
