@@ -37,7 +37,7 @@
 >
 > | | |
 > | --- | --- |
-> | **Video URL** | Record today. Script is in "The video" below, **159 words, roughly 61 seconds** |
+> | **Video URL** | Record today. Script is in "The video" below, **125 words, roughly 50 seconds** |
 > | **Alumni-contact toggle** | Preference. Recommended ON |
 > | **Privacy Policy toggle** | **Required, and a legal acknowledgement in his name.** An agent must never accept terms on his behalf |
 >
@@ -327,19 +327,20 @@ Every call I made had a compliance officer on the other side.
 
 
 ## 6. What are you obsessed about?
-_Hint: "How did you get into it? How do you sustain it and keep learning? This can be a problem, a product, skill or hobby."_ · **97 / 100 words**
+_Hint: "How did you get into it? How do you sustain it and keep learning? This can be a problem, a product, skill or hobby."_ · **99 / 100 words**
 ```
-Product. Specifically how a team decides what to build, which is harder than
-building it.
+Irreversible decisions. Work where you cannot take it back.
 
-I got into it sideways, as an engineer writing specs nobody had asked for. Three
-industries later, space, semiconductors and banking, the pattern is identical:
-the building is rarely the bottleneck, the deciding is. Everyone can tell you
-what shipped. Almost nobody can tell you why.
+I did not plan this, I noticed it. Spacecraft that cannot be patched after
+launch. Semiconductors where a wrong call becomes silicon you have paid for.
+Then banking, where a bad answer reaches a real customer and a regulator asks
+why. Three industries, and I chose every one of them.
 
-I keep learning by building the thing myself instead of describing it. When I
-direct agents to ship something, every bad assumption I am holding turns up in
-my own week rather than in a document.
+The discipline is not caution. It is being able to say why. Reversible work lets
+you skip that. Irreversible work never does.
+
+I stay in it. I build and ship now rather than specify, so I carry my own
+mistakes.
 ```
 
 > ### 🛑 "679 primary sources this year" was not true, and it appears nowhere in the answer bank
@@ -416,20 +417,18 @@ This time I am all in. My notice is in.
 > 3. **The correction is happening in front of them.** The notice is in. A story with a second act in progress beats any finished story he did not live.
 
 ## 9. A strong opinion you've held and acted on, even when smart people you respected told you were wrong
-_Hint: "What happened?"_ · **96 / 100 words**
+_Hint: "What happened?"_ · **95 / 100 words**
 ```
-That the money in AI would not be in writing code.
+That a senior product manager should learn to build, personally.
 
-Through 2025 and 2026 everyone I respect was building or backing code
-generation. I argued the opposite: models would swallow that layer, and the
-scarce thing would be deciding what to build and proving afterwards that the
-call was right.
+The advice I got was the opposite, and it came from people I rate. At my level
+you set strategy and you hire engineers. Learning to ship yourself is a step
+backwards, it does not scale, and it is not what you are paid for.
 
-People whose judgment I trust told me I was wrong, and that I was walking away
-from the only market that was obviously working.
+I did it anyway. It took two years and the early attempts were poor.
 
-I walked away from it anyway. Coding agents are excellent now, and commoditising
-fast. The layer above them is still open.
+It changed what I am able to decide. I no longer estimate what is hard, I know.
+And I can no longer hide behind a specification.
 ```
 
 > **The question is about cost, not cleverness.** An opinion nobody argued with is not an answer. This one names who disagreed, what acting on it cost (four rebuilt products, and declining the market's obvious lane), and what happened since.
@@ -543,7 +542,7 @@ Both know I have listed them and are happy to take the call.
 
 # The video
 
-**One minute. 159 words, roughly 61 seconds at a natural pace.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
+**Under a minute on purpose. 125 words, roughly 50 seconds at his measured 150 to 160 words per minute.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
 
 > ## 🛑 FOUNDER RULING 2026-08-18: the first two scripts were CVs, and the question bans a CV
 >
@@ -586,21 +585,22 @@ Both know I have listed them and are happy to take the call.
 ```
 I'm Rohit.
 
-If you worked with me, the first thing you would notice is that I ask why more
-than is comfortable. Not to be difficult. I cannot let a decision sit if nobody
-can tell me the reasoning behind it. It has annoyed people. It is also the most
-useful thing about me.
+I have resigned from a senior job I was good at, that paid me well, and nobody
+asked me to.
 
-The second thing you would notice is that I want to be told I am wrong, early. I
-would far rather lose an argument in week one than find out in month six. I am
-not attached to being right. I am attached to finding out.
+People who have worked with me will tell you I ask why too much. I have never
+been able to let a decision go when nobody can explain it.
 
-I have spent my whole career as the person in the middle. Between the people who
-decide and the people who build. Three industries, two countries, same seat.
+For ten years I sat between the people who decide and the people who build. I
+watched good teams build the wrong thing, confidently, over and over. And I was
+in the room every time.
 
-I am done being in the middle. I am leaving to do my own thing, full time.
+I got tired of watching.
 
-I want to be in a room where everyone has already made that decision.
+I am not going to promise you I will get this right. I have been wrong plenty
+and I will be again.
+
+But I am done being the person who explains the decision afterwards.
 ```
 
 **Recording notes:**
