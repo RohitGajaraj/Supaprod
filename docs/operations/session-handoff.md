@@ -1,3 +1,45 @@
+# ✅ MERIDIAN LANE, 2026-08-18 (later) — four packets in parallel, and the fourth hole
+
+**Pushed. `origin/main` = `067842ac`.** tsc clean, `bun test` 9,397 pass / 0 fail, ratchet **6,614 across 308 files**.
+
+**Read the totals carefully, because the ruler got wider twice today.** The ledger measured 5,794 this morning. It could not see stylesheets (+2,339) and it could not see retired CSS class names (+521). On today's ruler the session started at **8,654** and stands at **6,614**: **2,040 occurrences gone, 24%**.
+
+## The fourth hole, and how it surfaced
+
+A file can import nothing retired, carry no `--sp-*` token, pass every gate, and still be painted by the old system, because the retired vocabulary is also a set of CLASS NAMES and a class name is just a string in an attribute. **521 occurrences, 258 distinct classes.** `sp-fail` is 65 of them and `sp-warn` is 17: a sixth status word in a system whose whole colour law is that there are five.
+
+It surfaced the honest way. An agent moved every component and every token off the retired layer in its files, then **wrote down that it had left `sp-pass`/`sp-fail`/`sp-warn` behind** because they were not in its mapping. By every gate the repo had, those files were finished.
+
+## Three Meridian parts built, all born clean
+
+`Receipt` (49 uses, and the single thing that was blocking Learn and Ship entirely), `Prose` (22), `MoreMenu`/`MoreItem` (11). Each carries the BEHAVIOUR, not just the paint: `Receipt` keeps the `role="status"` live region that fixes real silence after an irreversible decision; `MoreMenu` keeps the capture-phase Escape listener, without which a menu inside Ask closes the whole pane instead of itself.
+
+## The live agent line is scoped per station now
+
+`<CrewWorking />` was mounted unscoped on every station, so Learn could announce an agent working on something else. The scope is a `station` prop on the shared component and all seven stations pass theirs. **Brain stays unscoped and is right to** — it is a product-wide surface, so its unscoped line is honest. That is the rule: a surface ABOUT a station passes its station; a surface about the product passes nothing.
+
+## What the agents REFUSED to do, which is the part worth keeping
+
+- **`Pre` -> `CodeBlock`, declined three times independently.** `CodeBlock` needs a `filename` these payloads do not have, takes tokenized lines rather than children, caps a width AND a height that `.sp-pre` does not, and has no outcome tone, so "Why it failed" would lose its state.
+- **`ContradictionAuditSection` keeps the retired `Loading`**, because Meridian's `Reading` takes children only and swapping drops the agent-working state, the agent's name, and what it is reading.
+
+Both are the ratchet law applied correctly. **Meridian still has no home for `AgentPulse`, and that is now the most-cited gap in the product.**
+
+## The defect two agents found independently
+
+**Meridian's `Field` is a `div` that binds by name; the retired one was a `label` that bound by containment.** A straight swap silently unbinds any control relying on implicit association. Fifteen call sites across three packets had no `htmlFor`. All fixed. Two independent finds makes it systemic: it wants a guard.
+
+## Next, in order
+
+1. **A guard for the `Field` binding**, and one for the 521 class names now that they are counted.
+2. **`AgentPulse` into Meridian.** It is the last retired-layer dependency of every already-ported surface, and it is the founder's #1 ask.
+3. The remaining `class:sp-` sweep, biggest first: `primitives.tsx` 92, `AuditLineageSheet` 45, `CodeDiff` 29, `ScopeMenu` 18, `ShortcutSheet` 15.
+4. `Value`'s two tone sources in `.ts` files (`governance-shared.ts`, `incident-format.ts`) are pinned by their own tests and currently wear a local bridge rather than widening Meridian back to six words. That packet owns the tests too.
+5. Stations still unported: Discover (99), Decide, Plan, Design, Build, Ship.
+
+---
+
+
 # ✅ MERIDIAN LANE, 2026-08-18 — the gate could not see the paint, and that is why this kept needing redoing
 
 **Merged and pushed. `origin/main` = `ac76a415`.** Ten commits, verified on the merged tree: `tsc` clean, `bun test` 9,397 pass / 0 fail, ratchet 6,804 across 295 files.
