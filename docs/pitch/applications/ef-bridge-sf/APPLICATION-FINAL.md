@@ -8,25 +8,27 @@
 >
 > **The founder submits. Never an agent.** The form is behind reCAPTCHA in any case.
 >
-> ## 📌 STATE AS OF 2026-08-17 19:45 IST
+> ## 📌 STATE AS OF 2026-08-18 14:20 IST — **all 13 answers were pressure-tested and six were rewritten**
 >
-> **All 13 text answers are FILLED IN THE LIVE FORM** and verified by reading each field back out of the DOM. None exceeds 100 words. Page 2 is filled: Bangalore India, nationality India, and the "how did you hear" answer.
+> **Every answer below is the revised text.** Word counts re-measured mechanically, all 13 within the 100-word limit. **Six answers changed: Q1, Q3, Q4, Q5, Q6, Q12. The video script was rewritten.** Each change carries its reason in a block beneath it.
 >
 > **Three things remain, all founder-only:**
 >
 > | | |
 > | --- | --- |
-> | **Video URL** | Record tomorrow. Script is in "The video" below, 164 words, roughly 63 seconds |
+> | **Video URL** | Record today. Script is in "The video" below, **156 words, roughly 60 seconds** |
 > | **Alumni-contact toggle** | Preference. Recommended ON |
 > | **Privacy Policy toggle** | **Required, and a legal acknowledgement in his name.** An agent must never accept terms on his behalf |
 >
-> ### ⚠️ THE SAVE IS UNCONFIRMED. Read this before assuming the work is safe.
+> ### ⚠️ THE 2026-08-17 SAVE COULD NOT BE REACHED ON 2026-08-18, AND THE REASON MATTERS
 >
-> **The browser refused a reload with "this page has unsaved changes", twice, after both SAVE FOR LATER and NEXT were clicked.** The save control is an `<a>` with no `href`, driven by JavaScript, and it produced no visible confirmation.
+> **The live form was reopened at `/your-achievements/` on 2026-08-18 and it redirected to page 1 with `error_code=6750`**: *"Oops! Something went wrong. Please ensure you're not accessing this page in incognito mode or using cookie blockers."* Page 1 was empty — no name, no email.
 >
-> **It may be a blanket `beforeunload` guard rather than proof of an unsaved state**, but the two cannot be told apart without forcing the navigation, and forcing discards every answer. **It was not forced.**
+> **That is a session that no longer holds the application, not proof the save failed.** `/retrieve-saved-application/` states the actual recovery route: *"Enter your email address and we'll send you a code to access your saved application."*
 >
-> **The founder must click SAVE FOR LATER or NEXT himself and confirm EF's save email arrives at `founder@supaprod.ai`.** Every answer is committed to this file, so the worst case is a ten-minute re-paste, not a loss.
+> **So retrieval is gated behind a code sent to `founder@supaprod.ai`, which is a credential boundary an agent cannot cross.** `list_connected_browsers` returned a single browser, and it is not the one holding the session.
+>
+> **The sequence that works:** the founder opens the Chrome that has the Claude extension connected, enters `founder@supaprod.ai` on the retrieve page, enters the emailed code, and lands back in the saved application. **From that point the 13 revised answers can be pasted in by an agent in a few minutes.** Nothing is lost either way — every answer is committed to this file.
 
 ## What this programme is, verified on its own pages
 
@@ -60,6 +62,63 @@
 | **Contrarian judgment** | Q9, an opinion that cost something to act on |
 | **Self-awareness** | Q8, a failure named precisely and corrected in front of them |
 
+---
+
+# The standard this is being judged against, researched 2026-08-18
+
+**The bar was read off EF's own pages and off the people who actually got in**, rather than assumed. Three things came back that change how these answers should be written.
+
+## 1. EF's own filter is "edge", and credentials are explicitly not it
+
+> *"A non-obvious, defensible thing you know, can do, or have built that almost nobody else has."*
+
+**The five recurring rejection patterns, in the order they are usually cited:**
+
+| # | Pattern | Where we were exposed |
+| --- | --- | --- |
+| 1 | **Generic motivation** — *"I want to have impact"* is auto-filtered; they want *"the specific story: what radicalised you, when, on what problem"* | **Safe.** Q6 and Q8 are both specific and dated |
+| 2 | **Credentials without edge** — *"Stanford CS plus three FAANG years is a CV, not an edge"* | **We were exposed in Q1**, which opened with two degrees. Fixed |
+| 3 | **Vague problem space** — *"I want to work in AI"* does not survive the partner interview | **Safe.** Q11 names a mechanism, not a sector |
+| 4 | **Relocation reluctance** — remote-only applications fail automatically | **Safe**, and the video now says the notice is in |
+| 5 | **Hidden co-founder / locked team** — EF's value is the matching | **This is the live risk. See §3.** |
+
+**Selectivity: 40 spots.** EF's own FAQ on how competitive The Bridge is: *"Very. EF's existing programs are already highly selective. The Bridge is even more competitive because there are only 40 spots in the residency."* Third-party walkthroughs put EF historically near 3%.
+
+## 2. The cohort skews far younger than he does, and that cuts both ways
+
+**Publicly identifiable members of the Spring '26 and Summer '26 Bridge cohorts**, with the experience each states:
+
+| Founder | Background | Experience |
+| --- | --- | --- |
+| Shakhnazar Sailaukan | AI Engineer, CrayonLabs | **1y 11m** |
+| Florian Dirion | TUM manufacturing research, Siemens | **2y 5m** |
+| Mateo Herbig | Co-founder & CTO, Cashly; Deutsche Börse | **3y 3m** |
+| Faidra Patsatzi | AWS Solutions Architect, TUM, ex-Stanford | **3y 8m** |
+| Assylkhan Sarsenbayev | Dropped out, 3 failed startups, one app past 1M downloads | **3y 11m** |
+| Bart Chmielecki | First company at 15, London real estate services | **8y 11m** |
+
+> ### The read, and it is the single most important judgement in this application
+>
+> **A decade of experience is not the cohort norm, and EF's stated thesis is early-career outliers.** The failure mode is obvious once named: **he reads as a comfortable senior corporate PM taking a sabbatical.** That is a rejection, and no individual answer refutes it.
+>
+> **What refutes it is slope, irreversibility, and a peer set he is not merely a member of.** All three are now load-bearing:
+>
+> - **Slope** — *"Two years ago I could not ship production software"* against a shipped autonomous system. **Most applicants can show a level. This shows a rate**, and a rate is the only thing that makes ten years an advantage rather than a liability.
+> - **Irreversibility** — *"My notice is in"* appears in Q6, Q8 and the video. **That repetition is deliberate and must survive editing.** EF's round-three rejection reason is hedging on commitment; a served notice is the one fact that cannot be hedged.
+> - **Seniority as access, not as tenure** — Q12 now claims the bank rooms. **Nobody in the table above can get that call.** That is what a decade is *for* in this application.
+
+## 3. The risk no field asks about, and it will come up in the partner interview
+
+**The Bridge is built for Stage 0**: *"Many arrive pre-idea or pre-team."* He arrives with a live product, 5,366 commits and a filed Hub71 application. **The FAQ does permit it** — *"Some come with an early idea or founding team"* — so this is not an eligibility problem. It is a **motive** problem, and the partner's real question is:
+
+> *Will this person genuinely engage with the cohort, or is he using a residency as a cheque?*
+
+**Nothing in the 13 answers should read as "I have a finished company, fund it."** They currently do not, and that is worth protecting on every future edit. **The honest answer, for the interview and not for the form**, is the one Q9 and Q8 already set up: he has thrown away four complete products because he was reasoning alone, and the thing he cannot buy is a room of people who will tell him the fifth is the wrong shape before he spends eleven weeks finding out. **That is a Stage-0 need stated by someone who has earned the right to name it precisely.** Prepare it; do not paste it anywhere.
+
+## 4. What the video is scored on
+
+Covered in full under "The video" below. **The headline: EF scores communication clarity, energy and presence, conviction and intensity — and names *"robotic, low-energy, or overly scripted"* as a common rejection reason.** The 2026-08-17 script was none of those things on paper and risked all of them on camera, because it was written to be read rather than said.
+
 > ### The word limit is 100 WORDS, not characters. Measured, not assumed.
 >
 > The counter reads `100 of 100 left` and no `maxlength` attribute exists, so the limit is enforced in JavaScript. **Probed on the live form with the string `aaaa bbbb`: 9 characters, 2 words. The counter moved to `98 of 100 left`.** It counts words. The field was restored to empty immediately.
@@ -71,19 +130,23 @@
 # The answers
 
 ## 1. Where did you learn what you know?
-_Hint: "Let us know what university you attended, company you worked at, or mentor you worked with."_ · **99 / 100 words**
+_Hint: "Let us know what university you attended, company you worked at, or mentor you worked with."_ · **97 / 100 words** · **REVISED 2026-08-18**
 ```
-A Bachelor of Engineering in Mechatronics, then an MBA from TUM School of
-Management, Munich, Germany, earned while working full time.
+At twenty-one, at ISRO, India's national space agency, I built the communication
+link for spacecraft going to the Moon and Mars. Keeping a signal alive across
+hundreds of millions of kilometres, where after launch there is no patch.
 
-Three rooms taught me the rest. At ISRO, India's national space agency, I built
-the communication link for Moon and Mars spacecraft. At 21 my job was keeping a
-signal alive across hundreds of millions of kilometres. After launch there is no
-patch. Then semiconductors at Infineon, Munich, where a wrong call becomes
-silicon. Then Intellect, on the AI platform 200+ banks build on.
+Then Infineon in Munich, where a wrong call becomes silicon. Then Intellect, the
+AI platform 200+ banks build their own products on, where every decision had a
+compliance officer on the other side.
 
-Each punished a decision I could not defend.
+Formally: Mechatronics engineering, then an MBA at TUM Munich, earned while
+working full time.
+
+Three rooms, one lesson. Each punished a decision I could not defend.
 ```
+
+> **Why this changed. The old version opened with two degrees, and EF's most-cited rejection reason is "credentials, not edge"** — *"Stanford CS plus three FAANG years is a CV, not an edge."* The facts are identical; the order is not. **ISRO at twenty-one is the rarest thing in the paragraph and it now goes first**, with the degrees demoted to a single line labelled "Formally". A reader who stops after one sentence still gets the strongest fact.
 
 ## 2. One-minute video introducing yourself
 _"Do not pitch an idea or a CV. Help us understand who you are." Public link (YouTube, Vimeo, Google Drive)._
@@ -93,21 +156,29 @@ _"Do not pitch an idea or a CV. Help us understand who you are." Public link (Yo
 **Do not reuse the existing founder video** (`https://youtu.be/zBmtUtkTyBs`). It is **2:32 against a one-minute ask** and it pitches, which the question explicitly rules out. Sending an over-length video to a form that states a limit is a self-inflicted wound.
 
 ## 3. If you are technical: the most impressive technical product or project you've led/owned
-_Hint: "What was your role and contribution? Why was it technically impressive?"_ · **99 / 100 words**
+_Hint: "What was your role and contribution? Why was it technically impressive?"_ · **98 / 100 words** · **REVISED 2026-08-18**
 ```
-Supaprod. Architected and shipped alone in eleven weeks: 5,300+ commits and
-9,400 tests across 563 files, all directed and reviewed by me.
+Supaprod, architected and shipped alone in eleven weeks.
 
-Two years ago I could not ship production software. I taught myself by directing
-agents, the most useful skill I have.
+The hard part is autonomy, not code. An engine ticks every minute and advances
+work with nobody starting it. Agents open real pull requests behind a merge gate
+none of them can cross. Forecast fields are immutable at database level: a
+Postgres trigger rejects the edit, so no prediction can be revised after the
+outcome.
 
-What makes it hard is the autonomy, not the code. An engine advances work every
-minute with nobody starting it. Agents open real pull requests behind a merge
-gate none can cross. Forecast fields are immutable at database level, so no
-prediction can be revised.
+Scale: 5,300+ commits, 545 migrations, 9,395 passing tests across 567 files.
 
-Making it safe enough to leave running is the engineering.
+Two years ago I could not ship production software. I learned by directing
+agents. Making it safe enough to leave running is the engineering.
 ```
+
+> ### Two changes, and the second one was a wrong number shipping outward
+>
+> **1. The volume moved out of the opening sentence.** A Bay Area technical reader divides 5,300 commits by eleven weeks, gets sixty-nine a day, and concludes "agent noise" before reaching the sentence that answers them. **The mechanisms now lead and the counts support**, which is the order the question's own hint asks for (*"why was it technically impressive?"*).
+>
+> **2. `9,400 tests across 563 files` was wrong in both halves.** Re-derived on 2026-08-18: `bun test` reports **9,395 passing, 0 failing, across 567 files**. `545` migrations from `ls supabase/migrations/*.sql | wc -l`. `5,366` commits from `git rev-list --count HEAD`, so `5,300+` holds and ages safely.
+>
+> **The immutability claim was checked against the database, not against the docs**, because [`../../verified-numbers.md`](../../verified-numbers.md) records that prose asserting a mechanism reads exactly like a mechanism that exists. It exists: `enforce_forecast_immutable()` raises on any edit to `forecast_claim`, `forecast_how_we_will_know` or `forecast_horizon_date`, fired by trigger `trg_decisions_forecast_immutable` on `public.decisions`. The every-minute engine is `pg_cron` job `approvals-tick` on `* * * * *`. **Both are the kind of claim an EF partner can ask one follow-up about, and both survive it.**
 
 ## 4. If you are technical: tell us more about things you've built before
 _Hint: "For example apps you've built, models, open source contributions. Include URLs if possible."_ · **99 / 100 words**
@@ -122,22 +193,41 @@ not the repository.
 Earlier, internal tools nobody asked me to build: a dashboard tracking why
 decisions were made, and reporting that replaced a recurring manual process.
 
-Supaprod is live at supaprod.ai. The repository is private for now, and I will
-walk anyone through it.
+Supaprod is live at supaprod.ai. The repository is private; I will give any EF
+reviewer access on request.
 ```
 
+> **The close was rewritten because EF treats artefacts as clickable proof** and warns that *"empty links signal a thin profile"*. *"I will walk anyone through it"* asks the reader to book time. **"I will give any EF reviewer access on request" hands them the thing instead**, and `supaprod.ai` returns HTTP 200, checked 2026-08-18.
+
 ## 5. The most impressive commercial outcome you've driven or revenue you've earned
-_Hint: "What was your role and contribution?"_ · **99 / 100 words**
+_Hint: "What was your role and contribution?"_ · **98 / 100 words** · **REVISED 2026-08-18**
 ```
-At Intellect I was senior AI product manager on the platform that 200+ financial
-institutions across 70+ countries build their own AI products on. I owned what
-shipped and in what order.
+At Intellect I am senior AI product manager on the platform 200+ financial
+institutions across 70+ countries build their own AI products on. I own what
+ships and in what order.
 
 That is the outcome I am proudest of, because of who the buyer is. Getting a
 regulated bank to build its own products on your platform is a multi-year sale
 and a decade-long commitment, won on judgment and trust rather than on features.
-Every call I made there had a compliance officer on the other side of it.
+
+Every call I made had a compliance officer on the other side of it, and a wrong
+one costs a renewal, not a sprint.
 ```
+
+> ### ⚠️ This is the weakest answer in the application and it needs a number from the founder
+>
+> **The question asks for a commercial outcome or revenue earned, and this answer contains no figure.** EF's operator archetype is defined as *"early-stage employees who owned 0-to-1 functions with quantifiable metrics"*. Scope is not an outcome.
+>
+> **What changed without him:** past tense went to present (*"I am"*, *"I own"*) because the notice is served but he is still in the seat, and the close now converts scope into stakes — *"a wrong one costs a renewal, not a sprint"* is the sentence that tells a commercial reader the decisions carried money.
+>
+> **What only he can add.** If any of these exist, one of them replaces the last sentence and this becomes a strong answer instead of an adequate one:
+>
+> - platform ARR, or the revenue of the book he owns
+> - a named institution he personally landed, and the deal size
+> - a feature he decided that a renewal or a win turned on
+> - anything he has personally earned or raised
+
+
 
 ## 6. What are you obsessed about?
 _Hint: "How did you get into it? How do you sustain it and keep learning? This can be a problem, a product, skill or hobby."_ · **99 / 100 words**
@@ -149,12 +239,25 @@ glue between product and engineering, re-answering "why did we decide this"
 months later from memory. Agents make it worse: a person now answers for calls
 they did not fully make.
 
-I sustain it by reading rather than guessing: 679 primary sources this year, and
-a private community of about thirty thousand product managers whose complaints I
-read daily.
+I sustain it by reading rather than guessing. I search a paid 679-document
+archive of practitioner interviews before forming a view, and read a
+30,000-member product community's complaints daily.
 
 My notice is in. I am leaving a senior role to do this full time.
 ```
+
+> ### 🛑 "679 primary sources this year" was not true, and it appears nowhere in the answer bank
+>
+> **Both numbers in this answer were introduced on 2026-08-17 and neither exists in [`../answer-bank.md`](../answer-bank.md) or [`../../verified-numbers.md`](../../verified-numbers.md).** They were traced on 2026-08-18:
+>
+> | Claim as written | What is actually true |
+> | --- | --- |
+> | *"679 primary sources this year"* | **679 is the size of a paid archive he can search**, named in [`../../one-pager.md`](../../one-pager.md) as *"the 679-document paid archive"*. It is a corpus, not a reading count. **He did not read 679 sources this year, and the first interview follow-up is "which ones?"** |
+> | *"a private community of about thirty thousand product managers"* | **True and now checked externally** — the community is documented at 30,000+ members as of April 2026. It stays, in a form that does not imply he runs it |
+>
+> **The rewrite claims the searching, not the reading**, which is both true and a better answer: *searching a corpus before forming a view* is a described method, and the question's hint asks how he sustains it.
+
+
 
 ## 7. Have you participated in national or international competitions?
 _Hint: "List any competitions/awards you have won, or papers you've published."_ · **99 / 100 words**
@@ -255,20 +358,29 @@ Everyone is racing to make building faster. Almost nobody scores the calls.
 > **This is the one field where the company thesis belongs**, and it is written as a view about the world rather than a pitch. The question asks what he thinks, so it answers with an argument a reader can disagree with.
 
 ## 12. Do you have domain expertise or unusually high access / network to a field?
-_Hint: "What do you know about this space that few others know or believe? How do you know it?"_ · **99 / 100 words**
+_Hint: "What do you know about this space that few others know or believe? How do you know it?"_ · **99 / 100 words** · **REVISED 2026-08-18**
 ```
 A decade of AI product inside regulated industries, most recently the platform
-200+ financial institutions across 70+ countries build their own AI products on.
-I know how an AI feature actually clears a bank's risk function, which is rarely
-what an AI founder assumes.
+200+ banks in 70+ countries build their own AI products on.
 
-What I believe that few do: the defensible asset is not the record of what
+Access: I sit with the people who decide whether an AI feature ships inside a
+bank. I know how one actually clears a risk function, which is almost never what
+an AI founder assumes, and I can get those rooms on a call.
+
+What almost nobody believes: the defensible asset is not the record of what
 happened. That survives in chat logs and can be rebuilt. It is the forecast,
-captured before the outcome is known, which leaves no trace unless something
-caught it.
-
-Access: a private community of roughly thirty thousand product managers.
+captured before the outcome is known.
 ```
+
+> ### 🛑 The single worst line in the old application was the answer to the word "access"
+>
+> **It ended: *"Access: a private community of roughly thirty thousand product managers."*** The question asks about **unusually high access**. A paid community membership is available to anyone with a card, so as an answer to *unusual access* it is close to zero — and it sat in the last line, which is the position a reader remembers.
+>
+> **He has genuinely unusual access and it was already in the paragraph, unlabelled.** A decade inside the AI platform that 200+ regulated banks build on means he can reach the people who decide whether an AI feature ships inside a bank. **Almost nobody applying to a Bay Area residency can get that call.** It is now the thing the word "Access" points at.
+>
+> **The community moved to Q6**, where it answers *how do you sustain it* and is honest at its real size.
+
+
 
 > **The hint asks two things and both are answered:** what he knows that few know (how AI clears a bank risk function), and what he believes that few believe (the forecast, not the record). The second is the company's whole thesis stated as a personal conviction, which is what this question actually wants.
 
@@ -319,36 +431,45 @@ Both know I have listed them and are happy to take the call.
 
 # The video
 
-**One minute. 164 words, roughly 63 seconds at a natural pace.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
+**One minute. 156 words, roughly 60 seconds at a natural pace.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
+
+> ### What EF actually scores this video on, in their words
+>
+> **Communication clarity · energy and presence · conviction and intensity.** And the failure mode is named directly: ***"a robotic, low-energy, or overly scripted video is a common rejection reason."***
+>
+> **That single line is why the script was rewritten.** The 2026-08-17 version was accurate and well-built, and its register was reflective — it looked back on a decade and closed on a preference (*"I would rather build in a room…"*). **Reflection reads as low energy on camera, and a preference is not conviction.** Every beat below is now present-tense or forward, the sentences are shorter so they are speakable rather than readable, and the close is a decision already taken rather than a wish.
 
 ```
-I'm Rohit. The thing worth knowing about me is that I spent ten years being the
-person who had to explain decisions nobody could remember making.
+I'm Rohit.
 
-I started at India's national space agency at twenty-one, building the
-communication link for spacecraft going to the Moon and Mars. My job was keeping
-a signal alive across hundreds of millions of kilometres. Once it launches, there
-is no patch, no rollback, no second attempt.
+At twenty-one I was at India's space agency, building the radio link for
+spacecraft going to the Moon and Mars. Once it launches, there is no patch. You
+get one shot, and you live with the call you made.
+
+I've spent the decade since being the person who has to explain decisions nobody
+can remember making. Three industries, same job, same frustration.
 
 Two years ago I could not ship production software. I taught myself to build by
-directing AI agents, because I was tired of needing permission to make the thing
-I could already see.
+directing AI agents, because I got tired of needing someone's permission to make
+the thing I could already see.
 
-Since then I have built and thrown away four complete working versions of what I
-am building now. Each one worked. Each one was the wrong shape. So I started
-again.
+Since then I've built four complete versions of what I'm working on now, and
+thrown all four away. Each one worked. Each one was the wrong shape.
 
-I am not asking for permission this time. My notice is in, and I would rather
-build in a room full of people moving at the same speed.
+I'm not asking permission this time. My notice is in, I'm leaving a senior job,
+and I want to be in a room where that's the normal thing to do.
 ```
 
 **Recording notes:**
 
-- **Do not read it.** Practise until it is yours, then talk to the lens. EF is watching for a person, and a small stumble beats a recital.
+- **Do not read it.** Learn the five beats, not the words: *space agency · one shot · the decade of explaining · taught myself to build · notice is in.* Then talk to the lens. **A stumble in your own words beats a clean recital**, and EF says so explicitly.
+- **Energy is the scored variable, so start at the level you would use to tell a friend good news**, not at the level you would use to read. The first four words set it; if "I'm Rohit" is flat, the rest cannot recover.
 - **Phone at eye level, arm's length, window light in front rather than behind.** Plain wall.
-- **Land the two pauses**, after *"no second attempt"* and after *"So I started again."* They carry the whole thing.
-- **One-take feel beats polish.** 65 seconds is fine; do not rush the ending to hit 60.
+- **Land the two pauses**, after *"you live with the call you made"* and after *"Each one was the wrong shape."* They carry the whole thing.
+- **One-take feel beats polish.** 60 to 65 seconds is fine; do not rush the ending to hit the minute.
 - Upload **unlisted to YouTube**, then open the link in a private window before pasting it.
+
+> ⚠️ **Do not reuse the existing founder video** (`https://youtu.be/zBmtUtkTyBs`). It is **2:32 against a one-minute ask** and it pitches, which this question explicitly rules out.
 
 ---
 
