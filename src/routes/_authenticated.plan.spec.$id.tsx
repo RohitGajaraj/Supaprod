@@ -375,27 +375,8 @@ import { createDecision } from "@/lib/decisions.functions";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  Choices,
-  CtxBody,
-  CtxHead,
-  Door,
-  Empty,
-  Failed,
-  Line,
-  Loading,
-  Num,
-  PageHead,
-  Receipt,
-  Record as RecordRecess,
-  Row,
-  Surface,
-  Value,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Choices, CtxBody, CtxHead, Door, Empty, Failed, Line, Loading, Num, PageHead, Receipt, Record as RecordRecess, Row, Surface, Value } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 
 /**

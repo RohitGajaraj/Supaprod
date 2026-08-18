@@ -270,29 +270,8 @@ import {
   isSampleWorkspaceEnabled,
   triggerSampleWorkspace,
 } from "@/lib/onboarding/onboarding.functions";
-import {
-  Actions,
-  AgentMark,
-  Button,
-  Choices,
-  Empty,
-  Failed,
-  Loading,
-  Field,
-  Input,
-  Line,
-  MoreItem,
-  MoreMenu,
-  Num,
-  Receipt,
-  Record,
-  Row,
-  SelectionBar,
-  Surface,
-  Switch,
-  Textarea,
-  type MarkState,
-} from "@/components/shell/primitives";
+import { Actions, Button, Choices, Empty, Failed, Loading, Field, Input, Line, MoreItem, MoreMenu, Num, Receipt, Record, Row, SelectionBar, Surface, Switch, Textarea } from "@/components/shell/primitives";
+import { AgentMark, type MarkState } from "@/components/meridian/marks";
 // Meridian design system: surface components replace retired shell/primitives
 import { Region, PageHeading, Figure } from "@/components/meridian/surface-parts";
 import { Gate } from "@/components/meridian/Gate";

@@ -47,21 +47,8 @@ import {
 } from "@/lib/memory-candidates.functions";
 import { sourceLabel, supersedesPreview, willSupersede } from "@/lib/memory-candidates";
 import { relativeTime } from "@/lib/memory-view";
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Field,
-  Gate,
-  Loading,
-  Receipt,
-  Row,
-  Textarea,
-  YouMark,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Field, Gate, Loading, Receipt, Row, Textarea } from "@/components/shell/primitives";
+import { AgentMark, YouMark } from "@/components/meridian/marks";
 
 /** Who put this in front of you. The table has a source_kind and nothing else,
  *  so an agent-proposed candidate says the agent is not named rather than

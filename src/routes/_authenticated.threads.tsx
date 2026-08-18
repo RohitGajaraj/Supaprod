@@ -138,25 +138,8 @@ import { renameConversation } from "@/lib/conversations.functions";
 import { proposeMemoryCandidate } from "@/lib/memory-candidates.functions";
 import { openAskConversation } from "@/lib/ask-open";
 import { Answer } from "@/components/ask/Answer";
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Input,
-  Line,
-  Loading,
-  Num,
-  PageHead,
-  Receipt,
-  Row,
-  Surface,
-  Switch,
-  Who,
-  YouMark,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Input, Line, Loading, Num, PageHead, Receipt, Row, Surface, Switch, Who } from "@/components/shell/primitives";
+import { AgentMark, YouMark } from "@/components/meridian/marks";
 
 const searchSchema = z.object({ c: z.string().optional() });
 

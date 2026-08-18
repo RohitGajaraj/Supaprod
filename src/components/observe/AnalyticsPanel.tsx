@@ -76,24 +76,8 @@ import {
 } from "@/lib/analytics.functions";
 import { getBudgetSummary } from "@/lib/budgets.functions";
 import { relTime } from "@/components/product/format";
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  Cell,
-  Choices,
-  Empty,
-  Failed,
-  Grid,
-  Line,
-  Loading,
-  Num,
-  Pre,
-  Prose,
-  Row,
-  Value,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Cell, Choices, Empty, Failed, Grid, Line, Loading, Num, Pre, Prose, Row, Value } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 
 function fmtUsd(n: number) {
   if (n === 0) return "$0";

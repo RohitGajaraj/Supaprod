@@ -2,16 +2,8 @@ import * as React from "react";
 
 import { canSendBack } from "@/components/approvals/SendBack";
 import { stripAutoPrefix } from "@/components/plan/format";
-import {
-  AgentMark,
-  Button,
-  Checkbox,
-  Door,
-  Gate,
-  Num,
-  Row,
-  SelectionBar,
-} from "@/components/shell/primitives";
+import { Button, Checkbox, Door, Gate, Num, Row, SelectionBar } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 import type { Selection } from "@/components/shell/use-selection";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import type { ApprovalQueueItem } from "@/lib/approvals-queue.functions";

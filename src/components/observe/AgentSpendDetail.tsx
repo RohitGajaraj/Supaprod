@@ -63,18 +63,8 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import {
-  AgentMark,
-  Block,
-  Empty,
-  Failed,
-  Line,
-  Loading,
-  Num,
-  Row,
-  Value,
-  type MarkState,
-} from "@/components/shell/primitives";
+import { Block, Empty, Failed, Line, Loading, Num, Row, Value } from "@/components/shell/primitives";
+import { AgentMark, type MarkState } from "@/components/meridian/marks";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { getAgentAnalyticsDetail } from "@/lib/analytics.functions";
 import { relTime, fmtUsd } from "@/components/product/format";

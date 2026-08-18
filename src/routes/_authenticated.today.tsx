@@ -16,23 +16,8 @@ import { RunState, ShippedState } from "@/components/today/RunState";
 import { ago, daysSince, withinLastDay } from "@/components/today/when";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useSelection } from "@/components/shell/use-selection";
-import {
-  AgentMark,
-  Block,
-  Button,
-  Door,
-  Empty,
-  Failed,
-  Loading,
-  Num,
-  PageHead,
-  Receipt,
-  Record as RecordRecess,
-  Row,
-  Surface,
-  Value,
-  Who,
-} from "@/components/shell/primitives";
+import { Block, Button, Door, Empty, Failed, Loading, Num, PageHead, Receipt, Record as RecordRecess, Row, Surface, Value, Who } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {

@@ -47,17 +47,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { getSwarmHud } from "@/lib/swarm.functions";
 import { getAllAgentTrust, type AgentTrust } from "@/lib/trust.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import {
-  AgentMark,
-  Block,
-  Empty,
-  Failed,
-  Loading,
-  Num,
-  Row,
-  Value,
-  type MarkState,
-} from "@/components/shell/primitives";
+import { Block, Empty, Failed, Loading, Num, Row, Value } from "@/components/shell/primitives";
+import { AgentMark, type MarkState } from "@/components/meridian/marks";
 import { ladderLabel, type Arc } from "@/lib/trust-ladder";
 import { TrustDial } from "@/components/cockpit/TrustDial";
 import { AgentInspector } from "@/components/cockpit/AgentInspector";

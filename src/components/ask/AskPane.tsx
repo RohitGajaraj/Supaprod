@@ -132,16 +132,8 @@ import {
   contextualStarters,
   type Starter,
 } from "@/lib/ask-starters";
-import {
-  AgentMark,
-  Actions,
-  Button,
-  Choices,
-  Failed,
-  Loading,
-  Row,
-  Textarea,
-} from "@/components/shell/primitives";
+import { Actions, Button, Choices, Failed, Loading, Row, Textarea } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import { IconMic } from "@/components/shell/icons";
 import { SuggestionRail } from "./SuggestionRail";

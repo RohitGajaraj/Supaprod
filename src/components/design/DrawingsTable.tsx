@@ -45,7 +45,7 @@ import {
   type RecordTone,
 } from "@/components/meridian/RecordsTable";
 import { Search } from "@/components/meridian/Search";
-import { AgentMark } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 import type { DesignFidelity, DesignWorkRow } from "@/lib/design-scaffold.functions";
 import { FIDELITY_WORD, GATE_WORD } from "./vocabulary";
 

@@ -29,7 +29,7 @@
  */
 
 import { agentDisplayName, agentRelayVerb } from "@/lib/agent-vocabulary";
-import { AgentMark as Mark, type MarkState } from "@/components/shell/primitives";
+import { AgentMark as Mark, type MarkState } from "@/components/meridian/marks";
 
 /** A pixel size from a legacy call site, mapped onto the two sizes the system
  *  actually has. The threshold is the primitive's own: 24 is where the large

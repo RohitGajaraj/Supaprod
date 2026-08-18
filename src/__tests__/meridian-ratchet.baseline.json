@@ -5,8 +5,8 @@
     "It only ever moves DOWN. A file absent from this list must be clean.",
     "Do not hand-edit; do not regenerate to silence a failure."
   ],
-  "totalOccurrences": 8106,
-  "fileCount": 298,
+  "totalOccurrences": 8042,
+  "fileCount": 297,
   "files": {
     "src/components/admin/admin-ui.tsx": {
       "--text-": 2,
@@ -26,14 +26,12 @@
       "usage:components/ui": 4
     },
     "src/components/agents/AgentMark.tsx": {
-      "--sp-": 7,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 2
+      "--sp-": 7
     },
     "src/components/agents/AgentRelay.tsx": {
       "--sp-": 7,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 6
+      "usage:shell/primitives": 3
     },
     "src/components/ask/Answer.tsx": {
       "import:shell/primitives": 1,
@@ -49,7 +47,7 @@
     "src/components/ask/AskPane.tsx": {
       "--sp-": 44,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 10
+      "usage:shell/primitives": 9
     },
     "src/components/ask/AskRunCard.tsx": {
       "--sp-": 2,
@@ -59,7 +57,7 @@
     "src/components/ask/AskSwitcher.tsx": {
       "--sp-": 5,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 8
+      "usage:shell/primitives": 6
     },
     "src/components/ask/AskTurn.tsx": {
       "--sp-": 11,
@@ -123,7 +121,7 @@
     },
     "src/components/cockpit/AgentInspector.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 15
+      "usage:shell/primitives": 14
     },
     "src/components/cockpit/TrustDial.tsx": {
       "import:shell/primitives": 1,
@@ -177,10 +175,6 @@
       "import:shell/primitives": 1,
       "usage:shell/primitives": 15
     },
-    "src/components/design/DrawingsTable.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
-    },
     "src/components/discover/DetailKit.tsx": {
       "--sp-": 4,
       "import:shell/primitives": 1,
@@ -188,19 +182,19 @@
     },
     "src/components/discover/DiscoverSurface.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 100
+      "usage:shell/primitives": 99
     },
     "src/components/discover/OpportunityDetailSheet.tsx": {
       "--sp-": 26,
       "import:shell/primitives": 1,
       "import:components/ui": 2,
       "usage:components/ui": 14,
-      "usage:shell/primitives": 71
+      "usage:shell/primitives": 68
     },
     "src/components/discover/OpportunityRow.tsx": {
       "--sp-": 18,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 4
+      "usage:shell/primitives": 3
     },
     "src/components/discover/VerdictBadge.tsx": {
       "import:components/ui": 1,
@@ -223,11 +217,11 @@
     },
     "src/components/governance/AgentRosterPanel.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 16
+      "usage:shell/primitives": 15
     },
     "src/components/governance/ApprovalsPanel.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 25
+      "usage:shell/primitives": 23
     },
     "src/components/governance/BoundaryStatement.tsx": {
       "import:shell/primitives": 1,
@@ -241,7 +235,7 @@
     "src/components/governance/ControlsPanel.tsx": {
       "--sp-": 9,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 63
+      "usage:shell/primitives": 60
     },
     "src/components/governance/CriticBadge.tsx": {
       "--sp-": 1,
@@ -263,7 +257,7 @@
     },
     "src/components/governance/HouseRulesPanel.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 26
+      "usage:shell/primitives": 24
     },
     "src/components/governance/IncidentsPanel.tsx": {
       "import:shell/primitives": 1,
@@ -284,7 +278,7 @@
     },
     "src/components/governance/TrustGraduations.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 12
+      "usage:shell/primitives": 11
     },
     "src/components/knowledge/BriefPanel.tsx": {
       "--sp-": 17,
@@ -294,7 +288,7 @@
     "src/components/knowledge/CompoundingPanel.tsx": {
       "--sp-": 1,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 9
+      "usage:shell/primitives": 8
     },
     "src/components/knowledge/ContradictionAuditSection.tsx": {
       "import:shell/primitives": 1,
@@ -307,7 +301,7 @@
     "src/components/knowledge/DecisionsPanel.tsx": {
       "--sp-": 2,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 33
+      "usage:shell/primitives": 31
     },
     "src/components/knowledge/DesignMemoryPanel.tsx": {
       "--sp-": 2,
@@ -425,7 +419,7 @@
     },
     "src/components/learn/SettlePanel.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 42
+      "usage:shell/primitives": 40
     },
     "src/components/machine/MachineViewContainer.tsx": {
       "raw-colour": 9
@@ -433,11 +427,11 @@
     "src/components/memory/MemoryList.tsx": {
       "--sp-": 3,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 14
+      "usage:shell/primitives": 13
     },
     "src/components/memory/MemoryReviewQueue.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 17
+      "usage:shell/primitives": 14
     },
     "src/components/mission/composer/ComposerOverlay.tsx": {
       "raw-colour": 1
@@ -465,11 +459,11 @@
     "src/components/observe/AgentSpendDetail.tsx": {
       "--sp-": 1,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 42
+      "usage:shell/primitives": 41
     },
     "src/components/observe/AnalyticsPanel.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 122
+      "usage:shell/primitives": 121
     },
     "src/components/observe/DriftPanel.tsx": {
       "import:shell/primitives": 1,
@@ -690,7 +684,7 @@
     "src/components/studio/ChangesPanel.tsx": {
       "--sp-": 12,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 52
+      "usage:shell/primitives": 49
     },
     "src/components/studio/PreviewPanel.tsx": {
       "--text-": 2,
@@ -807,7 +801,7 @@
     },
     "src/components/today/DecisionQueue.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 23
+      "usage:shell/primitives": 21
     },
     "src/components/today/PushedInsights.tsx": {
       "import:shell/primitives": 1,
@@ -952,7 +946,7 @@
     },
     "src/routes/_authenticated.admin.ai-costs.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 14
+      "usage:shell/primitives": 13
     },
     "src/routes/_authenticated.admin.index.tsx": {
       "import:shell/primitives": 1,
@@ -1014,15 +1008,15 @@
     "src/routes/_authenticated.build.index.tsx": {
       "--sp-": 4,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 32
+      "usage:shell/primitives": 31
     },
     "src/routes/_authenticated.decide.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 69
+      "usage:shell/primitives": 67
     },
     "src/routes/_authenticated.design.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 78
+      "usage:shell/primitives": 76
     },
     "src/routes/_authenticated.discover.tsx": {
       "import:shell/primitives": 1,
@@ -1034,12 +1028,12 @@
     },
     "src/routes/_authenticated.plan.index.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 35
+      "usage:shell/primitives": 33
     },
     "src/routes/_authenticated.plan.spec.$id.tsx": {
       "--sp-": 6,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 88
+      "usage:shell/primitives": 86
     },
     "src/routes/_authenticated.runs.$missionId.tsx": {
       "import:components/obsidian": 1,
@@ -1062,15 +1056,15 @@
     "src/routes/_authenticated.threads.tsx": {
       "--sp-": 10,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 36
+      "usage:shell/primitives": 31
     },
     "src/routes/_authenticated.today.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 50
+      "usage:shell/primitives": 47
     },
     "src/routes/_authenticated.traces.$traceId.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 65
+      "usage:shell/primitives": 61
     },
     "src/routes/_authenticated.tsx": {
       "--text-": 5,

@@ -58,21 +58,8 @@ import {
   type AgentOutcomeRecord,
 } from "@/lib/agent-track-record";
 import { rejectionCountFor } from "@/lib/rejection-learning";
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Gate,
-  Loading,
-  Num,
-  Pre,
-  Receipt,
-  Row,
-  Value,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Gate, Loading, Num, Pre, Receipt, Row, Value } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 import { TrustGraduationsBlock } from "./TrustGraduations";
 import { relExpiry, fmtMedian, RESOLVED_LINE, RISK_NOTE, toneForRisk } from "./governance-shared";
 

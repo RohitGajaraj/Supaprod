@@ -65,23 +65,8 @@ import {
 import { computeHunks } from "@/lib/ai/studio-hunks";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  Diffstat,
-  Empty,
-  Failed,
-  Field,
-  Input,
-  Line,
-  Loading,
-  Num,
-  Row,
-  Textarea,
-  Who,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Diffstat, Empty, Failed, Field, Input, Line, Loading, Num, Row, Textarea, Who } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 import { CodeDiff } from "@/components/studio/CodeDiff";
 
 import {

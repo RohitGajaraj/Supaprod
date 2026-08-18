@@ -35,16 +35,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listThreads, type ThreadSummary } from "@/lib/threads.functions";
 import { relativeTime } from "@/lib/memory-view";
-import {
-  Actions,
-  AgentMark,
-  Button,
-  Empty,
-  Failed,
-  Loading,
-  Row,
-  YouMark,
-} from "@/components/shell/primitives";
+import { Actions, Button, Empty, Failed, Loading, Row } from "@/components/shell/primitives";
+import { AgentMark, YouMark } from "@/components/meridian/marks";
 
 /** How many the shallow path shows. Small on purpose: this is the list you
  *  scan without reading, and the ninth conversation is what search is for. */

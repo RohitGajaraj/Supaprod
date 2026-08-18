@@ -123,26 +123,8 @@ import { specStateWords, stripAutoPrefix } from "@/components/plan/format";
 import { RoadmapColumns } from "@/components/plan/RoadmapColumns";
 import { TrackStart } from "@/components/spine/TrackStart";
 import { CommitCeremony, type CommitCeremonyBet } from "@/components/plan/CommitCeremony";
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  CtxHead,
-  CtxRow,
-  Door,
-  Empty,
-  Failed,
-  Line,
-  Loading,
-  Gate,
-  Num,
-  PageHead,
-  Receipt,
-  Row,
-  Surface,
-  type MarkState,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, CtxHead, CtxRow, Door, Empty, Failed, Line, Loading, Gate, Num, PageHead, Receipt, Row, Surface } from "@/components/shell/primitives";
+import { AgentMark, type MarkState } from "@/components/meridian/marks";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { CrewWorking } from "@/components/shell/CrewWorking";
 import { AgentPulse } from "@/components/shell/AgentPulse";

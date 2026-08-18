@@ -28,14 +28,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMission } from "@/lib/missions.functions";
 import { getSwarmHud } from "@/lib/swarm.functions";
-import {
-  AgentMark,
-  Block,
-  MarkStack,
-  Row,
-  Who,
-  type MarkState,
-} from "@/components/shell/primitives";
+import { Block, Row, Who } from "@/components/shell/primitives";
+import { AgentMark, MarkStack, type MarkState } from "@/components/meridian/marks";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import {
   miniRelay,

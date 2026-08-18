@@ -28,16 +28,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import {
-  AgentMark,
-  Block,
-  Button,
-  Failed,
-  Gate,
-  Num,
-  Receipt,
-  Row,
-} from "@/components/shell/primitives";
+import { Block, Button, Failed, Gate, Num, Receipt, Row } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 import {
   listTrustGraduationProposals,
   decideTrustGraduation,

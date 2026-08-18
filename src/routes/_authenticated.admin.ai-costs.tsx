@@ -58,7 +58,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { AgentMark, Block, Empty, Failed, Loading, Num, Row } from "@/components/shell/primitives";
+import { Block, Empty, Failed, Loading, Num, Row } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 import { getMoatMetrics } from "@/lib/observability.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/ai-costs")({

@@ -258,31 +258,8 @@ import {
 import { VerdictBadge } from "@/components/discover/VerdictBadge";
 import { CriticBadge } from "@/components/governance/CriticBadge";
 import { LineageDrawer } from "@/components/supaprod/LineageDrawer";
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  Choices,
-  CtxBody,
-  CtxHead,
-  CtxRow,
-  Door,
-  Empty,
-  Failed,
-  Field,
-  Input,
-  Loading,
-  Gate,
-  Line,
-  Num,
-  PageHead,
-  Receipt,
-  Record as RecordRecess,
-  Row,
-  SelectionBar,
-  Surface,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Choices, CtxBody, CtxHead, CtxRow, Door, Empty, Failed, Field, Input, Loading, Gate, Line, Num, PageHead, Receipt, Record as RecordRecess, Row, SelectionBar, Surface } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 import { useSelection } from "@/components/shell/use-selection";
 import {
   BatchHeader,

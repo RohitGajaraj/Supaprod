@@ -128,24 +128,8 @@ import { stripAutoPrefix } from "@/components/plan/format";
 import { Fact, FactLabel, Facts, IdFact, CopyButton } from "@/components/traces/TraceFacts";
 import { TracePane } from "@/components/traces/TracePane";
 import { ToolTrace } from "@/components/traces/ToolTrace";
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  CtxBody,
-  CtxHead,
-  CtxRow,
-  Empty,
-  Failed,
-  Loading,
-  Num,
-  PageHead,
-  Row,
-  Surface,
-  Who,
-  type MarkState,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, CtxBody, CtxHead, CtxRow, Empty, Failed, Loading, Num, PageHead, Row, Surface, Who } from "@/components/shell/primitives";
+import { AgentMark, type MarkState } from "@/components/meridian/marks";
 
 export const Route = createFileRoute("/_authenticated/traces/$traceId")({
   component: TraceReplayPage,

@@ -73,23 +73,8 @@ import {
   type DecisionRow,
   type DecisionSource,
 } from "@/lib/decisions.functions";
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Field,
-  Input,
-  Loading,
-  Num,
-  Receipt,
-  Row,
-  Select,
-  Textarea,
-  YouMark,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Field, Input, Loading, Num, Receipt, Row, Select, Textarea } from "@/components/shell/primitives";
+import { AgentMark, YouMark } from "@/components/meridian/marks";
 import { ageOf, displayWho, OUTCOME_WORD, SOURCE_LABEL } from "./decisions-shared";
 import { stripAutoPrefix } from "@/components/plan/format";
 

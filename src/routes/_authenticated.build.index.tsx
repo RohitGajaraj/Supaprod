@@ -88,23 +88,8 @@ import { ago } from "@/components/runs/run-state";
 import { ReadyToBuild } from "@/components/build/ReadyToBuild";
 import { HeldClaims } from "@/components/build/HeldClaims";
 import { CrewWorking } from "@/components/shell/CrewWorking";
-import {
-  AgentMark,
-  Block,
-  Button,
-  CtxBody,
-  CtxHead,
-  Empty,
-  Failed,
-  Loading,
-  Input,
-  Line,
-  Num,
-  PageHead,
-  Receipt,
-  Row,
-  Surface,
-} from "@/components/shell/primitives";
+import { Block, Button, CtxBody, CtxHead, Empty, Failed, Loading, Input, Line, Num, PageHead, Receipt, Row, Surface } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 import { stillWaiting } from "@/lib/query-state";
 
 /** The agent that writes code. Its mark is the one on every row here. */

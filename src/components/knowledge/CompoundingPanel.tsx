@@ -66,15 +66,8 @@ import { listLearnings } from "@/lib/outcome.functions";
 import { describeCompounding } from "@/lib/moat-vis";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { useWorkspace } from "@/hooks/use-workspace";
-import {
-  AgentMark,
-  Empty,
-  Failed,
-  Loading,
-  Num,
-  Record as RecordRecess,
-  Row,
-} from "@/components/shell/primitives";
+import { Empty, Failed, Loading, Num, Record as RecordRecess, Row } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 import { Provenance } from "./EvidenceQuality";
 
 /** The outcome in plain words. Green and red carry outcomes and they own these

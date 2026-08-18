@@ -28,19 +28,8 @@ import {
   type AgentMemory,
 } from "@/lib/agent-runs.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import {
-  AgentMark,
-  Block,
-  Empty,
-  Failed,
-  Line,
-  Loading,
-  Num,
-  Row,
-  Select,
-  Value,
-  type MarkState,
-} from "@/components/shell/primitives";
+import { Block, Empty, Failed, Line, Loading, Num, Row, Select, Value } from "@/components/shell/primitives";
+import { AgentMark, type MarkState } from "@/components/meridian/marks";
 
 type AgentLite = { agent_id: string; slug: string; name: string; role: string };
 

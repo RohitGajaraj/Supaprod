@@ -84,25 +84,8 @@ import { StageTimeline } from "@/components/shared/StageTimeline";
 import { ProductAnalyticsPanel } from "@/components/product/ProductAnalyticsPanel";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Field,
-  Input,
-  Line,
-  Loading,
-  Num,
-  PageHead,
-  Record as RecordRecess,
-  Row,
-  Textarea,
-  Value,
-  Who,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Field, Input, Line, Loading, Num, PageHead, Record as RecordRecess, Row, Textarea, Value, Who } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import type { VerdictWord } from "./format";
 import type { Designation } from "./ranking";

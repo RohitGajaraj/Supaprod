@@ -27,7 +27,8 @@
  */
 
 import { memo } from "react";
-import { AgentMark, Num, Row } from "@/components/shell/primitives";
+import { Num, Row } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import type { VerdictWord } from "./format";
 import type { Designation } from "./ranking";

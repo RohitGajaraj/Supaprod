@@ -108,24 +108,8 @@ import {
 import { relTime, fmtUsd } from "@/components/product/format";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { CONSENT_PHILOSOPHY, groupToolsByConsequenceClass } from "@/lib/consent-classes";
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Field,
-  Gate,
-  Input,
-  Line,
-  Loading,
-  Num,
-  Receipt,
-  Row,
-  Select,
-  Switch,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Field, Gate, Input, Line, Loading, Num, Receipt, Row, Select, Switch } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 
 type EventType =
   | "signal.created"

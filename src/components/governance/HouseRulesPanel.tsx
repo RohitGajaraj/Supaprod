@@ -46,23 +46,8 @@ import {
 import { humanWriteError } from "@/lib/roles.functions";
 import { useGovernedWrite } from "@/hooks/use-workspace-role";
 import { GovernedWriteNote } from "./GovernedWriteNote";
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Field,
-  Gate,
-  Line,
-  Loading,
-  Num,
-  Receipt,
-  Row,
-  Textarea,
-  Value,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Field, Gate, Line, Loading, Num, Receipt, Row, Textarea, Value } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 
 /** Plain-words relative time. Mono is applied by the row, not here. */
 function ago(iso: string | null | undefined): string | null {

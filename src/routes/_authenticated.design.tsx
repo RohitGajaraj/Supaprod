@@ -159,27 +159,8 @@ import { Consequence, DrawingStage, Findings } from "@/components/design/drawing
 import { DrawingsTable } from "@/components/design/DrawingsTable";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { FIDELITY_QUESTION, FIDELITY_WORD, ruleTextFor } from "@/components/design/vocabulary";
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  Choices,
-  CtxBody,
-  CtxHead,
-  Door,
-  Empty,
-  Failed,
-  Gate,
-  Line,
-  Loading,
-  Num,
-  PageHead,
-  Receipt,
-  Surface,
-  Switch,
-  Value,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Choices, CtxBody, CtxHead, Door, Empty, Failed, Gate, Line, Loading, Num, PageHead, Receipt, Surface, Switch, Value } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import { CrewWorking } from "@/components/shell/CrewWorking";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";

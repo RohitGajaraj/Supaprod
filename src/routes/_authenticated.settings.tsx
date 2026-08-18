@@ -236,23 +236,8 @@ import { ARC_CHOICE, MODE_CHOICE } from "@/components/crew/crew-words";
 import { stationCrew } from "@/lib/spine/driver";
 import { listCrew, type CrewMember } from "@/lib/crew.functions";
 
-import {
-  Actions,
-  AgentMark,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Field,
-  Input,
-  Line,
-  Loading,
-  Num,
-  PageHead,
-  Row,
-  Select,
-  Textarea,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Field, Input, Line, Loading, Num, PageHead, Row, Select, Textarea } from "@/components/shell/primitives";
+import { AgentMark } from "@/components/meridian/marks";
 
 /* ================================================================== *
  * The index
