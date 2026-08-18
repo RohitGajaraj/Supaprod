@@ -50,6 +50,7 @@
  * consequence to leave a receipt for.
  */
 import * as React from "react";
+import { Line } from "@/components/meridian/rows";
 import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -62,7 +63,7 @@ import {
   getMemoryLift,
   type Trend,
 } from "@/lib/gauntlet.functions";
-import { Block, Empty, Failed, Line, Loading, Record as RecordRecess, Value } from "@/components/shell/primitives";
+import { Block, Empty, Failed, Loading, Record as RecordRecess, Value } from "@/components/shell/primitives";
 
 function pct(n: number | null): string | null {
   if (n == null) return null;

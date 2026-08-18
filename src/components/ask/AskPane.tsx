@@ -112,6 +112,8 @@
  */
 
 import * as React from "react";
+import { Row } from "@/components/meridian/rows";
+import { Actions } from "@/components/meridian/surface-parts";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -132,7 +134,7 @@ import {
   contextualStarters,
   type Starter,
 } from "@/lib/ask-starters";
-import { Actions, Button, Choices, Failed, Loading, Row, Textarea } from "@/components/shell/primitives";
+import { Button, Choices, Failed, Loading, Textarea } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import { IconMic } from "@/components/shell/icons";

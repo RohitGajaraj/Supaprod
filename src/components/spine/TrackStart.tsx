@@ -36,6 +36,8 @@
  * not block; it does not follow that a person may never move their own work.
  */
 import * as React from "react";
+import { Row } from "@/components/meridian/rows";
+import { Actions } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -51,20 +53,7 @@ import { TrackActivity } from "@/components/spine/TrackActivity";
 import { nextStation, WORK_SHAPE_LABEL, type WorkShape } from "@/lib/spine/route";
 import { HOLD_LINE } from "@/lib/spine/driver";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
-import {
-  Actions,
-  Block,
-  Button,
-  Empty,
-  Field,
-  Input,
-  MoreItem,
-  MoreMenu,
-  Receipt,
-  Row,
-  Textarea,
-  Value,
-} from "@/components/shell/primitives";
+import { Block, Button, Empty, Field, Input, MoreItem, MoreMenu, Receipt, Textarea, Value } from "@/components/shell/primitives";
 
 const SHAPES = Object.keys(WORK_SHAPE_LABEL) as WorkShape[];
 

@@ -26,7 +26,8 @@
  * what you made rather than reading that you made it.
  */
 import { useServerFn } from "@tanstack/react-start";
-import { Num } from "@/components/meridian/surface-parts";
+import { Row, Line } from "@/components/meridian/rows";
+import { Num, Actions } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -36,7 +37,7 @@ import {
   getEvalScoreTrends,
   getEvalCoverage,
 } from "@/lib/evals.functions";
-import { Actions, Block, Button, Cell, Empty, Failed, Field, Grid, Input, Line, Loading, Row, Select, Value } from "@/components/shell/primitives";
+import { Block, Button, Cell, Empty, Failed, Field, Grid, Input, Loading, Select, Value } from "@/components/shell/primitives";
 // One source of truth for the canonical surface x prompt targets (shared with the EVAL-COVERAGE
 // scorer), so the "new suite" picker and the coverage map can never drift.
 import { EVAL_COVERAGE_TARGETS as SURFACE_KEYS } from "@/lib/evals/coverage";

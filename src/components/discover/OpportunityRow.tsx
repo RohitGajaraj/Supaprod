@@ -27,8 +27,9 @@
  */
 
 import { memo } from "react";
+import { Row } from "@/components/meridian/rows";
 import { Num } from "@/components/meridian/surface-parts";
-import { Row } from "@/components/shell/primitives";
+
 import { AgentMark } from "@/components/meridian/marks";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import type { VerdictWord } from "./format";

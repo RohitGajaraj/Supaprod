@@ -1,5 +1,6 @@
 import * as React from "react";
-import { Num } from "@/components/meridian/surface-parts";
+import { Row } from "@/components/meridian/rows";
+import { Num, Door } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -17,7 +18,7 @@ import { gateDispatch } from "@/lib/build/repo-gate";
 import { isDispatchRefusal, dispatchRefusalReason } from "@/lib/build/dispatch-refusal";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 import { ago } from "@/components/runs/run-state";
-import { Block, Button, Door, Failed, Row } from "@/components/shell/primitives";
+import { Block, Button, Failed } from "@/components/shell/primitives";
 
 /**
  * BUILD COULD NOT START A BUILD.

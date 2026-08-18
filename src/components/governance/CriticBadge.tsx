@@ -26,13 +26,13 @@
  */
 
 import * as React from "react";
-import { Num } from "@/components/meridian/surface-parts";
+import { Num, Actions } from "@/components/meridian/surface-parts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { runCriticReview, type CriticReview } from "@/lib/discovery.functions";
 import { tierFromProbability } from "@/lib/confidence";
-import { Actions, Button, CtxBody, CtxHead, CtxRow, Failed, Value } from "@/components/shell/primitives";
+import { Button, CtxBody, CtxHead, CtxRow, Failed, Value } from "@/components/shell/primitives";
 import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
 
 type Props = {

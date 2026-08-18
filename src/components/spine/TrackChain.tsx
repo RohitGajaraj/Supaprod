@@ -24,13 +24,14 @@
  * allowed to look like one.
  */
 import * as React from "react";
+import { Row, Line } from "@/components/meridian/rows";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { getTrackChain } from "@/lib/spine/track.functions";
 import type { ChainMember, ChainStop, StopState } from "@/lib/spine/chain";
 import { relativeTime } from "@/lib/memory-view";
-import { Failed, Line, Loading, Record, Row, Value } from "@/components/shell/primitives";
+import { Failed, Loading, Record, Value } from "@/components/shell/primitives";
 
 /** Where the stop sits, in the words a person would use for it. */
 const STATE_WORD: Readonly<Record<StopState, string>> = {

@@ -40,6 +40,7 @@
  */
 
 import * as React from "react";
+import { Row } from "@/components/meridian/rows";
 import { Num } from "@/components/meridian/surface-parts";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -48,7 +49,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getSwarmHud } from "@/lib/swarm.functions";
 import { getAllAgentTrust, type AgentTrust } from "@/lib/trust.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Block, Empty, Failed, Loading, Row, Value } from "@/components/shell/primitives";
+import { Block, Empty, Failed, Loading, Value } from "@/components/shell/primitives";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 import { ladderLabel, type Arc } from "@/lib/trust-ladder";
 import { TrustDial } from "@/components/cockpit/TrustDial";

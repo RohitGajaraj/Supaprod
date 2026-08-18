@@ -21,13 +21,14 @@
  * accumulated workspace to their organisation, and an admin can see it happen.
  */
 import { useState } from "react";
-import { Num } from "@/components/meridian/surface-parts";
+import { Line } from "@/components/meridian/rows";
+import { Num, Actions } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useConfirm } from "@/hooks/use-confirm";
 import { toast } from "@/lib/notify";
-import { Actions, Block, Button, Checkbox, Empty, Failed, Line, Loading, Value } from "@/components/shell/primitives";
+import { Block, Button, Checkbox, Empty, Failed, Loading, Value } from "@/components/shell/primitives";
 import {
   CLAIM_OFFER_TTL_DAYS,
   CLAIM_RELEASE_GRACE_DAYS,

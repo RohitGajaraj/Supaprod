@@ -228,6 +228,7 @@
  */
 
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
+import { Row, Line } from "@/components/meridian/rows";
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -270,10 +271,10 @@ import {
   isSampleWorkspaceEnabled,
   triggerSampleWorkspace,
 } from "@/lib/onboarding/onboarding.functions";
-import { Actions, Button, Choices, Empty, Failed, Loading, Field, Input, Line, MoreItem, MoreMenu, Receipt, Record, Row, SelectionBar, Surface, Switch, Textarea } from "@/components/shell/primitives";
+import { Button, Choices, Empty, Failed, Loading, Field, Input, MoreItem, MoreMenu, Receipt, Record, SelectionBar, Surface, Switch, Textarea } from "@/components/shell/primitives";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 // Meridian design system: surface components replace retired shell/primitives
-import { Region, PageHeading, Figure, Num } from "@/components/meridian/surface-parts";
+import { Region, PageHeading, Figure, Num, Actions } from "@/components/meridian/surface-parts";
 import { Gate } from "@/components/meridian/Gate";
 import { CtxBody, CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { AgentStatusIndicator } from "@/components/meridian/AgentStatusIndicator";

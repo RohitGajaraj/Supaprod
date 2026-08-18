@@ -1,22 +1,12 @@
 import { useState } from "react";
+import { Line } from "@/components/meridian/rows";
+import { Actions } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { inviteMember, listInvitations, revokeInvitation } from "@/lib/workspaces.functions";
 import { toast } from "@/lib/notify";
-import {
-  Actions,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Field,
-  Input,
-  Line,
-  Loading,
-  Pre,
-  Select,
-} from "@/components/shell/primitives";
+import { Block, Button, Empty, Failed, Field, Input, Loading, Pre, Select } from "@/components/shell/primitives";
 
 // Invite teammates: the calm-front view of WM-F5 (workspace invitations). Manager-only RLS
 // gates the backend; this surfaces the invite form, the join link (outbound email is a

@@ -20,13 +20,14 @@
  *     fabricated number; the section now says there were no calls.
  */
 import { useState } from "react";
+import { Line } from "@/components/meridian/rows";
 import { Num } from "@/components/meridian/surface-parts";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getReliabilitySlo, getRunawayMissions } from "@/lib/reliability.functions";
 import { summarizeHealth } from "@/lib/reliability/health-view";
-import { Block, Button, Empty, Failed, Line, Loading, PageHead } from "@/components/shell/primitives";
+import { Block, Button, Empty, Failed, Loading, PageHead } from "@/components/shell/primitives";
 
 const WINDOWS = [7, 30] as const;
 

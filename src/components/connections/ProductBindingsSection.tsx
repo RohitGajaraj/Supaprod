@@ -25,6 +25,8 @@
  * override of nothing is a decision nobody can make.
  */
 import { useState } from "react";
+import { Line } from "@/components/meridian/rows";
+import { Actions } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
@@ -39,16 +41,7 @@ import {
   type ConnectionRow,
 } from "@/lib/connections.functions";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
-import {
-  Actions,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Line,
-  Loading,
-  Select,
-} from "@/components/shell/primitives";
+import { Block, Button, Empty, Failed, Loading, Select } from "@/components/shell/primitives";
 
 type Props = {
   projectId: string;

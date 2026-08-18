@@ -61,7 +61,8 @@
  * export that DecisionDetail imports from here.
  */
 import { useEffect, useState } from "react";
-import { Num } from "@/components/meridian/surface-parts";
+import { Row } from "@/components/meridian/rows";
+import { Num, Actions } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -74,7 +75,7 @@ import {
   type DecisionRow,
   type DecisionSource,
 } from "@/lib/decisions.functions";
-import { Actions, Block, Button, Empty, Failed, Field, Input, Loading, Receipt, Row, Select, Textarea } from "@/components/shell/primitives";
+import { Block, Button, Empty, Failed, Field, Input, Loading, Receipt, Select, Textarea } from "@/components/shell/primitives";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
 import { ageOf, displayWho, OUTCOME_WORD, SOURCE_LABEL } from "./decisions-shared";
 import { stripAutoPrefix } from "@/components/plan/format";

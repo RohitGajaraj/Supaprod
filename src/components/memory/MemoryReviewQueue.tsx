@@ -34,6 +34,8 @@
  * invalidation on approve, and the exported MemoryReviewQueue signature.
  */
 import { useMemo, useEffect, useState } from "react";
+import { Row } from "@/components/meridian/rows";
+import { Actions } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
@@ -47,7 +49,7 @@ import {
 } from "@/lib/memory-candidates.functions";
 import { sourceLabel, supersedesPreview, willSupersede } from "@/lib/memory-candidates";
 import { relativeTime } from "@/lib/memory-view";
-import { Actions, Block, Button, Empty, Failed, Field, Gate, Loading, Receipt, Row, Textarea } from "@/components/shell/primitives";
+import { Block, Button, Empty, Failed, Field, Gate, Loading, Receipt, Textarea } from "@/components/shell/primitives";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
 
 /** Who put this in front of you. The table has a source_kind and nothing else,

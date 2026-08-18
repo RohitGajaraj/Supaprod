@@ -29,13 +29,14 @@
  * the only other tone is a genuine stop, which is allowed to look like one.
  */
 import * as React from "react";
+import { Row } from "@/components/meridian/rows";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { getTrackActivity } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
 import { relativeTime } from "@/lib/memory-view";
-import { Failed, Loading, Record, Row, Value } from "@/components/shell/primitives";
+import { Failed, Loading, Record, Value } from "@/components/shell/primitives";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 
 /** How a finished turn reads, in verbs rather than status words. */

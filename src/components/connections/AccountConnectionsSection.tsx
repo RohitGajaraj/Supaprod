@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Num } from "@/components/meridian/surface-parts";
+import { Row, Line } from "@/components/meridian/rows";
+import { Num, Actions } from "@/components/meridian/surface-parts";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
@@ -40,7 +41,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { ConnectTrustDialog } from "./ConnectTrustDialog";
 import { ProviderMark } from "./provider-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
-import { Actions, Block, Button, Cell, Empty, Failed, Grid, Input, Line, Loading, PageHead, Row, Select } from "@/components/shell/primitives";
+import { Block, Button, Cell, Empty, Failed, Grid, Input, Loading, PageHead, Select } from "@/components/shell/primitives";
 
 /**
  * SOURCES. Redesigned 2026-07-29 against the founder's own words: "the

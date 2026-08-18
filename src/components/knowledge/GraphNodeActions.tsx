@@ -38,6 +38,7 @@
  * navigation to the started mission.
  */
 import { useState } from "react";
+import { Actions } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -49,7 +50,7 @@ import { startOrchestratedMission } from "@/lib/orchestrator.functions";
 import type { GraphNode, GraphNodeKind } from "@/lib/knowledge-graph-view";
 import { artifactWord } from "@/lib/artifact-words";
 import { useConfirm } from "@/hooks/use-confirm";
-import { Actions, Button, Receipt } from "@/components/shell/primitives";
+import { Button, Receipt } from "@/components/shell/primitives";
 
 /**
  * The kinds "Start a mission from this" is offered on.

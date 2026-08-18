@@ -21,6 +21,7 @@
  */
 
 import * as React from "react";
+import { Actions } from "@/components/meridian/surface-parts";
 import { APPROVALS_QUEUE_PREFIX, invalidateShellReads } from "@/lib/query-keys";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
@@ -29,7 +30,7 @@ import {
   snoozeApprovalItem,
   type ApprovalQueueItem,
 } from "@/lib/approvals-queue.functions";
-import { Actions, Button, Gate, Receipt } from "@/components/shell/primitives";
+import { Button, Gate, Receipt } from "@/components/shell/primitives";
 
 type Settled = { verdict: "approve" | "reject" | "snooze"; consequence: string; failed?: boolean };
 

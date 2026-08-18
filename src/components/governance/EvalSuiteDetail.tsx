@@ -30,7 +30,8 @@
  * shape the standard still allows a modal for: a single irreversible question.
  */
 import { Fragment, useState } from "react";
-import { Num } from "@/components/meridian/surface-parts";
+import { Row, Line } from "@/components/meridian/rows";
+import { Num, Actions } from "@/components/meridian/surface-parts";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -45,7 +46,7 @@ import {
   updateEvalCase,
   deleteEvalCase,
 } from "@/lib/evals.functions";
-import { Actions, Block, Button, Empty, Failed, Field, Input, Line, Loading, PageHead, Prose, Receipt, Row, Switch, Textarea, Value } from "@/components/shell/primitives";
+import { Block, Button, Empty, Failed, Field, Input, Loading, PageHead, Prose, Receipt, Switch, Textarea, Value } from "@/components/shell/primitives";
 import { relTime } from "@/components/product/format";
 import { useConfirm } from "@/hooks/use-confirm";
 

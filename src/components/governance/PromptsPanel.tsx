@@ -32,7 +32,8 @@
  * what every user of that surface is answered by, and that deserves a mark.
  */
 import { useServerFn } from "@tanstack/react-start";
-import { Num } from "@/components/meridian/surface-parts";
+import { Row, Line } from "@/components/meridian/rows";
+import { Num, Actions, Diffstat } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, useEffect, type ReactNode } from "react";
 import {
@@ -46,7 +47,7 @@ import {
   getPromptAnalytics,
   rollbackPromptVersion,
 } from "@/lib/prompts.functions";
-import { Actions, Block, Button, Checkbox, Diffstat, Empty, Failed, Line, Loading, PageHead, Pre, Receipt, Row, Select, Textarea, Value } from "@/components/shell/primitives";
+import { Block, Button, Checkbox, Empty, Failed, Loading, PageHead, Pre, Receipt, Select, Textarea, Value } from "@/components/shell/primitives";
 
 type TemplateRow = {
   id: string;

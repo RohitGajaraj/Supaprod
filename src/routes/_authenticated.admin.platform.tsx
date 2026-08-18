@@ -71,6 +71,8 @@
  *    than a page of work.
  */
 import { createFileRoute } from "@tanstack/react-router";
+import { Row, Line, Who } from "@/components/meridian/rows";
+import { Actions } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -91,25 +93,7 @@ import {
 } from "@/lib/admin-platform.functions";
 import { getMemoryExpiryEnabled, adminSetMemoryExpiryEnabled } from "@/lib/pricing.functions";
 import { inBandError } from "@/components/admin/admin-ui";
-import {
-  Actions,
-  Block,
-  Button,
-  Checkbox,
-  Empty,
-  Failed,
-  Field,
-  Gate,
-  Input,
-  Line,
-  Loading,
-  Pre,
-  Row,
-  Select,
-  Switch,
-  Value,
-  Who,
-} from "@/components/shell/primitives";
+import { Block, Button, Checkbox, Empty, Failed, Field, Gate, Input, Loading, Pre, Select, Switch, Value } from "@/components/shell/primitives";
 
 export const Route = createFileRoute("/_authenticated/admin/platform")({
   component: AdminPlatform,

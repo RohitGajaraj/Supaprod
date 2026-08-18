@@ -26,7 +26,8 @@
  * because it is a localStorage preference, and the line says so.
  */
 import { useEffect, useState } from "react";
-import { Num } from "@/components/meridian/surface-parts";
+import { Line } from "@/components/meridian/rows";
+import { Num, Actions } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
@@ -36,7 +37,7 @@ import {
   type UserNotificationPreferences,
 } from "@/lib/notifications.functions";
 import { getFeedbackPrefs, setFeedbackPrefs, fireFeedback } from "@/lib/interaction-feedback";
-import { Actions, Block, Button, Failed, Line, Loading, PageHead, Select, Switch } from "@/components/shell/primitives";
+import { Block, Button, Failed, Loading, PageHead, Select, Switch } from "@/components/shell/primitives";
 
 type Category = "Approvals" | "Health" | "Budget" | "Drift";
 type Channel = "app" | "email" | "digest";

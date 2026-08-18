@@ -119,7 +119,8 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Num } from "@/components/meridian/surface-parts";
+import { Row, Line, Who } from "@/components/meridian/rows";
+import { Num, Actions } from "@/components/meridian/surface-parts";
 import { invalidateShellReads } from "@/lib/query-keys";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -139,7 +140,7 @@ import { renameConversation } from "@/lib/conversations.functions";
 import { proposeMemoryCandidate } from "@/lib/memory-candidates.functions";
 import { openAskConversation } from "@/lib/ask-open";
 import { Answer } from "@/components/ask/Answer";
-import { Actions, Block, Button, Empty, Failed, Input, Line, Loading, PageHead, Receipt, Row, Surface, Switch, Who } from "@/components/shell/primitives";
+import { Block, Button, Empty, Failed, Input, Loading, PageHead, Receipt, Surface, Switch } from "@/components/shell/primitives";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
 
 const searchSchema = z.object({ c: z.string().optional() });

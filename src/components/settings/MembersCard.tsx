@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Line } from "@/components/meridian/rows";
 import { Num } from "@/components/meridian/surface-parts";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,7 +14,7 @@ import {
 } from "@/lib/workspaces.functions";
 import { GOVERNED_WRITES, canWriteGoverned, type Role } from "@/lib/roles.functions";
 import { toast } from "@/lib/notify";
-import { Button, Empty, Failed, Line, Loading, Receipt, Select } from "@/components/shell/primitives";
+import { Button, Empty, Failed, Loading, Receipt, Select } from "@/components/shell/primitives";
 
 // Members: the calm-front view of who is in the workspace (WM-F4 + RBAC). Identity (name/email)
 // comes from the membership-gated workspace_members_with_identity RPC, because profiles RLS is

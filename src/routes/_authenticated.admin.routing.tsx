@@ -58,11 +58,12 @@
  *    every number on this page is the crew's own spend and its own eval results.
  */
 import { createFileRoute } from "@tanstack/react-router";
-import { Num } from "@/components/meridian/surface-parts";
+import { Row, Line } from "@/components/meridian/rows";
+import { Num, Actions } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Actions, Block, Button, Failed, Line, Loading, Row, Select } from "@/components/shell/primitives";
+import { Block, Button, Failed, Loading, Select } from "@/components/shell/primitives";
 import {
   getRoutingTable,
   setSurfacePin,

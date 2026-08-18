@@ -39,7 +39,8 @@
  * all behave exactly as before.
  */
 import { useServerFn } from "@tanstack/react-start";
-import { Num } from "@/components/meridian/surface-parts";
+import { Row, Line } from "@/components/meridian/rows";
+import { Num, Actions } from "@/components/meridian/surface-parts";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useConfirm } from "@/hooks/use-confirm";
@@ -57,7 +58,7 @@ import { humanWriteError } from "@/lib/roles.functions";
 import { useGovernedWrite } from "@/hooks/use-workspace-role";
 import { GovernedWriteNote } from "./GovernedWriteNote";
 import { relTime } from "@/components/product/format";
-import { Actions, Block, Button, Checkbox, Empty, Failed, Field, Input, Line, Loading, Pre, Receipt, Row, Select, Switch, Textarea, Value } from "@/components/shell/primitives";
+import { Block, Button, Checkbox, Empty, Failed, Field, Input, Loading, Pre, Receipt, Select, Switch, Textarea, Value } from "@/components/shell/primitives";
 import type { GovTone } from "./governance-shared";
 
 type Kind = "regex" | "keyword" | "pii" | "injection" | "secret";

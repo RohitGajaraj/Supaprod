@@ -30,12 +30,14 @@
  */
 
 import * as React from "react";
+import { Row } from "@/components/meridian/rows";
+import { Actions } from "@/components/meridian/surface-parts";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listThreads, type ThreadSummary } from "@/lib/threads.functions";
 import { relativeTime } from "@/lib/memory-view";
-import { Actions, Button, Empty, Failed, Loading, Row } from "@/components/shell/primitives";
+import { Button, Empty, Failed, Loading } from "@/components/shell/primitives";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
 
 /** How many the shallow path shows. Small on purpose: this is the list you

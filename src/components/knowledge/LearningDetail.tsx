@@ -32,12 +32,13 @@
  * ICE pair renders nothing rather than a fabricated field.
  */
 import { useServerFn } from "@tanstack/react-start";
-import { Num } from "@/components/meridian/surface-parts";
+import { Line } from "@/components/meridian/rows";
+import { Num, Actions } from "@/components/meridian/surface-parts";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { listLearnings } from "@/lib/outcome.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Actions, Block, Button, Empty, Failed, Line, Loading, Prose, Record as RecordRecess, Value } from "@/components/shell/primitives";
+import { Block, Button, Empty, Failed, Loading, Prose, Record as RecordRecess, Value } from "@/components/shell/primitives";
 import { whenOf } from "./CompoundingPanel";
 
 type LearningRow = {

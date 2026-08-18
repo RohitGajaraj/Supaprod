@@ -43,7 +43,8 @@
  * existed.
  */
 import { useMemo, useState } from "react";
-import { Num } from "@/components/meridian/surface-parts";
+import { Row } from "@/components/meridian/rows";
+import { Num, Door } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -58,7 +59,7 @@ import {
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { outcomeLabel } from "./graph-visual";
 import { nodeDoor } from "./graph-doors";
-import { Block, Button, Choices, Door, Empty, Failed, Loading, Row } from "@/components/shell/primitives";
+import { Block, Button, Choices, Empty, Failed, Loading } from "@/components/shell/primitives";
 
 const VERDICT_CHOICES: { id: OutcomeVerdict; label: string; title: string }[] = [
   { id: "missed", label: "Did not pay off", title: "Outcomes the record scored as a miss" },

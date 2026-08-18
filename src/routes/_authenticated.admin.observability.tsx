@@ -101,6 +101,7 @@
  *    a policy set wrong rather than a thing that broke.
  */
 import { createFileRoute } from "@tanstack/react-router";
+import { Row, Line } from "@/components/meridian/rows";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -112,16 +113,7 @@ import {
 import { getLivenessReport } from "@/lib/liveness.functions";
 import { getEmailHealth, sendTestEmail } from "@/lib/email-health.functions";
 import type { CapabilityReport, IntegrityReport, VocabularyReport } from "@/lib/liveness/report";
-import {
-  Block,
-  Empty,
-  Failed,
-  Line,
-  Loading,
-  Row,
-  Switch,
-  Value,
-} from "@/components/shell/primitives";
+import { Block, Empty, Failed, Loading, Switch, Value } from "@/components/shell/primitives";
 
 export const Route = createFileRoute("/_authenticated/admin/observability")({
   component: AdminObservability,

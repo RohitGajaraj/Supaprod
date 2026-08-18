@@ -51,7 +51,8 @@
  */
 
 import * as React from "react";
-import { Num } from "@/components/meridian/surface-parts";
+import { Row, Line, Who } from "@/components/meridian/rows";
+import { Num, Actions } from "@/components/meridian/surface-parts";
 import type { ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -85,7 +86,7 @@ import { StageTimeline } from "@/components/shared/StageTimeline";
 import { ProductAnalyticsPanel } from "@/components/product/ProductAnalyticsPanel";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Actions, Block, Button, Empty, Failed, Field, Input, Line, Loading, PageHead, Record as RecordRecess, Row, Textarea, Value, Who } from "@/components/shell/primitives";
+import { Block, Button, Empty, Failed, Field, Input, Loading, PageHead, Record as RecordRecess, Textarea, Value } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import type { VerdictWord } from "./format";

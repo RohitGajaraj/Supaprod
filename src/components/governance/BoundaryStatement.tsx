@@ -21,6 +21,7 @@
  * home. So the only affordance is the door.
  */
 import { useServerFn } from "@tanstack/react-start";
+import { Line } from "@/components/meridian/rows";
 import { Num } from "@/components/meridian/surface-parts";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -28,7 +29,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getBoundary } from "@/lib/governance.functions";
 import type { BoundaryTool } from "@/lib/governance.functions";
-import { Block, Empty, Failed, Line, Loading } from "@/components/shell/primitives";
+import { Block, Empty, Failed, Loading } from "@/components/shell/primitives";
 
 /**
  * THE ONE TOOL RULE THIS COMPONENT RESTATES, AND THE ONLY ONE.

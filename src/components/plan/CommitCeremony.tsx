@@ -32,8 +32,9 @@
  * the work against later.
  */
 import { useId, useState } from "react";
+import { Actions } from "@/components/meridian/surface-parts";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { Actions, Button, Field, Input } from "@/components/shell/primitives";
+import { Button, Field, Input } from "@/components/shell/primitives";
 
 export interface CommitCeremonyBet {
   id: string;

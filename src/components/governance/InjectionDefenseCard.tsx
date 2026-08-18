@@ -29,14 +29,15 @@
  * own split.
  */
 import { useState } from "react";
-import { Num } from "@/components/meridian/surface-parts";
+import { Line } from "@/components/meridian/rows";
+import { Num, Actions } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   assessInjectionSample,
   type InjectionSampleResult,
 } from "@/lib/guardrails-injection.functions";
-import { Actions, Block, Button, Failed, Field, Line, Textarea, Value } from "@/components/shell/primitives";
+import { Block, Button, Failed, Field, Textarea, Value } from "@/components/shell/primitives";
 import type { GovTone } from "./governance-shared";
 
 /** allow: it reads clean. flag: suspicious, kept behind the fence and still

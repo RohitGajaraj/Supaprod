@@ -48,11 +48,12 @@
 //     of it are the workspace's own. Marking which is which is the difference
 //     between a warning a person can weigh and one they must simply trust.
 import { useState } from "react";
+import { Row } from "@/components/meridian/rows";
 import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { auditDecision, proposeSupersession } from "@/lib/contradiction-auditor.functions";
-import { Block, Button, Empty, Failed, Loading, Receipt, Row } from "@/components/shell/primitives";
+import { Block, Button, Empty, Failed, Loading, Receipt } from "@/components/shell/primitives";
 import { Provenance } from "./EvidenceQuality";
 
 export function ContradictionAuditSection({

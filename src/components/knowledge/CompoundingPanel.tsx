@@ -59,6 +59,7 @@
  * ["learnings"], which matches ["learnings", ws] as a prefix.
  */
 import { useServerFn } from "@tanstack/react-start";
+import { Row } from "@/components/meridian/rows";
 import { Num } from "@/components/meridian/surface-parts";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -67,7 +68,7 @@ import { listLearnings } from "@/lib/outcome.functions";
 import { describeCompounding } from "@/lib/moat-vis";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { Empty, Failed, Loading, Record as RecordRecess, Row } from "@/components/shell/primitives";
+import { Empty, Failed, Loading, Record as RecordRecess } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { Provenance } from "./EvidenceQuality";
 

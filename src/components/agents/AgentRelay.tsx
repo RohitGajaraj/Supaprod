@@ -24,11 +24,12 @@
  */
 
 import { Link } from "@tanstack/react-router";
+import { Row, Who } from "@/components/meridian/rows";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMission } from "@/lib/missions.functions";
 import { getSwarmHud } from "@/lib/swarm.functions";
-import { Block, Row, Who } from "@/components/shell/primitives";
+import { Block } from "@/components/shell/primitives";
 import { AgentMark, MarkStack, type MarkState } from "@/components/meridian/marks";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import {

@@ -50,7 +50,8 @@
  * on a number.
  */
 import { useMemo, useState, type ReactNode } from "react";
-import { Num } from "@/components/meridian/surface-parts";
+import { Row, Line } from "@/components/meridian/rows";
+import { Num, Actions } from "@/components/meridian/surface-parts";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -60,7 +61,7 @@ import {
   resolveDriftIncident,
   reopenDriftIncident,
 } from "@/lib/drift.functions";
-import { Actions, Block, Button, Empty, Failed, Line, Loading, Receipt, Row, Value } from "@/components/shell/primitives";
+import { Block, Button, Empty, Failed, Loading, Receipt, Value } from "@/components/shell/primitives";
 import { relTime } from "@/components/product/format";
 import type { Incident, Snapshot } from "./DriftPanel";
 

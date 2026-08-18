@@ -64,13 +64,14 @@
  *    which is the test the doctrine actually sets.
  */
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Row } from "@/components/meridian/rows";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { inBandError } from "@/components/admin/admin-ui";
 import { getMoatMetrics } from "@/lib/observability.functions";
 import { getProofSurfaceExtras } from "@/lib/proof-surface.functions";
 import type { Trend } from "@/lib/gauntlet-metrics";
-import { Block, Failed, Loading, Row } from "@/components/shell/primitives";
+import { Block, Failed, Loading } from "@/components/shell/primitives";
 
 export const Route = createFileRoute("/_authenticated/admin/proof")({
   component: AdminProof,

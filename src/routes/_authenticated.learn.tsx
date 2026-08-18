@@ -137,7 +137,8 @@
  */
 
 import * as React from "react";
-import { Num } from "@/components/meridian/surface-parts";
+import { Row } from "@/components/meridian/rows";
+import { Num, Actions } from "@/components/meridian/surface-parts";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -152,7 +153,7 @@ import { getImpactLedger } from "@/lib/pm-impact.functions";
 import { SettlePanel } from "@/components/learn/SettlePanel";
 import { ForecastDeskPanel } from "@/components/learn/ForecastDeskPanel";
 import { VERDICT_SAYS } from "@/components/learn/verdict-words";
-import { Actions, Block, Button, CtxHead, CtxRow, Empty, Failed, Gate, Loading, Field, Input, PageHead, Record as RecordRecess, Row, Surface } from "@/components/shell/primitives";
+import { Block, Button, CtxHead, CtxRow, Empty, Failed, Gate, Loading, Field, Input, PageHead, Record as RecordRecess, Surface } from "@/components/shell/primitives";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { CrewWorking } from "@/components/shell/CrewWorking";
 import { stillWaiting } from "@/lib/query-state";
