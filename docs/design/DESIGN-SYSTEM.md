@@ -30,6 +30,12 @@ Measured on **2026-08-15**, one day later, `src/components` and `src/routes` hel
 
 That was not a knowledge problem. In a single day four independent agents each rediscovered *the same rule* in four different folders, ten times between them. A constant named `FOCUS_RING` had been **inert** in six files for months: spelled correctly, aimed at the right token, painting nothing, because Tailwind emits utilities into a layer and an unlayered rule beats every layer. It passed every review it ever appeared in.
 
+**Corrected again 2026-08-18, and this is the one that explains why the cleanup kept needing redoing: the real figure is 8,133 across 298 files.** The scanner read `.ts` and `.tsx` under two component trees and nothing else. It said so in its own header — *"`src/styles.css`, which this scanner does not read"* — so **the entire stylesheet layer, 2,339 occurrences, was never on the ledger**: `src/styles.css` 1,224 (629 `--ds-`, 406 raw hex, 38 `data-obsidian`), `primitives.css` 578, `ink.css` 302, `today.css` 194, `shell.css` 28, `meridian.css` 11, `decide.css` 2.
+
+The component layer is where retired vocabulary is **written**. The stylesheet layer is where it is **painted**. A port that swaps `Block` for `Region` in every file and leaves `.sp-mark`, `.sp-term` and `.sp-codediff-*` behind has moved the debt rather than cleared it, and **every gate reports green the whole way**. That is the mechanism by which a design system gets migrated more than once and is never done.
+
+The ratchet now covers the paint, on the same three rules. Bringing a file type into scope is not the same as raising a file's allowance, so `update-meridian-baseline.ts` adopts a newly-scanned **extension** exactly once and shuts the door behind itself; from the next run, stylesheets are held to rule 1 like everything else. Verified by planting `--sp-ink` and a raw hex in `decide.css` and watching the gate fail, not merely by watching it pass.
+
 **A design system becomes doctrine at the moment it can fail a build, not at the moment it is written down.**
 
 ### The mechanism

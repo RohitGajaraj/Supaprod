@@ -50,6 +50,29 @@ const newlyMeasured: string[] = [];
  */
 const knownMarkers = new Set(Object.values(previous).flatMap((f) => Object.keys(f)));
 
+/*
+ * THE SAME ARGUMENT, ONE LEVEL UP: A WHOLE FILE TYPE COMING INTO SCOPE.
+ *
+ * On 2026-08-18 the scanner began reading stylesheets, having said in its own
+ * header for three days that `src/styles.css` was a thing it "does not read".
+ * That is the same class of event as adding a marker: 2,339 occurrences went
+ * from an implicit zero to their real value without one line of CSS changing.
+ *
+ * But it cannot be waved through the way a new marker is, because RULE 1 says a
+ * file the baseline has never seen must be BORN CLEAN. If every unseen file
+ * were treated as newly measured, that rule would evaporate: anyone could add a
+ * new component full of `--sp-*` and have it adopted on the next run.
+ *
+ * So the door is cut as narrowly as it can be and still open: a file is newly
+ * measured only when its EXTENSION is one the baseline has never held. A `.css`
+ * file qualifies exactly once -- the first run after the scanner learned to read
+ * them -- and from the next run onward `.css` is a known extension and every
+ * stylesheet is held to rule 1 like everything else. The door shuts behind
+ * itself, with no flag for anyone to reach for later.
+ */
+const knownExtensions = new Set(Object.keys(previous).map((f) => f.slice(f.lastIndexOf("."))));
+const inNewScope = (file: string) => !knownExtensions.has(file.slice(file.lastIndexOf(".")));
+
 for (const file of new Set([...Object.keys(previous), ...Object.keys(current)])) {
   const markers = new Set([
     ...Object.keys(previous[file] ?? {}),
@@ -59,7 +82,8 @@ for (const file of new Set([...Object.keys(previous), ...Object.keys(current)]))
     const was = previous[file]?.[m] ?? 0;
     const now = current[file]?.[m] ?? 0;
     if (now > was) {
-      if (!first && !knownMarkers.has(m)) newlyMeasured.push(`  ${file}  ${m}: ${now}`);
+      if (!first && (!knownMarkers.has(m) || inNewScope(file)))
+        newlyMeasured.push(`  ${file}  ${m}: ${now}`);
       else grew.push(`  ${file}  ${m}: ${was} -> ${now}`);
     }
     if (now < was) shrank.push(`  ${file}  ${m}: ${was} -> ${now}`);

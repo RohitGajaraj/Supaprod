@@ -5,8 +5,8 @@
     "It only ever moves DOWN. A file absent from this list must be clean.",
     "Do not hand-edit; do not regenerate to silence a failure."
   ],
-  "totalOccurrences": 5794,
-  "fileCount": 291,
+  "totalOccurrences": 8133,
+  "fileCount": 298,
   "files": {
     "src/components/admin/admin-ui.tsx": {
       "--text-": 2,
@@ -1215,6 +1215,40 @@
     },
     "src/routes/updates.tsx": {
       "raw-colour": 8
+    },
+    "src/styles.css": {
+      "--ds-": 629,
+      "--text-": 57,
+      "--hairline": 51,
+      "--madder": 6,
+      "--glacier": 19,
+      "--font-pixel": 7,
+      "--raised": 11,
+      "data-obsidian": 38,
+      "raw-colour": 406
+    },
+    "src/styles/decide.css": {
+      "--sp-": 2
+    },
+    "src/styles/ink.css": {
+      "--sp-": 195,
+      "raw-colour": 107
+    },
+    "src/styles/meridian.css": {
+      "--ds-": 3,
+      "raw-colour": 8
+    },
+    "src/styles/primitives.css": {
+      "--sp-": 575,
+      "data-obsidian": 3
+    },
+    "src/styles/shell.css": {
+      "--sp-": 26,
+      "--hairline": 1,
+      "raw-colour": 1
+    },
+    "src/styles/today.css": {
+      "--sp-": 194
     }
   }
 }

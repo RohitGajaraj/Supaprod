@@ -64,10 +64,51 @@ import { fileURLToPath } from "node:url";
  */
 export const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
-/** Only these trees are ratcheted. Styles are handled separately (see below). */
+/** The component trees. Stylesheets are ratcheted too, see `STYLE_ROOTS`. */
 const SCAN_ROOTS = ["src/components", "src/routes"];
 
 const SCAN_EXTENSIONS = [".tsx", ".ts"];
+
+/**
+ * ── THE THIRD HOLE, CLOSED 2026-08-18: THE PAINT ITSELF ─────────────────
+ *
+ * The two holes above were both "the guard cannot see a kind of usage". This
+ * one is larger and of a different kind: the guard could not see a whole
+ * LAYER. Until today this scanner read `.ts` and `.tsx` under two component
+ * trees and nothing else, and said so in its own words further down --
+ * "`src/styles.css`, which this scanner does not read".
+ *
+ * MEASURED THE DAY IT WAS FOUND, against the 5,794 occurrences the ledger
+ * already knew about:
+ *
+ *   src/styles.css        1,181   (637 --ds-, 398 raw hex, 63 --text-, 53 --hairline)
+ *   src/styles/primitives.css 617 (614 --sp-)
+ *   src/styles/ink.css      304   (226 --sp-, 76 raw hex)
+ *   src/styles/today.css    197
+ *   src/styles/shell.css     47
+ *   src/styles/meridian.css  16
+ *   src/styles/decide.css     5
+ *                         -----
+ *                         2,367   -- 29% of the true total, entirely unmeasured
+ *
+ * WHY THAT MATTERS MORE THAN THE NUMBER. The component layer is where retired
+ * vocabulary is WRITTEN; the stylesheet layer is where it is PAINTED. A port
+ * that swaps `Block` for `Region` in every file and leaves `.sp-mark`,
+ * `.sp-term` and `.sp-codediff-*` behind moves the debt rather than clearing
+ * it -- and every gate reports green the whole way, because the paint was
+ * never on the ledger. That is precisely how a design system gets "migrated"
+ * more than once and is never done.
+ *
+ * So the same ratchet now covers the paint, on the same three rules, and the
+ * baseline is re-frozen at the honest number rather than the flattering one.
+ * This is the third time that sentence has had to be written in this file.
+ */
+const STYLE_ROOTS = ["src/styles"];
+
+/** The app-wide legacy sheet is a FILE at the src root, not inside a tree. */
+const STYLE_FILES = ["src/styles.css"];
+
+const STYLE_EXTENSIONS = [".css"];
 
 /**
  * Tests are exempt, and deliberately so: a guard's whole job can be to assert
@@ -207,7 +248,10 @@ function retiredUsage(code: string): { counts: Record<string, number>; stripped:
       // retired vocabulary and is already counted by the import marker above.
       if (/^type\s/.test(part)) continue;
       // `X as Y` binds Y locally, so Y is the name that appears in the markup.
-      const local = part.split(/\s+as\s+/).pop()!.trim();
+      const local = part
+        .split(/\s+as\s+/)
+        .pop()!
+        .trim();
       if (local) set.add(local);
     }
     symbolsByModule.set(mod.id, set);
@@ -259,10 +303,38 @@ export function stripComments(source: string): string {
   return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
 }
 
+/**
+ * CSS has ONLY block comments, and the difference is not pedantry.
+ *
+ * Running the JS stripper over a stylesheet would treat `//` as a line comment
+ * and delete the rest of the line. CSS has no such comment, so every `//` in a
+ * stylesheet is inside a URL, and deleting from there to the end of the line
+ * removes real declarations. That direction is an UNDERCOUNT, which is the one
+ * failure this guard may never have: an undercount is a hole, and the file
+ * above records two of those already.
+ */
+export function stripCssComments(source: string): string {
+  return source.replace(/\/\*[\s\S]*?\*\//g, "");
+}
+
+/**
+ * THE ONE DELIBERATE HEX, and it is a founder ruling rather than debt.
+ *
+ * `--brand-mark-ember` and `--brand-mark-gold` are declared as literal hex ON
+ * PURPOSE: the logo is theme-invariant, so the mark keeps its ember and gold in
+ * both grounds. The ruling that put them there is the same one that removed
+ * ember from every interaction state -- the brand mark and the UI accent must
+ * never share a token. Counting them would ask a future reader to "fix" the one
+ * colour in the product that is correct as a constant.
+ *
+ * Narrow on purpose: it drops the DECLARATION line, not every hex near it.
+ */
+const BRAND_MARK_DECLARATION = /^\s*--brand-mark-[a-z0-9-]*\s*:[^;]*;/gm;
+
 export type FileDebt = { readonly [marker: string]: number };
 export type DebtLedger = { readonly [relPath: string]: FileDebt };
 
-function walk(dir: string, out: string[]): string[] {
+function walk(dir: string, out: string[], extensions: readonly string[]): string[] {
   let entries;
   try {
     entries = readdirSync(dir);
@@ -277,8 +349,8 @@ function walk(dir: string, out: string[]): string[] {
     } catch {
       continue;
     }
-    if (s.isDirectory()) walk(full, out);
-    else if (SCAN_EXTENSIONS.some((e) => entry.endsWith(e))) out.push(full);
+    if (s.isDirectory()) walk(full, out, extensions);
+    else if (extensions.some((e) => entry.endsWith(e))) out.push(full);
   }
   return out;
 }
@@ -300,18 +372,66 @@ export function debtIn(source: string): FileDebt {
 }
 
 /**
+ * Count retired vocabulary in one STYLESHEET.
+ *
+ * Two differences from `debtIn`, and both are about not lying:
+ *
+ * 1. No module or usage counting. A stylesheet imports nothing and renders
+ *    nothing, so `retiredUsage` has no meaning here. Running it would return
+ *    zero and quietly imply the file had been checked for something it cannot
+ *    contain.
+ *
+ * 2. A DECLARATION counts, not only a reference. `--sp-mark: 22px` in ink.css
+ *    is the retired system being defined, which is the most load-bearing form
+ *    of it: every `.sp-*` rule in primitives.css reads those declarations. The
+ *    end state for these files is deletion, so the declaration is the debt.
+ */
+export function debtInCss(source: string): FileDebt {
+  const code = stripCssComments(source).replace(BRAND_MARK_DECLARATION, "");
+  const debt: Record<string, number> = {};
+  for (const { id, pattern } of RETIRED_MARKERS) {
+    // The import markers are JS grammar and can never match CSS. Skipped rather
+    // than run-and-discard so a reader is not left wondering.
+    if (id.startsWith("import:")) continue;
+    const n = code.match(new RegExp(pattern.source, "g"))?.length ?? 0;
+    if (n > 0) debt[id] = n;
+  }
+  const colours = code.match(RAW_COLOUR)?.length ?? 0;
+  if (colours > 0) debt["raw-colour"] = colours;
+  return debt;
+}
+
+/**
  * Scan the ratcheted trees and return the current debt, keyed by repo-relative
  * POSIX path so the baseline is identical on every machine.
  */
 export function scan(): DebtLedger {
   const ledger: Record<string, FileDebt> = {};
   for (const root of SCAN_ROOTS) {
-    for (const file of walk(join(REPO_ROOT, root), [])) {
+    for (const file of walk(join(REPO_ROOT, root), [], SCAN_EXTENSIONS)) {
       const rel = relative(REPO_ROOT, file).split(sep).join("/");
       if (isExempt(rel)) continue;
       const debt = debtIn(readFileSync(file, "utf8"));
       if (Object.keys(debt).length > 0) ledger[rel] = debt;
     }
+  }
+
+  // The paint. Same ratchet, same three rules, different lexer. See STYLE_ROOTS.
+  const styleFiles = [
+    ...STYLE_ROOTS.flatMap((root) => walk(join(REPO_ROOT, root), [], STYLE_EXTENSIONS)),
+    ...STYLE_FILES.map((f) => join(REPO_ROOT, f)),
+  ];
+  for (const file of styleFiles) {
+    const rel = relative(REPO_ROOT, file).split(sep).join("/");
+    if (isExempt(rel)) continue;
+    let source: string;
+    try {
+      source = readFileSync(file, "utf8");
+    } catch {
+      continue;
+    }
+    const debt = debtInCss(source);
+    if (Object.keys(debt).length > 0) ledger[rel] = debt;
   }
   return ledger;
 }
