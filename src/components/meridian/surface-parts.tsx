@@ -204,6 +204,9 @@ export function Region({
   toggle,
   onToggle,
   toggled,
+  act,
+  onAct,
+  acting = false,
   lead = false,
   children,
 }: {
@@ -226,10 +229,33 @@ export function Region({
    *  both changed a label a sighted reader can see and announced nothing at all
    *  to anyone who could not. */
   toggled?: boolean;
+  /**
+   * A control that DOES something to this region's subject, rather than
+   * revealing more of it or leaving it. Added 2026-08-18 for Discover's
+   * "Cluster the loose 12", which starts a real model run from a region header.
+   *
+   * WHY IT COULD NOT BE `toggle`. `toggle` emits `aria-expanded={toggled ??
+   * false}` unconditionally, so wearing it would tell every screen reader that
+   * this button expands something. It does not; it dispatches an agent. An
+   * incorrect ARIA state is worse than none, because it is believed.
+   *
+   * WHY NOT `goTo` EITHER: that one navigates, and a reader who takes it as a
+   * link will not expect to have spent credits.
+   *
+   * `acting` is the half the old `Block` could not express. Its callers faked
+   * the in-flight state by swapping the LABEL ("Cluster the loose 12" becomes
+   * "Reading them together") while the button stayed live, so a second press
+   * started a second run. Here the work is announced with `aria-busy` and the
+   * control is disabled while it runs, which is the same fact told once.
+   */
+  act?: string;
+  onAct?: () => void;
+  /** True while the act is running. Disables the control and announces it. */
+  acting?: boolean;
   lead?: boolean;
   children: React.ReactNode;
 }) {
-  const head = Boolean(title || goTo || toggle);
+  const head = Boolean(title || goTo || toggle || act);
   const controlFace =
     "shrink-0 rounded-mrd-xs text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink";
 
@@ -250,8 +276,20 @@ export function Region({
           ) : (
             <span aria-hidden />
           )}
-          {goTo || toggle ? (
+          {goTo || toggle || act ? (
             <span className="flex shrink-0 items-baseline gap-mrd-3">
+              {act ? (
+                <button
+                  type="button"
+                  onClick={onAct}
+                  disabled={acting}
+                  aria-busy={acting || undefined}
+                  className={`${controlFace} ${acting ? "text-mrd-agent" : ""} disabled:cursor-default`}
+                  style={{ transitionDuration: "var(--mrd-d-press)" }}
+                >
+                  {act}
+                </button>
+              ) : null}
               {toggle ? (
                 <button
                   type="button"

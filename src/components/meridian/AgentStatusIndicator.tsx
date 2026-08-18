@@ -26,7 +26,7 @@ export function AgentStatusIndicator({ agent }: AgentStatusIndicatorProps) {
 
   return (
     <div
-      className="flex items-center gap-mrd-s2 px-mrd-s3 py-mrd-s2 bg-mrd-lift rounded-mrd-chip border border-mrd-edge-focus"
+      className="flex items-center gap-mrd-2 px-mrd-3 py-mrd-2 bg-mrd-lift rounded-mrd-chip border border-mrd-edge-focus"
       data-mrd=""
     >
       {/* Status indicator dot */}
@@ -36,8 +36,8 @@ export function AgentStatusIndicator({ agent }: AgentStatusIndicatorProps) {
 
       {/* Agent info */}
       <div className="flex-1 min-w-0">
-        <div className="text-mrd-t-sm font-mrd-w-500 text-mrd-ink truncate">{agent.name}</div>
-        <div className="text-mrd-t-nano text-mrd-mute">Working • {activityTime}</div>
+        <div className="text-[12px] font-medium text-mrd-ink truncate">{agent.name}</div>
+        <div className="text-[10px] text-mrd-mute">Working • {activityTime}</div>
       </div>
     </div>
   );

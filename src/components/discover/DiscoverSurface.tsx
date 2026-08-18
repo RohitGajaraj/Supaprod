@@ -1838,7 +1838,9 @@ export function DiscoverSurface({
                     title={s.url ? `Open the source: ${s.url}` : undefined}
                     onClick={
                       s.url
-                        ? () => window.open(s.url as string, "_blank", "noopener,noreferrer")
+                        ? () => {
+                            window.open(s.url as string, "_blank", "noopener,noreferrer");
+                          }
                         : undefined
                     }
                     /* WHERE THIS ONE CAME FROM, in words. A quote a colleague
@@ -2253,14 +2255,15 @@ export function DiscoverSurface({
         <Region
           title="Open bets"
           sub="Its evidence joins the one you pick. Only bets this cluster is allowed to back are listed."
-          more={
+          toggle={
             betMatches.length > BETS_IN_PICKER
               ? showAllBets
                 ? "Show fewer"
                 : `Show all ${betMatches.length}`
               : undefined
           }
-          onMore={() => setShowAllBets((v) => !v)}
+          onToggle={() => setShowAllBets((v) => !v)}
+          toggled={showAllBets}
         >
           <Field label="Find the bet" htmlFor="merge-bet-filter">
             <Input
@@ -2384,14 +2387,15 @@ export function DiscoverSurface({
              through is the one place the hint belongs, and it is the same
              pair /approvals uses for the same job. */
           sub="j and k move the focus. The one in focus is the one the keys act on. Tick rows to decline a batch of them at once."
-          more={
+          toggle={
             ranked.length > VISIBLE_CLUSTERS
               ? showAllClusters
                 ? "Show fewer"
                 : `Show all ${ranked.length}`
               : undefined
           }
-          onMore={() => setShowAllClusters((v) => !v)}
+          onToggle={() => setShowAllClusters((v) => !v)}
+          toggled={showAllClusters}
         >
           {/* WHAT THE READER IS ABOUT TO SCAN, before they scan it. The counts
               are the three novelty buckets the rows themselves use plus the
@@ -2697,14 +2701,15 @@ export function DiscoverSurface({
         <Region
           title="Settled"
           sub="Judged and out of the ranking. Their evidence is untouched, and a declined cluster comes back on its own if it grows enough."
-          more={
+          toggle={
             showSettled
               ? "Hide them"
               : settledClusters.length === 1
                 ? "Show the one"
                 : `Show the ${settledClusters.length}`
           }
-          onMore={() => setShowSettled((v) => !v)}
+          onToggle={() => setShowSettled((v) => !v)}
+          toggled={showSettled}
         >
           {showSettled ? (
             <>
@@ -2916,14 +2921,15 @@ export function DiscoverSurface({
           }
           // Offered here only once clusters exist. With none, the Gate above
           // IS the cluster call, and two of them would be two subjects.
-          more={
+          act={
             ranked.length > 0 && unclustered > 0
               ? cluster.isPending
                 ? "Reading them together"
                 : `Cluster the loose ${unclustered}`
               : undefined
           }
-          onMore={() => cluster.mutate()}
+          onAct={() => cluster.mutate()}
+          acting={cluster.isPending}
         >
           <form
             onSubmit={(e) => {

@@ -1284,7 +1284,7 @@ function DiagnosticsMoved({ onOpen }: { onOpen: () => void }) {
           <button
             type="button"
             onClick={onOpen}
-            className="rounded-mrd-pill border border-mrd-line bg-mrd-sink px-3 py-1.5 text-[12px] text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
+            className="rounded-full border border-mrd-line bg-mrd-sink px-3 py-1.5 text-[12px] text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
           >
             Open Diagnostics
           </button>
@@ -1709,7 +1709,7 @@ function AgentDetail({
             {tools.map((t) => (
               <span
                 key={t.toolName}
-                className="flex items-center gap-1.5 rounded-mrd-pill border border-mrd-line bg-mrd-sink px-2 py-1 text-[11.5px]"
+                className="flex items-center gap-1.5 rounded-full border border-mrd-line bg-mrd-sink px-2 py-1 text-[11.5px]"
               >
                 <span className="text-mrd-ink">{t.label}</span>
                 <span className="text-mrd-mute">{MODE_CHOICE[t.resolvedMode]}</span>
@@ -1790,7 +1790,7 @@ function AgentDetail({
           <button
             type="button"
             onClick={() => onOpenRecord(member.slug)}
-            className="flex items-center gap-1.5 rounded-mrd-pill px-2.5 py-1 text-[11.5px] font-medium transition-colors"
+            className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-medium transition-colors"
             style={{ color: "var(--mrd-you)", background: "var(--mrd-select)" }}
           >
             <span aria-hidden className="size-1.5 rounded-full" style={{ background: "var(--mrd-you)" }} />
@@ -1802,7 +1802,7 @@ function AgentDetail({
         <button
           type="button"
           onClick={() => onOpenRecord(member.slug)}
-          className="rounded-mrd-pill border border-mrd-line bg-mrd-sink px-2.5 py-1 text-[11.5px] text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
+          className="rounded-full border border-mrd-line bg-mrd-sink px-2.5 py-1 text-[11.5px] text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
         >
           Change what {member.name} may touch, and read its history
         </button>

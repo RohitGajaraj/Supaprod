@@ -11,7 +11,7 @@ export interface CtxHeadProps {
 export function CtxHead({ children }: CtxHeadProps) {
   return (
     <h3
-      className="text-mrd-t-nano font-mrd-w-650 uppercase tracking-mrd-track text-mrd-mute"
+      className="text-[10px] font-[650] uppercase tracking-mrd-label text-mrd-mute"
       data-mrd=""
     >
       {children}
@@ -31,7 +31,7 @@ export interface CtxRowProps {
 
 export function CtxRow({ mark, name, title, sub, onClick, href }: CtxRowProps) {
   const className =
-    "flex gap-mrd-s2 py-mrd-s1 px-mrd-s2 rounded-mrd-ctl text-mrd-t-sm transition-colors data-mrd";
+    "flex gap-mrd-2 py-mrd-1 px-mrd-2 rounded-mrd-ctl text-[12px] transition-colors data-mrd";
   const hoverClass = onClick || href ? "hover:bg-mrd-hover cursor-pointer" : "";
 
   const displayName = title || name;
@@ -40,8 +40,8 @@ export function CtxRow({ mark, name, title, sub, onClick, href }: CtxRowProps) {
     <>
       {mark && <div className="flex-shrink-0">{mark}</div>}
       <div className="flex-1 min-w-0">
-        <div className="font-mrd-w-500 text-mrd-ink truncate">{displayName}</div>
-        {sub && <div className="text-mrd-t-nano text-mrd-mute truncate">{sub}</div>}
+        <div className="font-medium text-mrd-ink truncate">{displayName}</div>
+        {sub && <div className="text-[10px] text-mrd-mute truncate">{sub}</div>}
       </div>
     </>
   );
@@ -73,7 +73,7 @@ export interface CtxBodyProps {
 
 export function CtxBody({ children }: CtxBodyProps) {
   return (
-    <p className="text-mrd-t-sm leading-mrd-lh-relaxed text-mrd-body" data-mrd="">
+    <p className="text-[12px] leading-[1.625] text-mrd-body" data-mrd="">
       {children}
     </p>
   );
