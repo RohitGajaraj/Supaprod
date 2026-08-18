@@ -37,7 +37,7 @@
 >
 > | | |
 > | --- | --- |
-> | **Video URL** | Record today. Script is in "The video" below, **147 words, 55 to 58 seconds. Hard cap.** |
+> | **Video URL** | Record today. Script is in "The video" below, **148 words, 56 to 59 seconds. Hard cap.** |
 > | **Alumni-contact toggle** | Preference. Recommended ON |
 > | **Privacy Policy toggle** | **Required, and a legal acknowledgement in his name.** An agent must never accept terms on his behalf |
 >
@@ -542,7 +542,7 @@ Both know I have listed them and are happy to take the call.
 
 # The video
 
-**STRICTLY under a minute, founder ruling. 147 words: 58 seconds at his slowest measured pace of 150 words per minute, 55 at 160. Written to be SAID, not read, so it runs faster than the count suggests.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
+**STRICTLY under a minute, founder ruling. 148 words: 59 seconds at his slowest measured pace, 56 at 160. Career content is 32 percent of the script, down from 57.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
 
 > ## 🎬 DRAFT SIX, and the two things that were actually broken
 >
@@ -651,21 +651,21 @@ Both know I have listed them and are happy to take the call.
 ```
 Hi EF, I'm Rohit.
 
-So at twenty-one I'm doing satellite communications. The radio link. What goes
-up and comes back down. Spacecraft heading to the Moon and Mars. And nobody
-tells you: once it launches, you are done.
+Quick thing about me. I've spent my whole career in rooms where you cannot take
+it back.
 
-I loved that. So I kept chasing it.
+Satellite communications at twenty-one. What goes up, what comes back down, on
+spacecraft heading to the Moon and Mars. Once it launches, that's it.
 
-Munich next, on my own, for my master's. Then semiconductors, where you lock a
-design months before anyone tests it. Get it wrong, it ships in every chip.
+Chips in Munich, where you lock a design months before anyone can test it.
 
-Then banking. One bad answer reaches a real person.
+Banks, where one wrong answer lands on a real person.
 
-Space, silicon, banking. Same job every time: product. Decide what gets built.
-Be sure.
+Nobody made me pick those. I kept choosing them. I think I like the weight.
 
-And honestly? I got very good at it. For other people.
+Same job every time, though. Product. Decide, and be the one who's sure.
+
+And honestly? I got very good at that. For other people.
 
 The one time it was mine, I started something and let it go.
 
