@@ -27,62 +27,24 @@
 >
 > **The founder submits. Never an agent.** The form is behind reCAPTCHA in any case.
 >
-> ## 📌 STATE AS OF 2026-08-18 14:20 IST — **all 13 answers were pressure-tested and six were rewritten**
+> # ✅ SUBMITTED 2026-08-18, twelve days before the deadline
 >
-> **Every answer below is exactly what is in the live form.** Word counts re-measured mechanically; all twelve sit between 95 and 100 on a conservative splitter, and between 93 and 98 on EF's own counter.
->
-> **All twelve text answers were rewritten**, as a merge of two drafts that had been kept apart by a bad label: the 2026-08-17 rewrite (structure, verified repo numbers, the access fix) and [`application.md`](./application.md) (every hard commercial number). **Q13 was not a rewrite — it was empty.** The video script was rebuilt against EF's stated scoring criteria.
->
-> **Three things remain, all founder-only:**
+> **Application id `1892`. Filed under `rohit.gajaraj@gmail.com`.**
 >
 > | | |
 > | --- | --- |
-> | **Video URL** | Record today. Script is in "The video" below, **148 words, 56 to 59 seconds. Hard cap.** |
-> | **Alumni-contact toggle** | Preference. Recommended ON |
-> | **Privacy Policy toggle** | **Required, and a legal acknowledgement in his name.** An agent must never accept terms on his behalf |
+> | **Video** | <https://youtu.be/_3yemDMdyHQ> — unlisted, 1:02, on the Supaprod channel |
+> | **Demo login given** | `voyage@supaprod.ai`, inline in Q4. **Now spent — allocate a different login to the next programme** |
+> | **References** | Jai Ganesh and Nitesh Kumar Jha. **⚠️ STANDING ACTION: warn both before EF calls.** A warned referee gives a specific story, a cold-called one gives a vague answer |
+> | **Decision** | No date published. EF reviews on a rolling basis |
 >
-> ### ✅ FILLED AND SAVED IN THE LIVE FORM, 2026-08-18. This time the save is CONFIRMED.
+> **Every answer below is the filed text**, verified byte-identical to the live form by checksum immediately before submission.
 >
-> **All 12 text answers written into the live form and saved.** The save produced what 2026-08-17 never did: a redirect to `apply.joinef.com/saved-application//?appid=1892` reading **"YOUR APPLICATION HAS BEEN SAVED."** The application id is **1892**.
+> ### What this application taught, and it is all back-ported
 >
-> **The retrieval address is `rohit.gajaraj@gmail.com`, NOT `founder@supaprod.ai`.** The save dialog states it: *"You'll be able to retrieve this application using the email address you provided (rohit.gajaraj@gmail.com)."* **The 2026-08-17 handoff told the founder to watch the wrong inbox.**
+> **Laws 6 to 10 in [`../answer-bank.md`](../answer-bank.md) came out of this filing** and govern every application from here: say it once · layman's terms · never frame growth as a past deficiency · discarded work carries its reason · hand over the demo rather than offer it. **The commitment ruling** (notice served, never "sabbatical") is in [`../baseline.yml`](../baseline.yml) under `founder.commitment`.
 >
-> **How the fill was verified, because reading `.value` back is not verification.** A form can accept a programmatic write and never register it ([`a-form-may-only-accept-what-it-watched-you-type`]). The values were set through the native `HTMLTextAreaElement.prototype.value` setter with `input`, `change`, `keyup` and `blur` dispatched, then checked against **the form's own word counters**, which are rendered by its JavaScript and cannot be faked by a stray DOM write:
->
-> | | Before | After |
-> | --- | --- | --- |
-> | **Q13 references** | **`100 of 100 left` — the field was EMPTY** | `4 of 100 left` |
-> | Q7 competitions | `19 of 100 left` | `7 of 100 left` |
->
-> **Q13 moving off 100 is the decisive proof**, and it also exposed the worse finding: **the references field was never filled at all**, despite the 2026-08-17 note claiming all 13 answers were in. Every counter now reads between 2 and 7 remaining, so all twelve are inside the limit on EF's own count.
->
-> **Still founder-only, and an agent must not do any of them:** the video URL, the alumni-contact toggle, the Privacy Policy acknowledgement, and the submit itself.
->
-> ### ✅ Page 2, "Your Details", is filled too. Both pages saved together into 1892.
->
-> | Field | Value |
-> | --- | --- |
-> | Where are you based? | `Bangalore, India` |
-> | Nationality | `India` |
-> | How did you first hear about The Bridge? | *"Researching residencies and accelerators open to founders based outside the US, and finding The Bridge through Entrepreneurs First's own site."* **⚠️ INFERRED, the only field in the whole application not traceable to a source.** Nothing in the repo records how he found it. It is true of the sweep that surfaced the programme, and he should correct it in ten seconds if the real answer is a person or a post |
-> | If we reached out to you, who's your point of contact from EF? | **Left blank, and that is the correct answer.** Nobody reached out |
-> | What Bridge event have you attended? | **Left blank, and that is correct.** None attended |
-> | Happy to hear from alumni companies? | **Ticked.** A preference, not a commitment, and one click to undo |
-> | Privacy Policy acknowledgement | **NOT ticked, deliberately.** *"I hereby acknowledge that I have read and understood the Privacy Policy"* is a legal acknowledgement in his name. **An agent must never accept terms for him**, and this one stays his even when he asks for everything to be filled |
->
-> ### ⚠️ AFTER SAVING, THE RAW FORM URL ALWAYS SHOWS A BLANK APPLICATION. This is the site, not data loss.
->
-> **Saving closes the session.** Opening `/your-achievements/` afterwards renders an empty form with all twelve counters at `100 of 100 left`. **This is what made 2026-08-17 look like a failed save and what made 2026-08-18 look like an empty references field.** Both times the data was fine.
->
-> **The saved application is reachable ONLY through the retrieve flow**: `apply.joinef.com` → **View Saved** → `rohit.gajaraj@gmail.com` → the code that arrives by email. There is no URL that opens it directly.
->
-> **Never click SAVE while the blank form is on screen.** Filling and saving is what writes to the application; saving an empty one is the only way to actually lose the work.
->
-> ### 🔍 What is proven, and what is not. Stated plainly because this file has over-claimed before.
->
-> **Proven:** every field was read out of the DOM immediately before saving and all twelve answers were present at 95 to 100 words, with page 2 populated. The server then returned **"YOUR APPLICATION HAS BEEN SAVED"** at `?appid=1892` — **the same id as the earlier save, so no duplicate application was created.**
->
-> **Not proven:** the saved content has not been read back out of EF's store, because that needs the emailed code. **The first thing to do on retrieving 1892 is look, not assume.**
+> **The costliest lesson was structural, not editorial.** Marking `application.md` as SUPERSEDED hid every hard commercial number this application had, and Q5 nearly went out with no figure in it. **Supersede claims, never whole files.**
 
 ## What this programme is, verified on its own pages
 

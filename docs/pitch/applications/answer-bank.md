@@ -1,7 +1,7 @@
 # The answer bank — every accelerator application, one source
 
 > _Created 2026-07-31._
-> **Last verified against: `docs/pitch/applications/hub71/APPLICATION-FINAL.md` (2026-08-17).**
+> **Last verified against: `docs/pitch/applications/ef-bridge-sf/APPLICATION-FINAL.md` (2026-08-18).**
 > _`bun run pitch:check` fails if a newer filing exists than that stamp. Bump it only after back-porting._
 
 > **This file owns the facts. It does NOT own the voice.** Pull numbers, bios and dates from here. **Pull the register and the shape of an answer from the most recent filed application**, which is always newer than this file.

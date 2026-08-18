@@ -1821,3 +1821,41 @@ fifth and sixth time on this surface:
 **Standing rule this produced:** *a comment asserting a door is not a door.* When a door is
 removed, the replacement must be verified by a test that has been proven red, in the same
 commit.
+
+---
+
+# 2026-08-18 · EF The Bridge SUBMITTED, and ten drafting laws came out of it
+
+**Application id `1892`, filed 2026-08-18, twelve days before the 30 August deadline.** Record: [`../pitch/applications/ef-bridge-sf/APPLICATION-FINAL.md`](../pitch/applications/ef-bridge-sf/APPLICATION-FINAL.md). Notion row created on the Application Board with the 🇺🇸 flag.
+
+## What is waiting on the founder
+
+1. **Warn Jai Ganesh and Nitesh Kumar Jha before EF calls.** Both consented. A warned referee gives a specific story, a cold-called one gives a vague answer. **This is the cheapest quality gain left on this application.**
+2. **`voyage@supaprod.ai` is now spent.** It was given inline in Q4. Allocate a different login to the next programme, and re-arm it before sending.
+3. **Prepare, but do not paste anywhere:** the partner will ask why a Stage-0 residency when a live product exists. The answer Q8 and Q9 set up is four complete products thrown away while reasoning alone.
+
+## Two facts that will cost time if forgotten
+
+**The retrieval email is `rohit.gajaraj@gmail.com`, not `founder@supaprod.ai`.** The 2026-08-17 handoff said the wrong one.
+
+**Saving the EF form ends the session and hands back a BLANK form.** That is not data loss, but it looks exactly like it, and it caught us twice. The answers persist server-side; recovery is *View Saved* → email → emailed code.
+
+## The laws this filing produced, and they govern every application from here
+
+Laws 6 to 10 are now in [`../pitch/applications/answer-bank.md`](../pitch/applications/answer-bank.md), with the machine-readable forms in [`../pitch/applications/baseline.yml`](../pitch/applications/baseline.yml) under `application_rules`:
+
+> **6 say it once · 7 layman's terms · 8 never frame growth as a past deficiency · 9 discarded work carries its reason · 10 hand over the demo, do not offer it**
+
+Plus `founder.commitment`: **notice served, quitting, full time.** *Sabbatical, career break, leave, stepping back* and every conditional *"if accepted, I will quit"* are banned on every surface.
+
+## The three findings worth carrying
+
+**Supersede claims, never whole files.** `application.md` was marked do-not-paste for two retired claims, and that hid every hard commercial number the application had. Q5 nearly went out with no figure in it. A container marked toxic is invisible to the next session, and the loss is silent.
+
+**Check repetition by claim, not by string.** A phrase-level check passed clean while four answers were all arguing that deciding what to build is the hard part. Ideas repeat without sharing vocabulary.
+
+**A number without its query is not evidence, and it happened again.** *"679 primary sources this year"* was the size of a searchable archive, not a reading count. `9,400 tests across 563 files` was wrong in both halves; the true figures are 9,395 across 567.
+
+## Video
+
+<https://youtu.be/_3yemDMdyHQ> — unlisted, 1:02, on the Supaprod channel, thumbnail built from the brand fonts. Source and masters in `iCloud → Supaprod → EF_Bridge`. The source recording peaked at **+0.07 dBFS (clipping)** and sat 4.6 LU under YouTube's target; both corrected without touching colour or framing.

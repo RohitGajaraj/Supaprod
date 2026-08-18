@@ -39,7 +39,7 @@
 | ~~08-21~~ | ~~**Hub71 Access + Hub71+ AI**~~ | AED 250K cash + AED 250K in-kind | 🚀 **SUBMITTED 2026-08-17**, four days early. Record: [`hub71/APPLICATION-FINAL.md`](./hub71/APPLICATION-FINAL.md) |
 | **08-23, 9 days** | Sanabil Startup Unlocked (500 Global, Riyadh) | none | 5-day bootcamp, 500 Global brand |
 | **08-28, 14 days** | Gemini Startup Forum | equity-free | Bay Area, ~1 hour |
-| **08-30, 16 days** | **EF The Bridge Residency, SF** | $125K/8% + $125K uncapped MFN | **Draft already exists in the repo.** Stage one is under 30 minutes |
+| ~~08-30~~ | ~~**EF The Bridge Residency, SF**~~ | $125K/8% + $125K uncapped MFN | ✅ **SUBMITTED 2026-08-18**, twelve days early. Application id 1892 |
 | **08-31, 17 days** | Google for Startups Accelerator MENA · NYC AI Nexus · Barclays Eagle Labs | equity-free / advisory shares | All three are cheap to file |
 | **09-01, 18 days** | **Solo Founders Program, SF** | **$100K for 2.5%** uncapped MFN | Best terms-per-percent on the list. Being solo is the qualification |
 

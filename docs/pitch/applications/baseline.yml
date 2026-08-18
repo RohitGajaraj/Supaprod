@@ -13,8 +13,8 @@
 # Where this file and those disagree, THOSE WIN and this file is stale. Fix it.
 
 meta:
-  updated: 2026-08-17
-  updated_after: "Hub71 Access Programme Cohort 20, SUBMITTED 2026-08-17"
+  updated: 2026-08-18
+  updated_after: "EF The Bridge Residency San Francisco Fall 26, SUBMITTED 2026-08-18"
   refresh_rule: >-
     Re-derive every value under `numbers` on the morning of any submission.
     Two of them move daily. A number that cannot be re-derived on demand is
@@ -639,6 +639,23 @@ filed:
     attachment: docs/pitch/shareables/Supaprod-Brief.pdf
     demo_login: none requested, none sent
     record: docs/pitch/applications/hub71/APPLICATION-FINAL.md
+  - programme: EF The Bridge Residency, San Francisco, Fall 26
+    date: 2026-08-18
+    status: SUBMITTED
+    deadline: 2026-08-30
+    programme_start: 2026-10
+    terms: $125K for 8% on an EF SAFE, plus an optional $125K uncapped MFN SAFE. Up to $3M in later EF rounds
+    covered: housing, workspace, food, programme, and visa support
+    duration: 8 weeks in the Bay Area, then 3 months in SF for funded teams
+    application_id: 1892
+    retrieval_email: rohit.gajaraj@gmail.com   # NOT founder@supaprod.ai
+    video: https://youtu.be/_3yemDMdyHQ        # unlisted, 1:02, on the Supaprod channel
+    demo_login: voyage@supaprod.ai, given inline in Q4
+    record: docs/pitch/applications/ef-bridge-sf/APPLICATION-FINAL.md
+    note: >-
+      Assesses the individual, not the company. 40 places, EF's own FAQ calls it
+      more competitive than their standard programmes. References Jai Ganesh and
+      Nitesh Kumar Jha both consented; WARN THEM BEFORE EF CALLS.
   - programme: Campus Founders CF Accelerator Batch #9
     date: 2026-08-16
     status: submitted
