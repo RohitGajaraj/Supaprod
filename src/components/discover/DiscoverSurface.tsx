@@ -273,23 +273,17 @@ import {
 import {
   Actions,
   AgentMark,
-  Block,
   Button,
   Choices,
-  CtxBody,
-  CtxHead,
-  CtxRow,
   Empty,
   Failed,
   Loading,
   Field,
-  Gate,
   Input,
   Line,
   MoreItem,
   MoreMenu,
   Num,
-  PageHead,
   Receipt,
   Record,
   Row,
@@ -299,6 +293,11 @@ import {
   Textarea,
   type MarkState,
 } from "@/components/shell/primitives";
+// Meridian design system: surface components replace retired shell/primitives
+import { Region, PageHeading, Figure } from "@/components/meridian/surface-parts";
+import { Gate } from "@/components/meridian/Gate";
+import { CtxBody, CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
+import { AgentStatusIndicator } from "@/components/meridian/AgentStatusIndicator";
 import { useSelection } from "@/components/shell/use-selection";
 import {
   BatchHeader,
@@ -1927,7 +1926,7 @@ export function DiscoverSurface({
           so pressing "Cluster them now" is still reported by the button's own
           label and nothing else. See use-live-agents.ts. */}
       <CrewWorking />
-      <PageHead
+      <PageHeading
         title={headline}
         sub={
           ranked.length > 0
@@ -1957,7 +1956,7 @@ export function DiscoverSurface({
         graph draws is the cluster with everything that led to it and everything
         that came out of it, which for a promoted cluster IS the bet. */}
       {focusSettled && !linkNoticeClosed && !loadError && !loading ? (
-        <Block title="That cluster has already been judged">
+        <Region title="That cluster has already been judged">
           <Empty
             action={
               <>
@@ -1981,7 +1980,7 @@ export function DiscoverSurface({
             {focusSettled.title}. {settledWord((focusSettled.status ?? "new") as string)}, so it is
             not in the ranking and the call below is a different one.
           </Empty>
-        </Block>
+        </Region>
       ) : null}
 
       {loadError ? (
@@ -2203,7 +2202,7 @@ export function DiscoverSurface({
         do is put invented rows where real ones go, so the block says what it is
         in its title, in its subtitle, and on the row itself. */}
       {signalsEmpty && !picking ? (
-        <Block
+        <Region
           title="What the ranking will show"
           sub="A drawing, not a row. Nothing here is in your record, and nothing here can be acted on."
         >
@@ -2232,7 +2231,7 @@ export function DiscoverSurface({
             severity, recency and novelty folded together, out of 100, and the bar is the same scale
             on every row. Your own rows will carry the same three facts, from your own sources.
           </CtxBody>
-        </Block>
+        </Region>
       ) : null}
 
       {/* The bets a cluster can be merged into. Rendered only in picker mode,
@@ -2251,7 +2250,7 @@ export function DiscoverSurface({
         scoped to what the cluster may actually back (see `betCandidates`), it
         is searchable, and the cap is a fold rather than a ceiling. */}
       {picking && focused ? (
-        <Block
+        <Region
           title="Open bets"
           sub="Its evidence joins the one you pick. Only bets this cluster is allowed to back are listed."
           more={
@@ -2355,7 +2354,7 @@ export function DiscoverSurface({
               <Num>{betMatches.length - BETS_IN_PICKER}</Num> more match, below the fold.
             </CtxBody>
           ) : null}
-        </Block>
+        </Region>
       ) : null}
 
       {/* The ranking, one line each: the title, and the facts that differ
@@ -2377,7 +2376,7 @@ export function DiscoverSurface({
         workspace with thirty clusters was thirty rows of scroll, which is the
         scatter complaint one step later. Six, then ask. */}
       {!picking && ranked.length > 1 ? (
-        <Block
+        <Region
           title="The ranking"
           /* j AND k WERE BOUND AND DRAWN NOWHERE, which is the same defect as
              the seven stations carrying live chords with no keycap: a person
@@ -2671,7 +2670,7 @@ export function DiscoverSurface({
               <Num>{themeWindow}</Num> of them and ranks the <Num>{ranked.length}</Num> still open.
             </CtxBody>
           ) : null}
-        </Block>
+        </Region>
       ) : null}
 
       {/* WHAT YOU ALREADY DECIDED, which the station could not show at all.
@@ -2695,7 +2694,7 @@ export function DiscoverSurface({
         which is the exact duplication `promoted` was added to stop. The door it
         gets is its chain. */}
       {!picking && !loading && !loadError && settledClusters.length > 0 ? (
-        <Block
+        <Region
           title="Settled"
           sub="Judged and out of the ranking. Their evidence is untouched, and a declined cluster comes back on its own if it grows enough."
           more={
@@ -2782,7 +2781,7 @@ export function DiscoverSurface({
               ) : null}
             </>
           ) : null}
-        </Block>
+        </Region>
       ) : null}
 
       {/* THE RECORD SPEAKING, and it belongs here as much as on /decide.
@@ -2908,7 +2907,7 @@ export function DiscoverSurface({
         it is one signal rather than one per line, which the box above cannot
         express without lying about what it is doing. */}
       {!loadError && !loading && !picking ? (
-        <Block
+        <Region
           title="Capture what you heard"
           sub={
             signalsEmpty
@@ -3097,7 +3096,7 @@ export function DiscoverSurface({
               </Actions>
             </form>
           ) : null}
-        </Block>
+        </Region>
       ) : null}
 
       {/* THE BOUNDARY FOR THIS STATION, and it belongs on the station rather
@@ -3117,7 +3116,7 @@ export function DiscoverSurface({
         line reports what the boundary has actually been doing rather than
         restating the first (hard ban 10). */}
       {clusterSettings.data?.is_owner && !picking && !loading && !loadError ? (
-        <Block title="The boundary">
+        <Region title="The boundary">
           {/* No `htmlFor`: Switch renders a `<button role="switch">`, and
             Line's own contract says a label pointing at a button makes the
             label a second way to fire it. The Switch carries its own
@@ -3158,7 +3157,7 @@ export function DiscoverSurface({
               disabled={autoSense.isPending}
             />
           </Line>
-        </Block>
+        </Region>
       ) : null}
       {/* THE READING SWITCH, ON THE STATION WHOSE JOB IS READING.
         It governs `auto_sense_enabled`, which decides whether connected sources
