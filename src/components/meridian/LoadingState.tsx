@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useElapsed } from "@/components/meridian/use-elapsed";
 
 /*
  * LOADING STATE, a pixel-grid loader for long-running work.
@@ -53,27 +53,6 @@ const PATTERNS: Record<LoadingVariant, { delays: (number | null)[]; dur: number;
     Dots: { delays: chevron, dur: 650, round: true },
     Orbit: { delays: orbit, dur: 950, round: false },
   };
-
-/**
- * Ticks in tenths, which moves visibly without forcing a render every frame.
- *
- * `startedAt` exists because the common case is NOT a fresh mount. Someone
- * reopens a surface on a run that has been going for four minutes, and a timer
- * that restarts at 0.0s there is actively misleading: it reports the age of the
- * component, not the age of the work.
- */
-function useElapsed(startedAt?: number) {
-  const [ds, setDs] = useState(() =>
-    startedAt ? Math.max(0, Math.round((Date.now() - startedAt) / 100)) : 0,
-  );
-  useEffect(() => {
-    const t = setInterval(() => setDs((d) => d + 1), 100);
-    return () => clearInterval(t);
-  }, []);
-  const total = ds / 10;
-  if (total < 60) return `${total.toFixed(1)}s`;
-  return `${Math.floor(total / 60)}m ${(total % 60).toFixed(1)}s`;
-}
 
 export function LoadingState({
   label = "Working",

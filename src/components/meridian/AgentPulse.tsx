@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { WORKING_WORDS, WORD_HOLD_MS, seedFrom } from "@/components/shell/agent-pulse-words";
+import { useElapsed } from "@/components/meridian/use-elapsed";
 
 /**
  * THE ONE THING THAT PROVES AN AGENT IS ACTUALLY WORKING.
@@ -114,6 +115,7 @@ export function AgentPulse({
   words = WORKING_WORDS,
   compact = false,
   detail,
+  startedAt,
 }: {
   /** The static sentence a screen reader gets, once. Never the rotating word. */
   label: string;
@@ -140,7 +142,20 @@ export function AgentPulse({
    * defect as a made-up progress bar.
    */
   detail?: React.ReactNode;
+  /**
+   * When the WORK started, as an epoch ms. Optional, and it renders nothing at
+   * all when absent.
+   *
+   * That default is the whole point. The common case is not a fresh mount:
+   * someone reopens a surface on a run that has been going four minutes, and a
+   * figure counting from zero there reports the age of the indicator rather
+   * than the age of the run. So this only ever shows a number a caller could
+   * actually prove, and shows none otherwise, which is the same refusal as
+   * `detail`: an empty slot beats an invented fact.
+   */
+  startedAt?: number;
 }) {
+  const elapsed = useElapsed(startedAt, startedAt != null);
   const base = React.useMemo(() => seedFrom(seed), [seed]);
   const [tick, setTick] = React.useState(0);
 
@@ -169,35 +184,58 @@ export function AgentPulse({
         {label}
       </span>
 
-      <span className="inline-flex shrink-0 items-baseline gap-px" aria-hidden="true">
-        {/* Keyed so the word RE-ENTERS rather than cross-fading in place, which
-            is what makes it read as a new word instead of as a flicker. */}
-        <span
-          key={word}
-          className="inline-block"
-          style={{ animation: "mrd-fade-up 260ms var(--mrd-ease) both" }}
-        >
-          {word}
-        </span>
-        {/* THE DOTS MUST KEEP MOVING. A static "..." reads as punctuation, the
-            end of a sentence: "you just cannot put the word Reading and just end
-            it there." They cycle independently of the word, so between two word
-            changes there is still something alive. Staggered, so they breathe
-            rather than blink in unison. */}
-        <span className="inline-flex">
-          {[0, 180, 360].map((delay) => (
-            <i
-              key={delay}
-              className="not-italic"
-              style={{
-                animation: "mrd-attention 1400ms var(--mrd-ease-soft) infinite",
-                animationDelay: `${delay}ms`,
-              }}
-            >
-              .
-            </i>
-          ))}
-        </span>
+      {/*
+       * THE WORD SHIMMERS, and this is the one place the port changes the
+       * mechanic rather than the paint.
+       *
+       * THE PROBLEM IT SOLVES IS THE FOUNDER'S OWN: "you just cannot put the
+       * word Reading and just end it there." A static label is indistinguishable
+       * from a frozen page. The retired answer was three dots on a staggered
+       * 1.4s cycle, animating independently of the word.
+       *
+       * WHY THAT WAS REPLACED RATHER THAN PORTED. Counting the retired version's
+       * motion: the glyph turns, the glyph breathes, the word enters, and three
+       * dots blink out of phase. Four simultaneous animations on one 200px
+       * indicator, and meridian.css's own rule is that two motions on one screen
+       * must differ in more than duration. Four is not restraint, and restraint
+       * is most of what reads as premium.
+       *
+       * The shimmer is the reference's mechanic, lifted from `LoadingState`
+       * where it was already ported from beautifui.dev's source: a highlight
+       * travelling through the text rather than a pulse changing its brightness.
+       * A pulse pulls the eye off whatever sits beside it; a travelling
+       * highlight reads as "still going" in peripheral vision and stays quiet
+       * when looked at directly. It makes the WORD ITSELF alive, which is what
+       * the dots were a proxy for, so the requirement is met by the thing it was
+       * about rather than by punctuation next to it.
+       *
+       * THE ELLIPSIS STAYS, as characters. It is the convention for "in
+       * progress" and dropping it would make a completed-looking phrase. It sits
+       * inside the shimmering span, so it travels with the word as one string
+       * rather than being a second thing that moves.
+       *
+       * THE HIGHLIGHT IS `--mrd-agent`, not `--mrd-ink`. `LoadingState` shimmers
+       * toward ink because it reports a JOB running. This reports an AGENT
+       * running, and azure is the token that means exactly that, so the colour
+       * law is carried by the brightest part of the sweep.
+       */}
+      <span
+        key={word}
+        aria-hidden="true"
+        className="shrink-0 bg-clip-text font-medium text-transparent"
+        style={{
+          backgroundImage:
+            "linear-gradient(90deg, var(--mrd-mute) 35%, var(--mrd-agent) 50%, var(--mrd-mute) 65%)",
+          backgroundSize: "200% 100%",
+          /* Two animations, one object: it arrives, then it breathes. Keyed on
+             the word so it RE-ENTERS on each change rather than cross-fading in
+             place, which is what makes it read as a new word and not a flicker. */
+          animation:
+            "mrd-fade-up 260ms var(--mrd-ease) both, mrd-shimmer 1.4s linear infinite 260ms",
+        }}
+      >
+        {word}
+        {"..."}
       </span>
 
       {/* The noun, after the verb, quieter than it. It does not rotate and does
@@ -209,6 +247,17 @@ export function AgentPulse({
       {detail ? (
         <span className="min-w-0 truncate text-mrd-faint" aria-hidden="true">
           {detail}
+        </span>
+      ) : null}
+
+      {/* Tabular figures, so the number does not jitter sideways as it ticks.
+          Not aria-hidden: unlike the rotating word, how long something has been
+          running is a fact a person waiting genuinely needs, and it is the one
+          part of this indicator that changes meaning rather than merely
+          proving life. */}
+      {startedAt != null ? (
+        <span className="font-mrd-mono shrink-0 text-[12px] tabular-nums text-mrd-mute">
+          {elapsed}
         </span>
       ) : null}
     </span>
