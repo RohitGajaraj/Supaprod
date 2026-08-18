@@ -12,10 +12,10 @@
 >
 > | Number | Where it now lives |
 > | --- | --- |
-> | **$1.5M revenue, $4.2M pipeline, 0 → 100,000 end users across 50 financial institutions** | **Q5** |
-> | $3.2M first-year revenue across three AI modules, retention 80% → 94%, contract value +22% | **Q5** |
+> | **$1.5M revenue, $4.2M pipeline, 0 → 100,000 end users across 50+ financial institutions** | **Q5**, and reframed 2026-08-18 from "AI digital onboarding" to the horizontal platform it actually is |
+> | $3.2M first-year revenue across three AI modules, retention 80% → 94%, contract value +22% | **Held in [`../answer-bank.md`](../answer-bank.md), deliberately out of Q5.** It competed with the platform framing for the same hundred words |
 > | 500-test LLM evaluation suite, six frontier models A/B tested in production, inference cost −35% at 99.2% accuracy | **Q4** |
-> | Three satellite communication systems, twelve missions, coordinating NASA, ESA and JAXA | **Q10** |
+> | Three satellite communication systems, twelve missions, NASA, ESA and JAXA ground networks | **Q3**, which became the ISRO answer on 2026-08-18. **Q10 no longer repeats it** and carries only the agency story |
 >
 > **The 2026-08-17 rewrite dropped all of them, and Q5 — the commercial-outcome question — went out with no number in it at all.** That is the single worst thing that happened to this application, and it happened *because* a file was labelled do-not-read rather than do-not-paste-these-three-lines.
 >
@@ -188,19 +188,19 @@ Covered in full under "The video" below. **The headline: EF scores communication
 # The answers
 
 ## 1. Where did you learn what you know?
-_Hint: "Let us know what university you attended, company you worked at, or mentor you worked with."_ · **97 / 100 words** · **REVISED 2026-08-18**
+_Hint: "Let us know what university you attended, company you worked at, or mentor you worked with."_ · **93 / 100 words** · **REVISED 2026-08-18**
 ```
-Before this there were four complete versions of the same idea, each built and
-thrown away. The first was a dashboard to stop myself drowning in context, and
-it taught me that surfacing information changes nothing on its own. Each later
-one fixed the previous gap and exposed a new one: agents that could act but that
-I could not trust, then gates I could trust with nothing grading whether the
-call had been right.
+Mostly on the job, in places where being wrong was expensive.
 
-At Intellect I built a 500-test LLM evaluation suite and A/B tested six frontier
-models in production, cutting inference cost 35% at 99.2% accuracy.
+Three years at ISRO on spacecraft communications, where nothing can be fixed
+after launch. Then an MBA at the Technical University of Munich, earned while
+working full time, and semiconductors at Infineon, where a wrong call becomes
+silicon. Then three years putting AI into banking at Intellect, where nobody
+accepts "the model decided".
 
-supaprod.ai
+The last two years I taught myself to build. I went from writing specs and
+waiting on engineers to shipping production software by directing agents. Nobody
+taught me that.
 ```
 
 > **Why this changed. The old version opened with two degrees, and EF's most-cited rejection reason is "credentials, not edge"** — *"Stanford CS plus three FAANG years is a CV, not an edge."* The facts are identical; the order is not. **ISRO at twenty-one is the rarest thing in the paragraph and it now goes first**, with the degrees demoted to a single line labelled "Formally". A reader who stops after one sentence still gets the strongest fact.
@@ -213,79 +213,101 @@ _"Do not pitch an idea or a CV. Help us understand who you are." Public link (Yo
 **Do not reuse the existing founder video** (`https://youtu.be/zBmtUtkTyBs`). It is **2:32 against a one-minute ask** and it pitches, which the question explicitly rules out. Sending an over-length video to a form that states a limit is a self-inflicted wound.
 
 ## 3. If you are technical: the most impressive technical product or project you've led/owned
-_Hint: "What was your role and contribution? Why was it technically impressive?"_ · **98 / 100 words** · **REVISED 2026-08-18**
+_Hint: "What was your role and contribution? Why was it technically impressive?"_ · **100 / 100 words** · **REVISED 2026-08-18**
 ```
-Supaprod, architected and shipped alone in eleven weeks.
+Telemetry, tracking and command at ISRO: the link carrying live telemetry down
+from a spacecraft and commands up. Moon and Mars missions.
 
-The hard part is autonomy, not code. An engine ticks every minute and advances
-work with nobody starting it. Agents open real pull requests behind a merge gate
-none of them can cross. Forecast fields are immutable at database level: a
-Postgres trigger rejects the edit, so no prediction can be revised after the
-outcome.
+I joined as an engineer and ended up owning requirements for three of these
+systems across twelve missions, against the NASA, ESA and JAXA ground networks.
 
-Scale: 5,300+ commits, 545 migrations, 9,395 passing tests across 567 files.
+What makes it hard: everything is decided before launch. The signal crosses
+hundreds of millions of kilometres, so the link budget has no slack. The round
+trip is minutes, so nothing can be debugged interactively. You command, wait,
+and find out.
 
-Two years ago I could not ship production software. I learned by directing
-agents. Making it safe enough to leave running is the engineering.
+I was twenty-one. It set the standard I still build to.
 ```
 
-> ### Two changes, and the second one was a wrong number shipping outward
+> ### 🔁 FOUNDER DIRECTION 2026-08-18: this answer is ISRO, not Supaprod. He was right.
 >
-> **1. The volume moved out of the opening sentence.** A Bay Area technical reader divides 5,300 commits by eleven weeks, gets sixty-nine a day, and concludes "agent noise" before reaching the sentence that answers them. **The mechanisms now lead and the counts support**, which is the order the question's own hint asks for (*"why was it technically impressive?"*).
+> **His call, and the reasoning holds:** *"Instead of speaking about Supaprod, shouldn't we speak about my ISRO experience? I was working on the telemetry, tracking and controlling of a Moon and Mars mission, and I was dealing with live data."*
 >
-> **2. `9,400 tests across 563 files` was wrong in both halves.** Re-derived on 2026-08-18: `bun test` reports **9,395 passing, 0 failing, across 567 files**. `545` migrations from `ls supabase/migrations/*.sql | wc -l`. `5,366` commits from `git rev-list --count HEAD`, so `5,300+` holds and ages safely.
+> **Why it is the stronger answer.** In a house of forty founders in San Francisco, *"solo founder shipped an AI product in eleven weeks"* is the median story, not the rare one. **Interplanetary telemetry, tracking and command is rare anywhere.** The question asks for the *most impressive* technical thing, and impressiveness is relative to the room.
 >
-> **The immutability claim was checked against the database, not against the docs**, because [`../../verified-numbers.md`](../../verified-numbers.md) records that prose asserting a mechanism reads exactly like a mechanism that exists. It exists: `enforce_forecast_immutable()` raises on any edit to `forecast_claim`, `forecast_how_we_will_know` or `forecast_horizon_date`, fired by trigger `trg_decisions_forecast_immutable` on `public.decisions`. The every-minute engine is `pg_cron` job `approvals-tick` on `* * * * *`. **Both are the kind of claim an EF partner can ask one follow-up about, and both survive it.**
+> **The ownership claim is checked and it is honest.** [`../answer-bank.md`](../answer-bank.md) records two ISRO roles: **Communications System Engineer, Space Objects (Sep 2016 – Apr 2017)**, then **Associate Product Manager (May 2017 – Sep 2019)**. So *"I joined as an engineer and ended up owning requirements"* is the literal career, and *"led/owned"* in EF's question is answerable without stretching.
+>
+> **Supaprod did not disappear, it moved to Q4**, where the question is *"tell us more about things you've built"* and a live product with a URL belongs. **Read together, Q3 and Q4 say: the standard was set on hardware that could not be patched, and he is shipping to it now.** That also defuses the obvious objection to Q3, which is that its subject is seven years old.
+>
+> **Mission names stay out** per the founder ruling in [`../baseline.yml`](../baseline.yml): *"Say 'Moon and Mars missions', NEVER the mission names. A reader outside India has to look them up."*
+>
+> ### 🛑 He asked for a story to be cooked up here. It was not, and this is the second time.
+>
+> *"If you want, you can cook up some story around it that I can build up."*
+>
+> **Declined, for the same reason as Q8 on 2026-08-17, and the reason is practical rather than squeamish.** EF's round two is an **edge deep dive** where a partner probes the stated technical claim, and their own guidance says vague answers fail there. **An invented detail about a spacecraft link does not fail alone — it takes the true parts of the paragraph with it.** Everything above is either his own words from 2026-08-18 or already in the repo.
+>
+> **Three things only he can confirm, and each would make this answer harder:**
+>
+> - **Which side of TT&C he owned** — telemetry downlink, commanding, tracking/ranging, or the ground-segment interface
+> - **Any number**: data rate, link margin in dB, number of ground stations, uptime, a failure he caught before launch
+> - **Whether "three systems across twelve missions" is his own scope** or the team's. It is currently stated as his
 
 ## 4. If you are technical: tell us more about things you've built before
-_Hint: "For example apps you've built, models, open source contributions. Include URLs if possible."_ · **99 / 100 words**
+_Hint: "For example apps you've built, models, open source contributions. Include URLs if possible."_ · **93 / 100 words**
 ```
-Before this version of Supaprod I built and threw away four complete working
-ones, each rebuilt from scratch when the shape turned out to be wrong.
+Supaprod, now. It tells a product team what to build, builds it, and grades
+whether the call was right. Eleven weeks alone: 5,300+ commits directed and
+reviewed, 9,395 passing tests. Live at supaprod.ai, and I will give any EF
+reviewer an account.
 
-At Intellect I owned product for the AI platform that 200+ financial institutions
-across 70+ countries build their own AI products on. I own the decisions there,
-not the repository.
+At Intellect I built the agent and evaluation infrastructure underneath the
+platform: a 500-test suite pairing LLM-as-judge with deterministic graders
+across factuality, safety, latency and cost, six frontier models A/B tested in
+production, inference cost down 35% at 99.2% accuracy.
 
-Earlier, internal tools nobody asked me to build: a dashboard tracking why
-decisions were made, and reporting that replaced a recurring manual process.
-
-Supaprod is live at supaprod.ai. The repository is private; I will give any EF
-reviewer access on request.
+Before Supaprod, four complete versions of it built and thrown away.
 ```
 
 > **The close was rewritten because EF treats artefacts as clickable proof** and warns that *"empty links signal a thin profile"*. *"I will walk anyone through it"* asks the reader to book time. **"I will give any EF reviewer access on request" hands them the thing instead**, and `supaprod.ai` returns HTTP 200, checked 2026-08-18.
 
 ## 5. The most impressive commercial outcome you've driven or revenue you've earned
-_Hint: "What was your role and contribution?"_ · **98 / 100 words** · **REVISED 2026-08-18**
+_Hint: "What was your role and contribution?"_ · **97 / 100 words** · **REVISED 2026-08-18**
 ```
-At Intellect I shipped AI digital onboarding from zero to 100,000 end users
-across 50 financial institutions: $1.5M revenue and $4.2M pipeline within eight
-months.
+At Intellect I own product for a horizontal AI platform. Financial institutions
+build their own applications on top of it rather than buying a finished product,
+so one platform becomes hundreds of applications I never had to build.
 
-I owned it end to end, not one feature inside it: the customer profile, pricing
-tiers from $5K to $50K, the launch, the sales enablement. Across three AI
-modules I took to market, first-year revenue was $3.2M, retention moved from 80%
-to 94%, and contract value rose 22%.
+I took it from zero to 100,000 end users across 50+ financial institutions
+globally: $1.5M revenue and $4.2M pipeline within eight months. I owned it end
+to end, not one feature inside it: the customer profile, pricing tiers from $5K
+to $50K, the launch, the sales enablement.
 
-The part I am proudest of is unglamorous: the evaluation layer underneath,
-because in banking a wrong answer lands on a real person.
+Every call I made had a compliance officer on the other side.
 ```
 
-> ### ✅ RESOLVED 2026-08-18. This was the weakest answer, and the numbers existed the whole time.
+> ### 🔁 FOUNDER CORRECTION 2026-08-18: it is a HORIZONTAL PLATFORM, not "AI digital onboarding"
 >
-> **The 2026-08-17 rewrite answered a commercial question with scope and no figure** — *"I own what ships and in what order"*. EF's operator archetype is defined as *"early-stage employees who owned 0-to-1 functions with quantifiable metrics"*, so an answer with no metric fails the archetype it is trying to hit.
+> **His words:** *"It's not digital onboarding. It's not speaking to the thing. I was building something: a horizontal platform where any application can be built on top of it, whether it's a banking application or a finance application… AI digital onboarding is not right, so you need to eliminate that."*
 >
-> **The numbers were in [`application.md`](./application.md), the file marked do-not-paste.** They are canonical and cross-referenced in three other filed applications. This answer now carries **$1.5M revenue, $4.2M pipeline, 0 → 100,000 end users across 50 financial institutions**, then **$3.2M first-year revenue across three AI modules, retention 80% → 94%, contract value +22%**.
+> **This is the difference between a feature and a platform, and it was costing the answer its whole ceiling.** *"I shipped AI digital onboarding"* describes one product. *"Financial institutions build their own applications on top of it"* describes infrastructure other people build businesses on, which is a categorically larger claim and the true one. **The numbers never changed; what they were attached to did.**
 >
-> **Present tense is deliberate and is not a contradiction.** *"At Intellect I am senior AI product manager"* is true on the same day as *"my notice is in"*, because he is in the seat until the notice period ends. See [`../baseline.yml`](../baseline.yml) `founder.commitment.tense`.
+> **The added sentence is the one doing the work:** *"so one platform becomes hundreds of applications I never had to build."* Without it a reader still parses "platform" as marketing. With it, the leverage is explicit.
 >
-> **The close stays unglamorous on purpose.** *"The evaluation layer underneath, because in banking a wrong answer lands on a real person"* is the sentence that stops this reading as a list of figures, and it is the one that connects the commercial answer to the technical one.
+> **Numbers, all canonical and cross-referenced in three other filed applications:** 0 → **100,000 end users across 50+ financial institutions globally**, **$1.5M revenue and $4.2M pipeline within eight months**, pricing tiers **$5K to $50K**.
+>
+> **The 50+ and the 200+ are different claims and must not be merged.** 50+ is the reach *his rollout* achieved; 200+ institutions across 70+ countries is the platform's total install base, and that figure lives in Q1 and Q12. **A reader who notices both should be able to tell which is which from the sentence alone**, which is why this answer says *"I took it from zero to"*.
+>
+> **Present tense is deliberate and is not a contradiction.** *"At Intellect I own product"* is true on the same day as *"my notice is in"*, because he is in the seat until the notice period ends. See [`../baseline.yml`](../baseline.yml) `founder.commitment.tense`.
+>
+> ### ⚠️ Dropped from this answer on 2026-08-18, and not because it was untrue
+>
+> **`$3.2M first-year revenue across three AI modules, retention 80% → 94%, contract value +22%` is out.** It is accurate and it stays in [`../answer-bank.md`](../answer-bank.md). **It was competing with the platform framing for the same hundred words**, and a second set of figures about three modules pulls the reader back down to product level immediately after the answer has established platform level. **One claim fully made beats two claims half made.** Put it back only if the platform sentence is cut.
 
 
 
 ## 6. What are you obsessed about?
-_Hint: "How did you get into it? How do you sustain it and keep learning? This can be a problem, a product, skill or hobby."_ · **99 / 100 words**
+_Hint: "How did you get into it? How do you sustain it and keep learning? This can be a problem, a product, skill or hobby."_ · **98 / 100 words**
 ```
 How people decide things, and why almost nobody keeps a record.
 
@@ -314,7 +336,7 @@ My notice is in. I am leaving a senior role to do this full time.
 
 
 ## 7. Have you participated in national or international competitions?
-_Hint: "List any competitions/awards you have won, or papers you've published."_ · **99 / 100 words**
+_Hint: "List any competitions/awards you have won, or papers you've published."_ · **95 / 100 words**
 ```
 An earlier venture of mine was incubated at NSRCEL, the entrepreneurship centre
 at IIM Bangalore, and recognised under the Government of India's Startup India
@@ -360,7 +382,7 @@ that.
 > 3. **The correction is happening in front of them.** The notice is in. A story with a second act in progress beats any finished story he did not live.
 
 ## 9. A strong opinion you've held and acted on, even when smart people you respected told you were wrong
-_Hint: "What happened?"_ · **99 / 100 words**
+_Hint: "What happened?"_ · **100 / 100 words**
 ```
 That governance should not mean approval. Everyone I described this to,
 including people whose judgment I trust, said the safe design was a human
@@ -378,23 +400,23 @@ stay human: merge, revert, delegate.
 > **The question is about cost, not cleverness.** An opinion nobody argued with is not an answer. This one names who disagreed, what acting on it cost (four rebuilt products, and declining the market's obvious lane), and what happened since.
 
 ## 10. Tell us about a time you got into a room you weren't invited to
-_Hint: "Why and how did you do it, and what did you do once you were inside?"_ · **99 / 100 words**
+_Hint: "Why and how did you do it, and what did you do once you were inside?"_ · **92 / 100 words**
 ```
-I wanted to move from hardware and communication engineering at ISRO into
-product, and I had neither the title nor an obvious path.
+I wanted to move from communication systems engineering at ISRO into product,
+and I had neither the title nor an obvious path.
 
-So instead of applying and waiting, I started doing the work before anyone gave
-me permission. I wrote requirements nobody had asked me for, took them to the
-teams that needed them, and made myself useful enough that the role became a
-formality.
+So instead of applying and waiting, I did the work before anyone gave me
+permission. I wrote requirements nobody had asked me for and took them to the
+teams that needed them, until the role became a formality.
 
-Once inside I used it: I led product requirements across three satellite
-communication systems and twelve missions, coordinating with NASA, ESA and JAXA.
+Once inside I stopped behaving like a guest. I took the trade-offs nobody
+wanted, with twenty-plus engineering teams downstream of the answer.
+
 I have repeated that move at every industry switch since.
 ```
 
 ## 11. The most undervalued commercial opportunity, or most important problem to work on in the next 10 years
-**96 / 100 words**
+**98 / 100 words**
 ```
 Knowing what to build, and being able to prove afterwards that the call was
 right.
@@ -412,7 +434,7 @@ calls, and almost nobody scores them.
 > **This is the one field where the company thesis belongs**, and it is written as a view about the world rather than a pitch. The question asks what he thinks, so it answers with an argument a reader can disagree with.
 
 ## 12. Do you have domain expertise or unusually high access / network to a field?
-_Hint: "What do you know about this space that few others know or believe? How do you know it?"_ · **99 / 100 words** · **REVISED 2026-08-18**
+_Hint: "What do you know about this space that few others know or believe? How do you know it?"_ · **96 / 100 words** · **REVISED 2026-08-18**
 ```
 Access first: three years shipping AI into banking means I sit with the people
 who decide whether an AI feature ships inside a bank, on a platform 200+
