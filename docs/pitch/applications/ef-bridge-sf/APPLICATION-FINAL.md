@@ -37,7 +37,7 @@
 >
 > | | |
 > | --- | --- |
-> | **Video URL** | Record today. Script is in "The video" below, **142 words, 53 to 56 seconds. Hard cap.** |
+> | **Video URL** | Record today. Script is in "The video" below, **147 words, 55 to 58 seconds. Hard cap.** |
 > | **Alumni-contact toggle** | Preference. Recommended ON |
 > | **Privacy Policy toggle** | **Required, and a legal acknowledgement in his name.** An agent must never accept terms on his behalf |
 >
@@ -542,7 +542,7 @@ Both know I have listed them and are happy to take the call.
 
 # The video
 
-**STRICTLY under a minute, founder ruling. 142 words: 56 seconds at his slowest measured pace of 150 words per minute, 53 at 160. Room for two real pauses and still inside the cap.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
+**STRICTLY under a minute, founder ruling. 147 words: 58 seconds at his slowest measured pace of 150 words per minute, 55 at 160. Written to be SAID, not read, so it runs faster than the count suggests.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
 
 > ## 🎬 DRAFT SIX, and the two things that were actually broken
 >
@@ -651,28 +651,29 @@ Both know I have listed them and are happy to take the call.
 ```
 Hi EF, I'm Rohit.
 
-At twenty-one I was building radio links for satellites and spacecraft going to
-the Moon and Mars. And nobody warns you: once it launches, that's it.
+So at twenty-one I'm doing satellite communications. The radio link. What goes
+up and comes back down. Spacecraft heading to the Moon and Mars. And nobody
+tells you: once it launches, you are done.
 
 I loved that. So I kept chasing it.
 
-Munich happens next, on my own, for my master's. Then semiconductors, where you
-lock a design months before anyone can test it. Get it wrong and it ships in
-every chip.
+Munich next, on my own, for my master's. Then semiconductors, where you lock a
+design months before anyone tests it. Get it wrong, it ships in every chip.
 
-Then banking. Most regulated room I have been in. One bad answer reaches a real
-person.
+Then banking. One bad answer reaches a real person.
 
-Space, silicon, banking. Same job every time: product. Decide what gets built,
-and be sure.
+Space, silicon, banking. Same job every time: product. Decide what gets built.
+Be sure.
 
-I got very good at that. For other people.
+And honestly? I got very good at it. For other people.
 
 The one time it was mine, I started something and let it go.
 
-So I've resigned from my job, and I'm building my own thing now.
+Not again. I've resigned. I'm building my own thing.
 
-I'd love to build it with you.
+Forty people in a house who just made the same call? That's the room.
+
+Save me a seat.
 ```
 
 **Recording notes:**
