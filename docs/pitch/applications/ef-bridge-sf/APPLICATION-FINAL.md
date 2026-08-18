@@ -37,7 +37,7 @@
 >
 > | | |
 > | --- | --- |
-> | **Video URL** | Record today. Script is in "The video" below, **161 words, a full 60 to 64 seconds** |
+> | **Video URL** | Record today. Script is in "The video" below, **155 words, a full 58 to 62 seconds** |
 > | **Alumni-contact toggle** | Preference. Recommended ON |
 > | **Privacy Policy toggle** | **Required, and a legal acknowledgement in his name.** An agent must never accept terms on his behalf |
 >
@@ -542,7 +542,7 @@ Both know I have listed them and are happy to take the call.
 
 # The video
 
-**A full minute, deliberately. 161 words: 60 seconds at 160 words per minute, 64 at 150, which is his measured range.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
+**A full minute. 155 words: 58 seconds at 160 words per minute, 62 at 150, which is his measured range.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
 
 > ## 🎬 THE ARC, added 2026-08-18 after four drafts. This is the version to record.
 >
@@ -603,28 +603,27 @@ Both know I have listed them and are happy to take the call.
 > **Communication clarity · energy and presence · conviction and intensity.** The failure mode is named directly: ***"a robotic, low-energy, or overly scripted video is a common rejection reason."*** **Which is the second reason a chronology was wrong**: a list has no emotional register, so it is almost impossible to deliver with intensity. **A script about who you are can be said with conviction because you are not reciting anything.**
 
 ```
-Hi, I'm Rohit.
+Hi EF, I'm Rohit.
 
 At twenty-one I was working on spacecraft going to the Moon and Mars. My part
-was the radio link. The thing that lets you talk to it.
+was the radio link, the thing that lets you talk to it. The day it launches, you
+are done. Whatever you decided months ago is what you live with.
 
-Here is the thing about that job. The day it launches, you are done. Whatever
-you decided months ago is what you live with.
+Then Munich, on my own, and semiconductors. Get it wrong there and it is already
+in the silicon.
 
-Then semiconductors. Same deal. Get it wrong and it is printed into the chip.
+Now, banking. The most regulated room I have worked in, where a bad answer
+reaches a real person and somebody has to explain why.
 
-So I have spent my career around decisions you cannot take back. And I was
-comfortable, because none of them were mine. I was the person in the middle,
-helping someone else be sure.
+Space, silicon, banking. Every one of them a decision you cannot take back. And
+I was comfortable with that, because none of them were mine.
 
-Years ago I started something of my own. I did not finish it. Nobody made me
-stop. I let it go, and I have thought about that more than I would like to
-admit.
+Years ago I started something of my own. I did not finish it. Nobody stopped me.
+I let it go.
 
-So this time I made it hard to undo. I have resigned. There is no job to go back
-to.
+This time I have resigned, and I am building my own thing.
 
-I would rather find out.
+I would love to build it with you.
 ```
 
 **Recording notes:**
