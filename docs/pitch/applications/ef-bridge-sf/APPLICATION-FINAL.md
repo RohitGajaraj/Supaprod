@@ -37,7 +37,7 @@
 >
 > | | |
 > | --- | --- |
-> | **Video URL** | Record today. Script is in "The video" below, **125 words, roughly 50 seconds** |
+> | **Video URL** | Record today. Script is in "The video" below, **145 words, roughly 56 seconds** |
 > | **Alumni-contact toggle** | Preference. Recommended ON |
 > | **Privacy Policy toggle** | **Required, and a legal acknowledgement in his name.** An agent must never accept terms on his behalf |
 >
@@ -542,7 +542,7 @@ Both know I have listed them and are happy to take the call.
 
 # The video
 
-**Under a minute on purpose. 125 words, roughly 50 seconds at his measured 150 to 160 words per minute.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
+**Under a minute on purpose. 145 words, roughly 56 seconds at his measured 150 to 160 words per minute.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
 
 > ## 🛑 FOUNDER RULING 2026-08-18: the first two scripts were CVs, and the question bans a CV
 >
@@ -583,24 +583,25 @@ Both know I have listed them and are happy to take the call.
 > **Communication clarity · energy and presence · conviction and intensity.** The failure mode is named directly: ***"a robotic, low-energy, or overly scripted video is a common rejection reason."*** **Which is the second reason a chronology was wrong**: a list has no emotional register, so it is almost impossible to deliver with intensity. **A script about who you are can be said with conviction because you are not reciting anything.**
 
 ```
-I'm Rohit.
+Hi, I'm Rohit.
 
-I have resigned from a senior job I was good at, that paid me well, and nobody
-asked me to.
+At twenty-one I was working on spacecraft going to the Moon and Mars. My part
+was the radio link, the thing that actually lets you talk to it.
 
-People who have worked with me will tell you I ask why too much. I have never
-been able to let a decision go when nobody can explain it.
+Here is what nobody tells you about that job. The day it launches, you are done.
+You cannot fix anything. Whatever you decided eight months ago is what you live
+with.
 
-For ten years I sat between the people who decide and the people who build. I
-watched good teams build the wrong thing, confidently, over and over. And I was
-in the room every time.
+Then I moved into semiconductors, and it turned out to be the same deal. Get it
+wrong and it is already printed into the chip.
 
-I got tired of watching.
+I think that quietly became how I see everything. I am not comfortable with
+decisions nobody can explain. If you ask me why, I want there to be a real
+answer, not a shrug.
 
-I am not going to promise you I will get this right. I have been wrong plenty
-and I will be again.
+I have spent ten years doing that for other people.
 
-But I am done being the person who explains the decision afterwards.
+So, my notice is in. I am going full time on my own thing.
 ```
 
 **Recording notes:**
