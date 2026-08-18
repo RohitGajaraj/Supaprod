@@ -188,10 +188,32 @@ import { useSpineStrip } from "@/components/shell/use-spine-strip";
  *  in-force count, and both come off the same list. */
 const ALL_RULES = { category: undefined, status: undefined };
 
-/** The agent that draws, and the agent that reviews what was drawn. Both are
- *  the design and decide stations' own cast entries, not labels invented here. */
+/**
+ * The agent that draws, and the agent that reviews what was drawn. Both are
+ * cast entries from `agent-vocabulary.ts`, not labels invented here.
+ *
+ * REVIEWS WAS `"critic"` UNTIL 2026-08-18, AND THAT WAS AN IDENTITY ERROR
+ * RATHER THAN A COPY ONE, which is why it survived: the comment that stood
+ * here defended it, saying these were "the design and decide stations' own
+ * cast entries" as though borrowing Decide's reviewer were the intent.
+ *
+ * `critic` is Decide's **Challenge**: station `decide`, glyph `shield-alert`,
+ * "Red-teams the decision before you commit." This station's reviewer is
+ * `design-critic`, **Critique**: station `design`, glyph `scan-eye`, "Reads the
+ * design against the standing system before it is built" -- which is exactly
+ * what `runScaffoldDesignCritic` does, and it says so in its own
+ * `surfaceRef`, `design-critic:scaffold:<prdId>`.
+ *
+ * Under Law 4 the glyph IS the identity, so the surface was drawing another
+ * station's agent doing this station's work, in that station's hue. The one
+ * comment nearby that looked like a justification -- "routes through the critic
+ * lens" -- is about the AI lens at the chokepoint, not about who is working.
+ *
+ * `design-critic` appeared as a slug in exactly one place in the repo before
+ * this change, `src/lib/spine/driver.ts`, and no surface had ever rendered it.
+ */
 const DRAWS = "ux-architect";
-const REVIEWS = "critic";
+const REVIEWS = "design-critic";
 
 function shareUrl(slug: string): string {
   return `${typeof window !== "undefined" ? window.location.origin : ""}/p/${slug}`;
