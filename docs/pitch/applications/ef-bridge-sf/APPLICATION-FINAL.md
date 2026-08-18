@@ -37,7 +37,7 @@
 >
 > | | |
 > | --- | --- |
-> | **Video URL** | Record today. Script is in "The video" below, **160 words, a full 60 to 64 seconds** |
+> | **Video URL** | Record today. Script is in "The video" below, **145 words, 54 to 58 seconds. Hard cap.** |
 > | **Alumni-contact toggle** | Preference. Recommended ON |
 > | **Privacy Policy toggle** | **Required, and a legal acknowledgement in his name.** An agent must never accept terms on his behalf |
 >
@@ -542,7 +542,7 @@ Both know I have listed them and are happy to take the call.
 
 # The video
 
-**A full minute. 160 words: 60 seconds at 160 words per minute, 64 at 150. Spoken register, so read it fast and warm rather than carefully.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
+**STRICTLY under a minute, founder ruling. 145 words: 58 seconds at his slowest measured pace of 150 words per minute, 54 at 160. Spoken register, so read it fast and warm and keep the pauses short.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
 
 > ## 🎬 DRAFT SIX, and the two things that were actually broken
 >
@@ -651,22 +651,23 @@ Both know I have listed them and are happy to take the call.
 ```
 Hi EF, I'm Rohit.
 
-At twenty-one I got a job building the radio link on spacecraft heading to the
-Moon and Mars. The part that lets you talk to it. And nobody warns you: once it
+At twenty-one I was building the radio link on spacecraft heading to the Moon
+and Mars. The part that lets you talk to it. And nobody warns you: once it
 launches, that's it. Whatever you decided a year ago, you live with.
 
 I loved that. So I kept chasing it.
 
-Munich next, on my own, for a master's. Stayed for semiconductors, where a wrong
-call is burned into the chip. Then banking. Most regulated room I have been in.
-One bad answer reaches a real person, and someone has to explain why.
+Munich happens next, on my own, for my master's. Then semiconductors, where a
+wrong call is burned into the chip. Then banking, the most regulated room I have
+been in. One bad answer reaches a real person.
 
 Space, silicon, banking. Same job every time: be the guy who's sure.
 
-Took me ten years to notice the catch. I was carrying everybody's big decisions
-except my own. And the one time it was mine, I started something and let it go.
+I got very good at that. For other people.
 
-So. I've resigned from my job, and I'm building my own thing.
+The one time it was mine, I started something and let it go.
+
+So I've resigned from my job, and I'm building my own thing now.
 
 I'd love to build it with you.
 ```
