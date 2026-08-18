@@ -58,19 +58,31 @@
 >
 > **Still founder-only, and an agent must not do any of them:** the video URL, the alumni-contact toggle, the Privacy Policy acknowledgement, and the submit itself.
 >
-> ### ⚠️ SAVING ENDS THE SESSION AND STARTS A FRESH BLANK APPLICATION. Do not be fooled by it.
+> ### ✅ Page 2, "Your Details", is filled too. Both pages saved together into 1892.
 >
-> **After the save confirmation, navigating back to `/your-achievements/` shows an entirely empty form — all twelve counters read `100 of 100 left`.** That is not data loss. **The save is server-side under `appid=1892`**, and what the browser is now showing is a **new, second, blank application** that the site started because the first one was closed by saving.
+> | Field | Value |
+> | --- | --- |
+> | Where are you based? | `Bangalore, India` |
+> | Nationality | `India` |
+> | How did you first hear about The Bridge? | *"Researching residencies and accelerators open to founders based outside the US, and finding The Bridge through Entrepreneurs First's own site."* **⚠️ INFERRED, the only field in the whole application not traceable to a source.** Nothing in the repo records how he found it. It is true of the sweep that surfaced the programme, and he should correct it in ten seconds if the real answer is a person or a post |
+> | If we reached out to you, who's your point of contact from EF? | **Left blank, and that is the correct answer.** Nobody reached out |
+> | What Bridge event have you attended? | **Left blank, and that is correct.** None attended |
+> | Happy to hear from alumni companies? | **Ticked.** A preference, not a commitment, and one click to undo |
+> | Privacy Policy acknowledgement | **NOT ticked, deliberately.** *"I hereby acknowledge that I have read and understood the Privacy Policy"* is a legal acknowledgement in his name. **An agent must never accept terms for him**, and this one stays his even when he asks for everything to be filled |
 >
-> **The consequence, and it is the dangerous one: never click SAVE on that blank form.** Doing so files a second empty application against the same email. Get back into 1892 the documented way — *View Saved* on the home page, `rohit.gajaraj@gmail.com`, then the emailed code.
+> ### ⚠️ AFTER SAVING, THE RAW FORM URL ALWAYS SHOWS A BLANK APPLICATION. This is the site, not data loss.
 >
-> ### ❓ Page 2, "Your Details", is UNVERIFIED. It is not known to be filled and it is not known to be empty.
+> **Saving closes the session.** Opening `/your-achievements/` afterwards renders an empty form with all twelve counters at `100 of 100 left`. **This is what made 2026-08-17 look like a failed save and what made 2026-08-18 look like an empty references field.** Both times the data was fine.
 >
-> **The 2026-08-17 note claims *"Page 2 is filled: Bangalore India, nationality India, and the how-did-you-hear answer"*. That claim has not been checked against the saved application**, and the same note also claimed all 13 answers were in when Q13 was empty, so it does not get the benefit of the doubt.
+> **The saved application is reachable ONLY through the retrieve flow**: `apply.joinef.com` → **View Saved** → `rohit.gajaraj@gmail.com` → the code that arrives by email. There is no URL that opens it directly.
 >
-> **Page 2 was read on 2026-08-18 and was blank — but only AFTER the save, so that reading is of the fresh blank application and proves nothing about 1892.** Whatever page 2 held during the fill session was saved along with page 1, untouched.
+> **Never click SAVE while the blank form is on screen.** Filling and saving is what writes to the application; saving an empty one is the only way to actually lose the work.
 >
-> **First thing to do on retrieving 1892: open Your Details and look.** Three required fields: where you are based, nationality, and how you first heard about The Bridge.
+> ### 🔍 What is proven, and what is not. Stated plainly because this file has over-claimed before.
+>
+> **Proven:** every field was read out of the DOM immediately before saving and all twelve answers were present at 95 to 100 words, with page 2 populated. The server then returned **"YOUR APPLICATION HAS BEEN SAVED"** at `?appid=1892` — **the same id as the earlier save, so no duplicate application was created.**
+>
+> **Not proven:** the saved content has not been read back out of EF's store, because that needs the emailed code. **The first thing to do on retrieving 1892 is look, not assume.**
 
 ## What this programme is, verified on its own pages
 
