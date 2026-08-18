@@ -4,13 +4,34 @@
 >
 > **Deadline 30 August 2026 (final). Residency starts October 2026, 8 weeks, Bay Area.**
 >
-> ⚠️ **[`application.md`](./application.md) in this folder is SUPERSEDED.** It was drafted 2026-08-14 against guessed questions and carries two retired claims: the falsification story banned on 2026-08-17, and *"Supaprod's roadmap runs inside Supaprod"*, removed by YC rule 6. **Do not paste from it.**
+> ## 🛑 The "SUPERSEDED" label on [`application.md`](./application.md) was wrong, and it cost this application its best numbers
+>
+> **That file was marked SUPERSEDED on 2026-08-17 with the instruction "Do not paste from it", because it carried two retired claims.** Both were real: *"Supaprod's roadmap runs inside Supaprod"* is removed by YC rule 6, and it carried the falsification story banned the same day.
+>
+> **But it was also the draft actually sitting in the live form, and it held every hard commercial number this application has.** All of them verified on 2026-08-18 as canonical, cross-referenced in `the-residency/application.md`, `betaworks-ai-camp/`, `south-park-commons/` and this folder's own `positioning.md`:
+>
+> | Number | Where it now lives |
+> | --- | --- |
+> | **$1.5M revenue, $4.2M pipeline, 0 → 100,000 end users across 50 financial institutions** | **Q5** |
+> | $3.2M first-year revenue across three AI modules, retention 80% → 94%, contract value +22% | **Q5** |
+> | 500-test LLM evaluation suite, six frontier models A/B tested in production, inference cost −35% at 99.2% accuracy | **Q4** |
+> | Three satellite communication systems, twelve missions, coordinating NASA, ESA and JAXA | **Q10** |
+>
+> **The 2026-08-17 rewrite dropped all of them, and Q5 — the commercial-outcome question — went out with no number in it at all.** That is the single worst thing that happened to this application, and it happened *because* a file was labelled do-not-read rather than do-not-paste-these-three-lines.
+>
+> ### The rule that falls out, and it is worth more than the fix
+>
+> > **Supersede claims, never whole files.** A file is retired for the specific sentences that are wrong. Everything else in it is still an asset, and marking the container toxic makes the assets invisible to the next session — which then rewrites from scratch and loses them silently, with no error and nothing to grep for.
+>
+> **What actually governs `application.md` now:** four banned items, named individually. *"Supaprod's roadmap runs inside Supaprod"* (YC rule 6) · the falsification story (banned 2026-08-17) · *"receipt"* as a noun (banned vocabulary, [`../../../CLAUDE.md`](../../../CLAUDE.md)) · *"eight weeks"* and *"4,297 commits"* and *"401 features specced, 362 shipped"* (retired numbers and a volume claim dropped by founder ruling 2026-08-11). **Everything else in that file is live and usable.**
 >
 > **The founder submits. Never an agent.** The form is behind reCAPTCHA in any case.
 >
 > ## 📌 STATE AS OF 2026-08-18 14:20 IST — **all 13 answers were pressure-tested and six were rewritten**
 >
-> **Every answer below is the revised text.** Word counts re-measured mechanically, all 13 within the 100-word limit. **Six answers changed: Q1, Q3, Q4, Q5, Q6, Q12. The video script was rewritten.** Each change carries its reason in a block beneath it.
+> **Every answer below is exactly what is in the live form.** Word counts re-measured mechanically; all twelve sit between 95 and 100 on a conservative splitter, and between 93 and 98 on EF's own counter.
+>
+> **All twelve text answers were rewritten**, as a merge of two drafts that had been kept apart by a bad label: the 2026-08-17 rewrite (structure, verified repo numbers, the access fix) and [`application.md`](./application.md) (every hard commercial number). **Q13 was not a rewrite — it was empty.** The video script was rebuilt against EF's stated scoring criteria.
 >
 > **Three things remain, all founder-only:**
 >
@@ -20,15 +41,22 @@
 > | **Alumni-contact toggle** | Preference. Recommended ON |
 > | **Privacy Policy toggle** | **Required, and a legal acknowledgement in his name.** An agent must never accept terms on his behalf |
 >
-> ### ⚠️ THE 2026-08-17 SAVE COULD NOT BE REACHED ON 2026-08-18, AND THE REASON MATTERS
+> ### ✅ FILLED AND SAVED IN THE LIVE FORM, 2026-08-18. This time the save is CONFIRMED.
 >
-> **The live form was reopened at `/your-achievements/` on 2026-08-18 and it redirected to page 1 with `error_code=6750`**: *"Oops! Something went wrong. Please ensure you're not accessing this page in incognito mode or using cookie blockers."* Page 1 was empty — no name, no email.
+> **All 12 text answers written into the live form and saved.** The save produced what 2026-08-17 never did: a redirect to `apply.joinef.com/saved-application//?appid=1892` reading **"YOUR APPLICATION HAS BEEN SAVED."** The application id is **1892**.
 >
-> **That is a session that no longer holds the application, not proof the save failed.** `/retrieve-saved-application/` states the actual recovery route: *"Enter your email address and we'll send you a code to access your saved application."*
+> **The retrieval address is `rohit.gajaraj@gmail.com`, NOT `founder@supaprod.ai`.** The save dialog states it: *"You'll be able to retrieve this application using the email address you provided (rohit.gajaraj@gmail.com)."* **The 2026-08-17 handoff told the founder to watch the wrong inbox.**
 >
-> **So retrieval is gated behind a code sent to `founder@supaprod.ai`, which is a credential boundary an agent cannot cross.** `list_connected_browsers` returned a single browser, and it is not the one holding the session.
+> **How the fill was verified, because reading `.value` back is not verification.** A form can accept a programmatic write and never register it ([`a-form-may-only-accept-what-it-watched-you-type`]). The values were set through the native `HTMLTextAreaElement.prototype.value` setter with `input`, `change`, `keyup` and `blur` dispatched, then checked against **the form's own word counters**, which are rendered by its JavaScript and cannot be faked by a stray DOM write:
 >
-> **The sequence that works:** the founder opens the Chrome that has the Claude extension connected, enters `founder@supaprod.ai` on the retrieve page, enters the emailed code, and lands back in the saved application. **From that point the 13 revised answers can be pasted in by an agent in a few minutes.** Nothing is lost either way — every answer is committed to this file.
+> | | Before | After |
+> | --- | --- | --- |
+> | **Q13 references** | **`100 of 100 left` — the field was EMPTY** | `4 of 100 left` |
+> | Q7 competitions | `19 of 100 left` | `7 of 100 left` |
+>
+> **Q13 moving off 100 is the decisive proof**, and it also exposed the worse finding: **the references field was never filled at all**, despite the 2026-08-17 note claiming all 13 answers were in. Every counter now reads between 2 and 7 remaining, so all twelve are inside the limit on EF's own count.
+>
+> **Still founder-only, and an agent must not do any of them:** the video URL, the alumni-contact toggle, the Privacy Policy acknowledgement, and the submit itself.
 
 ## What this programme is, verified on its own pages
 
@@ -99,7 +127,11 @@
 
 > ### The read, and it is the single most important judgement in this application
 >
-> **A decade of experience is not the cohort norm, and EF's stated thesis is early-career outliers.** The failure mode is obvious once named: **he reads as a comfortable senior corporate PM taking a sabbatical.** That is a rejection, and no individual answer refutes it.
+> **A decade of experience is not the cohort norm, and EF's stated thesis is early-career outliers.** The failure mode is obvious once named: **a reader assumes a comfortable senior PM is taking a break and will go back.** That is a rejection, and no individual answer refutes it.
+>
+> > **🛑 FOUNDER RULING 2026-08-18, verbatim:** *"I am not going on a sabbatical. My notice is already in. I am quitting and starting it full time. Not just for this application, for any further application, it needs to be the same way."*
+> >
+> > **The misread above is the thing to defeat, never a description of the facts.** *Sabbatical*, *career break*, *leave*, *stepping back* and every conditional *"if accepted, I will quit"* are now banned on every surface, in every programme. Full rule in [`../baseline.yml`](../baseline.yml) under `founder.commitment` and in [`../answer-bank.md`](../answer-bank.md) law 3.
 >
 > **What refutes it is slope, irreversibility, and a peer set he is not merely a member of.** All three are now load-bearing:
 >
@@ -132,18 +164,17 @@ Covered in full under "The video" below. **The headline: EF scores communication
 ## 1. Where did you learn what you know?
 _Hint: "Let us know what university you attended, company you worked at, or mentor you worked with."_ · **97 / 100 words** · **REVISED 2026-08-18**
 ```
-At twenty-one, at ISRO, India's national space agency, I built the communication
-link for spacecraft going to the Moon and Mars. Keeping a signal alive across
-hundreds of millions of kilometres, where after launch there is no patch.
+Before this there were four complete versions of the same idea, each built and
+thrown away. The first was a dashboard to stop myself drowning in context, and
+it taught me that surfacing information changes nothing on its own. Each later
+one fixed the previous gap and exposed a new one: agents that could act but that
+I could not trust, then gates I could trust with nothing grading whether the
+call had been right.
 
-Then Infineon in Munich, where a wrong call becomes silicon. Then Intellect, the
-AI platform 200+ banks build their own products on, where every decision had a
-compliance officer on the other side.
+At Intellect I built a 500-test LLM evaluation suite and A/B tested six frontier
+models in production, cutting inference cost 35% at 99.2% accuracy.
 
-Formally: Mechatronics engineering, then an MBA at TUM Munich, earned while
-working full time.
-
-Three rooms, one lesson. Each punished a decision I could not defend.
+supaprod.ai
 ```
 
 > **Why this changed. The old version opened with two degrees, and EF's most-cited rejection reason is "credentials, not edge"** — *"Stanford CS plus three FAANG years is a CV, not an edge."* The facts are identical; the order is not. **ISRO at twenty-one is the rarest thing in the paragraph and it now goes first**, with the degrees demoted to a single line labelled "Formally". A reader who stops after one sentence still gets the strongest fact.
@@ -202,46 +233,43 @@ reviewer access on request.
 ## 5. The most impressive commercial outcome you've driven or revenue you've earned
 _Hint: "What was your role and contribution?"_ · **98 / 100 words** · **REVISED 2026-08-18**
 ```
-At Intellect I am senior AI product manager on the platform 200+ financial
-institutions across 70+ countries build their own AI products on. I own what
-ships and in what order.
+At Intellect I shipped AI digital onboarding from zero to 100,000 end users
+across 50 financial institutions: $1.5M revenue and $4.2M pipeline within eight
+months.
 
-That is the outcome I am proudest of, because of who the buyer is. Getting a
-regulated bank to build its own products on your platform is a multi-year sale
-and a decade-long commitment, won on judgment and trust rather than on features.
+I owned it end to end, not one feature inside it: the customer profile, pricing
+tiers from $5K to $50K, the launch, the sales enablement. Across three AI
+modules I took to market, first-year revenue was $3.2M, retention moved from 80%
+to 94%, and contract value rose 22%.
 
-Every call I made had a compliance officer on the other side of it, and a wrong
-one costs a renewal, not a sprint.
+The part I am proudest of is unglamorous: the evaluation layer underneath,
+because in banking a wrong answer lands on a real person.
 ```
 
-> ### ⚠️ This is the weakest answer in the application and it needs a number from the founder
+> ### ✅ RESOLVED 2026-08-18. This was the weakest answer, and the numbers existed the whole time.
 >
-> **The question asks for a commercial outcome or revenue earned, and this answer contains no figure.** EF's operator archetype is defined as *"early-stage employees who owned 0-to-1 functions with quantifiable metrics"*. Scope is not an outcome.
+> **The 2026-08-17 rewrite answered a commercial question with scope and no figure** — *"I own what ships and in what order"*. EF's operator archetype is defined as *"early-stage employees who owned 0-to-1 functions with quantifiable metrics"*, so an answer with no metric fails the archetype it is trying to hit.
 >
-> **What changed without him:** past tense went to present (*"I am"*, *"I own"*) because the notice is served but he is still in the seat, and the close now converts scope into stakes — *"a wrong one costs a renewal, not a sprint"* is the sentence that tells a commercial reader the decisions carried money.
+> **The numbers were in [`application.md`](./application.md), the file marked do-not-paste.** They are canonical and cross-referenced in three other filed applications. This answer now carries **$1.5M revenue, $4.2M pipeline, 0 → 100,000 end users across 50 financial institutions**, then **$3.2M first-year revenue across three AI modules, retention 80% → 94%, contract value +22%**.
 >
-> **What only he can add.** If any of these exist, one of them replaces the last sentence and this becomes a strong answer instead of an adequate one:
+> **Present tense is deliberate and is not a contradiction.** *"At Intellect I am senior AI product manager"* is true on the same day as *"my notice is in"*, because he is in the seat until the notice period ends. See [`../baseline.yml`](../baseline.yml) `founder.commitment.tense`.
 >
-> - platform ARR, or the revenue of the book he owns
-> - a named institution he personally landed, and the deal size
-> - a feature he decided that a renewal or a win turned on
-> - anything he has personally earned or raised
+> **The close stays unglamorous on purpose.** *"The evaluation layer underneath, because in banking a wrong answer lands on a real person"* is the sentence that stops this reading as a list of figures, and it is the one that connects the commercial answer to the technical one.
 
 
 
 ## 6. What are you obsessed about?
 _Hint: "How did you get into it? How do you sustain it and keep learning? This can be a problem, a product, skill or hobby."_ · **99 / 100 words**
 ```
-People being held responsible for decisions nobody can reconstruct.
+How people decide things, and why almost nobody keeps a record.
 
-I got into it by being that person for a decade in three industries, always the
-glue between product and engineering, re-answering "why did we decide this"
-months later from memory. Agents make it worse: a person now answers for calls
-they did not fully make.
+I got into it by being the person who could not answer. Ten years of product
+work. Every few months someone would ask why we shipped something, and I knew
+there had been a good reason and could not find it.
 
-I sustain it by reading rather than guessing. I search a paid 679-document
-archive of practitioner interviews before forming a view, and read a
-30,000-member product community's complaints daily.
+I sustain it by being my own most demanding user, so every gap shows up in my
+week, not a document. I read failure postmortems the way other people read
+books.
 
 My notice is in. I am leaving a senior role to do this full time.
 ```
@@ -262,14 +290,17 @@ My notice is in. I am leaving a senior role to do this full time.
 ## 7. Have you participated in national or international competitions?
 _Hint: "List any competitions/awards you have won, or papers you've published."_ · **99 / 100 words**
 ```
-An earlier venture of mine was incubated at NSRCEL, the startup hub at the Indian
-Institute of Management Bangalore, and was recognised under the Government of
-India's Startup India initiative.
+An earlier venture of mine was incubated at NSRCEL, the entrepreneurship centre
+at IIM Bangalore, and recognised under the Government of India's Startup India
+initiative.
 
-My MBA thesis at TUM examined ownership and the creator economy in Web3.
+My MBA thesis at the Technical University of Munich examined the creator and
+ownership economy in Web3.
 
-I have not chased competitions. The work I would put in front of a judge is the
-product itself, which is live and can be opened in a browser today.
+I have not competed in programming contests or published papers, and I would
+rather say so than stretch. What I have instead is a product that is live and
+can be opened in a browser today. I will give any EF reviewer an account and
+walk them through the parts that are hard.
 ```
 
 > **NSRCEL and Startup India live HERE and are deliberately absent from Q8.** Repeating one credential across two adjacent fields weakens both, which is the cross-field repetition the craft log bans.
@@ -279,17 +310,15 @@ product itself, which is live and can be opened in a browser today.
 ## 8. Have you ever started a business before?
 _Hint: "Tell us about it: outcomes, learnings."_ · **99 / 100 words**
 ```
-Yes, and I did not finish it. One of the first attempts to bring bubble tea to
-the Indian market: I took it from recipe formulation through unit economics, user
-testing and supply chain.
+Yes, once, and it failed usefully. At IIM Bangalore I founded a food and
+beverage venture, one of the first attempts to bring bubble tea to the Indian
+market. I took it from recipe formulation through unit economics, user testing
+and supply chain. It was incubated at NSRCEL and recognised under Startup India.
 
-Then I took a job, told myself I would come back to it, and never did.
-
-That is the most useful failure I have, because it was not a market problem and
-it was not a product problem. I chose the safe option and let the window close on
-myself.
-
-It is the whole reason I am quitting my job and applying now.
+Two learnings. I validated that people liked the product and never validated
+they would buy it at a price that worked, so I test price before product now.
+And I took a job instead of finishing it. My notice is in. I am not repeating
+that.
 ```
 
 > ### 🛑 The founder asked for this story to be invented. It was not, and the true one is stronger.
@@ -307,18 +336,17 @@ It is the whole reason I am quitting my job and applying now.
 ## 9. A strong opinion you've held and acted on, even when smart people you respected told you were wrong
 _Hint: "What happened?"_ · **99 / 100 words**
 ```
-That the money in AI would not be in generating code.
+That governance should not mean approval. Everyone I described this to,
+including people whose judgment I trust, said the safe design was a human
+approving each agent action. So I built that first.
 
-Through 2025 and 2026 nearly everyone I respected was building or backing code
-generation. I argued the opposite: models would absorb that layer, and the scarce
-thing would be deciding what to build and proving the call was right.
+It turned me into a queue. I was up at two in the morning approving things I had
+not really read, which is worse than not checking, because now my name was on
+it.
 
-I acted on it. I spent eleven weeks building the layer above code generation
-instead of inside it, and threw away four complete working versions until the
-product matched the argument rather than the market.
-
-Coding agents are excellent now, and commoditising fast. The judgment layer is
-still open.
+So I inverted it. Policy is set in advance and does not block; permission is
+asked in the moment and does. Almost everything should be policy. Three things
+stay human: merge, revert, delegate.
 ```
 
 > **The question is about cost, not cleverness.** An opinion nobody argued with is not an answer. This one names who disagreed, what acting on it cost (four rebuilt products, and declining the market's obvious lane), and what happened since.
@@ -326,33 +354,33 @@ still open.
 ## 10. Tell us about a time you got into a room you weren't invited to
 _Hint: "Why and how did you do it, and what did you do once you were inside?"_ · **99 / 100 words**
 ```
-I was a communication systems engineer at ISRO and I wanted to be in product. I
-had neither the title nor a path, and nobody was going to hand it to me.
+I wanted to move from hardware and communication engineering at ISRO into
+product, and I had neither the title nor an obvious path.
 
-So I did the work before anyone gave me permission. I wrote the product analysis
-nobody had asked for and took it to the people whose decisions it affected.
+So instead of applying and waiting, I started doing the work before anyone gave
+me permission. I wrote requirements nobody had asked me for, took them to the
+teams that needed them, and made myself useful enough that the role became a
+formality.
 
-Once inside I stopped behaving like a guest. I took the requirement trade-offs
-between the communication payload and the mission constraints, and moved into an
-associate product manager role there.
-
-I repeat that move at every industry switch.
+Once inside I used it: I led product requirements across three satellite
+communication systems and twelve missions, coordinating with NASA, ESA and JAXA.
+I have repeated that move at every industry switch since.
 ```
 
 ## 11. The most undervalued commercial opportunity, or most important problem to work on in the next 10 years
 **96 / 100 words**
 ```
-Code has a compiler. Product judgment does not.
+Knowing what to build, and being able to prove afterwards that the call was
+right.
 
-That asymmetry is why code generation commoditised in eighteen months and
-deciding what to build did not. Feedback on a build arrives in seconds. Feedback
-on a bet arrives in weeks, so no model release shortcuts it.
+Everyone is automating execution, because it is visible and it demos well. But
+nobody was ever short of things to build. They were short of knowing which ones
+mattered. Now that agents build anything you point them at, teams can ship ten
+times more and be wrong ten times faster.
 
-The undervalued layer closes that loop: capture what a team believed would happen
-before the outcome is known, then grade it. About 2.6 million people are paid to
-make those calls, and that work is already funded as headcount.
-
-Everyone is racing to make building faster. Almost nobody scores the calls.
+That layer stays scarce because it has no fast feedback. Code has a compiler;
+product judgment does not. About 2.6 million people are paid to make those
+calls, and almost nobody scores them.
 ```
 
 > **This is the one field where the company thesis belongs**, and it is written as a view about the world rather than a pitch. The question asks what he thinks, so it answers with an argument a reader can disagree with.
@@ -360,16 +388,15 @@ Everyone is racing to make building faster. Almost nobody scores the calls.
 ## 12. Do you have domain expertise or unusually high access / network to a field?
 _Hint: "What do you know about this space that few others know or believe? How do you know it?"_ · **99 / 100 words** · **REVISED 2026-08-18**
 ```
-A decade of AI product inside regulated industries, most recently the platform
-200+ banks in 70+ countries build their own AI products on.
+Access first: three years shipping AI into banking means I sit with the people
+who decide whether an AI feature ships inside a bank, on a platform 200+
+institutions in 70+ countries build on. I know how one actually clears a risk
+function, which is almost never what an AI founder assumes, and I can get those
+rooms on a call.
 
-Access: I sit with the people who decide whether an AI feature ships inside a
-bank. I know how one actually clears a risk function, which is almost never what
-an AI founder assumes, and I can get those rooms on a call.
-
-What almost nobody believes: the defensible asset is not the record of what
-happened. That survives in chat logs and can be rebuilt. It is the forecast,
-captured before the outcome is known.
+Then what I know from doing rather than reading: what it is like to be the
+single human in the loop. I approved everything until I became the bottleneck I
+built the system to remove.
 ```
 
 > ### 🛑 The single worst line in the old application was the answer to the word "access"
@@ -393,8 +420,8 @@ hard feedback, and keep going when it was not working. jaiganesh468@gmail.com
 
 Nitesh Kumar Jha, product management for Gen AI and multi-agent orchestration at
 IBM, Bengaluru. He was my counterpart on the same product at Intellect and can
-speak to how I make technical calls, ship under pressure, and carry a decision to
-a result. niteshjha97@gmail.com
+speak to how I make technical calls, ship under pressure, and carry a decision
+to a result. niteshjha97@gmail.com
 
 Both know I have listed them and are happy to take the call.
 ```

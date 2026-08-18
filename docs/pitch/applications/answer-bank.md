@@ -64,6 +64,14 @@
 1. **True on the day you hit submit, with zero outside users.** Plans appear as dated plans. Programs verify numbers.
 2. **The honesty dial.** Candor goes where the form asks (users, revenue, stage), stated as fact plus what happens next. Never as apology, never volunteered in fields that do not ask. Exactly one vulnerability beat per application.
 3. **Unconditional commitment.** No "if accepted, I will…" anywhere. The company is happening full-time regardless. The program changes the speed and the zip code, never the decision.
+
+   > **FOUNDER RULING 2026-08-18, verbatim, and it binds every application from here:** *"I am not going on a sabbatical. My notice is already in. I am quitting and starting it full time. Not just for this application, for any further application, it needs to be the same way."*
+   >
+   > **Say: "My notice is in. I am leaving a senior role to do this full time."** Present or past tense, never future.
+   >
+   > **Banned on every surface:** *sabbatical · career break · leave of absence · taking time off · stepping back · stepping away · exploring whether to go full time · planning to resign · "if accepted, I will quit".* **Every one of them turns an irreversible act back into an option**, and a reader deciding whether this person actually starts pays no attention to an option. It is also the exact shape of EF's stated round-three rejection reason, hedging on commitment.
+   >
+   > **Not a contradiction:** he is still in the seat until the notice period ends, so present tense is correct for the current role too. *"I am senior AI product manager at Intellect"* and *"my notice is in"* are both true on the same day. Full rule in [`baseline.yml`](./baseline.yml) under `founder.commitment`.
 4. **Plain words.** No marketing-speak, no AI cadence, short sentences, exact numbers however small. **No em dashes in anything pasted into a form.**
 5. **Lead with the delta, land the scope.** First sentence carries the whole answer. Numbers argue.
 

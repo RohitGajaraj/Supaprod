@@ -199,13 +199,60 @@ founder:
     Two years ago could not ship production software at all; learned to build by
     directing agents. SHOW THE BEHAVIOUR, never name the trait.
 
+  # FOUNDER RULING 2026-08-18, given verbatim and standing for EVERY application,
+  # not just EF: "I am not going on a sabbatical. My notice is already in. I am
+  # quitting and starting it full time. Not just for this application, for any
+  # further application, it needs to be the same way."
+  commitment:
+    state: notice_served
+    say: >-
+      My notice is in. I am leaving a senior role to do this full time.
+    never_say:
+      # Each of these reframes an irreversible act as a reversible one, which is
+      # the exact thing EF's round-three rejection ("hedging on commitment") is
+      # looking for. They are banned on every surface, in every programme.
+      - sabbatical
+      - career break
+      - leave of absence
+      - taking time off / time out
+      - "stepping back" / "stepping away"
+      - "exploring" or "testing" whether to go full time
+      - "if accepted, I will quit" (conditional commitment of any shape)
+      - "planning to" / "intend to" / "about to" resign
+    why: >-
+      A served notice is a fact with a date on it and it cannot be hedged. Every
+      banned phrasing above turns it back into an option, and an option is worth
+      nothing to a reader deciding whether this person actually starts. The
+      company is happening full time regardless of any programme's decision; a
+      programme changes the speed and the zip code, never the decision.
+    tense: >-
+      Present or past, never future. "My notice is in" and "I am leaving", never
+      "I will leave". Still in the seat until the notice period ends, so present
+      tense is correct for the CURRENT ROLE ("I am senior AI product manager"),
+      and that is not a contradiction: both are true on the same day.
+
 numbers:
   # Re-derive on the morning of any submission.
   commits:
-    value: 5328
-    as_of: 2026-08-17
+    value: 5366
+    as_of: 2026-08-18
     outward_form: "5,300+"
     command: git rev-list --count origin/main
+  tests:
+    # Re-derived 2026-08-18 because "9,400 tests across 563 files" was in the EF
+    # application and was wrong in BOTH halves.
+    value: 9395
+    files: 567
+    as_of: 2026-08-18
+    outward_form: "9,395 passing tests across 567 files"
+    command: bun test
+  elapsed:
+    value: eleven weeks
+    as_of: 2026-08-18
+    note: >-
+      2026-06-02 to 2026-08-18 is 77 days. RETIRED AND BANNED: "eight weeks" and
+      "seven weeks", both of which are still sitting in older application drafts.
+      Re-derive this every time; it moves every seven days.
   migrations:
     value: 545
     as_of: 2026-08-17
@@ -216,7 +263,23 @@ numbers:
     note: A template commit dated 2025-01-01 is scaffold, not work.
   research_sources:
     value: 679
-    note: Primary sources read, plus a private community of ~30,000 product managers.
+    # CORRECTED 2026-08-18. The old note said "Primary sources read", and that is
+    # not what 679 is. It is the SIZE OF A PAID ARCHIVE he can search, named in
+    # one-pager.md as "the 679-document paid archive". He did not read 679 sources.
+    # The first interview follow-up is "which ones?", so claim the searching.
+    is: size of a searchable paid archive of practitioner interviews
+    is_not: a count of sources he has read
+    outward_form: >-
+      I search a paid 679-document archive of practitioner interviews before
+      forming a view.
+  pm_community:
+    value: 30000
+    as_of: 2026-04
+    note: >-
+      Verified externally at 30,000+ members. He is a MEMBER, not the operator.
+      Never present a paid membership as "unusually high access" - anyone with a
+      card has it. His real unusual access is the bank rooms; see positioning.
+    outward_form: "a 30,000-member product community"
 
 positioning:
   order: door, then body, then brain. ALWAYS. The brain is the crescendo, never the opening.
