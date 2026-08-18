@@ -1,3 +1,62 @@
+# ✅ MERIDIAN LANE, 2026-08-18 — the gate could not see the paint, and that is why this kept needing redoing
+
+**Merged and pushed. `origin/main` = `ac76a415`.** Ten commits, verified on the merged tree: `tsc` clean, `bun test` 9,397 pass / 0 fail, ratchet 6,804 across 295 files.
+
+## The finding that explains the whole history
+
+The Meridian ratchet read `.ts` and `.tsx` under two component trees and nothing else. It said so in its own header: *"`src/styles.css`, which this scanner does not read"*. **The entire stylesheet layer, 2,339 occurrences, was never on the ledger.**
+
+The component layer is where retired vocabulary is written. The stylesheet layer is where it is painted. A port could move every component to Meridian, leave `.sp-mark` and `.sp-term` behind, and every gate would report green the whole way. **That is the mechanism by which this migration has been done more than once and never finished.**
+
+Honest total went 5,794 to **8,133**. It is now **6,804**.
+
+## What shipped
+
+| pass | reclaimed |
+| --- | --- |
+| `Num` to Meridian, 85 files | 610 |
+| `Row` / `Line` / `Who`, 73 / 54 / 7 files | 417 |
+| `Door` / `Actions` / `Diffstat` | 148 |
+| mark family promoted, retired mark and its 214 lines of CSS deleted | 154 |
+
+Three guards, each **proven to fail by planting the defect**, not merely proven to pass:
+
+1. **The ratchet now reads stylesheets.** Bringing a file type into scope adopts an extension exactly once, then the door shuts itself. No flag for anyone to reach for later.
+2. **`every-meridian-utility-paints.test.ts`**, new. Tailwind emits a utility only for a declared `@theme` name; ask for another and there is no error, no rule, and no tool that can see it. Three components added that morning carried 16 inert classes, and in `Gate.tsx` **every** styling class was inert. The cause recurs, so it is worth knowing by heart: **the name you read in `meridian.css` is not the name that paints.** `--mrd-s3` is typed `mrd-3`; the type and weight scales are not bridged at all.
+3. **`bun run design:surfaces`**, new. Per-file debt cannot answer "if I open this and keep clicking, what do I meet". `engine-room` carries **0** in its own file and **1,192 across the 50 files it reaches**; `brain` is 0 and 705. A surface-level pass marks both done.
+
+## Three product defects fixed
+
+- **Meridian had no agent mark**, so 33 files still imported the retired one for the product's most load-bearing idea. A correct one existed but was trapped in `runs/run-parts.tsx` where nothing else could reach it. Promoted to `meridian/marks.tsx`. The stage-hue rainbow did not come with it: identity is the glyph, hue is run state, on the five status words.
+- **The live agent line claimed a workspace it never filtered by.** Four callers share `missionsKey`; only `today.tsx` passed the workspace, so one key held two datasets and **the answer depended on mount order**. Fixed in `AppFrame`, `AskPane`, `use-live-agents`; the test that pinned only the key now pins the fetch.
+- **Design drew Decide's agent doing Design's work.** `REVIEWS = "critic"` is Decide's Challenge, glyph `shield-alert`. The station runs `design-critic`, Critique, glyph `scan-eye`, and says so in its own `surfaceRef`.
+
+## Discover was ported twice, and the merge resolved toward this lane
+
+`4ec86e7e` (lane) and `6ca8e877` (main) are two ports of the same surface by two sessions. Resolved toward the lane for all four shared files, and not for seniority: the main-side `Gate` loses the question → evidence → actions invariant that IS the component, drops `linesLabel`, and paints with `rounded-mrd-surface` and `p-mrd-4`, neither of which is in the bridge. The main-side commit also did not typecheck, built a Meridian component out of the retired `shell/primitives`, and **recorded a 127 to 50 reduction on a file that actually held 100**. The ledger says 100.
+
+**If you run two sessions on one worktree again, give each one stations it owns.**
+
+## Next, in order
+
+1. `Value` needs a real tone mapping, `warn` to `hold` and `live` to `agent`. Meridian has five status words and warn is not one, so every call site is read rather than re-pointed.
+2. The `Empty` / `Failed` / `Loading` family, 537 renders, and these are the states nobody screenshots.
+3. **`Receipt` (49 uses) and the context column (78 uses) are the two gaps blocking Learn and Ship from porting at all.** Learn is otherwise the cleanest station in the product: 101 usages, zero token debt, a pure component swap.
+4. The three Ask surfaces still paint stations as hues through `stageHueForStation`, which is the Law 4 violation that has now been removed three times elsewhere.
+
+## The canvas question, answered with the data
+
+The founder asked about a drag-and-drop orchestration canvas. **Do not build it.** Across 53 missions and 291 steps, only **5 missions branch at all**, the widest fork is **2**, and there are **6 joining steps in all of history**. The orchestration is 90 percent a straight chain, so a node canvas would draw a graph that is not there. An authoring canvas is worse: it hands the user the orchestration the product exists to do for them, which is the fear the README states in the founder's own words.
+
+**Build the dependency-aware run trace instead.** `tool_calls` holds 283 rows, indexed on `trace_id`, with no reader anywhere: **38 failed, 13 percent, and every failure is at an integration boundary** (`ci.status` 40 percent at 7.2s average, `github.openPullRequest` and `signals.sweep` both 50 percent), while the agent's own tools are **0 failures in 133 calls**. That is the "failed" and "slow" state the doctrine requires and no surface composes.
+
+## One operational note
+
+The machine hit **zero disk twice** during this session and git could not create a lock file, which failed a merge mid-flight. `~/Library/Caches` is 12G, `~/.claude/plugins` is 11G.
+
+---
+
+
 # Pick up here
 
 > _Created: 2026-08-07 · Last updated: 2026-08-17 evening. **Campus Founders is FILED. The section below it, which says two applications are drafted and not filed, is superseded for Campus Founders and still current for ikigai.**
