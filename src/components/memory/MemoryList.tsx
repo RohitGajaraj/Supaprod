@@ -54,7 +54,14 @@
  */
 import { useState } from "react";
 import { Row } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Actions,
+  Action,
+  Reading,
+  ReadFailed,
+  NothingYet,
+} from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAgentMemory } from "@/lib/memory.functions";
@@ -62,7 +69,7 @@ import { forgetMemory } from "@/lib/agent_loop.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useConfirm } from "@/hooks/use-confirm";
 import { agentLabel, kindLabel, relativeTime, type MemoryRow } from "@/lib/memory-view";
-import { Button, Empty, Failed, Loading, Receipt } from "@/components/shell/primitives";
+import { Receipt } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { Provenance, type EvidenceSource } from "@/components/knowledge/EvidenceQuality";
 
@@ -186,10 +193,10 @@ export function MemoryList() {
    * not an absence of rows, and the reader cannot tell the difference from a
    * blank box.
    */
-  if (q.isLoading) return <Loading>Reading what the crew carries.</Loading>;
+  if (q.isLoading) return <Reading>Reading what the crew carries.</Reading>;
 
   if (q.isError) {
-    return <Failed onRetry={() => void q.refetch()}>{(q.error as Error).message}</Failed>;
+    return <ReadFailed onRetry={() => void q.refetch()}>{(q.error as Error).message}</ReadFailed>;
   }
 
   const rows = q.data?.rows ?? [];
@@ -199,10 +206,10 @@ export function MemoryList() {
   if (rows.length === 0) {
     return (
       <>
-        <Empty>
+        <NothingYet>
           Nothing learned yet. Record an outcome on a shipped spec, or let an agent reflect on a
           run, and the takeaway lands here for the next run to recall.
-        </Empty>
+        </NothingYet>
         {/* Correcting the LAST line on the list empties it, and the receipt has
             to survive that: without this the person presses the control, the
             list they were reading becomes an empty state, and nothing on screen
@@ -284,14 +291,14 @@ export function MemoryList() {
           // monochrome and red carries OUTCOMES here, never intent. The weight
           // of the act is carried by the confirm, which is where it belongs.
           action={
-            <Button
-              variant="ghost"
+            <Action
+              variant="quiet"
               disabled={forget.isPending}
               onClick={() => void confirmAndForget(r)}
               title="Take this out of what the crew reads"
             >
               This is wrong
-            </Button>
+            </Action>
           }
         />
       ))}
@@ -303,7 +310,7 @@ export function MemoryList() {
 
       {rows.length > VISIBLE_MEMORIES ? (
         <Actions>
-          <Button variant="ghost" onClick={() => setShowAll((v) => !v)}>
+          <Action variant="quiet" onClick={() => setShowAll((v) => !v)}>
             {showAll ? (
               "Show fewer"
             ) : (
@@ -311,7 +318,7 @@ export function MemoryList() {
                 Show <Num>{rows.length - VISIBLE_MEMORIES}</Num> more
               </>
             )}
-          </Button>
+          </Action>
         </Actions>
       ) : null}
     </div>

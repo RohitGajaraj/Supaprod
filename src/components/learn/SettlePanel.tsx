@@ -54,7 +54,17 @@
 
 import * as React from "react";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  Approve,
+  Num,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
+import { Choices, Field, Input, Textarea } from "@/components/meridian/forms";
+import { Gate } from "@/components/meridian/Gate";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -73,7 +83,10 @@ import { agentDisplayName } from "@/lib/agent-vocabulary";
 // The three words the whole station speaks in, lifted out of this file so the
 // route can read a settled verdict back in the same words the Gate asks for it.
 import { VERDICT_SAYS, type Verdict } from "@/components/learn/verdict-words";
-import { Block, Button, Choices, Failed, Field, Gate, Input, Loading, Receipt, Textarea } from "@/components/shell/primitives";
+// `Receipt` has no Meridian part yet, so it stays on the retired layer rather
+// than being hand-rolled here: five surfaces each drawing their own chrome is
+// exactly how the product ended up with four copies of one component.
+import { Receipt } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 
 /** Choices needs a value; "none" is never drawn as an option. */
@@ -499,14 +512,17 @@ export function SettlePanel({
 
   /* ---- render ---- */
 
-  if (pendingQ.isLoading) return <Loading>Reading what shipped.</Loading>;
+  if (pendingQ.isLoading) return <Reading>Reading what shipped.</Reading>;
 
   if (pendingQ.isError) {
     return (
+      /* THE RETRY IS NEUTRAL, and that is the design system's own ruling rather
+         than a preference here: orchid means a person is required and green and
+         red report outcomes, so a control that merely RE-READS is entitled to
+         none of them. It was `variant="primary"` on the retired layer, which
+         spent the loudest paint in the product on a failed fetch. */
       <Gate question="What shipped did not load.">
-        <Button variant="primary" onClick={() => void pendingQ.refetch()}>
-          Try again
-        </Button>
+        <Action onClick={() => void pendingQ.refetch()}>Try again</Action>
       </Gate>
     );
   }
@@ -684,125 +700,147 @@ export function SettlePanel({
       {/* The Gate above asks and prices it; this is where the answer is given.
           The title is a verb rather than a noun so it does not restate the Line
           label under it (hard ban 10). */}
-      <Block title={settledByAgent ? "Give your own verdict" : "Settle it"}>
-        <Line label="The verdict">
-          <Choices<VerdictPick>
-            label="The verdict"
-            value={verdict ?? "none"}
-            options={VERDICT_OPTIONS}
-            onPick={(id) => {
-              if (id === "none") return;
-              setDirty(true);
-              setVerdict(id);
-            }}
-          />
-        </Line>
+      <Region title={settledByAgent ? "Give your own verdict" : "Settle it"}>
+        {/* `Region`, `Field` and `Actions` each set no outer margin, on purpose:
+            the retired `Block` decided this spacing for every caller and none of
+            them could say otherwise. Stated once, here. */}
+        <div className="flex flex-col gap-mrd-5">
+          <Line label="The verdict">
+            {/* `mode` IS DECLARED NOW. It defaulted to "one" on the retired
+                layer, and a default is the wrong way to carry a fact that
+                changes the ARIA and the keyboard: `one` is a radio group with a
+                single tab stop and arrow keys, `any` is independent toggles.
+                Three verdicts are mutually exclusive, so it is `one`. */}
+            <Choices<VerdictPick>
+              mode="one"
+              label="The verdict"
+              value={verdict ?? "none"}
+              options={VERDICT_OPTIONS}
+              onChange={(id) => {
+                if (id === "none") return;
+                setDirty(true);
+                setVerdict(id);
+              }}
+            />
+          </Line>
 
-        <Field label="What actually happened" htmlFor="settle-summary">
-          <Textarea
-            id="settle-summary"
-            value={summary}
-            rows={4}
-            maxLength={2000}
-            placeholder="One or two plain sentences. What you expected, and what came back."
-            onChange={(e) => {
-              setDirty(true);
-              setSummary(e.target.value);
-            }}
-          />
-        </Field>
+          <Field label="What actually happened" htmlFor="settle-summary">
+            <Textarea
+              id="settle-summary"
+              value={summary}
+              rows={4}
+              maxLength={2000}
+              placeholder="One or two plain sentences. What you expected, and what came back."
+              onChange={(e) => {
+                setDirty(true);
+                setSummary(e.target.value);
+              }}
+            />
+          </Field>
 
-        <Field label="What you measured" htmlFor="settle-metric-label">
-          <Input
-            id="settle-metric-label"
-            value={metricLabel}
-            maxLength={200}
-            placeholder="Weekly active users, support tickets, time to get started"
-            onChange={(e) => {
-              setDirty(true);
-              setMetricLabel(e.target.value);
-            }}
-          />
-        </Field>
+          <Field label="What you measured" htmlFor="settle-metric-label">
+            <Input
+              id="settle-metric-label"
+              value={metricLabel}
+              maxLength={200}
+              placeholder="Weekly active users, support tickets, time to get started"
+              onChange={(e) => {
+                setDirty(true);
+                setMetricLabel(e.target.value);
+              }}
+            />
+          </Field>
 
-        <Field label="What it came to" htmlFor="settle-metric-value">
-          <Input
-            id="settle-metric-value"
-            value={metricValue}
-            maxLength={200}
-            placeholder="A number, or a before and after"
-            onChange={(e) => {
-              setDirty(true);
-              setMetricValue(e.target.value);
-            }}
-          />
-        </Field>
+          <Field label="What it came to" htmlFor="settle-metric-value">
+            <Input
+              id="settle-metric-value"
+              value={metricValue}
+              maxLength={200}
+              placeholder="A number, or a before and after"
+              onChange={(e) => {
+                setDirty(true);
+                setMetricValue(e.target.value);
+              }}
+            />
+          </Field>
 
-        <Actions>
-          {canRecord ? (
-            <Button
-              variant="primary"
-              disabled={settle.isPending || (!!settledByAgent && unchanged)}
-              onClick={() =>
-                settle.mutate({ target, verdict: verdict as Verdict, summary: summary.trim() })
-              }
-            >
-              {settle.isPending
-                ? "Recording it."
-                : settledByAgent
-                  ? unchanged
-                    ? "Change the verdict to overturn it"
-                    : `Overturn: ${VERDICT_SAYS[verdict as Verdict]}`
-                  : confirmable
-                    ? `Confirm: ${VERDICT_SAYS[verdict as Verdict]}`
-                    : "Record it"}
-            </Button>
-          ) : (
-            <Button
-              variant="primary"
-              disabled={drafting}
-              onClick={() => draft.mutate(target.prdId)}
-            >
-              {drafting
-                ? "Reading the outcome."
-                : `Ask ${agentDisplayName(MEASURE_SLUG)} to draft it`}
-            </Button>
-          )}
-          {settledByAgent ? (
-            <Button onClick={() => setOverturnId(null)}>Leave it as it is</Button>
-          ) : canRecord && !s ? (
-            <Button disabled={drafting} onClick={() => draft.mutate(target.prdId)}>
-              {drafting ? "Reading the outcome." : `Ask ${agentDisplayName(MEASURE_SLUG)}`}
-            </Button>
-          ) : null}
-          {/* THE THIRD ANSWER, and the station could not finish its job without
+          <Actions>
+            {/* THE ONE `Approve` ON THIS SURFACE, and the test it passes is
+                literal rather than stylistic: the bet is HELD on this desk until
+                this button is pressed. `listPendingOutcomes` keeps returning it,
+                the queue keeps counting it, and the station's headline keeps
+                asking for it, until a verdict lands. That is what orchid means
+                in this system — a person is required — and nothing else on this
+                surface releases anything.
+                The other branch is NOT an Approve. "Ask Measure to draft it"
+                dispatches an agent and leaves the bet exactly where it was, so
+                it is a primary `Action`: loud, because it is the one thing to do
+                when the form is empty, and neutral in colour, because it settles
+                nothing. */}
+            {canRecord ? (
+              <Approve
+                disabled={settle.isPending || (!!settledByAgent && unchanged)}
+                onClick={() =>
+                  settle.mutate({ target, verdict: verdict as Verdict, summary: summary.trim() })
+                }
+              >
+                {settle.isPending
+                  ? "Recording it."
+                  : settledByAgent
+                    ? unchanged
+                      ? "Change the verdict to overturn it"
+                      : `Overturn: ${VERDICT_SAYS[verdict as Verdict]}`
+                    : confirmable
+                      ? `Confirm: ${VERDICT_SAYS[verdict as Verdict]}`
+                      : "Record it"}
+              </Approve>
+            ) : (
+              <Action
+                variant="primary"
+                disabled={drafting}
+                onClick={() => draft.mutate(target.prdId)}
+              >
+                {drafting
+                  ? "Reading the outcome."
+                  : `Ask ${agentDisplayName(MEASURE_SLUG)} to draft it`}
+              </Action>
+            )}
+            {settledByAgent ? (
+              <Action onClick={() => setOverturnId(null)}>Leave it as it is</Action>
+            ) : canRecord && !s ? (
+              <Action disabled={drafting} onClick={() => draft.mutate(target.prdId)}>
+                {drafting ? "Reading the outcome." : `Ask ${agentDisplayName(MEASURE_SLUG)}`}
+              </Action>
+            ) : null}
+            {/* THE THIRD ANSWER, and the station could not finish its job without
               it. Offered only on a bet nobody has settled: once a verdict exists
               the honest moves are to overturn it or leave it, and "not yet"
               would be a third thing that quietly contradicts a written record.
               See the `defer` mutation for why this is a check date and not a
               fourth verdict. */}
-          {!settledByAgent ? (
-            <Button
-              disabled={defer.isPending}
-              onClick={() => defer.mutate({ target })}
-              title="No verdict is written. It returns to this desk in two weeks."
-            >
-              {defer.isPending ? "Giving it more time." : "Too early to tell"}
-            </Button>
-          ) : null}
-        </Actions>
+            {!settledByAgent ? (
+              <Action
+                disabled={defer.isPending}
+                onClick={() => defer.mutate({ target })}
+                title="No verdict is written. It returns to this desk in two weeks."
+              >
+                {defer.isPending ? "Giving it more time." : "Too early to tell"}
+              </Action>
+            ) : null}
+          </Actions>
 
-        {draft.isError ? (
-          <Failed onRetry={() => draft.mutate(target.prdId)}>
-            The draft did not come back, and nothing was written. {(draft.error as Error).message}
-          </Failed>
-        ) : null}
-      </Block>
+          {draft.isError ? (
+            <ReadFailedLine onRetry={() => draft.mutate(target.prdId)}>
+              The draft did not come back, and nothing was written. {(draft.error as Error).message}
+            </ReadFailedLine>
+          ) : null}
+        </div>
+      </Region>
 
       <ReceiptStack receipts={receipts} />
 
       {pending.length > (target.pending ? 1 : 0) ? (
-        <Block title={target.pending ? "Also waiting" : "Waiting on you"}>
+        <Region title={target.pending ? "Also waiting" : "Waiting on you"}>
           {pending
             .filter((p) => p.prdId !== target.prdId)
             .map((p) => (
@@ -825,7 +863,7 @@ export function SettlePanel({
                 action={<OpenTheSpec prdId={p.prdId} quiet />}
               />
             ))}
-        </Block>
+        </Region>
       ) : null}
 
       <AgentSettledBlock
@@ -942,7 +980,7 @@ function AgentSettledBlock({
 }) {
   if (loading || rows.length === 0) return null;
   return (
-    <Block
+    <Region
       title={`${agentDisplayName(MEASURE_SLUG)} settled these`}
       sub="Click any of them to disagree. The record keeps what it said and what you said."
     >
@@ -969,7 +1007,7 @@ function AgentSettledBlock({
           action={<OpenTheSpec prdId={r.prdId} quiet />}
         />
       ))}
-    </Block>
+    </Region>
   );
 }
 
@@ -1104,7 +1142,7 @@ function SettledConsequence({
 function ReceiptStack({ receipts }: { receipts: Mark[] }) {
   if (receipts.length === 0) return null;
   return (
-    <Block title="What you settled">
+    <Region title="What you settled">
       {receipts.map((r) => (
         <Receipt
           key={r.key}
@@ -1114,6 +1152,6 @@ function ReceiptStack({ receipts }: { receipts: Mark[] }) {
           failed={r.failed}
         />
       ))}
-    </Block>
+    </Region>
   );
 }

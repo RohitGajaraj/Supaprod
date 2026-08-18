@@ -49,7 +49,18 @@
  */
 import { useServerFn } from "@tanstack/react-start";
 import { Row } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Actions,
+  Action,
+  Region,
+  Reading,
+  ReadFailed,
+  ReadFailedLine,
+  NothingHere,
+  NothingYet,
+} from "@/components/meridian/surface-parts";
+import { Field, Input } from "@/components/meridian/forms";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { DocEditor } from "@/components/supaprod/DocEditor";
@@ -58,7 +69,7 @@ import { listDocs, getDoc, createDoc, updateDoc, deleteDoc } from "@/lib/docs.fu
 import { importGoogleDoc } from "@/lib/gdocs.functions";
 import { importNotionPage, searchNotionPages } from "@/lib/notion.functions";
 import { createSignal } from "@/lib/discovery.functions";
-import { Block, Button, Empty, Failed, Field, Input, Loading, Prose, Receipt } from "@/components/shell/primitives";
+import { Prose, Receipt } from "@/components/shell/primitives";
 
 type DocNode = {
   id: string;
@@ -232,14 +243,14 @@ export function DocsPanel() {
     <Receipt key={s.id} verb={s.verb} consequence={s.consequence} time={s.at} failed={s.failed} />
   ));
 
-  if (docs.isLoading) return <Loading>Reading the workspace pages.</Loading>;
+  if (docs.isLoading) return <Reading>Reading the workspace pages.</Reading>;
 
   if (docs.isError) {
     return (
-      <Failed onRetry={() => void docs.refetch()}>
+      <ReadFailed onRetry={() => void docs.refetch()}>
         The pages did not load, so this is not a claim that none were written.{" "}
         {(docs.error as Error).message}
-      </Failed>
+      </ReadFailed>
     );
   }
 
@@ -251,22 +262,22 @@ export function DocsPanel() {
     return (
       <div>
         <Actions>
-          <Button variant="ghost" onClick={() => setSelectedId(null)}>
+          <Action variant="quiet" onClick={() => setSelectedId(null)}>
             All pages
-          </Button>
+          </Action>
         </Actions>
 
         {receipts}
 
         {selected.isLoading || !doc ? (
-          <Loading>Reading the page.</Loading>
+          <Reading>Reading the page.</Reading>
         ) : selected.isError ? (
-          <Failed onRetry={() => void selected.refetch()}>
+          <ReadFailed onRetry={() => void selected.refetch()}>
             The page did not load, so nothing here is safe to edit yet.{" "}
             {(selected.error as Error)?.message ?? ""}
-          </Failed>
+          </ReadFailed>
         ) : (
-          <Block
+          <Region
             title={doc.title || "Untitled"}
             // The different fact, never a restatement of the title: it saves
             // itself, and the crew reads it.
@@ -299,8 +310,8 @@ export function DocsPanel() {
 
             <Actions
               trailing={
-                <Button
-                  variant="ghost"
+                <Action
+                  variant="quiet"
                   disabled={mDelete.isPending}
                   onClick={() => {
                     void (async () => {
@@ -315,14 +326,14 @@ export function DocsPanel() {
                   }}
                 >
                   {mDelete.isPending ? "Deleting" : "Delete for everyone"}
-                </Button>
+                </Action>
               }
             >
-              <Button disabled={mPush.isPending} onClick={() => mPush.mutate(doc)}>
+              <Action disabled={mPush.isPending} onClick={() => mPush.mutate(doc)}>
                 {mPush.isPending ? "Sending" : "Send it to Discovery"}
-              </Button>
-              <Button
-                variant="ghost"
+              </Action>
+              <Action
+                variant="quiet"
                 onClick={() => {
                   void (async () => {
                     const next = await prompt({
@@ -336,9 +347,9 @@ export function DocsPanel() {
                 }}
               >
                 Change the icon
-              </Button>
+              </Action>
             </Actions>
-          </Block>
+          </Region>
         )}
       </div>
     );
@@ -368,17 +379,17 @@ export function DocsPanel() {
         </span>
         <span style={{ marginLeft: "auto" }}>
           <Actions>
-            <Button
-              variant="ghost"
+            <Action
+              variant="quiet"
               aria-expanded={importOpen}
               aria-controls="docs-import"
               onClick={() => setImportOpen((o) => !o)}
             >
               {importOpen ? "Close" : "Bring one in"}
-            </Button>
-            <Button variant="primary" onClick={() => mCreate.mutate()} disabled={mCreate.isPending}>
+            </Action>
+            <Action variant="primary" onClick={() => mCreate.mutate()} disabled={mCreate.isPending}>
               {mCreate.isPending ? "Starting" : "Start a page"}
-            </Button>
+            </Action>
           </Actions>
         </span>
       </div>
@@ -402,14 +413,14 @@ export function DocsPanel() {
 
       {cards.length === 0 ? (
         filter ? (
-          <Empty action={<Button onClick={() => setSearch("")}>Clear the search</Button>}>
+          <NothingHere action={<Action onClick={() => setSearch("")}>Clear the search</Action>}>
             No page has that in its title.
-          </Empty>
+          </NothingHere>
         ) : (
-          <Empty action={<Button onClick={() => mCreate.mutate()}>Start a page</Button>}>
+          <NothingYet action={<Action onClick={() => mCreate.mutate()}>Start a page</Action>}>
             Nothing is written down yet. Start a page, or bring one in from Google Docs or Notion.
             Whatever lands here, the crew reads before it acts.
-          </Empty>
+          </NothingYet>
         )
       ) : (
         <>
@@ -423,9 +434,9 @@ export function DocsPanel() {
               sub={`Updated ${updatedLabel(d.updated_at)}`}
               onClick={() => setOpenDocId(openDocId === d.id ? null : d.id)}
               action={
-                <Button variant="ghost" onClick={() => openEditor(d.id)}>
+                <Action variant="quiet" onClick={() => openEditor(d.id)}>
                   Open it
-                </Button>
+                </Action>
               }
             />
           ))}
@@ -433,29 +444,29 @@ export function DocsPanel() {
           {/* The preview sits under the list rather than inside a row, because
               a row in a list never wraps (founder ruling). */}
           {openDocId ? (
-            <Block title="Preview">
+            <Region title="Preview">
               {preview.isLoading || !previewDoc ? (
-                <Loading>Reading the page.</Loading>
+                <Reading>Reading the page.</Reading>
               ) : preview.isError ? (
-                <Failed onRetry={() => void preview.refetch()}>
+                <ReadFailedLine onRetry={() => void preview.refetch()}>
                   The page did not load, so this is not a claim that it is empty.
-                </Failed>
+                </ReadFailedLine>
               ) : (
                 <>
                   <Prose>
                     <p>{excerptOf(previewDoc) || "Nothing written yet."}</p>
                   </Prose>
                   <Actions>
-                    <Button onClick={() => openEditor(previewDoc.id)}>Open the editor</Button>
+                    <Action onClick={() => openEditor(previewDoc.id)}>Open the editor</Action>
                   </Actions>
                 </>
               )}
-            </Block>
+            </Region>
           ) : null}
 
           {cards.length > VISIBLE_DOCS ? (
             <Actions>
-              <Button variant="ghost" onClick={() => setShowAll((v) => !v)}>
+              <Action variant="quiet" onClick={() => setShowAll((v) => !v)}>
                 {showAll ? (
                   "Show fewer"
                 ) : (
@@ -463,7 +474,7 @@ export function DocsPanel() {
                     Show <Num>{cards.length - VISIBLE_DOCS}</Num> more
                   </>
                 )}
-              </Button>
+              </Action>
             </Actions>
           ) : null}
         </>
@@ -549,7 +560,7 @@ function ImportPage({
 
   return (
     <div id={id}>
-      <Block
+      <Region
         title="Bring a page in"
         // Different information from the title, not a restatement of it.
         sub="It becomes a workspace page and joins what the crew reads before it acts. The original stays where it is."
@@ -588,18 +599,18 @@ function ImportPage({
             </Field>
             <Actions
               trailing={
-                <Button variant="ghost" onClick={onClose} disabled={busy}>
+                <Action variant="quiet" onClick={onClose} disabled={busy}>
                   Cancel
-                </Button>
+                </Action>
               }
             >
-              <Button
+              <Action
                 variant="primary"
                 disabled={busy || !gdocUrl.trim()}
                 onClick={() => mGoogle.mutate(gdocUrl.trim())}
               >
                 {mGoogle.isPending ? "Reading" : "Bring it in"}
-              </Button>
+              </Action>
             </Actions>
           </>
         ) : (
@@ -615,17 +626,17 @@ function ImportPage({
             </Field>
 
             {!debouncedNotionQuery ? null : notionSearch.isLoading ? (
-              <Loading>Searching Notion.</Loading>
+              <Reading>Searching Notion.</Reading>
             ) : notionSearch.isError ? (
-              <Failed onRetry={() => void notionSearch.refetch()}>
+              <ReadFailedLine onRetry={() => void notionSearch.refetch()}>
                 Notion did not answer, so this is not a claim that nothing matches.{" "}
                 {(notionSearch.error as Error)?.message ?? ""}
-              </Failed>
+              </ReadFailedLine>
             ) : (notionSearch.data?.pages?.length ?? 0) === 0 ? (
-              <Empty>
+              <NothingHere>
                 No page matches. Only pages you shared with the Supaprod integration are reachable,
                 so share it in Notion first.
-              </Empty>
+              </NothingHere>
             ) : (
               (notionSearch.data?.pages ?? []).map((p) => (
                 <Row
@@ -652,22 +663,22 @@ function ImportPage({
             </Field>
             <Actions
               trailing={
-                <Button variant="ghost" onClick={onClose} disabled={busy}>
+                <Action variant="quiet" onClick={onClose} disabled={busy}>
                   Cancel
-                </Button>
+                </Action>
               }
             >
-              <Button
+              <Action
                 variant="primary"
                 disabled={busy || !notionUrl.trim()}
                 onClick={() => mNotion.mutate(notionUrl.trim())}
               >
                 {mNotion.isPending ? "Reading" : "Bring it in"}
-              </Button>
+              </Action>
             </Actions>
           </>
         )}
-      </Block>
+      </Region>
     </div>
   );
 }

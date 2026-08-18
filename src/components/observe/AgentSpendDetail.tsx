@@ -39,12 +39,13 @@
  *      contract is theirs.
  *
  * NO PAGE HEAD, deliberately. This is a body mounted inside someone else's
- * page: /engine-room already draws the Surface, the one h1 and the Block that
- * wraps every room body. A PageHead here would put a second 25px h1 inside a
- * page that has one and give the document two top level headings. So the drill
- * subject is a Block title and the way back is that Block's own "more", which
- * is the same affordance the room itself uses to return. Matches the sibling
- * port of DriftSurfaceDetail, which is mounted the same way.
+ * page: /engine-room already draws the Surface, the one h1 and the Region that
+ * wraps every room body. A page heading here would put a second 25px h1 inside
+ * a page that has one and give the document two top level headings. So the
+ * drill subject is a Region title and the way back is that Region's own `goTo`,
+ * which is the slot for leaving a region and is the same affordance the room
+ * itself uses to return. Matches the sibling port of DriftSurfaceDetail, which
+ * is mounted the same way.
  *
  * THE WAY BACK IS IN ALL FOUR STATES: reading, failed, empty and loaded. A
  * drill you cannot leave because the read failed is a trap.
@@ -62,10 +63,16 @@
  */
 import { useNavigate } from "@tanstack/react-router";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import {
+  NothingYet,
+  Num,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { Block, Empty, Failed, Loading, Value } from "@/components/shell/primitives";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { getAgentAnalyticsDetail } from "@/lib/analytics.functions";
@@ -122,8 +129,8 @@ export function AgentSpendDetail({ id }: { id: string }) {
   const onBack = () => navigate({ to: "/engine-room", search: { room: "spend", view: "usage" } });
   // The way back, named for where it actually goes. ?view=usage with no agent
   // renders the whole spend rollup, not the by-agent list, so it does not claim
-  // to be "all agents". Carried by the Block's own "more", which is the
-  // affordance the engine room itself uses to return a level.
+  // to be "all agents". Carried by the Region's own `goTo`, which is the slot
+  // for a way OUT of a region rather than a way past a cap.
   const BACK = "The spend rollup";
 
   // Three distinct facts, three distinct states. A read in flight is not an
@@ -135,14 +142,16 @@ export function AgentSpendDetail({ id }: { id: string }) {
   // wear a loading state's clothes.
   if (q.error) {
     return (
-      <Block
+      <Region
         title={agentDisplayName(id)}
         sub="The rollup did not load, so nothing here is a claim about what this one spent."
-        more={BACK}
-        onMore={onBack}
+        goTo={BACK}
+        onGoTo={onBack}
       >
-        <Failed onRetry={() => void q.refetch()}>{(q.error as Error).message}</Failed>
-      </Block>
+        <ReadFailedLine onRetry={() => void q.refetch()}>
+          {(q.error as Error).message}
+        </ReadFailedLine>
+      </Region>
     );
   }
 
@@ -154,7 +163,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
   // offline. status stays pending while fetchStatus goes "paused", which leaves
   // isLoading false, error null and data undefined, and this file fell past all
   // of its states to a bare `return null`. The Engine Room still drew its h1 and
-  // the Block that wraps a room body, so what a person got after opening an
+  // the Region that wraps a room body, so what a person got after opening an
   // agent from the spend rollup was a bordered box with no agent name, no
   // explanation and no control back: the browser's back button was the only way
   // out, which is exactly the trap this file's header rules out. Reading it off
@@ -162,14 +171,14 @@ export function AgentSpendDetail({ id }: { id: string }) {
   // other state that has not answered, the first server render included.
   if (q.isLoading || !d) {
     return (
-      <Block
+      <Region
         title={agentDisplayName(id)}
         sub={`What this one spent over the last ${DAYS} days.`}
-        more={BACK}
-        onMore={onBack}
+        goTo={BACK}
+        onGoTo={onBack}
       >
-        <Loading>Reading what this one spent.</Loading>
-      </Block>
+        <Reading>Reading what this one spent.</Reading>
+      </Region>
     );
   }
 
@@ -177,16 +186,16 @@ export function AgentSpendDetail({ id }: { id: string }) {
   // query answered, and the answer was that no call was ever recorded here.
   if (!d.agent && d.stats.calls === 0 && d.recentRuns.length === 0) {
     return (
-      <Block
+      <Region
         title={agentDisplayName(id)}
         sub="Nothing in the catalog answers to this reference."
-        more={BACK}
-        onMore={onBack}
+        goTo={BACK}
+        onGoTo={onBack}
       >
-        <Empty>
+        <NothingYet>
           {`No AI call has been recorded against this reference in the last ${DAYS} days. Spend appears here the first time the loop runs a model call under this name.`}
-        </Empty>
-      </Block>
+        </NothingYet>
+      </Region>
     );
   }
 
@@ -209,14 +218,14 @@ export function AgentSpendDetail({ id }: { id: string }) {
 
   return (
     <>
-      {/* The subject block. Its title is the agent, its "more" is the way back,
+      {/* The subject region. Its title is the agent, its `goTo` is the way back,
           and its body is the cost, because label left / fact right is what each
           of these stats is: a labelled measurement of one subject rather than a
           catalog to scan across, which is what rules out a Grid of Cells.
 
-          The mark rides the sub line: Block takes a `string` title and has no
+          The mark rides the sub line: Region takes a `string` title and has no
           mark slot, so this is the one node slot in its head. */}
-      <Block
+      <Region
         title={title}
         sub={
           <span
@@ -243,8 +252,8 @@ export function AgentSpendDetail({ id }: { id: string }) {
             </span>
           </span>
         }
-        more={BACK}
-        onMore={onBack}
+        goTo={BACK}
+        onGoTo={onBack}
       >
         <Line
           label="Spend"
@@ -304,18 +313,18 @@ export function AgentSpendDetail({ id }: { id: string }) {
             sub={`Nothing was spent on any of the last ${DAILY_DAYS} days.`}
           />
         )}
-      </Block>
+      </Region>
 
       {resolved ? (
-        <Block
+        <Region
           title="Where the money went"
           sub="The missions this one ran against, most expensive first. Runs with no mission attached are grouped together as direct work."
         >
           {d.topMissions.length === 0 ? (
-            <Empty>
+            <NothingYet>
               No run has been recorded for this one in the window, so there is nothing to attribute
               yet. The first mission it joins lands here.
-            </Empty>
+            </NothingYet>
           ) : (
             d.topMissions.map((m) => {
               const missionId = m.missionId;
@@ -349,19 +358,19 @@ export function AgentSpendDetail({ id }: { id: string }) {
               );
             })
           )}
-        </Block>
+        </Region>
       ) : null}
 
       {resolved ? (
-        <Block
+        <Region
           title="The last runs"
           sub="Cost on a run only counts calls tied to a run id, which the loop has recorded since 3 June 2026. These will not add up to the spend above, and the per-call history is the authority on money."
         >
           {d.recentRuns.length === 0 ? (
-            <Empty>
+            <NothingYet>
               No run has been recorded for this one in the window. Runs appear here as soon as the
               loop starts one under this name.
-            </Empty>
+            </NothingYet>
           ) : (
             d.recentRuns.map((r) => {
               const missionId = r.mission_id;
@@ -440,7 +449,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
               );
             })
           )}
-        </Block>
+        </Region>
       ) : null}
     </>
   );

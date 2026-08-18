@@ -1128,7 +1128,7 @@ function Design() {
 
           Above the headline, as on Decide, Build and Ship. See
           use-live-agents.ts. */}
-      <CrewWorking />
+      <CrewWorking station="design" />
       <PageHead
         title={headline}
         sub={call ? "Nothing binds into a drawing until you settle it." : undefined}

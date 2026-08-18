@@ -2061,7 +2061,7 @@ function Ship() {
           cannot show a step that did not happen. Every other pulse on this
           station is gated on a mutation the reader's own click started;
           this one is bound to the run. See use-live-agents.ts. */}
-      <CrewWorking />
+      <CrewWorking station="ship" />
       <PageHead title={headline} sub={gapLine()} />
 
       {/* PRODUCTION COMES BEFORE THE ANNOUNCEMENT, and the order is the

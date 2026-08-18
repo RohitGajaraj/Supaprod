@@ -33,7 +33,22 @@
  */
 import { useServerFn } from "@tanstack/react-start";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions, Diffstat } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  Diffstat,
+  NothingHere,
+  NothingYet,
+  Num,
+  PageHeading,
+  Picker,
+  ReadFailed,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Checkbox, Textarea } from "@/components/meridian/forms";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, useEffect, type ReactNode } from "react";
 import {
@@ -47,7 +62,7 @@ import {
   getPromptAnalytics,
   rollbackPromptVersion,
 } from "@/lib/prompts.functions";
-import { Block, Button, Checkbox, Empty, Failed, Loading, PageHead, Pre, Receipt, Select, Textarea, Value } from "@/components/shell/primitives";
+import { Pre, Receipt } from "@/components/shell/primitives";
 
 type TemplateRow = {
   id: string;
@@ -124,14 +139,14 @@ export function PromptsPanel() {
 
   if (templates.isError) {
     return (
-      <Failed onRetry={() => void templates.refetch()}>
+      <ReadFailed onRetry={() => void templates.refetch()}>
         The prompts did not load, so nothing below would be what the surfaces are actually running.
-      </Failed>
+      </ReadFailed>
     );
   }
 
   if (templates.isLoading) {
-    return <Loading>Reading what each surface is running.</Loading>;
+    return <Reading>Reading what each surface is running.</Reading>;
   }
 
   if (selectedId) {
@@ -146,21 +161,21 @@ export function PromptsPanel() {
 
   if (rows.length === 0) {
     return (
-      <Empty
+      <NothingHere
         action={
-          <Button variant="ghost" onClick={() => void templates.refetch()}>
+          <Action variant="quiet" onClick={() => void templates.refetch()}>
             Look again
-          </Button>
+          </Action>
         }
       >
         No prompt has been registered yet. Every AI surface runs on a versioned system prompt, and
         one lands here the first time that surface calls the runtime.
-      </Empty>
+      </NothingHere>
     );
   }
 
   return (
-    <Block
+    <Region
       title="What each surface is running"
       sub="One published version answers every call. Roll one back and the next call uses the version before it."
     >
@@ -185,7 +200,7 @@ export function PromptsPanel() {
                 </>
               ) : (
                 <>
-                  <Value tone={v.status === "draft" ? "warn" : "pass"}>
+                  <Value tone={v.status === "draft" ? "hold" : "pass"}>
                     {v.status === "draft" ? "a draft is live" : "live"}
                   </Value>{" "}
                   on <Num>v{v.version}</Num>, {p.description ?? `${p.surface}/${p.key}`}
@@ -193,25 +208,27 @@ export function PromptsPanel() {
               )
             }
             action={
-              <Button
-                variant="ghost"
+              <Action
+                variant="quiet"
                 disabled={rolling || !canRoll}
                 title={canRoll ? undefined : "There is nothing earlier to go back to"}
                 onClick={() => rollback.mutate({ id: p.id, name: p.name })}
               >
                 {rolling ? "Rolling back" : "Roll back"}
-              </Button>
+              </Action>
             }
           />
         );
       })}
 
-      {rollback.isError ? <Failed>{(rollback.error as Error).message}</Failed> : null}
+      {rollback.isError ? (
+        <ReadFailedLine>{(rollback.error as Error).message}</ReadFailedLine>
+      ) : null}
 
       {done.map((d, i) => (
         <Receipt key={`${d.at}-${i}`} verb={d.verb} consequence={d.consequence} time={ago(d.at)} />
       ))}
-    </Block>
+    </Region>
   );
 }
 
@@ -341,33 +358,33 @@ function TemplateDetail({
   });
 
   const backButton = (
-    <Button variant="ghost" onClick={onBack}>
+    <Action variant="quiet" onClick={onBack}>
       All prompts
-    </Button>
+    </Action>
   );
 
   if (detail.isLoading) {
-    return <Loading>Reading this prompt and its versions.</Loading>;
+    return <Reading>Reading this prompt and its versions.</Reading>;
   }
   // A read that failed may never wear the not-found state's clothes.
   if (detail.isError) {
     return (
       <>
-        <PageHead title="This prompt did not load." />
-        <Failed onRetry={() => void detail.refetch()}>
+        <PageHeading title="This prompt did not load." />
+        <ReadFailed onRetry={() => void detail.refetch()}>
           {(detail.error as Error)?.message}. Nothing below would be what the surface is running.
-        </Failed>
-        <Block>{backButton}</Block>
+        </ReadFailed>
+        <Region>{backButton}</Region>
       </>
     );
   }
   if (!template) {
     return (
       <>
-        <PageHead title="No prompt by that name." />
-        <Empty action={backButton}>
+        <PageHeading title="No prompt by that name." />
+        <NothingHere action={backButton}>
           Nothing in this workspace answers to that id. It may have been removed.
-        </Empty>
+        </NothingHere>
       </>
     );
   }
@@ -379,7 +396,7 @@ function TemplateDetail({
 
   return (
     <>
-      <PageHead
+      <PageHeading
         title={template.name}
         sub={
           activeVersion ? (
@@ -400,19 +417,19 @@ function TemplateDetail({
         }
       />
 
-      <Block
+      <Region
         title="Which two you are comparing"
         sub="The left is the one you are measuring against. The right is the one you can change."
       >
         <Line label="Measured against" htmlFor="prompt-left">
-          <Select id="prompt-left" value={leftId ?? ""} onChange={(e) => setLeftId(e.target.value)}>
+          <Picker id="prompt-left" value={leftId ?? ""} onChange={(e) => setLeftId(e.target.value)}>
             {versions.map((v) => (
               <option key={v.id} value={v.id}>
                 v{v.version}, {v.status}
                 {v.id === template.active_version_id ? ", live" : ""}
               </option>
             ))}
-          </Select>
+          </Picker>
         </Line>
 
         <Line
@@ -424,7 +441,7 @@ function TemplateDetail({
           }
           htmlFor="prompt-right"
         >
-          <Select
+          <Picker
             id="prompt-right"
             value={rightId ?? ""}
             onChange={(e) => setRightId(e.target.value)}
@@ -435,31 +452,31 @@ function TemplateDetail({
                 {v.id === template.active_version_id ? ", live" : ""}
               </option>
             ))}
-          </Select>
+          </Picker>
         </Line>
 
         {(mFork.error ?? mSetActive.error) ? (
-          <Failed>{((mFork.error ?? mSetActive.error) as Error).message}</Failed>
+          <ReadFailedLine>{((mFork.error ?? mSetActive.error) as Error).message}</ReadFailedLine>
         ) : null}
 
         <Actions>
-          <Button disabled={mFork.isPending} onClick={() => mFork.mutate()}>
+          <Action disabled={mFork.isPending} onClick={() => mFork.mutate()}>
             {mFork.isPending ? "Forking it" : "Fork a draft from the right"}
-          </Button>
+          </Action>
           {rightId && rightId !== template.active_version_id ? (
-            <Button
+            <Action
               disabled={mSetActive.isPending}
               onClick={() => mSetActive.mutate(rightId)}
               title="Routes every new call to this version"
             >
               {mSetActive.isPending ? "Switching" : "Make the right one live"}
-            </Button>
+            </Action>
           ) : null}
         </Actions>
-      </Block>
+      </Region>
 
       {editable ? (
-        <Block
+        <Region
           title="The draft"
           sub={
             dirty ? "Changed, and not saved yet." : "Saved. It is not live until you publish it."
@@ -473,23 +490,23 @@ function TemplateDetail({
           />
 
           {(mSave.error ?? mPublish.error) ? (
-            <Failed>{((mSave.error ?? mPublish.error) as Error).message}</Failed>
+            <ReadFailedLine>{((mSave.error ?? mPublish.error) as Error).message}</ReadFailedLine>
           ) : null}
 
           <Actions>
-            <Button
+            <Action
               variant="primary"
               disabled={mPublish.isPending || dirty}
               title={dirty ? "Save what you changed first" : "Every new call uses this"}
               onClick={() => mPublish.mutate()}
             >
               {mPublish.isPending ? "Publishing it" : "Publish it"}
-            </Button>
-            <Button disabled={mSave.isPending || !dirty} onClick={() => mSave.mutate()}>
+            </Action>
+            <Action disabled={mSave.isPending || !dirty} onClick={() => mSave.mutate()}>
               {mSave.isPending ? "Saving it" : "Save it"}
-            </Button>
+            </Action>
           </Actions>
-        </Block>
+        </Region>
       ) : null}
 
       <DiffBlock base={diffBase} head={diffHead} />
@@ -528,7 +545,7 @@ function TemplateDetail({
       />
 
       {done.length > 0 ? (
-        <Block title="What you changed">
+        <Region title="What you changed">
           {done.map((d, i) => (
             <Receipt
               key={`${d.at}-${i}`}
@@ -537,10 +554,10 @@ function TemplateDetail({
               time={ago(d.at)}
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
-      <Block>{backButton}</Block>
+      <Region>{backButton}</Region>
     </>
   );
 }
@@ -559,12 +576,12 @@ function DiffBlock({ base, head }: { base: string; head: string }) {
   const same = added === 0 && removed === 0;
 
   return (
-    <Block
+    <Region
       title="What is different"
       sub={same ? undefined : <Diffstat added={added} removed={removed} />}
     >
       {same ? (
-        <Empty>The two are identical, line for line.</Empty>
+        <NothingYet>The two are identical, line for line.</NothingYet>
       ) : (
         <Pre>
           {diff.map((d, i) => (
@@ -579,7 +596,7 @@ function DiffBlock({ base, head }: { base: string; head: string }) {
           ))}
         </Pre>
       )}
-    </Block>
+    </Region>
   );
 }
 
@@ -676,7 +693,7 @@ function AssignmentBlock({
   });
 
   return (
-    <Block
+    <Region
       title="Running two of them against each other"
       sub="A split applies to new calls only. Calls already in flight keep the version they started on."
     >
@@ -692,25 +709,25 @@ function AssignmentBlock({
       </Line>
 
       <Line label="The one most calls get" htmlFor="assignment-a">
-        <Select id="assignment-a" value={aId} onChange={(e) => setAId(e.target.value)}>
+        <Picker id="assignment-a" value={aId} onChange={(e) => setAId(e.target.value)}>
           <option value="">none</option>
           {versions.map((v) => (
             <option key={v.id} value={v.id}>
               v{v.version}, {v.status}
             </option>
           ))}
-        </Select>
+        </Picker>
       </Line>
 
       <Line label="The one you are testing" htmlFor="assignment-b">
-        <Select id="assignment-b" value={bId} onChange={(e) => setBId(e.target.value)}>
+        <Picker id="assignment-b" value={bId} onChange={(e) => setBId(e.target.value)}>
           <option value="">none</option>
           {versions.map((v) => (
             <option key={v.id} value={v.id}>
               v{v.version}, {v.status}
             </option>
           ))}
-        </Select>
+        </Picker>
       </Line>
 
       <Line
@@ -734,14 +751,14 @@ function AssignmentBlock({
         </span>
       </Line>
 
-      {save.isError ? <Failed>{(save.error as Error).message}</Failed> : null}
+      {save.isError ? <ReadFailedLine>{(save.error as Error).message}</ReadFailedLine> : null}
 
       <Actions>
-        <Button disabled={save.isPending} onClick={() => save.mutate()}>
+        <Action disabled={save.isPending} onClick={() => save.mutate()}>
           {save.isPending ? "Saving it" : "Save the split"}
-        </Button>
+        </Action>
       </Actions>
-    </Block>
+    </Region>
   );
 }
 
@@ -774,28 +791,28 @@ function UsageBlock({
 
   if (failed) {
     return (
-      <Block title="Who answered what">
-        <Failed onRetry={onRetry}>
+      <Region title="Who answered what">
+        <ReadFailedLine onRetry={onRetry}>
           The call history did not load, so no share can be worked out from it.
-        </Failed>
-      </Block>
+        </ReadFailedLine>
+      </Region>
     );
   }
 
   if (loading) {
     return (
-      <Block title="Who answered what">
-        <Loading>Reading the last 30 days of calls.</Loading>
-      </Block>
+      <Region title="Who answered what">
+        <Reading>Reading the last 30 days of calls.</Reading>
+      </Region>
     );
   }
 
   return (
-    <Block title="Who answered what" sub="The last 30 days.">
+    <Region title="Who answered what" sub="The last 30 days.">
       {total === 0 ? (
-        <Empty>
+        <NothingYet>
           Nothing has called this prompt in the last 30 days, so there is no share to work out.
-        </Empty>
+        </NothingYet>
       ) : (
         versions.map((v) => {
           const n = totals.get(v.id) ?? 0;
@@ -819,6 +836,6 @@ function UsageBlock({
           );
         })
       )}
-    </Block>
+    </Region>
   );
 }

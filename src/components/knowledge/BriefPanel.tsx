@@ -31,7 +31,16 @@
  * vs portfolio supersession rules, and the exported BriefPanel signature.
  */
 import { useState } from "react";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Actions,
+  Action,
+  Region,
+  Reading,
+  ReadFailed,
+  NothingYet,
+} from "@/components/meridian/surface-parts";
+import { Input, Textarea } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -41,7 +50,7 @@ import {
   type BriefItem,
   type BriefItemKind,
 } from "@/lib/briefs.functions";
-import { Block, Button, Empty, Failed, Input, Loading, Receipt, Textarea } from "@/components/shell/primitives";
+import { Receipt } from "@/components/shell/primitives";
 import { BriefFormationFlow } from "@/components/brief/BriefFormationFlow";
 import { useConfirm } from "@/hooks/use-confirm";
 
@@ -157,9 +166,9 @@ const WRITE_LABEL: Record<BriefItemKind, string> = {
  */
 function NotWritten({ kind, onWrite }: { kind: BriefItemKind; onWrite: () => void }) {
   return (
-    <Empty action={<Button onClick={onWrite}>{WRITE_LABEL[kind]}</Button>}>
+    <NothingYet action={<Action onClick={onWrite}>{WRITE_LABEL[kind]}</Action>}>
       {WHY_IT_MATTERS[kind]}
-    </Empty>
+    </NothingYet>
   );
 }
 
@@ -289,14 +298,14 @@ export function BriefPanel() {
     });
   }
 
-  if (items.isLoading) return <Loading>Reading the standing calls.</Loading>;
+  if (items.isLoading) return <Reading>Reading the standing calls.</Reading>;
 
   if (items.isError) {
     return (
-      <Failed onRetry={() => void items.refetch()}>
+      <ReadFailed onRetry={() => void items.refetch()}>
         The brief did not load, so this is not a claim that nothing is written down.{" "}
         {(items.error as Error).message}
-      </Failed>
+      </ReadFailed>
     );
   }
 
@@ -314,7 +323,7 @@ export function BriefPanel() {
         not on the record.
       </p>
       <Actions>
-        <Button onClick={() => setShowFlow(true)}>Walk them in order</Button>
+        <Action onClick={() => setShowFlow(true)}>Walk them in order</Action>
       </Actions>
 
       {settled.map((r) => (
@@ -325,11 +334,12 @@ export function BriefPanel() {
         const current = byKind.get(kind)?.[0];
         const isEditing = editing?.kind === kind;
         return (
-          <Block
+          <Region
             key={kind}
             title={KIND_LABEL[kind]}
-            more={isEditing ? undefined : current ? "Edit" : "Write"}
-            onMore={() => startEdit(kind, current)}
+            toggle={isEditing ? undefined : current ? "Edit" : "Write"}
+            onToggle={() => startEdit(kind, current)}
+            toggled={isEditing}
           >
             {isEditing ? (
               <BriefForm
@@ -348,14 +358,15 @@ export function BriefPanel() {
             ) : (
               <NotWritten kind={kind} onWrite={() => startEdit(kind)} />
             )}
-          </Block>
+          </Region>
         );
       })}
 
-      <Block
+      <Region
         title={KIND_LABEL.top_bet}
-        more={isAddingBet ? undefined : "Add a bet"}
-        onMore={() => startEdit("top_bet")}
+        toggle={isAddingBet ? undefined : "Add a bet"}
+        onToggle={() => startEdit("top_bet")}
+        toggled={isAddingBet}
       >
         {bets.length === 0 && !isAddingBet ? (
           <NotWritten kind="top_bet" onWrite={() => startEdit("top_bet")} />
@@ -396,18 +407,18 @@ export function BriefPanel() {
                       carries outcomes, not intent. */}
                   <Actions
                     trailing={
-                      <Button
-                        variant="ghost"
+                      <Action
+                        variant="quiet"
                         disabled={retire.isPending}
                         onClick={() => void confirmAndRetire(bet)}
                       >
                         Retire
-                      </Button>
+                      </Action>
                     }
                   >
-                    <Button variant="ghost" onClick={() => startEdit("top_bet", bet)}>
+                    <Action variant="quiet" onClick={() => startEdit("top_bet", bet)}>
                       Edit
-                    </Button>
+                    </Action>
                   </Actions>
                 </>
               )}
@@ -430,7 +441,7 @@ export function BriefPanel() {
             />
           </div>
         ) : null}
-      </Block>
+      </Region>
     </div>
   );
 }
@@ -476,16 +487,16 @@ function BriefForm({
         placeholder={KIND_BODY_PLACEHOLDER[kind]}
       />
       <Actions>
-        <Button
+        <Action
           variant="primary"
           onClick={onSubmit}
           disabled={submitting || !titleValue.trim() || !bodyValue.trim()}
         >
           {submitting ? "Saving" : submitLabel}
-        </Button>
-        <Button variant="ghost" onClick={onCancel} disabled={submitting}>
+        </Action>
+        <Action variant="quiet" onClick={onCancel} disabled={submitting}>
           Cancel
-        </Button>
+        </Action>
       </Actions>
     </div>
   );

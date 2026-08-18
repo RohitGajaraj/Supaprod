@@ -44,7 +44,20 @@
  */
 import { useServerFn } from "@tanstack/react-start";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingYet,
+  Num,
+  Picker,
+  ReadFailed,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Toggle,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Field, Input } from "@/components/meridian/forms";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { toast } from "@/lib/notify";
@@ -58,7 +71,7 @@ import {
 import { humanWriteError } from "@/lib/roles.functions";
 import { useGovernedWrite } from "@/hooks/use-workspace-role";
 import { GovernedWriteNote } from "./GovernedWriteNote";
-import { Block, Button, Empty, Failed, Field, Input, Loading, Receipt, Select, Switch, Value } from "@/components/shell/primitives";
+import { Receipt } from "@/components/shell/primitives";
 import { fmtUsd } from "@/components/product/format";
 
 const SURFACES = [
@@ -149,18 +162,23 @@ function ago(iso: string | null | undefined): string | null {
 }
 
 /**
- * How a burn reads against its own ceiling. The warn step is `alert_at_pct`,
+ * How a burn reads against its own ceiling. The `hold` step is `alert_at_pct`,
  * the same threshold `incrementBudget` writes its alert at, so the colour on
  * screen changes at the moment the record says it does.
+ *
+ * `hold` and not the retired layer's `warn`: Meridian has five status words and
+ * `warn` is not one of them. Spend approaching a ceiling is waiting on a
+ * condition -- the window resetting, or someone raising the ceiling -- which is
+ * exactly what the amber says.
  */
 function burnTone(
   burn: number,
   cap: number | null,
   alertPct: number,
-): "quiet" | "pass" | "warn" | "fail" {
+): "quiet" | "pass" | "hold" | "fail" {
   if (cap == null || cap <= 0) return "quiet";
   if (burn >= cap) return "fail";
-  if (burn >= (alertPct / 100) * cap) return "warn";
+  if (burn >= (alertPct / 100) * cap) return "hold";
   return "pass";
 }
 
@@ -375,18 +393,16 @@ export function BudgetsPanel() {
       toast.error(humanWriteError(e, "That note was not cleared, so it is still on the record.")),
   });
 
-  if (overview.isLoading) return <Loading>Reading what you have spent.</Loading>;
+  if (overview.isLoading) return <Reading>Reading what you have spent.</Reading>;
 
   // A read that FAILED is not an empty state. "No cap is set" and "we could not
   // find out" are different facts, and one of them is dangerous to guess at on
   // a spend screen.
   if (overview.isError) {
     return (
-      <Block>
-        <Failed onRetry={() => void overview.refetch()}>
-          Your budgets did not load, so nothing here would be the real ceiling.
-        </Failed>
-      </Block>
+      <ReadFailed onRetry={() => void overview.refetch()}>
+        Your budgets did not load, so nothing here would be the real ceiling.
+      </ReadFailed>
     );
   }
 
@@ -451,7 +467,7 @@ export function BudgetsPanel() {
           role that may set one. */}
       <GovernedWriteNote reason={capWrite.reason} />
 
-      <Block
+      <Region
         title="What you will not spend past"
         sub="Checked before every call. Past the ceiling the call is refused and the run stops with the reason on the record. There is no separate ceiling on any one mission."
       >
@@ -485,12 +501,12 @@ export function BudgetsPanel() {
                     // not imply a number nobody would type.
                     style={{ width: 108 }}
                   />
-                  <Button variant="primary" type="submit" disabled={setCapMut.isPending}>
+                  <Action variant="primary" type="submit" disabled={setCapMut.isPending}>
                     Set it
-                  </Button>
-                  <Button variant="ghost" onClick={() => setEditCap(null)}>
+                  </Action>
+                  <Action variant="quiet" onClick={() => setEditCap(null)}>
                     Leave it
-                  </Button>
+                  </Action>
                 </form>
               ) : (
                 <>
@@ -505,8 +521,8 @@ export function BudgetsPanel() {
                       " spent, no ceiling"
                     )}
                   </Value>
-                  <Button
-                    variant="ghost"
+                  <Action
+                    variant="quiet"
                     disabled={!capWrite.allowed}
                     title={capWrite.reason ?? undefined}
                     onClick={() => {
@@ -515,7 +531,7 @@ export function BudgetsPanel() {
                     }}
                   >
                     {w.cap != null ? "Change it" : "Set one"}
-                  </Button>
+                  </Action>
                 </>
               )}
             </Line>
@@ -538,14 +554,14 @@ export function BudgetsPanel() {
               <Value>
                 <Num>{alertPct}%</Num> of the ceiling
               </Value>
-              <Button
-                variant="ghost"
+              <Action
+                variant="quiet"
                 disabled={!capWrite.allowed}
                 title={capWrite.reason ?? undefined}
                 onClick={() => setPctDraft(String(alertPct))}
               >
                 Change it
-              </Button>
+              </Action>
             </>
           ) : (
             <form
@@ -565,18 +581,20 @@ export function BudgetsPanel() {
                 // Three digits and a percent sign, nothing more.
                 style={{ width: 76 }}
               />
-              <Button variant="primary" type="submit" disabled={setPctMut.isPending}>
+              <Action variant="primary" type="submit" disabled={setPctMut.isPending}>
                 Set it
-              </Button>
-              <Button variant="ghost" onClick={() => setPctDraft(null)}>
+              </Action>
+              <Action variant="quiet" onClick={() => setPctDraft(null)}>
                 Leave it
-              </Button>
+              </Action>
             </form>
           )}
         </Line>
 
         {setCapMut.error || setPctMut.error ? (
-          <Failed>{humanWriteError(setCapMut.error ?? setPctMut.error, CAP_WRITE_FAILED)}</Failed>
+          <ReadFailedLine>
+            {humanWriteError(setCapMut.error ?? setPctMut.error, CAP_WRITE_FAILED)}
+          </ReadFailedLine>
         ) : null}
 
         {capDone.map((d, i) => (
@@ -587,29 +605,29 @@ export function BudgetsPanel() {
             time={ago(d.at)}
           />
         ))}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="Ceilings on one thing at a time"
         sub="A surface with its own amount is held to it as well as to the account ceiling. Switched off, the row stays but stops applying."
       >
         {surfaces.length === 0 ? (
-          <Empty
+          <NothingYet
             action={
               adding ? undefined : (
-                <Button
-                  variant="ghost"
+                <Action
+                  variant="quiet"
                   disabled={!capWrite.allowed}
                   title={capWrite.reason ?? undefined}
                   onClick={() => setAdding(true)}
                 >
                   Cap one
-                </Button>
+                </Action>
               )
             }
           >
             Nothing is capped on its own. Every call is held only to the account ceiling above.
-          </Empty>
+          </NothingYet>
         ) : (
           surfaces.map((row) => {
             const dCap = row.daily_usd_cap == null ? null : Number(row.daily_usd_cap);
@@ -648,15 +666,15 @@ export function BudgetsPanel() {
                   )
                 }
               >
-                <Button
-                  variant="ghost"
+                <Action
+                  variant="quiet"
                   disabled={removeSurfaceMut.isPending || !capWrite.allowed}
                   title={capWrite.reason ?? undefined}
                   onClick={() => removeSurfaceMut.mutate(row.surface)}
                 >
                   Remove
-                </Button>
-                <Switch
+                </Action>
+                <Toggle
                   checked={row.enabled}
                   disabled={toggleSurfaceMut.isPending || !capWrite.allowed}
                   label={`The ${row.surface} ceiling is in force`}
@@ -675,7 +693,7 @@ export function BudgetsPanel() {
             }}
           >
             <Field label="Which one" htmlFor="new-surface">
-              <Select
+              <Picker
                 id="new-surface"
                 value={newSurface.surface}
                 onChange={(e) => setNewSurface({ ...newSurface, surface: e.target.value })}
@@ -685,7 +703,7 @@ export function BudgetsPanel() {
                     {s}
                   </option>
                 ))}
-              </Select>
+              </Picker>
             </Field>
             <Field label="In a day" htmlFor="new-surface-daily">
               <Input
@@ -706,39 +724,39 @@ export function BudgetsPanel() {
               />
             </Field>
             <Actions>
-              <Button
+              <Action
                 variant="primary"
                 type="submit"
                 disabled={addSurfaceMut.isPending || !capWrite.allowed}
                 title={capWrite.reason ?? undefined}
               >
                 Cap it
-              </Button>
-              <Button variant="ghost" onClick={() => setAdding(false)}>
+              </Action>
+              <Action variant="quiet" onClick={() => setAdding(false)}>
                 Leave it
-              </Button>
+              </Action>
             </Actions>
           </form>
         ) : surfaces.length > 0 ? (
           <Actions>
-            <Button
-              variant="ghost"
+            <Action
+              variant="quiet"
               disabled={!capWrite.allowed}
               title={capWrite.reason ?? undefined}
               onClick={() => setAdding(true)}
             >
               Cap another
-            </Button>
+            </Action>
           </Actions>
         ) : null}
 
         {addSurfaceMut.error || toggleSurfaceMut.error || removeSurfaceMut.error ? (
-          <Failed>
+          <ReadFailedLine>
             {humanWriteError(
               addSurfaceMut.error ?? toggleSurfaceMut.error ?? removeSurfaceMut.error,
               CAP_WRITE_FAILED,
             )}
-          </Failed>
+          </ReadFailedLine>
         ) : null}
 
         {surfaceDone.map((d, i) => (
@@ -749,17 +767,17 @@ export function BudgetsPanel() {
             time={ago(d.at)}
           />
         ))}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="What the ceilings have said"
         sub="Written when a window crossed the warning point. Acknowledging one clears it from here and changes nothing about the ceiling."
       >
         {alerts.length === 0 ? (
-          <Empty>
+          <NothingYet>
             Nothing yet. The first note lands the moment a window crosses <Num>{alertPct}%</Num> of
             its ceiling.
-          </Empty>
+          </NothingYet>
         ) : (
           alerts.map((a) => (
             <Row
@@ -787,19 +805,19 @@ export function BudgetsPanel() {
                 a.acknowledged ? (
                   <Value>Acknowledged</Value>
                 ) : (
-                  <Button
-                    variant="ghost"
+                  <Action
+                    variant="quiet"
                     disabled={ackMut.isPending && ackMut.variables === a.id}
                     onClick={() => ackMut.mutate(a.id)}
                   >
                     Acknowledge
-                  </Button>
+                  </Action>
                 )
               }
             />
           ))
         )}
-      </Block>
+      </Region>
     </>
   );
 }

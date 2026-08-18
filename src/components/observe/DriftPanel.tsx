@@ -2,7 +2,7 @@
  * DRIFT, the list. Ported off the retired system (2026-07-29).
  *
  * It renders inside the Quality room, which already draws the Surface, the
- * page title, the tab strip and the Block around this body. So this file draws
+ * page title, the tab strip and the Region around this body. So this file draws
  * no Surface and no second title: it is content, not a page.
  *
  * KEEP / KILL, and why:
@@ -42,12 +42,22 @@
  */
 import { useNavigate } from "@tanstack/react-router";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingYet,
+  Num,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Checkbox, Input } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, useEffect, type ReactNode } from "react";
 import { getDriftOverview, runDriftNow, updateDriftBaseline } from "@/lib/drift.functions";
-import { Block, Button, Checkbox, Empty, Failed, Input, Loading, Receipt, Value } from "@/components/shell/primitives";
+import { Receipt } from "@/components/shell/primitives";
 import { relTime } from "@/components/product/format";
 
 const DEFAULT_CFG = {
@@ -311,14 +321,14 @@ export function DriftPanel() {
   // differently on each.
   if (error) {
     return (
-      <Failed onRetry={() => void refetch()}>
+      <ReadFailedLine onRetry={() => void refetch()}>
         The drift record did not load, so this is not a claim that nothing moved.{" "}
         {(error as Error).message}
-      </Failed>
+      </ReadFailedLine>
     );
   }
 
-  if (isLoading) return <Loading>Reading the drift record.</Loading>;
+  if (isLoading) return <Reading>Reading the drift record.</Reading>;
 
   return (
     <>
@@ -336,16 +346,16 @@ export function DriftPanel() {
       ) : null}
 
       {rows.length === 0 ? (
-        <Empty
+        <NothingYet
           action={
-            <Button disabled={runMut.isPending} onClick={() => runMut.mutate()}>
+            <Action disabled={runMut.isPending} onClick={() => runMut.mutate()}>
               {runMut.isPending ? "Checking" : "Run the drift check"}
-            </Button>
+            </Action>
           }
         >
           Nothing has been sampled yet. Once AI calls accumulate, Supaprod rolls a snapshot a day
           and flags any surface that moves against its own baseline.
-        </Empty>
+        </NothingYet>
       ) : (
         rows.map((d) => (
           <Row
@@ -407,17 +417,17 @@ export function DriftPanel() {
           arrives is exactly what policy in advance means. */}
       <Actions>
         {rows.length > 0 ? (
-          <Button disabled={runMut.isPending} onClick={() => runMut.mutate()}>
+          <Action disabled={runMut.isPending} onClick={() => runMut.mutate()}>
             {runMut.isPending ? "Checking" : "Run the drift check"}
-          </Button>
+          </Action>
         ) : null}
-        <Button variant="ghost" aria-expanded={cfgOpen} onClick={() => setCfgOpen((v) => !v)}>
+        <Action variant="quiet" aria-expanded={cfgOpen} onClick={() => setCfgOpen((v) => !v)}>
           {cfgOpen ? "Close" : "Set the baseline"}
-        </Button>
+        </Action>
       </Actions>
 
       {cfgOpen ? (
-        <Block
+        <Region
           title="Baseline"
           sub="Policy, set in advance. Every check runs against these numbers without stopping to ask."
         >
@@ -451,15 +461,15 @@ export function DriftPanel() {
           ))}
 
           <Actions>
-            <Button variant="primary" disabled={saveMut.isPending} onClick={() => saveMut.mutate()}>
+            <Action variant="primary" disabled={saveMut.isPending} onClick={() => saveMut.mutate()}>
               {saveMut.isPending ? "Saving" : "Save the baseline"}
-            </Button>
+            </Action>
           </Actions>
-        </Block>
+        </Region>
       ) : null}
 
       {settled.length > 0 ? (
-        <Block title="What you changed">
+        <Region title="What you changed">
           {settled.map((s) => (
             <Receipt
               key={s.id}
@@ -469,11 +479,11 @@ export function DriftPanel() {
               time={s.at}
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
       {trendByDay.length > 1 ? (
-        <Block
+        <Region
           title="Across every surface"
           sub="Request weighted daily averages from the last 30 days of snapshots. This is the whole engine's movement, not any one surface's."
         >
@@ -497,7 +507,7 @@ export function DriftPanel() {
             metric="error_rate"
             series={trendByDay.map((d) => d.errorRate)}
           />
-        </Block>
+        </Region>
       ) : null}
     </>
   );

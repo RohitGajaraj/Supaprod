@@ -24,13 +24,30 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import { Row } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import { NothingHere, Num, ReadFailed, Reading, Value } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 import { getIncidents, type Incident } from "@/lib/incidents.functions";
-import { Block, Empty, Failed, Loading, Value } from "@/components/shell/primitives";
 import { CostIncidentBadge } from "./CostIncidentBadge";
 import { incidentTraceRefs, incidentTone, INCIDENT_VALUE_TONE } from "./incident-format";
+
+/**
+ * `incident-format.ts` still speaks the RETIRED tone vocabulary and is pinned
+ * there by `__tests__/incident-format.test.ts`, which asserts `marigold` reads
+ * as "warn". So the translation happens here rather than by widening Meridian's
+ * five status words back out to six.
+ *
+ * `warn` becomes `hold`: a runaway or a pipeline stall is stopped on a
+ * condition, which is what Meridian's amber says. Orchid would be the reflex
+ * and it is wrong -- it means A PERSON IS REQUIRED, and `Value` deliberately
+ * has no `you` tone because a value is something you read.
+ */
+const MRD_TONE: Record<"quiet" | "pass" | "warn" | "fail", "quiet" | "pass" | "hold" | "fail"> = {
+  quiet: "quiet",
+  pass: "pass",
+  warn: "hold",
+  fail: "fail",
+};
 
 const KIND_LABEL: Record<Incident["kind"], string> = {
   execution: "Execution",
@@ -57,7 +74,7 @@ function ago(iso: string | null | undefined): string | null {
 
 function IncidentRow({ n, traceRef }: { n: Incident; traceRef: string }) {
   const navigate = useNavigate();
-  const tone = INCIDENT_VALUE_TONE[incidentTone(n.kind)];
+  const tone = MRD_TONE[INCIDENT_VALUE_TONE[incidentTone(n.kind)]];
   const hasTrace = Boolean(n.traceId);
   // Trace wins when present; otherwise a mission-keyed incident opens its mission.
   const hasMission = !hasTrace && Boolean(n.missionId);
@@ -94,18 +111,16 @@ export function IncidentsPanel() {
   const fGet = useServerFn(getIncidents);
   const q = useQuery({ queryKey: ["incidents"], queryFn: () => fGet() });
 
-  if (q.isLoading) return <Loading>Reading what went wrong.</Loading>;
+  if (q.isLoading) return <Reading>Reading what went wrong.</Reading>;
 
   // A failed read is not an empty state and must never wear one's clothes:
   // "nothing went wrong" and "we could not find out" are different facts, and a
   // person acts differently on each.
   if (q.isError) {
     return (
-      <Block>
-        <Failed onRetry={() => void q.refetch()}>
-          The record did not load, so an empty list here would not mean nothing went wrong.
-        </Failed>
-      </Block>
+      <ReadFailed onRetry={() => void q.refetch()}>
+        The record did not load, so an empty list here would not mean nothing went wrong.
+      </ReadFailed>
     );
   }
 
@@ -113,10 +128,10 @@ export function IncidentsPanel() {
 
   if (items.length === 0) {
     return (
-      <Empty>
+      <NothingHere>
         Nothing has gone wrong recently. A failed tool call, a pipeline error, a guardrail block, a
         spend cap reached or a mission that will not stop lands here, newest first.
-      </Empty>
+      </NothingHere>
     );
   }
 

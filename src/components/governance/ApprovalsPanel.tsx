@@ -44,7 +44,17 @@
  */
 import * as React from "react";
 import { Row } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  Approve,
+  NothingHere,
+  Num,
+  ReadFailed,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -60,10 +70,35 @@ import {
   type AgentOutcomeRecord,
 } from "@/lib/agent-track-record";
 import { rejectionCountFor } from "@/lib/rejection-learning";
-import { Block, Button, Empty, Failed, Gate, Loading, Pre, Receipt, Value } from "@/components/shell/primitives";
+import { Gate, Pre, Receipt } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { TrustGraduationsBlock } from "./TrustGraduations";
-import { relExpiry, fmtMedian, RESOLVED_LINE, RISK_NOTE, toneForRisk } from "./governance-shared";
+import {
+  relExpiry,
+  fmtMedian,
+  RESOLVED_LINE,
+  RISK_NOTE,
+  toneForRisk,
+  type GovTone,
+} from "./governance-shared";
+
+/**
+ * `governance-shared.ts` still speaks the RETIRED tone vocabulary, and it is
+ * pinned there by its own test suite, so the translation happens here rather
+ * than by widening Meridian's five words back out to six.
+ *
+ * `warn` becomes `hold` and nothing else moves. Every caller of `toneForRisk`
+ * means "waiting on a condition" -- a medium-risk call reaches outside and can
+ * still be walked back -- which is what Meridian's amber says. Orchid would be
+ * the reflex and it is wrong: it means A PERSON IS REQUIRED, and `Value` has
+ * no `you` tone for exactly that reason.
+ */
+const MRD_TONE: Record<GovTone, "quiet" | "pass" | "fail" | "hold"> = {
+  quiet: "quiet",
+  pass: "pass",
+  warn: "hold",
+  fail: "fail",
+};
 
 type GovernApproval = Awaited<ReturnType<typeof listGovernApprovals>>["approvals"][number];
 
@@ -236,16 +271,14 @@ export function ApprovalsPanel() {
 
   if (q.isError) {
     return (
-      <Block>
-        <Failed onRetry={() => void q.refetch()}>
-          The queue did not load, so nothing here is the real count.
-        </Failed>
-      </Block>
+      <ReadFailed onRetry={() => void q.refetch()}>
+        The queue did not load, so nothing here is the real count.
+      </ReadFailed>
     );
   }
 
   if (q.isLoading) {
-    return <Loading>Reading the queue.</Loading>;
+    return <Reading>Reading the queue.</Reading>;
   }
 
   return (
@@ -288,10 +321,10 @@ export function ApprovalsPanel() {
           }
         />
       ) : (
-        <Empty>
+        <NothingHere>
           Nothing is waiting on you. The agents are running inside their lanes, and when one needs a
           decision to run a tool it lands here, soonest to expire on top.
-        </Empty>
+        </NothingHere>
       )}
 
       {/* A graduation is a policy change with no clock on it; a tool approval is
@@ -301,7 +334,7 @@ export function ApprovalsPanel() {
       <TrustGraduationsBlock lead={!focused} />
 
       {receipts.length > 0 ? (
-        <Block title="What you settled">
+        <Region title="What you settled">
           {receipts.map((r) => (
             <Receipt
               key={r.key}
@@ -311,11 +344,11 @@ export function ApprovalsPanel() {
               failed={r.failed}
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
       {behind.length > 0 ? (
-        <Block
+        <Region
           title="Waiting behind it"
           sub={
             <>
@@ -335,12 +368,19 @@ export function ApprovalsPanel() {
               . Open one to make it the call in front of you.
             </>
           }
-          more={lowRisk.length > 1 ? `Approve the ${lowRisk.length} low risk ones` : undefined}
-          onMore={
+          /* `act`, not `toggle` or `goTo`: this settles calls. It reveals
+             nothing about this region and it leaves for nowhere, so an
+             `aria-expanded` here would announce a state that does not exist.
+             `acting` is the half the retired `more` could not say -- the batch
+             takes a round trip per call, and without it a second press starts a
+             second batch over the same queue. */
+          act={lowRisk.length > 1 ? `Approve the ${lowRisk.length} low risk ones` : undefined}
+          onAct={
             lowRisk.length > 1
               ? () => approveAll.mutate(lowRisk.map((a) => ({ id: a.id, tool: a.tool_name })))
               : undefined
           }
+          acting={approveAll.isPending}
         >
           {behind.map((a) => (
             <Row
@@ -362,11 +402,11 @@ export function ApprovalsPanel() {
               onClick={() => setFocusedId(a.id)}
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
       {resolved.length > 0 ? (
-        <Block title="Already settled" sub="The last 50 calls this account decided, newest first.">
+        <Region title="Already settled" sub="The last 50 calls this account decided, newest first.">
           {resolved.map((a) => {
             const line = RESOLVED_LINE[a.status];
             return (
@@ -380,7 +420,7 @@ export function ApprovalsPanel() {
                 }
                 sub={
                   line ? (
-                    <Value tone={line.tone}>{line.text}</Value>
+                    <Value tone={MRD_TONE[line.tone]}>{line.text}</Value>
                   ) : (
                     <Value tone="quiet">{a.status}</Value>
                   )
@@ -389,7 +429,7 @@ export function ApprovalsPanel() {
               />
             );
           })}
-        </Block>
+        </Region>
       ) : null}
     </>
   );
@@ -433,7 +473,7 @@ function FocusedCall({
   if (a.rationale) lines.push(<span key="why">{a.rationale}</span>);
   lines.push(
     <span key="risk">
-      <Value tone={toneForRisk(a.risk)}>{riskWord(a.risk)}</Value>
+      <Value tone={MRD_TONE[toneForRisk(a.risk)]}>{riskWord(a.risk)}</Value>
       {". "}
       {RISK_NOTE[a.risk] ?? "How far this reaches is not recorded."}
     </span>,
@@ -468,25 +508,25 @@ function FocusedCall({
   return (
     <>
       <Gate question={`Let ${name} run ${a.tool_name}?`} lines={lines}>
-        <Button variant="primary" disabled={busy} onClick={onApprove}>
+        <Approve disabled={busy} onClick={onApprove}>
           Approve, and it runs
-        </Button>
-        <Button disabled={busy} onClick={onReject}>
+        </Approve>
+        <Action disabled={busy} onClick={onReject}>
           Decline, and nothing runs
-        </Button>
+        </Action>
       </Gate>
 
       <Actions
         trailing={
-          <Button variant="ghost" disabled={extending} onClick={onExtend}>
+          <Action variant="quiet" disabled={extending} onClick={onExtend}>
             Give it 24 more hours
-          </Button>
+          </Action>
         }
       >
         {onOpenMission ? (
-          <Button variant="ghost" onClick={onOpenMission}>
+          <Action variant="quiet" onClick={onOpenMission}>
             Open the mission
-          </Button>
+          </Action>
         ) : null}
       </Actions>
 

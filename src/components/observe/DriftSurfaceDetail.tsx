@@ -3,11 +3,12 @@
  *
  * It rides ?surface= inside the Quality room, which already draws the Surface,
  * the page title and the tab strip, so this file draws no second h1. The drill
- * subject is a Block title and the way back is the Block's own "All surfaces",
- * which is exactly how the room itself returns from a room to the four rooms
- * and how /admin/people returns from one person to the directory. A PageHead
- * here would put a 25px title inside a page that already has one, and a second
- * h1 in the document outline.
+ * subject is a Region title and the way back is the Region's own `goTo`, "All
+ * surfaces", which is exactly how the room itself returns from a room to the
+ * four rooms and how /admin/people returns from one person to the directory. A
+ * page heading here would put a 25px title inside a page that already has one,
+ * and a second h1 in the document outline. `goTo` and not `toggle`: it leaves
+ * this region for a named destination, and it discloses nothing.
  *
  * KEEP / KILL, and why:
  *
@@ -51,7 +52,16 @@
  */
 import { useMemo, useState, type ReactNode } from "react";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingYet,
+  Num,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -61,7 +71,7 @@ import {
   resolveDriftIncident,
   reopenDriftIncident,
 } from "@/lib/drift.functions";
-import { Block, Button, Empty, Failed, Loading, Receipt, Value } from "@/components/shell/primitives";
+import { Receipt } from "@/components/shell/primitives";
 import { relTime } from "@/components/product/format";
 import type { Incident, Snapshot } from "./DriftPanel";
 
@@ -141,8 +151,11 @@ function nowStamp(): string {
  * The shape, and nothing else. No axes, no grid, no scrubber, no tooltip: the
  * numbers those would reveal are printed above it in Num, so the drawing is
  * left with the one job words cannot do, which is telling a spike from a slide.
- * Every colour is a --sp-* token, and the stroke does not scale with the box,
- * so a wide region does not thicken the line.
+ * Every colour is a --mrd-* token, and the stroke does not scale with the box,
+ * so a wide region does not thicken the line. The watched stroke is
+ * `--mrd-hold` rather than the retired `--sp-warn`: it is the same fact the
+ * `Value` above it carries, and Meridian has no "warn" -- amber says stopped,
+ * waiting on a condition, which is exactly what an open incident is.
  */
 function Trend({
   series,
@@ -179,7 +192,7 @@ function Trend({
           x2={W}
           y1={y(baseline)}
           y2={y(baseline)}
-          stroke="var(--sp-mute)"
+          stroke="var(--mrd-mute)"
           strokeWidth={1}
           strokeDasharray="4 4"
           opacity={0.55}
@@ -189,7 +202,7 @@ function Trend({
       <polyline
         points={points}
         fill="none"
-        stroke={watch ? "var(--sp-warn)" : "var(--sp-mute)"}
+        stroke={watch ? "var(--mrd-hold)" : "var(--mrd-mute)"}
         strokeWidth={1.5}
         strokeLinejoin="round"
         strokeLinecap="round"
@@ -399,31 +412,31 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
   // stays reachable in every state.
   if (error) {
     return (
-      <Block title={id} more="All surfaces" onMore={back}>
-        <Failed onRetry={() => void refetch()}>
+      <Region title={id} goTo="All surfaces" onGoTo={back}>
+        <ReadFailedLine onRetry={() => void refetch()}>
           This surface did not load, so nothing here is a claim about whether it drifted.{" "}
           {(error as Error).message}
-        </Failed>
-      </Block>
+        </ReadFailedLine>
+      </Region>
     );
   }
 
   if (isLoading) {
     return (
-      <Block title={id} more="All surfaces" onMore={back}>
-        <Loading>Reading this surface.</Loading>
-      </Block>
+      <Region title={id} goTo="All surfaces" onGoTo={back}>
+        <Reading>Reading this surface.</Reading>
+      </Region>
     );
   }
 
   if (snaps.length === 0 && incidents.length === 0) {
     return (
-      <Block title={id} more="All surfaces" onMore={back}>
-        <Empty action={<Button onClick={back}>Back to all surfaces</Button>}>
+      <Region title={id} goTo="All surfaces" onGoTo={back}>
+        <NothingYet action={<Action onClick={back}>Back to all surfaces</Action>}>
           Nothing has been sampled on this surface in the last 30 days, so there is nothing to
           compare it against.
-        </Empty>
-      </Block>
+        </NothingYet>
+      </Region>
     );
   }
 
@@ -434,7 +447,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
 
   return (
     <>
-      <Block title={id} sub={windows} more="All surfaces" onMore={back}>
+      <Region title={id} sub={windows} goTo="All surfaces" onGoTo={back}>
         {worst ? (
           <Line
             label={METRIC_LABELS[worst.metric] ?? worst.metric}
@@ -466,7 +479,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
               </>
             }
           >
-            <Value tone="warn">
+            <Value tone="hold">
               <Num>{fmtDelta(Number(worst.delta_pct))}</Num>
             </Value>
           </Line>
@@ -480,13 +493,13 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
         )}
 
         <Actions>
-          <Button disabled={runMut.isPending} onClick={() => runMut.mutate()}>
+          <Action disabled={runMut.isPending} onClick={() => runMut.mutate()}>
             {runMut.isPending ? "Checking" : "Run the drift check"}
-          </Button>
+          </Action>
         </Actions>
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="How it moved"
         sub={
           chart.series.length >= 2 && peak != null && low != null ? (
@@ -514,9 +527,9 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
             label={chart.label}
           />
         ) : null}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="Incidents"
         sub="Open and recently resolved. Each one is keyed to a single model and a single metric, so one surface can carry several."
       >
@@ -528,11 +541,11 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
             outside that window read a clean-history claim off a recent-window
             read and stop looking for the drift they came to check. */}
         {incidents.length === 0 ? (
-          <Empty>
+          <NothingYet>
             No incident is open on this surface, and none has been resolved recently. The detector
             compares the last <Num>{windowDays}</Num> days against a <Num>{baselineDays}</Num> day
             baseline every time it runs.
-          </Empty>
+          </NothingYet>
         ) : (
           incidents.map((inc) => {
             const isOpen = inc.status === "open";
@@ -562,8 +575,8 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
                 }
                 time={relTime(inc.detected_at)}
                 action={
-                  <Button
-                    variant="ghost"
+                  <Action
+                    variant="quiet"
                     disabled={busy}
                     onClick={() =>
                       decideMut.mutate({
@@ -573,16 +586,16 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
                     }
                   >
                     {busy ? "Saving" : isOpen ? "Resolve" : "Reopen"}
-                  </Button>
+                  </Action>
                 }
               />
             );
           })
         )}
-      </Block>
+      </Region>
 
       {settled.length > 0 ? (
-        <Block title="What you changed">
+        <Region title="What you changed">
           {settled.map((s) => (
             <Receipt
               key={s.id}
@@ -592,14 +605,14 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
               time={s.at}
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
-      <Block title="Recent samples" sub="The last seven days that were rolled up, newest first.">
+      <Region title="Recent samples" sub="The last seven days that were rolled up, newest first.">
         {recentDays.length === 0 ? (
-          <Empty>
+          <NothingYet>
             No day has been rolled up yet. Run the drift check above and it rolls up today.
-          </Empty>
+          </NothingYet>
         ) : (
           recentDays.map((d) => (
             <Row
@@ -615,7 +628,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
             />
           ))
         )}
-      </Block>
+      </Region>
     </>
   );
 }

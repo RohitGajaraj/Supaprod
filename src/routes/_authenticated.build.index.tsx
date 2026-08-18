@@ -508,7 +508,7 @@ function BuildEngine() {
           cannot show a step that did not happen. Every other pulse on this
           station is gated on a mutation the reader's own click started;
           this one is bound to the run. See use-live-agents.ts. */}
-      <CrewWorking />
+      <CrewWorking station="build" />
       <PageHead title={headline} sub="Every change the crew has written, across every run." />
 
       {/* THE STATION CAN START ITS OWN WORK. Until now this surface could only

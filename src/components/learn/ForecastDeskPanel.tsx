@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Row, Line } from "@/components/meridian/rows";
-import { Actions } from "@/components/meridian/surface-parts";
+import { Action, Actions, ReadFailedLine, Region } from "@/components/meridian/surface-parts";
+import { Field, Textarea } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -15,7 +16,6 @@ import {
 import { FORECAST_SAYS } from "@/components/learn/forecast-words";
 import type { ForecastResolution } from "@/lib/brain/forecast-resolution";
 import { forecastGroupLabel, lateness, deferredNote } from "@/components/learn/forecast-desk-words";
-import { Block, Button, Failed, Field, Textarea } from "@/components/shell/primitives";
 
 /**
  * FC-01, the grading half: the surface where a due forecast is settled.
@@ -94,7 +94,7 @@ export function ForecastDeskPanel() {
   return (
     <>
       {due.length > 0 ? (
-        <Block
+        <Region
           title={forecastGroupLabel(due.length)}
           // Different information from the title, not a restatement of it.
           sub="What you expected, now that the date you set has passed."
@@ -118,67 +118,89 @@ export function ForecastDeskPanel() {
               }}
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
       {picked ? (
-        <Block title="Did it come true?" sub={picked.howWeWillKnow}>
-          {picked.suggestion ? (
-            <Line
-              label={`A draft says ${FORECAST_SAYS[picked.suggestion.verdict]}`}
-              sub={picked.suggestion.rationale}
-            />
-          ) : null}
+        <Region title="Did it come true?" sub={picked.howWeWillKnow}>
+          {/* `Region` sets no gap between its children and Meridian's `Field`
+              and `Actions` both set no outer margin, on purpose: composition
+              spacing belongs to the caller. The retired `Block` decided it for
+              everyone, which is why this is stated once here rather than baked
+              into three parts. */}
+          <div className="flex flex-col gap-mrd-5">
+            {picked.suggestion ? (
+              <Line
+                label={`A draft says ${FORECAST_SAYS[picked.suggestion.verdict]}`}
+                sub={picked.suggestion.rationale}
+              />
+            ) : null}
 
-          <Field label="What settled it" htmlFor="forecast-rationale">
-            <Textarea
-              id="forecast-rationale"
-              value={rationale}
-              onChange={(e) => setRationale(e.target.value)}
-              maxLength={1000}
-              rows={3}
-            />
-          </Field>
+            <Field label="What settled it" htmlFor="forecast-rationale">
+              <Textarea
+                id="forecast-rationale"
+                value={rationale}
+                onChange={(e) => setRationale(e.target.value)}
+                maxLength={1000}
+                rows={3}
+              />
+            </Field>
 
-          <Actions>
-            {(["hit", "miss", "inconclusive"] as const).map((r) => (
-              <Button
-                key={r}
-                variant={r === "hit" ? "primary" : "default"}
-                disabled={settle.isPending || rationale.trim().length === 0}
-                onClick={() => settle.mutate({ decisionId: picked.id, resolution: r })}
-              >
-                {FORECAST_SAYS[r]}
-              </Button>
-            ))}
-            {/*
+            {/* THREE ANSWERS, AND NONE OF THEM IS AN `Approve`.
+                Approve is the one control that releases held work and the only
+                place orchid is spent on a button in this product, and it is
+                singular by construction: "one primary, and only one". Three
+                verdicts are one decision offered three ways, so painting them
+                all orchid would spend the accent three times on a single choice,
+                and painting only "it came true" orchid would put the product's
+                loudest control behind the flattering answer on the one surface
+                that must not flatter. The existing emphasis is kept exactly as
+                it shipped and nothing more is claimed. */}
+            <Actions>
+              {(["hit", "miss", "inconclusive"] as const).map((r) => (
+                <Action
+                  key={r}
+                  variant={r === "hit" ? "primary" : "default"}
+                  disabled={settle.isPending || rationale.trim().length === 0}
+                  onClick={() => settle.mutate({ decisionId: picked.id, resolution: r })}
+                >
+                  {FORECAST_SAYS[r]}
+                </Action>
+              ))}
+              {/*
               The third answer is not a verdict and never writes one. It moves a
               check date, which is why it stays available no matter what the
               draft says: "too early" is the absence of an outcome rather than a
               kind of one.
             */}
-            <Button
-              disabled={defer.isPending}
-              onClick={() => defer.mutate(picked.id)}
-              title="No verdict is written. It returns to this desk in two weeks."
-            >
-              {defer.isPending ? "Giving it more time." : "Too early to tell"}
-            </Button>
-          </Actions>
+              <Action
+                disabled={defer.isPending}
+                onClick={() => defer.mutate(picked.id)}
+                title="No verdict is written. It returns to this desk in two weeks."
+              >
+                {defer.isPending ? "Giving it more time." : "Too early to tell"}
+              </Action>
+            </Actions>
 
-          {settle.isError ? (
-            <Failed>
-              The verdict did not land, and nothing was written. {(settle.error as Error).message}
-            </Failed>
-          ) : null}
-          {defer.isError ? (
-            <Failed>The check date did not move. {(defer.error as Error).message}</Failed>
-          ) : null}
-        </Block>
+            {/* A WRITE THAT DID NOT LAND, said as a line and not as a box: the
+                region already draws its own heading, and the bordered half of
+                the pair belongs where there is no region around it. */}
+            {settle.isError ? (
+              <ReadFailedLine>
+                The verdict did not land, and nothing was written. {(settle.error as Error).message}
+              </ReadFailedLine>
+            ) : null}
+            {defer.isError ? (
+              <ReadFailedLine>
+                The check date did not move. {(defer.error as Error).message}
+              </ReadFailedLine>
+            ) : null}
+          </div>
+        </Region>
       ) : null}
 
       {agentSettled.length > 0 ? (
-        <Block
+        <Region
           title="Settled by an agent"
           // The oversight half of the gate. An agent verdict is only reversible
           // if somebody can see it, which is what the slug column is for.
@@ -199,7 +221,7 @@ export function ForecastDeskPanel() {
                 .join(" · ")}
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
       {rate ? <Line label="Your calls" sub={rate.label} /> : null}

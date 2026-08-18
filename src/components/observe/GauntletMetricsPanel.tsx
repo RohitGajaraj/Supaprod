@@ -51,7 +51,15 @@
  */
 import * as React from "react";
 import { Line } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import {
+  NothingYet,
+  Num,
+  ReadFailedLine,
+  Reading,
+  RecordSpeaks,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -63,7 +71,6 @@ import {
   getMemoryLift,
   type Trend,
 } from "@/lib/gauntlet.functions";
-import { Block, Empty, Failed, Loading, Record as RecordRecess, Value } from "@/components/shell/primitives";
 
 function pct(n: number | null): string | null {
   if (n == null) return null;
@@ -108,12 +115,12 @@ function Measure({
   error: string | null;
   onRetry: () => void;
 }) {
-  if (loading) return <Loading>Reading {label.toLowerCase()}.</Loading>;
+  if (loading) return <Reading>Reading {label.toLowerCase()}.</Reading>;
   if (error) {
     return (
-      <Failed onRetry={onRetry}>
+      <ReadFailedLine onRetry={onRetry}>
         {label} did not load, so nothing here is a claim about it. {error}
-      </Failed>
+      </ReadFailedLine>
     );
   }
   if (figure == null) return <Line label={label} sub={evidence} />;
@@ -256,7 +263,7 @@ export function GauntletMetricsPanel() {
 
   return (
     <>
-      <Block
+      <Region
         title="The three proof metrics"
         sub="Read from real activity. The loop runs the reversible work and you make the calls, so a sparse window says so rather than inventing a number."
       >
@@ -284,23 +291,23 @@ export function GauntletMetricsPanel() {
           error={readError(ritualQ.isError, ritualQ.error)}
           onRetry={() => void ritualQ.refetch()}
         />
-      </Block>
+      </Region>
 
       {/* The one Record on this surface. It is the record speaking about YOUR
           judgment, which is what separates a claim from a statistic. */}
-      <Block
+      <Region
         title="Outcome accuracy"
         sub="We do not claim that learning caused this. That needs an on and off control we do not have, so this is the validated share and nothing more."
       >
         {accuracyQ.isLoading ? (
-          <Loading>Reading what your bets came to.</Loading>
+          <Reading>Reading what your bets came to.</Reading>
         ) : accuracyError ? (
-          <Failed onRetry={() => void accuracyQ.refetch()}>
+          <ReadFailedLine onRetry={() => void accuracyQ.refetch()}>
             Outcome accuracy did not load, so nothing here is a claim about your bets.{" "}
             {accuracyError}
-          </Failed>
+          </ReadFailedLine>
         ) : accuracyHasData ? (
-          <RecordRecess
+          <RecordSpeaks
             evidence={
               <>
                 <Num>{accuracy.validated}</Num> validated · <Num>{accuracy.missed}</Num> missed ·{" "}
@@ -312,26 +319,26 @@ export function GauntletMetricsPanel() {
             {accuracy.priorRate != null && accuracy.rate != null
               ? `, ${TREND_WORD[accuracy.trend]} against the period before.`
               : "."}
-          </RecordRecess>
+          </RecordSpeaks>
         ) : (
-          <Empty>
+          <NothingYet>
             {accuracyReady
               ? "Not enough data yet. Record an outcome on a shipped spec and its verdict lands here."
               : "Not enough data yet. Outcome tracking lights up on the next sync."}
-          </Empty>
+          </NothingYet>
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="Precedent-depth split"
         sub="Correlational, within your account. It compares bets by how much precedent had accumulated when each was decided, never an on and off test, so getting better with practice could explain it instead."
       >
         {liftQ.isLoading ? (
-          <Loading>Reading the split.</Loading>
+          <Reading>Reading the split.</Reading>
         ) : liftError ? (
-          <Failed onRetry={() => void liftQ.refetch()}>
+          <ReadFailedLine onRetry={() => void liftQ.refetch()}>
             The split did not load, so nothing here is a claim about your precedent. {liftError}
-          </Failed>
+          </ReadFailedLine>
         ) : liftHasNumber ? (
           /* Neutral for either sign. This is an association, not a win, so the
              value takes no outcome tone. */
@@ -351,9 +358,9 @@ export function GauntletMetricsPanel() {
             </Value>
           </Line>
         ) : (
-          <Empty>{liftBlocked}</Empty>
+          <NothingYet>{liftBlocked}</NothingYet>
         )}
-      </Block>
+      </Region>
 
       {/* A NOUN PHRASE, like its three siblings above it on this surface. This
           was "Learning compounds" until 2026-08-10, the only heading here that
@@ -363,16 +370,16 @@ export function GauntletMetricsPanel() {
           rule CLAUDE.md states by name: never claim accumulated learning in the
           present tense. The compounding argument is not lost, it moved to the
           sub, where it is argued off the number instead of asserted above it. */}
-      <Block
+      <Region
         title="Learning recall"
         sub="Of what the loop learned, the share it has read back at least once. Learning it reopens is a moat; learning it never reopens is a log. Net dollar retention is deliberately absent: it needs recurring revenue, so it lands once billing ships."
       >
         {memQ.isLoading ? (
-          <Loading>Reading the record.</Loading>
+          <Reading>Reading the record.</Reading>
         ) : memError ? (
-          <Failed onRetry={() => void memQ.refetch()}>
+          <ReadFailedLine onRetry={() => void memQ.refetch()}>
             The record did not load, so nothing here is a claim about what it learned. {memError}
-          </Failed>
+          </ReadFailedLine>
         ) : memHasData ? (
           <>
             <Line
@@ -405,13 +412,13 @@ export function GauntletMetricsPanel() {
             </Line>
           </>
         ) : (
-          <Empty>
+          <NothingYet>
             {memReady
               ? "Not enough data yet, nothing learned. The loop learns each time an outcome lands or an agent reflects on a run, then draws on it the next pass."
               : "Not enough data yet. This lights up on the next sync."}
-          </Empty>
+          </NothingYet>
         )}
-      </Block>
+      </Region>
     </>
   );
 }

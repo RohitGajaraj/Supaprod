@@ -31,7 +31,21 @@
  */
 import { Fragment, useState } from "react";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingHere,
+  NothingYet,
+  Num,
+  PageHeading,
+  ReadFailed,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Toggle,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Field, Input, Textarea } from "@/components/meridian/forms";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -46,7 +60,7 @@ import {
   updateEvalCase,
   deleteEvalCase,
 } from "@/lib/evals.functions";
-import { Block, Button, Empty, Failed, Field, Input, Loading, PageHead, Prose, Receipt, Switch, Textarea, Value } from "@/components/shell/primitives";
+import { Prose, Receipt } from "@/components/shell/primitives";
 import { relTime } from "@/components/product/format";
 import { useConfirm } from "@/hooks/use-confirm";
 
@@ -159,24 +173,24 @@ export function EvalSuiteDetail({ id }: { id: string }) {
   });
 
   const backButton = (
-    <Button variant="ghost" onClick={back}>
+    <Action variant="quiet" onClick={back}>
       All of them
-    </Button>
+    </Action>
   );
 
   if (suiteQ.isLoading) {
-    return <Loading>Reading what this one watches.</Loading>;
+    return <Reading>Reading what this one watches.</Reading>;
   }
 
   if (suiteQ.isError) {
     return (
       <>
-        <PageHead title="This suite did not load." />
-        <Failed onRetry={() => void suiteQ.refetch()}>
+        <PageHeading title="This suite did not load." />
+        <ReadFailed onRetry={() => void suiteQ.refetch()}>
           {(suiteQ.error as Error).message}. Nothing below would be its real state, so nothing is
           shown.
-        </Failed>
-        <Block>{backButton}</Block>
+        </ReadFailed>
+        <Region>{backButton}</Region>
       </>
     );
   }
@@ -184,10 +198,10 @@ export function EvalSuiteDetail({ id }: { id: string }) {
   if (!suiteQ.data?.suite) {
     return (
       <>
-        <PageHead title="No suite by that name." />
-        <Empty action={backButton}>
+        <PageHeading title="No suite by that name." />
+        <NothingHere action={backButton}>
           Nothing in this workspace answers to that id. It may have been deleted.
-        </Empty>
+        </NothingHere>
       </>
     );
   }
@@ -224,7 +238,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
 
   return (
     <>
-      <PageHead
+      <PageHeading
         title={suite.name}
         sub={
           score == null ? (
@@ -252,7 +266,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
 
       {suite.description ? <Prose>{suite.description}</Prose> : null}
 
-      <Block
+      <Region
         title="Where it stands"
         sub="Read from its completed runs. A suite with no runs has no score, and none is invented for it."
       >
@@ -289,10 +303,10 @@ export function EvalSuiteDetail({ id }: { id: string }) {
           )}
         </Line>
 
-        {run.isError ? <Failed>{(run.error as Error).message}</Failed> : null}
+        {run.isError ? <ReadFailedLine>{(run.error as Error).message}</ReadFailedLine> : null}
 
         <Actions>
-          <Button
+          <Action
             variant="primary"
             disabled={run.isPending || enabledCases === 0}
             title={enabledCases === 0 ? "Write and switch on at least one case first" : undefined}
@@ -303,7 +317,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
               : estimate
                 ? `Run it again, ${estimate}`
                 : `Run it against ${enabledCases} case${enabledCases === 1 ? "" : "s"}`}
-          </Button>
+          </Action>
         </Actions>
 
         {/* THE COMMIT. What the run found, not that the click registered. */}
@@ -326,7 +340,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
             }
           />
         ))}
-      </Block>
+      </Region>
 
       <div className="sp-tabs" role="tablist" aria-label="What to read about this suite">
         {TABS.map((t) => (
@@ -353,11 +367,11 @@ export function EvalSuiteDetail({ id }: { id: string }) {
       </div>
 
       {tab === "runs" ? (
-        <Block>
+        <Region>
           {runs.length === 0 ? (
-            <Empty>
+            <NothingYet>
               It has not run yet. Run it above and every run from then on lands here, newest first.
-            </Empty>
+            </NothingYet>
           ) : (
             runs.map((r) => {
               const rScore = r.avg_score != null ? Math.round(Number(r.avg_score)) : null;
@@ -402,22 +416,22 @@ export function EvalSuiteDetail({ id }: { id: string }) {
                   }
                   action={
                     r.fail_count > 0 ? (
-                      <Button
-                        variant="ghost"
+                      <Action
+                        variant="quiet"
                         onClick={() => {
                           setFailRunId(r.id);
                           setTab("failures");
                         }}
                       >
                         What failed
-                      </Button>
+                      </Action>
                     ) : undefined
                   }
                 />
               );
             })
           )}
-        </Block>
+        </Region>
       ) : tab === "failures" ? (
         <FailingCases runId={failTargetId} />
       ) : tab === "cases" ? (
@@ -426,7 +440,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
         <Config suite={suite} onChanged={inv} onDeleted={back} />
       )}
 
-      <Block>{backButton}</Block>
+      <Region>{backButton}</Region>
     </>
   );
 }
@@ -450,28 +464,28 @@ function FailingCases({ runId }: { runId: string | null }) {
 
   if (!runId) {
     return (
-      <Block>
-        <Empty>
+      <Region>
+        <NothingYet>
           It has never completed a run, so nothing has failed yet. Failures appear here after the
           first one.
-        </Empty>
-      </Block>
+        </NothingYet>
+      </Region>
     );
   }
   if (q.isLoading) {
     return (
-      <Block>
-        <Loading>Reading what this run found.</Loading>
-      </Block>
+      <Region>
+        <Reading>Reading what this run found.</Reading>
+      </Region>
     );
   }
   if (q.isError) {
     return (
-      <Block>
-        <Failed onRetry={() => void q.refetch()}>
+      <Region>
+        <ReadFailedLine onRetry={() => void q.refetch()}>
           This run did not load, so the failures below would not be its real ones.
-        </Failed>
-      </Block>
+        </ReadFailedLine>
+      </Region>
     );
   }
 
@@ -482,9 +496,9 @@ function FailingCases({ runId }: { runId: string | null }) {
   );
 
   return (
-    <Block title="What failed" sub={run ? `From the run ${relTime(run.created_at)}.` : undefined}>
+    <Region title="What failed" sub={run ? `From the run ${relTime(run.created_at)}.` : undefined}>
       {failing.length === 0 ? (
-        <Empty>Nothing failed in this run. Every case cleared the gate.</Empty>
+        <NothingYet>Nothing failed in this run. Every case cleared the gate.</NothingYet>
       ) : (
         failing.map((r) => {
           const isOpen = open === r.id;
@@ -536,7 +550,7 @@ function FailingCases({ runId }: { runId: string | null }) {
           );
         })
       )}
-    </Block>
+    </Region>
   );
 }
 
@@ -595,71 +609,85 @@ function CaseList({
   return (
     <>
       {formOpen ? (
-        <Block title="A new case" sub="An input, what you expect back, and what the judge scores.">
-          <Field label="What to call it">
+        <Region title="A new case" sub="An input, what you expect back, and what the judge scores.">
+          {/* The `htmlFor`/`id` pairs are the port, not decoration: the retired
+              `Field` was a `<label>` wrapping its control, so the two were bound
+              by containment. Meridian's is a `<div>` and binds by name. */}
+          <Field label="What to call it" htmlFor="new-case-name">
             <Input
+              id="new-case-name"
               value={form.name}
               placeholder="Refuses to invent a number"
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
           </Field>
-          <Field label="What it is sent">
+          <Field label="What it is sent" htmlFor="new-case-input">
             <Textarea
+              id="new-case-input"
               rows={3}
               value={form.input}
               placeholder="The message the surface receives"
               onChange={(e) => setForm({ ...form, input: e.target.value })}
             />
           </Field>
-          <Field label="What it should say back">
+          <Field label="What it should say back" htmlFor="new-case-expected">
             <Textarea
+              id="new-case-expected"
               rows={2}
               value={form.expected}
               placeholder="Leave this empty and the rubric alone decides"
               onChange={(e) => setForm({ ...form, expected: e.target.value })}
             />
           </Field>
-          <Field label="What the judge scores against">
+          <Field label="What the judge scores against" htmlFor="new-case-rubric">
             <Input
+              id="new-case-rubric"
               value={form.rubric}
               placeholder="Five lines or fewer, no invented figures, names the owner"
               onChange={(e) => setForm({ ...form, rubric: e.target.value })}
             />
           </Field>
 
-          {create.isError ? <Failed>{(create.error as Error).message}</Failed> : null}
+          {create.isError ? (
+            <ReadFailedLine>{(create.error as Error).message}</ReadFailedLine>
+          ) : null}
 
-          <Actions trailing={<Button onClick={() => setFormOpen(false)}>Leave it</Button>}>
-            <Button
+          <Actions trailing={<Action onClick={() => setFormOpen(false)}>Leave it</Action>}>
+            <Action
               variant="primary"
               disabled={!form.name || !form.input || create.isPending}
               title={!form.name || !form.input ? "It needs a name and an input" : undefined}
               onClick={() => create.mutate()}
             >
               {create.isPending ? "Adding it" : "Add it"}
-            </Button>
+            </Action>
           </Actions>
-        </Block>
+        </Region>
       ) : null}
 
-      <Block
+      <Region
         title="Cases"
-        more={formOpen ? undefined : "New case"}
-        onMore={() => setFormOpen(true)}
+        /* `act` and not `toggle`: the form opens as its own region ABOVE this
+           one, so nothing inside this region expands and `aria-expanded` would
+           name a disclosure that never happens here. It goes nowhere either, so
+           it is not `goTo`. It starts writing a case, which is work on this
+           region's subject. */
+        act={formOpen ? undefined : "New case"}
+        onAct={() => setFormOpen(true)}
       >
         {cases.length === 0 ? (
-          <Empty
+          <NothingYet
             action={
               formOpen ? undefined : (
-                <Button variant="primary" onClick={() => setFormOpen(true)}>
+                <Action variant="primary" onClick={() => setFormOpen(true)}>
                   Write the first one
-                </Button>
+                </Action>
               )
             }
           >
             No cases yet, so this suite cannot run. Each one is an input, an optional expected
             answer, and a rubric the judge scores against.
-          </Empty>
+          </NothingYet>
         ) : (
           cases.map((c) => {
             const isOpen = open === c.id;
@@ -673,7 +701,7 @@ function CaseList({
                   onClick={() => setOpen(isOpen ? null : c.id)}
                   sub={c.enabled ? "Runs with the suite" : "Switched off, so it does not run"}
                   action={
-                    <Switch
+                    <Toggle
                       checked={c.enabled}
                       disabled={toggle.isPending}
                       label={`${c.name} runs with the suite`}
@@ -698,7 +726,7 @@ function CaseList({
                       </>
                     ) : null}
                     <Actions>
-                      <Button
+                      <Action
                         disabled={remove.isPending}
                         onClick={async () => {
                           const ok = await confirm({
@@ -712,7 +740,7 @@ function CaseList({
                         }}
                       >
                         Delete this case
-                      </Button>
+                      </Action>
                     </Actions>
                   </>
                 ) : null}
@@ -721,8 +749,8 @@ function CaseList({
           })
         )}
 
-        {failure ? <Failed>{(failure as Error).message}</Failed> : null}
-      </Block>
+        {failure ? <ReadFailedLine>{(failure as Error).message}</ReadFailedLine> : null}
+      </Region>
     </>
   );
 }
@@ -760,7 +788,7 @@ function Config({
   });
 
   return (
-    <Block title="How it is set" sub="Set once, and it holds for every run from now on.">
+    <Region title="How it is set" sub="Set once, and it holds for every run from now on.">
       <Line
         label="Running at all"
         sub={
@@ -769,7 +797,7 @@ function Config({
             : "It is off. Nothing runs it, and the surface it watches counts as unguarded."
         }
       >
-        <Switch
+        <Toggle
           checked={suite.enabled}
           disabled={enabled.isPending}
           label={`${suite.name} runs`}
@@ -818,11 +846,11 @@ function Config({
       </Line>
 
       {(enabled.error ?? remove.error) ? (
-        <Failed>{((enabled.error ?? remove.error) as Error).message}</Failed>
+        <ReadFailedLine>{((enabled.error ?? remove.error) as Error).message}</ReadFailedLine>
       ) : null}
 
       <Actions>
-        <Button
+        <Action
           disabled={remove.isPending}
           onClick={async () => {
             const ok = await confirm({
@@ -836,8 +864,8 @@ function Config({
           }}
         >
           {remove.isPending ? "Deleting it" : "Delete this suite"}
-        </Button>
+        </Action>
       </Actions>
-    </Block>
+    </Region>
   );
 }

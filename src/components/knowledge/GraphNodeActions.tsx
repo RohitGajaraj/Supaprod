@@ -38,7 +38,7 @@
  * navigation to the started mission.
  */
 import { useState } from "react";
-import { Actions } from "@/components/meridian/surface-parts";
+import { Actions, Action } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -50,7 +50,7 @@ import { startOrchestratedMission } from "@/lib/orchestrator.functions";
 import type { GraphNode, GraphNodeKind } from "@/lib/knowledge-graph-view";
 import { artifactWord } from "@/lib/artifact-words";
 import { useConfirm } from "@/hooks/use-confirm";
-import { Button, Receipt } from "@/components/shell/primitives";
+import { Receipt } from "@/components/shell/primitives";
 
 /**
  * The kinds "Start a mission from this" is offered on.
@@ -246,24 +246,24 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
         // rather than beside the two things that move work forward.
         trailing={
           isDecision ? (
-            <Button disabled={reopen.isPending} onClick={() => reopen.mutate()}>
+            <Action disabled={reopen.isPending} onClick={() => reopen.mutate()}>
               {reopen.isPending ? "Reopening" : "Reopen the call"}
-            </Button>
+            </Action>
           ) : undefined
         }
       >
         {canStartMission ? (
-          <Button disabled={startMission.isPending} onClick={() => void confirmAndStartMission()}>
+          <Action disabled={startMission.isPending} onClick={() => void confirmAndStartMission()}>
             {startMission.isPending ? "Starting" : "Start a mission from this"}
-          </Button>
+          </Action>
         ) : null}
         {isReviewable ? (
-          <Button disabled={critic.isPending} onClick={() => critic.mutate()}>
+          <Action disabled={critic.isPending} onClick={() => critic.mutate()}>
             {critic.isPending ? "Reviewing" : "Send it to the Critic"}
-          </Button>
+          </Action>
         ) : null}
         {isDecision ? (
-          <Button
+          <Action
             disabled={share.isPending || shareLoading}
             onClick={() => share.mutate()}
             title="Make this decision public and copy a shareable link"
@@ -271,7 +271,7 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
             {/* Same label as DecisionDetail's share control, and for the same
                 reason: this makes the decision public and copies a link. */}
             {share.isPending || shareLoading ? "Publishing" : "Share this decision"}
-          </Button>
+          </Action>
         ) : null}
       </Actions>
 

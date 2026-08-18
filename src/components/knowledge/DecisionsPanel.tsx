@@ -62,7 +62,18 @@
  */
 import { useEffect, useState } from "react";
 import { Row } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Actions,
+  Action,
+  Region,
+  Reading,
+  ReadFailed,
+  NothingHere,
+  NothingYet,
+  Picker,
+} from "@/components/meridian/surface-parts";
+import { Field, Input, Textarea } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -75,7 +86,7 @@ import {
   type DecisionRow,
   type DecisionSource,
 } from "@/lib/decisions.functions";
-import { Block, Button, Empty, Failed, Field, Input, Loading, Receipt, Select, Textarea } from "@/components/shell/primitives";
+import { Receipt } from "@/components/shell/primitives";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
 import { ageOf, displayWho, OUTCOME_WORD, SOURCE_LABEL } from "./decisions-shared";
 import { stripAutoPrefix } from "@/components/plan/format";
@@ -270,7 +281,8 @@ export function DecisionsPanel() {
           }}
         >
           <span style={{ flex: "none", width: 152 }}>
-            <Select
+            <Picker
+              className="w-full"
               value={source}
               onChange={(e) => setSource(e.target.value as SourceFilter)}
               aria-label="Filter by where the call came from"
@@ -291,10 +303,11 @@ export function DecisionsPanel() {
                   {SOURCE_LABEL[s]}
                 </option>
               ))}
-            </Select>
+            </Picker>
           </span>
           <span style={{ flex: "none", width: 152 }}>
-            <Select
+            <Picker
+              className="w-full"
               value={status}
               onChange={(e) => setStatus(e.target.value as StatusFilter)}
               aria-label="Filter by outcome"
@@ -303,7 +316,7 @@ export function DecisionsPanel() {
               <option value="pending">Not settled</option>
               <option value="approved">Kept</option>
               <option value="rejected">Dropped</option>
-            </Select>
+            </Picker>
           </span>
           <span style={{ flex: "1 1 170px", minWidth: 150, maxWidth: 280 }}>
             <Input
@@ -314,13 +327,13 @@ export function DecisionsPanel() {
             />
           </span>
           <span style={{ marginLeft: "auto" }}>
-            <Button
+            <Action
               aria-expanded={open}
               aria-controls="decisions-composer"
               onClick={() => setOpen((o) => !o)}
             >
               {open ? "Close" : "Record a decision"}
-            </Button>
+            </Action>
           </span>
         </div>
       )}
@@ -364,7 +377,7 @@ export function DecisionsPanel() {
           there was a ledger under it. A read in flight is not an empty ledger,
           and Loading is the primitive that says which one this is. */}
       {decisions.isLoading ? (
-        <Loading>Reading the calls on the record.</Loading>
+        <Reading>Reading the calls on the record.</Reading>
       ) : decisions.isError ? (
         /* AND A FAILURE SAYS WHAT FAILED, 2026-08-11. The same argument one
            branch up, applied to the branch beside it: this printed the raw
@@ -373,20 +386,20 @@ export function DecisionsPanel() {
            string where the ledger goes and no sentence telling them the calls
            were still there. Every other failure arm on Brain leads with the
            claim it is refusing to make and then appends the message. */
-        <Failed onRetry={() => void decisions.refetch()}>
+        <ReadFailed onRetry={() => void decisions.refetch()}>
           The calls did not load, so this is not a claim that none are on the record.{" "}
           {(decisions.error as Error).message}
-        </Failed>
+        </ReadFailed>
       ) : rows.length === 0 ? (
         filtered ? (
-          <Empty action={<Button onClick={clearFilters}>Clear the filter</Button>}>
+          <NothingHere action={<Action onClick={clearFilters}>Clear the filter</Action>}>
             No call on the record matches that.
-          </Empty>
+          </NothingHere>
         ) : (
-          <Empty action={<Button onClick={() => setOpen(true)}>Record a decision</Button>}>
+          <NothingYet action={<Action onClick={() => setOpen(true)}>Record a decision</Action>}>
             Calls land here on their own when a mission completes, a spec is approved, or a meeting
             transcript is read. Log one yourself when the call was made somewhere else.
-          </Empty>
+          </NothingYet>
         )
       ) : (
         shown.map((d) => (
@@ -421,7 +434,7 @@ export function DecisionsPanel() {
       {rows.length > VISIBLE_DECISIONS || waiting > 0 ? (
         <Actions>
           {rows.length > VISIBLE_DECISIONS ? (
-            <Button variant="ghost" onClick={() => setShowAll((v) => !v)}>
+            <Action variant="quiet" onClick={() => setShowAll((v) => !v)}>
               {showAll ? (
                 "Show fewer"
               ) : (
@@ -429,14 +442,14 @@ export function DecisionsPanel() {
                   Show <Num>{rows.length - VISIBLE_DECISIONS}</Num> more
                 </>
               )}
-            </Button>
+            </Action>
           ) : null}
           {/* One-home law: a call is settled on Today, never twice. The list
               stays the record and sends you to the one place that decides. */}
           {waiting > 0 ? (
-            <Button variant="ghost" onClick={() => navigate({ to: "/today" })}>
+            <Action variant="quiet" onClick={() => navigate({ to: "/today" })}>
               Settle <Num>{waiting}</Num> on Today
-            </Button>
+            </Action>
           ) : null}
         </Actions>
       ) : null}
@@ -496,7 +509,7 @@ function LogDecision({
 
   return (
     <div id={id}>
-      <Block
+      <Region
         title="Record a decision"
         // Different information from the title, not a restatement of it.
         sub="A call made outside the loop. The crew reads it before it acts again."
@@ -562,12 +575,12 @@ function LogDecision({
 
         <Actions
           trailing={
-            <Button variant="ghost" onClick={onCancel} disabled={submitting}>
+            <Action variant="quiet" onClick={onCancel} disabled={submitting}>
               Cancel
-            </Button>
+            </Action>
           }
         >
-          <Button
+          <Action
             variant="primary"
             disabled={!title.trim() || submitting || partial}
             onClick={() =>
@@ -591,9 +604,9 @@ function LogDecision({
             }
           >
             {submitting ? "Recording" : "Record it"}
-          </Button>
+          </Action>
         </Actions>
-      </Block>
+      </Region>
     </div>
   );
 }

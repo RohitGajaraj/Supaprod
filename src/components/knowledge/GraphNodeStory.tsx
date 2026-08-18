@@ -41,7 +41,15 @@
  */
 import { useServerFn } from "@tanstack/react-start";
 import { Row } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Actions,
+  Action,
+  Region,
+  Reading,
+  ReadFailed,
+  NothingYet,
+} from "@/components/meridian/surface-parts";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { getLineage } from "@/lib/lineage.functions";
@@ -59,7 +67,6 @@ import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { kindLabel, kindTracePrefix, outcomeLabel } from "./graph-visual";
 import { nodeDoor } from "./graph-doors";
 import { GraphNodeActions } from "./GraphNodeActions";
-import { Block, Button, Empty, Failed, Loading } from "@/components/shell/primitives";
 
 type StoryRow = { id: string; relation: string; peer_title?: string | null };
 
@@ -110,7 +117,7 @@ export function GraphNodeStory({
 
   return (
     <div>
-      <Block
+      <Region
         title={node.title || "Untitled"}
         // Different facts, never more of the title: what kind of thing it is,
         // how it turned out where the record knows, when it landed, and the id it
@@ -136,9 +143,9 @@ export function GraphNodeStory({
         <Actions
           trailing={
             onClose ? (
-              <Button variant="ghost" onClick={onClose}>
+              <Action variant="quiet" onClick={onClose}>
                 Close
-              </Button>
+              </Action>
             ) : undefined
           }
         >
@@ -155,30 +162,30 @@ export function GraphNodeStory({
               drift from the table. Every entry in that table was verified against
               its route file and its own search parser. */}
           {door ? (
-            <Button
+            <Action
               variant="primary"
               onClick={() =>
                 navigate({ to: door.to, search: door.search, params: door.params } as never)
               }
             >
               {door.label}
-            </Button>
+            </Action>
           ) : null}
-          <Button onClick={() => onFocus(node.kind, node.id)}>Centre the graph here</Button>
+          <Action onClick={() => onFocus(node.kind, node.id)}>Centre the graph here</Action>
         </Actions>
 
         <GraphNodeActions node={node} />
-      </Block>
+      </Region>
 
       <WhySection node={node} edges={edges} titleOf={titleOf} />
 
       {story.isLoading ? (
-        <Loading>Tracing what it connects to.</Loading>
+        <Reading>Tracing what it connects to.</Reading>
       ) : story.isError ? (
-        <Failed onRetry={() => void story.refetch()}>
+        <ReadFailed onRetry={() => void story.refetch()}>
           This node did not trace, so this is not a claim that nothing connects to it.{" "}
           {(story.error as Error)?.message ?? ""}
-        </Failed>
+        </ReadFailed>
       ) : (
         <>
           <SupersessionSection story={supersession} onFocus={onFocus} />
@@ -238,7 +245,7 @@ function WhySection({
   const withReason = ordered.filter((e) => e.rationale).length;
 
   return (
-    <Block
+    <Region
       title="Why it is linked"
       // The different fact, and an honest one: how much of this node's own
       // lineage actually carries a reason, so a thin record reads as thin.
@@ -288,7 +295,7 @@ function WhySection({
           />
         );
       })}
-    </Block>
+    </Region>
   );
 }
 
@@ -302,15 +309,15 @@ function StorySection({
   emptyText: string;
 }) {
   return (
-    <Block title={title}>
+    <Region title={title}>
       {rows.length === 0 ? (
-        <Empty>{emptyText}</Empty>
+        <NothingYet>{emptyText}</NothingYet>
       ) : (
         rows
           .slice(0, 8)
           .map((r) => <Row key={r.id} tight lead={r.peer_title || "Untitled"} sub={r.relation} />)
       )}
-    </Block>
+    </Region>
   );
 }
 
@@ -328,7 +335,7 @@ function SupersessionSection({
 }) {
   if (story.links.length === 0) return null;
   return (
-    <Block
+    <Region
       title="What this replaced"
       // The one fact that matters most goes here rather than as a second
       // paragraph inside: a belief that was itself revised is not current.
@@ -367,6 +374,6 @@ function SupersessionSection({
           />
         );
       })}
-    </Block>
+    </Region>
   );
 }

@@ -35,7 +35,17 @@
 //     failed receipt rather than a red flash and silence.
 import { useState } from "react";
 import { Row } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Actions,
+  Action,
+  Approve,
+  Region,
+  Reading,
+  ReadFailed,
+  NothingYet,
+} from "@/components/meridian/surface-parts";
+import { Field, Input, Textarea } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -48,7 +58,7 @@ import {
   type DesignMemoryRow,
   type DesignMemoryCategory,
 } from "@/lib/design-memory.functions";
-import { Block, Button, Empty, Failed, Field, Input, Loading, Prose, Receipt, Textarea } from "@/components/shell/primitives";
+import { Prose, Receipt } from "@/components/shell/primitives";
 import { ageOf } from "./decisions-shared";
 import { CATEGORY_LABEL, SOURCE_LABEL } from "./design-memory-shared";
 
@@ -184,13 +194,13 @@ export function DesignMemoryPanel() {
           labelOf={(s) => (s === "all" ? "Any status" : STATUS_LABEL[s])}
         />
         <span style={{ flex: 1 }} />
-        <Button
+        <Action
           aria-expanded={addOpen}
           aria-controls="design-memory-composer"
           onClick={() => setAddOpen((o) => !o)}
         >
           {addOpen ? "Close" : "Add design language"}
-        </Button>
+        </Action>
       </div>
 
       {/* IN PLACE, never a dialog. It sits above the list it is about to add
@@ -214,16 +224,16 @@ export function DesignMemoryPanel() {
       ))}
 
       {items.isLoading ? (
-        <Loading>Reading what the design crew treats as settled.</Loading>
+        <Reading>Reading what the design crew treats as settled.</Reading>
       ) : items.isError ? (
-        <Failed onRetry={() => void items.refetch()}>
+        <ReadFailed onRetry={() => void items.refetch()}>
           The design memory did not load. {(items.error as Error).message}
-        </Failed>
+        </ReadFailed>
       ) : rows.length === 0 ? (
-        <Empty action={<Button onClick={() => setAddOpen(true)}>Add design language</Button>}>
+        <NothingYet action={<Action onClick={() => setAddOpen(true)}>Add design language</Action>}>
           Nothing is settled yet. Import a URL, paste a constitution, or start from defaults, and it
           learns the rest from what you approve and reject.
-        </Empty>
+        </NothingYet>
       ) : (
         <>
           {shown.map((d) => (
@@ -238,7 +248,7 @@ export function DesignMemoryPanel() {
           ))}
           {rows.length > VISIBLE_DESIGN_MEMORY ? (
             <Actions>
-              <Button variant="ghost" onClick={() => setShowAll((v) => !v)}>
+              <Action variant="quiet" onClick={() => setShowAll((v) => !v)}>
                 {showAll ? (
                   "Show fewer"
                 ) : (
@@ -246,7 +256,7 @@ export function DesignMemoryPanel() {
                     Show <Num>{rows.length - VISIBLE_DESIGN_MEMORY}</Num> more
                   </>
                 )}
-              </Button>
+              </Action>
             </Actions>
           ) : null}
         </>
@@ -293,14 +303,14 @@ function DesignMemoryRowView({
             // failure, it is the other answer.
             <Actions
               trailing={
-                <Button variant="ghost" disabled={deciding} onClick={() => onDecide("reject")}>
+                <Action variant="quiet" disabled={deciding} onClick={() => onDecide("reject")}>
                   Reject
-                </Button>
+                </Action>
               }
             >
-              <Button variant="primary" disabled={deciding} onClick={() => onDecide("approve")}>
+              <Approve disabled={deciding} onClick={() => onDecide("approve")}>
                 Approve
-              </Button>
+              </Approve>
             </Actions>
           ) : null}
         </div>
@@ -402,7 +412,7 @@ function AddDesignLanguage({
 
   return (
     <div id={id}>
-      <Block
+      <Region
         title="Add design language"
         // Different information from the title, not a restatement of it.
         sub="Every entry lands as a standing decision you approve or reject. Nothing binds into a mockup until you approve it."
@@ -452,12 +462,12 @@ function AddDesignLanguage({
 
         <Actions
           trailing={
-            <Button variant="ghost" onClick={done} disabled={submitting}>
+            <Action variant="quiet" onClick={done} disabled={submitting}>
               Cancel
-            </Button>
+            </Action>
           }
         >
-          <Button
+          <Action
             variant="primary"
             disabled={
               submitting ||
@@ -471,9 +481,9 @@ function AddDesignLanguage({
             }}
           >
             {submitting ? "Working" : "Add"}
-          </Button>
+          </Action>
         </Actions>
-      </Block>
+      </Region>
     </div>
   );
 }

@@ -2279,7 +2279,7 @@ function DecideSurface() {
           cannot show a step that did not happen. Every other pulse on this
           station is gated on a mutation the reader's own click started;
           this one is bound to the run. See use-live-agents.ts. */}
-      <CrewWorking />
+      <CrewWorking station="decide" />
       {/**
        * THE SENTENCE THAT STATES THE MOAT, AND IT HAS TO BE EARNED EVERY TIME.
        *

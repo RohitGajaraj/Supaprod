@@ -25,12 +25,12 @@
  */
 import * as React from "react";
 import { Row } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import { Action, Approve, Num, ReadFailedLine, Region } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Block, Button, Failed, Gate, Receipt } from "@/components/shell/primitives";
+import { Gate, Receipt } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import {
   listTrustGraduationProposals,
@@ -96,11 +96,11 @@ export function TrustGraduationsBlock({
   // differently on each.
   if (q.isError) {
     return (
-      <Block title="Asking for more room">
-        <Failed onRetry={() => void q.refetch()}>
+      <Region title="Asking for more room">
+        <ReadFailedLine onRetry={() => void q.refetch()}>
           The proposals did not load, so nothing below is the real queue.
-        </Failed>
-      </Block>
+        </ReadFailedLine>
+      </Region>
     );
   }
 
@@ -155,17 +155,17 @@ export function TrustGraduationsBlock({
             ...(live.rationale ? [<>{live.rationale}</>] : []),
           ]}
         >
-          <Button variant="primary" disabled={decide.isPending} onClick={() => settle(true)}>
+          <Approve disabled={decide.isPending} onClick={() => settle(true)}>
             Give it the room
-          </Button>
-          <Button disabled={decide.isPending} onClick={() => settle(false)}>
+          </Approve>
+          <Action disabled={decide.isPending} onClick={() => settle(false)}>
             Not yet
-          </Button>
+          </Action>
         </Gate>
       ) : null}
 
       {behind.length > 0 ? (
-        <Block
+        <Region
           title={live ? "Behind it" : "Asking for more room"}
           sub={
             live
@@ -192,10 +192,10 @@ export function TrustGraduationsBlock({
               tight
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
-      {decide.isError ? <Failed>{(decide.error as Error).message}</Failed> : null}
+      {decide.isError ? <ReadFailedLine>{(decide.error as Error).message}</ReadFailedLine> : null}
 
       {/* THE COMMIT. No arrow is drawn: nothing picks this up, it is a standing
           rule from now on, and an arrow to nowhere is worse than no arrow. */}

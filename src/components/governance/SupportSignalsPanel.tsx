@@ -31,7 +31,17 @@
  */
 import { useState } from "react";
 import { Row } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingYet,
+  Num,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Field, Textarea } from "@/components/meridian/forms";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -42,7 +52,7 @@ import {
   draftSupportReply,
   type SupportClusterRow,
 } from "@/lib/support-triage.functions";
-import { Block, Button, Empty, Failed, Field, Loading, Prose, Receipt, Textarea, Value } from "@/components/shell/primitives";
+import { Prose, Receipt } from "@/components/shell/primitives";
 
 /** Plain-words relative time. Mono is applied by the receipt, not here. */
 function ago(iso: string): string | null {
@@ -121,7 +131,7 @@ export function SupportSignalsPanel() {
 
   return (
     <>
-      <Block
+      <Region
         title="Paste what support is hearing"
         sub="One ticket per line. Nothing leaves this workspace until you run the pass."
       >
@@ -135,25 +145,25 @@ export function SupportSignalsPanel() {
           />
         </Field>
         <Actions>
-          <Button
+          <Action
             variant="primary"
             disabled={!wsId || add.isPending || !text.trim()}
             title={!text.trim() ? "Paste at least one ticket first" : undefined}
             onClick={() => add.mutate(text)}
           >
             {add.isPending ? "Adding" : "Add them"}
-          </Button>
-          <Button
+          </Action>
+          <Action
             disabled={!wsId || pass.isPending}
             onClick={() => pass.mutate()}
             title="Groups what is open into recurring themes and sends each one to Discover"
           >
             {pass.isPending ? "Reading them" : "Find the themes"}
-          </Button>
+          </Action>
         </Actions>
-        {add.isError ? <Failed>{(add.error as Error).message}</Failed> : null}
-        {pass.isError ? <Failed>{(pass.error as Error).message}</Failed> : null}
-      </Block>
+        {add.isError ? <ReadFailedLine>{(add.error as Error).message}</ReadFailedLine> : null}
+        {pass.isError ? <ReadFailedLine>{(pass.error as Error).message}</ReadFailedLine> : null}
+      </Region>
 
       {/* What each write actually caused, on the surface, in your own voice. */}
       {landed.map((l, i) =>
@@ -195,24 +205,24 @@ export function SupportSignalsPanel() {
         ),
       )}
 
-      <Block
+      <Region
         title="Recurring themes"
         sub="Each one is a signal in Discover, running the same pipeline as any other."
       >
         {!wsId ? (
-          <Empty>Pick a workspace and its support themes read from there.</Empty>
+          <NothingYet>Pick a workspace and its support themes read from there.</NothingYet>
         ) : clustersQ.isLoading ? (
-          <Loading>Reading what repeats.</Loading>
+          <Reading>Reading what repeats.</Reading>
         ) : clustersQ.isError ? (
-          <Failed onRetry={() => void clustersQ.refetch()}>
+          <ReadFailedLine onRetry={() => void clustersQ.refetch()}>
             {(clustersQ.error as Error)?.message ??
               "The themes did not load, so an empty list here would not mean nothing repeats."}
-          </Failed>
+          </ReadFailedLine>
         ) : clusters.length === 0 ? (
-          <Empty>
+          <NothingYet>
             Nothing repeats yet. Paste tickets above and find the themes; anything said more than
             once becomes a signal in Discover.
-          </Empty>
+          </NothingYet>
         ) : (
           clusters.map((c) => (
             <Row
@@ -241,7 +251,7 @@ export function SupportSignalsPanel() {
             />
           ))
         )}
-      </Block>
+      </Region>
     </>
   );
 }
@@ -268,14 +278,14 @@ function ThemeDetail({
   });
 
   const back = (
-    <Button variant="ghost" onClick={onBack}>
+    <Action variant="quiet" onClick={onBack}>
       All the themes
-    </Button>
+    </Action>
   );
 
   return (
     <>
-      <Block
+      <Region
         title={cluster.theme}
         sub={
           <>
@@ -288,15 +298,15 @@ function ThemeDetail({
         }
       >
         {cluster.subjects.length === 0 ? (
-          <Empty>
+          <NothingYet>
             No subject lines came through on these tickets, so there is nothing to quote.
-          </Empty>
+          </NothingYet>
         ) : (
           cluster.subjects.map((s, i) => <Row key={`${i}-${s}`} lead={s} tight />)
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="A reply you could send"
         sub={
           q.data && !q.data.ai
@@ -305,11 +315,11 @@ function ThemeDetail({
         }
       >
         {q.isLoading ? (
-          <Loading>Assembling it.</Loading>
+          <Reading>Assembling it.</Reading>
         ) : q.isError ? (
-          <Failed onRetry={() => void q.refetch()}>
+          <ReadFailedLine onRetry={() => void q.refetch()}>
             {(q.error as Error)?.message ?? "The reply did not assemble."}
-          </Failed>
+          </ReadFailedLine>
         ) : q.data ? (
           <Prose>
             {q.data.reply.split(/\n{2,}/).map((para, i) => (
@@ -317,9 +327,9 @@ function ThemeDetail({
             ))}
           </Prose>
         ) : null}
-      </Block>
+      </Region>
 
-      <Block>{back}</Block>
+      <Region>{back}</Region>
     </>
   );
 }

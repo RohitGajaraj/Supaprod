@@ -41,7 +41,14 @@
 
 import * as React from "react";
 import { Row } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import {
+  NothingYet,
+  Num,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -49,7 +56,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { getSwarmHud } from "@/lib/swarm.functions";
 import { getAllAgentTrust, type AgentTrust } from "@/lib/trust.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Block, Empty, Failed, Loading, Value } from "@/components/shell/primitives";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 import { ladderLabel, type Arc } from "@/lib/trust-ladder";
 import { TrustDial } from "@/components/cockpit/TrustDial";
@@ -151,9 +157,9 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
 
   if (hud.isLoading && agents.length === 0) {
     return (
-      <Block title="Who is working">
-        <Loading>Reading the crew.</Loading>
-      </Block>
+      <Region title="Who is working">
+        <Reading>Reading the crew.</Reading>
+      </Region>
     );
   }
 
@@ -162,11 +168,11 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
   // differently on each.
   if (hud.isError) {
     return (
-      <Block title="Who is working">
-        <Failed onRetry={() => hud.refetch()}>
+      <Region title="Who is working">
+        <ReadFailedLine onRetry={() => hud.refetch()}>
           The crew did not load, so nothing below would be the real state.
-        </Failed>
-      </Block>
+        </ReadFailedLine>
+      </Region>
     );
   }
 
@@ -191,11 +197,11 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
 
   return (
     <>
-      <Block title="Who is working" sub={census}>
+      <Region title="Who is working" sub={census}>
         {agents.length === 0 ? (
-          <Empty>
+          <NothingYet>
             This account has no agent rows yet. The first mission that needs an agent creates it.
-          </Empty>
+          </NothingYet>
         ) : (
           rows.map((a) => {
             const t = trustById.get(a.agent_id);
@@ -262,7 +268,7 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
             );
           })
         )}
-      </Block>
+      </Region>
 
       {/* The record speaking, across the whole crew at once. Renders nothing
           when every agent sits where its record says it belongs. */}

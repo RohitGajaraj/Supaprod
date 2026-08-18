@@ -49,11 +49,17 @@
 //     between a warning a person can weigh and one they must simply trust.
 import { useState } from "react";
 import { Row } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Action,
+  Region,
+  ReadFailedLine,
+  NothingYet,
+} from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { auditDecision, proposeSupersession } from "@/lib/contradiction-auditor.functions";
-import { Block, Button, Empty, Failed, Loading, Receipt } from "@/components/shell/primitives";
+import { Loading, Receipt } from "@/components/shell/primitives";
 import { Provenance } from "./EvidenceQuality";
 
 export function ContradictionAuditSection({
@@ -112,10 +118,11 @@ export function ContradictionAuditSection({
   const report = audit.data;
 
   return (
-    <Block
+    <Region
       title="Contradiction audit"
-      more={audit.isPending ? undefined : report ? "Read them again" : "Read the prior decisions"}
-      onMore={() => audit.mutate()}
+      act={report ? "Read them again" : "Read the prior decisions"}
+      onAct={() => audit.mutate()}
+      acting={audit.isPending}
     >
       {audit.isPending ? (
         // AN AGENT IS GENUINELY RUNNING, so this is the working indicator rather
@@ -131,10 +138,10 @@ export function ContradictionAuditSection({
           Re-reading the workspace&apos;s decisions.
         </Loading>
       ) : audit.isError ? (
-        <Failed onRetry={() => audit.mutate()}>
+        <ReadFailedLine onRetry={() => audit.mutate()}>
           The audit did not run, so this is not a claim that nothing disagrees.{" "}
           {(audit.error as Error)?.message ?? ""}
-        </Failed>
+        </ReadFailedLine>
       ) : !report ? (
         /* NOTHING IS STANDING, AND THE OLD COPY SAID IT WAS.
            "A standing auditor re-reads the workspace's decisions" describes a
@@ -146,11 +153,13 @@ export function ContradictionAuditSection({
            So: who runs it, when it runs, and what it costs, in the reader's
            terms. It names the control by the words printed on it rather than
            describing a feature, because that is how somebody finds it. */
-        <Empty action={<Button onClick={() => audit.mutate()}>Read the prior decisions</Button>}>
+        <NothingYet
+          action={<Action onClick={() => audit.mutate()}>Read the prior decisions</Action>}
+        >
           Nothing has been checked yet. Press <b>Read the prior decisions</b> and an agent reads
           every earlier call in this workspace against this one, then names any that disagree and
           why. It runs when you ask it to, and not before.
-        </Empty>
+        </NothingYet>
       ) : report.scanned === 0 ? (
         /* ZERO READS IS NOT A CLEAN BILL OF HEALTH.
            This branch used to fall through to the one below and print "Nothing
@@ -159,10 +168,10 @@ export function ContradictionAuditSection({
            On every account with one settled call, which is every account at the
            first moment anybody would open this, that was the ONLY thing it
            could say. An audit over an empty set has no verdict in it. */
-        <Empty>
+        <NothingYet>
           There is no earlier call to read this one against. This is the first on the record, so
           nothing can disagree with it yet. Settle another and this becomes worth running.
-        </Empty>
+        </NothingYet>
       ) : report.count === 0 ? (
         <p className="sp-loading">
           Nothing disagrees. Read <Num>{report.scanned}</Num> prior{" "}
@@ -203,7 +212,7 @@ export function ContradictionAuditSection({
                       Superseded
                     </span>
                   ) : (
-                    <Button
+                    <Action
                       disabled={pending}
                       onClick={() =>
                         propose.mutate({ supersededId: item.decisionId, title: item.title })
@@ -211,7 +220,7 @@ export function ContradictionAuditSection({
                       title="Record that this decision supersedes the earlier one"
                     >
                       {pending ? "Recording" : "Supersede it"}
-                    </Button>
+                    </Action>
                   )
                 }
               />
@@ -223,6 +232,6 @@ export function ContradictionAuditSection({
       {settled.map((s) => (
         <Receipt key={s.id} verb={s.verb} consequence={s.consequence} failed={s.failed} />
       ))}
-    </Block>
+    </Region>
   );
 }

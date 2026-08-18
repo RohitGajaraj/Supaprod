@@ -22,14 +22,19 @@
  */
 import { useServerFn } from "@tanstack/react-start";
 import { Line } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import {
+  NothingYet,
+  Num,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getBoundary } from "@/lib/governance.functions";
 import type { BoundaryTool } from "@/lib/governance.functions";
-import { Block, Empty, Failed, Loading } from "@/components/shell/primitives";
 
 /**
  * THE ONE TOOL RULE THIS COMPONENT RESTATES, AND THE ONLY ONE.
@@ -77,22 +82,22 @@ export function BoundaryStatement() {
   const never = bd?.never.length ?? 0;
 
   return (
-    <Block
+    <Region
       title="What your crew may do alone"
       sub="Set once, on the boundary. Moving one never interrupts work that is already running."
-      more="Open the boundary"
-      onMore={() => void navigate({ to: "/boundary" })}
+      goTo="Open the boundary"
+      onGoTo={() => void navigate({ to: "/boundary" })}
     >
       {boundaryQ.isLoading ? (
-        <Loading>Reading what your crew is allowed to do.</Loading>
+        <Reading>Reading what your crew is allowed to do.</Reading>
       ) : boundaryQ.isError ? (
-        <Failed onRetry={() => void boundaryQ.refetch()}>
+        <ReadFailedLine onRetry={() => void boundaryQ.refetch()}>
           The boundary did not load, so no count here would be the real one.
-        </Failed>
+        </ReadFailedLine>
       ) : alone + asks + never === 0 ? (
-        <Empty>
+        <NothingYet>
           No tools are switched on for this account yet, so there is nothing to allow or refuse.
-        </Empty>
+        </NothingYet>
       ) : (
         <>
           <Line
@@ -143,6 +148,6 @@ export function BoundaryStatement() {
           ) : null}
         </>
       )}
-    </Block>
+    </Region>
   );
 }

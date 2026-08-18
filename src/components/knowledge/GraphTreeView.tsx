@@ -27,13 +27,19 @@
  */
 import { useState } from "react";
 import { Row } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Action,
+  Region,
+  Reading,
+  ReadFailed,
+  NothingYet,
+} from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getLineageTree, computeTreeStats } from "@/lib/knowledge-graph-explorer.functions";
 import { type ArtifactKind } from "@/lib/lineage.functions";
 import type { LineageNode } from "@/lib/knowledge-graph-explorer";
-import { Block, Button, Empty, Failed, Loading } from "@/components/shell/primitives";
 import { kindLabel } from "./graph-visual";
 
 function TreeNodeRenderer({ node }: { node: LineageNode }) {
@@ -114,34 +120,34 @@ export function GraphTreeView({
 
   if (!enabled) {
     return (
-      <Empty
+      <NothingYet
         action={
           onOpenCanvas ? (
-            <Button variant="primary" onClick={onOpenCanvas}>
+            <Action variant="primary" onClick={onOpenCanvas}>
               Pick a starting point
-            </Button>
+            </Action>
           ) : undefined
         }
       >
         Nothing is centred yet. Choose one piece of work and this outlines everything that came out
         of it, in order, with the reason each step was drawn and who drew it.
-      </Empty>
+      </NothingYet>
     );
   }
-  if (tree.isLoading) return <Loading>Tracing what came out of it.</Loading>;
+  if (tree.isLoading) return <Reading>Tracing what came out of it.</Reading>;
   if (tree.isError) {
     return (
-      <Failed onRetry={() => void tree.refetch()}>
+      <ReadFailed onRetry={() => void tree.refetch()}>
         The lineage did not load, so this is not a claim that nothing came out of this node.{" "}
         {(tree.error as Error).message}
-      </Failed>
+      </ReadFailed>
     );
   }
   if (!tree.data) return null;
 
   const stats = computeTreeStats(tree.data);
   return (
-    <Block
+    <Region
       title="Everything downstream"
       // One honest line rather than three competing statistics. The tree below
       // already shows the shape; this says how far it reaches.
@@ -153,6 +159,6 @@ export function GraphTreeView({
       }
     >
       <TreeNodeRenderer node={tree.data} />
-    </Block>
+    </Region>
   );
 }

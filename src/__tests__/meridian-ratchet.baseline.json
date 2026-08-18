@@ -5,8 +5,8 @@
     "It only ever moves DOWN. A file absent from this list must be clean.",
     "Do not hand-edit; do not regenerate to silence a failure."
   ],
-  "totalOccurrences": 6804,
-  "fileCount": 295,
+  "totalOccurrences": 6614,
+  "fileCount": 308,
   "files": {
     "src/components/admin/admin-ui.tsx": {
       "--text-": 2,
@@ -30,19 +30,27 @@
     },
     "src/components/agents/AgentRelay.tsx": {
       "--sp-": 7,
+      "class:sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 1
+    },
+    "src/components/approvals/SendBack.tsx": {
+      "class:sp-": 12
     },
     "src/components/ask/Answer.tsx": {
       "import:shell/primitives": 1,
       "usage:shell/primitives": 1
+    },
+    "src/components/ask/AskDock.tsx": {
+      "class:sp-": 7
     },
     "src/components/ask/AskGateCard.tsx": {
       "import:shell/primitives": 1,
       "usage:shell/primitives": 5
     },
     "src/components/ask/AskLanding.tsx": {
-      "--sp-": 15
+      "--sp-": 15,
+      "class:sp-": 1
     },
     "src/components/ask/AskPane.tsx": {
       "--sp-": 44,
@@ -51,16 +59,19 @@
     },
     "src/components/ask/AskRunCard.tsx": {
       "--sp-": 2,
+      "class:sp-": 4,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 8
     },
     "src/components/ask/AskSwitcher.tsx": {
       "--sp-": 5,
+      "class:sp-": 1,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 4
     },
     "src/components/ask/AskTurn.tsx": {
       "--sp-": 11,
+      "class:sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 4
     },
@@ -68,7 +79,11 @@
       "--sp-": 19
     },
     "src/components/ask/SuggestionRail.tsx": {
-      "--sp-": 1
+      "--sp-": 1,
+      "class:sp-": 11
+    },
+    "src/components/ask/Working.tsx": {
+      "class:sp-": 4
     },
     "src/components/billing/BillingBanner.tsx": {
       "--text-": 4,
@@ -86,7 +101,8 @@
       "raw-colour": 6
     },
     "src/components/billing/PlanPicker.tsx": {
-      "--sp-": 27
+      "--sp-": 27,
+      "class:sp-": 5
     },
     "src/components/billing/StripeEmbeddedCheckout.tsx": {
       "--hairline": 1,
@@ -99,6 +115,7 @@
       "raw-colour": 1
     },
     "src/components/billing/WorkspaceClaimCard.tsx": {
+      "class:sp-": 1,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 30
     },
@@ -107,6 +124,7 @@
       "--hairline": 3
     },
     "src/components/build/HeldClaims.tsx": {
+      "class:sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 3
     },
@@ -129,11 +147,13 @@
     },
     "src/components/connections/AccountConnectionsSection.tsx": {
       "--sp-": 4,
+      "class:sp-": 8,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 38
     },
     "src/components/connections/BindingPicker.tsx": {
       "--madder": 1,
+      "class:sp-": 1,
       "import:components/ui": 2,
       "usage:components/ui": 9
     },
@@ -158,11 +178,13 @@
       "--hairline": 1
     },
     "src/components/connections/WorkspaceBindingsSection.tsx": {
+      "class:sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 5
     },
     "src/components/decisions/queue-instruments.tsx": {
       "--sp-": 27,
+      "class:sp-": 1,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 1
     },
@@ -177,15 +199,18 @@
     },
     "src/components/discover/DetailKit.tsx": {
       "--sp-": 4,
+      "class:sp-": 6,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 1
     },
     "src/components/discover/DiscoverSurface.tsx": {
+      "class:sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 44
     },
     "src/components/discover/OpportunityDetailSheet.tsx": {
       "--sp-": 26,
+      "class:sp-": 1,
       "import:shell/primitives": 1,
       "import:components/ui": 2,
       "usage:components/ui": 14,
@@ -213,103 +238,105 @@
       "--hairline": 1,
       "--madder": 2
     },
-    "src/components/governance/AgentRosterPanel.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 7
-    },
     "src/components/governance/ApprovalsPanel.tsx": {
+      "class:sp-": 1,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 17
-    },
-    "src/components/governance/BoundaryStatement.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 4
+      "usage:shell/primitives": 3
     },
     "src/components/governance/BudgetsPanel.tsx": {
       "--sp-": 2,
+      "class:sp-": 1,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 37
+      "usage:shell/primitives": 2
     },
     "src/components/governance/ControlsPanel.tsx": {
       "--sp-": 9,
+      "class:sp-": 7,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 40
+      "usage:shell/primitives": 2
     },
     "src/components/governance/CriticBadge.tsx": {
       "--sp-": 1,
+      "class:sp-": 1,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 15
+      "usage:shell/primitives": 9
     },
     "src/components/governance/EvalsPanel.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 25
+      "usage:shell/primitives": 2
     },
     "src/components/governance/EvalSuiteDetail.tsx": {
+      "class:sp-": 4,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 64
+      "usage:shell/primitives": 8
+    },
+    "src/components/governance/GovernedWriteNote.tsx": {
+      "class:sp-": 1
     },
     "src/components/governance/GuardrailsPanel.tsx": {
       "--sp-": 2,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 42
+      "usage:shell/primitives": 2
     },
     "src/components/governance/HouseRulesPanel.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 19
-    },
-    "src/components/governance/IncidentsPanel.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 5
-    },
-    "src/components/governance/InjectionDefenseCard.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 11
+      "usage:shell/primitives": 2
     },
     "src/components/governance/PromptsPanel.tsx": {
       "--sp-": 2,
+      "class:sp-": 2,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 48
+      "usage:shell/primitives": 3
     },
     "src/components/governance/SupportSignalsPanel.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 24
+      "usage:shell/primitives": 3
     },
     "src/components/governance/TrustGraduations.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 8
+      "usage:shell/primitives": 2
     },
     "src/components/knowledge/BriefPanel.tsx": {
       "--sp-": 17,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 14
+      "usage:shell/primitives": 1
     },
     "src/components/knowledge/CompoundingPanel.tsx": {
       "--sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 4
+      "class:sp-": 2
     },
     "src/components/knowledge/ContradictionAuditSection.tsx": {
+      "class:sp-": 3,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 8
+      "usage:shell/primitives": 2
     },
     "src/components/knowledge/DecisionDetail.tsx": {
+      "class:sp-": 3,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 27
+      "usage:shell/primitives": 3
+    },
+    "src/components/knowledge/decisions-shared.ts": {
+      "class:sp-": 2
     },
     "src/components/knowledge/DecisionsPanel.tsx": {
       "--sp-": 2,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 26
+      "usage:shell/primitives": 1
+    },
+    "src/components/knowledge/design-memory-shared.ts": {
+      "class:sp-": 2
     },
     "src/components/knowledge/DesignMemoryPanel.tsx": {
       "--sp-": 2,
+      "class:sp-": 2,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 18
+      "usage:shell/primitives": 3
     },
     "src/components/knowledge/DocsPanel.tsx": {
       "--sp-": 2,
+      "class:sp-": 3,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 40
+      "usage:shell/primitives": 2
     },
     "src/components/knowledge/graph-visual.ts": {
       "--sp-": 6,
@@ -317,46 +344,46 @@
     },
     "src/components/knowledge/GraphCanvasView.tsx": {
       "--sp-": 13,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 6
+      "class:sp-": 6
     },
     "src/components/knowledge/GraphCompoundingStrip.tsx": {
-      "--sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 13
+      "--sp-": 1
     },
     "src/components/knowledge/GraphForceCanvas.tsx": {
       "--sp-": 19,
       "--text-": 4,
       "--madder": 1,
+      "class:sp-": 3,
       "raw-colour": 17
     },
     "src/components/knowledge/GraphNodeActions.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 5
+      "usage:shell/primitives": 1
     },
     "src/components/knowledge/GraphNodeStory.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 10
+      "class:sp-": 6
+    },
+    "src/components/knowledge/GraphPanel.tsx": {
+      "class:sp-": 2
     },
     "src/components/knowledge/GraphRecordRegions.tsx": {
       "--sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 9
+      "class:sp-": 3
     },
     "src/components/knowledge/GraphTreeView.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 5
+      "class:sp-": 1
     },
     "src/components/knowledge/GraphUniverseCanvas.tsx": {
       "--sp-": 17,
       "--text-": 1,
       "--madder": 1,
+      "class:sp-": 2,
       "raw-colour": 28
     },
     "src/components/knowledge/LearningDetail.tsx": {
+      "class:sp-": 2,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 18
+      "usage:shell/primitives": 1
     },
     "src/components/landing/FilmPlayer.tsx": {
       "raw-colour": 22
@@ -411,13 +438,10 @@
     "src/components/landing/WaitlistForm.tsx": {
       "raw-colour": 7
     },
-    "src/components/learn/ForecastDeskPanel.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 9
-    },
     "src/components/learn/SettlePanel.tsx": {
+      "class:sp-": 2,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 23
+      "usage:shell/primitives": 1
     },
     "src/components/machine/MachineViewContainer.tsx": {
       "raw-colour": 9
@@ -425,11 +449,14 @@
     "src/components/memory/MemoryList.tsx": {
       "--sp-": 3,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 7
+      "usage:shell/primitives": 2
     },
     "src/components/memory/MemoryReviewQueue.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 12
+      "usage:shell/primitives": 2
+    },
+    "src/components/meridian/Surface.tsx": {
+      "class:sp-": 4
     },
     "src/components/mission/composer/ComposerOverlay.tsx": {
       "raw-colour": 1
@@ -451,35 +478,35 @@
       "--madder": 8,
       "--glacier": 3,
       "--raised": 4,
+      "class:sp-": 5,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 4
     },
     "src/components/observe/AgentSpendDetail.tsx": {
       "--sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 16
+      "class:sp-": 3
     },
     "src/components/observe/AnalyticsPanel.tsx": {
+      "class:sp-": 8,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 61
+      "usage:shell/primitives": 6
     },
     "src/components/observe/DriftPanel.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 14
-    },
-    "src/components/observe/DriftSurfaceDetail.tsx": {
-      "--sp-": 4,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 19
-    },
-    "src/components/observe/EvalScoreChips.tsx": {
-      "--sp-": 4,
+      "class:sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 1
     },
-    "src/components/observe/GauntletMetricsPanel.tsx": {
+    "src/components/observe/DriftSurfaceDetail.tsx": {
+      "--sp-": 1,
+      "class:sp-": 3,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 21
+      "usage:shell/primitives": 1
+    },
+    "src/components/observe/EvalScoreChips.tsx": {
+      "--sp-": 4,
+      "class:sp-": 1,
+      "import:shell/primitives": 1,
+      "usage:shell/primitives": 1
     },
     "src/components/obsidian/ask-canvas.tsx": {
       "--text-": 8,
@@ -568,6 +595,7 @@
     },
     "src/components/plan/BetCard.tsx": {
       "--sp-": 33,
+      "class:sp-": 4,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 4
     },
@@ -585,13 +613,24 @@
       "raw-colour": 4
     },
     "src/components/prds/RewindButton.tsx": {
-      "--sp-": 15
+      "--sp-": 15,
+      "class:sp-": 1
     },
     "src/components/prds/SpecProse.tsx": {
-      "--sp-": 65
+      "--sp-": 65,
+      "class:sp-": 1
     },
     "src/components/product/DesignScaffoldPanel.tsx": {
       "--madder": 4
+    },
+    "src/components/product/FlowDiagram.tsx": {
+      "class:sp-": 1
+    },
+    "src/components/product/IntentVsBuiltReceipt.tsx": {
+      "class:sp-": 1
+    },
+    "src/components/product/OutcomeContractPanel.tsx": {
+      "class:sp-": 5
     },
     "src/components/product/RoadmapHistory.tsx": {
       "--hairline": 1,
@@ -607,13 +646,18 @@
       "--hairline": 3,
       "--madder": 2
     },
+    "src/components/runs/RunBoard.tsx": {
+      "class:sp-": 1
+    },
     "src/components/settings/DataSection.tsx": {
       "--sp-": 3,
+      "class:sp-": 1,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 15
     },
     "src/components/settings/DiagnosticsSection.tsx": {
       "--sp-": 2,
+      "class:sp-": 4,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 11
     },
@@ -624,6 +668,7 @@
     },
     "src/components/settings/MembersCard.tsx": {
       "--sp-": 4,
+      "class:sp-": 1,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 9
     },
@@ -653,9 +698,28 @@
     "src/components/shell/agent-glyphs.tsx": {
       "--sp-": 8
     },
+    "src/components/shell/AgentPulse.tsx": {
+      "class:sp-": 7
+    },
     "src/components/shell/AppFrame.tsx": {
       "--sp-": 4,
+      "class:sp-": 58,
       "raw-colour": 1
+    },
+    "src/components/shell/BoardPanel.tsx": {
+      "class:sp-": 7
+    },
+    "src/components/shell/CrewWorking.tsx": {
+      "class:sp-": 1
+    },
+    "src/components/shell/primitives.tsx": {
+      "class:sp-": 92
+    },
+    "src/components/shell/ScopeMenu.tsx": {
+      "class:sp-": 18
+    },
+    "src/components/shell/ShortcutSheet.tsx": {
+      "class:sp-": 15
     },
     "src/components/ship/WhatShipped.tsx": {
       "import:shell/primitives": 1,
@@ -670,13 +734,18 @@
       "usage:shell/primitives": 10
     },
     "src/components/spine/TrackStart.tsx": {
+      "class:sp-": 1,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 16
     },
     "src/components/studio/ChangesPanel.tsx": {
       "--sp-": 12,
+      "class:sp-": 10,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 24
+    },
+    "src/components/studio/CodeDiff.tsx": {
+      "class:sp-": 29
     },
     "src/components/studio/PreviewPanel.tsx": {
       "--text-": 2,
@@ -689,6 +758,7 @@
       "usage:components/ui": 10
     },
     "src/components/studio/RunReturn.tsx": {
+      "class:sp-": 3,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 8
     },
@@ -699,6 +769,9 @@
       "--ds-": 4,
       "--text-": 1,
       "--madder": 1
+    },
+    "src/components/supaprod/AuditLineageSheet.tsx": {
+      "class:sp-": 45
     },
     "src/components/supaprod/AuditTag.tsx": {
       "--text-": 4,
@@ -804,6 +877,7 @@
       "usage:shell/primitives": 5
     },
     "src/components/trust/ReceiptDetailSheet.tsx": {
+      "class:sp-": 1,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 23
     },
@@ -941,6 +1015,7 @@
       "usage:shell/primitives": 6
     },
     "src/routes/_authenticated.admin.index.tsx": {
+      "class:sp-": 6,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 14
     },
@@ -958,10 +1033,12 @@
     "src/routes/_authenticated.admin.observability.tsx": {
       "--sp-": 2,
       "--text-": 1,
+      "class:sp-": 8,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 31
     },
     "src/routes/_authenticated.admin.people.tsx": {
+      "class:sp-": 4,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 36
     },
@@ -971,6 +1048,7 @@
       "usage:shell/primitives": 34
     },
     "src/routes/_authenticated.admin.pricing.tsx": {
+      "class:sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 30
     },
@@ -990,6 +1068,7 @@
       "usage:shell/primitives": 2
     },
     "src/routes/_authenticated.admin.workspaces.tsx": {
+      "class:sp-": 1,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 25
     },
@@ -999,14 +1078,17 @@
     },
     "src/routes/_authenticated.build.index.tsx": {
       "--sp-": 4,
+      "class:sp-": 3,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 25
     },
     "src/routes/_authenticated.decide.tsx": {
+      "class:sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 47
     },
     "src/routes/_authenticated.design.tsx": {
+      "class:sp-": 1,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 53
     },
@@ -1014,16 +1096,13 @@
       "import:shell/primitives": 1,
       "usage:shell/primitives": 5
     },
-    "src/routes/_authenticated.learn.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 26
-    },
     "src/routes/_authenticated.plan.index.tsx": {
       "import:shell/primitives": 1,
       "usage:shell/primitives": 21
     },
     "src/routes/_authenticated.plan.spec.$id.tsx": {
       "--sp-": 6,
+      "class:sp-": 6,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 54
     },
@@ -1033,20 +1112,24 @@
     },
     "src/routes/_authenticated.settings.tsx": {
       "--sp-": 34,
+      "class:sp-": 9,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 98
     },
     "src/routes/_authenticated.ship.tsx": {
       "--sp-": 5,
+      "class:sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 60
     },
     "src/routes/_authenticated.sync.tsx": {
+      "class:sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 29
     },
     "src/routes/_authenticated.threads.tsx": {
       "--sp-": 10,
+      "class:sp-": 7,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 24
     },
@@ -1062,6 +1145,7 @@
       "--text-": 5,
       "--hairline": 1,
       "data-obsidian": 5,
+      "class:sp-": 1,
       "raw-colour": 5
     },
     "src/routes/api/public/connect/figma/callback.ts": {
@@ -1226,11 +1310,13 @@
     },
     "src/styles/primitives.css": {
       "--sp-": 514,
-      "data-obsidian": 3
+      "data-obsidian": 3,
+      "class:sp-": 8
     },
     "src/styles/shell.css": {
       "--sp-": 26,
       "--hairline": 1,
+      "class:sp-": 10,
       "raw-colour": 1
     },
     "src/styles/today.css": {

@@ -44,7 +44,17 @@
  */
 import { useMemo, useState } from "react";
 import { Row } from "@/components/meridian/rows";
-import { Num, Door } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Door,
+  Action,
+  Region,
+  Reading,
+  ReadFailed,
+  NothingHere,
+  NothingYet,
+} from "@/components/meridian/surface-parts";
+import { Choices } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -59,7 +69,6 @@ import {
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { outcomeLabel } from "./graph-visual";
 import { nodeDoor } from "./graph-doors";
-import { Block, Button, Choices, Empty, Failed, Loading } from "@/components/shell/primitives";
 
 const VERDICT_CHOICES: { id: OutcomeVerdict; label: string; title: string }[] = [
   { id: "missed", label: "Did not pay off", title: "Outcomes the record scored as a miss" },
@@ -161,14 +170,14 @@ export function GraphRecordRegions({
    * See `readStatedAbove`.
    */
   if (graphQ.isLoading) {
-    return readStatedAbove ? null : <Loading>Reading what this view can answer.</Loading>;
+    return readStatedAbove ? null : <Reading>Reading what this view can answer.</Reading>;
   }
   if (graphQ.isError && !graph) {
     return readStatedAbove ? null : (
-      <Failed onRetry={() => void graphQ.refetch()}>
+      <ReadFailed onRetry={() => void graphQ.refetch()}>
         This did not load, so it is not a claim that nothing here has an outcome or a revision.{" "}
         {(graphQ.error as Error)?.message ?? ""}
-      </Failed>
+      </ReadFailed>
     );
   }
   if (!graph) return null;
@@ -209,12 +218,12 @@ export function GraphRecordRegions({
    */
   if (scored === 0 && changes.length === 0) {
     return (
-      <Block title="What this view will answer, once an outcome comes back">
-        <Empty
+      <Region title="What this view will answer, once an outcome comes back">
+        <NothingYet
           action={
-            <Button variant="primary" onClick={() => navigate({ to: "/learn" })}>
+            <Action variant="primary" onClick={() => navigate({ to: "/learn" })}>
               Record an outcome
-            </Button>
+            </Action>
           }
         >
           Nothing drawn here carries a verdict yet, and no belief here has been revised. Both come
@@ -230,15 +239,15 @@ export function GraphRecordRegions({
             it missed. This view then names every call that led to it, in order, and marks any
             belief that outcome overturned, with the reason and the agent that wrote it.
           </span>
-        </Empty>
-      </Block>
+        </NothingYet>
+      </Region>
     );
   }
 
   return (
     <>
       {scored > 0 ? (
-        <Block
+        <Region
           title="How the bets in view turned out"
           sub={
             <>
@@ -248,13 +257,16 @@ export function GraphRecordRegions({
           }
         >
           <Choices
+            mode="one"
             label="Which outcomes to trace back"
             value={verdict}
             options={VERDICT_CHOICES}
-            onPick={setVerdict}
+            onChange={setVerdict}
           />
           {trails.length === 0 ? (
-            <Empty>Nothing in view came back that way. The verdicts here say something else.</Empty>
+            <NothingHere>
+              Nothing in view came back that way. The verdicts here say something else.
+            </NothingHere>
           ) : (
             trails.slice(0, 6).map((trail) => {
               const [kind, id] = splitKey(trail.outcomeKey);
@@ -313,11 +325,11 @@ export function GraphRecordRegions({
               );
             })
           )}
-        </Block>
+        </Region>
       ) : null}
 
       {changes.length > 0 ? (
-        <Block
+        <Region
           title="Where the thinking changed"
           sub={
             <>
@@ -367,7 +379,7 @@ export function GraphRecordRegions({
               }
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
     </>
   );

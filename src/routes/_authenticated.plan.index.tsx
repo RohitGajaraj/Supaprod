@@ -236,7 +236,7 @@ export const Route = createFileRoute("/_authenticated/plan/")({
             cannot show a step that did not happen. Every other pulse on this
             station is gated on a mutation the reader's own click started;
             this one is bound to the run. See use-live-agents.ts. */}
-        <CrewWorking />
+        <CrewWorking station="define" />
         <PageHead
           title="The plan did not load."
           sub={(error as Error)?.message ?? "No reason was reported."}
@@ -700,7 +700,7 @@ function PlanPage() {
           N" per agent, which is a COUNT; this says the sentence the running
           mission is on. Renders nothing unless an agent is genuinely mid-run.
           See use-live-agents.ts. */}
-      <CrewWorking />
+      <CrewWorking station="define" />
       <PageHead
         title={headline}
         sub="Every bet names the outcome it promises and how that outcome gets measured."

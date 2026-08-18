@@ -35,7 +35,16 @@
  */
 import { useMemo, useEffect, useState } from "react";
 import { Row } from "@/components/meridian/rows";
-import { Actions } from "@/components/meridian/surface-parts";
+import {
+  Actions,
+  Action,
+  Approve,
+  Region,
+  Reading,
+  ReadFailed,
+  NothingHere,
+} from "@/components/meridian/surface-parts";
+import { Field, Textarea } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
@@ -49,7 +58,7 @@ import {
 } from "@/lib/memory-candidates.functions";
 import { sourceLabel, supersedesPreview, willSupersede } from "@/lib/memory-candidates";
 import { relativeTime } from "@/lib/memory-view";
-import { Block, Button, Empty, Failed, Field, Gate, Loading, Receipt, Textarea } from "@/components/shell/primitives";
+import { Gate, Receipt } from "@/components/shell/primitives";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
 
 /** Who put this in front of you. The table has a source_kind and nothing else,
@@ -183,8 +192,9 @@ export function MemoryReviewQueue() {
 
   return (
     <div>
-      <Field label="Something every future run should know">
+      <Field label="Something every future run should know" htmlFor="memory-candidate-draft">
         <Textarea
+          id="memory-candidate-draft"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="e.g. Our ICP is seed-stage B2B founders, not enterprise buyers."
@@ -193,9 +203,9 @@ export function MemoryReviewQueue() {
         />
       </Field>
       <Actions>
-        <Button disabled={!canSave} onClick={() => propose.mutate(draft.trim())}>
+        <Action disabled={!canSave} onClick={() => propose.mutate(draft.trim())}>
           {propose.isPending ? "Saving" : "Save for review"}
-        </Button>
+        </Action>
       </Actions>
 
       {/* A READ IN FLIGHT IS NOT AN EMPTY QUEUE, and this rendered `null` for
@@ -205,9 +215,11 @@ export function MemoryReviewQueue() {
           matters here, because an empty queue means they are done and a slow
           one means they are not. Loading is the third fact and it says so. */}
       {queue.isLoading ? (
-        <Loading>Reading what is waiting on you.</Loading>
+        <Reading>Reading what is waiting on you.</Reading>
       ) : queue.isError ? (
-        <Failed onRetry={() => void queue.refetch()}>{(queue.error as Error).message}</Failed>
+        <ReadFailed onRetry={() => void queue.refetch()}>
+          {(queue.error as Error).message}
+        </ReadFailed>
       ) : focused ? (
         <Gate
           question={focused.content}
@@ -225,29 +237,28 @@ export function MemoryReviewQueue() {
               : []),
           ]}
         >
-          <Button
-            variant="primary"
+          <Approve
             disabled={decide.isPending}
             onClick={() => decide.mutate({ row: focused, decision: "approve" })}
           >
             Let it in
-          </Button>
-          <Button
+          </Approve>
+          <Action
             disabled={decide.isPending}
             onClick={() => decide.mutate({ row: focused, decision: "reject" })}
           >
             Keep it out
-          </Button>
+          </Action>
         </Gate>
       ) : (
-        <Empty>
+        <NothingHere>
           Nothing is waiting on you. Anything you save above, and anything the crew proposes from a
           run, lands here before it reaches the record.
-        </Empty>
+        </NothingHere>
       )}
 
       {receipts.length > 0 ? (
-        <Block title="What you settled">
+        <Region title="What you settled">
           {receipts.map((r, i) => (
             <Receipt
               key={`${r.id}-${i}`}
@@ -258,11 +269,11 @@ export function MemoryReviewQueue() {
               initials={initials}
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
       {rest.length > 0 ? (
-        <Block title="Also waiting">
+        <Region title="Also waiting">
           {rest.map((c) => (
             <Row
               key={c.id}
@@ -280,7 +291,7 @@ export function MemoryReviewQueue() {
               onClick={() => setFocusedId(c.id)}
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
     </div>
   );

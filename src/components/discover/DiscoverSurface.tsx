@@ -1907,7 +1907,7 @@ export function DiscoverSurface({
           touches signals, themes and lineage and writes no mission row at all,
           so pressing "Cluster them now" is still reported by the button's own
           label and nothing else. See use-live-agents.ts. */}
-      <CrewWorking />
+      <CrewWorking station="sense" />
       <PageHeading
         title={headline}
         sub={

@@ -60,7 +60,13 @@
  */
 import { useServerFn } from "@tanstack/react-start";
 import { Row } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Reading,
+  ReadFailed,
+  NothingYet,
+  RecordSpeaks,
+} from "@/components/meridian/surface-parts";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { getCompounding } from "@/lib/today.functions";
@@ -68,7 +74,6 @@ import { listLearnings } from "@/lib/outcome.functions";
 import { describeCompounding } from "@/lib/moat-vis";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { Empty, Failed, Loading, Record as RecordRecess } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { Provenance } from "./EvidenceQuality";
 
@@ -141,28 +146,28 @@ export function CompoundingPanel() {
    * exact confusion the three primitives exist to prevent. Loading is the third
    * fact and it says so in words.
    */
-  if (q.isLoading || lq.isLoading) return <Loading>Reading what the outcomes taught.</Loading>;
+  if (q.isLoading || lq.isLoading) return <Reading>Reading what the outcomes taught.</Reading>;
 
   // A load failure must read as a failure, not as "the loop produced nothing".
   if (q.isError || lq.isError) {
     return (
-      <Failed
+      <ReadFailed
         onRetry={() => {
           void q.refetch();
           void lq.refetch();
         }}
       >
         {((q.error ?? lq.error) as Error)?.message ?? "The learnings did not load."}
-      </Failed>
+      </ReadFailed>
     );
   }
 
   if (!learnings.length) {
     return (
-      <Empty>
+      <NothingYet>
         No outcomes recorded yet. When you record what a shipped bet actually did, the memo lands
         here and memory re-ranks the priority it touched.
-      </Empty>
+      </NothingYet>
     );
   }
 
@@ -172,7 +177,7 @@ export function CompoundingPanel() {
           memory re-scored, the evidence counts what is listed below, so the two
           can never read as a contradiction. */}
       {headline ? (
-        <RecordRecess
+        <RecordSpeaks
           evidence={
             <>
               <Num>{learnings.length}</Num>
@@ -182,7 +187,7 @@ export function CompoundingPanel() {
           }
         >
           {headline}
-        </RecordRecess>
+        </RecordSpeaks>
       ) : null}
 
       <div style={{ marginTop: "var(--sp-space-4)" }}>

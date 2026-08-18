@@ -40,7 +40,20 @@
  */
 import { useServerFn } from "@tanstack/react-start";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingYet,
+  Num,
+  Picker,
+  ReadFailed,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Toggle,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Checkbox, Field, Input, Textarea } from "@/components/meridian/forms";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useConfirm } from "@/hooks/use-confirm";
@@ -58,8 +71,7 @@ import { humanWriteError } from "@/lib/roles.functions";
 import { useGovernedWrite } from "@/hooks/use-workspace-role";
 import { GovernedWriteNote } from "./GovernedWriteNote";
 import { relTime } from "@/components/product/format";
-import { Block, Button, Checkbox, Empty, Failed, Field, Input, Loading, Pre, Receipt, Select, Switch, Textarea, Value } from "@/components/shell/primitives";
-import type { GovTone } from "./governance-shared";
+import { Pre, Receipt } from "@/components/shell/primitives";
 
 type Kind = "regex" | "keyword" | "pii" | "injection" | "secret";
 type Action = "block" | "warn" | "redact";
@@ -101,10 +113,15 @@ const APPLIES_PHRASE: Record<Applies, string> = {
 };
 
 /** What each action costs the call it fires on. Different information from the
- *  word itself, which is what keeps the second line honest (hard ban 10). */
-const ACTION_TONE: Record<string, GovTone> = {
+ *  word itself, which is what keeps the second line honest (hard ban 10).
+ *
+ *  NOT `GovTone`: that type still carries the retired layer's `warn`, and
+ *  Meridian has five status words and `warn` is not one of them. A rule that
+ *  let the call through and wrote it down has stopped nothing and reported no
+ *  outcome, which is what the amber `hold` says. */
+const ACTION_TONE: Record<string, "quiet" | "pass" | "fail" | "hold" | "agent"> = {
   block: "fail",
-  warn: "warn",
+  warn: "hold",
   redact: "quiet",
 };
 
@@ -274,20 +291,14 @@ export function GuardrailsPanel() {
 
   if (overview.isError) {
     return (
-      <Block>
-        <Failed onRetry={() => void overview.refetch()}>
-          The rules did not load, so nothing below would be the real boundary.
-        </Failed>
-      </Block>
+      <ReadFailed onRetry={() => void overview.refetch()}>
+        The rules did not load, so nothing below would be the real boundary.
+      </ReadFailed>
     );
   }
 
   if (overview.isLoading) {
-    return (
-      <Block>
-        <Loading>Reading the rules in force.</Loading>
-      </Block>
-    );
+    return <Reading>Reading the rules in force.</Reading>;
   }
 
   const rules = overview.data?.rules ?? [];
@@ -361,7 +372,7 @@ export function GuardrailsPanel() {
           owner or an admin. */}
       <GovernedWriteNote reason={writeDenied} />
 
-      <Block
+      <Region
         title="What the rules check"
         // TWO POPULATIONS, COUNTED SEPARATELY. The old sub said "<live> of
         // <rules.length> read every call", which omitted the eight that also
@@ -382,29 +393,34 @@ export function GuardrailsPanel() {
         // ABSENT rather than disabled: "Write a rule" opens an editor whose only
         // ending is a Save this person cannot press, so offering it would be a
         // promise the surface cannot keep.
-        more={rules.length > 0 && mayWrite ? "Write a rule" : undefined}
-        onMore={() => setEditing(emptyRule())}
+        /* `goTo` and not `toggle`: `setEditing` replaces this whole panel with
+           the rule editor -- see the `if (editing) return` above -- so nothing
+           expands here and an `aria-expanded` would describe a disclosure that
+           never happens. It leaves for a named destination, which is what
+           `goTo` is. */
+        goTo={rules.length > 0 && mayWrite ? "Write a rule" : undefined}
+        onGoTo={() => setEditing(emptyRule())}
       >
         {rules.length === 0 ? (
-          <Empty
+          <NothingYet
             action={
               <>
-                <Button
+                <Action
                   variant="primary"
                   disabled={seed.isPending || !mayWrite}
                   title={writeDenied ?? undefined}
                   onClick={() => seed.mutate()}
                 >
                   Add the built-ins
-                </Button>
-                <Button
-                  variant="ghost"
+                </Action>
+                <Action
+                  variant="quiet"
                   disabled={!mayWrite}
                   title={writeDenied ?? undefined}
                   onClick={() => setEditing(emptyRule())}
                 >
                   Write your own
-                </Button>
+                </Action>
               </>
             }
           >
@@ -425,7 +441,7 @@ export function GuardrailsPanel() {
                 and prompt injection, and you can write your own on top of it.
               </>
             )}
-          </Empty>
+          </NothingYet>
         ) : (
           rules.map((g) => {
             const onTheFloor = isFloor(g);
@@ -447,8 +463,8 @@ export function GuardrailsPanel() {
                   </>
                 }
               >
-                <Button
-                  variant="ghost"
+                <Action
+                  variant="quiet"
                   onClick={() =>
                     setEditing({
                       id: g.id,
@@ -462,7 +478,7 @@ export function GuardrailsPanel() {
                   }
                 >
                   Open
-                </Button>
+                </Action>
                 {/* NO SWITCH WHERE THE RUNTIME WOULD IGNORE IT. The fact
                     replaces the control, which is the pattern this codebase
                     already applied to the tool modes in ControlsPanel: a
@@ -471,7 +487,7 @@ export function GuardrailsPanel() {
                 {onTheFloor ? (
                   <span style={CONTROL_WORD}>Always on. It cannot be switched off.</span>
                 ) : (
-                  <Switch
+                  <Toggle
                     checked={g.enabled}
                     label={`${g.name} checks every call`}
                     disabled={tog.isPending || !mayWrite}
@@ -483,32 +499,36 @@ export function GuardrailsPanel() {
           })
         )}
 
-        {tog.error ? <Failed>{humanWriteError(tog.error, GUARDRAIL_WRITE_FAILED)}</Failed> : null}
-        {seed.error ? <Failed>{humanWriteError(seed.error, GUARDRAIL_WRITE_FAILED)}</Failed> : null}
+        {tog.error ? (
+          <ReadFailedLine>{humanWriteError(tog.error, GUARDRAIL_WRITE_FAILED)}</ReadFailedLine>
+        ) : null}
+        {seed.error ? (
+          <ReadFailedLine>{humanWriteError(seed.error, GUARDRAIL_WRITE_FAILED)}</ReadFailedLine>
+        ) : null}
 
         {rules.length > 0 ? (
           <Actions>
-            <Button
-              variant="ghost"
+            <Action
+              variant="quiet"
               disabled={seed.isPending || !mayWrite}
               title={writeDenied ?? undefined}
               onClick={() => seed.mutate()}
             >
               Add any missing built-ins
-            </Button>
+            </Action>
           </Actions>
         ) : null}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="What they caught"
         sub="Every time a rule fired, and on what. The match is stored, the rest of the call is not."
       >
         {hits.length === 0 ? (
-          <Empty>
+          <NothingYet>
             Nothing has been caught. Either nothing has tripped a rule, or no calls have run through
             them yet.
-          </Empty>
+          </NothingYet>
         ) : (
           hits.map((h) => (
             <Row
@@ -516,7 +536,7 @@ export function GuardrailsPanel() {
               tight
               lead={
                 <>
-                  {h.rule_name} <Value tone={ACTION_TONE[h.action] ?? "warn"}>{h.action}</Value>
+                  {h.rule_name} <Value tone={ACTION_TONE[h.action] ?? "hold"}>{h.action}</Value>
                 </>
               }
               sub={
@@ -534,7 +554,7 @@ export function GuardrailsPanel() {
             />
           ))
         )}
-      </Block>
+      </Region>
 
       {/* THE COMMIT. What each decision above actually caused, kept on screen
           rather than flashed and lost. */}
@@ -606,7 +626,7 @@ function RuleEditor({
     <>
       <GovernedWriteNote reason={writeDenied} />
 
-      <Block
+      <Region
         title={rule.id ? "This rule" : "A new rule"}
         // The sentence it currently spells out, which is the one thing the six
         // fields below are hard to read as a whole.
@@ -626,7 +646,7 @@ function RuleEditor({
         </Field>
 
         <Field label="What it looks for" htmlFor="rule-kind">
-          <Select
+          <Picker
             id="rule-kind"
             value={rule.kind}
             onChange={(e) => onChange({ ...rule, kind: e.target.value as Kind })}
@@ -636,7 +656,7 @@ function RuleEditor({
             <option value="pii">Personal data</option>
             <option value="injection">Prompt injection</option>
             <option value="secret">A secret</option>
-          </Select>
+          </Picker>
         </Field>
 
         <Field label="The pattern" htmlFor="rule-pattern">
@@ -649,7 +669,7 @@ function RuleEditor({
         </Field>
 
         <Field label="Where it looks" htmlFor="rule-applies">
-          <Select
+          <Picker
             id="rule-applies"
             value={rule.applies_to}
             onChange={(e) => onChange({ ...rule, applies_to: e.target.value as Applies })}
@@ -657,11 +677,11 @@ function RuleEditor({
             <option value="both">On the way out and on the way back</option>
             <option value="input">On the way out only</option>
             <option value="output">On the way back only</option>
-          </Select>
+          </Picker>
         </Field>
 
         <Field label="What it does when it matches" htmlFor="rule-action">
-          <Select
+          <Picker
             id="rule-action"
             value={rule.action}
             onChange={(e) => onChange({ ...rule, action: e.target.value as Action })}
@@ -669,7 +689,7 @@ function RuleEditor({
             <option value="warn">Let it through, and write it down</option>
             <option value="redact">Take the match out, and let the rest through</option>
             <option value="block">Stop the call</option>
-          </Select>
+          </Picker>
         </Field>
 
         {/* A value you submit, not a boundary that goes live under your finger,
@@ -700,9 +720,9 @@ function RuleEditor({
             />
           </Line>
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="Try it first"
         sub="Runs this rule against your text and nothing else. Nothing is saved, and no call is affected."
       >
@@ -716,12 +736,12 @@ function RuleEditor({
         </Field>
 
         <Actions>
-          <Button disabled={!testText.trim() || testing} onClick={onTest}>
+          <Action disabled={!testText.trim() || testing} onClick={onTest}>
             {testing ? "Running" : "Run it"}
-          </Button>
+          </Action>
         </Actions>
 
-        {testError ? <Failed>{testError.message}</Failed> : null}
+        {testError ? <ReadFailedLine>{testError.message}</ReadFailedLine> : null}
 
         {testResult ? (
           <>
@@ -741,42 +761,44 @@ function RuleEditor({
             {testResult.hits.length > 0 ? <Pre>{testResult.text}</Pre> : null}
           </>
         ) : null}
-      </Block>
+      </Region>
 
-      <Block>
-        {saveError ? <Failed>{humanWriteError(saveError, GUARDRAIL_WRITE_FAILED)}</Failed> : null}
+      <Region>
+        {saveError ? (
+          <ReadFailedLine>{humanWriteError(saveError, GUARDRAIL_WRITE_FAILED)}</ReadFailedLine>
+        ) : null}
         {deleteError ? (
-          <Failed>
+          <ReadFailedLine>
             {humanWriteError(deleteError, "That rule was not deleted. It still checks every call.")}
-          </Failed>
+          </ReadFailedLine>
         ) : null}
         <Actions
           trailing={
             rule.id ? (
-              <Button
-                variant="ghost"
+              <Action
+                variant="quiet"
                 disabled={deleting || !canWrite}
                 title={writeDenied ?? undefined}
                 onClick={onDelete}
               >
                 Delete this rule
-              </Button>
+              </Action>
             ) : null
           }
         >
-          <Button
+          <Action
             variant="primary"
             disabled={incomplete || saving || !canWrite}
             title={writeDenied ?? undefined}
             onClick={onSave}
           >
             Save
-          </Button>
-          <Button variant="ghost" onClick={onBack}>
+          </Action>
+          <Action variant="quiet" onClick={onBack}>
             Back to the rules
-          </Button>
+          </Action>
         </Actions>
-      </Block>
+      </Region>
     </>
   );
 }

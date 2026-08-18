@@ -34,7 +34,20 @@
  */
 import { useState } from "react";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  Approve,
+  NothingHere,
+  NothingYet,
+  Num,
+  ReadFailed,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Field, Textarea } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
@@ -48,7 +61,7 @@ import {
 import { humanWriteError } from "@/lib/roles.functions";
 import { useGovernedWrite } from "@/hooks/use-workspace-role";
 import { GovernedWriteNote } from "./GovernedWriteNote";
-import { Block, Button, Empty, Failed, Field, Gate, Loading, Receipt, Textarea, Value } from "@/components/shell/primitives";
+import { Gate, Receipt } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 
 /** Plain-words relative time. Mono is applied by the row, not here. */
@@ -158,14 +171,14 @@ export function HouseRulesPanel() {
       ),
   });
 
-  if (q.isLoading) return <Loading>Reading the rules in force.</Loading>;
+  if (q.isLoading) return <Reading>Reading the rules in force.</Reading>;
 
   if (q.isError) {
     return (
-      <Failed onRetry={() => void q.refetch()}>
+      <ReadFailed onRetry={() => void q.refetch()}>
         {(q.error as Error)?.message ??
           "The rules did not load, so nothing below would be the real boundary."}
-      </Failed>
+      </ReadFailed>
     );
   }
 
@@ -176,10 +189,10 @@ export function HouseRulesPanel() {
 
   if (all.length === 0) {
     return (
-      <Empty>
+      <NothingHere>
         No standing rules yet. The steward drafts one once your validated learnings show the same
         thing happening more than once, and it lands here for you to rule on.
-      </Empty>
+      </NothingHere>
     );
   }
 
@@ -211,26 +224,25 @@ export function HouseRulesPanel() {
             ...(decideWrite.reason ? [decideWrite.reason] : []),
           ]}
         >
-          <Button
-            variant="primary"
+          <Approve
             disabled={busyOn(live.id) || !decideWrite.allowed}
             title={decideWrite.reason ?? undefined}
             onClick={() => decide.mutate({ rule: live, decision: "approve" })}
           >
             Make it a rule
-          </Button>
-          <Button
+          </Approve>
+          <Action
             disabled={busyOn(live.id) || !decideWrite.allowed}
             title={decideWrite.reason ?? undefined}
             onClick={() => decide.mutate({ rule: live, decision: "reject" })}
           >
             Not this one
-          </Button>
+          </Action>
         </Gate>
       ) : null}
 
       {behind.length > 0 ? (
-        <Block title="Behind it" sub="Settle the one above and the next takes its place.">
+        <Region title="Behind it" sub="Settle the one above and the next takes its place.">
           {behind.map((r) => (
             <Row
               key={r.id}
@@ -241,7 +253,7 @@ export function HouseRulesPanel() {
               tight
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
       {/* THE COMMIT. What your judgment caused, per rule, in your own voice. */}
@@ -275,20 +287,20 @@ export function HouseRulesPanel() {
           only for a read-only role and says something the Gate's did not. */}
       <GovernedWriteNote reason={draftWrite.reason} />
 
-      <Block
+      <Region
         title="In force"
         sub="Set once, and they hold inside every call. Nothing here asks you again in the moment."
       >
         {inForce.length === 0 ? (
-          <Empty>
+          <NothingYet>
             Nothing is standing yet. A rule you make above starts riding every call the moment you
             make it.
-          </Empty>
+          </NothingYet>
         ) : (
           inForce.map((r) => (
             <Line key={r.id} label={r.rule_text} sub={provenance(r)}>
-              <Button
-                variant="ghost"
+              <Action
+                variant="quiet"
                 disabled={replacing?.id === r.id || !draftWrite.allowed}
                 title={draftWrite.reason ?? undefined}
                 onClick={() => {
@@ -297,17 +309,17 @@ export function HouseRulesPanel() {
                 }}
               >
                 Replace it
-              </Button>
+              </Action>
             </Line>
           ))
         )}
-      </Block>
+      </Region>
 
       {/* The editor is its own region rather than an insert between two Lines:
           `.sp-line + .sp-line` is the divider between boundaries, and dropping
           a form in the middle of that chain silently removes one. */}
       {replacing ? (
-        <Block
+        <Region
           title="The replacement"
           sub={`The old rule keeps working until you make this one. Nothing ${whoItBinds(replacing.agent_slug)} does changes in between.`}
         >
@@ -321,18 +333,18 @@ export function HouseRulesPanel() {
           </Field>
           <Actions
             trailing={
-              <Button
-                variant="ghost"
+              <Action
+                variant="quiet"
                 onClick={() => {
                   setReplacing(null);
                   setDraft("");
                 }}
               >
                 Leave it as it is
-              </Button>
+              </Action>
             }
           >
-            <Button
+            <Action
               variant="primary"
               disabled={
                 supersede.isPending ||
@@ -351,21 +363,21 @@ export function HouseRulesPanel() {
               onClick={() => supersede.mutate({ rule: replacing, ruleText: draft.trim() })}
             >
               Draft it
-            </Button>
+            </Action>
           </Actions>
           {supersede.isError ? (
-            <Failed>
+            <ReadFailedLine>
               {humanWriteError(
                 supersede.error,
                 "That replacement was not drafted. The rule you have still stands.",
               )}
-            </Failed>
+            </ReadFailedLine>
           ) : null}
-        </Block>
+        </Region>
       ) : null}
 
       {turnedDown.length > 0 ? (
-        <Block title="Turned down" sub="Kept on the record. None of these is in force.">
+        <Region title="Turned down" sub="Kept on the record. None of these is in force.">
           {turnedDown.map((r) => (
             <Row
               key={r.id}
@@ -376,7 +388,7 @@ export function HouseRulesPanel() {
               tight
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
     </>
   );

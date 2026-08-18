@@ -49,7 +49,14 @@
  * it had to, and what a drifted key was costing.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Num } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Action,
+  Region,
+  Reading,
+  ReadFailed,
+  NothingYet,
+} from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -75,7 +82,6 @@ import {
   relationGroup,
   type RelationGroup,
 } from "./graph-visual";
-import { Block, Button, Empty, Failed, Loading } from "@/components/shell/primitives";
 
 const REPLAY_STEP_MS = 650;
 
@@ -294,16 +300,16 @@ export function GraphCanvasView({
     navigate({ to: "/brain", search: { tab: "graph", focusKind: kind, focusId: id } });
   };
 
-  if (graphQ.isLoading) return <Loading>Drawing what connects to what.</Loading>;
+  if (graphQ.isLoading) return <Reading>Drawing what connects to what.</Reading>;
 
   if (graphQ.isError) {
     // A failed read never wears the empty state's clothes: "nothing is
     // connected yet" and "we could not find out" are different facts.
     return (
-      <Failed onRetry={() => void graphQ.refetch()}>
+      <ReadFailed onRetry={() => void graphQ.refetch()}>
         The graph did not load, so this is not a claim that nothing is connected.{" "}
         {(graphQ.error as Error)?.message ?? ""}
-      </Failed>
+      </ReadFailed>
     );
   }
 
@@ -313,12 +319,12 @@ export function GraphCanvasView({
     (graph.nodes.length === 1 && graph.edges.length === 0)
   ) {
     return (
-      <Empty
-        action={<Button onClick={() => navigate({ to: "/discover" })}>Capture a signal</Button>}
+      <NothingYet
+        action={<Action onClick={() => navigate({ to: "/discover" })}>Capture a signal</Action>}
       >
         Nothing is connected yet. The map draws itself as you work: promote a signal, approve a
         spec, or record a decision, and the connections appear here on their own.
-      </Empty>
+      </NothingYet>
     );
   }
 
@@ -448,12 +454,12 @@ export function GraphCanvasView({
         {timeline.length > 1 && (
           <span className="flex items-center" style={{ gap: "var(--sp-space-2)" }}>
             {!reducedMotion ? (
-              <Button
-                variant={replaying ? "default" : "ghost"}
+              <Action
+                variant={replaying ? "default" : "quiet"}
                 onClick={() => setReplaying((r) => !r)}
               >
                 {replaying ? "Stop" : "Replay how it grew"}
-              </Button>
+              </Action>
             ) : null}
             <label
               htmlFor="graph-as-of"
@@ -524,13 +530,13 @@ export function GraphCanvasView({
 
       {/* One region, one heading, rather than six paragraphs floating loose. */}
       {notices.length > 0 ? (
-        <Block title="What to watch in this view">
+        <Region title="What to watch in this view">
           {notices.map((n) => (
             <p key={n.key} className="sp-loading">
               <span className={n.tone}>{n.body}</span>
             </p>
           ))}
-        </Block>
+        </Region>
       ) : null}
 
       <div className="flex flex-wrap items-start" style={{ gap: "var(--sp-space-4)" }}>

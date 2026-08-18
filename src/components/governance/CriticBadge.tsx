@@ -22,17 +22,17 @@
  *     consequential write, and a toast confirms that your click registered
  *     rather than what it caused. What it caused is the verdict itself, which is
  *     on screen and changes in front of you, so the surface says it and the
- *     toast is redundant. A failure still reports, as `Failed`.
+ *     toast is redundant. A failure still reports, as `ReadFailedLine`.
  */
 
 import * as React from "react";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import { Num, Actions, Action, ReadFailedLine, Value } from "@/components/meridian/surface-parts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { runCriticReview, type CriticReview } from "@/lib/discovery.functions";
 import { tierFromProbability } from "@/lib/confidence";
-import { Button, CtxBody, CtxHead, CtxRow, Failed, Value } from "@/components/shell/primitives";
+import { CtxBody, CtxHead, CtxRow } from "@/components/shell/primitives";
 import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
 
 type Props = {
@@ -44,11 +44,14 @@ type Props = {
 };
 
 /** The verdict as a word and a tone. Ship is a pass, kill is a fail, and revise
- *  is the caution in between. No icons: the word is the shorter statement. */
-const VERDICT: Record<CriticReview["verdict"], { label: string; tone: "pass" | "warn" | "fail" }> =
+ *  is `hold`: the work is stopped on a condition -- a revision -- rather than on
+ *  a person, which is what Meridian's amber says. The retired layer called that
+ *  `warn`, and Meridian has five status words and `warn` is not one of them.
+ *  No icons: the word is the shorter statement. */
+const VERDICT: Record<CriticReview["verdict"], { label: string; tone: "pass" | "hold" | "fail" }> =
   {
     ship: { label: "Ship", tone: "pass" },
-    revise: { label: "Revise", tone: "warn" },
+    revise: { label: "Revise", tone: "hold" },
     kill: { label: "Kill", tone: "fail" },
   };
 
@@ -76,14 +79,14 @@ export function CriticBadge({ review, target, invalidateKey }: Props) {
   if (!review) {
     return (
       <>
-        <Button
+        <Action
           disabled={run.isPending}
           onClick={() => run.mutate()}
           title="Have the Critic read this and rule on it"
         >
           {run.isPending ? "Reading it" : "Ask the Critic"}
-        </Button>
-        {run.isError ? <Failed>{(run.error as Error).message}</Failed> : null}
+        </Action>
+        {run.isError ? <ReadFailedLine>{(run.error as Error).message}</ReadFailedLine> : null}
       </>
     );
   }
@@ -196,11 +199,11 @@ export function CriticBadge({ review, target, invalidateKey }: Props) {
           ) : null}
 
           <Actions>
-            <Button disabled={run.isPending} onClick={() => run.mutate()}>
+            <Action disabled={run.isPending} onClick={() => run.mutate()}>
               {run.isPending ? "Reading it again" : "Have it read this again"}
-            </Button>
+            </Action>
           </Actions>
-          {run.isError ? <Failed>{(run.error as Error).message}</Failed> : null}
+          {run.isError ? <ReadFailedLine>{(run.error as Error).message}</ReadFailedLine> : null}
         </div>
       ) : null}
     </>

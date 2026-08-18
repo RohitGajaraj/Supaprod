@@ -1,5 +1,6 @@
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import { useLiveAgents } from "@/hooks/use-live-agents";
+import { agentStation, type AgentStation } from "@/lib/agent-vocabulary";
 
 /**
  * THE CREW, WORKING, ON THE SURFACE WHERE THE WORK IS.
@@ -81,11 +82,39 @@ const CLAMP_TO_TWO_LINES = {
 export function CrewWorking({
   /** Optional. Narrows the line to one mission, for a surface about one thing. */
   missionId,
+  /**
+   * Optional. Narrows to the agents standing at ONE STATION.
+   *
+   * WHY A STATION MOUNT NEEDS THIS. `useLiveAgents` reads every mission mid-run
+   * in the workspace, so an unscoped mount on a station can print "Engineer is
+   * working on Beacon SSO" above the grading desk while nothing whatsoever
+   * about Learn is running. That sentence is true at PRODUCT scope and false at
+   * STATION scope, and a person standing on one station reads it as a claim
+   * about the station they are standing on.
+   *
+   * THE RULE, so the next mount does not have to re-derive it: a surface ABOUT
+   * a station passes its station. A surface about the whole product (Brain,
+   * Today) passes nothing, and its unscoped line is honest precisely because
+   * the surface itself is product-wide.
+   *
+   * IT COSTS NOTHING. `agentStation` is the same pure catalog lookup
+   * `listStudioSessions` uses server-side to place a mission on the seven-stage
+   * strip, applied to the slug this hook already carries. No second query, no
+   * second key, and the station is derived the way the strip's own chip derives
+   * it rather than by a rule invented at the call site.
+   *
+   * An agent whose slug the catalog does not know resolves to no station and is
+   * therefore counted at none, which is the same refusal-to-guess
+   * `listStudioSessions` makes rather than parking it on a default.
+   */
+  station,
 }: {
   missionId?: string | null;
+  station?: AgentStation;
 }) {
   const { working } = useLiveAgents();
-  const shown = missionId ? working.filter((w) => w.missionId === missionId) : working;
+  const scoped = station ? working.filter((w) => agentStation(w.slug) === station) : working;
+  const shown = missionId ? scoped.filter((w) => w.missionId === missionId) : scoped;
   if (shown.length === 0) return null;
 
   const lead = shown[0];

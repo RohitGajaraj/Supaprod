@@ -27,7 +27,19 @@
  */
 import { useServerFn } from "@tanstack/react-start";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingYet,
+  Num,
+  Picker,
+  ReadFailed,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Field, Input } from "@/components/meridian/forms";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -37,7 +49,7 @@ import {
   getEvalScoreTrends,
   getEvalCoverage,
 } from "@/lib/evals.functions";
-import { Block, Button, Cell, Empty, Failed, Field, Grid, Input, Loading, Select, Value } from "@/components/shell/primitives";
+import { Cell, Grid } from "@/components/shell/primitives";
 // One source of truth for the canonical surface x prompt targets (shared with the EVAL-COVERAGE
 // scorer), so the "new suite" picker and the coverage map can never drift.
 import { EVAL_COVERAGE_TARGETS as SURFACE_KEYS } from "@/lib/evals/coverage";
@@ -63,12 +75,13 @@ type SuiteRow = {
 
 /** What a coverage state means to the person reading it, in plain words and in
  *  the `Value` tone vocabulary. A missing guard is a gap to close, which is a
- *  caution; a guard that has never completed a run is unproven, which is not an
- *  outcome at all and so stays quiet. */
-const COVERAGE_STATE: Record<string, { word: string; tone: "quiet" | "pass" | "warn" }> = {
+ *  condition -- somebody has to write the guard -- which is Meridian's `hold`
+ *  and not the retired layer's `warn`; a guard that has never completed a run is
+ *  unproven, which is not an outcome at all and so stays quiet. */
+const COVERAGE_STATE: Record<string, { word: string; tone: "quiet" | "pass" | "hold" }> = {
   covered: { word: "guarded", tone: "pass" },
   stale: { word: "never run", tone: "quiet" },
-  uncovered: { word: "no guard", tone: "warn" },
+  uncovered: { word: "no guard", tone: "hold" },
 };
 
 export function EvalsPanel() {
@@ -104,14 +117,14 @@ export function EvalsPanel() {
   // find out" are different facts and you act differently on each.
   if (suitesQ.isError) {
     return (
-      <Failed onRetry={() => void suitesQ.refetch()}>
+      <ReadFailed onRetry={() => void suitesQ.refetch()}>
         The suites did not load, so nothing below would be the real coverage.
-      </Failed>
+      </ReadFailed>
     );
   }
 
   if (suitesQ.isLoading) {
-    return <Loading>Reading what guards each surface.</Loading>;
+    return <Reading>Reading what guards each surface.</Reading>;
   }
 
   const openManually = () => {
@@ -135,14 +148,14 @@ export function EvalsPanel() {
           So the error arm is checked BEFORE the summary. Only an empty summary
           from a read that SUCCEEDED is allowed to say nothing. */}
       {coverageQ.isError ? (
-        <Block title="What has a guard on it">
-          <Failed onRetry={() => void coverageQ.refetch()}>
+        <Region title="What has a guard on it">
+          <ReadFailedLine onRetry={() => void coverageQ.refetch()}>
             The coverage read did not land. The silence here does not mean every surface is guarded,
             it means we could not find out which ones are.
-          </Failed>
-        </Block>
+          </ReadFailedLine>
+        </Region>
       ) : coverageSummary ? (
-        <Block title="What has a guard on it" sub={coverageSummary}>
+        <Region title="What has a guard on it" sub={coverageSummary}>
           {coverageFloor?.configured && !coverageFloor.pass ? (
             <Line label="The floor you set" sub={coverageFloor.reasons.join(". ")}>
               <Value tone="fail">not met</Value>
@@ -171,7 +184,7 @@ export function EvalsPanel() {
               })}
             </Grid>
           ) : null}
-        </Block>
+        </Region>
       ) : null}
 
       {createOpen ? (
@@ -194,25 +207,31 @@ export function EvalsPanel() {
         />
       ) : null}
 
-      <Block
+      <Region
         title="What we test"
-        more={suites.length > 0 && !createOpen ? "New suite" : undefined}
-        onMore={openManually}
+        /* `act` and not `toggle`: the form this opens renders OUTSIDE this
+           region, as its own sibling above, so nothing about THIS region
+           expands and `aria-expanded` would be a state no screen reader could
+           act on. It is not `goTo` either -- it leaves nothing and goes
+           nowhere. It starts writing a new suite, which is work on this
+           region's subject. */
+        act={suites.length > 0 && !createOpen ? "New suite" : undefined}
+        onAct={openManually}
       >
         {suites.length === 0 ? (
-          <Empty
+          <NothingYet
             action={
               createOpen ? undefined : (
-                <Button variant="primary" onClick={openManually}>
+                <Action variant="primary" onClick={openManually}>
                   Write the first one
-                </Button>
+                </Action>
               )
             }
           >
             Nothing is watching any prompt yet. A suite is a regression test on one: golden cases, a
             judge, and a score it has to clear. Until one exists, a quality drop reaches your users
             before it reaches you.
-          </Empty>
+          </NothingYet>
         ) : (
           suites.map((s) => {
             const score = s.last_run?.avg_score != null ? Math.round(s.last_run.avg_score) : null;
@@ -253,7 +272,7 @@ export function EvalsPanel() {
             );
           })
         )}
-      </Block>
+      </Region>
     </>
   );
 }
@@ -307,32 +326,44 @@ function CreateSuiteForm({
   });
 
   return (
-    <Block title="A new guard" sub="It watches one prompt, and it runs against cases you write.">
-      <Field label="What to call it">
+    <Region title="A new guard" sub="It watches one prompt, and it runs against cases you write.">
+      {/* Every `htmlFor`/`id` pair here is the port, not decoration. The retired
+          `Field` was a `<label>` WRAPPING its control, so the two were bound by
+          containment; Meridian's is a `<div>` and binds by name, which is the
+          fix its own header records. Dropping the pair would leave four labelled
+          controls with no accessible name at all. */}
+      <Field label="What to call it" htmlFor="new-suite-name">
         <Input
+          id="new-suite-name"
           value={form.name}
           placeholder="Chat tone regression"
           onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
       </Field>
-      <Field label="What it watches">
-        <Select value={form.target} onChange={(e) => setForm({ ...form, target: e.target.value })}>
+      <Field label="What it watches" htmlFor="new-suite-target">
+        <Picker
+          id="new-suite-target"
+          value={form.target}
+          onChange={(e) => setForm({ ...form, target: e.target.value })}
+        >
           {SURFACE_KEYS.map((s) => (
             <option key={`${s.surface}/${s.key}`} value={`${s.surface}/${s.key}`}>
               {s.label}
             </option>
           ))}
-        </Select>
+        </Picker>
       </Field>
-      <Field label="Why it exists">
+      <Field label="Why it exists" htmlFor="new-suite-why">
         <Input
+          id="new-suite-why"
           value={form.description}
           placeholder="What would be broken if this drifted"
           onChange={(e) => setForm({ ...form, description: e.target.value })}
         />
       </Field>
-      <Field label="The score a case has to clear">
+      <Field label="The score a case has to clear" htmlFor="new-suite-threshold">
         <Input
+          id="new-suite-threshold"
           type="number"
           min={0}
           max={100}
@@ -341,18 +372,18 @@ function CreateSuiteForm({
         />
       </Field>
 
-      {m.isError ? <Failed>{(m.error as Error).message}</Failed> : null}
+      {m.isError ? <ReadFailedLine>{(m.error as Error).message}</ReadFailedLine> : null}
 
-      <Actions trailing={<Button onClick={onClose}>Leave it</Button>}>
-        <Button
+      <Actions trailing={<Action onClick={onClose}>Leave it</Action>}>
+        <Action
           variant="primary"
           disabled={!form.name || m.isPending}
           title={!form.name ? "Name it first" : undefined}
           onClick={() => m.mutate()}
         >
           {m.isPending ? "Writing it" : "Write it"}
-        </Button>
+        </Action>
       </Actions>
-    </Block>
+    </Region>
   );
 }

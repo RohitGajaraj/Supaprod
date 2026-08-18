@@ -138,7 +138,22 @@
 
 import * as React from "react";
 import { Row } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingYet,
+  Num,
+  PageHeading,
+  ReadFailed,
+  ReadFailedLine,
+  Reading,
+  RecordSpeaks,
+  Region,
+} from "@/components/meridian/surface-parts";
+import { Field, Input } from "@/components/meridian/forms";
+import { Gate } from "@/components/meridian/Gate";
+import { Surface } from "@/components/meridian/Surface";
+import { CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -153,7 +168,6 @@ import { getImpactLedger } from "@/lib/pm-impact.functions";
 import { SettlePanel } from "@/components/learn/SettlePanel";
 import { ForecastDeskPanel } from "@/components/learn/ForecastDeskPanel";
 import { VERDICT_SAYS } from "@/components/learn/verdict-words";
-import { Block, Button, CtxHead, CtxRow, Empty, Failed, Gate, Loading, Field, Input, PageHead, Record as RecordRecess, Surface } from "@/components/shell/primitives";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { CrewWorking } from "@/components/shell/CrewWorking";
 import { stillWaiting } from "@/lib/query-state";
@@ -165,17 +179,58 @@ export const Route = createFileRoute("/_authenticated/learn")({
     console.error("[Learn] route crashed:", error);
     return (
       <Surface>
-        {/* THE AUTONOMOUS PATH, VISIBLE. Renders nothing unless an agent is
-            genuinely mid-run, so it costs no space when the crew is idle and
-            cannot show a step that did not happen. Every other pulse on this
-            station is gated on a mutation the reader's own click started;
-            this one is bound to the run. See use-live-agents.ts. */}
-        <CrewWorking />
-        <PageHead title="The record did not load." sub="Reload the page. Nothing here is lost." />
+        <div className="flex flex-col gap-mrd-7">
+          {/* THE AUTONOMOUS PATH, VISIBLE, AND SCOPED TO THIS STATION. Renders
+              nothing unless an agent standing at Learn is genuinely mid-run.
+              See LearnCrewWorking below for why the unscoped mount was a lie
+              here. */}
+          <LearnCrewWorking />
+          <PageHeading
+            title="The record did not load."
+            sub="Reload the page. Nothing here is lost."
+          />
+        </div>
       </Surface>
     );
   },
 });
+
+/**
+ * THE CREW, WORKING **ON THIS STATION**, and the reason it is not a bare
+ * `<CrewWorking />`.
+ *
+ * `useLiveAgents` reads every mission mid-run in the workspace, so the unscoped
+ * mount this replaces could put "Engineer is working on Beacon SSO" above the
+ * grading desk while nothing whatsoever about Learn was running. That sentence
+ * is true at PRODUCT scope and false at STATION scope, and a person standing on
+ * one station reads it as a claim about the station they are standing on. The
+ * page it sits on is the one whose whole job is reporting what actually
+ * happened, so an ambient half-truth costs more here than anywhere else.
+ *
+ * THE SCOPE IS NOT A NEW READ. `agentStation` is the same pure catalog lookup
+ * `listStudioSessions` uses server-side to place a mission on the seven-stage
+ * strip (`stationByMission.set(m.id, agentStation(r.agent_slug))`), applied to
+ * the slug `useLiveAgents` already carries. So this costs nothing: no second
+ * query, no second key, and the answer is derived the same way the strip's own
+ * "learn" chip derives it, rather than by a rule invented here.
+ *
+ * WHAT IT GIVES UP, SAID OUT LOUD. `CrewWorking` narrows by ONE `missionId`, so
+ * when two agents are both standing at Learn this names the most recently
+ * updated one and drops the "and 1 more" tail the unscoped mount would have
+ * drawn. That tail is the only thing lost, and it was counting runs from every
+ * other station anyway.
+ *
+ * NOTHING RUNNING, OR NOTHING READ YET, BOTH DRAW NOTHING, which is the same
+ * silence `CrewWorking` already keeps: it makes no claim rather than a wrong
+ * one.
+ */
+function LearnCrewWorking() {
+  /* The scope moved into `CrewWorking` itself once six other stations needed
+   * the same narrowing. Keeping it here as well would be a second copy of one
+   * rule, and the version here had to give up the "and N more" tail because it
+   * could only narrow by a single missionId. The shared prop keeps the count. */
+  return <CrewWorking station="learn" />;
+}
 
 function day(iso: string | null | undefined): string | null {
   if (!iso) return null;
@@ -426,8 +481,28 @@ function Learn() {
   return (
     <Surface
       context={
-        ledger && (movedPriority || revisedBeliefs) ? (
-          <>
+        /* A FAILED READ USED TO DELETE THIS WHOLE RAIL, SILENTLY.
+           The gate here was `ledger && (movedPriority || revisedBeliefs)`, and
+           `ledger` is `ledgerQ.data?.ledger ?? null` — so a read that FAILED
+           produced exactly the same null a workspace that has moved nothing
+           produces, and the column simply was not drawn. The reader is then
+           told, by absence, that this record moved no priority and replaced no
+           call, which is a claim, and one nobody made.
+           The states nobody screenshots are the ones production shows most, so
+           the failure gets its own branch and says which fact is missing. Same
+           read, same retry, as the "What paid off" region in the main column. */
+        ledgerQ.isError ? (
+          <div className="flex flex-col gap-mrd-4">
+            <CtxHead>What the record moved</CtxHead>
+            <ReadFailed
+              onRetry={() => void ledgerQ.refetch()}
+              detail="Nothing has been changed and nothing has been lost. Priority has moved by whatever it had moved a moment ago; this screen just could not read it."
+            >
+              How far the record moved things did not load.
+            </ReadFailed>
+          </div>
+        ) : ledger && (movedPriority || revisedBeliefs) ? (
+          <div className="flex flex-col gap-mrd-4">
             <CtxHead>What the record moved</CtxHead>
             {movedPriority ? (
               <CtxRow
@@ -453,128 +528,140 @@ function Learn() {
                 sub="you changed your mind on evidence"
               />
             ) : null}
-          </>
+          </div>
         ) : null
       }
     >
-      {/* THE AUTONOMOUS PATH, VISIBLE, ON THE SURFACE A PERSON ACTUALLY READS.
-          This mount existed only inside `errorComponent` above, so the crew
-          line appeared on Learn exactly when the station had CRASHED and never
-          when it was working — the one branch where an agent's sentence is
-          least useful. Above the headline, as on Decide, Build, Ship, Design
-          and Brain. Renders nothing unless an agent is genuinely mid-run. See
-          use-live-agents.ts. */}
-      <CrewWorking />
-      <PageHead title={headline} sub={sub} />
+      {/* THE VERTICAL RHYTHM IS THE PAGE'S, NOT THE REGION'S. The retired
+          `Block` baked `margin-top: 36px` and a hairline into every section, so
+          a surface could not decide its own spacing and every region carried a
+          rule whether or not the register changed there. Meridian's `Region`
+          sets no outer margin on purpose, so the page states the gap once —
+          the same `gap-mrd-7` Brain, Crew and the Engine Room state. */}
+      <div className="flex flex-col gap-mrd-7">
+        {/* THE AUTONOMOUS PATH, VISIBLE, ON THE SURFACE A PERSON ACTUALLY READS.
+            This mount existed only inside `errorComponent` above, so the crew
+            line appeared on Learn exactly when the station had CRASHED and never
+            when it was working — the one branch where an agent's sentence is
+            least useful. Above the headline, as on Decide, Build, Ship, Design
+            and Brain. Renders nothing unless an agent standing at THIS station
+            is genuinely mid-run; see LearnCrewWorking. */}
+        <LearnCrewWorking />
+        <PageHeading title={headline} sub={sub} />
 
-      {/* The write this stage exists for. It owns its own reads, its own
+        {/* The write this stage exists for. It owns its own reads, its own
           receipts and the queue it drains. It reports which workspace the bet
           in focus lives in, and everything below is drawn from that workspace;
           see the header. */}
-      {/* FC-01: due forecasts come first, because a forecast is settled against
+        {/* FC-01: due forecasts come first, because a forecast is settled against
           a date the team set and a spec outcome is not. It is a SEPARATE group
           and never a synonym: a spec outcome asks whether shipping paid off, a
           forecast asks whether the belief was right, and one event answers those
           differently. It renders nothing when there is nothing to settle, and
           nothing when its reads fail, so it can never take this desk down. */}
-      <ForecastDeskPanel />
+        <ForecastDeskPanel />
 
-      <SettlePanel onDeskWorkspace={rememberDeskWorkspace} />
+        <SettlePanel onDeskWorkspace={rememberDeskWorkspace} />
 
-      {/* WHAT SURVIVES A RELOAD. The panel's receipt stack is React state and
+        {/* WHAT SURVIVES A RELOAD. The panel's receipt stack is React state and
           is gone the moment the page reloads, and the paid-off block below
           cannot carry a fresh verdict at all: it is validated-only, ranked by
           score movement, and a bet with no linked opportunity never has any.
           So without this row the honest answer to "what did I just settle?"
           was a waiting count one lower. Ordered by when it was written, which
           is a fact every learning has. */}
-      {lastSettled ? (
-        <Block
-          title="The last verdict on the record"
-          // A different fact from the row, not a restatement of it (hard ban
-          // 10): the row is one verdict, this is how much record it landed on
-          // top of. Exact, because both numbers are now the same workspace.
-          //
-          // ONE WORD MUST NOT NAME TWO SETS ON ONE SCREEN (found 2026-08-10).
-          // This read "N settled before it" off `outcomes.total`, while the
-          // headline a few hundred pixels above defines settling narrowly and
-          // deliberately: `decisive = validated + missed`, said as "3 of the 5
-          // that settled paid off", precisely because an outcome can be real
-          // and not have settled either way. With total 8 and decisive 5 the
-          // page said five settled at the top and seven settled below, off one
-          // fetch, on the one surface whose whole job is reporting whether the
-          // product works.
-          //
-          // THE NOUN CHANGED RATHER THAN THE NUMBER, and not for the easier
-          // life: `decisive - 1` would be the wrong count here. `lastSettled`
-          // comes from listLearnings and its verdict may be `mixed`, which is
-          // a real verdict on the record (see verdict-words.ts, three keys and
-          // no fourth) and is NOT in `decisive`. Subtracting it from a set it
-          // was never in would make this line wrong in exactly the cases it is
-          // most needed. `total - 1` is the true count of what the record held
-          // before this verdict, so it keeps its number and gets the noun that
-          // fits it. Do not put "settled" back.
+        {lastSettled ? (
+          <Region
+            title="The last verdict on the record"
+            // A different fact from the row, not a restatement of it (hard ban
+            // 10): the row is one verdict, this is how much record it landed on
+            // top of. Exact, because both numbers are now the same workspace.
+            //
+            // ONE WORD MUST NOT NAME TWO SETS ON ONE SCREEN (found 2026-08-10).
+            // This read "N settled before it" off `outcomes.total`, while the
+            // headline a few hundred pixels above defines settling narrowly and
+            // deliberately: `decisive = validated + missed`, said as "3 of the 5
+            // that settled paid off", precisely because an outcome can be real
+            // and not have settled either way. With total 8 and decisive 5 the
+            // page said five settled at the top and seven settled below, off one
+            // fetch, on the one surface whose whole job is reporting whether the
+            // product works.
+            //
+            // THE NOUN CHANGED RATHER THAN THE NUMBER, and not for the easier
+            // life: `decisive - 1` would be the wrong count here. `lastSettled`
+            // comes from listLearnings and its verdict may be `mixed`, which is
+            // a real verdict on the record (see verdict-words.ts, three keys and
+            // no fourth) and is NOT in `decisive`. Subtracting it from a set it
+            // was never in would make this line wrong in exactly the cases it is
+            // most needed. `total - 1` is the true count of what the record held
+            // before this verdict, so it keeps its number and gets the noun that
+            // fits it. Do not put "settled" back.
+            sub={
+              outcomes && outcomes.total > 1 ? (
+                <>
+                  <Num>{outcomes.total - 1}</Num> on the record before it
+                </>
+              ) : null
+            }
+          >
+            <Row
+              tight
+              lead={
+                lastSettled.summary.trim() ||
+                lastSettled.opportunity_title ||
+                "Settled with nothing written up"
+              }
+              sub={
+                <>
+                  {VERDICT_SAYS[lastSettled.verdict]}
+                  {lastSettled.metric_label && lastSettled.metric_value ? (
+                    <>
+                      {" · "}
+                      {lastSettled.metric_label}: <Num>{lastSettled.metric_value}</Num>
+                    </>
+                  ) : null}
+                  {(() => {
+                    const shift = iceShiftOf(lastSettled.prior_ice, lastSettled.new_ice);
+                    // Silent when nothing moved, rather than printing a zero over
+                    // a bet that never had a score to move.
+                    return shift === null || shift === 0 ? null : (
+                      <>
+                        {" · priority "}
+                        <Num>{signed(shift)}</Num>
+                      </>
+                    );
+                  })()}
+                </>
+              }
+              time={day(lastSettled.created_at)}
+            />
+          </Region>
+        ) : null}
+
+        {/* The sub carries different information from the title, not a
+          restatement: the ledger only ever writes up wins, so without this line
+          the misses are invisible on the one surface that must not flatter. */}
+        <Region
+          title="What paid off"
           sub={
-            outcomes && outcomes.total > 1 ? (
+            outcomes && outcomes.missed > 0 ? (
               <>
-                <Num>{outcomes.total - 1}</Num> on the record before it
+                <Num>{outcomes.missed}</Num> came back against you. Those are counted, not written
+                up here.
               </>
             ) : null
           }
         >
-          <Row
-            tight
-            lead={
-              lastSettled.summary.trim() ||
-              lastSettled.opportunity_title ||
-              "Settled with nothing written up"
-            }
-            sub={
-              <>
-                {VERDICT_SAYS[lastSettled.verdict]}
-                {lastSettled.metric_label && lastSettled.metric_value ? (
-                  <>
-                    {" · "}
-                    {lastSettled.metric_label}: <Num>{lastSettled.metric_value}</Num>
-                  </>
-                ) : null}
-                {(() => {
-                  const shift = iceShiftOf(lastSettled.prior_ice, lastSettled.new_ice);
-                  // Silent when nothing moved, rather than printing a zero over
-                  // a bet that never had a score to move.
-                  return shift === null || shift === 0 ? null : (
-                    <>
-                      {" · priority "}
-                      <Num>{signed(shift)}</Num>
-                    </>
-                  );
-                })()}
-              </>
-            }
-            time={day(lastSettled.created_at)}
-          />
-        </Block>
-      ) : null}
-
-      {/* The sub carries different information from the title, not a
-          restatement: the ledger only ever writes up wins, so without this line
-          the misses are invisible on the one surface that must not flatter. */}
-      <Block
-        title="What paid off"
-        sub={
-          outcomes && outcomes.missed > 0 ? (
-            <>
-              <Num>{outcomes.missed}</Num> came back against you. Those are counted, not written up
-              here.
-            </>
-          ) : null
-        }
-      >
-        {ledgerQ.isError ? (
-          <Failed onRetry={() => void ledgerQ.refetch()}>
-            The record did not load. {(ledgerQ.error as Error).message}
-          </Failed>
-        ) : /* `isLoading` is `isPending && isFetching` in react-query v5, so it
+          {/* A LINE AND NOT A BOX, because this region already draws its own
+              heading and the standard caps a region at one bordered container.
+              `ReadFailed` is the bordered half of the pair and belongs where the
+              region itself is missing — which is exactly the case in the context
+              column above. */}
+          {ledgerQ.isError ? (
+            <ReadFailedLine onRetry={() => void ledgerQ.refetch()}>
+              The record did not load. {(ledgerQ.error as Error).message}
+            </ReadFailedLine>
+          ) : /* `isLoading` is `isPending && isFetching` in react-query v5, so it
               is false in the gap where a read is pending but not in flight:
               paused, offline, or the instant a fetch resolves. `data` is
               undefined there, this block fell through to "Nothing has come back
@@ -588,32 +675,40 @@ function Learn() {
               the two surfaces the budget in
               an-empty-read-is-not-an-empty-workspace.test.ts allowed; that
               constant reaches 0 in the same commit. */
-        stillWaiting(ledgerQ) ? (
-          <Loading>Reading the record.</Loading>
-        ) : lead ? (
-          <>
-            <RecordRecess evidence={leadEvidence || null}>{lead.summary}</RecordRecess>
-            {highlights.map((h, i) =>
-              i === focusIdx ? null : (
-                <Row
-                  key={i}
-                  tight
-                  lead={h.summary}
-                  sub={
-                    h.metricLabel && h.metricValue ? (
-                      <>
-                        {h.metricLabel}: <Num>{h.metricValue}</Num>
-                      </>
-                    ) : null
-                  }
-                  time={h.iceShift !== null ? signed(h.iceShift) : null}
-                  onClick={() => setFocus(i)}
-                />
-              ),
-            )}
-          </>
-        ) : (outcomes?.total ?? 0) === 0 ? (
-          /* A GATE, NOT AN EMPTY LINE, and this was the only station of the seven
+          stillWaiting(ledgerQ) ? (
+            <Reading>Reading the record.</Reading>
+          ) : lead ? (
+            <>
+              <RecordSpeaks evidence={leadEvidence || null}>{lead.summary}</RecordSpeaks>
+              {/* The retired recess carried its own 4px lead-in and the rows
+                  under it carried none, so the space is stated here rather than
+                  lost: `Region` and `RecordSpeaks` both set no outer margin on
+                  purpose. Drawn only when there is a list to separate. */}
+              {highlights.length > 1 ? (
+                <div className="mt-mrd-4">
+                  {highlights.map((h, i) =>
+                    i === focusIdx ? null : (
+                      <Row
+                        key={i}
+                        tight
+                        lead={h.summary}
+                        sub={
+                          h.metricLabel && h.metricValue ? (
+                            <>
+                              {h.metricLabel}: <Num>{h.metricValue}</Num>
+                            </>
+                          ) : null
+                        }
+                        time={h.iceShift !== null ? signed(h.iceShift) : null}
+                        onClick={() => setFocus(i)}
+                      />
+                    ),
+                  )}
+                </div>
+              ) : null}
+            </>
+          ) : (outcomes?.total ?? 0) === 0 ? (
+            /* A GATE, NOT AN EMPTY LINE, and this was the only station of the seven
              that handed a new person nothing at all.
 
              Every read on this desk is count-gated, and correctly: the forecast
@@ -637,82 +732,95 @@ function Learn() {
              immediately before this one and the place work becomes gradeable at
              all. Plan is the secondary, because a spec with nothing written down
              about what it was meant to move cannot be graded even after it ships,
-             which is the failure this station sees most. */
-          <Gate
-            question="What should this grade first?"
-            lines={[
-              <span key="what">
-                A verdict lands here the first time a shipped bet is graded against what its spec
-                said it was for, and it stays on the record after that.
-              </span>,
-              <span key="need">
-                Nothing has shipped yet, so there is nothing to grade. Write down what a bet is
-                meant to move before it goes out, and the grade has something to measure against.
-              </span>,
-            ]}
-          >
-            <Button variant="primary" onClick={() => navigate({ to: "/ship" })}>
-              See what is waiting to go out
-            </Button>
-            <Button onClick={() => navigate({ to: "/plan" })}>Open the specs</Button>
-          </Gate>
-        ) : (outcomes?.validated ?? 0) === 0 ? (
-          <Empty>
-            Nothing has paid off yet. <Num>{outcomes?.total}</Num> outcomes are on the record and
-            none of them came back for you.
-          </Empty>
-        ) : (
-          <Empty>
-            Outcomes paid off, none of them written up. Add what happened the next time you record a
-            verdict.
-          </Empty>
-        )}
-      </Block>
+             which is the failure this station sees most.
 
-      {/* Support notes belong to Discover, which triages them against open bets.
+             BOTH ARE `Action`, NEITHER IS `Approve`. Approve is the one control
+             that RELEASES held work, and it is the only place orchid is spent on
+             a button anywhere in the product. These two navigate: nothing on this
+             page is blocked pending the click, and spending the accent on a door
+             is how it stops meaning anything. */
+            <Gate
+              question="What should this grade first?"
+              lines={[
+                <span key="what">
+                  A verdict lands here the first time a shipped bet is graded against what its spec
+                  said it was for, and it stays on the record after that.
+                </span>,
+                <span key="need">
+                  Nothing has shipped yet, so there is nothing to grade. Write down what a bet is
+                  meant to move before it goes out, and the grade has something to measure against.
+                </span>,
+              ]}
+            >
+              <Action variant="primary" onClick={() => navigate({ to: "/ship" })}>
+                See what is waiting to go out
+              </Action>
+              <Action onClick={() => navigate({ to: "/plan" })}>Open the specs</Action>
+            </Gate>
+          ) : (outcomes?.validated ?? 0) === 0 ? (
+            <NothingYet>
+              Nothing has paid off yet. <Num>{outcomes?.total}</Num> outcomes are on the record and
+              none of them came back for you.
+            </NothingYet>
+          ) : (
+            <NothingYet>
+              Outcomes paid off, none of them written up. Add what happened the next time you record
+              a verdict.
+            </NothingYet>
+          )}
+        </Region>
+
+        {/* Support notes belong to Discover, which triages them against open bets.
           One line and a door, not eight rows nobody can act on from here. It
           gets its own rule because it is a change of register, and no title
           because the line already says what it is. */}
-      {outcome.isError ? (
-        <Block>
-          <Failed onRetry={() => void outcome.refetch()}>
-            What came back from people did not load.
-          </Failed>
-        </Block>
-      ) : loading ? (
-        <Loading>Reading what else it learned.</Loading>
-      ) : support.length > 0 ? (
-        <Block>
-          <Row
-            tight
-            lead={
-              <>
-                <Num>{support.length}</Num>{" "}
-                {support.length === 1 ? "note came back" : "notes came back"} from people
-              </>
-            }
-            sub="Read them on the signals desk, against the bets you have open"
-            onClick={() => navigate({ to: "/discover", search: { tab: "signals" } })}
-          />
-        </Block>
-      ) : null}
-
-      {ledger && ledgerQ.data ? (
-        <Block title="Take the record with you">
-          <Field label="Name on the header">
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Optional"
-              autoComplete="name"
+        {outcome.isError ? (
+          <Region>
+            <ReadFailedLine onRetry={() => void outcome.refetch()}>
+              What came back from people did not load.
+            </ReadFailedLine>
+          </Region>
+        ) : loading ? (
+          <Reading>Reading what else it learned.</Reading>
+        ) : support.length > 0 ? (
+          <Region>
+            <Row
+              tight
+              lead={
+                <>
+                  <Num>{support.length}</Num>{" "}
+                  {support.length === 1 ? "note came back" : "notes came back"} from people
+                </>
+              }
+              sub="Read them on the signals desk, against the bets you have open"
+              onClick={() => navigate({ to: "/discover", search: { tab: "signals" } })}
             />
-          </Field>
-          <Actions>
-            <Button onClick={() => void copyRecord()}>{tookIt ?? "Copy it"}</Button>
-            <Button onClick={downloadRecord}>Download it</Button>
-          </Actions>
-        </Block>
-      ) : null}
+          </Region>
+        ) : null}
+
+        {ledger && ledgerQ.data ? (
+          <Region title="Take the record with you">
+            <div className="flex flex-col gap-mrd-5">
+              <Field label="Name on the header" htmlFor="record-name">
+                <Input
+                  id="record-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Optional"
+                  autoComplete="name"
+                />
+              </Field>
+              {/* Neither of these unblocks anything: one writes to the clipboard
+                  and one writes a file. `Action`, and no primary among them,
+                  because the two are the same offer in two shapes. */}
+              <Actions>
+                <Action onClick={() => void copyRecord()}>{tookIt ?? "Copy it"}</Action>
+                <Action onClick={downloadRecord}>Download it</Action>
+              </Actions>
+            </div>
+          </Region>
+        ) : null}
+      </div>
     </Surface>
   );
 }

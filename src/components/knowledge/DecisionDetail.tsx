@@ -48,7 +48,17 @@
  */
 import { useState } from "react";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Actions,
+  Action,
+  Region,
+  Reading,
+  ReadFailed,
+  NothingHere,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Choices } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -59,7 +69,7 @@ import { getDecisionJudgment } from "@/lib/decision-judgment.functions";
 import { getLineage } from "@/lib/lineage.functions";
 import { StageTimeline } from "@/components/shared/StageTimeline";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
-import { Block, Button, Choices, Empty, Failed, Loading, Prose, Receipt, Value } from "@/components/shell/primitives";
+import { Prose, Receipt } from "@/components/shell/primitives";
 import { SourceLink } from "./DecisionsPanel";
 import { ageOf, displayWho, hasSource, OUTCOME_WORD, SOURCE_LABEL } from "./decisions-shared";
 import { ContradictionAuditSection } from "./ContradictionAuditSection";
@@ -139,7 +149,7 @@ export function ShareDecisionButton({
   }
   if (!s.is_public) {
     return (
-      <Button
+      <Action
         disabled={toggle.isPending}
         onClick={() => toggle.mutate(true)}
         title="Make this decision public and copy a shareable link"
@@ -149,20 +159,20 @@ export function ShareDecisionButton({
             attribute already says. "Receipt" also named the wrong object —
             the thing being shared is the decision itself. */}
         {toggle.isPending ? "Publishing" : "Share this decision"}
-      </Button>
+      </Action>
     );
   }
   return (
     <>
-      <Button
+      <Action
         onClick={() => s.share_slug && copyDecisionLink(s.share_slug)}
         title="Copy the public link"
       >
         Copy the link
-      </Button>
-      <Button variant="ghost" disabled={toggle.isPending} onClick={() => toggle.mutate(false)}>
+      </Action>
+      <Action variant="quiet" disabled={toggle.isPending} onClick={() => toggle.mutate(false)}>
         {toggle.isPending ? "Working" : "Make it private"}
-      </Button>
+      </Action>
     </>
   );
 }
@@ -243,23 +253,23 @@ export function DecisionDetail({ id }: { id: string }) {
 
   const onBack = () => navigate({ to: "/brain", search: { tab: "decisions" } });
 
-  if (decisions.isLoading) return <Loading>Reading the call.</Loading>;
+  if (decisions.isLoading) return <Reading>Reading the call.</Reading>;
 
   if (decisions.isError) {
     return (
-      <Failed onRetry={() => void decisions.refetch()}>
+      <ReadFailed onRetry={() => void decisions.refetch()}>
         The record did not load, so this is not a claim that the call is gone.{" "}
         {(decisions.error as Error)?.message ?? ""}
-      </Failed>
+      </ReadFailed>
     );
   }
 
   const d = decisions.data?.decisions.find((x) => x.id === id);
   if (!d) {
     return (
-      <Empty action={<Button onClick={onBack}>Back to all decisions</Button>}>
+      <NothingHere action={<Action onClick={onBack}>Back to all decisions</Action>}>
         That call is not on the record. It may have been removed since the link was made.
-      </Empty>
+      </NothingHere>
     );
   }
 
@@ -280,12 +290,12 @@ export function DecisionDetail({ id }: { id: string }) {
   return (
     <div>
       <Actions>
-        <Button variant="ghost" onClick={onBack}>
+        <Action variant="quiet" onClick={onBack}>
           All decisions
-        </Button>
+        </Action>
       </Actions>
 
-      <Block
+      <Region
         title={title}
         // Three DIFFERENT facts, never more of the title: where it stands, who
         // put it there, and where it came from.
@@ -315,35 +325,35 @@ export function DecisionDetail({ id }: { id: string }) {
             later decision contexts.
           </p>
         ) : null}
-      </Block>
+      </Region>
 
-      <Block title="Why">
+      <Region title="Why">
         {d.rationale ? (
           <Prose>
             <p>{d.rationale}</p>
           </Prose>
         ) : (
-          <Empty>
+          <NothingHere>
             Nobody wrote down why. Decisions are working memory, not minutes, so an unexplained call
             is a real state rather than a missing field.
-          </Empty>
+          </NothingHere>
         )}
-      </Block>
+      </Region>
 
       {/* The paths not taken, rendered only when the row actually recorded any
           (decisions.alternatives_considered). */}
       {alternatives.length > 0 ? (
-        <Block title="What else was on the table">
+        <Region title="What else was on the table">
           {alternatives.map((a, i) => (
             <Row key={i} lead={a.title} sub={`Rejected: ${a.reason_rejected}`} />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
-      <Block
+      <Region
         title="Where it came from"
-        more="Trace it in the graph"
-        onMore={() =>
+        goTo="Trace it in the graph"
+        onGoTo={() =>
           navigate({
             to: "/brain",
             search: { tab: "graph", focusKind: "decision", focusId: d.id },
@@ -359,11 +369,11 @@ export function DecisionDetail({ id }: { id: string }) {
             <Value>Nothing to open. The call was entered by hand.</Value>
           )}
         </Line>
-      </Block>
+      </Region>
 
       {/* The real lineage edges in and out of this decision. */}
       {evidenceIn.length > 0 || evidenceOut.length > 0 ? (
-        <Block title="What it rests on, and what rests on it">
+        <Region title="What it rests on, and what rests on it">
           {evidenceIn.map((e) => (
             <Row
               key={e.id}
@@ -380,12 +390,12 @@ export function DecisionDetail({ id }: { id: string }) {
               sub={e.relation}
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
       {/* The red-team review persisted on the linked spec. */}
       {critic ? (
-        <Block title="What the Critic said about the linked spec">
+        <Region title="What the Critic said about the linked spec">
           <Line
             label={critic.verdict}
             sub={critic.reviewed_at ? ageOf(critic.reviewed_at) : undefined}
@@ -399,7 +409,7 @@ export function DecisionDetail({ id }: { id: string }) {
               <p>{critic.summary}</p>
             </Prose>
           ) : null}
-        </Block>
+        </Region>
       ) : null}
 
       {/* RPT-25: the contradiction auditor. Drift pointed inward. */}
@@ -408,27 +418,28 @@ export function DecisionDetail({ id }: { id: string }) {
       {/* Outcome-weighted learnings via the Ambient Precedent recall; serving
           one also writes its citation receipt server-side. */}
       {precedents.length > 0 ? (
-        <Block
+        <Region
           title="Last time we reasoned this way"
           sub="What actually happened, weighted by how the outcome landed."
         >
           {precedents.map((p) => (
             <Row key={p.memoryId} lead={p.title || p.verdict} sub={p.summary} />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
-      <Block
+      <Region
         title="The call"
         sub="Yours, and it is the one the crew reads. Settling it here settles it everywhere."
       >
         <Choices
+          mode="one"
           label="What happens to this call"
           value={d.status as Status}
           options={VERDICT_OPTIONS.map((o) => ({ ...o, disabled: update.isPending }))}
-          onPick={(status) => update.mutate({ status, title })}
+          onChange={(status) => update.mutate({ status, title })}
         />
-      </Block>
+      </Region>
 
       {settled.map((s) => (
         <Receipt
@@ -443,7 +454,7 @@ export function DecisionDetail({ id }: { id: string }) {
       {/* Real per-transition rows; renders nothing until the first lands. */}
       <StageTimeline entityType="decision" entityId={d.id} />
 
-      <Block title="Elsewhere">
+      <Region title="Elsewhere">
         <Line label="Trace id" sub="The id this call answers to across the record">
           <Value>
             <Num>{d.id}</Num>
@@ -462,7 +473,7 @@ export function DecisionDetail({ id }: { id: string }) {
             onReverted={() => qc.invalidateQueries({ queryKey: ["decisions"] })}
           />
         </Actions>
-      </Block>
+      </Region>
     </div>
   );
 }

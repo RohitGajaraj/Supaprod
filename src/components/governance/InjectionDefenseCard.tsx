@@ -10,7 +10,7 @@
  *
  * KILL  the card. It was a `bento` inside a region that is already a container,
  *       which is a card in a card (anti-slop ban 5), and the name said card
- *       while the content was a section. It is a Block: a rule, a title, and
+ *       while the content was a section. It is a Region: a rule, a title, and
  *       the content flat underneath.
  * KILL  the six-sentence explainer. The founder's own test: "Why do we need so
  *       bigger things to display? If a user wants to know, he will click
@@ -30,21 +30,34 @@
  */
 import { useState } from "react";
 import { Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Actions,
+  Action,
+  ReadFailedLine,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Field, Textarea } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   assessInjectionSample,
   type InjectionSampleResult,
 } from "@/lib/guardrails-injection.functions";
-import { Block, Button, Failed, Field, Textarea, Value } from "@/components/shell/primitives";
-import type { GovTone } from "./governance-shared";
 
 /** allow: it reads clean. flag: suspicious, kept behind the fence and still
- *  delivered. quarantine: stripped before a model ever sees it. */
-const DECISION_TONE: Record<string, GovTone> = {
+ *  delivered. quarantine: stripped before a model ever sees it.
+ *
+ *  NOT `GovTone`, which still carries the retired layer's `warn`. Meridian has
+ *  five status words and `warn` is not one of them: a flagged string is waiting
+ *  on a condition -- it goes through with the fence around it -- which is what
+ *  `hold` says. `governance-shared.ts` keeps its own vocabulary because its
+ *  test suite pins it; the translation happens here, at the one call site that
+ *  paints. */
+const DECISION_TONE: Record<string, "quiet" | "pass" | "fail" | "hold" | "agent"> = {
   allow: "pass",
-  flag: "warn",
+  flag: "hold",
   quarantine: "fail",
 };
 
@@ -89,7 +102,7 @@ export function InjectionDefenseCard() {
   const verdict = result?.verdict ?? null;
 
   return (
-    <Block
+    <Region
       title="The layer behind the rules"
       sub="Every untrusted input, retrieved context, ingested signal and tool output, is scored as a whole string rather than matched one pattern at a time. It fails open: a fault in the classifier never blocks a call."
     >
@@ -97,16 +110,16 @@ export function InjectionDefenseCard() {
           so this cannot claim a boundary the engine does not hold. A failed
           read says so rather than drawing nothing and implying no boundary. */}
       {thresholdsQ.isError ? (
-        <Failed onRetry={() => void thresholdsQ.refetch()}>
+        <ReadFailedLine onRetry={() => void thresholdsQ.refetch()}>
           The live thresholds did not load, so the two lines below would not be the real ones.
-        </Failed>
+        </ReadFailedLine>
       ) : flagT !== null && quarT !== null ? (
         <>
           <Line
             label="It flags"
             sub="Suspicious wording on its own. A spec that merely quotes an attack is never stripped for it."
           >
-            <Value tone="warn">
+            <Value tone="hold">
               score <Num>{flagT.toFixed(2)}</Num>
             </Value>
           </Line>
@@ -132,13 +145,13 @@ export function InjectionDefenseCard() {
       </Field>
 
       <Actions>
-        <Button disabled={!text.trim() || assess.isPending} onClick={() => assess.mutate(text)}>
+        <Action disabled={!text.trim() || assess.isPending} onClick={() => assess.mutate(text)}>
           {assess.isPending ? "Reading it" : "Read it"}
-        </Button>
+        </Action>
         {EXAMPLES.map((ex) => (
-          <Button
+          <Action
             key={ex.label}
-            variant="ghost"
+            variant="quiet"
             disabled={assess.isPending}
             onClick={() => {
               setText(ex.text);
@@ -146,11 +159,11 @@ export function InjectionDefenseCard() {
             }}
           >
             {ex.label}
-          </Button>
+          </Action>
         ))}
       </Actions>
 
-      {assess.error ? <Failed>{(assess.error as Error).message}</Failed> : null}
+      {assess.error ? <ReadFailedLine>{(assess.error as Error).message}</ReadFailedLine> : null}
 
       {verdict ? (
         <>
@@ -162,7 +175,7 @@ export function InjectionDefenseCard() {
               </>
             }
           >
-            <Value tone={DECISION_TONE[verdict.decision] ?? "warn"}>{verdict.decision}</Value>
+            <Value tone={DECISION_TONE[verdict.decision] ?? "hold"}>{verdict.decision}</Value>
           </Line>
 
           {verdict.signals.length === 0 ? (
@@ -189,6 +202,6 @@ export function InjectionDefenseCard() {
           )}
         </>
       ) : null}
-    </Block>
+    </Region>
   );
 }

@@ -36,7 +36,7 @@
  */
 import { useMemo } from "react";
 import { Line } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import { Num, Region, Reading, ReadFailedLine, Value } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getMemoryCompounding, getMemoryLift } from "@/lib/gauntlet.functions";
@@ -44,7 +44,6 @@ import { getForecastCalibration } from "@/lib/brain-insights.functions";
 import { SketchBarChart } from "@/components/supaprod/Sketch";
 import { useWorkspace } from "@/hooks/use-workspace";
 import type { GraphNode } from "@/lib/knowledge-graph-view";
-import { Block, Failed, Loading, Value } from "@/components/shell/primitives";
 
 const WEEK_MS = 7 * 86_400_000;
 const WEEKS = 8;
@@ -140,16 +139,16 @@ export function GraphCompoundingStrip({
 
   if (!loading && !failed && !hasClaim) {
     return memUnread ? (
-      <Block title="What the record holds">
-        <Failed onRetry={() => void memQ.refetch()}>
+      <Region title="What the record holds">
+        <ReadFailedLine onRetry={() => void memQ.refetch()}>
           This could not be read, so nothing here is a claim that the record is empty.
-        </Failed>
-      </Block>
+        </ReadFailedLine>
+      </Region>
     ) : null;
   }
 
   return (
-    <Block
+    <Region
       // NOT "Your record, compounding". Present progressive asserted that
       // accumulation is happening right now, which is the claim the vocabulary
       // canon forbids: the loop is wired and proven, and it accrues on first
@@ -161,11 +160,11 @@ export function GraphCompoundingStrip({
       sub="Measured over the nodes in view, and over the last ninety days of runs."
     >
       {loading ? (
-        <Loading>Reading the record.</Loading>
+        <Reading>Reading the record.</Reading>
       ) : failed ? (
         // Never an empty state, and never the pre-migration copy. A read that
         // did not answer is a different fact from a table that is not there yet.
-        <Failed
+        <ReadFailedLine
           onRetry={() => {
             void memQ.refetch();
             void liftQ.refetch();
@@ -174,7 +173,7 @@ export function GraphCompoundingStrip({
         >
           These numbers did not load, so nothing here is a claim about what the record holds.{" "}
           {((memQ.error ?? liftQ.error ?? calibrationQ.error) as Error)?.message ?? ""}
-        </Failed>
+        </ReadFailedLine>
       ) : (
         <>
           {/* "LIGHTS UP AFTER THE NEXT SYNC" IS GONE. That was our migration
@@ -278,6 +277,6 @@ export function GraphCompoundingStrip({
           ) : null}
         </>
       )}
-    </Block>
+    </Region>
   );
 }

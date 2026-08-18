@@ -85,7 +85,20 @@
  */
 import { useServerFn } from "@tanstack/react-start";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  Approve,
+  NothingYet,
+  Num,
+  Picker,
+  ReadFailed,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Toggle,
+} from "@/components/meridian/surface-parts";
+import { Field, Input } from "@/components/meridian/forms";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -110,7 +123,7 @@ import {
 import { relTime, fmtUsd } from "@/components/product/format";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { CONSENT_PHILOSOPHY, groupToolsByConsequenceClass } from "@/lib/consent-classes";
-import { Block, Button, Empty, Failed, Field, Gate, Input, Loading, Receipt, Select, Switch } from "@/components/shell/primitives";
+import { Gate, Receipt } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 
 type EventType =
@@ -379,9 +392,9 @@ export function ControlsPanel({
 
   if (overview.error) {
     return (
-      <Failed onRetry={() => void overview.refetch()}>
+      <ReadFailed onRetry={() => void overview.refetch()}>
         Controls did not load. {(overview.error as Error)?.message}
-      </Failed>
+      </ReadFailed>
     );
   }
 
@@ -441,8 +454,7 @@ export function ControlsPanel({
             <>Skipping runs nothing. The event stays on the record either way.</>,
           ]}
         >
-          <Button
-            variant="primary"
+          <Approve
             disabled={deciding(live.id)}
             onClick={() =>
               decideEvtMut.mutate({
@@ -454,8 +466,8 @@ export function ControlsPanel({
             }
           >
             Dispatch it
-          </Button>
-          <Button
+          </Approve>
+          <Action
             disabled={deciding(live.id)}
             onClick={() =>
               decideEvtMut.mutate({
@@ -467,7 +479,7 @@ export function ControlsPanel({
             }
           >
             Skip it
-          </Button>
+          </Action>
         </Gate>
       ) : null}
 
@@ -479,21 +491,29 @@ export function ControlsPanel({
           it. The standing limits it used to share a block with are their own
           region below, because a limit that has always been there and a switch
           you are about to throw are different kinds of fact. */}
-      <Block title="Stop the machine">
+      <Region title="Stop the machine">
         {overview.isLoading ? (
-          <Loading>Reading whether the crew is running.</Loading>
+          <Reading>Reading whether the crew is running.</Reading>
         ) : (
           <>
             <Line label="Agents may run" sub={pauseSub}>
-              <Switch
+              <Toggle
                 checked={!killed}
                 disabled={killDisabled}
                 label="Agents may run"
                 onChange={() => pauseMut.mutate(!ks?.workspace_paused)}
               />
             </Line>
-            <Field label={killed ? "Why you are resuming" : "Why you are pausing"}>
+            {/* `htmlFor`/`id`: the retired `Field` was a `<label>` wrapping its
+                control and bound the two by containment. Meridian's binds by
+                name, so without the pair this input would have no accessible
+                name at all. */}
+            <Field
+              label={killed ? "Why you are resuming" : "Why you are pausing"}
+              htmlFor="pause-reason"
+            >
               <Input
+                id="pause-reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 disabled={killDisabled}
@@ -503,11 +523,11 @@ export function ControlsPanel({
             {ks?.reason ? <div style={NOTE}>On record: {ks.reason}</div> : null}
           </>
         )}
-      </Block>
+      </Region>
 
-      <Block title="Standing limits">
+      <Region title="Standing limits">
         {overview.isLoading ? (
-          <Loading>Reading the limits this workspace runs inside.</Loading>
+          <Reading>Reading the limits this workspace runs inside.</Reading>
         ) : (
           <>
             <Line label="Missions at once" sub="New goals queue when the mesh is at capacity.">
@@ -526,20 +546,26 @@ export function ControlsPanel({
                 <Num>{stuck}</Num>
               </span>
               {onOpenQueue ? (
-                <Button variant="ghost" onClick={onOpenQueue}>
+                <Action variant="quiet" onClick={onOpenQueue}>
                   Open the queue
-                </Button>
+                </Action>
               ) : null}
             </Line>
           </>
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="Auto-pipelines"
         sub="What routes an event to an agent without asking you first."
-        more={addOpen ? undefined : "Add a rule"}
-        onMore={() => setAddOpen(true)}
+        /* `toggle` and not `act` or `goTo`: the form this opens renders INSIDE
+           this region, below the rules it adds to, so what expands is this
+           region and `aria-expanded` is the true thing to say. The control
+           hides itself while the form is open, which is why `toggled` reads
+           false wherever it is drawn -- the form's own Cancel closes it. */
+        toggle={addOpen ? undefined : "Add a rule"}
+        onToggle={() => setAddOpen(true)}
+        toggled={addOpen}
       >
         {/* THE THREE ARMS, IN THE ORDER THE FILE ALREADY ARGUES FOR ELSEWHERE.
             `subs` is `subsQ.data?.subscriptions ?? []`, so without the loading
@@ -550,11 +576,15 @@ export function ControlsPanel({
             opposite facts. The Empty is reachable only after a read that
             SUCCEEDED. */}
         {subsQ.isError ? (
-          <Failed onRetry={() => void subsQ.refetch()}>Pipeline rules did not load.</Failed>
+          <ReadFailedLine onRetry={() => void subsQ.refetch()}>
+            Pipeline rules did not load.
+          </ReadFailedLine>
         ) : subsQ.isLoading ? (
-          <Loading>Reading the pipeline rules.</Loading>
+          <Reading>Reading the pipeline rules.</Reading>
         ) : subs.length === 0 ? (
-          <Empty>No pipeline rules yet. Add one and the next matching event routes itself.</Empty>
+          <NothingYet>
+            No pipeline rules yet. Add one and the next matching event routes itself.
+          </NothingYet>
         ) : (
           subs.map((s) => {
             const filter = (s.filter as Record<string, unknown>) ?? {};
@@ -584,15 +614,15 @@ export function ControlsPanel({
                 }
                 sub={desc}
               >
-                <Button
-                  variant="ghost"
+                <Action
+                  variant="quiet"
                   title="It stops firing."
                   disabled={deleteSubMut.isPending}
                   onClick={() => deleteSubMut.mutate({ id: s.id, name: pipeName(s) })}
                 >
                   Remove
-                </Button>
-                <Switch
+                </Action>
+                <Toggle
                   checked={s.enabled}
                   label={`${pipeName(s)} pipeline`}
                   disabled={toggleSubMut.isPending}
@@ -638,8 +668,12 @@ export function ControlsPanel({
                 gap: "var(--sp-space-3)",
               }}
             >
-              <Field label="Event">
-                <Select value={newEvent} onChange={(e) => setNewEvent(e.target.value as EventType)}>
+              <Field label="Event" htmlFor="pipeline-event">
+                <Picker
+                  id="pipeline-event"
+                  value={newEvent}
+                  onChange={(e) => setNewEvent(e.target.value as EventType)}
+                >
                   <option value="signal.created">New signal · signal.created</option>
                   <option value="opportunity.scored">
                     Opportunity scored · opportunity.scored
@@ -648,27 +682,30 @@ export function ControlsPanel({
                   <option value="signal.clustered">Signals clustered · signal.clustered</option>
                   <option value="outcome.recorded">Outcome recorded · outcome.recorded</option>
                   <option value="decision.made">Decision made · decision.made</option>
-                </Select>
+                </Picker>
               </Field>
-              <Field label="Agent">
+              <Field label="Agent" htmlFor="pipeline-agent">
                 <Input
+                  id="pipeline-agent"
                   value={newAgent}
                   onChange={(e) => setNewAgent(e.target.value)}
                   placeholder="agent slug"
                 />
               </Field>
-              <Field label="Before it runs">
-                <Select
+              <Field label="Before it runs" htmlFor="pipeline-mode">
+                <Picker
+                  id="pipeline-mode"
                   value={newMode}
                   onChange={(e) => setNewMode(e.target.value as "auto" | "confirm")}
                 >
                   <option value="confirm">Ask first</option>
                   <option value="auto">Auto</option>
-                </Select>
+                </Picker>
               </Field>
               {newEvent === "opportunity.scored" ? (
-                <Field label="Min ICE">
+                <Field label="Min ICE" htmlFor="pipeline-min-ice">
                   <Input
+                    id="pipeline-min-ice"
                     value={newMinScore}
                     onChange={(e) => setNewMinScore(e.target.value)}
                     placeholder="8"
@@ -678,20 +715,20 @@ export function ControlsPanel({
               ) : null}
             </div>
             <Actions>
-              <Button
+              <Action
                 variant="primary"
                 type="submit"
                 disabled={addSubMut.isPending || !newAgent.trim()}
               >
                 Add rule
-              </Button>
-              <Button variant="ghost" onClick={() => setAddOpen(false)}>
+              </Action>
+              <Action variant="quiet" onClick={() => setAddOpen(false)}>
                 Cancel
-              </Button>
+              </Action>
             </Actions>
           </form>
         ) : null}
-      </Block>
+      </Region>
 
       {/* THE BOUNDARY, STATED. NOT A SECOND PLACE TO SET IT.
 
@@ -719,15 +756,15 @@ export function ControlsPanel({
           It also put the two blocks in open contradiction on one screen: the
           block above already says the boundary did not load. Same query, same
           arms, and the Empty is reachable only after a read that SUCCEEDED. */}
-      <Block title="Consent by consequence" sub={CONSENT_PHILOSOPHY}>
+      <Region title="Consent by consequence" sub={CONSENT_PHILOSOPHY}>
         {boundaryQ.isError ? (
-          <Failed onRetry={() => void boundaryQ.refetch()}>
+          <ReadFailedLine onRetry={() => void boundaryQ.refetch()}>
             The boundary did not load, so nothing here would be the real reach of any class.
-          </Failed>
+          </ReadFailedLine>
         ) : boundaryQ.isLoading ? (
-          <Loading>Reading which tools your crew can reach.</Loading>
+          <Reading>Reading which tools your crew can reach.</Reading>
         ) : reachable.length === 0 ? (
-          <Empty>No tools enabled yet, so no class has anything in it.</Empty>
+          <NothingYet>No tools enabled yet, so no class has anything in it.</NothingYet>
         ) : (
           groupToolsByConsequenceClass(reachable, (t) => t.name)
             .filter((g) => g.tools.length > 0)
@@ -738,18 +775,20 @@ export function ControlsPanel({
               </Line>
             ))
         )}
-      </Block>
+      </Region>
 
-      <Block title="Recent runs" sub="What each run spent against the caps it was given.">
+      <Region title="Recent runs" sub="What each run spent against the caps it was given.">
         {/* `runs` is `data?.runs ?? []`, so "no mission runs yet" was asserted
             from the first paint of every load. The only overview.isLoading
             guard in this file used to sit in the Boundaries block, three
             regions up, which put one honest region and one asserting region on
             screen together out of a single unfinished read. */}
         {overview.isLoading ? (
-          <Loading>Reading what the crew has run.</Loading>
+          <Reading>Reading what the crew has run.</Reading>
         ) : runs.length === 0 ? (
-          <Empty>No mission runs yet. The first one starts when you give the crew a goal.</Empty>
+          <NothingYet>
+            No mission runs yet. The first one starts when you give the crew a goal.
+          </NothingYet>
         ) : (
           runs.map((r) => {
             const halted = r.status === "halted" || !!r.halted_reason;
@@ -823,9 +862,9 @@ export function ControlsPanel({
             );
           })
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="Reactor activity"
         sub={
           waiting.length > 1 ? (
@@ -839,11 +878,15 @@ export function ControlsPanel({
         }
       >
         {queueQ.isError ? (
-          <Failed onRetry={() => void queueQ.refetch()}>Reactor activity did not load.</Failed>
+          <ReadFailedLine onRetry={() => void queueQ.refetch()}>
+            Reactor activity did not load.
+          </ReadFailedLine>
         ) : queueQ.isLoading ? (
-          <Loading>Reading the reactor queue.</Loading>
+          <Reading>Reading the reactor queue.</Reading>
         ) : events.length === 0 ? (
-          <Empty>No reactor events yet. One appears the moment a rule above matches.</Empty>
+          <NothingYet>
+            No reactor events yet. One appears the moment a rule above matches.
+          </NothingYet>
         ) : (
           events
             // The one being asked is drawn as the Gate at the top of the page,
@@ -904,7 +947,7 @@ export function ControlsPanel({
               );
             })
         )}
-      </Block>
+      </Region>
 
       {/* THE COMMIT. What every decision above actually caused, kept on screen
           rather than flashed once and lost. */}

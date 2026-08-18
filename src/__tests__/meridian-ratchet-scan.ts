@@ -166,6 +166,34 @@ export const RETIRED_MARKERS: ReadonlyArray<{ id: string; pattern: RegExp; linea
    * `Door`, `Failed` and `Empty` all exist in both worlds, and counting bare
    * identifiers would flag correct Meridian code.
    */
+  /*
+   * ── THE FOURTH HOLE, CLOSED 2026-08-18: THE CLASS NAMES ─────────────────
+   * The three holes above were about tokens, components and stylesheets. This
+   * one is what survives all three: a file can import nothing retired, carry no
+   * `--sp-*` token, pass every gate, and still be painted by the old system,
+   * because the retired vocabulary is also a set of CLASS NAMES and a class
+   * name is just a string in an attribute.
+   *
+   * MEASURED THE DAY IT WAS FOUND: 521 occurrences across 258 distinct classes
+   * in `src/components` and `src/routes`. `sp-fail` alone is 65, and `sp-warn`
+   * is 17 -- a SIXTH status word, in a system whose whole colour law is that
+   * there are five.
+   *
+   * It surfaced the honest way. An agent porting the observe panels moved every
+   * component and every token off the retired layer, then wrote down that it had
+   * left `sp-pass`/`sp-fail`/`sp-warn` class strings behind because they were
+   * not in its mapping. Its files were, by every gate the repo had, done.
+   *
+   * WHY THE PATTERN NEEDS A LEADING QUOTE OR SPACE. `--sp-line` contains the
+   * substring `sp-line`, so a naive match would count every token twice and the
+   * ratchet would fight itself. Requiring a quote, backtick or whitespace in
+   * front matches a class in an attribute and never a custom property, whose
+   * preceding character is always `-`. For the same reason it does not fire on
+   * a CSS rule (`.sp-mark`, preceded by a dot): those declarations are already
+   * counted by the stylesheet pass, and counting them here would double them.
+   */
+  { id: "class:sp-", pattern: /["`\s](sp-[a-z0-9-]+)["`\s]/g, lineage: "Cadence/ink CSS classes" },
+
   {
     id: "import:shell/primitives",
     pattern: /from\s+["'](?:@\/components|\.{1,2}\/[^"']*)\/shell\/primitives["']/g,

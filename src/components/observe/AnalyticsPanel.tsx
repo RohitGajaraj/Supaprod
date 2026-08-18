@@ -63,7 +63,17 @@
  */
 import { useServerFn } from "@tanstack/react-start";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingYet,
+  Num,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Choices } from "@/components/meridian/forms";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -78,7 +88,7 @@ import {
 } from "@/lib/analytics.functions";
 import { getBudgetSummary } from "@/lib/budgets.functions";
 import { relTime } from "@/components/product/format";
-import { Block, Button, Cell, Choices, Empty, Failed, Grid, Loading, Pre, Prose, Value } from "@/components/shell/primitives";
+import { Cell, Grid, Pre, Prose } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 
 function fmtUsd(n: number) {
@@ -197,7 +207,7 @@ export function AnalyticsPanel() {
         label="How far back to read"
         mode="one"
         value={range}
-        onPick={(id) => setRange(id)}
+        onChange={(id) => setRange(id)}
         options={RANGES.map((r) => ({
           id: r.id,
           label: (
@@ -214,19 +224,19 @@ export function AnalyticsPanel() {
           unlabelled numbers side by side. The Grid is used further down, on the
           judge scores, where five siblings are genuinely scanned across and
           compared against each other. */}
-      <Block title="What it cost">
+      <Region title="What it cost">
         {overview.isLoading ? (
-          <Loading>Reading the AI event history.</Loading>
+          <Reading>Reading the AI event history.</Reading>
         ) : overview.isError ? (
-          <Failed onRetry={() => void overview.refetch()}>
+          <ReadFailedLine onRetry={() => void overview.refetch()}>
             The event history did not load, so nothing here is a claim about what you spent.{" "}
             {errText(overview.error)}
-          </Failed>
+          </ReadFailedLine>
         ) : runs === 0 ? (
-          <Empty>
+          <NothingYet>
             Nothing ran in this window. Widen it, or run an agent and the first call lands here
             within a minute.
-          </Empty>
+          </NothingYet>
         ) : (
           <>
             <Line
@@ -306,13 +316,13 @@ export function AnalyticsPanel() {
             ) : null}
           </>
         )}
-      </Block>
+      </Region>
 
       {/* Fed by the same read as the block above, so it renders only once that
           read succeeded. Repeating one failure twice on one screen tells the
           reader nothing the first line did not. */}
       {overview.isSuccess && bySurface.length > 0 ? (
-        <Block
+        <Region
           title="Where it went"
           sub="Every AI call in the product rolls up here, busiest first."
         >
@@ -336,7 +346,7 @@ export function AnalyticsPanel() {
               }
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
       {/* The per-agent layer underneath the 'agent' surface row above. Its own
@@ -345,22 +355,22 @@ export function AnalyticsPanel() {
           attribution rather than decoration. A pseudo-ref (orchestrator:plan,
           unattributed) resolved to nothing, so it wears no mark and says so,
           rather than borrowing an identity it was never given. */}
-      <Block
+      <Region
         title="Which agent spent it"
         sub="Share is of agent spend, not of everything above. Open one for its runs and missions."
       >
         {byAgentQ.isLoading ? (
-          <Loading>Reading the agent history.</Loading>
+          <Reading>Reading the agent history.</Reading>
         ) : byAgentQ.isError ? (
-          <Failed onRetry={() => void byAgentQ.refetch()}>
+          <ReadFailedLine onRetry={() => void byAgentQ.refetch()}>
             Agent spend did not load, so this is not a claim that no agent ran.{" "}
             {errText(byAgentQ.error)}
-          </Failed>
+          </ReadFailedLine>
         ) : byAgents.length === 0 ? (
-          <Empty>
+          <NothingYet>
             No agent calls in this window. Everything else the product asked a model is in the
             rollup above.
-          </Empty>
+          </NothingYet>
         ) : (
           byAgents.map((a) => {
             // getAgentSpendBreakdown sets name to the agents row when the ref
@@ -392,7 +402,7 @@ export function AnalyticsPanel() {
             );
           })
         )}
-      </Block>
+      </Region>
 
       {/* ENG-06 unit economics, the operator half of cost-per-outcome. Stays
           silent on a workspace that has produced no outcomes yet, because a
@@ -400,17 +410,17 @@ export function AnalyticsPanel() {
           silent: that is the difference between "nothing yet" and "we could
           not find out". */}
       {unitQ.isError ? (
-        <Block title="What each outcome cost">
-          <Failed onRetry={() => void unitQ.refetch()}>
+        <Region title="What each outcome cost">
+          <ReadFailedLine onRetry={() => void unitQ.refetch()}>
             The outcome history did not load. {errText(unitQ.error)}
-          </Failed>
-        </Block>
+          </ReadFailedLine>
+        </Region>
       ) : unitQ.isLoading ? (
-        <Block title="What each outcome cost">
-          <Loading>Reading the outcome history.</Loading>
-        </Block>
+        <Region title="What each outcome cost">
+          <Reading>Reading the outcome history.</Reading>
+        </Region>
       ) : ue && ue.outcomes > 0 ? (
-        <Block title="What each outcome cost">
+        <Region title="What each outcome cost">
           <Line
             label="Cost per outcome"
             sub="Blended across specs, decisions and shipped missions on purpose. Per-type attribution would claim a precision this data does not have."
@@ -444,31 +454,31 @@ export function AnalyticsPanel() {
               <Num>{ue.outcomes}</Num>
             </Value>
           </Line>
-        </Block>
+        </Region>
       ) : null}
 
       {/* THE DRAWER, converted. Opening a run REPLACES the breakdown rather
           than floating over it, which is what the absent pane would have done.
-          A Block is a rule and never appears inside another Block, so the run
+          A Region is a rule and never appears inside another Region, so the run
           takes the whole region rather than nesting inside it, and the way
-          back is one real Button at the top of the first thing you read. */}
+          back is one real Action at the top of the first thing you read. */}
       {section === "runs" && openId ? (
         detail.isError ? (
-          <Block title="The call you opened">
+          <Region title="The call you opened">
             <Actions>
-              <Button onClick={() => setOpenId(null)}>Back to the runs</Button>
+              <Action onClick={() => setOpenId(null)}>Back to the runs</Action>
             </Actions>
-            <Failed onRetry={() => void detail.refetch()}>
+            <ReadFailedLine onRetry={() => void detail.refetch()}>
               This call did not load. {errText(detail.error)}
-            </Failed>
-          </Block>
+            </ReadFailedLine>
+          </Region>
         ) : detail.isLoading || !detail.data ? (
-          <Block title="The call you opened">
+          <Region title="The call you opened">
             <Actions>
-              <Button onClick={() => setOpenId(null)}>Back to the runs</Button>
+              <Action onClick={() => setOpenId(null)}>Back to the runs</Action>
             </Actions>
-            <Loading>Reading the call.</Loading>
-          </Block>
+            <Reading>Reading the call.</Reading>
+          </Region>
         ) : (
           <EventDetail data={detail.data as EventDetailData} onBack={() => setOpenId(null)} />
         )
@@ -476,7 +486,7 @@ export function AnalyticsPanel() {
         /* The three breakdowns. The picker's own words name each one, so the
            block heading says something else: what all three have in common,
            and where their windows disagree with the picker at the top. */
-        <Block
+        <Region
           title="Underneath the totals"
           sub="Models follow the window above. The run list is the last 100 calls and guardrail hits are the last 30 days, whichever window is picked."
         >
@@ -484,19 +494,19 @@ export function AnalyticsPanel() {
             label="Which breakdown to read"
             mode="one"
             value={section}
-            onPick={(id) => setSection(id)}
+            onChange={(id) => setSection(id)}
             options={SECTIONS.map((x) => ({ id: x.id, label: x.label }))}
           />
 
           {section === "models" ? (
             overview.isLoading ? (
-              <Loading>Reading the AI event history.</Loading>
+              <Reading>Reading the AI event history.</Reading>
             ) : overview.isError ? (
-              <Failed onRetry={() => void overview.refetch()}>
+              <ReadFailedLine onRetry={() => void overview.refetch()}>
                 The event history did not load, so this is not a claim that no model ran.
-              </Failed>
+              </ReadFailedLine>
             ) : byModel.length === 0 ? (
-              <Empty>No AI calls in this window, so no model has a line yet.</Empty>
+              <NothingYet>No AI calls in this window, so no model has a line yet.</NothingYet>
             ) : (
               byModel.map((m) => (
                 <Row
@@ -514,17 +524,17 @@ export function AnalyticsPanel() {
             )
           ) : section === "runs" ? (
             events.isLoading ? (
-              <Loading>Reading the last calls on the record.</Loading>
+              <Reading>Reading the last calls on the record.</Reading>
             ) : events.isError ? (
-              <Failed onRetry={() => void events.refetch()}>
+              <ReadFailedLine onRetry={() => void events.refetch()}>
                 The calls did not load, so this is not a claim that nothing ran.{" "}
                 {errText(events.error)}
-              </Failed>
+              </ReadFailedLine>
             ) : eventRows.length === 0 ? (
-              <Empty>
+              <NothingYet>
                 No AI call is on the record yet. Run an agent or ask a question and the first one
                 lands here.
-              </Empty>
+              </NothingYet>
             ) : (
               eventRows.map((e) => (
                 <Row
@@ -551,16 +561,16 @@ export function AnalyticsPanel() {
               ))
             )
           ) : guards.isLoading ? (
-            <Loading>Reading the guardrail hits.</Loading>
+            <Reading>Reading the guardrail hits.</Reading>
           ) : guards.isError ? (
-            <Failed onRetry={() => void guards.refetch()}>
+            <ReadFailedLine onRetry={() => void guards.refetch()}>
               The guardrail hits did not load, so this is not a claim that nothing fired.{" "}
               {errText(guards.error)}
-            </Failed>
+            </ReadFailedLine>
           ) : guardHits.length === 0 ? (
-            <Empty>
+            <NothingYet>
               No guardrail has fired in the last 30 days. Inputs and outputs stayed clean.
-            </Empty>
+            </NothingYet>
           ) : (
             guardHits.map((h) => (
               <Row
@@ -576,7 +586,7 @@ export function AnalyticsPanel() {
               />
             ))
           )}
-        </Block>
+        </Region>
       )}
     </div>
   );
@@ -620,16 +630,16 @@ type EventDetailData = {
 function EventDetail({ data, onBack }: { data: EventDetailData; onBack: () => void }) {
   const back = (
     <Actions>
-      <Button onClick={onBack}>Back to the runs</Button>
+      <Action onClick={onBack}>Back to the runs</Action>
     </Actions>
   );
   const e = data.event;
   if (!e) {
     return (
-      <Block title="The call you opened">
+      <Region title="The call you opened">
         {back}
-        <Empty>That call is no longer on the record.</Empty>
-      </Block>
+        <NothingYet>That call is no longer on the record.</NothingYet>
+      </Region>
     );
   }
   const ev = data.eval;
@@ -649,7 +659,7 @@ function EventDetail({ data, onBack }: { data: EventDetailData; onBack: () => vo
 
   return (
     <>
-      <Block
+      <Region
         title="The call you opened"
         sub={
           <>
@@ -683,10 +693,10 @@ function EventDetail({ data, onBack }: { data: EventDetailData; onBack: () => vo
             <Num>{fmtUsd(Number(e.est_cost_usd))}</Num>
           </Value>
         </Line>
-      </Block>
+      </Region>
 
       {ev ? (
-        <Block
+        <Region
           title="What the judge scored"
           sub="A score the judge did not return says so, rather than reading as a zero."
         >
@@ -700,11 +710,11 @@ function EventDetail({ data, onBack }: { data: EventDetailData; onBack: () => vo
             ))}
           </Grid>
           {ev.judge_rationale ? <Prose>{ev.judge_rationale}</Prose> : null}
-        </Block>
+        </Region>
       ) : null}
 
       {data.guardrailHits.length > 0 ? (
-        <Block title="What the guardrails caught">
+        <Region title="What the guardrails caught">
           {data.guardrailHits.map((h, i) => (
             <Row
               key={`${h.rule_name}-${h.side}-${i}`}
@@ -719,11 +729,11 @@ function EventDetail({ data, onBack }: { data: EventDetailData; onBack: () => vo
               }
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
       {data.feedback.length > 0 ? (
-        <Block
+        <Region
           title="What a person said about it"
           sub="Someone rated this call after it ran. The rating prints as it was stored, rather than being translated into a scale nobody set."
         >
@@ -739,31 +749,31 @@ function EventDetail({ data, onBack }: { data: EventDetailData; onBack: () => vo
               }
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
-      <Block title="What went in">
+      <Region title="What went in">
         {e.input_preview ? (
           <Pre>{e.input_preview}</Pre>
         ) : (
-          <Empty>No input preview was recorded for this call.</Empty>
+          <NothingYet>No input preview was recorded for this call.</NothingYet>
         )}
-      </Block>
+      </Region>
 
-      <Block title="What came back">
+      <Region title="What came back">
         {e.output_preview ? (
           <Pre>{e.output_preview}</Pre>
         ) : (
-          <Empty>No output preview was recorded for this call.</Empty>
+          <NothingYet>No output preview was recorded for this call.</NothingYet>
         )}
-      </Block>
+      </Region>
 
       {e.error_message ? (
-        <Block title="Why it failed">
+        <Region title="Why it failed">
           <Pre>
             <span className="sp-fail">{e.error_message}</span>
           </Pre>
-        </Block>
+        </Region>
       ) : null}
     </>
   );

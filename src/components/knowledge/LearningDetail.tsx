@@ -33,12 +33,22 @@
  */
 import { useServerFn } from "@tanstack/react-start";
 import { Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Actions,
+  Action,
+  Region,
+  Reading,
+  ReadFailed,
+  NothingHere,
+  RecordSpeaks,
+  Value,
+} from "@/components/meridian/surface-parts";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { listLearnings } from "@/lib/outcome.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Block, Button, Empty, Failed, Loading, Prose, Record as RecordRecess, Value } from "@/components/shell/primitives";
+import { Prose } from "@/components/shell/primitives";
 import { whenOf } from "./CompoundingPanel";
 
 type LearningRow = {
@@ -82,23 +92,23 @@ export function LearningDetail({ id }: { id: string }) {
 
   const onBack = () => navigate({ to: "/brain", search: { tab: "learnings" } });
 
-  if (learnings.isLoading) return <Loading>Reading the outcome.</Loading>;
+  if (learnings.isLoading) return <Reading>Reading the outcome.</Reading>;
 
   if (learnings.isError) {
     return (
-      <Failed onRetry={() => void learnings.refetch()}>
+      <ReadFailed onRetry={() => void learnings.refetch()}>
         The outcomes did not load, so this is not a claim that this one is gone.{" "}
         {(learnings.error as Error)?.message ?? ""}
-      </Failed>
+      </ReadFailed>
     );
   }
 
   const l = ((learnings.data?.learnings ?? []) as LearningRow[]).find((x) => x.id === id);
   if (!l) {
     return (
-      <Empty action={<Button onClick={onBack}>Back to all outcomes</Button>}>
+      <NothingHere action={<Action onClick={onBack}>Back to all outcomes</Action>}>
         That outcome is not on the record. It may have been removed since the link was made.
-      </Empty>
+      </NothingHere>
     );
   }
 
@@ -116,14 +126,14 @@ export function LearningDetail({ id }: { id: string }) {
   return (
     <div>
       <Actions>
-        <Button variant="ghost" onClick={onBack}>
+        <Action variant="quiet" onClick={onBack}>
           All outcomes
-        </Button>
+        </Action>
       </Actions>
 
       {/* The record speaking. What the outcome MOVED is the product's claim
           made literal, so it gets the one lit surface rather than a grey box. */}
-      <RecordRecess
+      <RecordSpeaks
         evidence={
           priorIce != null && newIce != null ? (
             <>
@@ -137,9 +147,9 @@ export function LearningDetail({ id }: { id: string }) {
               delta! > 0 ? "+" : ""
             }${delta!.toFixed(1)} ICE from the real outcome.`
           : "Recorded from the real outcome. It did not move a ranking, and that is the honest result."}
-      </RecordRecess>
+      </RecordSpeaks>
 
-      <Block
+      <Region
         title={title}
         // Three DIFFERENT facts, never more of the title: how it landed, who
         // wrote it down, and when.
@@ -158,16 +168,16 @@ export function LearningDetail({ id }: { id: string }) {
             <p>{l.summary}</p>
           </Prose>
         ) : (
-          <Empty>
+          <NothingHere>
             Nobody wrote a memo. The verdict is on the record without the story behind it.
-          </Empty>
+          </NothingHere>
         )}
-      </Block>
+      </Region>
 
       {/* Rendered only when the outcome actually carried a measurement or a
           scored before-and-after pair. Never a fabricated field. */}
       {(l.metric_label && l.metric_value) || delta != null ? (
-        <Block title="What it measured">
+        <Region title="What it measured">
           {l.metric_label && l.metric_value ? (
             <Line label={l.metric_label}>
               <Value>
@@ -193,20 +203,20 @@ export function LearningDetail({ id }: { id: string }) {
               </Value>
             </Line>
           ) : null}
-        </Block>
+        </Region>
       ) : null}
 
       {/* Link back up the loop. The priority recentres the graph (reuse the
           lineage view, never orphan); the spec opens in Plan. */}
       {l.opportunity_id || l.prd_id ? (
-        <Block title="Where it points">
+        <Region title="Where it points">
           {l.opportunity_id ? (
             <Line
               label={l.opportunity_title ? `"${l.opportunity_title}"` : "The priority it re-ranked"}
               sub="Its whole history, and everything it connects to"
             >
-              <Button
-                variant="ghost"
+              <Action
+                variant="quiet"
                 onClick={() =>
                   navigate({
                     to: "/brain",
@@ -219,23 +229,23 @@ export function LearningDetail({ id }: { id: string }) {
                 }
               >
                 Trace it in the graph
-              </Button>
+              </Action>
             </Line>
           ) : null}
           {l.prd_id ? (
             <Line label="The spec it graded" sub="What was actually built, and what it promised">
-              <Button
-                variant="ghost"
+              <Action
+                variant="quiet"
                 onClick={() => navigate({ to: "/plan/spec/$id", params: { id: l.prd_id! } })}
               >
                 Open the spec
-              </Button>
+              </Action>
             </Line>
           ) : null}
-        </Block>
+        </Region>
       ) : null}
 
-      <Block title="Elsewhere">
+      <Region title="Elsewhere">
         <Line label="Trace id" sub="The id this outcome answers to across the record">
           <Value>
             <Num>{l.id}</Num>
@@ -244,7 +254,7 @@ export function LearningDetail({ id }: { id: string }) {
         <Line label="Recorded" sub={new Date(l.created_at).toLocaleString()}>
           <Value>{whenOf(l.created_at)}</Value>
         </Line>
-      </Block>
+      </Region>
     </div>
   );
 }
