@@ -37,7 +37,7 @@
 >
 > | | |
 > | --- | --- |
-> | **Video URL** | Record today. Script is in "The video" below, **155 words, a full 58 to 62 seconds** |
+> | **Video URL** | Record today. Script is in "The video" below, **160 words, a full 60 to 64 seconds** |
 > | **Alumni-contact toggle** | Preference. Recommended ON |
 > | **Privacy Policy toggle** | **Required, and a legal acknowledgement in his name.** An agent must never accept terms on his behalf |
 >
@@ -542,9 +542,55 @@ Both know I have listed them and are happy to take the call.
 
 # The video
 
-**A full minute. 155 words: 58 seconds at 160 words per minute, 62 at 150, which is his measured range.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
+**A full minute. 160 words: 60 seconds at 160 words per minute, 64 at 150. Spoken register, so read it fast and warm rather than carefully.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
 
-> ## 🎬 THE ARC, added 2026-08-18 after four drafts. This is the version to record.
+> ## 🎬 DRAFT SIX, and the two things that were actually broken
+>
+> **His note:** *"There is no connectivity, and there is no real say from a founder if they want to understand… when we say 'then Munich', what is in Munich?"*
+>
+> ### 1. The script had no MOTIVE, which is why it read as a list
+>
+> **Every draft said WHAT he did in three places and never WHY he kept going back.** Space, then silicon, then banking is a CV. **Space because he loved it, then silicon, then banking because he kept chasing the same thing, is a person.** One line fixes it and it is the most important line in the script:
+>
+> > **"I loved that. So I kept chasing it."**
+>
+> **Munich now explains itself** — *"Munich next, on my own, for a master's. Stayed for semiconductors"* — instead of arriving as a place name with no reason attached. **"On my own" is the only personal detail in the video and it earns its place**, because moving countries alone at that age is a fact about character, not about a CV.
+>
+> ### 2. The register was written, not spoken
+>
+> **Portentous fragments read well on a page and land flat on camera**, and EF names *"robotic, low-energy, overly scripted"* as a rejection reason. Draft six is deliberately colloquial: *nobody warns you · that's it · be the guy who's sure · here's the catch · So.* **Contractions throughout, because nobody says "I have resigned" out loud.**
+>
+> ---
+>
+> ## ❓ HE ASKED WHETHER THE VULNERABILITY BEAT SHOULD BE THERE AT ALL. It should. Here is the argument.
+>
+> *"I can show a little vulnerability, but I want you to include the perspective of what, why and how it needs to be there."*
+>
+> **WHAT it is:** two sentences. *"I was carrying everybody's big decisions except my own. And the one time it was mine, I started something and let it go."*
+>
+> **WHY it has to stay, and this is the load-bearing argument:**
+>
+> 1. **Without it the video is three jobs in a row, which is the CV the question explicitly bans.** The beat is the only thing that converts the career into self-knowledge. Cut it and there is no reason for the video to exist alongside the twelve answers.
+> 2. **EF's real question about a ten-year senior operator is: is he a founder, or an excellent employee?** Nothing else in the application addresses that head on. **This beat answers it by conceding it** — he names that he has been the second, which is the only credible way to claim the first.
+> 3. **It is the only line in the entire application that costs him something to say.** Twelve answers demonstrate competence. A reviewer who has read all twelve already believes he is capable; what they cannot yet judge is whether he is honest about himself.
+> 4. **It makes the ending mean something.** Without the confession, *"I've resigned"* is an announcement. With it, the resignation is the correction to a specific personal failure, which is a far stronger commitment signal than the fact of resigning.
+>
+> **HOW it is delivered, and this is what keeps it from being self-flagellation:** it is **two sentences out of one hundred and sixty**, it is stated flatly with no apology and no explanation, and **it is immediately followed by the fix**. *Let it go → so I've resigned → I'd love to build it with you.* **The beat is a hinge, never a dwelling place.** If it ever grows past two sentences it becomes an excuse, and that is the version to cut.
+>
+> ### Does the video answer "who is this founder?" — the checklist
+>
+> | What an evaluator needs | Where it lands |
+> | --- | --- |
+> | **What drives him** | *"I loved that. So I kept chasing it."* Irreversible, high-consequence work, chosen three times |
+> | **What he is like** | *"Be the guy who's sure."* Self-aware and slightly wry about his own role |
+> | **Is he honest** | The confession. It is the only thing in the application he could have hidden |
+> | **Is he actually committed** | *"I've resigned from my job"* — past tense, a fact rather than a plan |
+> | **Does he want THEM** | *"I'd love to build it with you."* Addressed to EF, opened with **"Hi EF"** |
+> | **Is he European-adjacent** | Munich, which The Bridge cares about more than the application had been admitting |
+>
+> **What it deliberately does NOT contain:** the idea, the product, the company, any employer name, any title, any metric. **Checked mechanically.**
+
+> ## 🎬 The arc beneath it, unchanged since draft five
 >
 > **His verdict on draft four:** *"The story is not connected, and there is no proper closure. As a person, if they want to know who I am, it's not properly coming out."* **He was right, and the diagnosis is precise:** drafts one to four were observations stacked in a row — spacecraft, then semiconductors, then a belief, then an announcement. **Four true things next to each other is not a story.** There was no turn, so there was nothing to land.
 >
@@ -605,25 +651,24 @@ Both know I have listed them and are happy to take the call.
 ```
 Hi EF, I'm Rohit.
 
-At twenty-one I was working on spacecraft going to the Moon and Mars. My part
-was the radio link, the thing that lets you talk to it. The day it launches, you
-are done. Whatever you decided months ago is what you live with.
+At twenty-one I got a job building the radio link on spacecraft heading to the
+Moon and Mars. The part that lets you talk to it. And nobody warns you: once it
+launches, that's it. Whatever you decided a year ago, you live with.
 
-Then Munich, on my own, and semiconductors. Get it wrong there and it is already
-in the silicon.
+I loved that. So I kept chasing it.
 
-Now, banking. The most regulated room I have worked in, where a bad answer
-reaches a real person and somebody has to explain why.
+Munich next, on my own, for a master's. Stayed for semiconductors, where a wrong
+call is burned into the chip. Then banking. Most regulated room I have been in.
+One bad answer reaches a real person, and someone has to explain why.
 
-Space, silicon, banking. Every one of them a decision you cannot take back. And
-I was comfortable with that, because none of them were mine.
+Space, silicon, banking. Same job every time: be the guy who's sure.
 
-Years ago I started something of my own. I did not finish it. Nobody stopped me.
-I let it go.
+Took me ten years to notice the catch. I was carrying everybody's big decisions
+except my own. And the one time it was mine, I started something and let it go.
 
-This time I have resigned, and I am building my own thing.
+So. I've resigned from my job, and I'm building my own thing.
 
-I would love to build it with you.
+I'd love to build it with you.
 ```
 
 **Recording notes:**
