@@ -10,6 +10,7 @@ import { FilterTable, type Facet } from "@/components/meridian/FilterTable";
 import { FineTuneCard, type FineTuneField } from "@/components/meridian/FineTuneCard";
 import { Delta, Entity, InsightCards, type Insight } from "@/components/meridian/InsightCards";
 import { LoadingState } from "@/components/meridian/LoadingState";
+import { AgentPulse } from "@/components/meridian/AgentPulse";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import {
   PromptBar,
@@ -1323,6 +1324,43 @@ function MeridianGallery() {
               <LoadingState label="Reading the record" variant="Drive" />
               <LoadingState label="Grouping signals" variant="Dots" />
               <LoadingState label="Writing the spec" variant="Orbit" />
+            </div>
+          </Pair>
+        </Panel>
+
+        {/*
+         * TWO GLYPHS, ONE INDICATOR, SIDE BY SIDE ON PURPOSE.
+         *
+         * The founder asked to judge these against each other rather than take
+         * a recommendation, and that is the right instinct: a rejected design
+         * that exists only in git history is one nobody can look at.
+         *
+         * Everything except the mark is identical, so the comparison is of the
+         * mark alone: same dictionary, same shimmer, same azure, same elapsed
+         * figure. Both are shown running, because neither can be judged still.
+         */}
+        <Panel
+          title="Agent at work, two marks"
+          note="The same indicator with the brand geometry and with the reference's pixel lattice. The brand mark is ours and nothing in the category looks like it, and a standing ruling says what a person watches while they wait should be the brand rather than a borrowed spinner. The lattice is calmer, reads better small, and sits more quietly beside the shimmering word. One is more distinctive, the other more restrained. Colour is azure in both: a machine is working, never green, which reports an outcome."
+        >
+          <Pair>
+            <div className="flex flex-col gap-5">
+              <AgentPulse
+                label="Scout is reading the record"
+                seed="scout"
+                glyph="mark"
+                detail="14 signals"
+                startedAt={Date.now() - 47_000}
+              />
+              <AgentPulse
+                label="Scout is reading the record"
+                seed="scout"
+                glyph="grid"
+                detail="14 signals"
+                startedAt={Date.now() - 47_000}
+              />
+              <AgentPulse label="Critique is reading the drawing" seed="critique" glyph="mark" />
+              <AgentPulse label="Critique is reading the drawing" seed="critique" glyph="grid" />
             </div>
           </Pair>
         </Panel>

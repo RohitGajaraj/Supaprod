@@ -80,7 +80,7 @@ import { useElapsed } from "@/components/meridian/use-elapsed";
  * style attribute and an animation in a utility class would keep running for
  * someone who asked it not to.
  */
-function PulseGlyph() {
+function BrandGlyph() {
   const petals = Array.from({ length: 7 }, (_, i) => (i * 360) / 7);
   return (
     <svg
@@ -109,6 +109,44 @@ function PulseGlyph() {
   );
 }
 
+/**
+ * THE PIXEL GRID, the other candidate, kept as a variant rather than as a
+ * replacement so the two can be compared on one screen.
+ *
+ * This is beautifui.dev's loading mechanic, already ported into
+ * `meridian/LoadingState` from that site's own source: a 3x3 lattice on a
+ * staggered chevron so two fronts are always in flight and the grid never reads
+ * as empty mid-cycle.
+ *
+ * IT IS TINTED `--mrd-agent`, WHERE `LoadingState` USES INK. That is not a
+ * preference. `LoadingState` reports a JOB running, which has no actor; this
+ * reports an AGENT running, and azure is the token that says so. The same
+ * lattice in ink would be the generic loader wearing our spacing.
+ *
+ * WHAT IT COSTS, said plainly, because the choice is a real trade. The brand
+ * mark is ours and nothing else in the category looks like it, and there is a
+ * standing ruling that the thing a person watches while they wait should be the
+ * brand rather than a borrowed spinner. The lattice is calmer, reads better at
+ * small sizes, and sits more quietly beside the shimmer. One is more
+ * distinctive; the other is more restrained.
+ */
+function PixelGlyph() {
+  /* The chevron stagger from LoadingState's Drive variant. `null` is a cell
+     that never lights, which is what gives the front its shape. */
+  const delays = [0, 130, 260, 130, 260, 390, 260, 390, 520];
+  return (
+    <span aria-hidden className="grid shrink-0 grid-cols-[repeat(3,4px)] gap-[1.5px]">
+      {delays.map((d, i) => (
+        <span
+          key={i}
+          className="size-[4px] rounded-[1px] bg-mrd-agent"
+          style={{ opacity: 0.15, animation: `mrd-pixel-on 650ms ease-in-out ${d}ms infinite` }}
+        />
+      ))}
+    </span>
+  );
+}
+
 export function AgentPulse({
   label,
   seed,
@@ -116,6 +154,7 @@ export function AgentPulse({
   compact = false,
   detail,
   startedAt,
+  glyph = "mark",
 }: {
   /** The static sentence a screen reader gets, once. Never the rotating word. */
   label: string;
@@ -154,6 +193,16 @@ export function AgentPulse({
    * `detail`: an empty slot beats an invented fact.
    */
   startedAt?: number;
+  /**
+   * Which mark turns while the agent works.
+   *
+   * `mark` is the seven-petal brand geometry; `grid` is the reference's pixel
+   * lattice. Both are kept so they can be judged side by side in the gallery
+   * rather than one of them living only in git history, where nobody can look
+   * at it. The default is the brand, per the standing ruling that what a person
+   * watches while they wait should be ours.
+   */
+  glyph?: "mark" | "grid";
 }) {
   const elapsed = useElapsed(startedAt, startedAt != null);
   const base = React.useMemo(() => seedFrom(seed), [seed]);
@@ -177,7 +226,7 @@ export function AgentPulse({
         compact ? "gap-mrd-3 text-[13px]" : "gap-mrd-4 text-[13.5px]"
       }`}
     >
-      <PulseGlyph />
+      {glyph === "grid" ? <PixelGlyph /> : <BrandGlyph />}
 
       {/* The live region carries the STATIC label. */}
       <span className="sr-only" aria-live="polite">
