@@ -37,7 +37,7 @@
 >
 > | | |
 > | --- | --- |
-> | **Video URL** | Record today. Script is in "The video" below, **145 words, 54 to 58 seconds. Hard cap.** |
+> | **Video URL** | Record today. Script is in "The video" below, **142 words, 53 to 56 seconds. Hard cap.** |
 > | **Alumni-contact toggle** | Preference. Recommended ON |
 > | **Privacy Policy toggle** | **Required, and a legal acknowledgement in his name.** An agent must never accept terms on his behalf |
 >
@@ -542,7 +542,7 @@ Both know I have listed them and are happy to take the call.
 
 # The video
 
-**STRICTLY under a minute, founder ruling. 145 words: 58 seconds at his slowest measured pace of 150 words per minute, 54 at 160. Spoken register, so read it fast and warm and keep the pauses short.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
+**STRICTLY under a minute, founder ruling. 142 words: 56 seconds at his slowest measured pace of 150 words per minute, 53 at 160. Room for two real pauses and still inside the cap.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
 
 > ## 🎬 DRAFT SIX, and the two things that were actually broken
 >
@@ -651,17 +651,20 @@ Both know I have listed them and are happy to take the call.
 ```
 Hi EF, I'm Rohit.
 
-At twenty-one I was building the radio link on spacecraft heading to the Moon
-and Mars. The part that lets you talk to it. And nobody warns you: once it
-launches, that's it. Whatever you decided a year ago, you live with.
+At twenty-one I was building radio links for satellites and spacecraft going to
+the Moon and Mars. And nobody warns you: once it launches, that's it.
 
 I loved that. So I kept chasing it.
 
-Munich happens next, on my own, for my master's. Then semiconductors, where a
-wrong call is burned into the chip. Then banking, the most regulated room I have
-been in. One bad answer reaches a real person.
+Munich happens next, on my own, for my master's. Then semiconductors, where you
+lock a design months before anyone can test it. Get it wrong and it ships in
+every chip.
 
-Space, silicon, banking. Same job every time: be the guy who's sure.
+Then banking. Most regulated room I have been in. One bad answer reaches a real
+person.
+
+Space, silicon, banking. Same job every time: product. Decide what gets built,
+and be sure.
 
 I got very good at that. For other people.
 
