@@ -5,8 +5,8 @@
     "It only ever moves DOWN. A file absent from this list must be clean.",
     "Do not hand-edit; do not regenerate to silence a failure."
   ],
-  "totalOccurrences": 6599,
-  "fileCount": 307,
+  "totalOccurrences": 5864,
+  "fileCount": 285,
   "files": {
     "src/components/admin/admin-ui.tsx": {
       "--text-": 2,
@@ -123,16 +123,6 @@
       "--text-": 16,
       "--hairline": 3
     },
-    "src/components/build/HeldClaims.tsx": {
-      "class:sp-": 2,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 3
-    },
-    "src/components/build/ReadyToBuild.tsx": {
-      "--sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 5
-    },
     "src/components/chat/MessageMeta.tsx": {
       "import:components/ui": 1,
       "usage:components/ui": 3
@@ -182,46 +172,22 @@
       "import:shell/primitives": 1,
       "usage:shell/primitives": 5
     },
-    "src/components/decisions/queue-instruments.tsx": {
-      "--sp-": 27,
-      "class:sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
-    },
     "src/components/decisions/RewindButton.tsx": {
       "import:components/ui": 1,
       "usage:components/ui": 8
     },
-    "src/components/design/drawing.tsx": {
-      "--sp-": 2,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 6
-    },
     "src/components/discover/DetailKit.tsx": {
-      "--sp-": 4,
       "class:sp-": 6,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 1
     },
     "src/components/discover/DiscoverSurface.tsx": {
-      "class:sp-": 2,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 44
+      "usage:shell/primitives": 3
     },
     "src/components/discover/OpportunityDetailSheet.tsx": {
-      "--sp-": 26,
-      "class:sp-": 1,
-      "import:shell/primitives": 1,
-      "import:components/ui": 2,
-      "usage:components/ui": 14,
-      "usage:shell/primitives": 41
-    },
-    "src/components/discover/OpportunityRow.tsx": {
-      "--sp-": 18
-    },
-    "src/components/discover/VerdictBadge.tsx": {
       "import:components/ui": 1,
-      "usage:components/ui": 1
+      "usage:components/ui": 5
     },
     "src/components/engine-room/ConnectionStrip.tsx": {
       "--ds-": 6,
@@ -612,14 +578,6 @@
     "src/components/plg/PreSignupCTA.tsx": {
       "raw-colour": 4
     },
-    "src/components/prds/RewindButton.tsx": {
-      "--sp-": 15,
-      "class:sp-": 1
-    },
-    "src/components/prds/SpecProse.tsx": {
-      "--sp-": 65,
-      "class:sp-": 1
-    },
     "src/components/product/DesignScaffoldPanel.tsx": {
       "--madder": 4
     },
@@ -691,10 +649,6 @@
       "import:shell/primitives": 1,
       "usage:shell/primitives": 13
     },
-    "src/components/shared/StageTimeline.tsx": {
-      "--text-": 5,
-      "--hairline": 1
-    },
     "src/components/shell/agent-glyphs.tsx": {
       "--sp-": 8
     },
@@ -720,34 +674,9 @@
     },
     "src/components/ship/WhatShipped.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 16
-    },
-    "src/components/spine/TrackActivity.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 4
-    },
-    "src/components/spine/TrackChain.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 10
-    },
-    "src/components/spine/TrackStart.tsx": {
-      "class:sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 16
-    },
-    "src/components/studio/ChangesPanel.tsx": {
-      "--sp-": 12,
-      "class:sp-": 10,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 24
-    },
-    "src/components/studio/CodeDiff.tsx": {
-      "class:sp-": 29
+      "usage:shell/primitives": 1
     },
     "src/components/studio/PreviewPanel.tsx": {
-      "--text-": 2,
-      "--hairline": 1,
-      "--glacier": 3,
       "raw-colour": 1
     },
     "src/components/studio/RepoGateDialog.tsx": {
@@ -755,17 +684,11 @@
       "usage:components/ui": 10
     },
     "src/components/studio/RunReturn.tsx": {
-      "class:sp-": 3,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 8
+      "usage:shell/primitives": 1
     },
     "src/components/studio/studio-format.ts": {
       "--text-": 2
-    },
-    "src/components/studio/studio-ui.tsx": {
-      "--ds-": 4,
-      "--text-": 1,
-      "--madder": 1
     },
     "src/components/supaprod/AuditLineageSheet.tsx": {
       "class:sp-": 45
@@ -1073,36 +996,6 @@
       "import:shell/primitives": 1,
       "usage:shell/primitives": 32
     },
-    "src/routes/_authenticated.build.index.tsx": {
-      "--sp-": 4,
-      "class:sp-": 3,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 25
-    },
-    "src/routes/_authenticated.decide.tsx": {
-      "class:sp-": 2,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 47
-    },
-    "src/routes/_authenticated.design.tsx": {
-      "class:sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 53
-    },
-    "src/routes/_authenticated.discover.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 5
-    },
-    "src/routes/_authenticated.plan.index.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 21
-    },
-    "src/routes/_authenticated.plan.spec.$id.tsx": {
-      "--sp-": 6,
-      "class:sp-": 6,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 54
-    },
     "src/routes/_authenticated.runs.$missionId.tsx": {
       "import:components/obsidian": 1,
       "usage:components/obsidian": 1
@@ -1112,12 +1005,6 @@
       "class:sp-": 9,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 98
-    },
-    "src/routes/_authenticated.ship.tsx": {
-      "--sp-": 5,
-      "class:sp-": 2,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 60
     },
     "src/routes/_authenticated.sync.tsx": {
       "class:sp-": 2,
@@ -1295,7 +1182,7 @@
       "raw-colour": 406
     },
     "src/styles/decide.css": {
-      "--sp-": 2
+      "--sp-": 1
     },
     "src/styles/ink.css": {
       "--sp-": 195,

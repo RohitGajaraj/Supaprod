@@ -111,6 +111,18 @@ Per-surface, the standing rule from 2026-08-01 still holds: **research the best 
 
 The test before committing: **would someone who liked yesterday's screen prefer today's?**
 
+#### The floor is Meridian, never a retired system (founder ruling, 2026-08-18)
+
+This clause was being read backwards, and the reading is the reason it needs writing down. "Today's design" means **Meridian and beautifui.dev**. It does **not** mean whatever the retired systems happened to draw.
+
+**What happened.** Porting Design and Discover, the ratchet law was cited to defend the retired `.sp-block` rhythm: 36px margin plus 28px padding plus a `1px` hairline between every section, against Meridian's 40px gap and no rule. It was raised as a regression to be approved, because the retired stylesheet says of itself *"It is a rule, not decoration"*. The founder's answer:
+
+> "I have already retired whatever the rule is from a design system... Don't take anything that's coming as a rule. If that is the case, please go out and edit the rule first. I don't want, not just now but also in the future, adding anything like a hairline or borders or any such inputs."
+
+**So: a retired system's spacing, borders, hairlines and section rules are not a baseline, and restoring one is not "protecting the floor" — it is reintroducing the vocabulary this migration exists to delete.** Rule 1 protects INFORMATION and COMPOSITION: a state, a fact, a door, a measure, a legible type size. It does not protect a divider.
+
+**When a retired file argues with Meridian, change the retired file.** Its comment is a record of a system that lost, not an authority, and leaving the assertion standing means the next porter re-derives the same wrong conclusion. That has now happened once; this paragraph is what stops it happening twice.
+
 ### 2. The standard: the states nobody screenshots are composed
 
 Empty, partial, failed, denied, very long, very short, slow — each one **composed**, not merely handled. These are what production shows most often. Four early returns were found rendering outside the system entirely on 2026-08-15, and every one of them was a failed read or an empty workspace: *the states a person actually meets were the ones nobody had styled.*

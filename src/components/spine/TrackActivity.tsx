@@ -36,7 +36,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getTrackActivity } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
 import { relativeTime } from "@/lib/memory-view";
-import { Failed, Loading, Record, Value } from "@/components/shell/primitives";
+import { Reading, ReadFailedLine, RecordSpeaks, Value } from "@/components/meridian/surface-parts";
 import { AgentPulse } from "@/components/meridian/AgentPulse";
 
 /** How a finished turn reads, in verbs rather than status words. */
@@ -55,12 +55,18 @@ function headline(t: Turn): string {
  * a critic that reads a design back and finds it sound is supposed to file
  * nothing, and colouring that red would teach a person to distrust the one
  * agent doing its job correctly. The sentence already says what happened.
+ *
+ * `live` BECAME `agent` IN THE MERIDIAN PORT, and it is a token change rather
+ * than a rename. The retired `live` was GREEN, and green in this system reports
+ * an OUTCOME, so "still running" and "it worked" were rendering in one colour.
+ * `--mrd-agent` is azure and means a machine is working, present tense, which
+ * is exactly what this branch says.
  */
-function toneOf(t: Turn): "live" | "pass" | "fail" | undefined {
-  // `live` is the only tone in the system that moves, and it is spent on the
-  // one fact a person came for: something is happening right now. Queued is
-  // NOT live, because nothing is running yet and a pulse would say otherwise.
-  if (t.outcome === "working") return "live";
+function toneOf(t: Turn): "agent" | "pass" | "fail" | undefined {
+  // `agent` is the only tone in the system that means work is happening RIGHT
+  // NOW, and it is spent on the one fact a person came for. Queued is NOT it,
+  // because nothing is running yet and azure would say otherwise.
+  if (t.outcome === "working") return "agent";
   if (t.outcome === "waiting") return "pass";
   if (t.outcome === "stopped") return "fail";
   return undefined;
@@ -85,9 +91,16 @@ export function TrackActivity({ trackId }: { trackId: string }) {
     refetchInterval: 10_000,
   });
 
-  if (q.isLoading) return <Loading>Reading what happened.</Loading>;
+  if (q.isLoading) return <Reading>Reading what happened.</Reading>;
   if (q.isError)
-    return <Failed>The activity did not come back, so nothing here would be trustworthy.</Failed>;
+    return (
+      // The LINE half of the failed-read pair, not the boxed one: this renders
+      // inside a region that already draws its own container, and the standard
+      // caps a region at one bordered box.
+      <ReadFailedLine>
+        The activity did not come back, so nothing here would be trustworthy.
+      </ReadFailedLine>
+    );
 
   const turns = q.data?.turns ?? [];
   // NOT "no agent has worked on this yet", which is a claim this cannot support.
@@ -98,9 +111,9 @@ export function TrackActivity({ trackId }: { trackId: string }) {
   // here, and a made-up reason is worse than a plain absence.
   if (!turns.length) {
     return (
-      <Record>
+      <RecordSpeaks>
         Nothing is recorded against this work yet. Activity appears here as agents run.
-      </Record>
+      </RecordSpeaks>
     );
   }
 

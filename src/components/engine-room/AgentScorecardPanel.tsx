@@ -108,7 +108,7 @@ function ScorecardRow({ card }: { card: AgentScorecard }) {
   const stationLabel = station ? AGENT_STATIONS[station].name : null;
   const Glyph = glyphForSlug(card.slug);
   return (
-    <div className="border-t border-mrd-line-soft py-mrd-5 first:border-0">
+    <div className="py-mrd-5">
       <div className="flex items-center gap-mrd-4">
         <span
           aria-hidden

@@ -3,25 +3,42 @@ import { StatusBadge, StepDot } from "@/components/supaprod/Primitives";
 import { changesetColor, changesetLabel, statusLabel } from "./studio-format";
 
 /**
- * Tempo v5: the shared raised-card treatment for the Build spine, values
- * matching the `material-medium` preset (contract SS4). Kept as a style
- * object (not a className) so every existing `{...LOOM_CARD}` spread across
- * the surface picks up the fix with no call-site changes.
- * PENDING VISUAL QA (2026-07-11): background here is material-medium's
- * --ds-background-100, which may not match the legacy --card tone under
- * [data-obsidian] scope - see DESIGN-TEMPO.md pending-issues note.
+ * The shared raised-card treatment for the Build spine.
+ *
+ * ── PORTED TO MERIDIAN 2026-08-18, TOKEN FOR TOKEN ──────────────────────
+ * It was three `--ds-*` tokens: the Tempo v5 `material-medium` preset, from a
+ * system retired on 2026-08-14. Each has an exact Meridian counterpart and the
+ * shape does not move a pixel:
+ *
+ *   --ds-background-100     the card ground        -> --mrd-sheet
+ *   --ds-radius-medium      12px                   -> --mrd-r-card (12px)
+ *   --ds-shadow-border-medium  a 1px ring plus a soft drop
+ *                                                  -> the ring written as an
+ *                              inset, plus --mrd-shadow-card
+ *
+ * The ring is an `inset 0 0 0 1px` rather than a `border`, deliberately: this
+ * is a STYLE OBJECT spread onto callers who already own their own box model,
+ * and adding a real border would move every one of them by a pixel. An inset
+ * shadow draws the same line and costs no layout.
+ *
+ * Kept as a style object (not a className) so every existing `{...LOOM_CARD}`
+ * spread picks the port up with no call-site change. Three files outside the
+ * studio folder spread it, and this is the whole of what they needed.
  */
 export const LOOM_CARD: CSSProperties = {
-  background: "var(--ds-background-100)",
-  borderRadius: "var(--ds-radius-medium)",
-  boxShadow: "var(--ds-shadow-border-medium)",
+  background: "var(--mrd-sheet)",
+  borderRadius: "var(--mrd-r-card)",
+  boxShadow: "inset 0 0 0 1px var(--mrd-line), var(--mrd-shadow-card)",
 };
 
 /**
- * Loading skeleton block (DESIGN-LOOM §9: shimmer skeletons that match the
- * real layout, never spinners for primary content). Radius matches LOOM_CARD
- * (material-medium) so the placeholder traces the shape of the card it
- * stands in for. Pure presentation.
+ * Loading skeleton block: a shimmer that matches the real layout, never a
+ * spinner for primary content. Radius matches LOOM_CARD so the placeholder
+ * traces the shape of the card it stands in for. Pure presentation.
+ *
+ * The ground is `--mrd-lift` and not `--surface-raised`, which aliased the
+ * retired `--raised`. A placeholder must read as a raised blank rather than as
+ * a recess, and lift is the one stop on the Meridian ladder that says so.
  */
 export function SkeletonBlock({ height, style }: { height: number; style?: CSSProperties }) {
   return (
@@ -29,8 +46,8 @@ export function SkeletonBlock({ height, style }: { height: number; style?: CSSPr
       aria-hidden="true"
       style={{
         height,
-        borderRadius: "var(--ds-radius-medium)",
-        background: "var(--surface-raised)",
+        borderRadius: "var(--mrd-r-card)",
+        background: "var(--mrd-lift)",
         animation: "cadGlow 1.8s ease-in-out infinite",
         ...style,
       }}
@@ -60,10 +77,14 @@ const BADGE_STATE: Record<string, string> = {
 export function StatusChip({ status }: { status: string }) {
   const mapped = BADGE_STATE[status];
   if (mapped) return <StatusBadge status={mapped} />;
-  // halted (kill switch / engine stop) — madder pill, no pulse. Madder is the
-  // failure-outcome role; --rose is a data color under Obsidian and may not
-  // carry a failure meaning (role-color law).
-  const c = status === "halted" ? "var(--madder)" : "var(--text-faint)";
+  // halted (kill switch / engine stop) — no pulse, because nothing is running.
+  //
+  // `--madder` was the Obsidian failure-outcome role and `--text-faint` its
+  // quietest ink; both are retired. Meridian says the same two things in its own
+  // five words: a halted engine is an OUTCOME and outcomes are `--mrd-fail`,
+  // and an unrecognised status is not an outcome at all, so it stays at the
+  // faintest ink rather than borrowing a meaning.
+  const c = status === "halted" ? "var(--mrd-fail)" : "var(--mrd-faint)";
   return (
     <span
       className="mono-label"

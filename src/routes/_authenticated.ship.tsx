@@ -167,7 +167,21 @@
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Row } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  Approve,
+  Door,
+  NothingHere,
+  NothingYet,
+  Num,
+  PageHeading,
+  ReadFailed,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 // The launch-kit import stands alone, and merging the two lines will go red.
 // ship-has-an-agent.test.ts guards the exact statement `import {
@@ -218,11 +232,16 @@ import {
 } from "@/lib/announcements.functions";
 import { listWorkspaceMembers } from "@/lib/workspaces.functions";
 import { TRANSITION_ROLES, type WorkspaceRole } from "@/lib/announcements";
-import { Block, Button, CtxBody, CtxHead, Empty, Failed, Loading, Field, Gate, Input, PageHead, Prose, Receipt, Surface, Textarea } from "@/components/shell/primitives";
+import { Surface } from "@/components/meridian/Surface";
+import { Gate } from "@/components/meridian/Gate";
+import { CtxBody, CtxHead } from "@/components/meridian/ContextColumn";
+import { Field, Input, Textarea } from "@/components/meridian/forms";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Prose } from "@/components/meridian/Prose";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { CrewWorking } from "@/components/shell/CrewWorking";
-// The release document. It renders its own top-level Blocks, so it is a sibling
-// of them rather than a child of one: a Block inside a Block is the second
+// The release document. It renders its own top-level Regions, so it is a sibling
+// of them rather than a child of one: a Region inside a Region is the second
 // nested container the standard caps at one.
 import { NoReleaseYet, WhatShipped } from "@/components/ship/WhatShipped";
 import { stillWaiting } from "@/lib/query-state";
@@ -231,13 +250,74 @@ import { stillWaiting } from "@/lib/query-state";
 const VISIBLE = 6;
 
 /**
- * A quiet control or link inside a row, at the system's own weight for it
- * (`Failed` uses the same class for its retry, ChangesPanel for its per-row
- * controls). A 38px Button in a `tight` row doubles the row's height, so a
- * control that belongs to ONE row wears this instead. It is a real button or a
- * real anchor either way: quieter paint, identical capability.
+ * THE METADATA SIZE A ROW'S OWN CONTROL IS SET AT.
+ *
+ * The retired `.sp-block-more` fixed this at `--sp-text-meta`, 13px, and
+ * Meridian's `Door` deliberately INHERITS its size instead ("a control that
+ * shrinks halfway through a sentence reads as a typo"). That is right for a
+ * door inside a sentence and wrong for one sitting in a `Row`'s action slot,
+ * where there is no sentence to inherit from and the row would hand it the
+ * 14px lead size. Stated once here rather than at each of the six call sites.
  */
-const QUIET = "sp-block-more";
+const ROW_META = "text-[13px]";
+
+/** `Door`'s paint, to the class, minus its hover. The two shapes below add the
+ *  hover separately, because they need different prefixes for it. */
+const DOOR_FACE =
+  "rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors";
+
+/* `enabled:hover:` rather than a bare `hover:`, and only on the BUTTON. A dead
+   control that still lights up under the pointer promises something it will not
+   do. It is the wrong prefix for an anchor: `:enabled` matches form controls
+   only, so an `<a>` wearing it would lose its hover entirely -- the same trap
+   `CONTROL_SHAPE` records for `active:`. */
+const ROW_DOOR = `${DOOR_FACE} enabled:hover:text-mrd-ink enabled:hover:decoration-mrd-edge enabled:hover:decoration-solid disabled:cursor-default disabled:opacity-45`;
+
+/**
+ * A QUIET CONTROL INSIDE A ROW, WHICH CAN ALSO BE BUSY.
+ *
+ * ── WHY THIS IS NOT `Door`, AND WHY THAT IS A GAP RATHER THAN A PREFERENCE ──
+ * Every one of these carries `disabled` while its mutation is in flight, and
+ * that is not decoration: two presses of "Promote it" are two production
+ * deploys of one commit racing each other. Meridian's `Door` has no disabled
+ * state and no busy state, so it cannot express the one thing these controls
+ * have to say. `Action variant="quiet"` can, and it is `h-8`: a 32px control in
+ * a `min-h-11` row with `py-[9px]` grows the row to 50px, so rows carrying a
+ * control would stand taller than rows that do not, in the same list.
+ *
+ * So the paint is `Door`'s, to the class, and the two states are added. It is
+ * recorded here rather than fixed in `Door` because widening a system part
+ * mid-port touches every surface at once; the honest note is that `Door` wants
+ * `disabled` and `busy`, and this is the caller that proves it.
+ *
+ * `aria-busy` is on the ONE row actually running, never on the others the same
+ * mutation disables: a control that is merely waiting its turn is not working.
+ */
+function RowDoor({
+  children,
+  onClick,
+  disabled = false,
+  busy = false,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  busy?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      data-mrd=""
+      disabled={disabled}
+      aria-busy={busy || undefined}
+      onClick={onClick}
+      className={`${ROW_META} ${ROW_DOOR}`}
+      style={{ transitionDuration: "var(--mrd-d-press)" }}
+    >
+      {children}
+    </button>
+  );
+}
 
 /** An address rendered as the door it is. Sits in a Row's `action` slot and
  *  never in `sub`, because `Row` renders a clickable row as a <button> and an
@@ -245,14 +325,82 @@ const QUIET = "sp-block-more";
 function Addr({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     /* NO textDecoration OVERRIDE. It was set to "none", which strips the dotted
-       rest-state underline QUIET supplies and which hover cannot put back -- so
-       the address stopped announcing itself as a link at all, and the only cue
-       left was colour. This is the second time this surface has made an address
-       unreachable, which is why the test now asserts the absence of the
-       override rather than the presence of the class. */
-    <a className={QUIET} href={href} target="_blank" rel="noopener noreferrer">
+       rest-state underline the door paint supplies and which hover cannot put
+       back -- so the address stopped announcing itself as a link at all, and the
+       only cue left was colour. This is the second time this surface has made an
+       address unreachable, which is why the test asserts the absence of the
+       override rather than the presence of a class.
+
+       `Door` already opens an `href` in a new tab with `noopener noreferrer`,
+       which is exactly what this wrapper used to spell out by hand. */
+    <span className={ROW_META}>
+      <Door href={href}>{children}</Door>
+    </span>
+  );
+}
+
+/**
+ * AN ADDRESS INSIDE THIS PRODUCT, OPENED IN THIS TAB.
+ *
+ * Meridian's `Door` is the right paint and the wrong element for exactly one
+ * link on this surface: `href` there always carries `target="_blank"`, because
+ * the prop was written for OUTBOUND addresses. This one points at a run inside
+ * the app, and a receipt that scatters the workspace across tabs is not what
+ * "open the revert run" means. Same face, same hover, no new tab.
+ *
+ * It replaces `style={{ color: "var(--sp-ink)" }}`, which is a retired token and
+ * was also the whole of the link's affordance: colour and nothing else, with no
+ * underline at rest and no hover.
+ */
+function AppLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a
+      data-mrd=""
+      href={href}
+      className={`${DOOR_FACE} hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid`}
+      style={{ transitionDuration: "var(--mrd-d-press)" }}
+    >
       {children}
     </a>
+  );
+}
+
+/**
+ * THE WAY PAST A CAP, STATED UNDER THE LAST ROW RATHER THAN IN THE HEADING.
+ *
+ * `Region` refuses this control in its header and says why: Brain's port found
+ * a shelf capped at six putting "Show all 14" in the REGION HEADING, above rows
+ * the reader had not reached yet, so the way past a cap was announced before
+ * the cap. Five lists on this station were doing exactly that through the
+ * retired `Block`'s `more`/`onMore`.
+ *
+ * The shape is `RecordsTable`'s, which is where Meridian already answers this:
+ * the real arithmetic under the last row with the way out beside it, where a
+ * reader arrives having actually hit the limit. What is added to it is the way
+ * BACK -- `RecordsTable` lifts its cap one way and these five lists have always
+ * been two-way, and a port may not take a control away.
+ */
+function MoreRows({
+  shown,
+  total,
+  open,
+  onToggle,
+}: {
+  shown: number;
+  total: number;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  if (total <= shown && !open) return null;
+  return (
+    <div className="mt-mrd-3 flex items-center justify-between gap-mrd-4">
+      <span className="text-[12px] tabular-nums text-mrd-mute">
+        {open
+          ? `Showing all ${total}.`
+          : `Showing ${shown} of ${total}. ${total - shown} not shown.`}
+      </span>
+      <RowDoor onClick={onToggle}>{open ? "Show fewer" : `Show all ${total}`}</RowDoor>
+    </div>
   );
 }
 
@@ -522,7 +670,82 @@ export type ReleaseState = {
    * racing each other.
    */
   lastProductionStatus: string | null;
+  /**
+   * WHEN THE DEPLOY THAT IS STILL RUNNING STARTED, and null when none is.
+   *
+   * THE FACT THIS SURFACE HELD AND NEVER SAID. `listDeployments` refetches every
+   * 30 seconds and returns `status`, so "pending" and "in_progress" arrive here
+   * on every tick -- and the row rendered them in the same muted voice as "In
+   * production", which is a settled outcome. A deploy that is HAPPENING and a
+   * deploy that HAPPENED are the two facts this station exists to keep apart,
+   * and the row was telling a person they looked the same.
+   *
+   * A tone alone still cannot answer the next question, which is always the
+   * same one: is it stuck? So the row carries the start as well, and "A
+   * production deploy is running, started 14m ago" is a sentence a person can
+   * act on. `deployTone` reads the status; this reads the clock.
+   *
+   * `created_at` FIRST, and `deployed_at` only as the fallback. A row that has
+   * not finished has no completion stamp, and where a provider does fill one in
+   * early it is the wrong number to count from: the question is how long this
+   * has been running, which is measured from when it started.
+   *
+   * OPTIONAL IN THE TYPE so the pure functions around it can still be exercised
+   * with plain objects that predate it.
+   */
+  inFlightSince?: string | null;
 };
+
+/** A status the record has not settled. deployments.ts normalizes every provider
+ *  vocabulary onto success | failure | pending | in_progress | unknown, and
+ *  these are the two that mean the work is still going on. */
+function isRunning(status: string | null | undefined): boolean {
+  return status === "pending" || status === "in_progress";
+}
+
+/**
+ * WHAT VOICE A DEPLOY STATE IS SAID IN, and the whole point is that a deploy in
+ * flight is not an outcome.
+ *
+ * Meridian spends its five words carefully and this surface was spending none
+ * of them: every state `whereItIs` returns was drawn in one mute, so "In
+ * production", "The last production deploy failed" and "A production deploy is
+ * running" read as three equally settled facts about a list that refetches
+ * every 30 seconds precisely because one of them is not settled.
+ *
+ *   agent  a deploy is RUNNING. Present tense, a machine is working, and this
+ *          is the one honest live state this station has.
+ *   pass   it is in production. Green reports an OUTCOME, which is the only
+ *          thing green is allowed to mean here, and this is the outcome.
+ *   fail   the deploy fell over. Also an outcome, in the other direction.
+ *   quiet  everything else, "unknown" included: a provider that would not say
+ *          what happened is not a result, and painting one would invent it.
+ *
+ * NO `hold`, DELIBERATELY. Amber means waiting on a CONDITION -- spend to come
+ * down, an eval to pass. A merged release nobody has promoted is not waiting on
+ * a condition, it is waiting on a person, and `--mrd-you` is spent on the
+ * control that releases it rather than on a word about it. `Value` has no `you`
+ * tone for exactly that reason.
+ *
+ * NO `AgentPulse` EITHER, and this file's own note is why: the pulse belongs to
+ * a genuinely dispatched MODEL pass (the launch-kit draft, the release notes).
+ * A deploy is a provider job. Borrowing the pulse for it would turn the one mark
+ * that means "the crew is working" into "something is happening", which is how
+ * an indicator stops carrying information.
+ *
+ * THE PRODUCTION HALF OUTRANKS THE PREVIEW HALF, the same order `whereItIs`
+ * reads them in: a preview that failed under a production deploy that succeeded
+ * is not a failure this row should report.
+ */
+export function deployTone(s: ReleaseState): "quiet" | "pass" | "fail" | "agent" {
+  if (isRunning(s.lastProductionStatus)) return "agent";
+  if (s.productionUrl) return "pass";
+  if (s.lastProductionStatus === "failure") return "fail";
+  if (s.lastProductionStatus) return "quiet";
+  if (isRunning(s.previewStatus)) return "agent";
+  if (s.previewStatus === "failure") return "fail";
+  return "quiet";
+}
 
 /** Sort key for a deploy row. `deployed_at` is the truth; `created_at` is the
  *  fallback for a row captured before it finished. */
@@ -701,6 +924,24 @@ export function releaseStates(
       // A resolved address IS a successful production deploy: listChangelog
       // derives it from environment=production AND status=success.
       lastProductionStatus: productionUrl ? "success" : (prodAny?.status ?? null),
+      /*
+       * WHEN THE RUNNING DEPLOY STARTED, read off the same row whose status
+       * `deployTone` turns into the live voice, so the tone and the clock can
+       * never disagree about which deploy they are describing.
+       *
+       * The production attempt is asked first and the preview only when
+       * production has never been attempted, which is the order `whereItIs`
+       * and `deployTone` both read them in. Null whenever nothing is running,
+       * so a settled row carries no clock to be misread as one.
+       */
+      inFlightSince: (() => {
+        const running = isRunning(prodAny?.status)
+          ? prodAny
+          : !prodAny && isRunning(previewAny?.status)
+            ? previewAny
+            : null;
+        return running ? (running.created_at ?? running.deployed_at ?? null) : null;
+      })(),
     });
   }
   states.sort((a, b) => {
@@ -1398,21 +1639,23 @@ function Ship() {
         consequence: (
           <>
             {v.title} is live in production at{" "}
-            <a
-              href={res.productionUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "var(--sp-ink)" }}
-            >
+            <Door href={res.productionUrl}>
               <Num>{res.productionUrl}</Num>
-            </a>
+            </Door>
             . Customers are seeing it now.
-            {/* WARN, NOT FAIL. `--sp-fail` is the colour of a write that did
-                not happen, and this one did: using it here would tell the eye
-                the promote had fallen over. */}
+            {/* HOLD, NOT FAIL, and Meridian has the word for it now.
+                `sp-warn` was a CLASS, and "warn" is not one of Meridian's five
+                status words. The reasoning written here already named the right
+                one: red reports a write that did NOT happen and this one did, so
+                the line must not wear failure's colour. What is actually true of
+                each of these is that a piece of the record is WAITING on a
+                condition -- an outcome window that was not armed, a stage event
+                that was refused -- which is exactly what amber says here.
+                `Value tone="hold"` is that word, and it carries the meaning in
+                `data-tone` rather than only in the paint. */}
             {warnings.map((w) => (
-              <span key={w} className="sp-warn" style={{ display: "block", marginTop: 6 }}>
-                {w}
+              <span key={w} className="mt-mrd-3 block">
+                <Value tone="hold">{w}</Value>
               </span>
             ))}
           </>
@@ -1633,9 +1876,9 @@ function Ship() {
           <>
             A revert of {v.title} is staged and its run is open. It opens the pull request once you
             clear that run's gates in{" "}
-            <a href={`/studio/${res.revertMissionId}`} style={{ color: "var(--sp-ink)" }}>
+            <AppLink href={`/studio/${res.revertMissionId}`}>
               <Num>the revert run</Num>
-            </a>
+            </AppLink>
             , and it still passes CI and your review before it merges.
           </>
         ),
@@ -2061,10 +2304,20 @@ function Ship() {
           cannot show a step that did not happen. Every other pulse on this
           station is gated on a mutation the reader's own click started;
           this one is bound to the run. See use-live-agents.ts. */}
-      <CrewWorking station="ship" />
-      <PageHead title={headline} sub={gapLine()} />
+      {/* THE VERTICAL RHYTHM, STATED ONCE, WHICH THE RETIRED `Block` USED TO
+          CARRY. `.sp-block` set `margin-top: 36px`, `padding-top: 24px` and a
+          top rule on every region, so the page's spacing was a property of the
+          component and a region rendered anywhere else brought it along.
+          `Region` sets no outer margin at all -- the same decision `Actions`
+          records for itself -- and every ported surface in this product states
+          the gap at the Surface instead (Approvals, Brain, Discover all use
+          `gap-mrd-7`). This one matches them, so seven stations do not each
+          invent a different distance between their own sections. */}
+      <div className="flex flex-col gap-mrd-7">
+        <CrewWorking station="ship" />
+        <PageHeading title={headline} sub={gapLine()} />
 
-      {/* PRODUCTION COMES BEFORE THE ANNOUNCEMENT, and the order is the
+        {/* PRODUCTION COMES BEFORE THE ANNOUNCEMENT, and the order is the
           argument. This station is called Ship and the nav calls it "Preview to
           production"; putting a change in front of customers is the act it is
           named for, and saying something about that change is what you do
@@ -2072,63 +2325,73 @@ function Ship() {
           drawn at once when both are genuinely waiting, because they are two
           different decisions and hiding either would be the surface deciding
           for the reader which one their morning is about. */}
-      {ready.length > 0 ? (
-        <Gate
-          question={`Take "${ready[0].title}" to production?`}
-          lines={[
-            <span key="preview">
-              {/* THE ADDRESS QUOTED IS THE ONE THAT MOVES. `previewUrl` is the
+        {ready.length > 0 ? (
+          <Gate
+            question={`Take "${ready[0].title}" to production?`}
+            lines={[
+              <span key="preview">
+                {/* THE ADDRESS QUOTED IS THE ONE THAT MOVES. `previewUrl` is the
                   newest preview of any origin, which on a repo that also runs
                   its own pipeline can be a different deploy from the one this
                   button promotes. A confirmation naming a URL other than the
                   one it is about to ship is a confirmation of the wrong thing.
                   `isReadyToPromote` is what put this row here, so the hosted
                   address is guaranteed present. */}
-              The preview is up at{" "}
-              <a
-                href={ready[0].hostedPreviewUrl as string}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: "inherit" }}
-              >
-                <Num>{ready[0].hostedPreviewUrl}</Num>
-              </a>
-            </span>,
-            ...(since(ready[0].releasedAt)
-              ? [
-                  <span key="when">
-                    Merged <Num>{since(ready[0].releasedAt)}</Num>
-                    {ready[0].productName ? ` into ${ready[0].productName}` : ""}
-                  </span>,
-                ]
-              : []),
-            <span key="cost">
-              It moves that same commit to the production address. Customers see it immediately, and
-              undoing it means a revert pull request.
-            </span>,
-            ...(ready.length > 1
-              ? [
-                  <span key="more">
-                    <Num>{ready.length - 1}</Num> more {ready.length - 1 === 1 ? "is" : "are"}{" "}
-                    ready, each with its own promote under Where it is live.
-                  </span>,
-                ]
-              : []),
-          ]}
-        >
-          <Button
-            variant="primary"
-            disabled={promote.isPending}
-            onClick={() =>
-              promote.mutate({ changesetId: ready[0].changesetId, title: ready[0].title })
-            }
+                The preview is up at{" "}
+                {/* A `Door`, which is what this always was: a fact inside a
+                  sentence that happens to have an address. The hand-rolled
+                  anchor it replaces set `color: inherit` and nothing else, so
+                  the address announced itself as a link in no way at all -- no
+                  underline at rest, no hover, and a keyboard reader hitting a
+                  bare anchor with no affordance. `Door` inherits the line's size
+                  by design and paints `--mrd-body`, which is the colour that
+                  `inherit` was reaching for. */}
+                <Door href={ready[0].hostedPreviewUrl as string}>
+                  <Num>{ready[0].hostedPreviewUrl}</Num>
+                </Door>
+              </span>,
+              ...(since(ready[0].releasedAt)
+                ? [
+                    <span key="when">
+                      Merged <Num>{since(ready[0].releasedAt)}</Num>
+                      {ready[0].productName ? ` into ${ready[0].productName}` : ""}
+                    </span>,
+                  ]
+                : []),
+              <span key="cost">
+                It moves that same commit to the production address. Customers see it immediately,
+                and undoing it means a revert pull request.
+              </span>,
+              ...(ready.length > 1
+                ? [
+                    <span key="more">
+                      <Num>{ready.length - 1}</Num> more {ready.length - 1 === 1 ? "is" : "are"}{" "}
+                      ready, each with its own promote under Where it is live.
+                    </span>,
+                  ]
+                : []),
+            ]}
           >
-            {promote.isPending ? "Promoting it" : "Promote it"}
-          </Button>
-        </Gate>
-      ) : null}
+            {/* `Approve`, NOT `Action variant="primary"`, and this is the one
+              control on the station that earns it. Meridian spends `--mrd-you`
+              on a single meaning -- a person is required -- and the promote is
+              literally that: the release is merged, the preview is up, and this
+              file's own header says "Promoting is always a person's call ... no
+              agent here can take that step on its own." The work is stopped
+              until this is pressed, which is the definition `Approve` is for.
+              Every other control here does something and unblocks nothing. */}
+            <Approve
+              disabled={promote.isPending}
+              onClick={() =>
+                promote.mutate({ changesetId: ready[0].changesetId, title: ready[0].title })
+              }
+            >
+              {promote.isPending ? "Promoting it" : "Promote it"}
+            </Approve>
+          </Gate>
+        ) : null}
 
-      {/* THE ROLE READ SAYING IT FAILED, above the gate whose controls it
+        {/* THE ROLE READ SAYING IT FAILED, above the gate whose controls it
           decides and NOT in place of it. Every announcement control on this
           station hangs off `selfRole`, and a `listWorkspaceMembers` failure
           used to render as an ordinary absence of buttons: a question with
@@ -2137,15 +2400,28 @@ function Ship() {
           below so nothing is taken away to make room for it: the gate, the
           composer and the announcement in focus all stay exactly as they were,
           and this adds the reason and the way back. */}
-      {members.isError ? (
-        <Failed onRetry={() => void members.refetch()}>
-          Your role in this workspace did not load, so Supaprod cannot say which of these you are
-          allowed to do, and it is not guessing. Nothing here has changed.{" "}
-          {(members.error as Error | null)?.message?.slice(0, 160)}
-        </Failed>
-      ) : null}
+        {members.isError ? (
+          /* THE BOXED HALF OF THE PAIR, because there is no region around this
+           one. `ReadFailedLine` is for a failure said inside a container that
+           already exists; this sits at the top level of the surface between the
+           page heading and the gate, where the retired `Failed` rendered it as a
+           loose paragraph of red text with nothing to hold it. Every word is the
+           one that was here: the heading is the sentence about the read, and the
+           detail is the reassurance plus the provider's own message. */
+          <ReadFailed
+            onRetry={() => void members.refetch()}
+            detail={
+              <>
+                Nothing here has changed. {(members.error as Error | null)?.message?.slice(0, 160)}
+              </>
+            }
+          >
+            Your role in this workspace did not load, so Supaprod cannot say which of these you are
+            allowed to do, and it is not guessing.
+          </ReadFailed>
+        ) : null}
 
-      {/* THE FIRST DAY ON THIS STATION, said once instead of six times.
+        {/* THE FIRST DAY ON THIS STATION, said once instead of six times.
           See `stationEmpty` for what this replaces and why every read has to have
           answered before it draws.
 
@@ -2166,35 +2442,38 @@ function Ship() {
           Plan is secondary, because a change with no spec behind it can ship and
           then cannot be graded, which is the failure the station after this one
           sees most. */}
-      {stationEmpty && !composing ? (
-        <>
-          <Gate
-            question="What will come here to ship?"
-            lines={[
-              <span key="what">
-                A release lands here the moment a merged change carries release notes: the preview
-                address, the one promote that puts it in front of customers, and the announcement
-                afterwards.
-              </span>,
-              <span key="hosting">
-                For a repo Supaprod hosts, a merged change deploys a preview on its own in about two
-                minutes, and promoting that preview is what ships it. For a repo it does not host,
-                Supaprod records the deploys your own pipeline publishes and you promote those where
-                they were built.
-              </span>,
-              <span key="gate">
-                Promoting is always a person&apos;s call. Customers see it immediately and undoing it
-                means a revert, so no agent here can take that step on its own.
-              </span>,
-            ]}
-          >
-            <Button variant="primary" onClick={() => navigate({ to: "/build" })}>
-              See what is being built
-            </Button>
-            <Button onClick={() => navigate({ to: "/plan" })}>Open the specs</Button>
-          </Gate>
+        {stationEmpty && !composing ? (
+          <>
+            <Gate
+              question="What will come here to ship?"
+              lines={[
+                <span key="what">
+                  A release lands here the moment a merged change carries release notes: the preview
+                  address, the one promote that puts it in front of customers, and the announcement
+                  afterwards.
+                </span>,
+                <span key="hosting">
+                  For a repo Supaprod hosts, a merged change deploys a preview on its own in about
+                  two minutes, and promoting that preview is what ships it. For a repo it does not
+                  host, Supaprod records the deploys your own pipeline publishes and you promote
+                  those where they were built.
+                </span>,
+                <span key="gate">
+                  Promoting is always a person&apos;s call. Customers see it immediately and undoing
+                  it means a revert, so no agent here can take that step on its own.
+                </span>,
+              ]}
+            >
+              {/* `Action`, not `Approve`. Both of these navigate, and nothing on
+                this station is held pending a click on either: the accent means
+                a person is REQUIRED, and a door to Build is an offer. */}
+              <Action variant="primary" onClick={() => navigate({ to: "/build" })}>
+                See what is being built
+              </Action>
+              <Action onClick={() => navigate({ to: "/plan" })}>Open the specs</Action>
+            </Gate>
 
-          {/* WHAT THE THING BEING WAITED FOR LOOKS LIKE, drawn rather than
+            {/* WHAT THE THING BEING WAITED FOR LOOKS LIKE, drawn rather than
               described. Discover's empty desk established this and states the
               measurement: "example" is the highest-frequency term across 5.72M
               words of operator conversation, and two sentences about a release row
@@ -2205,102 +2484,128 @@ function Ship() {
               holds nothing, and it says it is an illustration in the title, in the
               subtitle and on the row itself, which is the same three-times rule
               Discover's drawing follows. */}
-          <Block
-            title="What a release will look like here"
-            sub="A drawing, not a release. Nothing here is in your record, and nothing here can be promoted."
-          >
-            <Row
-              tight
-              lead={<Num>app.yourproduct.com</Num>}
-              sub={
-                <>
-                  <b>Illustration</b>
-                  {" · "}Live in production · Address re-confirm at checkout · PR <Num>128</Num>
-                </>
-              }
-              time="2h ago"
-            />
-            <CtxBody>
-              The lead is the address that is actually answering, because that is the thing you
-              copy, open and send to someone. Your own rows will carry the same facts from your own
-              releases, each with the promote that put it there and the way back if it goes wrong.
-            </CtxBody>
-          </Block>
-        </>
-      ) : null}
-
-      {composing ? (
-        <Block title={mode.kind === "new" ? "A new announcement" : "Editing the announcement"}>
-          <Field label="What changed">
-            <Input
-              value={draftTitle}
-              maxLength={200}
-              autoFocus
-              onChange={(e) => setDraftTitle(e.target.value)}
-            />
-          </Field>
-          <Field label="What it means for your customers">
-            {/*
-             * THE CREW WORKING, WHERE THE WORK IS.
-             *
-             * surface-discipline §7: `working` belongs only to a genuinely
-             * dispatched agent, never to a plain read. This one is genuine.
-             * `generateLaunchKit` is a real model pass over the changeset, and
-             * it is the only agent on this station, so it is the one place here
-             * that has earned the pulse.
-             *
-             * The box stays EDITABLE while the crew writes. A person who already
-             * knows what they want to say must not be locked out waiting for a
-             * draft they did not ask for, and if they type, what they typed
-             * wins: the draft only lands if the field is theirs to fill.
-             */}
-            {drafting ? (
-              <div style={{ marginBottom: "var(--sp-space-2)" }}>
-                <AgentPulse
-                  label="The crew is writing what this means for your customers"
-                  seed="ship-launch-kit"
-                  detail="Reading the change, then saying what it means"
-                />
-              </div>
-            ) : null}
-            <Textarea
-              value={draftBody}
-              maxLength={20000}
-              rows={6}
-              onChange={(e) => setDraftBody(e.target.value)}
-            />
-          </Field>
-          <Actions>
-            <Button
-              variant="primary"
-              disabled={!draftTitle.trim() || busy}
-              onClick={() =>
-                mode.kind === "edit" ? update.mutate({ id: mode.id }) : create.mutate()
-              }
+            <Region
+              title="What a release will look like here"
+              sub="A drawing, not a release. Nothing here is in your record, and nothing here can be promoted."
             >
-              {mode.kind === "edit" ? "Save the post" : "Save the draft"}
-            </Button>
-            <Button variant="ghost" disabled={busy} onClick={() => setMode({ kind: "idle" })}>
-              Cancel
-            </Button>
+              <Row
+                tight
+                lead={<Num>app.yourproduct.com</Num>}
+                sub={
+                  <>
+                    <b>Illustration</b>
+                    {" · "}Live in production · Address re-confirm at checkout · PR <Num>128</Num>
+                  </>
+                }
+                time="2h ago"
+              />
+              <CtxBody>
+                The lead is the address that is actually answering, because that is the thing you
+                copy, open and send to someone. Your own rows will carry the same facts from your
+                own releases, each with the promote that put it there and the way back if it goes
+                wrong.
+              </CtxBody>
+            </Region>
+          </>
+        ) : null}
+
+        {composing ? (
+          <Region title={mode.kind === "new" ? "A new announcement" : "Editing the announcement"}>
+            {/* THE STACK'S OWN SPACING, WHICH THE RETIRED `Field` USED TO OWN.
+              `.sp-field` carried `margin-top: 12px`, so two Fields and an
+              Actions row spaced themselves and the composer never said so.
+              Meridian's `Field` is a bare flex column with no outer margin --
+              the same decision `Actions` records for itself -- so the column
+              states the rhythm once here instead of three components each
+              deciding the space above themselves. */}
+            <div className="flex flex-col gap-mrd-5">
+              {/* THE `htmlFor`/`id` PAIRS, WHICH ARE NOT OPTIONAL ON THIS `Field`.
+                The retired one rendered its `<label>` AROUND the control, so
+                containment bound them and no caller had to say anything.
+                Meridian's renders `{children}` as a SIBLING of the label, so a
+                straight swap leaves the control with no accessible name at all
+                -- which its own header records happening at fifteen call sites
+                in one day. Two controls here, two pairs. */}
+              <Field label="What changed" htmlFor="ship-announcement-title">
+                <Input
+                  id="ship-announcement-title"
+                  value={draftTitle}
+                  maxLength={200}
+                  autoFocus
+                  onChange={(e) => setDraftTitle(e.target.value)}
+                />
+              </Field>
+              <Field label="What it means for your customers" htmlFor="ship-announcement-body">
+                {/*
+                 * THE CREW WORKING, WHERE THE WORK IS.
+                 *
+                 * surface-discipline §7: `working` belongs only to a genuinely
+                 * dispatched agent, never to a plain read. This one is genuine.
+                 * `generateLaunchKit` is a real model pass over the changeset, and
+                 * it is the only agent on this station, so it is the one place
+                 * here that has earned the pulse.
+                 *
+                 * The box stays EDITABLE while the crew writes. A person who
+                 * already knows what they want to say must not be locked out
+                 * waiting for a draft they did not ask for, and if they type, what
+                 * they typed wins: the draft only lands if the field is theirs to
+                 * fill.
+                 */}
+                {drafting ? (
+                  <div className="mb-mrd-4">
+                    <AgentPulse
+                      label="The crew is writing what this means for your customers"
+                      seed="ship-launch-kit"
+                      detail="Reading the change, then saying what it means"
+                    />
+                  </div>
+                ) : null}
+                <Textarea
+                  id="ship-announcement-body"
+                  value={draftBody}
+                  maxLength={20000}
+                  rows={6}
+                  onChange={(e) => setDraftBody(e.target.value)}
+                />
+              </Field>
+              <Actions>
+                {/* SAVING A DRAFT UNBLOCKS NOTHING, so it is an `Action` and not
+                  an `Approve`. The one control on this station that releases
+                  held work is the promote, and the one below it that releases a
+                  submitted post is "Publish it". */}
+                <Action
+                  variant="primary"
+                  disabled={!draftTitle.trim() || busy}
+                  onClick={() =>
+                    mode.kind === "edit" ? update.mutate({ id: mode.id }) : create.mutate()
+                  }
+                >
+                  {mode.kind === "edit" ? "Save the post" : "Save the draft"}
+                </Action>
+                <Action variant="quiet" disabled={busy} onClick={() => setMode({ kind: "idle" })}>
+                  Cancel
+                </Action>
+              </Actions>
+            </div>
+          </Region>
+        ) : posts.isError ? (
+          <Actions>
+            {/* A RETRY IS NEUTRAL, which is Meridian's rule rather than a
+              preference: `ReadFailed` spells it out and three of the five
+              surfaces that grew their own copy reached it independently. A
+              re-read is not what this screen is asking a person to do. */}
+            <Action onClick={() => void posts.refetch()}>Try again</Action>
           </Actions>
-        </Block>
-      ) : posts.isError ? (
-        <Actions>
-          <Button variant="primary" onClick={() => void posts.refetch()}>
-            Try again
-          </Button>
-        </Actions>
-      ) : postsReading ? (
-        <Loading>Reading what is ready to announce.</Loading>
-      ) : membersReading ? (
-        // THE SECOND READ THE GATE DEPENDS ON, and it had no wait at all. Its
-        // own sentence rather than the one above, because "reading what is
-        // ready to announce" is about the posts and this is about the reader.
-        <Loading>Reading what you are allowed to do here.</Loading>
-      ) : call ? (
-        <Gate
-          /* THE QUESTION IS THE FIRST THING READ, so it must not borrow the
+        ) : postsReading ? (
+          <Reading>Reading what is ready to announce.</Reading>
+        ) : membersReading ? (
+          // THE SECOND READ THE GATE DEPENDS ON, and it had no wait at all. Its
+          // own sentence rather than the one above, because "reading what is
+          // ready to announce" is about the posts and this is about the reader.
+          <Reading>Reading what you are allowed to do here.</Reading>
+        ) : call ? (
+          <Gate
+            /* THE QUESTION IS THE FIRST THING READ, so it must not borrow the
              failed read's confidence either. "waiting on an owner or an admin"
              is `canPublish === false` said as a fact about the READER, and
              `canPublish` is false in all three of: you are a member who may not
@@ -2311,96 +2616,102 @@ function Ship() {
              the reader; `roleLines()` beneath it says why the controls are
              gone. Word for word as before whenever the role read answered with
              a role, which is every ordinary session. */
-          question={
-            call.status === "pending"
-              ? canPublish
-                ? `Send "${call.title}" to customers?`
-                : members.isError || roleUnknown
-                  ? `"${call.title}" is waiting to be published.`
-                  : `"${call.title}" is waiting on an owner or an admin.`
-              : `"${call.title}" is still a draft.`
-          }
-          // The announcement's own evidence FIRST, then the reason its controls
-          // are missing when they are. `roleLines` is empty in the ordinary
-          // case, so this is exactly `gateLines(call)` whenever the role read
-          // answered with a role.
-          lines={[...gateLines(call), ...roleLines()]}
-        >
-          {call.status === "pending" && canPublish ? (
-            <Button variant="primary" disabled={busy} onClick={() => publish.mutate(call.id)}>
-              Publish it
-            </Button>
-          ) : null}
-          {call.status === "draft" && canContribute ? (
-            <Button variant="primary" disabled={busy} onClick={() => submit.mutate(call.id)}>
-              Send for approval
-            </Button>
-          ) : null}
-          {canContribute ? (
-            <Button disabled={busy} onClick={() => startEdit(call)}>
-              Edit the post
-            </Button>
-          ) : null}
-          {canContribute ? (
-            <Button variant="ghost" disabled={busy} onClick={startNew}>
-              Write another
-            </Button>
-          ) : null}
-        </Gate>
-      ) : (
-        /*
-         * THE QUESTION WITH NOTHING UNDER IT, which is what a lost role read
-         * used to draw here. The Gate stays (a reader with no write rights has
-         * always seen the question and should keep seeing it), and the reason
-         * the button is absent is now said on the line beneath it.
-         *
-         * AND THE DAY ONE CASE, WHICH USED TO ASK FOR SOMETHING DISHONEST.
-         * On a workspace where nothing has ever shipped, the biggest element on
-         * this station asked "Write the first announcement?" with a primary
-         * that opens a customer-facing composer. That is the loudest control on
-         * the screen inviting a person to announce a release that does not
-         * exist, and on the profile that dominates production it is the FIRST
-         * thing they see here.
-         *
-         * The capability is not removed, because a team may legitimately
-         * announce something this product never tracked. What changes is that
-         * it stops being the recommended act: the question becomes a statement
-         * of what is actually true, the line says what normally puts something
-         * here, and the control drops from primary to ordinary. Nothing shipped
-         * is not a problem to solve on this screen, it is a fact about
-         * somewhere else.
-         */
-        <Gate
-          /* NOT DRAWN AT ALL WHEN THE FIRST-RUN SCREEN IS UP. `stationEmpty`
+            question={
+              call.status === "pending"
+                ? canPublish
+                  ? `Send "${call.title}" to customers?`
+                  : members.isError || roleUnknown
+                    ? `"${call.title}" is waiting to be published.`
+                    : `"${call.title}" is waiting on an owner or an admin.`
+                : `"${call.title}" is still a draft.`
+            }
+            // The announcement's own evidence FIRST, then the reason its controls
+            // are missing when they are. `roleLines` is empty in the ordinary
+            // case, so this is exactly `gateLines(call)` whenever the role read
+            // answered with a role.
+            lines={[...gateLines(call), ...roleLines()]}
+          >
+            {/* THE SECOND `Approve` ON THIS STATION, and the last. A pending post
+              is work that has STOPPED: a contributor sent it up and it does not
+              reach anybody until an owner or an admin presses this. That is the
+              one meaning `--mrd-you` carries. "Send for approval" beside it is
+              deliberately NOT an Approve -- it starts a wait rather than ending
+              one -- and neither are the two after it, which edit and compose. */}
+            {call.status === "pending" && canPublish ? (
+              <Approve disabled={busy} onClick={() => publish.mutate(call.id)}>
+                Publish it
+              </Approve>
+            ) : null}
+            {call.status === "draft" && canContribute ? (
+              <Action variant="primary" disabled={busy} onClick={() => submit.mutate(call.id)}>
+                Send for approval
+              </Action>
+            ) : null}
+            {canContribute ? (
+              <Action disabled={busy} onClick={() => startEdit(call)}>
+                Edit the post
+              </Action>
+            ) : null}
+            {canContribute ? (
+              <Action variant="quiet" disabled={busy} onClick={startNew}>
+                Write another
+              </Action>
+            ) : null}
+          </Gate>
+        ) : (
+          /*
+           * THE QUESTION WITH NOTHING UNDER IT, which is what a lost role read
+           * used to draw here. The Gate stays (a reader with no write rights has
+           * always seen the question and should keep seeing it), and the reason
+           * the button is absent is now said on the line beneath it.
+           *
+           * AND THE DAY ONE CASE, WHICH USED TO ASK FOR SOMETHING DISHONEST.
+           * On a workspace where nothing has ever shipped, the biggest element on
+           * this station asked "Write the first announcement?" with a primary
+           * that opens a customer-facing composer. That is the loudest control on
+           * the screen inviting a person to announce a release that does not
+           * exist, and on the profile that dominates production it is the FIRST
+           * thing they see here.
+           *
+           * The capability is not removed, because a team may legitimately
+           * announce something this product never tracked. What changes is that
+           * it stops being the recommended act: the question becomes a statement
+           * of what is actually true, the line says what normally puts something
+           * here, and the control drops from primary to ordinary. Nothing shipped
+           * is not a problem to solve on this screen, it is a fact about
+           * somewhere else.
+           */
+          <Gate
+            /* NOT DRAWN AT ALL WHEN THE FIRST-RUN SCREEN IS UP. `stationEmpty`
              already asks the station's one question with its own doors, and two
              gates about the same absence on one screen is the contradiction this
              surface's own notes keep warning about. Its `nothingShipped` arm still
              owns the case where something HAS shipped, or a deploy or merge exists,
              and only the announcements are empty. */
-          question={
-            nothingShipped
-              ? "Nothing has gone out, because nothing has shipped yet."
-              : "Write the first announcement?"
-          }
-          lines={
-            nothingShipped
-              ? [
-                  "A release lands here once a merged change carries release notes. Until one does, there is nothing for an announcement to be about.",
-                  ...roleLines(),
-                ]
-              : roleLines()
-          }
-        >
-          {canContribute ? (
-            <Button
-              variant={nothingShipped ? "default" : "primary"}
-              disabled={busy}
-              onClick={startNew}
-            >
-              {nothingShipped ? "Write one anyway" : "Write an announcement"}
-            </Button>
-          ) : null}
-          {/* THE DOOR TO THE SOMEWHERE ELSE THIS GATE NAMES.
+            question={
+              nothingShipped
+                ? "Nothing has gone out, because nothing has shipped yet."
+                : "Write the first announcement?"
+            }
+            lines={
+              nothingShipped
+                ? [
+                    "A release lands here once a merged change carries release notes. Until one does, there is nothing for an announcement to be about.",
+                    ...roleLines(),
+                  ]
+                : roleLines()
+            }
+          >
+            {canContribute ? (
+              <Action
+                variant={nothingShipped ? "default" : "primary"}
+                disabled={busy}
+                onClick={startNew}
+              >
+                {nothingShipped ? "Write one anyway" : "Write an announcement"}
+              </Action>
+            ) : null}
+            {/* THE DOOR TO THE SOMEWHERE ELSE THIS GATE NAMES.
 
               The comment above already had the right idea and stopped one step
               short: "Nothing shipped is not a problem to solve on this screen, it
@@ -2418,43 +2729,44 @@ function Ship() {
               Primary when nothing has shipped, because then it IS the next act;
               absent otherwise, since a desk with releases on it does not need to
               be sent to Build. */}
-          {nothingShipped ? (
-            <Button variant="primary" onClick={() => navigate({ to: "/build" })}>
-              See what is being built
-            </Button>
-          ) : null}
-        </Gate>
-      )}
+            {nothingShipped ? (
+              <Action variant="primary" onClick={() => navigate({ to: "/build" })}>
+                See what is being built
+              </Action>
+            ) : null}
+          </Gate>
+        )}
 
-      {/* What the last act caused. Publishing is the one thing here that reaches
+        {/* What the last act caused. Publishing is the one thing here that reaches
         the public internet, so its consequence is a real address rather than a
         confirmation, and it stays on screen instead of sliding away. */}
-      {receipt ? (
-        <Receipt
-          verb={receipt.verb}
-          consequence={
-            receipt.slug ? (
-              <>
-                Anyone can read it now at{" "}
-                <a
-                  href={`/p/${receipt.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "var(--sp-ink)" }}
-                >
-                  <Num>/p/{receipt.slug}</Num>
-                </a>
-                .
-              </>
-            ) : (
-              receipt.consequence
-            )
-          }
-          failed={receipt.failed}
-        />
-      ) : null}
+        {receipt ? (
+          <Receipt
+            verb={receipt.verb}
+            consequence={
+              receipt.slug ? (
+                <>
+                  Anyone can read it now at{" "}
+                  {/* OUTBOUND IN THE ONLY SENSE THAT MATTERS HERE: /p/<slug> is
+                    the public page, readable by a stranger, and the person who
+                    just published wants to look at it without losing the station
+                    they published from. `Door` opens it in a new tab with
+                    `noopener noreferrer`, which is what this anchor spelled out
+                    by hand. */}
+                  <Door href={`/p/${receipt.slug}`}>
+                    <Num>/p/{receipt.slug}</Num>
+                  </Door>
+                  .
+                </>
+              ) : (
+                receipt.consequence
+              )
+            }
+            failed={receipt.failed}
+          />
+        ) : null}
 
-      {/* THE ADDRESSES, which is the question "where is it live" taken
+        {/* THE ADDRESSES, which is the question "where is it live" taken
           literally. One row per merged release, led by the URL that is actually
           answering, because that is the thing you copy, open and send to
           someone. The block that follows is led by the release TITLE instead:
@@ -2462,25 +2774,17 @@ function Ship() {
           single list that tried to be both would lead with a title and bury the
           address in a sub, which is how the URL became unreachable text on this
           surface in the first place. */}
-      {stationEmpty ? null : (
-      <Block
-        title="Where it is live"
-        /* THE MERGE COUNT IS PASSED, AND `null` WHEN IT IS NOT KNOWN. Without
+        {stationEmpty ? null : (
+          <Region
+            title="Where it is live"
+            /* THE MERGE COUNT IS PASSED, AND `null` WHEN IT IS NOT KNOWN. Without
            it this sentence read "Nothing has merged yet" off an empty
            changelog, which is a claim about changesets made from a read of
            changelog entries. `mergesKnown` is false while the merge list is in
            flight or lost, and the sentence hedges instead of picking a side. */
-        sub={absenceSentence(absence, mergesKnown ? unlisted.length : null)}
-        more={
-          states.length > VISIBLE
-            ? allAddresses
-              ? "Show fewer"
-              : `All ${states.length}`
-            : undefined
-        }
-        onMore={() => setAllAddresses((v) => !v)}
-      >
-        {/* THE STALE NOTE SITS ABOVE THE BRANCH, not inside one arm of it,
+            sub={absenceSentence(absence, mergesKnown ? unlisted.length : null)}
+          >
+            {/* THE STALE NOTE SITS ABOVE THE BRANCH, not inside one arm of it,
             because a read that failed with rows in hand is worth saying over
             whatever those rows turn out to be -- a list, or an Empty that is
             the last thing we genuinely read. `releaseUnread` and `releaseStale`
@@ -2491,22 +2795,26 @@ function Ship() {
             answered with nothing, and this sentence then sits directly above the
             Empty. "The last release rows that loaded" would be naming rows that
             do not exist. ChangesPanel says the same thing the same way. */}
-        {releaseStale ? (
-          <Failed onRetry={retryRelease} retryLabel="Read it again">
-            This is the release record as it last loaded, which may be no releases at all; the
-            refresh just now did not land, so this may have moved since.{" "}
-            {((changelog.error ?? deployments.error) as Error | null)?.message?.slice(0, 160)}
-          </Failed>
-        ) : null}
-        {releaseUnread ? (
-          <Failed onRetry={retryRelease}>
-            Where each release is serving did not load, so this list would be a guess.{" "}
-            {((changelog.error ?? deployments.error) as Error | null)?.message?.slice(0, 160)}
-          </Failed>
-        ) : releaseReading ? (
-          <Loading>Reading where each release is serving.</Loading>
-        ) : states.length === 0 ? (
-          /* "NO DEPLOY IS ON THE RECORD YET" WAS PRINTED OVER DEPLOY ROWS THIS
+            {releaseStale ? (
+              /* THE BARE HALF OF THE PAIR, because this region already draws
+             itself. `ReadFailed` boxes the failure for a region that is
+             missing; two containers around one sentence is a frame, and the
+             standard caps a region at one bordered box. */
+              <ReadFailedLine onRetry={retryRelease} retryLabel="Read it again">
+                This is the release record as it last loaded, which may be no releases at all; the
+                refresh just now did not land, so this may have moved since.{" "}
+                {((changelog.error ?? deployments.error) as Error | null)?.message?.slice(0, 160)}
+              </ReadFailedLine>
+            ) : null}
+            {releaseUnread ? (
+              <ReadFailedLine onRetry={retryRelease}>
+                Where each release is serving did not load, so this list would be a guess.{" "}
+                {((changelog.error ?? deployments.error) as Error | null)?.message?.slice(0, 160)}
+              </ReadFailedLine>
+            ) : releaseReading ? (
+              <Reading>Reading where each release is serving.</Reading>
+            ) : states.length === 0 ? (
+              /* "NO DEPLOY IS ON THE RECORD YET" WAS PRINTED OVER DEPLOY ROWS THIS
              SURFACE WAS HOLDING, and `states.length === 0` is not the read that
              could say otherwise: it means the CHANGELOG is empty. `deployRows`
              comes from `listDeployments`, separately and independently, and it
@@ -2519,96 +2827,141 @@ function Ship() {
 
              THE OLD COPY SURVIVES WORD FOR WORD in the arm where it is true:
              nothing on the deploy record at all. */
-          deployRows.length > 0 ? (
-            <Empty>
-              <Num>{deployRows.length}</Num> {deployRows.length === 1 ? "deploy is" : "deploys are"}{" "}
-              on the deploy record for this workspace, and none of them is listed here. This list is
-              one row per RELEASE, and a release is drawn from a merged change that carries release
-              notes, so a deploy whose change has none has nothing to sit under. {whyNoneListed()}
-            </Empty>
-          ) : (
-            <Empty>
-              No deploy is on the record yet. For a repo Supaprod hosts, a merged change deploys a
-              preview on its own and one promote moves that same commit to the production address;
-              for a repo it does not host, Supaprod records the deploys your own pipeline publishes
-              and none appears here on its own.
-            </Empty>
-          )
-        ) : (
-          (allAddresses ? states : states.slice(0, VISIBLE)).map((s) => {
-            const at = whereItIs(s);
-            const promotable = isReadyToPromote(s);
-            const promotingThis =
-              promote.isPending && promote.variables?.changesetId === s.changesetId;
-            /**
-             * WHICH ROWS GET "Check for deploys": the ones where the deploy
-             * record is the thing that is missing.
-             *
-             * A live release is finished, and a promotable one already has the
-             * preview it needs and a primary act sitting in this same slot --
-             * putting a second control beside Promote would dilute the one call
-             * on this station that reaches customers. What is left is every
-             * release that merged and has nothing here to open: no deploy row at
-             * all, a preview the customer's own pipeline published with no
-             * production row yet, a failed or in-flight deploy. Those are
-             * exactly the rows the cron may have given up on.
-             *
-             * It is offered on rows that DO carry a deploy row too, and that is
-             * intended: re-checking updates a captured row's status in place
-             * (uq_deployments_capture), so a deploy that has since gone from
-             * pending to success can land here.
-             */
-            const checkable = !promotable && !isLive(s);
-            const checkingThis = check.isPending && check.variables?.changesetId === s.changesetId;
-            return (
-              <Row
-                key={s.changesetId}
-                tight
-                lead={at.address ? <Num>{at.address}</Num> : s.title}
-                sub={at.address ? `${at.state} · ${s.title}` : at.state}
-                time={ago(s.productionAt ?? s.releasedAt)}
-                onClick={
-                  at.address
-                    ? () => window.open(at.address as string, "_blank", "noopener,noreferrer")
-                    : undefined
-                }
-                action={
-                  promotable ? (
-                    // THE SECOND DOOR ONTO THE PROMOTE. The Gate above focuses
-                    // one release; every other ready release needs its own way
-                    // through or it is a capability with no door until the
-                    // first one happens to go live.
-                    <button
-                      type="button"
-                      className={QUIET}
-                      disabled={promote.isPending}
-                      onClick={() => promote.mutate({ changesetId: s.changesetId, title: s.title })}
-                    >
-                      {promotingThis ? "Promoting it" : "Promote it"}
-                    </button>
-                  ) : checkable ? (
-                    // THE DOOR ONTO THE CAPTURE, at the same weight as the
-                    // promote beside it and never at the same time: a row is
-                    // either waiting on a person or waiting on a deploy record,
-                    // and this answers the second.
-                    <button
-                      type="button"
-                      className={QUIET}
-                      disabled={check.isPending}
-                      onClick={() => check.mutate({ changesetId: s.changesetId, title: s.title })}
-                    >
-                      {checkingThis ? "Checking" : "Check for deploys"}
-                    </button>
-                  ) : null
-                }
+              deployRows.length > 0 ? (
+                <NothingYet>
+                  <Num>{deployRows.length}</Num>{" "}
+                  {deployRows.length === 1 ? "deploy is" : "deploys are"} on the deploy record for
+                  this workspace, and none of them is listed here. This list is one row per RELEASE,
+                  and a release is drawn from a merged change that carries release notes, so a
+                  deploy whose change has none has nothing to sit under. {whyNoneListed()}
+                </NothingYet>
+              ) : (
+                <NothingYet>
+                  No deploy is on the record yet. For a repo Supaprod hosts, a merged change deploys
+                  a preview on its own and one promote moves that same commit to the production
+                  address; for a repo it does not host, Supaprod records the deploys your own
+                  pipeline publishes and none appears here on its own.
+                </NothingYet>
+              )
+            ) : (
+              (allAddresses ? states : states.slice(0, VISIBLE)).map((s) => {
+                const at = whereItIs(s);
+                const promotable = isReadyToPromote(s);
+                const promotingThis =
+                  promote.isPending && promote.variables?.changesetId === s.changesetId;
+                /**
+                 * WHICH ROWS GET "Check for deploys": the ones where the deploy
+                 * record is the thing that is missing.
+                 *
+                 * A live release is finished, and a promotable one already has the
+                 * preview it needs and a primary act sitting in this same slot --
+                 * putting a second control beside Promote would dilute the one call
+                 * on this station that reaches customers. What is left is every
+                 * release that merged and has nothing here to open: no deploy row at
+                 * all, a preview the customer's own pipeline published with no
+                 * production row yet, a failed or in-flight deploy. Those are
+                 * exactly the rows the cron may have given up on.
+                 *
+                 * It is offered on rows that DO carry a deploy row too, and that is
+                 * intended: re-checking updates a captured row's status in place
+                 * (uq_deployments_capture), so a deploy that has since gone from
+                 * pending to success can land here.
+                 */
+                const checkable = !promotable && !isLive(s);
+                const checkingThis =
+                  check.isPending && check.variables?.changesetId === s.changesetId;
+                return (
+                  <Row
+                    key={s.changesetId}
+                    tight
+                    lead={at.address ? <Num>{at.address}</Num> : s.title}
+                    /*
+                     * THE DEPLOY STATE IS NOW SAID IN A VOICE, and this is the one
+                     * honest live fact on the station.
+                     *
+                     * `listDeployments` polls every 30 seconds and returns
+                     * `status`, and every one of `whereItIs`'s sentences was drawn
+                     * in the same mute -- so "In production", a settled outcome, and
+                     * "A production deploy is running", which is a thing happening
+                     * while you read it, were typographically the same claim.
+                     * `deployTone` splits them: `agent` for present tense, pass and
+                     * fail for the two outcomes, quiet for a provider that would not
+                     * say. It is a `Value`, so the meaning is in `data-tone` and not
+                     * only in the colour.
+                     *
+                     * AND THE CLOCK COMES WITH IT. A tone says a deploy is running;
+                     * it cannot say whether it is stuck. "started 14m ago" is the
+                     * figure that makes SLOW composable, and it is drawn only while
+                     * something is genuinely running, from the row that is running.
+                     * The release TITLE stays where it was, after the state, so the
+                     * row reads the same way it always did.
+                     */
+                    sub={
+                      <>
+                        <Value tone={deployTone(s)}>{at.state}</Value>
+                        {s.inFlightSince && since(s.inFlightSince) ? (
+                          <>
+                            , started <Num>{since(s.inFlightSince)}</Num>
+                          </>
+                        ) : null}
+                        {at.address ? <> · {s.title}</> : null}
+                      </>
+                    }
+                    time={ago(s.productionAt ?? s.releasedAt)}
+                    onClick={
+                      at.address
+                        ? () => window.open(at.address as string, "_blank", "noopener,noreferrer")
+                        : undefined
+                    }
+                    action={
+                      promotable ? (
+                        // THE SECOND DOOR ONTO THE PROMOTE. The Gate above focuses
+                        // one release; every other ready release needs its own way
+                        // through or it is a capability with no door until the
+                        // first one happens to go live.
+                        <RowDoor
+                          disabled={promote.isPending}
+                          busy={promotingThis}
+                          onClick={() =>
+                            promote.mutate({ changesetId: s.changesetId, title: s.title })
+                          }
+                        >
+                          {promotingThis ? "Promoting it" : "Promote it"}
+                        </RowDoor>
+                      ) : checkable ? (
+                        // THE DOOR ONTO THE CAPTURE, at the same weight as the
+                        // promote beside it and never at the same time: a row is
+                        // either waiting on a person or waiting on a deploy record,
+                        // and this answers the second.
+                        <RowDoor
+                          disabled={check.isPending}
+                          busy={checkingThis}
+                          onClick={() =>
+                            check.mutate({ changesetId: s.changesetId, title: s.title })
+                          }
+                        >
+                          {checkingThis ? "Checking" : "Check for deploys"}
+                        </RowDoor>
+                      ) : null
+                    }
+                  />
+                );
+              })
+            )}
+            {/* THE WAY PAST THE CAP, UNDER THE LAST ROW. It was in the region
+            heading until this port, above rows the reader had not reached. */}
+            {states.length > 0 && !releaseUnread && !releaseReading ? (
+              <MoreRows
+                shown={Math.min(VISIBLE, states.length)}
+                total={states.length}
+                open={allAddresses}
+                onToggle={() => setAllAddresses((v) => !v)}
               />
-            );
-          })
+            ) : null}
+          </Region>
         )}
-      </Block>
-      )}
 
-      {/* THE MERGES NO LIST ABOVE CAN REACH, which is the hole this station's
+        {/* THE MERGES NO LIST ABOVE CAN REACH, which is the hole this station's
           own prose used to describe and leave open.
 
           THE DEFECT, IN ONE LINE: every act on this surface hangs off
@@ -2625,137 +2978,129 @@ function Ship() {
           nothing missing draws no block at all: a permanent panel reporting a
           non-event is the clutter this surface's own rebuild notes killed four
           other panels for. */}
-      {applied.isError || (mergesKnown && unlisted.length > 0) ? (
-        <Block
-          title="Merged, not listed yet"
-          sub={
-            mergesKnown && unlisted.length > 0
-              ? "A release is drawn from a merged change that carries release notes. These merged and never got any, so nothing above can reach them."
-              : undefined
-          }
-          more={
-            unlisted.length > VISIBLE
-              ? allUnlisted
-                ? "Show fewer"
-                : `All ${unlisted.length}`
-              : undefined
-          }
-          onMore={() => setAllUnlisted((v) => !v)}
-        >
-          {/* THE SAME TWO SENTENCES THE RELEASE BLOCKS USE, for the same
+        {applied.isError || (mergesKnown && unlisted.length > 0) ? (
+          <Region
+            title="Merged, not listed yet"
+            sub={
+              mergesKnown && unlisted.length > 0
+                ? "A release is drawn from a merged change that carries release notes. These merged and never got any, so nothing above can reach them."
+                : undefined
+            }
+          >
+            {/* THE SAME TWO SENTENCES THE RELEASE BLOCKS USE, for the same
               reason: rows in hand plus a failed refresh is stale, not lost, so
               the rows stay and the failure is said beside them. With nothing in
               hand there is nothing true to draw, and the failure is all there
               is. */}
-          {applied.isError ? (
-            <Failed onRetry={() => void applied.refetch()} retryLabel="Read it again">
-              {mergesKnown
-                ? "These are the merges as they last loaded; the refresh just now did not land, so one written up since may still be listed here."
-                : "Which changes have merged did not load, so this station cannot say whether anything is missing from the lists above."}{" "}
-              {(applied.error as Error | null)?.message?.slice(0, 160)}
-            </Failed>
-          ) : null}
-          {/* A GENUINELY DISPATCHED AGENT, so it gets the pulse.
+            {applied.isError ? (
+              <ReadFailedLine onRetry={() => void applied.refetch()} retryLabel="Read it again">
+                {mergesKnown
+                  ? "These are the merges as they last loaded; the refresh just now did not land, so one written up since may still be listed here."
+                  : "Which changes have merged did not load, so this station cannot say whether anything is missing from the lists above."}{" "}
+                {(applied.error as Error | null)?.message?.slice(0, 160)}
+              </ReadFailedLine>
+            ) : null}
+            {/* A GENUINELY DISPATCHED AGENT, so it gets the pulse.
               `generateReleaseNotesCore` is a model pass over the changeset's
               files and commits, which is the same bar the launch-kit draft in
               the composer clears; the capture beside it is a plain provider
               read and correctly has no pulse. */}
-          {writeNotes.isPending ? (
-            <div style={{ marginBottom: "var(--sp-space-2)" }}>
-              <AgentPulse
-                label="The crew is writing the release notes"
-                seed="ship-release-notes"
-                detail="Reading the files and the commits, then saying what changed"
-              />
-            </div>
-          ) : null}
-          {mergesKnown
-            ? (allUnlisted ? unlisted : unlisted.slice(0, VISIBLE)).map((c) => {
-                const writingThis =
-                  writeNotes.isPending && writeNotes.variables?.changesetId === c.id;
-                const checkingThis = check.isPending && check.variables?.changesetId === c.id;
-                // SAID ONLY WHERE THERE ARE SOME. `listDeployments` returns a
-                // bounded page, so a count of zero here proves nothing and "no
-                // deploy on file" would be absence claimed from a read that can
-                // only ever prove presence. A count above zero is a fact, and
-                // it is the fact that tells a reader whether the capture door
-                // beside it has already found something.
-                const onFile = deployRows.filter((d) => d.changeset_id === c.id).length;
-                const sub =
-                  [
-                    c.mission_title ? `in ${c.mission_title}` : c.repo || null,
-                    onFile > 0 ? `${onFile} deploy${onFile === 1 ? "" : "s"} on file` : null,
-                  ]
-                    .filter((x): x is string => !!x)
-                    .join(" · ") || null;
-                return (
-                  <Row
-                    key={c.id}
-                    tight
-                    lead={c.title}
-                    sub={sub}
-                    time={ago(c.merged_at)}
-                    action={
-                      <>
-                        {c.pr_url ? (
-                          <Addr href={c.pr_url}>
-                            {c.pr_number ? (
-                              <>
-                                PR <Num>{c.pr_number}</Num>
-                              </>
-                            ) : (
-                              "The PR"
-                            )}
-                          </Addr>
-                        ) : null}
-                        {/* THE DOOR THAT CLOSES THE LOOP, and it leads. Writing
+            {writeNotes.isPending ? (
+              <div className="mb-mrd-4">
+                <AgentPulse
+                  label="The crew is writing the release notes"
+                  seed="ship-release-notes"
+                  detail="Reading the files and the commits, then saying what changed"
+                />
+              </div>
+            ) : null}
+            {mergesKnown
+              ? (allUnlisted ? unlisted : unlisted.slice(0, VISIBLE)).map((c) => {
+                  const writingThis =
+                    writeNotes.isPending && writeNotes.variables?.changesetId === c.id;
+                  const checkingThis = check.isPending && check.variables?.changesetId === c.id;
+                  // SAID ONLY WHERE THERE ARE SOME. `listDeployments` returns a
+                  // bounded page, so a count of zero here proves nothing and "no
+                  // deploy on file" would be absence claimed from a read that can
+                  // only ever prove presence. A count above zero is a fact, and
+                  // it is the fact that tells a reader whether the capture door
+                  // beside it has already found something.
+                  const onFile = deployRows.filter((d) => d.changeset_id === c.id).length;
+                  const sub =
+                    [
+                      c.mission_title ? `in ${c.mission_title}` : c.repo || null,
+                      onFile > 0 ? `${onFile} deploy${onFile === 1 ? "" : "s"} on file` : null,
+                    ]
+                      .filter((x): x is string => !!x)
+                      .join(" · ") || null;
+                  return (
+                    <Row
+                      key={c.id}
+                      tight
+                      lead={c.title}
+                      sub={sub}
+                      time={ago(c.merged_at)}
+                      action={
+                        <>
+                          {c.pr_url ? (
+                            <Addr href={c.pr_url}>
+                              {c.pr_number ? (
+                                <>
+                                  PR <Num>{c.pr_number}</Num>
+                                </>
+                              ) : (
+                                "The PR"
+                              )}
+                            </Addr>
+                          ) : null}
+                          {/* THE DOOR THAT CLOSES THE LOOP, and it leads. Writing
                             the notes is what materializes the release, so it is
                             the act that moves this row onto the station; the
                             capture beside it files deploy rows and, on its own,
                             still leaves the change invisible here. */}
-                        <button
-                          type="button"
-                          className={QUIET}
-                          disabled={writeNotes.isPending}
-                          onClick={() => writeNotes.mutate({ changesetId: c.id, title: c.title })}
-                        >
-                          {writingThis ? "Writing the notes" : "Write the notes"}
-                        </button>
-                        {/* THE SAME CAPTURE THE ROWS ABOVE CARRY, reachable at
+                          <RowDoor
+                            disabled={writeNotes.isPending}
+                            busy={writingThis}
+                            onClick={() => writeNotes.mutate({ changesetId: c.id, title: c.title })}
+                          >
+                            {writingThis ? "Writing the notes" : "Write the notes"}
+                          </RowDoor>
+                          {/* THE SAME CAPTURE THE ROWS ABOVE CARRY, reachable at
                             last for the merge the cron gave up on. Worth
                             pressing before the notes as well as after: it is
                             the only way to ask a provider that published its
                             deploy after DEPLOY_CAPTURE_WINDOW_MS ran out. */}
-                        <button
-                          type="button"
-                          className={QUIET}
-                          disabled={check.isPending}
-                          onClick={() => check.mutate({ changesetId: c.id, title: c.title })}
-                        >
-                          {checkingThis ? "Checking" : "Check for deploys"}
-                        </button>
-                      </>
-                    }
-                  />
-                );
-              })
-            : null}
-        </Block>
-      ) : null}
+                          <RowDoor
+                            disabled={check.isPending}
+                            busy={checkingThis}
+                            onClick={() => check.mutate({ changesetId: c.id, title: c.title })}
+                          >
+                            {checkingThis ? "Checking" : "Check for deploys"}
+                          </RowDoor>
+                        </>
+                      }
+                    />
+                  );
+                })
+              : null}
+            {mergesKnown && unlisted.length > 0 ? (
+              <MoreRows
+                shown={Math.min(VISIBLE, unlisted.length)}
+                total={unlisted.length}
+                open={allUnlisted}
+                onToggle={() => setAllUnlisted((v) => !v)}
+              />
+            ) : null}
+          </Region>
+        ) : null}
 
-      {/* THE RELEASES THAT REACHED CUSTOMERS, each carrying the one act that
+        {/* THE RELEASES THAT REACHED CUSTOMERS, each carrying the one act that
           takes it back. Rollback lived only inside the Changes tab of the run
           that produced the release, so undoing a bad ship meant first
           remembering which run it came from. Here it is a row on the station. */}
-      {stationEmpty ? null : (
-      <Block
-        title="Live releases"
-        more={
-          live.length > VISIBLE ? (allReleases ? "Show fewer" : `All ${live.length}`) : undefined
-        }
-        onMore={() => setAllReleases((v) => !v)}
-      >
-        {/* Same two questions as the block above, and the rollback is the
+        {stationEmpty ? null : (
+          <Region title="Live releases">
+            {/* Same two questions as the block above, and the rollback is the
             reason they have to be asked separately here too: gating on
             `isError` alone took every "Roll back" door off the screen on a
             blip, which is the one control a person reaches for when something
@@ -2765,223 +3110,252 @@ function Ship() {
             the releases, because a read that landed on nothing is stale in the
             same way and this line then sits over "Nothing is in production
             yet." */}
-        {releaseStale ? (
-          <Failed onRetry={retryRelease} retryLabel="Read it again">
-            This is what was in production as of the last read that landed, which may be nothing at
-            all; the refresh just now did not land, so this may have moved since.
-          </Failed>
-        ) : null}
-        {releaseUnread ? (
-          <Failed onRetry={retryRelease}>What is in production did not load.</Failed>
-        ) : releaseReading ? (
-          <Loading>Reading what is in production.</Loading>
-        ) : live.length === 0 ? (
-          <Empty>
-            Nothing is in production yet.{" "}
-            {ready.length > 0
-              ? `${ready.length === 1 ? "One change has" : `${ready.length} changes have`} a preview waiting for the promote above.`
-              : "A release appears here the moment it is promoted, and each one keeps a way back."}
-          </Empty>
-        ) : (
-          (allReleases ? live : live.slice(0, VISIBLE)).map((s) => {
-            const reverting =
-              rollback.isPending && rollback.variables?.changesetId === s.changesetId;
-            return (
-              <Row
-                key={s.changesetId}
-                tight
-                lead={s.title}
-                sub={
-                  [
-                    s.productName ?? null,
-                    // `since` returns null for a timestamp it cannot read, and
-                    // "live since null" is the classic template-literal leak: a
-                    // string built from a value nobody checked. The bare "live"
-                    // is the honest fallback, since being in production is a
-                    // fact we hold even when the clock on it is not.
-                    // AND THE "on" COMES OFF THE FRONT OF IT. `since` answers
-                    // "5d ago" inside a week and "on Jul 9" outside one, and
-                    // only the first half of that reads as a phrase after
-                    // "live since": every release older than a week printed
-                    // "live since on Jul 9". Stripping the preposition leaves
-                    // "live since Jul 9" and "live since 5d ago", both of which
-                    // are sentences.
-                    s.productionAt && since(s.productionAt)
-                      ? `live since ${(since(s.productionAt) as string).replace(/^on /, "")}`
-                      : "live",
-                    // A pull request number with no URL behind it is still a
-                    // fact worth stating; it just is not a door, so it stays
-                    // text here while the linked case moves to the action slot.
-                    s.prNumber && !s.prUrl ? `PR #${s.prNumber}` : null,
-                  ]
-                    .filter((x): x is string => !!x)
-                    .join(" · ") || null
-                }
-                time={ago(s.productionAt ?? s.releasedAt)}
-                onClick={() =>
-                  window.open(s.productionUrl as string, "_blank", "noopener,noreferrer")
-                }
-                action={
+            {releaseStale ? (
+              <ReadFailedLine onRetry={retryRelease} retryLabel="Read it again">
+                This is what was in production as of the last read that landed, which may be nothing
+                at all; the refresh just now did not land, so this may have moved since.
+              </ReadFailedLine>
+            ) : null}
+            {releaseUnread ? (
+              <ReadFailedLine onRetry={retryRelease}>
+                What is in production did not load.
+              </ReadFailedLine>
+            ) : releaseReading ? (
+              <Reading>Reading what is in production.</Reading>
+            ) : live.length === 0 ? (
+              <NothingYet>
+                Nothing is in production yet.{" "}
+                {ready.length > 0
+                  ? `${ready.length === 1 ? "One change has" : `${ready.length} changes have`} a preview waiting for the promote above.`
+                  : "A release appears here the moment it is promoted, and each one keeps a way back."}
+              </NothingYet>
+            ) : (
+              (allReleases ? live : live.slice(0, VISIBLE)).map((s) => {
+                const reverting =
+                  rollback.isPending && rollback.variables?.changesetId === s.changesetId;
+                return (
+                  <Row
+                    key={s.changesetId}
+                    tight
+                    lead={s.title}
+                    sub={
+                      [
+                        s.productName ?? null,
+                        // `since` returns null for a timestamp it cannot read, and
+                        // "live since null" is the classic template-literal leak: a
+                        // string built from a value nobody checked. The bare "live"
+                        // is the honest fallback, since being in production is a
+                        // fact we hold even when the clock on it is not.
+                        // AND THE "on" COMES OFF THE FRONT OF IT. `since` answers
+                        // "5d ago" inside a week and "on Jul 9" outside one, and
+                        // only the first half of that reads as a phrase after
+                        // "live since": every release older than a week printed
+                        // "live since on Jul 9". Stripping the preposition leaves
+                        // "live since Jul 9" and "live since 5d ago", both of which
+                        // are sentences.
+                        s.productionAt && since(s.productionAt)
+                          ? `live since ${(since(s.productionAt) as string).replace(/^on /, "")}`
+                          : "live",
+                        // A pull request number with no URL behind it is still a
+                        // fact worth stating; it just is not a door, so it stays
+                        // text here while the linked case moves to the action slot.
+                        s.prNumber && !s.prUrl ? `PR #${s.prNumber}` : null,
+                      ]
+                        .filter((x): x is string => !!x)
+                        .join(" · ") || null
+                    }
+                    time={ago(s.productionAt ?? s.releasedAt)}
+                    onClick={() =>
+                      window.open(s.productionUrl as string, "_blank", "noopener,noreferrer")
+                    }
+                    action={
+                      <>
+                        {s.prUrl ? (
+                          <Addr href={s.prUrl}>
+                            {s.prNumber ? (
+                              <>
+                                PR <Num>{s.prNumber}</Num>
+                              </>
+                            ) : (
+                              "The PR"
+                            )}
+                          </Addr>
+                        ) : null}
+                        {/* ROLL BACK IS NOT RED, and that is a ruling rather than
+                        a restraint. `rollbackRelease` is an INTENT: it stages
+                        the inverse changeset and opens a run that still has to
+                        clear its gates, pass CI and be reviewed. Red in this
+                        system reports an OUTCOME -- what happened -- so painting
+                        an intention with it would say the release had already
+                        fallen over. What protects a destructive act here is
+                        DISTANCE plus a confirm: the same quiet weight as every
+                        other row control, at the far end of the row, behind the
+                        prompt ChangesPanel asks word for word. */}
+                        <RowDoor
+                          disabled={rollback.isPending}
+                          busy={reverting}
+                          onClick={() => void askRollback(s)}
+                        >
+                          {reverting ? "Starting the revert" : "Roll back"}
+                        </RowDoor>
+                      </>
+                    }
+                  />
+                );
+              })
+            )}
+            {live.length > 0 && !releaseUnread && !releaseReading ? (
+              <MoreRows
+                shown={Math.min(VISIBLE, live.length)}
+                total={live.length}
+                open={allReleases}
+                onToggle={() => setAllReleases((v) => !v)}
+              />
+            ) : null}
+          </Region>
+        )}
+
+        {stationEmpty ? null : (
+          <Region
+            title="What shipped"
+            sub={
+              canContribute && notes.length > 0
+                ? "Pick one to write the announcement from it."
+                : null
+            }
+          >
+            {/* THE SAME FLAG THE DOCUMENT USES, and it is the same read. This was
+            `changelog.isLoading`, which is false while the query sits disabled
+            waiting for a workspace, so this list answered "Nothing has shipped
+            yet." on the first paint of every session -- to the eight
+            workspaces that hold changelog entries as readily as to a new one
+            (8 entries across 8 workspaces, counted on 2026-08-06). */}
+            {docReading ? (
+              <Reading>Reading the release notes.</Reading>
+            ) : changelog.isError ? (
+              <ReadFailedLine onRetry={() => void changelog.refetch()}>
+                The release notes did not load.
+              </ReadFailedLine>
+            ) : notes.length === 0 ? (
+              <NothingYet>
+                Nothing has shipped yet. A release note is written from a merged change, so the
+                first merge fills this in without anyone typing.
+              </NothingYet>
+            ) : (
+              (allNotes ? notes : notes.slice(0, VISIBLE)).map((e) => {
+                // A second line is a DIFFERENT fact, never the first one continued:
+                // which product, origin opportunity, which pull request, and whether it's live in production.
+                // The body belongs to the one post in focus, not to every row.
+                //
+                // TWO ADDRESSES USED TO BE PRINTED AS PROSE HERE. `production_url`
+                // rendered as the words "live in production" and `pr_url` as "PR
+                // #12", both flat text, while the URLs sat in the payload
+                // unreachable: the only way to open either was to guess that
+                // clicking the row might do it, which it only did for a reader who
+                // could NOT contribute (a contributor's click starts a draft
+                // instead). So the whole capability was hidden behind not having
+                // permission to write.
+                //
+                // They move to the row's `action` slot rather than becoming links
+                // in place, and that is forced rather than stylistic: `Row` renders
+                // a clickable row as a <button>, and an <a> inside a <button> is
+                // invalid markup React refuses to hydrate. The slot sits outside
+                // the clickable region, so the row keeps its own click AND the
+                // addresses become real doors.
+                const meta = [
+                  e.product_name ?? null,
+                  e.opportunity_title ? `from ${e.opportunity_title}` : null,
+                  // A PR number with no URL is a fact but not a door, so it stays
+                  // as text; the linked case is in the action slot.
+                  e.pr_number && !e.pr_url ? `PR #${e.pr_number}` : null,
+                  e.production_url ? "live in production" : null,
+                ]
+                  .filter((x): x is string => !!x)
+                  .join(" · ");
+                //
+                // THE THIRD DOOR ON THIS ROW, and it had to be a door of its own.
+                // The row's click is already spoken for twice over -- a contributor
+                // starts an announcement draft, everyone else opens the production
+                // address -- so binding the document to it would have taken one
+                // capability to pay for another. It sits in the action slot, which
+                // is outside the clickable region, so all three survive.
+                //
+                // Absent on the release already in focus, because a control that
+                // does nothing is worse than no control: the row is marked
+                // `focused` instead, which says the same thing without promising an
+                // act it cannot perform.
+                const inFocus = docEntry?.id === e.id;
+                const doors = (
                   <>
-                    {s.prUrl ? (
-                      <Addr href={s.prUrl}>
-                        {s.prNumber ? (
+                    {e.production_url ? <Addr href={e.production_url}>Open it</Addr> : null}
+                    {e.pr_url ? (
+                      <Addr href={e.pr_url}>
+                        {e.pr_number ? (
                           <>
-                            PR <Num>{s.prNumber}</Num>
+                            PR <Num>{e.pr_number}</Num>
                           </>
                         ) : (
                           "The PR"
                         )}
                       </Addr>
                     ) : null}
-                    <button
-                      type="button"
-                      className={QUIET}
-                      disabled={rollback.isPending}
-                      onClick={() => void askRollback(s)}
-                    >
-                      {reverting ? "Starting the revert" : "Roll back"}
-                    </button>
-                  </>
-                }
-              />
-            );
-          })
-        )}
-      </Block>
-      )}
-
-      {stationEmpty ? null : (
-      <Block
-        title="What shipped"
-        sub={
-          canContribute && notes.length > 0 ? "Pick one to write the announcement from it." : null
-        }
-        more={
-          notes.length > VISIBLE ? (allNotes ? "Show fewer" : `All ${notes.length}`) : undefined
-        }
-        onMore={() => setAllNotes((v) => !v)}
-      >
-        {/* THE SAME FLAG THE DOCUMENT USES, and it is the same read. This was
-            `changelog.isLoading`, which is false while the query sits disabled
-            waiting for a workspace, so this list answered "Nothing has shipped
-            yet." on the first paint of every session -- to the eight
-            workspaces that hold changelog entries as readily as to a new one
-            (8 entries across 8 workspaces, counted on 2026-08-06). */}
-        {docReading ? (
-          <Loading>Reading the release notes.</Loading>
-        ) : changelog.isError ? (
-          <Failed onRetry={() => void changelog.refetch()}>The release notes did not load.</Failed>
-        ) : notes.length === 0 ? (
-          <Empty>
-            Nothing has shipped yet. A release note is written from a merged change, so the first
-            merge fills this in without anyone typing.
-          </Empty>
-        ) : (
-          (allNotes ? notes : notes.slice(0, VISIBLE)).map((e) => {
-            // A second line is a DIFFERENT fact, never the first one continued:
-            // which product, origin opportunity, which pull request, and whether it's live in production.
-            // The body belongs to the one post in focus, not to every row.
-            //
-            // TWO ADDRESSES USED TO BE PRINTED AS PROSE HERE. `production_url`
-            // rendered as the words "live in production" and `pr_url` as "PR
-            // #12", both flat text, while the URLs sat in the payload
-            // unreachable: the only way to open either was to guess that
-            // clicking the row might do it, which it only did for a reader who
-            // could NOT contribute (a contributor's click starts a draft
-            // instead). So the whole capability was hidden behind not having
-            // permission to write.
-            //
-            // They move to the row's `action` slot rather than becoming links
-            // in place, and that is forced rather than stylistic: `Row` renders
-            // a clickable row as a <button>, and an <a> inside a <button> is
-            // invalid markup React refuses to hydrate. The slot sits outside
-            // the clickable region, so the row keeps its own click AND the
-            // addresses become real doors.
-            const meta = [
-              e.product_name ?? null,
-              e.opportunity_title ? `from ${e.opportunity_title}` : null,
-              // A PR number with no URL is a fact but not a door, so it stays
-              // as text; the linked case is in the action slot.
-              e.pr_number && !e.pr_url ? `PR #${e.pr_number}` : null,
-              e.production_url ? "live in production" : null,
-            ]
-              .filter((x): x is string => !!x)
-              .join(" · ");
-            //
-            // THE THIRD DOOR ON THIS ROW, and it had to be a door of its own.
-            // The row's click is already spoken for twice over -- a contributor
-            // starts an announcement draft, everyone else opens the production
-            // address -- so binding the document to it would have taken one
-            // capability to pay for another. It sits in the action slot, which
-            // is outside the clickable region, so all three survive.
-            //
-            // Absent on the release already in focus, because a control that
-            // does nothing is worse than no control: the row is marked
-            // `focused` instead, which says the same thing without promising an
-            // act it cannot perform.
-            const inFocus = docEntry?.id === e.id;
-            const doors = (
-              <>
-                {e.production_url ? <Addr href={e.production_url}>Open it</Addr> : null}
-                {e.pr_url ? (
-                  <Addr href={e.pr_url}>
-                    {e.pr_number ? (
-                      <>
-                        PR <Num>{e.pr_number}</Num>
-                      </>
-                    ) : (
-                      "The PR"
+                    {inFocus ? null : (
+                      <RowDoor onClick={() => setDocId(e.id)}>Its document</RowDoor>
                     )}
-                  </Addr>
-                ) : null}
-                {inFocus ? null : (
-                  <button type="button" className={QUIET} onClick={() => setDocId(e.id)}>
-                    Its document
-                  </button>
-                )}
-              </>
-            );
-            return (
-              <Row
-                key={e.id}
-                tight
-                focused={inFocus}
-                lead={e.title}
-                sub={meta || null}
-                time={ago(e.released_at)}
-                action={doors}
-                onClick={
-                  canContribute
-                    ? () => startFrom(e)
-                    : e.production_url
-                      ? () =>
-                          window.open(e.production_url as string, "_blank", "noopener,noreferrer")
-                      : e.pr_url
-                        ? () => window.open(e.pr_url as string, "_blank", "noopener,noreferrer")
-                        : undefined
-                }
+                  </>
+                );
+                return (
+                  <Row
+                    key={e.id}
+                    tight
+                    focused={inFocus}
+                    lead={e.title}
+                    sub={meta || null}
+                    time={ago(e.released_at)}
+                    action={doors}
+                    onClick={
+                      canContribute
+                        ? () => startFrom(e)
+                        : e.production_url
+                          ? () =>
+                              window.open(
+                                e.production_url as string,
+                                "_blank",
+                                "noopener,noreferrer",
+                              )
+                          : e.pr_url
+                            ? () => window.open(e.pr_url as string, "_blank", "noopener,noreferrer")
+                            : undefined
+                    }
+                  />
+                );
+              })
+            )}
+            {notes.length > 0 && !changelog.isError && !docReading ? (
+              <MoreRows
+                shown={Math.min(VISIBLE, notes.length)}
+                total={notes.length}
+                open={allNotes}
+                onToggle={() => setAllNotes((v) => !v)}
               />
-            );
-          })
+            ) : null}
+          </Region>
         )}
-      </Block>
-      )}
 
-      {/* THE RELEASE DOCUMENT. `WhatShipped` renders its own top-level Blocks --
+        {/* THE RELEASE DOCUMENT. `WhatShipped` renders its own top-level regions --
           the release, why it was built, what it promised, who signed it off, the
           receipts, and what is not on the record -- so it is mounted as a
           SIBLING of this one rather than inside it.
 
-          This Block is the lead-in, and its children are the one thing the
+          This region is the lead-in, and its children are the one thing the
           document itself cannot say: where its sentences come from. That is not
           decoration. The document's entire worth is that a reader can trace
           every line to a row, and a reader who does not know that reads it as
           generated prose and discounts all of it. */}
-      {stationEmpty ? null : (
-      <Block
-        title="The release document"
-        /* THE REPAIR SITS WHERE THE DRIFT IS READ. Everything below is read
+        {stationEmpty ? null : (
+          <Region
+            title="The release document"
+            /* THE REPAIR SITS WHERE THE DRIFT IS READ. Everything below is read
            from `changelog_entries`, and that row is written by a trigger that
            only fires on the changeset's status and release notes -- so a
            promote that stamped the spec afterwards never reaches it, and the
@@ -3012,112 +3386,121 @@ function Ship() {
            schema permits rather than one the data currently shows. The code
            was right before and is unchanged; only the reason was false.
 
-           THE GUARD IS IN THE HANDLER because `Block`'s `more` renders a plain
-           button with no `disabled` prop; the label carries the in-flight
-           state, which is the same shape ChangesPanel uses for its own
-           per-section acts. */
-        more={
-          !docReading && !changelog.isError && docEntry?.changeset_id
-            ? republish.isPending
-              ? "Refreshing it"
-              : "Refresh it from the change"
-            : undefined
-        }
-        onMore={() => {
-          const csid = docEntry?.changeset_id;
-          if (republish.isPending || !docEntry || !csid) return;
-          republish.mutate({ changesetId: csid, title: docEntry.title });
-        }}
-      >
-        {docReading ? (
-          <Loading>Reading what has shipped.</Loading>
-        ) : changelog.isError ? (
-          <Failed onRetry={() => void changelog.refetch()}>
-            The releases did not load, so there is no document to assemble.
-          </Failed>
-        ) : !docEntry ? (
-          <NoReleaseYet />
-        ) : (
-          <Prose markdown>
-            <p>
-              Everything below is read from rows this release already has: the bet it came from, the
-              spec and its outcome contract, the design gate, the changeset and its pull request,
-              the production deploy, and the outcome once Learn settles it. No sentence here was
-              written for this document, and whatever is missing is named rather than left out.
-              {notes.length > 1
-                ? " It covers the release marked above; pick another to read that one instead."
-                : null}
-              {/* SAID BECAUSE THE CONTROL IS OTHERWISE UNEXPLAINED. "Refresh it
-                  from the change" is in this Block's header, and a reader who
+           THE GUARD IS NO LONGER ONLY IN THE HANDLER. It said so here: "`Block`'s
+           `more` renders a plain button with no `disabled` prop; the label
+           carries the in-flight state", so the control stayed live while the
+           mutation ran and a second press was stopped by an `if` rather than by
+           the button. `Region` splits that prop three ways and this one is
+           `act`: a control that DOES something to the region's subject, rather
+           than revealing more of it (`toggle`) or leaving it (`goTo`). `acting`
+           is the half `Block` could not express -- it disables the control and
+           announces `aria-busy` while the write is out, which is the same fact
+           the label was carrying alone. The handler's guard stays as the belt. */
+            act={
+              !docReading && !changelog.isError && docEntry?.changeset_id
+                ? republish.isPending
+                  ? "Refreshing it"
+                  : "Refresh it from the change"
+                : undefined
+            }
+            acting={republish.isPending}
+            onAct={() => {
+              const csid = docEntry?.changeset_id;
+              if (republish.isPending || !docEntry || !csid) return;
+              republish.mutate({ changesetId: csid, title: docEntry.title });
+            }}
+          >
+            {docReading ? (
+              <Reading>Reading what has shipped.</Reading>
+            ) : changelog.isError ? (
+              <ReadFailedLine onRetry={() => void changelog.refetch()}>
+                The releases did not load, so there is no document to assemble.
+              </ReadFailedLine>
+            ) : !docEntry ? (
+              <NoReleaseYet />
+            ) : (
+              <Prose markdown>
+                <p>
+                  Everything below is read from rows this release already has: the bet it came from,
+                  the spec and its outcome contract, the design gate, the changeset and its pull
+                  request, the production deploy, and the outcome once Learn settles it. No sentence
+                  here was written for this document, and whatever is missing is named rather than
+                  left out.
+                  {notes.length > 1
+                    ? " It covers the release marked above; pick another to read that one instead."
+                    : null}
+                  {/* SAID BECAUSE THE CONTROL IS OTHERWISE UNEXPLAINED. "Refresh it
+                  from the change" is in this region's header, and a reader who
                   does not know what it re-reads cannot tell it from a reload.
                   The named columns are exactly the ones the entry copies from
                   the changeset. */}
-              {docEntry.changeset_id
-                ? /* NO BARE DOUBLE HYPHENS IN A SENTENCE A CAMERA READS. The
+                  {docEntry.changeset_id
+                    ? /* NO BARE DOUBLE HYPHENS IN A SENTENCE A CAMERA READS. The
                      pair that stood here rendered as two hyphens either side of
                      a clause, which looks like a markdown artefact rather than
                      punctuation; commas carry the same aside. */
-                  ' If a line here is behind the change itself, most often the spec, which a promote links after this entry was written, "Refresh it from the change" re-reads the changeset and brings the title, the notes, the pull request and that link back into the entry.'
-                : null}
-            </p>
-          </Prose>
+                      ' If a line here is behind the change itself, most often the spec, which a promote links after this entry was written, "Refresh it from the change" re-reads the changeset and brings the title, the notes, the pull request and that link back into the entry.'
+                    : null}
+                </p>
+              </Prose>
+            )}
+          </Region>
         )}
-      </Block>
-      )}
-      {!docReading && !changelog.isError && docEntry ? (
-        <WhatShipped entry={docEntry} workspaceId={wid || null} />
-      ) : null}
+        {!docReading && !changelog.isError && docEntry ? (
+          <WhatShipped entry={docEntry} workspaceId={wid || null} />
+        ) : null}
 
-      {/* THIS BLOCK HAD NO WAIT AT ALL, which is the same defect as the Gate's
+        {/* THIS REGION HAD NO WAIT AT ALL, which is the same defect as the Gate's
           in its plainest form: it branched straight on `announcements.length`,
           so "Nothing has gone out yet." was the first thing every session said
           about a list nobody had read. It renders NOTHING while the read is out
           rather than a second Loading -- the Gate above already says "Reading
           what is ready to announce." over the same query, and one read said
           twice on one screen is how a surface starts contradicting itself. */}
-      {postsReading || posts.isError ? null : announcements.length === 0 ? (
-        <Block title="Announcements">
-          <Empty>
-            Nothing has gone out yet.{" "}
-            {/* THE SECOND CLAUSE IS ABOUT THE READER, so it cannot be drawn
+        {postsReading || posts.isError ? null : announcements.length === 0 ? (
+          <Region title="Announcements">
+            <NothingYet>
+              Nothing has gone out yet.{" "}
+              {/* THE SECOND CLAUSE IS ABOUT THE READER, so it cannot be drawn
                 from a role read that did not answer. `canContribute` is false
                 for a member who may not write AND for an owner whose role
                 failed to load, and "An owner or an admin writes the first one."
                 said to the second one is a permission they hold, denied on
                 their behalf. The failure and its retry are named once above,
-                by the `Failed` over the composer; this only stops asserting
+                by the `ReadFailed` over the composer; this only stops asserting
                 the opposite. */}
-            {canContribute
-              ? "Write one and it waits here until an owner publishes it."
-              : members.isError || roleUnknown
-                ? "Supaprod could not confirm your role here, so whether you can write one is not known."
-                : "An owner or an admin writes the first one."}
-          </Empty>
-        </Block>
-      ) : rest.length > 0 ? (
-        <Block
-          title="Announcements"
-          more={
-            rest.length > VISIBLE ? (allPosts ? "Show fewer" : `All ${rest.length}`) : undefined
-          }
-          onMore={() => setAllPosts((v) => !v)}
-        >
-          {(allPosts ? rest : rest.slice(0, VISIBLE)).map((a) => (
-            <Row
-              key={a.id}
-              tight
-              lead={a.title}
-              sub={stateLine(a)}
-              time={ago(a.published_at ?? a.submitted_at ?? a.created_at)}
-              onClick={() =>
-                a.status === "published"
-                  ? window.open(`/p/${a.slug}`, "_blank", "noopener,noreferrer")
-                  : setPicked(a.id)
-              }
+              {canContribute
+                ? "Write one and it waits here until an owner publishes it."
+                : members.isError || roleUnknown
+                  ? "Supaprod could not confirm your role here, so whether you can write one is not known."
+                  : "An owner or an admin writes the first one."}
+            </NothingYet>
+          </Region>
+        ) : rest.length > 0 ? (
+          <Region title="Announcements">
+            {(allPosts ? rest : rest.slice(0, VISIBLE)).map((a) => (
+              <Row
+                key={a.id}
+                tight
+                lead={a.title}
+                sub={stateLine(a)}
+                time={ago(a.published_at ?? a.submitted_at ?? a.created_at)}
+                onClick={() =>
+                  a.status === "published"
+                    ? window.open(`/p/${a.slug}`, "_blank", "noopener,noreferrer")
+                    : setPicked(a.id)
+                }
+              />
+            ))}
+            <MoreRows
+              shown={Math.min(VISIBLE, rest.length)}
+              total={rest.length}
+              open={allPosts}
+              onToggle={() => setAllPosts((v) => !v)}
             />
-          ))}
-        </Block>
-      ) : null}
+          </Region>
+        ) : null}
+      </div>
     </Surface>
   );
 }
@@ -3129,8 +3512,14 @@ export const Route = createFileRoute("/_authenticated/ship")({
     console.error("[Ship] route crashed:", error);
     return (
       <Surface>
-        <PageHead title="Ship did not load." />
-        <Empty>Reload the page. Nothing here is lost.</Empty>
+        <div className="flex flex-col gap-mrd-7">
+          <PageHeading title="Ship did not load." />
+          {/* THE BOXED HALF, because there is no region here to sit inside: the
+            route crashed and this screen is the page. `NothingYet` draws no
+            container of its own and would leave the sentence floating under the
+            heading with nothing around it. */}
+          <NothingHere>Reload the page. Nothing here is lost.</NothingHere>
+        </div>
       </Surface>
     );
   },

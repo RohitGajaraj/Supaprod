@@ -75,7 +75,16 @@
 
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Door,
+  NothingYet,
+  Num,
+  PageHeading,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
@@ -90,12 +99,37 @@ import { ago } from "@/components/runs/run-state";
 import { ReadyToBuild } from "@/components/build/ReadyToBuild";
 import { HeldClaims } from "@/components/build/HeldClaims";
 import { CrewWorking } from "@/components/shell/CrewWorking";
-import { Block, Button, CtxBody, CtxHead, Empty, Failed, Loading, Input, PageHead, Receipt, Surface } from "@/components/shell/primitives";
+import { CtxBody, CtxHead } from "@/components/meridian/ContextColumn";
+import { Input } from "@/components/meridian/forms";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Surface } from "@/components/meridian/Surface";
 import { AgentMark } from "@/components/meridian/marks";
 import { stillWaiting } from "@/lib/query-state";
 
 /** The agent that writes code. Its mark is the one on every row here. */
 const BUILDER = "builder";
+
+/**
+ * A ROUTER LINK INSIDE A SENTENCE, painted the way Meridian paints a door.
+ *
+ * `Door` renders either a `<button>` or an outbound `<a href>`; a TanStack
+ * `<Link>` renders its own anchor and attaches client navigation to it, so the
+ * element has to stay the router's and only the paint moves.
+ *
+ * It keeps `--mrd-ink` rather than stepping down to Door's `--mrd-body`: these
+ * were `var(--sp-ink)` before the port and the ratchet law makes today's design
+ * the floor, so a port may not make the surface quieter. The dotted underline
+ * is the half that is new, and it is the half these links were missing -- a
+ * word that is merely a different colour inside a muted sentence is not an
+ * affordance anyone can see.
+ */
+const LINK =
+  "rounded-mrd-xs text-mrd-ink underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:decoration-mrd-edge hover:decoration-solid";
+
+/** The id binding the ceiling's visible label to its control. Meridian's `Line`
+ *  binds a label BY NAME (the retired one bound by containment), so without a
+ *  matching pair the field silently loses its accessible name. */
+const CAP_INPUT_ID = "run-spend-cap";
 
 /**
  * The row's second line, in the record's own words.
@@ -376,34 +410,42 @@ function BuildEngine() {
     // sighted reader still sees "+2 −3" whatever it is set to. Until the glyphs
     // themselves can say files, words are the honest shape here.
     // Only the non-zero side is drawn at all.
+    //
+    // THE COLOUR SURVIVES THE PORT, AND IT WAS CHECKED RATHER THAN CARRIED. The
+    // rule under Meridian is that green and red report an OUTCOME and nothing
+    // else, so "a count is not an outcome" is the right question to ask of these
+    // two. They pass it: this is a DIFF DELTA, files created and files deleted
+    // by the change, which is the one thing `Diffstat` in surface-parts.tsx is
+    // allowed to paint green and red for and says so in its own header. These
+    // are the same fact in words rather than in "+2 -3", for the reason above:
+    // that shape reads as LINES and these are FILES.
     if (item.added > 0) {
       parts.push(
-        <span className="sp-pass">
+        <span className="text-mrd-pass">
           {item.added} new {item.added === 1 ? "file" : "files"}
         </span>,
       );
     }
     if (item.deleted > 0) {
-      parts.push(<span className="sp-fail">{item.deleted} deleted</span>);
+      parts.push(<span className="text-mrd-fail">{item.deleted} deleted</span>);
     }
-    if (item.prNumber != null) {
-      parts.push(
-        item.prUrl ? (
-          <a
-            href={item.prUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "var(--sp-ink)" }}
-            // The row is a button. Without this the link would open the pull
-            // request AND navigate into the run behind it.
-            onClick={(e) => e.stopPropagation()}
-          >
-            #{item.prNumber}
-          </a>
-        ) : (
-          <>#{item.prNumber}</>
-        ),
-      );
+    /*
+     * THE PULL REQUEST WITH AN ADDRESS MOVED OUT OF THE SENTENCE, and that is a
+     * bug fix the port surfaced rather than a rearrangement.
+     *
+     * A `Row` carrying `onClick` and no `action` renders as a single `<button>`
+     * (rows.tsx), so an `<a>` inside its sub-line was interactive content nested
+     * inside a button: invalid markup, and it needed a `stopPropagation` to stop
+     * one click doing two things. `Row`'s `action` slot exists for exactly this
+     * and says so -- "a control belonging to THIS row ... it sits outside the
+     * clickable region so it is never a button inside a button" -- and passing
+     * one makes the row a container with the readable half as the button.
+     *
+     * A pull request with NO url has no address to open, so it stays a plain
+     * fact in the sentence where it always was.
+     */
+    if (item.prNumber != null && !item.prUrl) {
+      parts.push(<>#{item.prNumber}</>);
     }
     // The repo, and NOT the branch. A row is one line that never wraps, and a
     // branch name is long enough to push the repo off the end of it, which is
@@ -436,16 +478,28 @@ function BuildEngine() {
         }
         lead={item.title}
         sub={
-          <span className="sp-meta">
+          /* NO WRAPPER SPAN. It was `<span className="sp-meta">`, and `.sp-meta`
+             is declared in no stylesheet in this repo -- not primitives.css,
+             not ink.css, not styles.css. It painted nothing, the same way the
+             `FOCUS_RING` constant painted nothing in six files. `Row` already
+             sets this line's size and ink, so dropping it moves no pixel. */
+          <>
             {parts.map((p, i) => (
               <React.Fragment key={i}>
                 {i > 0 ? <span aria-hidden="true"> · </span> : null}
                 {p}
               </React.Fragment>
             ))}
-          </span>
+          </>
         }
         time={ago(item.updatedAt)}
+        action={
+          item.prNumber != null && item.prUrl ? (
+            <Door href={item.prUrl} title="Open the pull request on GitHub">
+              #{item.prNumber}
+            </Door>
+          ) : undefined
+        }
         // A change with no run behind it cannot be opened, and says so by not
         // offering. Better than a click that goes nowhere.
         onClick={
@@ -478,7 +532,7 @@ function BuildEngine() {
                 ) : repoStatus.data.resolution === "not_connected" ? (
                   <>
                     No repo is connected, so a build has nowhere to open a pull request.{" "}
-                    <Link to="/sync" style={{ color: "var(--sp-ink)" }}>
+                    <Link to="/sync" className={LINK}>
                       Connect one
                     </Link>
                     .
@@ -495,7 +549,7 @@ function BuildEngine() {
           <CtxHead>Where work comes from</CtxHead>
           <CtxBody>
             An approved spec can be started here. Anything else is handed over on{" "}
-            <Link to="/runs" style={{ color: "var(--sp-ink)" }}>
+            <Link to="/runs" className={LINK}>
               Runs
             </Link>
             , and arrives here as the crew writes it.
@@ -503,124 +557,136 @@ function BuildEngine() {
         </>
       }
     >
-      {/* THE AUTONOMOUS PATH, VISIBLE. Renders nothing unless an agent is
+      {/* THE PAGE'S RHYTHM, STATED HERE RATHER THAN INHERITED FROM A STYLESHEET.
+          The retired `Block` carried its own 36px margin, 40px top padding and a
+          hairline above every region, so the spacing between regions lived in
+          `primitives.css`. Meridian's `Region` draws no frame and no margin at
+          all, on purpose: the surface owns its own rhythm. `gap-mrd-6` is the
+          step every ported surface uses between regions, and Meridian's ramp
+          grows, so it is a larger step than anything inside one. */}
+      <div className="flex flex-col gap-mrd-6">
+        {/* THE AUTONOMOUS PATH, VISIBLE. Renders nothing unless an agent is
           genuinely mid-run, so it costs no space when the crew is idle and
           cannot show a step that did not happen. Every other pulse on this
           station is gated on a mutation the reader's own click started;
           this one is bound to the run. See use-live-agents.ts. */}
-      <CrewWorking station="build" />
-      <PageHead title={headline} sub="Every change the crew has written, across every run." />
+        <CrewWorking station="build" />
+        <PageHeading title={headline} sub="Every change the crew has written, across every run." />
 
-      {/* THE STATION CAN START ITS OWN WORK. Until now this surface could only
-          watch: its own context panel said "hand work over on Runs, and it
-          arrives here". A station whose job is building that told you to begin
-          somewhere else. `dispatchBuilderMission` was already written and
-          called nowhere. Renders nothing when no approved spec is waiting. */}
-      <ReadyToBuild />
+        {/* THE STATION CAN START ITS OWN WORK. Until now this surface could only
+            watch: its own context panel said "hand work over on Runs, and it
+            arrives here". A station whose job is building that told you to begin
+            somewhere else. `dispatchBuilderMission` was already written and
+            called nowhere. Renders nothing when no approved spec is waiting. */}
+        <ReadyToBuild />
 
-      {/* The live and gated rows appear here AND in the full list below, on
-        purpose. Pulling them out of the record to avoid repeating them would
-        make the record incomplete in order to save a repetition, which is the
-        wrong side of that trade: the list is the build's history and history
-        does not skip the present. */}
-      {live.length > 0 ? (
-        <Block title="Being written now">{live.map((i) => rowFor(i, "live"))}</Block>
-      ) : null}
+        {/* The live and gated rows appear here AND in the full list below, on
+            purpose. Pulling them out of the record to avoid repeating them
+            would make the record incomplete in order to save a repetition,
+            which is the wrong side of that trade: the list is the build's
+            history and history does not skip the present. */}
+        {live.length > 0 ? (
+          <Region title="Being written now">{live.map((i) => rowFor(i, "live"))}</Region>
+        ) : null}
 
-      {gated.length > 0 ? (
-        <Block title="Waiting on you">{gated.map((i) => rowFor(i, "gate"))}</Block>
-      ) : null}
+        {gated.length > 0 ? (
+          <Region title="Waiting on you">{gated.map((i) => rowFor(i, "gate"))}</Region>
+        ) : null}
 
-      {/* STOPPED GETS ITS OWN BLOCK for the same reason "Waiting on you" does:
-        it is a call to act, and a call to act buried in a 60-row history is not
-        one. The row's door is the run page, which already carries the retry for
-        a failed mission, so this block adds a way to SEE the state rather than
-        a second place to change it. */}
-      {stopped.length > 0 ? (
-        <Block
-          title="Stopped"
-          sub="Nothing is picking these back up on its own. Open one to see why it stopped and to start it again."
+        {/* STOPPED GETS ITS OWN REGION for the same reason "Waiting on you"
+            does: it is a call to act, and a call to act buried in a 60-row
+            history is not one. The row's door is the run page, which already
+            carries the retry for a failed mission, so this region adds a way to
+            SEE the state rather than a second place to change it. */}
+        {stopped.length > 0 ? (
+          <Region
+            title="Stopped"
+            sub="Nothing is picking these back up on its own. Open one to see why it stopped and to start it again."
+          >
+            {stopped.map((i) => rowFor(i, "stop"))}
+          </Region>
+        ) : null}
+
+        <Region
+          title="Every change"
+          sub={
+            // Never a silent cap. If the window dropped rows, the surface says so
+            // rather than presenting a subset as the whole record.
+            work.data && work.data.more > 0
+              ? `The ${items.length} most recently touched. ${work.data.more} older ${
+                  work.data.more === 1 ? "change is" : "changes are"
+                } not shown.`
+              : undefined
+          }
         >
-          {stopped.map((i) => rowFor(i, "stop"))}
-        </Block>
-      ) : null}
-
-      <Block
-        title="Every change"
-        sub={
-          // Never a silent cap. If the window dropped rows, the surface says so
-          // rather than presenting a subset as the whole record.
-          work.data && work.data.more > 0
-            ? `The ${items.length} most recently touched. ${work.data.more} older ${
-                work.data.more === 1 ? "change is" : "changes are"
-              } not shown.`
-            : undefined
-        }
-      >
-        {loading ? (
-          <Loading>Reading the build record.</Loading>
-        ) : work.isError ? (
-          <Failed onRetry={() => void work.refetch()}>
-            The build record did not load, so this list is not the whole picture.
-          </Failed>
-        ) : items.length === 0 ? (
-          <Empty>
-            {/* RUNS IS A DOOR HERE, AS IT ALREADY IS IN THE CONTEXT COLUMN.
+          {loading ? (
+            <Reading>Reading the build record.</Reading>
+          ) : work.isError ? (
+            /* `ReadFailedLine`, the bare half: this is inside a Region that
+               already carries the heading, and `ReadFailed` would draw a second
+               bordered box around one sentence. */
+            <ReadFailedLine onRetry={() => void work.refetch()}>
+              The build record did not load, so this list is not the whole picture.
+            </ReadFailedLine>
+          ) : items.length === 0 ? (
+            <NothingYet>
+              {/* RUNS IS A DOOR HERE, AS IT ALREADY IS IN THE CONTEXT COLUMN.
               This sentence named the one place a reader should go next and
               rendered it as dead text, while the identical word is a live link
               seventy lines above in "Where work comes from". Naming a
               destination without a way to reach it is the same defect as a
               button that does nothing, in a quieter costume. */}
-            The crew has not written anything yet. Hand work over on{" "}
-            <Link to="/runs" style={{ color: "var(--sp-ink)" }}>
-              Runs
-            </Link>{" "}
-            and the change appears here as it is written, with its files and its pull request.
-          </Empty>
-        ) : (
-          items.map((i) => rowFor(i, "all"))
-        )}
-        {/* THE READS THAT DID NOT ANSWER, NAMED UNDER THE ROWS THEY WOULD HAVE
+              The crew has not written anything yet. Hand work over on{" "}
+              <Link to="/runs" className={LINK}>
+                Runs
+              </Link>{" "}
+              and the change appears here as it is written, with its files and its pull request.
+            </NothingYet>
+          ) : (
+            items.map((i) => rowFor(i, "all"))
+          )}
+          {/* THE READS THAT DID NOT ANSWER, NAMED UNDER THE ROWS THEY WOULD HAVE
           FILLED. The changeset list itself succeeded (this branch is past
           `work.isError`), so the rows are real; what may be wrong is what is
           written ON them. Every count reading zero because a read was refused
           is a false statement about a real row, and it is the quietest of the
           four failures. */}
-        {!loading && !work.isError && unread ? (
-          <>
-            {unread.files ? (
-              <Failed onRetry={() => void work.refetch()}>
-                The file counts did not load, so every count on these rows reads zero whether or not
-                the change touched anything.
-              </Failed>
-            ) : null}
-            {unread.runs ? (
-              <Failed onRetry={() => void work.refetch()}>
-                We could not read which of these are running and which have stopped, so no row here
-                claims either.
-              </Failed>
-            ) : null}
-            {unread.gates ? (
-              <Failed onRetry={() => void work.refetch()}>
-                We could not read what is waiting on a person, so nothing here is marked as waiting
-                on you.
-              </Failed>
-            ) : null}
-            {unread.missions ? (
-              <Failed onRetry={() => void work.refetch()}>
-                We could not read the runs these changes belong to, so rows show the change&apos;s
-                own title rather than the work it is for.
-              </Failed>
-            ) : null}
-          </>
-        ) : null}
-      </Block>
+          {!loading && !work.isError && unread ? (
+            <div className="mt-mrd-4 flex flex-col gap-mrd-3">
+              {unread.files ? (
+                <ReadFailedLine onRetry={() => void work.refetch()}>
+                  The file counts did not load, so every count on these rows reads zero whether or
+                  not the change touched anything.
+                </ReadFailedLine>
+              ) : null}
+              {unread.runs ? (
+                <ReadFailedLine onRetry={() => void work.refetch()}>
+                  We could not read which of these are running and which have stopped, so no row
+                  here claims either.
+                </ReadFailedLine>
+              ) : null}
+              {unread.gates ? (
+                <ReadFailedLine onRetry={() => void work.refetch()}>
+                  We could not read what is waiting on a person, so nothing here is marked as
+                  waiting on you.
+                </ReadFailedLine>
+              ) : null}
+              {unread.missions ? (
+                <ReadFailedLine onRetry={() => void work.refetch()}>
+                  We could not read the runs these changes belong to, so rows show the change&apos;s
+                  own title rather than the work it is for.
+                </ReadFailedLine>
+              ) : null}
+            </div>
+          ) : null}
+        </Region>
 
-      {/* THE CONTROL A BLOCKED BUILD IS SENT HERE TO USE. Renders nothing while
-        no file claim is held, which is the ordinary state. See HeldClaims. */}
-      <HeldClaims />
+        {/* THE CONTROL A BLOCKED BUILD IS SENT HERE TO USE. Renders nothing
+            while no file claim is held, which is the ordinary state. See
+            HeldClaims. */}
+        <HeldClaims />
 
-      {/* THE CEILING, on the station where the money is actually spent.
+        {/* THE CEILING, on the station where the money is actually spent.
         `resolveMissionSpendCap` has resolved this on every dispatch since the
         mission-caps fix and `checkMissionCaps` enforces it fail-closed before
         every model call, but a repo-wide grep for the column outside the
@@ -638,72 +704,84 @@ function BuildEngine() {
         clicks into Settings because GOVERNANCE-PRINCIPLE.md's instruction is to
         promote the policy layer to the centre of the product, and the centre
         for a spend ceiling is the room where agents write code. */}
-      {spend.data?.is_owner ? (
-        <Block title="The boundary">
-          <Line
-            label="What one run may spend before it stops"
-            sub={
-              spend.data.cap_usd === null ? (
-                "No ceiling. A run continues until it finishes or something else stops it."
-              ) : spend.data.is_default ? (
-                <>
-                  <Num>${spend.data.cap_usd.toFixed(2)}</Num>, which is our number rather than yours
-                  until you change it.
-                </>
-              ) : (
-                <>
-                  <Num>${spend.data.cap_usd.toFixed(2)}</Num>. A run that reaches it halts and says
-                  so.
-                </>
-              )
-            }
-          >
-            <Input
-              // Remount on a refusal, so the box goes back to the confirmed
-              // number. See `capReset`.
-              key={`cap-${spend.data.cap_usd ?? "none"}-${capReset}`}
-              type="number"
-              min={1}
-              step={1}
-              defaultValue={spend.data.cap_usd ?? undefined}
-              aria-label="Dollars one run may spend before it stops"
-              style={{ width: 96, textAlign: "right" }}
-              disabled={setCap.isPending}
-              onBlur={(e) => {
-                const raw = e.currentTarget.value.trim();
-                const next = raw === "" ? null : Number(raw);
-                if (next !== null && (!Number.isFinite(next) || next <= 0)) return;
-                if (next === spend.data?.cap_usd) return;
-                setCap.mutate(next);
-              }}
-            />
-          </Line>
-          {/* THE REFUSAL, WHERE THE CONTROL IS. Not a toast: the number the
-            person typed has been put back to the one the server last
-            confirmed, and the sentence has to be next to the box that changed
-            under them or the change reads as a glitch. */}
-          {capError ? (
-            <Failed onRetry={() => void spend.refetch()} retryLabel="Re-read the ceiling">
-              The ceiling did not move. {capError} The box has been put back to the number the
-              server last confirmed, which is the one that binds a run right now.
-            </Failed>
-          ) : null}
-          {capReceipt ? (
-            <Receipt
-              verb="You moved the ceiling"
-              consequence={
-                capReceipt.cap === null ? (
-                  "A run now continues until it finishes. Nothing stops it on spend."
+        {spend.data?.is_owner ? (
+          <Region title="The boundary">
+            <Line
+              /* BOUND BY NAME, NOT BY CONTAINMENT. Meridian's `Line` renders its
+                 label in a `<span>` unless it is given the id of the control on
+                 the right, and the retired one bound a control only when the
+                 control happened to be a descendant. Passing the pair promotes
+                 it to a real `<label for>`, which is also what lets a person
+                 click the sentence to reach the box.
+                 THE `aria-label` CAME OFF WITH IT. Two names on one control is a
+                 defect rather than belt and braces: with a real label the
+                 accessible name has to be the words a sighted person is already
+                 reading, or the two can drift and only one of them is checkable. */
+              htmlFor={CAP_INPUT_ID}
+              label="What one run may spend before it stops"
+              sub={
+                spend.data.cap_usd === null ? (
+                  "No ceiling. A run continues until it finishes or something else stops it."
+                ) : spend.data.is_default ? (
+                  <>
+                    <Num>${spend.data.cap_usd.toFixed(2)}</Num>, which is our number rather than
+                    yours until you change it.
+                  </>
                 ) : (
                   <>
-                    A run now halts at <Num>${capReceipt.cap.toFixed(2)}</Num>.
+                    <Num>${spend.data.cap_usd.toFixed(2)}</Num>. A run that reaches it halts and
+                    says so.
                   </>
                 )
               }
-            />
-          ) : null}
-        </Block>
-      ) : null}
+            >
+              <Input
+                id={CAP_INPUT_ID}
+                // Remount on a refusal, so the box goes back to the confirmed
+                // number. See `capReset`.
+                key={`cap-${spend.data.cap_usd ?? "none"}-${capReset}`}
+                type="number"
+                min={1}
+                step={1}
+                defaultValue={spend.data.cap_usd ?? undefined}
+                style={{ width: 96, textAlign: "right" }}
+                disabled={setCap.isPending}
+                onBlur={(e) => {
+                  const raw = e.currentTarget.value.trim();
+                  const next = raw === "" ? null : Number(raw);
+                  if (next !== null && (!Number.isFinite(next) || next <= 0)) return;
+                  if (next === spend.data?.cap_usd) return;
+                  setCap.mutate(next);
+                }}
+              />
+            </Line>
+            {/* THE REFUSAL, WHERE THE CONTROL IS. Not a toast: the number the
+            person typed has been put back to the one the server last
+            confirmed, and the sentence has to be next to the box that changed
+            under them or the change reads as a glitch. */}
+            {capError ? (
+              <ReadFailedLine onRetry={() => void spend.refetch()} retryLabel="Re-read the ceiling">
+                The ceiling did not move. {capError} The box has been put back to the number the
+                server last confirmed, which is the one that binds a run right now.
+              </ReadFailedLine>
+            ) : null}
+            {capReceipt ? (
+              <Receipt
+                verb="You moved the ceiling"
+                consequence={
+                  capReceipt.cap === null ? (
+                    "A run now continues until it finishes. Nothing stops it on spend."
+                  ) : (
+                    <>
+                      A run now halts at <Num>${capReceipt.cap.toFixed(2)}</Num>.
+                    </>
+                  )
+                }
+              />
+            ) : null}
+          </Region>
+        ) : null}
+      </div>
     </Surface>
   );
 }
@@ -713,15 +791,20 @@ export const Route = createFileRoute("/_authenticated/build/")({
   head: () => ({ meta: [{ title: "Build · Supaprod" }] }),
   errorComponent: ({ error, reset }) => (
     <Surface>
-      <PageHead
-        title="Build did not load."
-        sub={(error as Error)?.message ?? "The reason did not come back with the error."}
-      />
-      <Block>
-        <Button variant="primary" onClick={reset}>
-          Try again
-        </Button>
-      </Block>
+      <div className="flex flex-col gap-mrd-6">
+        <PageHeading
+          title="Build did not load."
+          sub={(error as Error)?.message ?? "The reason did not come back with the error."}
+        />
+        <Region>
+          {/* An `Action` and never an `Approve`. Nothing is held pending this
+              press: it re-reads. The accent is spent on one meaning in this
+              product and a retry is not it. */}
+          <Action variant="primary" onClick={reset}>
+            Try again
+          </Action>
+        </Region>
+      </div>
     </Surface>
   ),
 });

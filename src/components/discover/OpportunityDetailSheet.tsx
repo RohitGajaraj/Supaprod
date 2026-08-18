@@ -48,11 +48,68 @@
  *     carries no outcome or no measure, that gap is named rather than left as a
  *     blank, because roadmap.functions.ts's own governance rule says a placed
  *     commitment must carry both.
+ *
+ * ---------------------------------------------------------------------------
+ * 2026-08-18, MERIDIAN. Every component came off `shell/primitives`: `Block` is
+ * `Region`, `Button` is `Action` (and `Approve` nowhere in here, see below),
+ * `Empty` is `NothingYet`, `Failed` is `ReadFailedLine` -- the bare half of the
+ * pair every time, because every failed read in this file renders inside a
+ * region that already draws a container and the standard caps a region at one
+ * bordered box -- `Loading`
+ * is `Reading`, `PageHead` is `PageHeading`, `Record` is `RecordSpeaks`, and
+ * `Field`/`Input`/`Textarea` come from `meridian/forms`. The three local
+ * shapes -- `P`, `Stated` and `Meta` -- kept their anatomy and lost their
+ * `--sp-*` tokens.
+ *
+ * THE OVERLAY STAYS, AND IT IS A DECISION. `shell/primitives.tsx` and
+ * `governance/CriticBadge.tsx` both record the standing ruling that this system
+ * has no pane, slide-over or drawer primitive and that the absence is
+ * deliberate. Meridian has none either. The ruling's third reason is the one
+ * that decides it: "a pane is not a stylesheet. It is a focus trap, a scroll
+ * lock, Escape, focus returned to whatever opened it, and the page behind it
+ * made inert. Half of that is an accessibility regression wearing a
+ * primitive's name." `ui/sheet` is a Radix Dialog and already supplies all of
+ * it, so hand-rolling a replacement would trade working focus management for a
+ * `div` -- the exact regression the ruling names. What was retired is the
+ * PAINT, and the paint is what moved. The container's mechanics are not a
+ * design layer.
+ *
+ * Rebuilding this record IN PLACE on /decide was the other honest answer and it
+ * loses more than it gains: /decide is built around one question in front of
+ * you right now, this record is a dozen regions deep, and the route's keyboard
+ * guard (`openId` standing down the a/c/d keys while an overlay owns the
+ * surface) has no meaning without an overlay to own it.
+ *
+ * NO `Approve` IN HERE, deliberately. Meridian spends orchid on one meaning --
+ * a person is required and this control releases the thing -- and the gate that
+ * is literally true of lives on the route. "Draft spec" is the primary here and
+ * it is an `Action variant="primary"`: it starts work rather than releasing
+ * anything that is currently held.
+ *
+ * AND THE TWO DROPDOWNS BECAME `Picker`, NOT `MoreMenu`. `ui/dropdown-menu` was
+ * the last retired-layer import besides the sheet itself, and `MoreMenu` was
+ * the obvious swap and is the wrong one for both of them: its trigger is an
+ * unlabelled 26px ellipsis, and BOTH of these triggers were carrying a VALUE
+ * ("Not tied to a bet" / the linked bet's title) or a named verb ("Move to").
+ * Trading a displayed value for a glyph deletes information to tidy an import.
+ *
+ * Both are a short, exclusive list of options with a current selection, which
+ * is what `Picker` is, and a native select shows its current value, opens with
+ * the keyboard and needs no menu behaviour of its own. Each now sits in a
+ * `Line` with a real label bound by `htmlFor`, which is two accessible names
+ * the dropdown triggers never had.
+ *
+ * AND THE LANE CONTROL LEFT THE ACTION ROW. "Move to" was a menu among the
+ * verbs at the foot of this record -- the exact placement /decide's own header
+ * calls out as the reason the lane was unreachable ("buried in a Move to
+ * dropdown at the bottom of the open record"). It is a labelled `Line` above
+ * the actions now, matching the station, and it SHOWS where the bet sits
+ * instead of only offering to change it.
  */
 
 import * as React from "react";
 import { Row, Line, Who } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import { Num, Actions, Door } from "@/components/meridian/surface-parts";
 import type { ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -61,12 +118,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { listBriefItems } from "@/lib/briefs.functions";
 import { setOpportunityBriefLink } from "@/lib/brief-opportunity.functions";
 import { getOpportunityJudgment } from "@/lib/decision-judgment.functions";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -86,7 +137,18 @@ import { StageTimeline } from "@/components/shared/StageTimeline";
 import { ProductAnalyticsPanel } from "@/components/product/ProductAnalyticsPanel";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Block, Button, Empty, Failed, Field, Input, Loading, PageHead, Record as RecordRecess, Textarea, Value } from "@/components/shell/primitives";
+import {
+  Action,
+  NothingYet,
+  PageHeading,
+  Picker,
+  ReadFailedLine,
+  Reading,
+  RecordSpeaks,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Field, Input, Textarea } from "@/components/meridian/forms";
 import { AgentMark } from "@/components/meridian/marks";
 import { AgentPulse } from "@/components/meridian/AgentPulse";
 import type { VerdictWord } from "./format";
@@ -107,9 +169,12 @@ const CHALLENGER = "critic";
 /** A recorded outcome is an outcome, so it is one of the three colours that
  * carry one. Nothing else in this sheet reaches for a hue. */
 const OUTCOME_TONE: Record<"validated" | "missed" | "mixed", string> = {
-  validated: "var(--sp-pass)",
-  missed: "var(--sp-fail)",
-  mixed: "var(--sp-warn)",
+  validated: "var(--mrd-pass)",
+  missed: "var(--mrd-fail)",
+  /* `hold` rather than a warning. A mixed outcome is a result waiting on a
+     condition to be read either way, which is what Meridian's amber says, and
+     Meridian has no `warn`. */
+  mixed: "var(--mrd-hold)",
 };
 
 /** The real opportunity columns the sheet reads. Never fabricated: every
@@ -165,38 +230,23 @@ export interface OpportunityDetailRecord {
  * CONTROL. Reported as a gap rather than invented as a shared shape.
  * ------------------------------------------------------------------ */
 
-/** Supporting prose inside a block. */
+/** Supporting prose inside a region. 13px on prose leading, the same stop the
+ *  system's other read-this-sentence blocks take. */
 function P({ children }: { children: ReactNode }) {
-  return (
-    <p
-      style={{
-        margin: 0,
-        fontSize: "var(--sp-text-meta)",
-        lineHeight: "var(--sp-leading-body)",
-        color: "var(--sp-body)",
-      }}
-    >
-      {children}
-    </p>
-  );
+  return <p className="m-0 text-[13px] leading-relaxed text-mrd-body">{children}</p>;
 }
 
 /** One stated fact: a label, and under it the thing itself. ONE label, and the
- * value is never a restatement of it. */
+ * value is never a restatement of it.
+ *
+ * NOT `Field`, and that is the same call this file's own header made about it
+ * before the port: `Field` labels a CONTROL and binds by name, and there is no
+ * control here to bind to. A label over a paragraph is a different shape and
+ * giving it a `htmlFor` pointing at nothing would be worse than having none. */
 function Stated({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div style={{ marginTop: "var(--sp-space-3)" }}>
-      <span
-        style={{
-          display: "block",
-          fontSize: "var(--sp-text-label)",
-          fontWeight: "var(--sp-weight-medium)",
-          color: "var(--sp-mute)",
-          marginBottom: "var(--sp-space-1)",
-        }}
-      >
-        {label}
-      </span>
+    <div className="mt-mrd-5">
+      <span className="mb-mrd-2 block text-[12.5px] font-medium text-mrd-mute">{label}</span>
       <P>{children}</P>
     </div>
   );
@@ -205,18 +255,7 @@ function Stated({ label, children }: { label: string; children: ReactNode }) {
 /** The quiet evidence line under a claim. Numbers inside it wear mono via
  * `Num`; the words around them do not. */
 function Meta({ children }: { children: ReactNode }) {
-  return (
-    <div
-      style={{
-        marginTop: "var(--sp-space-2)",
-        fontSize: "var(--sp-text-label)",
-        lineHeight: "var(--sp-leading-tight)",
-        color: "var(--sp-mute)",
-      }}
-    >
-      {children}
-    </div>
-  );
+  return <div className="mt-mrd-4 text-[12.5px] leading-normal text-mrd-mute">{children}</div>;
 }
 
 /* ------------------------------------------------------------------ *
@@ -263,6 +302,36 @@ function clampScore(raw: string, fallback: number): number {
  * IT NEVER SHOWS A NUMBER THE RECORD REFUSES. Whenever nothing of ours is in
  * flight, the stored scores win: a failed write reverts, and a write from
  * anywhere else lands here.
+ *
+ * ── WHY THIS IS NOT `meridian/FineTuneCard`, 2026-08-18 ─────────────────
+ * It was the packet's nominated replacement and it cannot carry this control.
+ * Its contract is the right one -- untouched fields read as the agent's
+ * proposal, edited fields read as yours -- and three things in its render make
+ * it wrong here, the first of them fatal:
+ *
+ *   IT ALWAYS DRAWS A LAYOUT PICKER. The row/col/grid segmented control and its
+ *   "Layout" heading are unconditional, and the number fields live INSIDE that
+ *   same block, so there is no way to render the fields without it. `onLayoutChange`
+ *   is optional, so with no handler the glyphs would still change the card's
+ *   internal state and flip its header to "Yours" -- a control that changes
+ *   nothing while claiming a person overrode something. That is worse than a
+ *   dead control: it is a false one, on the surface whose whole subject is
+ *   whether the record can be trusted.
+ *
+ *   IT SEEDS ITS BASELINE ONCE, AT MOUNT, and never re-reads props. This editor's
+ *   stated contract is the opposite: whenever nothing of ours is in flight the
+ *   STORED scores win, so a refused write reverts. A `key` would paper over it
+ *   and would also throw away a half-typed score on every re-render of the
+ *   parent.
+ *
+ *   IT HAS NO SLOT FOR THE LINE UNDERNEATH. "ICE 7.3 · the queue is ordered by
+ *   this · saving / not saved yet / that did not save" is where this control
+ *   reports the projected average and all three write states. Losing it would
+ *   drop states, which the port's floor rule forbids.
+ *
+ * Reported as a real gap: `FineTuneCard` needs its layout row to be optional
+ * before any product surface can adopt it, and that is a change to a Meridian
+ * component rather than to this one.
  */
 export function IceEditor({
   opportunity,
@@ -365,7 +434,7 @@ export function IceEditor({
             step={1}
             value={draft[key]}
             disabled={disabled}
-            style={{ padding: "0 8px" }}
+            className="px-2"
             onFocus={(e) => e.currentTarget.select()}
             onChange={(e) => edit(key, clampScore(e.target.value, draft[key]))}
             onBlur={() => commit(latest.current.draft)}
@@ -393,7 +462,7 @@ export function IceEditor({
 
   return (
     <>
-      <div style={{ display: "flex", gap: "var(--sp-space-2)", alignItems: "flex-end" }}>
+      <div className="flex items-end gap-mrd-4">
         {score("impact", "Impact")}
         {score("confidence", "Confidence")}
         {score("ease", "Ease")}
@@ -407,7 +476,7 @@ export function IceEditor({
         {!saving && !dirty && save.isError ? (
           <>
             {" · "}
-            <span style={{ color: "var(--sp-fail)" }}>that did not save</span>
+            <span className="text-mrd-fail">that did not save</span>
           </>
         ) : null}
       </Meta>
@@ -444,9 +513,11 @@ function TraceRef({ id }: { id: string }) {
   return (
     <>
       <Num>{tag}</Num>{" "}
-      <button
-        type="button"
-        className="sp-block-more"
+      {/* `Door`, which is the system's word-inside-a-sentence control: this sits
+          in the middle of a meta line, so a real button would break the line's
+          rhythm and `.sp-block-more` was the retired layer's version of exactly
+          this shape. */}
+      <Door
         title="Copy the full id"
         onClick={() => {
           void navigator.clipboard?.writeText(id);
@@ -454,7 +525,7 @@ function TraceRef({ id }: { id: string }) {
         }}
       >
         {copied ? "Copied" : "Copy id"}
-      </button>
+      </Door>
     </>
   );
 }
@@ -500,17 +571,17 @@ function TeardownPulse({ targetId }: { targetId: string }) {
   // SUBMITS. `Choices` is a value you set and read back, and its "one" mode
   // needs a current pick to hold the roving tab stop, which a question nobody
   // has answered does not have. They sit straight in the Line's control slot,
-  // which is already a flex row: an `Actions` inside it carries a 16px top
-  // margin and would drop them off the line they belong to.
+  // which is already a flex row; an `Actions` around them would be a second
+  // flex row inside one that already exists.
   if (!verdict) {
     return (
       <Line label="Was this teardown useful?">
-        <Button disabled={react.isPending} onClick={() => react.mutate(true)}>
+        <Action disabled={react.isPending} onClick={() => react.mutate(true)}>
           Yes
-        </Button>
-        <Button disabled={react.isPending} onClick={() => react.mutate(false)}>
+        </Action>
+        <Action disabled={react.isPending} onClick={() => react.mutate(false)}>
           No
-        </Button>
+        </Action>
       </Line>
     );
   }
@@ -536,18 +607,25 @@ function TeardownPulse({ targetId }: { targetId: string }) {
           if (note.trim().length >= 2 && !sendNote.isPending) sendNote.mutate();
         }}
       >
+        {/* `aria-label` and no `Field`, deliberately: the question is already
+            asked by the `Line` above and a second visible label would be the
+            same sentence twice. Meridian's `Field` binds by NAME and renders its
+            control as a sibling, so wrapping this one would need a `htmlFor`
+            pointing at a label that repeats the line above it. */}
         <Textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="What made you say that?"
           aria-label="Why the teardown was or was not useful"
           rows={2}
-          style={{ height: "auto", minHeight: 60, padding: "10px 12px", resize: "vertical" }}
         />
-        <Actions>
-          <Button type="submit" disabled={note.trim().length < 2 || sendNote.isPending}>
+        {/* `mt-mrd-4` written here rather than baked into `Actions`: Meridian's
+            row sets no outer margin, so the composition says where the space
+            goes. The retired one carried 16px of its own. */}
+        <Actions className="mt-mrd-4">
+          <Action type="submit" disabled={note.trim().length < 2 || sendNote.isPending}>
             {sendNote.isPending ? "Adding it" : "Add the reason"}
-          </Button>
+          </Action>
         </Actions>
       </form>
     </>
@@ -666,13 +744,16 @@ export function PublishTeardown({
     }
   }, []);
 
-  if (state.isPending) return <Loading>Checking whether this is public.</Loading>;
+  if (state.isPending) return <Reading>Checking whether this is public.</Reading>;
 
   if (state.isError) {
+    /* `ReadFailedLine` and not `ReadFailed`: this renders INSIDE "The teardown"
+       region, which already draws its own container, and the standard caps a
+       region at one bordered box. */
     return (
-      <Failed onRetry={() => void state.refetch()}>
+      <ReadFailedLine onRetry={() => void state.refetch()}>
         Could not read whether this teardown is public, so nothing here says either way.
-      </Failed>
+      </ReadFailedLine>
     );
   }
 
@@ -700,25 +781,29 @@ export function PublishTeardown({
         {slug ? (
           <>
             <Meta>
+              {/* Still an anchor and still `target="_blank"`: this is an OUTBOUND
+                  address, and `Door`'s own note says the element follows the
+                  destination rather than the paint. It takes the door's
+                  treatment by hand for that reason. */}
               <a
                 href={teardownLink(slug)}
                 target="_blank"
                 rel="noreferrer"
-                style={{ color: "var(--sp-ink)", wordBreak: "break-all" }}
+                className="break-all text-mrd-ink underline decoration-dotted underline-offset-2 transition-colors hover:decoration-solid"
               >
                 {teardownLink(slug)}
               </a>
             </Meta>
-            <Actions>
-              <Button onClick={() => copy(slug)}>{copied ? "Copied" : "Copy the link"}</Button>
-              <Button
-                variant="ghost"
+            <Actions className="mt-mrd-4">
+              <Action onClick={() => copy(slug)}>{copied ? "Copied" : "Copy the link"}</Action>
+              <Action
+                variant="quiet"
                 disabled={disabled || toggle.isPending}
                 onClick={() => toggle.mutate(false)}
                 title="Takes the page down. Anyone holding the link gets nothing."
               >
                 {toggle.isPending ? "Making it private" : "Make it private"}
-              </Button>
+              </Action>
             </Actions>
           </>
         ) : (
@@ -726,21 +811,21 @@ export function PublishTeardown({
             {/* is_public with no slug is not a state the migration can produce
                 (share_slug carries a CSPRNG default and a unique index), so it
                 is reported rather than papered over with a dead copy button. */}
-            <Failed>
+            <ReadFailedLine>
               This is marked public but carries no link, so there is nothing to hand anyone.
-            </Failed>
-            <Actions>
-              <Button
-                variant="ghost"
+            </ReadFailedLine>
+            <Actions className="mt-mrd-4">
+              <Action
+                variant="quiet"
                 disabled={disabled || toggle.isPending}
                 onClick={() => toggle.mutate(false)}
               >
                 {toggle.isPending ? "Making it private" : "Make it private"}
-              </Button>
+              </Action>
             </Actions>
           </>
         )}
-        {failure ? <Failed>{failure}</Failed> : null}
+        {failure ? <ReadFailedLine>{failure}</ReadFailedLine> : null}
       </>
     );
   }
@@ -752,15 +837,7 @@ export function PublishTeardown({
       <Stated label="Publish this teardown">
         It goes on the open web at a link that needs no account. What a reader gets:
       </Stated>
-      <ul
-        style={{
-          margin: "var(--sp-space-1) 0 0",
-          paddingLeft: "1.1em",
-          fontSize: "var(--sp-text-meta)",
-          lineHeight: "var(--sp-leading-body)",
-          color: "var(--sp-body)",
-        }}
-      >
+      <ul className="mt-mrd-2 list-disc pl-[1.1em] text-[13px] leading-relaxed text-mrd-body">
         {PUBLISHED_FIELDS.map((f) => (
           <li key={f}>{f}</li>
         ))}
@@ -769,21 +846,21 @@ export function PublishTeardown({
         {WITHHELD_FIELDS} You can make it private again at any time, and the link dies with it.
       </Meta>
       {publishable ? (
-        <Actions>
-          <Button
+        <Actions className="mt-mrd-4">
+          <Action
             disabled={disabled || toggle.isPending}
             onClick={() => toggle.mutate(true)}
             title="Puts this teardown on the open web and gives you the link"
           >
             {toggle.isPending ? "Publishing it" : "Publish it and get the link"}
-          </Button>
+          </Action>
         </Actions>
       ) : (
         <Meta>
           {`${agentDisplayName(CHALLENGER)} has not reached a verdict on this bet, so the public page would have nothing to render. Challenge it first and this becomes publishable.`}
         </Meta>
       )}
-      {failure ? <Failed>{failure}</Failed> : null}
+      {failure ? <ReadFailedLine>{failure}</ReadFailedLine> : null}
     </>
   );
 }
@@ -845,17 +922,17 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
   // outcome matches this bet yet", which is a different fact entirely.
   if (q.isError) {
     return (
-      <Block title="Precedent">
-        <Failed onRetry={() => void q.refetch()}>
+      <Region title="Precedent">
+        <ReadFailedLine onRetry={() => void q.refetch()}>
           Could not read this bet's judgment. {(q.error as Error).message}
-        </Failed>
-      </Block>
+        </ReadFailedLine>
+      </Region>
     );
   }
 
   return (
     <>
-      <Block
+      <Region
         title="Precedent"
         sub={
           precedents.length > 0
@@ -864,51 +941,56 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
         }
       >
         {q.isPending ? (
-          <P>Recalling past outcomes.</P>
+          <Reading>Recalling past outcomes.</Reading>
         ) : precedents.length > 0 ? (
-          precedents.map((p) => (
-            <RecordRecess
-              key={p.memoryId}
-              evidence={
-                <>
-                  <span style={{ color: OUTCOME_TONE[p.verdict] }}>{p.verdict}</span>
-                  {p.title ? ` · ${p.title}` : ""}
-                </>
-              }
-            >
-              {p.summary}
-            </RecordRecess>
-          ))
+          <div className="flex flex-col gap-mrd-5">
+            {precedents.map((p) => (
+              <RecordSpeaks
+                key={p.memoryId}
+                evidence={
+                  <>
+                    <span style={{ color: OUTCOME_TONE[p.verdict] }}>{p.verdict}</span>
+                    {p.title ? ` · ${p.title}` : ""}
+                  </>
+                }
+              >
+                {p.summary}
+              </RecordSpeaks>
+            ))}
+          </div>
         ) : (
-          <Empty>
+          /* `NothingYet` and never `NothingHere`: this sits inside a region that
+             already draws its own container, and two boxes around one sentence
+             is a frame. */
+          <NothingYet>
             No recorded outcome matches this bet yet. Ship one and the record recalls it here the
             next time a bet looks like this.
-          </Empty>
+          </NothingYet>
         )}
-      </Block>
+      </Region>
 
-      <Block title="Considered against">
+      <Region title="Considered against">
         {q.isPending ? (
-          <P>Reading the queue.</P>
+          <Reading>Reading the queue.</Reading>
         ) : peers.length > 0 ? (
           peers.map((a) => (
             <Line key={a.id} label={a.title}>
               {a.ice != null ? (
-                <>
+                <Value>
                   <Num>{a.ice.toFixed(1)}</Num>
                   {" ICE"}
-                </>
+                </Value>
               ) : (
-                <span style={{ fontSize: "var(--sp-text-label)", color: "var(--sp-mute)" }}>
-                  unscored
-                </span>
+                /* `Value` with no tone, which is the quiet ink. "unscored" is a
+                   fact about the value, not an outcome, so it takes no hue. */
+                <Value>unscored</Value>
               )}
             </Line>
           ))
         ) : (
-          <Empty>Nothing else is live in the queue right now.</Empty>
+          <NothingYet>Nothing else is live in the queue right now.</NothingYet>
         )}
-      </Block>
+      </Region>
     </>
   );
 }
@@ -931,7 +1013,6 @@ function BriefLinkLine({ opportunity }: { opportunity: OpportunityDetailRecord }
   const bets = useQuery({ queryKey: ["brief-items"], queryFn: () => fList({ data: {} }) });
   const topBets = (bets.data ?? []).filter((b) => b.kind === "top_bet");
   const linkedId = opportunity.linked_brief_item_id ?? null;
-  const linkedBet = topBets.find((b) => b.id === linkedId) ?? null;
 
   const setLink = useMutation({
     mutationFn: (briefItemId: string | null) =>
@@ -945,38 +1026,37 @@ function BriefLinkLine({ opportunity }: { opportunity: OpportunityDetailRecord }
 
   if (topBets.length === 0) return null;
 
+  const id = `brief-link-${opportunity.id}`;
+
   return (
+    /* `htmlFor` ADDED. The dropdown trigger this replaces had no accessible name
+       at all: it was a button whose only content was the linked bet's title, so
+       a screen reader announced the VALUE and never the question. `Line` binds
+       its label by name, the same way Meridian's `Field` does. */
     <Line
       label="Strategic bet"
+      htmlFor={id}
       sub="A challenged assumption on the bet you tie it to sinks this one in the ranking."
     >
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button disabled={setLink.isPending}>
-            <span
-              style={{
-                display: "block",
-                maxWidth: "16ch",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {linkedBet ? linkedBet.title : "Not tied to a bet"}
-            </span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setLink.mutate(null)}>
-            Not tied to a bet
-          </DropdownMenuItem>
-          {topBets.map((b) => (
-            <DropdownMenuItem key={b.id} onClick={() => setLink.mutate(b.id)}>
-              {b.title}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {/* A `Picker`, not a `MoreMenu`. This control CARRIES A VALUE -- which top
+          bet this one is tied to -- and a native select shows it, opens with the
+          keyboard, and needs none of the menu behaviour the retired dropdown
+          brought with it. The empty option is a real choice ("not tied"), not a
+          placeholder, so it has a value of its own rather than a blank. */}
+      <Picker
+        id={id}
+        value={linkedId ?? ""}
+        disabled={setLink.isPending}
+        className="max-w-[22ch]"
+        onChange={(e) => setLink.mutate(e.target.value === "" ? null : e.target.value)}
+      >
+        <option value="">Not tied to a bet</option>
+        {topBets.map((b) => (
+          <option key={b.id} value={b.id}>
+            {b.title}
+          </option>
+        ))}
+      </Picker>
     </Line>
   );
 }
@@ -1069,7 +1149,17 @@ export function OpportunityDetailSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="sm:max-w-md overflow-y-auto">
+      {/* `data-mrd` on the overlay's own root. A Radix sheet portals OUT of the
+          surface that opened it, so Meridian's focus treatment and its
+          neutralisation of the legacy app-wide ring do not reach anything in
+          here unless the attribute is set on this element. `font-mrd` for the
+          same reason: the face is inherited, and this subtree has no Meridian
+          ancestor to inherit it from. */}
+      <SheetContent
+        side="right"
+        data-mrd=""
+        className="sm:max-w-md overflow-y-auto bg-mrd-sheet font-mrd text-mrd-body"
+      >
         {/* Accessible name and description for the dialog. The visible head
             below carries the same title, so this stays screen-reader only. */}
         <SheetHeader className="sr-only">
@@ -1081,11 +1171,23 @@ export function OpportunityDetailSheet({
         </SheetHeader>
 
         {opportunity ? (
-          <div style={{ paddingBottom: "var(--sp-space-4)" }}>
+          /* THE RECORD'S OWN RHYTHM, WHICH THE RETIRED LAYER USED TO OWN.
+             `.sp-block` gave every section 36px above it, 28px of padding and a
+             1px rule; Meridian's `Region` sets no margin at all, on purpose --
+             the composition owns its rhythm -- so a straight swap would have run
+             twelve regions together. `gap-mrd-7` is 40px, the step the space
+             ramp reserves for the gap BETWEEN groups and the one Crew,
+             Approvals, Brain, Design and Build all took for exactly this. It is
+             fewer pixels than 36+28 and it reads as more separation, because
+             what did the separating there was the rule, and 40px of clean space
+             says the same thing without drawing a line across a 448px column
+             twelve times. Picking a private number here instead would be the
+             "a sheet per station" mistake in spacing form. */
+          <div className="flex flex-col gap-mrd-7 pb-mrd-5">
             {/* The close control floats at the top right of the sheet, so the
                 title keeps clear of it rather than running underneath. */}
-            <div style={{ paddingRight: "28px" }}>
-              <PageHead
+            <div className="pr-7">
+              <PageHeading
                 title={opportunity.title}
                 sub={
                   <>
@@ -1109,7 +1211,7 @@ export function OpportunityDetailSheet({
 
             {/* Why it ranks here. The ranking's own reason, then the one
                 recommended move, then the numbers that produced the order. */}
-            <Block title="Why it ranks here">
+            <Region title="Why it ranks here">
               {rationale ? <P>{rationale}</P> : null}
               {nextAction ? <Stated label="Recommended next">{nextAction}</Stated> : null}
               {rank != null || designation ? (
@@ -1129,21 +1231,26 @@ export function OpportunityDetailSheet({
                   it directly. */}
               <IceEditor opportunity={opportunity} disabled={busy} idPrefix="record-ice" />
               <BriefLinkLine opportunity={opportunity} />
-            </Block>
+            </Region>
 
             {/* Provenance: honest, from theme_id only. The lineage door sits on
                 the heading, and only when there is a theme to trace back to. */}
-            <Block
+            {/* `goTo`, not `toggle` and not `act`. It LEAVES this region for the
+                lineage chain, which is a destination with a name; `toggle` would
+                emit `aria-expanded` for a disclosure that does not exist here,
+                and `act` would announce work being dispatched when nothing runs.
+                Offered only when there is a theme to trace back to. */}
+            <Region
               title="Where it came from"
-              more={opportunity.theme_id ? "View lineage" : undefined}
-              onMore={onViewLineage}
+              goTo={opportunity.theme_id ? "View lineage" : undefined}
+              onGoTo={onViewLineage}
             >
               <P>
                 {opportunity.theme_id
                   ? "Promoted from a Discover theme, with its signals attached."
                   : "Promoted directly. No theme backs it."}
               </P>
-            </Block>
+            </Region>
 
             {/* AN EXAMPLE SAYS SO BEFORE THE BET IT IS PRETENDING TO BE.
                 This sheet declared `is_sample` on its own interface and
@@ -1156,12 +1263,12 @@ export function OpportunityDetailSheet({
                 note: mislabelling a real bet as fiction is worse than leaving
                 one example unmarked. */}
             {opportunity.is_sample ? (
-              <Block title="This is an example">
+              <Region title="This is an example">
                 <P>
                   It came with your workspace so this station had something to show. It is not from
                   your product, and nothing here has been learned from your record.
                 </P>
-              </Block>
+              </Region>
             ) : null}
 
             {/* The bet itself: real fields, blanks skipped. */}
@@ -1169,7 +1276,7 @@ export function OpportunityDetailSheet({
             opportunity.hypothesis ||
             opportunity.target_user ||
             opportunity.decided_by_agent_slug ? (
-              <Block title="The bet">
+              <Region title="The bet">
                 {opportunity.problem ? (
                   <Stated label="Problem">{opportunity.problem}</Stated>
                 ) : null}
@@ -1193,7 +1300,7 @@ export function OpportunityDetailSheet({
                     }
                   />
                 ) : null}
-              </Block>
+              </Region>
             ) : null}
 
             {/* WHAT WE COMMITTED, AND HOW IT GETS CHECKED.
@@ -1207,7 +1314,7 @@ export function OpportunityDetailSheet({
                 (`validateCommitment`): a Now, Next or Later placement must carry
                 a declared outcome AND a measure. So a placement missing either
                 is not drawn as a blank, it is named as the gap it is. */}
-            <Block title="What it promised">
+            <Region title="What it promised">
               {opportunity.roadmap_bucket ||
               opportunity.roadmap_outcome ||
               opportunity.roadmap_measure ? (
@@ -1235,7 +1342,11 @@ export function OpportunityDetailSheet({
                   {opportunity.roadmap_bucket &&
                   (!opportunity.roadmap_outcome || !opportunity.roadmap_measure) ? (
                     <Meta>
-                      <span style={{ color: "var(--sp-warn)" }}>
+                      {/* `--mrd-hold`, which is what `--sp-warn` became. The
+                          commitment is stopped on a CONDITION -- somebody has to
+                          declare the outcome or the measure -- and that is
+                          exactly what Meridian's amber says. */}
+                      <span className="text-mrd-hold">
                         {!opportunity.roadmap_outcome && !opportunity.roadmap_measure
                           ? "No outcome and no measure are declared, so nothing can check whether this worked."
                           : !opportunity.roadmap_outcome
@@ -1260,17 +1371,17 @@ export function OpportunityDetailSheet({
                   ) : null}
                 </>
               ) : (
-                <Empty>
+                <NothingYet>
                   Nothing is committed yet. Put it in a lane on the roadmap with the outcome it
                   promises and how you will measure it, and both land here.
-                </Empty>
+                </NothingYet>
               )}
-            </Block>
+            </Region>
 
             {/* The teardown. One row that says who concluded what, and under it
                 what they actually found. Never a chip: a verdict with no author
                 is an assertion nobody signed. */}
-            <Block title="The teardown">
+            <Region title="The teardown">
               <Row
                 marks={
                   <AgentMark
@@ -1297,7 +1408,7 @@ export function OpportunityDetailSheet({
                   public are already on screen, so the disclosure above the
                   button is checkable by looking up rather than a promise. */}
               <PublishTeardown opportunity={opportunity} disabled={busy} />
-            </Block>
+            </Region>
 
             {/* SW-7 step 3: the bet's judgment. Precedent recall in the record
                 recess, then the queue it was ranked against. */}
@@ -1317,32 +1428,68 @@ export function OpportunityDetailSheet({
               />
             ) : null}
 
-            <Block title="Activity">
+            <Region title="Activity">
               <Line label="Promoted">
                 <Num>{day(opportunity.created_at)}</Num>
               </Line>
               <Line label="Last changed">
                 <Num>{day(opportunity.updated_at)}</Num>
               </Line>
-            </Block>
+            </Region>
+
+            {/* WHERE IT SITS, AS A LABELLED LINE RATHER THAN A MENU IN THE
+                ACTION ROW.
+                This was a "Move to" dropdown standing among the verbs at the
+                foot of this record, which is the exact placement /decide's own
+                header names as the reason the lane was unreachable: "the only
+                control that set them was a Move to menu at the bottom of the
+                open record, behind two clicks and a scroll".
+                It is a placement you SET, not a call you make, so it takes the
+                same shape the station gives it: label left, control right, one
+                tab stop, and it shows where the bet sits instead of only
+                offering to change it. Six statuses rather than four, because
+                unlike the Gate's lane picker this record is also where a
+                shipped or dropped bet is corrected. */}
+            <Line
+              label="Where it sits"
+              htmlFor={`record-lane-${opportunity.id}`}
+              sub="Placing it moves the roadmap. Nothing is drafted and nothing ships from here."
+            >
+              <Picker
+                id={`record-lane-${opportunity.id}`}
+                value={opportunity.status}
+                disabled={busy}
+                onChange={(e) => onSetStatus(e.target.value as OpportunityStatus)}
+              >
+                {OPPORTUNITY_STATUSES.map((st) => (
+                  <option key={st} value={st}>
+                    {STATUS_META[st].label}
+                  </option>
+                ))}
+              </Picker>
+            </Line>
 
             {/* One primary, and only one. Delete is separated by distance
                 rather than by colour: red carries an outcome here, not an
-                intent, and ember marks the human. */}
-            <Block>
+                intent, and orchid marks the human.
+                NO `Approve` ON THIS ROW. Orchid is spent on one meaning and the
+                gate it is true of lives on the route; "Draft spec" starts work
+                rather than releasing anything currently held, so it is the
+                neutral primary. */}
+            <Region>
               <Actions
                 trailing={
-                  <Button variant="ghost" onClick={onDelete} disabled={busy}>
+                  <Action variant="quiet" onClick={onDelete} disabled={busy}>
                     Delete
-                  </Button>
+                  </Action>
                 }
               >
-                <Button variant="primary" onClick={onDraftSpec} disabled={busy || draftPending}>
+                <Action variant="primary" onClick={onDraftSpec} disabled={busy || draftPending}>
                   {draftPending ? "Drafting the spec" : "Draft spec"}
-                </Button>
-                <Button onClick={onChallenge} disabled={busy || challengePending}>
+                </Action>
+                <Action onClick={onChallenge} disabled={busy || challengePending}>
                   {challengePending ? "Challenging it" : "Challenge it"}
-                </Button>
+                </Action>
                 {/* The label already changes; this says WHAT is being worked on
                     and proves the work is still moving. A changed label is a
                     one-time event and reads as frozen thirty seconds later,
@@ -1357,18 +1504,6 @@ export function OpportunityDetailSheet({
                     detail={opportunity?.title}
                   />
                 ) : null}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button disabled={busy}>Move to</Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    {OPPORTUNITY_STATUSES.map((s) => (
-                      <DropdownMenuItem key={s} onClick={() => onSetStatus(s)}>
-                        {STATUS_META[s].label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
                 {/* PC-29 layer 6: hand the bet to the crew as real work.
                     It was `AskInContext`, a dropdown of exactly one item behind
                     a bot icon, whose one item read "Red-team this" and sat two
@@ -1381,15 +1516,15 @@ export function OpportunityDetailSheet({
                     No toast: landing on the mission IS the consequence, and a
                     toast on top of a navigation is the click confirming
                     itself. */}
-                <Button
+                <Action
                   disabled={busy || handOff.isPending}
                   onClick={() => handOff.mutate()}
                   title="Starts a mission with this bet attached, and opens it in Build"
                 >
                   {handOff.isPending ? "Starting the mission" : "Start a mission"}
-                </Button>
+                </Action>
               </Actions>
-            </Block>
+            </Region>
           </div>
         ) : null}
       </SheetContent>

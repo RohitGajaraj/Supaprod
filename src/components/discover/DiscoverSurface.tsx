@@ -271,10 +271,51 @@ import {
   isSampleWorkspaceEnabled,
   triggerSampleWorkspace,
 } from "@/lib/onboarding/onboarding.functions";
-import { Button, Choices, Empty, Failed, Loading, Field, Input, MoreItem, MoreMenu, Receipt, Record, SelectionBar, Surface, Switch, Textarea } from "@/components/shell/primitives";
+/*
+ * THE TWO THAT STAYED, AND WHY THE RETIRED LINE SURVIVES AT ALL.
+ *
+ * `Record` is the lit recess, and Meridian's `RecordSpeaks` cannot carry it.
+ * Two things would be lost, not one: the DOOR (`onClick`/`title`, which both
+ * call sites below use to open the prior bet's chain or move the focus onto the
+ * earlier cluster) and the LAMP. RecordSpeaks says so in its own header --
+ * "NOT THE SAME COMPONENT as Brain's RecordSpeaks or Runs' Recess, which are
+ * recesses with a diamond and a lead-size claim... Meridian permits ONE lit
+ * object in the product and Brain holds the licence." Swapping would demote the
+ * one differentiated moment on this station AND make a claim that names a prior
+ * decision unreachable, which is the exact defect the doors pass in section 7
+ * of this file's header was opened to close.
+ *
+ * `SelectionBar` is a different component from Meridian's `SelectionActions`
+ * despite the near-name. This one takes a `Selection` of ROWS and states a
+ * count with verbs beside it; that one attaches to a text `Range` a reader has
+ * highlighted in prose and hands the passage to an agent. Its API has no
+ * `selection`, no `total` and no `noun`, and its `phase`/`workingLabel`/`error`
+ * describe an edit coming back from a model. Nothing here maps onto it.
+ *
+ * Both are reported rather than forced. Everything else on this surface is
+ * Meridian.
+ */
+import { Record, SelectionBar } from "@/components/shell/primitives";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 // Meridian design system: surface components replace retired shell/primitives
-import { Region, PageHeading, Figure, Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  Approve,
+  Figure,
+  NothingYet,
+  Num,
+  PageHeading,
+  ReadFailed,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Toggle,
+} from "@/components/meridian/surface-parts";
+import { Surface } from "@/components/meridian/Surface";
+import { Choices, Field, Input, Textarea } from "@/components/meridian/forms";
+import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
+import { Receipt } from "@/components/meridian/Receipt";
 import { Gate } from "@/components/meridian/Gate";
 import { CtxBody, CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { AgentStatusIndicator } from "@/components/meridian/AgentStatusIndicator";
@@ -1669,9 +1710,13 @@ export function DiscoverSurface({
                an empty rail with no way to ask again. */
               <>
                 <CtxHead>Reading for you</CtxHead>
-                <Failed onRetry={() => void fleet.refetch()}>
+                {/* ReadFailedLine, not ReadFailed: the bordered half of that
+                    pair draws its own box, and this sits inside the context
+                    rail under a CtxHead that already frames it. Two containers
+                    around one sentence is a frame, and the rail is 316px wide. */}
+                <ReadFailedLine onRetry={() => void fleet.refetch()}>
                   Who is reading for you did not load.
-                </Failed>
+                </ReadFailedLine>
               </>
             ) : null}
 
@@ -1690,10 +1735,10 @@ export function DiscoverSurface({
                  possible rendering of a read that produced no information. */
               <>
                 <CtxHead>What is feeding this</CtxHead>
-                <Failed onRetry={() => void coverage.refetch()}>
+                <ReadFailedLine onRetry={() => void coverage.refetch()}>
                   What is feeding this desk did not load, so nothing here would name a source that
                   has gone quiet.
-                </Failed>
+                </ReadFailedLine>
               </>
             ) : hasCoverage && cov ? (
               <>
@@ -1939,10 +1984,13 @@ export function DiscoverSurface({
         that came out of it, which for a promoted cluster IS the bet. */}
       {focusSettled && !linkNoticeClosed && !loadError && !loading ? (
         <Region title="That cluster has already been judged">
-          <Empty
+          {/* NothingYet, the bare half: this sits under a Region heading that
+              already frames it, and Meridian caps a region at one bordered box.
+              `NothingHere` is for where the region itself is missing. */}
+          <NothingYet
             action={
               <>
-                <Button
+                <Action
                   variant="primary"
                   onClick={() =>
                     navigate({
@@ -1952,30 +2000,37 @@ export function DiscoverSurface({
                   }
                 >
                   Open its chain
-                </Button>
-                <Button variant="ghost" onClick={() => setLinkNoticeClosed(true)}>
+                </Action>
+                <Action variant="quiet" onClick={() => setLinkNoticeClosed(true)}>
                   Dismiss
-                </Button>
+                </Action>
               </>
             }
           >
             {focusSettled.title}. {settledWord((focusSettled.status ?? "new") as string)}, so it is
             not in the ranking and the call below is a different one.
-          </Empty>
+          </NothingYet>
         </Region>
       ) : null}
 
       {loadError ? (
-        <Failed
+        /* ReadFailed, the BORDERED half, and this is the one place on the
+           surface that earns it. When this branch renders there is no region
+           left on screen -- the ranking, the settled list, the capture box and
+           the boundary all guard on `!loadError` -- so the box is the only
+           thing drawing a boundary, which is exactly the case its header names.
+           It also carries the sentence the bare line could not: nothing has
+           been changed and nothing has been lost. */
+        <ReadFailed
           onRetry={() => {
             if (signals.error) void signals.refetch();
             if (themes.error) void themes.refetch();
           }}
         >
           {loadError.message}
-        </Failed>
+        </ReadFailed>
       ) : loading ? (
-        <Loading>Reading what your sources have sent.</Loading>
+        <Reading>Reading what your sources have sent.</Reading>
       ) : signalsEmpty ? (
         <Gate
           question="Which source should it read first?"
@@ -1998,23 +2053,28 @@ export function DiscoverSurface({
                 </span>
               ) : null,
               sampleMutation.isError ? (
-                <span key="err" className="sp-fail">
+                <span key="err" className="text-mrd-fail">
                   The sample workspace did not open. Try again.
                 </span>
               ) : null,
             ].filter(Boolean) as React.ReactNode[]
           }
         >
-          <Button
+          {/* `Action`, not `Approve`, and the Gate around it does not change
+              that. Orchid is spent on the one control that RELEASES something
+              held, and this one navigates: the connecting happens in Settings,
+              two screens later. A person who reads this as the act itself has
+              been told something false about what their click does. */}
+          <Action
             variant="primary"
             onClick={() => navigate({ to: "/settings", search: { section: "connections" } })}
           >
             Connect a source
-          </Button>
+          </Action>
           {sampleOffered ? (
-            <Button disabled={sampleMutation.isPending} onClick={() => sampleMutation.mutate()}>
+            <Action disabled={sampleMutation.isPending} onClick={() => sampleMutation.mutate()}>
               {sampleMutation.isPending ? "Opening the sample" : "Explore a sample workspace"}
-            </Button>
+            </Action>
           ) : null}
         </Gate>
       ) : picking && focused ? (
@@ -2031,7 +2091,7 @@ export function DiscoverSurface({
             </span>,
           ]}
         >
-          <Button onClick={() => setPicking(false)}>Never mind</Button>
+          <Action onClick={() => setPicking(false)}>Never mind</Action>
         </Gate>
       ) : focused ? (
         <Gate
@@ -2104,20 +2164,27 @@ export function DiscoverSurface({
             ].filter(Boolean) as React.ReactNode[]
           }
         >
-          <Button
-            variant="primary"
-            disabled={busy}
-            shortcut="a"
-            onClick={() => promote.mutate(focused.theme.id)}
-          >
+          {/* THE ONE APPROVE ON THIS STATION. Meridian spends orchid on a
+              single meaning -- a person is required -- and a gate is the one
+              place that is literally true of a button, because the work is
+              stopped until it is pressed. This cluster sits unjudged until
+              somebody presses this, and pressing it settles the call and starts
+              the bet. Same shape /approvals and /crew already carry: `Approve`
+              on the positive settle at `a`, `Action` on the decline at `d`.
+
+              The decline is NOT a second Approve even though it also settles.
+              Red reports an outcome in this system and orchid means a person is
+              required, so neither is available to mark an intention, and two
+              accents in one row is how an accent stops meaning anything. */}
+          <Approve disabled={busy} shortcut="a" onClick={() => promote.mutate(focused.theme.id)}>
             {promote.isPending ? "Making it a bet" : "Make it a bet"}
-          </Button>
-          <Button disabled={busy} shortcut="m" onClick={() => setPicking(true)}>
+          </Approve>
+          <Action disabled={busy} shortcut="m" onClick={() => setPicking(true)}>
             Add to an existing bet
-          </Button>
-          <Button disabled={busy} shortcut="d" onClick={() => decline.mutate(focused.theme.id)}>
+          </Action>
+          <Action disabled={busy} shortcut="d" onClick={() => decline.mutate(focused.theme.id)}>
             Not a pattern
-          </Button>
+          </Action>
           <MoreMenu label={`More for ${focused.theme.title}`}>
             <MoreItem onClick={() => draftSpec.mutate(focused.theme.id)}>
               {draftSpec.isPending ? "Drafting the spec" : "Draft the spec directly"}
@@ -2143,9 +2210,13 @@ export function DiscoverSurface({
             </span>,
           ]}
         >
-          <Button variant="primary" disabled={cluster.isPending} onClick={() => cluster.mutate()}>
+          {/* Not `Approve` either, and this Gate is the clearest case: its own
+              question is "Nothing is waiting on a call." Nothing is held, so
+              there is nothing to release. This dispatches a model run, which is
+              the same thing the Region above spends `act` on. */}
+          <Action variant="primary" disabled={cluster.isPending} onClick={() => cluster.mutate()}>
             {cluster.isPending ? "Reading them together" : "Cluster them now"}
-          </Button>
+          </Action>
         </Gate>
       )}
 
@@ -2288,39 +2359,39 @@ export function DiscoverSurface({
               an-empty-read-is-not-an-empty-workspace.test.ts still allowed;
               that constant comes down to 1 in the same commit. */}
           {opportunities.isError ? (
-            <Failed onRetry={() => void opportunities.refetch()}>
+            <ReadFailedLine onRetry={() => void opportunities.refetch()}>
               {opportunities.error instanceof Error
                 ? opportunities.error.message
                 : "The open bets did not load."}
-            </Failed>
+            </ReadFailedLine>
           ) : stillWaiting(opportunities) ? (
-            <Loading>Reading the queue.</Loading>
+            <Reading>Reading the queue.</Reading>
           ) : betCandidates.open.length === 0 ? (
-            <Empty>
+            <NothingYet>
               There are no bets yet, so there is nothing to merge into. Keeping it makes the first
               one.
-            </Empty>
+            </NothingYet>
           ) : betCandidates.inWorkspace.length === 0 ? (
             /* THE HONEST VERSION OF AN EMPTY LIST, and it names WHICH filter
                emptied it. There are bets; none of them is one this cluster's
                evidence may back. Saying "no bets" would send the person looking
                for a list they can already see on /decide. */
-            <Empty>
+            <NothingYet>
               <Num>{betCandidates.open.length}</Num> open bet
               {plural(betCandidates.open.length)}, and none belongs to this cluster&rsquo;s
               workspace, so none of them can take its evidence. Keeping it makes a bet here instead.
-            </Empty>
+            </NothingYet>
           ) : betCandidates.inScope.length === 0 ? (
-            <Empty>
+            <NothingYet>
               <Num>{betCandidates.inWorkspace.length}</Num> open bet
               {plural(betCandidates.inWorkspace.length)} in this workspace, and none is filed under
               the same product as this cluster. Keeping it makes a bet under that product instead.
-            </Empty>
+            </NothingYet>
           ) : betMatches.length === 0 ? (
-            <Empty>
+            <NothingYet>
               Nothing among the <Num>{betCandidates.inScope.length}</Num> open bet
               {plural(betCandidates.inScope.length)} matches that.
-            </Empty>
+            </NothingYet>
           ) : (
             (showAllBets ? betMatches : betMatches.slice(0, BETS_IN_PICKER)).map((o) => (
               <Row
@@ -2470,13 +2541,23 @@ export function DiscoverSurface({
               any of them back with one press, and the clusterer re-opens a
               declined cluster on its own once it grows past the escalation
               bar. */}
+          {/* LEFT ON THE RETIRED LAYER, DELIBERATELY. Meridian's
+              `SelectionActions` shares three quarters of the name and none of
+              the job: it takes a text `Range` a reader has highlighted in prose
+              and a container to measure against, and its phases describe an
+              agent's edit coming back. This bar takes a `Selection` of rows and
+              a total. There is no prop on that component that can hold either,
+              and forcing it would mean rebuilding the row-selection bar inside
+              a text-selection component. Reported instead. Its verb is a
+              Meridian `Action` regardless, because a control that paints itself
+              does not care what container it sits in. */}
           <SelectionBar selection={picked} total={ranked.length} noun="cluster">
-            <Button
+            <Action
               disabled={busy || declineMany.isPending}
               onClick={() => declineMany.mutate([...picked.ids])}
             >
               {declineMany.isPending ? "Declining them" : "Not patterns"}
-            </Button>
+            </Action>
           </SelectionBar>
 
           {(showAllClusters ? ranked : ranked.slice(0, VISIBLE_CLUSTERS)).map((entry, i) => {
@@ -2741,14 +2822,14 @@ export function DiscoverSurface({
                       }
                       action={
                         status === "promoted" ? undefined : (
-                          <Button
+                          <Action
                             disabled={busy}
                             onClick={() =>
                               undecline.mutate({ themeId: t.id, title: t.title, from: status })
                             }
                           >
                             Put it back
-                          </Button>
+                          </Action>
                         )
                       }
                     />
@@ -2756,12 +2837,19 @@ export function DiscoverSurface({
                 },
               )}
               {settledClusters.length > SETTLED_VISIBLE ? (
-                <Actions>
-                  <Button variant="ghost" onClick={() => setShowAllSettled((v) => !v)}>
+                /* `mt-mrd-4` is said here rather than baked into the component.
+                   Meridian's `Actions` sets no outer margin on purpose -- its
+                   header records that the two versions it replaced decided the
+                   space above themselves and a caller who wanted it elsewhere
+                   could not say so -- and the retired `.sp-acts` this row used
+                   to wear carried 16px. Without it the control sits flush
+                   against the last row. */
+                <Actions className="mt-mrd-4">
+                  <Action variant="quiet" onClick={() => setShowAllSettled((v) => !v)}>
                     {showAllSettled
                       ? "Show fewer"
                       : `Show all ${settledClusters.length} settled clusters`}
-                  </Button>
+                  </Action>
                 </Actions>
               ) : null}
             </>
@@ -2794,6 +2882,13 @@ export function DiscoverSurface({
         Kept as the one lit surface, and NOT moved into the context rail, which
         would demote the single differentiated moment in the product to a
         statistic. */}
+      {/* LEFT ON THE RETIRED LAYER. `RecordSpeaks` takes `children` and
+        `evidence` and nothing else, so porting this would silently delete the
+        `onClick` and `title` below -- the door onto the prior bet's chain,
+        which section 7 of this header exists to have opened -- and would also
+        drop the lamp, which RecordSpeaks refuses by name ("Meridian permits ONE
+        lit object in the product and Brain holds the licence"). A swap that
+        loses a door and a light to gain a shorter import is not a port. */}
       {focused && !picking && seenBefore.length > 0
         ? seenBefore.slice(0, 2).map((p) => (
             <Record
@@ -2856,6 +2951,9 @@ export function DiscoverSurface({
         focus, and ONLY when that cluster is still in the ranking. A prior
         cluster that has since been declined or merged is not a call anybody
         can make, so naming it stays a fact and never becomes a promise. */}
+      {/* Same refusal as the recess above, same two reasons: this one carries a
+        door too, onto the earlier cluster, and only when that cluster is still
+        in the ranking. */}
       {focused && !picking && seenBefore.length === 0 && priorTheme ? (
         <Record
           evidence={<>clustered separately</>}
@@ -2926,19 +3024,25 @@ export function DiscoverSurface({
               placeholder="What did you hear, and where from? One per line."
               aria-label="Capture a signal"
               rows={3}
-              // The shared control height is sized for one-line controls. A
-              // capture box is not one, so it takes its own height and grows
-              // by drag rather than scrolling inside 40px.
+              // KEPT AS MEASURED, not rounded onto Meridian's ramp. These four
+              // are the height a three-line capture box was tuned to; the
+              // component's own floor is 80px and its padding is 10/8, so
+              // dropping them would move the box a reader has used. The ratchet
+              // law makes today's drawing the floor, and a refactor is not a
+              // licence to redraw it.
               style={{ height: "auto", minHeight: 76, padding: "10px 12px", resize: "vertical" }}
             />
-            <Actions>
-              <Button type="submit" disabled={!captureReady || capture.isPending}>
+            {/* `mt-mrd-4`: Meridian's Actions sets no outer margin, and without
+              it these sit flush against the box above. Same reason as the
+              settled row's control. */}
+            <Actions className="mt-mrd-4">
+              <Action type="submit" disabled={!captureReady || capture.isPending}>
                 {capture.isPending ? "Capturing" : "Capture"}
-              </Button>
+              </Action>
               {/* The door to the longer form. It is a toggle rather than a
                 second panel, and it says which state it is in, so it is never
                 a control that opens something you cannot close. */}
-              <Button
+              <Action
                 aria-expanded={bodyOpen}
                 onClick={() => {
                   setBodyOpen((v) => !v);
@@ -2946,7 +3050,7 @@ export function DiscoverSurface({
                 }}
               >
                 {bodyOpen ? "Close the longer one" : "Add a document or transcript"}
-              </Button>
+              </Action>
             </Actions>
           </form>
 
@@ -2963,16 +3067,27 @@ export function DiscoverSurface({
                 which one it was. Two options, so it is the words themselves
                 rather than a select.
 
-                A Line rather than a Field, for the reason Line's own contract
-                states: Field renders a real `<label>` around its children, and
-                a label wrapping a radio group of buttons makes the label text a
-                second way to fire the first button. Choices carries its own
-                accessible name instead. */}
+                STILL A LINE RATHER THAN A FIELD, and the reason changed under
+                the port. Meridian's `Field` no longer wraps its children: it is
+                a div that binds by NAME, through `htmlFor` pointing at one
+                control id. A radio group has no single id to point at, so a
+                Field here would render a `<label for>` with nothing on the
+                other end of it -- an orphan name rather than the double-firing
+                label the retired Field produced. Line without `htmlFor` renders
+                its label as a span, which is correct, and `Choices` carries its
+                own accessible name through `label`. Two names on one control is
+                a defect, not belt and braces.
+
+                `mode="one"` is now stated rather than defaulted, and that is
+                the point of the prop: `one` is a radio group with one tab stop
+                and arrow keys, `any` is independent toggles. These two options
+                are one decision. */}
               <Line label="What you are adding">
                 <Choices
+                  mode="one"
                   label="What you are adding"
                   value={bodyKind}
-                  onPick={(id) => setBodyKind(id)}
+                  onChange={(id) => setBodyKind(id)}
                   options={[
                     { id: "document" as const, label: "A document" },
                     { id: "transcript" as const, label: "A transcript" },
@@ -3043,7 +3158,9 @@ export function DiscoverSurface({
                 label="Or read it in from a file"
                 sub={
                   fileNote ? (
-                    <span className={fileNote.failed ? "sp-fail" : undefined}>{fileNote.text}</span>
+                    <span className={fileNote.failed ? "text-mrd-fail" : undefined}>
+                      {fileNote.text}
+                    </span>
                   ) : (
                     <>
                       Plain text only: {READABLE_EXTENSIONS.join(", ")}. A PDF or a Word file has to
@@ -3052,15 +3169,16 @@ export function DiscoverSurface({
                   )
                 }
               >
-                <Button disabled={fileReading} onClick={() => fileInput.current?.click()}>
+                <Action disabled={fileReading} onClick={() => fileInput.current?.click()}>
                   {fileReading ? "Reading the file" : "Choose a file"}
-                </Button>
+                </Action>
               </Line>
 
               <Actions
+                className="mt-mrd-4"
                 trailing={
-                  <Button
-                    variant="ghost"
+                  <Action
+                    variant="quiet"
                     onClick={() => {
                       setBodyOpen(false);
                       setBodyTitle("");
@@ -3069,16 +3187,16 @@ export function DiscoverSurface({
                     }}
                   >
                     Discard it
-                  </Button>
+                  </Action>
                 }
               >
-                <Button type="submit" disabled={!bodyReady || captureBody.isPending}>
+                <Action type="submit" disabled={!bodyReady || captureBody.isPending}>
                   {captureBody.isPending
                     ? "Capturing"
                     : bodyKind === "transcript"
                       ? "Capture the transcript"
                       : "Capture the document"}
-                </Button>
+                </Action>
               </Actions>
             </form>
           ) : null}
@@ -3103,10 +3221,11 @@ export function DiscoverSurface({
         restating the first (hard ban 10). */}
       {clusterSettings.data?.is_owner && !picking && !loading && !loadError ? (
         <Region title="The boundary">
-          {/* No `htmlFor`: Switch renders a `<button role="switch">`, and
-            Line's own contract says a label pointing at a button makes the
-            label a second way to fire it. The Switch carries its own
-            accessible name instead. */}
+          {/* No `htmlFor`: Toggle renders a `<button role="switch">`, and
+            Line's own contract says a `<label for>` pointing at a button would
+            make the label a second way to fire it, which is wrong for a control
+            that acts rather than holds a value. The Toggle carries its own
+            accessible name through `label` instead. */}
           {/* LABEL CORRECTED 2026-08-15. It read "Read new signals without
             asking", and this switch does not read anything: `toggleAutoCluster`
             writes `auto_cluster_enabled`, which decides whether captured signals
@@ -3136,11 +3255,18 @@ export function DiscoverSurface({
               )
             }
           >
-            <Switch
+            {/* `busy` alongside `disabled`, which the retired Switch could not
+              say. The two are separate in Meridian and the cursor follows
+              `busy`: a switch a person is simply not allowed to move must not
+              promise them it is about to finish something. Here it genuinely is
+              -- the write is in flight -- so both are true and both are stated,
+              and the control announces `aria-busy` while it waits. */}
+            <Toggle
               checked={clusterSettings.data.enabled}
               onChange={(next) => autoSense.mutate(next)}
               label="Group new signals without asking"
               disabled={autoSense.isPending}
+              busy={autoSense.isPending}
             />
           </Line>
         </Region>

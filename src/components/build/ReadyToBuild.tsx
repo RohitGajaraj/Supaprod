@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Row } from "@/components/meridian/rows";
-import { Num, Door } from "@/components/meridian/surface-parts";
+import { Action, Num, Door, ReadFailedLine, Region } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -18,7 +18,23 @@ import { gateDispatch } from "@/lib/build/repo-gate";
 import { isDispatchRefusal, dispatchRefusalReason } from "@/lib/build/dispatch-refusal";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 import { ago } from "@/components/runs/run-state";
-import { Block, Button, Failed } from "@/components/shell/primitives";
+
+/**
+ * A ROUTER LINK INSIDE A SENTENCE, painted the way Meridian paints a door.
+ *
+ * It cannot BE `Door`: that primitive renders either a `<button>` or an
+ * `<a href>` for an outbound address, and a TanStack `<Link>` renders its own
+ * anchor with client navigation attached. So the paint is written out here and
+ * the element stays the router's.
+ *
+ * It keeps `--mrd-ink` rather than stepping down to Door's `--mrd-body`,
+ * because the floor rule holds: this link was full ink before the port and a
+ * port may not make a surface quieter. The dotted underline is added, which is
+ * the half it was missing -- a coloured word inside muted prose is not an
+ * affordance a person can see from across the room.
+ */
+const LINK =
+  "rounded-mrd-xs text-mrd-ink underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:decoration-mrd-edge hover:decoration-solid";
 
 /**
  * BUILD COULD NOT START A BUILD.
@@ -482,12 +498,15 @@ export function ReadyToBuild() {
    */
   if (specs.isError) {
     return (
-      <Block title="Approved and waiting to be built">
-        <Failed onRetry={() => void specs.refetch()}>
+      <Region title="Approved and waiting to be built">
+        {/* The bare half of the pair. `ReadFailed` draws its own bordered box
+            and this already sits under a Region heading; two containers around
+            one sentence is a frame. */}
+        <ReadFailedLine onRetry={() => void specs.refetch()}>
           The spec list did not load, so nothing can be started from here. This is not a statement
           that you have no approved specs.
-        </Failed>
-      </Block>
+        </ReadFailedLine>
+      </Region>
     );
   }
   if (specs.isLoading) return null;
@@ -501,7 +520,7 @@ export function ReadyToBuild() {
 
   return (
     <>
-      <Block
+      <Region
         title="Approved and waiting to be built"
         sub={
           beyond > 0 ? (
@@ -512,7 +531,7 @@ export function ReadyToBuild() {
               {showAll ? (
                 <>
                   The rest are on{" "}
-                  <Link to="/plan" style={{ color: "var(--sp-ink)" }}>
+                  <Link to="/plan" className={LINK}>
                     Plan
                   </Link>
                   , where each one can be sent to Build from its own page.
@@ -523,13 +542,26 @@ export function ReadyToBuild() {
             "Plan has finished with these. Starting one here opens its run."
           )
         }
-        /* The cap opens rather than being explained away. WINDOW_MAX is what
-         both side reads accept in one call, so this is the largest window
-         that does not cost a second round trip per row. */
-        more={
-          beyond > 0 && !showAll ? `Show ${Math.min(beyond, WINDOW_MAX - WINDOW)} more` : undefined
-        }
-        onMore={() => setShowAll(true)}
+        /*
+         * ── THE WAY PAST THE CAP CAME OUT OF THE HEADING, AND THAT IS THE PORT
+         *    RATHER THAN A TIDY-UP ────────────────────────────────────────
+         * This was `more`/`onMore`, which put "Show 34 more" in the REGION
+         * HEADING -- above rows the reader had not reached yet. Meridian's
+         * `Region` refuses that slot by name and gives the reason: the offer to
+         * see more of a list is announced before any of it has been seen, and
+         * the number in that offer is the only place the real total appears.
+         *
+         * `Region` splits the old prop three ways and none of them fits a cap:
+         * `goTo` LEAVES the region, `toggle` reveals something and announces
+         * `aria-expanded`, `act` dispatches work. This does none of those; it
+         * lengthens the list you are already reading.
+         *
+         * So it moved UNDER the last row, which is where `RecordsTable` already
+         * puts it and where a reader arrives having actually hit the limit. The
+         * arithmetic is unchanged: WINDOW_MAX is what both side reads accept in
+         * one call, so this is the largest window that costs no second round
+         * trip per row.
+         */
       >
         {failed ? (
           <Row
@@ -749,28 +781,50 @@ export function ReadyToBuild() {
                     >
                       Open the run
                     </Door>
-                    <Button
+                    <Action
                       disabled={busy}
                       title="Start a SECOND mission and a second billed run on this spec"
                       onClick={() => void gatedStart({ id: row.id, title: row.title })}
                     >
                       {pressing ? "Starting" : "Build again"}
-                    </Button>
+                    </Action>
                   </>
                 ) : (
-                  <Button
+                  /* AN `Action`, NEVER AN `Approve`, AND THE ACCENT IS THE
+                     REASON. Meridian spends `--mrd-you` on one meaning: a
+                     person is required, the work is stopped until this is
+                     pressed. Nothing is held here -- the spec is approved and
+                     idle, and this STARTS work rather than releasing any. The
+                     neutral primary is the one stop on the ladder nothing else
+                     uses, which is what makes it the loudest control on the
+                     station without borrowing the gate's colour. */
+                  <Action
                     variant="primary"
                     disabled={busy}
                     onClick={() => void gatedStart({ id: row.id, title: row.title })}
                   >
                     {pressing ? "Starting" : "Build this"}
-                  </Button>
+                  </Action>
                 )
               }
             />
           );
         })}
-      </Block>
+
+        {/* THE REAL ARITHMETIC, UNDER THE LAST ROW, with the way out beside it.
+            This is the half the region heading used to carry. A reader reaches
+            it having actually run out of rows, which is the only moment an
+            offer to see more of a list is answering a question they have. */}
+        {beyond > 0 && !showAll ? (
+          <div className="mt-mrd-4 text-[12.5px] text-mrd-mute">
+            <Num>{beyond}</Num> more {beyond === 1 ? "spec is" : "specs are"} approved and not
+            shown.{" "}
+            <Door onClick={() => setShowAll(true)}>
+              Show {Math.min(beyond, WINDOW_MAX - WINDOW)} more
+            </Door>
+          </div>
+        ) : null}
+      </Region>
 
       {/* The two real paths when no repo resolves: connect one on /sync, or
         provision a starter repo for this spec, after which the interrupted

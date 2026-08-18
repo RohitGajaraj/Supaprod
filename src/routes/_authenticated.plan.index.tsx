@@ -125,7 +125,19 @@ import { specStateWords, stripAutoPrefix } from "@/components/plan/format";
 import { RoadmapColumns } from "@/components/plan/RoadmapColumns";
 import { TrackStart } from "@/components/spine/TrackStart";
 import { CommitCeremony, type CommitCeremonyBet } from "@/components/plan/CommitCeremony";
-import { Block, Button, CtxHead, CtxRow, Empty, Failed, Loading, Gate, PageHead, Receipt, Surface } from "@/components/shell/primitives";
+import {
+  Action,
+  Approve,
+  NothingYet,
+  PageHeading,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
+import { CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
+import { Gate } from "@/components/meridian/Gate";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Surface } from "@/components/meridian/Surface";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { CrewWorking } from "@/components/shell/CrewWorking";
@@ -231,21 +243,32 @@ export const Route = createFileRoute("/_authenticated/plan/")({
     console.error("[Plan] route crashed:", error);
     return (
       <Surface>
-        {/* THE AUTONOMOUS PATH, VISIBLE. Renders nothing unless an agent is
-            genuinely mid-run, so it costs no space when the crew is idle and
-            cannot show a step that did not happen. Every other pulse on this
-            station is gated on a mutation the reader's own click started;
-            this one is bound to the run. See use-live-agents.ts. */}
-        <CrewWorking station="define" />
-        <PageHead
-          title="The plan did not load."
-          sub={(error as Error)?.message ?? "No reason was reported."}
-        />
-        <Block>
-          <Button variant="primary" onClick={reset}>
-            Try again
-          </Button>
-        </Block>
+        {/* THE STACK OWNS THE SPACE BETWEEN REGIONS NOW. The retired `Block`
+            drew its own 36px margin, 28px pad and top rule, so a surface never
+            said how its regions were spaced; Meridian's `Region` draws none of
+            that on purpose, and the six already-ported surfaces all state it
+            here as one gap. Same class, same stop, so Plan reads at the same
+            rhythm as Crew, Runs, Brain and the Engine Room. */}
+        <div className="flex flex-col gap-mrd-7">
+          {/* THE AUTONOMOUS PATH, VISIBLE. Renders nothing unless an agent is
+              genuinely mid-run, so it costs no space when the crew is idle and
+              cannot show a step that did not happen. Every other pulse on this
+              station is gated on a mutation the reader's own click started;
+              this one is bound to the run. See use-live-agents.ts. */}
+          <CrewWorking station="define" />
+          <PageHeading
+            title="The plan did not load."
+            sub={(error as Error)?.message ?? "No reason was reported."}
+          />
+          {/* A bare `Region` around one button was a container saying nothing.
+              `Actions` is the row a control belongs in, and it sets no outer
+              margin of its own, so the stack above owns the space. */}
+          <Actions>
+            <Action variant="primary" onClick={reset}>
+              Try again
+            </Action>
+          </Actions>
+        </div>
       </Surface>
     );
   },
@@ -615,9 +638,10 @@ function PlanPage() {
         // /plan set as plain text: the two sibling branches below both wrap
         // theirs, and so does the board's mirroring copy in RoadmapColumns'
         // second empty branch, which is the same sentence's other half. `Num`'s
-        // contract is "Every number, duration, count, diff, identifier and
-        // timestamp" (src/components/shell/primitives.tsx:1312). `headline` is
-        // typed React.ReactNode and PageHead renders it, so this costs nothing.
+        // contract is "EVERY NUMBER, DURATION, COUNT, IDENTIFIER AND TIMESTAMP.
+        // AND NOTHING ELSE" (`Num` in components/meridian/surface-parts; it was
+        // shell/primitives until the Meridian port). `headline` is typed
+        // React.ReactNode and PageHeading renders it, so this costs nothing.
         return decided === 1 ? (
           "One bet is committed but sits in no lane."
         ) : (
@@ -663,7 +687,11 @@ function PlanPage() {
       wide
       context={
         crew.length ? (
-          <>
+          /* THE COLUMN STATES ITS OWN SPACING NOW. `.sp-ctx-head` carried an
+             11px margin under the heading and `.sp-ctx-row` a 1px rule between
+             rows; Meridian's `CtxHead` and `CtxRow` set neither, on purpose, so
+             the composition says it. Same shape the ported Learn column uses. */
+          <div className="flex flex-col gap-mrd-4">
             <CtxHead>Who works the plan</CtxHead>
             {crew.map((a) => {
               const last = ago(a.lastActiveAt);
@@ -688,11 +716,15 @@ function PlanPage() {
                 />
               );
             })}
-          </>
+          </div>
         ) : null
       }
     >
-      {/* THE AUTONOMOUS PATH, VISIBLE, ON THE SURFACE A PERSON ACTUALLY READS.
+      {/* ONE STACK, ONE GAP. See the note in `errorComponent`: `Region` sets no
+        outer space, so the surface states it once here instead of every region
+        drawing its own rule and margin. */}
+      <div className="flex flex-col gap-mrd-7">
+        {/* THE AUTONOMOUS PATH, VISIBLE, ON THE SURFACE A PERSON ACTUALLY READS.
           This mount existed only inside `errorComponent` above, so the crew
           line appeared on Plan exactly when the station had CRASHED and never
           when it was working — the one branch where an agent's sentence is
@@ -700,28 +732,28 @@ function PlanPage() {
           N" per agent, which is a COUNT; this says the sentence the running
           mission is on. Renders nothing unless an agent is genuinely mid-run.
           See use-live-agents.ts. */}
-      <CrewWorking station="define" />
-      <PageHead
-        title={headline}
-        sub="Every bet names the outcome it promises and how that outcome gets measured."
-      />
+        <CrewWorking station="define" />
+        <PageHeading
+          title={headline}
+          sub="Every bet names the outcome it promises and how that outcome gets measured."
+        />
 
-      {/* WHAT THE LINK ASKED FOR, WHEN IT IS NOT HERE ANY MORE. Above the Gate
+        {/* WHAT THE LINK ASKED FOR, WHEN IT IS NOT HERE ANY MORE. Above the Gate
         on purpose: a person who followed `/stakeholder` or a bookmarked
         `?view=goals` is not looking at this station yet, they are looking for
         the thing they came for, and answering that has to happen before the
         station asks them anything. It is one Line rather than a Gate, because
         nothing here is waiting on them: it is a redirection, not a decision.
         See `MOVED_VIEWS`. */}
-      {view && MOVED_VIEWS[view] ? (
-        <Line label={MOVED_VIEWS[view].what} sub={MOVED_VIEWS[view].why}>
-          <Door onClick={() => void navigate({ to: MOVED_VIEWS[view].to })}>
-            {MOVED_VIEWS[view].door}
-          </Door>
-        </Line>
-      ) : null}
+        {view && MOVED_VIEWS[view] ? (
+          <Line label={MOVED_VIEWS[view].what} sub={MOVED_VIEWS[view].why}>
+            <Door onClick={() => void navigate({ to: MOVED_VIEWS[view].to })}>
+              {MOVED_VIEWS[view].door}
+            </Door>
+          </Line>
+        ) : null}
 
-      {/* THE STAKE BELONGS ABOVE THE LIST, NOT INSIDE IT (2026-08-11).
+        {/* THE STAKE BELONGS ABOVE THE LIST, NOT INSIDE IT (2026-08-11).
           The lines used to hold three bet titles AND a fourth entry explaining
           what happens if they stay undeclared. Two different kinds of thing
           wearing the same bullet: a reader scanning the list hits three names
@@ -735,14 +767,14 @@ function PlanPage() {
           The question also carries the count now, which the old lines only
           revealed in their fourth entry, and which matters because the list is
           capped at three. */}
-      {undeclared.length > 0 ? (
-        <Gate
-          question={
-            undeclared.length === 1
-              ? "What does success look like for this bet?"
-              : `What does success look like for these ${undeclared.length} bets?`
-          }
-          /* THE STAKE STAYS ABOVE THE LIST AND STOPS SHOUTING (2026-08-11, same
+        {undeclared.length > 0 ? (
+          <Gate
+            question={
+              undeclared.length === 1
+                ? "What does success look like for this bet?"
+                : `What does success look like for these ${undeclared.length} bets?`
+            }
+            /* THE STAKE STAYS ABOVE THE LIST AND STOPS SHOUTING (2026-08-11, same
              day as the note above).
              `sp-gate-what-label` is a CAPTION: mono, uppercase, letter-spaced
              (primitives.css). Two sentences and 132 characters in that slot wrap
@@ -754,108 +786,113 @@ function PlanPage() {
              clause in other words, so cutting it loses no fact and takes the
              caption to one line. Both halves of the point survive: the state,
              and what the state costs. */
-          linesLabel="Committed, with no outcome and no measure. Nothing can tell you later whether it worked."
-          lines={undeclared.slice(0, 3).map((b) => (
-            <span key={b.id}>{stripAutoPrefix(b.title)}</span>
-          ))}
-        >
-          <Button
-            variant="primary"
-            onClick={() =>
-              setDeclaring({
-                id: undeclared[0].id,
-                title: stripAutoPrefix(undeclared[0].title),
-                outcome: undeclared[0].outcome ?? null,
-                measure: undeclared[0].measure ?? null,
-              })
-            }
+            linesLabel="Committed, with no outcome and no measure. Nothing can tell you later whether it worked."
+            lines={undeclared.slice(0, 3).map((b) => (
+              <span key={b.id}>{stripAutoPrefix(b.title)}</span>
+            ))}
           >
-            {undeclared.length === 1
-              ? "Declare the outcome"
-              : `Declare the first of ${undeclared.length}`}
-          </Button>
-        </Gate>
-      ) : null}
+            {/* `Approve`, NOT `Action`, AND THIS IS THE ONE PLACE ON PLAN THAT
+              EARNS IT. Meridian spends orchid on a single meaning — a person is
+              required — and a Gate is the one shape where that is literally
+              true of a button: the bet is committed and nothing downstream can
+              grade it until somebody names the promise. Every other control on
+              this station is chrome by that test. */}
+            <Approve
+              onClick={() =>
+                setDeclaring({
+                  id: undeclared[0].id,
+                  title: stripAutoPrefix(undeclared[0].title),
+                  outcome: undeclared[0].outcome ?? null,
+                  measure: undeclared[0].measure ?? null,
+                })
+              }
+            >
+              {undeclared.length === 1
+                ? "Declare the outcome"
+                : `Declare the first of ${undeclared.length}`}
+            </Approve>
+          </Gate>
+        ) : null}
 
-      {/* What the declaration caused. A promise written down is a write with a
+        {/* What the declaration caused. A promise written down is a write with a
         consequence, so it earns a Receipt rather than vanishing into a toast
         (anti-slop.md 5). The consequence is the promise itself, because that
         is the thing that did not exist a moment ago and now does. */}
-      {receipt ? (
-        <Receipt
-          verb="You wrote the promise"
-          consequence={
-            <>
-              {receipt.title} now promises {receipt.outcome}, and Learn can grade it.
-            </>
-          }
-        />
-      ) : null}
+        {receipt ? (
+          <Receipt
+            verb="You wrote the promise"
+            consequence={
+              <>
+                {receipt.title} now promises {receipt.outcome}, and Learn can grade it.
+              </>
+            }
+          />
+        ) : null}
 
-      {/* AND THE OTHER HALF OF THE SAME WRITE, in the same place and the same
+        {/* AND THE OTHER HALF OF THE SAME WRITE, in the same place and the same
         shape, because a write that did not happen must never be silent on the
         surface where a write that did happen speaks. The reason is the
         server's own words. The door beside it re-opens the ceremony holding
         what was typed, so a refusal costs a press rather than the sentence.
         See `refused`. */}
-      {refused ? (
-        <>
-          <Receipt
-            failed
-            verb="The promise was not written"
-            // "Unchanged" rather than "still carries no outcome and no
-            // measure": `isCommitmentGoverned` is false when EITHER half is
-            // blank, so a bet reaching the Gate can already have one of the
-            // two, and naming both would be wrong for that bet. What is true
-            // of every refusal is that the row did not move.
-            consequence={
-              <>
-                {refused.bet.title} is unchanged on the board, and it still carries no declared
-                promise. {refused.reason}
-              </>
-            }
+        {refused ? (
+          <>
+            <Receipt
+              failed
+              verb="The promise was not written"
+              // "Unchanged" rather than "still carries no outcome and no
+              // measure": `isCommitmentGoverned` is false when EITHER half is
+              // blank, so a bet reaching the Gate can already have one of the
+              // two, and naming both would be wrong for that bet. What is true
+              // of every refusal is that the row did not move.
+              consequence={
+                <>
+                  {refused.bet.title} is unchanged on the board, and it still carries no declared
+                  promise. {refused.reason}
+                </>
+              }
+            />
+            <Actions>
+              <Action
+                onClick={() => {
+                  setDeclaring(refused.bet);
+                  setRefused(null);
+                }}
+              >
+                Try it again
+              </Action>
+            </Actions>
+          </>
+        ) : null}
+
+        {declaring ? (
+          <CommitCeremony
+            bet={declaring}
+            pending={declare.isPending}
+            onCancel={() => setDeclaring(null)}
+            onConfirm={(values) => {
+              const bet = items.find((i) => i.id === declaring.id);
+              declare.mutate({
+                id: declaring.id,
+                // Its CURRENT bucket, never "now". Declaring a promise must not
+                // move work into flight that nobody scheduled.
+                bucket: (bet?.bucket ?? "next") as "now" | "next" | "later",
+                outcome: values.outcome,
+                measure: values.measure,
+              });
+            }}
           />
-          <Actions>
-            <Button
-              onClick={() => {
-                setDeclaring(refused.bet);
-                setRefused(null);
-              }}
-            >
-              Try it again
-            </Button>
-          </Actions>
-        </>
-      ) : null}
+        ) : null}
 
-      {declaring ? (
-        <CommitCeremony
-          bet={declaring}
-          pending={declare.isPending}
-          onCancel={() => setDeclaring(null)}
-          onConfirm={(values) => {
-            const bet = items.find((i) => i.id === declaring.id);
-            declare.mutate({
-              id: declaring.id,
-              // Its CURRENT bucket, never "now". Declaring a promise must not
-              // move work into flight that nobody scheduled.
-              bucket: (bet?.bucket ?? "next") as "now" | "next" | "later",
-              outcome: values.outcome,
-              measure: values.measure,
-            });
-          }}
-        />
-      ) : null}
-
-      {/* THE ENTRY THAT DID NOT EXIST. Work on a product you already run has no
+        {/* THE ENTRY THAT DID NOT EXIST. Work on a product you already run has no
         signal and no theme behind it, so it has no lineage root, so until the
         track object there was nothing in the product that could even name it.
         It enters here, and it arrives carrying which stations it will visit and
         which it waives. Above the roadmap because starting work precedes
         scheduling it. */}
-      <TrackStart />
+        <TrackStart />
 
-      {/* THE DOOR FOR THE COUNT IN THE HEAD IS INSIDE THIS BLOCK, NOT BESIDE THE
+        {/* THE DOOR FOR THE COUNT IN THE HEAD IS INSIDE THIS BLOCK, NOT BESIDE THE
         HEAD, AND THAT IS DELIBERATE.
 
         When no bet carries a lane the head above reads "N bets are committed but
@@ -875,13 +912,13 @@ function PlanPage() {
         which is the argument RoadmapColumns writes down at its own empty branch.
         A primary up here would be the second one on the page and would falsify
         that comment in the same stroke. */}
-      <div ref={refRoadmap} id="plan-section-roadmap" tabIndex={-1} className="outline-none">
-        <Block title="Now, Next and Later">
-          <RoadmapColumns />
-        </Block>
-      </div>
+        <div ref={refRoadmap} id="plan-section-roadmap" tabIndex={-1} className="outline-none">
+          <Region title="Now, Next and Later">
+            <RoadmapColumns />
+          </Region>
+        </div>
 
-      {/* THE SAME QUESTION THE ROADMAP HEAD ASKS, ASKED THE SAME WAY. This read
+        {/* THE SAME QUESTION THE ROADMAP HEAD ASKS, ASKED THE SAME WAY. This read
         `specs.isLoading` while `roadmapUnknown` two hundred lines above had
         already been widened to `stillWaiting`, and one guard fixed in a file is
         not a guard: v5's `isLoading` is `isPending && isFetching`, so for a
@@ -905,52 +942,60 @@ function PlanPage() {
         collision by ordering its <Failed> above its skeleton; here the error
         branch lives INSIDE the block below, so the exclusion is written into the
         wait instead. */}
-      {!specs.isError && stillWaiting(specs) ? (
-        <Loading>Reading the specs.</Loading>
-      ) : (
-        <div ref={refSpecs} id="plan-section-specs" tabIndex={-1} className="outline-none">
-          <Block
-            title="Specs"
-            // A different fact from the title, and the one a planner came for.
-            sub={
-              draftSpec.isPending ? (
-                // A GREYED BUTTON IS NOT A SIGN OF LIFE, and this is the
-                // longest-running act on the station: `generatePrd` is three
-                // chokepoint calls (a title, the body, then the outcome
-                // contract) with a retrieval pass between them. The detail is
-                // the bet, a noun this surface already read, never a guess at a
-                // step.
-                //
-                // IT NAMES THE WORK AND NOT THE WORKER, which is the same
-                // choice /decide's copy of this indicator makes for the same
-                // call. `generatePrd` goes through `callModel` and writes no
-                // `agent_runs` row, and the context rail beside this reads
-                // exactly that table: a label saying "Draft is writing the
-                // spec" would sit one column away from "Draft has not run here
-                // yet" and one of them would be wrong.
-                <AgentPulse
-                  label="Drafting the spec"
-                  seed="prd-writer"
-                  compact
-                  detail={draftSpec.variables?.title}
-                />
-              ) : nowCount > 0 && !specs.isError ? (
-                <>
-                  <Num>{nowWithSpec}</Num> of the <Num>{nowCount}</Num> bets in Now have a spec
-                  written.
-                </>
-              ) : undefined
-            }
-            more={
-              specList.length > VISIBLE_SPECS
-                ? showAllSpecs
-                  ? "Show fewer"
-                  : `Show ${specList.length - VISIBLE_SPECS} more`
-                : undefined
-            }
-            onMore={() => setShowAllSpecs((v) => !v)}
-          >
-            {/* THE DOOR THE COVERAGE LINE NEVER HAD. The sub above counts the
+        {!specs.isError && stillWaiting(specs) ? (
+          <Reading>Reading the specs.</Reading>
+        ) : (
+          <div ref={refSpecs} id="plan-section-specs" tabIndex={-1} className="outline-none">
+            <Region
+              title="Specs"
+              // A different fact from the title, and the one a planner came for.
+              sub={
+                draftSpec.isPending ? (
+                  // A GREYED BUTTON IS NOT A SIGN OF LIFE, and this is the
+                  // longest-running act on the station: `generatePrd` is three
+                  // chokepoint calls (a title, the body, then the outcome
+                  // contract) with a retrieval pass between them. The detail is
+                  // the bet, a noun this surface already read, never a guess at a
+                  // step.
+                  //
+                  // IT NAMES THE WORK AND NOT THE WORKER, which is the same
+                  // choice /decide's copy of this indicator makes for the same
+                  // call. `generatePrd` goes through `callModel` and writes no
+                  // `agent_runs` row, and the context rail beside this reads
+                  // exactly that table: a label saying "Draft is writing the
+                  // spec" would sit one column away from "Draft has not run here
+                  // yet" and one of them would be wrong.
+                  <AgentPulse
+                    label="Drafting the spec"
+                    seed="prd-writer"
+                    compact
+                    detail={draftSpec.variables?.title}
+                  />
+                ) : nowCount > 0 && !specs.isError ? (
+                  <>
+                    <Num>{nowWithSpec}</Num> of the <Num>{nowCount}</Num> bets in Now have a spec
+                    written.
+                  </>
+                ) : undefined
+              }
+              /* THE CAP'S WAY PAST IT IS NOT IN THIS HEAD ANY MORE, AND THAT IS
+               THE ONE THING `Region` REFUSES TO TAKE. `Block`'s `more` slot was
+               serving two different controls and Meridian split it by name:
+               `goTo` leaves the region, `toggle` discloses something inside it,
+               `act` does something — and a REVEAL PAST A CAP gets no prop at
+               all, deliberately. The measured reason is Brain's: a shelf capped
+               at six put "Show all 14" in the region heading, ABOVE the rows the
+               reader had not reached yet, so the way past the cap was announced
+               before the cap and the only place the real total appeared was an
+               offer to see more of a list nobody had started reading.
+
+               It is the same defect here in the same shape. The reveal now sits
+               UNDER the last row, where a reader arrives having actually hit the
+               limit, and it states both real numbers rather than only the
+               remainder. `RecordsTable` answers a cap the same way, so the two
+               places in the product that cap a list now say so identically. */
+            >
+              {/* THE DOOR THE COVERAGE LINE NEVER HAD. The sub above counts the
               bets in Now that HAVE a spec, against the bets in Now; this names
               one of the ones left over and writes it. Without this the fact was
               a scoreboard on the one station whose stated product is the thing
@@ -962,224 +1007,250 @@ function PlanPage() {
               A read whose error is discarded is never evidence of absence. The
               wait is handled above, by the branch that keeps this whole block
               off screen until the specs answer. */}
-            {uncoveredNowBet && !specs.isError ? (
-              <Line
-                label={stripAutoPrefix(uncoveredNowBet.title)}
-                sub="In Now with no spec. Draft reads the bet, writes the spec against what the record already holds, cites it, and this lands you on it."
-              >
-                <Button
-                  disabled={draftSpec.isPending}
-                  onClick={() =>
-                    draftSpec.mutate({
-                      id: uncoveredNowBet.id,
-                      title: stripAutoPrefix(uncoveredNowBet.title),
-                    })
-                  }
+              {uncoveredNowBet && !specs.isError ? (
+                <Line
+                  label={stripAutoPrefix(uncoveredNowBet.title)}
+                  sub="In Now with no spec. Draft reads the bet, writes the spec against what the record already holds, cites it, and this lands you on it."
                 >
-                  {draftSpec.isPending ? "Drafting" : "Draft the spec"}
-                </Button>
-              </Line>
-            ) : null}
-
-            {/* A draft that did not happen never wears the shape of one that
-              did. Success navigates to the spec, so only the failure speaks
-              here. */}
-            {draftRefused ? (
-              <Receipt
-                failed
-                verb="No spec was written"
-                consequence={
-                  <>
-                    {draftRefused.title} still has none. {draftRefused.reason}
-                  </>
-                }
-              />
-            ) : null}
-
-            {specs.isError ? (
-              <Failed onRetry={() => void specs.refetch()}>
-                {(specs.error as Error)?.message ?? "The specs did not load."}
-              </Failed>
-            ) : specList.length === 0 ? (
-              // THE SENTENCE THAT SENT PEOPLE NOWHERE. It read "Commit a bet and
-              // Scribe drafts the first one, cited, in about five minutes", and
-              // committing a bet writes no spec: `commitRoadmapItem` sets the
-              // lane, the outcome and the measure and stops. The agent's name is
-              // Draft, not Scribe, which is what the context rail on this same
-              // page prints. Both halves are corrected, and the door is named
-              // rather than described. See `draftSpec`.
-              <Empty
-                action={
-                  <Button onClick={() => void navigate({ to: "/decide" })}>Open Decide</Button>
-                }
-              >
-                No specs yet, and committing a bet here does not write one: a commit sets the lane,
-                the outcome and the measure, and stops. A spec is written when you keep a bet on
-                Decide, where "Keep it" runs Draft and lands you on what it wrote. Any bet already
-                sitting in Now can be drafted from the line above, and the crew will draft one on
-                request.
-              </Empty>
-            ) : (
-              shownSpecs.map((spec) => {
-                const specTitle = stripAutoPrefix(spec.title);
-                /**
-                 * THE JOIN IS ONLY A FACT WHEN IT NAMES SOMETHING THE LEAD DOES
-                 * NOT.
-                 *
-                 * `generatePrd` titles a spec from the bet it was written for,
-                 * so the two strings are frequently the same one. The row then
-                 * read "Skip the address re-confirm when nothing changed" on the
-                 * lead and "Approved · serves Skip the address re-confirm when
-                 * nothing changed" underneath it: the title printed twice, one
-                 * line apart, which reads as a rendering fault rather than as a
-                 * relationship. This file's own rule for a row is "its title
-                 * plus one DIFFERENT fact", and a restatement is not one.
-                 *
-                 * Compared case-insensitively and trimmed because the two
-                 * strings travel through different writers (`stripAutoPrefix`
-                 * here, the model's own casing there) and an incidental capital
-                 * is not a different bet. When they genuinely differ the suffix
-                 * is unchanged, which is every row where it was earning its
-                 * place.
-                 */
-                const betTitle = spec.opportunity_id ? betTitleById.get(spec.opportunity_id) : null;
-                const bet =
-                  betTitle && betTitle.trim().toLowerCase() !== specTitle.trim().toLowerCase()
-                    ? betTitle
-                    : null;
-                const settled = spec.status === "approved" || spec.status === "shipped";
-                /**
-                 * THE DESIGN SUFFIX REPORTS A ROW OR IT SAYS NOTHING.
-                 *
-                 * WHAT WAS WRONG. It used to read `· design pending` on every
-                 * unsettled spec, because the condition was only
-                 * "design_gate_status is truthy" and `prds.design_gate_status`
-                 * is `not null default 'pending'`
-                 * (supabase/migrations/20260708170000_sw4_design_station.sql:16),
-                 * so the column was never empty and the suffix never absent.
-                 * Re-measured through the Lovable MCP on 2026-08-06: 81 specs,
-                 * of which 42 are approved and 14 shipped, so 25 are unsettled -
-                 * and all 25 carried a label. Exactly 2 of the 25 have anything
-                 * drawn, so 23 of 25 announced a design step that nothing had
-                 * ever been drawn for.
-                 *
-                 * THE TWO DRAWN ONES ARE NOT INTERCHANGEABLE, and the difference
-                 * is what makes "the single live spec that owes a design call"
-                 * below add up rather than contradict the 2. Same read: one is
-                 * "Bank-link drop-off at activation", whose gate a human has
-                 * already APPROVED, so it takes the verdict branch; the other is
-                 * spec …021 below, still pending. Two drawings, one outstanding
-                 * call.
-                 *
-                 * WHAT THOSE 23 ARE NOT. They are not specs anybody routed past
-                 * Design. The route picker has never been used in this database:
-                 * `stage_events where entity_type = 'spec' and to_stage in
-                 * ('design_skipped','design_requested')` returns 0 rows, on the
-                 * same 2026-08-06 read. The label was announcing a column
-                 * default, which is the whole defect - and the deliberate skip
-                 * the picker records, the case this row now CAN name, has no
-                 * live instance yet to name.
-                 *
-                 * src/lib/build/design-gate.ts already ruled on this exact
-                 * default for dispatch: an unmade drawing does not block. This
-                 * list is that ruling applied to what the list SAYS. Every word
-                 * below rests on a row that exists:
-                 *   'approved' / 'rejected'  a human settled the gate
-                 *                            (`decideDesignGate`).
-                 *   skipped on purpose       a `design_skipped` stage event,
-                 *                            written by the route picker.
-                 *   pending                  a `prd_scaffolds` row exists and no
-                 *                            verdict has been written, so the
-                 *                            call is genuinely outstanding.
-                 * 'pending' with nothing drawn is the value nobody wrote. It is
-                 * not a fact and it still gets no words.
-                 *
-                 * THE ORDER IS THE ORDER OF THE EVIDENCE: a written verdict
-                 * beats a recorded skip beats a drawing waiting on a call.
-                 * Those first two ranks are the two the chain of custody
-                 * applies as well (`assembleChain`,
-                 * src/lib/trust-chain.functions.ts), so a spec cannot get one
-                 * answer here and a different one there. The chain has a fourth
-                 * rank this row does not: it SAYS "nothing was drawn" where this
-                 * row stays silent, because a chain link owes an account of
-                 * every station and a one-line list row does not.
-                 *
-                 * THE RESTORED CASE. Spec 60000000-0001-4000-8000-000000000021
-                 * ("Comet: a focus timer that plans your day") is draft, its
-                 * gate is untouched, and it has one drawing - the single live
-                 * spec that genuinely owes a design call. The first pass at this
-                 * fix dropped its reminder along with the 23 false ones, because
-                 * `listSpecs` could not tell it apart from them. Reading
-                 * `listDesignWork` above tells them apart, so the reminder is
-                 * back on the one row where it was always true.
-                 *
-                 * WHEN IT SAYS NOTHING, AND WHY THAT IS SAFE. Every new word
-                 * needs a row the design read actually returned. While that
-                 * query is loading, if it fails, or for a spec outside its
-                 * window (40 by `updated_at`, default workspace only - see the
-                 * query), the row falls back to exactly today's behaviour: the
-                 * verdict from `listSpecs` if there is one, otherwise silence.
-                 * An absent design row is never read as "nothing was drawn".
-                 */
-                const designGateStatus = (spec as { design_gate_status?: string | null })
-                  .design_gate_status;
-                // The column's check constraint is ('pending','approved','rejected')
-                // (supabase/migrations/20260708170000_sw4_design_station.sql:17),
-                // so these two are the whole set of human verdicts. Anything
-                // else, 'pending' included, is not one.
-                const designWord =
-                  designGateStatus === "approved"
-                    ? "approved"
-                    : designGateStatus === "rejected"
-                      ? "rejected"
-                      : null;
-                const designRow = designByPrd.get(spec.id) ?? null;
-                // `gateStatus` is re-checked from the design read rather than
-                // trusted from `designWord` alone: the two queries resolve at
-                // different moments, and a reminder for a call somebody just
-                // made would be the old defect in miniature.
-                const designOwed =
-                  designStageOn && !!designRow?.drawing && designRow.gateStatus === "pending";
-                const withDesignStatus = settled
-                  ? ""
-                  : designWord
-                    ? ` · design ${designWord}`
-                    : designRow?.route?.route === "direct"
-                      ? ` · design ${DESIGN_SKIPPED_ON_PURPOSE}`
-                      : designOwed
-                        ? " · design pending"
-                        : "";
-                return (
-                  <Row
-                    key={spec.id}
-                    tight
-                    // Dim means settled, normal means still moving. The station's
-                    // agent, monochrome: ember is reserved for what wants you.
-                    marks={<AgentMark slug="prd-writer" state={settled ? "quiet" : "idle"} />}
-                    lead={specTitle}
-                    // One line, one different fact: where the spec has got to,
-                    // which bet it is, and - only when some row says so - what
-                    // happened at the design gate.
-                    sub={
-                      bet
-                        ? `${specStateWords(spec.status)} · serves ${bet}${withDesignStatus}`
-                        : `${specStateWords(spec.status)}${withDesignStatus}`
-                    }
-                    time={ago(spec.updated_at)}
+                  <Action
+                    disabled={draftSpec.isPending}
                     onClick={() =>
-                      void navigate({
-                        to: "/plan/spec/$id",
-                        params: { id: spec.id },
-                        search: {},
+                      draftSpec.mutate({
+                        id: uncoveredNowBet.id,
+                        title: stripAutoPrefix(uncoveredNowBet.title),
                       })
                     }
-                  />
-                );
-              })
-            )}
-          </Block>
-        </div>
-      )}
+                  >
+                    {draftSpec.isPending ? "Drafting" : "Draft the spec"}
+                  </Action>
+                </Line>
+              ) : null}
+
+              {/* A draft that did not happen never wears the shape of one that
+              did. Success navigates to the spec, so only the failure speaks
+              here. */}
+              {draftRefused ? (
+                <Receipt
+                  failed
+                  verb="No spec was written"
+                  consequence={
+                    <>
+                      {draftRefused.title} still has none. {draftRefused.reason}
+                    </>
+                  }
+                />
+              ) : null}
+
+              {specs.isError ? (
+                // The LINE half of the failed-read pair. This sits under a region
+                // heading that already frames it, and the standard caps a region
+                // at one bordered box.
+                <ReadFailedLine onRetry={() => void specs.refetch()}>
+                  {(specs.error as Error)?.message ?? "The specs did not load."}
+                </ReadFailedLine>
+              ) : specList.length === 0 ? (
+                // THE SENTENCE THAT SENT PEOPLE NOWHERE. It read "Commit a bet and
+                // Scribe drafts the first one, cited, in about five minutes", and
+                // committing a bet writes no spec: `commitRoadmapItem` sets the
+                // lane, the outcome and the measure and stops. The agent's name is
+                // Draft, not Scribe, which is what the context rail on this same
+                // page prints. Both halves are corrected, and the door is named
+                // rather than described. See `draftSpec`.
+                <NothingYet
+                  action={
+                    <Action onClick={() => void navigate({ to: "/decide" })}>Open Decide</Action>
+                  }
+                >
+                  No specs yet, and committing a bet here does not write one: a commit sets the
+                  lane, the outcome and the measure, and stops. A spec is written when you keep a
+                  bet on Decide, where "Keep it" runs Draft and lands you on what it wrote. Any bet
+                  already sitting in Now can be drafted from the line above, and the crew will draft
+                  one on request.
+                </NothingYet>
+              ) : (
+                shownSpecs.map((spec) => {
+                  const specTitle = stripAutoPrefix(spec.title);
+                  /**
+                   * THE JOIN IS ONLY A FACT WHEN IT NAMES SOMETHING THE LEAD DOES
+                   * NOT.
+                   *
+                   * `generatePrd` titles a spec from the bet it was written for,
+                   * so the two strings are frequently the same one. The row then
+                   * read "Skip the address re-confirm when nothing changed" on the
+                   * lead and "Approved · serves Skip the address re-confirm when
+                   * nothing changed" underneath it: the title printed twice, one
+                   * line apart, which reads as a rendering fault rather than as a
+                   * relationship. This file's own rule for a row is "its title
+                   * plus one DIFFERENT fact", and a restatement is not one.
+                   *
+                   * Compared case-insensitively and trimmed because the two
+                   * strings travel through different writers (`stripAutoPrefix`
+                   * here, the model's own casing there) and an incidental capital
+                   * is not a different bet. When they genuinely differ the suffix
+                   * is unchanged, which is every row where it was earning its
+                   * place.
+                   */
+                  const betTitle = spec.opportunity_id
+                    ? betTitleById.get(spec.opportunity_id)
+                    : null;
+                  const bet =
+                    betTitle && betTitle.trim().toLowerCase() !== specTitle.trim().toLowerCase()
+                      ? betTitle
+                      : null;
+                  const settled = spec.status === "approved" || spec.status === "shipped";
+                  /**
+                   * THE DESIGN SUFFIX REPORTS A ROW OR IT SAYS NOTHING.
+                   *
+                   * WHAT WAS WRONG. It used to read `· design pending` on every
+                   * unsettled spec, because the condition was only
+                   * "design_gate_status is truthy" and `prds.design_gate_status`
+                   * is `not null default 'pending'`
+                   * (supabase/migrations/20260708170000_sw4_design_station.sql:16),
+                   * so the column was never empty and the suffix never absent.
+                   * Re-measured through the Lovable MCP on 2026-08-06: 81 specs,
+                   * of which 42 are approved and 14 shipped, so 25 are unsettled -
+                   * and all 25 carried a label. Exactly 2 of the 25 have anything
+                   * drawn, so 23 of 25 announced a design step that nothing had
+                   * ever been drawn for.
+                   *
+                   * THE TWO DRAWN ONES ARE NOT INTERCHANGEABLE, and the difference
+                   * is what makes "the single live spec that owes a design call"
+                   * below add up rather than contradict the 2. Same read: one is
+                   * "Bank-link drop-off at activation", whose gate a human has
+                   * already APPROVED, so it takes the verdict branch; the other is
+                   * spec …021 below, still pending. Two drawings, one outstanding
+                   * call.
+                   *
+                   * WHAT THOSE 23 ARE NOT. They are not specs anybody routed past
+                   * Design. The route picker has never been used in this database:
+                   * `stage_events where entity_type = 'spec' and to_stage in
+                   * ('design_skipped','design_requested')` returns 0 rows, on the
+                   * same 2026-08-06 read. The label was announcing a column
+                   * default, which is the whole defect - and the deliberate skip
+                   * the picker records, the case this row now CAN name, has no
+                   * live instance yet to name.
+                   *
+                   * src/lib/build/design-gate.ts already ruled on this exact
+                   * default for dispatch: an unmade drawing does not block. This
+                   * list is that ruling applied to what the list SAYS. Every word
+                   * below rests on a row that exists:
+                   *   'approved' / 'rejected'  a human settled the gate
+                   *                            (`decideDesignGate`).
+                   *   skipped on purpose       a `design_skipped` stage event,
+                   *                            written by the route picker.
+                   *   pending                  a `prd_scaffolds` row exists and no
+                   *                            verdict has been written, so the
+                   *                            call is genuinely outstanding.
+                   * 'pending' with nothing drawn is the value nobody wrote. It is
+                   * not a fact and it still gets no words.
+                   *
+                   * THE ORDER IS THE ORDER OF THE EVIDENCE: a written verdict
+                   * beats a recorded skip beats a drawing waiting on a call.
+                   * Those first two ranks are the two the chain of custody
+                   * applies as well (`assembleChain`,
+                   * src/lib/trust-chain.functions.ts), so a spec cannot get one
+                   * answer here and a different one there. The chain has a fourth
+                   * rank this row does not: it SAYS "nothing was drawn" where this
+                   * row stays silent, because a chain link owes an account of
+                   * every station and a one-line list row does not.
+                   *
+                   * THE RESTORED CASE. Spec 60000000-0001-4000-8000-000000000021
+                   * ("Comet: a focus timer that plans your day") is draft, its
+                   * gate is untouched, and it has one drawing - the single live
+                   * spec that genuinely owes a design call. The first pass at this
+                   * fix dropped its reminder along with the 23 false ones, because
+                   * `listSpecs` could not tell it apart from them. Reading
+                   * `listDesignWork` above tells them apart, so the reminder is
+                   * back on the one row where it was always true.
+                   *
+                   * WHEN IT SAYS NOTHING, AND WHY THAT IS SAFE. Every new word
+                   * needs a row the design read actually returned. While that
+                   * query is loading, if it fails, or for a spec outside its
+                   * window (40 by `updated_at`, default workspace only - see the
+                   * query), the row falls back to exactly today's behaviour: the
+                   * verdict from `listSpecs` if there is one, otherwise silence.
+                   * An absent design row is never read as "nothing was drawn".
+                   */
+                  const designGateStatus = (spec as { design_gate_status?: string | null })
+                    .design_gate_status;
+                  // The column's check constraint is ('pending','approved','rejected')
+                  // (supabase/migrations/20260708170000_sw4_design_station.sql:17),
+                  // so these two are the whole set of human verdicts. Anything
+                  // else, 'pending' included, is not one.
+                  const designWord =
+                    designGateStatus === "approved"
+                      ? "approved"
+                      : designGateStatus === "rejected"
+                        ? "rejected"
+                        : null;
+                  const designRow = designByPrd.get(spec.id) ?? null;
+                  // `gateStatus` is re-checked from the design read rather than
+                  // trusted from `designWord` alone: the two queries resolve at
+                  // different moments, and a reminder for a call somebody just
+                  // made would be the old defect in miniature.
+                  const designOwed =
+                    designStageOn && !!designRow?.drawing && designRow.gateStatus === "pending";
+                  const withDesignStatus = settled
+                    ? ""
+                    : designWord
+                      ? ` · design ${designWord}`
+                      : designRow?.route?.route === "direct"
+                        ? ` · design ${DESIGN_SKIPPED_ON_PURPOSE}`
+                        : designOwed
+                          ? " · design pending"
+                          : "";
+                  return (
+                    <Row
+                      key={spec.id}
+                      tight
+                      // Dim means settled, normal means still moving. The station's
+                      // agent, monochrome: ember is reserved for what wants you.
+                      marks={<AgentMark slug="prd-writer" state={settled ? "quiet" : "idle"} />}
+                      lead={specTitle}
+                      // One line, one different fact: where the spec has got to,
+                      // which bet it is, and - only when some row says so - what
+                      // happened at the design gate.
+                      sub={
+                        bet
+                          ? `${specStateWords(spec.status)} · serves ${bet}${withDesignStatus}`
+                          : `${specStateWords(spec.status)}${withDesignStatus}`
+                      }
+                      time={ago(spec.updated_at)}
+                      onClick={() =>
+                        void navigate({
+                          to: "/plan/spec/$id",
+                          params: { id: spec.id },
+                          search: {},
+                        })
+                      }
+                    />
+                  );
+                })
+              )}
+
+              {/* THE ARITHMETIC UNDER THE LAST ROW, with the way out beside it.
+              Never rendered while the list is failed or empty, because those two
+              branches replace the rows entirely and a cap notice under an error
+              would be counting something nobody can see. */}
+              {!specs.isError && specList.length > VISIBLE_SPECS ? (
+                <Line
+                  label={
+                    <>
+                      Showing <Num>{shownSpecs.length}</Num> of <Num>{specList.length}</Num> specs.
+                    </>
+                  }
+                >
+                  <Door onClick={() => setShowAllSpecs((v) => !v)}>
+                    {showAllSpecs
+                      ? `Show ${VISIBLE_SPECS} again`
+                      : `Show the other ${specList.length - VISIBLE_SPECS}`}
+                  </Door>
+                </Line>
+              ) : null}
+            </Region>
+          </div>
+        )}
+      </div>
     </Surface>
   );
 }

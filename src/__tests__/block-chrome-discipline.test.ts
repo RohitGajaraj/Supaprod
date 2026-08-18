@@ -50,9 +50,27 @@ function tsxFiles(dir: string): string[] {
  * braces is tracked and only a `>` at depth zero ends the tag. This is the difference
  * between a guard that works and one that reports a dozen phantoms.
  */
-function blockOpenTags(source: string): { index: number; tag: string; selfClosing: boolean }[] {
-  const out: { index: number; tag: string; selfClosing: boolean }[] = [];
-  for (const m of source.matchAll(/<Block\b/g)) {
+/*
+ * BOTH VOCABULARIES, SINCE 2026-08-18.
+ *
+ * This guard was written for `Block`, and `Block` is being deleted. Left as it
+ * was, it would go quiet at exactly the moment the last one went: its own
+ * canary below already dropped from 11 to 6 as the six stations ported, and a
+ * guard whose subject disappears reports success for the wrong reason.
+ *
+ * `Region` is the same chrome under the Meridian name, so the rule it enforces
+ * -- a titled section inside a titled section draws a heading that reads as a
+ * control -- is unchanged. Matching both keeps it honest through the migration
+ * and after it.
+ */
+function blockOpenTags(source: string): {
+  index: number;
+  tag: string;
+  name: string;
+  selfClosing: boolean;
+}[] {
+  const out: { index: number; tag: string; name: string; selfClosing: boolean }[] = [];
+  for (const m of source.matchAll(/<(Block|Region)\b/g)) {
     const start = m.index!;
     let i = start + m[0].length;
     let depth = 0;
@@ -62,6 +80,7 @@ function blockOpenTags(source: string): { index: number; tag: string; selfClosin
       else if (c === "}") depth -= 1;
       else if (c === ">" && depth === 0) {
         out.push({
+          name: m[1]!,
           index: start,
           tag: source.slice(start, i + 1),
           selfClosing: source[i - 1] === "/",
@@ -124,7 +143,7 @@ describe("Block chrome never promises an action it cannot perform", () => {
         const body = next >= 0 ? after.slice(0, next) : after;
         const ret = body.match(/^\s*return \(?\s*$\n?\s*<(\w+)|^\s*return \(?\s*<(\w+)/m);
         const root = ret?.[1] ?? ret?.[2];
-        if (root === "Block") drawsOwnBlock.set(m[1]!, file);
+        if (root === "Block" || root === "Region") drawsOwnBlock.set(m[1]!, file);
       }
     }
     // The guard is worthless if this list is empty, so the list itself is asserted.
@@ -133,13 +152,29 @@ describe("Block chrome never promises an action it cannot perform", () => {
     const offenders: string[] = [];
     for (const file of FILES) {
       const source = readFileSync(file, "utf8");
-      for (const { index, tag, selfClosing } of blockOpenTags(source)) {
+      for (const { index, tag, name, selfClosing } of blockOpenTags(source)) {
         if (selfClosing) continue;
-        // The extent of this Block, by matching tag depth.
+        /*
+         * ONLY A TITLED SECTION IS A SECTION, for `Region`.
+         *
+         * The defect this guard names is a HEADING inside a heading. Meridian's
+         * `Region` renders no head at all unless it is given a title (or a
+         * goTo/toggle/act control), so an untitled one is a plain flex
+         * container and nesting inside it competes with nothing.
+         *
+         * The retired `Block` is not exempted: it drew 36px, 28px and a rule
+         * whether or not it had a title, so every one of those was visible
+         * chrome.
+         */
+        if (name === "Region" && !/\btitle=/.test(tag)) continue;
+        /* Depth is counted on THE TAG THIS ONE OPENED WITH. Counting Block and
+           Region together would let a `<Region>` inside a `<Block>` increment a
+           depth its own `</Region>` never decrements, and the extent would run
+           to the end of the file. */
         let depth = 1;
         let cursor = index + tag.length;
         let end = source.length;
-        const scan = /<Block\b|<\/Block>/g;
+        const scan = new RegExp(`<${name}\\b|</${name}>`, "g");
         scan.lastIndex = cursor;
         let m: RegExpExecArray | null;
         while ((m = scan.exec(source))) {
@@ -151,13 +186,13 @@ describe("Block chrome never promises an action it cannot perform", () => {
         }
         const inner = source.slice(cursor, end);
         const line = source.slice(0, index).split("\n").length;
-        if (/<Block\b/.test(inner)) {
-          offenders.push(`${file.replace(SRC, "src/")}:${line} holds a literal <Block>`);
+        if (/<(?:Block|Region)\b/.test(inner)) {
+          offenders.push(`${file.replace(SRC, "src/")}:${line} holds a literal <${name}>`);
         }
-        for (const [name] of drawsOwnBlock) {
+        for (const [inner_name] of drawsOwnBlock) {
           // Only when this file actually imports it, so a same-named local is not blamed.
-          if (new RegExp(`<${name}[\\s/>]`).test(inner) && new RegExp(`\\b${name}\\b`).test(source.slice(0, index))) {
-            offenders.push(`${file.replace(SRC, "src/")}:${line} holds <${name} />, which draws its own Block`);
+          if (new RegExp(`<${inner_name}[\\s/>]`).test(inner) && new RegExp(`\\b${inner_name}\\b`).test(source.slice(0, index))) {
+            offenders.push(`${file.replace(SRC, "src/")}:${line} holds <${inner_name} />, which draws its own section`);
           }
         }
       }

@@ -457,8 +457,15 @@ describe("the role behind the announcement controls is a read like any other", (
     // as "you are not allowed to announce": a question with nothing under it.
     const flat = shipSrc.replace(/\s+/g, " ");
     expect(flat).toMatch(/const membersReading = stillWaiting\(members\)/);
+    /* PINS THE CLAIM, NOT THE SPELLING. This read `<Failed`, the retired
+       primitive's name, so the Meridian port broke it by renaming a component
+       while satisfying the requirement completely. What has to be true is that
+       a lost role read renders a FAILURE that carries the re-read -- not that
+       the failure is spelled any particular way. `ReadFailed` and
+       `ReadFailedLine` are the boxed and bare halves of the same fact, and
+       either one is correct here depending on whether a region is around it. */
     expect(flat).toMatch(
-      /members\.isError \? \( <Failed onRetry=\{\(\) => void members\.refetch\(\)\}/,
+      /members\.isError \? \( <ReadFailed(Line)? [^>]*onRetry=\{\(\) => void members\.refetch\(\)\}/,
     );
     // A read that ANSWERED with no membership row is not a failure and gets its
     // own sentence.

@@ -105,22 +105,46 @@ import { listDeployments } from "@/lib/deployments.functions";
 import { DESIGN_SKIPPED_ON_PURPOSE } from "@/lib/trust-chain.functions";
 import { Answer } from "@/components/ask/Answer";
 import {
-  Block,
-  Empty,
-  Failed,
-  Loading,
+  NothingYet,
   Num,
-  Prose,
-  Receipt,
-  // Aliased because the primitive is called `Record` and TypeScript's `Record<K,V>`
-  // utility type lives in the global scope under the same name. A bare
-  // `import { Record }` shadows it, and the next person to write
-  // `Record<string, unknown>` in this file gets "refers to a value but is being
-  // used as a type", which is a confusing failure a long way from its cause.
-  Record as RecordClaim,
-  Row,
+  ReadFailed,
+  Reading,
+  // Meridian's name for the retired `Record`. The alias this import used to
+  // carry is gone with it: the primitive was called `Record` and TypeScript's
+  // `Record<K,V>` utility type lives in the global scope under the same name, so
+  // a bare `import { Record }` shadowed it and the next person to write
+  // `Record<string, unknown>` in this file got "refers to a value but is being
+  // used as a type". `RecordSpeaks` says what it is and collides with nothing.
+  RecordSpeaks,
+  Region,
   Value,
-} from "@/components/shell/primitives";
+} from "@/components/meridian/surface-parts";
+import { Row } from "@/components/meridian/rows";
+import { Receipt } from "@/components/meridian/Receipt";
+/*
+ * THE ONE IMPORT THAT COULD NOT MOVE, AND THE GAP IT IS WAITING ON.
+ *
+ * `Clauses` below renders a real `<ul>` of contract clauses, and every rule that
+ * makes it read as a list -- `list-style: disc`, the 18px indent, the marker
+ * colour, the tight spacing between items -- lives in `primitives.css` under
+ * `.sp-prose`, along with the rules for headings, `<code>`, `<pre>`, links and
+ * blockquotes. `meridian/Prose` is the CONTAINER only: it carries the size, the
+ * leading, the ink and the panel, and emits none of the element rules.
+ *
+ * Tailwind's preflight zeroes `ul { list-style: none; padding: 0 }`, so moving
+ * this import today deletes the bullets and the indent from every clause on the
+ * release document -- information off the screen, which is the one thing a port
+ * may not do. Hand-rolling them here instead would fork the product's prose
+ * typography into a second definition, which is exactly what `meridian/Prose`'s
+ * own header refuses ("ONE PROSE STYLE, NOT TWO ... a flag precisely so the
+ * size, the leading and the ink can never fork").
+ *
+ * So it stays, and the fix is named: port `.sp-prose`'s element rules into
+ * `meridian/Prose`. `src/components/ask/Answer.tsx` is blocked on the same one
+ * and is blocked harder -- it renders arbitrary model Markdown, so it loses
+ * headings, code, links and blockquotes as well as lists.
+ */
+import { Prose } from "@/components/shell/primitives";
 
 /* ------------------------------------------------------------------ *
  * The fact: a sentence and the row it came from
@@ -379,11 +403,22 @@ function actorWords(actor: string | null): string {
   return `The ${a} agent`;
 }
 
-/** Green and red carry outcomes (SYSTEM.md rule 1), and nothing else does. */
-function verdictTone(verdict: string | null): "pass" | "fail" | "warn" | "quiet" {
+/**
+ * Green and red carry outcomes (SYSTEM.md rule 1), and nothing else does.
+ *
+ * `warn` BECAME `hold`, and the meaning is the one Meridian already had a word
+ * for. `Value`'s retired tone union offered `quiet | pass | warn | fail | live`;
+ * Meridian's five status words do not include "warn", and the note on the new
+ * union says every caller of the old one meant "waiting on a condition". That is
+ * exactly a "mixed" or "inconclusive" verdict: Learn has looked and the record
+ * has not settled the question, so it is waiting on more evidence. Orchid would
+ * have been the reflex and is wrong -- it means a PERSON is required and
+ * promises a control that moves the thing, and there is none here.
+ */
+function verdictTone(verdict: string | null): "pass" | "fail" | "hold" | "quiet" {
   if (verdict === "validated") return "pass";
   if (verdict === "invalidated") return "fail";
-  if (verdict === "mixed" || verdict === "inconclusive") return "warn";
+  if (verdict === "mixed" || verdict === "inconclusive") return "hold";
   return "quiet";
 }
 
@@ -752,11 +787,20 @@ export function ReleaseDocument({
   const datelineText = doc.dateline.map((f) => f.text).join(" · ");
 
   return (
-    <>
-      <Block title={doc.title.text} sub={datelineText || null}>
+    /*
+     * THE DOCUMENT'S OWN RHYTHM, WHICH THE RETIRED `Block` USED TO CARRY.
+     * `.sp-block` set a 36px top margin, 24px of padding and a top rule on every
+     * section, so a fragment of six of them spaced itself. `Region` sets no
+     * outer margin -- it is the frame and not the layout -- so the fragment
+     * states the gap once, matching the column the Ship route puts its own
+     * regions in. Without this the six sections of the release document stack
+     * flush and read as one wall.
+     */
+    <div className="flex flex-col gap-mrd-7">
+      <Region title={doc.title.text} sub={datelineText || null}>
         {doc.body ? <Answer>{doc.body.text}</Answer> : null}
         {doc.outcome ? (
-          <RecordClaim
+          <RecordSpeaks
             evidence={
               doc.outcome.evidence.length ? (
                 <Num>{doc.outcome.evidence.map((f) => f.text).join(" · ")}</Num>
@@ -770,61 +814,61 @@ export function ReleaseDocument({
                 <Value tone={verdictTone(doc.outcome.verdict)}>{doc.outcome.verdict}</Value>
               </>
             ) : null}
-          </RecordClaim>
+          </RecordSpeaks>
         ) : null}
-      </Block>
+      </Region>
 
       {doc.why.length ? (
-        <Block title="Why it was built" sub="Read from the bet and the spec's outcome contract.">
+        <Region title="Why it was built" sub="Read from the bet and the spec's outcome contract.">
           {doc.why.map((f, i) => (
             <FactRow key={`why-${i}`} f={f} onOpen={onOpen} />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
       {doc.promised.length ? (
-        <Block
+        <Region
           title="What it promised"
           sub="The standing success metrics, written before the build."
         >
           <Clauses facts={doc.promised} />
-        </Block>
+        </Region>
       ) : null}
 
       {doc.outOfScope.length ? (
-        <Block
+        <Region
           title="What it deliberately did not do"
           sub="The non-goals the spec still stands by."
         >
           <Clauses facts={doc.outOfScope} />
-        </Block>
+        </Region>
       ) : null}
 
       {doc.approval ? (
-        <Block title="Who signed it off">
+        <Region title="Who signed it off">
           <Receipt
             verb={doc.approval.verb}
             consequence={doc.approval.consequence}
             time={onDay(doc.approval.at)}
           />
-        </Block>
+        </Region>
       ) : null}
 
       {doc.receipts.length ? (
-        <Block title="The evidence" sub="Every line above traces to one of these rows.">
+        <Region title="The evidence" sub="Every line above traces to one of these rows.">
           {doc.receipts.map((f, i) => (
             <FactRow key={`receipt-${i}`} f={f} onOpen={onOpen} />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
-      <Block
+      <Region
         title="Not on the record"
         sub="What this document cannot say, said out loud rather than left out."
       >
         <Clauses facts={doc.gaps} />
-      </Block>
-    </>
+      </Region>
+    </div>
   );
 }
 
@@ -996,18 +1040,24 @@ export function AssembledRelease({
   const failed =
     (!!entry.prd_id && prdQ.isError && !prdAbsent) || appliedQ.isError || deployQ.isError;
 
-  if (waiting) return <Loading>Assembling the release document.</Loading>;
+  if (waiting) return <Reading>Assembling the release document.</Reading>;
   if (failed) {
     return (
-      <Failed
+      /* THE BOXED HALF, because this component is mounted as a SIBLING of the
+         station's regions rather than inside one, so there is no container
+         already around it. `ReadFailedLine` is for a region that draws its own.
+         The `detail` is this component's own second sentence rather than the
+         default, which speaks about a screen instead of a document. */
+      <ReadFailed
+        detail="Nothing has been changed and nothing has been lost. Some of what this document reads from did not load."
         onRetry={() => {
           if (entry.prd_id) void prdQ.refetch();
           void appliedQ.refetch();
           if (entry.changeset_id) void deployQ.refetch();
         }}
       >
-        The release document could not be assembled. Some of what it reads from did not load.
-      </Failed>
+        The release document could not be assembled.
+      </ReadFailed>
     );
   }
 
@@ -1093,9 +1143,12 @@ export function WhatShipped({
  *  the caller so the empty case says who acts next in this surface's words. */
 export function NoReleaseYet() {
   return (
-    <Empty>
+    /* THE BARE HALF OF THE PAIR. Its one caller renders it INSIDE the station's
+       "The release document" region, which already draws the container, and two
+       containers around one sentence is a frame the standard does not allow. */
+    <NothingYet>
       No release document yet. One is assembled the moment a change merges, from the spec, the pull
       request and the deployment, with nobody typing a word.
-    </Empty>
+    </NothingYet>
   );
 }

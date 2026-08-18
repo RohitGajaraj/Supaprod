@@ -13,9 +13,15 @@
  *    computed at render time. No previous score, no arrow. A previous score
  *    that rounds to no move, no arrow.
  *
- * Asserted against the STYLE ATTRIBUTE rather than the computed style: every
- * dimension here is a `--sp-*` token, jsdom resolves no custom properties, and
- * a test that read computed values would be asserting jsdom's fallbacks.
+ * Asserted against the STYLE ATTRIBUTE rather than the computed style: the
+ * colours here are `--mrd-*` custom properties, jsdom resolves none of them,
+ * and a test that read computed values would be asserting jsdom's fallbacks.
+ *
+ * PORTED TO MERIDIAN 2026-08-18 alongside the component. Two of the six token
+ * names below changed MEANING and not just spelling: the ring's `warn` now
+ * resolves to `--mrd-hold` (amber: stopped, and not on you) and its `live` to
+ * `--mrd-agent` (azure: a machine is working). The rest were already aliases
+ * onto their Meridian twin in ink.css, so those assertions moved spelling only.
  */
 import { describe, expect, test } from "bun:test";
 import { render, screen, fireEvent } from "@testing-library/react";
@@ -35,7 +41,7 @@ describe("the status ring survives greyscale", () => {
       const el = ring(fill);
       const shape = {
         // A filled disc sets its own background; an empty ring does not.
-        filled: /background:\s*var\(--sp-[a-z-]+\)/.test(el.getAttribute("style") ?? ""),
+        filled: /background:\s*var\(--mrd-[a-z-]+\)/.test(el.getAttribute("style") ?? ""),
         // The wedge and the bar are each one child; the two plain rings have none.
         parts: el.children.length,
         rotated: el.innerHTML.includes("rotate"),
@@ -52,18 +58,18 @@ describe("the status ring survives greyscale", () => {
   test("a quiet ring spends no status colour, so amber and red stay rare", () => {
     const { unmount } = render(<StatusRing fill="part" label="watch" />);
     const style = ring("watch").getAttribute("style") ?? "";
-    // The neutral is the default. A ring that reached for --sp-warn or
-    // --sp-gate by accident would make the exception-only rule meaningless.
-    expect(style).toContain("var(--sp-mute)");
-    expect(style).not.toContain("--sp-warn");
-    expect(style).not.toContain("--sp-gate");
+    // The neutral is the default. A ring that reached for the amber or the
+    // orchid by accident would make the exception-only rule meaningless.
+    expect(style).toContain("var(--mrd-mute)");
+    expect(style).not.toContain("--mrd-hold");
+    expect(style).not.toContain("--mrd-you");
     unmount();
   });
 
   test("a flagged ring confirms the shape with a hue, never replaces it", () => {
     const { unmount } = render(<StatusRing fill="struck" tone="fail" label="kill" />);
     const el = ring("kill");
-    expect(el.getAttribute("style")).toContain("var(--sp-fail)");
+    expect(el.getAttribute("style")).toContain("var(--mrd-fail)");
     // The bar is still drawn: the colour is the second encoding, not the first.
     expect(el.children.length).toBe(1);
     unmount();
@@ -136,17 +142,17 @@ describe("the score meter states its ceiling and never invents a movement", () =
    */
   test("the band is carried by hue AND by the two channels that survive greyscale", () => {
     const strong = render(<ScoreMeter value={9} ceiling={10} decimals={1} what="ICE" />);
-    expect(strong.container.innerHTML).toContain("--sp-score-strong");
+    expect(strong.container.innerHTML).toContain("--mrd-pass");
     expect(strong.container.innerHTML).toContain("width: 90%");
     expect(strong.container.textContent).toContain("9.0");
     strong.unmount();
 
     const fair = render(<ScoreMeter value={5} ceiling={10} decimals={1} what="ICE" />);
-    expect(fair.container.innerHTML).toContain("--sp-score-fair");
+    expect(fair.container.innerHTML).toContain("--mrd-hold");
     fair.unmount();
 
     const weak = render(<ScoreMeter value={2} ceiling={10} decimals={1} what="ICE" />);
-    expect(weak.container.innerHTML).toContain("--sp-score-weak");
+    expect(weak.container.innerHTML).toContain("--mrd-fail");
     weak.unmount();
   });
 
@@ -155,21 +161,21 @@ describe("the score meter states its ceiling and never invents a movement", () =
     // different things on two surfaces, so the band is a fraction.
     const ten = render(<ScoreMeter value={8} ceiling={10} what="ICE" />);
     const hundred = render(<ScoreMeter value={80} ceiling={100} what="severity" />);
-    expect(ten.container.innerHTML).toContain("--sp-score-strong");
-    expect(hundred.container.innerHTML).toContain("--sp-score-strong");
+    expect(ten.container.innerHTML).toContain("--mrd-pass");
+    expect(hundred.container.innerHTML).toContain("--mrd-pass");
     ten.unmount();
     hundred.unmount();
   });
 
   test("movement says which way in colour as well as in the glyph", () => {
     const up = render(<ScoreMeter value={7.3} ceiling={10} decimals={1} delta={2} what="ICE" />);
-    expect(up.container.innerHTML).toContain("--sp-move-up");
+    expect(up.container.innerHTML).toContain("--mrd-pass");
     up.unmount();
 
     const down = render(
       <ScoreMeter value={4.1} ceiling={10} decimals={1} delta={-1.5} what="ICE" />,
     );
-    expect(down.container.innerHTML).toContain("--sp-move-down");
+    expect(down.container.innerHTML).toContain("--mrd-fail");
     down.unmount();
   });
 
@@ -179,11 +185,32 @@ describe("the score meter states its ceiling and never invents a movement", () =
     unmount();
   });
 
-  test("the bar carries no hue: magnitude is length, status is colour", () => {
+  /**
+   * THIS GUARD WAS PASSING ON A SPELLING, and the port is what exposed it.
+   *
+   * It used to assert that the meter's HTML contained none of `--sp-pass`,
+   * `--sp-fail`, `--sp-warn` or `--sp-gate`. It passed -- and it passed while
+   * the bar was painted `--sp-score-strong`, which ink.css defines as
+   * `var(--sp-pass)`. The literal string was absent and the paint was there.
+   * The test above, added 2026-08-11 when the founder asked for the band, says
+   * outright that the bar IS coloured, so the two have contradicted each other
+   * since that day and only the alias hid it. Meridian has no `--mrd-score-*`
+   * indirection, so the band now names `--mrd-pass` / `--mrd-hold` /
+   * `--mrd-fail` directly and the contradiction had to be settled.
+   *
+   * WHAT THE RULE ACTUALLY IS, kept: an outcome hue on a magnitude bar is a
+   * judgment the number does not hold, and it is pinned by the test above,
+   * which requires the length and the numeral to say the same thing. What must
+   * NEVER appear here is the vocabulary of STATE: orchid means a person is
+   * required and azure means a machine is working, and a score is neither. A
+   * bar wearing either would promise a control that does not exist or a run
+   * that is not happening.
+   */
+  test("a magnitude bar never wears the state hues", () => {
     const { container, unmount } = render(<ScoreMeter value={9} ceiling={10} what="ICE" />);
     const html = container.innerHTML;
-    for (const status of ["--sp-pass", "--sp-fail", "--sp-warn", "--sp-gate"]) {
-      expect(html).not.toContain(status);
+    for (const state of ["--mrd-you", "--mrd-agent"]) {
+      expect(html).not.toContain(state);
     }
     unmount();
   });

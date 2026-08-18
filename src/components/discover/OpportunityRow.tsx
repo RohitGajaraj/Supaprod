@@ -53,14 +53,20 @@ export type OpportunityStatus = (typeof OPPORTUNITY_STATUSES)[number];
  * label. Colour has jobs: the interface is monochrome, so four of the six are
  * neutral ink or a quiet mute, and only the two that carry an OUTCOME reach
  * for a colour - shipped is a pass, dropped is a fail. Shared by the row and
- * the detail sheet so a status reads the same wherever it appears. */
+ * the detail sheet so a status reads the same wherever it appears.
+ *
+ * The four inks moved onto Meridian on 2026-08-18 with the mapping unchanged,
+ * because the rule they encode was already the right one: `--sp-ink` is
+ * `--mrd-ink`, `--sp-mute` is `--mrd-mute`, and pass and fail are the two
+ * status hues this system permits an outcome to take. Nothing gained or lost a
+ * colour in the move. */
 export const STATUS_META: Record<OpportunityStatus, { color: string; label: string }> = {
-  backlog: { color: "var(--sp-mute)", label: "Backlog" },
-  now: { color: "var(--sp-ink)", label: "Now" },
-  next: { color: "var(--sp-ink)", label: "Next" },
-  later: { color: "var(--sp-mute)", label: "Later" },
-  shipped: { color: "var(--sp-pass)", label: "Shipped" },
-  dropped: { color: "var(--sp-fail)", label: "Dropped" },
+  backlog: { color: "var(--mrd-mute)", label: "Backlog" },
+  now: { color: "var(--mrd-ink)", label: "Now" },
+  next: { color: "var(--mrd-ink)", label: "Next" },
+  later: { color: "var(--mrd-mute)", label: "Later" },
+  shipped: { color: "var(--mrd-pass)", label: "Shipped" },
+  dropped: { color: "var(--mrd-fail)", label: "Dropped" },
 };
 
 /** A sentence-case label for a lane status, safe for an unknown value. */
@@ -73,15 +79,15 @@ export function statusLabel(status: string): string {
  * Now it is the label itself, in its own tone. */
 export function StatusPill({ status, className }: { status: string; className?: string }) {
   const meta = STATUS_META[status as OpportunityStatus] ?? {
-    color: "var(--sp-mute)",
+    color: "var(--mrd-mute)",
     label: status,
   };
   return (
     <span
       className={className}
       style={{
-        fontSize: "var(--sp-text-label)",
-        fontWeight: "var(--sp-weight-medium)",
+        fontSize: "12.5px",
+        fontWeight: 500,
         color: meta.color,
         whiteSpace: "nowrap",
         flexShrink: 0,
@@ -92,16 +98,43 @@ export function StatusPill({ status, className }: { status: string; className?: 
   );
 }
 
-/** The tone for each non-best designation. Two of the four carry a real
- * outcome reading and take an outcome colour: a bet with thin evidence is a
- * warning, a quick win is a pass. The other two are observations, so they stay
- * monochrome. The best bet is not here: it is the single marked thing on the
- * queue and it wears the one ember. */
+/**
+ * The ink for each non-best designation, and it is the SAME ink for all four.
+ *
+ * ── WHY THE TWO HUES CAME OFF, 2026-08-18 ───────────────────────────────
+ * This record used to paint "quick win" `--sp-pass` (green) and "needs
+ * validation" `--sp-warn` (amber). A designation is a CATEGORY -- what kind of
+ * bet this is -- and neither of those words reports an outcome: nothing has
+ * shipped, nothing has failed, and nothing is waiting on a condition. Law 4
+ * gives status the hue and identity the shape, and this was identity wearing
+ * status, which is the defect that ledger records as found and removed three
+ * separate times.
+ *
+ * It was also actively confusable on the surface that renders it. A queue row
+ * carries a red-team ring, a `StatusPill` and this tag on one line, so a green
+ * "quick win" three characters from a green "Shipped" reads as a result, and an
+ * amber "needs validation" reads as the Critic asking for a revision. Two of
+ * the four designations were quietly answering a question they do not know the
+ * answer to.
+ *
+ * ── WHY NOT `--mrd-viz-1..4`, WHICH IS THE OTHER PERMITTED ANSWER ───────
+ * The viz ramp is orange, blue, green, red. Painting four inline words with it
+ * puts a green and a red back on the same line as pass and fail, so the
+ * categorical encoding would be read as status again by anyone who did not
+ * memorise the ramp. Viz earns its keep where a legend or an axis says what a
+ * series is; a four-word vocabulary on a dense row does not have one. So the
+ * category is carried by the WORD, which names itself, and the record survives
+ * as the one place that decision is written down rather than repeated inline.
+ *
+ * KEPT AS A RECORD rather than deleted: `opportunity-row.test.tsx` asserts an
+ * entry per designation, and a future encoding (a leading mark, not a tinted
+ * word) belongs here rather than in four call sites.
+ */
 export const DESIGNATION_INK: Record<Exclude<NonNullable<Designation>, "best bet">, string> = {
-  "needs validation": "var(--sp-warn)",
-  "quick win": "var(--sp-pass)",
-  "heavy lift": "var(--sp-mute)",
-  "watch this week": "var(--sp-mute)",
+  "needs validation": "var(--mrd-mute)",
+  "quick win": "var(--mrd-mute)",
+  "heavy lift": "var(--mrd-mute)",
+  "watch this week": "var(--mrd-mute)",
 };
 
 /** The one-line meaning behind each non-best designation, so hovering the tag
@@ -129,8 +162,8 @@ export function DesignationTag({
       className={className}
       title={DESIGNATION_MEANING[designation]}
       style={{
-        fontSize: "var(--sp-text-label)",
-        fontWeight: "var(--sp-weight-medium)",
+        fontSize: "12.5px",
+        fontWeight: 500,
         color: DESIGNATION_INK[designation],
         whiteSpace: "nowrap",
         flexShrink: 0,
@@ -141,20 +174,40 @@ export function DesignationTag({
   );
 }
 
-/** The one chosen thing. ranking.ts guarantees exactly one best bet in the
- * queue, so this is the single ember in a monochrome list: the bet actually
- * waiting on your judgment. Geist Pixel is retired outside the door and a
- * tinted moss chip was decoration, so the mark is now the words in the one
- * colour reserved for what needs you. */
+/**
+ * The one chosen thing. ranking.ts guarantees exactly one best bet in the
+ * queue, so this is the single marked row in a monochrome list.
+ *
+ * ── ORCHID CAME OFF, 2026-08-18, AND IT WAS GENUINELY WRONG ─────────────
+ * This wore `--sp-gate`, the orchid the whole system spends on ONE meaning: a
+ * person is required, and a control is standing by that releases the thing.
+ * "Best bet" is not that. It is the comparator's own arithmetic reporting
+ * which row came first, on every render, whether or not anybody is waiting on
+ * anything -- and it sits on a station whose Gate already spends orchid on the
+ * question that IS asking for a person. Two orchids on one screen, one of them
+ * attached to no control, is how the accent stops meaning anything.
+ *
+ * ── WHAT CARRIES IT INSTEAD ─────────────────────────────────────────────
+ * Structure, which is what Law 4 asks for. Every other word on a queue row's
+ * second line is `--mrd-mute` at 500; this one is full-contrast `--mrd-ink` at
+ * 600. In a line that is otherwise entirely quiet, one word at full ink is the
+ * loudest thing available without spending a hue, it survives greyscale exactly
+ * as the red-team ring does, and it cannot be mistaken for a status because no
+ * status in this system is neutral ink.
+ *
+ * The inline styles stay inline: `opportunity-row.test.tsx` reads
+ * `span.style.flexShrink` and `span.style.whiteSpace` directly, and those two
+ * are the reason this never wraps or gets squeezed inside a `Row`'s sub line.
+ */
 export function BestBetStamp({ className }: { className?: string }) {
   return (
     <span
       className={className}
       title="The single strongest bet in the queue right now"
       style={{
-        fontSize: "var(--sp-text-label)",
-        fontWeight: "var(--sp-weight-strong)",
-        color: "var(--sp-gate)",
+        fontSize: "12.5px",
+        fontWeight: 600,
+        color: "var(--mrd-ink)",
         whiteSpace: "nowrap",
         flexShrink: 0,
       }}

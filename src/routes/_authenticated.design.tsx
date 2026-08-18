@@ -129,7 +129,21 @@
 
 import * as React from "react";
 import { Line } from "@/components/meridian/rows";
-import { Num, Door, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  Approve,
+  Door,
+  NothingYet,
+  Num,
+  PageHeading,
+  ReadFailed,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Toggle,
+  Value,
+} from "@/components/meridian/surface-parts";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -161,7 +175,11 @@ import { Consequence, DrawingStage, Findings } from "@/components/design/drawing
 import { DrawingsTable } from "@/components/design/DrawingsTable";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { FIDELITY_QUESTION, FIDELITY_WORD, ruleTextFor } from "@/components/design/vocabulary";
-import { Block, Button, Choices, CtxBody, CtxHead, Empty, Failed, Gate, Loading, PageHead, Receipt, Surface, Switch, Value } from "@/components/shell/primitives";
+import { Surface } from "@/components/meridian/Surface";
+import { Choices } from "@/components/meridian/forms";
+import { Gate } from "@/components/meridian/Gate";
+import { CtxBody, CtxHead } from "@/components/meridian/ContextColumn";
+import { Receipt } from "@/components/meridian/Receipt";
 import { AgentMark } from "@/components/meridian/marks";
 import { AgentPulse } from "@/components/meridian/AgentPulse";
 import { CrewWorking } from "@/components/shell/CrewWorking";
@@ -1069,11 +1087,16 @@ function Design() {
           <CtxBody>
             <Num>{inForce}</Num> in force. Add, review or retire them in Settings.
           </CtxBody>
-          <div className="sp-acts">
-            <Button variant="ghost" onClick={openBrandRules}>
+          {/* `.sp-acts` was the retired layer's own row, and it carried its
+              margin. Meridian's `Actions` deliberately sets none -- "the ten
+              call sites that relied on it now say `mt-mrd-4` themselves, which
+              is where a composition decision belongs" -- so the space is stated
+              here rather than baked into the row. */}
+          <Actions className="mt-mrd-4">
+            <Action variant="quiet" onClick={openBrandRules}>
               Open brand rules
-            </Button>
-          </div>
+            </Action>
+          </Actions>
         </>
       ) : null}
 
@@ -1090,10 +1113,19 @@ function Design() {
                 : "Specs reach Build without passing through here."
             }
           >
-            <Switch
+            {/* `busy` AS WELL AS `disabled`, which the retired `Switch` could
+                not say. It is dead here for exactly one reason -- a write is in
+                flight -- and Meridian's `Toggle` splits the two so the cursor
+                and `aria-busy` follow the wait rather than the ban. Its own
+                header records the defect that split them: the Engine Room's
+                copy painted `cursor-wait` on any disabled switch, promising a
+                person who was simply not allowed to move it that it was about
+                to finish something. */}
+            <Toggle
               label="Require an approved design before a spec reaches Build"
               checked={work.data.stageEnabled}
               disabled={stage.isPending}
+              busy={stage.isPending}
               onChange={(next) => stage.mutate(next)}
             />
           </Line>
@@ -1104,7 +1136,22 @@ function Design() {
 
   return (
     <Surface context={hasContext ? context : undefined}>
-      {/* THE AUTONOMOUS PATH, VISIBLE, AND IT IS THE ONE THING THIS STATION
+      {/* THE RHYTHM BETWEEN REGIONS IS STATED HERE, and it used to be baked
+          into the region itself. `.sp-block` carried `margin-top: 36px`, a
+          28px `padding-top` and a hairline `border-top`, so every section on
+          every surface got its separation from the component. Meridian's
+          `Region` is a bare `<section>` with no outer space at all, which is
+          the correct shape -- a region does not decide what it sits next to --
+          and it means the column has to say the gap once, here.
+
+          `gap-mrd-7` (40px), which is what Crew, Approvals and Brain already
+          use for the same job, so the five stations being ported alongside
+          this one do not each pick a different number. Two things change and
+          they are recorded rather than hidden: the section separation goes
+          from 36+28px to 40px, and the hairline between sections goes. Both
+          are the ported product's own answer, not this station's. */}
+      <div className="flex flex-col gap-mrd-7">
+        {/* THE AUTONOMOUS PATH, VISIBLE, AND IT IS THE ONE THING THIS STATION
           WAS MISSING. Renders nothing unless a mission row in this workspace
           is running, so it costs no space when the crew is idle and cannot
           show a step that did not happen.
@@ -1128,13 +1175,13 @@ function Design() {
 
           Above the headline, as on Decide, Build and Ship. See
           use-live-agents.ts. */}
-      <CrewWorking station="design" />
-      <PageHead
-        title={headline}
-        sub={call ? "Nothing binds into a drawing until you settle it." : undefined}
-      />
+        <CrewWorking station="design" />
+        <PageHeading
+          title={headline}
+          sub={call ? "Nothing binds into a drawing until you settle it." : undefined}
+        />
 
-      {/* ONE Gate. The pending rule owns it because nothing the crew draws is
+        {/* ONE Gate. The pending rule owns it because nothing the crew draws is
           on settled ground until it is answered. A drawing's own verdict is
           not here: it sits with the drawing, which is its evidence.
 
@@ -1148,105 +1195,147 @@ function Design() {
           saying. A plain quiet line, not a working indicator: this is us
           reading a table, and dressing an ordinary read as an agent at work is
           the invented status this system refuses everywhere else. */}
-      {rules.isLoading ? (
-        <Loading>Reading the brand rules.</Loading>
-      ) : rules.isError ? (
-        <Gate question="The brand rules did not load.">
-          <Button variant="primary" onClick={() => void rules.refetch()}>
-            Try again
-          </Button>
-        </Gate>
-      ) : call ? (
-        <Gate
-          /* Keyed on its subject so a change of subject REMOUNTS the Gate and it
+        {rules.isLoading ? (
+          <Reading>Reading the brand rules.</Reading>
+        ) : rules.isError ? (
+          /* A FAILED READ MAY NOT WEAR THE GATE ANY MORE, and the port is what
+           made that sayable. The retired `Gate` was an unlabelled panel, so
+           standing a failed read in it cost nothing but the shape. Meridian's
+           `Gate` opens with an orchid "Waiting on you", which is the one thing
+           that token is allowed to mean -- and nobody is waiting on anybody
+           here, a read did not land. Wearing it would tell a person a decision
+           of theirs is outstanding and hand them a Try again to make it with.
+
+           `ReadFailed` and not `ReadFailedLine`: this sits where the biggest
+           element on the station would be, with no region around it to draw the
+           box, which is the exact split those two are for. It keeps the
+           prominence, keeps the retry, and says in red what actually happened.
+           This is also the one branch in this station that changes component
+           family rather than name, so it is written down here. */
+          <ReadFailed onRetry={() => void rules.refetch()}>
+            The brand rules did not load.
+          </ReadFailed>
+        ) : call ? (
+          <Gate
+            /* Keyed on its subject so a change of subject REMOUNTS the Gate and it
              plays its entrance. Updated in place, the biggest element on the
              station swaps its question and its buttons with no motion. */
-          key={call.id}
-          question={call.title}
-          lines={[
-            <span key="what">{call.content}</span>,
-            ...(call.rationale ? [<span key="why">{call.rationale}</span>] : []),
-          ]}
-        >
-          {/* The keycaps are drawn because the keys are bound above. `shortcut`
+            key={call.id}
+            question={call.title}
+            lines={[
+              <span key="what">{call.content}</span>,
+              ...(call.rationale ? [<span key="why">{call.rationale}</span>] : []),
+            ]}
+          >
+            {/* The keycaps are drawn because the keys are bound above. `shortcut`
               renders a <kbd> and binds nothing on its own, which is how this
               product ended up with a Settings gear promising a key that fires
               nothing -- so the prop is never passed without the effect. */}
-          <Button
-            variant="primary"
-            shortcut="a"
-            disabled={settle.isPending}
-            onClick={() => settle.mutate("approve")}
+            {/* `Approve`, THE ONE COMPONENT THAT SPENDS ORCHID ON A CONTROL, and
+              this is the case it was written for: nothing the crew draws is on
+              settled ground until this rule is answered, so the click releases
+              work that is genuinely held. Decline is an `Action`: it settles
+              the same queue and unblocks nothing, and two orchid buttons side
+              by side would say the accent marks "a decision" rather than "a
+              person is required to unblock this". */}
+            <Approve
+              shortcut="a"
+              disabled={settle.isPending}
+              onClick={() => settle.mutate("approve")}
+            >
+              Approve
+            </Approve>
+            <Action
+              shortcut="d"
+              disabled={settle.isPending}
+              onClick={() => settle.mutate("reject")}
+            >
+              Decline
+            </Action>
+          </Gate>
+        ) : dayOne ? (
+          <Gate
+            question="The crew has no brand rules and nothing to draw."
+            lines={[
+              <span key="w">
+                Give it your design language and it draws in your product's voice. Without one it
+                draws from generic defaults.
+              </span>,
+            ]}
           >
-            Approve
-          </Button>
-          <Button shortcut="d" disabled={settle.isPending} onClick={() => settle.mutate("reject")}>
-            Decline
-          </Button>
-        </Gate>
-      ) : dayOne ? (
-        <Gate
-          question="The crew has no brand rules and nothing to draw."
-          lines={[
-            <span key="w">
-              Give it your design language and it draws in your product's voice. Without one it
-              draws from generic defaults.
-            </span>,
-          ]}
+            {/* NEITHER OF THESE IS AN `Approve`, and day one is the case that
+              makes the distinction easy to get wrong. Nothing is currently
+              held: there are no rules, no drawings and no gate to release.
+              Both controls go somewhere else so a person can begin. The Gate's
+              own orchid eyebrow already carries the true half -- only a person
+              can give the crew a design language -- and orchid on a control
+              would promise that pressing it settles something here. */}
+            <Action variant="primary" onClick={openBrandRules}>
+              Add design language
+            </Action>
+            <Action onClick={() => void navigate({ to: "/plan" })}>Open specs</Action>
+          </Gate>
+        ) : null}
+
+        {/* WRAPPED AS ONE CHILD, because the column above sets a 40px gap between
+          its children and receipts are a STACK: each one draws its own top
+          hairline with `first:border-t-0`, so spaced 40px apart they read as
+          four unrelated statements instead of one trail. */}
+        {pageTrace.length > 0 ? (
+          <div>
+            {pageTrace.map((t) => (
+              <Receipt
+                key={t.id}
+                verb={t.verb}
+                consequence={t.consequence}
+                failed={t.failed}
+                time="now"
+              />
+            ))}
+          </div>
+        ) : null}
+
+        <Region
+          title="Screens the crew drew"
+          sub={
+            // A DRAWING AGENT IS GENUINELY RUNNING HERE, so this is the indicator
+            // rather than a static mark with a full stop after it. `redrawDesignScaffold`
+            // reaches `buildDesignScaffoldHtml`, which calls the chokepoint, so
+            // `working` is honest. The detail names the two facts the click chose
+            // and the surface already holds: which fidelity, and which spec.
+            drawAt.isPending ? (
+              <AgentPulse
+                label="Design is drawing a screen"
+                seed={DRAWS}
+                compact
+                detail={
+                  <>
+                    {drawAt.variables ? FIDELITY_WORD[drawAt.variables].toLowerCase() : "drawing"}
+                    {focus?.title ? ` of ${focus.title}` : null}
+                  </>
+                }
+              />
+            ) : (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                <AgentMark slug={DRAWS} state="quiet" />
+                Design renders a spec as a screen, in your brand.
+              </span>
+            )
+          }
         >
-          <Button variant="primary" onClick={openBrandRules}>
-            Add design language
-          </Button>
-          <Button onClick={() => void navigate({ to: "/plan" })}>Open specs</Button>
-        </Gate>
-      ) : null}
-
-      {pageTrace.map((t) => (
-        <Receipt
-          key={t.id}
-          verb={t.verb}
-          consequence={t.consequence}
-          failed={t.failed}
-          time="now"
-        />
-      ))}
-
-      <Block
-        title="Screens the crew drew"
-        sub={
-          // A DRAWING AGENT IS GENUINELY RUNNING HERE, so this is the indicator
-          // rather than a static mark with a full stop after it. `redrawDesignScaffold`
-          // reaches `buildDesignScaffoldHtml`, which calls the chokepoint, so
-          // `working` is honest. The detail names the two facts the click chose
-          // and the surface already holds: which fidelity, and which spec.
-          drawAt.isPending ? (
-            <AgentPulse
-              label="Design is drawing a screen"
-              seed={DRAWS}
-              compact
-              detail={
-                <>
-                  {drawAt.variables ? FIDELITY_WORD[drawAt.variables].toLowerCase() : "drawing"}
-                  {focus?.title ? ` of ${focus.title}` : null}
-                </>
-              }
-            />
-          ) : (
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <AgentMark slug={DRAWS} state="quiet" />
-              Design renders a spec as a screen, in your brand.
-            </span>
-          )
-        }
-      >
-        {work.isLoading ? (
-          <Loading>Reading the drawings.</Loading>
-        ) : work.isError ? (
-          <Failed onRetry={() => void work.refetch()}>
-            Could not read the drawings. {(work.error as Error).message}
-          </Failed>
-        ) : items.length === 0 ? (
-          /* STILL AN EMPTY STATE, AND DELIBERATELY NOT A MISSING PRECONDITION.
+          {work.isLoading ? (
+            <Reading>Reading the drawings.</Reading>
+          ) : work.isError ? (
+            /* The LINE half of the pair. The region above already draws the
+             heading this failure belongs to, and Meridian caps a region at one
+             bordered box, so a second box here would be a frame around a
+             sentence. Same shape the retired `Failed` rendered: the fact in
+             red, the way out beside it. */
+            <ReadFailedLine onRetry={() => void work.refetch()}>
+              Could not read the drawings. {(work.error as Error).message}
+            </ReadFailedLine>
+          ) : items.length === 0 ? (
+            /* STILL AN EMPTY STATE, AND DELIBERATELY NOT A MISSING PRECONDITION.
              The obvious upgrade here is the state that says this station cannot
              ask its question yet, and the data cannot support it. `listDesignWork`
              returns the same empty shape for three different facts: a workspace
@@ -1266,14 +1355,19 @@ function Design() {
              falls out is the undrawn one whose gate is already approved. A
              comment that misreports the filter it is defending is the one kind
              of sentence this file must not carry. */
-          <Empty
-            action={<Button onClick={() => void navigate({ to: "/plan" })}>Open specs</Button>}
-          >
-            Nothing to look at. A spec gets a screen drawn from it once it says enough for Design to
-            read, and every drawing in this workspace lands here.
-          </Empty>
-        ) : (
-          /* THE ONE SURFACE IN THE SPINE THAT NEVER CAPPED. Decide, Plan, Ship
+            /* `NothingYet` and not `NothingHere`: the bare half, because this
+             sits under a `Region` heading and the retired `Empty` it replaces
+             drew no box either (`.sp-empty` is padding and muted prose, no
+             border, no ground). Swapping in the bordered half would invent a
+             panel this state has never had. */
+            <NothingYet
+              action={<Action onClick={() => void navigate({ to: "/plan" })}>Open specs</Action>}
+            >
+              Nothing to look at. A spec gets a screen drawn from it once it says enough for Design
+              to read, and every drawing in this workspace lands here.
+            </NothingYet>
+          ) : (
+            /* THE ONE SURFACE IN THE SPINE THAT NEVER CAPPED. Decide, Plan, Ship
              and Build all cap their lists; this one printed every drawing the
              server would give it, unsorted past the server's own ranking, with
              nothing to narrow it by and no way to find one by name. It is also
@@ -1299,16 +1393,16 @@ function Design() {
              reader has already been shown twice, and this station's own rule is
              that a second live indicator has to earn its place against what is
              already on screen. It cannot. */
-          <DrawingsTable
-            rows={items}
-            gateOn={gateOn}
-            focusId={focusId}
-            drawnBy={DRAWS}
-            onPick={setPicked}
-          />
-        )}
+            <DrawingsTable
+              rows={items}
+              gateOn={gateOn}
+              focusId={focusId}
+              drawnBy={DRAWS}
+              onPick={setPicked}
+            />
+          )}
 
-        {/* Named, not shrugged at. The door is the same one the focus Block
+          {/* Named, not shrugged at. The door is the same one the focus Block
             carries, pointed at the spec that could not be opened here.
 
             TWO SENTENCES BECAUSE THERE ARE TWO CASES. With an empty list there
@@ -1323,28 +1417,31 @@ function Design() {
             the page away, which is the one thing that control must never do.
             The sentence keeps `Failed`, because this is a handoff that did not
             arrive and it is not an empty list. */}
-        {handoffMissed ? (
-          <>
-            <Failed>
-              {focusId
-                ? "The spec you were handed is not in this list, so what is open below is a different one."
-                : "The spec you were handed is not in this list, and nothing else is either."}
-            </Failed>
-            <Actions>
-              <Button
-                onClick={() =>
-                  void navigate({ to: "/plan/spec/$id", params: { id: sent as string } })
-                }
-              >
-                Open the spec
-              </Button>
-            </Actions>
-          </>
-        ) : null}
-      </Block>
+          {handoffMissed ? (
+            <>
+              <ReadFailedLine>
+                {focusId
+                  ? "The spec you were handed is not in this list, so what is open below is a different one."
+                  : "The spec you were handed is not in this list, and nothing else is either."}
+              </ReadFailedLine>
+              {/* The margin is stated at the call site now. Meridian's `Actions`
+                sets no outer space on purpose, and this row previously sat
+                hard against the sentence above it. */}
+              <Actions className="mt-mrd-4">
+                <Action
+                  onClick={() =>
+                    void navigate({ to: "/plan/spec/$id", params: { id: sent as string } })
+                  }
+                >
+                  Open the spec
+                </Action>
+              </Actions>
+            </>
+          ) : null}
+        </Region>
 
-      {focusId ? (
-        /* THE SPEC IS ONE CLICK AWAY, and until now it was zero clicks
+        {focusId ? (
+          /* THE SPEC IS ONE CLICK AWAY, and until now it was zero clicks
            available. The only /plan/spec/$id navigation on this surface sat
            inside the too-thin empty state, reachable only for a spec with under
            40 characters of body -- so at the exact moment the surface asks
@@ -1357,29 +1454,36 @@ function Design() {
            OUT of this station, and mixing it into the action bar would put a
            navigation among two calls and invite a person to press it thinking
            it settles something. */
-        <Block
-          title={focus?.title ?? "The screen in focus"}
-          more={focus ? "Open the spec" : undefined}
-          onMore={
-            focus
-              ? () => void navigate({ to: "/plan/spec/$id", params: { id: focus.prdId } })
-              : undefined
-          }
-        >
-          {item.isLoading ? (
-            <Loading>Opening it.</Loading>
-          ) : item.isError ? (
-            <Failed onRetry={() => void item.refetch()}>
-              Could not open it. {(item.error as Error).message}
-            </Failed>
-          ) : !focus ? (
-            <Empty>That spec is no longer readable from this workspace.</Empty>
-          ) : (
-            <>
-              {focus.drawing ? (
-                <DrawingStage html={focus.drawing.html} title={focus.title} />
-              ) : focus.specTooThin ? (
-                /* THE THIRD FACT, AND IT WAS WEARING THE SECOND ONE'S CLOTHES.
+          /* `goTo`, WHICH IS THE WHOLE REASON THAT PROP HAS A NAME. Region splits
+           the retired `more`/`onMore` three ways and picking wrong lies to
+           assistive tech: `toggle` emits `aria-expanded` and would announce
+           that this button reveals more of the region, `act` announces work
+           starting and would have a person expect a model run. This one leaves
+           the station for a named destination -- the spec on /plan -- so it is
+           navigation, and navigation is what `goTo` is. */
+          <Region
+            title={focus?.title ?? "The screen in focus"}
+            goTo={focus ? "Open the spec" : undefined}
+            onGoTo={
+              focus
+                ? () => void navigate({ to: "/plan/spec/$id", params: { id: focus.prdId } })
+                : undefined
+            }
+          >
+            {item.isLoading ? (
+              <Reading>Opening it.</Reading>
+            ) : item.isError ? (
+              <ReadFailedLine onRetry={() => void item.refetch()}>
+                Could not open it. {(item.error as Error).message}
+              </ReadFailedLine>
+            ) : !focus ? (
+              <NothingYet>That spec is no longer readable from this workspace.</NothingYet>
+            ) : (
+              <>
+                {focus.drawing ? (
+                  <DrawingStage html={focus.drawing.html} title={focus.title} />
+                ) : focus.specTooThin ? (
+                  /* THE THIRD FACT, AND IT WAS WEARING THE SECOND ONE'S CLOTHES.
                    This surface has three different things to say and had two
                    shapes to say them in: nothing exists yet, the read failed,
                    and THIS ONE, where the station cannot ask its question at
@@ -1396,68 +1500,104 @@ function Design() {
                    than a choice made here. Writing a spec is a setup act, not a
                    call that unblocks a gate, and orchid on it would send a
                    person hunting for a decision that is not on this screen. */
-                <NeedsSetup
-                  kind="upstream"
-                  title="Design has nothing to read yet"
-                  /* The body has to END on the precondition, because
+                  <NeedsSetup
+                    kind="upstream"
+                    title="Design has nothing to read yet"
+                    /* The body has to END on the precondition, because
                      `NeedsSetup` prints `thenWhat` after the fixed words "Once
                      it is,". With the default title overridden there is nothing
                      else on the panel for "it" to point at, and a dangling
                      "Once it is" in the one state whose whole job is to name
                      the missing thing is the state failing at its own job. */
-                  body="This spec is still shorter than a paragraph. A screen drawn from it would be invention rather than a reading of your intent, so Design waits until the spec is long enough to read."
-                  thenWhat="Design draws the screen from the spec's own words, and the call on it is made on this panel."
-                  action={
-                    <Button
-                      onClick={() =>
-                        void navigate({
-                          to: "/plan/spec/$id",
-                          params: { id: focus.prdId },
-                        })
-                      }
-                    >
-                      Write the spec
-                    </Button>
-                  }
-                />
-              ) : (
-                <Empty>
-                  Nothing is drawn for this spec yet. Pick how finished you want it and Design draws
-                  it from the spec's own words.
-                </Empty>
-              )}
+                    body="This spec is still shorter than a paragraph. A screen drawn from it would be invention rather than a reading of your intent, so Design waits until the spec is long enough to read."
+                    thenWhat="Design draws the screen from the spec's own words, and the call on it is made on this panel."
+                    action={
+                      <Action
+                        onClick={() =>
+                          void navigate({
+                            to: "/plan/spec/$id",
+                            params: { id: focus.prdId },
+                          })
+                        }
+                      >
+                        Write the spec
+                      </Action>
+                    }
+                  />
+                ) : (
+                  /*
+                   * A SKIP IS NOT AN ABSENCE, AND THIS PANEL SAID IT WAS.
+                   *
+                   * One line for every undrawn spec read "Nothing is drawn for
+                   * this spec yet", including specs somebody had DELIBERATELY
+                   * sent past Design. Seventy-seven lines below, the same panel
+                   * says "This spec was sent past Design" and names the day it
+                   * was chosen. So the surface told you a thing was unfinished
+                   * directly above telling you it was decided.
+                   *
+                   * That is the founder's own standing ruling, and this is its
+                   * FOURTH sighting: three surfaces were corrected for reading
+                   * `design_gate_status`'s NOT NULL DEFAULT 'pending' as
+                   * evidence and calling a deliberate skip unfinished. All three
+                   * now say the same words. `DrawingsTable.standing()` says them
+                   * too. This panel was the one place left.
+                   *
+                   * The offer to draw one STAYS in both branches, and is honest
+                   * in both: the Line below already explains that drawing one
+                   * puts the spec back in front of the gate. Choosing to skip is
+                   * not a door closing.
+                   */
+                  <NothingYet>
+                    {focus.route?.route === "direct"
+                      ? "Skipped on purpose. Nothing is drawn here because somebody decided this one did not need a screen. Draw one anyway and it goes back in front of the gate."
+                      : "Nothing is drawn for this spec yet. Pick how finished you want it and Design draws it from the spec's own words."}
+                  </NothingYet>
+                )}
 
-              {/* THE SPECTRUM. Three real generations, not three labels: each
+                {/* THE SPECTRUM. Three real generations, not three labels: each
                   changes the prompt AND the stylesheet the document ships
                   with, and the stored drawing carries which one it is.
                   A drawing made before the fidelity was recorded selects
                   NOTHING, because calling it a mockup would be a guess. */}
-              {!focus.specTooThin ? (
-                <Line
-                  label="How finished"
-                  sub={
-                    focus.drawing
-                      ? "Drawing again replaces this one. Only the latest is kept."
-                      : "Picking one draws it now, from the spec's own words."
-                  }
-                >
-                  <Choices<DesignFidelity | "">
-                    label="How finished the drawing should be"
-                    value={focus.drawing?.fidelity ?? ""}
-                    options={DESIGN_FIDELITIES.map((f) => ({
-                      id: f,
-                      label: FIDELITY_WORD[f],
-                      title: FIDELITY_QUESTION[f],
-                      disabled: drawAt.isPending,
-                    }))}
-                    onPick={(f) => {
-                      if (f) drawAt.mutate(f);
-                    }}
-                  />
-                </Line>
-              ) : null}
+                {!focus.specTooThin ? (
+                  <Line
+                    label="How finished"
+                    sub={
+                      focus.drawing
+                        ? "Drawing again replaces this one. Only the latest is kept."
+                        : "Picking one draws it now, from the spec's own words."
+                    }
+                  >
+                    {/* `mode="one"` IS STATED NOW RATHER THAN DEFAULTED, and the
+                      difference is the ARIA rather than the paint. The retired
+                      component let `mode` fall through to "one" silently;
+                      Meridian requires it, because the two modes are different
+                      controls to a screen reader -- "one" is a radiogroup with
+                      a single tab stop and arrow keys, "any" is a row of
+                      independent toggles. Three fidelities are mutually
+                      exclusive, so this is a radiogroup, and now it says so. */}
+                    <Choices<DesignFidelity | "">
+                      mode="one"
+                      label="How finished the drawing should be"
+                      value={focus.drawing?.fidelity ?? ""}
+                      options={DESIGN_FIDELITIES.map((f) => ({
+                        id: f,
+                        label: FIDELITY_WORD[f],
+                        title: FIDELITY_QUESTION[f],
+                        disabled: drawAt.isPending,
+                      }))}
+                      /* The guard stays. No option carries "", so a pick can only
+                       ever be a real fidelity; the empty string exists so a
+                       drawing whose fidelity was never recorded selects
+                       nothing rather than being called a mockup. */
+                      onChange={(f) => {
+                        if (f) drawAt.mutate(f);
+                      }}
+                    />
+                  </Line>
+                ) : null}
 
-              {/* Drawn or not. With nothing drawn, "what it replaces" drops out
+                {/* Drawn or not. With nothing drawn, "what it replaces" drops out
                   and "what it holds up" answers with the fact that used to be
                   stated backwards here: an undecided gate holds up NOTHING while
                   no screen is drawn. A gate judges a drawing and does not gate
@@ -1466,45 +1606,45 @@ function Design() {
                   or not anyone has drawn the screen -- is the reading that made
                   every spec in every workspace look blocked by two column
                   defaults meeting. */}
-              <Consequence
-                consequence={focus.consequence}
-                redrawn={focus.drawing?.redrawn ?? false}
-                hasDrawing={!!focus.drawing}
-                gateStatus={focus.gateStatus}
-                stageEnabled={focus.stageEnabled}
-              />
+                <Consequence
+                  consequence={focus.consequence}
+                  redrawn={focus.drawing?.redrawn ?? false}
+                  hasDrawing={!!focus.drawing}
+                  gateStatus={focus.gateStatus}
+                  stageEnabled={focus.stageEnabled}
+                />
 
-              {focus.drawing ? <Grounding prdId={focus.prdId} /> : null}
+                {focus.drawing ? <Grounding prdId={focus.prdId} /> : null}
 
-              {/* THE ROUTE, WHERE THE DESIGN STATION CAN SEE IT. Somebody
+                {/* THE ROUTE, WHERE THE DESIGN STATION CAN SEE IT. Somebody
                   decided on Plan whether this spec passes through here, and
                   that decision was invisible to the station it was made about.
                   Read from the spec's own stage record, never inferred from the
                   absence of a drawing. */}
-              {focus.route ? (
-                <Line
-                  label={
-                    focus.route.route === "direct"
-                      ? "This spec was sent past Design"
-                      : "This spec was handed here"
-                  }
-                  sub={
-                    focus.route.route === "direct"
-                      ? `Someone chose to build it without a screen on ${new Date(
-                          focus.route.at,
-                        ).toLocaleDateString(undefined, {
-                          day: "numeric",
-                          month: "short",
-                        })}. Drawing one now puts it back in front of the gate.`
-                      : `Routed here on ${new Date(focus.route.at).toLocaleDateString(undefined, {
-                          day: "numeric",
-                          month: "short",
-                        })} to be drawn before Build.`
-                  }
-                />
-              ) : null}
+                {focus.route ? (
+                  <Line
+                    label={
+                      focus.route.route === "direct"
+                        ? "This spec was sent past Design"
+                        : "This spec was handed here"
+                    }
+                    sub={
+                      focus.route.route === "direct"
+                        ? `Someone chose to build it without a screen on ${new Date(
+                            focus.route.at,
+                          ).toLocaleDateString(undefined, {
+                            day: "numeric",
+                            month: "short",
+                          })}. Drawing one now puts it back in front of the gate.`
+                        : `Routed here on ${new Date(focus.route.at).toLocaleDateString(undefined, {
+                            day: "numeric",
+                            month: "short",
+                          })} to be drawn before Build.`
+                    }
+                  />
+                ) : null}
 
-              {/* WHAT THE DRAWING WAS DRAWN AGAINST.
+                {/* WHAT THE DRAWING WAS DRAWN AGAINST.
 
                   The Outcome Contract is the most structured promise the spec
                   makes, and this station judged screens without ever showing
@@ -1517,24 +1657,24 @@ function Design() {
                   Absent for a spec with no compiled contract, which is most of
                   them today. An empty "what it promised" panel would claim a
                   promise nobody wrote. */}
-              {focus.contract ? (
-                <Line
-                  label="What the spec promised"
-                  sub={
-                    <>
-                      {focus.contract.intent ? <>{focus.contract.intent} </> : null}
-                      {focus.contract.successMetrics.length > 0 ? (
-                        <>Must be true: {focus.contract.successMetrics.join("; ")}. </>
-                      ) : null}
-                      {focus.contract.nonGoals.length > 0 ? (
-                        <>Out of scope: {focus.contract.nonGoals.join("; ")}.</>
-                      ) : null}
-                    </>
-                  }
-                />
-              ) : null}
+                {focus.contract ? (
+                  <Line
+                    label="What the spec promised"
+                    sub={
+                      <>
+                        {focus.contract.intent ? <>{focus.contract.intent} </> : null}
+                        {focus.contract.successMetrics.length > 0 ? (
+                          <>Must be true: {focus.contract.successMetrics.join("; ")}. </>
+                        ) : null}
+                        {focus.contract.nonGoals.length > 0 ? (
+                          <>Out of scope: {focus.contract.nonGoals.join("; ")}.</>
+                        ) : null}
+                      </>
+                    }
+                  />
+                ) : null}
 
-              {/* A SETTLED VERDICT IS A FACT, AND IT USED TO BE A DEAD BUTTON.
+                {/* A SETTLED VERDICT IS A FACT, AND IT USED TO BE A DEAD BUTTON.
                   The primary control read "Approved" and was disabled once the
                   gate was approved: a status wearing a control's clothes, in
                   the one position on the panel a person looks for the thing to
@@ -1547,7 +1687,7 @@ function Design() {
                   is new here: `gateDecidedAt` has been on this record all along
                   and no panel ever printed it, so "approved" carried no
                   when. */}
-              {/* WHO SETTLED IT IS NOT A FACT THIS PANEL HOLDS.
+                {/* WHO SETTLED IT IS NOT A FACT THIS PANEL HOLDS.
                   These two lines said "You approved this design". `decideDesignGate`
                   has no owner or role check, so any member of the workspace can
                   settle the gate, and `getDesignScaffold` returns `gateStatus` and
@@ -1560,42 +1700,43 @@ function Design() {
                   already reads it. Until this query carries it too, the sentence
                   drops the actor rather than guessing one. Naming the person is the
                   better line and it is a data change, not a copy change. */}
-              {focus.drawing && focus.stageEnabled && focus.gateStatus !== "pending" ? (
-                <Line
-                  label={
-                    focus.gateStatus === "approved"
-                      ? "This design was approved"
-                      : "This design was sent back"
-                  }
-                  sub={
-                    <>
-                      {focus.gateDecidedAt
-                        ? `Settled on ${new Date(focus.gateDecidedAt).toLocaleDateString(
-                            undefined,
-                            {
-                              day: "numeric",
-                              month: "short",
-                            },
-                          )}. `
-                        : "The record does not carry the day it was settled. "}
-                      {focus.gateStatus === "approved"
-                        ? "Sending it back shuts the gate again."
-                        : "The gate stays shut until a drawing is approved."}
-                    </>
-                  }
-                />
-              ) : null}
+                {focus.drawing && focus.stageEnabled && focus.gateStatus !== "pending" ? (
+                  <Line
+                    label={
+                      focus.gateStatus === "approved"
+                        ? "This design was approved"
+                        : "This design was sent back"
+                    }
+                    sub={
+                      <>
+                        {focus.gateDecidedAt
+                          ? `Settled on ${new Date(focus.gateDecidedAt).toLocaleDateString(
+                              undefined,
+                              {
+                                day: "numeric",
+                                month: "short",
+                              },
+                            )}. `
+                          : "The record does not carry the day it was settled. "}
+                        {focus.gateStatus === "approved"
+                          ? "Sending it back shuts the gate again."
+                          : "The gate stays shut until a drawing is approved."}
+                      </>
+                    }
+                  />
+                ) : null}
 
-              <Actions
-                trailing={
-                  focus.drawing ? (
-                    <Button variant="ghost" disabled={busy} onClick={() => hand.mutate()}>
-                      Make a link
-                    </Button>
-                  ) : undefined
-                }
-              >
-                {/* THE VERDICT PAIR NEEDS A DRAWING, AND IT USED TO NEED ONLY
+                <Actions
+                  className="mt-mrd-4"
+                  trailing={
+                    focus.drawing ? (
+                      <Action variant="quiet" disabled={busy} onClick={() => hand.mutate()}>
+                        Make a link
+                      </Action>
+                    ) : undefined
+                  }
+                >
+                  {/* THE VERDICT PAIR NEEDS A DRAWING, AND IT USED TO NEED ONLY
                     THE STAGE. Gated on `focus.stageEnabled` alone, "Approve the
                     design" and "Send it back" rendered for a spec with nothing
                     drawn, and both wrote a taste learning: the extractor was
@@ -1612,147 +1753,187 @@ function Design() {
                     whether it needs a screen at all. That is a stronger control
                     than the one it replaces, because it writes a fact instead of
                     inventing one. */}
-                {focus.drawing ? (
-                  focus.stageEnabled ? (
-                    <>
-                      {/* Approve is drawn only while approving would do
+                  {focus.drawing ? (
+                    focus.stageEnabled ? (
+                      <>
+                        {/* Approve is drawn only while approving would do
                           something. Pressing it on an approved gate wrote the
                           same status back and taught the taste loop a second
                           time from one judgment, which is why it was disabled
                           rather than repeated; a control nobody can press is
                           not the answer to a control that should not be
                           there. */}
-                      {focus.gateStatus === "approved" ? null : (
-                        <Button
+                        {/* `Approve`, AND THE STAGE FLAG IS WHAT EARNS IT. With
+                          the gate on, `designGateBlocksDispatch` holds this
+                          spec out of Build until this click; that is the
+                          literal definition Meridian gives the orchid control,
+                          "the work is stopped until it is pressed". Send it
+                          back settles the same gate and releases nothing, so
+                          it is an `Action`. */}
+                        {focus.gateStatus === "approved" ? null : (
+                          <Approve disabled={busy} onClick={() => verdict.mutate("approve")}>
+                            Approve the design
+                          </Approve>
+                        )}
+                        <Action disabled={busy} onClick={() => verdict.mutate("reject")}>
+                          Send it back
+                        </Action>
+                      </>
+                    ) : (
+                      <>
+                        {/* NEITHER OF THESE IS AN `Approve`, and the comment above
+                          this bar already argued why in words: with the gate off
+                          there is no gate to move, so the verdict has nowhere to
+                          land except the taste loop. These record an opinion.
+                          Orchid on them would claim the click releases a spec
+                          into Build, which is the exact capability the wiring
+                          does not have here. `primary` is Meridian's neutral
+                          filled face, so "Good fit" keeps its weight in the bar
+                          without borrowing the gate's meaning. */}
+                        <Action
                           variant="primary"
                           disabled={busy}
-                          onClick={() => verdict.mutate("approve")}
+                          onClick={() => taste.mutate(true)}
                         >
-                          Approve the design
-                        </Button>
-                      )}
-                      <Button disabled={busy} onClick={() => verdict.mutate("reject")}>
-                        Send it back
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button variant="primary" disabled={busy} onClick={() => taste.mutate(true)}>
-                        Good fit
-                      </Button>
-                      <Button disabled={busy} onClick={() => taste.mutate(false)}>
-                        Not a fit
-                      </Button>
-                    </>
-                  )
-                ) : focus.route?.route === "direct" ? null : (
-                  /* Already recorded direct renders nothing rather than a second
+                          Good fit
+                        </Action>
+                        <Action disabled={busy} onClick={() => taste.mutate(false)}>
+                          Not a fit
+                        </Action>
+                      </>
+                    )
+                  ) : focus.route?.route === "direct" ? null : (
+                    /* Already recorded direct renders nothing rather than a second
                      button: the skip is on the record, the Line above says so
                      and says how to undo it, and re-pressing would be a click
                      the trail cannot tell from a decision. */
-                  <Button disabled={busy} onClick={() => skipDesign.mutate()}>
-                    Record that this needs no screen
-                  </Button>
-                )}
-                {focus.drawing ? (
-                  <Button disabled={busy} onClick={() => critic.mutate()}>
-                    {critic.isPending ? "The Critic is reading" : "Ask the Critic"}
-                  </Button>
-                ) : null}
-              </Actions>
+                    /* AN `Action`, DELIBERATELY, AND THIS IS THE ONE THAT MATTERS
+                     MOST ON THIS STATION. Plan straight to Build, skipping
+                     Design, is a first-class route rather than an escape
+                     hatch, and this control records that a spec takes it. It
+                     is not an `Approve`: with nothing drawn the gate holds
+                     nothing up -- the consequence panel three lines above says
+                     exactly that -- so there is no block for this click to
+                     release. Dressing it in the gate's orchid would frame a
+                     deliberate skip as a stuck row being freed, which is the
+                     opposite of what it records. */
+                    <Action disabled={busy} onClick={() => skipDesign.mutate()}>
+                      Record that this needs no screen
+                    </Action>
+                  )}
+                  {focus.drawing ? (
+                    <Action disabled={busy} onClick={() => critic.mutate()}>
+                      {critic.isPending ? "The Critic is reading" : "Ask the Critic"}
+                    </Action>
+                  ) : null}
+                </Actions>
 
-              {/* THE INDICATOR SITS WITH THE WORK, not only with its result.
+                {/* THE INDICATOR SITS WITH THE WORK, not only with its result.
                   "What the Critic found" carries a pulse too, but that Block
                   only exists once there ARE findings, so on a first review the
                   only sign of life would have been a greyed-out button. The
                   first review is the one where a person has no idea whether
                   anything is happening, so it is the one that most needs this. */}
-              {critic.isPending || drawAt.isPending ? (
-                <AgentPulse
-                  label={critic.isPending ? "The Critic is reviewing" : "Design is drawing"}
-                  seed={critic.isPending ? REVIEWS : DRAWS}
-                  detail={
-                    critic.isPending ? (
-                      <>
-                        {focus.title} · against {inForce} {inForce === 1 ? "rule" : "rules"} in
-                        force
-                      </>
-                    ) : (
-                      <>
-                        {drawAt.variables
-                          ? FIDELITY_WORD[drawAt.variables].toLowerCase()
-                          : "screen"}{" "}
-                        of {focus.title}
-                      </>
-                    )
-                  }
-                />
-              ) : null}
+                {critic.isPending || drawAt.isPending ? (
+                  <AgentPulse
+                    label={critic.isPending ? "The Critic is reviewing" : "Design is drawing"}
+                    seed={critic.isPending ? REVIEWS : DRAWS}
+                    detail={
+                      critic.isPending ? (
+                        <>
+                          {focus.title} · against {inForce} {inForce === 1 ? "rule" : "rules"} in
+                          force
+                        </>
+                      ) : (
+                        <>
+                          {drawAt.variables
+                            ? FIDELITY_WORD[drawAt.variables].toLowerCase()
+                            : "screen"}{" "}
+                          of {focus.title}
+                        </>
+                      )
+                    }
+                  />
+                ) : null}
 
-              {focusTrace.map((t) => (
-                <Receipt
-                  key={t.id}
-                  verb={t.verb}
-                  consequence={t.consequence}
-                  failed={t.failed}
-                  time="now"
-                />
-              ))}
+                {focusTrace.map((t) => (
+                  <Receipt
+                    key={t.id}
+                    verb={t.verb}
+                    consequence={t.consequence}
+                    failed={t.failed}
+                    time="now"
+                  />
+                ))}
+                {/* No wrapper here, unlike the page trace above: a `Region`'s
+                  children stack in a plain div with no gap, so the receipts
+                  are already adjacent and their own top hairlines do the
+                  separating. */}
 
-              {findings && findings.length === 0 ? (
-                <Empty>
-                  The Critic found nothing against your rules or the accessibility floors.
-                </Empty>
-              ) : null}
-            </>
-          )}
-        </Block>
-      ) : null}
+                {findings && findings.length === 0 ? (
+                  <NothingYet>
+                    The Critic found nothing against your rules or the accessibility floors.
+                  </NothingYet>
+                ) : null}
+              </>
+            )}
+          </Region>
+        ) : null}
 
-      {/* Its own region, not a Block nested in a Block: the section rule is a
+        {/* Its own region, not a Block nested in a Block: the section rule is a
           rule between sections and never appears inside one. Same for the
           links below. WHAT YOU CAN DO ABOUT IT, in place: a finding you cannot
           act on is a complaint. */}
-      {focus && findings && findings.length > 0 ? (
-        <Block
-          title="What the Critic found"
-          sub={
-            // `runScaffoldDesignCritic` routes through the critic lens, which
-            // calls the chokepoint. The detail says what it is reading the
-            // drawing AGAINST, because that is the fact a person actually wants
-            // while they wait: a review against nine rules in force means
-            // something, a review against none is worth knowing before the
-            // verdict arrives rather than after.
-            critic.isPending ? (
-              <AgentPulse
-                label="The Critic is reviewing the drawing"
-                seed={REVIEWS}
-                compact
-                detail={
-                  <>
-                    {focus?.title ?? "the drawing"} · against {inForce}{" "}
-                    {inForce === 1 ? "rule" : "rules"} in force
-                  </>
-                }
-              />
-            ) : (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                <AgentMark slug={REVIEWS} state="quiet" />
-                Making one a rule stops the crew repeating it.
-              </span>
-            )
-          }
-        >
-          <Findings
-            findings={findings}
-            pendingIssue={pendingIssue}
-            onMakeRule={(f) => makeRule.mutate(f)}
-          />
-        </Block>
-      ) : null}
+        {focus && findings && findings.length > 0 ? (
+          /* NO `act` ON THIS HEAD, AND THAT IS A DECISION RATHER THAN AN
+           OVERSIGHT. `Region.act` is built for a model dispatch fired from a
+           region heading, and this station has one -- "Ask the Critic". It
+           cannot live here. This region only exists once there ARE findings,
+           so on a first review the control would not be drawn at all, which is
+           the exact defect the pulse below the Actions bar was added to fix:
+           "the first review is the one where a person has no idea whether
+           anything is happening, so it is the one that most needs this." The
+           dispatch stays in the focus panel's Actions bar, where it is
+           reachable before there is anything to read. */
+          <Region
+            title="What the Critic found"
+            sub={
+              // `runScaffoldDesignCritic` routes through the critic lens, which
+              // calls the chokepoint. The detail says what it is reading the
+              // drawing AGAINST, because that is the fact a person actually wants
+              // while they wait: a review against nine rules in force means
+              // something, a review against none is worth knowing before the
+              // verdict arrives rather than after.
+              critic.isPending ? (
+                <AgentPulse
+                  label="The Critic is reviewing the drawing"
+                  seed={REVIEWS}
+                  compact
+                  detail={
+                    <>
+                      {focus?.title ?? "the drawing"} · against {inForce}{" "}
+                      {inForce === 1 ? "rule" : "rules"} in force
+                    </>
+                  }
+                />
+              ) : (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <AgentMark slug={REVIEWS} state="quiet" />
+                  Making one a rule stops the crew repeating it.
+                </span>
+              )
+            }
+          >
+            <Findings
+              findings={findings}
+              pendingIssue={pendingIssue}
+              onMakeRule={(f) => makeRule.mutate(f)}
+            />
+          </Region>
+        ) : null}
 
-      {focus && focus.consequence.shares.length > 0 ? (
-        /* THE TITLE USED TO BE THE CLAIM, AND THE CLAIM WAS FALSE AFTER ONE
+        {focus && focus.consequence.shares.length > 0 ? (
+          /* THE TITLE USED TO BE THE CLAIM, AND THE CLAIM WAS FALSE AFTER ONE
            REDRAW. "Links to this drawing" filed every link under the screen
            above it, while a link is a SNAPSHOT: its markup is written once, into
            `prototype_files`, and a redraw overwrites `prd_scaffolds.html` and
@@ -1769,15 +1950,15 @@ function Design() {
            and delete lives on /artifacts. That write belongs to
            src/lib/prototypes.functions.ts, beside the insert that created the
            row. */
-        <Block
-          title="Links made from this spec"
-          sub="A link is a snapshot of the markup at the moment it was made. Redrawing the screen does not change what a link already handed out shows."
-        >
-          {focus.consequence.shares.map((s) => (
-            <Line
-              key={s.id}
-              label={s.name}
-              /* THE ADDRESS IS AN ADDRESS. A published link rendered as dead
+          <Region
+            title="Links made from this spec"
+            sub="A link is a snapshot of the markup at the moment it was made. Redrawing the screen does not change what a link already handed out shows."
+          >
+            {focus.consequence.shares.map((s) => (
+              <Line
+                key={s.id}
+                label={s.name}
+                /* THE ADDRESS IS AN ADDRESS. A published link rendered as dead
                  text, next to a Copy button, so the only way to find out what
                  you had just published to the world was to copy it and paste it
                  somewhere else. It opens what a visitor sees, in a new tab
@@ -1788,24 +1969,26 @@ function Design() {
                  Only when it is actually public. A private link has no address
                  that works, and drawing a door onto a page that would refuse
                  the visitor is the promise this pass exists to stop making. */
-              sub={
-                <>
-                  {s.isPublic ? (
-                    <Door
-                      title="Open what a visitor sees"
-                      onClick={() => window.open(shareUrl(s.slug), "_blank", "noopener,noreferrer")}
-                    >
-                      {shareUrl(s.slug)}
-                    </Door>
-                  ) : (
-                    "Nobody outside can open it"
-                  )}
-                  {/* Read from the markup itself, never from a timestamp: both
+                sub={
+                  <>
+                    {s.isPublic ? (
+                      <Door
+                        title="Open what a visitor sees"
+                        onClick={() =>
+                          window.open(shareUrl(s.slug), "_blank", "noopener,noreferrer")
+                        }
+                      >
+                        {shareUrl(s.slug)}
+                      </Door>
+                    ) : (
+                      "Nobody outside can open it"
+                    )}
+                    {/* Read from the markup itself, never from a timestamp: both
                       `prototypes.updated_at` and `prd_scaffolds.updated_at` move
                       for reasons that have nothing to do with what is served.
                       Silent when there is no drawing above to compare against,
                       because there is then no question to answer. */}
-                  {/* THE STALE LINK IS RAISED, NOT TINTED. It carried
+                    {/* THE STALE LINK IS RAISED, NOT TINTED. It carried
                       `tone="warn"`, which resolves to `--sp-warn`, a gold. This
                       product has no warning colour and no token for one: a hue
                       here would have to sit between "a person is required" and
@@ -1814,51 +1997,57 @@ function Design() {
                       sentence needs is emphasis, so it takes the top of the ink
                       ramp and a heavier weight, which is legible in greyscale
                       and does not claim a meaning the palette reserves. */}
-                  {!focus.drawing ? null : s.matchesDrawing === true ? (
-                    " · This is the drawing above"
-                  ) : s.matchesDrawing === false ? (
-                    <>
-                      {" · "}
-                      <Value>
-                        <span className="font-medium text-mrd-ink">
-                          Serves an earlier drawing, not the one above
-                        </span>
-                      </Value>
-                    </>
-                  ) : (
-                    " · Could not read which drawing it serves"
-                  )}
-                </>
-              }
-            >
-              {s.isPublic ? (
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    void navigator.clipboard?.writeText(shareUrl(s.slug));
-                    note(
-                      "focus",
-                      focus.prdId,
-                      "You copied a link",
-                      `${shareUrl(s.slug)} is on your clipboard.`,
-                    );
-                  }}
-                >
-                  Copy
-                </Button>
-              ) : (
-                <Value>Private</Value>
-              )}
-              <Switch
-                label={`Let anyone with the link open ${s.name}`}
-                checked={s.isPublic}
-                disabled={flipShare.isPending}
-                onChange={(next) => flipShare.mutate({ id: s.id, isPublic: next, slug: s.slug })}
-              />
-            </Line>
-          ))}
-        </Block>
-      ) : null}
+                    {!focus.drawing ? null : s.matchesDrawing === true ? (
+                      " · This is the drawing above"
+                    ) : s.matchesDrawing === false ? (
+                      <>
+                        {" · "}
+                        <Value>
+                          <span className="font-medium text-mrd-ink">
+                            Serves an earlier drawing, not the one above
+                          </span>
+                        </Value>
+                      </>
+                    ) : (
+                      " · Could not read which drawing it serves"
+                    )}
+                  </>
+                }
+              >
+                {s.isPublic ? (
+                  <Action
+                    variant="quiet"
+                    onClick={() => {
+                      void navigator.clipboard?.writeText(shareUrl(s.slug));
+                      note(
+                        "focus",
+                        focus.prdId,
+                        "You copied a link",
+                        `${shareUrl(s.slug)} is on your clipboard.`,
+                      );
+                    }}
+                  >
+                    Copy
+                  </Action>
+                ) : (
+                  /* NO TONE, AND MERIDIAN'S `Value` HAS NO `you` TO REACH FOR
+                   ANYWAY. "Private" is a state of the link, not an outcome and
+                   not something waiting on anybody, so it stays on the quiet
+                   default. */
+                  <Value>Private</Value>
+                )}
+                <Toggle
+                  label={`Let anyone with the link open ${s.name}`}
+                  checked={s.isPublic}
+                  disabled={flipShare.isPending}
+                  busy={flipShare.isPending}
+                  onChange={(next) => flipShare.mutate({ id: s.id, isPublic: next, slug: s.slug })}
+                />
+              </Line>
+            ))}
+          </Region>
+        ) : null}
+      </div>
     </Surface>
   );
 }
@@ -1896,13 +2085,26 @@ export const Route = createFileRoute("/_authenticated/design")({
     console.error("[Design] route crashed:", error);
     return (
       <Surface>
-        <PageHead
-          title="Design did not load."
-          sub="Every drawing, rule and link is safe on the record."
-        />
-        <Failed onRetry={() => window.location.reload()} retryLabel="Reload">
-          The surface crashed while rendering.
-        </Failed>
+        <div className="flex flex-col gap-mrd-7">
+          <PageHeading
+            title="Design did not load."
+            sub="Every drawing, rule and link is safe on the record."
+          />
+          {/* `ReadFailedLine` AND NOT THE BOXED HALF, WHICH IS THE ONE PLACE
+              THIS PORT DEPARTS FROM THE OBVIOUS READING OF THE PAIR. Meridian
+              says the bordered `ReadFailed` is for a failure with no region
+              around it, and there is none here. But `ReadFailed` prints its own
+              reassurance -- "Nothing has been changed and nothing has been
+              lost" -- one line under a `sub` that already says "Every drawing,
+              rule and link is safe on the record". That is the same sentence
+              twice, which is the hard ban on label, sublabel and helper all
+              saying one thing, and it would be introduced BY the port rather
+              than inherited. The line half renders exactly what the retired
+              `Failed` rendered here: the fact in red, the way out beside it. */}
+          <ReadFailedLine onRetry={() => window.location.reload()} retryLabel="Reload">
+            The surface crashed while rendering.
+          </ReadFailedLine>
+        </div>
       </Surface>
     );
   },

@@ -31,7 +31,8 @@
  */
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { DiscoverSurface } from "@/components/discover/DiscoverSurface";
-import { Block, Button, Empty, PageHead, Surface } from "@/components/shell/primitives";
+import { Surface } from "@/components/meridian/Surface";
+import { Action, NothingHere, PageHeading } from "@/components/meridian/surface-parts";
 
 export type DiscoverTab = "signals" | "queue";
 
@@ -65,16 +66,29 @@ export const Route = createFileRoute("/_authenticated/discover")({
   head: () => ({ meta: [{ title: "Discover · Supaprod" }] }),
   errorComponent: () => (
     <Surface>
-      <PageHead title="Discover did not load." sub="Nothing already captured is lost." />
-      <Block>
-        <Empty>
-          Reload and the desk reads again. Every signal the crew has captured is still on the
-          record.
-        </Empty>
-        <Button variant="primary" onClick={() => window.location.reload()}>
-          Reload the page
-        </Button>
-      </Block>
+      <PageHeading title="Discover did not load." sub="Nothing already captured is lost." />
+      {/* NothingHere rather than NothingYet, which is the bordered half of that
+          pair. Meridian's rule: the bare one is for a sentence sitting UNDER a
+          region heading that already frames it, and the bordered one for where
+          the region itself is missing. There is no region on this screen -- the
+          error component replaces the whole surface -- so the box is what draws
+          the boundary the retired `Block` rule used to draw.
+
+          The reload control moves into `action`, which is the slot the empty
+          state has for exactly this. It was a sibling of the `Empty` before
+          because the retired primitive's own header records the workaround:
+          "an empty state that names who acts next but gives you no way to act
+          is only half honest, and every ported surface was wrapping one in a
+          Gate to get a button". */}
+      <NothingHere
+        action={
+          <Action variant="primary" onClick={() => window.location.reload()}>
+            Reload the page
+          </Action>
+        }
+      >
+        Reload and the desk reads again. Every signal the crew has captured is still on the record.
+      </NothingHere>
     </Surface>
   ),
 });

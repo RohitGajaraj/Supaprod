@@ -1636,7 +1636,7 @@ function AgentDetail({
   /* Named Facet, not Row: this file imports a RETIRED `Row` from shell/primitives, and a
      local shadowing it reads as that component to every human and every scanner. */
   const Facet = ({ label, children }: { label: string; children: ReactNode }) => (
-    <div className="flex flex-col gap-1 border-t border-mrd-line pt-2.5 first:border-0 first:pt-0">
+    <div className="flex flex-col gap-1 pt-2.5 first:pt-0">
       <div className="text-[10.5px] font-medium tracking-[0.08em] text-mrd-mute uppercase">
         {label}
       </div>

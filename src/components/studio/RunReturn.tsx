@@ -19,8 +19,21 @@
 
 import * as React from "react";
 import { Row } from "@/components/meridian/rows";
-import { Num, Door } from "@/components/meridian/surface-parts";
-import { Block, Empty, Loading, Pre, Prose } from "@/components/shell/primitives";
+import { Num, Door, NothingYet, Region } from "@/components/meridian/surface-parts";
+import { Prose } from "@/components/meridian/Prose";
+import { AgentPulse } from "@/components/meridian/AgentPulse";
+/*
+ * `Pre` STAYS ON THE RETIRED LAYER, AND THAT IS A REFUSAL RATHER THAN AN
+ * OVERSIGHT. Meridian's `CodeBlock` is the obvious replacement and it is the
+ * wrong shape for this payload, on four counts measured independently by three
+ * porting agents: it requires a `filename` a raw stderr blob does not have, it
+ * takes `lines: CodeToken[][]` rather than children, it caps a HEIGHT as well
+ * as a width where `.sp-pre` caps only the width, and its token union carries
+ * no outcome tone, so the one thing this call site is for -- a failure printed
+ * verbatim -- would lose its voice. A half-fitting primitive that drops a
+ * failure state is worse than one retired import.
+ */
+import { Pre } from "@/components/shell/primitives";
 import {
   checkCalls,
   finalSummary,
@@ -88,7 +101,7 @@ export function ReturnSummary({
   const split = React.useMemo(() => (summary ? splitSummary(summary.text) : null), [summary]);
 
   return (
-    <Block title="What came back">
+    <Region title="What came back">
       {split ? (
         <>
           <Prose>
@@ -99,29 +112,55 @@ export function ReturnSummary({
           ) : null}
         </>
       ) : live ? (
-        // A live run has not written its account yet, and that is a WAIT rather
-        // than an absence. `working` is honest here in a way it is not on a
-        // plain fetch: an agent really is dispatched.
-        <Loading working agent={holderSlug ?? undefined} detail={liveAction}>
-          {`${holder} is still working`}
-        </Loading>
+        /* A live run has not written its account yet, and that is a WAIT rather
+           than an absence.
+           DELIBERATELY NOT `Reading`. That component's own header forbids this
+           use: it is for a read still in flight, "an ordinary read", and this is
+           an AGENT genuinely dispatched, which is a different fact with a
+           different honesty bar. The retired `Loading working` rendered exactly
+           this component behind a flag; here it is called directly, so nothing
+           can pass `working` on a database fetch by accident. */
+        <AgentPulse
+          label={`${holder} is still working`}
+          seed={holderSlug ?? undefined}
+          detail={liveAction}
+        />
       ) : (
-        <Empty>
+        /* `NothingYet` and not `NothingHere`: this sits inside a Region that is
+           already the container, and the bordered half would put a box inside a
+           box. */
+        <NothingYet>
           {holder} finished without writing an account of this run. Every step it took is under
           Steps below.
-        </Empty>
+        </NothingYet>
       )}
-    </Block>
+    </Region>
   );
 }
 
-/** Pass, fail and warn are outcomes, so they are the one place colour speaks
- *  here. All three survive greyscale: the word carries the fact and the hue only
- *  agrees with it. */
+/**
+ * The one place colour speaks in this file. All three survive greyscale: the
+ * word carries the fact and the hue only agrees with it.
+ *
+ * ── `warn` IS NOT ONE OF MERIDIAN'S FIVE WORDS, AND THE FIX IS `hold` ────
+ * The retired sheet had a sixth status colour, `--sp-warn`, an amber with no
+ * stated meaning. Every state that reaches this branch is the same thing, and
+ * `run-return.ts` is where you can read it: "You declined this", "It could not
+ * run here", a review that neither approved nor blocked, `n` tests still owed,
+ * `may_proceed: false`. None of those is an outcome; every one of them is
+ * WAITING ON A CONDITION, which is exactly what Meridian's `--mrd-hold` says.
+ *
+ * Orchid would have been the reflex and it is wrong: `--mrd-you` means A PERSON
+ * IS REQUIRED and promises a control that moves the thing. There is no such
+ * control on a check row -- the thing that moves it is the run.
+ *
+ * `quiet` still returns undefined and inherits, which is the honest answer for
+ * a CI conclusion the platform has no reading of.
+ */
 function toneClass(state: CheckState): string | undefined {
-  if (state === "pass") return "sp-pass";
-  if (state === "fail") return "sp-fail";
-  if (state === "warn") return "sp-warn";
+  if (state === "pass") return "text-mrd-pass";
+  if (state === "fail") return "text-mrd-fail";
+  if (state === "warn") return "text-mrd-hold";
   return undefined;
 }
 
@@ -169,12 +208,12 @@ export function CheckedItself({ runs, ci }: { runs: RunLike[]; ci: CiCheck[] | n
 
   if (calls.length === 0 && ciChecks.length === 0) {
     return (
-      <Block title="How it checked itself">
-        <Empty>
+      <Region title="How it checked itself">
+        <NothingYet>
           Nothing ran a check on this work: no sandbox run, and no CI has reported. Whether it works
           is still an open question.
-        </Empty>
-      </Block>
+        </NothingYet>
+      </Region>
     );
   }
 
@@ -188,7 +227,7 @@ export function CheckedItself({ runs, ci }: { runs: RunLike[]; ci: CiCheck[] | n
      * a reader who cannot tell them apart is reading a list rather than an
      * argument. The sub-line states what they have in common; each row says
      * which kind it is (an exit code, a tool name, "on the pull request"). */
-    <Block
+    <Region
       title="How it checked itself"
       sub="Every line here is something that ran, with the result it returned. None of it is the agent's opinion of its own work."
     >
@@ -284,6 +323,6 @@ export function CheckedItself({ runs, ci }: { runs: RunLike[]; ci: CiCheck[] | n
           }
         />
       ))}
-    </Block>
+    </Region>
   );
 }

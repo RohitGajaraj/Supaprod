@@ -87,55 +87,50 @@ export function RewindButton({ prdId, hasSnapshot, onCommit, onReverted }: Rewin
   return (
     <AlertDialog.Root open={open} onOpenChange={setOpen}>
       <AlertDialog.Trigger asChild>
-        {/* `.sp-block-more` is the system's quiet action, and it already carries
-            its own hover, focus-visible and disabled states. The hand-rolled
-            underline this replaces carried none of them. */}
-        <button type="button" className="sp-block-more">
+        {/* MERIDIAN'S `Door` PAINT ON A RAW BUTTON, AND THE RAW BUTTON IS THE
+            POINT. This sits mid-sentence in the context rail, so it wants the
+            door's shape — inherited size, dotted underline going solid on hover
+            — and not `Action`'s 32px control box, which would tower over the
+            12px prose around it.
+
+            It is not the `Door` COMPONENT because `AlertDialog.Trigger asChild`
+            clones its child with a ref and its own props, and `Door` accepts a
+            closed prop list and spreads no rest, so the ref and the dialog's
+            state attributes would be dropped on the floor. A DOM element
+            forwards both natively. Convert it the day `Door` spreads its rest
+            props, not before. */}
+        <button
+          type="button"
+          className="rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
+          style={{ transitionDuration: "var(--mrd-d-press)" }}
+        >
           Rewind
         </button>
       </AlertDialog.Trigger>
       <AlertDialog.Portal>
         {/* Dimmed, not blurred. The glass ban is this surface's own ruling. */}
-        <AlertDialog.Overlay
-          className="fixed inset-0 z-40"
-          style={{ background: "var(--sp-scrim)" }}
-        />
-        <AlertDialog.Content
-          className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 outline-none"
-          style={{
-            width: "440px",
-            maxWidth: "92vw",
-            background: "var(--sp-float)",
-            border: "1px solid var(--sp-line)",
-            borderRadius: "var(--sp-radius-pane)",
-            boxShadow: "var(--sp-shadow-sheet)",
-            padding: "var(--sp-space-6)",
-          }}
-        >
+        <AlertDialog.Overlay className="fixed inset-0 z-40 bg-mrd-scrim" />
+        {/* THE STOPS ARE THE RETIRED ONES, TO THE PIXEL. 19px on 1.32 with the
+            gate's tracking, 600 weight, 13.5px on 1.55 underneath, 24px of pad,
+            440px wide. They are written as explicit values wherever Meridian
+            bridges no equivalent — it bridges neither the type scale nor the
+            weight scale — because the ratchet law makes today's design the
+            floor, and rounding 19 to 20 or 600 to `font-medium` to make the
+            port tidier would make the dialog worse. */}
+        <AlertDialog.Content className="fixed top-1/2 left-1/2 z-50 w-[440px] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 rounded-mrd-pane border border-mrd-line bg-mrd-float p-mrd-6 shadow-mrd-pane outline-none">
           <AlertDialog.Title
-            style={{
-              fontSize: "var(--sp-text-gate)",
-              fontWeight: "var(--sp-weight-strong)",
-              letterSpacing: "var(--sp-track-gate)",
-              lineHeight: "var(--sp-leading-gate)",
-              color: "var(--sp-ink)",
-              margin: 0,
-            }}
+            className="m-0 text-[19px] leading-[1.32] font-[600] text-mrd-ink"
+            style={{ letterSpacing: "-0.019em" }}
           >
             Take the crew's edit back?
           </AlertDialog.Title>
-          <AlertDialog.Description
-            style={{
-              margin: "var(--sp-space-3) 0 0",
-              fontSize: "var(--sp-text-prose)",
-              lineHeight: "var(--sp-leading-body)",
-              color: "var(--sp-body)",
-            }}
-          >
+          <AlertDialog.Description className="mt-[12px] mb-0 text-[13.5px] leading-[1.55] text-mrd-body">
             This restores what the spec said before the last agent edit. The version on screen is
             kept too, so this is itself reversible.
           </AlertDialog.Description>
-          <Actions>
+          {/* `Actions` SETS NO OUTER MARGIN, deliberately, so the space above
+              the row is stated here rather than baked into the component. */}
+          <Actions className="mt-mrd-5">
             <AlertDialog.Action asChild>
               <Action
                 variant="primary"

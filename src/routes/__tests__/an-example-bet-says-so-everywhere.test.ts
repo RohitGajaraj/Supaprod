@@ -62,8 +62,15 @@ describe("every surface that shows a bet says when it is an example", () => {
     const rowSub = DECIDE.slice(DECIDE.indexOf("{o.is_sample ?"));
     expect(rowSub.slice(0, 400)).toMatch(/Example[\s\S]{0,200}#\{r\.rank\}/);
 
+    // PINNED ON THE CLAIM, NOT ON THE SPELLING. This read
+    // `'<Block title="The bet">'` and went red on 2026-08-18 for a rename:
+    // porting the sheet to Meridian turned every `Block` into a `Region` and
+    // the ORDER this test exists to protect never moved. A guard on a component
+    // name fails when the paint improves and passes when the meaning breaks,
+    // which is the wrong way round. What matters is that the region titled "The
+    // bet" comes after the sample mark, whatever draws it.
     const sampleAt = SHEET.indexOf("opportunity.is_sample ?");
-    const theBetAt = SHEET.indexOf('<Block title="The bet">');
+    const theBetAt = SHEET.search(/title="The bet"/);
     expect(sampleAt).toBeGreaterThan(-1);
     expect(theBetAt).toBeGreaterThan(sampleAt);
   });

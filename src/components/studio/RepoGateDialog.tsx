@@ -17,6 +17,39 @@
 // for and that no code had started. `act` is what fixes that. It defaults to
 // "dispatch", so the two dispatch callers render exactly the words they
 // rendered before, character for character.
+//
+// ══════════════════════════════════════════════════════════════════════════
+// NOT PORTED TO MERIDIAN ON 2026-08-18, AND THIS IS A REFUSAL WITH A HOUSE
+// RULING BEHIND IT RATHER THAN A FILE THAT WAS MISSED.
+//
+// Everything else on station 05 moved: the route, ReadyToBuild, HeldClaims,
+// ChangesPanel, RunReturn, PreviewPanel, studio-ui and CodeDiff. This one is
+// shadcn -- `components/ui/alert-dialog` and `components/ui/button` -- from
+// Tempo v5, a system retired twice over, and MERIDIAN HAS NO DIALOG.
+//
+// The house has already decided what to do about that, in writing, in the file
+// that owns the other 32 modals in the product. `src/hooks/use-confirm.tsx`:
+//
+//     "The Radix AlertDialog/Dialog MECHANISM is kept on purpose. anti-slop
+//      ban 11 is about modal ABUSE ... and its own stated exception is a short
+//      irreversible question, which is precisely this. Radix also brings the
+//      focus trap, the escape key, the focus return and the inert background,
+//      and re-implementing those badly is an accessibility regression wearing a
+//      primitive's name."
+//
+// This dialog is exactly that shape and is mounted by three surfaces
+// (ReadyToBuild, /runs, the spec page). Rebuilding it alone -- on a native
+// `<dialog>` with `showModal`, which is the one honest way to get an overlay
+// without an overlay primitive -- would make it the ONLY modal in the product
+// whose focus behaviour differs from the other 32, which is a fork rather than
+// a port.
+//
+// HALF-PORTING WAS ALSO CONSIDERED AND REFUSED. The one paint reference this
+// file owns is `buttonVariants({ variant: "outline" })`; swapping it for a
+// Meridian face would put one Meridian control beside a shadcn Cancel and a
+// shadcn primary inside a shadcn panel, which looks like a defect rather than a
+// migration. The debt stays whole and legible until Meridian ships a dialog,
+// and then this file and `use-confirm.tsx` move together in one commit.
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";

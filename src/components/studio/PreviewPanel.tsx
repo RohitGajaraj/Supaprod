@@ -30,6 +30,17 @@ import { NothingHere, ReadFailed, Reading } from "@/components/meridian/surface-
  * self-contained page the changeset produced, this changeset produced none, and
  * running the whole repo needs a backend that is or is not connected. No
  * "shortly", no "coming", no verb in the future tense anywhere on the surface.
+ *
+ * ── PORTED TO MERIDIAN 2026-08-18 ───────────────────────────────────────
+ * Four retired vocabularies were live in here and all four have an exact
+ * counterpart: `--text-body` -> `--mrd-body`, `--text-subtle` -> `--mrd-mute`,
+ * `--hairline` -> `--mrd-line`, `--font-mono` -> `--mrd-mono`.
+ *
+ * `--glacier` IS THE ONE THAT CHANGED MEANING RATHER THAN NAME. It was the
+ * Obsidian blue on the "The run is alive" badge, and Meridian already has one
+ * word for exactly that fact: `--mrd-agent`, a machine working, present tense.
+ * It is deliberately NOT `--mrd-pass`: green reports an OUTCOME here, and a run
+ * that is still going has not produced one.
  */
 
 export function PreviewPanel({
@@ -96,7 +107,7 @@ export function PreviewPanel({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
+      <div style={{ ...LOOM_CARD, padding: "var(--mrd-s5)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {/* "Standalone page", not "Live preview". What is in the frame is one
               self-contained file the run wrote, rendered safely — calling it a
@@ -105,8 +116,8 @@ export function PreviewPanel({
           <span
             className="truncate"
             style={{
-              fontFamily: "var(--font-mono)",
-              color: "var(--text-body)",
+              fontFamily: "var(--mrd-mono)",
+              color: "var(--mrd-body)",
               minWidth: 0,
               flex: 1,
             }}
@@ -121,9 +132,12 @@ export function PreviewPanel({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 5,
+                // 600 is `--mrd-w-semi` to the number. Written literally
+                // because `fontWeight` is typed as a number here and a `var()`
+                // string does not typecheck.
                 fontWeight: 600,
-                color: "var(--glacier)",
-                background: "color-mix(in oklab, var(--glacier) 10%, transparent)",
+                color: "var(--mrd-agent)",
+                background: "color-mix(in oklab, var(--mrd-agent) 10%, transparent)",
                 padding: "2px 8px",
                 borderRadius: 999,
                 flex: "none",
@@ -131,7 +145,7 @@ export function PreviewPanel({
             >
               <span
                 className="pulse-dot"
-                style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--glacier)" }}
+                style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--mrd-agent)" }}
               />
               {/* "The run is alive", not "building live". The run really is
                   running — that is read from the session — but nothing here
@@ -144,7 +158,7 @@ export function PreviewPanel({
         <p
           style={{
             margin: "8px 0 0",
-            color: "var(--text-subtle)",
+            color: "var(--mrd-mute)",
             lineHeight: 1.4,
           }}
         >
@@ -161,9 +175,37 @@ export function PreviewPanel({
         style={{
           width: "100%",
           height: 520,
-          border: "1px solid var(--hairline)",
-          borderRadius: 12,
-          background: "#fff",
+          border: "1px solid var(--mrd-line)",
+          borderRadius: "var(--mrd-r-card)",
+          /*
+           * ── THE ONE COLOUR IN THIS PACKET THAT IS NOT A TOKEN, AND IT IS A
+           *    REFUSAL RATHER THAN AN OVERSIGHT ────────────────────────────
+           * Everything else in this file moved onto `--mrd-*`. This did not,
+           * and it must not: what is inside this frame is a DOCUMENT THE APP
+           * DID NOT WRITE, served on its own. A standalone HTML page that
+           * declares no background is white in every browser, so white is what
+           * this frame has to show — that is the whole promise of the pane,
+           * "rendered in a frame that cannot reach the app". Painting it
+           * `--mrd-bg` would make the preview follow the operator's theme and
+           * show them a page that does not exist anywhere it will be served,
+           * which is a lie about the artefact rather than a paint choice.
+           *
+           * `colorScheme: "light"` is the mechanism and the hex is the floor
+           * under it: the property tells the browser which canvas to give an
+           * embedded document that names none (and stops UA form controls
+           * rendering dark inside a light page), and the explicit ground means
+           * the frame is never transparent if a browser declines it.
+           *
+           * This is the same shape as the brand mark's deliberate hex, which
+           * `meridian-ratchet-scan.ts` exempts BY NAME on the same reasoning:
+           * a colour that must not follow the theme. The exemption lives in
+           * `src/styles.css` and this file cannot claim it, so the occurrence
+           * stays on the ledger and this comment is the argument for it. It was
+           * not renamed to `white` to get under the regex; the guard should
+           * keep seeing it.
+           */
+          colorScheme: "light",
+          background: "#ffffff",
         }}
       />
     </div>

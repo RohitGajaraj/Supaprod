@@ -63,14 +63,37 @@ const SRC = join(import.meta.dir, "..", "..");
 const read = (f: string) => readFileSync(join(SRC, f), "utf8");
 const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-/** Every surface a person watches work happen on: the seven lifecycle
- *  stations, in lifecycle order, and then the record the crew writes to. */
+/**
+ * WHY THE LIST GREW AGAIN (2026-08-18): THE SURFACE THIS FILE'S OWN HEADER
+ * NAMES AS THE SHARPEST CASE WAS NOT ON IT.
+ *
+ * Read the paragraph above beginning "The sharpest case". It names
+ * `plan.spec` — `sendToStudio` enqueues a builder run the sweeper later
+ * promotes, and the pulse labelled "Build is picking up the spec" stopped at
+ * the exact moment the agent actually started. Then the list below listed
+ * `plan.index` and stopped, so the file argued its case on one route and
+ * guarded a different one, and `plan.spec.$id.tsx` mounted no `CrewHere` of any
+ * kind for as long as this test has existed.
+ *
+ * The reason it was missed is written into the note above too, and it is the
+ * same reason Design was missed: this list is per SURFACE, and Plan has two.
+ * The route that DISPATCHES is not the route that is named after the station.
+ * `sendToStudio` also navigates the reader away, so the one moment the
+ * autonomous path is most worth showing is the moment this surface went dark.
+ *
+ * Every surface a person watches work happen on: the seven lifecycle stations,
+ * in lifecycle order, the spec editor that hands work to Build, and then the
+ * record the crew writes to.
+ */
 const STATIONS = [
   // Station 01. The route file is a shell that parses the deep link; this is
   // the surface a person actually reads.
   "components/discover/DiscoverSurface.tsx",
   "routes/_authenticated.decide.tsx",
   "routes/_authenticated.plan.index.tsx",
+  // Station 03's OTHER surface, and the only one in the product that dispatches
+  // a build. See the note above this list.
+  "routes/_authenticated.plan.spec.$id.tsx",
   "routes/_authenticated.design.tsx",
   "routes/_authenticated.build.index.tsx",
   "routes/_authenticated.ship.tsx",

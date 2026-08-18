@@ -36,10 +36,21 @@ import { AgentMark, YouMark } from "@/components/meridian/marks";
  * already looking.
  *
  * ── WHAT CHANGED IN THE PORT ────────────────────────────────────────────
- * The rule between stacked receipts was `.sp-receipt + .sp-receipt`, a sibling
- * selector. Tailwind cannot express that, so it is inverted to a top border
- * with `first:border-t-0`, which renders identically and is the more robust
- * half: a single receipt outside a list no longer depends on having no sibling.
+ * THE HAIRLINE BETWEEN STACKED RECEIPTS IS GONE, and it is not an oversight.
+ *
+ * The retired sheet separated them with `.sp-receipt + .sp-receipt {
+ * border-top }`. The first draft of this file carried that across as
+ * `border-t ... first:border-t-0`, which is the same divider wearing Tailwind.
+ *
+ * Founder ruling, 2026-08-18, made while reviewing exactly this class of thing:
+ * the retired system's hairlines and section rules are NOT the baseline, the
+ * baseline is Meridian and beautifui.dev, and nothing of that kind comes back
+ * "now or in the future". Rule 1 protects information and composition. A
+ * divider is neither.
+ *
+ * So the separation is space, which is what Meridian uses everywhere else. The
+ * tell for the pattern being retired is `first:border-0`: a rule that has to
+ * exempt its own first element is standing in for a gap.
  *
  * The entrance is set INLINE rather than as a class, because meridian.css's
  * reduced-motion block matches on the style attribute; declared in a utility it
@@ -73,7 +84,7 @@ export function Receipt({
       data-mrd=""
       role="status"
       aria-live="polite"
-      className="flex items-center gap-mrd-4 border-t border-mrd-line-soft py-[11px] text-[14px] leading-snug text-mrd-body first:border-t-0"
+      className="flex items-center gap-mrd-4 py-[11px] text-[14px] leading-snug text-mrd-body"
       style={{ animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease)" }}
     >
       {initials ? <YouMark initials={initials} mine /> : null}

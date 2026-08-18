@@ -72,7 +72,11 @@ describe("a stopped build is a first-class state on /build", () => {
 
   test("the surface gives it its own phrase and its own block", () => {
     expect(ROUTE).toContain("stopped, and nothing is picking it back up");
-    expect(ROUTE).toMatch(/<Block\s+title="Stopped"/);
+    /* Pinned on the CLAIM, not on the component's name. The section still
+       exists and is still titled "Stopped"; only the chrome it is drawn with
+       changed, from the retired `Block` to Meridian's `Region`. A guard that
+       names the component fails on every port and protects nothing extra. */
+    expect(ROUTE).toMatch(/title="Stopped"/);
   });
 
   test("the phrase does NOT overwrite a change that landed", () => {

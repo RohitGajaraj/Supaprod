@@ -377,7 +377,26 @@ import { createDecision } from "@/lib/decisions.functions";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
-import { Block, Button, Choices, CtxBody, CtxHead, Empty, Failed, Loading, PageHead, Receipt, Record as RecordRecess, Surface, Value } from "@/components/shell/primitives";
+import {
+  Action,
+  Approve,
+  NothingHere,
+  NothingYet,
+  PageHeading,
+  ReadFailedLine,
+  Reading,
+  RecordSpeaks,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Choices } from "@/components/meridian/forms";
+import { CtxBody, CtxHead } from "@/components/meridian/ContextColumn";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Surface } from "@/components/meridian/Surface";
+// THE AUTONOMOUS PATH, ON THE ONE SURFACE THAT DISPATCHES BUILD WORK. See the
+// mount below for why this station had none and why that was the sharpest
+// instance of the gap.
+import { CrewWorking } from "@/components/shell/CrewWorking";
 import { AgentMark } from "@/components/meridian/marks";
 import { AgentPulse } from "@/components/meridian/AgentPulse";
 
@@ -479,15 +498,23 @@ export const Route = createFileRoute("/_authenticated/plan/spec/$id")({
   head: () => ({ meta: [{ title: "Spec · Supaprod" }] }),
   errorComponent: ({ error, reset }) => (
     <Surface>
-      <PageHead
-        title="The spec did not load."
-        sub={(error as Error)?.message ?? "No reason was reported."}
-      />
-      <Block>
-        <Button variant="primary" onClick={reset}>
-          Try again
-        </Button>
-      </Block>
+      {/* THE STACK OWNS THE SPACE BETWEEN REGIONS. The retired `Block` drew its
+          own 36px margin, 28px pad and top rule, so a surface never said how its
+          regions were spaced; Meridian's `Region` draws none of that on purpose
+          and the six already-ported surfaces state it here as one gap. */}
+      <div className="flex flex-col gap-mrd-7">
+        <PageHeading
+          title="The spec did not load."
+          sub={(error as Error)?.message ?? "No reason was reported."}
+        />
+        {/* A bare region around one button was a container saying nothing.
+            `Actions` is the row a control belongs in. */}
+        <Actions>
+          <Action variant="primary" onClick={reset}>
+            Try again
+          </Action>
+        </Actions>
+      </div>
     </Surface>
   ),
 });
@@ -1300,7 +1327,7 @@ function SpecEditorPage() {
   if (prdQ.isLoading) {
     return (
       <Surface>
-        <Loading>Reading the spec.</Loading>
+        <Reading>Reading the spec.</Reading>
       </Surface>
     );
   }
@@ -1316,15 +1343,17 @@ function SpecEditorPage() {
   if (prdQ.isError && !specMissing) {
     return (
       <Surface>
-        <PageHead
-          title="The spec did not load."
-          sub={(prdQ.error as Error)?.message ?? "No reason was reported."}
-        />
-        <Block>
-          <Button variant="primary" onClick={() => prdQ.refetch()}>
-            Try again
-          </Button>
-        </Block>
+        <div className="flex flex-col gap-mrd-7">
+          <PageHeading
+            title="The spec did not load."
+            sub={(prdQ.error as Error)?.message ?? "No reason was reported."}
+          />
+          <Actions>
+            <Action variant="primary" onClick={() => prdQ.refetch()}>
+              Try again
+            </Action>
+          </Actions>
+        </div>
       </Surface>
     );
   }
@@ -1332,18 +1361,25 @@ function SpecEditorPage() {
   if (specMissing || !prdQ.data?.prd) {
     return (
       <Surface>
-        <PageHead
-          title="No spec here."
-          sub="It was deleted, or it belongs to a workspace you are not in."
-        />
-        <Block>
-          <Empty>Every live spec is listed on Plan.</Empty>
-          <Actions>
-            <Button variant="primary" onClick={() => navigate({ to: "/plan" })}>
-              Go to Plan
-            </Button>
-          </Actions>
-        </Block>
+        <div className="flex flex-col gap-mrd-7">
+          <PageHeading
+            title="No spec here."
+            sub="It was deleted, or it belongs to a workspace you are not in."
+          />
+          {/* The BORDERED half of the empty pair, because there is no region
+              around it to draw a container: the page is this and nothing else.
+              The way out is the empty state's own `action` slot rather than a
+              second row underneath it. */}
+          <NothingHere
+            action={
+              <Action variant="primary" onClick={() => navigate({ to: "/plan" })}>
+                Go to Plan
+              </Action>
+            }
+          >
+            Every live spec is listed on Plan.
+          </NothingHere>
+        </div>
       </Surface>
     );
   }
@@ -1442,10 +1478,16 @@ function SpecEditorPage() {
       <Surface
         wide
         context={
-          <>
-            <CtxHead>Linked work</CtxHead>
-            <CtxBody>
-              {/* THE COUNT IS NOT CLAIMED UNLESS IT IS KNOWN.
+          /* THE CONTEXT COLUMN STATES ITS OWN SPACING NOW. `.sp-ctx-row` and
+             `.sp-ctx-head` carried the gaps and the rules between groups in the
+             retired sheet; Meridian's `CtxHead` and `CtxBody` set no margins at
+             all, on purpose, so the column says how its groups are spaced. Same
+             shape the ported Learn column uses. */
+          <div className="flex flex-col gap-mrd-6">
+            <div className="flex flex-col gap-mrd-4">
+              <CtxHead>Linked work</CtxHead>
+              <CtxBody>
+                {/* THE COUNT IS NOT CLAIMED UNLESS IT IS KNOWN.
                   `listTasks` has no failure path anywhere on this page, so a
                   refused read left `tasksQ.data` undefined, `prdTasks` [], and
                   this rail printed "0 tasks on this spec." as a FACT beside a
@@ -1457,35 +1499,38 @@ function SpecEditorPage() {
                   differently on each. So the count speaks only when the read
                   answered, and the GitHub fact beside it is unaffected either
                   way because it comes off the spec row rather than the tasks. */}
-              {tasksQ.isError ? (
-                <span className="sp-fail">The work on this spec did not load.</span>
-              ) : tasksQ.isLoading ? (
-                "Reading the work on this spec."
-              ) : (
-                <>
-                  <Num>{prdTasks.length}</Num> {prdTasks.length === 1 ? "task" : "tasks"} on this
-                  spec.
-                </>
-              )}{" "}
-              {issueMatch ? (
-                <a
-                  href={prd.github_issue_url!}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "inherit" }}
-                >
-                  Issue #{issueMatch[1]}
-                </a>
-              ) : (
-                "No GitHub issue yet."
-              )}
-            </CtxBody>
+                {tasksQ.isError ? (
+                  <span className="text-mrd-fail">The work on this spec did not load.</span>
+                ) : tasksQ.isLoading ? (
+                  "Reading the work on this spec."
+                ) : (
+                  <>
+                    <Num>{prdTasks.length}</Num> {prdTasks.length === 1 ? "task" : "tasks"} on this
+                    spec.
+                  </>
+                )}{" "}
+                {issueMatch ? (
+                  <a
+                    href={prd.github_issue_url!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-inherit underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
+                    style={{ transitionDuration: "var(--mrd-d-press)" }}
+                  >
+                    Issue #{issueMatch[1]}
+                  </a>
+                ) : (
+                  "No GitHub issue yet."
+                )}
+              </CtxBody>
+            </div>
 
-            {/* Attribution, not a label. "Review" named the mechanism and hid
+            <div className="flex flex-col gap-mrd-4">
+              {/* Attribution, not a label. "Review" named the mechanism and hid
                 the worker; the Critic red-teams this spec and its verdict is
                 its own, so it signs it. */}
-            <CtxHead>What the Critic says</CtxHead>
-            {/* Deliberately NOT <CtxRow>. CtxRow always wraps its `name` slot in
+              <CtxHead>What the Critic says</CtxHead>
+              {/* Deliberately NOT <CtxRow>. CtxRow always wraps its `name` slot in
                 .sp-ctx-name, which is display:block plus its own font-size and
                 colour. That is right for a name and wrong for a control: the
                 badge here is a button (or the Value pill once a verdict exists),
@@ -1493,53 +1538,79 @@ function SpecEditorPage() {
                 it changes how it renders. The row is the only one on this
                 surface whose second slot is a control rather than a name, so it
                 stays hand-rolled until CtxRow grows an unstyled slot. Convert it
-                the day that exists, not before. */}
-            <div className="sp-ctx-row">
-              <AgentMark slug="critic" state="quiet" />
-              <span>
-                <CriticBadge
-                  review={(prd as { critic_review?: CriticReview | null }).critic_review ?? null}
-                  target={{ kind: "prd", id }}
-                  invalidateKey={["prd", id]}
-                />
-              </span>
+                the day that exists, not before.
+
+                `.sp-ctx-row` IS GONE AND ITS GEOMETRY IS NOT: flex, 10px gap,
+                start-aligned, 8px of vertical padding, row leading at 1.4. The
+                class was doing the work; the numbers are the design, so they are
+                written out rather than rounded onto a nearby Meridian stop. */}
+              <div className="flex w-full items-start gap-2.5 py-2 leading-[1.4]">
+                <AgentMark slug="critic" state="quiet" />
+                <span>
+                  <CriticBadge
+                    review={(prd as { critic_review?: CriticReview | null }).critic_review ?? null}
+                    target={{ kind: "prd", id }}
+                    invalidateKey={["prd", id]}
+                  />
+                </span>
+              </div>
             </div>
 
             {hasSnapshot ? (
-              <>
+              <div className="flex flex-col gap-mrd-4">
                 <CtxHead>Before the crew touched it</CtxHead>
                 <CtxBody>
                   {/* It reports through this page's own receipt stack rather
                       than through a toast of its own. See RewindButton. */}
                   <RewindButton prdId={id} hasSnapshot={true} onCommit={commit} />
                 </CtxBody>
-              </>
+              </div>
             ) : null}
-          </>
+          </div>
         }
       >
-        {/* The title is the h1 and it is editable in every view, the way it
-            always was. There is no editable-title primitive, so it wears the
-            title class and keeps a resting rule to say it can be typed in. */}
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          aria-label="Spec title"
-          className="sp-title"
-          style={{
-            width: "100%",
-            maxWidth: "56ch",
-            background: "none",
-            border: 0,
-            borderBottom: "1px solid var(--sp-line-soft)",
-            borderRadius: 0,
-            outline: "none",
-            padding: "0 0 6px",
-          }}
-          onFocus={(e) => (e.currentTarget.style.borderBottomColor = "var(--sp-mute)")}
-          onBlur={(e) => (e.currentTarget.style.borderBottomColor = "var(--sp-line-soft)")}
-        />
-        {/* Two facts, never the same one twice: what state it is in, and when
+        {/* ONE STACK, ONE GAP. See the note in `errorComponent`: `Region` sets
+            no outer space, so the surface states it once here instead of every
+            region drawing its own rule and margin. */}
+        <div className="flex flex-col gap-mrd-7">
+          {/* THE ONE SURFACE IN THE PRODUCT THAT DISPATCHES BUILD WORK AND HAD
+              NO LIGHT ON IT.
+
+              `sendToStudio` enqueues a builder run and navigates the reader
+              AWAY, and its `AgentPulse` is gated on `sendToStudio.isPending`, so
+              it dies at the exact moment `resumeAgentLoop` promotes the run from
+              queued to running — the indicator stops when the agent starts.
+              `autonomous-work-is-visible.test.ts` names this file in its own
+              header as the sharpest case of that defect and then did not pin it,
+              because its list is per-SURFACE and plan.spec is not the Plan route
+              it lists.
+
+              `station="define"` narrows it to the agents standing at this
+              station: unscoped, it would print "Engineer is working on Beacon
+              SSO" above a spec editor while nothing about Plan was running,
+              which is true at product scope and false where a person is
+              standing. Renders nothing when nothing is running. */}
+          <CrewWorking station="define" />
+
+          {/* The title is the h1 and it is editable in every view, the way it
+              always was. There is no editable-title primitive, so it wears the
+              page-title stops and keeps a resting rule to say it can be typed
+              in.
+
+              `.sp-title` IS GONE AND ITS TYPE IS NOT: 25px on 1.24 at -0.028em
+              in 600, which is the page-title rung. Meridian bridges neither the
+              type scale nor the weight scale, so those are written as the values
+              they already rendered at rather than rounded to make the port
+              tidier. The 56ch here beat `.sp-title`'s own 34ch max and still
+              does. */}
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            aria-label="Spec title"
+            className="w-full max-w-[56ch] rounded-none border-0 border-b border-mrd-line-soft bg-transparent px-0 pt-0 pb-1.5 text-[25px] leading-[1.24] font-[600] text-mrd-ink outline-none focus:border-mrd-mute"
+            style={{ letterSpacing: "-0.028em" }}
+          />
+          {/* Two facts, never the same one twice: what state it is in, and when
             its words last changed. A save stamps the second one rather than
             firing a toast that says a thing this line already says.
 
@@ -1553,7 +1624,7 @@ function SpecEditorPage() {
 
             The helper is `specStateWords` in plan/format.ts now, and both
             surfaces read it, so the word cannot drift again. */}
-        {/* AND THE DATE WAS THE RAW LOCALE DEFAULT, which is the same defect
+          {/* AND THE DATE WAS THE RAW LOCALE DEFAULT, which is the same defect
             one field along. `toLocaleDateString()` with no options renders
             "7/17/2026" here while every other date this station shows a reader
             is "17 Jul" (/ship's `onDate`, the route line 400 lines below, the
@@ -1561,113 +1632,124 @@ function SpecEditorPage() {
             prints, not the one a document is dated in, and it sat in the
             second-highest line on the largest surface in the product. Same
             options as `onDate`, so the two stations date a thing the same way. */}
-        <div className="sp-subtitle">
-          {specStateWords(prd.status)} · saved{" "}
-          <Num>
-            {savedAt ??
-              new Date(prd.updated_at).toLocaleDateString(undefined, {
-                day: "numeric",
-                month: "short",
-              })}
-          </Num>
-        </div>
+          {/* `.sp-subtitle` was 13.5px in the mute ink with 8px above it. */}
+          <div className="mt-2 text-[13.5px] text-mrd-mute">
+            {specStateWords(prd.status)} · saved{" "}
+            <Num>
+              {savedAt ??
+                new Date(prd.updated_at).toLocaleDateString(undefined, {
+                  day: "numeric",
+                  month: "short",
+                })}
+            </Num>
+          </div>
 
-        {/* The record, in one region, and now ABOVE the actions rather than
+          {/* The record, in one region, and now ABOVE the actions rather than
             below the handoff. It exists to say the ground under this document
             has moved, and it was rendering after the point where you commit. A
             warning that arrives after the decision is not a warning. It speaks
             or it stays silent; it never introduces itself. */}
-        {recordSays ? (
-          <Block>
-            <RecordRecess
-              evidence={
-                precedent.length > 0 ? (
-                  <>
-                    <Num>{precedent.length}</Num> past{" "}
-                    {precedent.length === 1 ? "decision" : "decisions"} on this ground
-                  </>
-                ) : undefined
-              }
-            >
-              {recordSays}
-            </RecordRecess>
-            {precedent.slice(0, 3).map((p) => (
-              <Row
-                key={p.id}
-                tight
-                lead={p.title?.trim() || p.summary}
-                sub={`${LANDED[p.verdict] ?? p.verdict}${p.governing ? " · and it has since been overtaken" : ""}`}
-              />
-            ))}
-          </Block>
-        ) : null}
+          {recordSays ? (
+            <Region>
+              <RecordSpeaks
+                evidence={
+                  precedent.length > 0 ? (
+                    <>
+                      <Num>{precedent.length}</Num> past{" "}
+                      {precedent.length === 1 ? "decision" : "decisions"} on this ground
+                    </>
+                  ) : undefined
+                }
+              >
+                {recordSays}
+              </RecordSpeaks>
+              {precedent.slice(0, 3).map((p) => (
+                <Row
+                  key={p.id}
+                  tight
+                  lead={p.title?.trim() || p.summary}
+                  sub={`${LANDED[p.verdict] ?? p.verdict}${p.governing ? " · and it has since been overtaken" : ""}`}
+                />
+              ))}
+            </Region>
+          ) : null}
 
-        <Actions>
-          {/* APPROVE LEADS WHEN IT IS THE NEXT REAL ACT, and Save steps down to
+          <Actions>
+            {/* APPROVE LEADS WHEN IT IS THE NEXT REAL ACT, and Save steps down to
               secondary. This station exists to produce an approved spec; while
               one is still a draft, saving is housekeeping and approving is the
               thing the loop is waiting for. Once approved, the primary action
               is saving edits again, because there is nothing left to approve. */}
-          {prd.status !== "approved" ? (
-            <Button
-              variant="primary"
-              disabled={approve.isPending || save.isPending}
-              onClick={() => approve.mutate()}
-              title="Save these edits and approve the spec, so Build can pick it up"
+            {/* `Approve`, AND IT IS THE ONLY ONE ON THIS PAGE. Meridian spends
+              orchid on one meaning — a person is required — and this control is
+              the definition of it here: the spec is written, Build cannot pick
+              it up, and nothing moves until somebody presses this. Every other
+              control below either saves, opens, records or hands off, and an
+              accent that fires on all five stops meaning anything. */}
+            {prd.status !== "approved" ? (
+              <Approve
+                disabled={approve.isPending || save.isPending}
+                onClick={() => approve.mutate()}
+                title="Save these edits and approve the spec, so Build can pick it up"
+              >
+                {approve.isPending ? "Approving" : "Approve the spec"}
+              </Approve>
+            ) : null}
+            {/* Save is housekeeping while a spec is a draft and the only act left
+              once it is approved, which is why it takes the neutral primary in
+              that one state and never the accent: it releases nothing. */}
+            <Action
+              variant={prd.status === "approved" ? "primary" : "default"}
+              shortcut="⌘S"
+              disabled={save.isPending || approve.isPending}
+              onClick={() => save.mutate()}
             >
-              {approve.isPending ? "Approving" : "Approve the spec"}
-            </Button>
-          ) : null}
-          <Button
-            variant={prd.status === "approved" ? "primary" : undefined}
-            shortcut="⌘S"
-            disabled={save.isPending || approve.isPending}
-            onClick={() => save.mutate()}
-          >
-            {save.isPending ? "Saving" : "Save"}
-          </Button>
-          {prd.github_issue_url ? null : (
-            <Button
-              disabled={createIssue.isPending}
-              onClick={() => createIssue.mutate()}
-              // It never opened the route: the route was never shut. The hint
-              // says what the issue is actually for, which is the pull request
-              // Build opens closing it when the work lands.
-              title="Open a GitHub issue for this spec, so the pull request Build opens can close it"
+              {save.isPending ? "Saving" : "Save"}
+            </Action>
+            {prd.github_issue_url ? null : (
+              <Action
+                disabled={createIssue.isPending}
+                onClick={() => createIssue.mutate()}
+                // It never opened the route: the route was never shut. The hint
+                // says what the issue is actually for, which is the pull request
+                // Build opens closing it when the work lands.
+                title="Open a GitHub issue for this spec, so the pull request Build opens can close it"
+              >
+                {createIssue.isPending ? "Creating" : "Create GitHub issue"}
+              </Action>
+            )}
+            {/* `quiet`, which is Meridian's name for what the retired layer called
+              `ghost`. Same face, and there is no `ghost` variant to reach for. */}
+            <Action
+              variant="quiet"
+              disabled={captureDecision.isPending}
+              onClick={() => captureDecision.mutate()}
+              title="Put this on the record as a decision"
             >
-              {createIssue.isPending ? "Creating" : "Create GitHub issue"}
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            disabled={captureDecision.isPending}
-            onClick={() => captureDecision.mutate()}
-            title="Put this on the record as a decision"
-          >
-            {captureDecision.isPending ? "Recording" : "Capture as decision"}
-          </Button>
-        </Actions>
+              {captureDecision.isPending ? "Recording" : "Capture as decision"}
+            </Action>
+          </Actions>
 
-        {/* THE COMMIT (R10). What you did here, and what it caused. It follows
+          {/* THE COMMIT (R10). What you did here, and what it caused. It follows
             the action row that writes most of these, so the consequence lands
             where the click did. It appears only once you have acted, and a
             failed write lands in the same place wearing its failure rather than
             a success shape. */}
-        {receipts.length > 0 ? (
-          <Block title="What you did here">
-            {receipts.map((r) => (
-              <Receipt
-                key={r.key}
-                verb={r.verb}
-                consequence={r.consequence}
-                time={r.at}
-                failed={r.failed}
-              />
-            ))}
-          </Block>
-        ) : null}
+          {receipts.length > 0 ? (
+            <Region title="What you did here">
+              {receipts.map((r) => (
+                <Receipt
+                  key={r.key}
+                  verb={r.verb}
+                  consequence={r.consequence}
+                  time={r.at}
+                  failed={r.failed}
+                />
+              ))}
+            </Region>
+          ) : null}
 
-        {/* ================================================================
+          {/* ================================================================
             THE BODY. The one thing on this page that is the subject rather
             than a reading of it, and it is on screen whatever else you have
             open. Writing and reading are a STATE of this document, picked
@@ -1675,59 +1757,65 @@ function SpecEditorPage() {
             strip says "these are different places", and these are one place
             in two lights.
             ================================================================ */}
-        <Block
-          title="The spec"
-          sub={
-            assist.isPending ? (
-              // `prdAssist` is a chokepoint call, so the indicator is honest.
-              // The detail is the ACTION the person chose plus how much text is
-              // under it, which is the pair that answers "is it working on the
-              // paragraph I meant, or the whole document" - the one real
-              // ambiguity in this control, since selecting nothing silently
-              // means the whole spec.
-              // No mark, because the four assist actions are one model call and
-              // not a named agent, and a mark here would claim a worker that is
-              // not there.
-              <AgentPulse
-                label="The crew is rewriting your selection"
-                seed={`assist-${assist.variables ?? ""}`}
-                compact
-                detail={
-                  <>
-                    {assist.variables ? ASSIST_LABEL[assist.variables].toLowerCase() : "editing"}
-                    {" · "}
-                    {assistScope}
-                  </>
-                }
+          <Region
+            title="The spec"
+            sub={
+              assist.isPending ? (
+                // `prdAssist` is a chokepoint call, so the indicator is honest.
+                // The detail is the ACTION the person chose plus how much text is
+                // under it, which is the pair that answers "is it working on the
+                // paragraph I meant, or the whole document" - the one real
+                // ambiguity in this control, since selecting nothing silently
+                // means the whole spec.
+                // No mark, because the four assist actions are one model call and
+                // not a named agent, and a mark here would claim a worker that is
+                // not there.
+                <AgentPulse
+                  label="The crew is rewriting your selection"
+                  seed={`assist-${assist.variables ?? ""}`}
+                  compact
+                  detail={
+                    <>
+                      {assist.variables ? ASSIST_LABEL[assist.variables].toLowerCase() : "editing"}
+                      {" · "}
+                      {assistScope}
+                    </>
+                  }
+                />
+              ) : pane === "write" ? (
+                "The crew rewrites what you select. Select nothing and it works on the whole spec."
+              ) : (
+                "The spec as it reads, with what it cites."
+              )
+            }
+          >
+            <Actions>
+              <Choices<Pane>
+                // `mode` IS REQUIRED IN MERIDIAN, and it is the fix rather than a
+                // new prop to fill in: `one` renders a radio group with one tab
+                // stop and arrow keys inside it, where the retired default put
+                // `aria-pressed` on both buttons and announced two independent
+                // toggles that never said picking one unpicks the other.
+                mode="one"
+                label="How to work on the spec"
+                value={pane}
+                options={[
+                  {
+                    id: "write",
+                    label: "Write",
+                    title: "The words, and what they still have to say before design",
+                  },
+                  {
+                    id: "read",
+                    label: "Read",
+                    title: "The spec as it reads, with what it cites",
+                  },
+                ]}
+                onChange={setPane}
               />
-            ) : pane === "write" ? (
-              "The crew rewrites what you select. Select nothing and it works on the whole spec."
-            ) : (
-              "The spec as it reads, with what it cites."
-            )
-          }
-        >
-          <Actions>
-            <Choices<Pane>
-              label="How to work on the spec"
-              value={pane}
-              options={[
-                {
-                  id: "write",
-                  label: "Write",
-                  title: "The words, and what they still have to say before design",
-                },
-                {
-                  id: "read",
-                  label: "Read",
-                  title: "The spec as it reads, with what it cites",
-                },
-              ]}
-              onPick={setPane}
-            />
-          </Actions>
+            </Actions>
 
-          {/* ================================================================
+            {/* ================================================================
               WHETHER THIS DOCUMENT CAN BE READ IN ONE SITTING, AND WHAT A
               READER MEETS FIRST. Two facts, both derived from the words already
               on screen, and both are the document research's hardest findings
@@ -1759,76 +1847,100 @@ function SpecEditorPage() {
               it, and a budget you only see in preview is a budget you find out
               about too late.
               ================================================================ */}
-          {readLoad.words > 0 ? (
-            <Line
-              label={
-                <>
-                  <Num>{readLoad.words.toLocaleString()}</Num> words, about{" "}
-                  <Num>{readLoad.minutes}</Num> {readLoad.minutes === 1 ? "minute" : "minutes"} to
-                  read.
-                </>
-              }
-              sub={
-                readLoad.over ? (
+            {readLoad.words > 0 ? (
+              <Line
+                label={
                   <>
-                    That is <Num>{readLoad.overBy.toLocaleString()}</Num> past what fits in the ten
-                    minutes a reader gets for a silent read, so this one gets skimmed or deferred
-                    rather than read. Cutting is the fix; navigation is not.
+                    <Num>{readLoad.words.toLocaleString()}</Num> words, about{" "}
+                    <Num>{readLoad.minutes}</Num> {readLoad.minutes === 1 ? "minute" : "minutes"} to
+                    read.
                   </>
-                ) : (
-                  "It fits the ten minutes a reader gets for a silent read, which is the only way a document this long actually gets read."
-                )
-              }
-            >
-              <Value tone={readLoad.over ? "warn" : "quiet"}>
-                {readLoad.over ? "Over one sitting" : "One sitting"}
-              </Value>
-            </Line>
-          ) : null}
+                }
+                sub={
+                  readLoad.over ? (
+                    <>
+                      That is <Num>{readLoad.overBy.toLocaleString()}</Num> past what fits in the
+                      ten minutes a reader gets for a silent read, so this one gets skimmed or
+                      deferred rather than read. Cutting is the fix; navigation is not.
+                    </>
+                  ) : (
+                    "It fits the ten minutes a reader gets for a silent read, which is the only way a document this long actually gets read."
+                  )
+                }
+              >
+                {/* `warn` BECAME `hold`, and the amber is right here for the
+                reason the rename gives: this is a condition the document does
+                not yet meet and cutting is what clears it. NOT `fail` — red
+                reports a settled outcome, and a draft that is currently too long
+                has not failed at anything. */}
+                <Value tone={readLoad.over ? "hold" : "quiet"}>
+                  {readLoad.over ? "Over one sitting" : "One sitting"}
+                </Value>
+              </Line>
+            ) : null}
 
-          {firstLine ? (
-            <Line
-              label="The line a reader meets first"
-              // Quoted rather than paraphrased, because the whole point is that
-              // this is the writer's own sentence seen the way a stranger meets
-              // it, with no title and no preamble around it.
-              sub={`"${firstLine}"`}
-            />
-          ) : null}
+            {firstLine ? (
+              <Line
+                label="The line a reader meets first"
+                // Quoted rather than paraphrased, because the whole point is that
+                // this is the writer's own sentence seen the way a stranger meets
+                // it, with no title and no preamble around it.
+                sub={`"${firstLine}"`}
+              />
+            ) : null}
 
-          {pane === "write" ? (
-            <>
-              {/* The Textarea primitive does not forward a ref and the assist
-                  mutation needs the selection, so this is the primitive's class
-                  on a raw control rather than a second control.
+            {pane === "write" ? (
+              <>
+                {/* STILL A RAW CONTROL, AND THE REASON SURVIVED THE PORT INTACT.
+                  The assist mutation reads the SELECTION out of this element, so
+                  it needs a ref, and Meridian's `Textarea` types its props as
+                  `TextareaHTMLAttributes`, which does not include one — passing
+                  a ref would not typecheck even though React 19 would forward
+                  it. So this wears the field paint rather than the component.
+                  Convert it the day that component types a ref.
+
+                  THE PAINT IS MERIDIAN'S FIELD, to the property: the sink
+                  ground, the field border stepping up on focus, the control
+                  radius, 13.5px on 1.55 with 10px by 12px of padding and an
+                  80px floor. `.sp-textarea` is gone; nothing it drew is.
 
                   IT HOLDS THE SAME MEASURE THE READ STATE HOLDS. The editor ran
                   full width while Read set a measure, so switching states
                   rewrapped every line of the document and a writer lost the
                   place they were looking at. One width, two states. */}
-              <textarea
-                ref={taRef}
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                aria-label="Spec body, markdown"
-                spellCheck={false}
-                rows={26}
-                className="sp-textarea"
-                style={{ fontFamily: "var(--sp-font-mono)", maxWidth: PROSE_MEASURE }}
-              />
-              <Actions>
-                {ASSIST_ACTIONS.map((a) => (
-                  <Button
-                    key={a}
-                    variant="ghost"
-                    disabled={assist.isPending}
-                    onClick={() => assist.mutate(a)}
-                  >
-                    {ASSIST_LABEL[a]}
-                  </Button>
-                ))}
-              </Actions>
-              {/* Advice about the words while you are writing them, so it stays
+                <textarea
+                  ref={taRef}
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  aria-label="Spec body, markdown"
+                  spellCheck={false}
+                  rows={26}
+                  className="w-full min-h-20 resize-y rounded-mrd-ctl border border-mrd-field bg-mrd-sink px-3 py-2.5 text-[13.5px] leading-[1.55] text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-field-focus focus:outline-none"
+                  style={{
+                    fontFamily: "var(--mrd-mono)",
+                    maxWidth: PROSE_MEASURE,
+                    transitionDuration: "var(--mrd-d-press)",
+                  }}
+                />
+                {/* `Actions` SETS NO OUTER MARGIN, deliberately: the retired
+                    `.sp-acts` baked `margin-top: 16px` into the component, so a
+                    caller who wanted it elsewhere could not say so. 16px is what
+                    both of this file's mid-content action rows already stood at,
+                    and `mrd-5` is that number, so the space is preserved and now
+                    has an owner. */}
+                <Actions className="mt-mrd-5">
+                  {ASSIST_ACTIONS.map((a) => (
+                    <Action
+                      key={a}
+                      variant="quiet"
+                      disabled={assist.isPending}
+                      onClick={() => assist.mutate(a)}
+                    >
+                      {ASSIST_LABEL[a]}
+                    </Action>
+                  ))}
+                </Actions>
+                {/* Advice about the words while you are writing them, so it stays
                   with the state that can act on it. It reads the contract
                   alongside the body (see `readinessText`), so a dimension
                   stated as a contract clause counts as stated.
@@ -1847,11 +1959,11 @@ function SpecEditorPage() {
                   the body does not, so a spec that read "Early" before this pass
                   can read "Developing" today with nothing on screen explaining
                   the jump. */}
-              <DesignReadinessPanel body={readinessText} />
-            </>
-          ) : (
-            <>
-              {/* THE DOCUMENT, WITH ITS CITATIONS AS CITATIONS. This rendered
+                <DesignReadinessPanel body={readinessText} />
+              </>
+            ) : (
+              <>
+                {/* THE DOCUMENT, WITH ITS CITATIONS AS CITATIONS. This rendered
                   `[1]` and `[2]` as literal characters until 2026-08-10: the
                   component map overrode p / h1 / ul / li and nothing anywhere
                   handled a marker, so the one artifact in the product whose
@@ -1862,151 +1974,171 @@ function SpecEditorPage() {
                   claim, and for why a marker with nothing behind it renders as
                   plain text rather than as a chip that promises an excerpt it
                   does not have. */}
-              {body.trim() ? (
-                <SpecProse body={body} citations={citations} />
-              ) : (
-                <Empty>Nothing is written yet. Switch to Write and start it.</Empty>
-              )}
-              {/* A document carries its own references, so they read with it. */}
-              {citations && citations.length > 0 ? (
-                <div style={{ marginTop: "var(--sp-space-5)" }}>
-                  <CitationsCard citations={citations} />
-                </div>
-              ) : null}
-            </>
-          )}
-        </Block>
+                {body.trim() ? (
+                  <SpecProse body={body} citations={citations} />
+                ) : (
+                  <NothingYet>Nothing is written yet. Switch to Write and start it.</NothingYet>
+                )}
+                {/* A document carries its own references, so they read with it. */}
+                {citations && citations.length > 0 ? (
+                  // 20px, which is what `--sp-space-5` resolved to. Meridian's
+                  // scale steps 16 to 24 and neither is this number, so it is
+                  // written out rather than rounded: today's design is the floor.
+                  <div className="mt-[20px]">
+                    <CitationsCard citations={citations} />
+                  </div>
+                ) : null}
+              </>
+            )}
+          </Region>
 
-        {/* WHERE THIS SPEC GOES NEXT. The one region on the page that hands the
+          {/* WHERE THIS SPEC GOES NEXT. The one region on the page that hands the
             work off, and it asks the question rather than answering it with
             whichever button happened to be here. Directly under the body on
             purpose: you settle the document, then you say where it goes, and
             everything below this is either a reading of the spec or a record
             about it rather than an exit from it. */}
-        <Block
-          title="Where this spec goes next"
-          sub={
-            sendToStudio.isPending ? (
-              // A GREYED BUTTON IS NOT A SIGN OF LIFE. `dispatchStudioSession`
-              // assembles the work order and enqueues the builder run the resume
-              // sweeper promotes into `runAgentLoop`, so an agent is genuinely
-              // taking this on and the indicator says so beside the button that
-              // started it.
-              // THE DETAIL IS THE SPEC, not the touch list. This surface never
-              // resolves one: the dispatch is called with `{ prdId }` alone, so
-              // `allowedPaths` and `maxFiles` are server-side defaults here, and
-              // the repo `canDispatchToRepo` reports is read inside
-              // `gateDispatch` and never held in state. Naming a file scope
-              // would be inventing the one fact a person would most trust.
-              <AgentPulse
-                label="Build is picking up the spec"
-                seed="builder"
-                compact
-                detail={title.trim() || prd.title}
-              />
-            ) : (
-              // Derived, like every other sentence in this region, and now out
-              // of the SAME table as its five neighbours. A constant here once
-              // promised that "either way the choice goes on this spec's record"
-              // directly above a primary that, on an approved drawing, writes no
-              // route event at all; see `ROUTE_COPY`.
-              story.sectionSub
-            )
-          }
-        >
-          {routeQ.isLoading ? (
-            <Loading>Reading what has been drawn for this spec.</Loading>
-          ) : routeQ.isError ? (
-            <Failed onRetry={() => void routeQ.refetch()}>
-              Could not read this spec's route. {(routeQ.error as Error).message}
-            </Failed>
-          ) : (
-            <>
-              <Line label="Route" sub={story.consequence}>
-                <Choices<DesignRouteChoice>
-                  label="How this spec reaches Build"
-                  value={route}
-                  options={[
-                    {
-                      id: "design",
-                      label: "Through Design",
-                      // Derived, exactly like its neighbour. A constant here
-                      // promised a drawing and a judgment on a spec that had
-                      // already had both, under a button reading "Send it to
-                      // Build"; see `ROUTE_COPY`.
-                      title: story.designHint,
-                      // `checkingRepo` joins the pair for the same reason the
-                      // other two are here: a send is in flight, and moving the
-                      // radio under it would change the label and the sentence
-                      // describing a dispatch already on its way.
-                      disabled: chooseRoute.isPending || checkingRepo || sendToStudio.isPending,
-                    },
-                    {
-                      id: "direct",
-                      label: "Straight to Build",
-                      title: story.directHint,
-                      // The design gate, unchanged and enforced here too: a
-                      // drawing that exists and is not approved is a call
-                      // somebody owes, and skipping the step is not a way to
-                      // stop owing it. The server refuses this as well, so a
-                      // stale page cannot get past it either.
-                      disabled:
-                        routeInfo?.gateHolds ||
-                        chooseRoute.isPending ||
-                        checkingRepo ||
-                        sendToStudio.isPending,
-                    },
-                  ]}
-                  onPick={setRoutePick}
+          <Region
+            title="Where this spec goes next"
+            sub={
+              sendToStudio.isPending ? (
+                // A GREYED BUTTON IS NOT A SIGN OF LIFE. `dispatchStudioSession`
+                // assembles the work order and enqueues the builder run the resume
+                // sweeper promotes into `runAgentLoop`, so an agent is genuinely
+                // taking this on and the indicator says so beside the button that
+                // started it.
+                // THE DETAIL IS THE SPEC, not the touch list. This surface never
+                // resolves one: the dispatch is called with `{ prdId }` alone, so
+                // `allowedPaths` and `maxFiles` are server-side defaults here, and
+                // the repo `canDispatchToRepo` reports is read inside
+                // `gateDispatch` and never held in state. Naming a file scope
+                // would be inventing the one fact a person would most trust.
+                <AgentPulse
+                  label="Build is picking up the spec"
+                  seed="builder"
+                  compact
+                  detail={title.trim() || prd.title}
                 />
-              </Line>
+              ) : (
+                // Derived, like every other sentence in this region, and now out
+                // of the SAME table as its five neighbours. A constant here once
+                // promised that "either way the choice goes on this spec's record"
+                // directly above a primary that, on an approved drawing, writes no
+                // route event at all; see `ROUTE_COPY`.
+                story.sectionSub
+              )
+            }
+          >
+            {routeQ.isLoading ? (
+              <Reading>Reading what has been drawn for this spec.</Reading>
+            ) : routeQ.isError ? (
+              // The LINE half of the failed-read pair: this sits under a region
+              // heading that already frames it, and the standard caps a region at
+              // one bordered box.
+              <ReadFailedLine onRetry={() => void routeQ.refetch()}>
+                Could not read this spec's route. {(routeQ.error as Error).message}
+              </ReadFailedLine>
+            ) : (
+              <>
+                <Line label="Route" sub={story.consequence}>
+                  <Choices<DesignRouteChoice>
+                    // Mutually exclusive, so it is a radio group and says so.
+                    mode="one"
+                    label="How this spec reaches Build"
+                    value={route}
+                    options={[
+                      {
+                        id: "design",
+                        label: "Through Design",
+                        // Derived, exactly like its neighbour. A constant here
+                        // promised a drawing and a judgment on a spec that had
+                        // already had both, under a button reading "Send it to
+                        // Build"; see `ROUTE_COPY`.
+                        title: story.designHint,
+                        // `checkingRepo` joins the pair for the same reason the
+                        // other two are here: a send is in flight, and moving the
+                        // radio under it would change the label and the sentence
+                        // describing a dispatch already on its way.
+                        disabled: chooseRoute.isPending || checkingRepo || sendToStudio.isPending,
+                      },
+                      {
+                        id: "direct",
+                        label: "Straight to Build",
+                        title: story.directHint,
+                        // The design gate, unchanged and enforced here too: a
+                        // drawing that exists and is not approved is a call
+                        // somebody owes, and skipping the step is not a way to
+                        // stop owing it. The server refuses this as well, so a
+                        // stale page cannot get past it either.
+                        disabled:
+                          routeInfo?.gateHolds ||
+                          chooseRoute.isPending ||
+                          checkingRepo ||
+                          sendToStudio.isPending,
+                      },
+                    ]}
+                    onChange={setRoutePick}
+                  />
+                </Line>
 
-              {/* What is already on the record. It is stated whichever way it
+                {/* What is already on the record. It is stated whichever way it
                   went, because "somebody chose to skip design here" is exactly
                   the fact a person reading this spec next month needs. */}
-              {routeInfo?.chosen ? (
-                <Line
-                  label={
-                    routeInfo.chosen.route === "direct"
-                      ? "Design was skipped on purpose"
-                      : "This spec was handed to Design"
-                  }
-                  sub={`Recorded ${new Date(routeInfo.chosen.at).toLocaleDateString(undefined, {
-                    day: "numeric",
-                    month: "short",
-                  })}. It is on this spec's stage record, and Design lists it.`}
-                />
-              ) : null}
+                {routeInfo?.chosen ? (
+                  <Line
+                    label={
+                      routeInfo.chosen.route === "direct"
+                        ? "Design was skipped on purpose"
+                        : "This spec was handed to Design"
+                    }
+                    sub={`Recorded ${new Date(routeInfo.chosen.at).toLocaleDateString(undefined, {
+                      day: "numeric",
+                      month: "short",
+                    })}. It is on this spec's stage record, and Design lists it.`}
+                  />
+                ) : null}
 
-              <Actions>
-                {/* THE PRIMARY SAYS WHAT THE PAGE JUST SAID. On an approved
+                {/* `Actions` SETS NO OUTER MARGIN, deliberately: the retired
+                    `.sp-acts` baked `margin-top: 16px` into the component, so a
+                    caller who wanted it elsewhere could not say so. 16px is what
+                    both of this file's mid-content action rows already stood at,
+                    and `mrd-5` is that number, so the space is preserved and now
+                    has an owner. */}
+                <Actions className="mt-mrd-5">
+                  {/* THE PRIMARY SAYS WHAT THE PAGE JUST SAID. On an approved
                     drawing it dispatches instead of writing a route, because
                     the route was chosen and Design honoured it; see
                     `designIsDoneAndApproved`. Every other state clicks exactly
                     as it did: pick, record, then navigate or send. The one
                     other change is `checkingRepo` in the pending pair, which
                     covers the window the repo pre-check opens. */}
-                <Button
-                  variant="primary"
-                  disabled={
-                    chooseRoute.isPending ||
-                    checkingRepo ||
-                    sendToStudio.isPending ||
-                    routeBlocker() !== null
-                  }
-                  title={routeBlocker() ?? undefined}
-                  onClick={() => {
-                    if (route === "design" && designIsDoneAndApproved) void sendToBuild();
-                    else chooseRoute.mutate(route);
-                  }}
-                >
-                  {chooseRoute.isPending || checkingRepo || sendToStudio.isPending
-                    ? "Sending"
-                    : story.label}
-                </Button>
-              </Actions>
+                  {/* `Action`, NOT `Approve`, and the two are one region apart on
+                    purpose. Orchid is spent once on this page, above, on the
+                    control that RELEASES the spec. This one hands finished work
+                    on, which is a handoff rather than a release, and a second
+                    accent on one surface is how the first one stops meaning
+                    anything. */}
+                  <Action
+                    variant="primary"
+                    disabled={
+                      chooseRoute.isPending ||
+                      checkingRepo ||
+                      sendToStudio.isPending ||
+                      routeBlocker() !== null
+                    }
+                    title={routeBlocker() ?? undefined}
+                    onClick={() => {
+                      if (route === "design" && designIsDoneAndApproved) void sendToBuild();
+                      else chooseRoute.mutate(route);
+                    }}
+                  >
+                    {chooseRoute.isPending || checkingRepo || sendToStudio.isPending
+                      ? "Sending"
+                      : story.label}
+                  </Action>
+                </Actions>
 
-              {/* NEVER A DEAD END. When the send cannot run, the reason is on
+                {/* NEVER A DEAD END. When the send cannot run, the reason is on
                   the page under the button rather than hidden in a title
                   attribute a keyboard user never sees, and it names who acts
                   next.
@@ -2025,35 +2157,40 @@ function SpecEditorPage() {
                   cannot dispatch at all, so telling it about an issue would be
                   answering a question nobody can act on yet. A third reason
                   added to `routeBlocker` needs a third door here. */}
-              {routeBlocker() ? (
-                <Empty
-                  action={
-                    <Button
-                      onClick={() =>
-                        void navigate({ to: "/design", search: { focus: id } as never })
-                      }
-                    >
-                      Open it on Design
-                    </Button>
-                  }
-                >
-                  {routeBlocker()}
-                </Empty>
-              ) : sendsWithoutIssue() ? (
-                <Line
-                  label="No GitHub issue is open for this spec"
-                  sub="The send runs without one: Build works from the spec itself. What an issue buys is the Closes line in the pull request, which is what makes the issue close itself when the work lands."
-                >
-                  <Button disabled={createIssue.isPending} onClick={() => createIssue.mutate()}>
-                    {createIssue.isPending ? "Creating" : "Create GitHub issue"}
-                  </Button>
-                </Line>
-              ) : null}
-            </>
-          )}
-        </Block>
+                {routeBlocker() ? (
+                  // The BARE half, because this sits inside a region that already
+                  // frames it. It is not literally an "empty" state — it is the
+                  // reason a send cannot run — but the shape is the same one the
+                  // retired `Empty` was drawing here: a sentence with the way out
+                  // beside it, no box of its own.
+                  <NothingYet
+                    action={
+                      <Action
+                        onClick={() =>
+                          void navigate({ to: "/design", search: { focus: id } as never })
+                        }
+                      >
+                        Open it on Design
+                      </Action>
+                    }
+                  >
+                    {routeBlocker()}
+                  </NothingYet>
+                ) : sendsWithoutIssue() ? (
+                  <Line
+                    label="No GitHub issue is open for this spec"
+                    sub="The send runs without one: Build works from the spec itself. What an issue buys is the Closes line in the pull request, which is what makes the issue close itself when the work lands."
+                  >
+                    <Action disabled={createIssue.isPending} onClick={() => createIssue.mutate()}>
+                      {createIssue.isPending ? "Creating" : "Create GitHub issue"}
+                    </Action>
+                  </Line>
+                ) : null}
+              </>
+            )}
+          </Region>
 
-        {/* ================================================================
+          {/* ================================================================
             WHAT THIS SPEC BECOMES. Four readings taken FROM the document
             above: what it promised and how that landed, the documents written
             out of it, the flow it implies, the launch it earns. None of them
@@ -2070,100 +2207,119 @@ function SpecEditorPage() {
             same props and the same query keys. What changed is that the spec
             these are readings OF is still on screen while you read them.
             ================================================================ */}
-        <Block title="What this spec becomes" sub={lensInfo.sub}>
-          <Actions>
-            <Choices<Lens>
-              label="Which reading of this spec"
-              value={lens}
-              options={LENS_DISPLAY.map((l) => ({ id: l.id, label: l.label, title: l.title }))}
-              onPick={setLens}
-            />
-          </Actions>
+          <Region title="What this spec becomes" sub={lensInfo.sub}>
+            <Actions>
+              <Choices<Lens>
+                // Four readings, one open at a time: a radio group, not four
+                // toggles each announcing itself independently.
+                mode="one"
+                label="Which reading of this spec"
+                value={lens}
+                options={LENS_DISPLAY.map((l) => ({ id: l.id, label: l.label, title: l.title }))}
+                onChange={setLens}
+              />
+            </Actions>
 
-          {/* ONE GROUP, so the panels sit at component distance from one
+            {/* ONE GROUP, so the panels sit at component distance from one
               another instead of each drawing its own section rule and reading
               as an unrelated region. Every panel here already carries its own
               container, so the gap is all the separation they need. */}
-          <div style={{ display: "grid", gap: "var(--sp-space-5)" }}>
-            {lens === "contract" ? (
-              <>
-                <OutcomeContractPanel
-                  prdId={id}
-                  specTitle={prd.title}
-                  bodyMd={body}
-                  contract={contract}
-                  invalidateKey={["prd", id]}
-                />
-                {/* RPT-44: the honest intent-vs-built receipt lives beside the contract. */}
-                <IntentVsBuiltReceipt prdId={id} />
-                {/* What it promised, what got built, and how it landed are one
+            {/* 20px, which is what `--sp-space-5` resolved to. Meridian's scale
+              steps 16 to 24 and neither is this number, so it is written out
+              rather than rounded down: today's design is the floor. */}
+            <div className="mt-mrd-4 grid gap-[20px]">
+              {lens === "contract" ? (
+                <>
+                  <OutcomeContractPanel
+                    prdId={id}
+                    specTitle={prd.title}
+                    bodyMd={body}
+                    contract={contract}
+                    invalidateKey={["prd", id]}
+                  />
+                  {/* RPT-44: the honest intent-vs-built receipt lives beside the contract. */}
+                  <IntentVsBuiltReceipt prdId={id} />
+                  {/* What it promised, what got built, and how it landed are one
                     subject, and they were once three screens apart with an
                     editor between them. */}
-                <OutcomeCard prd={prd as unknown as OutcomePrd} invalidateKey={["prd", id]} />
-              </>
-            ) : lens === "projections" ? (
-              <SpecProjectionsPanel
-                title={prd.title}
-                status={prd.status}
-                updatedAt={prd.updated_at}
-                contract={contract}
-                bodyMd={body}
-                citations={(citations ?? []).map((c) => ({
-                  label: c.title?.trim() || c.source_kind,
-                }))}
-              />
-            ) : lens === "flow" ? (
-              <>
-                <FlowDiagram prdId={id} />
-                {/* The steps this spec implies and the screen the crew drew
+                  <OutcomeCard prd={prd as unknown as OutcomePrd} invalidateKey={["prd", id]} />
+                </>
+              ) : lens === "projections" ? (
+                <SpecProjectionsPanel
+                  title={prd.title}
+                  status={prd.status}
+                  updatedAt={prd.updated_at}
+                  contract={contract}
+                  bodyMd={body}
+                  citations={(citations ?? []).map((c) => ({
+                    label: c.title?.trim() || c.source_kind,
+                  }))}
+                />
+              ) : lens === "flow" ? (
+                <>
+                  <FlowDiagram prdId={id} />
+                  {/* The steps this spec implies and the screen the crew drew
                     from it answer the same question, which is what this spec
                     looks like once it exists. It goes silent on its own. */}
-                <DesignScaffoldPanel prdId={id} specBody={body} />
-              </>
-            ) : (
-              <LaunchPlanPanel prdId={id} />
-            )}
-          </div>
-        </Block>
+                  <DesignScaffoldPanel prdId={id} specBody={body} />
+                </>
+              ) : (
+                <LaunchPlanPanel prdId={id} />
+              )}
+            </div>
+          </Region>
 
-        {/* WHERE THE CREW IS. generateTaskGraph is the Planner by its own
+          {/* WHERE THE CREW IS. generateTaskGraph is the Planner by its own
             system prompt, so the mark is attribution, and it RUNS while the
             work runs and stops the moment it does. Remove the agents from this
             product and this block loses both its mark and its only action. */}
-        <Block
-          title="The work this implies"
-          sub={
-            genTasks.isPending ? (
-              // The Planner replaces the existing generated graph, so the detail
-              // says how many tasks are about to be overwritten. That is the one
-              // consequence of this button a person cannot see coming, and it is
-              // read from the list already on screen rather than guessed.
-              <AgentPulse
-                label="The Planner is breaking the spec down"
-                seed="sprint-planner"
-                compact
-                detail={
-                  <>
-                    {prd.title}
-                    {generatedCount > 0
-                      ? ` · replacing ${generatedCount} ${generatedCount === 1 ? "task" : "tasks"}`
-                      : null}
-                  </>
-                }
-              />
-            ) : (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                <AgentMark slug="sprint-planner" state="quiet" />
-                The Planner breaks a settled spec into work you could sequence.
-              </span>
-            )
-          }
-          more={genTasks.isPending ? "Working" : "Break it into tasks"}
-          onMore={() => {
-            if (!genTasks.isPending) genTasks.mutate();
-          }}
-        >
-          {/* A FAILED READ MUST NEVER RENDER AS AN EMPTY STATE, and this is the
+          <Region
+            title="The work this implies"
+            sub={
+              genTasks.isPending ? (
+                // The Planner replaces the existing generated graph, so the detail
+                // says how many tasks are about to be overwritten. That is the one
+                // consequence of this button a person cannot see coming, and it is
+                // read from the list already on screen rather than guessed.
+                <AgentPulse
+                  label="The Planner is breaking the spec down"
+                  seed="sprint-planner"
+                  compact
+                  detail={
+                    <>
+                      {prd.title}
+                      {generatedCount > 0
+                        ? ` · replacing ${generatedCount} ${generatedCount === 1 ? "task" : "tasks"}`
+                        : null}
+                    </>
+                  }
+                />
+              ) : (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <AgentMark slug="sprint-planner" state="quiet" />
+                  The Planner breaks a settled spec into work you could sequence.
+                </span>
+              )
+            }
+            /* `act`, NOT `toggle` AND NOT `goTo`, AND THE THREE ARE NOT
+             INTERCHANGEABLE. This control dispatches the Planner: it reveals
+             nothing, so `toggle`'s unconditional `aria-expanded` would tell
+             every screen reader this button expands something it does not, and
+             it navigates nowhere, so a reader taking `goTo` for a link would not
+             expect to have spent credits.
+
+             `acting` IS THE HALF `more`/`onMore` COULD NOT SAY. The retired pair
+             faked the in-flight state by swapping the LABEL to "Working" while
+             the button stayed live and the handler guarded the second press
+             internally — so a second click did nothing and nothing said why.
+             Here the work is announced with `aria-busy`, the control is
+             disabled, and the region's own `sub` already carries the Planner's
+             pulse, which is the same fact told once instead of twice. */
+            act="Break it into tasks"
+            acting={genTasks.isPending}
+            onAct={() => genTasks.mutate()}
+          >
+            {/* A FAILED READ MUST NEVER RENDER AS AN EMPTY STATE, and this is the
               P1 on the surface. The branch was `isLoading ? null : length === 0
               ? <Empty>` with no error arm at all, so any failure of `listTasks`
               printed "No tasks yet. Break the spec into tasks when it is settled
@@ -2176,62 +2332,69 @@ function SpecEditorPage() {
               the strength of an unhandled error.
               The retry is the read's own, not the Planner's: nothing needs to be
               regenerated, the list simply has to be fetched again. */}
-          {tasksQ.isError ? (
-            <Failed onRetry={() => void tasksQ.refetch()}>
-              The work on this spec did not load, so nothing here can say whether it has any.{" "}
-              {(tasksQ.error as Error)?.message ?? "No reason was reported."}
-            </Failed>
-          ) : tasksQ.isLoading ? (
-            <Loading>Reading the work this spec implies.</Loading>
-          ) : orderedTasks.length === 0 ? (
-            <Empty>
-              No tasks yet. Break the spec into tasks when it is settled enough to build.
-            </Empty>
-          ) : (
-            orderedTasks.map(
-              (t: {
-                id: string;
-                seq?: number | null;
-                title: string;
-                detail?: string | null;
-                estimate_hours?: number | null;
-                assignee_kind?: string;
-                risk?: string | null;
-                depends_on?: unknown;
-              }) => (
-                <Row
-                  key={t.id}
-                  tight
-                  marks={t.seq != null ? <Num>{t.seq}</Num> : null}
-                  lead={t.title}
-                  sub={
-                    <>
-                      {t.assignee_kind === "human" ? "you" : "the crew"}
-                      {t.detail ? ` · ${t.detail}` : ""}
-                      {Array.isArray(t.depends_on) && t.depends_on.length > 0 ? (
-                        <>
-                          {" · after "}
-                          <Num>{(t.depends_on as number[]).map((n) => `#${n}`).join(", ")}</Num>
-                        </>
-                      ) : null}
-                      {t.risk ? (
-                        <>
-                          {" · "}
-                          <span className="sp-warn" title={t.risk}>
-                            at risk
-                          </span>
-                        </>
-                      ) : null}
-                    </>
-                  }
-                  time={t.estimate_hours ? `${t.estimate_hours}h` : null}
-                />
-              ),
-            )
-          )}
-        </Block>
+            {tasksQ.isError ? (
+              <ReadFailedLine onRetry={() => void tasksQ.refetch()}>
+                The work on this spec did not load, so nothing here can say whether it has any.{" "}
+                {(tasksQ.error as Error)?.message ?? "No reason was reported."}
+              </ReadFailedLine>
+            ) : tasksQ.isLoading ? (
+              <Reading>Reading the work this spec implies.</Reading>
+            ) : orderedTasks.length === 0 ? (
+              <NothingYet>
+                No tasks yet. Break the spec into tasks when it is settled enough to build.
+              </NothingYet>
+            ) : (
+              orderedTasks.map(
+                (t: {
+                  id: string;
+                  seq?: number | null;
+                  title: string;
+                  detail?: string | null;
+                  estimate_hours?: number | null;
+                  assignee_kind?: string;
+                  risk?: string | null;
+                  depends_on?: unknown;
+                }) => (
+                  <Row
+                    key={t.id}
+                    tight
+                    marks={t.seq != null ? <Num>{t.seq}</Num> : null}
+                    lead={t.title}
+                    sub={
+                      <>
+                        {t.assignee_kind === "human" ? "you" : "the crew"}
+                        {t.detail ? ` · ${t.detail}` : ""}
+                        {Array.isArray(t.depends_on) && t.depends_on.length > 0 ? (
+                          <>
+                            {" · after "}
+                            <Num>{(t.depends_on as number[]).map((n) => `#${n}`).join(", ")}</Num>
+                          </>
+                        ) : null}
+                        {t.risk ? (
+                          <>
+                            {" · "}
+                            {/* `--mrd-hold`, the amber. A task flagged at risk has
+                            not failed at anything, so red would report an
+                            outcome that has not happened; amber says the thing
+                            is held up and not on the reader, which is what a
+                            risk flag on a sequenced task means. The retired
+                            `.sp-warn` was a SIXTH status word in a system whose
+                            whole colour law is that there are five. */}
+                            <span className="text-mrd-hold" title={t.risk}>
+                              at risk
+                            </span>
+                          </>
+                        ) : null}
+                      </>
+                    }
+                    time={t.estimate_hours ? `${t.estimate_hours}h` : null}
+                  />
+                ),
+              )
+            )}
+          </Region>
 
-        {/* O1 provenance. The one remaining always-on block, and it earns it:
+          {/* O1 provenance. The one remaining always-on block, and it earns it:
             it is the only thing on the page that answers for the spec rather
             than describing it, and no view owns that question. The Record
             recess it used to draw is gone from here, because the recess is the
@@ -2247,12 +2410,12 @@ function SpecEditorPage() {
             this spec exists is asking which decision produced it, and the
             quotes are the evidence under that decision rather than a
             replacement for it. */}
-        <Block
-          title="Why this spec exists"
-          sub={
-            sourceBet ? (
-              <>
-                {/* "came from" rather than "was kept": a bet can be killed or
+          <Region
+            title="Why this spec exists"
+            sub={
+              sourceBet ? (
+                <>
+                  {/* "came from" rather than "was kept": a bet can be killed or
                     dropped after its spec was written, and the line below
                     prints whichever state it is actually in.
 
@@ -2276,29 +2439,30 @@ function SpecEditorPage() {
                     this sentence, an inflated number was being pinned on the
                     bet. The subject is back on the spec, where the count is
                     exactly what the number means. */}
-                It was not invented here. It serves a bet that came from Decide
-                {signalCount > 0 ? (
-                  <>
-                    , and the chain behind this spec runs through{" "}
-                    <Num>{provQ.data!.node_count}</Num>{" "}
-                    {provQ.data!.node_count === 1 ? "step" : "steps"} to <Num>{signalCount}</Num>{" "}
-                    {signalCount === 1 ? "thing" : "things"} people actually said
-                    {provQ.data!.truncated ? ", and the chain continues past these" : ""}
-                  </>
-                ) : null}
-                .
-              </>
-            ) : signalCount > 0 ? (
-              <>
-                It was not invented here. It traces back through <Num>{provQ.data!.node_count}</Num>{" "}
-                {provQ.data!.node_count === 1 ? "step" : "steps"} to <Num>{signalCount}</Num>{" "}
-                {signalCount === 1 ? "thing" : "things"} people actually said
-                {provQ.data!.truncated ? ", and the chain continues past these" : ""}.
-              </>
-            ) : undefined
-          }
-        >
-          {/* THE BET, read off the `opportunity_id` foreign key this page never
+                  It was not invented here. It serves a bet that came from Decide
+                  {signalCount > 0 ? (
+                    <>
+                      , and the chain behind this spec runs through{" "}
+                      <Num>{provQ.data!.node_count}</Num>{" "}
+                      {provQ.data!.node_count === 1 ? "step" : "steps"} to <Num>{signalCount}</Num>{" "}
+                      {signalCount === 1 ? "thing" : "things"} people actually said
+                      {provQ.data!.truncated ? ", and the chain continues past these" : ""}
+                    </>
+                  ) : null}
+                  .
+                </>
+              ) : signalCount > 0 ? (
+                <>
+                  It was not invented here. It traces back through{" "}
+                  <Num>{provQ.data!.node_count}</Num>{" "}
+                  {provQ.data!.node_count === 1 ? "step" : "steps"} to <Num>{signalCount}</Num>{" "}
+                  {signalCount === 1 ? "thing" : "things"} people actually said
+                  {provQ.data!.truncated ? ", and the chain continues past these" : ""}.
+                </>
+              ) : undefined
+            }
+          >
+            {/* THE BET, read off the `opportunity_id` foreign key this page never
               touched. A spec with no bet behind it renders nothing here and the
               signals below read exactly as they always did.
 
@@ -2310,34 +2474,34 @@ function SpecEditorPage() {
               "the bet did not come back" on any later refetch failure, a false
               sentence about a record this page is holding in its hand. All four
               states survive; only their precedence changed. */}
-          {specOpportunityId ? (
-            sourceBet ? (
-              <Line
-                label={sourceBet.title}
-                sub={
-                  <>
-                    {/* First in the line, the same ruling /decide made on its
+            {specOpportunityId ? (
+              sourceBet ? (
+                <Line
+                  label={sourceBet.title}
+                  sub={
+                    <>
+                      {/* First in the line, the same ruling /decide made on its
                         own queue rows: a caveat printed after the numbers
                         arrives once the impression is already formed. A spec
                         can be generated from a seeded example bet, and that is
                         exactly the case a person must not mistake for their
                         own product. */}
-                    {sourceBet.is_sample ? (
-                      <>
-                        <b>Example</b>
-                        {" · "}
-                      </>
-                    ) : null}
-                    {sourceBet.problem?.trim() ? <>{sourceBet.problem.trim()} · </> : null}
-                    impact <Num>{sourceBet.impact}</Num> · confidence{" "}
-                    <Num>{sourceBet.confidence}</Num> · ease <Num>{sourceBet.ease}</Num>
-                    {betIce !== null ? (
-                      <>
-                        {" · ICE "}
-                        <Num>{betIce.toFixed(1)}</Num>, the score the Decide queue is ordered by
-                      </>
-                    ) : null}
-                    {/* THE STATUS WORD, THROUGH THE ONE RENDERER THAT OWNS IT.
+                      {sourceBet.is_sample ? (
+                        <>
+                          <b>Example</b>
+                          {" · "}
+                        </>
+                      ) : null}
+                      {sourceBet.problem?.trim() ? <>{sourceBet.problem.trim()} · </> : null}
+                      impact <Num>{sourceBet.impact}</Num> · confidence{" "}
+                      <Num>{sourceBet.confidence}</Num> · ease <Num>{sourceBet.ease}</Num>
+                      {betIce !== null ? (
+                        <>
+                          {" · ICE "}
+                          <Num>{betIce.toFixed(1)}</Num>, the score the Decide queue is ordered by
+                        </>
+                      ) : null}
+                      {/* THE STATUS WORD, THROUGH THE ONE RENDERER THAT OWNS IT.
                         This printed `sourceBet.status` raw, so the same bet read
                         "Backlog" on Discover and "backlog" here. `statusLabel` /
                         STATUS_META (components/discover/OpportunityRow) is the
@@ -2381,31 +2545,31 @@ function SpecEditorPage() {
                         false sentence on this page. Of the 42 specs carrying a
                         bet, 34 point at a `committed` one and 4 at a `discovery`
                         one, so it is the majority rendering. */}
-                    {sourceBet.status ? (
-                      <> · its state on Decide is {statusLabel(sourceBet.status)}</>
-                    ) : null}
-                  </>
-                }
-              >
-                {/* IT LANDS ON THE RANKING, NOT ON THE BET, and the label says
+                      {sourceBet.status ? (
+                        <> · its state on Decide is {statusLabel(sourceBet.status)}</>
+                      ) : null}
+                    </>
+                  }
+                >
+                  {/* IT LANDS ON THE RANKING, NOT ON THE BET, and the label says
                     so rather than promising a focus the route cannot honour:
                     /decide declares no `validateSearch`, so a search param
                     aimed at one bet would be dropped and the door would open on
                     whatever ranks first. Naming the ranking is the true
                     sentence available from this file. */}
-                <Door
-                  onClick={() => void navigate({ to: "/decide" })}
-                  title="Open Decide, where this bet sits in the ranking"
-                >
-                  Open the ranking
-                </Door>
-              </Line>
-            ) : oppsQ.isLoading ? (
-              <Loading>Reading the bet this spec was written for.</Loading>
-            ) : oppsQ.isError ? (
-              <Failed onRetry={() => void oppsQ.refetch()}>
-                This spec names a bet and the bet did not come back.{" "}
-                {/* Optional chain and a fallback, the convention this file
+                  <Door
+                    onClick={() => void navigate({ to: "/decide" })}
+                    title="Open Decide, where this bet sits in the ranking"
+                  >
+                    Open the ranking
+                  </Door>
+                </Line>
+              ) : oppsQ.isLoading ? (
+                <Reading>Reading the bet this spec was written for.</Reading>
+              ) : oppsQ.isError ? (
+                <ReadFailedLine onRetry={() => void oppsQ.refetch()}>
+                  This spec names a bet and the bet did not come back.{" "}
+                  {/* Optional chain and a fallback, the convention this file
                     already uses at both of its other failure sites: the route's
                     own `errorComponent` and the `prdQ` spec-read Failed, each
                     printing the same `?.message ?? "No reason was reported."`.
@@ -2415,68 +2579,71 @@ function SpecEditorPage() {
                     file this size. A rejection that is not an Error has no
                     `.message`, and reading it off `undefined` would crash the
                     region that exists to report the failure. */}
-                {(oppsQ.error as Error)?.message ?? "No reason was reported."}
-              </Failed>
-            ) : (
-              // NAMES ALL THREE REASONS, including the one the read itself
-              // causes: `listOpportunities` returns the 500 highest-scoring
-              // bets, so a very large workspace can hold a real bet this read
-              // never sees. Saying only "deleted" would blame the record for a
-              // limit in the query.
-              //
-              // "HIGHEST-SCORING" IS EXACT TODAY AND IS NOT A PROMISE FOREVER,
-              // recorded here so the next reader does not re-litigate it.
-              // `listOpportunities` orders `ice_score` DESC without naming
-              // `nullsFirst`, and Postgres puts NULLS FIRST on a DESC order, so
-              // a null-scored bet would LEAD this read rather than fall off the
-              // end of it and the word "highest-scoring" would stop describing
-              // what the cap drops. Measured live 2026-08-06: 0 of 289
-              // opportunities carry a null `ice_score` and 289 is well inside
-              // the 500 cap, so neither half is reachable and the sentence is
-              // true as written. If nulls ever appear, this sentence is what
-              // needs changing, not the read.
-              <Empty>
-                This spec names a bet the ranking did not return. It was deleted, it belongs to a
-                workspace you are not in, or it falls outside the 500 highest-scoring bets this read
-                covers.
-              </Empty>
-            )
-          ) : null}
+                  {(oppsQ.error as Error)?.message ?? "No reason was reported."}
+                </ReadFailedLine>
+              ) : (
+                // NAMES ALL THREE REASONS, including the one the read itself
+                // causes: `listOpportunities` returns the 500 highest-scoring
+                // bets, so a very large workspace can hold a real bet this read
+                // never sees. Saying only "deleted" would blame the record for a
+                // limit in the query.
+                //
+                // "HIGHEST-SCORING" IS EXACT TODAY AND IS NOT A PROMISE FOREVER,
+                // recorded here so the next reader does not re-litigate it.
+                // `listOpportunities` orders `ice_score` DESC without naming
+                // `nullsFirst`, and Postgres puts NULLS FIRST on a DESC order, so
+                // a null-scored bet would LEAD this read rather than fall off the
+                // end of it and the word "highest-scoring" would stop describing
+                // what the cap drops. Measured live 2026-08-06: 0 of 289
+                // opportunities carry a null `ice_score` and 289 is well inside
+                // the 500 cap, so neither half is reachable and the sentence is
+                // true as written. If nulls ever appear, this sentence is what
+                // needs changing, not the read.
+                <NothingYet>
+                  This spec names a bet the ranking did not return. It was deleted, it belongs to a
+                  workspace you are not in, or it falls outside the 500 highest-scoring bets this
+                  read covers.
+                </NothingYet>
+              )
+            ) : null}
 
-          {provQ.isLoading ? null : provQ.isError ? (
-            <Failed onRetry={() => provQ.refetch()}>The chain did not come back.</Failed>
-          ) : signalCount === 0 ? (
-            // Two different true sentences, because "written directly" is a
-            // claim about the spec's origin and it is FALSE the moment the
-            // opportunity foreign key is set. Keyed on the key itself rather
-            // than on the fetched row, so an unreachable bet still gets the
-            // honest half.
-            <Empty>
-              {specOpportunityId
-                ? "The chain stops at the bet. Nothing a customer said is linked to it yet."
-                : "Nothing upstream. This one was written directly rather than raised by something a customer said."}
-            </Empty>
-          ) : (
-            // Five, not eight. Depth is a click away, and Discover owns the
-            // full chain.
-            signals.slice(0, 5).map((s) => (
-              <Row
-                key={s.id}
-                tight
-                lead={(s.title ?? s.content ?? "signal").slice(0, 120)}
-                sub={s.source ?? "signal"}
-                onClick={() =>
-                  // Carries the signal id so Discover can focus it (the old
-                  // link dropped it, audit D-14).
-                  navigate({
-                    to: "/discover",
-                    search: { tab: "signals", focus: s.id } as never,
-                  })
-                }
-              />
-            ))
-          )}
-        </Block>
+            {provQ.isLoading ? null : provQ.isError ? (
+              <ReadFailedLine onRetry={() => provQ.refetch()}>
+                The chain did not come back.
+              </ReadFailedLine>
+            ) : signalCount === 0 ? (
+              // Two different true sentences, because "written directly" is a
+              // claim about the spec's origin and it is FALSE the moment the
+              // opportunity foreign key is set. Keyed on the key itself rather
+              // than on the fetched row, so an unreachable bet still gets the
+              // honest half.
+              <NothingYet>
+                {specOpportunityId
+                  ? "The chain stops at the bet. Nothing a customer said is linked to it yet."
+                  : "Nothing upstream. This one was written directly rather than raised by something a customer said."}
+              </NothingYet>
+            ) : (
+              // Five, not eight. Depth is a click away, and Discover owns the
+              // full chain.
+              signals.slice(0, 5).map((s) => (
+                <Row
+                  key={s.id}
+                  tight
+                  lead={(s.title ?? s.content ?? "signal").slice(0, 120)}
+                  sub={s.source ?? "signal"}
+                  onClick={() =>
+                    // Carries the signal id so Discover can focus it (the old
+                    // link dropped it, audit D-14).
+                    navigate({
+                      to: "/discover",
+                      search: { tab: "signals", focus: s.id } as never,
+                    })
+                  }
+                />
+              ))
+            )}
+          </Region>
+        </div>
       </Surface>
 
       <RepoGateDialog

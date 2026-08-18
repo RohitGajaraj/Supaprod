@@ -25,7 +25,8 @@
  * this page that is the document. So the INTERACTION is borrowed from it exactly
  * (a real `<button>`, a popover on hover AND focus through `group-focus-within`
  * rather than a Radix HoverCard, which does not reliably open on keyboard focus)
- * and the SKIN is `--sp-*`. That file is another lane's to retire.
+ * and the SKIN is Meridian's. It was `--sp-*` until the port below; that file is
+ * still another lane's to retire.
  *
  * ============================================================================
  * WHAT A MARKER IS ALLOWED TO CLAIM
@@ -51,6 +52,32 @@
  * dot rather than a wrong one.
  *
  * ============================================================================
+ * WHY `meridian/Prose` IS NOT THE CONTAINER HERE, HAVING READ IT
+ * ============================================================================
+ *
+ * `Prose` is Meridian's agent-written-prose block and it carries a `markdown`
+ * flag for exactly this shape: parsed elements rather than a raw string. It was
+ * the obvious home for this document and it was checked against it rather than
+ * assumed into it, and it loses on two counts that the ratchet law calls floor:
+ *
+ *   THE BODY WOULD SHRINK. `Prose` is `text-[13.5px]` on `leading-[1.6]`,
+ *   fixed in the component with no way to say otherwise. This document is 14px
+ *   on 1.55. A port may not make a surface worse to make itself tidier, and
+ *   half a pixel off the body size of the longest read in the product is
+ *   exactly that.
+ *
+ *   THE MEASURE WOULD GO. `markdown` drops the 68ch cap on purpose -- "inside
+ *   Ask, the pane IS the measure" -- and here the ARTICLE is the measure.
+ *   `PROSE_MEASURE` is exported and the Write textarea is bound to the same
+ *   number, so dropping it would rewrap the whole document the moment a writer
+ *   switched between Read and Write and lose the place they were looking at.
+ *
+ * `Prose` would also add `mt-[12px]` and 12px between every block on top of the
+ * margins this ladder already sets. So the document keeps its own container and
+ * the RETIRED TOKENS come off it instead, which is what the port was for. If
+ * `Prose` ever takes a size and a measure, this is its first caller.
+ *
+ * ============================================================================
  * THE TYPE LADDER, AND WHY THE MEASURE IS TIGHTER THAN THE NORM
  * ============================================================================
  *
@@ -59,9 +86,16 @@
  * this document is not read continuously: it is AUDITED, the eye returning to the
  * left margin at every claim to check what carries a citation and what does not.
  * A short line makes that return cheap. Title 1.55x body and H2 1.3x, both
- * computed off `--sp-text-body` so the ladder cannot drift from the shell's own
- * scale, and a hairline rule above every H2 so a reader scrolling fast can see
- * where one section stops.
+ * computed off ONE body size so the ladder is a single decision, and a hairline
+ * rule above every H2 so a reader scrolling fast can see where one section
+ * stops.
+ *
+ * THAT ANCHOR USED TO BE `--sp-text-body`, a retired token, and it is now the
+ * literal it resolved to. Meridian bridges no type scale and no weight scale at
+ * all, so every step here is written as the number it already rendered at
+ * rather than rounded onto a nearby Meridian stop. Same reasoning as
+ * `meridian/Prose` and `meridian/MoreMenu`, which both say so in their own
+ * headers: today's design is the floor.
  */
 import { useId, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
@@ -81,9 +115,34 @@ type MdNode = { position?: { start?: { offset?: number } } };
 export const PROSE_MEASURE = "70ch";
 
 /** Body size is the anchor for every step, so the ladder is one decision. */
-const H1 = "calc(var(--sp-text-body) * 1.55)";
-const H2 = "calc(var(--sp-text-body) * 1.3)";
-const H3 = "calc(var(--sp-text-body) * 1.1)";
+const BODY = "14px";
+const H1 = `calc(${BODY} * 1.55)`;
+const H2 = `calc(${BODY} * 1.3)`;
+const H3 = `calc(${BODY} * 1.1)`;
+
+/**
+ * The rest of the retired scale, at the values it resolved to.
+ *
+ * `--sp-leading-body` 1.55, `--sp-leading-tight` 1.5, `--sp-leading-gate` 1.32,
+ * `--sp-track-gate` -0.019em, `--sp-weight-strong` 600, `--sp-weight-medium`
+ * 500. Colour and radius are NOT in this list, because ink.css already aliased
+ * those to Meridian and they are written as `var(--mrd-*)` below, which is the
+ * token that was actually painting.
+ */
+const LEAD_BODY = 1.55;
+const LEAD_TIGHT = 1.5;
+const LEAD_GATE = 1.32;
+const TRACK_GATE = "-0.019em";
+const W_STRONG = 600;
+const W_MEDIUM = 500;
+
+/** The retired space scale, at its own values. 4 / 8 / 12 / 16 / 20 / 32. */
+const S1 = "4px";
+const S2 = "8px";
+const S3 = "12px";
+const S4 = "16px";
+const S5 = "20px";
+const S8 = "32px";
 
 type Provenance = "mine" | "borrowed";
 
@@ -95,10 +154,20 @@ type Provenance = "mine" | "borrowed";
  */
 const OWN_RECORD = new Set(["signal", "doc", "meeting", "note"]);
 
+/**
+ * `--sp-eviq-mine` resolved through `--sp-gate`, which ink.css aliases to
+ * `--mrd-you`: orchid, "a person is required", the one thing that token is
+ * allowed to mean. A source out of this workspace's own record IS somebody's,
+ * so the meaning survives the token swap intact. `--sp-eviq-borrowed` resolved
+ * through `--sp-mute`, which is `--mrd-mute`.
+ */
 const PROVENANCE_HUE: Record<Provenance, string> = {
-  mine: "var(--sp-eviq-mine)",
-  borrowed: "var(--sp-eviq-borrowed)",
+  mine: "var(--mrd-you)",
+  borrowed: "var(--mrd-mute)",
 };
+
+/** The left rule's weight. `--sp-eviq-rule`, and ink.css calls it invariant. */
+const EVIDENCE_RULE = "2px";
 
 const PROVENANCE_MEANING: Record<Provenance, string> = {
   mine: "From this workspace's own record.",
@@ -123,16 +192,28 @@ function CitationChip({ n, source }: { n: number; source: Citation }) {
   const title = source.title?.trim() || `Untitled ${source.source_kind}`;
   return (
     <span className="group" style={{ position: "relative", display: "inline-block" }}>
+      {/* MERIDIAN'S DOOR PAINT, WHICH IS WHAT `.sp-block-more` WAS. The dotted
+          underline going solid on hover, the ink step, the small radius: the
+          retired quiet action and Meridian's `Door` are the same object, and
+          `primitives.css` says so in as many words ("A DOOR IS THE SAME QUIET
+          ACTION, INSIDE A RUNNING SENTENCE. It wears `.sp-block-more`").
+
+          The classes are written out rather than the `Door` COMPONENT being
+          imported, because `Door` fixes no size and this one has to: it is a
+          superscript marker at 11.5px in the data face, sitting inside a
+          sentence set at 14px, and a door that inherited the line would render
+          the marker at body size. */}
       <button
         type="button"
         aria-describedby={popoverId}
-        className="sp-block-more"
+        className="rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
         style={{
-          fontFamily: "var(--sp-font-mono)",
-          fontSize: "var(--sp-text-data-sm)",
+          fontFamily: "var(--mrd-mono)",
+          fontSize: "11.5px",
           verticalAlign: "super",
           lineHeight: 1,
           padding: "0 1px",
+          transitionDuration: "var(--mrd-d-press)",
         }}
       >
         <span
@@ -155,25 +236,25 @@ function CitationChip({ n, source }: { n: number; source: Citation }) {
         className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
         style={{
           width: "min(20rem, 60vw)",
-          background: "var(--sp-float)",
-          border: "1px solid var(--sp-line)",
-          borderRadius: "var(--sp-radius-panel)",
+          background: "var(--mrd-float)",
+          border: "1px solid var(--mrd-line)",
+          borderRadius: "var(--mrd-r-card)",
           // The provenance runs the height of the excerpt as the 2px left rule
-          // ink.css specifies, rather than repeating the dot.
-          borderLeft: `var(--sp-eviq-rule) solid ${PROVENANCE_HUE[prov]}`,
-          boxShadow: "var(--sp-shadow-menu)",
-          padding: "var(--sp-space-3) var(--sp-space-4)",
+          // the evidence vocabulary specifies, rather than repeating the dot.
+          borderLeft: `${EVIDENCE_RULE} solid ${PROVENANCE_HUE[prov]}`,
+          boxShadow: "var(--mrd-shadow-float)",
+          padding: `${S3} ${S4}`,
           transitionProperty: "opacity",
-          transitionDuration: "var(--sp-dur-fast)",
-          transitionTimingFunction: "var(--sp-ease)",
+          transitionDuration: "var(--mrd-d-press)",
+          transitionTimingFunction: "var(--mrd-ease)",
         }}
       >
         <span
           style={{
             display: "block",
-            fontSize: "var(--sp-text-meta)",
-            fontWeight: "var(--sp-weight-strong)",
-            color: "var(--sp-ink)",
+            fontSize: "13px",
+            fontWeight: W_STRONG,
+            color: "var(--mrd-ink)",
           }}
         >
           {title}
@@ -182,10 +263,10 @@ function CitationChip({ n, source }: { n: number; source: Citation }) {
           <span
             style={{
               display: "block",
-              marginTop: "var(--sp-space-1)",
-              fontSize: "var(--sp-text-meta)",
-              lineHeight: "var(--sp-leading-tight)",
-              color: "var(--sp-body)",
+              marginTop: S1,
+              fontSize: "13px",
+              lineHeight: LEAD_TIGHT,
+              color: "var(--mrd-body)",
             }}
           >
             {source.snippet}
@@ -194,9 +275,9 @@ function CitationChip({ n, source }: { n: number; source: Citation }) {
         <span
           style={{
             display: "block",
-            marginTop: "var(--sp-space-2)",
-            fontSize: "var(--sp-text-label)",
-            color: "var(--sp-mute)",
+            marginTop: S2,
+            fontSize: "12.5px",
+            color: "var(--mrd-mute)",
           }}
         >
           {PROVENANCE_MEANING[prov]}
@@ -216,9 +297,9 @@ function BrokenMarker({ n }: { n: number }) {
     <span
       title="This spec cites a source it does not carry. Nothing is behind this number."
       style={{
-        fontFamily: "var(--sp-font-mono)",
-        fontSize: "var(--sp-text-data-sm)",
-        color: "var(--sp-mute)",
+        fontFamily: "var(--mrd-mono)",
+        fontSize: "11.5px",
+        color: "var(--mrd-mute)",
       }}
     >
       [{n}]
@@ -296,11 +377,11 @@ export function SpecProse({
       <h1
         style={{
           fontSize: H1,
-          fontWeight: "var(--sp-weight-strong)",
-          letterSpacing: "var(--sp-track-gate)",
-          lineHeight: "var(--sp-leading-gate)",
-          color: "var(--sp-ink)",
-          margin: "0 0 var(--sp-space-4)",
+          fontWeight: W_STRONG,
+          letterSpacing: TRACK_GATE,
+          lineHeight: LEAD_GATE,
+          color: "var(--mrd-ink)",
+          margin: `0 0 ${S4}`,
         }}
       >
         {withCitations(children, byIndex)}
@@ -308,18 +389,18 @@ export function SpecProse({
     ),
     // THE HAIRLINE ABOVE EVERY SECTION. A ten-minute read is skimmed before it
     // is read, and a rule is what tells a skimmer where one argument stops. It
-    // is `--sp-line-soft`, the system's rule between sections, so it says
+    // is `--mrd-line-soft`, the system's rule between sections, so it says
     // exactly what it says everywhere else in the product.
     h2: ({ children }: { children?: ReactNode }) => (
       <h2
         style={{
           fontSize: H2,
-          fontWeight: "var(--sp-weight-strong)",
-          lineHeight: "var(--sp-leading-tight)",
-          color: "var(--sp-ink)",
-          margin: "var(--sp-space-8) 0 var(--sp-space-3)",
-          paddingTop: "var(--sp-space-4)",
-          borderTop: "1px solid var(--sp-line-soft)",
+          fontWeight: W_STRONG,
+          lineHeight: LEAD_TIGHT,
+          color: "var(--mrd-ink)",
+          margin: `${S8} 0 ${S3}`,
+          paddingTop: S4,
+          borderTop: "1px solid var(--mrd-line-soft)",
         }}
       >
         {withCitations(children, byIndex)}
@@ -329,9 +410,9 @@ export function SpecProse({
       <h3
         style={{
           fontSize: H3,
-          fontWeight: "var(--sp-weight-medium)",
-          color: "var(--sp-ink)",
-          margin: "var(--sp-space-5) 0 var(--sp-space-2)",
+          fontWeight: W_MEDIUM,
+          color: "var(--mrd-ink)",
+          margin: `${S5} 0 ${S2}`,
         }}
       >
         {withCitations(children, byIndex)}
@@ -344,12 +425,12 @@ export function SpecProse({
           style={
             lede
               ? {
-                  margin: "0 0 var(--sp-space-4)",
+                  margin: `0 0 ${S4}`,
                   fontSize: H3,
-                  lineHeight: "var(--sp-leading-body)",
-                  color: "var(--sp-ink)",
+                  lineHeight: LEAD_BODY,
+                  color: "var(--mrd-ink)",
                 }
-              : { margin: "0 0 var(--sp-space-3)" }
+              : { margin: `0 0 ${S3}` }
           }
         >
           {withCitations(children, byIndex)}
@@ -357,20 +438,16 @@ export function SpecProse({
       );
     },
     ul: ({ children }: { children?: ReactNode }) => (
-      <ul style={{ margin: "0 0 var(--sp-space-3)", paddingLeft: 20, listStyle: "disc" }}>
-        {children}
-      </ul>
+      <ul style={{ margin: `0 0 ${S3}`, paddingLeft: 20, listStyle: "disc" }}>{children}</ul>
     ),
     ol: ({ children }: { children?: ReactNode }) => (
-      <ol style={{ margin: "0 0 var(--sp-space-3)", paddingLeft: 20, listStyle: "decimal" }}>
-        {children}
-      </ol>
+      <ol style={{ margin: `0 0 ${S3}`, paddingLeft: 20, listStyle: "decimal" }}>{children}</ol>
     ),
     li: ({ children }: { children?: ReactNode }) => (
       <li style={{ margin: "0 0 5px" }}>{withCitations(children, byIndex)}</li>
     ),
     strong: ({ children }: { children?: ReactNode }) => (
-      <strong style={{ color: "var(--sp-ink)", fontWeight: "var(--sp-weight-strong)" }}>
+      <strong style={{ color: "var(--mrd-ink)", fontWeight: W_STRONG }}>
         {withCitations(children, byIndex)}
       </strong>
     ),
@@ -380,10 +457,10 @@ export function SpecProse({
     blockquote: ({ children }: { children?: ReactNode }) => (
       <blockquote
         style={{
-          margin: "0 0 var(--sp-space-3)",
-          paddingLeft: "var(--sp-space-3)",
-          borderLeft: "var(--sp-eviq-rule) solid var(--sp-eviq-mine)",
-          color: "var(--sp-body)",
+          margin: `0 0 ${S3}`,
+          paddingLeft: S3,
+          borderLeft: `${EVIDENCE_RULE} solid ${PROVENANCE_HUE.mine}`,
+          color: "var(--mrd-body)",
         }}
       >
         {children}
@@ -392,10 +469,10 @@ export function SpecProse({
     code: ({ children }: { children?: ReactNode }) => (
       <code
         style={{
-          fontFamily: "var(--sp-font-mono)",
-          fontSize: "var(--sp-text-data)",
-          background: "var(--sp-sink)",
-          borderRadius: "var(--sp-radius-xs)",
+          fontFamily: "var(--mrd-mono)",
+          fontSize: "12px",
+          background: "var(--mrd-sink)",
+          borderRadius: "var(--mrd-r-xs)",
           padding: "1px 5px",
         }}
       >
@@ -408,9 +485,9 @@ export function SpecProse({
     <article
       style={{
         maxWidth: PROSE_MEASURE,
-        fontSize: "var(--sp-text-body)",
-        lineHeight: "var(--sp-leading-body)",
-        color: "var(--sp-body)",
+        fontSize: BODY,
+        lineHeight: LEAD_BODY,
+        color: "var(--mrd-body)",
       }}
     >
       <ReactMarkdown components={components}>{body}</ReactMarkdown>

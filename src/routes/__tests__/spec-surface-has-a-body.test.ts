@@ -227,7 +227,14 @@ describe("rank is source order", () => {
   it("the record speaks before the actions, not after the handoff", () => {
     // It exists to say the ground under this spec has moved. It used to render
     // below the handoff, which is after the point where you commit.
-    const record = jsx.indexOf("<RecordRecess");
+    //
+    // THE HANDLE MOVED WITH THE MERIDIAN PORT, THE CLAIM DID NOT. This read
+    // `<RecordRecess`, the local alias the route gave `primitives.Record`. The
+    // route now draws `meridian/surface-parts`' `RecordSpeaks`, which is the
+    // same object under the name the design system gives it, so the handle is
+    // renamed and every assertion below is unchanged. What is pinned here is
+    // the ORDER, not the spelling.
+    const record = jsx.indexOf("<RecordSpeaks");
     const actions = jsx.indexOf('shortcut="⌘S"');
     const handoff = jsx.indexOf('title="Where this spec goes next"');
     expect(record).toBeGreaterThan(-1);
@@ -235,7 +242,7 @@ describe("rank is source order", () => {
     expect(record).toBeLessThan(handoff);
     // And it is drawn exactly once. Two regions saying the same thing in
     // different words is the defect the recess was built to end.
-    expect(offenders(/<RecordRecess/)).toHaveLength(1);
+    expect(offenders(/<RecordSpeaks/)).toHaveLength(1);
   });
 
   it("what you did lands next to where you did it", () => {

@@ -47,12 +47,26 @@
  * ramp. Painting an agent its station's hue is the identity-as-colour pattern
  * Law 4 has had removed three times. */
 
-/* ---------- block ----------
- * A rule wherever the content changes register: what needs you, what was
- * done, what was learned. Space alone carries this on a wide screen and
- * stops carrying it on a laptop, where the rhythm compresses and the
- * sections run together. It is a rule, not decoration, so it never appears
- * inside a section. */
+/* ---------- block: RETIRED, AND ITS ARGUMENT IS OVERRULED ----------
+ *
+ * This used to read: "A rule wherever the content changes register... It is a
+ * rule, not decoration, so it never appears inside a section." That sentence
+ * outlived the system it belonged to and was still winning arguments.
+ *
+ * ON 2026-08-18 IT WON ONE IT SHOULD NOT HAVE. Porting Design and Discover, the
+ * 36px + 28px + hairline here was raised against Meridian's plain 40px gap as a
+ * REGRESSION needing approval, on the strength of this file calling itself a
+ * rule. The founder overruled it in both directions at once: the hairline is
+ * retired vocabulary, the baseline is Meridian and beautifui.dev, and a retired
+ * file that argues with Meridian is to be EDITED rather than deferred to.
+ *
+ * So, for whoever ports the last callers of `.sp-block`: Meridian's `Region`
+ * carries no outer margin and no border ON PURPOSE, the caller states the
+ * rhythm once per surface, and no hairline, divider or section border comes
+ * back. Do not restore this under rule 1. Rule 1 protects information and
+ * composition, never a divider. See docs/design/DESIGN-SYSTEM.md, law 1.
+ *
+ * The declarations below are life support until the last caller is ported. */
 .sp-block {
   margin-top: 36px;
   padding-top: var(--sp-space-7);

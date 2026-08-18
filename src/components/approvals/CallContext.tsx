@@ -27,7 +27,7 @@ function Head({ children }: { children: ReactNode }) {
 
 function Section({ children }: { children: ReactNode }) {
   return (
-    <section className="border-t border-mrd-line-soft pt-mrd-5 first:border-0 first:pt-0">
+    <section className="pt-mrd-5 first:pt-0">
       {children}
     </section>
   );

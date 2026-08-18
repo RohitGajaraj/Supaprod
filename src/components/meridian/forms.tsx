@@ -75,12 +75,32 @@ const FIELD_H = "h-8 px-2.5 text-[13px]";
 /**
  * A labelled control, stacked.
  *
- * `htmlFor` IS THE POINT OF THIS COMPONENT, and it is optional only because a
- * caller may legitimately wrap the control as a child instead. The retired
- * `Field` rendered `<label>` unconditionally with no `for`, so a `Field`
- * wrapping an `Input` bound the two only when the control happened to be a
- * descendant -- and the moment a caller put anything between them, the label
- * stopped working and nothing said so.
+ * `htmlFor` IS THE POINT OF THIS COMPONENT. The retired `Field` rendered
+ * `<label>` unconditionally with no `for`, so a `Field` wrapping an `Input`
+ * bound the two only when the control happened to be a descendant -- and the
+ * moment a caller put anything between them, the label stopped working and
+ * nothing said so.
+ *
+ * ── CORRECTION, 2026-08-18: IT IS NOT OPTIONAL IN PRACTICE ──────────────
+ * This paragraph used to end "and it is optional only because a caller may
+ * legitimately wrap the control as a child instead". THAT IS NOT TRUE OF THIS
+ * COMPONENT. Look at the render: `{children}` sits OUTSIDE the `<label>`, as a
+ * sibling of it. A control passed to this `Field` is never a descendant of the
+ * label, so implicit association is not available here and `htmlFor` is the
+ * ONLY thing that can bind them.
+ *
+ * The cost of that wrong sentence was measured the day it was found. Porting
+ * the product off the retired `Field`, which DID bind by containment, three
+ * separate agents independently hit the same defect in three different
+ * directories: FIFTEEN call sites carried no `htmlFor`, so a straight swap left
+ * fifteen controls with no accessible name, and the component's own header told
+ * each of them that was fine.
+ *
+ * SO IT IS REQUIRED NOW. All 46 call sites were measured as bound before the
+ * type changed, so this cost nothing to make mandatory and `tsc` enforces from
+ * here what this comment could only ask for. A guard that can fail a build
+ * beats a paragraph that can be believed, and this paragraph was believed by
+ * three readers in a row.
  *
  * `hint` is for what the label cannot say in two words: the format, the unit,
  * the consequence. It is NOT a restatement of the label, which the anti-slop
@@ -95,7 +115,12 @@ export function Field({
   label: React.ReactNode;
   /** What the label cannot say. Never a restatement of it. */
   hint?: React.ReactNode;
-  htmlFor?: string;
+  /**
+   * REQUIRED, since 2026-08-18. See the header: `{children}` renders outside
+   * the label, so this is the only thing that can bind them, and fifteen call
+   * sites shipped without it while the type said it was optional.
+   */
+  htmlFor: string;
   children: React.ReactNode;
 }) {
   return (

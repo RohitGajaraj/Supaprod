@@ -136,9 +136,13 @@ describe("nothing on this panel disappears without saying so", () => {
     // other 36 could not be started from this station at all.
     expect(PANEL).toMatch(/const beyond = Math\.max\(0, ready\.length - visible\.length\);/);
     expect(PANEL).toContain("are not.");
-    expect(PANEL).toMatch(
-      /more=\{[\s\S]{0,120}Show \$\{Math\.min\(beyond, WINDOW_MAX - WINDOW\)\} more/,
-    );
+    /* The reveal moved OUT of the region heading and under the last row: a
+       cap's way out belongs to the content, where a reader arrives having
+       actually hit the limit, not to the frame where it is announced before
+       any of the list has been seen. The arithmetic is what this guard is for
+       and it is unchanged, so it is pinned without the retired `more={` prop
+       that used to carry it. */
+    expect(PANEL).toMatch(/Show \{Math\.min\(beyond, WINDOW_MAX - WINDOW\)\} more/);
   });
 
   test("the widened window still fits what the side reads accept in one call", () => {

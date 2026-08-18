@@ -45,7 +45,20 @@ describe("surface-discipline §1: exactly one page scroller", () => {
     // vertical scroller inside `.sp-work`. Wheeling over the diff scrolled the diff
     // and the page stayed still, so the page read as frozen. Reported as "I'm not
     // able to scroll to the end. It's got stuck."
-    const body = ruleBody(read("styles/primitives.css"), ".sp-codediff-body");
+    /*
+     * READ FROM THE COMPONENT, NOT FROM primitives.css, SINCE 2026-08-18.
+     *
+     * The diff's paint moved into `CodeDiff.tsx`'s own `<style>` sheet as part
+     * of the Meridian port, so the `.sp-codediff-*` rules this used to read are
+     * now orphaned: nothing renders them. The guard kept passing, because the
+     * dead rules still satisfied it.
+     *
+     * That is the same failure this repo found twice today: a guard pinned to a
+     * string while the meaning moved somewhere else. It was protecting a real
+     * reported defect, so pointing it at the live rules matters more than
+     * usual.
+     */
+    const body = ruleBody(read("components/studio/CodeDiff.tsx"), ".cd-body");
     expect(body).not.toBeNull();
     expect(body!).toContain("overflow-x");
     // Sideways is the point: a long line has nowhere else to go.
@@ -72,8 +85,8 @@ describe("surface-discipline §2: container queries inside a pane", () => {
     // THE DEFECT: `@media (max-width: 900px)` never fires at a 1512px window while
     // the pane it targets is 467px wide, so the two-column diff would have rendered
     // two ~230px columns of unreadable code.
-    const css = stripCssComments(read("styles/primitives.css"));
-    const paneSelectors = [".sp-codediff-pair", ".sp-split"];
+    const css = stripCssComments(read("components/studio/CodeDiff.tsx"));
+    const paneSelectors = [".cd-pair", ".cd-split"];
     for (const sel of paneSelectors) {
       // Every breakpoint that mentions a pane selector must be a @container.
       const blocks = [...css.matchAll(/@(media|container)([^{]*)\{((?:[^{}]|\{[^}]*\})*)\}/g)];
@@ -88,7 +101,7 @@ describe("surface-discipline §2: container queries inside a pane", () => {
   test("a container query has an ancestor that declares containment", () => {
     // A `@container` with no `container-type` anywhere silently never matches,
     // which is a worse failure than a viewport query because it looks correct.
-    const css = stripCssComments(read("styles/primitives.css"));
+    const css = stripCssComments(read("components/studio/CodeDiff.tsx"));
     if (css.includes("@container")) {
       expect(css).toMatch(/container-type:\s*inline-size/);
     }

@@ -12,9 +12,7 @@
 
 import type { ReactNode } from "react";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
-
-import { Value, Button } from "@/components/shell/primitives";
+import { Action, Num, Value } from "@/components/meridian/surface-parts";
 import type { DesignConsequence, DesignGateWord } from "@/lib/design-scaffold.functions";
 import type { DesignCriticFinding } from "@/lib/ai/design-critic";
 import { RULE_TEXT_FLOOR, ruleTextFor, tallyPhrase } from "./vocabulary";
@@ -58,8 +56,15 @@ export function DrawingStage({ html, title }: { html: string; title: string }) {
         display: "block",
         width: "100%",
         height: 460,
-        border: "1px solid var(--sp-line)",
-        borderRadius: "var(--sp-radius-panel)",
+        /* THE FRAME IS MERIDIAN'S NOW TOO, 2026-08-18. The base moved to a
+           `--mrd-*` token on 2026-08-14 and its border and corner did not, so
+           this one element was drawn half in a retired system: `--sp-line` and
+           `--sp-radius-panel` are the ink layer's edge and pane radius.
+           `--mrd-line` is the same job ("a real edge") and `--mrd-r-pane` is
+           the same 16px stop the Gate and every pane in the system use, so
+           this is a rename rather than a change of shape. */
+        border: "1px solid var(--mrd-line)",
+        borderRadius: "var(--mrd-r-pane)",
         background: "var(--mrd-on-solid)",
       }}
     />
@@ -227,13 +232,18 @@ export function Findings({
             }
             action={
               canRule ? (
-                <Button
-                  variant="ghost"
+                /* `Action variant="quiet"`, the port of the retired ghost. Not
+                   an `Approve`: turning a finding into a standing rule drafts
+                   a PENDING rule, which then goes and waits in the gate at the
+                   top of the station. It releases nothing; it adds something
+                   to be released. */
+                <Action
+                  variant="quiet"
                   disabled={pendingIssue !== null}
                   onClick={() => onMakeRule(f)}
                 >
                   {pendingIssue === f.issue ? "Drafting" : "Make it a rule"}
-                </Button>
+                </Action>
               ) : undefined
             }
           />

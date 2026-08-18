@@ -31,7 +31,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getTrackChain } from "@/lib/spine/track.functions";
 import type { ChainMember, ChainStop, StopState } from "@/lib/spine/chain";
 import { relativeTime } from "@/lib/memory-view";
-import { Failed, Loading, Record, Value } from "@/components/shell/primitives";
+import { Reading, ReadFailedLine, RecordSpeaks, Value } from "@/components/meridian/surface-parts";
 
 /** Where the stop sits, in the words a person would use for it. */
 const STATE_WORD: Readonly<Record<StopState, string>> = {
@@ -69,7 +69,15 @@ function Stop({ stop, now }: { stop: ChainStop; now: number }) {
   return (
     <>
       <Line label={stop.label} sub={sub}>
-        <Value tone={stop.state === "here" ? "pass" : "quiet"}>{STATE_WORD[stop.state]}</Value>
+        {/* `agent`, NOT `pass`, AND THE CHANGE IS THE POINT OF THE PORT.
+            "here now" is where the work stands, which is present tense and not
+            an outcome, and Meridian's green is only ever allowed to report an
+            outcome. Painting it green said this station had SUCCEEDED at the
+            moment it had not finished — the exact pair (`still deploying` /
+            `deployed`) the tone vocabulary was rewritten to separate. Azure
+            over-claims only where a station is parked with nothing running;
+            green over-claimed on every stop it was drawn on. */}
+        <Value tone={stop.state === "here" ? "agent" : "quiet"}>{STATE_WORD[stop.state]}</Value>
       </Line>
       {stop.members.map((m) => (
         <Row
@@ -79,7 +87,13 @@ function Stop({ stop, now }: { stop: ChainStop; now: number }) {
           time={relativeTime(m.createdAt, now)}
           action={
             m.missing ? (
-              <Value tone="warn">not found</Value>
+              // `fail`, not `hold`. The lookup RAN and came back without the
+              // row, so this is a settled negative outcome, and red is the one
+              // colour allowed to report one. Meridian's amber means "stopped,
+              // and not on you", which is false here: nothing is waiting, the
+              // artifact is gone. This panel's header reserves its one colour
+              // exception for exactly this case.
+              <Value tone="fail">not found</Value>
             ) : m.title ? (
               <Value>{m.word}</Value>
             ) : null
@@ -101,21 +115,28 @@ export function TrackChain({ trackId }: { trackId: string }) {
   // in one paint measures against one clock.
   const now = Date.now();
 
-  if (q.isLoading) return <Loading>Reading the record.</Loading>;
+  if (q.isLoading) return <Reading>Reading the record.</Reading>;
   if (q.isError) {
-    return <Failed>The record did not come back, so nothing here would be trustworthy.</Failed>;
+    // The LINE half of the failed-read pair: this renders inside a region that
+    // already draws its own container, and one sentence does not get a second
+    // box around it.
+    return (
+      <ReadFailedLine>
+        The record did not come back, so nothing here would be trustworthy.
+      </ReadFailedLine>
+    );
   }
 
   const chain = q.data?.chain;
   if (!q.data?.track || !chain) {
-    return <Failed>That work could not be found.</Failed>;
+    return <ReadFailedLine>That work could not be found.</ReadFailedLine>;
   }
 
   return (
     <>
-      <Record evidence={chain.total > 0 ? `${chain.total} filed` : undefined}>
+      <RecordSpeaks evidence={chain.total > 0 ? `${chain.total} filed` : undefined}>
         {q.data.summary}
-      </Record>
+      </RecordSpeaks>
 
       {chain.stops.map((stop) => (
         <Stop key={stop.station} stop={stop} now={now} />
@@ -130,7 +151,12 @@ export function TrackChain({ trackId }: { trackId: string }) {
             label="Filed somewhere we cannot place"
             sub="These belong to this work, but not to a station this version knows about."
           >
-            <Value tone="warn">{chain.orphans.length}</Value>
+            {/* `hold`, and it is the one place amber is right on this panel.
+                These members exist and are filed; they are parked outside the
+                seven stations this build knows about, so nothing failed and
+                nobody can act — "stopped, and not on you", which is what
+                Meridian's amber says in as many words. */}
+            <Value tone="hold">{chain.orphans.length}</Value>
           </Line>
           {chain.orphans.map((m) => (
             <Row

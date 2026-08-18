@@ -38,9 +38,22 @@
  * Every server function, mutation, query key and prop is unchanged.
  */
 
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Row, Line, Who } from "@/components/meridian/rows";
-import { Num, Actions, Diffstat } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  Diffstat,
+  Door,
+  NothingYet,
+  Num,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
+import { Field, Input, Textarea } from "@/components/meridian/forms";
+import { Prose } from "@/components/meridian/Prose";
+import { Tabs } from "@/components/meridian/Tabs";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -67,9 +80,8 @@ import {
 import { computeHunks } from "@/lib/ai/studio-hunks";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Block, Button, Empty, Failed, Field, Input, Loading, Textarea } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
-import { CodeDiff } from "@/components/studio/CodeDiff";
+import { CodeDiff, TermFrame, TERM_CONTROL } from "@/components/studio/CodeDiff";
 
 import {
   captureDeployments,
@@ -84,6 +96,85 @@ import { ChatMarkdown } from "@/components/chat/ChatMarkdown";
 /** Everything in this panel was written by the run's Build agent. Same slug the
  *  surface above uses, so the mark means the same thing in both places. */
 const BUILDER = "builder";
+
+/**
+ * THE TWO PANES, in Meridian tokens.
+ *
+ * Ported off `.sp-split*` in `primitives.css`, the retired sheet, on the same
+ * reasoning `CodeDiff` records: a file can import nothing retired, carry no
+ * `--sp-*` token and still be painted entirely by the old system, because a
+ * class name is just a string in an attribute.
+ *
+ * WHY A LOCAL SHEET RATHER THAN UTILITIES. Three of these rules cannot be
+ * written as a Tailwind class without losing what they are for:
+ *
+ *   · A CONTAINER QUERY, and the note it replaces is emphatic about why: this
+ *     region is nested inside a work column whose width is not the viewport's,
+ *     so a media query would report 1440px while the pane was 800px.
+ *   · `scrollbar-width` / `scrollbar-color`, which have no utility.
+ *   · `> .cd-term:first-child { margin-top: 0 }`, which is what makes the two
+ *     halves start on the same line. The terminal carries a leading margin so
+ *     it can stand alone elsewhere; inside the split that margin pushed its
+ *     chrome bar below the first file row, and a shared baseline is most of what
+ *     makes a split read as one instrument.
+ *
+ * Every value below is the one it already had. See `runs/RunBoard.tsx` for the
+ * same pattern and the same argument.
+ */
+const SPLIT_CSS = `
+.cp-split {
+  display: grid;
+  /* PROPORTIONAL BUT CAPPED, and measured rather than picked. A pure percentage
+   * kept growing the list past any use for it: once the region spanned both
+   * columns (1196px) a flat 34% gave the file names 407px, about a hundred more
+   * than the longest path needs, and took it from the code. The 240px floor is
+   * measured at a 1512px window, where 26% left the rail 215px and a filename
+   * plus its stats had nothing left to give.
+   *
+   * The gutter is 26px and not the page-level aside gap. That gap separates the
+   * work from something unrelated; these two panes are one instrument. */
+  grid-template-columns: clamp(240px, 30%, 320px) minmax(0, 1fr);
+  gap: 0 26px;
+  container-type: inline-size;
+}
+/* THE LIST STICKS, NOT THE DIFF. The page scroller is the surface's own, and
+ * nesting a second vertical scroller over the area a person spends all their
+ * time in traps the wheel and reads as stuck. So the diff no longer scrolls
+ * vertically at all and the narrow rail is the thing that stays in view, which
+ * is what VS Code, Cursor and GitHub do anyway.
+ *
+ * \`align-self: start\` is required for sticky to have anywhere to travel in a
+ * grid row, whose default stretch would make the item as tall as the row. */
+.cp-list {
+  min-width: 0;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  /* Generous, so it only ever engages on a genuinely long change set. */
+  max-height: 82vh;
+  overflow-y: auto;
+  /* Room between the last character of a path and the divider. Without it the
+   * ellipsis sat on the line. */
+  padding-right: var(--mrd-s5);
+  border-right: 1px solid var(--mrd-line-soft);
+  scrollbar-width: thin;
+  scrollbar-color: var(--mrd-line) transparent;
+}
+.cp-view { min-width: 0; }
+.cp-view > .cd-term:first-child { margin-top: 0; }
+/* One column below this, because two panes each narrower than a readable line
+ * of code is worse than stacking. */
+@container (max-width: 780px) {
+  .cp-split { grid-template-columns: minmax(0, 1fr); }
+  .cp-list {
+    max-height: 260px;
+    padding-right: 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--mrd-line-soft);
+    padding-bottom: 12px;
+  }
+}
+`;
 
 type ChangeRow = {
   id: string;
@@ -155,7 +246,10 @@ function FileName({ path }: { path: string }) {
   // reason: a list of paths that share a prefix wastes its width repeating the
   // prefix and truncating the only part that differs.
   return (
-    <span className="sp-filename" title={path}>
+    /* `.sp-filename` was: block, min-width 0, ellipsis, nowrap, mono at 12px,
+       full ink. Every one of those is a Meridian utility and none of them
+       changes value in the move. */
+    <span className="font-mrd-mono block min-w-0 truncate text-[12px] text-mrd-ink" title={path}>
       {name}
     </span>
   );
@@ -174,24 +268,31 @@ function shortDate(iso: string | null | undefined): string | null {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-/** A quiet text control inside a row's second line. `sp-block-more` is the
- *  system's own weight for this (Failed uses it for its retry), so a control
- *  that belongs to one row never wears a 38px button. */
-const QUIET = "sp-block-more";
+/**
+ * A quiet text control inside a row's second line, for the two cases Meridian's
+ * `Door` cannot take.
+ *
+ * `Door` IS THE PRIMITIVE FOR THIS and it is used everywhere else in this file:
+ * the deploy addresses, the commit shas, the pull request, the copy control.
+ * What it has no slot for is `disabled`, and two controls here genuinely need
+ * one -- writing a rollback note and reverting to a revision each fire a server
+ * round trip, and both said so by swapping their label while staying live, so a
+ * second press started a second call.
+ *
+ * So this is Door's own paint, at the 13px metadata size the retired
+ * `.sp-block-more` fixed it at, plus the dead state. It is written out rather
+ * than imported because a component cannot be given a prop it does not have,
+ * and reported rather than worked around: `Door` should grow `disabled`, and
+ * until it does these two are the honest exception.
+ */
+/** The ids binding the two scope fields to their labels. Meridian's `Field`
+ *  binds by NAME rather than by containment, so a label with no matching id
+ *  names nothing. */
+const TOUCH_LIST_ID = "studio-scope-touch-list";
+const FILE_CAP_ID = "studio-scope-file-cap";
 
-/** Prose the crew wrote: release notes, a launch draft, a rollback note. A
- *  recess, never a card, so it is the one container in its region. */
-const RECESS: CSSProperties = {
-  background: "var(--sp-sink)",
-  borderRadius: "var(--sp-radius-panel)",
-  padding: "var(--sp-space-4) 18px",
-  marginTop: "var(--sp-space-2)",
-  fontSize: "var(--sp-text-prose)",
-  lineHeight: "var(--sp-leading-body)",
-  color: "var(--sp-body)",
-  whiteSpace: "pre-wrap",
-  overflowWrap: "anywhere",
-};
+const QUIET =
+  "rounded-mrd-xs text-[13px] text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid disabled:cursor-default disabled:opacity-45";
 
 /**
  * Changes tab: what the run wrote. The file list, the commit history, the
@@ -805,7 +906,15 @@ export function ChangesPanel({
   };
 
   if (!changeset) {
-    return <Empty>Nothing is staged. {builderName} writes each file in here as it works.</Empty>;
+    /* `NothingHere`, the bordered half, would be right where a whole region is
+       missing. This replaces the panel's ENTIRE body inside a tab that already
+       draws its own frame, so the bare half is the one that does not put a box
+       inside a box. */
+    return (
+      <NothingYet>
+        Nothing is staged. {builderName} writes each file in here as it works.
+      </NothingYet>
+    );
   }
 
   /**
@@ -869,7 +978,17 @@ export function ChangesPanel({
       : null;
 
   return (
-    <>
+    /* THE PANEL'S RHYTHM, STATED HERE RATHER THAN INHERITED FROM A STYLESHEET.
+       The retired `Block` carried a 36px margin, 40px of top padding and a
+       hairline above every region, so the space between sections lived in
+       `primitives.css`. Meridian's `Region` draws no frame and no margin at all
+       on purpose: the composition owns its own rhythm, and `gap-mrd-6` is the
+       step every ported surface uses between regions. */
+    <div className="flex flex-col gap-mrd-6">
+      <style href="mrd-changes-split" precedence="medium">
+        {SPLIT_CSS}
+      </style>
+
       {/* Identity. Repo, where it sits on the ladder, and the two ways to end it. */}
       <Line
         label={<Num>{changeset.repo}</Num>}
@@ -885,15 +1004,33 @@ export function ChangesPanel({
           </>
         }
       >
+        {/* ── ROLL BACK AND KILL ARE NOT RED, AND THAT IS THE COLOUR LAW
+               RATHER THAN A PREFERENCE ─────────────────────────────────────
+            Both of these undo or destroy, and the reflex is to paint them the
+            failure colour. Under Meridian red REPORTS AN OUTCOME -- something
+            went wrong, and it already has -- so spending it on an INTENT says
+            the wrong tense: a roll back that has not happened yet is not a
+            failure, and a control that shouts before it is pressed makes the
+            row it sits on read as broken. Orchid is not available either; that
+            one means a person is required, which is a gate, not a destructive
+            act.
+            What protects a destructive act here is DISTANCE plus a CONFIRM, and
+            both are already in place: these sit at the trailing edge of the
+            identity line, away from everything else on the panel, and
+            `triggerRollback` and `triggerAbandon` each open a typed confirm
+            before anything happens. `Actions`' own `trailing` slot records the
+            same rule in the same words.
+            `quiet` is the Meridian face for the retired `ghost`: muted ink, no
+            border, a hover wash. */}
         {changeset.status === "merged" ? (
-          <Button variant="ghost" disabled={rollbackMut.isPending} onClick={triggerRollback}>
+          <Action variant="quiet" disabled={rollbackMut.isPending} onClick={triggerRollback}>
             {rollbackMut.isPending ? "Rolling back" : "Roll back"}
-          </Button>
+          </Action>
         ) : null}
         {["staged", "committed", "pr_open"].includes(changeset.status) ? (
-          <Button variant="ghost" disabled={abandonMut.isPending} onClick={triggerAbandon}>
+          <Action variant="quiet" disabled={abandonMut.isPending} onClick={triggerAbandon}>
             {abandonMut.isPending ? "Killing" : "Kill this change"}
-          </Button>
+          </Action>
         ) : null}
       </Line>
 
@@ -909,9 +1046,9 @@ export function ChangesPanel({
           A tab must reveal its content adjacent to itself. Everything else in this
           panel is context ABOUT the change; the change itself is the answer to
           'what did this run produce', so it goes first. */}
-      <Block title="Files">
+      <Region title="Files">
         {changes.length === 0 ? (
-          <Empty>{builderName} has not written a file into this changeset yet.</Empty>
+          <NothingYet>{builderName} has not written a file into this changeset yet.</NothingYet>
         ) : (
           /* THE LIST AND THE DIFF SIT BESIDE EACH OTHER, not one above the other.
              FOUNDER, 2026-08-01: "why don't we build this terminal next to each
@@ -928,8 +1065,8 @@ export function ChangesPanel({
 
              Each pane scrolls independently, which is what actually kills the
              long scroll: the list stays put while the diff moves. */
-          <div className="sp-split">
-            <div className="sp-split-list" role="tablist" aria-label="Files this run changed">
+          <div className="cp-split">
+            <div className="cp-list" role="tablist" aria-label="Files this run changed">
               {changes.map((c) => {
                 const active = c.path === activePath;
                 return (
@@ -942,8 +1079,17 @@ export function ChangesPanel({
                     sub={
                       <>
                         {c.op} · <Diffstat added={c.added_lines} removed={c.removed_lines} />
+                        {/* `--sp-warn` WAS A SIXTH STATUS COLOUR IN A SYSTEM
+                            WITH FIVE WORDS. Meridian has no "warn": what this
+                            says is that the file is WAITING ON A CONDITION --
+                            the operator has declared a touch list and this path
+                            is not inside it, so the change cannot be considered
+                            in scope until somebody moves one or the other. That
+                            is exactly `--mrd-hold`. Not red, because nothing has
+                            failed; not orchid, because that promises a control
+                            that releases it and the control is elsewhere. */}
                         {outOfPolicy.has(c.path) ? (
-                          <span style={{ color: "var(--sp-warn)" }}> · outside the list</span>
+                          <span className="text-mrd-hold"> · outside the list</span>
                         ) : null}
                       </>
                     }
@@ -957,28 +1103,32 @@ export function ChangesPanel({
               })}
             </div>
 
-            <div className="sp-split-view">
+            <div className="cp-view">
               {/* NO HEADER ROW HERE. The path, the comparison and the file's own
                   action all moved INTO the terminal's chrome and status line,
                   because a header above a box that has its own header is two
                   headers for one thing. That duplication is a good part of what
                   read as congested, and it cost a whole row of height above the
                   code on every file you opened. */}
+              {/* MERIDIAN'S OWN TAB ROW, AND IT BRINGS THE KEYBOARD WITH IT.
+                  This was a hand-rolled `.sp-tabs` carrying `role="tablist"` and
+                  `role="tab"` and none of the rest of the contract: every tab
+                  was its own tab stop, the arrow keys did nothing, and no panel
+                  named the tab it belonged to. `role="tab"` PROMISES that
+                  keyboard -- a screen reader announces "tab, 1 of 2" and a
+                  person presses an arrow -- so a half-built tablist is worse
+                  than two plain buttons. `Tabs` is that contract, written once. */}
               {activePath && isMarkdownFile(activePath) ? (
-                <div className="sp-tabs" role="tablist" aria-label="How to read this file">
-                  {(["diff", "preview"] as const).map((mode) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      role="tab"
-                      className="sp-tab"
-                      aria-selected={docView === mode}
-                      onClick={() => setDocView(mode)}
-                    >
-                      {mode === "diff" ? "Diff" : "Read it"}
-                    </button>
-                  ))}
-                </div>
+                <Tabs
+                  group="studio-doc-view"
+                  label="How to read this file"
+                  active={docView}
+                  onSelect={setDocView}
+                  tabs={[
+                    { id: "diff", label: "Diff" },
+                    { id: "preview", label: "Read it" },
+                  ]}
+                />
               ) : null}
 
               {/* THE FILE STAYS AND THIS SAYS WHAT IT IS: the last diff that
@@ -987,39 +1137,43 @@ export function ChangesPanel({
                   `diffUnread` cannot both be true, so it never stacks with the
                   Failed. */}
               {diffStale ? (
-                <Failed onRetry={() => void diff.refetch()} retryLabel="Read it again">
+                <ReadFailedLine onRetry={() => void diff.refetch()} retryLabel="Read it again">
                   This is the last diff that loaded; the refresh just now did not land, so this file
                   may have changed since. {(diff.error as Error)?.message?.slice(0, 160)}
-                </Failed>
+                </ReadFailedLine>
               ) : null}
 
               {diffUnread ? (
                 // A failed read is not an empty state. It names its cause and offers
                 // the retry, because "nothing here" and "we could not find out" are
                 // different facts.
-                <div className="sp-term">
-                  <div style={{ padding: "var(--sp-space-4) 14px" }}>
-                    <Failed onRetry={() => void diff.refetch()}>
+                /* THE TERMINAL'S OWN BOX, borrowed from `CodeDiff` rather than
+                   rebuilt, so a failed read sits in the same frame the diff
+                   would have. Two boxes that disagree about their own shape is
+                   how a design system stops being one. */
+                <TermFrame>
+                  <div style={{ padding: "var(--mrd-s5) 14px" }}>
+                    <ReadFailedLine onRetry={() => void diff.refetch()}>
                       The diff did not load. {(diff.error as Error)?.message?.slice(0, 160)}
-                    </Failed>
+                    </ReadFailedLine>
                   </div>
-                </div>
+                </TermFrame>
               ) : diff.isLoading || !selected ? (
                 // ONE LINE, NOT A 420px BOX. This was a fixed-height panel holding
                 // three words, which is the largest single piece of the "unexplained
                 // blank space" and it appeared on every file you opened.
-                <Loading>Reading the diff.</Loading>
+                <Reading>Reading the diff.</Reading>
               ) : activePath && isMarkdownFile(activePath) && docView === "preview" ? (
-                <div className="sp-term">
+                <TermFrame>
                   {/* No inner vertical scroller here either, for the same reason
                       as the diff body: a scroll container nested inside the
                       page's own scroller traps the wheel and the page reads as
                       stuck. The document is as tall as it is and the page
                       carries it. */}
-                  <div style={{ padding: "var(--sp-space-4) var(--sp-space-5)" }}>
+                  <div style={{ padding: "var(--mrd-s5) 20px" }}>
                     <ChatMarkdown content={selected.new_content ?? ""} />
                   </div>
-                </div>
+                </TermFrame>
               ) : (
                 <CodeDiff
                   base={selected.base_content ?? ""}
@@ -1027,9 +1181,20 @@ export function ChangesPanel({
                   path={activePath ?? undefined}
                   actions={
                     canCurate && activePath ? (
+                      /* THE CHROME CONTROL SIZE, not the house control size.
+                         `Action` is a 32px button with its own padding, which is
+                         right for something a surface is asking you to do; this
+                         sits inside a 34px terminal title bar beside Inline /
+                         Split / Wrap, and at the house size the bar would be
+                         half as tall again as the code it labels. `CodeDiff`
+                         exports the class for exactly this reason.
+                         AND IT IS NOT RED. Dropping a file is destructive and it
+                         is an INTENT: red reports an outcome. What guards it is
+                         that it acts on the one file whose name is in the bar
+                         beside it. */
                       <button
                         type="button"
-                        className="sp-term-ctl"
+                        className={TERM_CONTROL}
                         disabled={rejectFileMut.isPending}
                         onClick={() => rejectFileMut.mutate(activePath)}
                       >
@@ -1052,7 +1217,7 @@ export function ChangesPanel({
                     }
                     sub="Tap one to reject it. Rejecting puts those lines back to base."
                   >
-                    <Button
+                    <Action
                       disabled={applyMut.isPending || rejected.size === 0}
                       title={
                         rejected.size === 0 ? "Tap a hunk below to reject it first" : undefined
@@ -1070,7 +1235,7 @@ export function ChangesPanel({
                         : rejected.size === 0
                           ? "Revert the rejected"
                           : `Revert ${rejected.size}`}
-                    </Button>
+                    </Action>
                   </Line>
                   {hunks.map((h) => {
                     const isRejected = rejected.has(h.id);
@@ -1106,11 +1271,11 @@ export function ChangesPanel({
             </div>
           </div>
         )}
-      </Block>
+      </Region>
 
       {/* SEAM-2 SHIP: the preview, the one human promote, and the live URL. */}
       {changeset.status === "merged" ? (
-        <Block
+        <Region
           title="Where it is live"
           /* THE DOOR ONTO THE CAPTURE, at the weight this file already uses for
              a per-section act ("Write them" below is the same slot, the same
@@ -1118,15 +1283,24 @@ export function ChangesPanel({
              the deploy record filling itself in is the normal path, and this is
              the way out of the case where it did not.
 
-             THE HANDLER CARRIES THE GUARD BECAUSE THE BUTTON CANNOT. `Block`'s
-             `more` renders a plain button with no `disabled` prop, so the label
-             says the act is in flight and the handler refuses a second press --
-             exactly what `genNotesMut` does below. Without it a double click is
-             two GitHub round trips. */
-          more={captureMut.isPending ? "Checking" : "Check for deploys"}
-          onMore={() => {
-            if (!captureMut.isPending) captureMut.mutate();
-          }}
+             ── `act`, NOT `goTo` AND NOT `toggle`, AND THE GUARD IS NOW THE
+                COMPONENT'S RATHER THAN THE HANDLER'S ──────────────────────
+             This was `Block`'s `more`/`onMore`, which `Region` splits three
+             ways. It is not `goTo`: nothing is navigated, and a reader who
+             takes it as a link will not expect it to spend a GitHub round
+             trip. It is not `toggle`: that emits `aria-expanded`
+             unconditionally, and telling a screen reader this button expands
+             something is an incorrect ARIA state, which is worse than none
+             because it is believed. It DOES something to this region's
+             subject, so it is `act`.
+             `acting` is the half `Block` could not express, and this file said
+             so in its own words: the label swapped to "Checking" while the
+             button stayed live, so the handler had to refuse the second press
+             itself. `Region` disables the control and announces `aria-busy`,
+             which is the same fact told once. */
+          act={captureMut.isPending ? "Checking" : "Check for deploys"}
+          acting={captureMut.isPending}
+          onAct={() => captureMut.mutate()}
         >
           {/* A READ THAT DID NOT HAPPEN IS NOT AN EMPTY DEPLOY RECORD. Without
               these two branches a failed or in-flight `deploymentsQ` collapsed
@@ -1146,12 +1320,12 @@ export function ChangesPanel({
               its own two queries in `_authenticated.ship.tsx`; keep the two
               shapes the same. */}
           {deploymentsUnread ? (
-            <Failed onRetry={retryDeployments}>
+            <ReadFailedLine onRetry={retryDeployments}>
               Where this change is serving did not load, so anything said here would be a guess.{" "}
               {(deploymentsQ.error as Error)?.message?.slice(0, 160)}
-            </Failed>
+            </ReadFailedLine>
           ) : deploymentsReading ? (
-            <Loading>Reading where this change is serving.</Loading>
+            <Reading>Reading where this change is serving.</Reading>
           ) : (
             <>
               {/* THE ROWS STAY AND THIS SAYS WHAT THEY ARE: the last read that
@@ -1179,26 +1353,25 @@ export function ChangesPanel({
                   until the preview is up." Naming rows there would name rows
                   that do not exist. */}
               {deploymentsStale ? (
-                <Failed onRetry={retryDeployments} retryLabel="Read it again">
+                <ReadFailedLine onRetry={retryDeployments} retryLabel="Read it again">
                   This is the deploy record as it last loaded, which may be no deploys at all; the
                   refresh just now did not land, so this may have moved since.{" "}
                   {(deploymentsQ.error as Error)?.message?.slice(0, 160)}
-                </Failed>
+                </ReadFailedLine>
               ) : null}
               <Line
                 label="Preview"
                 sub={
                   previewDep ? (
                     <>
-                      <a
-                        className={QUIET}
-                        style={{ textDecoration: "none" }}
-                        href={previewDep.deploy_url!}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
+                      {/* `Door` with an `href`: an outbound address, so the
+                          element follows the destination rather than the paint.
+                          It carries its own `target` and `rel`, which this call
+                          site was spelling by hand and getting half right
+                          (`rel="noreferrer"` without `noopener`). */}
+                      <Door href={previewDep.deploy_url!}>
                         <Num>{previewDep.deploy_url}</Num>
-                      </a>
+                      </Door>
                       {!hostedPreviewDep ? (
                         <span style={{ display: "block" }}>
                           Your own pipeline published this one, not Supaprod. Supaprod read it from
@@ -1220,15 +1393,9 @@ export function ChangesPanel({
                 label="Production"
                 sub={
                   productionDep ? (
-                    <a
-                      className={QUIET}
-                      style={{ textDecoration: "none" }}
-                      href={productionDep.deploy_url!}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <Door href={productionDep.deploy_url!}>
                       <Num>{productionDep.deploy_url}</Num>
-                    </a>
+                    </Door>
                   ) : hostedPreviewDep ? (
                     "Nobody has moved it yet. This is the one call that reaches customers."
                   ) : previewDep ? (
@@ -1250,35 +1417,56 @@ export function ChangesPanel({
                     refusal -- a control promising an act it cannot perform,
                     which is the exact defect this surface exists to prevent. */}
                 {!productionDep && hostedPreviewDep ? (
-                  <Button
+                  /* AN `Action`, NOT AN `Approve`, AND THE TEST IS WHAT THE
+                     CLICK DOES. `Approve` is the one control that RELEASES
+                     something held: a gate is open, the work has stopped, and
+                     the press is what lets it carry on. Nothing is held here --
+                     the preview is up and sitting there, and this starts a
+                     deploy that nobody was waiting on. It is still the primary
+                     act on this surface and it still reaches customers, which
+                     is what `variant="primary"` is for: the one neutral stop on
+                     the ladder nothing else uses. */
+                  <Action
                     variant="primary"
                     disabled={promoteMut.isPending}
                     onClick={() => promoteMut.mutate()}
                   >
                     {promoteMut.isPending ? "Promoting" : "Promote to production"}
-                  </Button>
+                  </Action>
                 ) : null}
               </Line>
             </>
           )}
-        </Block>
+        </Region>
       ) : null}
 
       {/* K1 release notes: the ship artifact for this changeset. */}
       {changeset.release_notes || changes.length > 0 || revisions.length > 0 ? (
-        <Block
+        <Region
           title="Release notes"
-          more={
+          /* `act`: this dispatches a model run that writes the notes. Not
+             `toggle` (it reveals nothing and must not claim `aria-expanded`),
+             not `goTo` (nothing is navigated). `acting` replaces the handler's
+             own `isPending` guard, so the control is dead and announced busy
+             rather than live behind a swapped label. */
+          act={
             genNotesMut.isPending ? "Writing" : hasReleaseNotes ? "Write them again" : "Write them"
           }
-          onMore={() => {
-            if (!genNotesMut.isPending) genNotesMut.mutate();
-          }}
+          acting={genNotesMut.isPending}
+          onAct={() => genNotesMut.mutate()}
         >
+          {/* `Prose` IS THE PRIMITIVE FOR THIS, and it is what the local RECESS
+              object was hand-rolling: agent-written prose in a recess, never a
+              card, so it is the one container in its region. Its stops are the
+              retired ones to the pixel.
+              ONE THING IT DOES NOT CARRY, reported rather than worked around:
+              `overflow-wrap: anywhere`. The object it replaces set it, and
+              `Prose` sets `whitespace-pre-wrap`, which invites a long unbroken
+              token (a URL in a release note) to push the column sideways. */}
           {hasReleaseNotes ? (
-            <div style={RECESS}>{changeset.release_notes}</div>
+            <Prose>{changeset.release_notes}</Prose>
           ) : (
-            <Empty>
+            <NothingYet>
               {builderName} has not drafted notes for this changeset yet.
               {/* WHY A MERGED CHANGE CAN BE MISSING FROM SHIP, said where the
                   person is standing when they wonder. Ship's release layer is
@@ -1291,7 +1479,7 @@ export function ChangesPanel({
               {changeset.status === "merged"
                 ? ' This change has merged, and Ship lists a release only once there is something to read, so it is not on Ship until these exist. "Write them" above is the whole of the repair: the release appears on its own as soon as they are saved.'
                 : ""}
-            </Empty>
+            </NothingYet>
           )}
           {/* THE SECOND HALF OF THE SAME REPAIR, for the case the first half
               cannot reach: notes exist, the merge happened, and Ship still does
@@ -1313,23 +1501,24 @@ export function ChangesPanel({
               and it reaches customers; this one reconciles a record. */}
           {changeset.status === "merged" && hasReleaseNotes ? (
             <Actions>
-              <Button disabled={publishEntryMut.isPending} onClick={() => publishEntryMut.mutate()}>
+              <Action disabled={publishEntryMut.isPending} onClick={() => publishEntryMut.mutate()}>
                 {publishEntryMut.isPending ? "Listing it" : "List it on Ship"}
-              </Button>
+              </Action>
             </Actions>
           ) : null}
-        </Block>
+        </Region>
       ) : null}
 
       {/* LCH-01 launch kit: drafted from the ship, never sent. */}
       {changeset.release_notes || revisions.length > 0 ? (
-        <Block
+        <Region
           title="Launch kit"
           sub="Drafts only. Nothing is sent, so copy what you want to use."
-          more={genKitMut.isPending ? "Drafting" : launchKit ? "Draft it again" : "Draft it"}
-          onMore={() => {
-            if (!genKitMut.isPending) genKitMut.mutate();
-          }}
+          /* `act` again: drafting a launch kit runs a model. Same three-way
+             split, same reason. */
+          act={genKitMut.isPending ? "Drafting" : launchKit ? "Draft it again" : "Draft it"}
+          acting={genKitMut.isPending}
+          onAct={() => genKitMut.mutate()}
         >
           {launchKit
             ? (
@@ -1344,9 +1533,11 @@ export function ChangesPanel({
                 launchKit[key] ? (
                   <div key={key}>
                     <Line label={label}>
-                      <button
-                        type="button"
-                        className={QUIET}
+                      {/* No `htmlFor`: `Line`'s own note says a `<label for>`
+                          pointing at a BUTTON would make the label a second way
+                          to fire it, which is wrong for a control that acts
+                          rather than holds a value. */}
+                      <Door
                         onClick={() =>
                           navigator.clipboard
                             ?.writeText(launchKit[key])
@@ -1355,20 +1546,20 @@ export function ChangesPanel({
                         }
                       >
                         Copy
-                      </button>
+                      </Door>
                     </Line>
-                    <div style={RECESS}>{launchKit[key]}</div>
+                    <Prose>{launchKit[key]}</Prose>
                   </div>
                 ) : null,
               )
             : null}
-        </Block>
+        </Region>
       ) : null}
 
       {/* K2: rollback history for this product. The record names no actor, so
           neither does the row. */}
       {rollbacks.length > 0 ? (
-        <Block title="Rollbacks">
+        <Region title="Rollbacks">
           {rollbacks.map((rb) => (
             <div key={rb.id}>
               <Row
@@ -1383,15 +1574,11 @@ export function ChangesPanel({
                     {rb.revert_pr_number ? (
                       <>
                         {" · "}
-                        <a
-                          className={QUIET}
-                          style={{ textDecoration: "none" }}
+                        <Door
                           href={`https://github.com/${changeset.repo}/pull/${rb.revert_pr_number}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
                         >
                           PR <Num>{rb.revert_pr_number}</Num>
-                        </a>
+                        </Door>
                       </>
                     ) : null}
                     {!rb.note ? (
@@ -1413,15 +1600,15 @@ export function ChangesPanel({
                 }
                 time={shortDate(rb.created_at)}
               />
-              {rb.note ? <div style={RECESS}>{rb.note}</div> : null}
+              {rb.note ? <Prose>{rb.note}</Prose> : null}
             </div>
           ))}
-        </Block>
+        </Region>
       ) : null}
 
       {/* I1b revision history: one row per studio.commit, newest first. */}
       {revisions.length > 0 ? (
-        <Block title="Revisions">
+        <Region title="Revisions">
           {revisions.map((r, i) => (
             <Row
               key={r.id}
@@ -1434,15 +1621,9 @@ export function ChangesPanel({
                   {r.files.length === 1 ? "file" : "files"}
                   {" · "}
                   {r.commit_url ? (
-                    <a
-                      className={QUIET}
-                      style={{ textDecoration: "none" }}
-                      href={r.commit_url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <Door href={r.commit_url}>
                       <Num>{r.commit_sha.slice(0, 7)}</Num>
-                    </a>
+                    </Door>
                   ) : (
                     <Num>{r.commit_sha.slice(0, 7)}</Num>
                   )}
@@ -1472,18 +1653,21 @@ export function ChangesPanel({
               time={shortDate(r.created_at)}
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
       {/* F-BUILDER-MULTIFILE: the declared touch list and cap, read live against
           the staged files, with one click to get back inside it. */}
       {missionId ? (
-        <Block
+        <Region
           title="Scope"
           sub={
             scopeDeclared ? (
               scopeBreach ? (
-                <span style={{ color: "var(--sp-warn)" }}>{scopeBreach}</span>
+                /* `--mrd-hold`, for the same reason the file rows use it: the
+                   change is waiting on a condition -- the touch list or the cap
+                   has to move, or the files do -- and nothing has failed. */
+                <span className="text-mrd-hold">{scopeBreach}</span>
               ) : (
                 <>
                   <Num>{fileSetPolicy!.fileCount}</Num>{" "}
@@ -1500,20 +1684,37 @@ export function ChangesPanel({
               `No touch list and no cap. ${builderName} may write anywhere except CI, migrations, env and lockfiles, which are always refused.`
             )
           }
-          more={editScope ? "Close" : "Edit"}
-          onMore={() => (editScope ? setEditScope(false) : openScopeEditor())}
+          /* THE ONE `toggle` ON THIS PANEL, and the only `more` that was ever a
+             disclosure. It reveals the scope editor in place: it navigates
+             nowhere and dispatches nothing, so `goTo` and `act` are both wrong,
+             and `toggled` is the half the retired prop could not express -- the
+             label swapped between "Edit" and "Close" for anyone who could see
+             it and announced nothing at all to anyone who could not. */
+          toggle={editScope ? "Close" : "Edit"}
+          toggled={editScope}
+          onToggle={() => (editScope ? setEditScope(false) : openScopeEditor())}
         >
           {canCurate && fileSetPolicy?.hasTouchList && fileSetPolicy.outOfPolicy.length > 0 ? (
             <Actions>
-              <Button disabled={enforceMut.isPending} onClick={() => enforceMut.mutate()}>
+              {/* NOT RED. Dropping the out-of-scope files destroys staged work,
+                  and red reports an OUTCOME rather than an intention. What
+                  protects it is that the sub-line directly above states exactly
+                  how many files are outside the list before anyone presses. */}
+              <Action disabled={enforceMut.isPending} onClick={() => enforceMut.mutate()}>
                 {enforceMut.isPending ? "Dropping them" : "Drop the files outside it"}
-              </Button>
+              </Action>
             </Actions>
           ) : null}
           {editScope ? (
-            <>
-              <Field label="Touch list, one path per line">
+            /* MERIDIAN'S `Field` DOES NOT WRAP ITS CONTROL. The retired one
+               rendered a `<label>` around the child and bound the two by
+               containment; this one binds BY NAME, so a Field with no
+               `htmlFor`/`id` pair silently has no accessible name at all. Both
+               pairs are written out below. */
+            <div className="flex flex-col gap-mrd-5">
+              <Field label="Touch list, one path per line" htmlFor={TOUCH_LIST_ID}>
                 <Textarea
+                  id={TOUCH_LIST_ID}
                   value={pathsDraft}
                   onChange={(e) => setPathsDraft(e.target.value)}
                   placeholder={"src/lib/\nsrc/components/studio/**"}
@@ -1521,8 +1722,9 @@ export function ChangesPanel({
                   spellCheck={false}
                 />
               </Field>
-              <Field label="Most files it may touch">
+              <Field label="Most files it may touch" htmlFor={FILE_CAP_ID}>
                 <Input
+                  id={FILE_CAP_ID}
                   type="number"
                   min={1}
                   value={capDraft}
@@ -1532,13 +1734,13 @@ export function ChangesPanel({
                 />
               </Field>
               <Actions>
-                <Button disabled={setScopeMut.isPending} onClick={saveScope}>
+                <Action disabled={setScopeMut.isPending} onClick={saveScope}>
                   {setScopeMut.isPending ? "Saving" : "Save the scope"}
-                </Button>
+                </Action>
               </Actions>
-            </>
+            </div>
           ) : null}
-        </Block>
+        </Region>
       ) : null}
 
       {/* The files themselves, each with its real line delta in green and red.
@@ -1549,6 +1751,6 @@ export function ChangesPanel({
           half of the problem, since the real line counts were already in the
           payload. Now the unit and the colour agree, so the shape claims exactly
           what it is. */}
-    </>
+    </div>
   );
 }

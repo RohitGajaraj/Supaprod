@@ -117,7 +117,13 @@ describe("what it says instead", () => {
     // The one thing this product must never do is put invented rows where real ones
     // go. The illustration Row carries no onClick, which is what makes it a div.
     const start = src.indexOf('title="What a release will look like here"');
-    const end = src.indexOf("</Block>", start);
+    // `</Region>` since the Meridian port: `Block` is the retired primitive and
+    // `Region` is the same frame with a real heading. If this ever fails to find
+    // a closer the slice silently becomes the rest of the file, so it is
+    // asserted rather than trusted -- an unfound closer made every check below
+    // read the whole page and pass or fail for the wrong reason.
+    const end = src.indexOf("</Region>", start);
+    expect(end, "the illustration's region has no closing tag").toBeGreaterThan(start);
     const drawing = src.slice(start, end);
     expect(drawing.includes("onClick"), "the illustration is clickable").toBe(false);
     // Controls, not the word: the legend explains what a promote is, and prose about

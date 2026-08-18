@@ -71,6 +71,7 @@ import {
   RecordSpeaks,
   Region,
 } from "@/components/meridian/surface-parts";
+import { Line } from "@/components/meridian/rows";
 import {
   listTrustReceipts,
   getLedgerSeal,
@@ -450,7 +451,25 @@ function MissionChainPanel() {
   if (!missionsQ.isPending && !missionsQ.isError && missions.length === 0) return null;
 
   return (
-    <Region title="Mission chain" sub="A missing link is shown, never hidden.">
+    /*
+     * NO TITLE ON THIS REGION, and it is a fix rather than a trim.
+     *
+     * `MissionChain` draws its own section headed by the mission's title, so a
+     * titled Region around it stacked two headings: "Mission chain" above the
+     * name of the actual mission. `block-chrome-discipline` exists to catch
+     * exactly that, and it could not see this one -- it only knew `Block`, and
+     * this outer wrapper had already moved to `Region`, so the nest went quiet
+     * the day the outer half was ported. Teaching the guard `Region` on
+     * 2026-08-18 surfaced it.
+     *
+     * The heading that survives is the mission's own name, which is the better
+     * of the two: it names the thing on screen rather than the panel around it.
+     * The sub moves down to a Line so the sentence is kept -- rule 1 protects
+     * information, and "a missing link is shown, never hidden" is the promise
+     * this panel exists to make.
+     */
+    <Region>
+      <Line label="Mission chain" sub="A missing link is shown, never hidden." />
       {missions.length > 0 ? (
         <div className="mb-mrd-4">
           <Picker

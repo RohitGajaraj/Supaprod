@@ -6,12 +6,26 @@
 // anatomies, no new styling: 'detailkit' wraps the rows in the shared
 // DetailSection (spec / opportunity / decision details); 'loom' wraps them in
 // the mission surface's LOOM_CARD <section> with its MonoLabel heading.
+//
+// PORTED TO MERIDIAN 2026-08-18. `--text-body`, `--text-subtle`, `--text-faint`
+// and `--hairline` are gone; the rows read `--mrd-body`, `--mrd-mute`,
+// `--mrd-faint` and `--mrd-line-soft`, and the timestamp goes through `Num`
+// rather than a hand-written `font-family: var(--font-mono)`, so it carries
+// `data-num` and tabular figures like every other number in the product.
+//
+// WHAT IS STILL LEGACY HERE, AND WHOSE IT IS. `MonoLabel`
+// (components/supaprod/Primitives) and `LOOM_CARD` (components/studio/studio-ui)
+// are the loom variant's host anatomy and belong to the mission surface, and
+// `DetailSection` is DetailKit's. Both are named rather than reached into:
+// changing another surface's shell from inside a shared timeline is how one
+// port breaks three screens.
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { getStageEvents } from "@/lib/stage-events.functions";
 import { DetailSection } from "@/components/discover/DetailKit";
 import { relTimeCaps } from "@/components/discover/format";
+import { Num } from "@/components/meridian/surface-parts";
 import { MonoLabel } from "@/components/supaprod/Primitives";
 import { LOOM_CARD } from "@/components/studio/studio-ui";
 
@@ -63,10 +77,10 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
                 gap: "var(--geist-space-3x)",
                 alignItems: "baseline",
                 padding: "8px 0",
-                borderBottom: i < events.length - 1 ? "1px solid var(--hairline)" : "none",
+                borderBottom: i < events.length - 1 ? "1px solid var(--mrd-line-soft)" : "none",
               }}
             >
-              <span style={{ color: "var(--text-body)" }}>
+              <span style={{ color: "var(--mrd-body)" }}>
                 {e.from_stage ? `${e.from_stage} -> ${e.to_stage}` : e.to_stage}
               </span>
               <span className="mono-label" style={{}}>
@@ -87,28 +101,21 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
       <div style={{ display: "grid", gap: "8px" }}>
         {events.map((e) => (
           <div key={e.id} className="flex items-baseline" style={{ gap: "8px" }}>
-            <span style={{ color: "var(--text-body)" }}>
+            <span className="text-[13px] text-mrd-body">
               {e.from_stage ? `${e.from_stage} -> ${e.to_stage}` : e.to_stage}
             </span>
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: "var(--text-subtle)",
-              }}
-            >
-              {e.actor}
-            </span>
-            <span
-              style={{
-                marginLeft: "auto",
-                fontFamily: "var(--font-mono)",
-                letterSpacing: "0.06em",
-                color: "var(--text-faint)",
-              }}
-            >
-              {relTimeCaps(e.at)}
+            {/* THE ACTOR STOPS SHOUTING. It was mono, uppercased, at 0.06em
+                tracking: three separate emphases on a name, in the data face,
+                on a row whose subject is the transition beside it. An actor is
+                a NAME and mono is for data, which is the rule `Num` exists to
+                hold -- so the name is plain text at the row's own size and the
+                only thing left carrying it is the quiet ink. */}
+            <span className="text-[12.5px] text-mrd-mute">{e.actor}</span>
+            {/* And the timestamp keeps mono, because that IS data. `Num` rather
+                than a hand-rolled font-family, so it carries `data-num` and the
+                tabular figures a column of times needs. */}
+            <span className="ml-auto text-[12.5px] text-mrd-faint">
+              <Num>{relTimeCaps(e.at)}</Num>
             </span>
           </div>
         ))}
@@ -120,10 +127,7 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
         <Link
           to="/engine-room"
           search={{ room: "record" }}
-          style={{
-            color: "var(--text-subtle)",
-            textDecoration: "none",
-          }}
+          className="text-[12.5px] text-mrd-mute underline decoration-dotted underline-offset-2 transition-colors hover:text-mrd-ink hover:decoration-solid"
         >
           See the full chain in the record room
         </Link>

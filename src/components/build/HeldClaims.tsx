@@ -1,13 +1,12 @@
 import * as React from "react";
 import { Row } from "@/components/meridian/rows";
-import { Door } from "@/components/meridian/surface-parts";
+import { Action, Door, ReadFailedLine, Region } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 
 import { listBuilderClaims, releaseBuilderClaim } from "@/lib/build.functions";
 import { ago } from "@/components/runs/run-state";
-import { Block, Button, Failed } from "@/components/shell/primitives";
 import { stillWaiting } from "@/lib/query-state";
 
 /**
@@ -84,7 +83,7 @@ export function HeldClaims() {
   if (!claims.isError && held.length === 0) return null;
 
   return (
-    <Block
+    <Region
       title="Files held by a build"
       sub={
         claims.isError
@@ -93,10 +92,13 @@ export function HeldClaims() {
       }
     >
       {claims.isError ? (
-        <Failed onRetry={() => void claims.refetch()}>
+        /* `ReadFailedLine` and not `ReadFailed`: the bordered half draws its own
+           box, and this already sits inside a Region under a heading. Two
+           containers around one sentence is a frame. */
+        <ReadFailedLine onRetry={() => void claims.refetch()}>
           We could not read which files are held, so this is not a statement that none are. A build
           that was refused for a file conflict is still refused.
-        </Failed>
+        </ReadFailedLine>
       ) : (
         held.map((c) => {
           const isFailed = failed?.id === c.id;
@@ -106,28 +108,35 @@ export function HeldClaims() {
               tight
               lead={c.path}
               sub={
-                <span className="sp-meta">
-                  {isFailed ? (
-                    <span className="sp-fail">{failed.reason}</span>
-                  ) : (
-                    <>
-                      {c.repo}
-                      {" · "}
-                      {/* WHO HOLDS IT, in the words the refusal uses. The tool
-                          error names the holding mission's title, so a person
-                          matching this list against that message needs the same
-                          string here. */}
-                      {c.mission_title ?? "a build with no title on the record"}
-                      {c.is_mine ? "" : " · started by someone else in this workspace"}
-                    </>
-                  )}
-                </span>
+                /* NO WRAPPER SPAN. It used to be `<span className="sp-meta">`,
+                   and `.sp-meta` is declared in NO stylesheet in this repo --
+                   not `primitives.css`, not `ink.css`, not `styles.css`. It
+                   painted nothing, in the same way `FOCUS_RING` painted nothing
+                   for six files. `Row` already sets the sub-line's size and ink,
+                   so removing it changes no pixel and removes a retired name. */
+                isFailed ? (
+                  /* Red is an OUTCOME here and that is the only thing it is
+                     allowed to be: the release was refused, and this is the
+                     server's own word for what happened. */
+                  <span className="text-mrd-fail">{failed.reason}</span>
+                ) : (
+                  <>
+                    {c.repo}
+                    {" · "}
+                    {/* WHO HOLDS IT, in the words the refusal uses. The tool
+                        error names the holding mission's title, so a person
+                        matching this list against that message needs the same
+                        string here. */}
+                    {c.mission_title ?? "a build with no title on the record"}
+                    {c.is_mine ? "" : " · started by someone else in this workspace"}
+                  </>
+                )
               }
               time={ago(c.claimed_at)}
               action={
-                /* A fragment, not a wrapper: `.sp-row-action` is already the
-                   flex row with the gap, and a second box inside it would add
-                   the block spacing `.sp-acts` carries. */
+                /* A fragment, not a wrapper: `Row` already lays the trailing
+                   slot out as a flex row with its own gap, and a second box
+                   inside it would add a block's worth of spacing. */
                 <>
                   {/* The run that holds it, because releasing a claim from a
                       build that is still writing is the wrong fix and the run
@@ -145,19 +154,24 @@ export function HeldClaims() {
                       Open the run
                     </Door>
                   ) : null}
-                  <Button
+                  {/* AN `Action` AND NOT AN `Approve`. Meridian's split is by
+                      what the click does: Approve is for a control that
+                      UNBLOCKS something a person is holding. This releases a
+                      lock a MACHINE is holding, so nothing here is waiting on a
+                      judgement — it is an act, at the neutral face. */}
+                  <Action
                     onClick={() => release.mutate(c.id)}
                     disabled={release.isPending && release.variables === c.id}
                     title="Release this lock so another build may take the file"
                   >
                     {release.isPending && release.variables === c.id ? "Releasing" : "Release"}
-                  </Button>
+                  </Action>
                 </>
               }
             />
           );
         })
       )}
-    </Block>
+    </Region>
   );
 }

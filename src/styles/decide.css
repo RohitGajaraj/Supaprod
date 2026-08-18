@@ -35,6 +35,17 @@
  * hopeful: the token is `74ch`, and both `.sp-main` and `.sp-ctx` compute to a
  * 14px font here, so the same token resolves to the same 636.104px on both.
  *
+ * AND IT STAYS `--sp-main-max` AFTER THE MERIDIAN PORT, 2026-08-18, which is a
+ * decision rather than a miss. This rule's whole job is to be the SAME NUMBER
+ * as `.sp-main`, and `.sp-main` in shell.css still reads `--sp-main-max`.
+ * `--mrd-measure` is 68ch, not 74ch -- `meridian/Surface`'s own header records
+ * the two measures disagreeing and deliberately keeps the 74ch one -- so
+ * swapping the token here would silently move this column 6ch off the column it
+ * exists to line up with, and buy one ratchet occurrence with a visible layout
+ * defect. It moves when `.sp-main` moves, in the same commit, or not at all.
+ * The rule's own border already came off `--sp-line-soft` onto
+ * `--mrd-line-soft`, which is what `.sp-ctx` itself now paints with.
+ *
  * The condition is the exact complement of shell.css's
  * `@container (min-width: 1120px)`, which is `--sp-ctx-split`. Above it the
  * aside is a 316px track and this cap is inert; below it the aside is the full
@@ -51,7 +62,7 @@
        `:has(> .decide-ctx)` cannot match any other station's aside, so the
        shared sheet keeps its behaviour everywhere else. */
     padding-top: 26px;
-    border-top: 1px solid var(--sp-line-soft);
+    border-top: 1px solid var(--mrd-line-soft);
   }
 
   .sp-ctx:has(> .decide-ctx) {

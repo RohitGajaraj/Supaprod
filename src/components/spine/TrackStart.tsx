@@ -53,7 +53,10 @@ import { TrackActivity } from "@/components/spine/TrackActivity";
 import { nextStation, WORK_SHAPE_LABEL, type WorkShape } from "@/lib/spine/route";
 import { HOLD_LINE } from "@/lib/spine/driver";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
-import { Block, Button, Empty, Field, Input, MoreItem, MoreMenu, Receipt, Textarea, Value } from "@/components/shell/primitives";
+import { Action, NothingYet, Region, Value } from "@/components/meridian/surface-parts";
+import { Choices, Field, Input, Textarea } from "@/components/meridian/forms";
+import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
+import { Receipt } from "@/components/meridian/Receipt";
 
 const SHAPES = Object.keys(WORK_SHAPE_LABEL) as WorkShape[];
 
@@ -90,6 +93,18 @@ export function TrackStart() {
    * question the list exists to answer.
    */
   const [showing, setShowing] = React.useState<string | null>(null);
+
+  /**
+   * THE HALF THE PORT WOULD OTHERWISE HAVE LOST SILENTLY.
+   *
+   * The retired `Field` was a `<label>` that WRAPPED its control, so the pair
+   * was bound by containment and needed no id. Meridian's `Field` is a div that
+   * renders `<label htmlFor>` beside the control, so a Field with no id pair
+   * renders a label pointing at nothing and the control loses its accessible
+   * name with nothing failing. These are that pair.
+   */
+  const titleFieldId = React.useId();
+  const originFieldId = React.useId();
 
   const tracks = useQuery({ queryKey: ["spine-tracks"], queryFn: () => fList() });
 
@@ -258,11 +273,17 @@ export function TrackStart() {
   const ready = title.trim().length > 0 && shape !== null && (!needsOrigin || origin.trim());
 
   return (
-    <Block
+    <Region
       title="Work in flight"
       sub="Each one carries its own route through the seven stations, including the ones it waives and why."
-      more={open ? "Never mind" : "Start work"}
-      onMore={() => {
+      /* `toggle`, NOT `goTo` AND NOT `act`. This control opens and closes a
+         form that lives INSIDE this region: it navigates nowhere and it starts
+         no work, it discloses. `toggled` is the half the retired `more`/`onMore`
+         could not express — the label changed for anyone who could see it and
+         nothing at all was announced to anyone who could not. */
+      toggle={open ? "Never mind" : "Start work"}
+      toggled={open}
+      onToggle={() => {
         setOpen((v) => !v);
         setProblems([]);
       }}
@@ -294,9 +315,15 @@ export function TrackStart() {
       ) : null}
 
       {open ? (
-        <>
-          <Field label="What is the work">
+        /* THE GAP THE RETIRED LAYER WAS DRAWING FOR THIS FORM. `.sp-field` set
+           `margin-top: 12px` on every field, so the stack spaced itself and no
+           caller ever said so out loud. Meridian's `Field` sets no outer margin
+           at all — a composition decision belongs to the composition — so the
+           12px is written here, where it now has an owner. */
+        <div className="flex flex-col gap-[12px]">
+          <Field label="What is the work" htmlFor={titleFieldId}>
             <Input
+              id={titleFieldId}
               value={title}
               autoFocus
               placeholder="Add SSO to the admin console"
@@ -305,25 +332,50 @@ export function TrackStart() {
           </Field>
 
           {/* Their language, not the model's. A person picks the sentence that
-            describes their situation; the product derives the route. */}
-          <Field label="What kind of work is it">
-            <div className="sp-choices" role="radiogroup" aria-label="What kind of work is it">
-              {SHAPES.map((s) => (
-                <Button
-                  key={s}
-                  variant={shape === s ? "primary" : "ghost"}
-                  aria-pressed={shape === s}
-                  onClick={() => setShape(s)}
-                >
-                  {WORK_SHAPE_LABEL[s]}
-                </Button>
-              ))}
-            </div>
-          </Field>
+            describes their situation; the product derives the route.
+
+            THE HAND-ROLLED GROUP IS GONE AND ITS ARIA WENT WITH IT. Five
+            buttons carrying `aria-pressed` announce five independent toggles
+            and never say that picking one unpicks the others, which is what
+            `Choices`' own header calls out as quietly wrong for a mutually
+            exclusive set. `mode="one"` is a radio group: one tab stop, arrow
+            keys inside it, and `aria-checked` telling the truth.
+
+            `flex-wrap` IS LOAD-BEARING, not tidiness. Meridian's track is
+            `inline-flex` with no wrap and these five options are whole
+            sentences, so without it the last two run off the edge of the work
+            column. The retired `.sp-choices` wrapped; this keeps that.
+
+            AND IT IS DELIBERATELY NOT INSIDE A `Field`. Meridian's `Field`
+            now REQUIRES an `htmlFor`, because its children render outside its
+            `<label>` and an id is the only thing that can bind them. `label
+            for` may only point at a LABELABLE element, and a radiogroup is not
+            one — there is no id here that a `for` could honestly name. So the
+            caption is set in the Field label's own paint and the GROUP names
+            itself through `Choices`' `label`, which is exactly how the div this
+            replaces was named. Inventing an id to satisfy the type would have
+            produced a `for` pointing at nothing. */}
+          <div className="flex flex-col gap-1.5">
+            <span
+              className="text-[12.5px] font-medium text-mrd-body"
+              style={{ letterSpacing: "var(--mrd-track-label)" }}
+            >
+              What kind of work is it
+            </span>
+            <Choices<WorkShape>
+              mode="one"
+              className="flex-wrap"
+              label="What kind of work is it"
+              value={(shape ?? "") as WorkShape}
+              options={SHAPES.map((s) => ({ id: s, label: WORK_SHAPE_LABEL[s] }))}
+              onChange={setShape}
+            />
+          </div>
 
           {needsOrigin ? (
-            <Field label="Why are we doing it">
+            <Field label="Why are we doing it" htmlFor={originFieldId}>
               <Textarea
+                id={originFieldId}
                 rows={2}
                 value={origin}
                 placeholder="Two enterprise deals are blocked on it"
@@ -333,13 +385,16 @@ export function TrackStart() {
           ) : null}
 
           <Actions>
-            <Button
+            {/* `Action`, not `Approve`. Orchid is spent on one meaning — a
+                person is required — and this releases nothing that is stopped:
+                it starts a new piece of work. */}
+            <Action
               variant="primary"
               disabled={!ready || start.isPending}
               onClick={() => start.mutate()}
             >
               {start.isPending ? "Starting" : "Start it"}
-            </Button>
+            </Action>
           </Actions>
 
           {needsOrigin ? (
@@ -349,15 +404,18 @@ export function TrackStart() {
               sub="Nothing was sensed and nothing was decided, so the reason above is the only thing Learn will have to grade the outcome against later."
             />
           ) : null}
-        </>
+        </div>
       ) : null}
 
       {list.length === 0 && !open ? (
-        <Empty>
+        // The BARE half of the empty pair. This sits under a region heading
+        // that already frames it, and the standard caps a region at one
+        // bordered box.
+        <NothingYet>
           Nothing is in flight. Work started here carries its route with it, so a change nobody
           needs to design goes from Plan straight to Build without anyone remembering that it
           should.
-        </Empty>
+        </NothingYet>
       ) : (
         list.map((t) => {
           // The next station on THIS track's route, never the next one on the
@@ -419,7 +477,12 @@ export function TrackStart() {
                     button would swap information for a control. It is a fact and
                     not an affordance, so the row still carries exactly ONE
                     thing that can be pressed. */}
-                    <Value tone={t.hold ? "warn" : "quiet"}>{AGENT_STATIONS[t.station].name}</Value>
+                    {/* `warn` BECAME `hold`, and here the rename is exactly
+                    right rather than merely mechanical: a track carrying a hold
+                    is stopped for a reason the reader cannot press their way
+                    out of, which is what Meridian's amber says in as many
+                    words. */}
+                    <Value tone={t.hold ? "hold" : "quiet"}>{AGENT_STATIONS[t.station].name}</Value>
 
                     {/* Behind the three dots rather than out on the row, which is
                     the shape boundary.tsx already uses for a per-row move: a
@@ -501,6 +564,6 @@ export function TrackStart() {
           );
         })
       )}
-    </Block>
+    </Region>
   );
 }

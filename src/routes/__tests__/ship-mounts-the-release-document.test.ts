@@ -93,8 +93,14 @@ describe("the section says only what it knows", () => {
     // Both sentences exist, and the failure carries the retry rather than
     // pretending the list is empty.
     expect(shipSrc).toContain("<NoReleaseYet />");
+    /* THE COMPONENT NAME IS NOT THE CLAIM. This pinned `<Failed`, the retired
+       primitive, so a Meridian port that renamed it to `ReadFailedLine` -- the
+       bare half, correct inside a region that already draws its own container
+       -- broke a guard whose requirement it satisfied exactly. What must hold is
+       that the failed read says so AND carries the refetch, above its own
+       sentence. */
     expect(shipSrc).toMatch(
-      /changelog\.isError\s*\?\s*\(\s*<Failed onRetry=\{\(\) => void changelog\.refetch\(\)\}>\s*The releases did not load/,
+      /changelog\.isError\s*\?\s*\(\s*<ReadFailed(Line)? onRetry=\{\(\) => void changelog\.refetch\(\)\}>\s*The releases did not load/,
     );
     // The empty state is only reachable after both of those were ruled out.
     expect(shipSrc).toMatch(
@@ -114,6 +120,12 @@ describe("the new door costs the row nothing", () => {
   it("marks the release in focus rather than offering a control that does nothing", () => {
     expect(shipSrc).toMatch(/const inFocus = docEntry\?\.id === e\.id/);
     expect(shipSrc).toMatch(/focused=\{inFocus\}/);
-    expect(shipSrc).toMatch(/inFocus \? null : \(/);
+    /* THE PAREN WAS NEVER THE CLAIM. This read `inFocus ? null : (`, so it was
+       pinning PRETTIER'S line-breaking as much as the behaviour: the Meridian
+       port replaced a five-line raw `<button>` with a one-line `RowDoor`, the
+       wrapping parenthesis stopped being needed, and a guard about a control
+       that must not be drawn failed over whitespace. The requirement is that the
+       release in focus is offered NOTHING in the action slot. */
+    expect(shipSrc).toMatch(/inFocus \? null :/);
   });
 });

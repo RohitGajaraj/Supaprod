@@ -463,7 +463,7 @@ export function CtxSection({ children }: { children: React.ReactNode }) {
   return (
     <section
       data-mrd=""
-      className="border-t border-mrd-line-soft pt-mrd-5 first:border-0 first:pt-0"
+      className="pt-mrd-5 first:pt-0"
     >
       {children}
     </section>

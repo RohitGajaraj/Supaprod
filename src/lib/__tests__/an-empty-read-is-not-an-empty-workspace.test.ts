@@ -317,14 +317,18 @@ describe("the guard is a property of the file, not of one line in it", () => {
     const src = code(read("routes/_authenticated.ship.tsx"));
     // The Gate, which asks the station's one question.
     expect(src).toMatch(/const postsReading = stillWaiting\(posts\)/);
-    expect(src).toMatch(/\) : postsReading \?\s*\(\s*<Loading>/);
+    /* `Loading` OR `Reading`: the retired component and its Meridian replacement.
+       What this pins is that the surface WAITS before it renders a verdict, not
+       which component draws the wait. Ship moved to `Reading` on 2026-08-18 and
+       this went red while the behaviour it protects never changed. */
+    expect(src).toMatch(/\) : postsReading \?\s*\(\s*<(?:Loading|Reading)>/);
     // Both deploy blocks, over the join of two reads.
     expect(src).toMatch(/const releaseReading = stillWaiting\(changelog, deployments\)/);
     // The release list, sharing the document's flag because it is one read.
     expect(src).toMatch(
       /const docReading = !wid \|\| changelog\.isLoading \|\| \(stillWaiting\(changelog\) && !changelog\.isError\)/,
     );
-    expect(src).toMatch(/\{docReading \?\s*\(\s*<Loading>Reading the release notes\./);
+    expect(src).toMatch(/\{docReading \?\s*\(\s*<(?:Loading|Reading)>Reading the release notes\./);
     // The Announcements block, which had no wait at all.
     expect(src).toMatch(/\{postsReading \|\| posts\.isError \? null : announcements\.length === 0/);
   });

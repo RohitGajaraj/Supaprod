@@ -34,9 +34,38 @@
  *
  * A NOTE ON THE TONE SET. The literals stay ("moss", "glacier", "madder",
  * "amber", "muted", "neutral") because callers name them, but they no longer
- * mean a hue from the retired palette. They map onto the four colours that
- * carry an OUTCOME and nothing else: pass, fail, warn, and the neutral ink.
- * Colour has jobs here; it never decorates a number.
+ * mean a hue from the retired palette. They map onto the colours that carry an
+ * OUTCOME and nothing else: pass, fail, hold, and the neutral ink. Colour has
+ * jobs here; it never decorates a number.
+ *
+ * ---------------------------------------------------------------------------
+ * 2026-08-18, MERIDIAN. The four inks moved: `--sp-pass`, `--sp-fail`,
+ * `--sp-warn` and `--sp-mute` are now `--mrd-pass`, `--mrd-fail`, `--mrd-hold`
+ * and `--mrd-mute`. `warn` became `hold` in the move because Meridian has five
+ * status words and `warn` is not one of them: amber here means "waiting on a
+ * CONDITION", which is what an "amber" stat cell has always meant, and orchid
+ * would have been the reflex and is wrong -- orchid promises a control that
+ * moves the thing, and a stat cell has none.
+ *
+ * WHAT DELIBERATELY DID NOT MOVE, and it is named rather than left looking like
+ * an oversight:
+ *
+ *   `.sp-block` / `.sp-block-head` / `.sp-block-title` on `DetailSection`, and
+ *   `Cell` from shell/primitives on `StatCell`. Meridian's `Region` is the
+ *   equivalent COMPONENT and it is not an equivalent SHAPE: `.sp-block` is a
+ *   rule plus 36px above and 28px below it, which is the "a new section starts
+ *   here" mark this file's own header cites as the reason the 2px accent bar
+ *   could be deleted, and `Region` draws no rule at all. `Region` also takes
+ *   `goTo`/`toggle`/`act` as STRINGS, so it cannot carry the arbitrary control
+ *   three callers pass as `action` -- the identical objection this file already
+ *   records against `Block`. Meridian has no `Grid`/`Cell` either.
+ *
+ *   And the blast radius is not this file. `DetailSection` renders inside
+ *   `shared/StageTimeline`, which mounts on `knowledge/DecisionDetail` and the
+ *   spec route as well as here, so re-spacing it from a Decide port would
+ *   change two surfaces belonging to other lanes to buy six token references.
+ *   Reported as a real Meridian gap (a region that draws its own rule, and a
+ *   region head that accepts a control) rather than papered over.
  */
 
 import { Children, type CSSProperties, type ReactNode } from "react";
@@ -55,10 +84,10 @@ export type StatTone = "moss" | "glacier" | "madder" | "amber" | "muted" | "neut
  * contrast ink, and a tone that carries no outcome gets no colour. If colour
  * were carrying the hierarchy, the hierarchy was never there. */
 const STAT_TONE_INK: Record<StatTone, string | undefined> = {
-  moss: "var(--sp-pass)",
-  madder: "var(--sp-fail)",
-  amber: "var(--sp-warn)",
-  muted: "var(--sp-mute)",
+  moss: "var(--mrd-pass)",
+  madder: "var(--mrd-fail)",
+  amber: "var(--mrd-hold)",
+  muted: "var(--mrd-mute)",
   glacier: undefined,
   neutral: undefined,
 };

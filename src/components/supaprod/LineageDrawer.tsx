@@ -1,3 +1,39 @@
+/**
+ * THE LINEAGE DRAWER, ported to Meridian 2026-08-18.
+ *
+ * ── THE OVERLAY STAYS, AND IT IS A DECISION ─────────────────────────────
+ * `shell/primitives.tsx` and `governance/CriticBadge.tsx` both record the
+ * standing ruling: this system has NO pane, slide-over or drawer primitive and
+ * the absence is deliberate. Meridian has none either. So this file had two
+ * honest answers -- rebuild the chain IN PLACE on the surface that opens it, or
+ * keep the overlay and port what is inside it. This is the second, for the
+ * reason the ruling itself gives as its THIRD point:
+ *
+ *   "A pane is not a stylesheet. It is a focus trap, a scroll lock, Escape,
+ *    focus returned to whatever opened it, and the page behind it made inert.
+ *    Half of that is an accessibility regression wearing a primitive's name."
+ *
+ * That is an argument against BUILDING one out of utilities, and `ui/sheet` is
+ * a Radix Dialog, which already supplies every item on that list. Hand-rolling
+ * a replacement to get off the import would trade working focus management for
+ * a `div`, which is the exact regression the ruling names. What was retired is
+ * the PAINT, and the paint is what this port removes: every `hairline`,
+ * `text-muted-foreground`, `bg-secondary`, `text-foreground` and `text-violet-300`
+ * inside the overlay is gone. The container's mechanics are not a design layer.
+ *
+ * Rebuilding in place was the other real option and it loses more than it
+ * gains here: this drawer's only mount is /decide, whose own header is built
+ * around "one question in front of you, right now", and a 40-row provenance
+ * chain unrolled into that column pushes the Gate off the screen to show a
+ * reference the reader asked for once.
+ *
+ * ── AND THE VIOLET WENT ─────────────────────────────────────────────────
+ * The `GitBranch` glyph was `text-violet-300`, a raw Tailwind hue on the one
+ * mark that identifies this surface. Law 4: identity is shape, status is hue,
+ * and violet is not a status this system has. The glyph carries the identity on
+ * its own and now takes the quiet ink like every other mark in here.
+ */
+
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
@@ -9,6 +45,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+import { Action, Num, Reading } from "@/components/meridian/surface-parts";
 import { getLineage, getProvenance, type ArtifactKind } from "@/lib/lineage.functions";
 
 /**
@@ -234,11 +271,27 @@ const KIND_LABEL: Record<ArtifactKind, string> = {
   prd_flow: "Flow",
 };
 
+/** A section heading in the drawer: the same micro-label every context column
+ *  in the product uses, so the drawer reads as part of the system rather than
+ *  as a page of its own. `tracking-mrd-label` rather than a hand-written em. */
+const SECTION_HEAD =
+  "mb-2 flex items-center gap-1.5 text-[10px] font-[650] uppercase tracking-mrd-label text-mrd-mute";
+
+/** The eyebrow over the subject card. Same register, no leading glyph. */
+const KIND_EYEBROW = "text-[10px] font-[650] uppercase tracking-mrd-label text-mrd-mute";
+
+/** What KIND a node is. A kind is CATEGORICAL, so it takes no status hue and
+ *  no tint: the recessed fill and the word are the whole chip. `rounded-mrd-xs`
+ *  rather than a pill, because a full round on a two-word label is the shape
+ *  this system reserves for a count. */
+const KIND_CHIP =
+  "shrink-0 rounded-mrd-xs bg-mrd-sink px-2 py-0.5 text-[10px] uppercase tracking-mrd-label text-mrd-body";
+
 function PeerLink({ kind, id, title }: { kind: ArtifactKind; id: string; title: string | null }) {
   const route = ROUTES[kind]?.(id);
   const label = title || "(untitled)";
   if (!route) {
-    return <span className="text-foreground">{label}</span>;
+    return <span className="text-mrd-ink">{label}</span>;
   }
   return (
     <Link
@@ -248,7 +301,11 @@ function PeerLink({ kind, id, title }: { kind: ArtifactKind; id: string; title: 
       // a search param get one, so every other link navigates exactly as it did
       // before rather than being handed an explicit empty search object.
       {...(route.search ? { search: route.search as never } : {})}
-      className="text-foreground hover:underline underline-offset-2"
+      /* The `Door` treatment, written out rather than borrowed: `Door` renders
+         a <button> or an <a href>, and a TanStack `Link` is neither. Dotted
+         underline going solid on hover is the one thing that changes, which is
+         what every other door in this product does. */
+      className="text-mrd-ink underline decoration-dotted underline-offset-2 transition-colors hover:decoration-solid"
     >
       {label}
     </Link>
@@ -300,40 +357,47 @@ export function LineageDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="sm:max-w-md overflow-y-auto">
+      {/* `data-mrd` on the overlay's own root, not on the route that opens it.
+          Meridian's focus treatment and its neutralisation of the legacy
+          app-wide ring are both scoped to that attribute, and a Radix sheet
+          portals OUT of the surface's DOM -- so without this the one thing in
+          here a keyboard can reach fell back to the retired ring. */}
+      <SheetContent
+        side="right"
+        data-mrd=""
+        className="sm:max-w-md overflow-y-auto bg-mrd-sheet font-mrd text-mrd-body"
+      >
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <GitBranch className="h-4 w-4 text-violet-300" /> Lineage
+          <SheetTitle className="flex items-center gap-2 text-[15px] font-medium text-mrd-ink">
+            <GitBranch className="h-4 w-4 text-mrd-mute" /> Lineage
           </SheetTitle>
-          <SheetDescription className="text-xs">
+          <SheetDescription className="text-[12.5px] leading-relaxed text-mrd-mute">
             How this {KIND_LABEL[kind].toLowerCase()} connects across the product lifecycle.
           </SheetDescription>
         </SheetHeader>
 
         <div className="mt-4 space-y-6">
           {title && (
-            <div className="rounded-xl border hairline p-3 bg-secondary/30">
-              <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                {KIND_LABEL[kind]}
-              </div>
-              <div className="text-sm font-medium mt-1">{title}</div>
+            <div className="rounded-mrd-card border border-mrd-line bg-mrd-sink p-mrd-4">
+              <div className={KIND_EYEBROW}>{KIND_LABEL[kind]}</div>
+              <div className="mt-1 text-[13px] font-medium text-mrd-ink">{title}</div>
             </div>
           )}
 
           <section>
-            <h4 className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground flex items-center gap-1.5 mb-2">
+            <h4 className={SECTION_HEAD}>
               <ArrowUp className="h-3 w-3" /> Came from
             </h4>
-            {q.isLoading && <div className="text-xs text-muted-foreground">Loading…</div>}
+            {q.isLoading && <Reading>Reading the chain.</Reading>}
+            {/* Not italic, and not "artifacts". Italic is emphasis spent on an
+                absence, and the word is the table's, not the reader's. */}
             {!q.isLoading && ancestors.length === 0 && (
-              <div className="text-xs text-muted-foreground italic">No upstream artifacts.</div>
+              <p className="text-[12.5px] text-mrd-mute">Nothing upstream of this.</p>
             )}
             <ul className="space-y-2">
               {ancestors.map((e) => (
-                <li key={e.id} className="text-xs flex items-start gap-2">
-                  <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wider shrink-0">
-                    {KIND_LABEL[e.parent_kind as ArtifactKind]}
-                  </span>
+                <li key={e.id} className="flex items-start gap-2 text-[12.5px]">
+                  <span className={KIND_CHIP}>{KIND_LABEL[e.parent_kind as ArtifactKind]}</span>
                   <PeerLink
                     kind={e.parent_kind as ArtifactKind}
                     id={e.parent_id}
@@ -346,19 +410,18 @@ export function LineageDrawer({
 
           {showProvenance && (
             <section>
-              <h4 className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground flex items-center gap-1.5 mb-2">
+              <h4 className={SECTION_HEAD}>
                 <Radar className="h-3 w-3" /> Traces back to
               </h4>
-              <p className="text-xs text-muted-foreground mb-2 leading-relaxed">
-                {prov!.signal_count} source signal{prov!.signal_count === 1 ? "" : "s"} through{" "}
-                {prov!.node_count} step{prov!.node_count === 1 ? "" : "s"} of the discovery chain.
+              <p className="mb-2 text-[12.5px] leading-relaxed text-mrd-body">
+                <Num>{prov!.signal_count}</Num> source signal
+                {prov!.signal_count === 1 ? "" : "s"} through <Num>{prov!.node_count}</Num> step
+                {prov!.node_count === 1 ? "" : "s"} of the discovery chain.
               </p>
               <ul className="space-y-2">
                 {prov!.source_signals.slice(0, 8).map((s) => (
-                  <li key={s.id} className="text-xs flex items-start gap-2">
-                    <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wider shrink-0">
-                      {s.source ?? "signal"}
-                    </span>
+                  <li key={s.id} className="flex items-start gap-2 text-[12.5px]">
+                    <span className={KIND_CHIP}>{s.source ?? "signal"}</span>
                     <PeerLink
                       kind="signal"
                       id={s.id}
@@ -368,35 +431,31 @@ export function LineageDrawer({
                 ))}
               </ul>
               {prov!.source_signals.length > 8 && (
-                <div className="text-[10px] text-muted-foreground mt-1.5">
-                  +{prov!.source_signals.length - 8} more source signal
+                <p className="mt-1.5 text-[12px] text-mrd-faint">
+                  <Num>+{prov!.source_signals.length - 8}</Num> more source signal
                   {prov!.source_signals.length - 8 === 1 ? "" : "s"}
-                </div>
+                </p>
               )}
               {prov!.truncated && (
-                <div className="text-[10px] text-muted-foreground italic mt-1">
-                  chain truncated at the depth cap
-                </div>
+                <p className="mt-1 text-[12px] text-mrd-faint">
+                  The chain stops here, at the depth cap. There is more of it.
+                </p>
               )}
             </section>
           )}
 
           <section>
-            <h4 className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground flex items-center gap-1.5 mb-2">
+            <h4 className={SECTION_HEAD}>
               <ArrowDown className="h-3 w-3" /> Became
             </h4>
-            {q.isLoading && <div className="text-xs text-muted-foreground">Loading…</div>}
+            {q.isLoading && <Reading>Reading the chain.</Reading>}
             {!q.isLoading && descendants.length === 0 && (
-              <div className="text-xs text-muted-foreground italic">
-                Nothing promoted from this yet.
-              </div>
+              <p className="text-[12.5px] text-mrd-mute">Nothing promoted from this yet.</p>
             )}
             <ul className="space-y-2">
               {descendants.map((e) => (
-                <li key={e.id} className="text-xs flex items-start gap-2">
-                  <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wider shrink-0">
-                    {KIND_LABEL[e.child_kind as ArtifactKind]}
-                  </span>
+                <li key={e.id} className="flex items-start gap-2 text-[12.5px]">
+                  <span className={KIND_CHIP}>{KIND_LABEL[e.child_kind as ArtifactKind]}</span>
                   <PeerLink
                     kind={e.child_kind as ArtifactKind}
                     id={e.child_id}
@@ -407,12 +466,13 @@ export function LineageDrawer({
             </ul>
           </section>
 
-          <button
-            onClick={() => onOpenChange(false)}
-            className="w-full rounded-lg border hairline px-3 py-2 text-xs text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-1.5"
-          >
+          {/* `Action`, so the one control in here wears the same shape as every
+              other control in the product rather than a hand-rolled full-width
+              slab. Left-aligned in its own row: a button stretched to the width
+              of a column reads as a banner, not a control. */}
+          <Action onClick={() => onOpenChange(false)}>
             <X className="h-3 w-3" /> Close
-          </button>
+          </Action>
         </div>
       </SheetContent>
     </Sheet>
