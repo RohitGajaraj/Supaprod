@@ -14,7 +14,8 @@
 // deleted because the pure function and the shape it implies belong together,
 // and because deleting it is a scope call, not a styling one.
 import * as React from "react";
-import { Cell, Num } from "@/components/shell/primitives";
+import { Num } from "@/components/meridian/surface-parts";
+import { Cell } from "@/components/shell/primitives";
 
 export type ScoreVerdict = "pass" | "watch" | "fail";
 

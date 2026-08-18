@@ -23,10 +23,11 @@
  * line as every other list in the app.
  */
 import { useQuery } from "@tanstack/react-query";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 import { getIncidents, type Incident } from "@/lib/incidents.functions";
-import { Block, Empty, Failed, Loading, Num, Row, Value } from "@/components/shell/primitives";
+import { Block, Empty, Failed, Loading, Row, Value } from "@/components/shell/primitives";
 import { CostIncidentBadge } from "./CostIncidentBadge";
 import { incidentTraceRefs, incidentTone, INCIDENT_VALUE_TONE } from "./incident-format";
 

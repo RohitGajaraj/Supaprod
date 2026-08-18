@@ -1,8 +1,9 @@
 import * as React from "react";
+import { Num } from "@/components/meridian/surface-parts";
 
 import { canSendBack } from "@/components/approvals/SendBack";
 import { stripAutoPrefix } from "@/components/plan/format";
-import { Button, Checkbox, Door, Gate, Num, Row, SelectionBar } from "@/components/shell/primitives";
+import { Button, Checkbox, Door, Gate, Row, SelectionBar } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import type { Selection } from "@/components/shell/use-selection";
 import { agentDisplayName } from "@/lib/agent-vocabulary";

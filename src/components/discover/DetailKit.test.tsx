@@ -315,12 +315,19 @@ describe("StatCell", () => {
       expect(container.textContent).toContain("Backlog");
       // Mono is for numbers, durations, counts, costs, identifiers and
       // timestamps, and for nothing else: a lane name is a word.
-      expect(container.querySelector(".sp-num")).toBeNull();
+      //
+      // Asserted on `[data-num]` rather than on `.sp-num`, which is the class
+      // the retired system painted. Meridian's `Num` carries `data-num` as the
+      // SEMANTIC hook for exactly this reason, stated in its own header: a
+      // guard that reads a Tailwind class is testing the paint, and the paint
+      // has now changed twice. The claim here is "this is data", not "this
+      // wears that class".
+      expect(container.querySelector("[data-num]")).toBeNull();
     });
 
     it("renders a numeric value as data, so figures line up column to column", () => {
       const { container } = render(<StatCell label="Cost" value="$0.04" />);
-      expect(container.querySelector(".sp-num")?.textContent).toBe("$0.04");
+      expect(container.querySelector("[data-num]")?.textContent).toBe("$0.04");
     });
   });
 });

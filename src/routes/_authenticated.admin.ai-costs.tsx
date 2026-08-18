@@ -55,10 +55,11 @@
  *    the product and this page has no rows at all.
  */
 import { createFileRoute } from "@tanstack/react-router";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Block, Empty, Failed, Loading, Num, Row } from "@/components/shell/primitives";
+import { Block, Empty, Failed, Loading, Row } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { getMoatMetrics } from "@/lib/observability.functions";
 

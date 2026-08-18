@@ -59,9 +59,10 @@
  *    anything, and it is the only direction that is safe to publish from.
  */
 import { createFileRoute } from "@tanstack/react-router";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { Block, Empty, Failed, Loading, Num, Row } from "@/components/shell/primitives";
+import { Block, Empty, Failed, Loading, Row } from "@/components/shell/primitives";
 import { getLandingFunnel, type LandingEventName } from "@/lib/landing.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/landing")({

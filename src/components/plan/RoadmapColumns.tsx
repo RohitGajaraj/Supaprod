@@ -7,6 +7,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import {
   getRoadmap,
@@ -22,17 +23,7 @@ import { BetCard } from "./BetCard";
 import { revertRoadmapItemToPrevious } from "@/lib/artifact-rewind.functions";
 import { stillWaiting } from "@/lib/query-state";
 import { CommitCeremony, type CommitCeremonyBet } from "./CommitCeremony";
-import {
-  Actions,
-  Button,
-  Choices,
-  Empty,
-  Failed,
-  Line,
-  Num,
-  Receipt,
-  SelectionBar,
-} from "@/components/shell/primitives";
+import { Actions, Button, Choices, Empty, Failed, Line, Receipt, SelectionBar } from "@/components/shell/primitives";
 import { useSelection } from "@/components/shell/use-selection";
 
 /** The three columns, in plain words. NOW used to be printed in ember: ember

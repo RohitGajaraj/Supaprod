@@ -43,6 +43,7 @@
  *    yesterday's total as today's, which is a wrong number on a spend screen.
  */
 import { useServerFn } from "@tanstack/react-start";
+import { Num } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { toast } from "@/lib/notify";
@@ -56,23 +57,7 @@ import {
 import { humanWriteError } from "@/lib/roles.functions";
 import { useGovernedWrite } from "@/hooks/use-workspace-role";
 import { GovernedWriteNote } from "./GovernedWriteNote";
-import {
-  Actions,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Field,
-  Input,
-  Line,
-  Loading,
-  Num,
-  Receipt,
-  Row,
-  Select,
-  Switch,
-  Value,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Field, Input, Line, Loading, Receipt, Row, Select, Switch, Value } from "@/components/shell/primitives";
 import { fmtUsd } from "@/components/product/format";
 
 const SURFACES = [

@@ -156,6 +156,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -236,7 +237,7 @@ import { ARC_CHOICE, MODE_CHOICE } from "@/components/crew/crew-words";
 import { stationCrew } from "@/lib/spine/driver";
 import { listCrew, type CrewMember } from "@/lib/crew.functions";
 
-import { Actions, Block, Button, Empty, Failed, Field, Input, Line, Loading, Num, PageHead, Row, Select, Textarea } from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Field, Input, Line, Loading, PageHead, Row, Select, Textarea } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 
 /* ================================================================== *

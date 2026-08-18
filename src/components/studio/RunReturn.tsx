@@ -18,7 +18,8 @@
  */
 
 import * as React from "react";
-import { Block, Door, Empty, Loading, Num, Pre, Prose, Row } from "@/components/shell/primitives";
+import { Num } from "@/components/meridian/surface-parts";
+import { Block, Door, Empty, Loading, Pre, Prose, Row } from "@/components/shell/primitives";
 import {
   checkCalls,
   finalSummary,

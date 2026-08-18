@@ -299,6 +299,7 @@
  * returns no design row per spec, so /plan reads `listDesignWork` beside it.
  */
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -375,7 +376,7 @@ import { createDecision } from "@/lib/decisions.functions";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
-import { Actions, Block, Button, Choices, CtxBody, CtxHead, Door, Empty, Failed, Line, Loading, Num, PageHead, Receipt, Record as RecordRecess, Row, Surface, Value } from "@/components/shell/primitives";
+import { Actions, Block, Button, Choices, CtxBody, CtxHead, Door, Empty, Failed, Line, Loading, PageHead, Receipt, Record as RecordRecess, Row, Surface, Value } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 

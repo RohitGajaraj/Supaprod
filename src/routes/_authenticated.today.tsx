@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Num } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
@@ -16,7 +17,7 @@ import { RunState, ShippedState } from "@/components/today/RunState";
 import { ago, daysSince, withinLastDay } from "@/components/today/when";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useSelection } from "@/components/shell/use-selection";
-import { Block, Button, Door, Empty, Failed, Loading, Num, PageHead, Receipt, Record as RecordRecess, Row, Surface, Value, Who } from "@/components/shell/primitives";
+import { Block, Button, Door, Empty, Failed, Loading, PageHead, Receipt, Record as RecordRecess, Row, Surface, Value, Who } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
 import { useWorkspace } from "@/hooks/use-workspace";

@@ -30,6 +30,7 @@
  * the surface must not promise a permission the wiring lacks.
  */
 import { useState } from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -40,21 +41,7 @@ import {
   draftSupportReply,
   type SupportClusterRow,
 } from "@/lib/support-triage.functions";
-import {
-  Actions,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Field,
-  Loading,
-  Num,
-  Prose,
-  Receipt,
-  Row,
-  Textarea,
-  Value,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Field, Loading, Prose, Receipt, Row, Textarea, Value } from "@/components/shell/primitives";
 
 /** Plain-words relative time. Mono is applied by the receipt, not here. */
 function ago(iso: string): string | null {

@@ -43,6 +43,7 @@
  * Focus moves by click.
  */
 import * as React from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -58,7 +59,7 @@ import {
   type AgentOutcomeRecord,
 } from "@/lib/agent-track-record";
 import { rejectionCountFor } from "@/lib/rejection-learning";
-import { Actions, Block, Button, Empty, Failed, Gate, Loading, Num, Pre, Receipt, Row, Value } from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Gate, Loading, Pre, Receipt, Row, Value } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { TrustGraduationsBlock } from "./TrustGraduations";
 import { relExpiry, fmtMedian, RESOLVED_LINE, RISK_NOTE, toneForRisk } from "./governance-shared";

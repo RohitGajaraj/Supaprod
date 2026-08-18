@@ -18,6 +18,7 @@
  */
 
 import { useState } from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -28,7 +29,7 @@ import {
   type AgentMemory,
 } from "@/lib/agent-runs.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Block, Empty, Failed, Line, Loading, Num, Row, Select, Value } from "@/components/shell/primitives";
+import { Block, Empty, Failed, Line, Loading, Row, Select, Value } from "@/components/shell/primitives";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 
 type AgentLite = { agent_id: string; slug: string; name: string; role: string };

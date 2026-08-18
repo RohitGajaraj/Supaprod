@@ -49,6 +49,7 @@
  * it had to, and what a drifted key was costing.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -74,7 +75,7 @@ import {
   relationGroup,
   type RelationGroup,
 } from "./graph-visual";
-import { Block, Button, Empty, Failed, Loading, Num } from "@/components/shell/primitives";
+import { Block, Button, Empty, Failed, Loading } from "@/components/shell/primitives";
 
 const REPLAY_STEP_MS = 650;
 

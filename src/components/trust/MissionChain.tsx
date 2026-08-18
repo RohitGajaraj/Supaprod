@@ -18,7 +18,8 @@
  */
 
 import { traceRef } from "@/components/discover/format";
-import { Block, Num, Row, Value } from "@/components/shell/primitives";
+import { Num } from "@/components/meridian/surface-parts";
+import { Block, Row, Value } from "@/components/shell/primitives";
 import type {
   ChainStep,
   ChainLinkStatus,

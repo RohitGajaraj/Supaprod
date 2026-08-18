@@ -24,11 +24,12 @@
  *     is the product.
  */
 import * as React from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Block, Button, Failed, Gate, Num, Receipt, Row } from "@/components/shell/primitives";
+import { Block, Button, Failed, Gate, Receipt, Row } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import {
   listTrustGraduationProposals,

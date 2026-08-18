@@ -11,8 +11,9 @@
  */
 
 import type { ReactNode } from "react";
+import { Num } from "@/components/meridian/surface-parts";
 
-import { Line, Num, Row, Value, Button } from "@/components/shell/primitives";
+import { Line, Row, Value, Button } from "@/components/shell/primitives";
 import type { DesignConsequence, DesignGateWord } from "@/lib/design-scaffold.functions";
 import type { DesignCriticFinding } from "@/lib/ai/design-critic";
 import { RULE_TEXT_FLOOR, ruleTextFor, tallyPhrase } from "./vocabulary";

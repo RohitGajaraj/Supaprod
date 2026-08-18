@@ -105,6 +105,7 @@
  * read from wearing an empty state's clothes.
  */
 import { createFileRoute } from "@tanstack/react-router";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -112,22 +113,7 @@ import { useMemo, useState } from "react";
 import { useConfirm } from "@/hooks/use-confirm";
 import { inBandError, useDebouncedValue } from "@/components/admin/admin-ui";
 import { InvitationsPanel } from "@/components/admin/InvitationsPanel";
-import {
-  Actions,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Field,
-  Input,
-  Line,
-  Loading,
-  Num,
-  Receipt,
-  Row,
-  Select,
-  Value,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Field, Input, Line, Loading, Receipt, Row, Select, Value } from "@/components/shell/primitives";
 import {
   adminSearchUsers,
   adminGetUserDetail,

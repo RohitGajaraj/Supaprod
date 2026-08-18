@@ -84,6 +84,7 @@
  * instead of being footnoted.
  */
 import { useServerFn } from "@tanstack/react-start";
+import { Num } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -108,7 +109,7 @@ import {
 import { relTime, fmtUsd } from "@/components/product/format";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { CONSENT_PHILOSOPHY, groupToolsByConsequenceClass } from "@/lib/consent-classes";
-import { Actions, Block, Button, Empty, Failed, Field, Gate, Input, Line, Loading, Num, Receipt, Row, Select, Switch } from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Field, Gate, Input, Line, Loading, Receipt, Row, Select, Switch } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 
 type EventType =

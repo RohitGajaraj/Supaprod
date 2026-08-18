@@ -80,6 +80,7 @@
  *    running mark to satisfy the question would be the overclaim R12 bans.
  */
 import { useEffect, useState } from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -94,21 +95,7 @@ import { getIngestToken, rotateIngestToken, revokeIngestToken } from "@/lib/inge
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
-import {
-  Actions,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Gate,
-  Line,
-  Loading,
-  Num,
-  PageHead,
-  Pre,
-  Row,
-  Surface,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Gate, Line, Loading, PageHead, Pre, Row, Surface } from "@/components/shell/primitives";
 
 export const Route = createFileRoute("/_authenticated/sync")({
   component: SyncPage,

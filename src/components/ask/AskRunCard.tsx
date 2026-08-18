@@ -20,6 +20,7 @@
  */
 
 import * as React from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getAskMissionCanvas } from "@/lib/ask-canvas.functions";
@@ -27,16 +28,7 @@ import { steerStudioSession } from "@/lib/studio.functions";
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { ACTION_LABEL } from "@/lib/agent-vocabulary";
 import type { LoopStep } from "@/lib/ai/loop.server";
-import {
-  Actions,
-  Button,
-  Failed,
-  Loading,
-  Num,
-  Receipt,
-  Record,
-  Textarea,
-} from "@/components/shell/primitives";
+import { Actions, Button, Failed, Loading, Receipt, Record, Textarea } from "@/components/shell/primitives";
 
 const POLL_MS = 4000;
 

@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
@@ -13,7 +14,7 @@ import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import { BindingPicker } from "@/components/connections/BindingPicker";
 import { ProviderName, UnderMark } from "@/components/connections/provider-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
-import { Block, Button, Empty, Failed, Line, Loading, Num } from "@/components/shell/primitives";
+import { Block, Button, Empty, Failed, Line, Loading } from "@/components/shell/primitives";
 
 /**
  * WORKSPACE BINDINGS. What each connected source is actually pointed at.

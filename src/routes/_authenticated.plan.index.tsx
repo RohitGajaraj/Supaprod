@@ -102,6 +102,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Num } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
@@ -123,7 +124,7 @@ import { specStateWords, stripAutoPrefix } from "@/components/plan/format";
 import { RoadmapColumns } from "@/components/plan/RoadmapColumns";
 import { TrackStart } from "@/components/spine/TrackStart";
 import { CommitCeremony, type CommitCeremonyBet } from "@/components/plan/CommitCeremony";
-import { Actions, Block, Button, CtxHead, CtxRow, Door, Empty, Failed, Line, Loading, Gate, Num, PageHead, Receipt, Row, Surface } from "@/components/shell/primitives";
+import { Actions, Block, Button, CtxHead, CtxRow, Door, Empty, Failed, Line, Loading, Gate, PageHead, Receipt, Row, Surface } from "@/components/shell/primitives";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { CrewWorking } from "@/components/shell/CrewWorking";

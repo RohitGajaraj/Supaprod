@@ -33,6 +33,7 @@
  * panel used to show them as the same one.
  */
 import { useState } from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
@@ -46,7 +47,7 @@ import {
 import { humanWriteError } from "@/lib/roles.functions";
 import { useGovernedWrite } from "@/hooks/use-workspace-role";
 import { GovernedWriteNote } from "./GovernedWriteNote";
-import { Actions, Block, Button, Empty, Failed, Field, Gate, Line, Loading, Num, Receipt, Row, Textarea, Value } from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Field, Gate, Line, Loading, Receipt, Row, Textarea, Value } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 
 /** Plain-words relative time. Mono is applied by the row, not here. */

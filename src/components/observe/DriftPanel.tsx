@@ -41,25 +41,12 @@
  * Change them in lockstep, or the list and the drill disagree on a number.
  */
 import { useNavigate } from "@tanstack/react-router";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, useEffect, type ReactNode } from "react";
 import { getDriftOverview, runDriftNow, updateDriftBaseline } from "@/lib/drift.functions";
-import {
-  Actions,
-  Block,
-  Button,
-  Checkbox,
-  Empty,
-  Failed,
-  Input,
-  Line,
-  Loading,
-  Num,
-  Receipt,
-  Row,
-  Value,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Checkbox, Empty, Failed, Input, Line, Loading, Receipt, Row, Value } from "@/components/shell/primitives";
 import { relTime } from "@/components/product/format";
 
 const DEFAULT_CFG = {

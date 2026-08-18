@@ -40,6 +40,7 @@
  * de-emphasis that keeps a reversed assertion visible as history.
  */
 import { useServerFn } from "@tanstack/react-start";
+import { Num } from "@/components/meridian/surface-parts";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { getLineage } from "@/lib/lineage.functions";
@@ -57,16 +58,7 @@ import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { kindLabel, kindTracePrefix, outcomeLabel } from "./graph-visual";
 import { nodeDoor } from "./graph-doors";
 import { GraphNodeActions } from "./GraphNodeActions";
-import {
-  Actions,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Loading,
-  Num,
-  Row,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Loading, Row } from "@/components/shell/primitives";
 
 type StoryRow = { id: string; relation: string; peer_title?: string | null };
 

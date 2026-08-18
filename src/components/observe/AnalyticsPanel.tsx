@@ -62,6 +62,7 @@
  * missing column.
  */
 import { useServerFn } from "@tanstack/react-start";
+import { Num } from "@/components/meridian/surface-parts";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -76,7 +77,7 @@ import {
 } from "@/lib/analytics.functions";
 import { getBudgetSummary } from "@/lib/budgets.functions";
 import { relTime } from "@/components/product/format";
-import { Actions, Block, Button, Cell, Choices, Empty, Failed, Grid, Line, Loading, Num, Pre, Prose, Row, Value } from "@/components/shell/primitives";
+import { Actions, Block, Button, Cell, Choices, Empty, Failed, Grid, Line, Loading, Pre, Prose, Row, Value } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 
 function fmtUsd(n: number) {

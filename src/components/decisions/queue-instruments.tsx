@@ -35,8 +35,9 @@
  */
 
 import * as React from "react";
+import { Num } from "@/components/meridian/surface-parts";
 
-import { Checkbox, Num } from "@/components/shell/primitives";
+import { Checkbox } from "@/components/shell/primitives";
 import type { Selection } from "@/components/shell/use-selection";
 
 /* ------------------------------------------------------------------ *

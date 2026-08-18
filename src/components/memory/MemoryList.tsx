@@ -53,6 +53,7 @@
  * BriefPanel's retire confirm already follows.
  */
 import { useState } from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAgentMemory } from "@/lib/memory.functions";
@@ -60,7 +61,7 @@ import { forgetMemory } from "@/lib/agent_loop.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useConfirm } from "@/hooks/use-confirm";
 import { agentLabel, kindLabel, relativeTime, type MemoryRow } from "@/lib/memory-view";
-import { Actions, Button, Empty, Failed, Loading, Num, Receipt, Row } from "@/components/shell/primitives";
+import { Actions, Button, Empty, Failed, Loading, Receipt, Row } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { Provenance, type EvidenceSource } from "@/components/knowledge/EvidenceQuality";
 

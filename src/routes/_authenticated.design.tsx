@@ -128,6 +128,7 @@
  */
 
 import * as React from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -159,7 +160,7 @@ import { Consequence, DrawingStage, Findings } from "@/components/design/drawing
 import { DrawingsTable } from "@/components/design/DrawingsTable";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { FIDELITY_QUESTION, FIDELITY_WORD, ruleTextFor } from "@/components/design/vocabulary";
-import { Actions, Block, Button, Choices, CtxBody, CtxHead, Door, Empty, Failed, Gate, Line, Loading, Num, PageHead, Receipt, Surface, Switch, Value } from "@/components/shell/primitives";
+import { Actions, Block, Button, Choices, CtxBody, CtxHead, Door, Empty, Failed, Gate, Line, Loading, PageHead, Receipt, Surface, Switch, Value } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import { CrewWorking } from "@/components/shell/CrewWorking";

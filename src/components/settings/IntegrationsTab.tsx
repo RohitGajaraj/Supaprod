@@ -25,24 +25,13 @@
 // they do not, it is lost. That is the definition of the gate colour. Every
 // other control here stays monochrome.
 import { useServerFn } from "@tanstack/react-start";
+import { Num } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
-import {
-  Actions,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Field,
-  Input,
-  Line,
-  Loading,
-  Num,
-  Pre,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Field, Input, Line, Loading, Pre } from "@/components/shell/primitives";
 import {
   listMCPTokens,
   issueMCPToken,

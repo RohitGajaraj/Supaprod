@@ -43,22 +43,12 @@
  */
 
 import * as React from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import {
-  Actions,
-  Block,
-  Button,
-  Failed,
-  Line,
-  Num,
-  Prose,
-  Record as RecordSays,
-  Row,
-  Value,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Failed, Line, Prose, Record as RecordSays, Row, Value } from "@/components/shell/primitives";
 import { traceRef } from "@/components/discover/format";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { artifactWord, relationWord } from "@/lib/artifact-words";

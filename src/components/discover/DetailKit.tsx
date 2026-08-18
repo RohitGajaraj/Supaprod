@@ -40,7 +40,8 @@
  */
 
 import { Children, type CSSProperties, type ReactNode } from "react";
-import { Cell, Num } from "@/components/shell/primitives";
+import { Num } from "@/components/meridian/surface-parts";
+import { Cell } from "@/components/shell/primitives";
 
 /** The semantic tones a stat cell can carry. */
 export type StatTone = "moss" | "glacier" | "madder" | "amber" | "muted" | "neutral";

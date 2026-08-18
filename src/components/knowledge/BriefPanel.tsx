@@ -31,6 +31,7 @@
  * vs portfolio supersession rules, and the exported BriefPanel signature.
  */
 import { useState } from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -40,18 +41,7 @@ import {
   type BriefItem,
   type BriefItemKind,
 } from "@/lib/briefs.functions";
-import {
-  Actions,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Input,
-  Loading,
-  Num,
-  Receipt,
-  Textarea,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Input, Loading, Receipt, Textarea } from "@/components/shell/primitives";
 import { BriefFormationFlow } from "@/components/brief/BriefFormationFlow";
 import { useConfirm } from "@/hooks/use-confirm";
 

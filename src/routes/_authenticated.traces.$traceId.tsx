@@ -117,6 +117,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
@@ -128,7 +129,7 @@ import { stripAutoPrefix } from "@/components/plan/format";
 import { Fact, FactLabel, Facts, IdFact, CopyButton } from "@/components/traces/TraceFacts";
 import { TracePane } from "@/components/traces/TracePane";
 import { ToolTrace } from "@/components/traces/ToolTrace";
-import { Actions, Block, Button, CtxBody, CtxHead, CtxRow, Empty, Failed, Loading, Num, PageHead, Row, Surface, Who } from "@/components/shell/primitives";
+import { Actions, Block, Button, CtxBody, CtxHead, CtxRow, Empty, Failed, Loading, PageHead, Row, Surface, Who } from "@/components/shell/primitives";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 
 export const Route = createFileRoute("/_authenticated/traces/$traceId")({

@@ -65,10 +65,11 @@
  * that they behave the way every list in every operating system behaves.
  */
 import { useState, memo, type KeyboardEvent } from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import type { RoadmapBucket } from "@/lib/roadmap.functions";
 import { RoadmapHistory } from "@/components/product/RoadmapHistory";
 import { AuditTag } from "@/components/supaprod/AuditTag";
-import { Button, Input, Num } from "@/components/shell/primitives";
+import { Button, Input } from "@/components/shell/primitives";
 import { decisionOptionLabel } from "./format";
 
 export interface BetCardProps {

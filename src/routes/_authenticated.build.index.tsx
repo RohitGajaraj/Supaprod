@@ -74,6 +74,7 @@
  */
 
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
@@ -88,7 +89,7 @@ import { ago } from "@/components/runs/run-state";
 import { ReadyToBuild } from "@/components/build/ReadyToBuild";
 import { HeldClaims } from "@/components/build/HeldClaims";
 import { CrewWorking } from "@/components/shell/CrewWorking";
-import { Block, Button, CtxBody, CtxHead, Empty, Failed, Loading, Input, Line, Num, PageHead, Receipt, Row, Surface } from "@/components/shell/primitives";
+import { Block, Button, CtxBody, CtxHead, Empty, Failed, Loading, Input, Line, PageHead, Receipt, Row, Surface } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { stillWaiting } from "@/lib/query-state";
 

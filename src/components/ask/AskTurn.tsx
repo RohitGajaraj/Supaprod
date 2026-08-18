@@ -38,13 +38,14 @@
  */
 
 import * as React from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import type { AskStreamMsg } from "@/lib/ask-stream-core";
 import type { ApprovalQueueItem } from "@/lib/approvals-queue.functions";
 import { recordCitationFor } from "@/lib/ask-record";
 import { gatesForAnswer, policyProposal } from "@/lib/ask-actions";
 import type { ResearchStatus } from "@/components/chat/ResearchActivity";
 import { modelLabel, spendLabel } from "@/lib/model-label";
-import { Failed, MoreItem, MoreMenu, Num, Record } from "@/components/shell/primitives";
+import { Failed, MoreItem, MoreMenu, Record } from "@/components/shell/primitives";
 import { Answer } from "./Answer";
 import { AskGateCard } from "./AskGateCard";
 import { AskLanding, type LandedArtifact } from "./AskLanding";

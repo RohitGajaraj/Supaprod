@@ -26,12 +26,13 @@
  * default-expanded root.
  */
 import { useState } from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getLineageTree, computeTreeStats } from "@/lib/knowledge-graph-explorer.functions";
 import { type ArtifactKind } from "@/lib/lineage.functions";
 import type { LineageNode } from "@/lib/knowledge-graph-explorer";
-import { Block, Button, Empty, Failed, Loading, Num, Row } from "@/components/shell/primitives";
+import { Block, Button, Empty, Failed, Loading, Row } from "@/components/shell/primitives";
 import { kindLabel } from "./graph-visual";
 
 function TreeNodeRenderer({ node }: { node: LineageNode }) {

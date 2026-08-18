@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Num } from "@/components/meridian/surface-parts";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Button, Failed, Num } from "@/components/shell/primitives";
+import { Button, Failed } from "@/components/shell/primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
   getPushedInsights,

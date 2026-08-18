@@ -34,6 +34,7 @@
 //     carrying the real count the server returned, and a failed write leaves a
 //     failed receipt rather than a red flash and silence.
 import { useState } from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -46,21 +47,7 @@ import {
   type DesignMemoryRow,
   type DesignMemoryCategory,
 } from "@/lib/design-memory.functions";
-import {
-  Actions,
-  Block,
-  Button,
-  Empty,
-  Failed,
-  Field,
-  Input,
-  Loading,
-  Num,
-  Prose,
-  Receipt,
-  Row,
-  Textarea,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Empty, Failed, Field, Input, Loading, Prose, Receipt, Row, Textarea } from "@/components/shell/primitives";
 import { ageOf } from "./decisions-shared";
 import { CATEGORY_LABEL, SOURCE_LABEL } from "./design-memory-shared";
 

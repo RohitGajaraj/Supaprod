@@ -35,6 +35,7 @@
  * components/supaprod, which this lane does not own.
  */
 import { useMemo } from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getMemoryCompounding, getMemoryLift } from "@/lib/gauntlet.functions";
@@ -42,7 +43,7 @@ import { getForecastCalibration } from "@/lib/brain-insights.functions";
 import { SketchBarChart } from "@/components/supaprod/Sketch";
 import { useWorkspace } from "@/hooks/use-workspace";
 import type { GraphNode } from "@/lib/knowledge-graph-view";
-import { Block, Failed, Line, Loading, Num, Value } from "@/components/shell/primitives";
+import { Block, Failed, Line, Loading, Value } from "@/components/shell/primitives";
 
 const WEEK_MS = 7 * 86_400_000;
 const WEEKS = 8;

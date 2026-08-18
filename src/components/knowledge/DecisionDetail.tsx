@@ -47,6 +47,7 @@
  * files.
  */
 import { useState } from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -57,21 +58,7 @@ import { getDecisionJudgment } from "@/lib/decision-judgment.functions";
 import { getLineage } from "@/lib/lineage.functions";
 import { StageTimeline } from "@/components/shared/StageTimeline";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
-import {
-  Actions,
-  Block,
-  Button,
-  Choices,
-  Empty,
-  Failed,
-  Line,
-  Loading,
-  Num,
-  Prose,
-  Receipt,
-  Row,
-  Value,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Choices, Empty, Failed, Line, Loading, Prose, Receipt, Row, Value } from "@/components/shell/primitives";
 import { SourceLink } from "./DecisionsPanel";
 import { ageOf, displayWho, hasSource, OUTCOME_WORD, SOURCE_LABEL } from "./decisions-shared";
 import { ContradictionAuditSection } from "./ContradictionAuditSection";

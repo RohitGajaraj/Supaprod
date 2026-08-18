@@ -57,6 +57,7 @@
  */
 
 import { createFileRoute } from "@tanstack/react-router";
+import { Num } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
@@ -82,23 +83,7 @@ import { updateToolMode } from "@/lib/agent_loop.functions";
 import { humanWriteError } from "@/lib/roles.functions";
 import { TrustGraduationsBlock } from "@/components/governance/TrustGraduations";
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
-import {
-  Block,
-  CtxBody,
-  CtxHead,
-  Empty,
-  Failed,
-  Input,
-  Line,
-  Loading,
-  MoreItem,
-  MoreMenu,
-  Num,
-  PageHead,
-  Receipt,
-  Row,
-  Value,
-} from "@/components/shell/primitives";
+import { Block, CtxBody, CtxHead, Empty, Failed, Input, Line, Loading, MoreItem, MoreMenu, PageHead, Receipt, Row, Value } from "@/components/shell/primitives";
 import { Surface } from "@/components/meridian/Surface";
 
 /** How many tools a block shows before it counts the rest. A boundary is read,

@@ -53,6 +53,7 @@
  */
 
 import * as React from "react";
+import { Num } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -71,7 +72,7 @@ import { agentDisplayName } from "@/lib/agent-vocabulary";
 // The three words the whole station speaks in, lifted out of this file so the
 // route can read a settled verdict back in the same words the Gate asks for it.
 import { VERDICT_SAYS, type Verdict } from "@/components/learn/verdict-words";
-import { Actions, Block, Button, Choices, Failed, Field, Gate, Input, Line, Loading, Num, Receipt, Row, Textarea } from "@/components/shell/primitives";
+import { Actions, Block, Button, Choices, Failed, Field, Gate, Input, Line, Loading, Receipt, Row, Textarea } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 
 /** Choices needs a value; "none" is never drawn as an option. */
