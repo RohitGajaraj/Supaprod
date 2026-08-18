@@ -1,3 +1,131 @@
+# ✅ MERIDIAN, 2026-08-18 — the whole spine ported, and the four holes in the gate that let it drift
+
+**Everything is on `origin/main` at `5f0b9969`.** Working tree clean, `tsc` clean, `bun test` **9,405 pass / 0 fail**, `docs:check` clean.
+
+---
+
+## 1. The number, and why the raw one lies
+
+The ledger measured **5,794** this morning. It could not see two whole classes of debt:
+
+| what it could not see | found |
+| --- | --- |
+| stylesheets (`--sp-`, `--ds-`, raw colour in `.css`) | **+2,339** |
+| retired CSS **class names** in `.tsx` (`sp-fail`, `sp-warn`) | **+521** |
+
+**So on today's ruler the session began at 8,654 and ends at 5,864 across 285 files: 2,790 occurrences gone, 32%.** Quoting 5,794 → 5,864 would read as a regression and would be the flattering number, not the honest one.
+
+**The structural half is where it moved most: rendered retired components went 3,259 → 846, a 74% cut.** What remains is dominated by tokens and raw colour *inside stylesheets*, which is a more mechanical job than replacing components.
+
+### The spine, station by station
+
+| station | before → after |
+| --- | --- |
+| 01 Discover | 49 → **3** |
+| 02 Decide | 181 → **21** |
+| 03 Plan | 181 → **0** |
+| 04 Design | 55 → **0** |
+| 05 Build | 159 → **15** |
+| 06 Ship | 85 → **2** |
+| 07 Learn | 101 → **0** |
+
+---
+
+## 2. THE FINDING THAT EXPLAINS WHY THIS KEPT NEEDING REDOING
+
+**The ratchet read `.ts` and `.tsx` under two component trees and nothing else.** It said so in its own header: *"`src/styles.css`, which this scanner does not read"*.
+
+The component layer is where retired vocabulary is **written**. The stylesheet layer is where it is **painted**. A port could move every component to Meridian, leave `.sp-mark` and `.sp-term` behind, and **every gate would report green the whole way**. That is the mechanism by which a design system gets migrated more than once and is never finished.
+
+**Four holes were closed today, and each was found the same way: something passed while being wrong.**
+
+1. **Stylesheets** were unmeasured. 2,339 occurrences.
+2. **Retired CSS class names** were unmeasured. 521 occurrences, `sp-fail` 65 of them and `sp-warn` 17 — a *sixth status word* in a five-word colour law. It surfaced because an agent finished its files, then wrote down what it had left behind.
+3. **Tailwind utilities naming tokens that do not exist** paint nothing, and no tool can see it. Three brand-new "Meridian" components were substantially unstyled; in one, *every* styling class was inert. **The cause recurs and is worth memorising: the name you read in `meridian.css` is not the name that paints.** `--mrd-s3` is typed `mrd-3`; the type and weight scales are not bridged at all.
+4. **`Field` binding.** Meridian's `Field` renders `{children}` *outside* the label, so implicit association is unavailable and `htmlFor` is the only binding — while its own header said the opposite. Fifteen call sites shipped unbound before three agents independently hit it. All 46 are now bound and **`htmlFor` is a required prop, so an unbound Field is a compile error.**
+
+Guards for all four are in, and **each was proven by planting the defect**, not merely by passing.
+
+---
+
+## 3. FOUNDER RULING, 2026-08-18: a retired system is never the baseline
+
+Raised as a regression needing approval: the retired `.sp-block` rhythm (36px + 28px + a hairline) against Meridian's plain 40px gap. **That framing was wrong and the ruling reversed it.**
+
+> "I have already retired whatever the rule is from a design system... Don't take anything that's coming as a rule. If that is the case, please go out and edit the rule first. I don't want, not just now but also in the future, adding anything like a hairline or borders."
+
+**So: "today's design is the floor" means MERIDIAN and beautifui.dev, never what the retired systems drew.** Rule 1 protects **information and composition** — a state, a fact, a door, a measure, a legible type size. **It does not protect a divider.**
+
+Landed: law 1 in `DESIGN-SYSTEM.md` now says this explicitly; `primitives.css`'s *"It is a rule, not decoration"* is marked **overruled at the source**, because that sentence outlived its system and was still winning arguments; and every `border-t … first:border-0` is gone from the product.
+
+**The tell for the retired pattern is `first:border-0`: a rule that has to exempt its own first element is doing a gap's job.** A `border` that is a *bounded component's own edge* (a card footer, a table row, `RecordsTable`'s bar) is structure and stays — those came from beautifui.dev at parity.
+
+---
+
+## 4. Guards go blind, and it is not hypothetical
+
+- **`block-chrome-discipline` knew only `Block`.** Its own canary fell 11 → 6 as the stations ported. **A guard whose subject is being deleted reports success for the wrong reason.** It now matches `Region` too, keyed on a *titled* section (an untitled `Region` draws no head, so nesting inside it competes with nothing). Teaching it `Region` immediately surfaced a real nest, invisible since the outer half was ported: the Engine Room stacked "Mission chain" above the name of the actual mission.
+- **`surface-discipline`'s terminal guard read dead CSS.** Build moved that paint into `CodeDiff`'s own sheet, so the guard passed against orphaned rules while the live ones went unwatched. It protects a defect reported in the founder's own words: *"I'm not able to scroll to the end. It's got stuck."* Repointed.
+- **Guards pinned on a SPELLING rather than a claim went red on correct ports, four times today.** `<Block title="Stopped"`, `more={…Show N more`, `<Loading>` on Ship, `<RecordRecess`. Each now pins what it was written to protect.
+
+---
+
+## 5. The agentic layer
+
+- **`AgentPulse` is in Meridian.** It was the last retired-layer dependency of every already-ported surface, and beautifui.dev has no equivalent — its nearest components carry no rotating verb, no per-action noun and no brand glyph — so it was built into the system per the standing ruling.
+- **It takes no boolean.** No `working`, `isPending`, `busy`. Mounting it *is* the claim that an agent is running. `primitives.Loading` took a `working` boolean and **eleven of twelve pulses in the product ended up gated on a mutation's `isPending`**, reporting the fetch the reader's own click started. `surface-discipline §7` now fails if that prop returns.
+- **Green became azure.** The glyph was `--sp-pass`. Green reports an *outcome*, so a working indicator wearing it made "still deploying" and "deployed successfully" the same colour. `--mrd-agent` is the token that means a machine is working.
+- **The word shimmers.** Four simultaneous animations (glyph turn, glyph breathe, word entry, three staggered dots) is not restraint. The shimmer, lifted from the reference via `LoadingState`, makes the *word itself* alive, which is what the dots were a proxy for. Elapsed time is optional and renders **nothing** without an honest `startedAt`.
+- **The live line is scoped per station.** `<CrewWorking />` was unscoped everywhere, so Learn could announce an agent working on something else. All seven stations now pass their `station`; **Brain stays unscoped and is right to** — it is a product-wide surface.
+- **A workspace-scope bug is fixed.** Four callers shared `missionsKey`; only one passed the workspace, so **one key held two datasets and the answer depended on mount order.**
+
+### ⚠️ AWAITING THE FOUNDER'S EYE
+
+**`/meridian` → "Agent at work, two marks"** draws the brand glyph and the reference's pixel lattice side by side, everything else held identical. `glyph="mark"` is the default until the call is made. `AgentPulse` takes `glyph="mark" | "grid"`.
+
+---
+
+## 6. Observations that are still OPEN
+
+1. **`completed_with_failures` is 536 runs, 34% of every agent run in production, and renders identically to a hard failure**, because `run-state.ts` folds it into `stopped`. The single largest ambiguous outcome in the product is invisible. It wants **composition** (a pass ground carrying its failure count), not a sixth colour — the five status words are already at the limit for the commonest colour-vision deficiencies.
+2. **Tool failures concentrate entirely at integration boundaries.** `tool_calls` holds 283 rows, indexed on `trace_id`, **with no reader anywhere**: 38 failed (13%), and `ci.status` is 40% failing at 7.2s average, `github.openPullRequest` and `signals.sweep` both 50% — while the agent's own reasoning and writing tools are **0 failures in 133 calls**.
+3. **`TrackActivity` tones a *queued* run green.** Queued is not an outcome. Left by the Plan lane as a state-semantics change rather than a token rename.
+4. **~250 orphaned lines in `primitives.css`** (`.sp-term*`, `.sp-codediff-*`, `.sp-split*`). Deletable, but three guards in `surface-discipline` still read `.sp-codediff-row` and `.sp-diff .sp-pass` from that file — repoint them first.
+5. **`Region`'s title is 13px while `Row`'s lead is 14px.** The retired `.sp-block-title` was deliberately raised to 14px on 2026-08-11 because "every region heading was set half a pixel SMALLER than its own content". Meridian reintroduces it. Five surfaces already ship it, so this is a system-level call.
+6. **A second interactive session (`supaprod-a0`) ran in this same worktree for three hours.** It ported Discover twice, once on each line, and its commit did not typecheck, built a Meridian component out of the retired layer, and recorded a 127 → **50** reduction on a file that held **100**. All repaired. **If two sessions run again, give each stations it owns.**
+
+---
+
+## 7. On the drag-and-drop canvas, answered with the data
+
+**Do not build it.** Across 53 missions and 291 steps, only **5 missions branch at all**, the widest fork is **2**, and there are **6 joining steps in all of history**. The orchestration is 90% a straight chain, so a node canvas would draw a graph that is not there — and this repo already has a test named `no-fabricated-agent-steps`. An *authoring* canvas is worse: it hands the user the orchestration the product exists to do for them, which is the fear the README states.
+
+**Build the dependency-aware run trace instead**, on `mission_steps` (`sub_goal`, `rationale`, `depends_on`, `attempts`) plus `tool_calls` (`tool_name`, `latency_ms`, `ok`). Same promise, at the fidelity the data supports, and it composes the "failed" and "slow" states nothing currently shows.
+
+---
+
+## 8. What the agents REFUSED, which was the most valuable half
+
+Each refusal is recorded at its own mount site with the measurement behind it:
+
+- **`Pre` → `CodeBlock`, declined four times independently**: needs a `filename` these payloads lack, takes tokenized lines rather than children, caps a width **and** a height, and has no outcome tone so a failure state would be dropped.
+- **`RepoGateDialog` left on Radix**: `use-confirm.tsx` owns the other 32 modals and rules that the focus trap, Escape, focus return and inert background stay until Meridian ships a dialog. Porting one would make it the only modal with different focus behaviour.
+- **`RecommendationCard`, `FineTuneCard`, `DiffTable`, `ApprovalCard`** all declined with the shape mismatch written down. `ApprovalCard` is a queued question with *options*; Ship's four gates are question + evidence + distinct verbs.
+- **`SpecProse` kept off `Prose`**: `Prose` fixes 13.5px/68ch, that document is 14px/70ch — adopting it would shrink the longest read in the product.
+- **`meridian/Prose` itself was incomplete and would have DELETED markdown.** It shipped as a container with every element rule left behind; Tailwind preflight zeroes `ul { list-style: none }` and `a { text-decoration: inherit }`. Two agents refused it for that reason. Now fixed.
+
+---
+
+## 9. Next, in order
+
+1. **The stylesheet sweep** is now the bulk of what remains: `--sp-` 1,340 · `--ds-` 1,137 · raw colour 1,126 · `class:sp-` 467 · `--text-` 390.
+2. **Grow the four gaps that have callers waiting**: a batch-selection bar, a dialog, a region whose head accepts a control, and an optional layout row on `FineTuneCard`.
+3. **Compose `completed_with_failures`** (observation 1), then the run trace (observation 7).
+4. Repoint the three `surface-discipline` diff guards, then delete the ~250 orphaned lines.
+5. `bun run design:surfaces` reports what a reader meets by depth; `design:adoption` reports which Meridian components are exhibited rather than adopted.
+
+---
+
 # ✅ MERIDIAN LANE, 2026-08-18 (later) — four packets in parallel, and the fourth hole
 
 **Pushed. `origin/main` = `067842ac`.** tsc clean, `bun test` 9,397 pass / 0 fail, ratchet **6,614 across 308 files**.
