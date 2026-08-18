@@ -57,6 +57,20 @@
 > **Q13 moving off 100 is the decisive proof**, and it also exposed the worse finding: **the references field was never filled at all**, despite the 2026-08-17 note claiming all 13 answers were in. Every counter now reads between 2 and 7 remaining, so all twelve are inside the limit on EF's own count.
 >
 > **Still founder-only, and an agent must not do any of them:** the video URL, the alumni-contact toggle, the Privacy Policy acknowledgement, and the submit itself.
+>
+> ### ⚠️ SAVING ENDS THE SESSION AND STARTS A FRESH BLANK APPLICATION. Do not be fooled by it.
+>
+> **After the save confirmation, navigating back to `/your-achievements/` shows an entirely empty form — all twelve counters read `100 of 100 left`.** That is not data loss. **The save is server-side under `appid=1892`**, and what the browser is now showing is a **new, second, blank application** that the site started because the first one was closed by saving.
+>
+> **The consequence, and it is the dangerous one: never click SAVE on that blank form.** Doing so files a second empty application against the same email. Get back into 1892 the documented way — *View Saved* on the home page, `rohit.gajaraj@gmail.com`, then the emailed code.
+>
+> ### ❓ Page 2, "Your Details", is UNVERIFIED. It is not known to be filled and it is not known to be empty.
+>
+> **The 2026-08-17 note claims *"Page 2 is filled: Bangalore India, nationality India, and the how-did-you-hear answer"*. That claim has not been checked against the saved application**, and the same note also claimed all 13 answers were in when Q13 was empty, so it does not get the benefit of the doubt.
+>
+> **Page 2 was read on 2026-08-18 and was blank — but only AFTER the save, so that reading is of the fresh blank application and proves nothing about 1892.** Whatever page 2 held during the fill session was saved along with page 1, untouched.
+>
+> **First thing to do on retrieving 1892: open Your Details and look.** Three required fields: where you are based, nationality, and how you first heard about The Bridge.
 
 ## What this programme is, verified on its own pages
 
