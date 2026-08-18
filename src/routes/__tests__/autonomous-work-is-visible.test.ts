@@ -117,6 +117,37 @@ describe("the indicator is bound to the run, not to the reader's click", () => {
     expect(hook).not.toMatch(/refetchInterval/);
   });
 
+  /*
+   * THE KEY MUST NOT PROMISE A SCOPE THE FETCH DOES NOT APPLY.
+   *
+   * The assertion above pinned the key and stopped there, and that is exactly
+   * where the two drifted apart. Until 2026-08-18 the key read
+   * `missionsKey(workspaceId)` while the fetch read `{ data: {} }`, and
+   * `listMissions` only filters when `workspaceId` is present -- so the hook
+   * returned every working mission on the ACCOUNT while claiming, in its own
+   * cache key, to be per-workspace.
+   *
+   * Because four callers share that key and only `today.tsx` passed the
+   * workspace, one key held two different datasets and the answer depended on
+   * which component mounted first. A guard that pins half a contract is how a
+   * bug like that survives a rename, a review and a rewrite.
+   */
+  it("fetches the workspace its key claims, in every caller that shares the key", () => {
+    expect(hook).toMatch(/fetchMissions\(\{ data: \{ workspaceId/);
+
+    for (const caller of [
+      "components/shell/AppFrame.tsx",
+      "components/ask/AskPane.tsx",
+      "routes/_authenticated.today.tsx",
+    ]) {
+      const source = strip(read(caller));
+      if (!/missionsKey\(/.test(source)) continue;
+      expect(source, `${caller} shares missionsKey and must pass the workspace`).not.toMatch(
+        /fetchMissions\(\{ data: \{\} \}\)/,
+      );
+    }
+  });
+
   it("renders nothing when nothing is running, so it can never fabricate a step", () => {
     expect(comp).toMatch(/if \(shown\.length === 0\) return null;/);
   });

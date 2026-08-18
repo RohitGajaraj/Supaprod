@@ -105,7 +105,21 @@ export function useLiveAgents(): LiveAgents {
   const missions = useQuery({
     // The SHELL'S key, on purpose. Same key, same cache entry, no second request.
     queryKey: missionsKey(workspaceId),
-    queryFn: () => fetchMissions({ data: {} }),
+    /*
+     * THE WORKSPACE IS PASSED, and until 2026-08-18 it was not.
+     *
+     * The key said `missionsKey(workspaceId)` and the fetch said `{}`.
+     * `listMissions` only filters when `input.workspaceId` is present, so the
+     * key changed on a workspace switch and the DATA never did: this hook
+     * reported every working mission on the account, and the shell's live line
+     * could name an agent working somewhere the reader was not looking.
+     *
+     * Worse, one key held two different datasets. Four callers share
+     * `missionsKey`; `_authenticated.today.tsx` passed the workspace and the
+     * other three did not, so whichever mounted first won and the rest read its
+     * cache. Which meant the answer depended on mount order.
+     */
+    queryFn: () => fetchMissions({ data: { workspaceId: workspaceId ?? undefined } }),
   });
 
   return React.useMemo(() => {

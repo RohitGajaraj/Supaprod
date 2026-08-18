@@ -279,7 +279,8 @@ function AskPaneOpen() {
   const fetchMissions = useServerFn(listMissions);
   const missions = useQuery({
     queryKey: missionsKey(activeWorkspace?.id ?? null),
-    queryFn: () => fetchMissions({ data: {} }),
+    /* Scoped, because the key claims a workspace. See use-live-agents.ts. */
+    queryFn: () => fetchMissions({ data: { workspaceId: activeWorkspace?.id ?? undefined } }),
     staleTime: 30_000,
   });
 

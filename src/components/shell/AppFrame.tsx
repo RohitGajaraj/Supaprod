@@ -1049,7 +1049,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    * watching for work to appear, so 20s is enough and cheaper. */
   const missions = useQuery({
     queryKey: missionsKey(workspaceId),
-    queryFn: () => fetchMissions({ data: {} }),
+    /* Scoped, because the key claims a workspace. See use-live-agents.ts: the
+     * key and the fetch disagreed, so this line rendered on every authenticated
+     * screen and could name an agent in a workspace the reader had left. */
+    queryFn: () => fetchMissions({ data: { workspaceId: workspaceId ?? undefined } }),
     staleTime: 30_000,
     refetchInterval: (query) => {
       const rows = query.state.data?.missions ?? [];
