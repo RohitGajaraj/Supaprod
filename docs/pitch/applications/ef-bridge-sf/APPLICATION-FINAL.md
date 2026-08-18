@@ -37,7 +37,7 @@
 >
 > | | |
 > | --- | --- |
-> | **Video URL** | Record today. Script is in "The video" below, **145 words, roughly 56 seconds** |
+> | **Video URL** | Record today. Script is in "The video" below, **161 words, a full 60 to 64 seconds** |
 > | **Alumni-contact toggle** | Preference. Recommended ON |
 > | **Privacy Policy toggle** | **Required, and a legal acknowledgement in his name.** An agent must never accept terms on his behalf |
 >
@@ -542,7 +542,27 @@ Both know I have listed them and are happy to take the call.
 
 # The video
 
-**Under a minute on purpose. 145 words, roughly 56 seconds at his measured 150 to 160 words per minute.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
+**A full minute, deliberately. 161 words: 60 seconds at 160 words per minute, 64 at 150, which is his measured range.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
+
+> ## 🎬 THE ARC, added 2026-08-18 after four drafts. This is the version to record.
+>
+> **His verdict on draft four:** *"The story is not connected, and there is no proper closure. As a person, if they want to know who I am, it's not properly coming out."* **He was right, and the diagnosis is precise:** drafts one to four were observations stacked in a row — spacecraft, then semiconductors, then a belief, then an announcement. **Four true things next to each other is not a story.** There was no turn, so there was nothing to land.
+>
+> ### The turn was already in his life and nobody had noticed it
+>
+> | Beat | What it does |
+> | --- | --- |
+> | **1. Setup** | Spacecraft you cannot patch. Silicon already printed. *"Whatever you decided months ago is what you live with."* |
+> | **2. The pivot, and the whole script hinges on it** | ***"And I was comfortable, because none of them were mine."*** He spent a career carrying irreversible decisions **for other people**. That single clause converts a list of jobs into a character trait |
+> | **3. The confession** | *"Years ago I started something of my own. I did not finish it. Nobody made me stop. I let it go."* **The one decision that was actually his, he did not make.** This is the only vulnerable line in the entire application |
+> | **4. The landing** | *"So this time I made it hard to undo. I have resigned. There is no job to go back to."* The resignation is no longer an announcement — **it is the correction to beat three**, and it uses the language of beat one |
+> | **5. The close** | *"I would rather find out."* Four words. Reframes the whole thing as curiosity rather than ambition |
+>
+> **Why this is what an evaluator wants.** They have already read twelve answers about competence. **The only thing left they cannot get from the form is whether he is honest about himself**, and beat three is the proof: it costs him something to say and no form field asked for it. **"There is no job to go back to" is the commitment claim stated as a fact about the world rather than a promise about the future**, which is the one version of it that cannot be hedged.
+>
+> **Checked mechanically: no employer, no title, no degree, no metric, no product, no percentage.** Nothing in it belongs on a résumé.
+>
+> **The one line only he can judge:** *"I have thought about that more than I would like to admit."* It is the emotional centre and it has to be true of him, not just true on paper. **If he cannot say it and mean it, cut it — a line delivered without belief is worse than no line.**
 
 > ## 🛑 FOUNDER RULING 2026-08-18: the first two scripts were CVs, and the question bans a CV
 >
@@ -586,22 +606,25 @@ Both know I have listed them and are happy to take the call.
 Hi, I'm Rohit.
 
 At twenty-one I was working on spacecraft going to the Moon and Mars. My part
-was the radio link, the thing that actually lets you talk to it.
+was the radio link. The thing that lets you talk to it.
 
-Here is what nobody tells you about that job. The day it launches, you are done.
-You cannot fix anything. Whatever you decided eight months ago is what you live
-with.
+Here is the thing about that job. The day it launches, you are done. Whatever
+you decided months ago is what you live with.
 
-Then I moved into semiconductors, and it turned out to be the same deal. Get it
-wrong and it is already printed into the chip.
+Then semiconductors. Same deal. Get it wrong and it is printed into the chip.
 
-I think that quietly became how I see everything. I am not comfortable with
-decisions nobody can explain. If you ask me why, I want there to be a real
-answer, not a shrug.
+So I have spent my career around decisions you cannot take back. And I was
+comfortable, because none of them were mine. I was the person in the middle,
+helping someone else be sure.
 
-I have spent ten years doing that for other people.
+Years ago I started something of my own. I did not finish it. Nobody made me
+stop. I let it go, and I have thought about that more than I would like to
+admit.
 
-So, my notice is in. I am going full time on my own thing.
+So this time I made it hard to undo. I have resigned. There is no job to go back
+to.
+
+I would rather find out.
 ```
 
 **Recording notes:**
