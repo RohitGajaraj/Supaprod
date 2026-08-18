@@ -37,7 +37,7 @@
 >
 > | | |
 > | --- | --- |
-> | **Video URL** | Record today. Script is in "The video" below, **162 words, roughly 62 seconds** |
+> | **Video URL** | Record today. Script is in "The video" below, **161 words, roughly 62 seconds** |
 > | **Alumni-contact toggle** | Preference. Recommended ON |
 > | **Privacy Policy toggle** | **Required, and a legal acknowledgement in his name.** An agent must never accept terms on his behalf |
 >
@@ -548,34 +548,65 @@ Both know I have listed them and are happy to take the call.
 
 # The video
 
-**One minute. 162 words, roughly 62 seconds at a natural pace.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
+**One minute. 161 words, roughly 62 seconds at a natural pace.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
 
-> ### What EF actually scores this video on, in their words
+> ## 🛑 FOUNDER RULING 2026-08-18: the first two scripts were CVs, and the question bans a CV
 >
-> **Communication clarity · energy and presence · conviction and intensity.** And the failure mode is named directly: ***"a robotic, low-energy, or overly scripted video is a common rejection reason."***
+> **The question, in full:** *"Please record a one-minute video introducing yourself. **Do not pitch an idea or a CV.** Help us understand who you are **providing additional information to your application**."*
 >
-> **That single line is why the script was rewritten.** The 2026-08-17 version was accurate and well-built, and its register was reflective — it looked back on a decade and closed on a preference (*"I would rather build in a room…"*). **Reflection reads as low energy on camera, and a preference is not conviction.** Every beat below is now present-tense or forward, the sentences are shorter so they are speakable rather than readable, and the close is a decision already taken rather than a wish.
+> **His words:** *"Nothing on the idea or the CV part. We are speaking about something unique."*
+>
+> **Both earlier scripts failed the same test and neither failure was visible until he named it.** They opened at twenty-one, walked forward through the decade, and ended at the notice. **A chronology of what you did, in order, is a CV read aloud** — it does not stop being one because it is delivered warmly to a camera.
+>
+> ### Two constraints in one sentence, and the second is the one everybody misses
+>
+> | Constraint | What it rules out |
+> | --- | --- |
+> | **"Do not pitch an idea or a CV"** | Companies, titles, dates, career order, and the product. **All of it.** |
+> | **"providing ADDITIONAL information to your application"** | **Anything already in the thirteen answers.** ISRO, the four rebuilds, the agents, the platform, the notice — all filed already. Repeating them spends sixty seconds telling EF what they have just read |
+>
+> **So the video's only remaining job is the one thing thirteen text answers cannot do: what he is actually like to be around.** EF is deciding whether to put him in a house with thirty-nine other founders for eight weeks. **That is a temperament question, and nothing on the form asks it.**
+>
+> ### What the script is built from, and every claim is checked
+>
+> | Beat | Claim | Where it comes from |
+> | --- | --- | --- |
+> | 1 | Asks *why* past the point of comfort; cannot let an unexplained decision sit | His defining trait across the corpus, and it predates the product |
+> | 2 | Not attached to being right, attached to finding out; has thrown away complete working things | Four complete versions built and discarded. **Stated as temperament, with no count and no product name**, which is what makes it new information rather than a repeat of Q9 |
+> | 3 | Career spent as the person in the middle, between deciders and builders | *"Always the glue between product and engineering"*, three industries, two countries |
+> | 4 | *"I am done being in the middle. My notice is in."* | The commitment ruling |
+>
+> **Zero of these appear in this form: no employer, no title, no degree, no mission, no product, no metric.** Checked mechanically against the filled answers.
+>
+> ### ✋ One line is his to confirm, and one upgrade is his to supply
+>
+> **Confirm or soften:** *"It has annoyed a lot of people."* It is self-deprecating and it reads well, but it is a claim about how others experience him and only he knows if it is fair.
+>
+> **The upgrade that would make this excellent, and it cannot be written for him.** The script is true and it is still general. **One concrete human detail would beat every sentence in it** — a specific moment where the *why* got him into trouble, something he does outside work that reveals the same temperament, or the actual moment he decided to resign. **Do not invent it.** One real detail, thirty seconds in, and the rest of the script can shrink to make room.
+>
+> ### What EF scores it on, in their words
+>
+> **Communication clarity · energy and presence · conviction and intensity.** The failure mode is named directly: ***"a robotic, low-energy, or overly scripted video is a common rejection reason."*** **Which is the second reason a chronology was wrong**: a list has no emotional register, so it is almost impossible to deliver with intensity. **A script about who you are can be said with conviction because you are not reciting anything.**
 
 ```
 I'm Rohit.
 
-At twenty-one I was at ISRO, India's national space agency, building the radio
-link for spacecraft going to the Moon and Mars. Once it launches, there is no
-patch. You get one shot, and you live with the call you made.
+If you worked with me, the first thing you would notice is that I ask why more
+than is comfortable. Not to be difficult. I cannot let a decision sit if nobody
+can tell me the reasoning behind it. It has annoyed a lot of people. It is also
+the most useful thing about me.
 
-I've spent the decade since in product, across three industries. The pattern was
-the same everywhere: building was never the hard part. Deciding what to build
-was, and almost nobody could tell you why.
+The second thing you would notice is that I am not attached to being right. I am
+attached to finding out. I have thrown away complete, finished, working things
+when they turned out to be the wrong shape, and it costs me far less than people
+expect it to.
 
-Two years ago I could not ship software. I taught myself to build by directing
-AI agents, because I got tired of needing permission to build what I could
-already see.
+I have spent my whole career as the person in the middle. Between the people who
+decide and the people who build. Three industries, two countries, same seat.
 
-Since then I've built four complete versions of what I am building now, and
-thrown all four away. Each one worked. Each one was the wrong shape.
+I am done being in the middle. My notice is in.
 
-I'm not asking permission this time. My notice is in, I'm leaving a senior job,
-and I want to be in a room where that is normal.
+I want to be in a room where everyone else has already made that decision too.
 ```
 
 **Recording notes:**
