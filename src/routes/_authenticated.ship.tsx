@@ -197,7 +197,7 @@ import { listDeployments, promoteToProduction } from "@/lib/deployments.function
 // name to that line breaks a rule about a different thing entirely.
 import { captureDeployments } from "@/lib/deployments.functions";
 import { usePrompt } from "@/hooks/use-confirm";
-import { AgentPulse } from "@/components/shell/AgentPulse";
+import { AgentPulse } from "@/components/meridian/AgentPulse";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 

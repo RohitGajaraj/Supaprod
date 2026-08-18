@@ -36,7 +36,7 @@ import * as React from "react";
  * marks. They come from Meridian now; see the note where they used to live. */
 import { AgentMark, YouMark } from "@/components/meridian/marks";
 import { IconMore } from "./icons";
-import { AgentPulse } from "@/components/shell/AgentPulse";
+import { AgentPulse } from "@/components/meridian/AgentPulse";
 import type { Selection } from "./use-selection";
 
 /* ------------------------------------------------------------------ *

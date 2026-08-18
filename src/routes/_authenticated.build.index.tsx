@@ -84,7 +84,7 @@ import { listBuildWork, type BuildWorkItem } from "@/lib/build-engine.functions"
 import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { getWorkspaceSpendPolicy, setWorkspaceSpendPolicy } from "@/lib/governance.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { AgentPulse } from "@/components/shell/AgentPulse";
+import { AgentPulse } from "@/components/meridian/AgentPulse";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { ago } from "@/components/runs/run-state";
 import { ReadyToBuild } from "@/components/build/ReadyToBuild";

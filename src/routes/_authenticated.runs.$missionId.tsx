@@ -242,7 +242,7 @@ import { traceRef } from "@/components/discover/format";
  * than repainted.
  */
 import { Surface } from "@/components/meridian/Surface";
-import { AgentPulse } from "@/components/shell/AgentPulse";
+import { AgentPulse } from "@/components/meridian/AgentPulse";
 import {
   Actor,
   Button,

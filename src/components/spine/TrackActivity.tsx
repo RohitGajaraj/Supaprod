@@ -37,7 +37,7 @@ import { getTrackActivity } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
 import { relativeTime } from "@/lib/memory-view";
 import { Failed, Loading, Record, Value } from "@/components/shell/primitives";
-import { AgentPulse } from "@/components/shell/AgentPulse";
+import { AgentPulse } from "@/components/meridian/AgentPulse";
 
 /** How a finished turn reads, in verbs rather than status words. */
 function headline(t: Turn): string {

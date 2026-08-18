@@ -271,7 +271,7 @@ import {
   type RingFill,
   type RingTone,
 } from "@/components/decisions/queue-instruments";
-import { AgentPulse } from "@/components/shell/AgentPulse";
+import { AgentPulse } from "@/components/meridian/AgentPulse";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { CrewWorking } from "@/components/shell/CrewWorking";
 import { stillWaiting } from "@/lib/query-state";

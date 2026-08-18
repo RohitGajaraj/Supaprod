@@ -88,7 +88,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { Block, Button, Empty, Failed, Field, Input, Loading, PageHead, Record as RecordRecess, Textarea, Value } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
-import { AgentPulse } from "@/components/shell/AgentPulse";
+import { AgentPulse } from "@/components/meridian/AgentPulse";
 import type { VerdictWord } from "./format";
 import type { Designation } from "./ranking";
 import {

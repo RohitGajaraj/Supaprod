@@ -129,7 +129,7 @@ import { Block, Button, CtxHead, CtxRow, Empty, Failed, Loading, Gate, PageHead,
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { CrewWorking } from "@/components/shell/CrewWorking";
-import { AgentPulse } from "@/components/shell/AgentPulse";
+import { AgentPulse } from "@/components/meridian/AgentPulse";
 
 /** The deep-linkable values. The union is a contract with the legacy redirects
  *  (/prds, /roadmap, /stakeholder), so it never shrinks even when a section

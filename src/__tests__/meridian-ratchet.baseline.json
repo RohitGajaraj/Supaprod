@@ -5,8 +5,8 @@
     "It only ever moves DOWN. A file absent from this list must be clean.",
     "Do not hand-edit; do not regenerate to silence a failure."
   ],
-  "totalOccurrences": 6614,
-  "fileCount": 308,
+  "totalOccurrences": 6599,
+  "fileCount": 307,
   "files": {
     "src/components/admin/admin-ui.tsx": {
       "--text-": 2,
@@ -698,9 +698,6 @@
     "src/components/shell/agent-glyphs.tsx": {
       "--sp-": 8
     },
-    "src/components/shell/AgentPulse.tsx": {
-      "class:sp-": 7
-    },
     "src/components/shell/AppFrame.tsx": {
       "--sp-": 4,
       "class:sp-": 58,
@@ -1309,7 +1306,7 @@
       "raw-colour": 8
     },
     "src/styles/primitives.css": {
-      "--sp-": 514,
+      "--sp-": 506,
       "data-obsidian": 3,
       "class:sp-": 8
     },

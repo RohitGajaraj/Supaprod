@@ -163,7 +163,7 @@ import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { FIDELITY_QUESTION, FIDELITY_WORD, ruleTextFor } from "@/components/design/vocabulary";
 import { Block, Button, Choices, CtxBody, CtxHead, Empty, Failed, Gate, Loading, PageHead, Receipt, Surface, Switch, Value } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
-import { AgentPulse } from "@/components/shell/AgentPulse";
+import { AgentPulse } from "@/components/meridian/AgentPulse";
 import { CrewWorking } from "@/components/shell/CrewWorking";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 

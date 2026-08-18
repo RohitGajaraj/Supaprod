@@ -136,7 +136,7 @@ import {
 } from "@/lib/ask-starters";
 import { Button, Choices, Failed, Loading, Textarea } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
-import { AgentPulse } from "@/components/shell/AgentPulse";
+import { AgentPulse } from "@/components/meridian/AgentPulse";
 import { IconMic } from "@/components/shell/icons";
 import { SuggestionRail } from "./SuggestionRail";
 import { AskSwitcher } from "./AskSwitcher";

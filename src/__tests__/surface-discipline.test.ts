@@ -260,9 +260,30 @@ describe("surface-discipline §7: an indicator means an agent is running", () =>
   });
 
   test("the per-action detail is passed through rather than invented", () => {
-    const pulse = read("components/shell/AgentPulse.tsx");
+    const pulse = read("components/meridian/AgentPulse.tsx");
     expect(pulse).toContain("detail");
     // The rotating word is decorative; the static label is what is announced.
     expect(pulse).toContain('aria-live="polite"');
+  });
+
+  /*
+   * THE PROP THAT CAUSES THE LIE MUST NOT EXIST.
+   *
+   * The test above asks whether the indicator is honest about WHAT it reports.
+   * This one asks whether it can be handed the wrong fact at all, which is the
+   * failure that actually shipped: `primitives.Loading` took a `working`
+   * boolean, and eleven of the twelve pulses in the product ended up gated on a
+   * mutation's `isPending` -- reporting the fetch the reader's own click
+   * started, and dying the instant it resolved.
+   *
+   * Mounting the component IS the claim that an agent is running. With no
+   * boolean to hand it, a caller cannot wire a fetch to it without writing that
+   * lie in plain sight at the call site, where a reviewer can see it. A prop
+   * that can be handed the wrong fact eventually will be.
+   */
+  test("the indicator takes no boolean it could be lied to with", () => {
+    const pulse = read("components/meridian/AgentPulse.tsx");
+    const props = pulse.slice(pulse.indexOf("export function AgentPulse"));
+    expect(props).not.toMatch(/\b(working|isPending|isFetching|busy|pending|loading)\??\s*:/);
   });
 });

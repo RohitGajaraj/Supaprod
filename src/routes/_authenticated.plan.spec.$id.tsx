@@ -379,7 +379,7 @@ import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 import { Block, Button, Choices, CtxBody, CtxHead, Empty, Failed, Loading, PageHead, Receipt, Record as RecordRecess, Surface, Value } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
-import { AgentPulse } from "@/components/shell/AgentPulse";
+import { AgentPulse } from "@/components/meridian/AgentPulse";
 
 /**
  * THE LINK VOCABULARY, unchanged. Six values, because six is what every

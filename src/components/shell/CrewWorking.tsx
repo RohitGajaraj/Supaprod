@@ -1,4 +1,4 @@
-import { AgentPulse } from "@/components/shell/AgentPulse";
+import { AgentPulse } from "@/components/meridian/AgentPulse";
 import { useLiveAgents } from "@/hooks/use-live-agents";
 import { agentStation, type AgentStation } from "@/lib/agent-vocabulary";
 
