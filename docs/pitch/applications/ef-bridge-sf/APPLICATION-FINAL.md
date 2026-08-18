@@ -37,7 +37,7 @@
 >
 > | | |
 > | --- | --- |
-> | **Video URL** | Record today. Script is in "The video" below, **156 words, roughly 60 seconds** |
+> | **Video URL** | Record today. Script is in "The video" below, **162 words, roughly 62 seconds** |
 > | **Alumni-contact toggle** | Preference. Recommended ON |
 > | **Privacy Policy toggle** | **Required, and a legal acknowledgement in his name.** An agent must never accept terms on his behalf |
 >
@@ -103,7 +103,29 @@
 
 ## How this application differs from every other one we have filed
 
-**EF assesses the individual, not the company.** There is no market question, no competitor question, no traction question, and Supaprod is barely mentioned. **Every answer is evidence about the person.**
+**EF assesses the individual, not the company.** There is no market question, no competitor question, no traction question. **Every answer is evidence about the person.**
+
+> ## 🛑 FOUNDER RULING 2026-08-18: the whole application had drifted into a Supaprod pitch. It is a FOUNDER lens.
+>
+> **His words:** *"You need to keep one thing in mind: the entire application should be speaking from a founder lens, not from a Supaprod lens. Supaprod can be one single bit and pieces of it, but not the whole application… that should not be the spotlight, the centre stage."* And: *"What you are bragging about is what I would say."*
+>
+> **He was right, and the drift was measurable.** Four of twelve answers were Supaprod's product thesis written in the first person — Q6, Q9, Q11 and Q12 — plus Supaprod as the subject of Q3. **Every one of them read as a pitch that had been reformatted to fit a personal question.** EF's own guidance is the opposite: *individual potential first, idea second, and applicants who get this backwards waste the application.*
+>
+> ### The test that now governs every answer here
+>
+> > **Cover the product name. If the answer stops making sense, it was a pitch. If it still stands, it is about him.**
+>
+> **What changed on 2026-08-18:**
+>
+> | | Was | Now |
+> | --- | --- | --- |
+> | **Q3** | Supaprod's architecture | **ISRO.** The communication link for Moon and Mars spacecraft, in plain language |
+> | **Q6** | *"How people decide things, and why almost nobody keeps a record"* — the product thesis | **Product itself as the obsession.** How a team decides what to build, traced across space, semiconductors and banking |
+> | **Q9** | *"Governance should not mean approval"* — a Supaprod design decision | **A judgment about the world**: the money in AI would not be in writing code. Names who disagreed and what acting on it cost |
+> | **Q11** | The judgment-layer thesis in product language | **The same view in business language**, which is what the question asks and what he asked for: *"a little more business-oriented and a little more in layman's terms"* |
+> | **Q12** | Access, then a Supaprod failure story | **Access, then a belief about regulated industries** that stands with no product attached |
+>
+> **Supaprod now appears as the subject of exactly one answer, Q4** — the field that literally asks what he has built. **That is the correct number.** Everywhere else it is evidence, named once and in passing, or not named at all. **The video never names it.**
 
 **What EF is actually scoring, and what each answer is built to show:**
 
@@ -188,19 +210,19 @@ Covered in full under "The video" below. **The headline: EF scores communication
 # The answers
 
 ## 1. Where did you learn what you know?
-_Hint: "Let us know what university you attended, company you worked at, or mentor you worked with."_ · **93 / 100 words** · **REVISED 2026-08-18**
+_Hint: "Let us know what university you attended, company you worked at, or mentor you worked with."_ · **96 / 100 words** · **REVISED 2026-08-18**
 ```
 Mostly on the job, in places where being wrong was expensive.
 
-Three years at ISRO on spacecraft communications, where nothing can be fixed
-after launch. Then an MBA at the Technical University of Munich, earned while
-working full time, and semiconductors at Infineon, where a wrong call becomes
-silicon. Then three years putting AI into banking at Intellect, where nobody
-accepts "the model decided".
+I started at ISRO, India's national space agency, on missions to the Moon and
+Mars, where nothing can be fixed after launch. Then an MBA at the Technical
+University of Munich, earned while working full time, and semiconductors at
+Infineon, where a wrong call becomes silicon. Then AI in banking at Intellect,
+where nobody accepts "the model decided".
 
 The last two years I taught myself to build. I went from writing specs and
-waiting on engineers to shipping production software by directing agents. Nobody
-taught me that.
+waiting on engineers to shipping production software myself. Nobody taught me
+that.
 ```
 
 > **Why this changed. The old version opened with two degrees, and EF's most-cited rejection reason is "credentials, not edge"** — *"Stanford CS plus three FAANG years is a CV, not an edge."* The facts are identical; the order is not. **ISRO at twenty-one is the rarest thing in the paragraph and it now goes first**, with the degrees demoted to a single line labelled "Formally". A reader who stops after one sentence still gets the strongest fact.
@@ -213,20 +235,18 @@ _"Do not pitch an idea or a CV. Help us understand who you are." Public link (Yo
 **Do not reuse the existing founder video** (`https://youtu.be/zBmtUtkTyBs`). It is **2:32 against a one-minute ask** and it pitches, which the question explicitly rules out. Sending an over-length video to a form that states a limit is a self-inflicted wound.
 
 ## 3. If you are technical: the most impressive technical product or project you've led/owned
-_Hint: "What was your role and contribution? Why was it technically impressive?"_ · **100 / 100 words** · **REVISED 2026-08-18**
+_Hint: "What was your role and contribution? Why was it technically impressive?"_ · **98 / 100 words** · **REVISED 2026-08-18**
 ```
-Telemetry, tracking and command at ISRO: the link carrying live telemetry down
-from a spacecraft and commands up. Moon and Mars missions.
+At ISRO, India's national space agency, I owned the communication link for
+spacecraft flying to the Moon and Mars: the radio path carrying live data down
+and commands back up. If it fails, the mission is lost.
 
 I joined as an engineer and ended up owning requirements for three of these
-systems across twelve missions, against the NASA, ESA and JAXA ground networks.
+systems across twelve missions, with the NASA, ESA and JAXA ground stations.
 
-What makes it hard: everything is decided before launch. The signal crosses
-hundreds of millions of kilometres, so the link budget has no slack. The round
-trip is minutes, so nothing can be debugged interactively. You command, wait,
-and find out.
-
-I was twenty-one. It set the standard I still build to.
+The hard part: you get one attempt. Everything is fixed before launch, the
+signal is faint after hundreds of millions of kilometres, and a reply takes
+minutes. You send a command, wait, and find out.
 ```
 
 > ### 🔁 FOUNDER DIRECTION 2026-08-18: this answer is ISRO, not Supaprod. He was right.
@@ -309,17 +329,19 @@ Every call I made had a compliance officer on the other side.
 ## 6. What are you obsessed about?
 _Hint: "How did you get into it? How do you sustain it and keep learning? This can be a problem, a product, skill or hobby."_ · **98 / 100 words**
 ```
-How people decide things, and why almost nobody keeps a record.
+Product. Specifically how a team decides what to build, which is harder than
+building it.
 
-I got into it by being the person who could not answer. Ten years of product
-work. Every few months someone would ask why we shipped something, and I knew
-there had been a good reason and could not find it.
+I got into it sideways, an engineer writing specs nobody asked for. Three
+industries later, space, semiconductors and banking, the pattern is identical:
+the building is rarely the bottleneck, the deciding is. Everyone can tell you
+what shipped. Almost nobody can tell you why.
 
-I sustain it by being my own most demanding user, so every gap shows up in my
-week, not a document. I read failure postmortems the way other people read
-books.
+I sustain it by building, which is new for me. Two years ago I could not ship
+software. I taught myself by directing agents, so every gap now lands in my
+week, not a document.
 
-My notice is in. I am leaving a senior role to do this full time.
+My notice is in.
 ```
 
 > ### 🛑 "679 primary sources this year" was not true, and it appears nowhere in the answer bank
@@ -356,24 +378,40 @@ walk them through the parts that are hard.
 > **Rule 24 applied at the close.** *"I have not chased competitions"* is a "no", so the sentence after it opens the door: the product is the exhibit, and it is checkable today.
 
 ## 8. Have you ever started a business before?
-_Hint: "Tell us about it: outcomes, learnings."_ · **99 / 100 words**
+_Hint: "Tell us about it: outcomes, learnings."_ · **100 / 100 words**
 ```
-Yes, once, and it failed usefully. At IIM Bangalore I founded a food and
-beverage venture, one of the first attempts to bring bubble tea to the Indian
-market. I took it from recipe formulation through unit economics, user testing
-and supply chain. It was incubated at NSRCEL and recognised under Startup India.
+Once, and I never launched it, so I will not call it a failure or a success.
 
-Two learnings. I validated that people liked the product and never validated
-they would buy it at a price that worked, so I test price before product now.
-And I took a job instead of finishing it. My notice is in. I am not repeating
-that.
+At IIM Bangalore I started one of the first attempts to bring bubble tea to the
+Indian market: recipe formulation, market research, user testing, unit
+economics, supply chain. It was incubated at NSRCEL and recognised under Startup
+India. I am proud of how far I took it alone.
+
+I stopped for personal reasons before launch. The learning stayed: I proved
+people liked it and never proved they would pay a price that worked.
+
+This time I am all in. My notice is in.
 ```
 
-> ### 🛑 The founder asked for this story to be invented. It was not, and the true one is stronger.
+> ### 🔁 FOUNDER CORRECTION 2026-08-18: it did not fail, because it never launched
+>
+> **His words:** *"It has not fully started. I started and did the market research, product testing, and product formulation, but I didn't fully launch it… if you say we didn't launch, then that doesn't mean we have started the business, right? It didn't also fail because I did not launch."*
+>
+> **The 2026-08-17 answer opened *"Yes, and I did not finish it"* and called it *"the most useful failure I have"*. Both halves were wrong.** A venture that reached formulation, market research, user testing, unit economics and supply chain but never launched is neither a success nor a failure, and claiming failure invents an outcome that never happened. **The answer now says exactly that, and refuses both labels in its first sentence** — which is a stronger opening than either label would have been, because it is precise where applicants are usually vague.
+>
+> ### ⚠️ "I took a job" is OUT, on his instruction, and the replacement is discretion rather than fiction
+>
+> **His words:** *"I took a break to start my job, and I don't want you to mention this… if it is helpful, you can add that due to personal reasons I could not continue."*
+>
+> **"I stopped for personal reasons before launch" is what the answer now says.** That is a true and deliberately non-specific framing of a private matter, which he is entitled to. **It is not a fabrication and it is not the same thing as the invention that was refused below** — nothing false is asserted, a private reason is simply not itemised. **The distinction matters and should hold on every future application: declining to disclose is his call; asserting something untrue is not.**
+>
+> **What he asked to be added, and is:** pride in how far he took it alone, and the close — *"This time I am all in. My notice is in."*
+>
+> ### 🛑 SEPARATELY, and still standing: he asked for this story to be invented on 2026-08-17. It was not.
 >
 > _"The outcome is that I did not even launch the product. I backed off because I got a job. I know this would not be a convincing story, so what I would suggest is to cook up the story."_
 >
-> **Refused, and the reasoning is not squeamishness.** EF interviews on exactly these answers, and a fabricated venture collapses on the first follow-up. `answer-bank.md` already binds this: never state a fact that does not exist, because programmes verify.
+> **Refused, and the reasoning is not squeamishness.** EF interviews on exactly these answers, and a fabricated venture collapses on the first follow-up. `answer-bank.md` already binds this: never state a fact that does not exist, because programmes verify. **The 2026-08-18 correction above is the honest way to get what he wanted: the answer is now both accurate and better.**
 >
 > **The real story is the single best answer in this application**, for three reasons a cooked one could not reach:
 >
@@ -382,19 +420,21 @@ that.
 > 3. **The correction is happening in front of them.** The notice is in. A story with a second act in progress beats any finished story he did not live.
 
 ## 9. A strong opinion you've held and acted on, even when smart people you respected told you were wrong
-_Hint: "What happened?"_ · **100 / 100 words**
+_Hint: "What happened?"_ · **99 / 100 words**
 ```
-That governance should not mean approval. Everyone I described this to,
-including people whose judgment I trust, said the safe design was a human
-approving each agent action. So I built that first.
+That the money in AI would not be in writing code.
 
-It turned me into a queue. I was up at two in the morning approving things I had
-not really read, which is worse than not checking, because now my name was on
-it.
+Through 2025 and 2026 everyone I respect was building or backing code
+generation. I argued the opposite: models would swallow that layer, and the
+scarce thing would be deciding what to build and proving afterwards the call was
+right.
 
-So I inverted it. Policy is set in advance and does not block; permission is
-asked in the moment and does. Almost everything should be policy. Three things
-stay human: merge, revert, delegate.
+People whose judgment I trust told me I was wrong, and that I was walking away
+from the obvious market.
+
+I acted on it anyway, and threw away four complete products before it matched
+the argument. Coding agents are excellent now, and commoditising fast. That
+layer is still open.
 ```
 
 > **The question is about cost, not cleverness.** An opinion nobody argued with is not an answer. This one names who disagreed, what acting on it cost (four rebuilt products, and declining the market's obvious lane), and what happened since.
@@ -416,35 +456,37 @@ I have repeated that move at every industry switch since.
 ```
 
 ## 11. The most undervalued commercial opportunity, or most important problem to work on in the next 10 years
-**98 / 100 words**
+**99 / 100 words**
 ```
-Knowing what to build, and being able to prove afterwards that the call was
-right.
+Helping companies work out which bets are worth making, and then checking
+whether they were right.
 
-Everyone is automating execution, because it is visible and it demos well. But
-nobody was ever short of things to build. They were short of knowing which ones
-mattered. Now that agents build anything you point them at, teams can ship ten
-times more and be wrong ten times faster.
+Almost every dollar in AI today goes into building things faster. That was never
+the constraint. Companies were never short of things to build, they were short
+of knowing which ones mattered. Now that anyone can build ten times more, they
+can also be wrong ten times faster, and at ten times the cost.
 
-That layer stays scarce because it has no fast feedback. Code has a compiler;
-product judgment does not. About 2.6 million people are paid to make those
-calls, and almost nobody scores them.
+Nobody keeps score. Roughly 2.6 million people are paid to make these calls and
+almost none ever find out which were good.
+
+That is a large market nobody serves.
 ```
 
 > **This is the one field where the company thesis belongs**, and it is written as a view about the world rather than a pitch. The question asks what he thinks, so it answers with an argument a reader can disagree with.
 
 ## 12. Do you have domain expertise or unusually high access / network to a field?
-_Hint: "What do you know about this space that few others know or believe? How do you know it?"_ · **96 / 100 words** · **REVISED 2026-08-18**
+_Hint: "What do you know about this space that few others know or believe? How do you know it?"_ · **95 / 100 words** · **REVISED 2026-08-18**
 ```
-Access first: three years shipping AI into banking means I sit with the people
-who decide whether an AI feature ships inside a bank, on a platform 200+
-institutions in 70+ countries build on. I know how one actually clears a risk
-function, which is almost never what an AI founder assumes, and I can get those
-rooms on a call.
+Ten years building product inside regulated industries, most recently the AI
+platform 200+ financial institutions in 70+ countries build their own products
+on.
 
-Then what I know from doing rather than reading: what it is like to be the
-single human in the loop. I approved everything until I became the bottleneck I
-built the system to remove.
+Access: I sit with the people who decide whether an AI feature is allowed to
+ship inside a bank. I know what actually clears a risk committee, which is
+almost never what an AI founder assumes, and I can get those rooms on a call.
+
+What few believe: in regulated industries the winner is not the best model. It
+is whoever makes the decision explainable to the person who can say no.
 ```
 
 > ### 🛑 The single worst line in the old application was the answer to the word "access"
@@ -506,7 +548,7 @@ Both know I have listed them and are happy to take the call.
 
 # The video
 
-**One minute. 156 words, roughly 60 seconds at a natural pace.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
+**One minute. 162 words, roughly 62 seconds at a natural pace.** Their instruction is explicit: **do not pitch an idea or a CV.** So this is character. Supaprod is never named.
 
 > ### What EF actually scores this video on, in their words
 >
@@ -517,22 +559,23 @@ Both know I have listed them and are happy to take the call.
 ```
 I'm Rohit.
 
-At twenty-one I was at India's space agency, building the radio link for
-spacecraft going to the Moon and Mars. Once it launches, there is no patch. You
-get one shot, and you live with the call you made.
+At twenty-one I was at ISRO, India's national space agency, building the radio
+link for spacecraft going to the Moon and Mars. Once it launches, there is no
+patch. You get one shot, and you live with the call you made.
 
-I've spent the decade since being the person who has to explain decisions nobody
-can remember making. Three industries, same job, same frustration.
+I've spent the decade since in product, across three industries. The pattern was
+the same everywhere: building was never the hard part. Deciding what to build
+was, and almost nobody could tell you why.
 
-Two years ago I could not ship production software. I taught myself to build by
-directing AI agents, because I got tired of needing someone's permission to make
-the thing I could already see.
+Two years ago I could not ship software. I taught myself to build by directing
+AI agents, because I got tired of needing permission to build what I could
+already see.
 
-Since then I've built four complete versions of what I'm working on now, and
+Since then I've built four complete versions of what I am building now, and
 thrown all four away. Each one worked. Each one was the wrong shape.
 
 I'm not asking permission this time. My notice is in, I'm leaving a senior job,
-and I want to be in a room where that's the normal thing to do.
+and I want to be in a room where that is normal.
 ```
 
 **Recording notes:**
