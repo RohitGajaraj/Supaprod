@@ -199,13 +199,60 @@ founder:
     Two years ago could not ship production software at all; learned to build by
     directing agents. SHOW THE BEHAVIOUR, never name the trait.
 
+  # FOUNDER RULING 2026-08-18, given verbatim and standing for EVERY application,
+  # not just EF: "I am not going on a sabbatical. My notice is already in. I am
+  # quitting and starting it full time. Not just for this application, for any
+  # further application, it needs to be the same way."
+  commitment:
+    state: notice_served
+    say: >-
+      My notice is in. I am leaving a senior role to do this full time.
+    never_say:
+      # Each of these reframes an irreversible act as a reversible one, which is
+      # the exact thing EF's round-three rejection ("hedging on commitment") is
+      # looking for. They are banned on every surface, in every programme.
+      - sabbatical
+      - career break
+      - leave of absence
+      - taking time off / time out
+      - "stepping back" / "stepping away"
+      - "exploring" or "testing" whether to go full time
+      - "if accepted, I will quit" (conditional commitment of any shape)
+      - "planning to" / "intend to" / "about to" resign
+    why: >-
+      A served notice is a fact with a date on it and it cannot be hedged. Every
+      banned phrasing above turns it back into an option, and an option is worth
+      nothing to a reader deciding whether this person actually starts. The
+      company is happening full time regardless of any programme's decision; a
+      programme changes the speed and the zip code, never the decision.
+    tense: >-
+      Present or past, never future. "My notice is in" and "I am leaving", never
+      "I will leave". Still in the seat until the notice period ends, so present
+      tense is correct for the CURRENT ROLE ("I am senior AI product manager"),
+      and that is not a contradiction: both are true on the same day.
+
 numbers:
   # Re-derive on the morning of any submission.
   commits:
-    value: 5328
-    as_of: 2026-08-17
+    value: 5366
+    as_of: 2026-08-18
     outward_form: "5,300+"
     command: git rev-list --count origin/main
+  tests:
+    # Re-derived 2026-08-18 because "9,400 tests across 563 files" was in the EF
+    # application and was wrong in BOTH halves.
+    value: 9395
+    files: 567
+    as_of: 2026-08-18
+    outward_form: "9,395 passing tests across 567 files"
+    command: bun test
+  elapsed:
+    value: eleven weeks
+    as_of: 2026-08-18
+    note: >-
+      2026-06-02 to 2026-08-18 is 77 days. RETIRED AND BANNED: "eight weeks" and
+      "seven weeks", both of which are still sitting in older application drafts.
+      Re-derive this every time; it moves every seven days.
   migrations:
     value: 545
     as_of: 2026-08-17
@@ -216,7 +263,23 @@ numbers:
     note: A template commit dated 2025-01-01 is scaffold, not work.
   research_sources:
     value: 679
-    note: Primary sources read, plus a private community of ~30,000 product managers.
+    # CORRECTED 2026-08-18. The old note said "Primary sources read", and that is
+    # not what 679 is. It is the SIZE OF A PAID ARCHIVE he can search, named in
+    # one-pager.md as "the 679-document paid archive". He did not read 679 sources.
+    # The first interview follow-up is "which ones?", so claim the searching.
+    is: size of a searchable paid archive of practitioner interviews
+    is_not: a count of sources he has read
+    outward_form: >-
+      I search a paid 679-document archive of practitioner interviews before
+      forming a view.
+  pm_community:
+    value: 30000
+    as_of: 2026-04
+    note: >-
+      Verified externally at 30,000+ members. He is a MEMBER, not the operator.
+      Never present a paid membership as "unusually high access" - anyone with a
+      card has it. His real unusual access is the bank rooms; see positioning.
+    outward_form: "a 30,000-member product community"
 
 positioning:
   order: door, then body, then brain. ALWAYS. The brain is the crescendo, never the opening.
@@ -471,6 +534,81 @@ application_rules:
   unconditional_commitment: Never "if accepted, I will". The programme changes the speed and the postcode, never the decision.
   read_the_verb: '"JOINED" is not "applied". Answer the question actually asked.'
   founder_submits: Never submit an application. The founder submits.
+
+  # ============================================================================
+  # FOUNDER RULINGS 2026-08-18, given after reviewing a filled EF application.
+  # His words: "you are not efficient in incorporating it... keep it as a
+  # baseline so that it does not come back to back for you."
+  # These are NOT EF-specific. They govern EVERY field of EVERY application.
+  # Run them as a CHECKLIST over a finished draft, not as a vibe.
+  # ============================================================================
+
+  say_it_once:
+    rule: >-
+      No fact, phrase, number or story appears in two fields. One fact, one home.
+      Pick the field where it does the most work and delete it everywhere else.
+    why: >-
+      "Duplicacy would irritate people." A reader going field to field sees the
+      repeat immediately and concludes the applicant had less to say than the
+      form allowed. With a 100-word cap, a repeated sentence is also space
+      stolen from a claim that was never made.
+    also_applies_between: >-
+      The written answers AND the video. If the video repeats what the form
+      already says, it has spent its minute telling them what they just read.
+    how_to_check: >-
+      Before filing, list every proper noun, number and anecdote per field and
+      look for anything appearing twice. Do this mechanically; it is invisible
+      when reading the answers one at a time.
+
+  laymans_terms:
+    rule: >-
+      A non-technical reader must be able to follow every sentence. Technical
+      detail and metrics are welcome; jargon strings are not.
+    founder_words: >-
+      "Instead of making it sound very much like techno-reporting, techno guy...
+      if a layman wants to read and understand, how would that be?"
+    test: >-
+      Would an intelligent generalist know what this sentence means without
+      looking anything up? If not, say what the thing DOES before what it is
+      called.
+    example_bad: "a 500-test suite pairing LLM-as-judge with deterministic graders across factuality, safety, latency and cost"
+    example_good: "a 500-test harness that checks every model answer for accuracy, safety, speed and cost before it reaches a customer"
+
+  never_frame_growth_as_deficiency:
+    rule: >-
+      Never state what he could NOT do. State what he can do now. Growth is
+      shown by the present capability, not by naming a past hole.
+    banned_shape: '"Two years ago I could not ship production software."'
+    say_instead: '"I build and ship production software end to end myself, directing agents."'
+    why: >-
+      FOUNDER RULING, and it is a real credibility bug: beside "a decade in
+      product" the deficit sentence reads as an admission that the earlier
+      years were not effective. It was written to show learning RATE and it
+      buys that at too high a price. The slope is still visible from the facts
+      without confessing a floor.
+
+  discarded_work_carries_its_reason:
+    rule: >-
+      Never say "threw away" on its own. State WHY the thing was rebuilt and
+      what it taught. A bare discard reads as waste; a reasoned rebuild reads
+      as judgment.
+    founder_words: '"thrown away is a hard thing... if you are saying thrown away, for what reason you threw away."'
+    say_instead: >-
+      "Each one worked and each one was the wrong shape, so I rebuilt it" -
+      or name the specific thing each version got wrong.
+
+  hand_over_the_demo:
+    rule: >-
+      Where a form asks what he has built, GIVE a working demo login inline.
+      Never write "I will give access on request" or "happy to walk you
+      through it": both ask the reader to do work and to wait.
+    founder_words: '"Directly throw an account at them and ask them to check out."'
+    mechanics: See demo_logins above. One login per programme, re-armed and verified before sending.
+
+  no_deficit_no_apology: >-
+    Related to the above and already law 2 in answer-bank.md. Candour goes
+    where the form asks for it, stated as fact plus what happens next, never
+    as apology and never volunteered.
 
 filed:
   - programme: Y Combinator Fall 2026
