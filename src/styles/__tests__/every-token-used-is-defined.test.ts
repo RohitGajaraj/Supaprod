@@ -1,6 +1,13 @@
 import { describe, it, expect } from "bun:test";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+/* Comments are stripped before counting, for the reason the ratchet gives:
+ * "a legacy token inside a comment paints nothing. Only code ships." This
+ * mattered the moment `--sp-hue` was deleted on 2026-08-18, because three
+ * files DOCUMENT that removal and the sentence explaining it looked identical
+ * to the defect it describes. A guard that fails on its own post-mortem
+ * teaches people to delete the post-mortem. */
+import { stripComments, stripCssComments } from "@/__tests__/meridian-ratchet-scan";
 
 /**
  * A TOKEN THAT IS USED AND NEVER DEFINED FAILS SILENTLY, AND CSS HELPS IT.
@@ -84,7 +91,8 @@ function usedWithoutFallback(): Map<string, string[]> {
       }
       if (!/\.(css|tsx|ts)$/.test(e.name)) continue;
       if (/\.test\.(ts|tsx)$/.test(e.name)) continue;
-      const src = readFileSync(full, "utf8");
+      const raw = readFileSync(full, "utf8");
+      const src = e.name.endsWith(".css") ? stripCssComments(raw) : stripComments(raw);
       // `var(--x)` where the next non-space character closes the call.
       for (const m of src.matchAll(/var\(\s*(--sp-[a-z0-9-]+)\s*\)/gi)) {
         const list = found.get(m[1]) ?? [];

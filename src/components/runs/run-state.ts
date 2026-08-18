@@ -14,7 +14,7 @@
  */
 
 import type { StudioSessionListItem } from "@/lib/studio.functions";
-import type { MarkState } from "@/components/shell/primitives";
+import type { MarkState } from "@/components/meridian/marks";
 import { agentDisplayName, agentRelayVerb } from "@/lib/agent-vocabulary";
 
 /**

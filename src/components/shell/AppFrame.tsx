@@ -130,7 +130,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { MarkStack } from "./primitives";
+import { MarkStack } from "@/components/meridian/marks";
 import { StationGlyph, type StationGlyphKind } from "@/components/meridian/station-glyphs";
 import { RunStripProvider, STAGE_LABEL, STATION_ROUTE, type RunStripSpec } from "./run-strip";
 import { agentDisplayName, agentStation, type AgentStation } from "@/lib/agent-vocabulary";

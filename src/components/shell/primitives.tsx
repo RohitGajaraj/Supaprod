@@ -32,153 +32,27 @@
  */
 
 import * as React from "react";
-import { agentDisplayName, agentBlurb } from "@/lib/agent-vocabulary";
-import { glyphForSlug, stageHueForSlug } from "./agent-glyphs";
+/* The Receipt still shows who acted and who picked it up, so it keeps the two
+ * marks. They come from Meridian now; see the note where they used to live. */
+import { AgentMark, YouMark } from "@/components/meridian/marks";
 import { IconMore } from "./icons";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import type { Selection } from "./use-selection";
 
 /* ------------------------------------------------------------------ *
- * Agent mark
+ * Agent mark: MOVED TO MERIDIAN, 2026-08-18
+ *
+ * `AgentMark`, `MarkStack`, `YouMark`, `PairMark` and `MarkState` now live in
+ * `@/components/meridian/marks`. They were the most-rendered retired component
+ * in the product (56 renders across 33 files) and the one the whole agentic
+ * claim rests on, so they were the wrong thing to leave here.
+ *
+ * The behaviour that moved with them, rather than being left behind: the glyph
+ * is the identity, the stack still gives `gate` to the first mark only, and the
+ * animation stays inline so reduced motion can stop it. The stage-hue ramp did
+ * NOT move: painting an agent its station's colour is what Law 4 forbids, and
+ * `--sp-hue` died here with it.
  * ------------------------------------------------------------------ */
-
-/** State is never a hue. A ring means running, low opacity means quiet, ember
- *  means it needs you, red means it failed.
- *
- *  "gate" BLINKS and is the only blink in the system, so exactly one mark on a
- *  screen may wear it: the one thing actually asking. "waiting" is the same
- *  ember without the animation, for the items queued behind it. Reported from
- *  the receipts room, where every pending row took the gate state and a
- *  workspace with many open decisions blinked a dozen marks at once, which
- *  spends the whole restraint budget and stops the blink meaning "look here". */
-/**
- * `verified` completes the outcome pair the system already declares.
- *
- * SYSTEM.md rule 1 says "Green and red carry outcomes", and only red existed:
- * `failed`. So a run that succeeded and a run that merely stopped looked
- * identical, both wearing the neutral `idle` grey, while a failure was loud.
- * The product could shout at you about a loss and had no way to show a win.
- *
- * IT IS NOT "DONE". It is "done AND we can prove it": reserved for a merged
- * changeset with a real clickable pull request behind it, which is exactly
- * what `completionEvidence` already means by "verified". A run that claims
- * done with nothing behind it stays neutral, because painting every finished
- * run green would be the product asserting success it never checked, which is
- * the one thing it is careful never to do.
- */
-export type MarkState = "quiet" | "idle" | "running" | "gate" | "waiting" | "failed" | "verified";
-
-export function AgentMark({
-  slug,
-  state = "idle",
-  size = "sm",
-  name,
-  title,
-}: {
-  slug: string | null | undefined;
-  state?: MarkState;
-  size?: "sm" | "lg";
-  /** Fallback display name when the catalog does not know the slug. */
-  name?: string | null;
-  title?: string;
-}) {
-  const Glyph = glyphForSlug(slug);
-  const displayName = title ?? agentDisplayName(slug, name);
-  const blurb = agentBlurb(slug);
-  const label = blurb ? `${displayName} · ${blurb}` : displayName;
-  return (
-    <span
-      className="sp-mark"
-      data-state={state}
-      data-size={size}
-      // The hue is the agent's STAGE, not the agent. Set as a custom property
-      // so the CSS owns every mix and this file owns no colour.
-      style={{ "--sp-hue": stageHueForSlug(slug) } as React.CSSProperties}
-      title={label}
-      role="img"
-      aria-label={state === "idle" ? label : `${label}, ${state}`}
-    >
-      <Glyph />
-    </span>
-  );
-}
-
-/**
- * Two or more at once read as one crew doing one job.
- *
- * THE STACK ENFORCES THE ONE BLINK, because a caller cannot. `gate` is the only
- * animated state in the system and SYSTEM.md allows exactly one mark on a
- * screen to wear it, but this component takes ONE state and applied it to every
- * agent, so a stack of four asked for `gate` blinked four marks in unison. That
- * is the precise failure the rule was written after ("a list that gave every
- * pending row `gate` blinked a dozen marks at once and spent the whole
- * restraint budget"), reproduced by the component meant to be governed by it.
- *
- * So a stack asked for `gate` gives it to the FIRST mark and dresses the rest
- * as `waiting`, which is the same ember without the animation and is exactly
- * what the rule prescribes for everything queued behind the one asking. Held
- * here rather than at each call site: a rule every caller must remember is a
- * rule that gets forgotten, and this one already was.
- */
-export function MarkStack({
-  agents,
-  state = "running",
-}: {
-  agents: { slug: string | null | undefined; name?: string | null }[];
-  state?: MarkState;
-}) {
-  if (agents.length === 0) return null;
-  if (agents.length === 1) {
-    return <AgentMark slug={agents[0].slug} name={agents[0].name} state={state} />;
-  }
-  return (
-    <span className="sp-stack">
-      {agents.slice(0, 4).map((a, i) => (
-        <AgentMark
-          key={`${a.slug ?? "x"}-${i}`}
-          slug={a.slug}
-          name={a.name}
-          // Only the first may blink. See the note above.
-          state={state === "gate" && i > 0 ? "waiting" : state}
-        />
-      ))}
-    </span>
-  );
-}
-
-/** You. A solid filled disc, so you are a different KIND of thing from an
- *  agent rather than a different colour of the same thing. `mine` lights it
- *  ember only when the moment is genuinely yours. */
-export function YouMark({ initials, mine = false }: { initials: string; mine?: boolean }) {
-  return (
-    <span className="sp-you" data-mine={mine} role="img" aria-label="You">
-      {initials}
-    </span>
-  );
-}
-
-/** The crew drafted it and you changed it. */
-export function PairMark({
-  slug,
-  initials,
-  name,
-  state = "idle",
-  mine = true,
-}: {
-  slug: string | null | undefined;
-  initials: string;
-  name?: string | null;
-  state?: MarkState;
-  mine?: boolean;
-}) {
-  return (
-    <span className="sp-pair">
-      <AgentMark slug={slug} name={name} state={state} />
-      <YouMark initials={initials} mine={mine} />
-    </span>
-  );
-}
-
 /* ------------------------------------------------------------------ *
  * Block: a rule wherever the content changes register
  * ------------------------------------------------------------------ */

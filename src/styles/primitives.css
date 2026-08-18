@@ -32,219 +32,20 @@
  *   goes with it.
  * =================================================================== */
 
-/* ---------- agent mark ----------
- * No chip, no box, no letters. The insignia stands on its own so it reads at
- * a glance and the row stays quiet. The glyph IS the agent. */
-.sp-mark {
-  width: var(--sp-mark);
-  height: var(--sp-mark);
-  flex: none;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--sp-mute);
-  transition:
-    color var(--sp-dur-fast) var(--sp-ease),
-    opacity var(--sp-dur-fast) var(--sp-ease);
-}
-.sp-mark svg {
-  width: var(--sp-mark-glyph);
-  height: var(--sp-mark-glyph);
-  display: block;
-}
-.sp-mark:hover {
-  color: var(--sp-ink);
-}
-
-/* ---- states. Colour appears here and almost nowhere else ---- */
-.sp-mark[data-state="quiet"] {
-  opacity: 0.42;
-}
-
-/* Running: a live ring turns around it and the glyph breathes. This is a real
- * pulse on genuinely changing data, which is the one case the no-pulsing-dot
- * rule allows, and it stops the moment the run does.
+/* ---------- agent mark: MOVED TO MERIDIAN, 2026-08-18 ----------
+ * `.sp-mark`, `.sp-stack`, `.sp-you` and `.sp-pair` are gone with the
+ * components they painted; see src/components/meridian/marks.tsx.
  *
- * A running agent wears ITS OWN stage hue, not a generic blue, so when two
- * run at once you can tell them apart without a rainbow: the colours already
- * mean something. Quiet agents stay monochrome, which is what keeps it legible. */
-@keyframes sp-breathe {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.52;
-  }
-}
-@keyframes sp-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-.sp-mark[data-state="running"] {
-  color: color-mix(in oklab, var(--sp-hue, var(--sp-stage-build)) 88%, var(--sp-ink));
-}
-.sp-mark[data-state="running"] svg {
-  animation: sp-breathe var(--sp-dur-breathe) var(--sp-ease-breath) infinite;
-}
-.sp-mark[data-state="running"]::after {
-  content: "";
-  position: absolute;
-  inset: -5px;
-  border-radius: 50%;
-  border: 1.2px solid transparent;
-  border-top-color: color-mix(in oklab, var(--sp-hue, var(--sp-stage-build)) 78%, transparent);
-  border-right-color: color-mix(in oklab, var(--sp-hue, var(--sp-stage-build)) 32%, transparent);
-  animation: sp-spin var(--sp-dur-spin) linear infinite;
-}
-
-/* Needs you: ember, and the only blink in the system. */
-@keyframes sp-attention {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  45% {
-    opacity: 0.32;
-  }
-}
-.sp-mark[data-state="gate"] {
-  color: var(--sp-gate);
-}
-.sp-mark[data-state="gate"] svg {
-  animation: sp-attention var(--sp-dur-attention) var(--sp-ease-breath) infinite;
-}
-/* Waiting on you, but not the one asking. Ember carries the fact; the blink is
- * reserved for the single thing in focus. */
-.sp-mark[data-state="waiting"] {
-  color: var(--sp-gate);
-}
-.sp-mark[data-state="failed"] {
-  color: var(--sp-fail);
-}
-/* Shipped, and provable. The counterpart to `failed`, and the second half of
- * "green and red carry outcomes" (SYSTEM.md rule 1). Static: an outcome has
- * already happened, so it never animates. Only a merged change with a real
- * pull request behind it earns this, see MarkState in primitives.tsx. */
-.sp-mark[data-state="verified"] {
-  color: var(--sp-pass);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sp-mark svg {
-    animation: none !important;
-  }
-  .sp-mark[data-state="running"]::after {
-    animation: none;
-    border-top-color: var(--sp-hue, var(--sp-stage-build));
-  }
-}
-
-/* Two or more running at once: the marks overlap into a stack that reads as
- * one crew doing one job, with the count spelled out beside it. */
-.sp-stack {
-  display: flex;
-  align-items: center;
-  flex: none;
-}
-.sp-stack .sp-mark {
-  margin-left: -7px;
-  position: relative;
-}
-.sp-stack .sp-mark:first-child {
-  margin-left: 0;
-}
-.sp-stack .sp-mark[data-state="running"]::after {
-  inset: -4px;
-}
-/* Each mark in a stack starts its turn at a different point, so two rings
- * never sweep in lockstep and read as one object. */
-.sp-stack .sp-mark:nth-child(2)::after {
-  animation-delay: -0.55s;
-  animation-duration: 2.1s;
-}
-.sp-stack .sp-mark:nth-child(3)::after {
-  animation-delay: -1.1s;
-  animation-duration: 1.9s;
-}
-.sp-stack .sp-mark:nth-child(4)::after {
-  animation-delay: -1.6s;
-  animation-duration: 2.3s;
-}
-
-/* On the Crew page the glyph grows and takes its stage hue: that is the one
- * surface where the roster is the subject, so colour is information there. */
-.sp-mark[data-size="lg"] {
-  width: var(--sp-mark-lg);
-  height: var(--sp-mark-lg);
-  color: var(--sp-hue, var(--sp-stage-build));
-}
-.sp-mark[data-size="lg"] svg {
-  width: 20px;
-  height: 20px;
-}
-.sp-mark[data-size="lg"]:hover {
-  color: var(--sp-hue, var(--sp-stage-build));
-  opacity: 0.72;
-}
-.sp-mark[data-size="lg"][data-state="gate"] {
-  color: var(--sp-gate);
-}
-.sp-mark[data-size="lg"][data-state="failed"] {
-  color: var(--sp-fail);
-}
-
-/* ---------- the human ----------
- * You read as a different KIND of thing, not a different colour of the same
- * thing: agents are a thin open line, you are a solid filled disc. That
- * contrast survives greyscale and needs no ring shouting at you. */
-.sp-you {
-  width: var(--sp-mark);
-  height: var(--sp-mark);
-  border-radius: 50%;
-  flex: none;
-  display: grid;
-  place-items: center;
-  font-size: var(--sp-text-monogram);
-  font-weight: var(--sp-weight-heavy);
-  letter-spacing: var(--sp-track-monogram);
-  color: var(--sp-ink);
-  background: linear-gradient(160deg, var(--sp-float), var(--sp-lift));
-  box-shadow:
-    inset 0 0 0 1px var(--sp-line),
-    inset 0 1px 0 0 color-mix(in oklab, var(--sp-ink) 7%, transparent);
-}
-/* Ember appears on it only when the moment is genuinely yours: a call you
- * settled, a line you wrote. Not as permanent decoration. */
-.sp-you[data-mine="true"] {
-  box-shadow:
-    inset 0 0 0 1px color-mix(in oklab, var(--sp-gate) 55%, transparent),
-    0 0 0 2.5px color-mix(in oklab, var(--sp-gate) 12%, transparent);
-}
-/* The crew drafted it and you changed it. The disc sits in front and punches
- * a clean hole out of the glyph behind it, so neither mark is cut in half. */
-.sp-pair {
-  display: flex;
-  align-items: center;
-}
-.sp-pair .sp-mark {
-  margin-right: -10px;
-}
-.sp-pair .sp-you {
-  position: relative;
-  z-index: 1;
-  box-shadow:
-    0 0 0 2.5px var(--sp-bg),
-    inset 0 0 0 1px var(--sp-line),
-    inset 0 1px 0 0 color-mix(in oklab, var(--sp-ink) 7%, transparent);
-}
-.sp-pair .sp-you[data-mine="true"] {
-  box-shadow:
-    0 0 0 2.5px var(--sp-bg),
-    inset 0 0 0 1px color-mix(in oklab, var(--sp-gate) 55%, transparent);
-}
+ * This block was 213 lines and the single largest concentration of `--sp-*`
+ * in the product. It could not be deleted before, because until the ratchet
+ * learned to read stylesheets on 2026-08-18 nothing measured it: the
+ * components could move to Meridian and this paint would have stayed,
+ * unreferenced and unnoticed, which is what happened in the previous
+ * migrations.
+ *
+ * What did NOT come across, deliberately: `--sp-hue`, the per-station colour
+ * ramp. Painting an agent its station's hue is the identity-as-colour pattern
+ * Law 4 has had removed three times. */
 
 /* ---------- block ----------
  * A rule wherever the content changes register: what needs you, what was
@@ -2075,40 +1876,17 @@ button.sp-ctx-row:focus-visible {
   box-shadow: inset 0 0 0 1px var(--sp-line);
 }
 
-/* ---------- the crew roster ----------
- * The one surface where the roster is the subject, so colour is information
- * here rather than decoration: each stage group is headed by its own hue and
- * the marks wear it. Everywhere else in the product crew is monochrome. */
-.sp-stagegroup {
-  margin-top: 30px;
-}
-.sp-sg-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: var(--sp-space-3);
-}
-/* A bar, not a dot and not a border-left on a card. A coloured stripe down
- * the side of a card is the single most recognisable AI tell (ban 4); a short
- * rule that heads a group is a label. */
-.sp-sg-bar {
-  width: 22px;
-  height: 3px;
-  border-radius: 2px;
-  flex: none;
-  background: var(--sp-hue);
-}
-.sp-sg-name {
-  font-size: var(--sp-text-prose);
-  font-weight: var(--sp-weight-strong);
-  color: var(--sp-ink);
-}
-.sp-sg-count {
-  font-family: var(--sp-font-mono);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--sp-text-data);
-  color: var(--sp-mute);
-}
+/* ---------- crew stage groups: DELETED 2026-08-18 ----------
+ * `.sp-stagegroup` and `.sp-sg-*` were rendered by nothing. They also read
+ * `var(--sp-hue)` bare, and that token was never declared in CSS at all: it
+ * was set inline by the retired `AgentMark`, which moved to Meridian today.
+ * So the bar was painted by a component that no longer exists, on a surface
+ * that no longer renders it.
+ *
+ * `every-token-used-is-defined.test.ts` is what found it, one minute after
+ * the component was deleted, which is the argument for that guard in one
+ * line: the dead rule had been unreachable for longer and nothing noticed. */
+
 .sp-agrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
