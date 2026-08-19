@@ -1,3 +1,22 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * RETIRED DESIGN SYSTEM. DO NOT BUILD FROM THIS FILE.
+ *
+ * This sheet carries v3 Obsidian and v5 Tempo vocabulary is retired. It still runs, deliberately: deleting the retired systems
+ * in one move is how the 2026-07 rebuild failed, so they stay until each
+ * surface is ported. THAT IS LIFE SUPPORT, NOT ENDORSEMENT.
+ *
+ * READING THIS FILE IS NOT PERMISSION TO COPY IT. A rule in here is a record of
+ * a system that lost, not an authority. When it disagrees with Meridian,
+ * MERIDIAN WINS AND THIS FILE IS WRONG (founder ruling 2026-08-18).
+ *
+ * BUILD FROM:  src/styles/meridian.css  ·  src/components/meridian/
+ * CONTRACT:    docs/design/DESIGN-SYSTEM.md
+ *
+ * No --mrd-* token fits? That is a gap in Meridian and you build it there.
+ * Reaching back here because a value already exists is the single move the
+ * whole migration exists to stop.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
 @import "tailwindcss" source(none);
 @import "tw-animate-css";
 @import "./styles/ink.css";

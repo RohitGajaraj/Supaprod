@@ -1,4 +1,20 @@
 /**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * RETIRED DESIGN SYSTEM. DO NOT BUILD FROM THIS FILE.
+ *
+ * The Cadence/ink component primitives is retired. It still runs, deliberately: deleting the retired systems
+ * in one move is how the 2026-07 rebuild failed, so they stay until each
+ * surface is ported. THAT IS LIFE SUPPORT, NOT ENDORSEMENT.
+ *
+ * READING THIS FILE IS NOT PERMISSION TO COPY IT. When it disagrees with
+ * Meridian, MERIDIAN WINS AND THIS FILE IS WRONG (founder ruling 2026-08-18).
+ *
+ * BUILD FROM:  src/components/meridian/  ·  src/styles/meridian.css
+ * CONTRACT:    docs/design/DESIGN-SYSTEM.md
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/**
  * The primitives. Step 3 of the rebuild.
  *
  * Surfaces are BUILT OUT OF THESE rather than designed one at a time. That is

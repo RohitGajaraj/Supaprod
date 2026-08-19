@@ -104,7 +104,40 @@ hand-merge it: take either side and regenerate. _authenticated.meridian.tsx is
 append-only, so add your gallery section at the end and edit nothing above.
 meridian.css is one item at a time.
 
-Start now. Tell me which item you are taking and why it is the lowest eligible one.
+RUN CONTINUOUSLY. DO NOT STOP BETWEEN ITEMS.
+
+You have no loop or goal mode, so this is your loop: the moment an item is pushed,
+pick the next eligible TODO and start it. Do not ask whether to continue. Do not
+summarise and wait. Do not report back after each item hoping for a go-ahead. Finish,
+push, take the next one, repeat, for as long as eligible items remain.
+
+When you hit a problem, FIX IT AND KEEP GOING. A failing gate, a wrong line number in
+the item, a type error, a test that needs updating, a stale comment, a missing import,
+a file that moved: these are the work, not interruptions. Diagnose, fix, log what you
+found under "Noticed", carry on.
+
+STOP AND ASK ONLY FOR THESE FOUR. Nothing else earns an interrupt:
+
+  1. You genuinely need the database, an MCP server, or the live app. Log BLOCKED with
+     the exact question and move to the next eligible item. Do not wait.
+  2. The action is destructive or irreversible in a way the item did not sanction, and
+     you cannot undo it from inside the repo.
+  3. The item asks for a product or design decision that is the founder's, not a build
+     decision. K-37 is the worked example, and it is marked NEEDS A RULING for that
+     reason. Log QUESTION, skip it, keep going.
+  4. Two items genuinely contradict each other and following one breaks the other.
+
+IF EVERY REMAINING ITEM IS BLOCKED, say so plainly and stop. That is the only clean
+stopping condition. Running out of work is not the same as being stuck, and you should
+say which one has happened.
+
+WHAT "NECESSARY" MEANS, because it is the word that gets stretched: an interrupt is
+necessary when continuing would produce something WRONG, not when continuing is merely
+uncertain. Uncertainty goes in the log under "Unsure" and the build continues. That
+field exists precisely so you can proceed without pretending to be sure.
+
+Start now. Tell me which item you are taking and why it is the lowest eligible one,
+then build it and keep going.
 ```
 
 ---

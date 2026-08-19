@@ -5,45 +5,28 @@ here is production code and none of it is imported by the app; it exists so
 humans and AI builders can see precisely how every screen should look and
 behave before implementing it in `src/`.
 
-> [!IMPORTANT]
+> [!CAUTION]
 >
-> ## CURRENT: the v5 "Tempo" system (adopted 2026-07-10)
+> ## CURRENT: Meridian. Everything in this folder is retired.
 >
-> The design contract for EVERY Supaprod surface (app AND landing) is
-> [`docs/design/archive/tempo-v5.md`](../docs/design/archive/tempo-v5.md) (repo root, the law): the base derived
-> from Vercel's Geist design system with Supaprod's ember brand scale and identity
-> layer on top. The reference package is [`tempo-v5/`](./tempo-v5/): verbatim
-> `tokens/*.css` (both themes), `research/` (re-implementation-grade specs of every
-> Geist component + `_foundations.md` + `_public-sources.md`), and `patterns/`
-> (AI + enterprise workflow extensions). The agent entry point is the
-> **`cadence-tempo` skill** (`.claude/skills/cadence-tempo/`), invoked first on
-> every design task. Everything below this callout — the v3/v4 Obsidian/Loom
-> system and the parchment material — is RETIRED history (2026-07-10); never
-> build new surfaces from it.
+> **This callout used to declare the v5 "Tempo" system CURRENT and name an archived file as "the law". That was wrong from 2026-08-14 and was corrected on 2026-08-19.** It is the most dangerous kind of stale doc: a retired system claiming authority in the folder AI builders are pointed at, which is how a feature gets built on a dead vocabulary without anyone noticing.
 >
-> ## Retired: the v3 "Obsidian" system (2026-07-02 → 2026-07-10)
+> **The design system is Meridian, and there is no other one.**
+> Tokens: [`../src/styles/meridian.css`](../src/styles/meridian.css) · Components: [`../src/components/meridian/`](../src/components/meridian/) · **Contract: [`../docs/design/DESIGN-SYSTEM.md`](../docs/design/DESIGN-SYSTEM.md)**
 >
-> The former contract for authenticated app surfaces was
-> [`docs/design/archive/obsidian-v3.md`](../docs/design/archive/obsidian-v3.md) (retired). The full
-> frozen handoff package is committed at [`obsidian-v3/`](./obsidian-v3/):
-> its `README.md` read order, `tokens/*.css` custom properties (copy verbatim),
-> `components.md` anatomies, `implementation-notes.md` behaviors, the Butterfly
-> mark SVGs, and the runnable references (`design-reference/cadence-app.html`
-> six-surface prototype, `design-reference/obsidian-specimen.html` the
-> founder-approved specimen, `design-reference/ui-kit-shell.html`). The agent
-> entry point is the **`cadence-design` skill** (`.claude/skills/cadence-design/`),
-> which every design task invokes first. The founder's design brief and intent
-> live in [`AI_Product_Design_Constitution.md`](./AI_Product_Design_Constitution.md).
-> The surfaces the handoff stubbed (⌘K palette, Ask panel, Settings, onboarding,
-> Engine Room details, chart grammar, density, micro-interactions, empty states)
-> are specified in [`obsidian-extensions.md`](./obsidian-extensions.md), composed
-> entirely from v3's own tokens and laws.
-> **Everything below this callout (the parchment prototype, the v2 Platform
-> Design Blueprint, `supaprod/tokens.css`) is SUPERSEDED for app surfaces** and
-> kept as the landing-page contract + historical record. Do not port parchment
-> styles to any app surface, and do not source design inputs from the
-> superseded material; improve on top of v3 only.
-
+> **The visual reference is [beautifui.dev](https://www.beautifului.dev/)**, ported from its real source rather than from screenshots, because a screenshot loses the easing, the reveal order, the overflow behaviour and the focus model. All 19 of its components are ported; the map is [`../docs/design/MERIDIAN-REFERENCE-PARITY.md`](../docs/design/MERIDIAN-REFERENCE-PARITY.md).
+>
+> **Retired, permanently: v1 Ember, v3 Obsidian, v4 Loom, v5 Tempo, Cadence/ink.** Every file in this folder belongs to one of them. They are kept as history. **History is not authority.** When anything here disagrees with Meridian, Meridian wins and the file here is wrong.
+>
+> ### If Meridian has no component for what you need
+>
+> **Do not fall back to anything in this folder.** In order:
+>
+> 1. **Check [beautifui.dev](https://www.beautifului.dev/)** — the reference standard, and the parity doc says which of its 19 components are already ported.
+> 2. **Research the best proven product in that category** and lift its information model and verbs, per the standing rule from 2026-08-01. Append the research to [`../docs/design/REFERENCE-PATTERNS.md`](../docs/design/REFERENCE-PATTERNS.md) in the same session so nobody pays for it twice.
+> 3. **Build it into Meridian**, expressed in `--mrd-*` and composed from `src/components/meridian/`. A token earns its place on the second caller, is named for meaning rather than appearance, is measured in both grounds, and carries its argument in the file.
+>
+> **A missing Meridian component is a gap in Meridian, and the answer is to close it — never to reach past it.** Reaching back into a retired system because the value already exists there is the single move this whole migration exists to stop.
 ## Rule for builders (human or AI)
 
 When implementing a screen that exists in a CURRENT reference: **port it**.

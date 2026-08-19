@@ -2,7 +2,7 @@
 version: 3.0 "Obsidian" (design-system lineage: v1 tokens, v2 Ember Editorial parchment, v3 Obsidian dark · distilled from the founder-approved Design Strategy DOCUMENT v4)
 created: 2026-07-02
 name: supaprod-obsidian
-status: THE design contract for the product app (supersedes the Ember Editorial
+status: RETIRED 2026-08-14. Not a contract. The live one is docs/design/DESIGN-SYSTEM.md (Meridian). Kept as history only
   parchment system for all authenticated surfaces; the public landing page is
   out of scope and untouched)
 specimen: "Cadence Design Strategy.dc.html" (the founder-approved visual

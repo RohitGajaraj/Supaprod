@@ -7,8 +7,14 @@
 **The rule this file serves** (founder ruling 2026-08-01): for each surface, research the best
 proven product in that category and lift its **information model and verbs** outright, even close
 to literally. Originality is not the goal; an experience customers already know is. Name the
-reference and the pattern before building, then express it in our own `--sp-*` primitives and
-voice. We copy the model and the verbs. We never copy the visual style.
+reference and the pattern before building, then express it in **Meridian** — `--mrd-*` tokens from
+[`../../src/styles/meridian.css`](../../src/styles/meridian.css), composed from
+[`../../src/components/meridian/`](../../src/components/meridian/) — and in our voice. We copy the model and
+the verbs. We never copy the visual style.
+
+> _Corrected 2026-08-19. This line said `--sp-*` for five days after that vocabulary was retired, which made
+> the file that teaches every future researcher teach a dead system. The correction at the foot of the
+> Discover section already said so; a reader hits this line 886 lines earlier._
 
 Unlike the audit files beside this one, **the contents of this file are verified research against
 official product documentation**, with URLs. Treat it as reliable.
