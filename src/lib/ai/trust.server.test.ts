@@ -32,9 +32,7 @@ const PERFECT = {
 describe("evalScore", () => {
   it("gives a perfect row 1 and a worthless row 0", () => {
     expect(evalScore(PERFECT)).toBe(1);
-    expect(
-      evalScore({ ...PERFECT, groundedness: 0, relevance: 0, coherence: 0 }),
-    ).toBe(0);
+    expect(evalScore({ ...PERFECT, groundedness: 0, relevance: 0, coherence: 0 })).toBe(0);
   });
 
   it("averages the three quality dimensions", () => {
