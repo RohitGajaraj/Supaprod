@@ -858,3 +858,99 @@ Requirements are in the queue. The two that matter:
   `--mrd-you`**, which is the orchid at 315 and means "a person is required". A
   canvas background means nothing, and a background that wears a status word is
   the exact failure the colour law exists to stop.
+
+## K-12 · VERIFIED · 2026-08-20 02:15
+
+**Checked against production, and the defect is bigger than either the item or
+the entry says.** `agent_runs.status` holds exactly six spellings, matching the
+register:
+
+    completed                663
+    completed_with_failures  588
+    failed                   477
+    halted                     8
+    waiting_approval           7
+    complete                   2
+
+**`completed_with_failures` is 588 rows, which is 34% of every run in the
+database** -- and it is the value the entry proves gets **three different answers
+across four mappings**: `stopped`, a failure, and a success, plus one blind spot
+where it falls through to `other`. So a third of all runs are classified
+differently depending on which surface a person is looking at, and two of those
+answers are opposites.
+
+**And `complete` singular is real, not hypothetical.** Two rows carry it, and the
+entry shows it falling through to `queued` in two of the four mappings. **Two
+finished runs render as still-queued, permanently.** Small, but it is the exact
+shape of bug that is impossible to find from a screenshot.
+
+**The module is right to be inert.** Zero imports, asserted by a test, no writer
+and no consumer changed. A canonical vocabulary that quietly changes what four
+surfaces render, in the same commit that introduces it, is unverifiable. This
+lands the vocabulary; the wiring is separately checkable and separately
+reversible.
+
+---
+
+## K-13 · VERIFIED · 2026-08-20 02:15
+
+**Verified in production that the migration it declined to write was correctly
+declined.** All three columns -- `forecast_claim`, `forecast_how_we_will_know`,
+`forecast_horizon_date` -- already exist on `decisions`. So "schema and insert
+only, no migration" is right, and had it written one it would have been a no-op
+that still had to be applied and recorded.
+
+**Importing `forecastRefusal` rather than re-deriving it is the correct call and
+the reason given is the right reason.** The human path already encodes what makes
+a forecast valid, with the argument attached. Two copies is how the agent door and
+the person door come to disagree, and the half that never gets copied is the
+reasoning.
+
+**This is the item that moves the moat, and the measurement says how far.** Of
+286 decisions, **zero in a non-sample workspace carry a forecast.** `decision.record`
+being unable to express one was the mechanism. Optional rather than required is
+the right call for the same reason the entry gives: a required horizon on an
+agent that does not know one produces a fabricated date, and a fabricated forecast
+is worse than none because it scores.
+
+**Not yet true, and worth stating so nobody reads this as done:** the loop still
+does not close. `forecast_resolution` has no product writer -- all 91 resolutions
+in the database are seeded, every one with `forecast_resolved_by_agent_slug` null
+and a timestamp at exactly midnight. **Capture is now possible; resolution is
+still fiction.**
+
+---
+
+## K-14 · VERIFIED · 2026-08-20 02:15
+
+**Premise confirmed in production, not just in the migrations.** The live
+constraint is `CHECK ((verdict = ANY (ARRAY['validated','missed','mixed'])))`, and
+`select count(distinct verdict) from learnings` returns **3**. So no row ever got
+`uncertain` through: it did not degrade, it threw, exactly as the entry says.
+
+**The shape of this bug deserves recording.** The tool's description instructed
+the agent to say `uncertain` rather than guess. The constraint refused it and the
+insert throws on error. **So the one path that told the agent to be honest was the
+one path that crashed, and the more careful the agent, the more often it hit.**
+
+---
+
+## K-14 · RULED · 2026-08-20 02:15
+
+**On the QUESTION: do not point the description at deferral. Kiro was right to
+stop.**
+
+The item told it to "point the description at deferral instead of inventing a
+verdict", and it declined because agents cannot defer. That is correct and the
+register already knew it: *"Deferral is invisible to the agent sweep. A human
+pressing 'too early to tell' writes `outcome_check_by`, which only the human queue
+reads."* Deferral is a human affordance.
+
+**A tool description that points at a door the agent cannot open is the same
+defect this item just fixed**, one level up: instructing an agent toward an action
+that fails. Narrowing the enum and then telling it to defer would have replaced a
+crash with a dead end.
+
+**So: say nothing about deferral.** If agent deferral should exist it is its own
+item, needing a writer, a reader and a sweep that can see it. Filing it as a gap
+rather than smuggling it into a description.
