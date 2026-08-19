@@ -955,3 +955,91 @@ export const getTrackActivity = createServerFn({ method: "GET" })
       return { turns: [] };
     }
   });
+
+/**
+ * ── STEER A TRACK ─────────────────────────────────────────────────────────────
+ *
+ * Mid-run guidance for the six stations that never open a mission.
+ *
+ * `steerStudioSession` (`studio.functions.ts:1167`) already does this for Build:
+ * it takes a `missionId`, hardcodes `to_agent_slug: "builder"`, and refuses
+ * without a mission. That is correct for Build and useless everywhere else,
+ * because the driver opens a mission for exactly one station
+ * (`driver.server.ts:1189`). §10 criterion 11 measures the gap: stations that
+ * accept a steer, 1 of 7.
+ *
+ * A TRACK IS THE ADDRESS, NOT AN AGENT. No `to_agent_id`, no `to_agent_slug`.
+ * The loop matches on `track_id` and `kind`, so the steer reaches whoever is
+ * working the track when it is read, which is the only correct target: the
+ * station changes as the work moves, and naming an agent would address the
+ * message to whoever happened to hold it when the person started typing.
+ *
+ * THE READ IS THE AUTHORIZATION, and it is deliberate rather than incidental.
+ * The track is fetched through the caller's own client, so RLS decides. A track
+ * the caller cannot see does not exist to them, and this returns the same
+ * "could not be found" it would for an id that is genuinely absent. It leaks
+ * nothing about whether the id exists.
+ *
+ * 2000 CHARACTERS BECAUSE THAT IS WHAT THE LOOP INJECTS. `loop.server.ts` slices
+ * the message to 2000 before appending it as operator guidance. Accepting more
+ * here would take text the product silently discards, and a person whose last
+ * sentence vanished has been lied to by a form.
+ *
+ * THIS PUTS A PERSON'S WORDS INTO A RUNNING AGENT'S CONVERSATION, WHICH IS THE
+ * FEATURE. Three things bound it, and they are worth naming together because no
+ * one of them is sufficient: the caller is authenticated, RLS has already agreed
+ * they may see this track, and the loop appends the text under an explicit
+ * "Operator steering" label as a `user` turn rather than blending it into the
+ * system prompt. What it is NOT is a way to reach a track you cannot otherwise
+ * read.
+ */
+export const steerTrack = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        trackId: z.string().uuid(),
+        message: z.string().trim().min(1).max(2000),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }): Promise<{ steered: boolean; problems: string[] }> => {
+    const { supabase, userId } = context;
+    try {
+      const { data: row } = await supabase
+        .from("spine_tracks" as never)
+        .select(SELECT)
+        .eq("id", data.trackId)
+        .maybeSingle();
+      if (!row) return { steered: false, problems: ["That track could not be found."] };
+
+      const raw = row as unknown as TrackRow;
+
+      /*
+       * A finished track cannot be steered, and saying so beats writing a row
+       * nobody will ever read. An unconsumed steer on a track that has stopped
+       * is not harmful, it is just permanently pending, and a person who typed
+       * it is entitled to know it landed nowhere.
+       */
+      if (raw.status === "done" || raw.status === "abandoned") {
+        return {
+          steered: false,
+          problems: [`This track is ${raw.status}, so there is nothing running to steer.`],
+        };
+      }
+
+      const { error } = await supabase.from("agent_messages").insert({
+        user_id: userId,
+        workspace_id: raw.workspace_id ?? null,
+        track_id: data.trackId,
+        kind: "steer",
+        payload: { message: data.message },
+      });
+      if (error) return { steered: false, problems: [error.message] };
+
+      return { steered: true, problems: [] };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return { steered: false, problems: [msg] };
+    }
+  });

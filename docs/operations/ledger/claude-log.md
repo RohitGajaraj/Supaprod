@@ -1449,3 +1449,451 @@ differ by exactly one class each way (`gap-mrd-4` against `gap-mrd-3`) would fai
 if a future `compact` took anything else away. "Both are 13px" would not.
 
 **14 tests. Gates green on the merged tree.**
+
+## Claude lane · LANDED · 2026-08-20 03:50
+
+**`steerTrack` exists, so the steer path is complete end to end for every
+station.** `spine/track.functions.ts`, beside `startTrack`, `advanceTrack`,
+`retryStation` and `setStationWaiver`, which is where a track verb belongs.
+
+**The chain, all three parts now present:**
+
+    steerTrack        writes a row addressed to a track   <- this
+    agent_messages    carries track_id                    <- 20260820032000
+    loop.server.ts    reads it when there is no mission   <- 03:25
+
+**A track is the address, not an agent, and that is the design decision.** No
+`to_agent_id`, no `to_agent_slug`. `steerStudioSession` hardcodes `"builder"`,
+which is right for Build because Build has one agent. **A track's station changes
+as the work moves**, so naming an agent would address the message to whoever
+happened to hold it when the person started typing. The loop matches on
+`track_id` and `kind`, so it reaches whoever is working the track when it is
+read.
+
+**The RLS read is the authorization, deliberately.** The track is fetched through
+the caller's own client, so a track they cannot see returns the same "could not
+be found" as an id that is genuinely absent. It leaks nothing about whether the
+id exists, and it is the same idiom `setStationWaiver` beside it already uses.
+
+**2000 characters because that is what the loop injects.** `loop.server.ts`
+slices to 2000 before appending. Accepting more would take text the product
+silently discards, and a person whose last sentence vanished has been lied to by
+a form.
+
+**A finished track refuses the steer** rather than accepting a row nobody will
+read. An unconsumed steer on a stopped track is not harmful, it is permanently
+pending, and someone who typed it is entitled to know it landed nowhere.
+Statuses verified in both places rather than guessed: the type says
+`"open" | "done" | "abandoned"` and production holds 43 open and 1 done, so the
+guard is live rather than dead.
+
+**On the thing I deferred this for.** I stopped the previous slice short saying a
+public server function that injects a person's words into a running agent
+deserved its own thought about who may steer what. Having had it: three bounds
+hold it, and none is sufficient alone. The caller is authenticated. RLS has
+already agreed they may see this track. And the loop appends the text under an
+explicit "Operator steering" label as a `user` turn rather than blending it into
+the system prompt, so the model is told what it is reading. **What this is not is
+a way to reach a track you could not otherwise read.**
+
+**Gates:** tsc clean, 9,832 pass / 0 fail across 582 files, build ok.
+
+**Criterion 11, stated exactly.** The mechanism now works for all seven stations
+and I can say that because each part is verified rather than assumed. **No user
+has steered anything, because there is no control to press** -- that is a
+component and it is Kiro's. The criterion reads "stations that ACCEPT a steer",
+and all seven now do.
+
+## K-83 · VERIFIED · 2026-08-20 04:00
+
+**The duration fix, measured in the running app against the numbers I filed:**
+
+    before   6h 12m 41s   40px wide, 52px tall, 3 lines   (in the clock column)
+    after    6h 12m 41s   68px wide, 17px tall, 1 line
+
+**Every duration in the component is now one line**, and the clock column is still
+40px because it now holds a wall clock and nothing else. That is the fix I asked
+for, done the way I hoped rather than by letting the column grow: the column was
+sized for a clock, so the thing that is not a clock left.
+
+**The rhythm improved as a side effect and it is worth recording.** RunTimeline's
+dominant row height is now **17px across 37 rows**, against 29px with **13
+distinct heights** when I measured it earlier tonight. ToolStream is 17px across
+142 rows, against a bimodal 44/28 split. Two of the four components are now on
+one row height, which is the thing that made them read as three products.
+
+**I confirmed the hardest claim independently, and it is the one that would have
+been easiest to fake.** The entry says `station:decide` measures +1.00 across and
+is deliberately NOT corrected, because its diamond spans 5..19 and the whole
+offset is a 2-unit stub drawing the chosen branch leaving to the right. I swept
+`getBBox` over every 24x24 mark in the rendered gallery without looking at its
+numbers first, and found a mark at **`offX: 1.00`, span `5.00..21.00`**. That is
+that mark, at that offset, with exactly the geometry it described.
+
+**And its refusal to "fix" it is right.** The eye centres a mark on its BODY.
+Obeying the bounding box would shift a symmetric diamond a unit left to
+compensate for a tail, and it would then sit visibly wrong beside the marks whose
+bodies are centred. **A measurement that disagrees with the rule it was taken to
+serve is a measurement to explain, not to obey** -- that sentence is the best
+thing in the entry and it is a rule worth keeping.
+
+**The finding inside my finding.** I reported optical alignment. It measured all
+thirteen marks, found eleven within 0.18px at 14px, and found that the one real
+outlier was not misaligned so much as **not a drawing of anything**: the "wrench"
+was a loop, a lump and a stub with no jaw and no handle, three grey marks at
+14px. **It is the placeholder failure hiding inside the set built to remove
+placeholders**, and it survived because it had a plausible comment above it while
+`[]` and `H` did not. Four replacements were drawn and rendered at three sizes on
+both grounds before one was chosen on measured criteria.
+
+**On the method.** The entry says this could not be tested because happy-dom lays
+nothing out and implements no `getBBox`, so it measured in a real browser rather
+than asserting an intention. That is correct and it is the same reason I verify
+here rather than in the suite. **A test that cannot see the thing it is about is
+worse than no test**, because it reports green about a question it never asked.
+
+## Claude lane · RULED · 2026-08-20 04:20
+
+**The trust score's eval leg is decided and wired. Seven dimensions compose as
+`mean(quality) x (1 - max(risk))`, and rows judged before this morning do not
+count.** This was the item the queue reserved for me as "a product decision about
+what agent quality means, not a rename".
+
+**What was actually wrong was worse than dead.** The leg selected
+`ai_evals.ai_event_id` and `.score`. Neither column exists -- the key is
+`event_id` and there is no `score`, only the seven dimensions. So the filter
+matched nothing, `evals_total` was always 0, and `shrink(0, 0)` returned `PRIOR`
+exactly.
+
+**That is not a neutral failure. `PRIOR` is 0.5 and the leg carries 0.2, so it
+was a flat +0.10 on every agent, always.** An agent whose other three legs sum to
+0.65 displayed 75, and `suggestArc` calls 75 **"trusted"**. Agents have been
+graduating on a constant, and the constant was generous.
+
+**THE COMPOSITION, and the two choices that decide it.**
+
+The seven are two kinds of question, so averaging them together is a category
+error: `groundedness`, `relevance`, `coherence` are quality, higher better;
+`hallucination_score`, `toxicity`, `pii_risk`, `prompt_injection_risk` are risk,
+lower better.
+
+1. **Quality is a mean. Risk is a MAX.** Risks are not fungible. A response with
+   `pii_risk` 0.9 and `toxicity` 0 is not "average risk 0.45", it is a response
+   that leaked personal data. The worst one is the one that matters, which is the
+   same reasoning `toolRisk` uses when it fails closed.
+2. **They multiply rather than average.** Averaged, three good quality scores
+   wash out one serious safety failure: a seven-way mean of a maximally toxic but
+   well-written answer is **0.857**, which reads as a good agent. Multiplied it is
+   **0**. **A trust score that can be talked out of a safety failure by good
+   prose is not a trust score.**
+
+**A dimension nobody scored is ignored, not assumed.** `prompt_injection_risk` is
+NULL in all 77 rows. Null as 0 would claim a safety nobody measured; null as 1
+would zero every row for a column the judge never returned. Skipped, and the
+scored ones decide -- the same shape as `unknown` not counting as terminal. A row
+with no quality dimension at all returns `null` and contributes nothing, because
+0 is a damning number an unjudged row has not earned.
+
+**AND THE PART I ONLY FOUND BY CHECKING MY OWN CHANGE AGAINST PRODUCTION.**
+
+Before shipping I ran the formula over the real rows. Result:
+
+    mean quality        0.892
+    mean worst risk     0.853
+    mean eval score     0.119     against the 0.5 the frozen leg gave
+    rows scoring worse than frozen:  77 of 77
+
+**Every agent with evals would have collapsed**, and not because of anything the
+agents did. `worstRisk` is 0.853 because `hallucination_score` is stored on the
+inverted polarity -- the contradictory prompt I fixed this morning in
+`eval-tick.ts`. Quality 0.892 and "hallucination" 0.853 are the same number
+twice, once inverted.
+
+**So the rows judged under the old contract are not counted.**
+`judgedUnderCurrentContract` refuses anything written before 2026-08-20. Scoring
+them under the corrected rules would not measure those agents, it would measure
+the bug, and an operator watching an agent fall from trusted to observing
+overnight would be looking at a prompt fix. The rows are not deleted and not
+rewritten: they stay as the record of what was judged, under the contract that
+judged them. **They are simply not evidence about agent quality.**
+
+**CONSEQUENCE, STATED PLAINLY SO NOBODY READS THIS AS FINISHED.** The eval leg
+now contributes nothing until the tick runs again under the corrected prompt.
+`shrink` holds it at PRIOR meanwhile -- which is exactly where it has been all
+along. **The difference is that it is now waiting for evidence rather than
+pretending to have it**, and it will move the moment real evidence exists. The
+tick last succeeded on 2026-07-23; restarting it is separate work and is the next
+thing this leg needs.
+
+**16 tests**, and they pin the decisions rather than the arithmetic, including
+one whose whole job is to fail if someone deletes the cutoff to "make the eval
+leg finally do something".
+
+## Claude lane · LANDED · 2026-08-20 04:35 · diagnosis, no code
+
+**`cron.eval-tick` did not degrade. It stopped dead on 2026-08-05 and the rest of
+the tick layer never noticed.** The register carried this as OPEN with one line;
+here is what it actually is.
+
+**Established, each from production:**
+
+| | |
+| --- | --- |
+| The cron job exists and is **active** | `cron.job` jobid 40, `cadence-eval-tick`, `*/30 * * * *` |
+| It ran **1,609 times successfully** | `job_runs` where `job_name = 'cron.eval-tick'`, status ok |
+| Plus 3 timeouts, all `RunNeverFinished` | latest 2026-08-05 07:00 |
+| **Last run of any status: 2026-08-05 12:30** | fourteen days ago |
+| **The tick layer itself is alive** | newest `job_runs` row of ANY kind is **2026-08-19 23:02**, tonight |
+
+**So this is not the tick layer failing, and it is not auth.** Other ticks
+authenticate and record runs hours ago. `cron.eval-tick` alone has produced
+nothing for two weeks while marked active on a thirty-minute schedule.
+
+**And it is not "firing but finding nothing to do".** The `judged: 0` early
+return sits INSIDE `withJobRun` (`eval-tick.ts:190`, wrapper opens at `:175`), so
+a run with no candidates still writes a row. **No row means no run.**
+
+**What I could not establish, and why it matters that I say so.** The query that
+separates "pg_cron is not firing it" from "it fires and the request never
+arrives" is `select max(start_time) from cron.job_run_details where jobid = 40`.
+**`cron.job_run_details` times out through the Lovable MCP on every form I
+tried** -- aggregate, time-bounded, and bare `limit 5` alike. `job_runs` holds
+**310,112 rows** and the cron table is larger.
+
+**That unqueryability is itself the finding.** This has sat OPEN in the register
+since 2026-08-19 and dormant since 2026-08-05, and the reason nobody diagnosed it
+is that the table holding the answer cannot be read from the tool everyone uses.
+The audit already recorded the adjacent shape: **`job_runs` and `error_events`
+are readable only from `/admin`**, and "dormant and deliberately-off are
+indistinguishable".
+
+**Consequence for the work I just did.** The trust score's eval leg now waits for
+rows judged under the corrected prompt. **No such row can appear while this tick
+is dormant**, so the leg stays at PRIOR indefinitely rather than briefly. The
+composition is right and it is fed by nothing.
+
+**The next step needs `psql` or admin access rather than the MCP**, and it is one
+query. Recording it here so whoever has that access does not have to re-derive
+the question:
+
+    select jobid, status, start_time, return_message
+      from cron.job_run_details
+     where jobid = 40 order by start_time desc limit 5;
+
+Recent rows with a non-succeeded status means the request is failing and the
+endpoint's pre-`withJobRun` auth return is hiding it. **No recent rows at all
+means pg_cron stopped dispatching a job it still reports as active**, which is a
+different and worse problem, and the one the `liveness-tick` watchdog was
+supposed to catch -- except the register also records that `liveness-tick` is
+itself absent from the watchdog manifest.
+
+## Claude lane · LANDED · 2026-08-20 04:45 · §10 re-measured, and a correction to my own record
+
+**FIRST, THE CORRECTION, because it falsifies something I wrote four hours ago.**
+
+My migration `20260820013000` says of the futile `cluster.trigger` approvals:
+*"K-11 is what actually closes it ... this migration is safe to run only because
+that is already true."* **It is not true, and the queue refilled while I was
+working.** Measured now: **3 new pending `cluster.trigger` approvals**, created
+between 20:20 and 21:20 UTC, which is **after** K-11 landed and after I verified
+it.
+
+**The mechanism is the deploy boundary and I should have accounted for it.**
+`AGENTS.md:98`: *"Pushing does not deploy. The founder must click publish in
+Lovable for app code to go live. Database migrations applied through Lovable are
+live immediately; everything else waits on his publish."*
+
+So my cancellation was a **database write** and took effect instantly. K-11's
+catalogue is **application code** and is not running in production. The deployed
+app still has `toolRisk('cluster.trigger')` failing closed to `high`, still
+demotes it to `confirm`, and still queues an approval every time. **I verified
+K-11 by reading the repo and executing it locally, which proved it correct and
+proved nothing about production.**
+
+This repo already has the rule for the other direction -- *"committed SQL is not
+applied SQL"* -- and this is its twin: **committed TypeScript is not deployed
+TypeScript.** I will not clear the backlog again until the code behind it is
+live, because clearing it before the cause is deployed is precisely what produced
+round two on 2026-08-03 and round three tonight.
+
+**THE HEADLINE FOR THE MORNING, and it applies to everything, not just this.**
+Every piece of code Kiro and I landed tonight is on `main` and **not live**. The
+five migrations ARE live, because migrations apply immediately. So production is
+currently running **tonight's schema against last week's code**. Nothing about
+that is broken -- every migration is additive and nothing existing reads the new
+columns -- but the fixes do not take effect until a publish.
+
+---
+
+**§10 RE-MEASURED, 2026-08-20 04:45. Every figure is a query, not a recollection.**
+
+| # | Criterion | Was | Now | Note |
+| --- | --- | --- | --- | --- |
+| 1 | Pending approvals | 53 | **31** | 25 futile ones cancelled; 3 came back undeployed |
+| 3 | Raised then never decided | 130 | **66** | |
+| 4 | Oldest pending | 627h | **633h** | 0 past expiry, but only because of a manual re-arm that lapses in late September |
+| 5 | Decisions carrying a forecast | "1 of 304" | **0 of 55 real** | K-13 gave `decision.record` the fields; no real decision has been made since |
+| 6 | Forecasts resolved by the product | 0 | **0** | all 91 resolutions remain seeded, none agent-attributed |
+| 8 | Missions at `proposed` past 24h | 66% | **65.9%** (230/349) | unmoved |
+| 9 | Agent runs clean | 38% | **38.2%** (676/1771) | unmoved |
+| 10 | Runs stopped by a user | 0, impossible | **0, now possible** | writer, guard and loop poll all landed; no control to press |
+| 11 | Stations accepting a steer | 1 of 7 | **7 of 7 by mechanism**, 0 used | `track_id` + reader + `steerTrack` landed; no control |
+| 16 | `agent_runs.status` spellings | 6 | **6** | K-12 landed the vocabulary; nothing consumes it yet by design |
+| 18 | `--mrd-agent` vs `--mrd-you` | 59 vs 97 | **86 vs 129** | ratio 0.61 to 0.67, so closing, slowly |
+| 19 | Ratchet total | 5,864 | **5,864** | never higher, which is the whole criterion |
+
+**What the table says honestly.** Three criteria moved because I changed data
+(1, 3). Two moved from impossible to possible because I built mechanism
+(10, 11). Two are unmoved because their fix is code that is not deployed (5, 16).
+Two are unmoved because nothing has addressed them (8, 9). **Not one criterion
+has been met.** Criterion 1 is the closest and it needs the deploy plus the
+`memory.promote` and `backlog.prioritize` policy, which is another 14 rows.
+
+**Criteria 2, 7, 12, 13, 14, 15, 17 not re-measured this tick** -- each needs
+either a query I could not run (the cron and ops tables time out through the MCP,
+see 04:35) or a code sweep rather than a database read. Naming them rather than
+leaving the table looking complete.
+
+## Claude lane · LANDED · 2026-08-20 04:55 · two more §10 criteria measured
+
+Finishing two of the seven I named as unmeasured at 04:45, rather than leaving
+the drift record with holes I had already flagged.
+
+**Criterion 17 is MET, and it is the first one that is.**
+*"Agents with a duplicate display name at one station: 2 -> 0."* Measured across
+all 283 agent rows: **0 duplicate names within a workspace, 0 agents involved.**
+Whatever fixed it, it is fixed.
+
+**Criterion 2 is worse than the register recorded, and the method is why.**
+*"Approvals raised for reversible+internal tools: 87 -> 0."* I ran K-10's
+`resolveApprovalPolicy` over **every tool that has ever raised an approval**,
+weighted by how many each raised:
+
+    approvals ever raised          316
+    raised for a never-ask tool    158      <- 50%
+    register's figure               87
+
+**Half of every approval this product has ever raised should never have been
+raised.** Not half of the pending ones -- half of all 316, across the whole
+history.
+
+Twelve tools account for it, and the tail matters as much as the head:
+
+    cluster.trigger 84 · backlog.prioritize 14 · studio.stage 13 · tasks.create 8
+    prd.draft 7 · memory.promote 7 · ci.logs 7 · mission.finalize 7
+    memory.remember 7 · notes.create 2 · signals.log 1 · decision.revise 1
+
+`ci.logs` and `signals.log` are the ones worth pausing on: **a person was asked to
+authorise reading a log file.** That is the shape the register calls "policy
+outruns permission", and it is what the 93%-approval-rate finding predicts --
+a queue mostly made of questions with only one sensible answer teaches people to
+stop reading it.
+
+**Why my number is bigger than 87 rather than smaller.** The register counted
+tools it judged reversible and internal by hand. This counts whatever the shipped
+policy says, weighted by volume, which is the number that will actually change
+when the policy is wired in. **Neither is wrong; mine is the one that predicts
+the outcome**, because it is computed by the code that will decide it.
+
+**Criterion 2 also cannot move until the deploy.** Same boundary as everything
+else tonight: `resolveApprovalPolicy` is a pure module with no consumer, so it
+currently decides nothing. Wiring it into the approval path is the change that
+turns 158 into 0, and it is not written yet.
+
+**Still unmeasured, and named again rather than quietly dropped:** 7 (a resolved
+forecast changing a rank), 12 (tick failures visible to a non-admin), 13
+(tick-written tables with no reader), 14 (digest reach), 15 (routes with zero
+inbound links). Each needs either the ops tables that time out through the MCP or
+a code sweep rather than a query.
+
+## Claude lane · RULED · 2026-08-20 05:00 · do not wire the approval policy for criterion 2
+
+**Correcting myself before acting, because I was about to do unnecessary surgery
+on a chain of founder rulings.**
+
+At 04:55 I wrote that "wiring `resolveApprovalPolicy` into the approval path is
+the change that turns 158 into 0". **That is wrong. K-11 already does it, and the
+existing chain already has the branch.**
+
+I opened `loop.server.ts:170-215` intending to plug the policy in, and stopped
+because every branch in it cites a specific ruling -- the 2026-07-08 build-lane
+carve-out, SEAM-2's bounded fix appender, the `studio.pr.merge` trust-graduated
+ship, the contract-approval lift. **Replacing that chain would overturn four
+rulings at once, at five in the morning, with nobody awake to say I had
+misread one.** So I measured instead of cutting.
+
+**Ran `toolRisk` over all twelve tools that account for the 158:**
+
+    cluster.trigger 84 · backlog.prioritize 14 · studio.stage 13 · tasks.create 8
+    prd.draft 7 · memory.promote 7 · ci.logs 7 · mission.finalize 7
+    memory.remember 7 · notes.create 2 · signals.log 1 · decision.revise 1
+
+**Every one returns `low`.** And `loop.server.ts:200` already reads:
+
+    } else if (mode === "confirm" && toolRisk(toolName) === "low") {
+      mode = "auto";
+
+So all 158 flip on their own the moment K-11's catalogue is deployed. **158 of
+158 fixed by a table, 0 needing a code change.**
+
+**THE RULING: do not wire `resolveApprovalPolicy` into the gating chain for this
+criterion.** There is nothing for it to fix there. Anyone reading criterion 2 and
+reaching for that module is about to rewrite four rulings to achieve what one
+already-merged data change achieves on publish.
+
+**What K-10's module is still for, so it does not read as wasted.** Its own entry
+was precise about this and I under-read it: the value is **the default for a tool
+nobody has catalogued**, and the `disabled` state, which nothing anywhere
+resolves. Those are real and neither is criterion 2. It stays unconsumed until
+something needs a default, which is the correct state for it rather than a gap.
+
+**So criterion 2's entire remaining dependency is the publish.** Same as
+criterion 1's remainder, same as 16, same as the `cluster.trigger` recurrence.
+**Four separate criteria are now waiting on one button**, which is worth stating
+plainly: the highest-value action available on this repo right now is not more
+code.
+
+## Claude lane · LANDED · 2026-08-20 05:10 · criterion 15 met, criterion 13 needs a better instrument
+
+**Criterion 15 is MET. Second one that is.**
+*"Routes with zero inbound links: 6 -> 0."* Swept 73 static authenticated routes
+against 1,749 source files: **0 with no inbound link.**
+
+**And the first version of that sweep was wrong, which is worth recording because
+it produced the right answer for the wrong reason.** My shell loop mangled the
+path substitution and lost `wc` and `tr` inside a subshell, so it printed nothing
+-- and nothing looks exactly like "no orphans found". I only caught it by asking
+the loop how many routes it had examined. **An empty result from a broken query
+is indistinguishable from a clean result**, and this is the fourth measurement
+error of the night, all the same shape. Redone in Python, where the instrument
+reports its own sample size: 73 routes, 1,749 files.
+
+Exclusions stated so the number is checkable: dynamic `$param` routes are
+excluded, because they are linked through builders rather than as literal
+strings, and a literal-string sweep would report every one as an orphan.
+
+**Criterion 13 I am NOT claiming, and the reason is the instrument again.**
+*"Tick-written tables with no reader: 9 -> 0."* A naive sweep says seven of the
+nine now have readers. **That sweep is too generous and I will not report its
+number**, because it counts two things that are not readers:
+
+- **a tick reading its own table.** `scout_runs`' only hit is `scout-tick.ts`,
+  which is its writer. A job reading its own rows to deduplicate is not a surface.
+- **generated types.** `insights.brier_score`'s hits are `types.ts`, which is
+  generated from the schema and mentions every column that exists, plus
+  `calibrate-insights.server.ts`, which is the thing that computes it.
+
+**Two are solid and both confirm the register rather than moving it:**
+
+    byok_fee_accrual        0 readers of any kind
+    insights.brier_score    no reader that is not its own writer or generated
+
+The register called `brier_score` "the sharpest of those" -- the calibration
+number the forecast thesis rests on, computed nightly, rendered nowhere. **That
+is still exactly true.**
+
+**What a correct measurement needs**, so the next person does not repeat my
+first attempt: exclude the writer of each table, exclude
+`src/integrations/supabase/types.ts`, and require the reader to be reachable from
+a route rather than merely to exist. That is a real piece of work rather than a
+grep, which is presumably why the number has stood since the audit.
