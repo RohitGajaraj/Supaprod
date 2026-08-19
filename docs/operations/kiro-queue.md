@@ -1971,6 +1971,17 @@ It also happens to be the primitive the direction already asked for. [`../planni
 
 **Owns.** `src/components/meridian/Flowchart.tsx`, `src/components/meridian/__tests__/flowchart.test.tsx`, `src/routes/_authenticated.meridian.tsx`
 
+> **Rebase note, 2026-08-20 02:55. `src/styles/meridian.css` moved twice under you and you are editing it.**
+>
+> Announced rather than left to a conflict, per §1's rule. Your worktree is six commits behind `origin/main` and both of these are in that gap:
+>
+> 1. **A ground now sets `color: var(--mrd-ink)`, in both blocks** (`1c5f8946`). This is the fix for glyphs measuring **1.00 contrast on paper** -- 65 of them were painting white on white, because entering `[data-theme="light"]` re-declared every token and never re-bound the `color` property, so every `currentColor` glyph inherited the dark ground's ink. **Your Flowchart's connectors and node text read `currentColor` too**, so this is the line that makes them visible on paper; do not remove it, and do not paint around it.
+> 2. **Twenty status-chip tokens** (`485a18e4`), `--mrd-{status}-chip` and `--mrd-{status}-on-chip` in both grounds, plus their `@theme inline` bindings. Additive only; nothing existing changed.
+>
+> Both are additions near the top of each block, so a rebase should apply cleanly. **If it conflicts, keep both sides** -- neither touches a token you would be adding for the violet canvas ground.
+>
+> And the standing constraint from that work still holds for your ground token: **it must not be `--mrd-you`**. That hue means "a person is required" and a canvas background means nothing.
+
 ---
 
 **K-81 · `AgentPulse` keeps its azure and loses the brand mark**
