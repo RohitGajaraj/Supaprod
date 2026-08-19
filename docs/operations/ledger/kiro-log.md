@@ -1059,3 +1059,82 @@ Ratchet total unchanged.
 
 **Owed and still yours:** the visual pass. A graph is the component where I am least able to tell
 whether it looks right from the markup, and the 40-node case in particular.
+
+---
+
+## K-81 · QUESTION · 2026-08-20 00:56
+
+**I have not built this, and it is not because the defect is imaginary. The defect is real and it is
+in a different file from the one the item names.**
+
+**Every one of K-81's four acceptance criteria is already met by `LoadingState.tsx` today**, before
+any change by me. Checked line by line against the file:
+
+| Criterion | `LoadingState.tsx` today |
+| --- | --- |
+| Cells monochrome, 4x4, 1px radius, both grounds | `size-[4px] bg-mrd-ink`, `rounded-[1px]` (or `rounded-full` for Dots), opacity 0.07/0.15. **Already ink, not azure.** |
+| Label and elapsed on two ladder stops | `text-[13px] font-medium` label, `text-[12px]` mono elapsed. **Already two stops**, both on the ladder |
+| Three variants, switchable | `LoadingVariant = "Drive" \| "Dots" \| "Orbit"`, and `Surfer` was already skipped |
+| The brand-mark loader is gone from `LoadingState` | **There has never been one in that file.** It has no `glyph` prop |
+
+**The component the item actually describes is `AgentPulse.tsx`**, and there the description is exact:
+
+- `AgentPulse.tsx:142` draws the same 3x3 lattice with `bg-mrd-agent`. **Azure**, as the item says.
+- `AgentPulse.tsx:226` sets the label to `text-mrd-body`, **14px**, as the item says.
+- It has **one** motion pattern, the chevron borrowed from Drive. "Variants: one", as the item says.
+- It takes `glyph="mark" | "grid"`, and **the mark is the brand asterisk.** The gallery's "Agent at
+  work, two marks" panel renders four `AgentPulse`, two of them `glyph="mark"`.
+
+So the item's table is right about the product and wrong about the file. `AgentPulse.tsx` is not in
+K-81's `Owns`.
+
+**## Why I did not simply fix `AgentPulse` anyway: two recorded rulings contradict each other, and
+the citation for the newer one is not where the item says it is.**
+
+1. **`AgentPulse.tsx` argues for its azure in writing, and says it is not a preference:** *"`LoadingState`
+   reports a JOB running, which has no actor; this reports an AGENT running, and azure is the token
+   that says so. The same lattice in ink would be the generic loader wearing our spacing."* That is a
+   coherent argument and it is the exact distinction the two components exist to draw.
+2. **It also argues for keeping the brand mark, citing a standing ruling:** *"there is a standing
+   ruling that the thing a person watches while they wait should be the brand rather than a borrowed
+   spinner."*
+3. **K-81 says the opposite ruling is "already recorded in `DESIGN-SYSTEM.md`". It is not.**
+   `grep -i brand docs/design/DESIGN-SYSTEM.md` returns **nothing at all**. The nearest thing in the
+   design docs is `MERIDIAN-REFERENCE-PARITY.md:223`, "The brand mark is not the UI accent", which is
+   about the accent COLOUR and not about using the mark in an interaction state.
+
+**So the question is a founder decision and not a build one, which is why this is a QUESTION rather
+than a BUILT or a BLOCKED.** Three things need ruling, and any of them unblocks me:
+
+1. **Is the target `AgentPulse` rather than `LoadingState`?** I believe yes, on the evidence above.
+2. **Does azure leave `AgentPulse`?** If it does, the argument in that file has to be overturned in
+   the file, not silently painted over, because it is the only written record of why the two
+   components differ. And if `AgentPulse` goes to ink it becomes visually identical to
+   `LoadingState` plus a rotating word, which raises whether they should be two components at all.
+3. **Does the brand asterisk leave the interaction state?** The item states this as an outright
+   founder ruling and I have no reason to doubt the ruling itself, only its citation. **I did not
+   remove it from the gallery either**, although the gallery IS in K-81's `Owns`, because removing it
+   there enacts the contested half while leaving `AgentPulse`'s `glyph="mark"` prop in place, which
+   would be the worst of the three outcomes: the ruling half-applied and the record still arguing
+   against it.
+
+**Noticed.** Three, and the last one changes what "fix it" costs.
+
+1. **The item's reference table is right about the reference and one figure is a red herring.** It
+   gives the cell fill as `rgb(242,243,244)`, which is what `getComputedStyle` returns for the
+   rendered result. The source is `bg-ink` at 0.15 opacity, so a literal rgb would be **wrong on
+   paper**: the mechanism has to be a token at low opacity, which is what `LoadingState` already
+   does. I read the reference's real source for this, the same way I did for K-80, and it confirms
+   `bg-ink` plus opacity, `grid-cols-[repeat(3,4px)] gap-[1.5px]`, `pixel-on {dur}ms ease-in-out
+   {delay}ms infinite`, and delays of `(c + |r - 1|) * 90` with `ORBIT_ORDER = [0,1,2,5,8,7,6,3]` at
+   110ms. Every one of those already matches `LoadingState.tsx` exactly.
+2. **`Surfer` is genuinely a fourth variant in the reference** and it pairs the Drive loader with a
+   looping meme video from `/public`. Skipping it is obviously right and it is already skipped.
+3. **`AgentPulse` has five callers outside the gallery**: `studio/RunReturn.tsx`,
+   `discover/OpportunityDetailSheet.tsx`, `ask/AskPane.tsx`, `spine/TrackActivity.tsx`,
+   `shell/CrewWorking.tsx`. None of them passes `glyph`, so all five take the default. **Whichever
+   default it is, that is what five live surfaces show**, which is the "every surface that shows work
+   in flight inherits it" cost the item is right about. It also means the change is one line if the
+   ruling lands, and that is worth knowing before anyone schedules it as an M.
+
+**Moving to K-82**, third on the jump list. Nothing here is blocked on me.
