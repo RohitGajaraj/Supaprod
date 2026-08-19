@@ -91,6 +91,42 @@ Two agents build this repo at once and they have **different capabilities**, so 
 
 **Most of this queue is not user-visible at all** — Meridian components land in the gallery before they are wired, deletions change no rendered output, pure modules have no surface, tests have no surface. The flag rule bites on the route ports (**K-47 to K-59**) and on anything that changes a shipped screen.
 
+### Running both agents at once
+
+**Yes, both can run simultaneously. Three rules make it safe, and one of them is not obvious.**
+
+**1. Different folders. Non-negotiable.**
+Two agents in one working tree race each other's file writes and neither can tell. Kiro works in one checkout, Claude in another. Same repo, same branch lineage, **different directories on disk.** This is the only rule with no exception.
+
+**2. Most of Claude's parallel work does not touch the repo at all.**
+This is the part that makes concurrency workable, and it is easy to miss. Verification means **querying production and reading code** — read-only. Claude's actual writes during a build cycle are:
+
+- **migrations**, which are new files and can never conflict
+- **verdicts in §3 Build log**, which are appends
+- **docs**, which Kiro does not own
+
+So the collision surface is far smaller than the file lists suggest.
+
+**3. Three files are genuinely contested. Each has a rule.**
+
+| File | Owned by | Rule |
+| --- | --- | --- |
+| **`src/__tests__/meridian-ratchet.baseline.json`** | **33 items** | **Never hand-merge it. Ever.** It is generated. On any conflict, take either side, then run `bun run design:ratchet` and commit what it produces. Regenerating is always correct; merging generated JSON by hand is always wrong |
+| **`src/routes/_authenticated.meridian.tsx`** | **13 items** | **Append-only.** Every item adds its gallery section at the end and edits nothing above. A conflict here is two additions and resolves by keeping both |
+| **`src/styles/meridian.css`** | 6 items | **One item at a time.** Token additions are small and sequential; do not start a second meridian.css item while one is `IN PROGRESS` |
+
+**And the protocol for this file**, which both agents write to constantly:
+
+- **Kiro** edits its own item's `STATUS`, and **appends** to §3 Build log. Nothing else.
+- **Claude** appends verdicts under those entries, and edits item bodies **only when the item is `TODO`** — never while it is `IN PROGRESS` or `BUILT`.
+- **Neither rewrites another agent's log entry.** Corrections go in a new entry that references the old one.
+
+**4. When Claude must touch a file Kiro's item owns.**
+It happens — an urgent fix, a founder ruling landing mid-build. The rule is **announce, do not surprise**: Claude adds a `> **Rebase note.**` line to that item saying what changed and that it is safe to pull. This has already happened once, on **K-02**, when the illustration ban was lifted and `surface-parts.tsx` needed a comment change.
+
+**5. Pull before you start an item, and push when it is green.**
+A branch cut from a stale `main` is how a merge conflict becomes a merge problem. Both agents pull first, commit small, and push often.
+
 ### What Claude is doing while you build
 
 So you know what is covered and do not attempt it:
