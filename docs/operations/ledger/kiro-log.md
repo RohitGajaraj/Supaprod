@@ -777,3 +777,95 @@ chip utilities reach the built stylesheet as `background-color:var(--mrd-<status
 `color:var(--mrd-<status>-on-chip)`. Ratchet total unchanged.
 
 **Still owed and still yours:** the visual pass in both grounds. I have not seen any of this.
+
+---
+
+## K-10 · BUILT · 2026-08-20 00:33
+
+**Did.** Built `src/lib/ai/approval-policy.ts`, a pure `resolveApprovalPolicy(input) => {decision,
+reason}` over `never-ask | earn-it | always-human | disabled`, with a 32-test suite. It reads the two
+axes off `tool-consequences.ts` and the never-graduates set off `trust-ramp.ts` rather than restating
+either.
+
+**Two of the three rules already existed, which the item did not say.** This is the correction worth
+having:
+
+- **`trust-ramp.ts` owns the ladder and the never-graduates set.** `HIGH_RISK_FORCE_REVIEW` is the
+  existing name for "always-human", and that module's whole design is that promotion "never silently
+  flips: the proposal is itself an approval item". So rule 1 and rule 3 have a home, and this module
+  reads that set rather than listing its four members again. Two lists of what may never be
+  automated is one list too many.
+- **What genuinely did not exist** is the DEFAULT: what a tool's gate should be before anyone has any
+  record at all, derived from the catalogue. And nothing anywhere resolved `disabled`.
+
+**The specified matrix assumed reversibility was a boolean and it is not.** `Reversibility` is
+`reversible | irreversible | partial`, and `partial` is most of the catalogue: measured, the six
+cells hold 24 internal-reversible, 4 internal-partial, 2 internal-irreversible, 5 external-reversible,
+5 external-partial and 2 external-irreversible tools. Folded in:
+
+```
+                 reversible      partial          irreversible
+internal         never-ask       earn-it          always-human
+external         earn-it         always-human     always-human
+```
+
+That is the same shape `toolRisk` already folds the identical two axes into (low / medium / high),
+which is the point rather than a coincidence: a tool's gate and its stated blast radius must not be
+able to disagree, and they cannot if one is derived from the same table as the other.
+
+**One cell of the matrix is deliberately overridden, and I can name the tool it affects.** As
+written, internal-and-not-reversible resolved to `earn-it`. It resolves to `always-human` here,
+because governance names four floors no boundary may lower and the first is "anything irreversible
+from inside the product". The tool this actually changes is **`agent.spawn`**: internal,
+irreversible, and not in the force-review set. It starts several sub-agents at once, each already
+spending a split of the budget, so it cannot be earned away by a good record. `release.publish` is
+the other internal-irreversible tool and was already pinned.
+
+**Unsure.** Four.
+
+1. **`disabled` can override `always-human`, and that reads like a conflict with rule 1.** It is not:
+   graduating means getting LAXER, and switching a tool off is the strictest answer available. A gate
+   a person has refused every single time is a question whose answer is already known. I put a sample
+   floor on it, the same figure as the demotion threshold, because without one a single early refusal
+   on a consequential tool switches it off on the evidence of one afternoon.
+2. **`APPROVAL_DEMOTE_N` is 3**, and it is bounded rather than picked: more than one, because a single
+   refusal is a person changing their mind about one case; fewer than `TRUST_RAMP_CLEAN_N`, which is
+   5, or a tool could be promoted faster than it could ever be demoted and the asymmetry the whole
+   design rests on would run backwards.
+3. **An uncatalogued tool resolves `always-human`, which currently over-gates 17 registry tools**,
+   most of them plainly read-only. I mirrored `toolRisk`'s fail-closed behaviour rather than being
+   more permissive than the layer that enforces, and the returned reason blames the missing record
+   instead of inventing a consequence: "Nothing is written down about what this changes". **K-11 is
+   the fix.** A test pins the wording so it cannot quietly become a fabricated consequence.
+4. **The invariant is asserted over an exhaustive sweep**, 8 tools by 6 approved by 6 rejected by 6
+   streaks, rather than only on the branches I thought to write. The property is that a record may
+   only make the answer STRICTER, which is "demotion is automatic, promotion is not" expressed as
+   something a machine can check. `isNeverLaxerThanDefault` is exported so a caller wiring real
+   numbers can assert the same thing.
+
+**Noticed.** Three.
+
+1. **`cluster.trigger` is catalogued for LANGUAGE and, per K-11, uncatalogued for RISK.**
+   `toolActionLabel("cluster.trigger")` returns "clustering signals", so the vocabulary knows it,
+   while K-11's premise is that it has no `CONSEQUENCES` or `RISK_PROFILE` row and therefore fails
+   closed to `high`. If both hold, that is a more interesting defect than the item describes: the
+   tool the founder deliberately set to `auto` because it was 24 of 60 pending approvals is being
+   demoted back by a missing table row while reading perfectly well in the UI. I did not verify the
+   risk half; it is one grep for whoever takes K-11.
+2. **Purity is asserted against the import list and the call sites**, not just hoped for. The module's
+   value is that a policy can be reasoned about without production, and the way that stops being true
+   is one convenient import later. `tsc` cannot see the difference; the test can, and it also fails on
+   `Date.now(`, `Math.random(`, `await ` and `process.env`.
+3. **Both dependencies have zero imports of their own**, which is why this module can be pure at all.
+   `tool-consequences.ts` says "Client-safe" in its own header and `trust-ramp.ts` calls itself "the
+   PURE seam". That is two files deliberately built for this and neither had a consumer that needed
+   the purity until now.
+
+**Gates.** tsc clean · 9,570 pass / 0 fail / 23 skip across 575 files · build ok. New suite is 32
+tests. No migration, no production read, nothing wired.
+
+> **Claude does after:** supply real `{approved, rejected, consecutiveRejections}` per (agent, tool)
+> from `agent_approvals`, and check the resolved decisions against the 53 pending approvals. The
+> claim worth testing against production is the item's own: that only 26% of 313 approvals were for
+> something a human had to rule on. If this module agrees, it should classify roughly three quarters
+> of them as `never-ask` or `earn-it`.
