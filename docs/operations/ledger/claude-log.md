@@ -1628,3 +1628,61 @@ thing this leg needs.
 **16 tests**, and they pin the decisions rather than the arithmetic, including
 one whose whole job is to fail if someone deletes the cutoff to "make the eval
 leg finally do something".
+
+## Claude lane · LANDED · 2026-08-20 04:35 · diagnosis, no code
+
+**`cron.eval-tick` did not degrade. It stopped dead on 2026-08-05 and the rest of
+the tick layer never noticed.** The register carried this as OPEN with one line;
+here is what it actually is.
+
+**Established, each from production:**
+
+| | |
+| --- | --- |
+| The cron job exists and is **active** | `cron.job` jobid 40, `cadence-eval-tick`, `*/30 * * * *` |
+| It ran **1,609 times successfully** | `job_runs` where `job_name = 'cron.eval-tick'`, status ok |
+| Plus 3 timeouts, all `RunNeverFinished` | latest 2026-08-05 07:00 |
+| **Last run of any status: 2026-08-05 12:30** | fourteen days ago |
+| **The tick layer itself is alive** | newest `job_runs` row of ANY kind is **2026-08-19 23:02**, tonight |
+
+**So this is not the tick layer failing, and it is not auth.** Other ticks
+authenticate and record runs hours ago. `cron.eval-tick` alone has produced
+nothing for two weeks while marked active on a thirty-minute schedule.
+
+**And it is not "firing but finding nothing to do".** The `judged: 0` early
+return sits INSIDE `withJobRun` (`eval-tick.ts:190`, wrapper opens at `:175`), so
+a run with no candidates still writes a row. **No row means no run.**
+
+**What I could not establish, and why it matters that I say so.** The query that
+separates "pg_cron is not firing it" from "it fires and the request never
+arrives" is `select max(start_time) from cron.job_run_details where jobid = 40`.
+**`cron.job_run_details` times out through the Lovable MCP on every form I
+tried** -- aggregate, time-bounded, and bare `limit 5` alike. `job_runs` holds
+**310,112 rows** and the cron table is larger.
+
+**That unqueryability is itself the finding.** This has sat OPEN in the register
+since 2026-08-19 and dormant since 2026-08-05, and the reason nobody diagnosed it
+is that the table holding the answer cannot be read from the tool everyone uses.
+The audit already recorded the adjacent shape: **`job_runs` and `error_events`
+are readable only from `/admin`**, and "dormant and deliberately-off are
+indistinguishable".
+
+**Consequence for the work I just did.** The trust score's eval leg now waits for
+rows judged under the corrected prompt. **No such row can appear while this tick
+is dormant**, so the leg stays at PRIOR indefinitely rather than briefly. The
+composition is right and it is fed by nothing.
+
+**The next step needs `psql` or admin access rather than the MCP**, and it is one
+query. Recording it here so whoever has that access does not have to re-derive
+the question:
+
+    select jobid, status, start_time, return_message
+      from cron.job_run_details
+     where jobid = 40 order by start_time desc limit 5;
+
+Recent rows with a non-succeeded status means the request is failing and the
+endpoint's pre-`withJobRun` auth return is hiding it. **No recent rows at all
+means pg_cron stopped dispatching a job it still reports as active**, which is a
+different and worse problem, and the one the `liveness-tick` watchdog was
+supposed to catch -- except the register also records that `liveness-tick` is
+itself absent from the watchdog manifest.
