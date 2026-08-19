@@ -1,3 +1,52 @@
+# ✅ SESSION CLOSED 2026-08-19 late — all seven demo accounts identical, ember@ is the spare
+
+**Database-only, plus one correction to `baseline.yml`.** Every `@supaprod.ai` demo account now
+looks the same to a reviewer. Verified: **0 orphaned decisions, 0 rows where a verdict predates
+its own horizon**, across all seven.
+
+| Per account | Value |
+| --- | --- |
+| Workspaces | **1** (explore@ and ember@ each had 2; a reviewer could have opened the empty one) |
+| Products | **2** - Relay and Prism |
+| Decisions | 19 to 20, every one attached to a product |
+| Forecasts | 19 to 20 |
+| Verdicts | **6 hit, 3 miss, 3 inconclusive** |
+| **In the due queue, awaiting a person** | **2** |
+
+## `ember@supaprod.ai` is the only unspent login, and `baseline.yml` was wrong about that
+
+`demo_logins.free` read `[voyage@supaprod.ai]` while the `filed:` block on the same page recorded
+voyage as handed to EF on 2026-08-18. **Two fields on one page disagreed and only the one nobody
+reads was right.** The next application would have sent an already-used login, and the rule at the
+top of that very block says what that costs: the second reviewer opens an emptied approval queue.
+**Corrected: voyage@ moved to `allocated` and marked SPENT, ember@ is now the sole `free` entry.**
+
+**ember@ was brought to standard in this session** and has never been signed into
+(`last_sign_in_at` NULL). It took five fixes: 12 orphaned decisions attached to Prism, a Relay
+product added with its 8 decisions and forecasts, Prism forecasts copied across by title, an
+**empty second workspace** removed, and an empty **Trellis** product deleted after checking it
+held nothing across ten tables. Its 25 signals and 11 opportunities were also orphaned, so both
+products would have opened onto empty discovery surfaces. **Natural allocation: a16z in October.**
+
+## Scope, deliberately narrow
+
+Only the seven `@supaprod.ai` accounts created 2026-07-22 and 2026-07-25 were touched.
+**Untouched and correctly so:** `demo@` and `demo2@redcadence.app` (4 June, Cadence-era, retired),
+`santacruzz656@`, `sanchhr@`, `infinitemuzic21@`, `saicruzz.tools@` (real signups),
+and the `rg_test@` / `sw7-verify` / `step0.rerun` test fixtures.
+
+## Still open
+
+- **`decision.record` has no forecast parameter** (lane-0's finding, queue item **K-13**). That is
+  WHY every workspace held zero forecasts: the tool agents are told to call cannot write one.
+  Today's seeding fixes the symptom in the demo accounts. K-13 is the actual fix.
+- **`docs:check` fails locally on gitignored files.** The widened `design-reference/` scan walks
+  untracked local exports (`.gitignore:198`). CI and a fresh clone pass; every local session
+  fails. Worth a one-line fix in whichever lane owns `docs-doctor.sh`.
+- **ember@ needs recording against a16z** in `demo_logins.allocated` when that application goes.
+
+---
+
 # ✅ DEMO WORKSPACES SEEDED 2026-08-19 evening — six accounts, now identical
 
 **Database-only work; nothing to commit for it.** Six demo accounts each now have ONE workspace,

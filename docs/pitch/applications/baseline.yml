@@ -597,7 +597,27 @@ demo_logins:
     lantern@supaprod.ai: Campus Founders (verified working 2026-08-16 11:25 IST)
     meridian@supaprod.ai: ikigai Launchpad (reserved)
     harbor@supaprod.ai: founder rehearsal, NEVER send
-  free: [voyage@supaprod.ai]
+    voyage@supaprod.ai: EF The Bridge SF, given inline in Q4 on 2026-08-18. SPENT.
+  # CORRECTED 2026-08-19. This read `free: [voyage@supaprod.ai]` while the `filed:`
+  # block on the same page recorded voyage as handed to EF. The next application
+  # would have sent an already-used login, and the rule at the top of this block
+  # says exactly what that costs: the second reviewer opens an emptied queue.
+  # Two fields on one page disagreed, and only the one nobody reads was right.
+  free: [ember@supaprod.ai]
+  ember_note: >-
+    ember@supaprod.ai is the ONLY unspent login. Created 2026-07-22 alongside the
+    others, never signed into (last_sign_in_at NULL as of 2026-08-19), and brought
+    to the same standard as the rest on 2026-08-19: one workspace, two products
+    (Relay + Prism), 20 decisions, 20 forecasts, 6 hit / 3 miss / 3 inconclusive,
+    2 sitting in the due queue. Natural allocation is a16z speedrun in October.
+
+  seeded_state_2026_08_19: >-
+    All seven demo accounts are now IDENTICAL: one workspace each, two products,
+    ~19 decisions, ~19 forecasts, 6 hit / 3 miss / 3 inconclusive, and 2 forecasts
+    sitting in the due queue awaiting a person. Zero orphaned decisions, zero rows
+    where a verdict predates its own horizon. Before this, `decisions_with_forecast`
+    was ZERO in every workspace, so the claim every application leads with was
+    invisible to any reviewer who signed in. Detail: session-handoff.md.
 
 vocabulary:
   banned_everywhere:
