@@ -14,7 +14,8 @@
 >
 > | | Why it jumps |
 > | --- | --- |
-> | **K-80 `Flowchart`** | The one component the reference ships and Meridian does not. Nothing here can draw a graph, so the Run Map the direction already specified cannot be built at all. |
+> | ~~K-80 `Flowchart`~~ | **VERIFIED 2026-08-20.** Built from the reference's real source; six of my measured figures were wrong and it corrected all six. |
+> | **K-85 `Flowchart` drag + violet ground** | The rescope K-80 predates. A graph you cannot rearrange is a picture. |
 > | **K-81 `AgentPulse`** | Removes the brand mark the founder ruled against, and pins the label to one type stop. **Its azure explicitly stays** -- see the item. |
 > | **K-82 `InsightCards` chart** | Third, and **it keeps its permission to be declined** — see the item. It is an addition to a tuned component rather than a primitive gap, so it jumps feature work but never at the cost of degrading what is there. |
 >
@@ -1932,9 +1933,7 @@ It also happens to be the primitive the direction already asked for. [`../planni
 - **Connectors are SVG paths, dominant stroke `1.8px`**, with `2.4px` used for the emphasised path. 16 paths in the reference's own example. No dashes.
 - **The ground is dotted**, not gridded and not plain.
 - **Two node kinds in the reference example**, `Trigger` and `If / Else`, the second being a branch with labelled outgoing edges. A small **60x28** pill carries the kind.
-- **It is interactive. Nodes drag, and the connectors follow.** *(Founder ruling 2026-08-20, overriding the original scope in this item, which said "a watching surface, not an editor. No drag, no connect, no delete." That was my reading of §6.3 and it was wrong: a graph you cannot rearrange is a picture, and a run map that cannot be untangled by the person reading it is not a map.)* Drag a node, the orthogonal connectors re-route and stay attached to their anchors. Still no authoring: no creating nodes, no drawing new edges, no delete.
-- **The ground is dotted AND carries a faint colour**, not neutral grey. Founder's call: a subtle violet cast, in both grounds. `--mrd-you` is the orchid hue at 315 and must **not** be reused here, because it means "a person is required" and a canvas background means nothing. This is a `--mrd-viz-*` or a new canvas token, argued in the file like any other, and measured in both grounds so the dots stay visible on paper without the wash reading as a status.
-- **The size moves from L to XL** with drag, and that is expected. If it needs to land in two commits, land the static graph first and say so in the log.
+- **Dragging and the violet ground moved to K-85**, because this item was built before that rescope existed and it built what it was given. See K-85.
 
 **The rules from §1 apply here harder than anywhere**, because this component has no existing sibling to copy rhythm from: fixed node width, one type ladder, connectors that meet nodes at a consistent anchor rather than wherever the maths lands.
 
@@ -1944,6 +1943,31 @@ It also happens to be the primitive the direction already asked for. [`../planni
 - No raw colour; connectors and ground draw from `--mrd-*` only.
 - Degrades sanely at 40 nodes and at 1 node.
 - `bunx tsc --noEmit`, `bun test`, `bun run build` clean; ratchet total unchanged.
+
+**Owns.** `src/components/meridian/Flowchart.tsx`, `src/components/meridian/__tests__/flowchart.test.tsx`, `src/routes/_authenticated.meridian.tsx`
+
+---
+
+**K-85 · `Flowchart` gains dragging and a violet ground**
+`STATUS: TODO` · deps: none · size: L · **PRIORITY: jump list, second**
+
+**What.** Make the nodes draggable with the connectors following, and give the dotted canvas a faint violet cast in both grounds.
+
+**Why.** Founder ruling 2026-08-20, overriding the original K-80 scope, which I had written as "a watching surface, not an editor. No drag." **He is right and my scope was wrong:** a graph you cannot rearrange is a picture, and a run map the reader cannot untangle is not a map. K-80 is `VERIFIED` and built correctly to the item as it stood; this is the rescope, filed separately rather than reopening a finished build.
+
+**How.**
+
+- **Port the drag from the reference's source, not from its behaviour.** K-80 established that the full TypeScript is embedded in beautifului.dev's own document -- searching that page for `FLOWCHART — an agent workflow` returns it, and `Flowchart.tsx`'s provenance note records how to re-fetch. **That source is the port target.** K-80 proved the cost of measuring the rendered page instead: six of the figures I measured that way were wrong.
+- **Connectors re-route live and stay on their anchors.** `PILL_OFFSET = 30` already puts a node's top anchor 30px below its top edge; dragging must respect it or every edge detaches on the first move.
+- **Still no authoring.** No creating nodes, no drawing edges, no delete. Dragging is how a reader untangles what is already there.
+- **The ground takes a faint violet cast and it must not be `--mrd-you`.** That token is the orchid at 315 and it means "a person is required". A canvas background means nothing, and a background wearing a status word is the exact failure the colour law exists to stop. Use `--mrd-viz-*` or argue a new canvas token in the file, measured in both grounds so the dots stay visible on paper without the wash reading as a status.
+
+**Acceptance.**
+- A node can be dragged and every connected edge follows without detaching from its anchor.
+- Dragging works in both grounds and does not fire on a keyboard-only path.
+- The ground reads as faintly violet in both grounds, and no status token paints it.
+- `prefers-reduced-motion` is honoured: dragging still works, it just does not animate.
+- The 27 existing tests pass unmodified. If one must change, say why in the log.
 
 **Owns.** `src/components/meridian/Flowchart.tsx`, `src/components/meridian/__tests__/flowchart.test.tsx`, `src/routes/_authenticated.meridian.tsx`
 

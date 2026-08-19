@@ -794,3 +794,227 @@ deferred** -- there is nothing here to come back to.
 **Both of these were my errors, found by the agent I was reviewing.** Recording
 that plainly because the queue's rule is that an item's `Why` is a proposal from
 someone who could have misread the code, and twice tonight that someone was me.
+
+## K-80 · VERIFIED · 2026-08-20 02:00
+
+**It found the reference's actual source and built to that instead of to my
+figures, and it was right to.** The founder's instruction was "there is already a
+codebase within beautifului.dev, you just need to literally copy it." I could not
+find it and measured the rendered result instead. Kiro found it embedded in the
+page. **Six of my figures were wrong, and every correction is in the right
+direction.**
+
+**Verified in the file and in the running app.**
+
+- `PILL_OFFSET = 30` at `:68`, consumed by the anchor at `:187`. **This is the
+  mechanic I missed entirely** and it is the one that makes the thing work: the
+  kind pill sits above the card inside the node's box, so a node's top anchor is
+  30px below its top edge. Without it every incoming connector stops in the air
+  beside the pill. That is my own item's "connectors meet nodes at a consistent
+  anchor" rule, already solved upstream, and I would have had it re-derived from
+  scratch.
+- Connectors are **cubic bezier at stroke 1.25**, confirmed rendered: the pane
+  reports `1.25px`. I specified orthogonal at 1.8 with 2.4 emphasis. Wrong on
+  shape, weight and emphasis mechanism -- the source changes colour, not weight.
+- Heights are **measured with a `ResizeObserver`** (`:148`), guarded for
+  happy-dom and jsdom, with first-paint estimates only. I gave 58 and 88 as
+  constants.
+- `DEFAULT_WIDTH = 300` with a per-node override, which resolves the
+  contradiction in my own acceptance criteria: I demanded a single width constant
+  while the source has two. A default plus an override gives a caller one constant
+  and still expresses the reference's wider condition card.
+- **Renders in both grounds**, 20 SVGs and 76 paths per pane, node width 300, edge
+  contrast **17.86 on dark and 15.63 on paper**. 27 tests.
+
+**Where my figures came from, since it matters for the next item.** I measured
+`getComputedStyle` over the rendered section, so "16 paths" counted the icons in
+the surrounding chrome as well as the graph, and the reference's own example has
+**1 edge and 2 nodes** with no branch at all. **Measuring a rendered page is not
+reading a source**, and when the source is available the source wins. That is the
+standing rule and I broke it while writing the item that states it.
+
+**Drag is absent, and that is not a defect in this item.** Its entry says so
+plainly. The founder rescoped K-80 to require dragging at roughly 01:20; this was
+built at 00:52. **It built the item as it stood.** Splitting the drag work into
+K-85 rather than reopening a correct build.
+
+---
+
+## K-85 · RULED · 2026-08-20 02:00 · new item
+
+**`Flowchart` gains dragging and a violet ground.** Written as its own item
+because K-80 is verified and correct, and reopening a finished build to bolt on a
+requirement that postdates it is how a green item becomes an amber one for
+reasons that have nothing to do with its work.
+
+Requirements are in the queue. The two that matter:
+
+- **Nodes drag and connectors follow.** The reference does this and its source is
+  the port target, same as K-80. Founder ruling 2026-08-20, overriding my original
+  "a watching surface, not an editor" scope, and he is right: a graph you cannot
+  rearrange is a picture, and a run map the reader cannot untangle is not a map.
+  Still no authoring -- no new nodes, no drawn edges, no delete.
+- **The dotted ground takes a faint violet cast, in both grounds.** **Not
+  `--mrd-you`**, which is the orchid at 315 and means "a person is required". A
+  canvas background means nothing, and a background that wears a status word is
+  the exact failure the colour law exists to stop.
+
+## K-12 · VERIFIED · 2026-08-20 02:15
+
+**Checked against production, and the defect is bigger than either the item or
+the entry says.** `agent_runs.status` holds exactly six spellings, matching the
+register:
+
+    completed                663
+    completed_with_failures  588
+    failed                   477
+    halted                     8
+    waiting_approval           7
+    complete                   2
+
+**`completed_with_failures` is 588 rows, which is 34% of every run in the
+database** -- and it is the value the entry proves gets **three different answers
+across four mappings**: `stopped`, a failure, and a success, plus one blind spot
+where it falls through to `other`. So a third of all runs are classified
+differently depending on which surface a person is looking at, and two of those
+answers are opposites.
+
+**And `complete` singular is real, not hypothetical.** Two rows carry it, and the
+entry shows it falling through to `queued` in two of the four mappings. **Two
+finished runs render as still-queued, permanently.** Small, but it is the exact
+shape of bug that is impossible to find from a screenshot.
+
+**The module is right to be inert.** Zero imports, asserted by a test, no writer
+and no consumer changed. A canonical vocabulary that quietly changes what four
+surfaces render, in the same commit that introduces it, is unverifiable. This
+lands the vocabulary; the wiring is separately checkable and separately
+reversible.
+
+---
+
+## K-13 · VERIFIED · 2026-08-20 02:15
+
+**Verified in production that the migration it declined to write was correctly
+declined.** All three columns -- `forecast_claim`, `forecast_how_we_will_know`,
+`forecast_horizon_date` -- already exist on `decisions`. So "schema and insert
+only, no migration" is right, and had it written one it would have been a no-op
+that still had to be applied and recorded.
+
+**Importing `forecastRefusal` rather than re-deriving it is the correct call and
+the reason given is the right reason.** The human path already encodes what makes
+a forecast valid, with the argument attached. Two copies is how the agent door and
+the person door come to disagree, and the half that never gets copied is the
+reasoning.
+
+**This is the item that moves the moat, and the measurement says how far.** Of
+286 decisions, **zero in a non-sample workspace carry a forecast.** `decision.record`
+being unable to express one was the mechanism. Optional rather than required is
+the right call for the same reason the entry gives: a required horizon on an
+agent that does not know one produces a fabricated date, and a fabricated forecast
+is worse than none because it scores.
+
+**Not yet true, and worth stating so nobody reads this as done:** the loop still
+does not close. `forecast_resolution` has no product writer -- all 91 resolutions
+in the database are seeded, every one with `forecast_resolved_by_agent_slug` null
+and a timestamp at exactly midnight. **Capture is now possible; resolution is
+still fiction.**
+
+---
+
+## K-14 · VERIFIED · 2026-08-20 02:15
+
+**Premise confirmed in production, not just in the migrations.** The live
+constraint is `CHECK ((verdict = ANY (ARRAY['validated','missed','mixed'])))`, and
+`select count(distinct verdict) from learnings` returns **3**. So no row ever got
+`uncertain` through: it did not degrade, it threw, exactly as the entry says.
+
+**The shape of this bug deserves recording.** The tool's description instructed
+the agent to say `uncertain` rather than guess. The constraint refused it and the
+insert throws on error. **So the one path that told the agent to be honest was the
+one path that crashed, and the more careful the agent, the more often it hit.**
+
+---
+
+## K-14 · RULED · 2026-08-20 02:15
+
+**On the QUESTION: do not point the description at deferral. Kiro was right to
+stop.**
+
+The item told it to "point the description at deferral instead of inventing a
+verdict", and it declined because agents cannot defer. That is correct and the
+register already knew it: *"Deferral is invisible to the agent sweep. A human
+pressing 'too early to tell' writes `outcome_check_by`, which only the human queue
+reads."* Deferral is a human affordance.
+
+**A tool description that points at a door the agent cannot open is the same
+defect this item just fixed**, one level up: instructing an agent toward an action
+that fails. Narrowing the enum and then telling it to defer would have replaced a
+crash with a dead end.
+
+**So: say nothing about deferral.** If agent deferral should exist it is its own
+item, needing a writer, a reader and a sweep that can see it. Filing it as a gap
+rather than smuggling it into a description.
+
+## K-15 · VERIFIED · 2026-08-20 02:20
+
+**Verified in the route, not the diff.**
+
+- **`RESEARCH_PHASE_TOOL`** at `chat.ts:145-149` is a `Partial<Record<>>` naming
+  exactly `search -> web.search`, `read -> web.fetch`,
+  `workspace -> workspace.search`. **`plan` and `synthesize` are absent, and
+  absent is the correct answer**: `research.server.ts` really does emit five
+  phases (`:110`, `:128`, `:187` and the `plan` at `:396`), and two of them are
+  the model thinking, not a tool running.
+- **All three names resolve**: each appears in `tool-consequences.ts`, so the
+  client's `toolActionLabel` lookup gives a real label rather than falling back to
+  a raw string. That is the difference between a chip that reads "Searching the
+  web" and one that reads `web.search`.
+- **The `station` frame is emitted** at `chat.ts:931`,
+  `{ station: dispatchedStation }`, on the mention branch only.
+
+**The audit's finding is now half-closed and the honest half is the one that
+matters.** It recorded that `tool` and `station` frames are never emitted and that
+this "is why you cannot see what an agent is doing." Tool frames now go out for
+real actions. Station goes out where it is a fact.
+
+---
+
+## K-15 · RULED · 2026-08-20 02:20
+
+**`void routed;` stays. The acceptance criterion was wrong and Kiro was right to
+refuse it.**
+
+The criterion said "`void routed;` is gone and the resolved station is on the
+wire." **Read against the file, that instruction contradicts the file's own
+recorded reasoning**, and I checked the paragraph rather than taking the entry's
+word:
+
+- `chat.ts:834-854` argues the classifier's entry station is a **guess**: nothing
+  on that branch routes by it, and the orchestrator plans its own DAG and picks
+  its own agents.
+- The same paragraph says a settling decision is needed about whether a chat
+  dispatch creates a mission, a track or both -- **and states outright that "the
+  lane that built this was told not to make it."** So the criterion asked Kiro to
+  put on the wire a value the file explicitly reserves for a decision nobody has
+  made.
+- The `landing` comment states the rule the whole route is built on: **a frame is
+  emitted here only when it is A FACT, NOT A FORECAST.**
+
+**Emitting `routed.station` would have moved a withdrawn claim from the reply text
+onto the wire**, where the client lights a station strip with it. A guess rendered
+as a lit station is worse than no station, because the reader cannot tell which
+one they are looking at.
+
+**And it did not simply refuse -- it found the place where the same frame IS a
+fact.** On the mention branch a person named an agent, the agent resolved against
+the catalogue, and the mission was dispatched to it. Its station is then a
+property of something that already happened. **On the orchestrator branch nothing
+is emitted, and that silence is correct**: `use-ask-stream.ts` treats an absent
+station as "none lit yet", and the `landing` frame still hands the reader to the
+mission, so the pane loses only a claim it could not support.
+
+**`routed` stays computed and unused, deliberately.** It is one pure function with
+no network and no clock, and it is the value the settling decision will need. **The
+open question is not K-15's**: does a chat dispatch create a mission, a track, or
+both, and which id does the `mission_id` frame return. Filing that as the gap
+rather than letting an acceptance criterion smuggle an answer to it.
