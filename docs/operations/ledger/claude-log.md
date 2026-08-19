@@ -1686,3 +1686,70 @@ means pg_cron stopped dispatching a job it still reports as active**, which is a
 different and worse problem, and the one the `liveness-tick` watchdog was
 supposed to catch -- except the register also records that `liveness-tick` is
 itself absent from the watchdog manifest.
+
+## Claude lane · LANDED · 2026-08-20 04:45 · §10 re-measured, and a correction to my own record
+
+**FIRST, THE CORRECTION, because it falsifies something I wrote four hours ago.**
+
+My migration `20260820013000` says of the futile `cluster.trigger` approvals:
+*"K-11 is what actually closes it ... this migration is safe to run only because
+that is already true."* **It is not true, and the queue refilled while I was
+working.** Measured now: **3 new pending `cluster.trigger` approvals**, created
+between 20:20 and 21:20 UTC, which is **after** K-11 landed and after I verified
+it.
+
+**The mechanism is the deploy boundary and I should have accounted for it.**
+`AGENTS.md:98`: *"Pushing does not deploy. The founder must click publish in
+Lovable for app code to go live. Database migrations applied through Lovable are
+live immediately; everything else waits on his publish."*
+
+So my cancellation was a **database write** and took effect instantly. K-11's
+catalogue is **application code** and is not running in production. The deployed
+app still has `toolRisk('cluster.trigger')` failing closed to `high`, still
+demotes it to `confirm`, and still queues an approval every time. **I verified
+K-11 by reading the repo and executing it locally, which proved it correct and
+proved nothing about production.**
+
+This repo already has the rule for the other direction -- *"committed SQL is not
+applied SQL"* -- and this is its twin: **committed TypeScript is not deployed
+TypeScript.** I will not clear the backlog again until the code behind it is
+live, because clearing it before the cause is deployed is precisely what produced
+round two on 2026-08-03 and round three tonight.
+
+**THE HEADLINE FOR THE MORNING, and it applies to everything, not just this.**
+Every piece of code Kiro and I landed tonight is on `main` and **not live**. The
+five migrations ARE live, because migrations apply immediately. So production is
+currently running **tonight's schema against last week's code**. Nothing about
+that is broken -- every migration is additive and nothing existing reads the new
+columns -- but the fixes do not take effect until a publish.
+
+---
+
+**§10 RE-MEASURED, 2026-08-20 04:45. Every figure is a query, not a recollection.**
+
+| # | Criterion | Was | Now | Note |
+| --- | --- | --- | --- | --- |
+| 1 | Pending approvals | 53 | **31** | 25 futile ones cancelled; 3 came back undeployed |
+| 3 | Raised then never decided | 130 | **66** | |
+| 4 | Oldest pending | 627h | **633h** | 0 past expiry, but only because of a manual re-arm that lapses in late September |
+| 5 | Decisions carrying a forecast | "1 of 304" | **0 of 55 real** | K-13 gave `decision.record` the fields; no real decision has been made since |
+| 6 | Forecasts resolved by the product | 0 | **0** | all 91 resolutions remain seeded, none agent-attributed |
+| 8 | Missions at `proposed` past 24h | 66% | **65.9%** (230/349) | unmoved |
+| 9 | Agent runs clean | 38% | **38.2%** (676/1771) | unmoved |
+| 10 | Runs stopped by a user | 0, impossible | **0, now possible** | writer, guard and loop poll all landed; no control to press |
+| 11 | Stations accepting a steer | 1 of 7 | **7 of 7 by mechanism**, 0 used | `track_id` + reader + `steerTrack` landed; no control |
+| 16 | `agent_runs.status` spellings | 6 | **6** | K-12 landed the vocabulary; nothing consumes it yet by design |
+| 18 | `--mrd-agent` vs `--mrd-you` | 59 vs 97 | **86 vs 129** | ratio 0.61 to 0.67, so closing, slowly |
+| 19 | Ratchet total | 5,864 | **5,864** | never higher, which is the whole criterion |
+
+**What the table says honestly.** Three criteria moved because I changed data
+(1, 3). Two moved from impossible to possible because I built mechanism
+(10, 11). Two are unmoved because their fix is code that is not deployed (5, 16).
+Two are unmoved because nothing has addressed them (8, 9). **Not one criterion
+has been met.** Criterion 1 is the closest and it needs the deploy plus the
+`memory.promote` and `backlog.prioritize` policy, which is another 14 rows.
+
+**Criteria 2, 7, 12, 13, 14, 15, 17 not re-measured this tick** -- each needs
+either a query I could not run (the cron and ops tables time out through the MCP,
+see 04:35) or a code sweep rather than a database read. Naming them rather than
+leaving the table looking complete.
