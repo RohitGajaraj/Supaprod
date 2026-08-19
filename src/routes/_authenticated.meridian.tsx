@@ -2053,7 +2053,7 @@ function MeridianGallery() {
 
         <Panel
           title="Plan card"
-          note="The first forward-looking step display in the system. Everything else here reports what happened; this is what an agent commits to before it acts, which is the only place a person can set a boundary once instead of being asked fourteen times on the way down. Two of its six states exist nowhere else: a step nobody has started, and a step deliberately passed over. Both matter because the task vocabulary has neither, and its normaliser collapses anything it does not recognise to blocked, so under the old words the last step of a fresh plan would tell a reader it was already stuck. A skipped step carries its reason, and a skipped step with no reason says so out loud rather than letting an incomplete record look complete. Each step draws its station rather than naming it, because identity is shape here, and a step with no station falls back to the ring set. A chip appears only where something is running, waiting or broken: a finished step is said by its mark, since a plan of five with three done would otherwise carry four chips on five rows and the chip would stop meaning look here. The clock column is empty and held open, because a plan has no times yet and closing it would put these subjects fifty-four pixels left of the timeline's."
+          note="The first forward-looking step display in the system. Everything else here reports what happened; this is what an agent commits to before it acts, which is the only place a person can set a boundary once instead of being asked fourteen times on the way down. Two of its six states exist nowhere else: a step nobody has started, and a step deliberately passed over. Both matter because the task vocabulary has neither, and its normaliser collapses anything it does not recognise to blocked, so under the old words the last step of a fresh plan would tell a reader it was already stuck. A skipped step carries its reason, and a skipped step with no reason says so out loud rather than letting an incomplete record look complete. Each step draws its station rather than naming it, because identity is shape here, and a step with no station falls back to the ring set. A chip appears only where something is running, waiting or broken: a finished step is said by its mark, since a plan of five with three done would otherwise carry four chips on five rows and the chip would stop meaning look here. The clock column is empty and held open, because a plan has no times yet and closing it would put these subjects fifty-four pixels left of the timeline's. Two controls now sit on a step, and which rows get them is the decision worth knowing about: skip is offered on anything that has not run, because it is the only way to disagree with one step without rejecting the whole plan, and approve only on a step that is itself asking, because on a merely pending step it would be a second button for the click the plan-level approve already makes. Both are quiet. The first version made the step's approve orchid, and rendered it read as the card's primary action and outshouted approving the plan, which inverts the argument the control exists inside; the row already carries the orchid chip, so the accent is said once rather than twice. A skip opens a reason field and cannot complete without one, because a skip with no recorded why is a decision that leaves no trace. Each step also carries what it will touch and whether it can be undone, in the same words the approvals queue uses. The alignment was measured rather than eyeballed: a mark sat 0.63 pixels below its subject on a row with no chip and 1.00 above it on a row with one, a 1.63 pixel swing alternating down the card, because a 22-pixel chip raises the line and the mark was pinned to the offset a chipless line needs. The line is 22 pixels on every row now and the mark is solved against that, so every row measures zero, and the five distinct row heights became three with each difference being content rather than accident."
         >
           <Pair>
             <PlanCardCases />
@@ -2480,6 +2480,8 @@ function PlanCardCases() {
       state: "needs-approval",
       agentSlug: "planner",
       station: "plan",
+      touches: "SPEC-2214 Firmware reboot notice",
+      reversible: "reversible",
     },
     {
       id: "p4",
@@ -2495,6 +2497,8 @@ function PlanCardCases() {
       state: "pending",
       agentSlug: "builder",
       station: "build",
+      touches: "supaprod/main <- fix/firmware-reboot",
+      reversible: "partial",
     },
   ];
 
@@ -2554,8 +2558,17 @@ function PlanCardCases() {
       <Case label="A step that failed">
         <PlanCard steps={broken} />
       </Case>
+      <Case label="A step you can act on, and one you can only pass over">
+        <PlanCard
+          steps={five}
+          onApprove={noop}
+          onRevise={noop}
+          onApproveStep={noop}
+          onSkipStep={noop}
+        />
+      </Case>
       <Case label="A decision in flight">
-        <PlanCard steps={five} onApprove={noop} onRevise={noop} busy />
+        <PlanCard steps={five} onApprove={noop} onRevise={noop} onSkipStep={noop} busy />
       </Case>
     </Stack>
   );

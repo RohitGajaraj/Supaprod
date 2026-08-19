@@ -1960,3 +1960,113 @@ Rendered and looked at before and after, both grounds, at 120, 20 and 14px for t
 > **Claude does after:** open a real run with a long gap in it. The two things measurement cannot
 > settle are whether the redrawn wrench reads as a tool on a real display at 14px, and whether the
 > continuous rail through several consecutive silences reads as one run rather than as one long wait.
+
+---
+
+## K-84 · BUILT · 2026-08-20 08:15
+
+**Did.** A step now carries two controls, the context to decide on it, and an alignment that was
+measured rather than eyeballed. The skip cannot complete without a reason. The alignment fix turned
+out to belong in the shared rhythm, so `RunTimeline` and `ToolStream` got it too.
+
+**The item contains a tension and it had to be settled rather than split.** Its own first paragraph
+argues the gate belongs at the PLAN and not at the steps, citing the 70/20 finding: people take about
+70% of their decisions at planning and 20% at execution, and 93% of in-the-moment prompts are
+approved, a queue nobody reads. Then it asks for a per-step approve and skip. **Drawn on every row,
+those two controls ARE that queue**, with the plan-level Approve demoted to a shortcut for pressing
+them all.
+
+So which rows get them is the decision:
+
+| state | approve | skip | why |
+| --- | --- | --- | --- |
+| `needs-approval` | yes | yes | the step itself is what is being asked about |
+| `pending` | **no** | yes | approving it is the click the plan-level Approve already makes |
+| `active`, `done`, `skipped`, `failed` | no | no | nothing to decide |
+
+**Skip is the capability that was genuinely missing.** Before this the choice was approve everything
+or change everything; there was no way to say "yes, but not that one". Approve-this-step is the
+narrower addition and it is deliberately the rarer one.
+
+**Rendering it corrected a decision I had made on paper.** The step's approve was `Approve`, which is
+the component for a click that unblocks and is exactly what this click does. On screen it was wrong:
+a 32px orchid slab inside a step row read as the card's primary action and **outshouted "Approve the
+plan" in the footer**, inverting the governance argument the control exists inside. Both step controls
+are `quiet` now. The accent is not lost, it is said once instead of twice, because the row already
+carries the orchid `Needs you` chip two lines above. `meridian.css` warns that an accent firing on
+chrome stops meaning anything, and two orchid controls on one card is that failure inside one
+component. A test counts orchid controls and requires exactly one, on the plan.
+
+**The reason is enforced by the signature, not only by the field.** `onSkipStep: (id, reason) => void`
+has no overload that omits the reason, so a caller cannot record a skip with nothing attached even by
+accident. The field itself refuses whitespace, Enter submits, Escape cancels, and the form REPLACES
+the controls while open so there is never a live "Skip it" beside "Skip this step". Proven by
+planting: removing the `ready` guard fails two tests.
+
+**Inline rather than `usePrompt()`.** The house way to ask for a string is a dialog, and it is wrong
+twice here: this file is a Meridian primitive and may not depend on an app-level hook, and a modal
+takes the step's own context off screen at the moment a person is being asked to justify a decision
+about it.
+
+**The context reuses a vocabulary rather than inventing one.** `touches` is new. Reversibility is
+`Reversibility` from `tool-consequences.ts`, printed through `REVERSIBILITY_LABEL`, which is what the
+approvals queue already prints and what `approval-policy.ts` gates on. Three-valued, so `partial`
+(most of the catalogue) does not have to be rounded to an end, and a step and a gate cannot describe
+one fact two ways. **It draws only when it is not `reversible`**: "this can be undone" is the
+assumption a reader already holds.
+
+### The alignment, and it was a real defect
+
+**Measured, not read.** The card was rendered to static markup, served against the real built
+stylesheet, and read with `getBoundingClientRect`. Mark centre against subject centre:
+
+| | before | after |
+| --- | --- | --- |
+| rows with no chip | **+0.63px** | 0.00px |
+| rows with a chip | **-1.00px** | 0.00px |
+
+**A 1.63px swing, alternating down the card by whether a row happened to have something to say.** The
+cause: the first line is `items-center` and a `StatusChip` is 22px against a 12.5px subject's 18.75px
+line box, so a chip raises the line and drags the subject's centre down, while the mark stayed pinned
+to the offset a chipless line needs. `GLYPH_SLOT` had been solved against 18.75 and was 3px; the clock
+column had always been 4px, **so the two columns of one row had been a pixel apart all along.**
+
+The fix is in the shared rhythm because the defect is: `RUN_LINE` declares the first line at
+`min-h-[22px]`, the chip's own height, and `GLYPH_SLOT` is solved against that at exactly 4px. After
+it, `RunTimeline`'s rows measure 0.00 too, and the plan's mark and body offsets inside a row came out
+identical to the timeline's: **48.00 and 70.00 in both.** The item's five distinct row heights became
+three, and each remaining difference is content (a control, a reason line) rather than accident.
+
+A chipless row grows by 3.25px, which is the direction the ratchet allows. Shrinking the chip to fit
+the text was the other repair and it is the forbidden one: the chip's height is what carries its
+status word at a readable size on paper.
+
+**Pushed back.** Two.
+1. **`run-rows.tsx` again, and it is not in this item's `Owns` either.** `RUN_LINE` and `GLYPH_SLOT`
+   are where the alignment defect lives, and fixing it in `PlanCard` alone would have left the same
+   1.63px swing in the two components that share the rhythm. Seventh wrong `Owns` list this session.
+2. **The founder said "a little approval button" and these are full-size controls.** I read that as
+   naming what was missing rather than specifying a size, and kept `Action`'s own 32px shape: a
+   hand-rolled smaller button re-derives the focus ring, the press and the disabled-contrast fix that
+   `Approve`'s own comment records paying for. Making them quiet did the calming that shrinking them
+   was meant to do.
+
+**Unsure.** One. **The two quiet controls have no visible boundary**, so they read as two words under
+the row rather than as buttons until hovered. That is what `Action variant="quiet"` looks like
+everywhere else in the product, and the item explicitly said a skip is a quiet action, so I matched
+it rather than inventing a bordered small face. If it reads as too weak on a real surface, the answer
+is a size on `Action`, in `surface-parts.tsx`, which is a shared decision rather than this card's.
+
+**Noticed.** One, and it is about my own tooling rather than the repo. **`tsconfig.json` includes only
+`src/**`**, so a scratch harness at the repo root is never typechecked. My measurement fixture passed
+`station: "define"`, which is a valid `AgentStation` and not a valid `StationGlyphKind`, and it
+rendered an empty mark for a whole measurement pass before I noticed the glyph was missing by looking
+at the screenshot. Two station vocabularies exist for good reasons; a scratch file that cannot see
+either is worth knowing about before trusting one.
+
+**Gates.** tsc clean · 9,780 pass / 0 fail / 23 skip across 582 files · build ok · ratchet unchanged.
+Rendered and measured three times, and the two corrections in this entry both came from looking.
+
+> **Claude does after:** wire the two handlers to something real. The step controls are built and
+> mounted only in the gallery, so this is a door away from being a capability: nothing in the product
+> passes `onSkipStep` yet, and the reason it captures has nowhere to be written.

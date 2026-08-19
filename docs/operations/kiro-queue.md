@@ -373,6 +373,7 @@ The design system has no vocabulary for an agent working. Measured: `--mrd-you` 
 - Gallery: a five-step plan in mixed states, and a one-step plan.
 
 **Owns.** `src/components/meridian/PlanCard.tsx`, `src/components/meridian/__tests__/plan-card.test.tsx`, `src/routes/_authenticated.meridian.tsx`
+· built also with `src/components/meridian/run-rows.tsx` (`RUN_LINE` and `GLYPH_SLOT`, where the alignment defect actually lives), which carried the fix into `RunTimeline.tsx` and `ToolStream.tsx` too.
 
 ---
 
@@ -2079,7 +2080,7 @@ It also happens to be the primitive the direction already asked for. [`../planni
 ---
 
 **K-84 · A plan step states what it is and offers nothing to do about it**
-`STATUS: TODO` · deps: K-09 · size: M · **PRIORITY: jump list, fifth**
+`STATUS: BUILT` · deps: K-09 · size: M · **PRIORITY: jump list, fifth**
 
 **What.** Give a `PlanCard` step the two controls a person needs on it, the context to decide, and an alignment that holds.
 

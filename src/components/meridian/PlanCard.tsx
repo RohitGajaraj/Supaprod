@@ -1,7 +1,12 @@
-import { agentDisplayName } from "@/lib/agent-vocabulary";
+import * as React from "react";
 
+import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { REVERSIBILITY_LABEL, type Reversibility } from "@/lib/tool-consequences";
+
+import { Field, Input } from "./forms";
 import { StatusChip } from "./StatusChip";
 import {
+  RUN_LINE,
   RUN_ROW,
   RUN_STACK,
   RunClockEmpty,
@@ -105,6 +110,34 @@ export type PlanStep = {
    * see the ruling in the header.
    */
   why?: string;
+  /**
+   * WHAT THIS STEP WILL ACT ON. A branch, a path, an artifact title, a recipient.
+   *
+   * Founder review 2026-08-20: *"There should be a little context."* The label is
+   * the intent and it is not enough to decide on: "open the pull request" does not
+   * say against which branch, and a person approving a plan is deciding about the
+   * object, not the verb. Set in mono, because every value of it is an identifier
+   * somebody could copy.
+   *
+   * Optional, and absent is the honest default rather than a gap to fill: a step
+   * whose object the planner does not know yet must not have one invented for it.
+   */
+  touches?: string;
+  /**
+   * WHETHER IT CAN BE UNDONE, and it is the other half of the context.
+   *
+   * `Reversibility` from `tool-consequences.ts` rather than a boolean of my own,
+   * for two reasons. It is the vocabulary the rest of the product already decides
+   * with (the approvals queue prints `REVERSIBILITY_LABEL`, `approval-policy.ts`
+   * gates on it), so a step and a gate cannot describe the same fact two ways. And
+   * it is three-valued: `partial` is most of the catalogue, and a boolean would
+   * have had to round it to one of the ends.
+   *
+   * DRAWN ONLY WHEN IT IS NOT `reversible`. "This can be undone" is the assumption
+   * a reader already holds, so stating it spends a line to say nothing; the two
+   * values that change a decision are the two that are shown.
+   */
+  reversible?: Reversibility;
 };
 
 /**
@@ -217,7 +250,7 @@ function StepMark({ step }: { step: PlanStep }) {
   return (
     <span
       {...(spoken ? { role: "img", "aria-label": spoken } : {})}
-      className={`mt-[3px] flex size-[14px] shrink-0 items-center justify-center ${MARK_HUE[step.state]}`}
+      className={`mt-[4px] flex size-[14px] shrink-0 items-center justify-center ${MARK_HUE[step.state]}`}
     >
       {step.station ? (
         <svg
@@ -267,10 +300,143 @@ const MARK_LABEL: Partial<Record<PlanStepState, string>> = {
   done: "Done",
 };
 
-function Step({ step, last }: { step: PlanStep; last: boolean }) {
+/**
+ * WHICH STEPS OFFER A CONTROL, AND WHY IT IS NOT ALL OF THEM.
+ *
+ * There is a real tension in the item that asked for these, and it has to be
+ * settled rather than split. Its own first paragraph argues the gate belongs at
+ * the PLAN and not at the steps, citing the 70/20 finding: people take roughly
+ * 70% of their decisions at planning and 20% at execution, and 93% of
+ * in-the-moment prompts are approved, which is a queue nobody reads. Then it asks
+ * for a per-step approve and skip. Drawn on every row, those two controls ARE the
+ * queue the same paragraph rejects: fourteen prompts on the way down, with the
+ * plan-level Approve reduced to a shortcut for pressing them all.
+ *
+ * So:
+ *
+ *   SKIP is offered on any step that has not run yet, because it is the only way
+ *   to dissent from ONE step without rejecting the whole plan. That is a thing a
+ *   reader wants and had no way to say: the choice was approve everything or
+ *   change everything.
+ *
+ *   APPROVE is offered ONLY on a step whose state is `needs-approval`, where the
+ *   step itself is what is being asked about. On a `pending` step it would be a
+ *   second button for the click the plan-level Approve already makes, and two
+ *   controls for one decision is how a person learns to stop reading either.
+ *
+ * That is the governance doctrine's own shape: policy set once at the top, and a
+ * permission asked in the moment only where something genuinely crosses it.
+ */
+function offersSkip(state: PlanStepState): boolean {
+  return state === "pending" || state === "needs-approval";
+}
+
+/**
+ * THE REASON IS THE POINT, so the control cannot complete without one.
+ *
+ * A skip with no recorded why is a decision that leaves no trace, in a product
+ * whose whole claim is that its record can be trusted. Reason optional makes it a
+ * shrug; reason required makes it evidence. The card already draws a visible
+ * admission on a skipped step that arrived with no reason, which is what this
+ * stops being necessary for skips taken here.
+ *
+ * INLINE RATHER THAN A DIALOG. `usePrompt()` is the house way to ask for a string
+ * and it is wrong here twice: this file is a Meridian primitive and may not depend
+ * on an app-level hook, and the acceptance is that a person can decide without
+ * leaving the card. A modal takes the step's own context off the screen at the
+ * moment they are being asked to justify a decision about it.
+ *
+ * ENTER SUBMITS AND ESCAPE CANCELS, because a one-field form that only closes by
+ * mouse is a trap for the reader who opened it from the keyboard.
+ */
+function SkipReason({
+  stepId,
+  busy,
+  onCommit,
+  onCancel,
+}: {
+  stepId: string;
+  busy: boolean;
+  onCommit: (reason: string) => void;
+  onCancel: () => void;
+}) {
+  const [reason, setReason] = React.useState("");
+  const inputId = `plan-skip-reason-${stepId}`;
+  const ready = reason.trim().length > 0;
+
+  const commit = () => {
+    if (ready && !busy) onCommit(reason.trim());
+  };
+
+  return (
+    <div className="mt-mrd-3 flex flex-col gap-mrd-3">
+      <Field
+        label="Why skip this?"
+        hint="It goes on the record beside the step, so the next reader can see the call that was made."
+        htmlFor={inputId}
+      >
+        <Input
+          id={inputId}
+          value={reason}
+          autoFocus
+          placeholder="The branch was already merged by hand"
+          onChange={(e) => setReason(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commit();
+            }
+            if (e.key === "Escape") {
+              e.preventDefault();
+              onCancel();
+            }
+          }}
+        />
+      </Field>
+      <Actions>
+        {/*
+         * QUIET, NOT `Approve` AND NOT `destructive`. Orchid is spent on the one
+         * control that unblocks and red reports an outcome, so neither is
+         * available to mark an intention. A skip is a choice, and the thing that
+         * makes it safe is that it cannot be taken without a reason, not volume.
+         */}
+        <Action variant="quiet" onClick={commit} disabled={!ready || busy}>
+          Skip this step
+        </Action>
+        <Action variant="quiet" onClick={onCancel} disabled={busy}>
+          Keep it
+        </Action>
+      </Actions>
+    </div>
+  );
+}
+
+function Step({
+  step,
+  last,
+  busy,
+  onApproveStep,
+  onSkipStep,
+}: {
+  step: PlanStep;
+  last: boolean;
+  busy: boolean;
+  onApproveStep?: (id: string) => void;
+  onSkipStep?: (id: string, reason: string) => void;
+}) {
   const chip = CHIP[step.state];
   const who = step.agentSlug ? agentDisplayName(step.agentSlug) : null;
   const skipped = step.state === "skipped";
+  const [asking, setAsking] = React.useState(false);
+
+  const canApprove = !!onApproveStep && step.state === "needs-approval";
+  const canSkip = !!onSkipStep && offersSkip(step.state);
+  /* Not `reversible`, and not absent. See the field's own note for why the third
+     value is the one that never draws. */
+  const undo =
+    step.reversible && step.reversible !== "reversible"
+      ? REVERSIBILITY_LABEL[step.reversible]
+      : null;
 
   return (
     <li className={RUN_ROW}>
@@ -284,7 +450,7 @@ function Step({ step, last }: { step: PlanStep; last: boolean }) {
       </span>
 
       <span className="min-w-0 pb-1">
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className={RUN_LINE}>
           {skipped ? (
             /* Struck through AND dimmed. Either alone is ambiguous: a strike at
                full ink reads as an edit, and a dim label with no strike reads as
@@ -308,6 +474,28 @@ function Step({ step, last }: { step: PlanStep; last: boolean }) {
          * carrying no reason has to say that out loud: hiding it would let the
          * record look complete when it is not.
          */}
+        {/*
+         * THE CONTEXT, on one line, in the order a decision needs it: WHAT it
+         * touches, then whether it can be taken back. Both sit under the subject
+         * rather than beside it, so a long branch name cannot widen the row and
+         * push the chip off the end of it.
+         *
+         * The object is mono because every value of it is an identifier somebody
+         * could copy. The undo fact is prose and carries NO colour: irreversible
+         * is not one of the five status words, and painting it in `fail` would
+         * report an outcome for a step that has not run.
+         */}
+        {step.touches || undo ? (
+          <span className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            {step.touches ? (
+              <span className="font-mrd-mono min-w-0 text-mrd-data break-all text-mrd-mute">
+                {step.touches}
+              </span>
+            ) : null}
+            {undo ? <span className="text-mrd-data text-mrd-faint">{undo}</span> : null}
+          </span>
+        ) : null}
+
         {step.why ? (
           <RunNote>{step.why}</RunNote>
         ) : skipped ? (
@@ -317,6 +505,56 @@ function Step({ step, last }: { step: PlanStep; last: boolean }) {
         ) : null}
 
         {who ? <RunMeta>{who}</RunMeta> : null}
+
+        {/*
+         * THE CONTROLS COME LAST, after every fact the decision rests on. A
+         * control above its own context asks a person to answer before they have
+         * read, which is how a queue of 93%-approved prompts happens.
+         *
+         * The form REPLACES them while it is open rather than appearing beneath
+         * them, so there is never a live Skip button next to a Skip-this-step
+         * button competing for the same press.
+         */}
+        {asking && onSkipStep ? (
+          <SkipReason
+            stepId={step.id}
+            busy={busy}
+            onCommit={(reason) => {
+              onSkipStep(step.id, reason);
+              setAsking(false);
+            }}
+            onCancel={() => setAsking(false)}
+          />
+        ) : canApprove || canSkip ? (
+          <Actions className="mt-mrd-3">
+            {/*
+             * QUIET, NOT `Approve`, AND THAT IS A CORRECTION MADE BY LOOKING.
+             *
+             * It was `Approve` first, which is the component for a click that
+             * unblocks and is exactly what this click does. Rendered, it was
+             * wrong: a 32px orchid slab inside a step row read as the card's
+             * primary action and outshouted "Approve the plan" in the footer,
+             * which inverts the whole governance argument the per-step control
+             * exists inside. The plan is the gate; the step is the exception.
+             *
+             * The row already carries the orchid `Needs you` chip two lines
+             * above, so the accent is not lost, it is said once instead of
+             * twice. meridian.css spends `--mrd-you` on one meaning and warns
+             * that an accent firing on chrome stops meaning anything; two
+             * orchid controls on one card is that failure inside one component.
+             */}
+            {canApprove ? (
+              <Action variant="quiet" onClick={() => onApproveStep?.(step.id)} disabled={busy}>
+                Approve this step
+              </Action>
+            ) : null}
+            {canSkip ? (
+              <Action variant="quiet" onClick={() => setAsking(true)} disabled={busy}>
+                Skip it
+              </Action>
+            ) : null}
+          </Actions>
+        ) : null}
       </span>
     </li>
   );
@@ -330,6 +568,8 @@ export function PlanCard({
   onRevise,
   reviseLabel = "Change it",
   busy = false,
+  onApproveStep,
+  onSkipStep,
 }: {
   /** In the order the agent intends to run them. Empty is a real state. */
   steps: PlanStep[];
@@ -347,6 +587,21 @@ export function PlanCard({
   reviseLabel?: string;
   /** True while a decision is in flight. Both controls go dead, not hidden. */
   busy?: boolean;
+  /**
+   * APPROVE ONE STEP. Drawn only on a step whose state is `needs-approval`; see
+   * `offersSkip`'s note for why it is not offered on every row.
+   *
+   * Omitted, no step draws it, which is the same rule `onApprove` follows: a
+   * plausible-looking control on a plan nobody can act on is the affordance
+   * failure this system keeps finding.
+   */
+  onApproveStep?: (id: string) => void;
+  /**
+   * SKIP ONE STEP, WITH ITS REASON. The reason is not optional and the signature
+   * is why: there is no overload that omits it, so a caller cannot record a skip
+   * with nothing attached even by accident.
+   */
+  onSkipStep?: (id: string, reason: string) => void;
 }) {
   const asking = steps.filter((s) => s.state === "needs-approval").length;
 
@@ -401,7 +656,14 @@ export function PlanCard({
 
       <ol className={RUN_STACK}>
         {steps.map((step, i) => (
-          <Step key={step.id} step={step} last={i === steps.length - 1} />
+          <Step
+            key={step.id}
+            step={step}
+            last={i === steps.length - 1}
+            busy={busy}
+            onApproveStep={onApproveStep}
+            onSkipStep={onSkipStep}
+          />
         ))}
       </ol>
 

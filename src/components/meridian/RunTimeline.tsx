@@ -6,6 +6,7 @@ import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { edgeMask } from "./SidebarNav";
 import { StatusChip, type StatusWord } from "./StatusChip";
 import {
+  RUN_LINE,
   RUN_ROW,
   RUN_STACK,
   RunClock,
@@ -199,7 +200,7 @@ function Silence({ ms, before }: { ms: number; before: TimelineState }) {
       <span className="flex flex-col items-center self-stretch">
         <RunRailBreak />
       </span>
-      <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 pb-1">
+      <span className={`${RUN_LINE} min-w-0 pb-1`}>
         <span className="text-mrd-data text-mrd-mute">{silenceWord(before)}</span>
         <RunTook>{formatElapsed(ms / 1000)}</RunTook>
       </span>
@@ -223,7 +224,7 @@ function Event({ event, last }: { event: TimelineEvent; last: boolean }) {
       </span>
 
       <span className="min-w-0 pb-1">
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className={RUN_LINE}>
           <RunSubject>{event.label}</RunSubject>
           {chip ? (
             <StatusChip status={chip} pulse={event.state === "working" || event.state === "gate"}>
@@ -408,7 +409,7 @@ export function RunTimeline({
               {/* A plain dot, and it does NOT animate: the chip beside it already
                   breathes, and two things moving on one row to report one fact is
                   the motion budget spent twice. */}
-              <span className="mt-[3px] flex size-[14px] shrink-0 items-center justify-center text-mrd-mute">
+              <span className="mt-[4px] flex size-[14px] shrink-0 items-center justify-center text-mrd-mute">
                 <span aria-hidden className="size-1.5 rounded-full bg-current" />
               </span>
               <span

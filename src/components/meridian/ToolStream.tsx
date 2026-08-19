@@ -5,6 +5,7 @@ import { toolActionLabel } from "@/lib/agent-vocabulary";
 
 import { StatusChip } from "./StatusChip";
 import {
+  RUN_LINE,
   RUN_ROW,
   RUN_STACK,
   RunClock,
@@ -234,7 +235,7 @@ export function ToolStream({
                 </span>
 
                 <span className="min-w-0 pb-1">
-                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className={RUN_LINE}>
                     <RunSubject>{caption}</RunSubject>
                     {/*
                      * A chip only where there is something to say. `done` gets

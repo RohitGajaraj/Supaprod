@@ -59,6 +59,37 @@ export const RUN_GRID = "grid-cols-[var(--mrd-s7)_14px_1fr]";
 /** Every run row, so a caller cannot compose its own spacing by accident. */
 export const RUN_ROW = `grid ${RUN_GRID} gap-2 min-h-7 items-start`;
 
+/**
+ * THE ROW'S FIRST LINE, AND WHY IT HAS A DECLARED HEIGHT.
+ *
+ * ── THE DEFECT, MEASURED ─────────────────────────────────────────────────
+ * Founder review 2026-08-20 on `PlanCard`: the alignment is not properly put.
+ * Rendered against the real stylesheet and measured, the mark's centre against
+ * its subject's centre came out:
+ *
+ *   rows with no chip    +0.63px
+ *   rows with a chip     -1.00px
+ *
+ * A 1.63px swing, alternating down the card according to whether that row
+ * happened to have something to say. The cause is that this line is
+ * `items-center` and a `StatusChip` is 22px tall against a 12.5px subject's
+ * 18.75px line box, so a chip RAISES the line and drags the subject's centre
+ * down with it, while the mark stayed pinned to the offset a chipless line
+ * needs.
+ *
+ * ── SO THE LINE IS 22px ON EVERY ROW, CHIP OR NOT ────────────────────────
+ * `min-h-[22px]` is the chip's own height, which is why it is that number: the
+ * tallest thing this line can contain sets the line, and then a row's geometry
+ * stops depending on its content. `GLYPH_SLOT`'s offset is solved against it
+ * rather than against the bare line box, so the two cannot disagree again.
+ *
+ * A chipless row grows by 3.25px, which is the direction the ratchet allows.
+ * Shrinking the chip to fit the text would have been the other repair and it is
+ * the forbidden one: the chip's height is what carries its status word at a
+ * readable size on paper.
+ */
+export const RUN_LINE = "flex min-h-[22px] flex-wrap items-center gap-x-2 gap-y-1";
+
 /** Between rows. Thinking's `gap-1`. */
 export const RUN_STACK = "flex flex-col gap-1";
 
@@ -76,10 +107,16 @@ export const RUN_STACK = "flex flex-col gap-1";
  * is `station-glyphs.tsx`'s grid, so a station mark and a kind mark are
  * interchangeable in this slot without either looking bigger.
  *
- * `mt-[3px]` is the one measured offset and it is on the SLOT, not the drawing:
- * a 14px box centred against a 12.5px subject on 1.5 leading (an 18.75px line
- * box) needs (18.75 - 14) / 2, which rounds to 3 within half a pixel. One
- * number, one place, every glyph.
+ * `mt-[4px]` is the one measured offset and it is on the SLOT, not the drawing:
+ * a 14px box centred in `RUN_LINE`'s 22px needs (22 - 14) / 2, which is exactly 4.
+ * One number, one place, every glyph.
+ *
+ * IT WAS 3px UNTIL 2026-08-20, solved against the bare 18.75px line box a
+ * chipless subject makes, which was the wrong thing to solve against: a row with
+ * a chip has a 22px line, so the mark sat 1.63px away from where a chipless row
+ * put it. See `RUN_LINE` for the measurement. The clock column has been on 4px
+ * all along, so the old 3px also had the two columns of one row disagreeing by a
+ * pixel.
  *
  * ── THE INK, MEASURED, ALL THIRTEEN ─────────────────────────────────────
  * Founder review 2026-08-20: align the mark optically to the text baseline
@@ -105,7 +142,7 @@ export const RUN_STACK = "flex flex-col gap-1";
  * the six marks whose bodies are centred. A measurement that disagrees with the
  * rule it was taken to serve is a measurement to explain, not to obey.
  */
-const GLYPH_SLOT = "mt-[3px] flex size-[14px] shrink-0 items-center justify-center";
+const GLYPH_SLOT = "mt-[4px] flex size-[14px] shrink-0 items-center justify-center";
 
 /**
  * WHAT KINDS OF THING HAPPEN IN A RUN, and every one wears the mark of the thing

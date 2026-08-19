@@ -17,6 +17,7 @@ import { describe, expect, it } from "bun:test";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import { PlanCard, type PlanStep } from "../PlanCard";
+import { RUN_LINE } from "../run-rows";
 
 const FIVE: PlanStep[] = [
   {
@@ -271,5 +272,298 @@ describe("the plan reads as one plan", () => {
     const { container } = render(<PlanCard steps={FIVE} />);
     const rails = container.querySelectorAll("li > span > span[aria-hidden].w-px");
     expect(rails.length).toBe(4);
+  });
+});
+
+/**
+ * ── A STEP CAN BE ACTED ON, ADDED FOR K-84 ───────────────────────────────
+ *
+ * Founder review 2026-08-20: a step states an intent and offers no way to act on
+ * it. The interesting half of this block is not that the controls exist, it is
+ * WHICH ROWS GET THEM, because the item that asked for them also argues, in its
+ * own first paragraph, that the gate belongs at the plan and not at the steps.
+ * Drawn on every row these two controls ARE the queue that argument rejects.
+ */
+const ACTIONABLE: PlanStep[] = [
+  { id: "d", label: "Read the thread", state: "done", station: "discover" },
+  { id: "a", label: "Draft the notice", state: "active", station: "plan" },
+  {
+    id: "n",
+    label: "Open the pull request",
+    state: "needs-approval",
+    station: "build",
+    agentSlug: "builder",
+    touches: "supaprod/main <- fix/firmware-reboot",
+    reversible: "partial",
+  },
+  {
+    id: "p",
+    label: "Publish the release",
+    state: "pending",
+    station: "ship",
+    touches: "v4.18.0",
+    reversible: "irreversible",
+  },
+  { id: "s", label: "File it against the theme", state: "skipped", why: "Already covered" },
+  { id: "f", label: "Run the checks", state: "failed", why: "Two tests are red" },
+];
+
+const noop = () => {};
+const labels = (root: HTMLElement) =>
+  [...root.querySelectorAll("button")].map((b) => b.textContent?.trim() ?? "");
+
+describe("the controls appear where a decision is actually being asked for", () => {
+  it("offers approve and skip on a step that is waiting on a person", () => {
+    render(<PlanCard steps={ACTIONABLE} onApproveStep={noop} onSkipStep={noop} />);
+    const row = screen.getByText("Open the pull request").closest("li") as HTMLElement;
+    expect(labels(row)).toEqual(["Approve this step", "Skip it"]);
+  });
+
+  it("offers only skip on a step that has not started", () => {
+    /*
+     * On a `pending` step an approve control would be a second button for the
+     * click the plan-level Approve already makes, and two controls for one
+     * decision is how a person learns to stop reading either. Skip is offered
+     * because it is the only way to dissent from ONE step without rejecting the
+     * whole plan, which a reader had no way to say at all.
+     */
+    render(<PlanCard steps={ACTIONABLE} onApproveStep={noop} onSkipStep={noop} />);
+    const row = screen.getByText("Publish the release").closest("li") as HTMLElement;
+    expect(labels(row)).toEqual(["Skip it"]);
+  });
+
+  it("offers nothing on a step that has already happened or is happening", () => {
+    render(<PlanCard steps={ACTIONABLE} onApproveStep={noop} onSkipStep={noop} />);
+    for (const text of [
+      "Read the thread",
+      "Draft the notice",
+      "File it against the theme",
+      "Run the checks",
+    ]) {
+      const row = screen.getByText(text).closest("li") as HTMLElement;
+      expect(labels(row), `${text} drew a control`).toEqual([]);
+    }
+  });
+
+  it("draws no step control at all when the caller passes no handler", () => {
+    // The same rule `onApprove` follows: a plausible-looking control on a plan
+    // nobody can act on is the affordance failure this system keeps finding.
+    const { container } = render(<PlanCard steps={ACTIONABLE} />);
+    expect(labels(container)).toEqual([]);
+  });
+
+  it("goes dead rather than disappearing while a decision is in flight", () => {
+    render(<PlanCard steps={ACTIONABLE} onApproveStep={noop} onSkipStep={noop} busy />);
+    const row = screen.getByText("Open the pull request").closest("li") as HTMLElement;
+    for (const b of row.querySelectorAll("button")) {
+      expect((b as HTMLButtonElement).disabled).toBe(true);
+    }
+  });
+
+  it("spends orchid once on the card, on the plan and not on a step", () => {
+    /*
+     * IT WAS `Approve` ON THE STEP FIRST, and rendering it is what showed that
+     * wrong: a 32px orchid slab inside a step row read as the card's primary
+     * action and outshouted "Approve the plan" in the footer, inverting the
+     * governance argument the control exists inside. The row already carries the
+     * orchid `Needs you` chip, so the accent is said once instead of twice.
+     */
+    const { container } = render(
+      <PlanCard
+        steps={ACTIONABLE}
+        onApprove={noop}
+        onApproveStep={noop}
+        onSkipStep={noop}
+      />,
+    );
+    const orchidControls = [...container.querySelectorAll("button")].filter((b) =>
+      b.className.includes("bg-mrd-you"),
+    );
+    expect(orchidControls.length).toBe(1);
+    expect(orchidControls[0].textContent).toContain("Approve the plan");
+  });
+});
+
+describe("a skip cannot be taken without a reason", () => {
+  const openSkip = (steps: PlanStep[], onSkip: (id: string, reason: string) => void) => {
+    const view = render(<PlanCard steps={steps} onSkipStep={onSkip} />);
+    const row = screen.getByText("Publish the release").closest("li") as HTMLElement;
+    fireEvent.click([...row.querySelectorAll("button")].find((b) => b.textContent === "Skip it")!);
+    return { view, row: screen.getByText("Publish the release").closest("li") as HTMLElement };
+  };
+
+  it("asks why, and will not commit until it has an answer", () => {
+    let taken: [string, string] | null = null;
+    const { row } = openSkip(ACTIONABLE, (id, reason) => (taken = [id, reason]));
+
+    const submit = [...row.querySelectorAll("button")].find(
+      (b) => b.textContent === "Skip this step",
+    ) as HTMLButtonElement;
+    expect(submit, "the reason form did not open").toBeTruthy();
+    expect(submit.disabled, "an empty reason was accepted").toBe(true);
+
+    fireEvent.click(submit);
+    expect(taken, "a skip committed with no reason").toBe(null);
+  });
+
+  it("commits the reason it was given, trimmed", () => {
+    let taken: [string, string] | null = null;
+    const { row } = openSkip(ACTIONABLE, (id, reason) => (taken = [id, reason]));
+    const input = row.querySelector("input") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "  Released by hand this morning  " } });
+    fireEvent.click(
+      [...row.querySelectorAll("button")].find((b) => b.textContent === "Skip this step")!,
+    );
+    expect(taken).toEqual(["p", "Released by hand this morning"]);
+  });
+
+  it("refuses whitespace, which is a reason nobody gave", () => {
+    let taken: unknown = null;
+    const { row } = openSkip(ACTIONABLE, (id, reason) => (taken = [id, reason]));
+    const input = row.querySelector("input") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "   " } });
+    const submit = [...row.querySelectorAll("button")].find(
+      (b) => b.textContent === "Skip this step",
+    ) as HTMLButtonElement;
+    expect(submit.disabled).toBe(true);
+    fireEvent.click(submit);
+    expect(taken).toBe(null);
+  });
+
+  it("submits on Enter and cancels on Escape, so a keyboard can finish what it started", () => {
+    let taken: unknown = null;
+    const { row } = openSkip(ACTIONABLE, (id, reason) => (taken = [id, reason]));
+    const input = row.querySelector("input") as HTMLInputElement;
+
+    fireEvent.keyDown(input, { key: "Escape" });
+    expect(
+      screen.getByText("Publish the release").closest("li")?.querySelector("input"),
+      "Escape did not close the form",
+    ).toBe(null);
+
+    // Reopen and finish it with the keyboard alone.
+    const reopened = screen.getByText("Publish the release").closest("li") as HTMLElement;
+    fireEvent.click(
+      [...reopened.querySelectorAll("button")].find((b) => b.textContent === "Skip it")!,
+    );
+    const second = (
+      screen.getByText("Publish the release").closest("li") as HTMLElement
+    ).querySelector("input") as HTMLInputElement;
+    fireEvent.change(second, { target: { value: "Shipped by hand" } });
+    fireEvent.keyDown(second, { key: "Enter" });
+    expect(taken).toEqual(["p", "Shipped by hand"]);
+  });
+
+  it("binds the field to its label, so the question is announced with the box", () => {
+    const { row } = openSkip(ACTIONABLE, noop);
+    const input = row.querySelector("input") as HTMLInputElement;
+    const label = row.querySelector("label") as HTMLLabelElement;
+    expect(input.id).toBe("plan-skip-reason-p");
+    expect(label.getAttribute("for")).toBe(input.id);
+    expect(label.textContent).toContain("Why skip this?");
+  });
+
+  it("replaces the controls while it is open rather than sitting beneath them", () => {
+    // Otherwise a live "Skip it" sits next to "Skip this step" competing for the
+    // same press, on a control whose whole point is deliberateness.
+    const { row } = openSkip(ACTIONABLE, noop);
+    expect(labels(row)).toEqual(["Skip this step", "Keep it"]);
+  });
+});
+
+describe("a step carries enough context to decide on it", () => {
+  it("names what it will act on", () => {
+    render(<PlanCard steps={ACTIONABLE} />);
+    expect(screen.getByText("supaprod/main <- fix/firmware-reboot")).toBeTruthy();
+    expect(screen.getByText("v4.18.0")).toBeTruthy();
+  });
+
+  it("says when it cannot be taken back, in the vocabulary the rest of the product uses", () => {
+    render(<PlanCard steps={ACTIONABLE} />);
+    // `REVERSIBILITY_LABEL` from tool-consequences.ts, which is what the approvals
+    // queue prints and what approval-policy.ts gates on. One fact, one wording.
+    expect(screen.getByText("Irreversible")).toBeTruthy();
+    expect(screen.getByText("Partly reversible")).toBeTruthy();
+  });
+
+  it("says nothing at all when a step can simply be undone", () => {
+    // "This can be undone" is the assumption a reader already holds, so stating it
+    // spends a line to say nothing. Only the two values that change a decision draw.
+    render(
+      <PlanCard
+        steps={[{ id: "r", label: "Draft the spec", state: "pending", reversible: "reversible" }]}
+      />,
+    );
+    expect(screen.queryByText("Reversible")).toBe(null);
+  });
+
+  it("keeps a long object on its own line rather than widening the row", () => {
+    const { container } = render(
+      <PlanCard
+        steps={[
+          {
+            id: "long",
+            label: "Open the pull request",
+            state: "needs-approval",
+            touches: "supaprod/main <- feature/a-branch-name-nobody-would-choose-but-somebody-did",
+          },
+        ]}
+      />,
+    );
+    const object = screen.getByText(/a-branch-name-nobody-would-choose/);
+    expect(object.className).toContain("break-all");
+    expect(object.className).toContain("min-w-0");
+    // And it is not on the subject's line, where it would push the chip off the end.
+    const subjectLine = container.querySelector("li")?.children[2].firstElementChild;
+    expect(subjectLine?.contains(object)).toBe(false);
+  });
+});
+
+describe("the rows sit on one grid, measured rather than read", () => {
+  /*
+   * MEASURED IN A BROWSER, because happy-dom lays nothing out and the acceptance
+   * criterion for this item is explicitly geometry rather than class names. The
+   * card was rendered to static markup, served against the real built stylesheet,
+   * and read with `getBoundingClientRect`.
+   *
+   * WHAT IT FOUND, and it is the defect the founder was pointing at:
+   *
+   *   rows with no chip   mark centre 0.63px BELOW its subject's
+   *   rows with a chip    mark centre 1.00px ABOVE its subject's
+   *
+   * A 1.63px swing, alternating down the card by whether a row happened to have
+   * something to say. `RUN_LINE`'s declared 22px and `GLYPH_SLOT`'s 4px are the
+   * fix, and after it every row measured delta 0.00, the five distinct row heights
+   * became three (each difference now content rather than accident), and the
+   * mark and body offsets inside a row came out identical to `RunTimeline`'s:
+   * 48.00 and 70.00 in both.
+   *
+   * These assertions are the part of that a test CAN hold: the shared declarations
+   * are used, so the geometry cannot drift back without one of them changing.
+   */
+  it("uses the shared first-line declaration on every row", () => {
+    const { container } = render(<PlanCard steps={ACTIONABLE} />);
+    const rows = [...container.querySelectorAll("li")];
+    expect(rows.length).toBe(ACTIONABLE.length);
+    for (const row of rows) {
+      const line = row.children[2].firstElementChild as HTMLElement;
+      expect(line.className, "a row composed its own first line").toBe(RUN_LINE);
+    }
+  });
+
+  it("pins the line height to the chip's, which is what the offset is solved against", () => {
+    // If either number moves the other has to move with it, so both are named here.
+    expect(RUN_LINE).toContain("min-h-[22px]");
+    const { container } = render(<PlanCard steps={ACTIONABLE} />);
+    const chip = container.querySelector('[class*="h-[22px]"]');
+    expect(chip, "the chip is no longer 22px, so RUN_LINE is solved against nothing").toBeTruthy();
+  });
+
+  it("puts the mark on the same offset as the clock column it sits beside", () => {
+    // These disagreed by a pixel: the clock had always been on 4px and the glyph
+    // slot was on 3px, solved against a line box only a chipless row has.
+    const { container } = render(<PlanCard steps={ACTIONABLE} />);
+    const mark = container.querySelector("li")?.children[1].firstElementChild as HTMLElement;
+    expect(mark.className).toContain("mt-[4px]");
   });
 });
