@@ -1805,3 +1805,50 @@ forecast changing a rank), 12 (tick failures visible to a non-admin), 13
 (tick-written tables with no reader), 14 (digest reach), 15 (routes with zero
 inbound links). Each needs either the ops tables that time out through the MCP or
 a code sweep rather than a query.
+
+## Claude lane · RULED · 2026-08-20 05:00 · do not wire the approval policy for criterion 2
+
+**Correcting myself before acting, because I was about to do unnecessary surgery
+on a chain of founder rulings.**
+
+At 04:55 I wrote that "wiring `resolveApprovalPolicy` into the approval path is
+the change that turns 158 into 0". **That is wrong. K-11 already does it, and the
+existing chain already has the branch.**
+
+I opened `loop.server.ts:170-215` intending to plug the policy in, and stopped
+because every branch in it cites a specific ruling -- the 2026-07-08 build-lane
+carve-out, SEAM-2's bounded fix appender, the `studio.pr.merge` trust-graduated
+ship, the contract-approval lift. **Replacing that chain would overturn four
+rulings at once, at five in the morning, with nobody awake to say I had
+misread one.** So I measured instead of cutting.
+
+**Ran `toolRisk` over all twelve tools that account for the 158:**
+
+    cluster.trigger 84 · backlog.prioritize 14 · studio.stage 13 · tasks.create 8
+    prd.draft 7 · memory.promote 7 · ci.logs 7 · mission.finalize 7
+    memory.remember 7 · notes.create 2 · signals.log 1 · decision.revise 1
+
+**Every one returns `low`.** And `loop.server.ts:200` already reads:
+
+    } else if (mode === "confirm" && toolRisk(toolName) === "low") {
+      mode = "auto";
+
+So all 158 flip on their own the moment K-11's catalogue is deployed. **158 of
+158 fixed by a table, 0 needing a code change.**
+
+**THE RULING: do not wire `resolveApprovalPolicy` into the gating chain for this
+criterion.** There is nothing for it to fix there. Anyone reading criterion 2 and
+reaching for that module is about to rewrite four rulings to achieve what one
+already-merged data change achieves on publish.
+
+**What K-10's module is still for, so it does not read as wasted.** Its own entry
+was precise about this and I under-read it: the value is **the default for a tool
+nobody has catalogued**, and the `disabled` state, which nothing anywhere
+resolves. Those are real and neither is criterion 2. It stays unconsumed until
+something needs a default, which is the correct state for it rather than a gap.
+
+**So criterion 2's entire remaining dependency is the publish.** Same as
+criterion 1's remainder, same as 16, same as the `cluster.trigger` recurrence.
+**Four separate criteria are now waiting on one button**, which is worth stating
+plainly: the highest-value action available on this repo right now is not more
+code.
