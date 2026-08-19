@@ -669,3 +669,111 @@ so the next person does not re-derive it from a red build.
 **Gates.** tsc clean · 9,516 pass / 0 fail / 23 skip / 60 todo across 574 files · build ok. Ratchet
 total unchanged: the `@utility` rules carry no retired marker and no raw colour, and the `--text-*`
 discussion in the comment is stripped before counting.
+
+---
+
+## K-04, K-05, K-06, K-07 · BUILT · 2026-08-20 00:31 · reworked against the beautifui.dev floor
+
+**All four were assembled rather than designed, and this replaces them.** The founder named six
+worked examples and said explicitly that satisfying six and nothing else is the same failure one
+level up. So the fix is structural rather than six patches: two new shared modules, and the three
+run views rebuilt on them.
+
+**Did.**
+
+1. **`run-rows.tsx`, one rhythm for the three views of a run.** Every column, gutter, glyph size and
+   type stop is read off `Thinking`, which is beautifui.dev's own dense trace ported from that
+   page's source, because all three views ARE that object. 28px row (`min-h-7`), 8px gutter
+   (`gap-2`), 4px between rows (`gap-1`), 14px glyph, 12.5px subject, 11.5px qualifier, 1px rail
+   stopping at the last row. The one value not in the reference is the clock column at 40px, which
+   is `--mrd-s7` exactly: a spacing token rather than a measured string width, so it cannot drift
+   when the face changes.
+2. **The row is a CSS grid, declared once.** That is what makes the misaligned column impossible
+   rather than discouraged. `RunFigure` puts a silence duration in the clock column, beside every
+   other number about time.
+3. **`StatusChip.tsx`**, consuming the twenty new tokens. Geometry is `TaskRows`' status pill to the
+   pixel (`h-[22px] rounded-full px-2`, 11.5px), because that component is the port of the
+   reference's live-status component, so its pill IS the reference's status chip. `RecordTag` stays
+   the categorical shape: round carries status, square carries a category, and the reference already
+   made that split.
+4. **Real iconography.** `runGlyphForTool` derives the mark from the tool's namespace, so nothing is
+   passed in and two callers cannot disagree: the source-host mark via `ProviderMark` for anything
+   reaching the repo, `Thinking`'s globe path verbatim for a web read, a clipboard for our own
+   checks. Gone: `[]` for every tool call, `->` for a handoff, an `H` for a source initial.
+5. **`useElapsed` has an hours branch**, in `formatElapsed`. An 86-hour hold reads `86h 00m`.
+6. **`one-run-one-rhythm.test.tsx`**, 22 assertions whose subject is the RELATIONSHIP between the
+   three components rather than any one of them.
+
+**The six, and what each turned into.**
+
+1. **Misaligned columns.** Fixed by the shared grid, with a test that finds the silence row and
+   asserts its figure is in the first column and right-aligned.
+2. **One idea two ways.** The station is no longer TEXT anywhere: it is the glyph, per law 4, so a
+   row cannot carry `Research · Discover` on one line and `Challenge` on the next because the second
+   half is not on that line at all. `station` is now a `StationGlyphKind`, so a drawing is
+   guaranteed to exist. **A second instance of the same defect that was not on the list:** the
+   silence rows read "waiting on you" while the chip beside them read "Waiting on you", one idea in
+   two formats separated by a capital letter. All four silences are now past tense and the same
+   shape, "nothing or nobody plus a verb", so a chip and a silence can never share a phrase.
+3. **ASCII placeholders.** Replaced as above, and normalised rather than nudged: every glyph is 24x24
+   with its ink inside 4..20, which is `station-glyphs.tsx`' grid, so one `mt-[3px]` on the SLOT
+   aligns all of them. That offset is measured: a 14px box against a 12.5px subject on 1.5 leading
+   is an 18.75px line box, and (18.75 - 14) / 2 rounds to 3. **I did not draw a test-runner's
+   logo.** A check run is OUR station verifying, not Bun's, and `provider-marks.tsx` already argues
+   that verbatim brand geometry is somebody else's trademark in our bundle.
+4. **Three products.** One grid, and a gallery panel whose only subject is the three drawn one under
+   the other with the same data behind them, so the rhythm is checkable rather than asserted.
+5. **The sizes nobody drew.** `formatElapsed` rolls over. The gallery gained a 90-character label
+   and a six-hour duration case. 200-row and 500-row cases were already there and still pass.
+6. **Colour doing structure's work.** The word is inside the chip, so the whole set reads with colour
+   removed, and a test asserts every chip's text content is its word.
+
+**Unsure.** Five, and the first two are the ones to overturn if I got them wrong.
+
+1. **PlanCard's subject came DOWN from 13px to 12.5**, and the ratchet law forbids shrinking type.
+   My argument: the floor that law protects is Meridian and beautifui.dev, and 12.5 is `Thinking`'s
+   dense-trace row. 13 was a number I picked two hours earlier, not a shipped design anyone liked.
+   The card's TITLE stays at 13, which is the ladder's "a card's subject", a different role. **If
+   the ratchet is read literally, the fix is to take the other two UP to 13 rather than this one
+   down.**
+2. **`done` lost its chip in PlanCard.** It had `pass`. A five-step plan with three finished would
+   have carried four chips on five rows, and at that density a chip stops meaning "look here". So
+   one rule now governs all three views: a chip only where something is running, waiting or broken,
+   and a finished thing is said by its mark. That means `--mrd-pass-chip` is nearly unused, which is
+   a token with almost no caller.
+3. **`ToolStreamRow.at` became required.** A clock column present on some rows and absent on others
+   is one component in two rhythms. The SSE `tool` frame carries no timestamp, so the client stamps
+   arrival, which is the honest instant for a stream and is not the instant the call STARTED.
+4. **The running spinner became a breathing chip.** The mark slot now carries the tool's identity and
+   spinning a source-host mark would say the host was turning. So the one thing that says "running"
+   is the one thing that moves. Two things moving on one row to report one fact is the motion budget
+   spent twice, which is why the live tail's dot no longer animates either.
+5. **The plan's clock column is empty and held open.** Closing it would put the plan's subjects 54px
+   left of the timeline's, which is the same misalignment from the other direction. A test asserts
+   all three rows have exactly three columns.
+
+**Noticed.** Four.
+
+1. **Two of my own new assertions passed VACUOUSLY on the first run**, and this is the most useful
+   thing in this entry. I built the three containers once in a `describe` body; RTL's `cleanup` runs
+   `afterEach`, so by the second test they were empty and two assertions iterated zero rows and
+   passed. That is precisely the criterion that green-lights a defect, in the file written to catch
+   defects of that shape. Every loop now asserts it found something to check, and the reason is
+   recorded in the file.
+2. **`TaskRows`' status pill is the old mechanism and is still shipping it**: a 16% tint of the
+   status hue under text of the same hue, which is exactly the form that dies on paper. It is not in
+   this pass's scope and it is the next caller that should move to `StatusChip`. Same for
+   `RecordsTable`'s `RecordStatus`, which is a 6px dot plus coloured text.
+3. **`--mrd-pass-chip` is the weak one and the founder's own note says so** (1.26 against `bg`,
+   carried by chroma rather than value). With `done` no longer chipped anywhere, its only caller is
+   a provable outcome, which is at most one row per run. Worth knowing before anyone re-solves it.
+4. **`provider-marks.tsx` uses `--sp-ink` in `inkedBrand`**, so it carries retired vocabulary. I
+   import `ProviderMark` with the default `tone="mono"`, which is `currentColor` and never reaches
+   that path, and the file is not one of the three retired import sources the ratchet counts. Worth
+   flagging because a future `tone="brand"` caller in Meridian would pull a retired token in.
+
+**Gates.** tsc clean · 9,570 pass / 0 fail / 23 skip across 575 files · build ok. Verified all ten
+chip utilities reach the built stylesheet as `background-color:var(--mrd-<status>-chip)` and
+`color:var(--mrd-<status>-on-chip)`. Ratchet total unchanged.
+
+**Still owed and still yours:** the visual pass in both grounds. I have not seen any of this.

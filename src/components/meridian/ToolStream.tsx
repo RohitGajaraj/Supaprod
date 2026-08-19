@@ -1,54 +1,60 @@
 import { useLayoutEffect, useRef, useState } from "react";
 
+import { formatDuration } from "@/components/studio/run-return";
 import { toolActionLabel } from "@/lib/agent-vocabulary";
 
-import { formatDuration } from "@/components/studio/run-return";
+import { StatusChip } from "./StatusChip";
+import {
+  RUN_ROW,
+  RUN_STACK,
+  RunClock,
+  RunGlyph,
+  RunNote,
+  RunSubject,
+  runGlyphForTool,
+} from "./run-rows";
 
 /*
  * THE TOOL STREAM: work arriving, one row at a time, while it happens.
  *
  * ── WHY THIS EXISTS, AND WHY `ToolChips` COULD NOT BE IT ─────────────────
  * `ToolChips` takes a FINISHED ARRAY. It is a good component and it answers a
- * different question: what did this run call. Its rows all share one state, so
- * its left slot is free to draw what KIND of call each was, and its header
- * prints a count that is only true once the run has stopped changing it.
+ * different question: what did this run call. Its rows all share one state, and
+ * its header prints a count that is only true once the run has stopped changing
+ * it.
  *
- * Nothing in this system showed work ARRIVING. That is the single largest hole
- * in "you can see agents working", which is the product's own stated core, and
- * the frame that feeds this already exists: `ask-sse.ts` declares
- * `{ kind: "tool", tool: string }`, the client parses it, and nothing emits it
- * yet (K-15). This component is written against that frame's real shape rather
- * than against a shape convenient for it, so wiring it is a mount and not an
+ * Nothing in this system showed work ARRIVING. That is the largest hole in "you
+ * can see agents working", which is the product's own stated core, and the frame
+ * that feeds it already exists: `ask-sse.ts` declares `{ kind: "tool", tool:
+ * string }`, the client parses it, and nothing emits it yet. This component is
+ * written against that frame's real shape, so wiring it is a mount and not an
  * adapter.
  *
- * ── THE LEFT SLOT CARRIES STATE HERE, NOT KIND ──────────────────────────
- * The one deliberate difference from `ToolChips`, and it is not drift. In a
- * finished list every row is settled, so the state is not worth a column. In a
- * live stream the state is the ENTIRE REASON somebody is looking: which of
- * these is happening right now, and did the one before it come back. So the
- * marker is the state, and `kind` is not a prop at all rather than an unused
- * one.
+ * ── THE RHYTHM IS NOT THIS FILE'S TO CHOOSE ─────────────────────────────
+ * Columns, gutter, glyph size and type stops all come from `run-rows.tsx`. That
+ * is a correction: the first version of this component picked its own 8px gutter
+ * and had no clock column at all, so it and `RunTimeline` were two renderings of
+ * the same run in two different rhythms.
  *
- * Everything a reader could notice is the same as `ToolChips` on purpose: the
- * 28px row, 12.5px label over an 11.5px mono argument, the inert argument, the
- * same two empty-state sentences word for word, and the same inset focus
- * treatment. The two components must read as one vocabulary.
+ * ── THE MARK IS DERIVED FROM THE TOOL, NOT PASSED IN ────────────────────
+ * A pull request wears the source host's mark, a web fetch a globe, our own
+ * checks a clipboard. `runGlyphForTool` reads that off the tool's namespace, so
+ * two surfaces cannot disagree about what `github.pr.open` looks like and no
+ * caller has to know. The row that used to draw `[]` for every call is gone.
  *
- * ── THE LABEL NAMES THE OUTCOME, NOT THE MECHANISM ──────────────────────
+ * ── THE CAPTION NAMES THE OUTCOME, NOT THE MECHANISM ────────────────────
  * A row takes the registry NAME (`prd.draft`) and resolves it through
- * `toolActionLabel`, which is the one place in this repo that turns a tool into
- * "drafting a spec". Engine-Room doctrine: the user meets the output of the
- * machine, never the machine. A caller may override with `label`, and should
- * almost never need to; a row whose tool is unknown to the vocabulary falls back
- * to the raw name, which is honest and visibly ugly, and being visibly ugly is
- * how a missing entry gets noticed rather than shipped.
+ * `toolActionLabel`, the one place in this repo that turns a tool into "drafting
+ * a spec". A tool the vocabulary has never heard of falls back to the raw name,
+ * which is honest and visibly ugly, and being visibly ugly is how a missing
+ * entry gets noticed rather than shipped.
  *
  * ── PIN TO BOTTOM, AND NEVER FIGHT THE READER ───────────────────────────
  * The default is to follow the newest row. The moment somebody scrolls up they
  * are reading something, and taking the viewport back off them is the behaviour
  * every log with this feature is hated for. So scrolling up unpins, the view
- * stays exactly where they left it however many rows arrive, and the arrivals
- * are counted and offered rather than forced.
+ * stays exactly where they left it however many rows arrive, and the arrivals are
+ * counted and offered rather than forced.
  */
 
 /** Three, because a live call is either happening, back, or broken. */
@@ -59,6 +65,15 @@ export type ToolStreamRow = {
   id: string;
   /** The registry name, exactly as the SSE `tool` frame carries it. */
   tool: string;
+  /**
+   * When this reached the reader, ms since epoch.
+   *
+   * REQUIRED, and the SSE frame does not carry it: the client stamps arrival.
+   * That is the honest instant for a stream and it is not optional, because a
+   * clock column that is present on some rows and absent on others is the same
+   * component in two rhythms.
+   */
+  at: number;
   state: ToolStreamState;
   /** Overrides the derived caption. Prefer letting the tool name itself. */
   label?: string;
@@ -70,68 +85,8 @@ export type ToolStreamRow = {
   error?: string;
 };
 
-/** Status hue, from the five words. A running call is a machine working. */
-const HUE: Record<ToolStreamState, string> = {
-  running: "text-mrd-agent",
-  done: "text-mrd-mute",
-  failed: "text-mrd-fail",
-};
-
-/**
- * The state, as a word, for the accessible name and for greyscale.
- *
- * A hue alone fails two readers at once: the person who cannot separate azure
- * from red, and the person listening rather than looking. `done` says nothing,
- * because most rows of a healthy run are done and a column of the word is noise.
- */
-const STATE_WORD: Record<ToolStreamState, string> = {
-  running: "running",
-  done: "",
-  failed: "failed",
-};
-
 const FOCUS_INSET =
   "mrd-focus-inset focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
-
-/**
- * The state marker. 16px in all three states so a row does not reflow when a
- * call comes back, which is the whole reason this is a fixed box rather than
- * three glyphs that happen to be about that size.
- *
- * ONLY `running` MOVES, and the animation is declared INLINE rather than as a
- * utility. meridian.css's reduced-motion block matches on the style attribute,
- * so an animation in a class would keep spinning for somebody who asked it not
- * to. A settled call has nothing left to wait for and must be still: a spinner
- * on a finished row is the same lie as a progress bar on a coding agent.
- */
-function Marker({ state }: { state: ToolStreamState }) {
-  if (state === "running") {
-    return (
-      <span
-        aria-hidden
-        className="size-3 shrink-0 rounded-full border-[1.5px] border-mrd-edge border-t-mrd-agent"
-        style={{ animation: "mrd-spin 700ms linear infinite" }}
-      />
-    );
-  }
-
-  return (
-    <svg
-      aria-hidden
-      width="13"
-      height="13"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={state === "failed" ? 2.6 : 2.4}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={`shrink-0 ${HUE[state]}`}
-    >
-      {state === "failed" ? <path d="M18 6L6 18M6 6l12 12" /> : <path d="M20 6L9 17l-5-5" />}
-    </svg>
-  );
-}
 
 export function ToolStream({
   rows,
@@ -148,9 +103,7 @@ export function ToolStream({
    * different facts and the reader has no other way to tell them apart.
    */
   working?: boolean;
-  /** The accessible name of the log. */
   label?: string;
-  /** Where the column starts scrolling. */
   maxHeight?: number;
   /** Omit and rows are plain facts with no pointer and no tab stop. */
   onSelectRow?: (row: ToolStreamRow, index: number) => void;
@@ -158,8 +111,8 @@ export function ToolStream({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   /*
-   * Pinned means "following the newest row". It starts true, because arriving at
-   * a live stream and being shown the oldest call is the wrong end of it.
+   * Pinned means "following the newest row". It starts true, because arriving at a
+   * live stream and being shown the oldest call is the wrong end of it.
    */
   const [pinned, setPinned] = useState(true);
   const [unseen, setUnseen] = useState(0);
@@ -174,10 +127,10 @@ export function ToolStream({
   /*
    * ROWS PRESENT AT MOUNT DO NOT ANIMATE. Only arrivals do.
    *
-   * `ToolChips` animates every row on every render, which is correct for a
-   * block that appears whole and wrong here in two ways: reopening a surface on
-   * a run with 400 calls would play 400 entrances at once, and it costs a
-   * compositor layer per row on exactly the case the acceptance criteria name.
+   * `ToolChips` animates every row on every render, which is correct for a block
+   * that appears whole and wrong here in two ways: reopening a surface on a run
+   * with 400 calls would play 400 entrances at once, and it costs a compositor
+   * layer per row on exactly the case the acceptance criteria name.
    */
   const settledAtMount = useRef(rows.length);
 
@@ -215,14 +168,13 @@ export function ToolStream({
    * THE ZERO CASE, in `ToolChips`' own words. Two components saying the same
    * thing differently is how a reader learns they are two different systems.
    *
-   * `data-mrd` on the early return as well: this is exactly how a component
-   * loses the attribute, because the eye reads the main return as the root and
-   * stops, and without it the box falls back to the legacy focus ring.
+   * `data-mrd` on the early return as well: this is exactly how a component loses
+   * the attribute, because the eye reads the main return as the root and stops.
    */
   if (rows.length === 0) {
     return (
-      <div data-mrd="" className="w-full max-w-80 font-mrd">
-        <p className="text-[12.5px] text-mrd-mute">
+      <div data-mrd="" className="w-full max-w-[520px] font-mrd">
+        <p className="text-mrd-label text-mrd-mute">
           {working ? "Nothing called yet." : "This run called no tools."}
         </p>
       </div>
@@ -230,12 +182,12 @@ export function ToolStream({
   }
 
   return (
-    <div data-mrd="" className="relative flex w-full max-w-80 flex-col font-mrd">
+    <div data-mrd="" className="relative flex w-full max-w-[520px] flex-col font-mrd">
       {/*
        * `role="log"` rather than a bare `aria-live` region, and the difference
-       * matters on this component specifically: a log announces ADDITIONS only,
-       * so a stream that reaches 500 rows does not read the whole column out
-       * every time one arrives.
+       * matters on this component specifically: a log announces ADDITIONS only, so
+       * a stream that reaches 500 rows does not read the whole column out every
+       * time one arrives.
        */}
       <div
         ref={scrollRef}
@@ -245,71 +197,79 @@ export function ToolStream({
           const el = scrollRef.current;
           if (!el) return;
           /* 2px of tolerance, because fractional layout puts `scrollTop` at the
-             true bottom a hair under the arithmetic and an exact comparison
-             would unpin a reader who never scrolled. */
+             true bottom a hair under the arithmetic and an exact comparison would
+             unpin a reader who never scrolled. */
           setPinned(el.scrollHeight - el.scrollTop - el.clientHeight <= 2);
         }}
         className="min-h-0 overflow-y-auto"
         style={{ maxHeight }}
       >
-        {/* Nothing in a row may be wider than the row, so 500 of them cannot
-            push the page sideways. The argument breaks rather than truncates:
-            half a path is worse than a wrapped one. */}
-        <ol className="flex flex-col gap-1">
+        <ol className={RUN_STACK}>
           {rows.map((row, i) => {
             const caption = row.label ?? toolActionLabel(row.tool) ?? row.tool;
             const took = row.durationMs === undefined ? null : formatDuration(row.durationMs);
-            const word = STATE_WORD[row.state];
             const arrived = i >= settledAtMount.current;
 
             const body = (
               <>
-                <Marker state={row.state} />
-                <span className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2">
-                  <span className="text-[12.5px] font-medium text-mrd-ink">{caption}</span>
+                <RunClock at={row.at} />
+
+                <RunGlyph kind={runGlyphForTool(row.tool)} />
+
+                <span className="min-w-0 pb-1">
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <RunSubject>{caption}</RunSubject>
+                    {/*
+                     * A chip only where there is something to say. `done` gets
+                     * none, for the same reason the timeline gives it none: most
+                     * rows of a healthy run are done, and a column of chips
+                     * saying so buries the one row that is not.
+                     */}
+                    {row.state === "running" ? (
+                      <StatusChip status="agent" pulse>
+                        Running
+                      </StatusChip>
+                    ) : null}
+                    {row.state === "failed" ? <StatusChip status="fail">Failed</StatusChip> : null}
+                    {took ? (
+                      <span className="font-mrd-mono text-mrd-data text-mrd-faint tabular-nums">
+                        {took}
+                      </span>
+                    ) : null}
+                  </span>
+
+                  {/* The argument breaks rather than truncates: half a path is
+                      worse than a wrapped one, and it is the second line so a
+                      long one cannot widen the row. */}
                   {row.argument ? (
-                    <span className="min-w-0 font-mrd-mono text-[11.5px] break-all text-mrd-mute">
+                    <span className="mt-0.5 block font-mrd-mono text-mrd-data break-all text-mrd-mute">
                       {row.argument}
                     </span>
                   ) : null}
-                  {word ? <span className={`text-[11px] ${HUE[row.state]}`}>{word}</span> : null}
-                  {took ? (
-                    <span className="font-mrd-mono text-[11px] text-mrd-faint tabular-nums">
-                      {took}
-                    </span>
-                  ) : null}
-                  {/* A failed call says what broke, on its own line, because a
-                      reason that has to fit beside a filename is a reason
-                      nobody wrote honestly. */}
-                  {row.state === "failed" && row.error ? (
-                    <span className="w-full text-[11.5px] leading-relaxed text-mrd-body">
-                      {row.error}
-                    </span>
-                  ) : null}
+
+                  {row.state === "failed" && row.error ? <RunNote>{row.error}</RunNote> : null}
                 </span>
               </>
             );
 
-            const shape = "flex min-h-7 w-full items-start gap-2 rounded-mrd-ctl px-[3px] py-1";
             const enter = arrived
               ? { animation: "mrd-fade-up 300ms var(--mrd-ease) both" }
               : undefined;
 
             if (!onSelectRow) {
               return (
-                <li key={row.id} className={shape} style={enter}>
+                <li key={row.id} className={RUN_ROW} style={enter}>
                   {body}
                 </li>
               );
             }
 
             return (
-              <li key={row.id}>
+              <li key={row.id} style={enter}>
                 <button
                   type="button"
                   onClick={() => onSelectRow(row, i)}
-                  className={`${shape} ${FOCUS_INSET} text-left transition-colors duration-100 hover:bg-mrd-hover`}
-                  style={enter}
+                  className={`${RUN_ROW} ${FOCUS_INSET} w-full rounded-mrd-chip text-left transition-colors duration-100 hover:bg-mrd-hover`}
                 >
                   {body}
                 </button>
@@ -320,16 +280,16 @@ export function ToolStream({
       </div>
 
       {/*
-       * THE WAY BACK, drawn only when the reader has actually left the bottom.
-       * It names how many arrived rather than saying "new items", because the
-       * count is the thing that decides whether they want to go back yet.
+       * THE WAY BACK, drawn only when the reader has actually left the bottom. It
+       * names how many arrived rather than saying "new items", because the count
+       * is the thing that decides whether they want to go back yet.
        */}
       {!pinned ? (
         <button
           type="button"
           onClick={jump}
           data-mrd=""
-          className="mt-mrd-3 flex w-fit items-center gap-1.5 self-center rounded-mrd-ctl bg-mrd-lift px-2 py-1 text-[11.5px] font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-lift-hover"
+          className="mt-mrd-3 flex w-fit items-center gap-1.5 self-center rounded-mrd-ctl bg-mrd-lift px-2 py-1 text-mrd-data font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-lift-hover"
         >
           <svg
             aria-hidden

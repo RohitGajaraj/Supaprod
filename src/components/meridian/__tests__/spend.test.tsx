@@ -56,13 +56,13 @@ describe("red means the ceiling was hit, and never that it is close", () => {
 
     const at = render(<Spend label="This run" spent={5} cap={5} />);
     expect(at.container.innerHTML).toContain("mrd-fail");
-    expect(screen.getByText("cap reached")).toBeTruthy();
+    expect(screen.getByText("Cap reached")).toBeTruthy();
   });
 
   it("does not go further than red when spend passes the cap", () => {
     // Over-cap happens: a call in flight lands after the ceiling was crossed.
     render(<Spend label="This run" spent={7.4} cap={5} />);
-    expect(screen.getByText("cap reached")).toBeTruthy();
+    expect(screen.getByText("Cap reached")).toBeTruthy();
   });
 
   it("resolves the same state through the exported function, so callers cannot disagree", () => {
@@ -184,7 +184,7 @@ describe("the consequence belongs to the caller", () => {
         note="The run stopped where it was and is waiting for you."
       />,
     );
-    expect(screen.getByText("cap reached")).toBeTruthy();
+    expect(screen.getByText("Cap reached")).toBeTruthy();
     expect(screen.getByText("The run stopped where it was and is waiting for you.")).toBeTruthy();
   });
 

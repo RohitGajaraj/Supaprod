@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { StatusChip } from "./StatusChip";
+
 /*
  * SPEND AGAINST A CEILING.
  *
@@ -89,11 +91,24 @@ const FILL: Record<SpendState, string> = {
   uncapped: "bg-mrd-body",
 };
 
-const TEXT: Record<SpendState, string> = {
-  spending: "text-mrd-mute",
-  nearly: "text-mrd-hold",
-  spent: "text-mrd-fail",
-  uncapped: "text-mrd-mute",
+/**
+ * THE STATE IS A CHIP, NOT COLOURED TEXT, and that is a measurement rather than a
+ * restyle.
+ *
+ * This file shipped with `text-mrd-hold` and `text-mrd-fail` on its state line.
+ * On paper those two land at 5.06 and 5.99 against the ground, which clears the
+ * legibility floor and fails at SALIENCE: at the lightness the floor forces, amber
+ * resolves to brown and the line reads as a shade of black with a tint on it. No
+ * value fixes it, because the sRGB gamut has no chroma there. The colour has to
+ * occupy area, so the state wears the same chip the run views wear and the figure
+ * beside it stays plain.
+ *
+ * The BAR keeps the hue directly, and that is not an inconsistency: a bar is
+ * already area. What could not carry colour was type.
+ */
+const CHIP: Partial<Record<SpendState, "hold" | "fail">> = {
+  nearly: "hold",
+  spent: "fail",
 };
 
 export function Spend({
@@ -130,6 +145,7 @@ export function Spend({
   note?: ReactNode;
 }) {
   const state = spendState(spent, cap, alertAt);
+  const chip = CHIP[state];
   const pct = cap && cap > 0 ? Math.min(100, (spent / cap) * 100) : 0;
 
   const word =
@@ -150,8 +166,8 @@ export function Spend({
        * pushing the cap along the line.
        */}
       <div className="flex items-baseline justify-between gap-mrd-4">
-        <span className="min-w-0 truncate text-[12.5px] text-mrd-body">{label}</span>
-        <span className="shrink-0 font-mrd-mono text-[11.5px] tabular-nums">
+        <span className="min-w-0 truncate text-mrd-label text-mrd-body">{label}</span>
+        <span className="shrink-0 font-mrd-mono text-mrd-data tabular-nums">
           <span className="text-mrd-ink">{money(spent, currency)}</span>
           {cap === null ? null : (
             <span className="text-mrd-mute"> of {money(cap, currency)}</span>
@@ -193,14 +209,17 @@ export function Spend({
        * work out next.
        */}
       {word || note || cap === null ? (
-        <p className={`mt-mrd-3 text-[11.5px] leading-relaxed ${TEXT[state]}`}>
+        <p className="mt-mrd-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-mrd-data leading-relaxed text-mrd-mute">
           {cap === null ? (
             <span>No cap is set, so nothing stops this on spend.</span>
           ) : (
             <>
-              {word ? <span className="font-mrd-mono tabular-nums">{word}</span> : null}
-              {word && note ? <span className="text-mrd-mute">. </span> : null}
-              {note ? <span className="text-mrd-mute">{note}</span> : null}
+              {chip ? (
+                <StatusChip status={chip}>
+                  {state === "spent" ? "Cap reached" : word}
+                </StatusChip>
+              ) : null}
+              {note ? <span>{note}</span> : null}
             </>
           )}
         </p>

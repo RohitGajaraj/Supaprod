@@ -26,6 +26,7 @@ import { Action, Actions, Approve } from "@/components/meridian/surface-parts";
 import { Dialog } from "@/components/meridian/Dialog";
 import { Spend } from "@/components/meridian/Spend";
 import { MarkStack } from "@/components/meridian/marks";
+import { StatusChip } from "@/components/meridian/StatusChip";
 import {
   RecordStatus,
   RecordTag,
@@ -2031,7 +2032,7 @@ function MeridianGallery() {
 
         <Panel
           title="Run timeline"
-          note="The first component in the system with a clock on it. Every other step display here reports ORDER; this one reports the hour, because the question a lead actually arrives with is about a moment: what happened at 03:12, and what was it waiting on until 03:40. The silences are the subject. A run that worked for 28 minutes and a run that idled for 28 minutes waiting on you produce the same list of steps everywhere else in this system, and here they do not: a stretch past three minutes gets its own row, dashed rather than solid so it survives greyscale, carrying the exact duration and a word for what was being waited on. That word comes from the state standing when the silence began, and a quiet machine is called quiet rather than stalled, because the record knows nothing was filed and does not know that anything stopped. The live case ticks an elapsed count and nothing on the surface implies a percentage: a coding agent cannot know how long it will take. Its times are read off the real clock rather than the fixed fixture instant the rest of this page uses, so the counter has something true to count."
+          note="The first component in the system with a clock on it, and the question it answers is about a moment: what happened at 03:12, and what was it waiting on until 03:40. The silences are the subject. A run that worked for 28 minutes and a run that idled for 28 minutes waiting on you produce the same list of steps everywhere else in this system, and here they do not: a stretch past three minutes gets its own row, dashed rather than solid so it survives greyscale, with its duration in the clock column beside every other number about time. That column is the correction worth knowing about, because the first version of this put the duration inline in the label while every event row put its time in the clock column, and no gate in this repo could see it. Every silence is phrased in the past tense as nothing or nobody plus a verb, so it can never be read as the chip beside it: a chip states the state work is in, a silence states what did not happen. A quiet machine is called quiet rather than stalled, because the record knows nothing was filed and does not know that anything stopped. Live mode ticks an elapsed count and nothing implies a percentage."
         >
           <Pair>
             <RunTimelineCases />
@@ -2040,7 +2041,7 @@ function MeridianGallery() {
 
         <Panel
           title="Tool stream"
-          note="Work arriving, as against work that has arrived. Tool chips above takes a finished array and is the right shape for a run that has stopped; nothing in this system showed a call happening, which is the largest hole in the one thing the product says it is for. A row here is deliberately the same object as a tool chip, at the same height, with the same inert mono argument and the same two empty sentences word for word. The one difference is the left slot: a finished list can spend it on what kind of call each was, a live one has to spend it on which of these is happening right now. The caption comes from the registry name through the product's own vocabulary, so prd.draft reads as drafting a spec, and a tool the vocabulary has never heard of shows its raw name, which is ugly on purpose because that is how a missing entry gets noticed rather than shipped. The stream follows the newest row and stops the instant you scroll up, since taking the viewport back off somebody who is reading is what every log with this feature is hated for. Scroll one of these up and the way back appears with a count on it."
+          note="Work arriving, as against work that has arrived. Tool chips above takes a finished array and is the right shape for a run that has stopped; nothing in this system showed a call happening, which is the largest hole in the one thing the product says it is for. Every row wears the mark of the thing it touched, derived from the tool's namespace rather than passed in: the source host for anything reaching the repo, a globe for a web read, a clipboard for our own checks. That is what replaced a bracket glyph drawn on every row regardless. The caption comes from the registry name through the product's own vocabulary, so prd.draft reads as drafting a spec, and a tool the vocabulary has never heard of shows its raw name, which is ugly on purpose because that is how a missing entry gets noticed rather than shipped. The one thing that moves is the chip that says Running, since the mark slot now carries an identity and spinning a source-host mark would say the host was turning. The stream follows the newest row and stops the instant you scroll up: scroll one of these up and the way back appears with a count on it."
         >
           <Pair>
             <ToolStreamCases />
@@ -2049,7 +2050,7 @@ function MeridianGallery() {
 
         <Panel
           title="Plan card"
-          note="The first forward-looking step display in the system. Everything else here reports what happened; this is what an agent commits to before it acts, which is the only place a person can set a boundary once instead of being asked fourteen times on the way down. Two of its six states exist nowhere else: a step nobody has started, and a step deliberately passed over. Both matter because the task vocabulary has neither, and its normaliser collapses anything it does not recognise to blocked, so under the old words the last step of a fresh plan would tell a reader it was already stuck. A skipped step carries its reason, and a skipped step with no reason says so out loud rather than letting an incomplete record look complete. Orchid appears on exactly one step here and azure on exactly one, on the mark and on the word beside it and nowhere else, not on the title and not on the count: a card that paints its own header in the accent has spent the meaning the steps need."
+          note="The first forward-looking step display in the system. Everything else here reports what happened; this is what an agent commits to before it acts, which is the only place a person can set a boundary once instead of being asked fourteen times on the way down. Two of its six states exist nowhere else: a step nobody has started, and a step deliberately passed over. Both matter because the task vocabulary has neither, and its normaliser collapses anything it does not recognise to blocked, so under the old words the last step of a fresh plan would tell a reader it was already stuck. A skipped step carries its reason, and a skipped step with no reason says so out loud rather than letting an incomplete record look complete. Each step draws its station rather than naming it, because identity is shape here, and a step with no station falls back to the ring set. A chip appears only where something is running, waiting or broken: a finished step is said by its mark, since a plan of five with three done would otherwise carry four chips on five rows and the chip would stop meaning look here. The clock column is empty and held open, because a plan has no times yet and closing it would put these subjects fifty-four pixels left of the timeline's."
         >
           <Pair>
             <PlanCardCases />
@@ -2091,36 +2092,54 @@ function MeridianGallery() {
             <MarkStackCases />
           </Pair>
         </Panel>
+
+        <Panel
+          title="Status chips"
+          note="Status stopped being coloured text on 2026-08-19 and the reason is a measurement rather than a preference. On the dark ground the five status words land between 5.81 and 10.08 against the canvas, so they separate and read plainly as colour. On paper they collapse into 5.06 to 6.00: every one clears the legibility floor, and none of them reads as colour any more. That is a salience failure and no value fixes it, because holding that contrast on white pins these hues near lightness 0.50 and the gamut has no chroma there. Solved for maximum in-gamut chroma, three of the five get worse and amber resolves to brown. So the colour occupies area instead of glyphs. The geometry is Task Rows' status pill to the pixel, because that component is the port of the reference's own live-status component and its pill is therefore the reference's status chip. What changed is only what fills it. Both grounds get a chip, since a chip on paper and bare text on dark would be two components wearing one name. Every word is inside its chip, so the whole set still reads with the colour removed."
+        >
+          <Pair>
+            <StatusChipCases />
+          </Pair>
+        </Panel>
+
+        <Panel
+          title="The three views of one run, side by side"
+          note="This panel exists to be checked rather than admired, and it is the only panel here whose subject is the relationship between components. Plan, timeline and stream are three views of one run and they shipped as three products: three mark sizes, three gutters, three subject sizes, two of them with no time column at all. Every one of those values was defensible alone and none was chosen against its neighbours, which is the failure this whole pass is aimed at. They share one grid now, read off Thinking, the reference's own dense trace: a forty-pixel clock column that is one spacing token wide, a fourteen-pixel mark, an eight-pixel gutter, a twenty-eight pixel row, one label scale and one place for a figure. Read down the left edge of all three: the marks sit on one line and the subjects start on one pixel. If they ever stop doing that, one of the three has grown its own rhythm again."
+        >
+          <Pair>
+            <OneSetCases />
+          </Pair>
+        </Panel>
       </div>
     </div>
   );
 }
 
 /*
- * ── K-04, THE RUN TIMELINE ──────────────────────────────────────────────
- * Its own component rather than fixtures at the top of the file, because this
- * gallery is append-only: thirteen queue items add a section to it, and a
- * section that adds one function at the end and one Panel in the list is a
- * section whose merge is two additions rather than a conflict.
+ * ── THE THREE VIEWS OF A RUN, REWORKED 2026-08-19 ───────────────────────
+ * `RunTimeline`, `ToolStream` and `PlanCard` are one set now: one grid, one row
+ * height, one glyph size, one label scale, one place for a figure. They are drawn
+ * one under the other in this panel on purpose, because that is the comparison
+ * that shows whether they are a set, and reading them apart is how three
+ * rhythms shipped in the first place.
  *
- * THE LIVE CASE USES THE REAL CLOCK, and it is the only fixture on this page
- * that does. Everything else is pinned to `NOW`, a fixed instant in August, so
- * the two columns cannot drift. An elapsed counter pinned to that instant would
- * report about two years and read as broken, which would hide the one thing the
- * live case is here to show.
+ * THE FIXTURES OBEY ONE FORMAT TOO. Every event that has an actor names it, and
+ * no row writes a station as text: a station is the glyph. The earlier fixture
+ * credited `Research · Discover` on one row and `Challenge` on the next, which
+ * was two formats for one idea, and the component now makes that impossible
+ * rather than leaving it to whoever writes the next fixture.
  */
 function RunTimelineCases() {
   const liveStart = Date.now() - 96_000;
 
   const long: TimelineEvent[] = [
-    { id: "l1", at: NOW - 52 * 60_000, kind: "station", label: "Decide opened", state: "done" },
+    { id: "l1", at: NOW - 52 * 60_000, kind: "station", station: "decide", label: "Decide opened", state: "done" },
     {
       id: "l2",
       at: NOW - 51 * 60_000,
-      kind: "tool",
+      kind: "fetch",
       label: "Read 128 messages from the outage thread",
       agentSlug: "researcher",
-      station: "Discover",
       durationMs: 41_000,
       state: "done",
     },
@@ -2137,31 +2156,32 @@ function RunTimelineCases() {
       at: NOW - 47 * 60_000,
       kind: "gate",
       label: "Asked whether homeowners should see the firmware notice",
+      agentSlug: "critic",
       state: "gate",
     },
     /* The 28-minute wait the component exists for, and it is a real figure: the
-       oldest pending approval in this workspace has been standing for 627 hours. */
+       oldest pending approval in this workspace has been standing 627 hours. */
     {
       id: "l5",
       at: NOW - 19 * 60_000,
-      kind: "person",
+      kind: "gate",
       label: "You approved it, with the wording changed",
+      agentSlug: null,
       state: "done",
     },
     {
       id: "l6",
       at: NOW - 18 * 60_000,
-      kind: "tool",
+      kind: "repo",
       label: "Wrote src/components/notices/FirmwareNotice.tsx",
       agentSlug: "builder",
-      station: "Build",
       durationMs: 96_000,
       state: "done",
     },
     {
       id: "l7",
       at: NOW - 2 * 60_000,
-      kind: "tool",
+      kind: "repo",
       label: "Opened the pull request",
       agentSlug: "builder",
       state: "passed",
@@ -2169,40 +2189,70 @@ function RunTimelineCases() {
   ];
 
   const failed: TimelineEvent[] = [
-    { id: "f1", at: NOW - 9 * 60_000, kind: "station", label: "Build opened", state: "done" },
+    { id: "f1", at: NOW - 9 * 60_000, kind: "station", station: "build", label: "Build opened", state: "done" },
     {
       id: "f2",
       at: NOW - 8 * 60_000,
-      kind: "tool",
+      kind: "check",
       label: "Ran the checks",
       detail: "Twelve of 8,787 failed, all in meridian-ratchet.test.ts.",
+      agentSlug: "builder",
       durationMs: 34_000,
       state: "failed",
     },
   ];
 
   const held: TimelineEvent[] = [
-    { id: "h1", at: NOW - 86 * 60 * 60_000, kind: "station", label: "Discover opened", state: "done" },
+    {
+      id: "h1",
+      at: NOW - 86 * 60 * 60_000,
+      kind: "station",
+      station: "discover",
+      label: "Discover opened",
+      state: "done",
+    },
     {
       id: "h2",
       at: NOW - 86 * 60 * 60_000 + 30_000,
       kind: "station",
+      station: "discover",
       label: "Grouping signals stopped: no source is connected",
       detail: "Thirty-nine of 43 work items are standing here for the same reason.",
-      station: "Discover",
       state: "held",
     },
   ];
 
   const liveEvents: TimelineEvent[] = [
-    { id: "v1", at: liveStart, kind: "station", label: "Build opened", state: "done" },
+    { id: "v1", at: liveStart, kind: "station", station: "build", label: "Build opened", state: "done" },
     {
       id: "v2",
       at: liveStart + 60_000,
-      kind: "tool",
+      kind: "check",
       label: "Running the test suite",
       agentSlug: "builder",
       state: "working",
+    },
+  ];
+
+  /* A 90-character label and a six-hour duration: two of the sizes nobody draws,
+     and both were found by reading rather than by looking. */
+  const extremes: TimelineEvent[] = [
+    {
+      id: "x1",
+      at: NOW - 6 * 60 * 60_000 - 12 * 60_000,
+      kind: "repo",
+      label:
+        "Rewrote the firmware reboot notice so a homeowner can tell a planned restart from an outage",
+      agentSlug: "builder",
+      durationMs: 6 * 60 * 60_000 + 12 * 60_000 + 41_000,
+      state: "done",
+    },
+    {
+      id: "x2",
+      at: NOW - 60_000,
+      kind: "gate",
+      label: "Waiting on you to say whether the wording is right",
+      state: "gate",
     },
   ];
 
@@ -2214,7 +2264,14 @@ function RunTimelineCases() {
       <Case label="One event">
         <RunTimeline
           events={[
-            { id: "one", at: NOW - 60_000, kind: "station", label: "Decide opened", state: "done" },
+            {
+              id: "one",
+              at: NOW - 60_000,
+              kind: "station",
+              station: "decide",
+              label: "Decide opened",
+              state: "done",
+            },
           ]}
         />
       </Case>
@@ -2224,12 +2281,11 @@ function RunTimelineCases() {
       <Case label="A run that failed">
         <RunTimeline events={failed} />
       </Case>
-      {/* No `now` here on purpose. A live tail on this one would tick a figure
-          measured off the fixed August fixture instant, and `useElapsed` has no
-          hours branch, so an 86-hour hold renders as "5160m 0.0s". The hold
-          itself is the fact this case is here to show. */}
       <Case label="Held on a condition, and waiting on nobody">
         <RunTimeline events={held} />
+      </Case>
+      <Case label="A 90 character label and a six hour duration">
+        <RunTimeline events={extremes} />
       </Case>
       <Case label="Live, still going">
         <RunTimeline events={liveEvents} now={Date.now()} />
@@ -2239,18 +2295,19 @@ function RunTimelineCases() {
 }
 
 /*
- * ── K-05, THE TOOL STREAM ───────────────────────────────────────────────
- * The tool names are real registry names, so every caption on this page is one
- * the vocabulary actually produces rather than a sentence written to look good
- * here. `quarry.excavate` is the deliberate exception: it is in no catalogue, so
- * it renders raw, and that is the case worth looking at.
+ * ── THE TOOL STREAM ─────────────────────────────────────────────────────
+ * Real registry names, so every caption is one the vocabulary actually produces
+ * and every mark is the one `runGlyphForTool` derives from the namespace: the
+ * source host for anything touching the repo, a globe for a web read, a clipboard
+ * for our own checks. `quarry.excavate` is the deliberate exception: in no
+ * catalogue, so it renders raw, and that is the case worth looking at.
  *
- * The streaming case is 40 rows so the column genuinely overflows and the pin
- * can be tried. It is the only way to see the behaviour this component exists
- * for: scroll up, watch rows keep arriving without the view moving, and press
- * the way back.
+ * The streaming case is 40 rows so the column genuinely overflows and the pin can
+ * be tried: scroll up, watch rows keep arriving without the view moving, press the
+ * way back.
  */
 function ToolStreamCases() {
+  const t0 = NOW - 40 * 9_000;
   const READS = [
     "src/lib/spine/driver.ts",
     "src/lib/ai/runtime.server.ts",
@@ -2264,6 +2321,7 @@ function ToolStreamCases() {
     return {
       id: `s${i}`,
       tool: i % 5 === 0 ? "repo.search" : "repo.read",
+      at: t0 + i * 9_000,
       argument: i % 5 === 0 ? "resolveToolMode" : READS[i % READS.length],
       state: last ? "running" : "done",
       ...(last ? {} : { durationMs: 400 + ((i * 137) % 2600) }),
@@ -2281,12 +2339,51 @@ function ToolStreamCases() {
       <Case label="Streaming: 40 calls, the newest still running">
         <ToolStream rows={streaming} working />
       </Case>
+      <Case label="One of each mark: repo, web, our own checks, a handoff">
+        <ToolStream
+          rows={[
+            {
+              id: "m1",
+              tool: "web.search",
+              at: NOW - 300_000,
+              argument: "firmware reboot vs outage homeowner confusion",
+              durationMs: 2_400,
+              state: "done",
+            },
+            {
+              id: "m2",
+              tool: "studio.checks.run",
+              at: NOW - 240_000,
+              argument: "bun test",
+              durationMs: 34_000,
+              state: "done",
+            },
+            {
+              id: "m3",
+              tool: "github.pr.open",
+              at: NOW - 180_000,
+              argument: "notices/firmware-banner",
+              durationMs: 1_900,
+              state: "done",
+            },
+            {
+              id: "m4",
+              tool: "agent.handoff",
+              at: NOW - 120_000,
+              argument: "reviewer",
+              durationMs: 300,
+              state: "done",
+            },
+          ]}
+        />
+      </Case>
       <Case label="A call that came back broken">
         <ToolStream
           rows={[
             {
               id: "e1",
               tool: "prd.draft",
+              at: NOW - 120_000,
               state: "done",
               argument: "Firmware reboot notice",
               durationMs: 4_100,
@@ -2294,6 +2391,7 @@ function ToolStreamCases() {
             {
               id: "e2",
               tool: "studio.checks.run",
+              at: NOW - 60_000,
               state: "failed",
               argument: "bun test",
               error: "Twelve of 8,787 assertions failed, all in meridian-ratchet.test.ts.",
@@ -2308,6 +2406,7 @@ function ToolStreamCases() {
             {
               id: "w1",
               tool: "repo.read",
+              at: NOW - 90_000,
               state: "done",
               argument:
                 "src/components/meridian/__tests__/agent-marks-are-distinct.test.ts?range=1-240&highlight=MARK_HUE_RESTING",
@@ -2316,6 +2415,7 @@ function ToolStreamCases() {
             {
               id: "w2",
               tool: "web.search",
+              at: NOW - 30_000,
               state: "running",
               argument:
                 "how do shipped coding agents decide when a tool call needs a human approval, and what fraction get approved",
@@ -2324,23 +2424,27 @@ function ToolStreamCases() {
         />
       </Case>
       <Case label="A tool the vocabulary has never heard of">
-        <ToolStream rows={[{ id: "u1", tool: "quarry.excavate", state: "running" }]} working />
+        <ToolStream
+          rows={[{ id: "u1", tool: "quarry.excavate", at: NOW - 10_000, state: "running" }]}
+          working
+        />
       </Case>
     </Stack>
   );
 }
 
 /*
- * ── K-06, THE PLAN CARD ─────────────────────────────────────────────────
+ * ── THE PLAN CARD ───────────────────────────────────────────────────────
  * The five-step plan is a real route through the loop, including the skipped
  * Design station, because a skip is the normal case rather than the exception:
  * `STATION_NEEDS.build` does not require a design artifact, so most real routes
- * pass Design by. Drawing it here with its reason attached is the whole point of
- * the state existing.
+ * pass Design by. Drawing it with its reason attached is the point of the state
+ * existing.
  *
- * The one-step case is not a smaller version of the same thing. It is the case
- * where the header's plural has to be right and the rail must not be drawn at
- * all, and both were wrong in the first draft.
+ * Every step names its station, which is drawn rather than written, so the marks
+ * down the left are the loop itself. The one-step case is not a smaller version of
+ * the same thing: it is the case where the header's plural has to be right and the
+ * rail must not be drawn at all.
  */
 function PlanCardCases() {
   const five: PlanStep[] = [
@@ -2349,27 +2453,28 @@ function PlanCardCases() {
       label: "Read every signal on the firmware theme",
       state: "done",
       agentSlug: "researcher",
-      station: "Discover",
+      station: "discover",
     },
     {
       id: "p2",
       label: "Rank it against the other four bets",
       state: "active",
       agentSlug: "strategist",
-      station: "Decide",
+      station: "decide",
     },
     {
       id: "p3",
       label: "Draft the spec, with the precedent cited",
       state: "needs-approval",
       agentSlug: "planner",
-      station: "Plan",
+      station: "plan",
     },
     {
       id: "p4",
       label: "Put a surface in front of it",
       state: "skipped",
-      station: "Design",
+      agentSlug: "designer",
+      station: "design",
       why: "The notice reuses a shipped component, so there is nothing new to draw.",
     },
     {
@@ -2377,20 +2482,41 @@ function PlanCardCases() {
       label: "Open the pull request",
       state: "pending",
       agentSlug: "builder",
-      station: "Build",
+      station: "build",
     },
   ];
 
   const broken: PlanStep[] = [
-    { id: "b1", label: "Write the notice component", state: "done", agentSlug: "builder" },
+    {
+      id: "b1",
+      label: "Write the notice component",
+      state: "done",
+      agentSlug: "builder",
+      station: "build",
+    },
     {
       id: "b2",
       label: "Run the checks",
       state: "failed",
       agentSlug: "builder",
+      station: "build",
       why: "Twelve of 8,787 assertions failed, all in the Meridian ratchet.",
     },
-    { id: "b3", label: "Open the pull request", state: "pending", agentSlug: "builder" },
+    {
+      id: "b3",
+      label: "Open the pull request",
+      state: "pending",
+      agentSlug: "builder",
+      station: "ship",
+    },
+  ];
+
+  /* A step with no station wears the ring set instead, which is the other half of
+     the mark rule and the case a reader meets on an ad-hoc plan. */
+  const stationless: PlanStep[] = [
+    { id: "n1", label: "Read the two conflicting tickets", state: "done", agentSlug: "researcher" },
+    { id: "n2", label: "Decide which one is the real complaint", state: "active", agentSlug: "strategist" },
+    { id: "n3", label: "Write it up", state: "pending", agentSlug: "planner" },
   ];
 
   return (
@@ -2404,11 +2530,14 @@ function PlanCardCases() {
       <Case label="The same plan, read only">
         <PlanCard steps={five} />
       </Case>
+      <Case label="Steps with no station, on the ring set">
+        <PlanCard steps={stationless} />
+      </Case>
       <Case label="One step">
         <PlanCard steps={[five[4]]} onApprove={noop} />
       </Case>
       <Case label="A skip with nobody's reason on it">
-        <PlanCard steps={[{ id: "x", label: "Put a surface in front of it", state: "skipped" }]} />
+        <PlanCard steps={[{ id: "x", label: "Put a surface in front of it", state: "skipped", station: "design" }]} />
       </Case>
       <Case label="A step that failed">
         <PlanCard steps={broken} />
@@ -2706,6 +2835,106 @@ function MarkStackCases() {
 
       <Case label="One agent, which draws no stack at all">
         <MarkStack agents={[{ slug: "builder", state: "running" }]} />
+      </Case>
+    </Stack>
+  );
+}
+
+/*
+ * ── STATUS CHIPS ────────────────────────────────────────────────────────
+ * All five, in both grounds, at the sizes they actually ship at. The last case is
+ * the one to look at hardest: five chips in a row is what a badly built surface
+ * does, and it is here so the cost of that is visible rather than argued about.
+ */
+function StatusChipCases() {
+  return (
+    <Stack>
+      <Case label="The five, each saying its own word">
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusChip status="you" />
+          <StatusChip status="agent" />
+          <StatusChip status="hold" />
+          <StatusChip status="pass" />
+          <StatusChip status="fail" />
+        </div>
+      </Case>
+
+      <Case label="Breathing, for the two states that are still moving">
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusChip status="agent" pulse />
+          <StatusChip status="you" pulse />
+        </div>
+      </Case>
+
+      <Case label="More specific about the same state, which is the only allowed override">
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusChip status="you">Needs you</StatusChip>
+          <StatusChip status="hold">Cap reached</StatusChip>
+          <StatusChip status="agent">Running</StatusChip>
+        </div>
+      </Case>
+
+      <Case label="In a row of text, which is where they live">
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-mrd-label text-mrd-ink">
+          Ran the checks
+          <StatusChip status="fail" />
+          <span className="font-mrd-mono text-mrd-data text-mrd-faint tabular-nums">34s</span>
+        </p>
+      </Case>
+
+      <Case label="Beside the categorical tag, which is a different shape on purpose">
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusChip status="pass" />
+          <RecordTag label="Gelato" />
+          <RecordTag label="Wholesale" />
+        </div>
+      </Case>
+    </Stack>
+  );
+}
+
+/*
+ * ── THE THREE VIEWS, ONE UNDER THE OTHER ────────────────────────────────
+ * One run, told three ways, with the same data behind all three so the only
+ * difference on screen is the view. This is the check for the rhythm: the marks
+ * should sit on one vertical line and the subjects should start on one pixel
+ * across all three, and the plan's empty clock column is what makes that true
+ * rather than a coincidence.
+ */
+function OneSetCases() {
+  const t = NOW - 12 * 60_000;
+
+  return (
+    <Stack>
+      <Case label="The plan it committed to">
+        <PlanCard
+          steps={[
+            { id: "o1", label: "Read the outage thread", state: "done", agentSlug: "researcher", station: "discover" },
+            { id: "o2", label: "Write the firmware notice", state: "active", agentSlug: "builder", station: "build" },
+            { id: "o3", label: "Open the pull request", state: "pending", agentSlug: "builder", station: "ship" },
+          ]}
+        />
+      </Case>
+
+      <Case label="What actually happened">
+        <RunTimeline
+          events={[
+            { id: "o1", at: t, kind: "station", station: "discover", label: "Read the outage thread", agentSlug: "researcher", durationMs: 41_000, state: "done" },
+            { id: "o2", at: t + 60_000, kind: "repo", label: "Write the firmware notice", agentSlug: "builder", state: "working" },
+          ]}
+          now={t + 9 * 60_000}
+        />
+      </Case>
+
+      <Case label="What it called while doing it">
+        <ToolStream
+          rows={[
+            { id: "o1", tool: "web.search", at: t, argument: "firmware reboot homeowner confusion", durationMs: 2_400, state: "done" },
+            { id: "o2", tool: "repo.read", at: t + 30_000, argument: "src/components/notices/FirmwareNotice.tsx", durationMs: 700, state: "done" },
+            { id: "o3", tool: "studio.checks.run", at: t + 60_000, argument: "bun test", state: "running" },
+          ]}
+          working
+        />
       </Case>
     </Stack>
   );

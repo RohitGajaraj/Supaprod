@@ -18,8 +18,18 @@ import { fireEvent, render, screen } from "@testing-library/react";
 
 import { ToolStream, type ToolStreamRow } from "../ToolStream";
 
+/** `at` is required now: a clock column present on some rows and absent on
+ *  others is one component in two rhythms. See `run-rows.tsx`. */
+const T0 = Date.UTC(2026, 7, 19, 3, 0);
+
 function call(n: number, state: ToolStreamRow["state"] = "done"): ToolStreamRow {
-  return { id: `c${n}`, tool: "repo.read", argument: `src/file-${n}.ts`, state };
+  return {
+    id: `c${n}`,
+    tool: "repo.read",
+    at: T0 + n * 9_000,
+    argument: `src/file-${n}.ts`,
+    state,
+  };
 }
 
 /** A scroller that believes it is 200px tall with 1000px of content in it. */
@@ -116,8 +126,8 @@ describe("the label names the outcome, never the mechanism", () => {
     render(
       <ToolStream
         rows={[
-          { id: "a", tool: "prd.draft", state: "done" },
-          { id: "b", tool: "web.search", state: "running" },
+          { id: "a", tool: "prd.draft", at: T0, state: "done" },
+          { id: "b", tool: "web.search", at: T0, state: "running" },
         ]}
       />,
     );
@@ -132,13 +142,13 @@ describe("the label names the outcome, never the mechanism", () => {
      * is how somebody notices and adds one; a plausible invented sentence is how
      * it ships forever.
      */
-    render(<ToolStream rows={[{ id: "a", tool: "quarry.excavate", state: "running" }]} />);
+    render(<ToolStream rows={[{ id: "a", tool: "quarry.excavate", at: T0, state: "running" }]} />);
     expect(screen.getByText("quarry.excavate")).toBeTruthy();
   });
 
   it("lets a caller override, for the case the vocabulary cannot know", () => {
     render(
-      <ToolStream rows={[{ id: "a", tool: "repo.read", label: "reading the spec", state: "done" }]} />,
+      <ToolStream rows={[{ id: "a", tool: "repo.read", at: T0, label: "reading the spec", state: "done" }]} />,
     );
     expect(screen.getByText("reading the spec")).toBeTruthy();
   });
@@ -160,21 +170,29 @@ describe("only a running call moves", () => {
     expect(after.slice(0, 3).every((s) => !s.includes("mrd-fade-up"))).toBe(true);
   });
 
-  it("declares the spinner inline, so reduced motion can reach it", () => {
+  it("breathes the chip, and declares it inline so reduced motion can reach it", () => {
     /*
-     * meridian.css's reduced-motion block matches on the style attribute. An
-     * animation declared in a utility class keeps running for somebody who asked
-     * it not to, which is a defect this repo has already paid for.
+     * THIS REPLACED A SPINNER, and the swap is the point. The running row used to
+     * carry a spinning ring in the mark slot; the mark slot now carries the TOOL'S
+     * identity, and spinning a source-host mark would say the host was turning.
+     * So the one thing that says "running" is also the one thing that moves.
+     *
+     * meridian.css's reduced-motion block matches on the style attribute, so an
+     * animation declared in a utility class keeps breathing for somebody who asked
+     * it not to. That is a defect this repo has paid for in six files.
      */
     const { container } = render(<ToolStream rows={[call(1, "running")]} />);
-    const spinning = [...container.querySelectorAll("[style]")].filter((n) =>
-      (n.getAttribute("style") ?? "").includes("mrd-spin"),
+    const moving = [...container.querySelectorAll("[style]")].filter((n) =>
+      (n.getAttribute("style") ?? "").includes("mrd-attention"),
     );
-    expect(spinning.length).toBe(1);
+    expect(moving.length).toBe(1);
+    expect(moving[0].getAttribute("data-status")).toBe("agent");
   });
 
   it("gives a settled call no animation at all", () => {
+    // An outcome has already happened, so it has nothing left to wait for.
     const { container } = render(<ToolStream rows={[call(1, "done"), call(2, "failed")]} />);
+    expect(container.innerHTML).not.toContain("mrd-attention");
     expect(container.innerHTML).not.toContain("mrd-spin");
   });
 });
@@ -187,6 +205,7 @@ describe("a failed call says what broke", () => {
           {
             id: "a",
             tool: "repo.read",
+            at: T0,
             argument: "src/lib/spine/driver.ts",
             state: "failed",
             error: "The path is outside the touch list this run declared.",
@@ -194,7 +213,7 @@ describe("a failed call says what broke", () => {
         ]}
       />,
     );
-    expect(screen.getByText("failed")).toBeTruthy();
+    expect(screen.getByText("Failed")).toBeTruthy();
     expect(
       screen.getByText("The path is outside the touch list this run declared."),
     ).toBeTruthy();
@@ -202,7 +221,7 @@ describe("a failed call says what broke", () => {
 
   it("says nothing on a settled call, because most rows of a healthy run are one", () => {
     render(<ToolStream rows={[call(1, "done")]} />);
-    expect(screen.queryByText("done")).toBeNull();
+    expect(screen.queryByText("Done")).toBeNull();
   });
 });
 
@@ -242,7 +261,7 @@ describe("length and width cannot break the column", () => {
   it("breaks a very long argument instead of widening the row", () => {
     const long = "src/components/meridian/" + "a-very-long-segment/".repeat(20) + "file.tsx";
     const { container } = render(
-      <ToolStream rows={[{ id: "a", tool: "repo.read", argument: long, state: "done" }]} />,
+      <ToolStream rows={[{ id: "a", tool: "repo.read", at: T0, argument: long, state: "done" }]} />,
     );
 
     const arg = [...container.querySelectorAll("span")].find((n) => n.textContent === long);

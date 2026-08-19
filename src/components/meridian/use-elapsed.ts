@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { formatElapsed } from "./run-rows";
+
 /**
  * HOW LONG THIS HAS BEEN GOING, in tenths.
  *
@@ -23,6 +25,16 @@ import { useEffect, useState } from "react";
  * loading state with no `startedAt` still legitimately reports time since it
  * appeared. `AgentPulse` turns it off, because an agent indicator showing time
  * since the indicator mounted would be the exact lie described above.
+ *
+ * ── THE HOURS BRANCH, ADDED 2026-08-19, AND WHY IT WAS MISSING ──────────
+ * This formatted `${m}m ${s}s` above sixty seconds and never rolled over, so an
+ * 86-hour hold rendered as `5160m 0.0s`. It typechecked, it was not wrong, and no
+ * reader could parse it. It had not bitten because the only caller was a loading
+ * state measured in seconds, and it was found by reading rather than by looking:
+ * one of the sizes nobody draws.
+ *
+ * The formatting itself lives in `run-rows.tsx` as `formatElapsed`, because the
+ * three run views need the same figure without mounting a timer to get it.
  */
 export function useElapsed(startedAt?: number, active = true): string {
   const [ds, setDs] = useState(() =>
@@ -33,7 +45,5 @@ export function useElapsed(startedAt?: number, active = true): string {
     const t = setInterval(() => setDs((d) => d + 1), 100);
     return () => clearInterval(t);
   }, [active]);
-  const total = ds / 10;
-  if (total < 60) return `${total.toFixed(1)}s`;
-  return `${Math.floor(total / 60)}m ${(total % 60).toFixed(1)}s`;
+  return formatElapsed(ds / 10);
 }
