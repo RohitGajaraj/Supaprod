@@ -340,3 +340,74 @@ and this entry is the place a correction belongs.
 
 **K-80 is unblocked by this verdict**, and per the founder's ruling of 2026-08-20
 it is the next build regardless of its number.
+
+## K-03 · REJECTED · 2026-08-20 00:50
+
+**The component is sound. Its stated reason for existing is false, and the
+falsehood ships in three places, one of which a person reads.** That is what this
+rejection is about, and it is narrow: do not rebuild `Dialog`.
+
+**The premise, falsified.** The item says `--mrd-scrim` and `--mrd-shadow-pane`
+are "defined in Meridian and consumed by nothing." Measured at the parent commit
+and again at HEAD:
+
+- **`--mrd-shadow-pane`: four live consumers**, all in `src/styles/shell.css`
+  at :2200, :2271, :2380, :2848, each a real `box-shadow: var(--mrd-shadow-pane)`.
+  `shell.css` is imported at `src/styles.css:23`, so those paint.
+- **`--mrd-scrim`: three consumers**, not one. `shell.css:2176`
+  (`.sp-boardpanel-scrim`) and `shell.css:2836` (`.sp-keys-scrim`), both wired to
+  shipped components -- `BoardPanel.tsx:119` and `ShortcutSheet.tsx:107` -- plus
+  the `RewindButton.tsx:112` the entry already knew about.
+- Also falsified in the entry's Noticed 4: **`--mrd-r-pane` has five consumers**
+  and **`rounded-mrd-pane` appears in six files** before this commit, against
+  "no caller either" and "appears nowhere in the tree."
+
+**Where the false claim ships, and why that is the defect rather than a note.**
+
+1. `Dialog.tsx:8` -- *"`--mrd-shadow-pane` is declared in meridian.css and read by
+   NOTHING. `--mrd-scrim` has exactly one caller."*
+2. The gallery note on `/meridian`, which says the pane shadow had none. **A
+   person opening that route reads it.**
+3. **`dialog.test.tsx:199`** -- `it("floats on --mrd-shadow-pane, which had no
+   caller in the whole tree", ...)`. A test NAME asserting something untrue is
+   the worst of the three, because it is the artefact a future reader trusts
+   most and it will keep passing forever.
+
+**The build was still justified and the fix is a sentence, not a rebuild.** "Every
+dialog in the product is still legacy" holds, and the narrower claim is true and
+sharper: **no Meridian-layer component consumed them.** Say that in all three
+places.
+
+**Two design defects, and the first is functional.**
+
+**No scroll, and centred, so a tall panel is unrecoverable.** The overlay is
+`fixed inset-0 flex items-center justify-center` with no `overflow-y-auto`, the
+panel has no `max-h` (Dialog.tsx:191, :229), and `Dialog.tsx:133-134` locks
+`document.body.style.overflow = "hidden"`. A panel taller than the viewport
+therefore overflows **both** edges, and the top half -- which is the question --
+cannot be brought back by any means, because the page behind is locked and the
+flex container does not scroll. Both siblings that can grow already solve this
+(`RunTimeline.tsx:458`, `ToolStream.tsx:252` carry `min-h-0 overflow-y-auto`), and
+so does the product's own shipped sheet, which deliberately aligns to
+`flex-start` rather than centre for exactly this reason
+(`shell.css:2165-2168`). Three gallery cases all fit, so it looked fine.
+
+**The confirming button changes sides across the component's own three cases.**
+Case 1 `_authenticated.meridian.tsx:2498` puts confirm RIGHT, case 2 at :2527
+puts it LEFT, case 3 at :2554 puts it RIGHT. `Actions` renders children then
+`trailing` with `ml-auto` (`surface-parts.tsx:566-570`), so this is real geometry
+rather than source order. **This is the one component whose entire job is to make
+a destructive click deliberate**, and its reference implementation moves that
+button under a different part of the pointer's travel from one dialog to the
+next. It also misuses the slot: `surface-parts.tsx:553` defines `trailing` as
+"the control that undoes or destroys" and case 2 puts "Not yet" there, which
+neither undoes nor destroys.
+
+**What to change, and nothing else.** The three false statements; a scroll region
+plus a max height, or `items-start` like the shipped sheet; and one fixed side for
+the confirming action across all three cases, with the rule written in the file so
+the next caller inherits it.
+
+**Not charged to this item:** `z-50` is hardcoded against the documented ladder at
+`shell.css:93-97`, where `--shell-z-tip` is already 50. Real, but it is a
+system-wide question about who owns the ladder rather than a Dialog defect.
