@@ -16,7 +16,10 @@ import { readFileSync } from "node:fs";
 
 import {
   KNOWN_RUN_SPELLINGS,
+  TERMINAL_RUN_STATUSES,
+  isStoppable,
   isTerminal,
+  terminalStatusFilter,
   isWaitingOnAPerson,
   normalizeRunStatus,
   type RunStatus,
@@ -296,5 +299,115 @@ describe("it stays a spelling layer and changes no writer", () => {
     for (const projection of ["RunState", "RunBucket", "RunOutcome", "MissionRowStatus"]) {
       expect(source, `it exports ${projection}`).not.toContain(`export type ${projection}`);
     }
+  });
+});
+
+/*
+ * ── TERMINAL_RUN_STATUSES ────────────────────────────────────────────────────
+ *
+ * Added 2026-08-20 with its first consumer, the `finalize` precondition in
+ * `loop.server.ts`. That writer has to name the terminal statuses INSIDE its
+ * query, because a read-then-write in JS reopens the race the precondition was
+ * added to close. So the names leave this module as data, and these tests exist
+ * to stop the data and the predicate drifting apart.
+ */
+describe("TERMINAL_RUN_STATUSES", () => {
+  it("agrees with isTerminal on every status the normalizer can produce", () => {
+    const produced = [...new Set(KNOWN_RUN_SPELLINGS.map(normalizeRunStatus))];
+    for (const status of produced) {
+      expect(
+        TERMINAL_RUN_STATUSES.includes(status),
+        `${status}: list says ${TERMINAL_RUN_STATUSES.includes(status)}, isTerminal says ${isTerminal(status)}`,
+      ).toBe(isTerminal(status));
+    }
+  });
+
+  it("holds exactly the five terminal statuses, sorted", () => {
+    expect([...TERMINAL_RUN_STATUSES]).toEqual([
+      "cancelled",
+      "completed",
+      "completed_with_failures",
+      "failed",
+      "halted",
+    ]);
+  });
+
+  it("excludes unknown, because an unrecognised status is not evidence work stopped", () => {
+    // The same argument isTerminal's own comment makes. If `unknown` were in
+    // this list, a run in an unrecognised state could never be finalised at all:
+    // the precondition would refuse every write to it, forever.
+    expect(TERMINAL_RUN_STATUSES).not.toContain("unknown");
+    expect(isTerminal("unknown")).toBe(false);
+  });
+
+  it("excludes every non-terminal status, so finalize can still write a running run", () => {
+    for (const live of ["queued", "running", "waiting_approval", "proposed"] as const) {
+      expect(TERMINAL_RUN_STATUSES, `${live} must remain writable`).not.toContain(live);
+    }
+  });
+
+  it("renders a postgrest in-list with no spaces, which the query relies on", () => {
+    // `.not("status","in", "(a,b)")` is parsed by postgrest, not by JS. A stray
+    // space becomes part of a value and silently matches nothing.
+    const rendered = `(${TERMINAL_RUN_STATUSES.join(",")})`;
+    expect(rendered).toBe("(cancelled,completed,completed_with_failures,failed,halted)");
+    expect(rendered).not.toContain(" ");
+  });
+});
+
+/*
+ * ── terminalStatusFilter and isStoppable ─────────────────────────────────────
+ *
+ * Both are consumed by writers that cannot be unit-tested here: `finalize`
+ * (`loop.server.ts`) and `stopRun` (`agent-runs.functions.ts`) are a closure and
+ * a `createServerFn` handler, and this repo's own convention for server
+ * functions is to test the pure helpers and say which coverage is missing. So
+ * the decision each writer makes is extracted to here, where it can be pinned.
+ */
+describe("terminalStatusFilter", () => {
+  it("renders exactly the postgrest in-list both writers send", () => {
+    expect(terminalStatusFilter()).toBe(
+      "(cancelled,completed,completed_with_failures,failed,halted)",
+    );
+  });
+
+  it("contains no whitespace, because postgrest would treat it as part of a value", () => {
+    expect(terminalStatusFilter()).not.toMatch(/\s/);
+  });
+
+  it("stays in step with TERMINAL_RUN_STATUSES", () => {
+    expect(terminalStatusFilter()).toBe(`(${TERMINAL_RUN_STATUSES.join(",")})`);
+  });
+});
+
+describe("isStoppable", () => {
+  it("refuses every terminal status", () => {
+    for (const s of TERMINAL_RUN_STATUSES) {
+      expect(isStoppable(s), `${s} must not be stoppable`).toBe(false);
+    }
+  });
+
+  it("allows a run that is still going", () => {
+    for (const s of ["queued", "running", "waiting_approval", "proposed"]) {
+      expect(isStoppable(s), `${s} must be stoppable`).toBe(true);
+    }
+  });
+
+  it("decides from the RAW spelling, so `complete` is not mistaken for unstarted", () => {
+    // The bug K-12 exists for: two surfaces fell `complete` through to `queued`.
+    // A stop that made the same mistake would offer to cancel a finished run.
+    expect(isStoppable("complete")).toBe(false);
+    expect(isStoppable("done")).toBe(false);
+    expect(isStoppable("succeeded")).toBe(false);
+    expect(isStoppable("canceled")).toBe(false);
+  });
+
+  it("allows an unrecognised status, because unknown is not evidence work stopped", () => {
+    // Same argument isTerminal makes. Refusing here would make a run in an
+    // unrecognised state impossible to stop, which is the worse failure: it is
+    // exactly the run somebody most wants to stop.
+    expect(isStoppable("something_nobody_wrote_down")).toBe(true);
+    expect(isStoppable(null)).toBe(true);
+    expect(isStoppable(undefined)).toBe(true);
   });
 });

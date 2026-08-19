@@ -1018,3 +1018,268 @@ no network and no clock, and it is the value the settling decision will need. **
 open question is not K-15's**: does a chat dispatch create a mission, a track, or
 both, and which id does the `mission_id` frame return. Filing that as the gap
 rather than letting an acceptance criterion smuggle an answer to it.
+
+## K-16 · VERIFIED · 2026-08-20 02:25
+
+**The repair is verified in the route and the new failure states are verified
+against production, which is the half that mattered here.**
+
+**The code.** `const dispatching = wantsDispatch({ isMission, forcedDo,
+instruction })` at `chat.ts:678`, read by both gates. The old shape is gone:
+`grep -c 'forcedDo && startingAgent'` returns **0**. Five states declared in
+`chat-dispatch.ts:51-59`. 26 tests.
+
+**The diagnosis is right and it explains why every gate missed it.** `startingAgent`
+was declared above the pre-flight block and assigned only inside it, while the
+promotion line below read it -- and pre-flight was itself gated on `isMission`. So
+for any request the classifier had not already claimed, the value was still `null`
+at the line that needed it. **Nothing about the runtime was wrong**, which is
+exactly why tests, types and the ratchet all stayed green over a dead branch. Two
+gates asked one question in two places and one needed an answer only the other
+could produce.
+
+**Production check on the five new states, because a good error message that
+fires when it should not is a new defect.** All 16 users hold **exactly one**
+`orchestrator` row -- `users_with_duplicate_orchestrator: 0`, `max_rows_per_user:
+1` -- and every one of the seven demo accounts has one plus 15 other enabled
+agents. **So neither `conductor-unavailable` nor `no-specialists` can fire for any
+real or demo login today.** The states are correct and currently unreachable,
+which is the right order: the message exists before the condition does.
+
+**And `maybeSingle()` is structurally safe, not luckily safe.** The lookup is
+`.eq("user_id", userId).eq("slug","orchestrator").maybeSingle()`, which throws on
+two rows. `agents` carries `UNIQUE (user_id, slug)`, so two cannot exist. Recorded
+because a future workspace-scoped seed would be the thing that breaks it, and the
+constraint is what stops that rather than convention.
+
+**A false alarm of mine, recorded because the reasoning is the reusable part.** I
+first counted orchestrators **per workspace** and found seven Helio demo
+workspaces with none, including all five investor logins, and nearly filed it as
+demo-breaking. It is not: the conductor is resolved by **`user_id`**
+(`chat.ts:706`), and `ensureOrchestrator` seeds by user too. `agents.workspace_id`
+exists and is simply not the axis this path uses. **I asked a question the code
+does not ask.** Third time tonight, and the same shape each time: measure the
+thing the code reads, not the thing that looks equivalent.
+
+**One consequence worth stating.** `dispatch-failed` is the only state reachable
+after `createMission` has returned, and it is the only one whose message tells the
+person to look under Runs before retrying. That asymmetry is correct and it is the
+difference between an error message and a duplicate run.
+
+## Claude lane · LANDED · 2026-08-20 02:30
+
+**The eval judge's prompt contradicted itself, the model believed the wrong half,
+and every hallucination score in the product has been displayed inverted.**
+Fixed in `eval-tick.ts`. This is the blocker on the trust score, so it had to go
+first.
+
+**The contradiction, exactly.** The system message said *"score the response on
+**six** dimensions (0.0 worst to 1.0 best, **except `*_risk`** which are 0.0 safe
+to 1.0 risky)"* and then listed **seven** scored fields.
+`hallucination_score` does not end in `_risk`, so by that sentence's own rule it
+was quality-shaped -- while the comment on the very next line said the opposite.
+
+**Production settles which half the model followed:**
+
+    select corr(hallucination_score, groundedness) from ai_evals;   -- +0.999
+
+If the comment were honoured that correlation would be strongly negative. At
++0.999 across all 77 rows they are the same number twice, and 70 of 77 score above
+0.5 -- which under the comment's reading would mean 90% of responses were mostly
+hallucinated while scoring 0.865 on groundedness.
+
+**And the product reads it the other way.**
+`_authenticated.traces.$traceId.tsx:300` renders it `higherIsBetter: false` and
+`EvalScoreChips` calls hallucination risk-shaped. Stored quality-shaped, displayed
+risk-shaped.
+
+**The fix removes the mechanism rather than patching the instance.** Direction is
+no longer inferred from a field-name suffix -- a rule that depends on whether
+someone remembered to end a name in `_risk` breaks the first time a name is chosen
+for readability. Every field now states its own direction on its own line, and the
+count is no longer asserted in prose where it can drift from the list beneath it.
+`hallucination_score` keeps the RISK shape, because that is what its name says,
+what its old comment said, and what both readers already assume. The column is
+untouched; only the instruction changed.
+
+**The 77 existing rows stay as they are.** All seeded, all in `is_sample`
+workspaces, nothing written since 2026-07-23, and the trust score's eval leg reads
+columns that do not exist so nothing consumes them. Rewriting fiction to match a
+contract it was never judged under would only make it harder to spot.
+
+**A second finding, and it corrects something I nearly got wrong.** I assumed
+`prompt_injection_risk` was NULL in all 77 rows because the "six dimensions"
+header made the model stop at six. **That is not the mechanism.** `num()` returns
+**0.5** for a missing key, never NULL -- so a judge run that omitted the field
+would have written 0.5. NULL means **the judge never wrote these rows at all.**
+They are seeded, and the seed omitted the column. So the seventh dimension being
+empty is more evidence that every eval row on this system is fiction, rather than
+evidence of a parsing bug.
+
+**What this unblocks and what it does not.** The trust score can now be composed
+from a contract that does not contradict itself. It still cannot be composed from
+this DATA: 77 rows, all seeded, all in sample workspaces, one dimension never
+written, and the tick that would produce real ones last succeeded on 2026-07-23.
+**The composition is now a design decision rather than a blocked one**, and the
+honest input for it is future evals, not these.
+
+## Claude lane · LANDED · 2026-08-20 02:35
+
+**A terminal status is no longer overwritable, and the guard went in before the
+thing it guards against exists.**
+
+**The defect.** `finalize` in `loop.server.ts` wrote the run's terminal status by
+id with **no precondition**. Whatever the run had become while the loop was
+mid-flight, `finalize` painted `completed` over it on the way out. The audit
+records the consequence exactly: *"a cancelled-but-running run overwrites itself
+with `completed` after performing every side effect."* The record then says a
+person's stop did not happen, which is the one thing a record of decisions may
+not say.
+
+**It is latent today, and that is the argument for fixing it now rather than
+later.** Nothing writes `cancelled` to `agent_runs` -- `grep -rn 'status:
+"cancelled"' src/` returns nothing outside tests -- because the per-run stop does
+not exist yet. **So the race has never fired.** The moment a stop is built it
+does, on the first cancel, and the symptom is a user reporting that stopping did
+nothing while the log says the run completed normally. Building the guard first
+costs one predicate; building it second costs a bug report nobody can reproduce.
+
+**The pattern was already in this repo, one table over.** `cancelMission`
+(`missions.functions.ts:604`) flips a mission only while it is still non-terminal
+and says why in its own comment: *"no overwriting 'completed' with 'cancelled'"*.
+`agent_runs` never got the same treatment. This is that rule, in the direction
+that was missing.
+
+**Shape.** The predicate travels with the write --
+`.not("status","in","(...)")` on the same statement -- because a read-then-write
+in JS reopens the race the precondition exists to close. A blocked write is not an
+error: it means something else already ended this run and that answer stands, so
+it logs and returns.
+
+**This makes K-12's module real, which is the second reason to do it here.**
+`run-status.ts` shipped with zero consumers by design, so wiring the four
+surfaces later could not create a cycle. **`finalize` is its first consumer.** I
+added `TERMINAL_RUN_STATUSES` to it, **derived from `isTerminal` rather than typed
+out again**, so the list a query sends and the answer the module gives cannot
+disagree -- which is the whole reason K-12 exists. The module still imports
+nothing, so no cycle was created.
+
+**Five tests pin the invariant**, including two worth naming: `unknown` is
+excluded, because a run in an unrecognised state would otherwise become
+unfinalisable forever; and the rendered in-list is asserted space-free, because
+postgrest parses that string rather than JS and a stray space becomes part of a
+value and silently matches nothing.
+
+**Gates:** tsc clean, 9,791 pass / 0 fail across 581 files, build ok.
+
+**What is still missing, so this is not read as the stop being done.** There is
+still no per-run stop: no `AbortController` reaches `callModel`, which accepts a
+`signal?` and is never given one, and nothing writes `cancelled`. §10 criterion
+10 -- "runs stopped by a user, ever" -- is still 0 and still impossible. **This
+closes the half that would have made the other half lie.**
+
+## Claude lane · LANDED · 2026-08-20 02:50
+
+**`stopRun` exists. A person can now stop a run, and the money comes back.**
+`agent-runs.functions.ts`. §10 criterion 10 read 0 because stopping was
+impossible, not because nobody wanted it: `cancelRun|stopRun|abortRun|haltRun|
+pauseRun` returned **zero hits repo-wide** and the only stop was a workspace-wide
+kill switch.
+
+**This is the writer half only, and the split is deliberate.** A stop is three
+things that fail differently: a row saying the person stopped it (this), the loop
+noticing and abandoning its work (cooperative, below), and a control to press (a
+component, Kiro's). **Landing the writer alone is safe and useful** -- the run is
+marked, the draw is refunded, and `finalize` can no longer overwrite the verdict,
+because that precondition landed first on purpose. Had it landed second, the first
+stop ever pressed would have been silently reversed.
+
+**Why the loop must poll rather than be handed an `AbortController`, which is the
+non-obvious part.** `callModel` already accepts a `signal?` and composes it with
+its timeout (`runtime.server.ts:427`, `:604`), so the plumbing to the fetch
+exists. What does not exist is a way to **reach** the controller: the loop runs in
+one worker invocation and the stop request arrives in another, so there is no
+shared memory and an in-process controller is unreachable by definition. **The row
+is the channel.** That is the same shape `steerStudioSession` uses, and the reason
+it survives worker eviction.
+
+**The correctness argument is the precondition.** The write refuses a run that
+already reached a terminal status **in the same statement** rather than after a
+read, so a run that finished a millisecond ago is not retroactively marked
+cancelled and nobody is told they stopped something that had already completed. A
+zero-row result is not an error; it means the run ended while the request was in
+flight and that answer stands.
+
+**Refactor that came out of it.** `finalize` and `stopRun` were building the same
+postgrest `in` list inline and identically, one `join` from the drift K-12 exists
+to stop. Extracted to `terminalStatusFilter()` and `isStoppable()` in
+`run-status.ts`, both tested. **`isStoppable` takes a RAW status on purpose**: a
+stop request arrives holding whatever spelling the table carries, and deciding
+from the raw string is exactly how `complete` came to read as `queued` on two
+surfaces. A stop that repeated that mistake would offer to cancel a finished run.
+
+**Seven new tests, and two encode a judgment rather than a fact.** An
+unrecognised status is **stoppable** -- refusing there would make a run in an
+unknown state impossible to stop, which is the worse failure, because that is
+precisely the run somebody most wants to stop. And the rendered filter is asserted
+whitespace-free, because postgrest parses that string and a stray space becomes
+part of a value and matches nothing, silently.
+
+**Tested the way this repo tests server functions.** `createServerFn` handlers are
+not invokable without database mocking, and the house convention
+(`byokeys.functions.test.ts` states it outright) is to test the pure helpers and
+name the gap. So the decision each writer makes is extracted to where it can be
+pinned, and the handler's database behaviour is **not** covered here.
+
+**Gates:** tsc clean, 9,798 pass / 0 fail across 581 files, build ok. `bun run
+lint` is red repo-wide with 1,605 pre-existing problems and **zero in the four
+files this touched**.
+
+**Still not done, so criterion 10 is not yet met.** Nothing polls the row, so a
+stopped run is marked and keeps working until it ends on its own. The loop-side
+abort and the control are the remaining two thirds.
+
+## Claude lane · LANDED · 2026-08-20 03:05
+
+**A stopped run now stops. The loop reads the row at each step head and abandons
+its remaining work.** That is the second of the stop's three parts; the writer
+landed at 02:50 and the control is Kiro's.
+
+**Placed before the checkpoint, deliberately.** Checkpointing a step we are about
+to abandon persists work nobody will use and leaves a resume pointing at it. The
+steer read is skipped for the same reason: consuming a steer we will never act on
+loses it, and that file already records losing steers on eviction as an audit
+finding.
+
+**Best effort, and the direction of that choice is the interesting part.** A
+failed read logs and carries on rather than stopping the run. **The cost of
+missing a stop is one more step. The cost of a transient database blip killing
+every run in flight is every run in flight.** So the failure mode points at
+continuing, which is the same reasoning the steer read beside it already uses.
+
+**It does not refund, and that is a correctness point rather than an omission.**
+`stopRun` already handed the draw back. The halt path a few lines below *does*
+refund, because nothing else did for it. Refunding twice would be a real defect,
+so this returns without touching credits.
+
+**It does not write a status either.** Whoever stopped the run already said so and
+theirs is the answer that stands. `finalize`'s precondition would refuse the
+overwrite anyway, but returning here means we never ask.
+
+**Reuses the existing `halted` channel** with `kind: "stopped"` rather than adding
+a field, so no type changes and no caller changes. A stop and a halt are the same
+shape to a caller: the run ended without delivering.
+
+**The cost, stated plainly.** One indexed primary-key read per step, on every
+run, including the overwhelming majority nobody will ever stop. Against a step
+that makes a model call costing seconds and cents, that is negligible, and there
+is no cheaper channel: the steer read beside it queries a different table, so
+there is nothing to fold into.
+
+**Gates:** tsc clean, 9,798 pass / 0 fail, build ok.
+
+**Where criterion 10 now stands.** "Runs stopped by a user, ever: 0 (impossible)
+-> possible, and used." It is now **possible**: a stop can be written, it is
+honoured within one step, and the money comes back. It is not yet **used**,
+because there is no control to press. That is the last third and it is a
+component, so it is Kiro's rather than mine.
