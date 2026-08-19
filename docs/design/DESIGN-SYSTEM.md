@@ -127,6 +127,22 @@ This clause was being read backwards, and the reading is the reason it needs wri
 
 Empty, partial, failed, denied, very long, very short, slow — each one **composed**, not merely handled. These are what production shows most often. Four early returns were found rendering outside the system entirely on 2026-08-15, and every one of them was a failed read or an empty workspace: *the states a person actually meets were the ones nobody had styled.*
 
+### 2a. Illustration is allowed, and it draws the machine
+
+**Founder ruling, 2026-08-19.** `surface-parts.tsx` carried *"No accent and no illustration: an empty state must not invent a call to act."* **The illustration half is lifted.**
+
+The ban was broader than its own argument. The reason given was about **inventing a call to act**, which is an argument against fake buttons; it never supported a ban on drawing. The two fused because both were true of the same bad screen.
+
+What replaces it is narrower than "illustrations are allowed":
+
+**An illustration draws the product's own mechanics** — the loop turning, the seven stations, the crew, a signal becoming a bet — in the monoline vocabulary [`station-glyphs.tsx`](../../src/components/meridian/station-glyphs.tsx) already uses. Same stroke weight, same round caps, same restraint.
+
+- **Never a mascot or a stock figure.** Those age badly, they read as consumer software, and they fight the Engine-Room doctrine.
+- **Never a scene asserting activity the workspace does not have.** This is the empty-state form of the shell's own honesty rule: a header that invents activity is lying, and so is a drawing of three busy agents on an idle workspace.
+- **Playful through composition, never through cartooning.** An asymmetric spoke, a loop caught mid-turn, one warm stroke where work enters.
+
+**Why this shape and not a freer one.** A drawing of our own model cannot be copied without copying the model, and it cannot say anything false about what the product is doing. A cartoon can do both.
+
 ### 3. Colour carries status, never decorates
 
 Monochrome by default on a single neutral ladder. **Five status words and only five** — `you`, `agent`, `pass`, `fail`, `hold` — each meaning one thing everywhere:

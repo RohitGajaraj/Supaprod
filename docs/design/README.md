@@ -59,6 +59,7 @@ document tree.
 | [`STEP-1-AUDIT.md`](./STEP-1-AUDIT.md) | the comprehensive UI/UX audit from that pass. **Moved here from the repo root on 2026-08-10** — root holds four files only, and it was failing `docs:check` for everyone. Content untouched. |
 | [`STEP-1-AUDIT-FINDINGS.md`](./STEP-1-AUDIT-FINDINGS.md) | the surface audit and findings from that same pass |
 | `SEVEN-STATIONS-BLUEPRINT.md` | the end-to-end loop, station by station. Its own header notes only Discover and Decide were complete when it was written. |
+| [`agent-first-surface-brief.md`](./agent-first-surface-brief.md) | **The brief and review log for the agent-first surfaces.** Carries the standing ruling that the `supaprod-reimagined` artifact is a vanilla wireframe and not canon, the defect list from the 2026-08-19 review, the five open design questions, and where the work happens. Read before building any new surface. |
 | `discover-station-audit.md` | Discover, the station that then received a full depth pass |
 | `discover-prototype-specs.md` | proposed Discover prototypes, largely not built |
 | `decide-station-audit.md` | Decide |

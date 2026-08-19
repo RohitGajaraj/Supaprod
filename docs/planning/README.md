@@ -34,6 +34,8 @@ Open one only when you are building that thing. Each carries per-ID specs: conte
 | Builder reliability and the codegen direction | [`builder-reliability-and-codegen-direction.md`](./initiatives/builder-reliability-and-codegen-direction.md) (a proposal; the founder owns the decision) |
 | Forecast resolution, the grading half of FC-01 | [`forecast-resolution-plan.md`](./initiatives/forecast-resolution-plan.md) |
 | What is broken, half-wired, or dark across the whole app | [`functionality-audit-2026-08.md`](./initiatives/functionality-audit-2026-08.md) (2026-08-14; every number carries its query) |
+| **What ~60 agents found on 2026-08-19, as a durable register** | [`agent-audit-2026-08.md`](./initiatives/audit-reports/agent-audit-2026-08.md) (every finding verified against code or production, grouped by the agent that found it, with what is still open and has no queue item) |
+| **The agent-first redesign of the whole platform** | [`agent-first-platform.md`](./initiatives/agent-first-platform.md) (2026-08-19; first principles, not a reskin. Why the approval queue is the worst-scaling failure, why the forecast half of the moat is a scoreboard, and what to build in what order) |
 
 ## The current rebuild
 

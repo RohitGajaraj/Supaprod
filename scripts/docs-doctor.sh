@@ -247,6 +247,36 @@ if [ -n "$ORPH" ]; then
 else echo "  ok"; fi
 
 echo ""
+
+# WHY THIS CHECK EXISTS (added 2026-08-19). Check [8] looks for LINKS to a retired
+# contract by FILENAME, and excludes design-reference/ because that folder is frozen
+# history. Both choices were defensible and together they left the exact hole the
+# founder found on 2026-08-19: design-reference/README.md carried
+#
+#     > ## CURRENT: the v5 "Tempo" system (adopted 2026-07-10)
+#     > The design contract for EVERY Supaprod surface ... is
+#     > [docs/design/archive/tempo-v5.md] (repo root, the law)
+#
+# A retired system DECLARING ITSELF CURRENT, in the folder AI builders are pointed
+# at, five days after it was retired. Check [8] could not see it twice over: the
+# folder was excluded, and the link was into archive/ rather than to a DESIGN-*.md
+# filename. This checks the DECLARATION rather than the link, which is the shape the
+# defect actually takes.
+echo "-- [11] a retired design system DECLARED current in a live doc --"
+DECLARED="$(grep -rIn -E '(CURRENT|is the law|design contract for|source of truth)[^|]{0,160}(Tempo|Obsidian|Loom|Ember|Cadence/ink)' . \
+  --include='*.md' --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=graphify-out \
+  --exclude-dir=archive --exclude-dir=worktrees --exclude-dir=.agents --exclude-dir=.kiro \
+  --exclude-dir=.gemini --exclude-dir=.conductor 2>/dev/null \
+  | grep -viE 'retired|history is not authority|was wrong|corrected|no longer|superseded|used to' )"
+if [ -n "$DECLARED" ]; then
+  echo "$DECLARED" | sed 's/^/  FAIL retired system declared current: /'
+  echo "  (Meridian is the only design system. v1 Ember, v3 Obsidian, v4 Loom, v5 Tempo"
+  echo "   and Cadence/ink are retired. Naming one to RETIRE it is fine and is not caught;"
+  echo "   declaring one CURRENT or as the contract is the defect. Contract:"
+  echo "   docs/design/DESIGN-SYSTEM.md)"
+  FAIL=1
+else echo "  ok"; fi
+
 if [ "$FAIL" -ne 0 ]; then echo "docs-doctor: ISSUES FOUND (hard rot). Fix the FAIL items in the same commit."; exit 1; fi
 [ "$WARN" -ne 0 ] && echo "docs-doctor: clean of hard rot; review the WARN items above." || echo "docs-doctor: clean."
 exit 0

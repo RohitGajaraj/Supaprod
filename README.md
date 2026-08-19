@@ -91,7 +91,11 @@ So lead with the claim everywhere, in this repo and on every surface:
 
 **Product judgment compounds, and it is portable across people.** Every decision, the alternatives weighed against it, and what actually happened stay in the workspace record, which is membership scoped. When a product manager leaves, the next person inherits it instead of starting cold. That is the enterprise reason to buy: continuity, audit, onboarding.
 
-> **Known limit, do not overstate it.** `agent_memory`, the layer that pushes past outcomes into an agent's prompt and into the Critic's precedent, is still scoped to the **user** who wrote it, not the workspace. The successor inherits the record today, and not yet the compounded recall. Until that closes, say "the record travels", never "the memory travels". This is the one place where the honest claim is narrower than the ambition, and stating it narrowly is what makes the rest credible.
+> **This limit CLOSED, and the paragraph that used to sit here was understating the product** _(measured against production 2026-08-19; needs the founder's sign-off before it changes any outward-facing answer)_. `agent_memory` is workspace-scoped, not user-scoped. Migration `20260802190000_agent_memory_workspace_visibility.sql` added a `visibility` column defaulting to `workspace`, split the RLS so a member may read a teammate's shared memory, and rewrote both `match_agent_memory` overloads. The live policy is `is_workspace_member(workspace_id) AND (auth.uid() = user_id OR visibility = 'workspace')`.
+>
+> **All 1,170 rows are `visibility: 'workspace'` and none are user-private**, across 16 workspaces and 12 authors. It is not merely permitted, it is happening: **101 recalls in production had a reader who was not the memory's author.** So the successor inherits the compounded recall, not only the record. _(Query: `agent_memory` grouped by `visibility`, joined to `memory_recall_log` where `r.user_id IS DISTINCT FROM m.user_id`.)_
+>
+> **So "the record travels, never the memory travels" is retired.** Both travel. One stale assertion remains in code and is worth fixing when someone is next in that file: `src/lib/ai/critic.server.ts:230-234` still comments that recall is writer-scoped.
 
 **Proof, not assertion.** The station-by-station, code-verified account of the loop, carrying a `file:line` for every structural claim and naming the gaps it still has, is [`docs/features/lifecycle-signal-to-learning.md`](./docs/features/lifecycle-signal-to-learning.md). Cite that file. Never claim a step of the loop the repo cannot show in code.
 
@@ -302,7 +306,7 @@ Full model, unit economics, and the BYOK stance (an advanced option from Busines
 
 **What is honestly not finished:**
 
-- `agent_memory` is scoped to the **user** who wrote it, not the workspace. The successor inherits the record but not the compounded recall. Say "the record travels", never "the memory travels".
+- ~~`agent_memory` is scoped to the user who wrote it~~ **Closed, and it was understating us.** Memory is workspace-scoped: all 1,170 rows are `visibility: 'workspace'`, and 101 production recalls already had a reader who was not the author. Both the record and the compounded recall travel. Full evidence in the callout above; **founder sign-off needed before this changes an outward-facing answer.**
 - Enterprise governance (SSO, full audit, roles) is architected, not built.
 - `fanout.server.ts` still passes an explicit `null` spend cap, which reads as a deliberate no-ceiling on that one path while every other writer resolves through `resolveMissionSpendCap`.
 - Nothing tests `discover/ranking` and `discover/format` together, so a format-helper change can reorder the Discover queue with all 212 unit cases green.

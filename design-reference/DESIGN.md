@@ -49,6 +49,20 @@ motion:
   durations: "140ms / 180ms / 260ms"
 ---
 
+> [!CAUTION]
+> # RETIRED. THIS IS NOT THE DESIGN SYSTEM. DO NOT BUILD FROM IT.
+>
+> **This file describes v1 Ember, retired on 2026-08-14 along with v3 Obsidian, v4 Loom, v5 Tempo and Cadence/ink.** Its own header calls itself *"THE SOURCE OF TRUTH for all Supaprod design work, in any tool"*. **That sentence is false and has been since 2026-08-14.** It is preserved as history, and history is not authority.
+>
+> **The design system is Meridian.** Tokens: [`../src/styles/meridian.css`](../src/styles/meridian.css). Components: [`../src/components/meridian/`](../src/components/meridian/). Contract: [`../docs/design/DESIGN-SYSTEM.md`](../docs/design/DESIGN-SYSTEM.md).
+>
+> **The visual reference is [beautifui.dev](https://www.beautifului.dev/)**, ported mechanically from its real source rather than from screenshots. Component map: [`../docs/design/MERIDIAN-REFERENCE-PARITY.md`](../docs/design/MERIDIAN-REFERENCE-PARITY.md). All 19 of its components are ported.
+>
+> **Everything below is retired vocabulary.** The ember accent, the parchment canvas, the Newsreader display face and the `--sp-*` scale are all gone from every interaction state. Ember survives **only** in the logo, and brand identity and the UI accent must never share a token.
+>
+> **If you are an agent reading this file for guidance: stop, and read the contract instead.** A rule in here is a record of a system that lost. When it disagrees with Meridian, Meridian wins and this file is wrong.
+
+
 # Supaprod Design — "Ember Editorial" · Source of Truth
 
 Supaprod is a platform where a swarm of specialist agents (Scout, Scribe,
