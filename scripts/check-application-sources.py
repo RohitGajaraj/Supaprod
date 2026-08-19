@@ -38,6 +38,7 @@ ROOT = Path(
     or "."
 )
 APPS = ROOT / "docs" / "pitch" / "applications"
+YC = ROOT / "docs" / "pitch" / "yc"
 BANK = APPS / "answer-bank.md"
 BASELINE = APPS / "baseline.yml"
 
@@ -254,17 +255,40 @@ def check_numbers() -> None:
 
 
 def check_paste_hygiene() -> None:
+    # THE GATE HOLE, closed 2026-08-19. This scanned docs/pitch/applications/
+    # only, so docs/pitch/yc/APPLICATION-FINAL.md was never swept — the one file
+    # `source_precedence` ranks FIRST, and the file every other application pulls
+    # its register from. It sat for two days carrying the moat-falsification
+    # story banned on 2026-08-17, in an EDITABLE form field, while this checker
+    # reported clean. A gate that skips the highest-precedence file is not a gate.
     targets = sorted(APPS.glob("*/APPLICATION-FINAL.md")) + sorted(
         APPS.glob("*/FILL-SHEET-*.md")
-    ) + [BANK]
+    ) + sorted(YC.glob("APPLICATION-FINAL.md")) + [BANK]
     for p in targets:
         if not p.exists():
             continue
-        rel_app = str(p.relative_to(APPS)) if APPS in p.parents else p.name
+        if APPS in p.parents:
+            rel_app = str(p.relative_to(APPS))
+        elif YC in p.parents:
+            rel_app = f"yc/{p.name}"
+        else:
+            rel_app = p.name
         if rel_app in GRANDFATHERED:
             continue
         rel = str(p.relative_to(ROOT))
-        for lineno, block in paste_blocks(p.read_text(encoding="utf-8", errors="replace")):
+        # Per-BLOCK grandfathering, added 2026-08-19 with the YC folder.
+        # Whole-file exemption is too blunt for a form that is half locked and
+        # half editable: it turns "filed, therefore exempt" into "editable,
+        # therefore unchecked", which is exactly how the banned story survived.
+        # A block is exempt ONLY if the line above it carries the marker, and
+        # the marker means "this exact text is live on a field we cannot edit".
+        # Never put it on a block we can still change.
+        src = p.read_text(encoding="utf-8", errors="replace")
+        lines = src.split("\n")
+        for lineno, block in paste_blocks(src):
+            prior = "\n".join(lines[max(0, lineno - 4):lineno - 1])
+            if "gate:filed-and-locked" in prior:
+                continue
             low = block.lower()
             if "—" in block or "–" in block:
                 FAIL.append(f"{rel}:{lineno} em dash or en dash inside a paste block")
@@ -274,7 +298,14 @@ def check_paste_hygiene() -> None:
                         f'{rel}:{lineno} volunteered zero in a paste block: "{zero}" '
                         "(ruling 2026-08-13, prose only)"
                     )
-            for word in BANNED_VOCAB:
+            # A banned term that is explicitly SOMEONE ELSE'S is not us using it.
+            # "RFS asks for a Company Brain" quotes YC's own category name, which is
+            # a reason to say it, not a violation. The ban is on describing OUR
+            # product that way. Added 2026-08-19 after this fired as a false positive.
+            attributed = any(
+                m in low for m in ("rfs asks", "request for startups", "rfs for", "their term", "yc calls")
+            )
+            for word in [] if attributed else BANNED_VOCAB:
                 if re.search(rf"\b{re.escape(word)}\b", low):
                     FAIL.append(f'{rel}:{lineno} banned vocabulary in a paste block: "{word}"')
             for word in BANNED_FILLER:

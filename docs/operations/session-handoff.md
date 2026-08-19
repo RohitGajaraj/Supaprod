@@ -1,3 +1,85 @@
+# 🟡 YC FALL 2026 UPDATE, 2026-08-19 — filed once, corrected, ready to resubmit
+
+**Uncommitted in the working tree.** `pitch:check` clean, `docs:check` clean of hard rot.
+Founder submitted an update mid-session, then found two defects himself; a corrected
+version is paste-ready for a second update. Paste blocks: the redline artifact.
+
+## What the live form actually says, and why it changed the job
+
+**Founder screenshots settled it, and our own record was wrong in three places.** The
+five editable surfaces are Progress, Team, Fundraising, Founder Video, Demo Video.
+
+- **The locked application still sells the retired positioning.** 50 chars reads
+  *"Cursor for PMs, the whole product org."*; 7f reads *"Cadence is Cursor for product
+  managers... one unified agentic layer"*; 9b repeats it. **The forecast, the moat and
+  the brain appear NOWHERE in the locked fields.** That makes the editable surfaces the
+  only channel for the current positioning, and it is what the update has to do.
+- **`docs/pitch/yc/APPLICATION-FINAL.md` was presenting NEVER-FILED DRAFTS as the form.**
+  Its 8h carried the banned falsification story and `5,063 commits / 519 migrations`;
+  the real field is one line, *"First time applying with Cadence."* Corrected.
+- **Fundraising Update is one radio**, already reading No. **Do not open that card** —
+  an update that changes nothing is a negative on a movement-scored form.
+- The tech-stack field had **already** been re-pasted; the repo's "re-paste, it names
+  Kimi K3 and HyperAgent" warning was stale.
+
+## Four false claims were live on the form. All fixed.
+
+| claim | truth |
+| --- | --- |
+| *"holds every change against the test suite **before it can merge**"* | **No merge gate exists.** One PR in repo history, work lands on `main` directly, branch protection returns `403 Upgrade to GitHub Pro`. CI runs on the push. |
+| *"immutable by a trigger **rather than a check in application code**, so the rule holds for every caller **including our own agents**"* | **Precisely inverted.** The trigger exempts `service_role`; every agent path runs on it. Agents are stopped by application code (`decisions.functions.ts:469-484`). |
+| *"the only place a human is required"* | Four force-review tools, not one (`trust-ramp.ts:65-75`). |
+| *"for a person to settle"* | `AUTO_SETTLE_CONFIDENCE_FLOOR = 0.75` self-settles. |
+
+Also: `DEFAULT_MODEL = "google/gemini-3-flash-preview"` (baseline recorded Qwen-plus +
+Gemini 2.5 Flash; both wrong). *"seven days a week"* is commits on 74 of 78 days.
+
+## The adversarial panel, and it is the finding that matters
+
+**Five independent readers. Median 5-6/10. All five named the same defect unprompted:**
+*not one human being outside the founder appears anywhere in the update.* Every new fact
+is supply-side. Two readers turned the numbers into weapons: **545 migrations is fifty
+schema changes a week (thrash); 5,400 commits is seventy a day (agent output, not
+judgment).** All five gave the same fix, and it is not a copy fix: **get real PMs to run
+one live decision through it.** `docs/pitch/design-partner-kit.md` holds **25
+hand-picked, live-verified practitioners, unsent since 2026-07-10.**
+
+## Founder rulings this session, all in `baseline.yml`
+
+`claim_timing` (a true mechanism with a false clock) · `the_director_must_be_named_outward`
+(*"telling what to build is not projected, and that is one of our USPs"*) · `layer_balance`
+(the forecast is a mechanism inside 03, never the value; door before brain) ·
+`agency_is_mandatory` (*"there is no job to go back to"* reads as a layoff) ·
+`say_it_as_one_act` (quit, once; *quit* beats *resigned* outward) ·
+`close_on_what_the_programme_adds` ("Not whether I am in" reads as *I don't need you*) ·
+`never_claim_the_prototype_came_from_users` (refused; zero discovery interviews exist) ·
+`demand_evidence_beats_every_number` · `moat_tense` (claim the TIME is uncopyable, never
+the mechanism) · `update_surfaces` · `editable_vs_locked` · `rule_6_adjacency` strengthened.
+
+## The gate hole, closed
+
+`check-application-sources.py` scanned `docs/pitch/applications/` and **not**
+`docs/pitch/yc/` — the file `source_precedence` ranks FIRST. It reported clean for two
+days with a banned story in an editable field. Now scans it, with **per-block**
+grandfathering (`<!-- gate:filed-and-locked -->`) instead of per-file, because whole-file
+exemption is what turned *filed, therefore exempt* into *editable, therefore unchecked*.
+
+## Open
+
+1. **Commit.** Everything above is uncommitted: `baseline.yml`, `answer-bank.md`,
+   `docs/pitch/yc/APPLICATION-FINAL.md`, `scripts/check-application-sources.py`, `README.md`.
+2. **Resubmit** the two Progress fields.
+3. **Founder video is a RESHOOT, not an edit** — no local master exists anywhere. New
+   brief from the founder: problem-first, not a career walk; casual, coffee-with-a-VC;
+   0:54-1:06. Script drafted; panel says cut the middle and put one real human moment in it.
+4. **Demo video PARKED** by the founder (AI-made, not re-recording now). Correct cut plan
+   preserved: drop whole frames F3, F8, F10 → **1:35**. The film is 13 frames at 30fps, so
+   cuts land on frame boundaries, not caption boundaries. **1:41 is not reachable.**
+5. **GitHub Pro (~$4/mo) + branch protection on `main`** would make the merge-gate sentence
+   true and is cheaper than weakening it.
+
+---
+
 # ✅ MERIDIAN, 2026-08-18 — the whole spine ported, and the four holes in the gate that let it drift
 
 **Everything is on `origin/main` at `5f0b9969`.** Working tree clean, `tsc` clean, `bun test` **9,405 pass / 0 fail**, `docs:check` clean.

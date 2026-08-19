@@ -204,9 +204,88 @@ founder:
   # quitting and starting it full time. Not just for this application, for any
   # further application, it needs to be the same way."
   commitment:
-    state: notice_served
+    # UPDATED 2026-08-19. He has RESIGNED. The state moved past notice_served.
+    state: resigned
     say: >-
-      My notice is in. I am leaving a senior role to do this full time.
+      I stopped working the day job to build this properly, and I have since
+      resigned from it. That was my call and I made it before this application,
+      not because of it. I am going all in on Supaprod.
+    # FOUNDER RULING 2026-08-19, and it is a NEW failure mode that every
+    # existing rule passed. A draft read "There is no job to go back to and I
+    # am not looking for one." It broke no ban, it was past tense, it was
+    # unconditional - and he rejected it flat: "this statement says they were
+    # laid off, so I've taken up this job. Nothing like that. The portrayal
+    # should be like I have resigned myself."
+    agency_is_mandatory:
+      rule: >-
+        The sentence must make HIM the actor. A reader must not be able to hear
+        the job ending as something that happened TO him. Test every commitment
+        line by asking whether a stranger could read it as a layoff; if yes,
+        rewrite until the founder is the subject of the verb.
+      say: ["I have resigned", "that was my call", "I chose to leave", "I am going all in"]
+      never_say:
+        - "there is no job to go back to"      # the job ceased to exist
+        - "I am not looking for one"           # reads as a job seeker
+        - "I am between roles"
+        - "my role ended" / "the role is behind me"
+        - any passive construction where the job, not the founder, does the acting
+      why: >-
+        Every banned line above is TRUE and still wrong. The commitment claim
+        is only worth anything if the reader believes he jumped. A sentence
+        that can be read as him being pushed converts the strongest fact in the
+        application into the weakest.
+    say_it_as_one_act:
+      # FOUNDER ASKED FOR THE CALL 2026-08-19; this is the ruling.
+      rule: >-
+        The departure is ONE act, stated ONCE, with "quit". Never "I quit the
+        day job and I have since resigned" - a reader stops to work out whether
+        those are two events, and they stop on the single most important fact in
+        the application. Any sentence that makes a partner pause on a
+        technicality is a defect.
+      word_choice: >-
+        "Quit" beats "resigned" outward. Resigned is HR language; quit is a
+        person's word and it is more decisive. Keep "resigned" for forms that
+        ask about employment status.
+      the_line: >-
+        "I quit the day job to build this properly. That was my call, and I am
+        all in on Supaprod either way."
+      why_that_shape: >-
+        Three jobs in two sentences. "I quit" is the irreversible act. "That was
+        my call" supplies the agency that stops a layoff reading. "All in either
+        way" carries the unconditional commitment, so it does not need a
+        separate sentence competing with it.
+    close_on_what_the_programme_adds_not_on_what_it_cannot_change:
+      # FOUNDER RULING 2026-08-19: "isn't it too much overconfidence? Doesn't it
+      # go too hard for the YC partner, whoever is reading this?"
+      rule: >-
+        Unconditional commitment is required, but it is stated as what the
+        programme ADDS, never as a list of what it fails to change. "Not whether
+        I am in" is technically correct doctrine and reads as "I do not need
+        you" in a field where they are deciding whether you want them.
+      banned_close: ["Not whether I am in", "the programme changes the speed and the postcode, never the decision"]
+      say_instead: >-
+        "What a batch would change is the speed, the people around me, and how
+        fast I find out where I am wrong." Still unconditional, and the last
+        clause answers the harshest available read of a solo founder with no
+        users.
+    never_claim_the_prototype_came_from_users:
+      # The founder proposed "it grew out of talking to users" on 2026-08-19.
+      # REFUSED. Zero first-party discovery interviews have happened, the
+      # customer-evidence rule is binding, and locked YC 9a already records the
+      # true origin: "It started as a dashboard I built for myself."
+      say: "the prototype it came out of"
+      never: ["it grew out of talking to users", "built it after speaking to PMs", any origin story implying interviews]
+      why: >-
+        It is the exact claim an interviewer probes first, and the follow-up
+        question has no answer. One unanswerable origin claim converts a strong
+        application into a credibility problem.
+
+    the_arc_he_wants_told: >-
+      Stopped the day job to build it, then resigned outright. Founder's own
+      framing 2026-08-19. Tell all three beats. The word "break" is BANNED for
+      the middle beat (see never_say below) - render it as "stopped working the
+      day job", which carries the same arc with no word a reader can hear as
+      reversible.
     never_say:
       # Each of these reframes an irreversible act as a reversible one, which is
       # the exact thing EF's round-three rejection ("hedging on commitment") is
@@ -234,21 +313,21 @@ founder:
 numbers:
   # Re-derive on the morning of any submission.
   commits:
-    value: 5366
-    as_of: 2026-08-18
-    outward_form: "5,300+"
+    value: 5409
+    as_of: 2026-08-19
+    outward_form: "5,400+"
     command: git rev-list --count origin/main
   tests:
     # Re-derived 2026-08-18 because "9,400 tests across 563 files" was in the EF
     # application and was wrong in BOTH halves.
-    value: 9395
-    files: 567
-    as_of: 2026-08-18
-    outward_form: "9,395 passing tests across 567 files"
+    value: 9405
+    files: 569
+    as_of: 2026-08-19
+    outward_form: "9,405 passing tests across 569 files"
     command: bun test
   elapsed:
     value: eleven weeks
-    as_of: 2026-08-18
+    as_of: 2026-08-19
     note: >-
       2026-06-02 to 2026-08-18 is 77 days. RETIRED AND BANNED: "eight weeks" and
       "seven weeks", both of which are still sitting in older application drafts.
@@ -388,9 +467,28 @@ positioning:
 tech:
   ai_coding_tools: [Claude Code, Codex, Lovable, Antigravity]
   models:
+    # CORRECTED 2026-08-19 against the code. The old values were both wrong.
     retrieval: Cohere embed-v4
-    agent_loop: [Qwen-plus, Gemini 2.5 Flash]
-    deep_reasoning: GPT-5
+    default: google/gemini-3-flash-preview     # src/lib/ai/models.ts:370 DEFAULT_MODEL
+    agent_loop: Gemini 3 Flash
+    deep_reasoning: [Claude, GPT-5]
+    byok_only_never_call_it_the_engine: [Qwen-plus]
+    correction_note: >-
+      This block said "agent_loop: [Qwen-plus, Gemini 2.5 Flash]". Both halves
+      were wrong. DEFAULT_MODEL is google/gemini-3-flash-preview, and Qwen is a
+      bring-your-own-key provider option plus the OpenHands delegate default,
+      not the core engine. Naming Qwen as the agent loop overstated a customer
+      option into an architecture claim. Founder ruling: lead with Claude,
+      because the PLATFORM IS BUILT WITH CLAUDE CODE, then name Gemini for the
+      engine.
+    say_the_default_is_a_setting: >-
+      Founder ruling 2026-08-19. Never let a named default read as a lock-in.
+      "The default today is X. The default is a setting, not an architecture."
+      Then say new models are added as they land rather than migrated to, which
+      claims the chokepoint you already built rather than promising a roadmap.
+    never_quote_call_counts: >-
+      The 14-day per-model call counts (27,008 / 4,902 / 4,329) are RETIRED.
+      They decay daily and no reader can re-derive them.
     note: One runtime chokepoint handles budget, cache, guardrails, tracing, fallback and feature gates. Models are interchangeable parts.
   frontend: [TanStack Start, React 19, Vite, TypeScript, Tailwind, shadcn, Bun]
   data: [Supabase Postgres with RLS, pgvector, pg_cron]
@@ -398,6 +496,15 @@ tech:
   sandboxing: E2B, with secret redaction on every output stream
   connectors_real: [GitHub, GitLab, Slack, Intercom, Zendesk, Canny, Productboard, Salesforce, HubSpot, Stripe]
   connectors_stub_DO_NOT_NAME: [Linear, Notion, Jira, Figma, Gmail, Google Docs]
+  never_close_the_set: >-
+    FOUNDER RULING 2026-08-19, and it is register rule 3 made concrete. A bare
+    list of nine connectors implies the set STOPS at nine, which under-describes
+    the product - and under-describing is as much a defect as overclaiming, and
+    far harder to see, because a narrow sentence still reads as true. Always
+    close an enumeration with where it is going, framed from the READER's side:
+    "More are landing on the same registry, so a team is not waiting on a
+    bespoke build for the tool they already use." A partner's real question is
+    never "how many do you have", it is "will you have mine".
 
 competition:
   primary: >-
@@ -530,7 +637,159 @@ application_rules:
     an absence.
   vulnerability_beats: 1     # exactly one, placed where the form invites it
   self_corrections: 1        # exactly one
-  rule_6_adjacency: The commit count and "agents write the code" must never share a field.
+  rule_6_adjacency:
+    rule: The commit count and "agents write the code" must never share a field.
+    # STRENGTHENED 2026-08-19. The rule existed and was violated anyway, because
+    # it was one line with no reason attached, so nobody recognised the shape.
+    # The filed line read: "Eleven weeks, near enough every day, solo, DIRECTING
+    # AGENTS: 5,400+ COMMITS and 545 database migrations." Same sentence.
+    why_it_is_not_a_style_note: >-
+      Do the arithmetic the reader does. 5,400 commits over 78 days is about 69
+      a day, and the same sentence has just told them agents wrote it. So the
+      number does not measure the founder, it measures the agents. A volume
+      figure adjacent to an agent mention is evidence for the wrong subject, and
+      the bigger the number the more clearly it belongs to the machine.
+      Independent readers reached this unprompted: "5,400 commits is roughly
+      seventy a day, which reads as agent output, not judgment" and "545
+      migrations is fifty schema changes a week, which I can read as thrash".
+    the_test: >-
+      In any sentence carrying a build number, cover the number and ask who the
+      sentence is about. If the answer is the agents, the number is arguing
+      against the founder and it comes out.
+    founder_ruling_2026_08_19: >-
+      He caught the half-fix himself: the numbers were removed from "how far
+      along" and left in "how long have you been working on this". Removing a
+      hostile number from one field and leaving it in another is not a fix. The
+      duration field answers "how long" completely with eleven weeks and
+      full-time; the numbers were never load-bearing.
+
+  peer_signal_vs_discovery_claim:
+    # FOUNDER RULING 2026-08-19: he wants the "I talk to people in this space"
+    # signal injected subtly. That is allowed. The interview claim is not.
+    allowed: >-
+      "Every product person I talk to has the same meeting." He is a member of a
+      30,000-person product community and has a decade of peers. Saying that
+      peers share the problem is true and it is the cheapest credibility in the
+      corpus.
+    banned: >-
+      Any number, any "we interviewed", any "discovery calls", any "N customers
+      said". Zero first-party discovery interviews have happened and the
+      customer-evidence rule is binding.
+    the_line_between_them: >-
+      Peers sharing a PROBLEM is observation. Users validating a SOLUTION is
+      research. Claim the first, never the second, and never attach a count to
+      either.
+
+  the_director_must_be_named_outward:
+    # FOUNDER RULING 2026-08-19, given twice in one session because the first
+    # correction did not take: "The director part is not being mentioned
+    # anywhere... Telling what to build is most important as well. That is not
+    # projected, and that is one of our USPs."
+    rule: >-
+      Every substantial outward answer states, in plain words and early, that
+      the product TELLS A TEAM WHAT TO BUILD. Not implied by a pipeline
+      description, not left to be inferred from "runs the lifecycle". Said.
+    the_canonical_sentence: >-
+      "Supaprod tells a team what to build next and why, ranked, with the
+      evidence attached." Follow it with the adversarial half, never the other
+      way round.
+    both_halves_or_it_is_not_the_director:
+      positive: tells a team what to build next and why, ranked, evidence attached
+      adversarial: >-
+        argues against its own recommendation - a critic makes the case against
+        the bet from the team's own data and kills the weak ones before a sprint
+        is spent
+    why_the_adversarial_half_carries_the_differentiation: >-
+      "Ranking ideas is cheap. Being told no, with the reason attached, is the
+      part nobody else is selling." Every competitor can rank. None argues back.
+    the_failure_this_corrects: >-
+      A draft compressed the director down to the critic alone, to avoid
+      duplicating a locked field that already described the input pipeline. That
+      removed the USP to solve a repetition problem. WRONG TRADE. The fix is to
+      state the CLAIM (what the product decides) rather than re-tell the
+      MECHANIC (what it reads and how it clusters) - the claim is never a
+      duplicate, because no other field makes it.
+    ordering_with_the_forecast: >-
+      Director first, forecast second, and the forecast closes by feeding the
+      director: "that verdict re-ranks what to build next, so the critic gets
+      sharper at arguing with this particular team." That makes the forecast
+      serve the USP instead of competing with it.
+
+  layer_balance:
+    # FOUNDER QUESTION 2026-08-19: "is knowing what to build and the forecast
+    # part one and the same?" They are NOT, and the confusion is worth writing
+    # down because the draft had drifted exactly the way the question implies.
+    they_are_not_the_same:
+      layer_01_the_director: >-
+        "Knowing what to build" is the OUTPUT and the DOOR. Tells a team what to
+        build from their own signals and market, with the evidence attached, and
+        argues down the weak bets. This is the layer nobody else sells.
+      layer_03_the_brain: >-
+        The forecast is a MECHANISM INSIDE layer 03, not a layer and not the
+        value. It is what lets a decision be graded, which is what makes the
+        director get better over time.
+      the_relationship: >-
+        The forecast is how the director learns to be a better director. Causally
+        linked, different layers. Say them in that order and the forecast earns
+        its place; say the forecast alone and it sounds like accountability
+        software.
+    all_three_layers_or_it_is_not_the_product:
+      # FOUNDER RULING 2026-08-19, given after the THIRD draft in one session
+      # let the forecast crowd out the layers: "this is the mistake you are
+      # repeatedly doing again and again. I want you to correct this."
+      rule: >-
+        Every substantial outward answer, script or pitch names ALL THREE
+        LAYERS, in order, before the forecast is mentioned at all. The forecast
+        is optional and may be merged into layer 03. The three layers are not
+        optional and are never merged into each other.
+      the_three_in_his_words:
+        1_knowing_what_to_build: "Supaprod tells you what to build."
+        2_the_whole_loop: >-
+          It takes care of the entire product lifecycle, discover through learn.
+          Say the stations out loud. It BUILDS and SHIPS. A draft that skips this
+          makes the product sound like an advisor rather than an operator.
+        3_the_brain: >-
+          It learns and guides the next move, and tells a team where they went
+          wrong.
+        4_the_forecast: >-
+          Optional. Merge it into layer 03 where it earns room. NEVER the
+          headline, never the scene, never the payoff on its own.
+      the_recurring_failure: >-
+        Three separate drafts on 2026-08-19 built their strongest beat on the
+        forecast and left layer 02 unsaid. Each time the founder caught it. The
+        pattern: the forecast is the most INTERESTING idea to write, so it wins
+        the best sentence by default. Interesting is not the same as load
+        bearing. Layer 01 is what a team buys and layer 02 is what they use
+        daily; the forecast is why it compounds.
+      the_mechanical_check: >-
+        Before shipping any script or long answer, point at the sentence that
+        carries each layer. If you cannot point at all three, it is not ready.
+        If the forecast has more words than layer 02, it is inverted.
+      the_scene_test_for_the_problem_beat: >-
+        The problem beat asks "why did we decide to build this, and what was
+        the reason" - NOT "what did we predict". A scene about a missing
+        forecast is layer 03 wearing a problem statement. The reconstructable
+        thing a team actually loses is the REASONING behind the call.
+
+    the_balance_test: >-
+      Count paragraphs per layer in any long answer. The YC update had two of
+      five on the forecast and ONE CLAUSE on the director, which inverts
+      door-body-brain. The door gets at least as much room as the brain, and the
+      brain closes by feeding the door: "that verdict re-ranks what to build
+      next, which is where the first paragraph starts over."
+    the_contradiction_to_watch: >-
+      An adversarial reader caught this in the same draft: "Agents run the work,
+      a person clears the gate, that is the only place a human is required"
+      argues humans are nearly unnecessary, eight lines after arguing human
+      judgment is the only scarce thing left. Both sentences are true and they
+      cannot sit unmediated. Order fixes it: the human decides WHAT (layer 01),
+      the agents do the work (layer 02), the human clears the ship gate.
+    and_the_old_warning_still_stands: >-
+      Never open on the forecast. A pitch that starts "we record what you
+      predicted so it can be checked later" sells accountability to the person
+      who would be held accountable. Google's internal prediction markets beat
+      expert forecasts by up to a 25 percent reduction in mean squared error and
+      died anyway, for exactly that reason.
   unconditional_commitment: Never "if accepted, I will". The programme changes the speed and the postcode, never the decision.
   read_the_verb: '"JOINED" is not "applied". Answer the question actually asked.'
   founder_submits: Never submit an application. The founder submits.
@@ -609,6 +868,182 @@ application_rules:
     Related to the above and already law 2 in answer-bank.md. Candour goes
     where the form asks for it, stated as fact plus what happens next, never
     as apology and never volunteered.
+
+  # ============================================================================
+  # FOUNDER RULINGS 2026-08-19, from the YC Fall 2026 update pass. Each one is
+  # a defect that was found ON A FILED FORM, not a style preference. Run them
+  # as a checklist. Two of them were invisible to every existing rule.
+  # ============================================================================
+
+  demand_evidence_beats_every_number:
+    # THE MOST EXPENSIVE FINDING OF THE WHOLE CORPUS. Five independent adversarial
+    # readers - a serial entrepreneur, a multiple-time founder, two VC partners and
+    # a YC partner - scored the YC Fall 2026 update on 2026-08-19 without seeing
+    # each other's verdicts. Median 5-6 out of 10. ALL FIVE named the same defect,
+    # and all five named the same fix. That is not a style opinion, it is a reading.
+    the_defect: >-
+      Every new fact in the update was supply-side. Commits, migrations, tests,
+      connectors, a server interface. Not one human being outside the founder
+      appeared anywhere, and the single demand-side sentence was future tense.
+    what_they_actually_said:
+      - "Not one line of it is a human being outside this founder."
+      - "Not one sentence in the update comes from outside your own head."
+      - "The only human being in this entire update is him."
+      - >-
+        "That is the precise signature of an excellent employee enjoying a
+        project: enormous, disciplined, genuinely high-quality output with no
+        contact with anyone who has to want it."
+    rule: >-
+      An application with zero outside users must carry at least one piece of
+      CONTACT evidence: named people (with permission), what they did, and the
+      one thing they did that was not predicted. Contact is not usage. It costs
+      nothing to have and it cannot be faked, and its absence is read as a
+      choice rather than a stage.
+    volume_numbers_invert_without_it:
+      rule: >-
+        Build-volume numbers are NOT neutral when no user exists. They are read
+        hostilely, and the bigger they are the worse it gets.
+      the_readings_we_got:
+        - "545 migrations in eleven weeks is fifty schema changes a week, which I can read as thrash rather than progress."
+        - "5,400 commits is roughly seventy a day, which reads as agent output, not judgment."
+        - "9,405 tests: I stopped to be suspicious, not impressed."
+      so: >-
+        Pair every volume number with a demand fact, or cut it. Never let a
+        build metric be the largest number in a field.
+    a_pivot_needs_an_external_cause: >-
+      "Founders re-position because five buyers said no in the same way;
+      employees re-position because they read the market and thought harder."
+      A repositioning justified only by reasoning reads as a preference, not a
+      finding. Give every positioning change a person who caused it.
+    the_asset_that_was_sitting_unused: >-
+      docs/pitch/design-partner-kit.md holds 25 hand-picked, live-verified
+      practitioners, unsent since 2026-07-10. A reader found it and named it as
+      the fastest available fix. CHECK IT BEFORE CLAIMING THERE IS NO ROUTE TO
+      USERS.
+
+  moat_tense:
+    # A VC reader inverted our strongest sentence in under thirty seconds.
+    rule: >-
+      Never claim the MECHANISM is uncopyable. Claim the TIME is. A trigger, a
+      locked column and a due-date queue are roughly two sprints for Linear,
+      Productboard or Atlassian, all of whom already own the surface where the
+      call gets recorded. What cannot be shortened is the accumulation.
+    banned: ["that is the one thing nobody can copy in later", "cannot be copied", "nobody can rebuild it"]
+    say_instead: >-
+      "It only builds for whoever was capturing it at the time." The constraint
+      is elapsed time, not engineering, and no budget shortens it.
+    the_objection_this_must_survive: >-
+      "A corpus is a distribution artifact, not a code artifact: whoever has
+      teams in October has more of it by January than he does, no matter who
+      wrote the trigger first." That objection is CORRECT and the honest answer
+      is that the race is for teams, not for the feature. Do not pretend
+      otherwise in writing.
+
+  count_the_vulnerability_beats_across_locked_fields_too: >-
+    The one-beat rule counts LOCKED fields. A reader found the YC update
+    carrying four: the locked 9c already spent it on unvalidated pricing, and
+    the update added three more. Audit the whole application, not the part
+    being edited.
+
+  claim_timing:
+    # THE ONE THAT COST THE MOST. A false clock on a true mechanism.
+    rule: >-
+      Every mechanism claim carries a WHEN, and the when is verified SEPARATELY
+      from the mechanism. A true thing described at the wrong point in time is
+      a false claim, and it is the hardest kind to see, because the sentence
+      is 90 percent accurate and the checker's eye stops at the part that is.
+    the_defect_that_produced_it: >-
+      The YC application said a reviewer "holds every change against the test
+      suite BEFORE IT CAN MERGE". The reviewer is real. The suite is real and
+      green. The timing was invented: `gh pr list --state all` returns exactly
+      ONE pull request in the repo's whole history, work lands on main
+      directly, and branch protection returns 403 (unavailable on a private
+      repo on the free plan). CI runs ON THE PUSH, not as a gate before a
+      merge. Every existing rule checked whether a thing EXISTS. None checked
+      when it FIRES.
+    the_test: >-
+      For every verb of sequence or prevention - before, after, blocks,
+      prevents, gates, stops, requires, until, then - ask what would have to be
+      configured for that word to be true, and go look at that configuration.
+      Not the code that could do it. The setting that makes it happen.
+    the_words_that_trigger_a_check:
+      ["before", "prevents", "blocks", "cannot", "requires", "gates", "until",
+       "stops", "no one can", "is enforced", "automatically"]
+    two_honest_repairs:
+      narrow_it: >-
+        State only what is true now. "Every change is held against the
+        typecheck and the whole test suite" is true, and it costs four words to
+        get there from the false version.
+      make_it_true: >-
+        PREFERRED WHERE IT IS CHEAP. Founder ruling 2026-08-19: "please do the
+        right call, even if it is not there today. Anyway, we are going to have
+        the things in place." Where the gap is configuration rather than
+        engineering, close the gap instead of weakening the sentence. The merge
+        gate is a USD 4 per month GitHub Pro plan plus a required status check.
+        Fixing the repo beats rewording the application.
+    the_ordering_rule: >-
+      A claim made true AFTER a form is submitted is still false ON the form.
+      Law 1 governs: true on the day you hit submit. So the repair must land
+      before the paste, or the narrowed version ships and the stronger sentence
+      waits for the next update.
+    already_found_in_two_places:
+      - "before it can merge (the merge gate) - FALSE, narrowed 2026-08-19"
+      - >-
+        "PostHog and Sentry drop into a vendor neutral facade AT LAUNCH" - the
+        facade is built, the two vendors are not wired yet. Correct as written
+        because it names the future tense. Kept as the model of a right one.
+
+  roadmap_tense:
+    rule: >-
+      Anything not running today is written in a tense that says so, in the
+      same sentence, never in a footnote. "Wired for launch" and "lands at
+      launch" are correct. The same fact with the tense removed is a lie.
+    why_this_is_not_pedantry: >-
+      A programme verifies. The cost of the honest tense is three words. The
+      cost of being caught is the application.
+
+  update_surfaces:
+    # For any form that offers an UPDATE to an application already filed.
+    rule: >-
+      An update is read as a rate-of-change signal, so it opens on the STATE
+      the company is in, never on a since-I-filed window.
+    founder_ruling_2026_08_19: >-
+      A draft opened "Since I filed on 11 August: 401 commits, 29 database
+      migrations". Rejected: "this does not give an overall picture of where we
+      are at". A narrow delta measures the drafter's window, not the company.
+    never_open_on: ["since I filed", "since I applied", "in the last N days", a commit delta]
+    do_not_submit_an_empty_update: >-
+      Where an update surface has nothing true to report, DO NOT OPEN IT. YC's
+      Fundraising Update is one radio that already reads No, and its own label
+      is "you've raised funds since applying, or your fundraising situation has
+      changed". Submitting an update that changes nothing spends a reader's
+      attention on nothing, which on a movement-scored form is a small negative
+      rather than a neutral.
+
+  editable_vs_locked:
+    rule: >-
+      On a part-editable form, a retired or banned claim sitting in an EDITABLE
+      field is a live defect and gets scrubbed. The same claim in a LOCKED
+      field is the historical record and is left alone. Never let "filed,
+      therefore exempt" become "editable, therefore unchecked".
+    the_defect_that_produced_it: >-
+      The 2026-08-17 ban on the moat-falsification story was applied to every
+      programme folder, and missed the YC file entirely, because the gate
+      script scans docs/pitch/applications/ and NOT docs/pitch/yc/ - the one
+      file source_precedence ranks FIRST. It reported clean with a banned story
+      live in an editable field.
+    and_the_bigger_one: >-
+      READ THE LOCKED FIELDS BEFORE DRAFTING THE EDITABLE ONES. The YC locked
+      fields still sell "Cursor for PMs, one unified tool for the whole product
+      development lifecycle" - a positioning retired months ago - and the
+      forecast, the moat and the brain appear NOWHERE in them. That made the
+      editable surfaces the only channel for the current positioning, which
+      changed what the update had to do. It was invisible until the founder
+      sent screenshots of the filed form.
+    so: >-
+      The editable fields must close the gap between the company the reader
+      just read about and the company that exists, stated as a founder
+      sharpening his thesis, never as a correction of the record.
 
 filed:
   - programme: Y Combinator Fall 2026

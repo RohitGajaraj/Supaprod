@@ -1,7 +1,7 @@
 # The answer bank — every accelerator application, one source
 
 > _Created 2026-07-31._
-> **Last verified against: `docs/pitch/applications/ef-bridge-sf/APPLICATION-FINAL.md` (2026-08-18).**
+> **Last verified against: `docs/pitch/yc/APPLICATION-FINAL.md` (2026-08-19). The YC Fall 2026 update pass.**
 > _`bun run pitch:check` fails if a newer filing exists than that stamp. Bump it only after back-porting._
 
 > **This file owns the facts. It does NOT own the voice.** Pull numbers, bios and dates from here. **Pull the register and the shape of an answer from the most recent filed application**, which is always newer than this file.
@@ -88,6 +88,18 @@
 > 9. **Discarded work carries its reason.** Never *"threw away"* on its own — *"thrown away is a hard thing… for what reason you threw away."* A bare discard reads as waste. **Name what the version got wrong**, and it reads as judgment: *"each one worked and each one was the wrong shape."*
 >
 > 10. **Hand over the demo, do not offer it.** Where a form asks what he has built, **give a working login inline**. Never *"I will give access on request"* or *"happy to walk you through it"*: both ask the reader to do work and to wait. *"Directly throw an account at them and ask them to check out."* Allocation rules in [`baseline.yml`](./baseline.yml) `demo_logins`.
+
+> ### Laws 11 to 13, added 2026-08-19 from the YC Fall 2026 update pass
+>
+> **Each one is a defect found on a FILED form, not a style note. Two of them were invisible to every rule above, which is the reason they are here.**
+>
+> 11. **Every mechanism claim carries a WHEN, and the when is checked separately from the mechanism.** A true thing described at the wrong point in time is a false claim, and it is the hardest kind to catch, because the sentence is ninety percent accurate and the checker's eye stops at the part that is. The filed YC application said a reviewer *"holds every change against the test suite **before it can merge**."* The reviewer is real. The suite is real and green. **The timing was invented** — one pull request in the repo's entire history, work lands on `main` directly, branch protection returns `403`. CI runs on the push. **The test:** for every verb of sequence or prevention — *before, after, blocks, prevents, gates, stops, requires, until* — ask what would have to be **configured** for that word to be true, then go and look at that configuration. Not the code that could do it. The setting that makes it happen. **And prefer making the claim true to weakening it** where the gap is configuration rather than engineering (founder, 2026-08-19: *"do the right call, even if it is not there today"*) — but a claim made true after submission is still false on the form, so the repair lands before the paste or the narrowed version ships. Full rule: [`baseline.yml`](./baseline.yml) `application_rules.claim_timing`.
+>
+> 12. **Read the LOCKED fields before drafting the editable ones, and scrub a banned claim out of any field you can still change.** *"Filed, therefore exempt"* must never become *"editable, therefore unchecked."* The 2026-08-17 falsification ban was applied to every programme folder and missed the YC file entirely, because the hygiene gate scanned `docs/pitch/applications/` and not `docs/pitch/yc/` — the file `source_precedence` ranks **first**. It reported clean for two days with a banned story live in an editable field. **The bigger half of this law:** the YC locked fields still sell *"Cursor for PMs, one unified tool for the whole product development lifecycle"*, and the forecast, the moat and the brain appear nowhere in them. That made the five editable surfaces the **only** channel for the current positioning, which changed what the update had to do — and it was invisible until the founder sent screenshots of the filed form.
+>
+> 13. **An update opens on the state, never on a window; and an update with nothing to report is not submitted.** A draft opened *"Since I filed on 11 August: 401 commits, 29 database migrations"* and was rejected: *"this does not give an overall picture of where we are at."* A narrow delta measures the drafter's window, not the company. Separately, where an update surface has nothing true to say, **do not open it** — YC's Fundraising Update is one radio already reading No, and its own label is *"you've raised funds since applying, or your fundraising situation has changed."* On a form scored on movement, an update that changes nothing is a small negative rather than a neutral.
+>
+> **A fourth thing this pass settled, and it belongs with law 3 rather than as a law of its own: never close an enumeration.** A bare list of nine connectors implies the set stops at nine. Always close it with where it is going, framed from the reader's side — *"more are landing on the same registry, so a team is not waiting on a bespoke build for the tool they already use."* A partner's question is never *how many do you have*, it is *will you have mine*.
 
 **Customer-evidence rule (binding).** Zero first-party discovery interviews have happened. Never claim interviews, discovery-call counts, or "we spoke to N customers." Cite named-company hand-rollers instead (PMs at OpenAI and DoorDash building their own rigs out of Claude Code plus MCP plus memory files; one describing 1,500 hours on her setup). Dogfooding is first-party evidence and is fair game.
 

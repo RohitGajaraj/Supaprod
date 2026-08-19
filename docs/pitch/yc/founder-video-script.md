@@ -2,6 +2,84 @@
 
 > _Living file, ordered newest first._
 >
+> ## ⭐ V5, 2026-08-19, IS THE ONE TO SHOOT. Everything below it is superseded.
+>
+> **185 words, about 1:12 at 154 wpm.** Cut line: drop *"And you can't answer."* and *"with the
+> evidence"* to reach 178 words / ~1:09. To go under 1:05, also cut *"Nobody was building for
+> that."* and open the turn on *"So I did."* **Cut words, never speed up.**
+>
+> **Read-along version with beat timings, the reasoning behind every line, and V1 to V4 for
+> comparison:** <https://claude.ai/code/artifact/37081a44-2916-44cc-852e-a0a2fb951f30>
+> (private artifact, Rohit's account). **This file is the source of truth; the artifact is the
+> reading surface.** If they ever disagree, this file wins.
+
+## THE SCRIPT — V5
+
+```
+Hi YC, I'm Rohit. The form says Cadence. It's Supaprod now.
+
+Close to a decade in product, and one meeting never changes. Six months
+after you ship, someone asks why you built it. And you can't answer. The
+tickets are there. The reasoning is gone. Every product person I talk to
+knows that meeting.
+
+Then agents got really good at building. Building got cheap. Shipping got
+fast. And knowing what to build got no easier at all.
+
+Nobody was building for that. So I did. And I've quit my job to finish it.
+
+Supaprod does three things.
+
+One. It tells a team what to build next, with the evidence, then argues
+against its own answer and kills the weak bets.
+
+Two. It runs the whole thing. Discover, decide, spec, design, build, ship.
+Agents do the work, a person clears the gate.
+
+Three. When results land, it grades what shipped against what the team
+expected, and says where the call went wrong. Then it learns from that, so
+the next thing it tells them to build is a better call than the last one.
+
+Building got cheap. Knowing what to build didn't. I'd rather fix that
+meeting for everyone who has it than spend another decade sitting in it.
+```
+
+### The six beats, which is all you memorise
+
+**rename · the meeting · agents fixed the wrong bottleneck · so I did, and I quit · three things · fix it for everyone who has it**
+
+YC says it outright: *do not recite a written script, use bullet points.* V5 is built on a scene precisely so it can be **retold rather than recalled**.
+
+### Four pauses carry it
+
+After *"The reasoning is gone."* · after *"no easier at all."* · **after *"quit my job to finish it."*** (the biggest, let it sit) · after *"three things."*
+
+### Where the energy comes from, and it is not your voice
+
+**Sentence length.** *"Then agents got really good at building. Building got cheap. Shipping got fast. And knowing what to build got no easier at all."* is three quick beats and a turn; you cannot say it slowly. Same in Two: *Discover, decide, spec, design, build, ship* has no connectives, so it forces momentum. **Keep the voice conversational and let the material set the tempo.** A founder pushing energy reads as pitching; a founder with fast material reads as certain. EF names *"robotic, low-energy, overly scripted"* as a rejection reason, and the fix for that is never *louder*.
+
+### Founder rulings that produced V5, all now in `baseline.yml`
+
+| Ruling | What it fixed |
+| --- | --- |
+| **All three layers, numbered, before the forecast** (`layer_balance.all_three_layers_or_it_is_not_the_product`) | Three drafts running built their best beat on the forecast and never said the product **builds and ships**. |
+| **The problem is the missing REASONING, not the missing forecast** | A scene about an absent forecast is layer 03 wearing a problem statement. |
+| **The resignation lands where it is caused** | At the end it was biography stapled on; after *"nobody was building for that"* it is a consequence. |
+| **"Knowing what to build", never "deciding"** | Every company decides things. *Knowing what to build* is the actual gap, and it plants layer 01 inside the problem. |
+| **A closing line needs an object** | *"I'd rather find out than wonder"* pointed at nothing. It now points at the meeting from the opening, so the minute closes where it opened. |
+| **Never name a persona in the close** | *"for all product folks"* caps the market in the final sentence, and the meeting is not a PM meeting. *"For everyone who has it"* says the same thing without the cap. |
+| **Peer signal, not a discovery claim** (`peer_signal_vs_discovery_claim`) | *"Every product person I talk to knows that meeting"* claims a shared **problem**. Never a validated solution, never a count. |
+
+### Checked mechanically
+
+No employer, no title, no degree, no mission name, no metric, no product-usage number. Every claim traced against the locked YC application for repetition.
+
+---
+
+# The founder video
+
+> _Living file, ordered newest first._
+>
 > **v8.3 is THE ONE TO SHOOT.** It is the hybrid: the pitch spine with the conversational
 > register grafted on. 372 words, about 3:14 at your practised pace.
 >

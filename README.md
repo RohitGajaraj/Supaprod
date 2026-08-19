@@ -275,7 +275,7 @@ Full model, unit economics, and the BYOK stance (an advanced option from Busines
   > **This string predates the learns-and-guides ruling above and loses to it on any public surface.** The live product already moved: the landing hero reads "Agents that own outcomes. Not just output." and `src/routes/index.tsx` carries "…ship it, and guide the next call." Restating the ratified wording across [`docs/pitch/`](./docs/pitch/README.md) is open work and needs the founder, so it is flagged here rather than silently rewritten. Until it lands, ship the guiding form.
 - **The three layers, always named and colored:** 01 the director (tells you what to build, marigold `#e8b44c`) · 02 the operating system (runs the whole lifecycle, blue) · 03 the brain (learns, then guides, green).
 - **The brain compounds.** Next time it tells you what is right, and warns before you repeat what was wrong. Never say "where the record lives": that framing hands away the one part of this that is defensible.
-- **Public launch date on every external surface: mid-September 2026.**
+- **Public launch date on every external surface: 30 September 2026.**
 - **Market sizing ladder:** TAM $300B+/yr (2.6M PMs x ~$115K loaded). SAM $2B to $12B/yr. SOM ~$47M ARR. Arithmetic in the deck appendix B.
 - **Never list, investor material:** no commit counts or feature-register numbers, no YC mentions in generic materials, self-build story implicit only, no "Cursor for PMs" phrasing on surfaces, employer is "Intellect, a leading BFSI technology OEM", education shows TUM only.
 - **Contact:** founder@supaprod.ai · investors@supaprod.ai · linkedin.com/in/rohit-gajaraj.
@@ -292,7 +292,7 @@ Full model, unit economics, and the BYOK stance (an advanced option from Busines
 | --- | --- |
 | **Users** | 8, all founder or internal. **Zero organic external users.** |
 | **Revenue** | None. Billing is built, tested, and deliberately switched off. |
-| **Public launch** | **mid-September 2026** |
+| **Public launch** | **30 September 2026** |
 | **Built** | 1,440 source files · 79 authenticated routes · 151 server-function modules · 462 migrations · 402 test files, 7,159 passing |
 | **Open work** | 31 register rows. 371 shipped. |
 | **Production data** | **6 workspaces, all founder or test accounts. No customer data at all.** 18 missions · 5 decisions · **0 learnings.** The loop is wired and proven; it begins accruing on first real use. Query: `production_workspace_ids()`. |

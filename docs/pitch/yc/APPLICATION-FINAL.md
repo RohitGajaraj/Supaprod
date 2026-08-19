@@ -52,33 +52,45 @@
 
 ### "How far along are you?"
 
+> **UPDATED 2026-08-19 for the application update.** Three changes, each from a founder ruling
+> that session: the banned falsification story is **removed** (it lived only here, since filed
+> 8h is a single line, so this deletes it from the application entirely); the paragraph that
+> re-told locked field 7f is **gone**, because a partner reads them consecutively; and the field
+> now opens on the **repositioning**, because every locked field still sells "Cursor for PMs"
+> and these five surfaces are the only channel for what the company actually became.
+
 ```
 Cadence is now Supaprod. I renamed it after submitting and the form will
 not let me change the name. Same product, live at https://supaprod.ai.
 
-It works end to end today, and agents run every step. They read what a
-team already has, cluster it into what is worth looking at, argue down the
-weak ideas, write the spec with its evidence attached, plan and design the
-work, build it, open the pull requests, ship, write the release notes, and
-grade what shipped against what the spec promised. A person approves and
-merges, and that is the only place a human is required.
+The bigger change is what it is for. This application describes one tool
+that runs the product lifecycle. That was right about the work and wrong
+about the value. Agents already made building cheap, so doing the work
+faster is not the scarce thing. Knowing what is worth building is.
 
-Built since I applied: agents can run all of that, but they cannot know
-what a team believes is going to happen. So at the moment a call is made,
-that belief goes down with it. What they expect, how they will know, and
-by when. It locks and cannot be edited afterwards, not even by the person
-who wrote it. The system carries it from there, brings it back the day it
-falls due, drafts the verdict from what actually shipped, and files it
-against the decision that caused it. That second half shipped this week.
+So the product leads with the deciding now. Supaprod tells a team what to
+build next and why, ranked, with the evidence attached. That is the first
+thing it does, and it is what a team comes for.
 
-I had the moat wrong at first. I was saying a competitor cannot rebuild
-your decision history. They can. Vercel's COO rebuilt why a deal was lost
-out of Slack, email and call recordings, using an agent built in two days.
-What nobody can rebuild is what a team believed before they found out,
-because almost nobody writes it down. Now something does.
+Then it argues against its own recommendation, which is the piece I had not
+built when I applied. A critic takes the bet a team is about to commit to,
+makes the case against it from their own data, and kills the weak ones
+before anyone spends a sprint on them. Ranking ideas is cheap. Being told
+no, with the reason attached, is the part nobody else is selling.
 
-The engine advances on its own every minute without me starting anything,
-which is the only reason one person can ship at this pace.
+The second piece closes the loop behind it. At the moment a call is made,
+what the team expects, how it will be judged and by when goes down with it,
+and it locks. Not even our own agents can revise it once the outcome is
+known. It comes back the day it falls due, drafted from what actually
+shipped, for a person to settle.
+
+That verdict then re-ranks what to build next, so the critic gets sharper
+at arguing with this particular team rather than with teams in general.
+That is the whole point of writing the expectation down. What a team ends
+up with is a record of what it believed before it found out, and that only
+builds for whoever was capturing it at the time.
+
+The engine advances on its own every minute without me starting anything.
 
 Film of the product: https://supaprod.ai/film
 Brief: https://supaprod.ai/brief
@@ -94,61 +106,78 @@ run into that I never would.
 ### "How long have each of you been working on this? How much of that has been full-time?"
 
 ```
-Ten weeks, seven days a week, solo, directing agents: 5,000+ commits and
-530+ database migrations. Before that, about a month of nights and
-weekends on the prototype it grew out of.
+Eleven weeks on this build, near enough every day, and a month of nights
+and weekends on the prototype it came out of. Most of the eleven has been
+full-time.
 
-All ten weeks have been full-time. I took a break from my product role to
-build this, and my notice is now in. I am going full time on Supaprod
-regardless of the outcome here. That decision is made. What the batch
-changes is where I sit, how fast I learn, and how quickly I can adjust and
-scale. Not whether I am in.
+I quit the day job to build this properly. That was my call, and I am all
+in on Supaprod either way. What a batch would change is the speed, the
+people around me, and how fast I find out where I am wrong.
 ```
+
+> **The layoff trap, found 2026-08-19 and now `founder.commitment.agency_is_mandatory`.**
+> A draft read *"There is no job to go back to and I am not looking for one."* It broke no ban,
+> was past tense and unconditional, and the founder rejected it flat: *"this statement says they
+> were laid off... the portrayal should be like I have resigned myself."* **Every commitment line
+> must make him the subject of the verb.**
 
 ### "What tech stack are you using... Include AI models and AI coding tools you use."
 
 ```
-AI coding tools: Claude Code and Codex write the code, with Lovable and
-Antigravity in the mix.
+AI coding tools. The platform is built with Claude. Claude Code writes most
+of the code and I direct it. OpenAI's Codex is the second pair of hands,
+with Lovable and Antigravity used for specific jobs.
 
-AI models: every model call goes through one runtime chokepoint that
-handles budget, cache, guardrails, tracing, fallback and feature gates, so
-any model plugs in as an interchangeable part. Live traffic over the last
-fourteen days: Cohere embed-v4 for every retrieval vector at 27,008 calls,
-Qwen-plus at 4,902 and Gemini 2.5 Flash at 4,329 carrying the agent loop,
-and GPT-5 where reasoning depth earns its cost.
+AI models inside the product. Every model call goes through one runtime
+chokepoint that handles budget, cache, guardrails, tracing, fallback and
+feature gates, so a model is an interchangeable part and no agent talks to a
+vendor directly. The default today is Google's Gemini 3 Flash, which carries
+the agent loop where speed and cost matter most. Claude and GPT-5 sit on the
+same chokepoint for work that needs more depth, and Cohere embed-v4 produces
+every retrieval vector. The default is a setting, not an architecture. A
+workspace can bring its own key and route somewhere else without a code
+change, and new models get added as they land rather than migrated to.
 
-Frontend: TanStack Start on React 19 and Vite, TypeScript throughout,
-Tailwind and shadcn, Bun for install, test and build.
+Languages. TypeScript front and back, with SQL for anything the database
+should be doing itself.
 
-Data: Supabase Postgres with row level security, pgvector for retrieval,
-pg_cron running 37 active jobs that drive the autonomous engine, plus
-Supabase Auth and Storage. The forecast fields are made immutable by a
-BEFORE UPDATE trigger in Postgres rather than a check in application code,
-so the rule holds for every caller the app can make.
+Frontend. TanStack Start on React 19 and Vite, Tailwind and shadcn, Bun for
+install, test and build.
 
-Deployment: Cloudflare Workers. Stripe for billing.
+Backend and data. Supabase Postgres with row level security, pgvector for
+retrieval, and pg_cron driving the autonomous engine on a schedule, plus
+Supabase Auth and Storage. The forecast fields are protected in two places
+rather than one: a BEFORE UPDATE trigger in Postgres refuses the edit for
+any signed-in caller, and the write path itself refuses to overwrite a
+forecast that already exists, which is what stops our own agents, because
+they run with elevated database rights.
 
-Agent execution: E2B sandboxes run agent-written code, with secret
-redaction on every output stream so a token cannot reach a log.
+Deployment. Cloudflare Workers, with Stripe for billing.
 
-Source control: a GitHub App with webhooks, so agents open and merge real
-pull requests through the app rather than pushing with a personal token.
+Agent execution. E2B sandboxes run agent-written code, with secret redaction
+on every output stream so a token cannot reach a log.
 
-Ingestion: nine connectors on OAuth with per-workspace encrypted secrets.
-GitHub, Slack, Intercom, Zendesk, Canny, Productboard, Salesforce, HubSpot
-and Stripe.
+Source control. A GitHub App with webhooks, so agents open pull requests
+through the app rather than pushing with a personal token.
 
-Observability: the system writes its own telemetry, every agent action and
-AI call landing in the audit trail. PostHog for product analytics and
-Sentry for failure capture drop into a vendor neutral facade at launch.
+Ingestion. Nine connectors are live on OAuth with per-workspace encrypted
+secrets: GitHub, Slack, Intercom, Zendesk, Canny, Productboard, Salesforce,
+HubSpot and Stripe. More are landing on the same registry, so a team is not
+waiting on a bespoke build for the tool they already use.
+
+Observability. The system writes its own telemetry: every agent action and
+every model call lands in the audit trail, so the record of what the agents
+did is first-party rather than reconstructed from a vendor afterwards.
+PostHog for product analytics and Sentry for failure capture sit behind a
+vendor neutral facade, wired for launch, so swapping either is a config
+change rather than a rewrite.
 ```
 
 ### "When will you have a version people can use?"
 
 ```
 It is usable now, through the link and demo login above. Public launch is
-mid-September.
+30 September 2026.
 ```
 
 ### Radios
@@ -162,20 +191,33 @@ mid-September.
 ### "Who writes code... Was any of it done by a non-founder?"
 
 ```
-I do, directing AI agents. No non founder has touched any of it. Design,
-development, coding, testing and the analysis of what people do with it,
-all in house.
+I do, directing AI agents. None of it by a non-founder, and no external
+agency. Design, development, coding, testing and the analysis of what people
+do with it, all in house.
 
-I make every call and review every change. A separate reviewer,
-independent of the agents that write, audits for security and holds every
-change against the test suite before it can merge.
+I make every call and read every diff myself. A separate reviewer,
+independent of the agents that write, audits for security, and every change
+is held against the typecheck and the whole test suite.
 ```
+
+> 🛑 **A FALSE CLAIM WAS FILED HERE, and it is now `application_rules.claim_timing`.**
+> The filed text said the reviewer *"holds every change against the test suite **before it can
+> merge**."* The reviewer is real, the suite is real and green. **The timing was invented:**
+> `gh pr list --state all` returns exactly ONE pull request in the repo's entire history, work
+> lands on `main` directly, and branch protection returns `403 Upgrade to GitHub Pro`. CI runs
+> **on the push**, not as a gate before a merge. **Every rule we had checked whether a thing
+> exists. None checked when it fires.** Cheaper repair than rewording: buy GitHub Pro, require
+> the CI check on `main`, and the stronger sentence becomes true.
 
 ### "Are you looking for a cofounder?"
 
 ```
-Solo, and moving fast. Open to a cofounder who shares the vision and
-energy and adds a perspective I do not have. For now, solo.
+Solo, and moving fast. Open to a cofounder who adds a perspective I do not
+have, and not waiting on one to keep going.
+
+This is not the end state. The first hires are a founding engineer and a
+go-to-market engineer, each directing their own crew of agents. Agents scale
+the execution. Hiring is how I scale the judgment.
 ```
 
 ---
@@ -240,22 +282,13 @@ two. Anyone can open it right now with the demo login above.
 
 ### 8h. If you have applied with the same idea before, what has changed?
 
+> 🛑 **CORRECTED 2026-08-19 against screenshots of the live form.** What stood here was a
+> **never-filed draft** carrying the banned falsification story. The filed field is one line.
+
+<!-- gate:filed-and-locked - confirmed live on the form 2026-08-19. -->
 ```
-Same idea, one batch later. What changed is what I think the defensible
-part is.
-
-I had it wrong. I was telling people a competitor cannot rebuild your
-decision history. Then I watched Vercel's COO rebuild why a deal was lost
-out of Slack, email and call recordings, using an agent built in two days.
-A history can be reconstructed. What a team believed before the outcome
-landed cannot, because almost nobody writes it down.
-
-So I built the part that catches it. Capture shipped on 10 August, the
-settling on 13 August.
-
-The application was filed as Cadence. Same company, renamed since.
+First time applying with Cadence.
 ```
-
 ### 9a. Why did you pick this idea? Do you have domain expertise?
 
 ```
@@ -501,6 +534,10 @@ Supaprod
 ```
 
 ### 7b. Describe what your company does in 50 characters or less.
+
+<!-- gate:filed-and-locked - confirmed live on the form 2026-08-19 from founder screenshots.
+     The form carries "Cursor for PMs, the whole product org." It is retired doctrine and it
+     cannot be edited. Historical record. NEVER copy this phrasing into a new application. -->
 ```
 Cursor for PMs, the whole product org.
 ```
@@ -515,6 +552,10 @@ https://supaprod.ai
 `[YOU]` **Under 2 minutes 15 seconds.** Real screen recording, your voice, the product doing something visible in the first 30 seconds. Shot list: [`video-scripts.md`](./video-scripts.md) Part 2. The 11:46 version on the form now is far too long; partners watch 60 to 90 seconds.
 
 ### 7e. Please provide a link to the product, if any.
+
+<!-- gate:filed-and-locked - confirmed live on the form 2026-08-19. The login blurb carries
+     "private beta" and "invite code", both banned by rule 0a on 2026-08-17, and the field is
+     locked. Historical record. NEVER reproduce this shape. -->
 ```
 https://supaprod.ai
 
@@ -641,22 +682,23 @@ No.
 ```
 
 ### 8h. If you are applying with the same idea as a previous batch, did anything change?
-```
-Same idea, one batch later. Since the last application the product went from
-an early spine to working end to end: the autonomous engine runs, agents open
-real pull requests behind human gates, a shipped spec now gets checked against
-what happened and that verdict re-ranks what to build next, an outside AI code
-audit of the codebase held up, and the public launch is set for September. 5,063 commits and 519 migrations in ten weeks.
 
-I also corrected two things I had been claiming. I had said a competitor
-cannot rebuild your decision history. That is not true; you can reconstruct
-most of it from Slack and call recordings, and someone did it in two days for
-about a thousand dollars a year. What cannot be reconstructed is what a team
-expected before it found out. And I had been quoting product numbers that
-turned out to be my own demo data. Both are fixed, and finding them was worth
-more than the claims were.
+> 🛑 **CORRECTED 2026-08-19 against screenshots of the live form.** The block that stood here
+> was a **never-filed draft**. It claimed "same idea, one batch later", quoted `5,063 commits and
+> 519 migrations`, and carried the moat-falsification story banned on 2026-08-17. **None of it is
+> on the form and none of it ever was.** A drafter reading this file, which `source_precedence`
+> ranks FIRST, would have pulled a banned story and two stale numbers straight into a new
+> application. The actual filed text is below.
+
+<!-- gate:filed-and-locked - confirmed live on the form 2026-08-19 from founder screenshots. -->
 ```
-_YC's own FAQ calls progress since the last application a strong signal. This field is doing double duty: pace, and a founder who audits himself._
+First time applying with Cadence.
+```
+
+_Locked. The field is a single line, so the moat correction lives nowhere on the filed
+application. That is why removing it from the editable Progress field removes it entirely,
+rather than leaving a contradiction between two fields._
+
 
 ### 8i. Incubator / accelerator
 ```
