@@ -76,11 +76,13 @@ class AskUiError extends Error {}
  * `landing` is where a result came to rest, so a run can hand back to the
  * station that owns it instead of ending in a chat log.
  *
- * NOTHING EMITS THESE YET. That is why `NO_WORK` below is a single frozen
- * value rather than a fresh object per render: with no frame on the wire the
- * hook returns the IDENTICAL reference on every render, so a memoized consumer
- * sees no change and today's behaviour is byte-identical rather than merely
- * equivalent.
+ * TWO OF THE THREE ARE ON THE WIRE NOW. `api/chat.ts` emits `station` once, off
+ * the agent a mention resolved to, and a `tool` frame per research phase that
+ * actually calls one. `landing` is emitted from the mission branch. The frames
+ * still arrive only on turns that dispatch or research, so `NO_WORK` below stays
+ * a single frozen value rather than a fresh object per render: an ordinary
+ * answer gets the IDENTICAL reference on every render and a memoized consumer
+ * sees no change at all.
  */
 export type AskWork = {
   /** The station the work moved to, or null when no frame has said. */

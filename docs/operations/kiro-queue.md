@@ -569,7 +569,7 @@ The argument is already written in this tool's own description, applied to a dif
 ---
 
 **K-16 · Repair the dead dispatch branch**
-`STATUS: TODO` · deps: K-15 · size: M
+`STATUS: BUILT` · deps: K-15 · size: M
 
 **What.** Make `intent: "do"` able to promote a request to a mission on its own, and make the silent-degrade path explicit.
 
@@ -584,6 +584,7 @@ The argument is already written in this tool's own description, applied to a dif
 - A test covers each downgrade condition.
 
 **Owns.** `src/routes/api/chat.ts`, `src/hooks/use-ask-stream.ts`, `src/routes/api/__tests__/chat-dispatch.test.ts`
+· built also with `src/lib/chat-dispatch.ts` (new; a route module cannot be imported by a test here, so the predicate and the five sentences live where they can be executed) and one stale comment in `src/lib/ask-sse.ts`.
 
 ---
 

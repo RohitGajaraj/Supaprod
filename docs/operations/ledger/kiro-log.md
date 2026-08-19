@@ -1525,3 +1525,141 @@ A test asserts `routed` stays unsent and names what to delete when the ruling la
 > **Claude does after:** watch a live run. The order to confirm is `status` then `tool` for the same
 > phase, three tools on a web-mode question, none on a `chat`-mode one, and a `station` frame only
 > when the person addressed an agent by name.
+
+---
+
+## K-16 · BUILT · 2026-08-20 03:05
+
+**Did.** `intent: "do"` dispatches on its own now. The two gates that used to disagree read one
+expression, the seven pre-flight conditions became five named states with sentences we wrote, and the
+system message that fed a Postgres error to a language model and asked it to explain itself is gone.
+
+**The bug was an ordering bug, and that is why it survived every gate.** `startingAgent` is declared
+above the pre-flight block and assigned only inside it. The promotion line sat below and read it:
+
+```ts
+if (forcedDo && startingAgent && workspaceId) isMission = true;   // never true
+if (isMission && startingAgent && workspaceId) { … }
+```
+
+For any request the classifier had not already claimed, `startingAgent` was still `null` at that line,
+because pre-flight was itself gated on `isMission`. Nothing about the runtime was wrong. Two gates
+asked the same question in two places and one of them needed an answer only the other could produce.
+
+**The repair is one `const`, and it is a `const` on purpose.**
+
+```ts
+const dispatching = wantsDispatch({ isMission, forcedDo, instruction });
+if (dispatching) { …pre-flight, which is what assigns startingAgent… }
+if (dispatching && startingAgent && workspaceId) { …dispatch… }
+```
+
+Computed once and read by both, so they cannot drift apart again. Three tests fail if the old shape
+returns; I proved that by planting it rather than assuming it.
+
+**Seven conditions, five states, and the collapse is the design.** The workspace is checked on both
+the mention branch and the orchestrator branch; a conductor can be missing two ways (the seeding call
+errors, or the row is still absent after it reports success). Each pair shares a sentence because the
+test a state has to pass is *what is missing, and what do you do*, and within a pair the answer is
+identical. The causes are not lost: the raw one is `console.warn`ed with the state id, and only the id
+travels. Same split `sanitizeError` makes everywhere else in this file.
+
+| state | conditions | what the person is told |
+| --- | --- | --- |
+| `no-workspace` | 2 | nowhere for a run to live; create one or accept an invite |
+| `conductor-unavailable` | 2 | Chief of Staff plans every run and that seat could not be set up |
+| `no-specialists` | 1 | every agent is switched off; turn one on under Agents |
+| `preflight-failed` | 1 | a check failed and it is not one you can clear from here |
+| `dispatch-failed` | 1 | **look under Runs before retrying, or you could end up with two** |
+
+`dispatch-failed` is the only state reachable after `createMission` has returned, so it is the only
+one that sends anyone looking. Telling the other four to go and check would send them after a row that
+was never inserted.
+
+**What the sentences replace, and why replacing them was the item.** The old path spliced this into
+the answer prompt:
+
+> `CRITICAL: The user tried to dispatch a mission but checks failed: "<raw error>". Explain this
+> problem to the user … and proceed with a regular conversation.`
+
+Three separate faults. A Postgres error string was handed to a model and read back to a person. What
+they were told varied run to run, because it was generated. And it arrived dressed as an answer, so a
+request to *do* work came back as prose about why it had not been done. **A blocked dispatch now ends
+the turn** with our own sentence and no model call, following `byoKeyMissingMessage` twenty lines
+down, which is this file's existing pattern for a pre-flight that cannot be satisfied.
+
+**Placed after the user-message insert on purpose.** Four of the five sentences say "your words are
+saved above", and that is true when they read it, so retrying is not retyping.
+
+**Why ending the turn is right rather than annotating an answer.** `dispatching` is true only when the
+person pressed the fork or the classifier read the words as work. Under both readings they asked for
+something to be done, not explained. An explicit `intent: "ask"` skips the classifier entirely, so a
+question cannot land here.
+
+**A defect this change would have introduced, caught before it shipped.** The client prefixes `@cos`,
+so `body.content` is not what the person typed. A forced "do" that the classifier read as chat leaves
+`missionTitle` and `missionGoal` empty and the fallback was `body.content`, which means the first run
+opened through the repaired branch would have been titled **"@cos fix the redirect"**. While the
+branch was dead this was unreachable. `instructionForDispatch` takes the addressing off the front and
+every fallback reads that instead. Leading only: `ask @engineer why this broke` is subject, not
+address, and cutting it would edit somebody's instruction.
+
+**It also gave the empty case an answer.** A bare `@cos` handed over returns `""`, and `wantsDispatch`
+refuses to dispatch on it. A run whose entire goal is the name of the seat you handed it to is worse
+than the chat reply it would otherwise get.
+
+**The old sentence named two slugs and a station.** It told people to enable "Discovery, Strategist,
+Build". `discovery-scout` and `strategist` are `agents.slug` values, `Build` is a station, and none of
+the three is a word on the roster they were being sent to. The replacement reads the names through
+`agentDisplayName`, so it says **Watch, Prioritize and Engineer** and follows a rename on its own. One
+per phase most work passes through: something to notice it, something to rank it, something to do it.
+
+**Pushed back.** Three.
+1. **I did not remove the client's `@cos` prefix, and the acceptance does not ask me to.** It asks
+   that `intent: "do"` dispatch *without depending on* the prefix, which it now does, and that the
+   existing path still work. Removing the prefix would move handover from the mention branch (a
+   pre-planned single step, then `advanceMissionCore`) onto the orchestrator branch (`runAgentLoop`,
+   which plans its own DAG). That is a different dispatch machine, and which one handover should use
+   is a live-behaviour question nothing in this lane can answer. `contentForIntent` also puts the
+   handover in the person's own visible words, which is a deliberate choice with a test on it.
+2. **No new SSE frame, and no new `ChatMeta` field.** Both were drafted. A frame would be a second
+   representation of a fact the reply already carries in full, and `ask-sse.ts`'s own law is that a
+   frame carries the smallest honest fact that nothing else says. Adding one nothing needs is the
+   defect K-15 existed to fix, one level up.
+3. **The item's `Owns` list is incomplete, the fifth time this session.** It names
+   `use-ask-stream.ts`, which needed only a stale comment corrected, and omits any home for the pure
+   logic. A route module in this repo cannot be imported by a test (it pulls `runtime.server`, the
+   service-role client and the orchestration graph), so a predicate whose entire history is being
+   subtly wrong would have been untestable inside it. It lives in **`src/lib/chat-dispatch.ts`**, new,
+   colliding with no item, and the test executes it for real instead of reading it.
+
+**Unsure.** Two.
+1. **The classifier-guessed path now ends the turn too, and that is a behaviour change beyond the
+   letter of the item.** If the classifier reads a question as work and pre-flight is blocked, the
+   person gets "nothing started" rather than an answer. I judged that right: pre-flight only fails
+   when the account genuinely cannot run anything, so the alternative is paraphrasing the same fault
+   on every message forever, and `intent: "ask"` is a real escape hatch. But it is the one judgement
+   here that a live account could argue with.
+2. **`baseMeta()` on a blocked turn still reports the classifier's `research.mode`** even though no
+   research ran. The BYO-key path has the same property, so I matched it rather than forking the
+   meta shape for one case.
+
+**Noticed.** Three, all parked rather than fixed.
+1. **A pre-existing duplicate-message bug on the `dispatch-failed` path.** The user message is
+   inserted inside the dispatch `try`, and the fall-through path below inserts it again, so a throw
+   between the two leaves the message twice in the transcript. Unrelated to the dead branch, and
+   deciding which insert actually landed needs a live run. Comment left at the catch.
+2. **`AskWorkLine.tsx` is imported by nothing.** A built surface for `station` + `tool` that renders
+   the station rail and `toolActionLabel`, wired to no route, and its header still says "NOTHING EMITS
+   THEM YET" which K-15 made false. It is the door-missing defect on a component whose frames now have
+   writers. Not in any item's `Owns`; worth one.
+3. **`ask-sse.ts` said "nothing emits these yet, and that is deliberate"**, which K-15 falsified. I
+   corrected that one in place, because the protocol file is where a reader goes to learn whether a
+   frame has a writer.
+
+**Gates.** tsc clean · 9,703 pass / 0 fail / 23 skip across 581 files · build ok.
+
+> **Claude does after:** the five sentences each need one live account state to read them back.
+> `no-specialists` is the reachable one (disable every agent but the orchestrator). Also confirm that
+> a forced "do" on an account with no conductor row now seeds one and dispatches, which is the case
+> the item says returns prose today.

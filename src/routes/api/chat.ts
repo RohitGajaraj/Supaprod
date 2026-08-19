@@ -27,6 +27,12 @@ import { checkUserAiRateLimit } from "@/lib/ai-ratelimit.server";
 // `describeRoutedIntent` is deliberately NOT imported: see the routing comment
 // at the dispatch reply for why its sentence was built and then withdrawn.
 import { routeIntent, asStation } from "@/lib/ask/route-intent";
+import {
+  dispatchBlockedMessage,
+  instructionForDispatch,
+  wantsDispatch,
+  type DispatchBlock,
+} from "@/lib/chat-dispatch";
 import { agentStation } from "@/lib/agent-vocabulary";
 import { WORK_SHAPE_LABEL, type WorkShape } from "@/lib/spine/route";
 import { AGENT_STATIONS, AGENT_STATION_ORDER } from "@/lib/agent-vocabulary";
@@ -538,6 +544,12 @@ export const Route = createFileRoute("/api/chat")({
         // cheaper than letting it decide something the person already decided.
         const forcedAsk = body.intent === "ask";
         const forcedDo = body.intent === "do";
+        /**
+         * The words with the addressing taken off the front, which is what a run
+         * is actually about. Empty for a bare "@cos", and `wantsDispatch` reads
+         * that as nothing to do. See `chat-dispatch.ts` for both.
+         */
+        const instruction = instructionForDispatch(body.content);
 
         // 1. Classifier v3 (one call): mission gating + research-mode routing.
         const classificationSystem = `You are the intent classifier for Supaprod, where product decisions live when agents do the work.
@@ -640,16 +652,39 @@ You must output a JSON object EXACTLY in this format:
         const { data: ws } = await supabase.rpc("current_user_default_workspace");
         const workspaceId = (ws as string | null) ?? null;
 
-        let preflightError = "";
+        /**
+         * WHY THIS IS A TYPED ID AND NOT A STRING ANY MORE.
+         *
+         * It was a free string, and the string was a Postgres error message,
+         * and the Postgres error message was spliced into the answer prompt
+         * under `CRITICAL: ... Explain this problem to the user`. So the person
+         * was read a generated paraphrase of a database fault, differently each
+         * time, inside what looked like an answer to their question. The cause
+         * still gets logged below; only the id travels.
+         */
+        let preflightBlock: DispatchBlock | null = null;
+        /** The raw cause. Logged, never sent. */
+        let preflightDetail = "";
         let startingAgent: { id: string } | null = null;
 
-        if (isMission) {
+        /**
+         * ONE QUESTION, ASKED ONCE. This gate and the dispatch gate below read
+         * the same expression, because the defect being repaired here was those
+         * two disagreeing: pre-flight ran only for `isMission`, and the line
+         * that was supposed to promote a forced "do" needed `startingAgent`,
+         * which only pre-flight could assign. Running pre-flight for a forced
+         * "do" is the whole repair.
+         */
+        const dispatching = wantsDispatch({ isMission, forcedDo, instruction });
+
+        if (dispatching) {
           try {
             if (mentionedAgent) {
               // F-AGENTS-MENTIONABLE: the agent was already resolved as enabled
               // in the user's roster, so only the workspace is still required.
               if (!workspaceId) {
-                preflightError = "No default workspace found for user";
+                preflightBlock = "no-workspace";
+                preflightDetail = "no default workspace for user";
               } else {
                 startingAgent = { id: mentionedAgent.id };
               }
@@ -659,9 +694,11 @@ You must output a JSON object EXACTLY in this format:
                 p_user_id: userId,
               });
               if (seedErr) {
-                preflightError = `seed orchestrator failed: ${seedErr.message}`;
+                preflightBlock = "conductor-unavailable";
+                preflightDetail = `seed_orchestrator_agent failed: ${seedErr.message}`;
               } else if (!workspaceId) {
-                preflightError = "No default workspace found for user";
+                preflightBlock = "no-workspace";
+                preflightDetail = "no default workspace for user";
               } else {
                 const { data: agent } = await supabase
                   .from("agents")
@@ -670,7 +707,12 @@ You must output a JSON object EXACTLY in this format:
                   .eq("slug", "orchestrator")
                   .maybeSingle();
                 if (!agent) {
-                  preflightError = "Orchestrator agent not found after seeding";
+                  // SAME STATE, DIFFERENT CAUSE from the seed error above: the
+                  // call reported success and the row is still not there. The
+                  // person's answer to both is identical, so they share a
+                  // sentence and the log keeps them apart.
+                  preflightBlock = "conductor-unavailable";
+                  preflightDetail = "orchestrator row absent after seeding reported success";
                 } else {
                   startingAgent = agent;
                   // Pre-flight specialists check
@@ -681,37 +723,39 @@ You must output a JSON object EXACTLY in this format:
                     .eq("enabled", true)
                     .neq("slug", "orchestrator");
                   if ((specialists ?? 0) === 0) {
-                    preflightError =
-                      "No specialist agents enabled. Please enable at least one specialist agent (Discovery, Strategist, Build) in the Agents roster before starting a mission.";
+                    preflightBlock = "no-specialists";
+                    preflightDetail = "zero enabled agents other than the orchestrator";
                   }
                 }
               }
             }
           } catch (err) {
-            preflightError = err instanceof Error ? err.message : String(err);
+            preflightBlock = "preflight-failed";
+            preflightDetail = err instanceof Error ? err.message : String(err);
           }
 
-          if (preflightError) {
+          if (preflightBlock) {
+            // No longer "falling back to regular chat": the person asked for
+            // work, and the reply now says the work did not start. See the
+            // early return beside `streamFriendly`.
             console.warn(
-              "[chat] mission pre-flight failed (falling back to regular chat):",
-              preflightError,
+              `[chat] dispatch blocked (${preflightBlock}):`,
+              preflightDetail || "no detail",
             );
-            isMission = false;
           }
         }
 
-        // "do" is the other half of the fork: the person said this is work, so
-        // it dispatches even if the classifier read it as chat. The classifier
-        // still ran, because it is what fills in the mission's title and goal.
-        if (forcedDo && startingAgent && workspaceId) isMission = true;
-
         // 3. Dispatch orchestrated mission and exit if classified as mission
-        if (isMission && startingAgent && workspaceId) {
+        if (dispatching && startingAgent && workspaceId) {
           try {
             // Create the mission row
             const mission = await createMission(supabase, userId, workspaceId, {
-              title: missionTitle.trim() || body.content.slice(0, 80),
-              goal: missionGoal || body.content,
+              // `instruction`, not `body.content`. A forced "do" that the
+              // classifier read as chat leaves both of these empty, and the raw
+              // content still carries the client's `@cos` prefix, so the
+              // fallback used to be able to name a run "@cos fix the redirect".
+              title: missionTitle.trim() || instruction.slice(0, 80),
+              goal: missionGoal || instruction,
               starting_agent_id: startingAgent.id,
             });
 
@@ -743,7 +787,7 @@ You must output a JSON object EXACTLY in this format:
                 workspace_id: workspaceId,
                 idx: 0,
                 agent_slug: mentionedAgent.slug,
-                sub_goal: (missionGoal || body.content).slice(0, 4000),
+                sub_goal: (missionGoal || instruction).slice(0, 4000),
                 depends_on: [],
                 rationale: `Directly invoked by @${mentionedAgent.slug} in chat.`,
                 status: "planned",
@@ -764,7 +808,7 @@ You must output a JSON object EXACTLY in this format:
                   id: mission.id,
                   user_id: userId,
                   workspace_id: workspaceId,
-                  goal: missionGoal || body.content,
+                  goal: missionGoal || instruction,
                   status: "running",
                 }),
                 "advanceMissionCore",
@@ -775,7 +819,7 @@ You must output a JSON object EXACTLY in this format:
                 request,
                 runAgentLoop(supabase, userId, {
                   agentSlug: "orchestrator",
-                  goal: missionGoal || body.content,
+                  goal: missionGoal || instruction,
                   model: model,
                   missionId: mission.id,
                   workspaceId,
@@ -1011,8 +1055,21 @@ You must output a JSON object EXACTLY in this format:
             return new Response(stream, { headers: getSseHeaders(corsOrigin) });
           } catch (e) {
             console.error("[chat] failed to start orchestrated mission:", e);
-            preflightError = `Failed to initialize mission: ${e instanceof Error ? e.message : String(e)}`;
-            isMission = false;
+            /**
+             * THE ONLY BLOCK WHERE SOMETHING MAY ALREADY EXIST. Everything
+             * above this throws before `createMission`; this one can throw
+             * after it, so the sentence for `dispatch-failed` is the only one
+             * that tells the person to go and look before retrying.
+             *
+             * KNOWN AND NOT MINE TO FIX HERE: the user message is inserted
+             * inside this try, and the fall-through path below inserts it
+             * again, so a throw between the two leaves the message duplicated
+             * in the transcript. Pre-existing, unrelated to the dead branch this
+             * change repairs, and it needs a live run to see which of the two
+             * inserts actually landed.
+             */
+            preflightBlock = "dispatch-failed";
+            preflightDetail = e instanceof Error ? e.message : String(e);
           }
         }
 
@@ -1028,15 +1085,6 @@ You must output a JSON object EXACTLY in this format:
             content: m.content,
           }),
         );
-
-        const preflightWarning = preflightError
-          ? [
-              {
-                role: "system" as const,
-                content: `CRITICAL: The user tried to dispatch a mission but checks failed: "${preflightError}". Explain this problem to the user (e.g. if they need to enable agents in the Agents page) and proceed with a regular conversation.`,
-              },
-            ]
-          : [];
 
         // Persist user message first for regular chat path
         const { error: insErr } = await supabase.from("messages").insert({
@@ -1090,6 +1138,32 @@ You must output a JSON object EXACTLY in this format:
           });
           return new Response(s, { headers: getSseHeaders(corsOrigin) });
         };
+
+        /**
+         * A REQUEST FOR WORK THAT CANNOT RUN GETS TOLD SO, AND NOTHING ELSE.
+         *
+         * What happened before: the request fell through to the ordinary chat
+         * path with a system message spliced in telling the model to explain the
+         * failure, so pressing "hand it over" returned an answer. The person
+         * pressed a button that does one thing and the product quietly did a
+         * different one. `byoKeyMissingMessage` two paragraphs down is the
+         * pattern this follows: a pre-flight that cannot be satisfied ends the
+         * turn with our own sentence rather than a model's.
+         *
+         * WHY IT ENDS THE TURN RATHER THAN ANNOTATING AN ANSWER. There is no
+         * answer to give. `dispatching` is true only when the person pressed the
+         * fork themselves or the classifier read the words as work, and in both
+         * readings they asked for something to be done, not explained. An
+         * explicit `intent: "ask"` skips the classifier entirely, so a question
+         * can never land here.
+         *
+         * PLACED AFTER the user message insert on purpose: their words are in
+         * the transcript before this returns, so "your words are saved above" is
+         * true when they read it, and retrying does not mean retyping.
+         */
+        if (preflightBlock) {
+          return streamFriendly(dispatchBlockedMessage(preflightBlock), baseMeta());
+        }
 
         // F-CHAT-V2 model switching: a non-gateway model with NO reachable key cannot
         // work — say so kindly instead of erroring downstream. MODEL-AGNOSTIC: a model is
@@ -1363,7 +1437,6 @@ ${grounding}`,
             const chatMessages = [
               { role: "system", content: system },
               ...history,
-              ...preflightWarning,
               { role: "user", content: body.content },
             ];
             const promptChars = chatMessages.reduce((sum, m) => sum + m.content.length, 0);

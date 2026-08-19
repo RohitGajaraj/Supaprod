@@ -27,12 +27,23 @@ export type SseEvent =
    * back to a four-second poll. A surface whose promise is showing the work
    * cannot be built on a protocol with no word for it.
    *
-   * NOTHING EMITS THESE YET, and that is deliberate. They are additive and the
-   * consumer already tolerates unknown kinds (its branch chain ends in
-   * `if (event.kind !== "delta") continue`), so shipping the vocabulary ahead
-   * of the emitters changes no behaviour at all. It is done first because
-   * everything else in the conversational workspace is blocked on it and
-   * nothing before it is.
+   * ALL THREE ARE EMITTED NOW, and each only where it is a FACT rather than a
+   * forecast, which is the rule that decides where the emitters sit rather than
+   * a matter of coverage. `api/chat.ts` sends `station` on the mention branch
+   * only, off the station of the agent a mention actually resolved to, and
+   * stays silent on the orchestrator branch because there the entry station is
+   * a classifier's guess that nothing routes by. `tool` goes out per research
+   * phase that really calls one (`web.search`, `web.fetch`,
+   * `workspace.search`); the phases that call nothing send nothing. `landing`
+   * goes out once the mission row exists.
+   *
+   * They were declared, parsed and accumulated for some hours before anything
+   * sent one. That was survivable because they are additive and the consumer
+   * tolerates unknown kinds (its branch chain ends in
+   * `if (event.kind !== "delta") continue`), but it is also this repo's
+   * signature defect, and the reason the emitters are worth naming here: the
+   * next reader should be able to tell from the protocol file whether a frame
+   * has a writer.
    *
    * Each carries the SMALLEST honest fact, never a rendered sentence: an id the
    * client already knows how to name. `station` is one of the seven; `tool` is
