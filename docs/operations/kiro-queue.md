@@ -2,7 +2,13 @@
 
 > _Created: 2026-08-19 · Last updated: 2026-08-19_
 
-**If you are Kiro and you have just been asked "what are you building next": read [§1 How to work](#1-how-to-work), then take the lowest-numbered item whose status is `TODO` and whose dependencies are all `VERIFIED`. That is your next build. Everything you need is in its row.**
+> ### BUILD K-80 NEXT. It is numbered last and it is not last.
+>
+> **Founder ruling 2026-08-20.** `Flowchart` is the one component the reference ships that Meridian does not have, and **a primitive that does not exist is a primitive nobody builds a feature with.** Every item after it that could have drawn a graph will instead invent a one-off, and the cost of that is paid quietly and forever. It was queued as K-80 only because 79 numbers were already taken; the number records when it was written, not when it should be built.
+>
+> **Take it as soon as K-09 is `VERIFIED`**, which is its only dependency. If K-09 is still awaiting a verdict, take the next lowest-numbered item, and switch to K-80 the moment that verdict lands rather than finishing the group you are in.
+
+**If you are Kiro and you have just been asked "what are you building next": read [§1 How to work](#1-how-to-work), then take the lowest-numbered item whose status is `TODO` and whose dependencies are all `VERIFIED` — except K-80, which jumps the queue, see above. Everything you need is in its row.**
 
 **Every item's `Why` comes from the findings register: [`../planning/initiatives/audit-reports/agent-audit-2026-08.md`](../planning/initiatives/audit-reports/agent-audit-2026-08.md).** If an item's premise looks wrong to you, that file is where to check it — it records what was measured, when, and against what. It also names which existing docs are stale, which matters because several items exist only because a doc claimed something the code stopped doing.
 
@@ -1888,6 +1894,40 @@ The standing rule since 2026-08-01: **research the best proven product in that c
 **Acceptance.** As K-76, plus a **Brain** row added to the reference-class table.
 
 **Owns.** `docs/design/REFERENCE-PATTERNS.md`
+
+---
+
+### Group M — The one reference component that was never ported
+
+**K-80 · `Flowchart`, the twentieth component**
+`STATUS: TODO` · deps: K-09 · size: L · **PRIORITY: BUILD THIS NEXT, ahead of its number**
+
+> **This item jumps the queue** (founder ruling 2026-08-20, restated at the top of this file). Its number records when it was written, not when it should be built. A primitive that does not exist is a primitive nobody builds a feature with, so every day it is missing, some later item quietly invents a one-off graph instead.
+
+**What.** Build `src/components/meridian/Flowchart.tsx`: a node-and-edge canvas for showing a branching sequence, with a dotted ground, typed nodes, and orthogonal connectors.
+
+**Why.** **The reference ships twenty components and Meridian has nineteen.** `agent-audit-2026-08.md` §6 records "All 19 beautifui.dev components ported", which was true when written. Enumerated off the live site on 2026-08-20 there are **twenty**: Loading State · Thinking · Streaming Text · Approval Card · Tool Chips · Task Rows · Chat · Prompt Bar · Recommendation Card · Context Cards · Diff Table · Records Table · Filter Table · Sidebar Nav · Search · **Flowchart** · Insight Cards · Code Block · Fine-tune Card · Selection Actions. Every one but `Flowchart` has a Meridian file. `grep -rli flowchart src/` returns only `station-glyphs.tsx`, which is an icon, and the repo has **no graph library at all** (`reactflow`, `dagre`, `elkjs` all return nothing), so there is nothing to lean on.
+
+It also happens to be the primitive the direction already asked for. [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) §6.3 specifies **the Run Map, "a canvas for watching, not authoring"**, and there is currently no component that can draw one.
+
+**How. Port it, do not design it.** Measured off the live reference on 2026-08-20, so build to these and only deviate with a reason in the log:
+
+- **Nodes are a fixed 300px wide**, in two heights: **58px** for a plain step and **88px** for one carrying a second line of description. Fixed width is the point; it is what keeps the connectors orthogonal and the canvas legible.
+- **Connectors are SVG paths, dominant stroke `1.8px`**, with `2.4px` used for the emphasised path. 16 paths in the reference's own example. No dashes.
+- **The ground is dotted**, not gridded and not plain.
+- **Two node kinds in the reference example**, `Trigger` and `If / Else`, the second being a branch with labelled outgoing edges. A small **60x28** pill carries the kind.
+- **This is a watching surface, not an editor.** No drag, no connect, no delete. That is a deliberate reading of §6.3 and it is what keeps the scope L rather than XL.
+
+**The rules from §1 apply here harder than anywhere**, because this component has no existing sibling to copy rhythm from: fixed node width, one type ladder, connectors that meet nodes at a consistent anchor rather than wherever the maths lands.
+
+**Acceptance.**
+- Renders a branching sequence of at least six nodes with at least one two-way branch, in the gallery, in both grounds.
+- Node width is a single constant, and both heights derive from content rather than from a second constant.
+- No raw colour; connectors and ground draw from `--mrd-*` only.
+- Degrades sanely at 40 nodes and at 1 node.
+- `bunx tsc --noEmit`, `bun test`, `bun run build` clean; ratchet total unchanged.
+
+**Owns.** `src/components/meridian/Flowchart.tsx`, `src/components/meridian/__tests__/flowchart.test.tsx`, `src/routes/_authenticated.meridian.tsx`
 
 ---
 
