@@ -23,17 +23,30 @@
 -- 2025-12-05 to 2026-06-05. Two sibling tables, one guarded and one not, and
 -- the unguarded one is the one the strategy leans on. That is the whole finding.
 --
--- >>> THIS PART DELETES 16 PRODUCTION ROWS. <<<
+-- THIS PART DELETES NOTHING, AND AN EARLIER DRAFT OF IT DID.
 --
--- They are unreachable by any query that joins `workspaces`, which is every
--- query in the product that reads learnings. They were marked `is_sample` by
--- the preceding migration on the argument that no real learning has ever been
--- written. They cannot be repaired, because the workspace they name does not
--- exist and nothing records which one it was. The alternative to deleting them
--- is not adding the foreign key, which leaves the defect that produced them.
+-- The obvious way to add a foreign key to a table holding 16 rows that violate
+-- it is to delete the 16. That draft was written and then discarded, because
+-- `NOT VALID` gets the whole guarantee without the destruction:
 --
--- If that trade is not wanted, comment out step 1.1 and step 1.2 together; the
--- rest of this file applies without them.
+--   alter table ... add constraint ... foreign key (...) ... not valid;
+--
+-- A `NOT VALID` foreign key is fully enforced on every INSERT and UPDATE from
+-- the moment it exists. What it skips is the one-time scan of rows already
+-- there. So no new orphan can be created -- which is the entire point of the
+-- constraint -- while the 16 that exist are left alone.
+--
+-- Keeping them is also better than deleting them on the merits. They are
+-- unreachable by any query that joins `workspaces`, which is every query in the
+-- product that reads learnings, and the preceding migration marked them
+-- `is_sample`, so they are invisible twice over. They are the only surviving
+-- evidence of what a missing foreign key on this table actually cost, and a
+-- delete would destroy that to buy nothing a `NOT VALID` clause does not
+-- already buy.
+--
+-- When they are eventually cleaned up by hand, the constraint is promoted with
+-- `alter table public.learnings validate constraint learnings_workspace_id_fkey;`
+-- which takes a SHARE UPDATE EXCLUSIVE lock and does not block reads or writes.
 --
 -- ================================================================= PART 2 ===
 -- product_id, AND WHY IT IS DERIVED AT THE TABLE RATHER THAN LEFT TO CALLERS.
@@ -111,14 +124,8 @@
 -- It fills going forward or not at all.
 
 -- ---------------------------------------------------------------------------
--- 1.1 Remove the unreachable rows. DESTRUCTIVE. See PART 1 above.
--- ---------------------------------------------------------------------------
-
-delete from public.learnings l
- where not exists (select 1 from public.workspaces w where w.id = l.workspace_id);
-
--- ---------------------------------------------------------------------------
--- 1.2 The foreign key and the trigger that keep it from happening again
+-- 1.1 The foreign key. NOT VALID, so the 16 existing orphans survive and no
+--     seventeenth can ever be created. Nothing is deleted. See PART 1 above.
 -- ---------------------------------------------------------------------------
 
 do $$
@@ -130,7 +137,8 @@ begin
   ) then
     alter table public.learnings
       add constraint learnings_workspace_id_fkey
-      foreign key (workspace_id) references public.workspaces(id) on delete cascade;
+      foreign key (workspace_id) references public.workspaces(id) on delete cascade
+      not valid;
   end if;
 end $$;
 
@@ -211,11 +219,28 @@ create index if not exists learnings_decision_idx
 -- ---------------------------------------------------------------------------
 
 do $$
-declare n_orphan bigint;
+declare n_orphan bigint; n_fk bigint; n_trg bigint;
 begin
+  -- The 16 are expected to survive. What must be true is that the constraint
+  -- exists, so a seventeenth cannot be written.
   select count(*) into n_orphan from public.learnings l
    where not exists (select 1 from public.workspaces w where w.id = l.workspace_id);
-  if n_orphan <> 0 then
-    raise exception 'learnings still holds % orphaned rows; the foreign key cannot be trusted', n_orphan;
+
+  select count(*) into n_fk from pg_constraint
+   where conrelid = 'public.learnings'::regclass
+     and conname  = 'learnings_workspace_id_fkey'
+     and contype  = 'f';
+  if n_fk <> 1 then
+    raise exception 'learnings_workspace_id_fkey is missing; new orphans are still possible';
   end if;
+
+  select count(*) into n_trg from pg_trigger
+   where tgrelid = 'public.learnings'::regclass
+     and tgname  = 'trg_set_learnings_workspace'
+     and not tgisinternal;
+  if n_trg <> 1 then
+    raise exception 'trg_set_learnings_workspace is missing';
+  end if;
+
+  raise notice 'learnings: % pre-existing orphan(s) retained under a NOT VALID constraint', n_orphan;
 end $$;

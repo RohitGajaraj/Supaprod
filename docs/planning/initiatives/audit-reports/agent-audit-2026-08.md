@@ -120,7 +120,7 @@ The numbers the whole direction rests on. All queried 2026-08-19.
 | **`/decide` has zero forecast references** | The only human composer is a panel on `/brain` | OPEN |
 | **`decision.record` has no forecast parameter** | So **303 of 304 agent-recorded decisions could not carry one** | QUEUED K-13 |
 | **A settled forecast re-ranks nothing** | Three writers, four readers, and every reader is a display or a queue filter | OPEN |
-| **`learnings` has no `decision_id`** | The canon's "written back against the decision that caused it" describes something the schema does not do | OPEN (Claude's lane) |
+| **`learnings` has no `decision_id`** | The canon's "written back against the decision that caused it" describes something the schema does not do | **CLOSED (schema)** — column added and applied 2026-08-19, `20260819181000`. No backfill: `prd_id` does not identify a decision. **Nothing writes it yet**; `trust.server.ts:151` still rebuilds the edge in JS |
 | **`learning.record` accepts `uncertain`; the CHECK permits 3 values** | Its description tells the agent to say it. **An obedient agent gets a 23514 and the tool call fails** | QUEUED K-14 |
 | **11 direct-insert bypasses around the signal sink** | Each skips dedup, `source_kind`, the injection screen, the embedding **and the `stage_events` row** | OPEN |
 | **Autonomous specs always have `opportunity_id: null`** | Severs the bet→theme route; compensated via `spine_track_members` | context |
@@ -216,14 +216,40 @@ Recorded because a wrong doc is worse than a missing one.
 
 ---
 
+## 8b. Applied to production 2026-08-19 (Claude lane)
+
+Four migrations landed, one at a time, each verified against production before the
+next was applied. **Schema only. Every one of them still needs its writers**, and a
+column with no writer is the `credit_ledger.product_id` failure repeating, so none
+of these is finished.
+
+| Migration | What changed | Verified by |
+| --- | --- | --- |
+| `20260819180000` | `is_sample` on **`learnings`** and **`agent_memory`** | 133 of 133 learnings marked; 1,143 of 1,143 seeded memories marked and **all 46 real ones left unmarked** |
+| `20260819181000` | `learnings`: `workspace_id` FK (**`NOT VALID`**, nothing deleted) + workspace trigger, `product_id` + derivation trigger, `decision_id` | Probe insert derived `product_id` from `prd_id` correctly and rolled back; 133 rows and all 16 orphans intact |
+| `20260819182000` | `agent_memory.product_id`, plus a CHECK refusing one on `reflection`/`correction` | Probe proved evidence+product accepted and method+product refused |
+| `20260819183000` | `agent_autonomy.workspace_id` | 40 of 87 scoped via `agents.workspace_id`; 47 left NULL; **no arc changed** |
+
+**Two findings this produced that were not in this register.**
+
+1. **`learnings` had no foreign key on `workspace_id` and `agent_memory` did.** That
+   is the entire reason `learnings` held **16 rows pointing at a workspace that no
+   longer exists** and `agent_memory` held zero. Retained under a `NOT VALID`
+   constraint rather than deleted: the constraint blocks a seventeenth without
+   destroying the only evidence of what the gap cost.
+2. **Zero of 133 learnings sit in a non-sample workspace.** The moat's own table has
+   never held a real row, which is why nothing was backfilled anywhere.
+
+---
+
 ## 9. What is still open and has no queue item
 
 **The honest list.** Everything here needs database access, a runtime, or a product decision, so it sits in Claude's lane rather than Kiro's.
 
 1. Six of seven stations unsteerable (`missionId: null`)
 2. No per-run stop; `cancelled` overwritten by `completed`
-3. Trust eval leg — **needs a decision on how seven dimensions compose**
-4. `learnings.decision_id` — the moat's missing edge
+3. Trust eval leg — **needs a decision on how seven dimensions compose, and it cannot be made yet.** Two of the seven are unusable as written. **`prompt_injection_risk` is NULL in all 77 rows** — never written once. And **`hallucination_score` is stored on the inverted scale**: `eval-tick.ts` tells the judge *"score on six dimensions (0.0 worst to 1.0 best, except `*_risk` which are 0.0 safe to 1.0 risky)"*, lists **seven** fields, and `hallucination_score` does not end in `_risk`, so the model scores it higher-is-better while the inline comment on the next line says the opposite. Production settles it: **`corr(hallucination_score, groundedness) = +0.999`**. Meanwhile `traces.$traceId.tsx:300` renders it `higherIsBetter: false` and `EvalScoreChips` calls it risk-shaped, so **every hallucination score in the product is displayed with its meaning inverted.** Fix the prompt's self-contradiction before composing anything from these numbers
+4. `learnings.decision_id` — **the column now exists** (`20260819181000`, applied 2026-08-19) and **nothing writes it.** Half done, and the remaining half is the half that matters
 5. A settled forecast re-ranks nothing
 6. `/decide` writes no decision row
 7. ~2,880 tick failures invisible; ops is admin-only
