@@ -1344,3 +1344,108 @@ reading. The founder overruled it and this entry states the better version: the
 half that survives is **authoring**, and nothing here creates a node, draws an
 edge, or deletes anything. Both the file header and the gallery panel now say so
 in place, so the component no longer argues against itself.
+
+## Claude lane · LANDED · 2026-08-20 03:25
+
+**A steer can now be addressed to a track, so a station that never opens a
+mission is reachable.** Migration `20260820032000` applied and recorded; the loop
+reads it. **Criterion 11 is not met yet** and the reason is at the bottom.
+
+**The defect.** `agent_messages` addressed a steer by `mission_id` and had no
+other way to name a target. The loop's read was gated on `ctx.missionId`, and the
+driver opens a mission for exactly one station:
+
+    driver.server.ts:1189
+      const missionId = station === "build" ? await missionForTrack(...) : null;
+
+So Discover, Decide, Plan, Design, Ship and Learn ran with `missionId: null` and a
+steer aimed at any of them had nowhere to land.
+
+**The obvious fix is refused in that file, and I read the refusal before
+deciding.** The comment above that ternary says opening a mission everywhere is
+wrong because "a mission they never use would be a noun with no referent
+cluttering the record", and separately that hoisting it "is NOT the fix" for the
+Learn recovery chain.
+
+**That comment answers a different question than this one** -- it is about Learn's
+mission -> decision -> spec recovery, not about steerability, and it does not
+repair steerability. But its objection holds here too: inventing a mission so a
+message has somewhere to point is inventing a noun to hold an address.
+
+**So I used the fix the same comment already describes, applied again.**
+`learning.record` had this exact shape and was repaired by reading off the track
+rather than walking the mission chain -- "using `ToolCtx.trackId`, which this loop
+already passes". **Every station on this route has a track; only one has a
+mission.** The track is the durable name for a piece of work and the mission is
+one station's implementation detail. A steer now names a track when there is no
+mission, and mission still wins when both exist because at Build it is narrower.
+
+**No backfill, and the number is why that is safe.** Measured before writing:
+104 handoffs, 14 kickoffs, and **3 steers, ever**, all carrying a mission, all on
+the Build route that already worked. Nothing to migrate.
+
+**Gates:** tsc clean, 9,818 pass / 0 fail, build ok.
+
+**WHAT IS STILL MISSING, and criterion 11 stays at 1 of 7 until it lands.**
+Nothing writes a track-addressed steer. The only writer is `steerStudioSession`
+(`studio.functions.ts:1167`), which takes a `missionId`, hardcodes
+`to_agent_slug: "builder"` and refuses without a mission -- it is the Build steer
+specifically. A `steerTrack` writer is the next piece and it is mine; the control
+to press is a component and it is Kiro's.
+
+**Stopping the slice here on purpose.** Schema plus reader is coherent and
+reversible on its own: it changes no existing behaviour, because nothing yet
+produces the rows it newly reads. Adding a third piece -- a new public server
+function that lets any caller inject instructions into a running agent -- into
+the same unreviewed commit at half past three is how a security-shaped mistake
+gets made. It gets its own change, with its own thought about who may steer what.
+
+## K-81 · VERIFIED · 2026-08-20 03:40
+
+**Checked in the code and in the running gallery. The split this item turned on
+was getting one complaint fixed here and the other one refused here, and it got
+both right.**
+
+**In the rendered gallery, both grounds:**
+
+    heading            "Agent at work"    (was "Agent at work, two marks")
+    svgs in section     0                 (the seven-petal mark is gone)
+    lattice cells      36                 (four indicators, nine cells each)
+    azure vs ground     7.02 dark / 5.62 paper
+    label               13px present
+
+**The brand mark is deleted rather than un-defaulted, and that distinction is
+the item.** `glyph?: "mark" | "grid"` defaulting to `grid` would have rendered
+identically today and left the ruled-out drawing one prop away, with the union
+standing as an invitation. **A ruling enforced by a default is not enforced.**
+The prop is gone, the union is gone, and no caller passes it anywhere in the
+tree.
+
+**A grep of mine looked like a discrepancy and was not.** `grep -c 'glyph'` on
+that file returns **6** against a claim the prop is gone. All six are comments,
+including one at `:177` that documents the deletion outright. **Fourth time
+tonight I have counted prose and read it as code.** Same lesson each time: the
+count is not the claim.
+
+**The azure staying is the half I ruled on, and the measurement holds after the
+fact.** 7.02 on dark and 5.62 on paper, so it was never what the founder could
+not see -- that was the `currentColor` binding, fixed in `meridian.css`, and
+this entry correctly attributes it there rather than claiming it. Repainting the
+lattice in ink would have deleted the one surface in the product that says a
+machine is working, against an audit that counts `--mrd-agent` at 59 to
+`--mrd-you`'s 97 and names closing that gap as the goal.
+
+**The type-stop finding is better than the item asked for, and I did not know
+it.** I asked for 14px to become 13px. It found that `compact` was *also*
+dropping `text-mrd-body` to `text-mrd-base`, so one component was rendering two
+different sizes and the roomy variant sat a stop above `LoadingState`'s label for
+the same job. Both densities are 13px now, so **`compact` changes the gap and
+nothing else, which is what compact should mean: tighter, not smaller.**
+Shrinking type to make room is the answer the ratchet forbids, and it had shipped
+here as a prop.
+
+**And the test it wrote is stronger than the claim.** Asserting the two densities
+differ by exactly one class each way (`gap-mrd-4` against `gap-mrd-3`) would fail
+if a future `compact` took anything else away. "Both are 13px" would not.
+
+**14 tests. Gates green on the merged tree.**

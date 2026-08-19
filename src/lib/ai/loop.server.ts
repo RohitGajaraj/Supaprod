@@ -1139,12 +1139,42 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
     // AFTER the checkpoint persists them — a steer must never be both
     // consumed and unpersisted (audit finding: lost on eviction otherwise).
     const steerIds: string[] = [];
-    if (ctx.missionId && runId) {
+    /*
+     * ── A STEER NAMES A TRACK WHEN THERE IS NO MISSION ────────────────────
+     *
+     * This read used to be gated on `ctx.missionId` alone, and the driver opens
+     * a mission for exactly one station (`driver.server.ts:1189`,
+     * `station === "build" ? ... : null`). So Discover, Decide, Plan, Design,
+     * Ship and Learn ran with `missionId: null` and a steer aimed at any of them
+     * had nowhere to land. §10 criterion 11 measures it: 1 of 7.
+     *
+     * THE FIX IS NOT TO OPEN MISSIONS EVERYWHERE. The comment above that ternary
+     * refuses that, correctly: "a mission they never use would be a noun with no
+     * referent cluttering the record." It is answering a different question
+     * there (the Learn recovery chain) but the objection holds here too --
+     * inventing a mission so a message has somewhere to point is inventing a
+     * noun to hold an address.
+     *
+     * SO THE STEER IS ADDRESSED THE WAY `learning.record` ALREADY WAS. That tool
+     * had this exact shape of problem and was repaired by reading off the track
+     * rather than walking the mission chain. **Every station on this route has a
+     * track; only one has a mission.** The track is the durable name for a piece
+     * of work and the mission is one station's implementation detail.
+     *
+     * MISSION FIRST WHEN BOTH EXIST, because at Build it is the narrower target
+     * and it is what the three steers already in the database are addressed to.
+     */
+    const steerTarget = ctx.missionId
+      ? { column: "mission_id" as const, id: ctx.missionId }
+      : ctx.trackId
+        ? { column: "track_id" as const, id: ctx.trackId }
+        : null;
+    if (steerTarget && runId) {
       try {
         const { data: steers } = await supabase
           .from("agent_messages")
           .select("id,payload")
-          .eq("mission_id", ctx.missionId)
+          .eq(steerTarget.column, steerTarget.id)
           .eq("kind", "steer")
           .is("consumed_by_run_id", null)
           .order("created_at", { ascending: true })
