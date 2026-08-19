@@ -411,3 +411,134 @@ the next caller inherits it.
 **Not charged to this item:** `z-50` is hardcoded against the documented ladder at
 `shell.css:93-97`, where `--shell-z-tip` is already 50. Real, but it is a
 system-wide question about who owns the ladder rather than a Dialog defect.
+
+## K-08 · VERIFIED · 2026-08-20 01:00
+
+**Checked, and the component holds.** `MarkStack` renders one state per mark,
+which was the whole item, and the test reads state off the accessible name rather
+than off a class, which is the right place to read it from: `statesOf()` parses
+`aria-label` on `[role="img"]`, which is exactly where `AgentMark` writes it.
+
+**Two numbers in the paperwork are wrong, and neither is Kiro's fault.**
+
+- **The queue item's own premise says "37 importers".** Measured at the parent
+  commit: **8 hits across 5 files, and only two are real importers** --
+  `shell/AppFrame.tsx:133` and `agents/AgentRelay.tsx:33`. The other three hits
+  are the component's own file and tests. The item called this "the product's
+  real presence layer, the most-used component"; it is used twice. The build is
+  still right, because one state for a whole stack is wrong at any usage count,
+  but **the item overstated its own importance by roughly 18x** and that is worth
+  recording where the next reader will see it.
+- **The entry's Noticed 2 says "the retired shell primitive is still the name 50
+  files reach for".** Zero files import `AgentMark` from
+  `@/components/shell/primitives`. All 35 `AgentMark` imports resolve to
+  `@/components/meridian/marks`. That migration is already finished.
+
+**Noticed 1 is real and confirmed:** the item's `Owns` names
+`agent-marks-are-distinct.test.tsx`, which does not exist. A file list that names
+a file nobody wrote is how an item quietly loses a gate.
+
+**`marks.tsx:247` still carries `text-[9.5px]`**, which K-09 correctly declined to
+touch because this item owns the file. **That snap is charged here.** Upward to
+`text-mrd-nano` at 10px like the other twelve, and `--mrd-t-nano`'s own comment
+naming "uppercase micro-label, always at weight 650" is exactly what that line is.
+It is one line and it closes K-09's only unmet criterion.
+
+---
+
+## K-06 · VERIFIED · 2026-08-20 01:00
+
+**Checked in the running app, both grounds, plus the claims.** Premise holds.
+`--mrd-you` and `--mrd-agent` each appear on exactly one step and the header
+carries no hue, which was the item's point.
+
+**And it is the best-built component in this batch, which I can now say with a
+number rather than an impression.** Measured across the four run views on one
+screen:
+
+    PlanCard      5 distinct row heights, dominant 48px on 15 of 24 rows
+    Spend         7, with no dominant height at all
+    ToolStream    8, split 23/20 between two heights
+    RunTimeline  13
+
+The founder's unprompted read was that PlanCard "looks like a more clean design".
+That is measurable and it is true, and the reason is that it holds one row height
+where its siblings do not.
+
+**One claim is narrower than stated:** "appears on exactly one step and nowhere
+else" is true file-scoped, not tree-scoped. Fine, but say which.
+
+**Its Noticed 2 quotes 2,540 lines for the gallery route; it is 2,381.** Read
+rather than counted, same class as K-08's 37.
+
+---
+
+## K-05 · VERIFIED · 2026-08-20 01:00
+
+**Checked in the running app and against the SSE frame.** The component is right
+and the empty and broken cases render.
+
+**One claim is wrong in a way that matters to whoever wires this up.** The entry
+says it "takes the SSE tool frame's real shape and needs no adapter". The frame is
+`{ kind: "tool"; tool: string }` (`ask-sse.ts:46`), but `ToolStreamRow` requires
+`id` and `state` as well, and the existing client accumulator holds neither. **An
+adapter is required**, and K-15 will discover that at wiring time unless it is
+written down. It is now.
+
+**And the defect I found by looking rather than reading.** Measured on the
+rendered gallery, the same kind of row -- a tool call with a target and a duration
+-- renders at **four different heights: 28, 43, 44 and 95px.** The split is not a
+design decision, it is string length: `src/routes/api/chat.ts` fits on one line
+and `src/lib/ai/runtime.server.ts` does not, so the row grows. Twenty rows at 28px
+and twenty-three at 44px in one stream.
+
+**That is the arbitrariness rule, live.** Either every row is one line, with the
+path middle-truncated the way every tool that shows paths does it, or every row is
+two. "Whichever the filename happens to be" is not a third option. Not a rejection
+because the item did not ask for it and the component is otherwise sound, but it
+is the first thing to fix and it is queued rather than lost.
+
+---
+
+## K-07 · REJECTED · 2026-08-20 01:00
+
+**Three functional defects, a false premise, and a second resolver for the same
+question. The component needs another pass.**
+
+**It breaks on ordinary inputs.** All three verified by rendering, not by reading:
+
+- **`cap={0}` renders as a healthy, untouched component.** `<Spend spent={5}
+  cap={0} />` produces "$5.00 of $0.00" with no alarm state. A workspace with no
+  cap configured reads as fine.
+- **Negative spend emits negative geometry.** `spent={-2} cap={5}` emits
+  `style="width:-40%"`. `Math.min(100, ...)` clamps the top and nothing clamps
+  the bottom (`Spend.tsx:133`).
+- **The sub-cent case draws no bar.** `spent={0.0008} cap={5}` emits
+  `width:0.016%`, which on a 320px track is 0.05px. The gallery has a case
+  labelled "under a cent, which must not read as nothing", and it reads as
+  nothing.
+
+**The premise is false.** The item says "nothing in the system renders spend."
+`governance/BudgetsPanel.tsx:513-521` has rendered it since **2026-07-30, three
+weeks before this item was written**, using its own `burnTone(burn, cap,
+alertPct)`.
+
+**So there are now two resolvers for one question**, `spendState` here and
+`burnTone` there, and nothing makes them agree. That is the actual risk in this
+item: two surfaces can call the same workspace nearly-spent and not-nearly-spent
+on the same numbers. Reconcile them, and delete one.
+
+**`alert_at_pct` did not need the database.** Unsure 4 says a per-workspace
+threshold "needs the database". It is in the repo:
+`20260522001642_...sql:154` declares `alert_at_pct integer NOT NULL DEFAULT 80`.
+Checking would have cost one grep, and `spendState(0, 5, 0)` returning "nearly"
+means a workspace that sets that threshold to 0 gets a permanent alarm.
+
+**Noticed 2 is falsified.** `--mrd-r-xs` was not "sitting unused":
+`rounded-mrd-xs` had **58 occurrences across 33 files** before this commit.
+
+**Two things it got right and they are worth keeping.** Noticed 1 is confirmed and
+understated -- five copies of the USD formatter, four byte-identical. And the
+light-ground problem it half-noticed is real: I photographed both grounds and on
+paper the amber bar reads olive and the red reads maroon. **The chips added on
+2026-08-19 are the fix**, and this component is their first real caller.
