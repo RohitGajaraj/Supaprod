@@ -2247,13 +2247,20 @@ running **this session's schema against last week's code**. Nothing is broken --
 every migration is additive and nothing existing reads the new columns -- but
 **four §10 criteria are waiting on that one button** and cannot move without it.
 
-**Kiro appears stalled, and its work is uncommitted.** Checked three times across
-50 minutes: 5 modified files in `Supaprod/`, zero edits in the last 30 minutes.
-It is mid-K-84 (`PlanCard`) and also has `RunTimeline.tsx`, `ToolStream.tsx` and a
-new `run-rows.tsx` open, which looks like it was extracting a shared row module.
-**Nothing on my side blocks it** -- no unanswered question, and K-84's only
-dependency is verified. The uncommitted work exists only on disk in that
-worktree; I did not touch it.
+**Kiro is working normally. Ignore this if you already read an earlier version of
+this paragraph saying it was stalled -- that was my error and it is corrected
+here rather than quietly deleted.**
+
+I checked three times across 50 minutes and reported it stalled on the strength of
+"zero edits in the last 30 minutes". **My check only looked at `src/`.** Kiro was
+editing `docs/operations/kiro-log.md` and `docs/operations/kiro-queue.md` the
+whole time, which is exactly what an agent does while finishing an item, and a
+re-check across the whole worktree found files touched **0 minutes ago**.
+
+So: it is mid-K-84 (`PlanCard`), with `RunTimeline.tsx`, `ToolStream.tsx` and a
+new `run-rows.tsx` open -- which looks like a shared row module being extracted,
+and would be the right fix for the rhythm mismatch. Nothing on my side blocks it.
+**Do not go looking for a hung process.**
 
 ## What landed
 
