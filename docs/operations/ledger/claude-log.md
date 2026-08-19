@@ -542,3 +542,101 @@ understated -- five copies of the USD formatter, four byte-identical. And the
 light-ground problem it half-noticed is real: I photographed both grounds and on
 paper the amber bar reads olive and the red reads maroon. **The chips added on
 2026-08-19 are the fix**, and this component is their first real caller.
+
+## K-11 · VERIFIED · 2026-08-20 01:20
+
+**Checked by executing the code against the live approval queue, not by reading
+the table.** `toolRisk("cluster.trigger")` returns **`low`**, which is the
+headline claim and the thing the whole item exists for. The demotion that made
+`cluster.trigger` 18 of 53 pending approvals no longer fires.
+
+**"59 registered, 59 catalogued, zero orphans" holds**, including for the one
+case that looked like a counter-example. `changelog.publish` holds 7 live pending
+approvals and appears nowhere in `tool-consequences.ts` -- but it appears nowhere
+in any registry either, so its absence from the catalogue is correct rather than a
+gap. See my own entry below; that turns out to be a production finding rather than
+a defect in this item.
+
+**The QUESTION is answered: the correction was right and should stand.**
+`RISK_PROFILE`'s header claimed omission meant "not gated by this file at all",
+and the entry is right that the second half was false in effect -- an omission was
+the strictest gate available, applied silently. **That single sentence is the
+mechanism behind seventeen missing rows**, because it told every subsequent author
+that leaving a tool out was free. Overturning a documented intent is exactly the
+kind of change that must be declared rather than slipped in, and it was.
+
+**And it nearly filed a correction to a correct item, then caught itself.** Its
+first count was 55 tools and 16 gaps; the four `mission.*` tools live in
+`orchestrator.server.ts`, not `registry.server.ts`, and its regex read only the
+latter. It re-measured and reported the item's figures as right and its own as
+wrong. That is the queue's judge-don't-comply rule running in the harder
+direction, where the finding is against yourself.
+
+---
+
+## K-10 · VERIFIED · 2026-08-20 01:20
+
+**Verified against production, which for a policy module means running it over
+the approvals that actually exist rather than over the cases its tests chose.**
+Live state first, and it reproduces the register: **53 pending, 46 over 24h,
+oldest 637h** (the audit's 627h, ten hours older). Six tools hold all 53.
+
+**`resolveApprovalPolicy` executed against those six, post-K-11 catalogue:**
+
+    tool                 pending  risk     decision
+    cluster.trigger           18  low      never-ask
+    memory.promote             7  low      never-ask
+    backlog.prioritize         7  low      never-ask
+    mission.dispatch           7  medium   earn-it
+    studio.pr.merge            7  high     always-human
+    changelog.publish          7  high     always-human
+
+**32 of the 53 would never have been raised.** That is the item working, measured
+on real rows rather than asserted.
+
+**The correction about `trust-ramp.ts` is right and it is the good kind.** Two of
+the three rules already had a home, and reading `HIGH_RISK_FORCE_REVIEW` rather
+than restating its four members is correct: two lists of what may never be
+automated is one list too many, and the second one always drifts.
+
+**The `agent.spawn` override is right and the reasoning is better than the
+matrix.** Internal-and-irreversible resolving to `earn-it` would have let a good
+record earn away a tool that starts several sub-agents each already spending a
+split of the budget. Naming the one tool the override actually moves is what makes
+that checkable.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 01:20
+
+**Seven of the 53 pending approvals are for a tool that does not exist, and no
+policy can ever clear them.**
+
+`changelog.publish` holds 7 pending approvals, the oldest in the queue at **637
+hours**. It is not in `tool-consequences.ts`, not in `src/lib/ai/tools/`, and not
+in any registry:
+
+    grep -rn 'changelog\.' src/lib/ai/tools/ src/lib/tool-consequences.ts   -> nothing
+
+So these were raised when the tool existed, it has since been removed or renamed,
+and **approving one now would dispatch a call to a tool that is not there.** They
+cannot be executed, they cannot be resolved, and they are counted in every
+"pending approvals" figure the direction doc measures against.
+
+**This is why §10 criterion 1 cannot be met by K-10 and K-11 alone.** Measured:
+
+    53 pending today
+    -32  never-ask under the new policy
+    - 7  orphaned on a tool that no longer exists   <- data, not code
+    = 14 legitimately gated (7 studio.pr.merge, 7 mission.dispatch)
+
+Target is "< 10, none over its expiry". **14 is the honest floor from code
+changes**, and it only gets under 10 if the orphans are cleared, which is a data
+repair in my lane rather than anything Kiro can build.
+
+**None of the 53 is currently past its expiry**, which looks like criterion 4 is
+satisfied and is not: `demo-credentials.md` records that on 2026-07-28 every
+undecided approval was reset to `expires_at = now() + 60 days` to stop the demo
+queues rotting. **The criterion is being met by a manual re-arm that expires in
+late September, not by the product.** Anyone re-measuring it after that date will
+see it fail and will not know why unless this is written down.
