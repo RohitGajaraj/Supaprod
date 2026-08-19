@@ -954,3 +954,67 @@ crash with a dead end.
 **So: say nothing about deferral.** If agent deferral should exist it is its own
 item, needing a writer, a reader and a sweep that can see it. Filing it as a gap
 rather than smuggling it into a description.
+
+## K-15 · VERIFIED · 2026-08-20 02:20
+
+**Verified in the route, not the diff.**
+
+- **`RESEARCH_PHASE_TOOL`** at `chat.ts:145-149` is a `Partial<Record<>>` naming
+  exactly `search -> web.search`, `read -> web.fetch`,
+  `workspace -> workspace.search`. **`plan` and `synthesize` are absent, and
+  absent is the correct answer**: `research.server.ts` really does emit five
+  phases (`:110`, `:128`, `:187` and the `plan` at `:396`), and two of them are
+  the model thinking, not a tool running.
+- **All three names resolve**: each appears in `tool-consequences.ts`, so the
+  client's `toolActionLabel` lookup gives a real label rather than falling back to
+  a raw string. That is the difference between a chip that reads "Searching the
+  web" and one that reads `web.search`.
+- **The `station` frame is emitted** at `chat.ts:931`,
+  `{ station: dispatchedStation }`, on the mention branch only.
+
+**The audit's finding is now half-closed and the honest half is the one that
+matters.** It recorded that `tool` and `station` frames are never emitted and that
+this "is why you cannot see what an agent is doing." Tool frames now go out for
+real actions. Station goes out where it is a fact.
+
+---
+
+## K-15 · RULED · 2026-08-20 02:20
+
+**`void routed;` stays. The acceptance criterion was wrong and Kiro was right to
+refuse it.**
+
+The criterion said "`void routed;` is gone and the resolved station is on the
+wire." **Read against the file, that instruction contradicts the file's own
+recorded reasoning**, and I checked the paragraph rather than taking the entry's
+word:
+
+- `chat.ts:834-854` argues the classifier's entry station is a **guess**: nothing
+  on that branch routes by it, and the orchestrator plans its own DAG and picks
+  its own agents.
+- The same paragraph says a settling decision is needed about whether a chat
+  dispatch creates a mission, a track or both -- **and states outright that "the
+  lane that built this was told not to make it."** So the criterion asked Kiro to
+  put on the wire a value the file explicitly reserves for a decision nobody has
+  made.
+- The `landing` comment states the rule the whole route is built on: **a frame is
+  emitted here only when it is A FACT, NOT A FORECAST.**
+
+**Emitting `routed.station` would have moved a withdrawn claim from the reply text
+onto the wire**, where the client lights a station strip with it. A guess rendered
+as a lit station is worse than no station, because the reader cannot tell which
+one they are looking at.
+
+**And it did not simply refuse -- it found the place where the same frame IS a
+fact.** On the mention branch a person named an agent, the agent resolved against
+the catalogue, and the mission was dispatched to it. Its station is then a
+property of something that already happened. **On the orchestrator branch nothing
+is emitted, and that silence is correct**: `use-ask-stream.ts` treats an absent
+station as "none lit yet", and the `landing` frame still hands the reader to the
+mission, so the pane loses only a claim it could not support.
+
+**`routed` stays computed and unused, deliberately.** It is one pure function with
+no network and no clock, and it is the value the settling decision will need. **The
+open question is not K-15's**: does a chat dispatch create a mission, a track, or
+both, and which id does the `mission_id` frame return. Filing that as the gap
+rather than letting an acceptance criterion smuggle an answer to it.
