@@ -243,3 +243,62 @@ honest limit of what a green suite proves. **The visual pass in both grounds is 
 
 **Gates.** tsc clean · 9,443 pass / 0 fail / 23 skip / 60 todo across 571 files · build ok. The
 new suite is 21 tests. Ratchet total unchanged.
+
+---
+
+## K-06 · BUILT · 2026-08-19 23:04
+
+**Did.** Built `src/components/meridian/PlanCard.tsx`, a 20-test suite, and a seven-case gallery
+section. Six states, each with its own mark GEOMETRY rather than its own colour, so the card reads
+in greyscale: a thin hollow ring for pending, a turning arc for active, filled discs for the two
+settled outcomes, a ring struck through for skipped, and a ring with a solid centre for
+needs-approval. `--mrd-you` and `--mrd-agent` each appear on exactly one step and nowhere else,
+including the header. A skipped step renders its reason, and a skipped step with no reason renders
+"Nobody said why this was skipped." rather than hiding the gap.
+
+**I took this before K-02 and K-03 deliberately, and the order was mine to fix.** It was already
+built in my tree with two of its own assertions wrong when K-01's verdict landed. Pushing a
+half-built item to switch lanes would have left the tree in a state Claude could pull, so K-06 is
+finished and pushed first. K-02 is next.
+
+**Unsure.** Four.
+
+1. **`done` is `--mrd-pass` here and neutral in `RunTimeline`, which I built two hours ago.** That
+   looks like drift and I argue it is not: a timeline is a RECORD, where forty green rows assert a
+   success nobody checked, and a plan is a CHECKLIST against a commitment, where which parts of the
+   promise have been kept is the only reason to look. `TaskRows` already made the checklist choice.
+   **If that distinction is too fine to hold, the fix is to make RunTimeline green too, not to grey
+   this out**, because a plan whose kept steps are the same colour as its unstarted ones has lost
+   its subject.
+2. **I added `onApprove` and `onRevise`, which the acceptance criteria do not mention.** The item's
+   `Why` turns on "the product needs to show a plan and wait on it, which is how one approval at
+   the top replaces a queue of fourteen later", and a plan with no way to approve it cannot do the
+   second half. Both are optional and the card draws no control at all without them, so a read-only
+   caller pays nothing. It is still scope I chose.
+3. **There is no way to reject a plan outright**, only to approve or revise. That is not an
+   omission I can close yet: a reject is a destructive intent and the control for it is K-02's
+   `destructive` variant, which does not exist as I write this. Adding a `quiet` reject now would
+   put a stop-shaped act on a chrome-coloured control, which is the exact confusion `--mrd-stop`
+   was added to end.
+4. **The header says "1 waiting on you" with no singular/plural branch**, because "waiting on you"
+   is invariant. It reads slightly odd at 1 and I left it rather than writing "1 waiting on you"
+   and "2 waiting on you" as two identical strings, which is what my first draft did.
+
+**Noticed.** Two.
+
+1. **My own first draft of the colour-law test asserted the wrong thing and passed for the wrong
+   reason at a different count.** It counted occurrences of `mrd-you` in the whole card and
+   expected 1; it is 2, because a step wears its hue on the mark AND on the state word beside it,
+   and the word is what carries the state for a greyscale or listening reader. The law is about
+   WHICH STEP, not how many elements. The corrected test asserts the token appears only inside the
+   list item whose state means it, and a third test asserts it is absent from all four others. The
+   original would have gone green if I had written `toBe(2)`, while permitting orchid to leak onto
+   any second element anywhere on the card. **A criterion that green-lights a defect is worse than
+   none**, and this was one, in a test I wrote to guard exactly that defect.
+2. **The gallery is now 2,540 lines with three of my sections in it** and ten more items are going
+   to append. Every one of mine puts its fixtures in a function declaration at the bottom, which is
+   the only addition shape that cannot conflict with another item's. Worth writing into the queue's
+   §1 as the convention rather than leaving each item to work it out.
+
+**Gates.** tsc clean · 9,463 pass / 0 fail / 23 skip / 60 todo across 572 files · build ok. New
+suite is 20 tests. Ratchet total unchanged.

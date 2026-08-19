@@ -21,6 +21,7 @@ import {
 import { RecommendationCard, type Recommendation } from "@/components/meridian/RecommendationCard";
 import { RunTimeline, type TimelineEvent } from "@/components/meridian/RunTimeline";
 import { ToolStream, type ToolStreamRow } from "@/components/meridian/ToolStream";
+import { PlanCard, type PlanStep } from "@/components/meridian/PlanCard";
 import {
   RecordStatus,
   RecordTag,
@@ -2041,6 +2042,15 @@ function MeridianGallery() {
             <ToolStreamCases />
           </Pair>
         </Panel>
+
+        <Panel
+          title="Plan card"
+          note="The first forward-looking step display in the system. Everything else here reports what happened; this is what an agent commits to before it acts, which is the only place a person can set a boundary once instead of being asked fourteen times on the way down. Two of its six states exist nowhere else: a step nobody has started, and a step deliberately passed over. Both matter because the task vocabulary has neither, and its normaliser collapses anything it does not recognise to blocked, so under the old words the last step of a fresh plan would tell a reader it was already stuck. A skipped step carries its reason, and a skipped step with no reason says so out loud rather than letting an incomplete record look complete. Orchid appears on exactly one step here and azure on exactly one, on the mark and on the word beside it and nowhere else, not on the title and not on the count: a card that paints its own header in the accent has spent the meaning the steps need."
+        >
+          <Pair>
+            <PlanCardCases />
+          </Pair>
+        </Panel>
       </div>
     </div>
   );
@@ -2275,6 +2285,96 @@ function ToolStreamCases() {
       </Case>
       <Case label="A tool the vocabulary has never heard of">
         <ToolStream rows={[{ id: "u1", tool: "quarry.excavate", state: "running" }]} working />
+      </Case>
+    </Stack>
+  );
+}
+
+/*
+ * ── K-06, THE PLAN CARD ─────────────────────────────────────────────────
+ * The five-step plan is a real route through the loop, including the skipped
+ * Design station, because a skip is the normal case rather than the exception:
+ * `STATION_NEEDS.build` does not require a design artifact, so most real routes
+ * pass Design by. Drawing it here with its reason attached is the whole point of
+ * the state existing.
+ *
+ * The one-step case is not a smaller version of the same thing. It is the case
+ * where the header's plural has to be right and the rail must not be drawn at
+ * all, and both were wrong in the first draft.
+ */
+function PlanCardCases() {
+  const five: PlanStep[] = [
+    {
+      id: "p1",
+      label: "Read every signal on the firmware theme",
+      state: "done",
+      agentSlug: "researcher",
+      station: "Discover",
+    },
+    {
+      id: "p2",
+      label: "Rank it against the other four bets",
+      state: "active",
+      agentSlug: "strategist",
+      station: "Decide",
+    },
+    {
+      id: "p3",
+      label: "Draft the spec, with the precedent cited",
+      state: "needs-approval",
+      agentSlug: "planner",
+      station: "Plan",
+    },
+    {
+      id: "p4",
+      label: "Put a surface in front of it",
+      state: "skipped",
+      station: "Design",
+      why: "The notice reuses a shipped component, so there is nothing new to draw.",
+    },
+    {
+      id: "p5",
+      label: "Open the pull request",
+      state: "pending",
+      agentSlug: "builder",
+      station: "Build",
+    },
+  ];
+
+  const broken: PlanStep[] = [
+    { id: "b1", label: "Write the notice component", state: "done", agentSlug: "builder" },
+    {
+      id: "b2",
+      label: "Run the checks",
+      state: "failed",
+      agentSlug: "builder",
+      why: "Twelve of 8,787 assertions failed, all in the Meridian ratchet.",
+    },
+    { id: "b3", label: "Open the pull request", state: "pending", agentSlug: "builder" },
+  ];
+
+  return (
+    <Stack>
+      <Case label="No plan filed yet">
+        <PlanCard steps={[]} />
+      </Case>
+      <Case label="Five steps, mixed, with a gate at the top">
+        <PlanCard steps={five} onApprove={noop} onRevise={noop} />
+      </Case>
+      <Case label="The same plan, read only">
+        <PlanCard steps={five} />
+      </Case>
+      <Case label="One step">
+        <PlanCard steps={[five[4]]} onApprove={noop} />
+      </Case>
+      <Case label="A skip with nobody's reason on it">
+        <PlanCard steps={[{ id: "x", label: "Put a surface in front of it", state: "skipped" }]} />
+      </Case>
+      <Case label="A step that failed">
+        <PlanCard steps={broken} />
+      </Case>
+      <Case label="A decision in flight">
+        <PlanCard steps={five} onApprove={noop} onRevise={noop} busy />
       </Case>
     </Stack>
   );
