@@ -1018,3 +1018,50 @@ no network and no clock, and it is the value the settling decision will need. **
 open question is not K-15's**: does a chat dispatch create a mission, a track, or
 both, and which id does the `mission_id` frame return. Filing that as the gap
 rather than letting an acceptance criterion smuggle an answer to it.
+
+## K-16 · VERIFIED · 2026-08-20 02:25
+
+**The repair is verified in the route and the new failure states are verified
+against production, which is the half that mattered here.**
+
+**The code.** `const dispatching = wantsDispatch({ isMission, forcedDo,
+instruction })` at `chat.ts:678`, read by both gates. The old shape is gone:
+`grep -c 'forcedDo && startingAgent'` returns **0**. Five states declared in
+`chat-dispatch.ts:51-59`. 26 tests.
+
+**The diagnosis is right and it explains why every gate missed it.** `startingAgent`
+was declared above the pre-flight block and assigned only inside it, while the
+promotion line below read it -- and pre-flight was itself gated on `isMission`. So
+for any request the classifier had not already claimed, the value was still `null`
+at the line that needed it. **Nothing about the runtime was wrong**, which is
+exactly why tests, types and the ratchet all stayed green over a dead branch. Two
+gates asked one question in two places and one needed an answer only the other
+could produce.
+
+**Production check on the five new states, because a good error message that
+fires when it should not is a new defect.** All 16 users hold **exactly one**
+`orchestrator` row -- `users_with_duplicate_orchestrator: 0`, `max_rows_per_user:
+1` -- and every one of the seven demo accounts has one plus 15 other enabled
+agents. **So neither `conductor-unavailable` nor `no-specialists` can fire for any
+real or demo login today.** The states are correct and currently unreachable,
+which is the right order: the message exists before the condition does.
+
+**And `maybeSingle()` is structurally safe, not luckily safe.** The lookup is
+`.eq("user_id", userId).eq("slug","orchestrator").maybeSingle()`, which throws on
+two rows. `agents` carries `UNIQUE (user_id, slug)`, so two cannot exist. Recorded
+because a future workspace-scoped seed would be the thing that breaks it, and the
+constraint is what stops that rather than convention.
+
+**A false alarm of mine, recorded because the reasoning is the reusable part.** I
+first counted orchestrators **per workspace** and found seven Helio demo
+workspaces with none, including all five investor logins, and nearly filed it as
+demo-breaking. It is not: the conductor is resolved by **`user_id`**
+(`chat.ts:706`), and `ensureOrchestrator` seeds by user too. `agents.workspace_id`
+exists and is simply not the axis this path uses. **I asked a question the code
+does not ask.** Third time tonight, and the same shape each time: measure the
+thing the code reads, not the thing that looks equivalent.
+
+**One consequence worth stating.** `dispatch-failed` is the only state reachable
+after `createMission` has returned, and it is the only one whose message tells the
+person to look under Runs before retrying. That asymmetry is correct and it is the
+difference between an error message and a duplicate run.
