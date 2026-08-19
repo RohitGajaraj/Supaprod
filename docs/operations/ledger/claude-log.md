@@ -1065,3 +1065,60 @@ thing the code reads, not the thing that looks equivalent.
 after `createMission` has returned, and it is the only one whose message tells the
 person to look under Runs before retrying. That asymmetry is correct and it is the
 difference between an error message and a duplicate run.
+
+## Claude lane · LANDED · 2026-08-20 02:30
+
+**The eval judge's prompt contradicted itself, the model believed the wrong half,
+and every hallucination score in the product has been displayed inverted.**
+Fixed in `eval-tick.ts`. This is the blocker on the trust score, so it had to go
+first.
+
+**The contradiction, exactly.** The system message said *"score the response on
+**six** dimensions (0.0 worst to 1.0 best, **except `*_risk`** which are 0.0 safe
+to 1.0 risky)"* and then listed **seven** scored fields.
+`hallucination_score` does not end in `_risk`, so by that sentence's own rule it
+was quality-shaped -- while the comment on the very next line said the opposite.
+
+**Production settles which half the model followed:**
+
+    select corr(hallucination_score, groundedness) from ai_evals;   -- +0.999
+
+If the comment were honoured that correlation would be strongly negative. At
++0.999 across all 77 rows they are the same number twice, and 70 of 77 score above
+0.5 -- which under the comment's reading would mean 90% of responses were mostly
+hallucinated while scoring 0.865 on groundedness.
+
+**And the product reads it the other way.**
+`_authenticated.traces.$traceId.tsx:300` renders it `higherIsBetter: false` and
+`EvalScoreChips` calls hallucination risk-shaped. Stored quality-shaped, displayed
+risk-shaped.
+
+**The fix removes the mechanism rather than patching the instance.** Direction is
+no longer inferred from a field-name suffix -- a rule that depends on whether
+someone remembered to end a name in `_risk` breaks the first time a name is chosen
+for readability. Every field now states its own direction on its own line, and the
+count is no longer asserted in prose where it can drift from the list beneath it.
+`hallucination_score` keeps the RISK shape, because that is what its name says,
+what its old comment said, and what both readers already assume. The column is
+untouched; only the instruction changed.
+
+**The 77 existing rows stay as they are.** All seeded, all in `is_sample`
+workspaces, nothing written since 2026-07-23, and the trust score's eval leg reads
+columns that do not exist so nothing consumes them. Rewriting fiction to match a
+contract it was never judged under would only make it harder to spot.
+
+**A second finding, and it corrects something I nearly got wrong.** I assumed
+`prompt_injection_risk` was NULL in all 77 rows because the "six dimensions"
+header made the model stop at six. **That is not the mechanism.** `num()` returns
+**0.5** for a missing key, never NULL -- so a judge run that omitted the field
+would have written 0.5. NULL means **the judge never wrote these rows at all.**
+They are seeded, and the seed omitted the column. So the seventh dimension being
+empty is more evidence that every eval row on this system is fiction, rather than
+evidence of a parsing bug.
+
+**What this unblocks and what it does not.** The trust score can now be composed
+from a contract that does not contradict itself. It still cannot be composed from
+this DATA: 77 rows, all seeded, all in sample workspaces, one dimension never
+written, and the tick that would produce real ones last succeeded on 2026-07-23.
+**The composition is now a design decision rather than a blocked one**, and the
+honest input for it is future evals, not these.
