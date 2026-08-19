@@ -1220,3 +1220,80 @@ are not categories.
 
 **The jump list is now empty from my side: K-80 built, K-81 a question, K-82 declined. Resuming by
 number at K-12.**
+
+---
+
+## K-12 · BUILT · 2026-08-20 01:05
+
+**Did.** Built `src/lib/run-status.ts` and a 24-test suite. One canonical `RunStatus` union of ten
+values, one `normalizeRunStatus`, and two helpers the four consumers each re-derive today
+(`isTerminal`, `isWaitingOnAPerson`). No writer changed, no consumer changed, and the module has
+**zero imports**, asserted by a test, so wiring the four up later cannot become a cycle.
+
+**I read all four mappings and the disagreement is worse than AGENTS.md records.** It says "three of
+which disagree about what `completed_with_failures` means". Measured:
+
+| raw | run-state.ts | agent-fleet.ts | build-status.ts | run-analytics.ts |
+| --- | --- | --- | --- | --- |
+| `completed_with_failures` | stopped | **absent, so `other`** | a failure | **a success** |
+| `complete` (singular) | **falls through to `queued`** | done | **falls through to `queued`** | succeeded |
+| `cancelled` | stopped | failed | a failure | **absent, so still in flight** |
+| `halted` | stopped | **absent, so `other`** | a failure | abandoned |
+
+So `completed_with_failures` gets **three different answers and one blind spot**. And two more values
+are as bad: **`complete`, the spelling `agents.functions.ts` writes on the happy path, falls through
+to `queued` on two of the four surfaces, so a finished run reads as waiting to start.**
+`run-analytics.ts` measured 2 of 245 real successful runs carrying it. `cancelled` is unhandled in
+`run-analytics.ts`, so a cancelled run is counted as in flight.
+
+**Unsure.** Four, and the first is the design decision the item did not settle.
+
+1. **This is a SPELLING layer, not a fifth union.** The item says "reconcile them into one", which
+   could mean one projection replacing all four. I judged that wrong: those four unions are four
+   legitimate questions (a fleet count, a row state, a mission header, an outcome rate) and collapsing
+   them would lose real distinctions. What they should not each be doing is deciding separately that
+   `complete` and `completed` are two things. So the canonical set is the de-duplicated DATABASE
+   vocabulary, and a consumer keeps its projection while deriving it from a canonical value. **A test
+   asserts this file exports none of the four projection types**, so it cannot quietly become the
+   fifth thing that disagrees.
+2. **`completed_with_failures` keeps its own status rather than folding either way.** Folded into
+   `completed`, a success rate counts a run whose checks failed; folded into `failed`, a failure list
+   sends somebody to a run that landed. It is genuinely two facts at once, which is exactly why four
+   files with four-value unions each had to guess. `run-analytics.ts` reached the same answer from the
+   other end with `succeeded_with_failures`.
+3. **`blocked` normalises to `waiting_approval`, and `proposed` does not.** The first is a
+   de-duplication with evidence: `build-status.ts` records that `missions.status` never writes
+   `waiting_approval` and `agent_runs.status` never writes `blocked`, so they are one state under two
+   spellings. `proposed` stays separate because a proposed mission has not started and a
+   waiting_approval one has, which is a real difference three of the four projections then fold.
+4. **`denied` and `aborted` are `cancelled` here and `failed` in `agent-fleet.ts`.** Neither appears
+   in either documented table, so there is no ground truth. Semantically a denial is a person refusing
+   and a failure is a fault. It costs `agent-fleet` nothing, since it buckets `cancelled` as failed
+   too, and it changes `run-analytics` in the correct direction: a denied run is not still running.
+   **This is the one place I knowingly disagree with a shipped file**, and a test says so.
+
+**Noticed.** Three.
+
+1. **Only one of the four normalises case or whitespace.** `agent-fleet.ts` does
+   `(status ?? "").trim().toLowerCase()`; the other three compare raw strings. So a status arriving
+   capitalised reads correctly on one surface and falls to a neutral default on three. I trim and
+   lowercase, and a test covers `" completed "`, `"COMPLETED"` and a tabbed one.
+2. **`isWaitingOnAPerson` deliberately excludes `halted`, and the reason is a colour.** A halt is a
+   stop on a condition, usually a spend cap, and what releases it is the condition changing rather
+   than a decision. That is the exact distinction `--mrd-you` and `--mrd-hold` exist to draw, so a
+   helper that blurred it here would put the wrong colour on a surface later. Worth stating because
+   the two are easy to fold and three of the four projections do fold them.
+3. **Every one of the four falls back SILENTLY**, three to `queued` and one to `null`. That silence is
+   the mechanism behind the `complete` misread: the code did exactly what it said, and no gate could
+   report it. `unknown` is a value a caller has to handle, and `isTerminal("unknown")` is false on
+   purpose, because a status nobody recognises is not evidence the work has stopped.
+
+**Gates.** tsc clean · 9,630 pass / 0 fail / 23 skip across 577 files · build ok. New suite is 24
+tests, including a guard that every spelling in the module is accounted for in the test's transcribed
+tables, so adding one and forgetting to agree its meaning fails the build.
+
+> **Claude does after:** this changes nothing until the four consumers read it. That is four separate
+> small diffs, each of which changes what a shipped surface displays, so each wants its own
+> verification against production rather than one commit. The one worth doing first is
+> `run-analytics.ts`, because `cancelled` being unhandled there means every rate it reports has a
+> denominator that includes runs which stopped.
