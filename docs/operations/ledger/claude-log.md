@@ -1503,3 +1503,51 @@ and I can say that because each part is verified rather than assumed. **No user
 has steered anything, because there is no control to press** -- that is a
 component and it is Kiro's. The criterion reads "stations that ACCEPT a steer",
 and all seven now do.
+
+## K-83 · VERIFIED · 2026-08-20 04:00
+
+**The duration fix, measured in the running app against the numbers I filed:**
+
+    before   6h 12m 41s   40px wide, 52px tall, 3 lines   (in the clock column)
+    after    6h 12m 41s   68px wide, 17px tall, 1 line
+
+**Every duration in the component is now one line**, and the clock column is still
+40px because it now holds a wall clock and nothing else. That is the fix I asked
+for, done the way I hoped rather than by letting the column grow: the column was
+sized for a clock, so the thing that is not a clock left.
+
+**The rhythm improved as a side effect and it is worth recording.** RunTimeline's
+dominant row height is now **17px across 37 rows**, against 29px with **13
+distinct heights** when I measured it earlier tonight. ToolStream is 17px across
+142 rows, against a bimodal 44/28 split. Two of the four components are now on
+one row height, which is the thing that made them read as three products.
+
+**I confirmed the hardest claim independently, and it is the one that would have
+been easiest to fake.** The entry says `station:decide` measures +1.00 across and
+is deliberately NOT corrected, because its diamond spans 5..19 and the whole
+offset is a 2-unit stub drawing the chosen branch leaving to the right. I swept
+`getBBox` over every 24x24 mark in the rendered gallery without looking at its
+numbers first, and found a mark at **`offX: 1.00`, span `5.00..21.00`**. That is
+that mark, at that offset, with exactly the geometry it described.
+
+**And its refusal to "fix" it is right.** The eye centres a mark on its BODY.
+Obeying the bounding box would shift a symmetric diamond a unit left to
+compensate for a tail, and it would then sit visibly wrong beside the marks whose
+bodies are centred. **A measurement that disagrees with the rule it was taken to
+serve is a measurement to explain, not to obey** -- that sentence is the best
+thing in the entry and it is a rule worth keeping.
+
+**The finding inside my finding.** I reported optical alignment. It measured all
+thirteen marks, found eleven within 0.18px at 14px, and found that the one real
+outlier was not misaligned so much as **not a drawing of anything**: the "wrench"
+was a loop, a lump and a stub with no jaw and no handle, three grey marks at
+14px. **It is the placeholder failure hiding inside the set built to remove
+placeholders**, and it survived because it had a plausible comment above it while
+`[]` and `H` did not. Four replacements were drawn and rendered at three sizes on
+both grounds before one was chosen on measured criteria.
+
+**On the method.** The entry says this could not be tested because happy-dom lays
+nothing out and implements no `getBBox`, so it measured in a real browser rather
+than asserting an intention. That is correct and it is the same reason I verify
+here rather than in the suite. **A test that cannot see the thing it is about is
+worse than no test**, because it reports green about a question it never asked.
