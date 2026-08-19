@@ -1852,3 +1852,48 @@ criterion 1's remainder, same as 16, same as the `cluster.trigger` recurrence.
 **Four separate criteria are now waiting on one button**, which is worth stating
 plainly: the highest-value action available on this repo right now is not more
 code.
+
+## Claude lane · LANDED · 2026-08-20 05:10 · criterion 15 met, criterion 13 needs a better instrument
+
+**Criterion 15 is MET. Second one that is.**
+*"Routes with zero inbound links: 6 -> 0."* Swept 73 static authenticated routes
+against 1,749 source files: **0 with no inbound link.**
+
+**And the first version of that sweep was wrong, which is worth recording because
+it produced the right answer for the wrong reason.** My shell loop mangled the
+path substitution and lost `wc` and `tr` inside a subshell, so it printed nothing
+-- and nothing looks exactly like "no orphans found". I only caught it by asking
+the loop how many routes it had examined. **An empty result from a broken query
+is indistinguishable from a clean result**, and this is the fourth measurement
+error of the night, all the same shape. Redone in Python, where the instrument
+reports its own sample size: 73 routes, 1,749 files.
+
+Exclusions stated so the number is checkable: dynamic `$param` routes are
+excluded, because they are linked through builders rather than as literal
+strings, and a literal-string sweep would report every one as an orphan.
+
+**Criterion 13 I am NOT claiming, and the reason is the instrument again.**
+*"Tick-written tables with no reader: 9 -> 0."* A naive sweep says seven of the
+nine now have readers. **That sweep is too generous and I will not report its
+number**, because it counts two things that are not readers:
+
+- **a tick reading its own table.** `scout_runs`' only hit is `scout-tick.ts`,
+  which is its writer. A job reading its own rows to deduplicate is not a surface.
+- **generated types.** `insights.brier_score`'s hits are `types.ts`, which is
+  generated from the schema and mentions every column that exists, plus
+  `calibrate-insights.server.ts`, which is the thing that computes it.
+
+**Two are solid and both confirm the register rather than moving it:**
+
+    byok_fee_accrual        0 readers of any kind
+    insights.brier_score    no reader that is not its own writer or generated
+
+The register called `brier_score` "the sharpest of those" -- the calibration
+number the forecast thesis rests on, computed nightly, rendered nowhere. **That
+is still exactly true.**
+
+**What a correct measurement needs**, so the next person does not repeat my
+first attempt: exclude the writer of each table, exclude
+`src/integrations/supabase/types.ts`, and require the reader to be reachable from
+a route rather than merely to exist. That is a real piece of work rather than a
+grep, which is presumably why the number has stood since the audit.
