@@ -225,6 +225,38 @@
    * first attempt at this check silently produced garbage.
    */
   --mrd-ink: oklch(0.965 0.003 70); /* the thing itself */
+
+  /*
+   * ── A GROUND MUST SET ITS OWN `color`, NOT ONLY ITS OWN TOKENS ─────────
+   *
+   * Founder review 2026-08-20: "the glyphs are not visible in light mode on
+   * the run timeline ... the same for Tool Stream." Measured, and it is worse
+   * than not-very-visible.
+   *
+   * Every glyph in both components paints `currentColor` -- correctly, that is
+   * what `station-glyphs.tsx:132` does and what an icon should do. But
+   * entering `[data-theme="light"]` re-declared every TOKEN and never re-bound
+   * the `color` PROPERTY, so `currentColor` kept resolving to whatever colour
+   * was inherited from the app shell, which is the dark ground's ink. Measured
+   * on the gallery, both components, through a canvas:
+   *
+   *   dark  ground #0c0a08, glyph #f5f3f1  -> contrast 17.86
+   *   light ground #f6f3ee, glyph #f5f3f1  -> contrast  1.00
+   *
+   * **1.00 is the same colour.** 16 glyphs in RunTimeline and 49 in ToolStream
+   * were painting white on white. Text escaped it only because text carries
+   * explicit `text-mrd-*` classes that re-resolve per ground; anything reading
+   * `currentColor` did not, and nothing in the ratchet or the suite can see it.
+   *
+   * So a ground now sets `color` as well as its tokens. This belongs here and
+   * not in either component, because the hole is in the theme contract: ANY
+   * surface that switches ground without re-binding `color` has it, and there
+   * is no way for a component to defend against it.
+   *
+   * A nearer ancestor still wins, so this changes nothing that already sets a
+   * colour deliberately. It only fixes the default.
+   */
+  color: var(--mrd-ink);
   --mrd-body: oklch(0.795 0.005 70); /* supporting prose */
   --mrd-mute: oklch(0.7 0.006 70); /* labels, metadata */
   --mrd-faint: oklch(0.61 0.006 70); /* the quietest stop that is still AA */
@@ -751,6 +783,11 @@
   /* Solved against `sink`, the darkest paper stop, which is the worst case
      here exactly as `lift` is on dark. See the note on the dark ramp. */
   --mrd-ink: oklch(0.22 0.012 70);
+
+  /* The other half of the pair. See the long note beside the dark `--mrd-ink`:
+   * without this line every `currentColor` glyph on paper inherits the dark
+   * ground's ink and measures 1.00 against the page, which is invisible. */
+  color: var(--mrd-ink);
   --mrd-body: oklch(0.4 0.01 70);
   --mrd-mute: oklch(0.48 0.009 70);
   --mrd-faint: oklch(0.52 0.009 70);
