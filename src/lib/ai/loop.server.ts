@@ -1165,9 +1165,9 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
      * and it is what the three steers already in the database are addressed to.
      */
     const steerTarget = ctx.missionId
-      ? ({ column: "mission_id" as const, id: ctx.missionId })
+      ? { column: "mission_id" as const, id: ctx.missionId }
       : ctx.trackId
-        ? ({ column: "track_id" as const, id: ctx.trackId })
+        ? { column: "track_id" as const, id: ctx.trackId }
         : null;
     if (steerTarget && runId) {
       try {
