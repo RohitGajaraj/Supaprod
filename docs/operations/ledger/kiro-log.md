@@ -180,3 +180,66 @@ grounds is owed and it is Claude's.**
 **Gates.** tsc clean · 9,422 pass / 0 fail / 23 skip / 60 todo across 570 files · build ok. The
 new suite is 17 tests. Ratchet total unchanged: the component carries no retired token and no raw
 colour.
+
+---
+
+## K-05 · BUILT · 2026-08-19 22:57
+
+**Did.** Built `src/components/meridian/ToolStream.tsx`, a 21-test suite, and a six-case gallery
+section. Rows arrive oldest-first inside a `role="log"` scroller that follows the newest row until
+the reader scrolls up, at which point nothing touches `scrollTop` again and the arrivals are
+counted and offered on a "2 more calls" control instead. The caption is derived from the registry
+name through `toolActionLabel`, so the component takes the SSE `tool` frame's real shape
+(`{ kind: "tool", tool: string }`) and needs no adapter when K-15 starts emitting it.
+
+**Unsure.** Four.
+
+1. **The left slot carries STATE, not KIND, and that is the one place I did not match
+   `ToolChips`.** The item says compose the row from ToolChips' vocabulary so the two agree, and
+   ToolChips spends its left slot on which of four kinds a call was. I spent it on
+   `running | done | failed`, because in a finished array every row shares one state so the slot
+   is free, and in a live stream the state is the entire reason somebody is looking. Everything
+   else a reader could notice is identical on purpose: the row height, 12.5px caption over an
+   11.5px inert mono argument, the same focus-inset string, and both empty sentences word for
+   word. **The other reading is that I should have drawn both glyphs**, and I rejected it because
+   `ICONS` is not exported from `ToolChips.tsx` and that file is not in K-05's `Owns`, so drawing
+   the kind would have meant a second copy of four SVG paths that then drift.
+2. **I dropped `kind` from the row type entirely** rather than accepting it and not drawing it.
+   Data minimalism says a field with no consumer does not exist. The cost is that a caller cannot
+   hand one array to both components without mapping, and I judged an unused prop worse.
+3. **The unseen count resets to zero when the reader returns, and does not persist.** So a reader
+   who scrolls up, comes back, and scrolls up again starts counting from the second departure.
+   That is what I would want; it could reasonably be a running total since the last read.
+4. **No edge fade on this scroller**, unlike `RunTimeline`. A bottom fade would sit exactly where
+   the "way back" control needs to be legible, and a mask on a 500-row list costs paint on the one
+   case the acceptance criteria name. So the scrollbar stays visible here, which is also correct
+   for a column a reader is expected to scroll by hand.
+
+**I could not look at it**, same reason as K-04: `/meridian` is behind `_authenticated` and I hold
+no session. The pin behaviour is covered by six tests against faked layout metrics, which is the
+honest limit of what a green suite proves. **The visual pass in both grounds is owed.**
+
+**Noticed.** Four.
+
+1. **`cluster.trigger` is NOT missing from the tool vocabulary**, which contradicts what I assumed
+   while writing the fallback test. `toolActionLabel("cluster.trigger")` returns "clustering
+   signals". This is worth flagging against **K-11**, whose premise is that the same tool has no
+   `CONSEQUENCES` or `RISK_PROFILE` entry and therefore fails closed to `high` risk. Both can be
+   true, and if they are it means the tool is catalogued for LANGUAGE and uncatalogued for RISK,
+   which is a more interesting defect than the item describes. I did not verify the risk half.
+2. **`ToolChips` animates every row on every render.** `mrd-fade-up` is applied unconditionally,
+   so reopening a surface on a run with 400 calls plays 400 entrances at once. `Thinking` already
+   solved this with a `staggerUntil` ref and its comment explains why. I used the same technique
+   here and left ToolChips alone: it is not in K-05's `Owns`, and it is currently wired only to
+   the gallery so nothing is suffering yet. It will the moment **K-17** mounts it on a real run.
+3. **`formatDuration` is now imported by two Meridian components** (`RunTimeline` and this one)
+   from `src/components/studio/run-return.ts`. That is the second caller, which is the exact
+   threshold this repo's own rule uses for promoting a part into Meridian. It should move.
+4. **The gallery route is 2,300 lines and thirteen queue items are going to append to it.** The
+   append-only rule works, but each section is now carrying its fixtures in a function at the
+   bottom while the older sections carry theirs as module constants at the top, so the file is
+   growing two conventions. Mine are functions, deliberately, because a function declaration at
+   the end of a file is the only addition that cannot conflict with another item's.
+
+**Gates.** tsc clean · 9,443 pass / 0 fail / 23 skip / 60 todo across 571 files · build ok. The
+new suite is 21 tests. Ratchet total unchanged.

@@ -20,6 +20,7 @@ import {
 } from "@/components/meridian/PromptBar";
 import { RecommendationCard, type Recommendation } from "@/components/meridian/RecommendationCard";
 import { RunTimeline, type TimelineEvent } from "@/components/meridian/RunTimeline";
+import { ToolStream, type ToolStreamRow } from "@/components/meridian/ToolStream";
 import {
   RecordStatus,
   RecordTag,
@@ -2031,6 +2032,15 @@ function MeridianGallery() {
             <RunTimelineCases />
           </Pair>
         </Panel>
+
+        <Panel
+          title="Tool stream"
+          note="Work arriving, as against work that has arrived. Tool chips above takes a finished array and is the right shape for a run that has stopped; nothing in this system showed a call happening, which is the largest hole in the one thing the product says it is for. A row here is deliberately the same object as a tool chip, at the same height, with the same inert mono argument and the same two empty sentences word for word. The one difference is the left slot: a finished list can spend it on what kind of call each was, a live one has to spend it on which of these is happening right now. The caption comes from the registry name through the product's own vocabulary, so prd.draft reads as drafting a spec, and a tool the vocabulary has never heard of shows its raw name, which is ugly on purpose because that is how a missing entry gets noticed rather than shipped. The stream follows the newest row and stops the instant you scroll up, since taking the viewport back off somebody who is reading is what every log with this feature is hated for. Scroll one of these up and the way back appears with a count on it."
+        >
+          <Pair>
+            <ToolStreamCases />
+          </Pair>
+        </Panel>
       </div>
     </div>
   );
@@ -2173,6 +2183,98 @@ function RunTimelineCases() {
       </Case>
       <Case label="Live, still going">
         <RunTimeline events={liveEvents} now={Date.now()} />
+      </Case>
+    </Stack>
+  );
+}
+
+/*
+ * ── K-05, THE TOOL STREAM ───────────────────────────────────────────────
+ * The tool names are real registry names, so every caption on this page is one
+ * the vocabulary actually produces rather than a sentence written to look good
+ * here. `quarry.excavate` is the deliberate exception: it is in no catalogue, so
+ * it renders raw, and that is the case worth looking at.
+ *
+ * The streaming case is 40 rows so the column genuinely overflows and the pin
+ * can be tried. It is the only way to see the behaviour this component exists
+ * for: scroll up, watch rows keep arriving without the view moving, and press
+ * the way back.
+ */
+function ToolStreamCases() {
+  const READS = [
+    "src/lib/spine/driver.ts",
+    "src/lib/ai/runtime.server.ts",
+    "src/components/meridian/marks.tsx",
+    "src/routes/api/chat.ts",
+    "src/lib/tool-consequences.ts",
+  ];
+
+  const streaming: ToolStreamRow[] = Array.from({ length: 40 }, (_, i) => {
+    const last = i === 39;
+    return {
+      id: `s${i}`,
+      tool: i % 5 === 0 ? "repo.search" : "repo.read",
+      argument: i % 5 === 0 ? "resolveToolMode" : READS[i % READS.length],
+      state: last ? "running" : "done",
+      ...(last ? {} : { durationMs: 400 + ((i * 137) % 2600) }),
+    };
+  });
+
+  return (
+    <Stack>
+      <Case label="Nothing called yet">
+        <ToolStream rows={[]} working />
+      </Case>
+      <Case label="A run that called nothing at all">
+        <ToolStream rows={[]} />
+      </Case>
+      <Case label="Streaming: 40 calls, the newest still running">
+        <ToolStream rows={streaming} working />
+      </Case>
+      <Case label="A call that came back broken">
+        <ToolStream
+          rows={[
+            {
+              id: "e1",
+              tool: "prd.draft",
+              state: "done",
+              argument: "Firmware reboot notice",
+              durationMs: 4_100,
+            },
+            {
+              id: "e2",
+              tool: "studio.checks.run",
+              state: "failed",
+              argument: "bun test",
+              error: "Twelve of 8,787 assertions failed, all in meridian-ratchet.test.ts.",
+              durationMs: 34_000,
+            },
+          ]}
+        />
+      </Case>
+      <Case label="An argument far too long for the row">
+        <ToolStream
+          rows={[
+            {
+              id: "w1",
+              tool: "repo.read",
+              state: "done",
+              argument:
+                "src/components/meridian/__tests__/agent-marks-are-distinct.test.ts?range=1-240&highlight=MARK_HUE_RESTING",
+              durationMs: 900,
+            },
+            {
+              id: "w2",
+              tool: "web.search",
+              state: "running",
+              argument:
+                "how do shipped coding agents decide when a tool call needs a human approval, and what fraction get approved",
+            },
+          ]}
+        />
+      </Case>
+      <Case label="A tool the vocabulary has never heard of">
+        <ToolStream rows={[{ id: "u1", tool: "quarry.excavate", state: "running" }]} working />
       </Case>
     </Stack>
   );
