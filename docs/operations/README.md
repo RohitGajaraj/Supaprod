@@ -22,6 +22,7 @@ For the rules a change must satisfy, read [`../../AGENTS.md`](../../AGENTS.md). 
 | [`skills.md`](./skills.md) | How to choose a skill, and the anti-patterns. |
 | [`subagents.md`](./subagents.md) | When to dispatch a subagent, and which. |
 | [`kiro-queue.md`](./kiro-queue.md) | **The two-agent build split.** Kiro builds on `main` with no database or MCP; Claude verifies on its lane with both. 79 items, each carrying what to build, why it matters, and its acceptance criteria. Kiro takes the lowest-numbered `TODO`; only Claude may write `VERIFIED`. |
+| [`agent-kickoff-prompts.md`](./agent-kickoff-prompts.md) | **Copy-paste prompts for starting a two-agent build session.** The Kiro prompt, the Claude prompt, the sync commands, the batching cadence, and which model to run each group on. Start here when kicking off. |
 | [`ledger/`](./ledger/README.md) | **How the two agents talk.** One append-only log per agent, each with exactly one writer, so they cannot conflict. An item's status is derived from the latest entry naming it rather than stored in a field both would have to edit. |
 | [`tools.md`](./tools.md) | Read, Edit, Write, Bash conventions. |
 | [`hooks.md`](./hooks.md) | What the hooks enforce and how to install them. Run `bash ../../scripts/install-git-hooks.sh` in every fresh clone; the hooks live in untracked `.git/hooks`. |
