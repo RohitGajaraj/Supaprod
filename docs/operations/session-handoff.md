@@ -72,7 +72,7 @@ date: the integrity control caught its own author.**
 
 1. **The moat is captured on 1 decision of 304.** `decision.record` — the tool agents are told to call — has **no forecast parameter**, so 303 agent-recorded decisions could not carry one. A settled forecast also re-ranks nothing; all four readers are displays. Queue item **K-13**.
 2. **53 approvals pending at zero users**, oldest **627h**. Only **26% of 313 ever raised** needed a human. `cluster.trigger` alone is 34% of the backlog because it is uncatalogued, so `toolRisk` fails closed and silently reverses a deliberate fix. **K-10, K-11**.
-3. **The design system was being taught wrong in four places.** `design-reference/README.md` declared v5 Tempo CURRENT; `DESIGN.md` (v1 Ember) called itself the source of truth "in any tool"; `docs/conventions/design-context.md` declared v3 Obsidian THE contract. `docs-doctor` check [8] could not see any of it. **Fixed, and check [11] added** — it caught two nobody had found by hand.
+3. **The design system was being taught wrong in four places.** Three live docs used to name a retired system as the live one: the `design-reference/` index, its `DESIGN.md`, and `docs/conventions/design-context.md`. All corrected. `docs-doctor` check [8] could not see any of it. **Fixed, and check [11] added** — it caught two nobody had found by hand.
 
 ## Waiting on the founder
 
