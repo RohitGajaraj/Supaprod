@@ -794,3 +794,67 @@ deferred** -- there is nothing here to come back to.
 **Both of these were my errors, found by the agent I was reviewing.** Recording
 that plainly because the queue's rule is that an item's `Why` is a proposal from
 someone who could have misread the code, and twice tonight that someone was me.
+
+## K-80 · VERIFIED · 2026-08-20 02:00
+
+**It found the reference's actual source and built to that instead of to my
+figures, and it was right to.** The founder's instruction was "there is already a
+codebase within beautifului.dev, you just need to literally copy it." I could not
+find it and measured the rendered result instead. Kiro found it embedded in the
+page. **Six of my figures were wrong, and every correction is in the right
+direction.**
+
+**Verified in the file and in the running app.**
+
+- `PILL_OFFSET = 30` at `:68`, consumed by the anchor at `:187`. **This is the
+  mechanic I missed entirely** and it is the one that makes the thing work: the
+  kind pill sits above the card inside the node's box, so a node's top anchor is
+  30px below its top edge. Without it every incoming connector stops in the air
+  beside the pill. That is my own item's "connectors meet nodes at a consistent
+  anchor" rule, already solved upstream, and I would have had it re-derived from
+  scratch.
+- Connectors are **cubic bezier at stroke 1.25**, confirmed rendered: the pane
+  reports `1.25px`. I specified orthogonal at 1.8 with 2.4 emphasis. Wrong on
+  shape, weight and emphasis mechanism -- the source changes colour, not weight.
+- Heights are **measured with a `ResizeObserver`** (`:148`), guarded for
+  happy-dom and jsdom, with first-paint estimates only. I gave 58 and 88 as
+  constants.
+- `DEFAULT_WIDTH = 300` with a per-node override, which resolves the
+  contradiction in my own acceptance criteria: I demanded a single width constant
+  while the source has two. A default plus an override gives a caller one constant
+  and still expresses the reference's wider condition card.
+- **Renders in both grounds**, 20 SVGs and 76 paths per pane, node width 300, edge
+  contrast **17.86 on dark and 15.63 on paper**. 27 tests.
+
+**Where my figures came from, since it matters for the next item.** I measured
+`getComputedStyle` over the rendered section, so "16 paths" counted the icons in
+the surrounding chrome as well as the graph, and the reference's own example has
+**1 edge and 2 nodes** with no branch at all. **Measuring a rendered page is not
+reading a source**, and when the source is available the source wins. That is the
+standing rule and I broke it while writing the item that states it.
+
+**Drag is absent, and that is not a defect in this item.** Its entry says so
+plainly. The founder rescoped K-80 to require dragging at roughly 01:20; this was
+built at 00:52. **It built the item as it stood.** Splitting the drag work into
+K-85 rather than reopening a correct build.
+
+---
+
+## K-85 · RULED · 2026-08-20 02:00 · new item
+
+**`Flowchart` gains dragging and a violet ground.** Written as its own item
+because K-80 is verified and correct, and reopening a finished build to bolt on a
+requirement that postdates it is how a green item becomes an amber one for
+reasons that have nothing to do with its work.
+
+Requirements are in the queue. The two that matter:
+
+- **Nodes drag and connectors follow.** The reference does this and its source is
+  the port target, same as K-80. Founder ruling 2026-08-20, overriding my original
+  "a watching surface, not an editor" scope, and he is right: a graph you cannot
+  rearrange is a picture, and a run map the reader cannot untangle is not a map.
+  Still no authoring -- no new nodes, no drawn edges, no delete.
+- **The dotted ground takes a faint violet cast, in both grounds.** **Not
+  `--mrd-you`**, which is the orchid at 315 and means "a person is required". A
+  canvas background means nothing, and a background that wears a status word is
+  the exact failure the colour law exists to stop.
