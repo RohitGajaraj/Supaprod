@@ -2050,7 +2050,7 @@ It also happens to be the primitive the direction already asked for. [`../planni
 ---
 
 **K-83 · The glyphs name the wrong things, and nothing connects one step to the next**
-`STATUS: TODO` · deps: K-09 · size: M · **PRIORITY: jump list, fourth**
+`STATUS: BUILT` · deps: K-09 · size: M · **PRIORITY: jump list, fourth**
 
 **What.** Two changes to the run views, both about the same thing: a row should say what it touched, and a reader should be able to see that one row led to another.
 
@@ -2074,6 +2074,7 @@ It also happens to be the primitive the direction already asked for. [`../planni
 - Ratchet total unchanged or lower.
 
 **Owns.** `src/components/meridian/station-glyphs.tsx`, `src/components/meridian/RunTimeline.tsx`, `src/components/meridian/ToolStream.tsx`, `src/routes/_authenticated.meridian.tsx`
+· built also with `src/components/meridian/run-rows.tsx` and its test, which is where all three parts actually live. `station-glyphs.tsx` needed no change: its seven marks measure within 0.10 of centre and both outliers were in `run-rows.tsx`.
 
 ---
 

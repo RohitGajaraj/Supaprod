@@ -80,6 +80,30 @@ export const RUN_STACK = "flex flex-col gap-1";
  * a 14px box centred against a 12.5px subject on 1.5 leading (an 18.75px line
  * box) needs (18.75 - 14) / 2, which rounds to 3 within half a pixel. One
  * number, one place, every glyph.
+ *
+ * ── THE INK, MEASURED, ALL THIRTEEN ─────────────────────────────────────
+ * Founder review 2026-08-20: align the mark optically to the text baseline
+ * rather than to its bounding box. Every mark in this system was rendered and
+ * its ink bounding box read with `getBBox`, because that is the only way to see
+ * where the ink is rather than where the box is. Offsets from 12, 12 in viewBox
+ * units, and one unit is 0.583px at the 14px these ship at:
+ *
+ *   eleven of thirteen   within 0.30 down and 0.00 across, so under 0.18px
+ *   run:tool             11.35, 10.55 -- 0.85px HIGH. Redrawn, see below
+ *   station:decide       13.00, 12.00 -- 1.00 across, and CORRECT. See below
+ *
+ * SO THE LAYOUT WAS NEVER THE PROBLEM, which the founder's own note anticipated:
+ * glyph box against text centre measures 0.6px across five rendered rows. One
+ * drawing was off, and it was off because it was the wrong drawing.
+ *
+ * `station:decide` IS LEFT ALONE ON PURPOSE, and this is where bbox centring and
+ * optical centring part company. Its diamond spans 5..19 and is centred on 12;
+ * the +1.00 comes entirely from the 2-unit stub that draws the chosen branch
+ * leaving the diamond to the right. The eye centres a mark on its BODY, not on
+ * its extremities, so obeying the bbox here would shift a symmetric diamond a
+ * whole unit left to compensate for a tail, and it would then look wrong beside
+ * the six marks whose bodies are centred. A measurement that disagrees with the
+ * rule it was taken to serve is a measurement to explain, not to obey.
  */
 const GLYPH_SLOT = "mt-[3px] flex size-[14px] shrink-0 items-center justify-center";
 
@@ -128,8 +152,38 @@ const STROKE = {
 } as const;
 
 const PATHS: Record<Exclude<RunGlyphKind, "station" | "repo">, ReactNode> = {
-  /* A wrench, angled the way a wrench is held. */
-  tool: <path d="M15.5 8.5a3.5 3.5 0 1 0-4.2-4.2l3 3-2.1 2.1-3-3A3.5 3.5 0 0 0 8.5 12l-4 4 3.5 3.5 4-4a3.5 3.5 0 0 0 3.5-3.5z" />,
+  /*
+   * A WRENCH, AND THE ONE BEFORE IT WAS NOT A DRAWING OF ANYTHING.
+   *
+   * The previous path was written as "a wrench, angled the way a wrench is
+   * held", and rendered at 120px it is an unreadable tangle: a loop, a lump and a
+   * stub, with no jaw and no handle. At 14px, which is the only size it ships at,
+   * it is three grey marks. That is the placeholder failure the whole glyph set
+   * was built to remove, hiding inside the set: `[]` and `H` were obviously
+   * placeholders and got replaced, and this one passed because it had a plausible
+   * comment above it.
+   *
+   * FOUND BY MEASURING, THEN BY LOOKING. Its ink centre sat at 11.35, 10.55
+   * against the 12, 12 this file requires, which is 0.85px high at 14px and the
+   * largest offset of the thirteen marks in the system. Rendering it to check the
+   * offset is what showed the drawing itself was wrong, which no amount of
+   * nudging would have fixed.
+   *
+   * WHY THIS ONE OF FOUR CANDIDATES. Four were drawn and rendered side by side at
+   * 120, 20 and 14px on both grounds. Two read as a wrench at 14px; of those, this
+   * is the only one whose ink lands INSIDE the 4..20 optical square this file
+   * declares (4.19..19.87 across, 4.13..20.21 down) with a centre within 0.17 of
+   * 12, 12. The other legible candidate measured 18.44 wide, which breaks the
+   * 16-unit norm every other glyph here holds, and sat 0.52 right of centre.
+   */
+  tool: (
+    <>
+      {/* the handle, thumbed down to the bottom left */}
+      <path d="M9.8 11.4 4.6 16.6a2.3 2.3 0 0 0 3.2 3.2l5.2-5.2" />
+      {/* the head: an open jaw round the top right */}
+      <path d="M13 14.6a4.8 4.8 0 0 0 6.3-6.6l-2.6 2.6-2.6-.7-.7-2.6 2.6-2.6a4.8 4.8 0 0 0-6.6 6.3z" />
+    </>
+  ),
   /* Thinking.tsx's globe, verbatim. One globe in the system. */
   fetch: (
     <>
@@ -257,25 +311,50 @@ export function RunClock({ at }: { at: number }) {
   );
 }
 
-/**
- * A figure in the clock column where there is no clock.
+/*
+ * ── THERE IS NO `RunFigure` ANY MORE, AND THE COLUMN IS 40px FOR A REASON ─
  *
- * THIS IS THE FIX FOR THE MISALIGNED SILENCE ROW. A duration is a number about
- * time, so it belongs in the column every other number about time is in. Putting
- * it inline in the body was the single most visible tell that the component was
- * assembled rather than designed.
+ * It existed to put a DURATION in the clock column, on the argument that a
+ * duration is a number about time and belongs where every other number about time
+ * is. That argument was wrong, and the founder named why on 2026-08-20: the clock
+ * column answers WHEN, and a duration answers HOW LONG, which is a what.
+ *
+ * IT WAS ALSO ARITHMETICALLY IMPOSSIBLE, which settles it past the semantics. He
+ * offered two repairs, move the duration or shed precision, reading a six-hour
+ * silence that had wrapped to three lines. Measured in JetBrains Mono at 11.5px
+ * with tabular figures, against this column's 40px:
+ *
+ *   03:12         34.50px   fits, with 5.5px spare. This is what 40px is for
+ *   6h 11m 00s    69.00px   wraps to three lines and 52px tall
+ *   28m 0s        41.41px   ALREADY WRAPS, by 1.4px. Nobody had noticed
+ *   6h 11m        41.41px   still wraps. So shedding the seconds does not help
+ *   12h 00m       48.30px   worse
+ *
+ * No duration this product can print fits 40px: the longest that would is four
+ * characters. So the second repair was unavailable and the first is the only one,
+ * and the column now holds a wall clock and nothing else, ever. That is a stronger
+ * rule than "durations go elsewhere" and it is why the helper is deleted rather
+ * than narrowed: a slot that only ever takes one kind of thing cannot be handed
+ * the other kind by a future row type.
  */
-export function RunFigure({ children }: { children: ReactNode }) {
-  return (
-    <span className="mt-[4px] text-right font-mrd-mono text-mrd-data text-mrd-faint tabular-nums">
-      {children}
-    </span>
-  );
-}
 
 /** Nothing in the clock column, holding it open so the body never shifts left. */
 export function RunClockEmpty() {
   return <span aria-hidden />;
+}
+
+/**
+ * HOW LONG SOMETHING TOOK, in the body, in the one treatment all three views use.
+ *
+ * A duration is a `what`, so it sits in the content column beside the subject it
+ * belongs to, exactly as it already did on every event row. This exists so the
+ * silence row, the live tail and the event rows cannot end up with three
+ * renderings of one figure, which is what happened when it was two of them.
+ */
+export function RunTook({ children }: { children: ReactNode }) {
+  return (
+    <span className="font-mrd-mono text-mrd-data text-mrd-faint tabular-nums">{children}</span>
+  );
 }
 
 /** What happened, in a reader's words. Thinking's `primary`. */
@@ -302,15 +381,48 @@ export function RunNote({ children }: { children: ReactNode }) {
 }
 
 /**
- * The rail, drawn per row and stopped on the last one.
+ * The rail, drawn per row, stopped on the last one, and CROSSING THE GAP.
  *
  * A line continuing past the last thing that happened is a claim that something
  * else is coming. Thinking measures its rail to the final row's midpoint for the
  * same reason; per row is the same result without a `useLayoutEffect`, and it
  * survives a row wrapping to three lines, which a measured height does not.
+ *
+ * ── `-mb-1` IS WHY THE ROWS READ AS A SEQUENCE ──────────────────────────
+ * Founder review 2026-08-20: nothing connects one row to the next. There WAS a
+ * rail and it still did not connect, because `RUN_STACK` puts `gap-1` between
+ * rows and a per-row rail stopped at each row's bottom edge. So the line broke
+ * for 4px thirteen times down a run and read as a column of ticks rather than as
+ * one rail. Thinking, the reference this rhythm is read off, draws ONE continuous
+ * line for exactly this reason.
+ *
+ * `-mb-1` is `RUN_STACK`'s own `gap-1` negated, which is why it is that value and
+ * not a number that looked right: the rail is asked to cross precisely the gap
+ * the stack opens, so the two cannot drift apart. A flex item with a negative
+ * bottom margin is given that much more length by `flex-1`, so the line reaches
+ * the next row's glyph rather than merely overhanging.
  */
 export function RunRail() {
-  return <span aria-hidden className="w-px flex-1 bg-mrd-line" />;
+  return <span aria-hidden className="-mb-1 w-px flex-1 bg-mrd-line" />;
+}
+
+/**
+ * The rail where nothing happened: same line, same gap crossing, dashed.
+ *
+ * DASHED CARRIES THE FACT WITHOUT COLOUR, which is the greyscale rule: the SHAPE
+ * of the rail changes, so a black-and-white screenshot still shows where the run
+ * stopped. It is a `border-l` rather than a background because a 1px dashed
+ * background is not expressible in CSS, and `w-0` keeps the border the only ink
+ * so the line lands in the same 1px column as the solid one.
+ *
+ * `-mt-1` as well as `-mb-1`, unlike the solid rail: a silence row has no glyph
+ * to receive the line from above, so it has to reach up through the gap as well
+ * as down through it, or the break in the rail becomes a hole in the rail.
+ */
+export function RunRailBreak() {
+  return (
+    <span aria-hidden className="-mt-1 -mb-1 w-0 flex-1 border-l border-dashed border-mrd-edge" />
+  );
 }
 
 /**

@@ -9,12 +9,15 @@ import {
   RUN_ROW,
   RUN_STACK,
   RunClock,
-  RunFigure,
+  RunClockEmpty,
   RunGlyph,
   RunMeta,
   RunNote,
   RunRail,
+  RunRailBreak,
   RunSubject,
+  RunTook,
+  formatElapsed,
   type RunGlyphKind,
 } from "./run-rows";
 import { useElapsed } from "./use-elapsed";
@@ -163,22 +166,43 @@ function silenceWord(before: TimelineState): string {
 /**
  * A silence, drawn as a break in the rail rather than as blank space.
  *
- * DASHED, AND THAT CARRIES THE FACT WITHOUT COLOUR. The greyscale rule is not
- * satisfied by a hue plus a number: the SHAPE of the rail changes, so a
- * black-and-white screenshot still shows where the run stopped.
+ * ── THE CLOCK COLUMN IS EMPTY HERE, AND THAT IS THE CORRECTION ───────────
+ * This row used to put its duration in the clock column, on the argument that a
+ * duration is a number about time. Founder review 2026-08-20 named the flaw: that
+ * column answers WHEN and a duration answers HOW LONG, which is a what. And a
+ * duration cannot fit it anyway, measured: `6h 11m 00s` is 69px against a 40px
+ * column, `28m 0s` is 41.4px, and the shortest honest format still overflows. See
+ * the note where `RunFigure` used to be.
  *
- * THE DURATION SITS IN THE CLOCK COLUMN, which is the whole point of the rewrite.
- * It is a number about time and it belongs in the column every other number about
- * time is in.
+ * A silence has no `when` of its own to print. It begins at the instant printed
+ * one row above and ends at the instant printed one row below, so a clock here
+ * would restate a fact already on screen. The column stays open, because closing
+ * it would move this row's words 48px left of every other row's.
+ *
+ * ── IT IS NOW THE SAME SHAPE AS AN EVENT ROW ─────────────────────────────
+ * Subject, then how long it took in `RunTook`, which is the identical treatment
+ * every event row gives its own duration. The phrase stays quieter than an event's
+ * subject, because an absence is not an event and should not compete with one, but
+ * the FIGURE looks the same everywhere it appears. One idea, one format.
+ *
+ * ── ONE FORMATTER, NOT TWO ──────────────────────────────────────────────
+ * `formatElapsed` rather than `formatDuration`, and that is the second half of the
+ * founder's note: seconds are noise at six hours. `formatDuration` is exact to the
+ * second, which is right for "worked for 18m 06s" on a settled step and wrong for
+ * a gap. It also makes this figure and the live tail's, which is the same kind of
+ * fact, come out of the same function instead of two.
  */
 function Silence({ ms, before }: { ms: number; before: TimelineState }) {
   return (
     <li className={RUN_ROW}>
-      <RunFigure>{formatDuration(ms)}</RunFigure>
-      <span className="mt-[3px] flex h-[14px] w-[14px] shrink-0 justify-center">
-        <span aria-hidden className="h-full w-0 border-l border-dashed border-mrd-edge" />
+      <RunClockEmpty />
+      <span className="flex flex-col items-center self-stretch">
+        <RunRailBreak />
       </span>
-      <span className="min-w-0 pb-1 text-mrd-data text-mrd-mute">{silenceWord(before)}</span>
+      <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 pb-1">
+        <span className="text-mrd-data text-mrd-mute">{silenceWord(before)}</span>
+        <RunTook>{formatElapsed(ms / 1000)}</RunTook>
+      </span>
     </li>
   );
 }
@@ -206,9 +230,7 @@ function Event({ event, last }: { event: TimelineEvent; last: boolean }) {
               {WORD[event.state]}
             </StatusChip>
           ) : null}
-          {took ? (
-            <span className="font-mrd-mono text-mrd-data text-mrd-faint tabular-nums">{took}</span>
-          ) : null}
+          {took ? <RunTook>{took}</RunTook> : null}
         </span>
 
         {event.detail ? <RunNote>{event.detail}</RunNote> : null}
@@ -380,18 +402,28 @@ export function RunTimeline({
            */}
           {live && open && lastEvent ? (
             <li className={RUN_ROW}>
-              <RunFigure>{elapsed}</RunFigure>
+              {/* Empty, for the same reason the silence row's is: this row reports
+                  how long, not when, and the clock column takes a clock only. */}
+              <RunClockEmpty />
               {/* A plain dot, and it does NOT animate: the chip beside it already
                   breathes, and two things moving on one row to report one fact is
                   the motion budget spent twice. */}
               <span className="mt-[3px] flex size-[14px] shrink-0 items-center justify-center text-mrd-mute">
                 <span aria-hidden className="size-1.5 rounded-full bg-current" />
               </span>
-              <span role="status" aria-live="polite" className="min-w-0 pb-1">
+              <span
+                role="status"
+                aria-live="polite"
+                className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 pb-1"
+              >
                 <StatusChip status={CHIP[lastEvent.state] ?? "agent"} pulse>
                   {WORD[lastEvent.state]}
                 </StatusChip>
-                <span className="ml-2 text-mrd-data text-mrd-mute">so far</span>
+                {/* The figure, then the word that makes it a sentence: "Running
+                    6h 11m so far". It reads in that order and the number is the
+                    part a reader came for, so it goes next to the chip. */}
+                <RunTook>{elapsed}</RunTook>
+                <span className="text-mrd-data text-mrd-mute">so far</span>
               </span>
             </li>
           ) : null}

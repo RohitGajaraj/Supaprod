@@ -1838,3 +1838,125 @@ went, because an absence with no reason attached is how a deletion gets undone.
 > **Claude does after:** open `/meridian` and check the indicator in both grounds, then one real
 > surface with it live (`/decide` has three mounts). The thing a test cannot see is whether the lattice
 > at 13px still reads as calm beside the shimmering word now that the word is a stop smaller.
+
+---
+
+## K-83 · BUILT · 2026-08-20 06:40
+
+**Did.** Three things, all measured rather than judged. The wrench that was not a drawing of anything
+is redrawn. The rail crosses the gap between rows, and `ToolStream` has one at all. The clock column
+takes a wall clock and nothing else, because no duration this product prints fits it.
+
+**Everything below was measured in a real browser with the real font**, because none of it is visible
+to a test: happy-dom lays nothing out and implements no `getBBox`, so the choice was between measuring
+properly and asserting an intention.
+
+### 1. The mark that named nothing
+
+The founder's note was about optical alignment, and following it found a worse defect. All thirteen
+marks in the system were rendered and their ink bounding boxes read:
+
+| | ink centre against 12,12 | at 14px |
+| --- | --- | --- |
+| eleven of thirteen | within 0.30 down, 0.00 across | under 0.18px. Nothing |
+| `run:tool` | 11.35, 10.55 | **0.85px high.** The worst in the set |
+| `station:decide` | 13.00, 12.00 | 0.58px right, **and correct** |
+
+**So the layout was never the problem**, exactly as his own note anticipated (glyph box against text
+centre measures 0.6px across five rows). One drawing was off, and rendering it to check the offset
+showed the drawing itself was wrong: the "wrench" is a loop, a lump and a stub, with no jaw and no
+handle. At 14px it is three grey marks. **It is the placeholder failure hiding inside the set built to
+remove placeholders**, and it survived because it had a plausible comment above it while `[]` and `H`
+did not.
+
+Four candidates were drawn and rendered at 120, 20 and 14px on both grounds. Two read as a wrench at
+14px. Of those, one lands inside the 4..20 optical square this file declares (4.19..19.87 across,
+4.13..20.21 down) with a centre within 0.17 of 12,12; the other measured 18.44 wide, breaking the
+16-unit norm every other glyph holds, and sat 0.52 right. The first one ships.
+
+**`station:decide` is deliberately not "fixed", and this is where bbox centring and optical centring
+part company.** Its diamond spans 5..19 and is centred on 12. The whole +1.00 is the 2-unit stub
+drawing the chosen branch leaving to the right. The eye centres a mark on its BODY, so obeying the bbox
+would shift a symmetric diamond a unit left to compensate for a tail, and it would then look wrong
+beside the six marks whose bodies are centred. A measurement that disagrees with the rule it was taken
+to serve is a measurement to explain, not to obey.
+
+### 2. The rail: two faults under one sentence
+
+The founder said nothing connects one row to the next. `RunTimeline` already had a rail, which is why
+that needed explaining rather than just fixing:
+
+1. **`ToolStream` had no rail at all**, so two views of one run were a sequence and a list.
+2. **The rail stopped at each row's bottom edge** while `RUN_STACK` opens `gap-1` between rows. Measured:
+   **4.00px of hole on every row.** Thirteen holes down a run is a column of ticks, not a rail.
+
+`Thinking`, the reference this rhythm is read off, draws ONE continuous line. `-mb-1` is that expressed
+per row, and it is that value because it is the stack's own gap negated, so the two cannot drift apart.
+**Measured after: 0.00px.** The rail reaches the next row's glyph exactly.
+
+The silence row's dashed rail takes `-mt-1` as well, because a silence has no glyph to receive the line
+from above, so reaching down alone would leave a hole above it. Easier to miss than the solid one,
+because a dashed line already looks interrupted.
+
+### 3. The duration, and a repair he offered that does not exist
+
+He gave two options, move the duration or shed precision, reading a six-hour silence wrapped to three
+lines. **The second one is arithmetically unavailable.** Measured in JetBrains Mono at 11.5px with
+tabular figures against this column's 40px:
+
+| string | width | in a 40px column |
+| --- | --- | --- |
+| `03:12` | 34.50px | fits, 5.5px spare. **This is what 40px is for** |
+| `28m 0s` | 41.41px | **already wrapped, by 1.4px** |
+| `6h 11m` | 41.41px | so shedding the seconds does not help |
+| `12h 00m` | 48.30px | worse |
+| `6h 11m 00s` | 69.00px | three lines, **51.8px tall** against 17px beside it |
+
+No duration this product can print fits 40px; the longest that would is four characters. So the
+column now holds a wall clock and nothing else, ever, and `RunFigure` is **deleted rather than
+narrowed**: a slot that only takes one kind of thing cannot be handed the other kind by a future row
+type. **Measured after: every row type is 28.0px**, which is `Thinking`'s row exactly, on all four.
+
+A silence also has no `when` of its own to print. It begins at the instant one row above and ends at
+the one below, so a clock there would restate what is already on screen. The column stays open, because
+closing it would put those words 48px left of every other row's.
+
+**One formatter now, not two.** `formatElapsed` rather than `formatDuration` for the silence, which is
+the other half of his note: seconds are noise at six hours. `formatDuration` is exact to the second,
+right for "worked for 18m 06s" on a settled step and wrong for a gap. It also makes the silence figure
+and the live tail's, the same kind of fact, come out of one function.
+
+**I rewrote one of my own tests, and it deserves naming.** `one-run-one-rhythm.test.tsx` REQUIRED the
+duration to sit in the clock column, under the argument that a duration is a number about time. It
+fixed a real defect in the wrong direction, and **it was green on a row that wrapped**: it checked
+which column the figure landed in and could not see that the figure did not fit the column. That is the
+exact class of defect the file was written to catch, committed by the file itself. The reversal, both
+measurements and the reason are recorded in place rather than deleted.
+
+**Pushed back.** Two.
+1. **The item's numbering runs 1, 3, 2**, and the middle item is the largest. Not a problem to fix, but
+   worth saying because I built them in the order 1, 3, 2 to match, and a reader of the queue will
+   wonder whether something is missing.
+2. **`run-rows.tsx` is not in the item's `Owns` and every part of this lands there**: the glyph paths,
+   `RunRail`, `RunFigure`, `RunTook`. The list names `station-glyphs.tsx` instead, which turned out to
+   need no change at all: its seven marks measure within 0.10 of centre, and the two outliers are both
+   in `run-rows.tsx`. Sixth wrong `Owns` list this session.
+
+**Unsure.** One. **The ink geometry cannot be tested here**, so the file carries the thirteen
+measurements as a comment and a test pins that the numbers stay in it. That is a weaker guard than the
+rest of this change has, and I would rather say so than dress a source assertion as a geometry check.
+The reproducible artifact is a `getBBox` harness; the numbers in the file are what the next person
+re-measures against.
+
+**Noticed.** One. **The source host's mark is the one glyph on a different grid**, 16x16 rather than
+24x24, sized by its wrapper rather than by attributes. That is right, not a defect: it is somebody
+else's geometry and redrawing GitHub's mark onto our grid would be both wrong and worse. It is
+normalised by the compensation `run-rows.tsx` already documents, and a test now asserts that
+compensation is present rather than asserting a uniformity that would be false.
+
+**Gates.** tsc clean · 9,761 pass / 0 fail / 23 skip across 582 files · build ok · ratchet unchanged.
+Rendered and looked at before and after, both grounds, at 120, 20 and 14px for the marks.
+
+> **Claude does after:** open a real run with a long gap in it. The two things measurement cannot
+> settle are whether the redrawn wrench reads as a tool on a real display at 14px, and whether the
+> continuous rail through several consecutive silences reads as one run rather than as one long wait.

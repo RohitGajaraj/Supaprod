@@ -127,13 +127,32 @@ describe("all three views draw the same row", () => {
   });
 });
 
-describe("a figure about time sits in the column for figures about time", () => {
-  it("puts a silence duration where every clock is, not inline in the label", () => {
-    /*
-     * THE MOST VISIBLE TELL THAT A COMPONENT WAS ASSEMBLED RATHER THAN DESIGNED,
-     * and it was live: `28m 0s` sat in the body while every event row put its time
-     * in the clock column. Two number columns, one component.
-     */
+describe("the clock column takes a clock and nothing else", () => {
+  /*
+   * ── THIS BLOCK ASSERTED THE OPPOSITE UNTIL 2026-08-20, AND WAS WRONG ─────
+   *
+   * It required a silence duration to sit in the CLOCK COLUMN, under the argument
+   * that a duration is a number about time and belongs where the other numbers
+   * about time are. That fixed a real defect (the figure had been inline in the
+   * body while every event row put its time in the clock column) and it fixed it
+   * in the wrong direction.
+   *
+   * The founder named the flaw in the semantics: the clock column answers WHEN,
+   * and a duration answers HOW LONG, which is a what. Then the measurement closed
+   * it, because he offered a second repair and that repair does not exist. In
+   * JetBrains Mono at 11.5px against this column's 40px:
+   *
+   *   03:12       34.50px   what the column is for
+   *   28m 0s      41.41px   the case this test was passing on. It wrapped
+   *   6h 11m      41.41px   so shedding the seconds does not help
+   *   6h 11m 00s  69.00px   three lines, 52px tall, against 17px beside it
+   *
+   * SO THE TEST WAS GREEN ON A WRAPPED ROW. It checked which column the figure
+   * landed in and could not see that the figure did not fit the column, which is
+   * the exact class of defect this file was written to catch, committed by the
+   * file itself.
+   */
+  it("leaves the clock column empty on a row that has no instant to print", () => {
     const { container } = render(
       <RunTimeline
         events={[
@@ -149,10 +168,65 @@ describe("a figure about time sits in the column for figures about time", () => 
     expect(silence, "the silence row is gone").toBeTruthy();
 
     const first = silence!.children[0] as HTMLElement;
-    expect(first.textContent, "the duration left the clock column").toContain("28m 0s");
-    expect(first.className, "the duration is not right-aligned with the clocks").toContain(
-      "text-right",
+    expect(first.textContent, "a duration is back in the clock column").toBe("");
+    // A silence begins at the instant printed one row above and ends at the one
+    // printed below, so a clock here would restate what is already on screen.
+    expect(first.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("keeps the duration in the body, in the treatment every event row uses", () => {
+    const { container } = render(
+      <RunTimeline
+        events={[
+          { id: "a", at: T, kind: "gate", label: "Asked whether to ship", state: "gate" },
+          { id: "b", at: T + 28 * 60_000, kind: "gate", label: "You approved it", state: "done" },
+        ]}
+      />,
     );
+
+    const silence = [...container.querySelectorAll("li")].find((li) =>
+      li.textContent?.includes("nobody answered"),
+    );
+    const body = silence!.children[2] as HTMLElement;
+    expect(body.textContent).toContain("28m 0s");
+    // `RunTook`'s treatment, which is what an event row gives its own duration.
+    const figure = [...body.querySelectorAll("span")].find((s) =>
+      s.textContent?.trim().startsWith("28m"),
+    );
+    expect(figure?.className).toContain("font-mrd-mono");
+    expect(figure?.className).toContain("tabular-nums");
+  });
+
+  it("prints a six hour silence without a seconds digit", () => {
+    // Seconds are noise at six hours, and `formatDuration` would have written
+    // `6h 11m 00s` here. One formatter for every duration this component prints.
+    const { container } = render(
+      <RunTimeline
+        events={[
+          { id: "a", at: T, kind: "gate", label: "Asked whether to ship", state: "gate" },
+          {
+            id: "b",
+            at: T + (6 * 3600 + 11 * 60) * 1000,
+            kind: "gate",
+            label: "You approved it",
+            state: "done",
+          },
+        ]}
+      />,
+    );
+    const silence = [...container.querySelectorAll("li")].find((li) =>
+      li.textContent?.includes("nobody answered"),
+    );
+    expect(silence!.textContent).toContain("6h 11m");
+    expect(silence!.textContent).not.toContain("00s");
+  });
+
+  it("holds no helper for putting a figure back in the clock column", () => {
+    // `RunFigure` is deleted rather than narrowed: a slot that only ever takes one
+    // kind of thing cannot be handed the other kind by a future row type.
+    const source = readFileSync("src/components/meridian/run-rows.tsx", "utf8");
+    const code = source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    expect(code).not.toContain("RunFigure");
   });
 });
 
@@ -383,5 +457,174 @@ describe("a chip appears only where something is running, waiting or broken", ()
       found++;
     }
     expect(found).toBe(3);
+  });
+});
+
+describe("one row leads to the next, and the rail is how a reader can see it", () => {
+  /*
+   * FOUNDER REVIEW 2026-08-20: nothing connects one row to the next.
+   *
+   * TWO SEPARATE FAULTS UNDER ONE SENTENCE, and only finding both explains why a
+   * component that already had a rail still read as a list.
+   *
+   *   1. `ToolStream` had no rail at all, so two views of one run were a sequence
+   *      and a list.
+   *   2. `RunTimeline`'s rail stopped at each row's bottom edge while `RUN_STACK`
+   *      opens `gap-1` between rows, so the line broke for 4px on every row. A
+   *      rail with a hole in it every 28px is a column of ticks.
+   *
+   * `Thinking`, the reference this whole rhythm is read off, draws ONE continuous
+   * line down its trace. `-mb-1` is that, expressed per row: the stack's own gap,
+   * negated, so the two cannot drift apart.
+   */
+  const railsOf = (container: HTMLElement) =>
+    [...container.querySelectorAll("span")].filter(
+      (s) => s.className.includes("w-px") && s.className.includes("bg-mrd-line"),
+    );
+
+  it("draws a rail in every view that shows a sequence of rows", () => {
+    for (const [name, container] of views()) {
+      if (name === "PlanCard") continue; // covered by its own file
+      expect(railsOf(container).length, `${name} draws no rail`).toBeGreaterThan(0);
+    }
+  });
+
+  it("crosses the gap the stack opens, rather than stopping at the row edge", () => {
+    for (const [name, container] of views()) {
+      const rails = railsOf(container);
+      if (rails.length === 0) continue;
+      for (const rail of rails) {
+        expect(rail.className, `${name} has a rail that stops at the row edge`).toContain("-mb-1");
+      }
+    }
+    // `RUN_STACK` is what `-mb-1` is negating. If the stack's gap ever changes,
+    // this is the line that has to change with it, so it is asserted here.
+    expect(RUN_STACK).toContain("gap-1");
+  });
+
+  it("stops the rail on the last row, because a line past it claims more is coming", () => {
+    const { container } = render(<ToolStream rows={CALLS} />);
+    // Two rows, so exactly one rail: the one joining the first to the second.
+    expect(railsOf(container).length).toBe(1);
+  });
+
+  it("stops the rail on a single row too", () => {
+    const { container } = render(<ToolStream rows={[CALLS[0]]} />);
+    expect(railsOf(container).length).toBe(0);
+  });
+
+  it("reaches up as well as down where there is no glyph to receive it", () => {
+    /*
+     * A silence row has no mark, so its dashed line is the only thing joining the
+     * rows either side of it. Reaching down alone would leave a hole above it,
+     * which is the same defect as the solid rail's and easier to miss because a
+     * dashed line already looks interrupted.
+     */
+    const { container } = render(
+      <RunTimeline
+        events={[
+          { id: "a", at: T, kind: "gate", label: "Asked whether to ship", state: "gate" },
+          { id: "b", at: T + 28 * 60_000, kind: "gate", label: "You approved it", state: "done" },
+        ]}
+      />,
+    );
+    const dashed = [...container.querySelectorAll("span")].filter((s) =>
+      s.className.includes("border-dashed"),
+    );
+    expect(dashed.length, "the silence rail is gone").toBe(1);
+    expect(dashed[0].className).toContain("-mt-1");
+    expect(dashed[0].className).toContain("-mb-1");
+  });
+
+  it("survives greyscale, because the break is a shape and not a colour", () => {
+    const { container } = render(
+      <RunTimeline
+        events={[
+          { id: "a", at: T, kind: "gate", label: "Asked whether to ship", state: "gate" },
+          { id: "b", at: T + 28 * 60_000, kind: "gate", label: "You approved it", state: "done" },
+        ]}
+      />,
+    );
+    const dashed = container.querySelector('[class*="border-dashed"]');
+    const solid = container.querySelector('[class*="bg-mrd-line"]');
+    expect(dashed, "no dashed rail").toBeTruthy();
+    expect(solid, "no solid rail").toBeTruthy();
+    // Neither carries a status hue: the difference between them is dash and solid.
+    for (const el of [dashed, solid]) {
+      for (const status of ["mrd-you", "mrd-agent", "mrd-pass", "mrd-fail", "mrd-hold"]) {
+        expect(el?.className).not.toContain(status);
+      }
+    }
+  });
+});
+
+describe("a mark names the thing it touched, and it is drawn where the ink is", () => {
+  const RUN_ROWS_SOURCE = readFileSync("src/components/meridian/run-rows.tsx", "utf8");
+
+  it("no longer carries the wrench that was not a drawing of anything", () => {
+    /*
+     * The previous `tool` path rendered as a loop, a lump and a stub: no jaw, no
+     * handle, and at 14px three grey marks. It survived because it had a plausible
+     * comment above it, which is the placeholder failure hiding inside the set
+     * built to remove placeholders.
+     *
+     * MEASURED: its ink centred at 11.35, 10.55 against the 12, 12 this file
+     * requires, the largest offset of the thirteen marks in the system and 0.85px
+     * high at the 14px it ships at.
+     */
+    expect(RUN_ROWS_SOURCE).not.toContain("M15.5 8.5a3.5 3.5 0 1 0-4.2-4.2");
+    // The replacement is the only candidate of four whose ink lands inside the
+    // 4..20 optical square this file declares, with a centre within 0.17 of 12,12.
+    expect(RUN_ROWS_SOURCE).toContain("M9.8 11.4 4.6 16.6a2.3 2.3 0 0 0 3.2 3.2l5.2-5.2");
+  });
+
+  it("records the measurement rather than the intention", () => {
+    /*
+     * happy-dom implements no `getBBox`, so ink geometry cannot be asserted here
+     * and this is the honest substitute: the file has to carry the numbers, taken
+     * from a real render, so the next person to move a path has something to
+     * re-measure against. Stated as a limitation rather than dressed as a check.
+     */
+    expect(RUN_ROWS_SOURCE).toContain("THE INK, MEASURED, ALL THIRTEEN");
+    expect(RUN_ROWS_SOURCE).toContain("11.35, 10.55");
+  });
+
+  it("draws every mark it owns on one grid, and lands the borrowed one on it", () => {
+    /*
+     * A mark bigger or heavier than its neighbours reads as more important, which
+     * is a claim the row never made. Every glyph this file draws is 14px on a
+     * 24x24 box.
+     *
+     * THE SOURCE HOST'S MARK IS THE ONE EXCEPTION AND IT HAS TO BE. It is
+     * somebody else's geometry on their own 16x16 grid, and redrawing GitHub's
+     * mark to fit ours would be both wrong and worse. It is normalised instead, by
+     * the compensation `run-rows.tsx` documents: 12px inside an 18px box, pulled
+     * back to the 14px slot with `-m-[2px]`, which is `ProviderMark`'s own
+     * 16-in-22 proportion, so its ink weight matches rather than approximates.
+     */
+    const { container } = render(<RunTimeline events={EVENTS} />);
+    const marks = [...container.querySelectorAll("svg")];
+    expect(marks.length).toBeGreaterThan(0);
+
+    let ours = 0;
+    let borrowed = 0;
+    for (const svg of marks) {
+      if (svg.getAttribute("viewBox") === "0 0 24 24") {
+        expect(svg.getAttribute("width")).toBe("14");
+        ours++;
+      } else {
+        // `provider-marks.tsx`'s own contract: one 16x16 box for all twenty, sized
+        // by its wrapper rather than by width attributes.
+        expect(svg.getAttribute("viewBox")).toBe("0 0 16 16");
+        borrowed++;
+      }
+    }
+    // Both kinds are present in this fixture, so neither branch passes on nothing.
+    expect(ours, "no mark of our own was drawn").toBeGreaterThan(0);
+    expect(borrowed, "the source host mark was not drawn").toBe(1);
+    expect(
+      container.querySelector('[class*="-m-[2px]"]'),
+      "the borrowed mark is not being pulled back onto the slot",
+    ).toBeTruthy();
   });
 });

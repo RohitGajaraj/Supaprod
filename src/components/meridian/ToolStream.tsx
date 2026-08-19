@@ -10,7 +10,9 @@ import {
   RunClock,
   RunGlyph,
   RunNote,
+  RunRail,
   RunSubject,
+  RunTook,
   runGlyphForTool,
 } from "./run-rows";
 
@@ -214,7 +216,22 @@ export function ToolStream({
               <>
                 <RunClock at={row.at} />
 
-                <RunGlyph kind={runGlyphForTool(row.tool)} />
+                {/*
+                 * THE RAIL, WHICH THIS COMPONENT DID NOT HAVE.
+                 *
+                 * Founder review 2026-08-20: nothing connects one row to the next.
+                 * `RunTimeline` had a rail and this had none, so two views of one
+                 * run read as a sequence and a list. Same wrapper, same `RunRail`,
+                 * stopped on the last row, because a line continuing past the last
+                 * call is a claim another one is coming.
+                 *
+                 * `last` is the last row of the STREAM, not of the render pass: a
+                 * running stream's newest row is still the end of what is known.
+                 */}
+                <span className="flex flex-col items-center self-stretch">
+                  <RunGlyph kind={runGlyphForTool(row.tool)} />
+                  {i === rows.length - 1 ? null : <RunRail />}
+                </span>
 
                 <span className="min-w-0 pb-1">
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -231,11 +248,7 @@ export function ToolStream({
                       </StatusChip>
                     ) : null}
                     {row.state === "failed" ? <StatusChip status="fail">Failed</StatusChip> : null}
-                    {took ? (
-                      <span className="font-mrd-mono text-mrd-data text-mrd-faint tabular-nums">
-                        {took}
-                      </span>
-                    ) : null}
+                    {took ? <RunTook>{took}</RunTook> : null}
                   </span>
 
                   {/* The argument breaks rather than truncates: half a path is
