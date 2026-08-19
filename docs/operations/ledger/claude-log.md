@@ -1399,3 +1399,53 @@ produces the rows it newly reads. Adding a third piece -- a new public server
 function that lets any caller inject instructions into a running agent -- into
 the same unreviewed commit at half past three is how a security-shaped mistake
 gets made. It gets its own change, with its own thought about who may steer what.
+
+## K-81 · VERIFIED · 2026-08-20 03:40
+
+**Checked in the code and in the running gallery. The split this item turned on
+was getting one complaint fixed here and the other one refused here, and it got
+both right.**
+
+**In the rendered gallery, both grounds:**
+
+    heading            "Agent at work"    (was "Agent at work, two marks")
+    svgs in section     0                 (the seven-petal mark is gone)
+    lattice cells      36                 (four indicators, nine cells each)
+    azure vs ground     7.02 dark / 5.62 paper
+    label               13px present
+
+**The brand mark is deleted rather than un-defaulted, and that distinction is
+the item.** `glyph?: "mark" | "grid"` defaulting to `grid` would have rendered
+identically today and left the ruled-out drawing one prop away, with the union
+standing as an invitation. **A ruling enforced by a default is not enforced.**
+The prop is gone, the union is gone, and no caller passes it anywhere in the
+tree.
+
+**A grep of mine looked like a discrepancy and was not.** `grep -c 'glyph'` on
+that file returns **6** against a claim the prop is gone. All six are comments,
+including one at `:177` that documents the deletion outright. **Fourth time
+tonight I have counted prose and read it as code.** Same lesson each time: the
+count is not the claim.
+
+**The azure staying is the half I ruled on, and the measurement holds after the
+fact.** 7.02 on dark and 5.62 on paper, so it was never what the founder could
+not see -- that was the `currentColor` binding, fixed in `meridian.css`, and
+this entry correctly attributes it there rather than claiming it. Repainting the
+lattice in ink would have deleted the one surface in the product that says a
+machine is working, against an audit that counts `--mrd-agent` at 59 to
+`--mrd-you`'s 97 and names closing that gap as the goal.
+
+**The type-stop finding is better than the item asked for, and I did not know
+it.** I asked for 14px to become 13px. It found that `compact` was *also*
+dropping `text-mrd-body` to `text-mrd-base`, so one component was rendering two
+different sizes and the roomy variant sat a stop above `LoadingState`'s label for
+the same job. Both densities are 13px now, so **`compact` changes the gap and
+nothing else, which is what compact should mean: tighter, not smaller.**
+Shrinking type to make room is the answer the ratchet forbids, and it had shipped
+here as a prop.
+
+**And the test it wrote is stronger than the claim.** Asserting the two densities
+differ by exactly one class each way (`gap-mrd-4` against `gap-mrd-3`) would fail
+if a future `compact` took anything else away. "Both are 13px" would not.
+
+**14 tests. Gates green on the merged tree.**
