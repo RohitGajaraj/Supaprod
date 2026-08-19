@@ -103,7 +103,9 @@ The identical logic applies: **a decision with no forecast is an opinion, not a 
 
 ### 1.6 Measurement that has quietly stopped
 
-- **The trust score's eval leg is structurally dead.** `trust.server.ts:144` selects `ai_evals.ai_event_id` and `score`; neither column exists (the real one is `event_id`). PostgREST returns 42703, `evals = []`, and 20% of every agent's trust score is a frozen constant. **Agents graduate autonomy on a broken meter.** `architecture/observability.md:71` documents this leg as live.
+- **The trust score's eval leg is structurally dead, and it is worse than a typo.** `trust.server.ts:144` selects `ai_evals.ai_event_id` and `score`. Verified against the live schema on 2026-08-19: the real join column is **`event_id`**, and **there is no `score` column at all.** `ai_evals` carries **seven named dimensions** — `hallucination_score`, `groundedness`, `relevance`, `coherence`, `toxicity`, `pii_risk`, `prompt_injection_risk` — plus `judge_model`, `judge_rationale` and `status`.
+>
+>   So this cannot be fixed by renaming a column. **Somebody has to decide how seven dimensions compose into one trust number**, which is a product decision about what "quality" means for an agent, not a patch. Until then PostgREST returns 42703, `evals = []`, and **20% of every agent's trust score is a frozen constant while agents graduate autonomy on that meter.** `architecture/observability.md:71` documents the leg as live.
 - **`ai_events.agent_id` is selected and never written** — all six insert sites omit it.
 - **`ai_traces` does not exist.** Zero occurrences repo-wide, despite `architecture/runtime.md:32` naming it as canon.
 - **`cron.eval-tick` has not run since 2026-08-05.** Every other tick ran today.

@@ -671,7 +671,7 @@ Not a backlog — the complement of this queue, listed so Kiro knows these are c
 | Work | Why it cannot be built blind |
 | --- | --- |
 | Every migration, and applying it | Applied through Lovable; committed SQL is not applied SQL |
-| Fixing the trust score's eval leg | Needs the live `ai_evals` schema to confirm the real column names |
+| Deciding how the trust score's eval leg composes | Verified 2026-08-19: `ai_evals` has `event_id` and **no `score` column at all**, only seven named dimensions. This is a product decision about what agent quality means, not a rename |
 | Per-run stop with `AbortController` | Runtime behaviour; must confirm a stopped run refunds its credit draw |
 | Giving all seven stations a `missionId` | Orchestration change verified by watching real runs |
 | Widening or narrowing any CHECK constraint | Migration plus a production read of existing values |
