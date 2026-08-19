@@ -27,6 +27,7 @@ import { Dialog } from "@/components/meridian/Dialog";
 import { Spend } from "@/components/meridian/Spend";
 import { MarkStack } from "@/components/meridian/marks";
 import { StatusChip } from "@/components/meridian/StatusChip";
+import { Flowchart, flowFromSteps, type FlowEdge, type FlowNode } from "@/components/meridian/Flowchart";
 import {
   RecordStatus,
   RecordTag,
@@ -2110,6 +2111,15 @@ function MeridianGallery() {
             <OneSetCases />
           </Pair>
         </Panel>
+
+        <Panel
+          title="Flowchart, the twentieth component"
+          note="The reference ships twenty components and Meridian had nineteen. This is the one that was missing, and it is the one the direction had already asked for: a Run Map, a canvas for watching rather than authoring. Its mechanics are read off the reference's own source rather than a screenshot, which matters because the interesting parts are invisible in a picture. Heights are measured, not declared, so a second line of description makes a node taller and every row below it moves down. Nodes sit at a fraction of the canvas width, so the whole thing is responsive without a breakpoint. Connectors are cubic beziers leaving downward and arriving downward, which is what makes two edges out of one branch separate immediately instead of crossing the cards, and the control distance scales with the run between a floor and a cap so a short hop still curves and a long one does not balloon. The one mechanic worth knowing about is the thirty pixel offset on a node's top anchor: the kind pill sits above the card inside the node's box, so an anchor taken from the top edge would stop in the air beside the pill. Two things are deliberately not ported. The reference's cards drag and these do not, because position here is derived from the graph and a node a reader can shove around invites them to think the layout means something. And the reference tints each node kind, which Meridian cannot: amber already means stopped and waiting on a condition, so the kind comes through the station glyph and the pill is colourless."
+        >
+          <Pair>
+            <FlowchartCases />
+          </Pair>
+        </Panel>
       </div>
     </div>
   );
@@ -2935,6 +2945,87 @@ function OneSetCases() {
           ]}
           working
         />
+      </Case>
+    </Stack>
+  );
+}
+
+/*
+ * ── K-80, THE FLOWCHART ─────────────────────────────────────────────────
+ * The branch is a real route through the loop: a firmware complaint arrives, the
+ * bet is ranked, and it either becomes a spec or gets filed against the theme.
+ * Both outgoing edges are labelled, because an unlabelled branch is a fork the
+ * reader has to guess the condition of.
+ *
+ * The 40-node case is here for the same reason the 200-row timeline case is: it is
+ * a size nobody draws and it is where a layout that only works small shows itself.
+ */
+function FlowchartCases() {
+  const [picked, setPicked] = useState<string | null>("rank");
+
+  const branch: { nodes: FlowNode[]; edges: FlowEdge[] } = {
+    nodes: [
+      {
+        id: "signal",
+        row: 0,
+        x: 0.5,
+        station: "discover",
+        kind: "Trigger",
+        title: "A firmware complaint arrives",
+        caption: "Any signal on the firmware theme starts this",
+      },
+      {
+        id: "rank",
+        row: 1,
+        x: 0.5,
+        station: "decide",
+        kind: "If / Else",
+        title: "Is it worth a bet?",
+        caption: "ICE against the other four, then the Critic",
+      },
+      { id: "spec", row: 2, x: 0.26, station: "plan", title: "Draft the spec" },
+      { id: "park", row: 2, x: 0.76, station: "learn", title: "File it against the theme" },
+      { id: "build", row: 3, x: 0.26, station: "build", title: "Write the notice" },
+      { id: "ship", row: 4, x: 0.26, station: "ship", kind: "Gate", title: "Open the pull request" },
+    ],
+    edges: [
+      { from: "signal", to: "rank" },
+      { from: "rank", to: "spec", label: "yes" },
+      { from: "rank", to: "park", label: "no" },
+      { from: "spec", to: "build" },
+      { from: "build", to: "ship" },
+    ],
+  };
+
+  const straight = flowFromSteps([
+    { id: "s1", title: "Read the outage thread", station: "discover" },
+    { id: "s2", title: "Rank it", station: "decide" },
+    { id: "s3", title: "Draft the spec", station: "plan" },
+  ]);
+
+  const many = flowFromSteps(
+    Array.from({ length: 40 }, (_, i) => ({ id: `n${i}`, title: `Step ${i + 1}` })),
+  );
+
+  return (
+    <Stack>
+      <Case label="No map yet">
+        <Flowchart nodes={[]} edges={[]} />
+      </Case>
+      <Case label="A branch, with both outgoing edges labelled">
+        <Flowchart {...branch} />
+      </Case>
+      <Case label="The same branch, selectable: press a node and its edges light">
+        <Flowchart {...branch} selectedId={picked} onSelect={setPicked} />
+      </Case>
+      <Case label="A straight run, laid out for the caller">
+        <Flowchart {...straight} />
+      </Case>
+      <Case label="One node">
+        <Flowchart nodes={[{ id: "only", row: 0, x: 0.5, title: "The only step" }]} edges={[]} />
+      </Case>
+      <Case label="Forty nodes, which is the size nobody draws">
+        <Flowchart {...many} />
       </Case>
     </Stack>
   );

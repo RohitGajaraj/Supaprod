@@ -968,3 +968,94 @@ still passing over all 59.
 > was 18 of them and is `low`, so the demotion stops firing and the founder's 2026-08-03 `auto`
 > seeding takes effect. Worth measuring the queue before and after a publish rather than trusting
 > this.
+
+---
+
+## K-80 · BUILT · 2026-08-20 00:52
+
+**Taken ahead of K-12 onward under the primitives ruling**, which landed while I was on K-11. First
+of the three on the jump list.
+
+**Did.** Built `src/components/meridian/Flowchart.tsx`, a 27-test suite, and a six-case gallery
+panel. **I found the reference's real source rather than working from the item's figures**: the
+component's full TypeScript is embedded in beautifui.dev's own document, and searching that page for
+`FLOWCHART — an agent workflow` returns it. The provenance note in the file says how to re-fetch it.
+
+**## K-80 · QUESTION · six of the item's measured figures do not match the source**
+
+The item says "Port it, do not design it. Measured off the live reference on 2026-08-20, so build to
+these." I built to the source instead, because the two disagree. Every divergence, with what the
+source actually says:
+
+| The item says | The source says |
+| --- | --- |
+| Connectors are **orthogonal** | **Cubic bezier**, `M x y C x y+k, x2 y2-k, x2 y2` |
+| Stroke **1.8px**, 2.4 emphasised | **1.25px**, and the emphasis is a colour change, not a weight |
+| Nodes are **a fixed 300px wide** | **Two widths**: 300 for a step, 356 for the condition card |
+| Heights are **58px and 88px** | **Measured** with a ResizeObserver; 92 and 134 are first-paint estimates only |
+| Kind pill is **60x28** | **h-6** with content width, `rounded-[6px]`, 11.5px |
+| "16 paths in the reference's own example" | **1 edge, 2 nodes.** There is no branch in its example at all |
+
+**And the source has one mechanic the item does not mention, which is the one that makes it work.**
+`PILL_OFFSET = 30`: the kind pill sits ABOVE the card inside the node's box, so a node's top ANCHOR
+is 30px below its top EDGE. Without it every incoming connector stops in the air beside the pill.
+That is precisely the item's own "connectors meet nodes at a consistent anchor rather than wherever
+the maths lands" rule, already solved upstream. Two tests pin it.
+
+**The item's acceptance also contradicts itself against the source**: "Node width is a single
+constant, and both heights derive from content rather than from a second constant." The heights half
+matches the source exactly. The width half does not, because the source has two. I implemented one
+default width with a per-node override, so a caller gets one constant and the reference's condition
+card is still expressible.
+
+**Two deliberate divergences that are NOT corrections, both stated in the file.**
+
+1. **No dragging.** The reference's cards drag anywhere and the connectors follow. The item calls
+   this a watching surface citing §6.3's "a canvas for watching, not authoring", and I agree: position
+   here is derived from the graph, so it always means the same thing, and a node a reader can shove
+   around invites them to believe the layout means something. **This is the one place I chose the
+   item's reinterpretation over the source**, because it cites the direction doc rather than taste.
+2. **No decorative hue.** The reference paints each node kind, purple for Trigger and amber for
+   If/Else. Meridian cannot: its five hues are status words and amber already means "stopped, waiting
+   on a condition", which on a run map would be actively wrong. So the KIND comes through the station
+   glyph, per law 4, and the pill is colourless in `RecordTag`'s shape. A test asserts no status token
+   reaches the canvas at all.
+
+**Unsure.** Three.
+
+1. **A selected edge goes to full ink, where the reference uses its accent.** Meridian's accent is
+   `--mrd-you`. Ink against edge is a value step rather than a hue, so it also survives greyscale,
+   but it is quieter than the reference's treatment and a selection may want more.
+2. **Nodes reuse the station glyph set.** That makes a node on this canvas the same shape as that
+   station everywhere else, which I think is the point of having the set. It also means a node with no
+   station has no glyph and reads as a plain card, which is the case the `flowFromSteps` helper
+   produces.
+3. **`flowFromSteps` is an addition the item did not ask for.** Most callers have a list rather than a
+   graph, and making each one invent `row` and `x` for a single column is how two surfaces end up
+   disagreeing about what centred means. It is nine lines and fully tested.
+
+**Noticed.** Four.
+
+1. **Two of my own assertions were reading the wrong svg.** `container.querySelectorAll("svg path")`
+   picks up the station glyph inside every node as well as the connectors, so a test about connector
+   geometry was asserting against a glyph's arc. Scoped to the connector layer, and the reason is in
+   the helper's comment. That is the third time in this session a test of mine measured something
+   other than what it named.
+2. **A row number is a RANK, not a distance, and I found that by writing the test.** `row: 9` beside
+   `row: 0` puts them adjacent, because the rows present are sorted and indexed. That is the right
+   behaviour, since a caller numbering 0, 10, 20 to leave themselves room should not get two screens
+   of nothing, and it is the opposite of the obvious guess. Pinned.
+3. **The bezier floor is unreachable at the estimated heights**, and that is a fact about the
+   component rather than a hole in the test: the smallest possible `dy` is `ROW_GAP` at 64, and 0.55
+   of that is 35.2, already above the floor of 24. The floor only applies once a MEASURED short node
+   pulls two rows closer than the estimate does. Written into the test rather than left as a gap.
+4. **`agent-audit-2026-08.md` §6 says "All 19 beautifui.dev components ported"** and the item corrects
+   it to twenty. That correction is now true: the count is twenty and all twenty have a Meridian file.
+   The register line should move from `context` to `CLOSED`.
+
+**Gates.** tsc clean · 9,606 pass / 0 fail / 23 skip across 576 files · build ok. New suite is 27
+tests. No raw colour, asserted by a test that greps the rendered markup for `#hex` and `rgb(`.
+Ratchet total unchanged.
+
+**Owed and still yours:** the visual pass. A graph is the component where I am least able to tell
+whether it looks right from the markup, and the 40-node case in particular.
