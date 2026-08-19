@@ -108,12 +108,27 @@ if [ -f "$KIRO" ]; then
     say "${GRN}Nothing awaiting a verdict.${OFF} ${DIM}Work your own lane.${OFF}"
   fi
 
-  # anything Kiro could not proceed on
-  BLOCKED="$(grep -oE '^## (K-[0-9]+) · (BLOCKED|QUESTION)' "$KIRO" 2>/dev/null | tail -5)"
-  if [ -n "$BLOCKED" ]; then
+  # Anything Kiro could not proceed on, MINUS anything already ruled on.
+  #
+  # This used to print every QUESTION ever asked, forever, because it read only
+  # kiro-log and never checked whether an answer existed. On 2026-08-20 it
+  # reported Kiro blocked on K-81 and K-82 in the same run that reported nothing
+  # awaiting a verdict, twenty minutes after both were answered. A status line
+  # that cries wolf every run is one an agent learns to skip, which is worse than
+  # not printing it -- and this script exists precisely because a reminder nobody
+  # acts on is not a reminder.
+  #
+  # Same subtraction the verdict check above already does, for the same reason.
+  ASKED="$(grep -oE '^## K-[0-9]+ · (BLOCKED|QUESTION)' "$KIRO" 2>/dev/null | grep -oE 'K-[0-9]+' | sort -u)"
+  ANSWERED="$(grep -oE '^## K-[0-9]+ · RULED' "$CLAUDE" 2>/dev/null | grep -oE 'K-[0-9]+' | sort -u)"
+  OPEN_Q="$(comm -23 <(printf '%s\n' "$ASKED" | grep -v '^$') <(printf '%s\n' "$ANSWERED" | grep -v '^$') 2>/dev/null | grep '^K-' || true)"
+  if [ -n "$OPEN_Q" ]; then
     say ""
     say "${YEL}Kiro is blocked or asking on:${OFF}"
-    printf '%s\n' "$BLOCKED" | sed 's/^## /  /'
+    # Print the most recent line for each still-open id, so the verb and date show.
+    for id in $OPEN_Q; do
+      grep -E "^## ${id} · (BLOCKED|QUESTION)" "$KIRO" | tail -1 | sed 's/^## /  /'
+    done
     say "${DIM}These need a RULED entry from you, or they stay stuck.${OFF}"
   fi
 else
