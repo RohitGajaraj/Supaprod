@@ -1931,6 +1931,67 @@ It also happens to be the primitive the direction already asked for. [`../planni
 
 ---
 
+**K-81 · The loading state is coloured, loose and large, and the reference is none of those**
+`STATUS: TODO` · deps: K-09 · size: M
+
+**What.** Bring `LoadingState` to the reference's mechanics: monochrome cells, tighter type, and the three motion variants. Remove the brand-mark loader from the "Agent at work, two marks" gallery panel.
+
+**Why.** Founder review 2026-08-20, looking at the two side by side. Three specific complaints and all three are measurable.
+
+**The reference, read off the live site through `getComputedStyle` on 2026-08-20:**
+
+| | beautifului.dev | Meridian today |
+| --- | --- | --- |
+| Cell | **4x4px, radius 1px, fill `rgb(242,243,244)`** | azure |
+| Label | **13px · weight 500 · Inter · tracking -0.14px · line-height 19.5px** | 14px |
+| Elapsed | **12px · weight 400 · JetBrains Mono · `rgb(108,111,117)`** | 14px |
+| Variants | **Drive · Dots · Orbit · Surfer** | one |
+
+1. **The loader is monochrome there and azure here.** Near-white cells on the dark ground, no hue at all. The founder's instruction is to keep the reference's own treatment rather than substitute ours. This does **not** contradict the colour law: azure means "a machine is working", and a loader is already unambiguously that by motion and position, so the hue is spending a status word to say something the component already says.
+2. **The type is one size here and two there.** 13px label plus a 12px monospace elapsed, against our single 14px for both. That is why ours reads loose and large: no size difference means no rank, and the elapsed figure competes with the label instead of sitting under it.
+3. **Build `Drive`, `Dots` and `Orbit`. Skip `Surfer`** (founder's call: the fourth is not ours). The existing file already documents the timing reasoning to preserve, that the drive cycle is shorter than its sweep so two fronts are in flight, and the orbit is slower because one travelling cell at the same speed reads as a glitch.
+
+**And remove the brand-mark loader.** The gallery's "Agent at work, two marks" panel offers a brand asterisk beside the pixel lattice, and the founder has ruled against the asterisk outright. Drop the mark variant and its panel; keep the lattice. The standing ruling that the brand belongs in the logo and not in interaction states is already recorded in `DESIGN-SYSTEM.md`.
+
+**Acceptance.**
+- Cells are monochrome and measure 4x4 with a 1px radius in both grounds.
+- Label and elapsed sit on two different type stops, from the ladder, never arbitrary values.
+- Three variants render and are switchable in the gallery.
+- The brand-mark loader is gone from `_authenticated.meridian.tsx` and from `LoadingState`.
+- Ratchet total unchanged or lower.
+
+**Owns.** `src/components/meridian/LoadingState.tsx`, `src/components/meridian/__tests__/loading-state.test.tsx`, `src/routes/_authenticated.meridian.tsx`
+
+---
+
+**K-82 · A trend chart in `InsightCards`, and permission to decline it**
+`STATUS: TODO` · deps: K-09 · size: M
+
+> **READ THIS BEFORE STARTING.** The founder's instruction, verbatim in substance: *"If you can add value, only touch the current insight cards. If not, don't touch and spend much time and damage the existing one. I do not want to damage the existing one. It has already gone through a lot of fine-tuning."*
+>
+> **So this item may be declined, and declining it is a legitimate outcome that costs you nothing.** `InsightCards.tsx` is 56KB, the largest file in Meridian, and it is already tuned. If the chart cannot be added without disturbing what is there, write that in the log with what you found and stop. A `BLOCKED` entry saying "this would degrade the card and here is the line where it breaks" is a better result than a chart that ships and makes the card worse.
+
+**What.** Add a small multi-series trend chart to the insight card, of the shape the reference uses.
+
+**Why.** The card today states a movement in words and numbers and never shows it. The reference pairs the same sentence with a two-series line chart, and the founder's read is that a reader relates to the shape faster than to the figure.
+
+**The reference's version, from its own section:** headline sentence with the subject inline, then two named series side by side each with a percentage and an absolute (`Mint Chip -4.41% / -$2,377.66` beside `Pistachio +1.15% / +$617.22`), then a panel labelled "Trend snapshot" carrying two smoothed lines with a dot at each series end and a dashed extension to the axis, series toggles as small pills, and a follow-up question as a pill below. It describes itself as "scrub-ready live charts", so the line is intended to be interrogated rather than decorative.
+
+**How, and the constraints are the interesting part.**
+- **No chart library.** The repo has none and this item is not the place to add one. It is two smoothed paths in an SVG.
+- **Series colour is the hard problem and it is already solved elsewhere.** Two series need two hues that are NOT status, and the status palette is five words with fixed meanings. `--mrd-viz-*` exists in `meridian.css` for exactly this, under a founder ruling that a chart series answers "which of these is which" rather than "what does this mean". Use it. A series painted `--mrd-pass` would assert an outcome.
+- **It must survive the light ground**, where a thin line at mid lightness reads as grey. The status chips added on 2026-08-19 exist for the same reason; a 1.8px line is closer to a glyph than to an area, so check it in both grounds before believing it.
+
+**Acceptance.**
+- Two series render with a dot at each end, in both grounds, at a size that fits the existing card without changing the card's outer dimensions.
+- No raw colour and no status token used as a series colour.
+- Every existing `InsightCards` test still passes **unmodified**. If a test must change, that is the signal to stop and file `BLOCKED` instead.
+- The card renders identically to today when no series data is supplied.
+
+**Owns.** `src/components/meridian/InsightCards.tsx`, `src/components/meridian/__tests__/insight-cards.test.tsx`, `src/routes/_authenticated.meridian.tsx`
+
+---
+
 ## 3. Build log
 
 **Moved to [`ledger/`](./ledger/README.md) on 2026-08-19.** Both agents were writing this section, which guarantees conflicts. Each now appends to its own single-writer file:
