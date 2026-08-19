@@ -168,6 +168,27 @@ So you know what is covered and do not attempt it:
 5. **What does it do at the sizes nobody drew?** Zero rows, one row, 200 rows, a 90-character label, a 6-hour duration. *`useElapsed` renders an 86-hour hold as `5160m 0.0s` because it has no hours branch, and that was found by reading rather than by looking.*
 6. **Does colour still mean something in greyscale?** Structure carries meaning; hue confirms it. If removing colour removes the meaning, the structure was never doing its job.
 
+#### The reference, measured off the live site 2026-08-19, not read off a screenshot
+
+Run against `https://www.beautifului.dev/`, 424 sampled elements, via `getComputedStyle`:
+
+| | beautifului.dev | Meridian components today |
+| --- | --- | --- |
+| Dominant row height | **20px** (156 of 424), then 23 · 29 · 28 · 32 · 36 | RunTimeline **29** · ToolStream **44/28** · PlanCard **48** · Spend **21** |
+| Type sizes actually in use | **14 · 13 · 12.5 · 12 · 11.5** | **14px, and nothing else** |
+| Gap scale | **4 · 5 · 6 · 8 · 10** | mixed |
+| Radii | **6 · 7 · 8** | mixed |
+| Body | Inter, weight 400, 14px | — |
+
+**Two things to take from this, and the second is the important one.**
+
+1. **The reference is far denser.** Our rows run 1.5x to 2.4x taller than its dominant 20px. Density is not crowding; it is how a run of forty tool calls stays readable without becoming a scroll.
+2. **The reference runs a real type hierarchy and we do not.** It uses five sizes down to half-pixel steps; every Meridian component measured uses **one size, 14px, for everything**. That single fact explains most of "it looks flat and randomly placed" better than any spacing tweak: with no size hierarchy nothing declares its rank, so the eye has no path through the row and every element reads as equally important, which means none of them reads as important.
+
+**Sibling components must share a base row height.** Four views of one run currently use four. Pick one, put it in the file, and let the exceptions be deliberate.
+
+> **One number in the audit register did not reproduce.** `agent-audit-2026-08.md` §6 records "Body weight 400 vs **the reference's 450**" and queues K-25 to change body weight on the strength of it. Measured on the live site, `document.body` computes **400**. Re-measure before acting on K-25; changing body weight repo-wide on a number that does not reproduce is exactly the class of mistake that register exists to prevent.
+
 **Status colour now has chips.** `--mrd-{status}-chip` and `--mrd-{status}-on-chip` exist in both grounds as of 2026-08-19. **On paper, coloured TEXT cannot carry status** — the gamut will not allow a vivid colour at the lightness the contrast floor demands, so amber resolves to brown. The chip carries the colour, the label carries the legibility, and both grounds use it so the component is one component. The argument and every measured figure are in `src/styles/meridian.css`.
 
 ---
