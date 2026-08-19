@@ -640,3 +640,58 @@ undecided approval was reset to `expires_at = now() + 60 days` to stop the demo
 queues rotting. **The criterion is being met by a manual re-arm that expires in
 late September, not by the product.** Anyone re-measuring it after that date will
 see it fail and will not know why unless this is written down.
+
+## Claude lane · LANDED · 2026-08-20 01:35
+
+**25 of the 53 pending approvals could never have done anything. Cancelled, with
+the reason on each row. The queue is 53 -> 28.** Applied as
+`20260820013000`, recorded in `schema_migrations`, guards passed.
+
+**The 2026-08-03 fix had regressed and nothing reported it.** That migration
+cancelled 24 futile `cluster.trigger` approvals and asserted "no new row of this
+kind can be created." Measured: **18 new ones between 2026-08-17 22:11 and
+2026-08-19 08:40**, a two-day window two weeks after the fix.
+
+The defaults change did land. It was not enough, because `loop.server.ts:186`
+demotes a tool to `confirm` whenever `toolRisk()` says high, and `toolRisk()`
+**failed closed to high for any tool with no catalogue row.** `cluster.trigger`
+had no row. The default said auto, the risk table said high, and the risk table
+won on every run. So the fix was reversed silently, by a table nobody thought of
+as policy.
+
+**K-11 is what actually closes it**, which is why this was safe to run today and
+would not have been safe last week: all 59 tools now carry a row and
+`toolRisk('cluster.trigger')` returns `low`. Clearing the backlog before that
+landed is what produced this second round.
+
+**All 18 were still futile, measured rather than assumed.** Six workspaces hold
+them and **every one has zero unclustered signals**, so each would have returned
+the same `{"themes": 0, "message": "No unclustered signals."}` the 2026-08-03
+migration recorded from walking the live product.
+
+**The second kind is new.** The seven `changelog.publish` rows are for a tool
+registered nowhere -- not in `src/lib/ai/tools/`, not in `tool-consequences.ts`.
+The 2026-08-03 migration explicitly left them alone as "real decisions a human
+still owns", which was true then. The tool has since been removed or renamed, so
+approving one now would dispatch a call that cannot resolve.
+
+**Method taken wholesale from the file this follows, because its argument has not
+improved on:** cancelled, not deleted, and not bulk-approved. Deleting destroys
+the evidence it happened; bulk-approving writes receipts saying a human decided
+something no human looked at.
+
+**What is left, and it is honest.** 28 pending: `memory.promote`,
+`studio.pr.merge`, `mission.dispatch` and `backlog.prioritize`, 7 each, all real
+decisions. Criterion 1 targets under 10. **The path from 28 to 14 is wiring K-10
+in**, since `memory.promote` and `backlog.prioritize` both resolve `never-ask`
+under it, and the module is currently pure and consumed by nothing. The remaining
+14 are `studio.pr.merge` (always-human, correctly) and `mission.dispatch`
+(earn-it).
+
+**One thing this file cannot fix, and it matters before the re-seed.** All seven
+`changelog.publish` rows are seeded -- one per Helio prefix, identical id suffix
+`-2a03-4000-8000-000000000004`, every one in an `is_sample` workspace -- written
+by `20260725130000_helio_demo_seed_rich.sql:1184`. **A re-seed restores all
+seven**, because the clone copies whatever the master workspace holds. The seed
+writes an approval for a tool the product no longer has, and that must be
+corrected in the seed rather than re-cancelled after every clone.
