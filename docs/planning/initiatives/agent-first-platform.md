@@ -364,16 +364,200 @@ The Engine-Room doctrine is preserved exactly: depth 3 is reachable on demand an
 
 ---
 
-## 5. Station model: signals, agents, backend, handoffs
+## 5. Every surface, traced end to end
 
-Full per-station tables are maintained in [`../../design/SEVEN-STATIONS-BLUEPRINT.md`](../../design/SEVEN-STATIONS-BLUEPRINT.md). The changes this direction makes to every station, uniformly:
+**Verified against code and production on 2026-08-19, not read from the blueprint** — which was checked and found stale in six places. Each block is Purpose → Intent → Inputs → Agent → Backend → Writes → Handoff → Next → Learning, then the gap that is actually there.
 
-1. **Every station gets a `missionId`.** Removes the `station === "build" ? … : null` special case at `driver.server.ts:1189`. Unlocks steering, handoff-block injection, and `learning.record`'s recovery path for all seven.
+Four changes apply to **all seven stations** and are not repeated in each block:
+
+1. **Every station gets a `missionId`.** Removes the `station === "build" ? … : null` at `driver.server.ts:1189`. Six of seven currently run with null, which is why steering reaches one station.
 2. **Every station emits `station` and `tool` SSE frames.** The protocol exists; nothing emits it.
-3. **Every handoff carries artifact references.** `dispatchReadySteps` currently passes none by design; step N+1 must be able to reach step N's output.
-4. **Every station's hold reason is rendered.** 16 hold reasons exist with operator sentences already written (`driver.ts:652-684`); they surface nowhere.
+3. **Every handoff carries artifact references.** `dispatchReadySteps` passes none by design (`mission-advance.server.ts:743-758`), so step N+1 cannot reach step N's output.
+4. **Every hold reason renders.** 16 exist with operator sentences written (`driver.ts:652-684`) and surface nowhere.
 
 ---
+
+### 01 Discover
+
+**Purpose** turn everything customers and the market say into a small number of things worth attention.
+**Intent** *"what is going wrong, and what is new."*
+**Inputs** ~20 pull connectors, each calling `writeSignals` (`sources/sink.server.ts:61`); the Scout (`scout/emit.server.ts:50`); MCP sources; `researcher-tick`; manual capture; and the agent's own `signals.log`.
+**Agent** Watch, Research, Listen — three in parallel, which is correct: read-only, breadth-first, independent sources.
+**Backend** `writeSignals` screens, dedups on `external_id`, stamps `source_kind`, embeds inline, and writes a `stage_events` row per signal. `clusterSignalsCore` (`cluster.server.ts:103`) takes ≤80 unclustered signals, asks a model for themes, scores novelty, claims signals atomically via `.is("theme_id", null)`, and attaches leftovers through `match_themes` above 0.8 similarity. `promoteClustersOnce` (`promote.server.ts:236`) applies `qualifies` — frequency ≥8, severity ≥4, confidence ≥0.75, max 2 per workspace per sweep — and opens a `spine_tracks` row.
+**Writes** `signals` · `themes` · `spine_tracks` · `artifact_lineage` · `stage_events`
+**Handoff** both. Automatic: `cluster-tick` every 10 min clusters then promotes, and `track-tick` walks the track. Human: `promoteThemeToOpportunity` writes an `opportunities` row.
+**Next** a ranked bet appears in Decide.
+**Learning** outcome support **gates** autonomous promotion — a theme at support ≤ −2 refuses to auto-start (`promote.ts:172-178`) — and orders `rankForPromotion`.
+
+> **The gap: eleven write paths bypass the sink.** `sink.server.ts:1-8` says so itself — it claimed to be the only one until 2026-08-15. The public webhook `ingest-signals.ts:138` is among them. Each bypass skips dedup, `source_kind`, the injection screen, the inline embedding **and the `stage_events` row**, so those signals are invisible to the surface that reports where the loop stands.
+> **Second gap:** the Discover queue a person reads has **no outcome term at all**, and that is deliberate (`brain/discover-outcome-term.test.ts`) — a learning reaches a theme only through a promoted opportunity, and promoted themes are excluded from that ranking, so the term would evaluate against an empty set.
+
+---
+
+### 02 Decide
+
+**Purpose** rank what is worth doing, and red-team it before a person sees it.
+**Intent** *"what should I build next, and why that."*
+**Inputs** `listOpportunities`, `listThemes`, `listLearnings`, `getBriefAlignment`, `getPrecedentCitations`.
+**Agent** Prioritize, then Challenge. Sequential, because the second reads what the first filed.
+**Backend** a nine-key deterministic sort (`ranking.ts:317-336`): ICE → Critic verdict → brief alignment → **outcome support** → corroboration → confidence → impact → created_at → id. The Critic loads precedent from past settled outcomes (`critic.server.ts:245`) before ruling.
+**Writes** `opportunities` · `prds` · `roadmap_audit` · `stage_events` · `artifact_lineage`
+**Handoff** human click runs `generatePrd` and lands on the spec. Autonomous: strategist then critic.
+**Next** a cited spec at Plan.
+**Learning** ICE is a generated column driven by `confidence`, which outcomes move — so a settled verdict changes rank key 1 and rank key 4 at once.
+
+> **The gap, and it is the moat's:** **`/decide` never writes a `decisions` row.** Grepping `createDecision`, `from("decisions")` and `decisions.functions` in that route returns nothing. The station named Decide settles a bet by updating an opportunity and drafting a spec. It also contains **zero forecast references**. So the one station whose job is deciding neither records a decision nor captures a belief about it.
+
+---
+
+### 03 Plan
+
+**Purpose** turn a call into a spec somebody could build from, with its citations attached.
+**Intent** *"write down exactly what we are building and why."*
+**Inputs** a decision, or an opportunity.
+**Agent** Draft, then Plan.
+**Backend** `prd.draft` (`registry.server.ts:3254`) reads the opportunity if passed, drafts the body with its own model call, inserts `prds`. The human path adds `savePrd`, `generateTaskGraph`, `createGithubIssueForPrd`, `dispatchStudioSession`, `chooseDesignRoute`.
+**Writes** `prds` · `tasks` · `opportunities` · `decisions` · `roadmap_audit` · `spine_track_members` · `stage_events` · `artifact_lineage`
+**Handoff** automatic, behind two real guards: `produced-nothing` (a station that ran cleanly and filed nothing does not advance, `driver.server.ts:1453`) and `nothing-to-hand-on` (it filed the wrong kind, judged against the **next** station's need, `:1508`).
+**Next** Design, or straight to Build when the surface exists.
+**Learning** the spec is what a learning is later written back against, via `prd_id`.
+
+> **The gap:** `prd.draft` writes `opportunity_id: opp?.id ?? null` and its own description tells the agent nothing in the toolset creates an opportunity. So **every autonomously drafted spec has a null `opportunity_id`**, severing the bet→theme route a learning needs. The codebase compensates with a second route through `spine_track_members`, which is a real repair rather than a workaround, and worth keeping.
+
+---
+
+### 04 Design
+
+**Purpose** put a surface in front of the spec before code is written.
+**Intent** *"show me what this looks like."*
+**Inputs** a `prds` row, `design_memory` rules, `prd_flows`.
+**Agent** Design, then Critique.
+**Backend** `design.draft` (`registry.server.ts:3838`) now does three things: `prepareScaffoldSpeculative` → upserts `prd_scaffolds`, inserts the `prototypes` share record, inserts `prototype_files`.
+**Writes** `prd_scaffolds` · `prototypes` · `prototype_files` · `prds.design_gate_status` · `design_memory` · `prd_flows`
+**Handoff** automatic. `STATION_NEEDS.build` is `{kinds: ["prd","task"]}` — **a design artifact is not required to reach Build.**
+**Next** Build.
+**Learning** `design_memory` accumulates rules the next scaffold reads.
+
+> **The gap:** the design gate is **human-only by construction.** `decideDesignGate` hardcodes `actor: "human"` (`design-scaffold.functions.ts:1424`) with no agent tool and no cron. And `designGateBlocksDispatch` is not called from `studio.stage`, so **a driver-run Build never meets the gate at all.** This is the station most obviously not agent-first, and it is a skipped station in most real routes.
+
+---
+
+### 05 Build
+
+**Purpose** write the code, run the checks, open the pull request.
+**Intent** *"make the change."*
+**Inputs** the spec, the design section, a mission.
+**Agent** Engineer, then Review.
+**Backend** `runAgentLoop` resolves agent, workspace and model, applies concurrency backpressure at 5 running per workspace, resolves the tool list from the registry, sets an adaptive step budget capped at 40, and resolves approval mode through `resolveToolMode` (`loop.server.ts:162`).
+**Writes** `agent_runs` · `agent_run_checkpoints` · `agent_messages` · `agent_approvals` · `tool_calls` · `mission_steps` · `studio_changesets` · `studio_changes` · `builder_file_claims`
+**Handoff** **human click.** A merged changeset does not become production by itself.
+**Next** Ship.
+**Learning** clean completions trigger reflection and an autonomy auto-advance (`loop.server.ts:816`).
+
+> **The gap:** this is the only station a person can steer, and 61% of all agent runs finish `failed` or `completed_with_failures`. `builder` carries **118 approvals against 88 runs** — more approvals than runs.
+
+---
+
+### 06 Ship
+
+**Purpose** put it in front of customers, and hold the one call that cannot be undone.
+**Intent** *"release it, safely."*
+**Inputs** a merged changeset with a green preview deploy.
+**Agent** Verify, then Announce.
+**Backend** `promoteChangesetToProductionCore` (`deployments.functions.ts:788`) refuses a non-merged changeset, requires a successful preview, deploys that preview's commit with `production: true`, writes the `deploy.promote` receipt, **closes out every spec the release carries** via `closeOutSpecOnPromote`, and inserts the `launch_plans` row with its `check_by` date.
+**Writes** `deployments` · `agent_approvals` · `prds` · `launch_plans` · `changelog_entries` · `announcements` · `stage_events` · `artifact_lineage`
+**Handoff** **automatic into Learn**, armed by `prds.shipped_at`. That `check_by` date is what makes the outcome get measured without anyone remembering.
+**Next** the outcome comes due.
+**Learning** the release is the event that starts the clock on the forecast.
+
+> **What holds:** `release.publish` is pinned to `review` in three independent places and never graduates. That is correct and should stay.
+> **The gap:** announcements are entirely human — zero agent tools, zero crons.
+
+---
+
+### 07 Learn
+
+**Purpose** settle what actually happened, and change what gets surfaced next.
+**Intent** *"was that worth doing."*
+**Inputs** `prds.shipped_at`, a due `launch_plans.check_by`, a due forecast horizon.
+**Agent** Measure, then Guide.
+**Backend** `applyOutcome` (`outcome.functions.ts:448`) is one shared core with **five callers, three of them not human**: the human `recordOutcome`, the hourly `runOutcomeReviews`, MCP `settle_outcome`, and the `learning.record` tool. It moves `opportunities.confidence`, recomputes ICE, inserts the learning with `opportunity_id`, calls `rememberOutcome`, writes `prds.outcome` with an RLS-refusal check, publishes the changelog, infers supersession, and **holds the deciding agent's trust arc on a miss**.
+**Writes** `learnings` · `prds` · `opportunities` · `agent_memory` · `memory_recall_log` · `changelog_entries` · `playbook_proposals` · `artifact_lineage`
+**Handoff** back into Decide's ranking, automatically.
+**Next** the queue reorders.
+**Learning** this station **is** the learning loop. `match_agent_memory` even re-ranks retrieval on it: `ORDER BY distance + CASE verdict WHEN 'validated' THEN -0.05 WHEN 'missed' THEN 0.05`.
+
+> **The gap, and it is a live crash:** `learning.record` accepts `verdict: "uncertain"` and its description tells the agent to *"say uncertain rather than guessing."* The `learnings.verdict` CHECK permits three values and no migration ever widened it, and the insert throws on error. **An obedient agent following the tool's own instruction gets a 23514 and the tool call fails.**
+> **Second gap:** a human pressing "too early to tell" writes `prds.outcome_check_by`, which only the human queue reads. The agent sweep never reads it and settles the spec anyway.
+
+---
+
+### Brain — what the crew reads before it acts
+
+**Purpose** make past judgment reachable by whoever, or whatever, needs it next.
+**Intent** *"what do we already know about this."*
+**Inputs** `agent_memory` (1,170 rows, **all workspace-visible**), `rag_chunks`, `decisions`, `house_rules`, settled outcomes.
+**Agent** Guide writes; every other agent reads.
+**Backend** `indexer-tick` chunks and embeds changed content hourly; `derive-tick` writes insights; `memory-tick` decays low-importance rows nightly; `retro-tick` and `house-rules-tick` distil standing rules from agent traces and from human learnings respectively.
+**Handoff** **into every agent's system prompt**, at `loop.server.ts:756`. This is the single most important edge in the product and it is genuinely wired.
+**Learning** an approved `house_rule` reaches every future agent. That is the mechanism behind the compounding claim, and it holds.
+
+> **Measured:** 101 recalls in production had a reader who was **not** the memory's author. The memory travels, and README understated this for weeks.
+> **The gap:** `insights.brier_score` — the calibration number the entire forecast thesis rests on — is computed nightly and **rendered on no surface at all.**
+
+---
+
+### Guardrails (Engine Room) — spend, quality, safety, the record
+
+**Purpose** hold the boundaries a person set in advance, so autonomy is safe enough to sell.
+**Intent** *"what are they allowed to do, and what has it cost."*
+**Inputs** `guardrail_hits` (**8,535**), `ai_budgets`, `credit_ledger`, `ai_evals`, `drift_snapshots`, `job_runs`, `error_events`.
+**Agent** none by design. This is where a person sets policy.
+**Backend** the AI chokepoint enforces budget → credits → cache → pre-guard → RAG → provider → post-guard → humanize → log, on every call with no second path. `checkKillSwitch` runs on every model call, which is why pausing a workspace genuinely stops every running loop at its next step.
+**Handoff** policy resolution into `resolveToolMode` at dispatch.
+**Learning** `drift-tick` opens and resolves incidents; `self-improve-tick` proposes changes.
+
+> **Measured:** guardrails fire **8,535 times against 113 human gate events** — policy outruns permission 75 to 1, which is the doctrine working.
+> **The gaps:** the trust score's eval leg is dead (no `score` column exists — seven named dimensions do), `eval-tick` has not run since 2026-08-05, and **`job_runs` and `error_events` are readable only from `/admin`**, so a customer cannot learn that their autonomous layer stopped.
+
+---
+
+### Runs and Approvals — the work in flight, and the few calls that block
+
+**Purpose** show what is happening, and hold only what genuinely needs a person.
+**Inputs** `agent_runs`, `agent_run_checkpoints` (the only place run history lives), `agent_approvals`, `human_gate_events`.
+**Backend** five stranded-work sweepers run in `resume-runs`; a run silent past 10 minutes is halted; a mission with no steps past 20 minutes is abandoned. **`waiting_approval` is never swept** — a human gate has no timer, deliberately.
+**Handoff** a decided approval is injected into the loop at resume.
+**Learning** `agent_scorecard` and `agent-track-record` compute per-agent and per-tool records on read.
+
+> **The gap:** 53 approvals pending at zero users, oldest **627 hours**, and only 26% of the 313 ever raised were for something irreversible. Covered fully in §1.7b and §6.2.
+
+---
+
+### Settings, Notifications, and the workspace
+
+**Settings** owns what agents may do (`agent_autonomy`, `agent_tool_modes`), what is connected, and who is a member. **`agent_tool_modes` holds one row and `trust_graduation_proposals` holds two** — the graduation machinery has fired twice in the product's life.
+
+**Notifications has no table.** It is computed on read from `agent_approvals`, `agent_runs`, `ai_budgets` and `drift_incidents`. `/notifications` redirects to Settings, `/inbox` redirects to `/today`.
+
+> **The gap that matters most here:** `user_notification_preferences` has **no default-row trigger and no seeding migration**, and `sendDueDigests` reads only rows that exist. **A user who never opens notification settings receives no digest, ever, no matter what ran overnight.** Compounding it, `generateDigest` stamps `last_digest_sent_at` *before* the send, so a missing API key silently burns the window.
+
+**Workspace and products** are the tenancy spine: account → workspace → product, with RLS keyed on membership in the database rather than in application code. That is what makes autonomy safe here, and it is not changing.
+
+---
+
+### Cross-station flows that are not any one station's job
+
+| Flow | State |
+| --- | --- |
+| **Signal → theme → track → seven stations** | Wired and running: `cluster-tick` every 10 min, `track-tick` every 10 min |
+| **Outcome → confidence → ICE → Decide rank** | Wired, and reads. The loop genuinely closes here |
+| **Outcome → theme support → autonomous promotion gate** | Wired. Refuses to auto-start a theme whose bets have missed |
+| **Outcome → `agent_memory` → every agent prompt** | Wired, including a retrieval re-rank on verdict |
+| **Forecast → resolution → anything** | **Open.** Three writers, four readers, and every reader is a display |
+| **Failure → a person** | **Open.** ~2,880 tick failures in 30 days reach no user surface |
+| **Approval record → autonomy graduation** | **Open.** The machinery exists and has fired twice |
+
 
 ## 6. Agent architecture, autonomy, memory, checkpoints
 

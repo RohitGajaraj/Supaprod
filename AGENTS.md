@@ -262,6 +262,25 @@ The hard gate is the runtime sanitizer at the AI chokepoint, which protects gene
 
 **Simplicity.** Minimum code that solves the problem. No abstractions for single-use code, no configurability nobody asked for, no error handling for impossible states. If you wrote 200 lines and it could be 50, rewrite it.
 
+**Search before you write. This is a hard rule, not a preference** (founder ruling, 2026-08-19).
+
+> *"No code is being written without analysing whether it is already sitting in some form in the codebase. Only then does it need to start writing code."*
+
+**Before writing any function, component, type, helper or stylesheet rule, look for it first.** Query the knowledge graph (`graphify explain "<symbol>"`), grep for the behaviour rather than the name you would have given it, and read the folder you are about to add to. **If something close already exists, extend or import it.** If you genuinely must add a second one, say in the commit why the first could not serve.
+
+**The evidence this repo has already paid for, measured 2026-08-19:**
+
+- **Seven copies of `initialsFrom`.**
+- **Four status normalisers, three of which disagree** about what `completed_with_failures` means, so two surfaces read the same run as opposite outcomes.
+- **`ReadFailed` reached five copies** before it was pulled into one place.
+- **Three shells** — `AppShell`, `MissionShellView`, `RoomChrome` — with a hardcoded pathname list choosing between them.
+- **Five design systems**, each written because the previous one did not have the token somebody needed at 4pm.
+- **39 vendored UI modules imported by nothing**, carrying 322 occurrences of retired vocabulary.
+
+Every one of those began as a reasonable person writing the obvious thing without checking. **The cost is not the duplicate; it is that the copies drift and then disagree**, and a reader cannot tell which one is right.
+
+**The same rule applies to deleting.** Unused is not a reason to delete: this repo's most common defect is a capability built correctly and reachable from nowhere, so absence of callers usually means a missing door rather than dead weight. Delete only what is **shadowed** (a later declaration wins, so it never executes), **regenerable** (one command restores it), **superseded** (a live equivalent exists), or **broken as written** (adopting it would need a rewrite). Anything else gets a door, not a grave. Worked application: [`docs/operations/kiro-queue.md`](./docs/operations/kiro-queue.md) Group F.
+
 **Surgical changes.** Every changed line traces to the request. Do not improve adjacent code, do not refactor what is not broken, match the surrounding style. Remove orphans *your* change created; mention pre-existing dead code rather than deleting it.
 
 **No mocks and no stubs.** If it renders, it reads and writes real data.

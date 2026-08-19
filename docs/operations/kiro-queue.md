@@ -47,6 +47,27 @@ Two agents build this repo at once and they have **different capabilities**, so 
 3. Move `BUILT` → `VERIFIED` or `REJECTED`, with a reason on the same line.
 4. A `REJECTED` item goes back to `TODO` with a note saying what was wrong.
 
+### You are expected to judge, not to comply
+
+**Every item carries a `Why` for one reason: so you can tell when it is wrong.** The `What` is a proposal from someone who read the code and could still have misread it. You are reading it fresh, at build time, with the file actually open. That is a better vantage point than the one the item was written from.
+
+**Push back when any of these is true.** Do it in the build log, before or instead of building:
+
+- **The premise does not hold.** The count is different, the line has moved, the defect was already fixed, the file does not say what the item claims. Report the real number. Several items in this queue exist *because* an earlier document asserted something the code had stopped doing.
+- **The fix is wrong even though the problem is real.** Say what you would do instead and why. An item that names a bad remedy for a true defect is the most common failure mode here, and you are better placed to catch it than the person who wrote it.
+- **It cannot be done without a database after all.** Move it to §4 Blocked and say which line needs the live answer. A guess dressed as a build is worse than a blocked item.
+- **Doing it would break something the item did not consider.** Stop. K-28 is the worked example: the obvious move on that item ships a visible regression, and the only reason it is written down is that somebody checked the cascade instead of trusting the instruction.
+- **The acceptance criteria cannot actually be checked**, or they would pass while the thing stayed broken. Say so. A criterion that green-lights a defect is worse than none.
+
+**What you owe back on every item, in §3 Build log:**
+
+1. **Did** — what you built, in two or three sentences.
+2. **Unsure** — anything you guessed at, and any decision that could reasonably have gone the other way. **This is the most valuable field.** It is where verification gets aimed, and an empty one on a genuinely ambiguous item reads as not having looked.
+3. **Noticed** — anything true that is not in the item. A nearby defect, a stale comment, a count that did not match, a file that surprised you. This is how the queue grows correctly.
+4. **Gates** — tsc, test, build.
+
+**What you do not decide alone:** anything touching a migration, production data, or a claim about what is live. Those are not judgment calls, they are things the repo has already been burned by guessing at. Nine features once shipped that passed every test and did nothing in production, and none was found by reading code.
+
 ### Status values
 
 `TODO` → `IN PROGRESS` → `BUILT` → `VERIFIED` | `REJECTED`
@@ -57,7 +78,17 @@ Kiro owns the first three transitions. Claude owns the last. Neither writes the 
 
 These are not style preferences; `bun test` enforces them.
 
-- **Meridian is the only design system.** Tokens in `src/styles/meridian.css`, components in `src/components/meridian/`. A **new** file carrying `--sp-*`, `--ds-*`, `--text-*`, `--hairline`, `--madder*`, `--glacier`, `--font-pixel`, `--raised`, `data-obsidian`, or a raw colour (`#hex`, `rgb()`, `hsl()`) **fails the ratchet**. So does an existing file whose count grows.
+- **MERIDIAN IS THE ONLY DESIGN SYSTEM. FIVE OTHERS ARE RETIRED AND NONE OF THEM IS A REFERENCE.**
+
+  Retired, permanently: **v1 Ember**, **v3 Obsidian**, **v4 Loom**, **v5 Tempo**, and **Cadence/ink**. Their vocabularies are `--sp-*`, `--ds-*`, `--text-*`, `--hairline`, `--madder*`, `--glacier`, `--font-pixel`, `--raised`, `[data-obsidian]`, `src/components/shell/primitives.tsx` and `src/components/ui/`.
+
+  **Build only from `src/styles/meridian.css` and `src/components/meridian/`.**
+
+  **THE TRAP, and it is the reason this rule needs five lines instead of one.** Those systems **still run**, deliberately — deleting them in one move is how the 2026-07 rebuild failed. So **5,864 occurrences across 285 files are still in the tree, and you will open one.** A file using `--sp-ink` is not showing you the house style; it is showing you debt that has not been paid yet. **Reading a retired pattern is never permission to copy it**, and neither is a comment inside a retired file arguing for itself — one such comment calls its own hairline rule *"a rule, not decoration"*, and the founder has ruled that retired files arguing with Meridian lose. **When a retired file disagrees with Meridian, Meridian wins and the retired file is wrong.**
+
+  **This is enforced, not requested.** `src/__tests__/meridian-ratchet.test.ts` fails `bun test` when a **new** file carries any retired marker or a raw colour (`#hex`, `rgb()`, `hsl()`), and when an **existing** file's count grows. **Never widen the baseline to pass** — `bun run design:ratchet` is only for recording debt you removed.
+
+  **No `--mrd-*` token fits? That is a gap in Meridian, and you build it there** (standing founder ruling). A token earns its place on the second caller, is named for meaning rather than appearance, is measured in both grounds, and carries its argument in the file. Reaching back to a retired token because it already has the value you want is the single move this whole migration exists to stop.
 - **Never widen the baseline to pass.** `bun run design:ratchet` is only for recording debt you removed.
 - **No `--mrd-*` token fits? That is a gap in Meridian — build it there.** A token earns its place on the second caller, is named for meaning not appearance, and carries its argument in the file.
 - **Colour carries status, never decorates.** Five status words only: `you` (a person is required), `agent` (a machine is working), `pass`/`fail` (an outcome that happened, never an intent), `hold` (waiting on a condition). It must survive a greyscale test.
@@ -655,7 +686,25 @@ Deriving state from activity rather than storing it is what stops the six-spelli
 
 ---
 
-### Group F — Dead code, deleted rather than ported
+### Group F — Dead code, and the four tests something must pass before it is deleted
+
+> **FOUNDER RULING, 2026-08-19, and it governs every item in this group.** *"I do not want you to blindly delete it. If it is a duplicate, I am okay with it. If it is required, let us keep it rather than deleting it."*
+>
+> **Unused is not a reason to delete. It is a reason to ask why the door is missing.** This repo's own most common defect is *a capability built correctly and reachable from nowhere* — `AGENTS.md` §4 names it outright. Deleting such a thing removes the evidence of the gap and guarantees somebody rewrites it later.
+>
+> **DELETE only when one of these four holds. Name which one in the build log.**
+>
+> 1. **SHADOWED.** A later declaration of the same thing wins, so this one never executes. Removing it cannot change behaviour. *(K-28, K-29, K-30, and the shadowed half of K-33.)*
+> 2. **REGENERABLE.** Vendored library code that one command restores. Nothing authored here is lost. *(K-27: `bunx shadcn@latest add <name>` brings any of the 39 back.)*
+> 3. **SUPERSEDED.** A live Meridian equivalent already exists and is in use. The old one is not a spare, it is a second answer to a settled question. *(K-31, K-32, most of K-33.)*
+> 4. **BROKEN AS WRITTEN.** It cannot be adopted without a rewrite, so what is being kept is not a capability, it is a defect somebody may copy. **Say what is broken.** *(K-35: the mock harness keys on `serverFn.name`, which is not stable for `createServerFn` wrappers, and ignores the mutation key. K-36: 60 unexercised lines carrying a live status-mapping bug.)*
+>
+> **KEEP, and build the door instead, when:**
+>
+> - The capability **works** and is only unreachable. File it as a missing door, not as dead code.
+> - The **intent is good and only the wiring is missing.** Deleting removes a broken promise; wiring it removes the broken promise *and* delivers the feature. That is a product decision and it is not yours to take by default. **K-37 is now this case — see its note.**
+>
+> **If you are unsure which bucket something is in, it is a KEEP.** Deleting is only cheap when it is provably one of the four.
 
 Every item here removes lines. The measured Meridian debt in this repo is **not mostly a porting job**: `src/components/ui` alone is 455 occurrences of which 322 are unreachable, and `src/styles.css` carries three separate blocks that are overridden before they paint. Deleting is cheaper, safer and permanent, and it is the only kind of debt reduction that cannot regress.
 
@@ -847,8 +896,16 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 
 ---
 
-**K-37 · Delete the palette's two unwired mechanisms**
-`STATUS: TODO` · deps: none · size: S
+**K-37 · The palette's two unwired mechanisms: one deletion, one decision**
+`STATUS: NEEDS A RULING` · deps: none · size: S
+
+> **RECLASSIFIED 2026-08-19 under the Group F rule.** This item was written as a deletion and only half of it is one.
+>
+> **`palette-recents.ts` is a genuine delete.** `pushRecent` is called nowhere, so the storage key is never written and `getRecents()` has returned an empty array for every user since it shipped. Nothing is lost, because nothing was ever stored. It is BROKEN AS WRITTEN.
+>
+> **`desk-compose.ts` and the four ACT verbs are NOT.** "Add a task", "Capture a signal", "Share status" and "Start a focus block" are good palette verbs. The consuming half has zero callers and the event literals have no listener, so **the palette currently offers four actions that silently do nothing** — which is worse than not offering them. But the fix could equally be to **wire the listener**, and that ships a real feature instead of removing one.
+>
+> **Do not decide this alone.** Build the `palette-recents.ts` half, leave the verbs, and put the choice in the build log with what wiring would cost. The founder or Claude rules on it.
 
 **What.** Delete `src/lib/palette-recents.ts` and the `getRecents()` call plus its `RECENT` section in `src/components/supaprod/CommandPalette.tsx`. Delete `src/lib/desk-compose.ts` and the four dead ACT verbs it serves — "Add a task", "Capture a signal", "Share status" and "Start a focus block" — from `src/lib/palette-sections.ts:37-40`, together with the early-return branches that exist only to suppress navigation for them at `CommandPalette.tsx:168` and `GlobalComposer.tsx:142`.
 
