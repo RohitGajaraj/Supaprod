@@ -147,6 +147,29 @@ So you know what is covered and do not attempt it:
 
 **What you do not decide alone:** anything touching a migration, production data, or a claim about what is live. Those are not judgment calls, they are things the repo has already been burned by guessing at. Nine features once shipped that passed every test and did nothing in production, and none was found by reading code.
 
+### The bar is beautifui.dev, and it is a floor rather than an inspiration
+
+**Founder ruling, 2026-08-19, stated three times in one session because the work kept missing it.** Meridian is not "inspired by" beautifui.dev. **It is ported from it.** Where a pattern exists there, the job is to mimic it, not to reinterpret it. Where one does not, the job is to build something that would not look out of place beside it.
+
+> *"Just randomly, we cannot code and create some buttons, some random components. It needs to be a world-class, top-notch product."*
+
+**Port from the real source, never from a screenshot.** A screenshot preserves the look and loses the mechanics, and the mechanics are the part that is hard: the easing curve, the stagger, what happens at 200 rows, what the empty state does, where focus goes on Escape.
+
+**The failure this is aimed at is not ugliness. It is arbitrariness.** A component that renders correctly, passes its tests and clears the ratchet can still be **randomly assembled** — spacing that came from whatever looked fine, a glyph chosen because it was to hand, a label format that differs from the one three components over. Every one of those passes every gate this repo has.
+
+**So before a component is `BUILT`, walk this list. It is short on purpose.**
+
+1. **Does every column line up with the one above it?** Measured, not eyeballed. A duration that sits in the label column while every sibling row puts its number in the time column is the single most visible tell that a component was assembled rather than designed. *This is live in `RunTimeline` today: the `28m 0s` on a silence row does not sit on the clock column that every event row uses.*
+2. **Is one idea expressed one way everywhere in the component?** An agent credited as `Research · Discover` on one row and `Challenge` on the next is two formats. Pick the format, state it in the file, apply it to every row including the ones where half of it is missing.
+3. **Would an icon carry this better than a letter?** Cryptic ASCII markers (`[]`, `→`, `⇄`, `H`) are placeholders, not iconography. **Use the mark of the thing being named:** a pull request wears the source-host mark, a test run wears the test-runner's, a web fetch wears a globe, a human gate wears the person mark that already exists. And having chosen one, align it optically to the text baseline rather than to its own bounding box.
+4. **Does it sit in the same rhythm as its neighbours?** `PlanCard`, `RunTimeline` and `ToolStream` are three views of one run and today they read as three products. Same row height, same gutter, same label scale, same place for a timestamp, or the set is not a set.
+5. **What does it do at the sizes nobody drew?** Zero rows, one row, 200 rows, a 90-character label, a 6-hour duration. *`useElapsed` renders an 86-hour hold as `5160m 0.0s` because it has no hours branch, and that was found by reading rather than by looking.*
+6. **Does colour still mean something in greyscale?** Structure carries meaning; hue confirms it. If removing colour removes the meaning, the structure was never doing its job.
+
+**Status colour now has chips.** `--mrd-{status}-chip` and `--mrd-{status}-on-chip` exist in both grounds as of 2026-08-19. **On paper, coloured TEXT cannot carry status** — the gamut will not allow a vivid colour at the lightness the contrast floor demands, so amber resolves to brown. The chip carries the colour, the label carries the legibility, and both grounds use it so the component is one component. The argument and every measured figure are in `src/styles/meridian.css`.
+
+---
+
 ### Status is derived, not stored
 
 `TODO` → `STARTED` → `BUILT` → `VERIFIED` | `REJECTED`
