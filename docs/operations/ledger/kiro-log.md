@@ -1297,3 +1297,64 @@ tables, so adding one and forgetting to agree its meaning fails the build.
 > verification against production rather than one commit. The one worth doing first is
 > `run-analytics.ts`, because `cancelled` being unhandled there means every rate it reports has a
 > denominator that includes runs which stopped.
+
+---
+
+## K-13 · BUILT · 2026-08-20 01:15
+
+**Did.** `decision.record` now takes `forecast_claim`, `forecast_how_we_will_know` and
+`forecast_horizon_date`, refused as a set and refusing a horizon at or before now, with all three
+written into the insert as explicit nulls when absent. The `preview` names the claim and the horizon
+so the approval card shows the bet. 23 tests. Schema and insert only, no migration, nothing verified
+against the database.
+
+**The rules are the human path's, imported rather than re-derived.** `forecastRefusal` in
+`decisions.functions.ts` already carries both, each with a paragraph of reasoning, and I wired it
+through the same `superRefine` shape `createDecision` uses. Two copies of "what makes a forecast
+valid" is how the agent door and the person door come to disagree about it, and the reasoning is the
+part that would not get copied.
+
+**Unsure.** Three, and the first is the one decision the item left open.
+
+1. **The fields are OPTIONAL, not required.** The item says "gains forecast fields" and never says
+   required, so this was mine to settle. Required would mean an agent either fabricates a horizon to
+   satisfy the schema or files nothing at all, and both are worse than a decision recorded honestly
+   with no bet attached. The refusal is about COHERENCE rather than presence: all three or none. **If
+   the intent was to make every agent decision carry a forecast, this is the line to change**, and it
+   is one word per field. A test pins the current behaviour explicitly so the change would be visible.
+2. **A horizon a minute from now is accepted.** The rule is about the answer being available, not
+   about a useful window, and inventing a minimum would be a product decision nobody has taken. A
+   test asserts it, so if a minimum is wanted the test says where to put it.
+3. **The insert writes three explicit nulls rather than omitting the keys.** It means the row shape
+   does not depend on which branch of the tool ran. It matters most for
+   `forecast_horizon_date`, which is what `idx_decisions_forecast_due` indexes: an omitted column and
+   a null column are the same to Postgres here, but they are not the same to a reader diffing two
+   inserts, and I would rather the absence be visible.
+
+**Noticed.** Three.
+
+1. **The description now carries the reason, not just the fields**, built to the shape of the
+   sentence already in it. The existing one reads "a choice with nothing weighed against it is an
+   assertion, not a decision, and is refused"; the new one reads "a decision with no forecast is an
+   opinion rather than a bet", and then says the part that makes it defensible: everything else about
+   a decision can be reconstructed afterwards and this one thing cannot. Four tests hold that,
+   including that both refusals are stated so an agent does not have to discover them by failing.
+2. **`registry.server.ts` now imports from `decisions.functions.ts`, and that direction is safe but
+   worth flagging.** `decisions.functions.ts` does not import the registry, so there is no cycle
+   today. It does pull `createServerFn` and the auth middleware into the registry's module graph,
+   which was already true of the registry itself. I checked that a test can still import
+   `TOOL_REGISTRY` before writing anything, and it can, in under a second.
+3. **`src/lib/ai/tools/__tests__/` did not exist**, so this is the first test to live beside the
+   registry. Everything else that tests tool behaviour reads `TOOL_DEFAULTS` from `defaults.ts`
+   specifically to avoid importing the registry. That avoidance turns out to be unnecessary, which
+   is worth knowing: the schema of any tool is now directly assertable, and 58 other tools have no
+   schema test at all.
+
+**Gates.** tsc clean · 9,653 pass / 0 fail / 23 skip across 578 files · build ok.
+
+> **Claude does after, and the item already says it:** confirm the immutability trigger accepts an
+> agent write (it fires BEFORE UPDATE and this arrives on an insert, so it should, but that is a
+> claim about a trigger and not about code), confirm RLS, then measure
+> `decisions_with_forecast_claim` moving off 1. **The number to watch is not the count of forecasts,
+> it is the count of forecasts whose horizon is in the future when written**, because a horizon in
+> the past is the failure this schema now refuses and the old rows may carry them.

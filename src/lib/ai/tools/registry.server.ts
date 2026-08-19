@@ -18,6 +18,10 @@ import { embedOne } from "@/lib/rag/embed.server";
 import { withIdempotency } from "@/lib/runtime/idempotency.server";
 import { callModel } from "@/lib/ai/runtime.server";
 import { extractArrayField, wrapBareArrayField } from "@/lib/ai/json-shape";
+/* The human path's forecast validation, reused rather than re-derived. Two copies
+   of "what makes a forecast valid" is how the agent door and the person door come
+   to disagree about it. The reasoning for both rules is in that function. */
+import { forecastRefusal } from "@/lib/decisions.functions";
 import { enqueueHandoff, resolveAgent, type HandoffPayload } from "@/lib/ai/handoff.server";
 import { enqueueFanout, fanoutEnabled } from "@/lib/ai/fanout.server";
 import {
@@ -3662,16 +3666,60 @@ const decisionRevise = def({
 const decisionRecord = def({
   name: "decision.record",
   description:
-    "Record a decision you have made: the call, why you made it, and the alternatives you rejected. Use at the Decide station once the call is genuinely made, not to propose one. Requires at least one rejected alternative -- a choice with nothing weighed against it is an assertion, not a decision, and is refused.",
+    "Record a decision you have made: the call, why you made it, and the alternatives you rejected. Use at the Decide station once the call is genuinely made, not to propose one. Requires at least one rejected alternative -- a choice with nothing weighed against it is an assertion, not a decision, and is refused. Optionally carries a FORECAST: what you expect to happen, how you will know, and by when. A decision with no forecast is an opinion rather than a bet, and only a forecast recorded BEFORE the outcome is known can ever be graded -- everything else about a decision can be reconstructed afterwards, and that one thing cannot. Give all three parts or none, and never a horizon that has already passed.",
   category: "write",
-  argsSchema: z.object({
-    title: z.string().min(1).max(200),
-    rationale: z.string().min(1).max(4000),
-    alternatives_considered: z.array(z.string().min(1).max(500)).min(1).max(10),
-    prd_id: z.string().uuid().optional(),
-  }),
-  preview: (a) =>
-    `Record decision "${a.title}" against ${a.alternatives_considered.length} rejected alternative${a.alternatives_considered.length === 1 ? "" : "s"}`,
+  argsSchema: z
+    .object({
+      title: z.string().min(1).max(200),
+      rationale: z.string().min(1).max(4000),
+      alternatives_considered: z.array(z.string().min(1).max(500)).min(1).max(10),
+      prd_id: z.string().uuid().optional(),
+
+      /*
+       * ── THE FORECAST, ADDED 2026-08-20 ────────────────────────────────
+       *
+       * WHY THIS TOOL HAD NO FORECAST PARAMETER AND WHAT IT COST. `decisions`
+       * carries eleven forecast columns, an immutability trigger, a refusal
+       * guard and a partial index, and 1 row of 304 uses them. The cause was
+       * here: this is the tool the Decide crew is told to call, and it could not
+       * express a forecast at all, so 303 of 304 decisions were recorded through
+       * a hand that could not hold the one thing the strategy calls defensible.
+       *
+       * OPTIONAL RATHER THAN REQUIRED, and that is a deliberate reading of the
+       * item, which says "gains forecast fields" without saying required. Two
+       * reasons. A decision genuinely can be worth recording without one, and
+       * making it mandatory would mean an agent either fabricates a horizon to
+       * satisfy the schema or files nothing at all. Both are worse than a
+       * decision recorded honestly with no bet attached. The refusal below is
+       * about COHERENCE, not presence: give all three or give none.
+       */
+      forecast_claim: z.string().min(1).max(1000).optional(),
+      forecast_how_we_will_know: z.string().min(1).max(1000).optional(),
+      /** ISO date or timestamp. Refused if it is not in the future. */
+      forecast_horizon_date: z.string().min(1).max(40).optional(),
+    })
+    /*
+     * THE RULES ARE NOT RE-DERIVED HERE. `forecastRefusal` is the human path's
+     * validation, it carries the reasoning for both rules in its own comments,
+     * and the agent path getting its own copy is how the two would come to
+     * disagree about what a valid forecast is. This is the same `superRefine`
+     * wiring `createDecision` uses, against the same function.
+     */
+    .superRefine((v, ctx) => {
+      const bad = forecastRefusal(v);
+      if (bad) ctx.addIssue({ code: z.ZodIssueCode.custom, path: [bad.path], message: bad.message });
+    }),
+  /*
+   * The approval card reads this, so a person deciding whether to let a decision
+   * land sees the BET rather than only the title. Without the horizon on the
+   * card, the one field that makes the record gradeable is the one field the
+   * reviewer cannot see.
+   */
+  preview: (a) => {
+    const base = `Record decision "${a.title}" against ${a.alternatives_considered.length} rejected alternative${a.alternatives_considered.length === 1 ? "" : "s"}`;
+    if (!a.forecast_claim || !a.forecast_horizon_date) return base;
+    return `${base}, forecasting "${a.forecast_claim}" by ${a.forecast_horizon_date}`;
+  },
   run: async (a, { supabase, userId, agentSlug, missionId, workspaceId }) => {
     /**
      * THE STATUS IS DECIDED HERE, NOT ASSERTED. This line used to read
@@ -3727,6 +3775,18 @@ const decisionRecord = def({
         title: a.title,
         rationale: a.rationale,
         alternatives_considered: a.alternatives_considered,
+        /*
+         * NULL RATHER THAN OMITTED, all three together. The schema has already
+         * refused a partial set, so these are either all present or all absent,
+         * and writing explicit nulls means the row shape does not depend on
+         * which branch of the tool ran. `forecast_horizon_date` in particular is
+         * what `idx_decisions_forecast_due` indexes, so a row that omitted it
+         * versus one that nulled it would be the difference between a forecast
+         * that comes due and one that silently never does.
+         */
+        forecast_claim: a.forecast_claim ?? null,
+        forecast_how_we_will_know: a.forecast_how_we_will_know ?? null,
+        forecast_horizon_date: a.forecast_horizon_date ?? null,
         status: gate.status,
         decided_by_agent_slug: agentSlug ?? null,
         /**
