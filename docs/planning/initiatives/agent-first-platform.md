@@ -206,37 +206,68 @@ The measured symptom: **`--mrd-you` has 97 usages, `--mrd-agent` has 59** — no
 
 ## 2. The agent-first platform model
 
-### The three laws
+### 2.1 The move: from a work-shaped model to a judgment-shaped one
+
+**Today's object model is work-shaped:** `workspace → product → mission → mission_steps → agent_runs`, with a parallel `spine_tracks` doing the same job differently. Signals, themes and opportunities hang off the side. Every agent product on the market has approximately this shape.
+
+**That is the shape that commoditizes.** Executing work is precisely what gets cheaper on every model release. A model that is twice as good makes the `runs` table cheaper to fill and changes nothing about whether the work was worth doing. Ten years of that pressure leaves a work-shaped product competing on price with whoever has the cheapest inference.
+
+**So the model should be judgment-shaped**, because judgment is the half with no fast oracle. Code compiles in seconds; *"was that worth building"* takes weeks to quarters. Four primitives, and every existing surface becomes a view over them:
+
+```
+   QUESTION  ──────►  BET  ──────►  RUN  ──────►  VERDICT
+   an open matter     a committed    the work      what actually
+   the company is     answer, with   the bet       happened,
+   tracking           its forecast   causes        written back
+        ▲                                               │
+        └────────── re-ranks which questions ───────────┘
+                     are worth asking next
+```
+
+| Primitive | What it is | What it absorbs today |
+| --- | --- | --- |
+| **Question** | An open matter, with evidence under it and candidate answers against it. States: `open` → `answered` → `settled` → `reopened` | `signals`, `themes`, `opportunities`, `insights`, `assumptions` |
+| **Bet** | A committed answer **carrying its forecast at the moment of commitment**: the claim, what we expect, how we will know, by when, and how much rope we gave it | `decisions`, committed `opportunities`, the autonomy dial |
+| **Run** | The work a bet causes. A route through stations, a crew, a stream, gates, artifacts, spend | `missions`, `spine_tracks`, `mission_steps`, `agent_runs` — **the two orchestration engines unify here** |
+| **Verdict** | What happened, joined back to the bet that caused it | `learnings`, `prds.outcome`, `forecast_resolution` |
+
+**Three things this buys that the current model cannot.**
+
+1. **The forecast has an obvious home.** Today it is eleven columns on `decisions` used once in 304, because a decision is a record rather than a commitment. A Bet that cannot be created without a forecast makes the moat structural instead of optional.
+2. **`learnings` gains the edge it is missing.** Today a verdict is written back against a spec and a bet, and `learnings` has **no `decision_id`** — so the canonical sentence "written back against the decision that caused it" describes something the schema does not do. Under this model the Verdict attaches to the Bet by construction.
+3. **Questions are the asset, and they are what nobody can buy.** A competitor can copy the seven stations in a quarter. They cannot acquire *the questions this company has asked and how well it answered them*, because that is produced only by running the loop.
+
+> **Why this is the ten-year model rather than the next-release one.** Assume inference is free and frontier-quality by 2032. Every part of this product that *does work* is then worth roughly zero. What is still scarce is a company's own record of what it believed, what it chose, and what happened — labelled, joined, and time-ordered. A judgment-shaped model accumulates that as a by-product of operating. A work-shaped model accumulates a very large log.
+
+### 2.2 The three laws
 
 **Law 1 — Work arrives; you do not fetch it.**
-Every capability is reachable from where you already are. A surface you must remember to visit is a surface that will not be visited. This replaces navigation-as-primary with intent-as-primary.
+Every capability is reachable from where you already are. A surface you must remember to visit will not be visited: 232 of 349 missions sit at `proposed` and 327 of 410 opportunities sit in `backlog`, not because the surfaces are bad but because reaching them requires knowing which of 84 routes to open. This replaces navigation-as-primary with intent-as-primary.
 
-**Law 2 — One primitive: the Run.**
-Everything the platform does is a run. A run has an intent, a route, a crew, a stream, gates, artifacts, an outcome, and a forecast. Stations stop being *places* and become **phases of a run**. They keep their distinctiveness as lenses and tools; they lose their monopoly on being the way in.
+**Law 2 — One primitive in flight: the Run.**
+Stations stop being *places* and become **phases of a Run**. They keep their distinctiveness as lenses and their own information models; they lose their monopoly on being the way in.
 
 **Law 3 — Visible, steerable, stoppable.**
-An agent whose work cannot be watched cannot be trusted; one that cannot be redirected cannot be corrected; one that cannot be stopped cannot be governed. All three are currently partial or absent. They are the price of admission for autonomy, not a nice-to-have.
+An agent whose work cannot be watched cannot be trusted; one that cannot be redirected cannot be corrected; one that cannot be stopped cannot be governed. All three are currently partial or absent, and they are the price of admission for autonomy rather than a nice-to-have.
 
-### What this preserves
+### 2.3 Context: what persists, and at what scope
 
-The existing engine is an asset, not debt: 305,635 job runs, 59 tools, a real chokepoint, RLS tenancy, a working trust ramp, an approvals system, and a station route table that needs no LLM. **Nothing here proposes rebuilding that.** The proposal re-homes it behind one surface and closes four wires.
+The brief asks for persistent project context and multiple products. The tenancy spine already exists — `account → workspace → product`, with RLS keyed on membership **in the database rather than in application code**, which is what makes autonomy safe here. What is missing is a **declared scope for each kind of context**, so that adding a second product does not silently cross-contaminate the first.
 
-### What changes, in one table
+| Context | Scope | Today | Change |
+| --- | --- | --- | --- |
+| **Signals and evidence** | product | scoped | none |
+| **Questions and Bets** | product, referencing across | opportunities are product-scoped | none |
+| **Runs** | product | mission/track scoped | none |
+| **Memory** | **workspace** | already workspace-visible on all 1,170 rows, with 101 cross-author recalls | **stop understating it** |
+| **Standing rules** (`house_rules`) | workspace | reaches every agent prompt | none |
+| **Policy and autonomy** | workspace, per agent | `agent_autonomy` per (user, agent) | **move to workspace**, or a second person inherits nothing |
+| **Track record** | workspace | computed on read | none |
 
-| Today | Proposed |
-| --- | --- |
-| 12 nav destinations, 84 routes | 4 primary surfaces; stations become lenses |
-| Intent classified, station discarded | Intent resolves a route and *starts* the run |
-| Work waits at `proposed` | Work streams from the moment it is asked for |
-| Agent state invisible mid-run | `tool` + `station` frames emitted; live timeline |
-| Steer Build only | Steer everywhere (give every station a `missionId`) |
-| No stop | Per-run stop, with `AbortController` and a status precondition |
-| Forecast on a human form | Forecast required by `decision.record`, refused without |
-| 22 seeded agents, 4 dead | 9 agents, each with a distinct tool surface |
-| Trust eval leg frozen at 0.1 | Column name fixed; leg live |
-| Approvals accumulate | Autonomy graduates itself off the approval record |
+> **The one real defect here:** autonomy is keyed **per user**, so an agent that a colleague spent three months graduating arrives untrusted for the next person. The record travels and the *permission* does not, which is exactly backwards — the record is the evidence, and the permission is the conclusion drawn from it.
 
----
+**Multiple products under one workspace share the brain and the boundaries, and share nothing else.** A verdict in product A moves ranking in product A. It reaches product B only through `agent_memory` and `house_rules`, which is the correct blast radius: what was *learned* generalises, what was *measured* does not.
+
 
 ## 3. Reimagined lifecycle and surfaces
 
@@ -350,7 +381,32 @@ One control, reachable by `⌘K` from every surface, that:
 
 It must never silently degrade to prose. The current failure — no seeded orchestrator means "Hand it over" answers instead of acting — becomes an explicit, named state.
 
-### 4.3 Progressive disclosure
+### 4.3 Many products in one workspace
+
+A workspace is not one product, and the model breaks in a specific way if that is ignored: the brain is workspace-wide and the evidence is product-scoped, so a naive switcher either leaks measurements between products or walls off the learning that should generalise.
+
+**The rule: what was *learned* crosses; what was *measured* does not.**
+
+| Crosses products | Stays inside one |
+| --- | --- |
+| Standing rules (`house_rules`) — they reach every agent prompt | Signals, themes, evidence |
+| Workspace memory and precedent | Questions, Bets, ranking |
+| Policy, autonomy and spend ceilings | Runs and their artifacts |
+| Track record per agent | Verdicts and the ICE they move |
+
+So *"check the window before blaming deliverability"* is available to every product, while *"activation rose 11 percent"* is a fact about one.
+
+**Switching product changes the evidence, never the boundaries.** The rail, the policy and the crew are workspace-level and do not move. What changes is the Question queue, the runs in flight, and what Home reports. That means a switch is a **filter, not a context reload** — which is also what makes it fast enough to be worth doing.
+
+**Intent resolution when several products exist.** The composer must not guess silently. Three cases, in order:
+
+1. **You are inside a product** — intent resolves there, and the composer says so.
+2. **Intent names something unambiguous** — a spec, a run, a bet that exists in exactly one product. Resolve there and say which.
+3. **Genuinely ambiguous** — ask, once, with the candidates. This is the one place a question beats a guess, because starting a run against the wrong product spends real money on the wrong evidence.
+
+> **The defect this design has to survive:** `retrievalProductId` is a real option on the Ask hook and **the pane never sets it**, so Ask currently retrieves workspace-wide regardless of where you are standing. The product chip described in its own comments was never carried over. Any multi-product story is wrong until that is wired.
+
+### 4.4 Progressive disclosure
 
 Three depths, and a user should be able to stop at any one:
 
@@ -643,6 +699,60 @@ A per-run stop that:
 
 ---
 
+### 6.4 Memory: four tiers, four lifetimes
+
+The brief names memory and the current design has one word for four different things. They differ in **lifetime** and **blast radius**, and conflating them is how a run leaks context into a workspace or a workspace fails to learn from a run.
+
+| Tier | Holds | Lifetime | Scope | Today |
+| --- | --- | --- | --- | --- |
+| **Working** | the run's own conversation and tool results | the run | the run | `agent_run_checkpoints`, **5,953 rows — the only place run history lives** |
+| **Handoff** | what travels from one agent to the next | one hop | the mission | `agent_messages` with a typed `HandoffPayload` |
+| **Workspace** | what the organisation has learned | decayed, not permanent | **workspace** | `agent_memory`, **1,170 rows, all workspace-visible** |
+| **Precedent** | settled outcomes, retrievable by similarity | permanent | workspace | joined via `match_agent_memory` |
+
+**Three changes.**
+
+1. **Handoff must carry references, not just a task string.** `dispatchReadySteps` builds `{task, context:{step_idx, run_id, rationale, attempt}}` with **no artifacts and no evidence ids, by design**. So step N+1 cannot reach step N's output and re-derives it. Every hop carries `artifacts[]` and `evidence_ids[]`, and the `agent.handoff` tool schema gains `memory_refs` — which it does not have, so **every model-initiated hop travels without memory today**.
+2. **Recall is already logged; start reading it.** `memory_recall_log` holds **7,147 rows** and nothing renders what the crew read before it acted. That is the single cheapest way to make an agent's reasoning inspectable, and the data is already there.
+3. **Precedent retrieval already re-ranks on verdict** — `ORDER BY distance + CASE verdict WHEN 'validated' THEN -0.05 WHEN 'missed' THEN 0.05`. This is the best-built part of the brain and it is invisible. Show it: when an agent cites precedent, say that the memory was pulled closer *because that bet landed*.
+
+> **What must not happen:** working memory promoted to workspace memory automatically. A run's intermediate reasoning is not a lesson. `memory_candidates` exists (20 rows) as the staging table for exactly this, and promotion stays gated.
+
+### 6.5 Checkpoints: resume exists, rewind and fork do not
+
+`agent_run_checkpoints` carries **5,953 rows** and is described in code as the only place run history lives. Today it powers exactly one behaviour: **resume**. `resume-runs` picks up a stalled run and continues it, and a steer survives worker eviction because it is marked consumed only after the checkpoint persists. That is real and it works.
+
+Two behaviours the substrate already supports and nothing exposes:
+
+- **Rewind.** Return a run to a named checkpoint and continue from there. The state is stored; nothing reads it backwards. This is the correct answer to *"it went wrong four steps ago"*, and today the only options are steer forward or start over.
+- **Fork.** Branch a run from a checkpoint to try a different approach without losing the first. `missions.replayed_from_mission_id` already exists, so the schema anticipated this and no surface reaches it.
+
+Both are the pattern Claude Code and Cursor ship as checkpointing, and both are cheap here because the hard half — durable, resumable state — is built and running at scale.
+
+> **The honest constraint:** rewind is safe for reasoning and unsafe for side effects. A run that opened a pull request cannot un-open it by rewinding. So a rewind **replays reasoning and refuses to replay writes**, and says which steps it will not re-run. That distinction is already modelled: `CONSEQUENCES` carries reversibility per tool, for 42 of 59 tools, and K-11 closes the other 17.
+
+### 6.6 Failure recovery, and what does not exist
+
+**What is built and works:** three model-call retries on rate limit and server error; one automatic mission-step retry with genuine exponential backoff; three station attempts then a correction loop capped at two; and **five stranded-work sweepers** — a run silent past 10 minutes is halted, a mission with no steps past 20 minutes is abandoned, and `waiting_approval` is deliberately never swept because a human gate has no timer.
+
+**What does not exist, verified by grep across the whole tree:**
+
+- **No dead-letter queue.** Zero matches for `dead_letter` or `dlq`.
+- **No rollback, compensation or saga.** A failed step's side effects — a PR opened, a spec written — are never undone; the mission terminalizes `completed_with_failures`, which is **452 runs**.
+- **No `AbortController` in the loop**, though `callModel` accepts one.
+
+**The design position:** compensation is the wrong goal and reversibility is the right one. Do not build a saga engine. Instead make every write **either reversible or gated**, which is what the two-axis policy engine in §6.2 already decides — and then a failure needs no compensation, because nothing irreversible happened without a person.
+
+### 6.7 Observability: the tree that is reconstructed instead of recorded
+
+`ai_events` holds **58,678 rows** and every model call lands there. Spans are **two columns**, `trace_id` and `parent_event_id`, and three paths break the tree: `logAiEvent` never sets a parent, so every out-of-band event is a forced root; embeddings set neither; and **`tool_calls` carries `trace_id` but no `parent_event_id` and no `ai_event_id`**, so the thought → tool → observe chain is rebuilt by timestamp in JavaScript rather than by edges.
+
+`ai_traces` **does not exist** anywhere in the repo, despite `architecture/runtime.md` naming it as canon.
+
+**The change is one column, not a system.** Give `tool_calls` a `parent_event_id` and the tree records itself instead of being inferred. Everything downstream — the run timeline, the tool stream, per-agent attribution — becomes a query rather than a reconstruction.
+
+> **And the thing that makes attribution possible at all:** `ai_events.agent_id` exists in the schema and **all six insert sites omit it**. Until that is written, "which agent cost what" cannot be answered from the record, only estimated.
+
 ## 7. Meridian, and the extensions this needs
 
 Every extension below is justified against Meridian's own law: a token earns its place on the second caller, is named for meaning rather than appearance, is measured in both grounds, and carries its argument in the file.
@@ -716,6 +826,21 @@ These are cheap changes with a large perceived effect, and they are the differen
 ## 9. Implementation plan
 
 Ordered by leverage per unit of risk. Each slice ships independently and is verifiable in production.
+
+### How the judgment-shaped model lands without a rewrite
+
+**It is not a migration and there is no big-bang.** The 2026-07 rebuild failed by deleting in one move, and the retired design systems still run for that reason. The four primitives in §2.1 arrive as **naming and one column at a time**, over existing tables:
+
+| Primitive | Lands as | Existing table |
+| --- | --- | --- |
+| **Bet** | `decisions` gains required forecast fields and becomes the thing Decide writes | `decisions`, already carrying eleven forecast columns |
+| **Verdict** | `learnings` gains `decision_id`, closing the edge the canon already claims | `learnings` |
+| **Run** | the spine's Build-only `missionId` special case is removed, so one concept covers all seven stations | `missions` + `spine_tracks` |
+| **Question** | `themes` and `opportunities` are presented as one object with a state, before any schema moves | `themes`, `opportunities` |
+
+**Nothing is dropped, nothing is renamed on day one, and every step is independently shippable.** The model is a way of seeing the tables that already exist; the schema catches up where it is genuinely wrong, which is exactly two edges — a forecast that is required rather than optional, and a verdict that points at the bet that caused it.
+
+---
 
 ### Slice 1 — Collapse the approval queue (days)
 Catalogue the 17 missing tools so `toolRisk` stops failing closed. Ship the two-axis policy engine (§6.2): never-ask for reversible+internal, always-human for irreversible+external, earn-it between. Auto-disable a tool rejected N times running. Give every approval a declared default and an expiry. Batch by decision rather than by tool call.
