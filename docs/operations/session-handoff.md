@@ -1,3 +1,100 @@
+# ✅ SESSION CLOSED 2026-08-19 evening — three worktrees on one commit, and an upstream bug that had already been fixed once
+
+**Git plumbing only. No product code, no doc changes beyond this file.** All three worktrees and all
+three remote branches now sit on `ab38e352e`, **0 ahead / 0 behind** their own upstream.
+
+| Worktree | Branch | Upstream **was** | Upstream **now** |
+| --- | --- | --- | --- |
+| `Supaprod` | `main` | `origin/main` | `origin/main` (unchanged) |
+| `cadence-lane-0` | `parallel/lane-0-fresh` | ❌ `origin/main` | ✅ `origin/parallel/lane-0-fresh` |
+| `cadence-lane-1` | `parallel/lane-1-fresh` | ❌ `origin/main` | ✅ `origin/parallel/lane-1-fresh` |
+
+## Kiro is cleared to start. The blocker it was handed does not exist.
+
+The session opened with an instruction to run `git push origin parallel/lane-0-fresh:main`, on the
+premise that the build queue, the operations logs and the direction were on lane-0 and not on main.
+**All of it was already on main and byte-identical** — matching blob hashes for
+[`./kiro-queue.md`](./kiro-queue.md) and all three files under `docs/operations/ledger/`, plus
+[`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md)
+and its findings register.
+
+**That push was not run, and must not be.** `parallel/lane-0-fresh` was a strict *ancestor* of
+`origin/main`, so pushing it onto main is a rewind, not a merge — it would have deleted `ab38e352e`,
+the demo-login correction filed twenty minutes earlier. Git rejects it as non-fast-forward; only
+`--force` gets it through.
+
+**Where the belief came from:** the queue and those files genuinely are absent from
+`origin/parallel/lane-0-fresh` — the *remote* branch, five days stale at `91f40d87d`. The local
+branch of the same name was current. Local and remote lane branches had drifted and nothing said so.
+
+## The upstream bug had been fixed once already and came back
+
+Both lanes carried `branch.<name>.merge = refs/heads/main`, so every ahead/behind number they
+reported was measured against main rather than against themselves. The 2026-08-14 session recorded
+fixing exactly this. **It regressed within five days.**
+
+**Cause: `branch.autoSetupMerge` defaults to `true`.** Branching a fresh lane off `origin/main`
+silently re-points its upstream at `origin/main`. Every "fresh" worktree re-introduced it, which is
+why repointing branches was never going to hold.
+
+**Fixed at the config level instead.** All three worktrees share one `.git/config`, so one change
+covers every lane:
+
+| Setting | Was | Now | What it buys |
+| --- | --- | --- | --- |
+| `branch.autoSetupMerge` | unset → `true` | `simple` | a new lane gets **no** upstream rather than inheriting main's |
+| `push.default` | unset → `simple` | `simple`, pinned | a bare `git push` from a lane can never reach main |
+| `branch.parallel/lane-*.merge` | `refs/heads/main` | its own lane branch | ahead/behind counts mean something again |
+
+Verified with `git push --dry-run` from each worktree, not by reading the config back.
+
+## What moved
+
+- **lane-1** fast-forwarded 107 commits, `de64689ff → ab38e352e`.
+- **lane-0** fast-forwarded 1 commit, `6b3467393 → ab38e352e`, then pushed fast-forward to its own branch.
+- **Both remote lane branches force-pushed into line**, replacing `91f40d87d` and `4eead8847`.
+  Rollback points if ever wanted: lane-0 `91f40d87d4b157db1022304be02ae2bbc1efc493`, lane-1
+  `4eead8847aa8a49af6a10c901a439f5b84356606`.
+
+**Nothing was lost, and that was proved before the force-push rather than after.** The 19 and 34
+commits being replaced returned **zero** unique patches — every one was already in main under a
+different SHA from a squash-merge.
+
+## The instrument lesson worth carrying
+
+**`rev-list --count` counts SHAs; `git cherry` compares content.** Squash-merging rewrites SHAs, so
+`rev-list` reported 34 and 19 "unmerged" commits on branches that held nothing new. Reading that
+first number is what makes already-merged work look stranded, and it is how a request to rewind main
+arrived looking entirely reasonable. Before calling any branch unmerged:
+
+```bash
+git cherry origin/main <branch> | grep -c '^+'      # 0 = holds nothing unique
+git merge-base --is-ancestor <branch> origin/main   # exit 0 = already contained in main
+```
+
+Same shape as the standing rule that a number without its query is not evidence: the count was real,
+the question it answered was not the one being asked.
+
+## Suggested skills for the next session
+
+- **`superpowers:using-git-worktrees`** — before creating any lane-2. `autoSetupMerge=simple` now
+  means a new branch gets no upstream at all, so it must be set deliberately with
+  `git branch --set-upstream-to=origin/<its-own-branch>`.
+- **`superpowers:brainstorming`** then **`superpowers:test-driven-development`** — if the next
+  session picks up a `TODO` from the queue rather than more repo surgery.
+- **`graphify`** — cheaper than grep for "where is X" across this corpus.
+- Skip the generic **`handoff`** skill's instruction to write to a temp directory. CLAUDE.md is
+  canonical: the handoff is a pair, this tracked file plus untracked `.remember/remember.md`.
+
+## Still waiting on the founder, carried forward unchanged
+
+1. **Warn Jai Ganesh and Nitesh Kumar Jha before EF calls.** Still the cheapest quality gain left on
+   that application.
+2. **`ember@supaprod.ai` is the only unspent demo login.** `voyage@` is spent.
+3. **Neither agent has been started.** Kiro reads main, and main is ready.
+
+---
+
 # ✅ SESSION CLOSED 2026-08-19 late — all seven demo accounts identical, ember@ is the spare
 
 **Database-only, plus one correction to `baseline.yml`.** Every `@supaprod.ai` demo account now
