@@ -15,12 +15,14 @@
 > | | Why it jumps |
 > | --- | --- |
 > | ~~K-80 `Flowchart`~~ | **VERIFIED 2026-08-20.** Built from the reference's real source; six of my measured figures were wrong and it corrected all six. |
-> | **K-85 `Flowchart` drag + violet ground** | The rescope K-80 predates. A graph you cannot rearrange is a picture. |
-> | **K-81 `AgentPulse`** | Removes the brand mark the founder ruled against, and pins the label to one type stop. **Its azure explicitly stays** -- see the item. |
-> | **K-82 `InsightCards` chart** | Third, and **it keeps its permission to be declined** — see the item. It is an addition to a tuned component rather than a primitive gap, so it jumps feature work but never at the cost of degrading what is there. |
+> | ~~K-85 `Flowchart` drag + violet ground~~ | **BUILT 2026-08-20, awaiting verdict.** The rescope K-80 predates. A graph you cannot rearrange is a picture. |
+> | ~~K-81 `AgentPulse`~~ | **VERIFIED 2026-08-20.** Removed the brand mark the founder ruled against and pinned the label to one type stop. Its azure stayed. |
+> | ~~K-82 `InsightCards` chart~~ | **DECLINED 2026-08-20**, under the permission the item gave. The chart already exists and one of the item's own criteria would have broken a correct decision. |
 >
-> | **K-83 glyphs and connectors** | The glyphs name the wrong things and a duration wraps to three lines in a column sized for a clock. Both are in shipped run views. |
-> | **K-84 `PlanCard` step controls** | The gate belongs at the plan, and the plan currently offers nothing to click. |
+> | ~~K-83 glyphs and connectors~~ | **BUILT 2026-08-20, awaiting verdict.** One glyph was not a drawing of anything, the rail broke for 4px on every row, and no duration ever fitted the 40px clock column. |
+> | ~~K-84 `PlanCard` step controls~~ | **BUILT 2026-08-20, awaiting verdict.** Skip on anything unrun, approve only where a step is itself asking, and a 1.63px alignment swing fixed in the shared rhythm. |
+>
+> **THE LIST IS EXHAUSTED FROM KIRO'S SIDE as of 2026-08-20**, so it is resuming by number at K-17. Four of the five are `BUILT` rather than `VERIFIED`: struck through here because there is nothing left for Kiro to take, not because a verdict has landed. Claude strikes a line properly when it verifies it.
 >
 > **When this list is empty, resume by number.** When a new primitive item is written, add it here in the same commit, or it will be built last by default and this ruling will have to be made again.
 
