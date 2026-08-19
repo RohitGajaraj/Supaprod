@@ -17,7 +17,9 @@ import { readFileSync } from "node:fs";
 import {
   KNOWN_RUN_SPELLINGS,
   TERMINAL_RUN_STATUSES,
+  isStoppable,
   isTerminal,
+  terminalStatusFilter,
   isWaitingOnAPerson,
   normalizeRunStatus,
   type RunStatus,
@@ -350,5 +352,62 @@ describe("TERMINAL_RUN_STATUSES", () => {
     const rendered = `(${TERMINAL_RUN_STATUSES.join(",")})`;
     expect(rendered).toBe("(cancelled,completed,completed_with_failures,failed,halted)");
     expect(rendered).not.toContain(" ");
+  });
+});
+
+/*
+ * ── terminalStatusFilter and isStoppable ─────────────────────────────────────
+ *
+ * Both are consumed by writers that cannot be unit-tested here: `finalize`
+ * (`loop.server.ts`) and `stopRun` (`agent-runs.functions.ts`) are a closure and
+ * a `createServerFn` handler, and this repo's own convention for server
+ * functions is to test the pure helpers and say which coverage is missing. So
+ * the decision each writer makes is extracted to here, where it can be pinned.
+ */
+describe("terminalStatusFilter", () => {
+  it("renders exactly the postgrest in-list both writers send", () => {
+    expect(terminalStatusFilter()).toBe(
+      "(cancelled,completed,completed_with_failures,failed,halted)",
+    );
+  });
+
+  it("contains no whitespace, because postgrest would treat it as part of a value", () => {
+    expect(terminalStatusFilter()).not.toMatch(/\s/);
+  });
+
+  it("stays in step with TERMINAL_RUN_STATUSES", () => {
+    expect(terminalStatusFilter()).toBe(`(${TERMINAL_RUN_STATUSES.join(",")})`);
+  });
+});
+
+describe("isStoppable", () => {
+  it("refuses every terminal status", () => {
+    for (const s of TERMINAL_RUN_STATUSES) {
+      expect(isStoppable(s), `${s} must not be stoppable`).toBe(false);
+    }
+  });
+
+  it("allows a run that is still going", () => {
+    for (const s of ["queued", "running", "waiting_approval", "proposed"]) {
+      expect(isStoppable(s), `${s} must be stoppable`).toBe(true);
+    }
+  });
+
+  it("decides from the RAW spelling, so `complete` is not mistaken for unstarted", () => {
+    // The bug K-12 exists for: two surfaces fell `complete` through to `queued`.
+    // A stop that made the same mistake would offer to cancel a finished run.
+    expect(isStoppable("complete")).toBe(false);
+    expect(isStoppable("done")).toBe(false);
+    expect(isStoppable("succeeded")).toBe(false);
+    expect(isStoppable("canceled")).toBe(false);
+  });
+
+  it("allows an unrecognised status, because unknown is not evidence work stopped", () => {
+    // Same argument isTerminal makes. Refusing here would make a run in an
+    // unrecognised state impossible to stop, which is the worse failure: it is
+    // exactly the run somebody most wants to stop.
+    expect(isStoppable("something_nobody_wrote_down")).toBe(true);
+    expect(isStoppable(null)).toBe(true);
+    expect(isStoppable(undefined)).toBe(true);
   });
 });

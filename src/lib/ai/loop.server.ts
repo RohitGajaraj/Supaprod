@@ -18,7 +18,7 @@ import {
 import { refundAbandonedRunCredits } from "@/lib/credits.functions";
 // K-12's canonical vocabulary, and this is its first consumer. It imports
 // nothing itself, so there is no cycle to create by reading it here.
-import { TERMINAL_RUN_STATUSES } from "@/lib/run-status";
+import { terminalStatusFilter } from "@/lib/run-status";
 import { TOOL_REGISTRY, describeToolsForPrompt, type ToolCtx } from "./tools/registry.server";
 import { resolveMissionSpendCap } from "./mission-caps.server";
 import { resolveToolAccess } from "@/lib/ai/tools/defaults";
@@ -2003,7 +2003,7 @@ export async function resumeAgentLoop(
           ...(elapsedMs === null ? {} : { duration_ms: elapsedMs }),
         })
         .eq("id", runId)
-        .not("status", "in", `(${TERMINAL_RUN_STATUSES.join(",")})`)
+        .not("status", "in", terminalStatusFilter())
         .select("id");
 
       if (settled && settled.length === 0) {

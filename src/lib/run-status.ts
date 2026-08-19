@@ -234,6 +234,36 @@ export const TERMINAL_RUN_STATUSES: readonly RunStatus[] = [...new Set(Object.va
   .sort();
 
 /**
+ * The terminal statuses rendered as a postgrest `in` list, parentheses included.
+ *
+ * Two writers need this exact string -- `finalize` in `loop.server.ts`, which
+ * must not overwrite a terminal status, and `stopRun` in
+ * `agent-runs.functions.ts`, which must not cancel a run that already ended. They
+ * built it inline and identically, which is one `join` away from the drift this
+ * module exists to stop, so it is made once here.
+ *
+ * postgrest parses this string; JavaScript does not. A stray space becomes part
+ * of a value and matches nothing, silently, which is why the rendering is a
+ * function with a test rather than a template literal at each call site.
+ */
+export function terminalStatusFilter(): string {
+  return `(${TERMINAL_RUN_STATUSES.join(",")})`;
+}
+
+/**
+ * Whether a run in this raw status can still be stopped by a person.
+ *
+ * The inverse of terminal, but stated positively because that is the question
+ * the caller actually has, and because it takes a RAW status: a stop request
+ * arrives holding whatever spelling the table happens to carry, and deciding
+ * from the raw string is how `complete` came to read as `queued` on two
+ * surfaces.
+ */
+export function isStoppable(rawStatus: string | null | undefined): boolean {
+  return !isTerminal(normalizeRunStatus(rawStatus));
+}
+
+/**
  * Whether a person is what it is waiting for.
  *
  * `halted` is deliberately absent. A halt is a stop on a condition, usually a

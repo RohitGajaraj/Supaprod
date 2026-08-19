@@ -1177,3 +1177,64 @@ still no per-run stop: no `AbortController` reaches `callModel`, which accepts a
 `signal?` and is never given one, and nothing writes `cancelled`. §10 criterion
 10 -- "runs stopped by a user, ever" -- is still 0 and still impossible. **This
 closes the half that would have made the other half lie.**
+
+## Claude lane · LANDED · 2026-08-20 02:50
+
+**`stopRun` exists. A person can now stop a run, and the money comes back.**
+`agent-runs.functions.ts`. §10 criterion 10 read 0 because stopping was
+impossible, not because nobody wanted it: `cancelRun|stopRun|abortRun|haltRun|
+pauseRun` returned **zero hits repo-wide** and the only stop was a workspace-wide
+kill switch.
+
+**This is the writer half only, and the split is deliberate.** A stop is three
+things that fail differently: a row saying the person stopped it (this), the loop
+noticing and abandoning its work (cooperative, below), and a control to press (a
+component, Kiro's). **Landing the writer alone is safe and useful** -- the run is
+marked, the draw is refunded, and `finalize` can no longer overwrite the verdict,
+because that precondition landed first on purpose. Had it landed second, the first
+stop ever pressed would have been silently reversed.
+
+**Why the loop must poll rather than be handed an `AbortController`, which is the
+non-obvious part.** `callModel` already accepts a `signal?` and composes it with
+its timeout (`runtime.server.ts:427`, `:604`), so the plumbing to the fetch
+exists. What does not exist is a way to **reach** the controller: the loop runs in
+one worker invocation and the stop request arrives in another, so there is no
+shared memory and an in-process controller is unreachable by definition. **The row
+is the channel.** That is the same shape `steerStudioSession` uses, and the reason
+it survives worker eviction.
+
+**The correctness argument is the precondition.** The write refuses a run that
+already reached a terminal status **in the same statement** rather than after a
+read, so a run that finished a millisecond ago is not retroactively marked
+cancelled and nobody is told they stopped something that had already completed. A
+zero-row result is not an error; it means the run ended while the request was in
+flight and that answer stands.
+
+**Refactor that came out of it.** `finalize` and `stopRun` were building the same
+postgrest `in` list inline and identically, one `join` from the drift K-12 exists
+to stop. Extracted to `terminalStatusFilter()` and `isStoppable()` in
+`run-status.ts`, both tested. **`isStoppable` takes a RAW status on purpose**: a
+stop request arrives holding whatever spelling the table carries, and deciding
+from the raw string is exactly how `complete` came to read as `queued` on two
+surfaces. A stop that repeated that mistake would offer to cancel a finished run.
+
+**Seven new tests, and two encode a judgment rather than a fact.** An
+unrecognised status is **stoppable** -- refusing there would make a run in an
+unknown state impossible to stop, which is the worse failure, because that is
+precisely the run somebody most wants to stop. And the rendered filter is asserted
+whitespace-free, because postgrest parses that string and a stray space becomes
+part of a value and matches nothing, silently.
+
+**Tested the way this repo tests server functions.** `createServerFn` handlers are
+not invokable without database mocking, and the house convention
+(`byokeys.functions.test.ts` states it outright) is to test the pure helpers and
+name the gap. So the decision each writer makes is extracted to where it can be
+pinned, and the handler's database behaviour is **not** covered here.
+
+**Gates:** tsc clean, 9,798 pass / 0 fail across 581 files, build ok. `bun run
+lint` is red repo-wide with 1,605 pre-existing problems and **zero in the four
+files this touched**.
+
+**Still not done, so criterion 10 is not yet met.** Nothing polls the row, so a
+stopped run is marked and keeps working until it ends on its own. The loop-side
+abort and the control are the remaining two thirds.
