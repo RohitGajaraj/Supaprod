@@ -32,9 +32,14 @@
  * additive to the seven stations only while a spec it drafts is findable on
  * Plan afterwards; the moment results only exist inside the transcript, the
  * pane has quietly replaced the stations instead of opening onto them. The
- * `landing` frame (`ask-sse.ts`) is the fact, `AskLanding` is the row, and it
- * is INERT until something passes one - nothing emits that frame yet, so the
- * register is absent on every turn today rather than showing a placeholder.
+ * `landing` frame (`ask-sse.ts`) is the fact and `AskLanding` is the row.
+ *
+ * CORRECTED 2026-08-20: this said "nothing emits that frame yet". It does now.
+ * `api/chat.ts` sends one when a dispatch produces a real mission row, so the
+ * register appears on a turn that started work and stays absent on a turn that
+ * only answered a question. That absence is still the correct behaviour and is
+ * why the row is inert rather than placeholder-shaped: a turn that landed nowhere
+ * has nothing to hand back to.
  */
 
 import * as React from "react";

@@ -16,12 +16,18 @@ import { findAuditIds } from "@/lib/audit-id";
 import { loadDecisionPrecedent } from "@/lib/ai/decision-precedent.server";
 import { formatDecisionPrecedent, type DecisionPrecedentRow } from "@/lib/ai/outcome-memory";
 import { estimateCostUsd } from "@/lib/ai/pricing";
-import { runResearch, type ResearchMode, type ResearchSource } from "@/lib/ai/research.server";
+import {
+  runResearch,
+  type ResearchMode,
+  type ResearchSource,
+  type ResearchStatus,
+} from "@/lib/ai/research.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { checkUserAiRateLimit } from "@/lib/ai-ratelimit.server";
 // `describeRoutedIntent` is deliberately NOT imported: see the routing comment
 // at the dispatch reply for why its sentence was built and then withdrawn.
 import { routeIntent, asStation } from "@/lib/ask/route-intent";
+import { agentStation } from "@/lib/agent-vocabulary";
 import { WORK_SHAPE_LABEL, type WorkShape } from "@/lib/spine/route";
 import { AGENT_STATIONS, AGENT_STATION_ORDER } from "@/lib/agent-vocabulary";
 
@@ -122,6 +128,25 @@ function getSseHeaders(origin: string | null) {
   }
   return headers;
 }
+
+/**
+ * WHICH RESEARCH PHASE IS A TOOL CALL, and which is the model thinking.
+ *
+ * A map rather than a switch inside the emitter, so the answer is readable in one
+ * place and the two deliberate absences are visible. `plan` and `synthesize` are
+ * the model deciding and the model writing; no tool runs in either, and emitting a
+ * `tool` frame for them would put a name on the wire for work nothing did. The
+ * `status` frame already carries both.
+ *
+ * Every value is a real registry name, because the frame's contract is "a registry
+ * name, which `toolActionLabel` turns into a sentence" and a name outside the
+ * registry falls back to its raw self on the surface.
+ */
+const RESEARCH_PHASE_TOOL: Partial<Record<ResearchStatus["phase"], string>> = {
+  search: "web.search",
+  read: "web.fetch",
+  workspace: "workspace.search",
+};
 
 const GENERIC_FAILURE = "I hit a snag answering that. Try again or switch models.";
 const WEB_UNAVAILABLE_NOTE =
@@ -872,6 +897,40 @@ You must output a JSON object EXACTLY in this format:
                  * a row exists and where it lives, both checkable the instant
                  * the person follows the link.
                  */
+                /**
+                 * ── THE `station` FRAME, AND WHY IT COMES FROM THE AGENT AND
+                 * NOT FROM `routed` ──────────────────────────────────────────
+                 *
+                 * READ THE `void routed` PARAGRAPH ABOVE BEFORE CHANGING THIS. It
+                 * argues, correctly, that the classifier's entry station is a
+                 * GUESS: nothing on this branch routes by it, the orchestrator
+                 * plans its own DAG and picks its own agents, so saying it would
+                 * report work nobody does. The same paragraph notes that `routed`
+                 * "is what a `station` SSE frame would carry", and that is the one
+                 * line in it this frame declines to follow, for the reason the
+                 * `landing` comment below states: a frame is emitted here only
+                 * when it is A FACT, NOT A FORECAST.
+                 *
+                 * SO IT IS EMITTED ONLY ON THE MENTION BRANCH, where a person
+                 * named an agent, that agent was resolved against the catalogue,
+                 * and the mission was dispatched to it. Its station is then a
+                 * property of a dispatch that has already happened, which the
+                 * reader can check by watching who picks the work up.
+                 *
+                 * ON THE ORCHESTRATOR BRANCH NOTHING IS EMITTED, and that silence
+                 * is the honest answer rather than a gap. `use-ask-stream.ts`
+                 * treats an absent station as "none lit yet" and the `landing`
+                 * frame below still hands the reader to the mission, so the pane
+                 * loses nothing except a claim it could not support.
+                 */
+                const dispatchedStation = mentionedAgent
+                  ? agentStation(mentionedAgent.slug)
+                  : null;
+                if (dispatchedStation) {
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({ station: dispatchedStation })}\n\n`),
+                  );
+                }
                 controller.enqueue(
                   encoder.encode(
                     // The wire shape is a `landing` KEY, matching every other
@@ -1115,7 +1174,48 @@ You must output a JSON object EXACTLY in this format:
                   query: body.content,
                   mode: researchMode,
                   subQueries,
-                  emit: (status) => send({ status }),
+                  /*
+                   * ── THE `tool` FRAME, EMITTED 2026-08-20 ──────────────────
+                   *
+                   * `ask-sse.ts` has DECLARED this frame and `use-ask-stream.ts`
+                   * has ACCUMULATED it for as long as both have existed, and
+                   * nothing emitted one. That single gap is why a person cannot
+                   * see what an agent is doing while it does it: tool names
+                   * arrived only afterwards, through a four-second poll.
+                   *
+                   * DERIVED FROM WHAT THE PIPELINE ACTUALLY DID, never from what
+                   * it was asked to do. `runResearch` reports five phases and
+                   * only three of them are tool calls:
+                   *
+                   *   search    it really queried the web        -> web.search
+                   *   read      it really fetched those pages    -> web.fetch
+                   *   workspace it really searched the workspace -> workspace.search
+                   *   plan      the model deciding what to ask. No tool ran.
+                   *   synthesize the model writing. No tool ran.
+                   *
+                   * So `plan` and `synthesize` emit no `tool` frame, and the
+                   * `status` frame that already carries them is untouched. A
+                   * frame per phase would have been easier and would have put two
+                   * tool names on the wire for work no tool did, which is the
+                   * shape of claim this file has already withdrawn once.
+                   *
+                   * THE NAMES ARE REGISTRY NAMES, which is what the frame's own
+                   * contract asks for: "a registry name, which `toolActionLabel`
+                   * turns into 'drafting a spec'". All three are catalogued, so
+                   * the client's label lookup resolves every one of them rather
+                   * than falling back to a raw string.
+                   *
+                   * BOTH FRAMES ARE SENT, in this order, and the status keeps its
+                   * place. They answer different questions: the status is a
+                   * sentence about the phase, the tool is the name of the thing
+                   * called, and the client accumulates them into two different
+                   * fields.
+                   */
+                  emit: (status) => {
+                    send({ status });
+                    const tool = RESEARCH_PHASE_TOOL[status.phase];
+                    if (tool) send({ tool });
+                  },
                   scope: body.scope,
                   signal: streamAbort.signal,
                 });

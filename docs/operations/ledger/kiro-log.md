@@ -1434,3 +1434,94 @@ reintroduces the fourth value is sent to the table rather than to the test.
 > `learnings` row carries a verdict outside the three. If the CHECK has been enforced since creation
 > there should be none, which would confirm the crash was total rather than partial: no agent ever
 > succeeded in writing `uncertain`, so nothing needs repairing, only the door closing.
+
+---
+
+## K-15 · BUILT · 2026-08-20 01:40
+
+**Did.** `tool` frames now go out from the research pipeline's real actions, a `station` frame goes
+out on the dispatch that is a fact, and the two stale comments in `AskLanding.tsx` and `AskTurn.tsx`
+are corrected. 11 new assertions in `ask-sse.test.ts` walk the exact lines the route writes through
+the real parser.
+
+**The `tool` frame is derived from what the pipeline DID, not from what it was asked to do.**
+`runResearch` reports five phases and only three of them are tool calls:
+
+| phase | frame |
+| --- | --- |
+| `search` | `web.search`, because it really queried the web |
+| `read` | `web.fetch`, because it really fetched those pages |
+| `workspace` | `workspace.search`, because it really searched the workspace |
+| `plan` | **none.** The model deciding what to ask. No tool ran |
+| `synthesize` | **none.** The model writing. No tool ran |
+
+A frame per phase would have been one line shorter and would have put two tool names on the wire for
+work nothing did. All three names are catalogued, so the client's `toolActionLabel` lookup resolves
+every one rather than falling back to a raw string. The `status` frame keeps its place and both are
+sent, because they answer different questions and the client accumulates them into different fields.
+
+**## K-15 · QUESTION · I did not put the resolved station on the wire, and the file argues why not**
+
+The acceptance says *"`void routed;` is gone and the resolved station is on the wire."* **I left
+`void routed;` exactly where it is.**
+
+`api/chat.ts` carries a long paragraph above it explaining that the classifier's entry station is a
+GUESS: nothing on that branch routes by it, `runAgentLoop(..., { agentSlug: "orchestrator" })` never
+sees the shape or the station, and the orchestrator plans its own DAG and picks its own agents. That
+same file already **withdrew a sentence** from the reply for saying it, and the `landing` frame's
+comment states the rule it was withdrawn under: *"THIS FRAME IS A FACT, NOT A FORECAST, and that
+distinction is why it is the one being emitted."*
+
+Emitting `routed.station` would be the withdrawn claim moved from the reply text onto the wire, where
+the client lights a station strip with it. So the frame comes from somewhere it is a fact instead:
+**`agentStation(mentionedAgent.slug)` on the mention branch**, where a person named an agent, the
+agent was resolved against the catalogue, and the mission was dispatched to it. Its station is a
+property of a dispatch that has already happened.
+
+**On the orchestrator branch nothing is emitted, and that silence is the honest answer.**
+`use-ask-stream.ts` treats an absent station as "none lit yet" and the `landing` frame still hands the
+reader to the mission, so the pane loses only a claim it could not support.
+
+**What would make the full frame honest is already written down in the file**: `startTrackCore` has
+two production callers and chat.ts is not one of them, so once a chat dispatch starts a track carrying
+that `SpineRoute`, the station stops being a guess. The file also says that change contains a product
+decision nobody has taken, namely whether a chat dispatch creates a mission, a track, or both, and
+which id the `mission_id` frame then returns. **That is the decision to park, not a build I can make.**
+A test asserts `routed` stays unsent and names what to delete when the ruling lands.
+
+**Unsure.** Two.
+
+1. **The mention branch is a narrow door for the station frame.** Most dispatches go through the
+   orchestrator, so in practice the station strip will stay dark on the common path until the spine
+   emits it. I judged a correct frame on the narrow path better than a guessed one on the wide path,
+   and the direction doc agrees about where it belongs: its change #1 is "every station gets a
+   `missionId`", and #2 is "every station emits `station` and `tool` frames". The emitter for the
+   common case is the driver, not this route.
+2. **I extended `ask-sse.test.ts`, which is outside K-15's `Owns`.** The item lists no test file, and
+   the acceptance criterion "the client's existing accumulators receive them with no client change"
+   cannot be checked without one. The additions are a new `describe` block, purely additive. The
+   reason this shape of test matters is recorded in the route itself: the first `landing` emitter sent
+   the parser's RETURN shape instead of its INPUT, `parseSseLine` read it as `ignored`, and no type
+   could see it because both ends were internally consistent and only disagreed about the wire.
+
+**Noticed.** Three.
+
+1. **The `landing` frame IS emitted now**, which the item says and which I confirmed at
+   `chat.ts:875`. So of the three work frames declared in `ask-sse.ts`, two were dead and one had been
+   wired since. Both stale comments said "nothing emits it yet" and both are corrected in place rather
+   than deleted, because the interesting half is that the register is ABSENT on a turn that only
+   answered a question, and that is still correct behaviour.
+2. **The client needed no change at all**, exactly as the item predicted. `use-ask-stream.ts` already
+   handles both frames, and its comments are worth reading: a repeated station returns the previous
+   object so a frame saying nothing new causes no re-render, and tools are appended without
+   deduplication because "an agent that ran the same tool twice DID run it twice".
+3. **`parseSseLine` refuses an empty tool name and an unknown station**, which I pinned rather than
+   assumed. Both matter for this emitter: an empty name would render as a blank row in the tool list,
+   and a station outside the seven would light nothing while looking like a server the client half
+   understands.
+
+**Gates.** tsc clean · 9,677 pass / 0 fail / 23 skip across 579 files · build ok.
+
+> **Claude does after:** watch a live run. The order to confirm is `status` then `tool` for the same
+> phase, three tools on a web-mode question, none on a `chat`-mode one, and a `station` frame only
+> when the person addressed an agent by name.

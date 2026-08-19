@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "bun:test";
 import { parseSseLine } from "./ask-sse";
 
@@ -164,5 +166,129 @@ describe("parseSseLine - the work frames", () => {
       kind: "ignored",
     });
     expect(parseSseLine("event: ping")).toBeNull();
+  });
+});
+
+/**
+ * ── THE EMITTER AND THE PARSER, WALKED END TO END (K-15) ────────────────
+ *
+ * ADDED 2026-08-20, and it is outside K-15's stated `Owns` deliberately. The item
+ * lists no test file, and the acceptance criterion it cannot check without one is
+ * "the client's existing accumulators receive them with no client change".
+ *
+ * THE DEFECT THIS SHAPE OF TEST ALREADY CAUGHT ONCE, recorded in `api/chat.ts`:
+ * the first `landing` emitter sent `{kind:"landing", artifact:{…}}`, which is the
+ * parser's RETURN type rather than its INPUT, and `parseSseLine` read it as
+ * `ignored` and dropped it in silence. Both ends were internally consistent and
+ * only disagreed about the wire, so no type could see it. The only thing that
+ * catches it is walking a real emitted line through the real parser.
+ */
+describe("the lines api/chat.ts actually writes, through the real parser", () => {
+  /** Exactly the shape the route enqueues, including the framing. */
+  const line = (obj: unknown) => `data: ${JSON.stringify(obj)}`;
+
+  it("reads a station frame as a station", () => {
+    // Emitted on the mention branch, from `agentStation(mentionedAgent.slug)`.
+    expect(parseSseLine(line({ station: "build" }))).toEqual({
+      kind: "station",
+      station: "build",
+    });
+  });
+
+  it("reads each of the three research tool frames as a tool", () => {
+    /*
+     * The three phases that are genuinely tool calls. `plan` and `synthesize` emit
+     * no tool frame at all, because no tool runs in either, and a frame for them
+     * would name work nothing did.
+     */
+    for (const tool of ["web.search", "web.fetch", "workspace.search"]) {
+      expect(parseSseLine(line({ tool })), tool).toEqual({ kind: "tool", tool });
+    }
+  });
+
+  it("reads the landing frame the mission branch writes", () => {
+    expect(parseSseLine(line({ landing: { kind: "mission", id: "abc", station: "build" } }))).toEqual(
+      { kind: "landing", artifact: { kind: "mission", id: "abc", station: "build" } },
+    );
+  });
+
+  it("does not read a status frame as a tool, or the reverse", () => {
+    // Both are sent for the same phase, one after the other, and they must land in
+    // two different accumulators. A parser that read either as the other would put
+    // a sentence in the tool list or a tool name in the status line.
+    const status = parseSseLine(line({ status: { phase: "search", label: "Searching: x" } }));
+    expect(status?.kind).toBe("status");
+    expect(parseSseLine(line({ tool: "web.search" })).kind).toBe("tool");
+  });
+
+  it("refuses a station the client does not know, rather than lighting a wrong one", () => {
+    // `parseStation` is strict on purpose: the seven are a closed set and a frame
+    // naming an eighth is a server this client does not understand yet.
+    expect(parseSseLine(line({ station: "quarry" })).kind).toBe("ignored");
+  });
+
+  it("refuses an empty tool name", () => {
+    // `toolActionLabel("")` is null, so an empty name would render as a blank row
+    // in the tool list rather than as nothing.
+    expect(parseSseLine(line({ tool: "" })).kind).toBe("ignored");
+    expect(parseSseLine(line({ tool: "   " })).kind).toBe("ignored");
+  });
+});
+
+describe("the emitter sends the parser's INPUT shape, not its output", () => {
+  const source = readFileSync(new URL("../routes/api/chat.ts", import.meta.url), "utf8");
+
+  it("writes a bare `station` key", () => {
+    /*
+     * The specific mistake the landing frame made. `{kind:"station", station:…}`
+     * would parse as `ignored`, because `parseSseLine` looks for the KEY.
+     */
+    expect(source).toContain('JSON.stringify({ station: dispatchedStation })');
+    expect(source).not.toContain('kind: "station"');
+  });
+
+  it("writes a bare `tool` key", () => {
+    expect(source).toContain("send({ tool })");
+    expect(source).not.toContain('kind: "tool"');
+  });
+
+  it("still sends the status alongside, rather than replacing it", () => {
+    // The two answer different questions and the client accumulates them into two
+    // different fields. Dropping the status to add the tool would trade a sentence
+    // a reader can act on for a name they cannot.
+    expect(source).toContain("send({ status });");
+  });
+
+  it("emits no tool frame for the two phases that call no tool", () => {
+    /*
+     * Asserted against the map rather than the emitter, because the emitter is a
+     * lookup and the decision lives in the table. `plan` is the model deciding what
+     * to ask and `synthesize` is the model writing; a tool name for either would be
+     * this file's own withdrawn-claim defect, one frame down.
+     */
+    const at = source.indexOf("const RESEARCH_PHASE_TOOL");
+    const table = source.slice(at, source.indexOf("};", at));
+    expect(table).toContain("search:");
+    expect(table).toContain("read:");
+    expect(table).toContain("workspace:");
+    expect(table, "a tool name was put on a phase where no tool runs").not.toContain("plan:");
+    expect(table, "a tool name was put on a phase where no tool runs").not.toContain("synthesize:");
+  });
+
+  it("leaves the classifier's guessed station off the wire", () => {
+    /*
+     * THE ONE PLACE THIS ITEM WAS NOT FOLLOWED, and the reason is in the route: the
+     * classifier's entry station is a guess, nothing on that branch routes by it,
+     * and the same file already withdrew a sentence for saying it. So the frame
+     * comes from `agentStation(mentionedAgent.slug)`, a property of a dispatch that
+     * has happened, and `routed` stays unsent.
+     *
+     * If a chat dispatch ever starts a track carrying that route, this assertion is
+     * the one to delete, and the paragraph above `const routed` says what else has
+     * to change with it.
+     */
+    expect(source).toContain("void routed;");
+    expect(source).not.toContain("station: routed");
+    expect(source).not.toContain("routed.station");
   });
 });

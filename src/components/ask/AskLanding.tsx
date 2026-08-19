@@ -26,9 +26,15 @@
  * below resolves to a station and the route is looked up from the station,
  * rather than each kind carrying its own path.
  *
- * INERT UNTIL A SERVER SPEAKS. The `landing` frame is parsed by `ask-sse.ts` and
- * nothing emits it yet. This renders only when something hands it a real kind
- * and a real id.
+ * IT IS EMITTED NOW, and this comment used to say it was not. `api/chat.ts`
+ * sends a `landing` frame the moment `createMission` returns a real row, so a
+ * dispatched mission hands the reader back to Build instead of ending in a chat
+ * log. That was the last of the four disconnected pieces: the frame was declared,
+ * parsed, accumulated and rendered, and nothing sent one.
+ *
+ * STILL INERT WITHOUT ONE, which is the part that has not changed. This renders
+ * only when something hands it a real kind and a real id, so a turn that landed
+ * nowhere shows no register rather than a placeholder.
  */
 
 import { Link } from "@tanstack/react-router";
