@@ -1122,3 +1122,58 @@ this DATA: 77 rows, all seeded, all in sample workspaces, one dimension never
 written, and the tick that would produce real ones last succeeded on 2026-07-23.
 **The composition is now a design decision rather than a blocked one**, and the
 honest input for it is future evals, not these.
+
+## Claude lane · LANDED · 2026-08-20 02:35
+
+**A terminal status is no longer overwritable, and the guard went in before the
+thing it guards against exists.**
+
+**The defect.** `finalize` in `loop.server.ts` wrote the run's terminal status by
+id with **no precondition**. Whatever the run had become while the loop was
+mid-flight, `finalize` painted `completed` over it on the way out. The audit
+records the consequence exactly: *"a cancelled-but-running run overwrites itself
+with `completed` after performing every side effect."* The record then says a
+person's stop did not happen, which is the one thing a record of decisions may
+not say.
+
+**It is latent today, and that is the argument for fixing it now rather than
+later.** Nothing writes `cancelled` to `agent_runs` -- `grep -rn 'status:
+"cancelled"' src/` returns nothing outside tests -- because the per-run stop does
+not exist yet. **So the race has never fired.** The moment a stop is built it
+does, on the first cancel, and the symptom is a user reporting that stopping did
+nothing while the log says the run completed normally. Building the guard first
+costs one predicate; building it second costs a bug report nobody can reproduce.
+
+**The pattern was already in this repo, one table over.** `cancelMission`
+(`missions.functions.ts:604`) flips a mission only while it is still non-terminal
+and says why in its own comment: *"no overwriting 'completed' with 'cancelled'"*.
+`agent_runs` never got the same treatment. This is that rule, in the direction
+that was missing.
+
+**Shape.** The predicate travels with the write --
+`.not("status","in","(...)")` on the same statement -- because a read-then-write
+in JS reopens the race the precondition exists to close. A blocked write is not an
+error: it means something else already ended this run and that answer stands, so
+it logs and returns.
+
+**This makes K-12's module real, which is the second reason to do it here.**
+`run-status.ts` shipped with zero consumers by design, so wiring the four
+surfaces later could not create a cycle. **`finalize` is its first consumer.** I
+added `TERMINAL_RUN_STATUSES` to it, **derived from `isTerminal` rather than typed
+out again**, so the list a query sends and the answer the module gives cannot
+disagree -- which is the whole reason K-12 exists. The module still imports
+nothing, so no cycle was created.
+
+**Five tests pin the invariant**, including two worth naming: `unknown` is
+excluded, because a run in an unrecognised state would otherwise become
+unfinalisable forever; and the rendered in-list is asserted space-free, because
+postgrest parses that string rather than JS and a stray space becomes part of a
+value and silently matches nothing.
+
+**Gates:** tsc clean, 9,791 pass / 0 fail across 581 files, build ok.
+
+**What is still missing, so this is not read as the stop being done.** There is
+still no per-run stop: no `AbortController` reaches `callModel`, which accepts a
+`signal?` and is never given one, and nothing writes `cancelled`. §10 criterion
+10 -- "runs stopped by a user, ever" -- is still 0 and still impossible. **This
+closes the half that would have made the other half lie.**

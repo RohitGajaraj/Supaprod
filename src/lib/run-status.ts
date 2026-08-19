@@ -217,6 +217,25 @@ export function isTerminal(status: RunStatus): boolean {
 }
 
 /**
+ * Every canonical status `isTerminal` calls terminal, as a sorted list.
+ *
+ * WHY A LIST AND NOT A SECOND HAND-WRITTEN SET. A writer that must not clobber a
+ * terminal status has to say so in the QUERY, not in JS, because the check and
+ * the write have to be one statement or the race is still open. That means the
+ * names have to leave this file as data. **Derived from `isTerminal` rather than
+ * typed out again**, so the predicate a query sends and the answer this module
+ * gives can never disagree -- which is the entire reason K-12 exists.
+ *
+ * Sorted so the string a caller builds is stable, and a snapshot test of a query
+ * does not fail on key order.
+ */
+export const TERMINAL_RUN_STATUSES: readonly RunStatus[] = [
+  ...new Set(Object.values(SPELLINGS)),
+]
+  .filter(isTerminal)
+  .sort();
+
+/**
  * Whether a person is what it is waiting for.
  *
  * `halted` is deliberately absent. A halt is a stop on a condition, usually a

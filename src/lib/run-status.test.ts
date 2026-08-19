@@ -16,6 +16,7 @@ import { readFileSync } from "node:fs";
 
 import {
   KNOWN_RUN_SPELLINGS,
+  TERMINAL_RUN_STATUSES,
   isTerminal,
   isWaitingOnAPerson,
   normalizeRunStatus,
@@ -296,5 +297,58 @@ describe("it stays a spelling layer and changes no writer", () => {
     for (const projection of ["RunState", "RunBucket", "RunOutcome", "MissionRowStatus"]) {
       expect(source, `it exports ${projection}`).not.toContain(`export type ${projection}`);
     }
+  });
+});
+
+/*
+ * ── TERMINAL_RUN_STATUSES ────────────────────────────────────────────────────
+ *
+ * Added 2026-08-20 with its first consumer, the `finalize` precondition in
+ * `loop.server.ts`. That writer has to name the terminal statuses INSIDE its
+ * query, because a read-then-write in JS reopens the race the precondition was
+ * added to close. So the names leave this module as data, and these tests exist
+ * to stop the data and the predicate drifting apart.
+ */
+describe("TERMINAL_RUN_STATUSES", () => {
+  it("agrees with isTerminal on every status the normalizer can produce", () => {
+    const produced = [...new Set(KNOWN_RUN_SPELLINGS.map(normalizeRunStatus))];
+    for (const status of produced) {
+      expect(
+        TERMINAL_RUN_STATUSES.includes(status),
+        `${status}: list says ${TERMINAL_RUN_STATUSES.includes(status)}, isTerminal says ${isTerminal(status)}`,
+      ).toBe(isTerminal(status));
+    }
+  });
+
+  it("holds exactly the five terminal statuses, sorted", () => {
+    expect([...TERMINAL_RUN_STATUSES]).toEqual([
+      "cancelled",
+      "completed",
+      "completed_with_failures",
+      "failed",
+      "halted",
+    ]);
+  });
+
+  it("excludes unknown, because an unrecognised status is not evidence work stopped", () => {
+    // The same argument isTerminal's own comment makes. If `unknown` were in
+    // this list, a run in an unrecognised state could never be finalised at all:
+    // the precondition would refuse every write to it, forever.
+    expect(TERMINAL_RUN_STATUSES).not.toContain("unknown");
+    expect(isTerminal("unknown")).toBe(false);
+  });
+
+  it("excludes every non-terminal status, so finalize can still write a running run", () => {
+    for (const live of ["queued", "running", "waiting_approval", "proposed"] as const) {
+      expect(TERMINAL_RUN_STATUSES, `${live} must remain writable`).not.toContain(live);
+    }
+  });
+
+  it("renders a postgrest in-list with no spaces, which the query relies on", () => {
+    // `.not("status","in", "(a,b)")` is parsed by postgrest, not by JS. A stray
+    // space becomes part of a value and silently matches nothing.
+    const rendered = `(${TERMINAL_RUN_STATUSES.join(",")})`;
+    expect(rendered).toBe("(cancelled,completed,completed_with_failures,failed,halted)");
+    expect(rendered).not.toContain(" ");
   });
 });

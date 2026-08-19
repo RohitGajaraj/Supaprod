@@ -16,6 +16,9 @@ import {
   type KeyResolutionCache,
 } from "./runtime.server";
 import { refundAbandonedRunCredits } from "@/lib/credits.functions";
+// K-12's canonical vocabulary, and this is its first consumer. It imports
+// nothing itself, so there is no cycle to create by reading it here.
+import { TERMINAL_RUN_STATUSES } from "@/lib/run-status";
 import { TOOL_REGISTRY, describeToolsForPrompt, type ToolCtx } from "./tools/registry.server";
 import { resolveMissionSpendCap } from "./mission-caps.server";
 import { resolveToolAccess } from "@/lib/ai/tools/defaults";
@@ -1956,7 +1959,39 @@ export async function resumeAgentLoop(
   })();
   const finalize = async (finalMsg: string) => {
     try {
-      await supabase
+      /*
+       * ── A TERMINAL STATUS IS NOT OVERWRITABLE ─────────────────────────────
+       *
+       * This wrote `status` by id with no precondition, so whatever the run had
+       * become while this loop was mid-flight, `finalize` painted `completed`
+       * over it on the way out. The audit records the consequence: **a
+       * cancelled-but-running run overwrites itself with `completed` after
+       * performing every side effect.** The record then says a person's stop
+       * did not happen, which is the one thing a record of decisions may not
+       * say.
+       *
+       * It is LATENT TODAY and that is exactly why it is being fixed now.
+       * Nothing writes `cancelled` to `agent_runs` yet -- `grep -rn 'status:
+       * "cancelled"' src/` returns nothing outside tests -- because the per-run
+       * stop does not exist. **The guard goes in before the thing it guards
+       * against**, or the first stop ever built ships with a race nobody sees
+       * until a user reports that cancelling did nothing.
+       *
+       * THE PATTERN IS ALREADY IN THIS REPO, one table over. `cancelMission`
+       * (`missions.functions.ts:604`) flips a mission only while it is still
+       * non-terminal, and says why in its own comment: "no overwriting
+       * 'completed' with 'cancelled'". `agent_runs` simply never got the same
+       * treatment. This is that rule, in the direction that was missing.
+       *
+       * The predicate is one statement with the write, not a read followed by a
+       * write, because a check in JS reopens the race it was added to close.
+       * The names come from `TERMINAL_RUN_STATUSES`, derived from `isTerminal`,
+       * so the query and the module cannot drift.
+       *
+       * A blocked write is not an error. It means somebody else already
+       * finished this run, and their answer is the one that stands.
+       */
+      const { data: settled } = await supabase
         .from("agent_runs")
         .update({
           status: halted
@@ -1967,7 +2002,16 @@ export async function resumeAgentLoop(
           output: finalMsg,
           ...(elapsedMs === null ? {} : { duration_ms: elapsedMs }),
         })
-        .eq("id", runId);
+        .eq("id", runId)
+        .not("status", "in", `(${TERMINAL_RUN_STATUSES.join(",")})`)
+        .select("id");
+
+      if (settled && settled.length === 0) {
+        console.warn(
+          `[loop] finalize skipped for run ${runId}: it already holds a terminal status. ` +
+            `Something else ended this run and that answer stands.`,
+        );
+      }
     } catch (e) {
       console.error("agent_runs finalize failed:", e);
     }
