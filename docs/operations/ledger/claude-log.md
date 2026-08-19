@@ -1753,3 +1753,55 @@ has been met.** Criterion 1 is the closest and it needs the deploy plus the
 either a query I could not run (the cron and ops tables time out through the MCP,
 see 04:35) or a code sweep rather than a database read. Naming them rather than
 leaving the table looking complete.
+
+## Claude lane · LANDED · 2026-08-20 04:55 · two more §10 criteria measured
+
+Finishing two of the seven I named as unmeasured at 04:45, rather than leaving
+the drift record with holes I had already flagged.
+
+**Criterion 17 is MET, and it is the first one that is.**
+*"Agents with a duplicate display name at one station: 2 -> 0."* Measured across
+all 283 agent rows: **0 duplicate names within a workspace, 0 agents involved.**
+Whatever fixed it, it is fixed.
+
+**Criterion 2 is worse than the register recorded, and the method is why.**
+*"Approvals raised for reversible+internal tools: 87 -> 0."* I ran K-10's
+`resolveApprovalPolicy` over **every tool that has ever raised an approval**,
+weighted by how many each raised:
+
+    approvals ever raised          316
+    raised for a never-ask tool    158      <- 50%
+    register's figure               87
+
+**Half of every approval this product has ever raised should never have been
+raised.** Not half of the pending ones -- half of all 316, across the whole
+history.
+
+Twelve tools account for it, and the tail matters as much as the head:
+
+    cluster.trigger 84 · backlog.prioritize 14 · studio.stage 13 · tasks.create 8
+    prd.draft 7 · memory.promote 7 · ci.logs 7 · mission.finalize 7
+    memory.remember 7 · notes.create 2 · signals.log 1 · decision.revise 1
+
+`ci.logs` and `signals.log` are the ones worth pausing on: **a person was asked to
+authorise reading a log file.** That is the shape the register calls "policy
+outruns permission", and it is what the 93%-approval-rate finding predicts --
+a queue mostly made of questions with only one sensible answer teaches people to
+stop reading it.
+
+**Why my number is bigger than 87 rather than smaller.** The register counted
+tools it judged reversible and internal by hand. This counts whatever the shipped
+policy says, weighted by volume, which is the number that will actually change
+when the policy is wired in. **Neither is wrong; mine is the one that predicts
+the outcome**, because it is computed by the code that will decide it.
+
+**Criterion 2 also cannot move until the deploy.** Same boundary as everything
+else tonight: `resolveApprovalPolicy` is a pure module with no consumer, so it
+currently decides nothing. Wiring it into the approval path is the change that
+turns 158 into 0, and it is not written yet.
+
+**Still unmeasured, and named again rather than quietly dropped:** 7 (a resolved
+forecast changing a rank), 12 (tick failures visible to a non-admin), 13
+(tick-written tables with no reader), 14 (digest reach), 15 (routes with zero
+inbound links). Each needs either the ops tables that time out through the MCP or
+a code sweep rather than a query.
