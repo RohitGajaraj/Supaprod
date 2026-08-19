@@ -273,3 +273,70 @@ thing standing between the measured 1.04 collapse and a shipped defect.
 build ok, ratchet baseline unchanged.
 
 **K-03 is unblocked.** K-05 and K-06 are read but not yet ruled on.
+
+## K-09 · VERIFIED · 2026-08-20 00:15
+
+**This item was told to do something that would have failed the build, refused,
+and proved the refusal before working around it. That is the behaviour the queue
+asks for and it is the first time it has happened here.**
+
+**Checked, and every claim holds.**
+
+- **The item's prescribed mechanism really is illegal.** `--text-` is a retired
+  Obsidian marker in the scanner itself:
+  `{ id: "--text-", pattern: /--text-[a-z0-9-]+/g, lineage: "Obsidian" }` at
+  `meridian-ratchet-scan.ts:137`. Adding thirteen `--text-mrd-*` bindings would
+  have taken the file 0 → 13 and failed rule 2, exactly as the entry says.
+- **Thirteen `@utility text-mrd-*` rules exist** in `meridian.css`, and the four
+  in-use stops reach the artefact a browser loads:
+  `.text-mrd-nano{font-size:var(--mrd-t-nano)}`, and `base`, `body`, `lead`.
+- **`marks.tsx:247` still carries `text-[9.5px]`.** Correct. It is K-08's file and
+  this item was right not to reach into it.
+- **Ratchet baseline for `src/styles/meridian.css` is unchanged**: `--ds-: 3`,
+  `raw-colour: 8`, and no `--text-` entry at all.
+
+**One apparent contradiction, and it was my instrument rather than the entry.**
+A raw `grep -c -- '--text-' src/styles/meridian.css` returns **6**, against the
+entry's claim of zero. All six sit inside K-09's own comment at lines 1031-1049,
+the one explaining why the mechanism could not be used. The ratchet strips
+comments before counting by explicit design -- `meridian-ratchet-scan.ts:331`,
+and its header says why: *"A legacy token inside a comment paints nothing. Only
+code ships."* So the entry is right and my grep was counting documentation.
+**Third time in this session a colour or token has been mis-measured by reading
+the source text instead of the thing that ships.** Same lesson each time.
+
+**The snaps are correct and the direction is the point.** Twelve values moved and
+every one moved UP, including four 13.5 → 14 where 13 was arithmetically nearer.
+"Shrinking type is forbidden as an answer" is a ratchet law, not a rounding rule,
+and applying it to a half-pixel is the strict reading rather than a liberty.
+
+---
+
+## K-09 · RULED · 2026-08-20 00:15
+
+**On the QUESTION: `marks.tsx:247` is K-08's and stays K-08's.** Do not reach
+into it, and do not carry the acceptance criterion "zero off-ladder values remain
+in `src/components/meridian/`" as failed on K-09's account -- it was unmeetable
+inside this item's boundary the moment K-08 took that file. The one-line snap the
+entry proposes is correct, including the direction, and `--mrd-t-nano`'s own
+comment naming "uppercase micro-label, always at weight 650" is the right
+argument for it. **It belongs to K-08 and I am recording it there rather than
+here.**
+
+**On the out-of-`Owns` edit to `every-meridian-utility-paints.test.ts`:
+accepted, and declaring it was the right call.** Two gates in this repo genuinely
+contradicted each other and neither could be satisfied by the other's rule. An
+item that silently picked one would have left the next reader to rediscover the
+conflict; this one wrote it down.
+
+**On a file I touched that this item owns, declared rather than buried.** K-09's
+`Owns` covers `src/styles/meridian.css`, and while it was `BUILT` I added twenty
+status-chip tokens to it (`--mrd-{status}-chip`, `--mrd-{status}-on-chip`, both
+grounds) plus their `@theme inline` bindings. Additive only, no existing
+declaration changed, ratchet total unchanged, and it landed in commit
+`485a18e4`. **I should have added a rebase note at the time and did not.** It is
+recorded here instead because the protocol forbids editing a `BUILT` item's body,
+and this entry is the place a correction belongs.
+
+**K-80 is unblocked by this verdict**, and per the founder's ruling of 2026-08-20
+it is the next build regardless of its number.
