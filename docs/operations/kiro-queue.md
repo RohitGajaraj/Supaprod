@@ -16,7 +16,10 @@
 > | --- | --- |
 > | **K-80 `Flowchart`** | The one component the reference ships and Meridian does not. Nothing here can draw a graph, so the Run Map the direction already specified cannot be built at all. |
 > | **K-81 Loading state** | A shipped primitive that is measurably wrong against the reference: coloured where it should be monochrome, one type size where there should be two. Every surface that shows work in flight inherits it. |
-> | **K-82 `InsightCards` chart** | Lowest of the three, and **it keeps its permission to be declined** — see the item. It is an addition to a tuned component rather than a primitive gap, so it jumps feature work but never at the cost of degrading what is there. |
+> | **K-82 `InsightCards` chart** | Third, and **it keeps its permission to be declined** — see the item. It is an addition to a tuned component rather than a primitive gap, so it jumps feature work but never at the cost of degrading what is there. |
+>
+> | **K-83 glyphs and connectors** | The glyphs name the wrong things and a duration wraps to three lines in a column sized for a clock. Both are in shipped run views. |
+> | **K-84 `PlanCard` step controls** | The gate belongs at the plan, and the plan currently offers nothing to click. |
 >
 > **When this list is empty, resume by number.** When a new primitive item is written, add it here in the same commit, or it will be built last by default and this ruling will have to be made again.
 
@@ -1928,7 +1931,9 @@ It also happens to be the primitive the direction already asked for. [`../planni
 - **Connectors are SVG paths, dominant stroke `1.8px`**, with `2.4px` used for the emphasised path. 16 paths in the reference's own example. No dashes.
 - **The ground is dotted**, not gridded and not plain.
 - **Two node kinds in the reference example**, `Trigger` and `If / Else`, the second being a branch with labelled outgoing edges. A small **60x28** pill carries the kind.
-- **This is a watching surface, not an editor.** No drag, no connect, no delete. That is a deliberate reading of §6.3 and it is what keeps the scope L rather than XL.
+- **It is interactive. Nodes drag, and the connectors follow.** *(Founder ruling 2026-08-20, overriding the original scope in this item, which said "a watching surface, not an editor. No drag, no connect, no delete." That was my reading of §6.3 and it was wrong: a graph you cannot rearrange is a picture, and a run map that cannot be untangled by the person reading it is not a map.)* Drag a node, the orthogonal connectors re-route and stay attached to their anchors. Still no authoring: no creating nodes, no drawing new edges, no delete.
+- **The ground is dotted AND carries a faint colour**, not neutral grey. Founder's call: a subtle violet cast, in both grounds. `--mrd-you` is the orchid hue at 315 and must **not** be reused here, because it means "a person is required" and a canvas background means nothing. This is a `--mrd-viz-*` or a new canvas token, argued in the file like any other, and measured in both grounds so the dots stay visible on paper without the wash reading as a status.
+- **The size moves from L to XL** with drag, and that is expected. If it needs to land in two commits, land the static graph first and say so in the log.
 
 **The rules from §1 apply here harder than anywhere**, because this component has no existing sibling to copy rhythm from: fixed node width, one type ladder, connectors that meet nodes at a consistent anchor rather than wherever the maths lands.
 
@@ -2005,6 +2010,59 @@ It also happens to be the primitive the direction already asked for. [`../planni
 - The card renders identically to today when no series data is supplied.
 
 **Owns.** `src/components/meridian/InsightCards.tsx`, `src/components/meridian/__tests__/insight-cards.test.tsx`, `src/routes/_authenticated.meridian.tsx`
+
+---
+
+**K-83 · The glyphs name the wrong things, and nothing connects one step to the next**
+`STATUS: TODO` · deps: K-09 · size: M · **PRIORITY: jump list, fourth**
+
+**What.** Two changes to the run views, both about the same thing: a row should say what it touched, and a reader should be able to see that one row led to another.
+
+**Why. Founder review 2026-08-20, and the invisibility half is already fixed.** The glyphs were painting `currentColor` against a `color` the light ground never re-bound, so 65 of them measured **1.00 contrast on paper**, which is white on white. That was a hole in the theme contract, it is closed in `meridian.css`, and glyph contrast now measures 15.63 on paper. **The two things below are what remains, and both are about meaning rather than visibility.**
+
+1. **The mark does not name the thing.** "Opened the pull request" wears a generic repo glyph, and the founder's read is that it does not say GitHub. A row that names an outside system should wear that system's mark: the source host for a pull request, the test runner for a check, a globe for a web fetch, the person mark that already exists for a human gate. Where no mark exists, a letter is not the fallback -- a shape that names the *kind* is.
+   - **Align it optically, not geometrically, and the measurement says which.** The glyph BOX is already centred: measured on five rendered rows, glyph centre against text centre is **0.6px**, and the gap to the label is a consistent 8px. So this is not a layout defect. What the founder is seeing is **the ink inside the 14x14 viewBox sitting off-centre**, which no amount of flexbox fixes. Centre the drawn path within its own viewBox, or give the container a deliberate optical offset with the reason in the file. Do not "fix" it by nudging the layout, which would then break every glyph whose ink IS centred.
+
+3. **A duration in the clock column wraps to three lines.** Founder, reading the 90-character-label case: *"6 hours, 11 minutes, 0 seconds ... why is it basically three lines?"* Measured, and the cause is exact:
+
+   - The row grid is `grid-cols-[var(--mrd-s7)_14px_1fr]`. The first column is `--mrd-s7` = **40px**, which is the width of `13:59` and is what that column is for.
+   - The silence row puts `6h 11m 00s` in that same 40px column. The identical string renders **68px** wide where it has room, so at 40px it wraps to **3 lines and 52px tall**, against 17px for every clock beside it.
+   - **The column is sized for a clock and is being handed a duration.** Those are different things: the clock column answers *when*, and a duration answers *how long*, which is a *what*. Either the duration moves to the content column where every other "what" lives, or the format sheds precision nobody wants at that scale -- **seconds are noise at six hours** -- but "let it wrap to three lines" is not an option, and neither is `nowrap`, which would just overflow 40px.
+   - Whichever is chosen, **one silence row must not render two different ways**: the 28-minute case already puts its duration in the content column while the 6-hour case puts it in the clock column, which is the same component disagreeing with itself.
+2. **Nothing connects one row to the next.** The reference draws a continuous rail through its thinking and timeline states so a sequence reads as a sequence. `RunTimeline` already has a rail for silences; extend the idea so a reader can follow a run down the page rather than reading a list of unrelated lines. Port the mechanics from the reference, do not invent them.
+
+**Acceptance.**
+- Every glyph clears 3:1 in both grounds, checked by measurement rather than by eye.
+- No row wears a glyph that names something it did not touch.
+- A multi-step run reads as connected, in both grounds, and survives greyscale.
+- Ratchet total unchanged or lower.
+
+**Owns.** `src/components/meridian/station-glyphs.tsx`, `src/components/meridian/RunTimeline.tsx`, `src/components/meridian/ToolStream.tsx`, `src/routes/_authenticated.meridian.tsx`
+
+---
+
+**K-84 · A plan step states what it is and offers nothing to do about it**
+`STATUS: TODO` · deps: K-09 · size: M · **PRIORITY: jump list, fifth**
+
+**What.** Give a `PlanCard` step the two controls a person needs on it, the context to decide, and an alignment that holds.
+
+**Why. Founder review 2026-08-20**, reading the shipped card: *"for one step, there should be a little approval button and a skip with no reason on it. There should be a little context, and the alignment needs to be properly put. It just says, 'Plan one step: open the pull request. Engineer up to the plan.' It's not properly aligned."*
+
+Three things in that, and they compound:
+
+1. **A step is read-only.** It states an intent and offers no way to act on it. The direction's whole argument is that the gate belongs at the plan rather than at the steps (§3.4, and the external finding that users make ~70% of planning decisions and ~20% of execution decisions). **The plan is exactly where a control belongs**, and there is none.
+2. **Skipping needs a reason and the reason is the point.** A skip with no recorded why is a decision that leaves no trace, in a product whose claim is that the record can be trusted. Reason optional makes it a shrug; reason required makes it evidence.
+3. **The row does not align.** The agent credit, the step text and whatever sits to the right are not on a common grid. **This is the alignment rule from §1, and `PlanCard` is measurably the best-aligned component in the set already** (5 distinct row heights against RunTimeline's 13), which is why the remaining gap is the visible one.
+
+**How.** `Approve` already exists for a click that unblocks, and K-02 added `destructive` for one that stops. A skip is neither -- it is a `quiet` action that opens a small reason field. Do not invent a fourth face for it.
+
+**Acceptance.**
+- A step renders an approve control and a skip control, both keyboard reachable with a visible focus state.
+- Skip captures a reason and will not complete without one.
+- Enough context renders on the step to decide without leaving the card.
+- Every row in the card sits on one grid, checked by measuring rendered geometry rather than by reading the class list.
+
+**Owns.** `src/components/meridian/PlanCard.tsx`, `src/components/meridian/__tests__/plan-card.test.tsx`, `src/routes/_authenticated.meridian.tsx`
 
 ---
 
