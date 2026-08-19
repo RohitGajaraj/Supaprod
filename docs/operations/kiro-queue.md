@@ -4,7 +4,7 @@
 
 **If you are Kiro and you have just been asked "what are you building next": read [§1 How to work](#1-how-to-work), then take the lowest-numbered item whose status is `TODO` and whose dependencies are all `VERIFIED`. That is your next build. Everything you need is in its row.**
 
-Direction this queue implements: [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md). Design contract: [`../design/DESIGN-SYSTEM.md`](../design/DESIGN-SYSTEM.md). Build rules: [`../../AGENTS.md`](../../AGENTS.md).
+Direction this queue implements: [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md). **Its §5 traces every surface end to end — purpose, inputs, agent, backend, writes, handoff, learning loop — and §2 carries the object model.** Read §5's entry for the station you are touching before building anything that renders run state, station state, or a hold: that is **K-04, K-06, K-18, K-20, K-23, K-24, K-26, K-49, K-51 and K-60 to K-63**. For the rest, the direction is context rather than required reading. Design contract: [`../design/DESIGN-SYSTEM.md`](../design/DESIGN-SYSTEM.md). Build rules: [`../../AGENTS.md`](../../AGENTS.md).
 
 ---
 
@@ -46,6 +46,66 @@ Two agents build this repo at once and they have **different capabilities**, so 
 2. Verify against production and runtime, not against the test suite.
 3. Move `BUILT` → `VERIFIED` or `REJECTED`, with a reason on the same line.
 4. A `REJECTED` item goes back to `TODO` with a note saying what was wrong.
+
+### How the two lanes meet, concretely
+
+**Two different things have been sharing the word "branch", and only one of them is refused.**
+
+| | Verdict | Why |
+| --- | --- | --- |
+| **A short-lived branch per item**, cut from `main`, merged within hours | **Yes, do this** | Normal git hygiene. `main` never sees a red tree, and each item is reviewable on its own |
+| **A long-lived copy of `main`** that both agents build on for weeks, merged or swapped in at the end | **No** | See below |
+
+**Kiro should work on a sub-branch per item.** Point it at `kiro/K-NN-slug`, let it merge to `main` when its gates are green. That is not the thing that was ruled against.
+
+**What was ruled against is the long-lived copy.** That was proposed and ruled against on 2026-08-19, and the reason is not preference: **the code can be branched and the database cannot.** There is one Supabase instance and migrations applied through Lovable are live immediately, so a long-lived branch either applies its migrations to the database `main` is running on — in which case `main` was never protected — or does not apply them, in which case the branch cannot run. Lovable also deploys only from `main`, so a branch is a thing nobody can look at, and looking at it is a design law here. Full reasoning: [`../design/agent-first-surface-brief.md`](../design/agent-first-surface-brief.md) §6.
+
+**`main` is never retired, replaced, or force-pushed.** That operation orphaned 4,124 commits on 2026-07-27 and a `pre-push` hook blocks it now.
+
+**So the flow is:**
+
+```
+  Kiro  ──► short-lived branch ──► gates green ──► merge to main ──► Claude verifies
+            one item per branch     tsc/test/build    fast-forward      against production
+                                                                            │
+                                                          VERIFIED ◄────────┤
+                                                          REJECTED ◄────────┘
+                                                          (back to TODO with the reason)
+```
+
+1. **One branch per item**, named `kiro/K-NN-short-slug`, cut fresh from `main`. Short-lived means hours or a day, not a week — a branch that outlives the item it was cut for is how merge debt starts.
+2. **All three gates green before merge:** `bunx tsc --noEmit`, `bun test`, `bun run build`. This is Kiro's gate and it is not optional.
+3. **Merge to `main`** and delete the branch. Push with an explicit refspec.
+4. **Claude verifies from `main`**, against production and the running app — not against the diff.
+
+**Why merge to `main` rather than hold branches open:** Lovable deploys `main`, so an item that has not merged is an item nobody can look at, and half this queue is user-visible. Holding twenty branches open to "be safe" produces twenty untested things and one enormous merge.
+
+**Where the safety actually comes from, since it is not the branch:**
+
+| Risk | What contains it |
+| --- | --- |
+| A broken commit reaching `main` | The three gates, run **before** merge, every time |
+| A user seeing a half-built surface | **Anything user-visible ships behind a flag.** `feature_flags` exists and holds zero rows |
+| Two agents editing one file | **`Owns` is exhaustive per item.** Never touch a file another item lists |
+| Something passing tests and doing nothing in production | Claude's verification pass, which queries the database rather than reading the diff |
+
+**Most of this queue is not user-visible at all** — Meridian components land in the gallery before they are wired, deletions change no rendered output, pure modules have no surface, tests have no surface. The flag rule bites on the route ports (**K-47 to K-59**) and on anything that changes a shipped screen.
+
+### What Claude is doing while you build
+
+So you know what is covered and do not attempt it:
+
+| Claude's lane | Why it cannot be yours |
+| --- | --- |
+| **Every migration**, and applying it through Lovable | Applied SQL is not committed SQL; the bot applies migrations too |
+| **Verifying each `BUILT` item against production** | Nine features once shipped passing every test and doing nothing. None was found by reading code |
+| **Runtime behaviour**: the SSE frames arriving in order, a run stopping mid-tool-call, a steer reaching a non-Build station | Needs a live run |
+| **Deciding how seven eval dimensions compose into one trust number** | A product decision requiring the live schema |
+| **Stamping `product_id` on `credit_ledger`** and the multi-product migrations | Writes |
+| **Reference research for Discover, Design, Ship and Brain** | Four stations have no reference product researched yet, and the standing rule is to lift an information model rather than invent one |
+| **The forecast wiring**, once K-13 lands | Schema plus a production read |
+
+**The division is not seniority, it is access.** You can prove a component renders, a function returns, a type checks and a test passes. You cannot prove a column is populated, a tick is scheduled, or a surface shows the truth. That is the whole line.
 
 ### You are expected to judge, not to comply
 
