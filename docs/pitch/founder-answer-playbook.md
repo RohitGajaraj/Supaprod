@@ -1,6 +1,6 @@
 # The founder answer playbook
 
-> _Created: 2026-08-04 · Last updated: 2026-08-04_
+> _Created: 2026-08-04 · Last updated: 2026-08-19_
 
 **One bank for every room: investors, incubator and accelerator interviewers, design partners, skeptical engineers.** Venue-neutral on purpose. The YC-specific drill sheet is [`yc/interview-prep.md`](./yc/interview-prep.md); the short objection list is [`qa-bank.md`](./qa-bank.md). This file is the trainer, and it teaches **how** to answer before it gives you what to say.
 
@@ -30,6 +30,77 @@ Read section 1 once and internalise it. Sections 3 to 12 are the drill material.
 > 3. **Update in place. Never fork a second bank per programme.** Programme-specific angles belong in `applications/<programme>/positioning.md`; the answers themselves belong here, once.
 >
 > **Before any interview:** re-read section 2 against the live numbers, then run the drills at the bottom. **After any interview:** spend ten minutes here while it is fresh. That ten minutes is worth more than the hour of preparation before the next one.
+
+---
+
+---
+
+## 🔴 The adversarial panel, 2026-08-19. Read this before any investor call.
+
+**Five independent readers scored the YC Fall 2026 update cold, none seeing the others: a serial
+entrepreneur, a multiple-time founder, two VC partners, and a YC partner who read the locked
+application first. Median 5 to 6 out of 10.** These are the objections that will be put to you in
+a room, so they are drilled here rather than left in a report.
+
+### All five named the same thing, unprompted. That is not opinion, it is a reading.
+
+> *"Not one line of it is a human being outside this founder."*
+> *"Not one sentence in the update comes from outside your own head."*
+> *"The only human being in this entire update is him."*
+> *"That is the precise signature of an excellent employee enjoying a project: enormous,
+> disciplined, genuinely high-quality output, with no contact with anyone who has to want it."*
+
+**The answer you need ready, and there is no clever version of it.** Do not defend the build.
+Concede the gap and name the date you close it: *"You're right, and it's the thing I got wrong.
+I built for eleven weeks before putting it in front of anyone. Here's who I'm sitting with this
+week and what I expect them to hate."* **Nothing else moves this objection.** Four of the five
+said explicitly that no wording change would flip them.
+
+### Your own numbers get used against you
+
+| They hear | Not | Because |
+| --- | --- | --- |
+| 545 migrations in eleven weeks | *disciplined* | *"Fifty schema changes a week, which I can read as thrash rather than progress."* |
+| 5,400 commits | *productive* | *"Roughly seventy a day, which reads as agent output, not judgment."* |
+| 9,405 tests | *rigorous* | *"I stopped to be suspicious, not impressed."* |
+
+**So never lead with a volume number, and never put one in the same breath as "agents write the
+code".** Full rule: `baseline.yml application_rules.rule_6_adjacency`.
+
+### The moat objection, and it is the sharpest one on record
+
+> *"A trigger, a locked column and a due-date queue is two sprints for Linear, Atlassian,
+> Productboard or Notion, all of whom already own the surface where the call gets recorded. The
+> only defensible asset is the accumulated corpus, and **a corpus is a distribution artifact, not
+> a code artifact**: whoever has teams in October has more of it by January than he does, no
+> matter who wrote the trigger first."*
+
+**That objection is correct and must never be argued with.** The honest answer concedes the
+mechanism and reframes the race: *"Agreed, the feature is a sprint. The race isn't for the
+feature, it's for the teams — and that's a distribution problem, which is exactly why I want to
+be in a batch."* **Turning the strongest objection into the reason you are in the room is the
+only move that works here.** Never claim the mechanism is uncopyable: `baseline.yml moat_tense`.
+
+### The second-order objection nobody had prepared for
+
+> *"Forecast capture is a discipline tax paid by the exact person who will be judged by the
+> record. Ally.io, Perdoo, Koan and every OKR check-in product died or got absorbed on that
+> incentive, not on missing features. PMs do not want a permanent, uneditable record of what they
+> predicted; that is a feature their VP wants and they resent."*
+
+**This is the one to think hardest about before an interview.** It is the same finding as the
+Google prediction-markets research already in the corpus: those markets beat expert forecasts by
+up to a 25 percent reduction in mean squared error **and died anyway**, because transparency ran
+counter to the interests of the people who could have kept them alive. **The product answer is
+that the forecast is a by-product of getting a better recommendation, never a compliance step**,
+which is why the director leads and the brain closes.
+
+### Where every reader's eye slid off
+
+**The tech stack answer. Five out of five.** Ten labelled blocks of vendor names. Four of the five
+independently said the same thing: the one line that proves the moat is a mechanism rather than a
+slogan was **buried at position six where nobody reaches it**. It has since been moved up into the
+progress answer. **Lesson that travels: a proof buried in an inventory is not a proof.**
 
 ---
 

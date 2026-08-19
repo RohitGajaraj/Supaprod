@@ -1,3 +1,37 @@
+# The demo video
+
+> ## 🟡 PARKED 2026-08-19 by the founder. The 2:22 film stays on the YC form untouched.
+>
+> *"For now I am not focusing on recording a demo video because it was created by AI. Let's
+> park that, but whatever you are understanding, you can keep it."* The finished cut plan is
+> preserved below so it does not have to be re-derived when he picks it up.
+>
+> ### The correct cut: three whole frames out, landing at 1:35
+>
+> **My first plan was wrong and this is the generalisable lesson: I cut on CAPTION boundaries.**
+> The film is composed as **thirteen whole frames at 30fps (4,263 frames)**, so a cut landing
+> mid-frame makes the picture jump. Caption timings and frame boundaries are different units.
+> **There is no combination that lands on 1:41** without re-recording a line.
+>
+> | Out | Frame | Window | Saves | Why it goes |
+> | --- | --- | --- | --- | --- |
+> | 1 | **F3** "you know the feeling" | 20.9&ndash;34.6 | 13.7s | Restates F2, which already closes the problem on *"that's the judgment gap."* Removing it puts the product on screen at **20.9s instead of 34.6s**, inside YC's direction that the product be visible in the first 30 seconds. |
+> | 2 | **F8** "the route" | 70.2&ndash;93.0 | 22.8s | The voiced Plan/Design/Build/Ship tour. Largest block in the film, and **the one beat with no production rows behind it** (mission to changeset, changeset to deployment). What survives is Discover, Decide and Learn, which holds up if a partner signs in. The station strip still appears once, in F6. |
+> | 3 | **F10** "it stops you" | 103.8&ndash;114.6 | 10.8s | Renders *"precedent applied: confidence cut"* when **the precedent pool has never held an outcome row**, and closes on *"it warns you"*, which is retired. F11 carries the same payoff in the form that is true. |
+>
+> **Total 47.3s out, landing at 94.8s (1:35).** Nearest whole-frame alternative is 1:46 (F10 back
+> in). The *"it disagrees with you"* beat survives intact, which matters because baseline calls
+> that layer the one nobody else sells.
+>
+> **Mechanics: one re-render.** Delete the three frame blocks from `STORYBOARD.md` and
+> `index.html`; leave the frame HTML on disk so nothing is overwritten. Transitions re-pair
+> cleanly (F4 keeps zoom-through, now from F2; F9 from F7; F11 from F9). **New file, master
+> untouched** — the founder compares side by side. At current bitrate it lands near 62MB against
+> YC's 100MB cap. **Probe for an audio stream before sending any render**: `video-v15.mp4` is the
+> silent picture and carries a HIGHER version number than the master.
+
+---
+
 # The demo video — the click-by-click walkthrough
 
 > **STATUS 2026-07-27 20:55 IST. RE-VERIFIED against the live database before the shoot. Two beats are cut.**
