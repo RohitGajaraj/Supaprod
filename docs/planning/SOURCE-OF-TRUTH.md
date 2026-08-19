@@ -6,6 +6,8 @@
 
 If you are starting a session: read this, then [`../operations/session-handoff.md`](../operations/session-handoff.md) for what the last session left open. Nothing else up front.
 
+> **And before touching a subsystem, read its section in [`initiatives/audit-reports/agent-audit-2026-08.md`](./initiatives/audit-reports/agent-audit-2026-08.md).** That is the findings register from the 2026-08-19 audit — roughly 60 agents, every finding verified against code or production, grouped by subsystem, with what is still open and has no queue item. **It is not status and it does not compete with this file**; it is the evidence layer, and it names which other docs are stale so you do not trust one that is. Fixing a finding means updating its state there in the same commit.
+
 ---
 
 ## Now

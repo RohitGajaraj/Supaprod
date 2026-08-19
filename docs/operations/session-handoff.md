@@ -56,6 +56,36 @@ date: the integrity control caught its own author.**
 - **`decisions_with_forecast` is no longer 0 anywhere**, so the claim the YC application leads with
   is now visible to anyone who signs in. That was the blocker.
 
+# ✅ SESSION CLOSED 2026-08-19 (lane-0) — the agent-first direction is filed and both build agents can start
+
+**Everything is on `origin/main` at `d25dd1d1`.** tsc 0 · 9,405 pass · docs clean.
+
+## Start here next session
+
+**[`../planning/initiatives/audit-reports/agent-audit-2026-08.md`](../planning/initiatives/audit-reports/agent-audit-2026-08.md)** — the findings register from ~60 agents. It has a when-to-read table mapping a subsystem to the section that saves an hour, and a closing list of **15 things still open with no queue item**. Linked from `AGENTS.md`, the SSOT, the direction, the queue and both prompts.
+
+## To start the build, one command away
+
+**[`agent-kickoff-prompts.md`](./agent-kickoff-prompts.md)** carries both paste-ready prompts. Step 0 in it is already satisfied. Kiro on `main` runs continuously; Claude on `parallel/lane-1-fresh` runs `bun run lane:sync` and verifies against production. Protocol: [`ledger/`](./ledger/README.md), one append-only log per agent so they cannot conflict.
+
+## The three findings that drove everything
+
+1. **The moat is captured on 1 decision of 304.** `decision.record` — the tool agents are told to call — has **no forecast parameter**, so 303 agent-recorded decisions could not carry one. A settled forecast also re-ranks nothing; all four readers are displays. Queue item **K-13**.
+2. **53 approvals pending at zero users**, oldest **627h**. Only **26% of 313 ever raised** needed a human. `cluster.trigger` alone is 34% of the backlog because it is uncatalogued, so `toolRisk` fails closed and silently reverses a deliberate fix. **K-10, K-11**.
+3. **The design system was being taught wrong in four places.** `design-reference/README.md` declared v5 Tempo CURRENT; `DESIGN.md` (v1 Ember) called itself the source of truth "in any tool"; `docs/conventions/design-context.md` declared v3 Obsidian THE contract. `docs-doctor` check [8] could not see any of it. **Fixed, and check [11] added** — it caught two nobody had found by hand.
+
+## Waiting on the founder
+
+- **The seats contradiction.** `pricing-architecture.md` §6b (LOCKED) says *"seats are never a price lever, at any tier"*; `README.md` (newer) says Business is **$50 per seat, min 2**. Both current, cannot both be right. Anyone quoting pricing outward is choosing by accident.
+- **The credit COGS number is unverified.** 87,482 credits debited against **$16.55** of AI spend does not reconcile with the assumed $0.05/credit. Per-*mission* holds ($0.338 vs $0.50 assumed), so tier sizing is safe — **do not quote per-credit** until re-derived.
+- **`agent_memory` is workspace-scoped**, not user-scoped as README claimed. 1,170 rows, 101 cross-author recalls. Corrected with evidence, **flagged for sign-off because it changes outward answers**.
+- **K-37 marked `NEEDS A RULING`** — the palette offers four verbs that dispatch events with no listener. Deleting removes a broken promise; wiring ships a feature.
+
+## What is deliberately not done
+
+The `supaprod-reimagined` artifact is a **vanilla wireframe, not canon** (founder ruling). Defect list and five open design questions in [`../design/agent-first-surface-brief.md`](../design/agent-first-surface-brief.md). **Plan, Ship, Learn and Brain have no reference research** — K-76 to K-79, Kiro's.
+
+
 ---
 
 # ✅ SESSION CLOSED 2026-08-19 — YC update filed and corrected, a16z next, video to record

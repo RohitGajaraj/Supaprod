@@ -10,6 +10,8 @@
 
 ## 0. The evidence this is built on
 
+> **The full findings register is [`audit-reports/agent-audit-2026-08.md`](./audit-reports/agent-audit-2026-08.md)** — roughly 60 agents' output, grouped by subsystem, with what is still open and has no queue item. This section is the headline; that file is the evidence, and it is where a finding gets its state updated when it is fixed.
+
 Queried against production on 2026-08-19, not read from a doc.
 
 | Measure | Value | Source |
