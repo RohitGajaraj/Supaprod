@@ -367,6 +367,51 @@
   --mrd-hold-dim: oklch(0.62 0.095 78);
 
   /*
+   * ── STATUS CHIPS, BECAUSE COLOURED TEXT CANNOT CARRY STATUS ON PAPER ───
+   *
+   * Founder call 2026-08-19, and the measurement that forced it. On the dark
+   * ground the five status words land between 5.81 and 10.08 against `bg`, so
+   * they separate from each other and read plainly as colour. On paper they
+   * collapse into 5.06 to 6.00 -- hold 5.06, pass 5.65, fail 5.99, you 6.00 --
+   * which is not a legibility failure, every one clears 4.5. It is a SALIENCE
+   * failure: identical weight, no hierarchy, and at the lightness the floor
+   * forces they stop reading as colour at all.
+   *
+   * AND THE OBVIOUS FIX IS IMPOSSIBLE, WHICH IS WHY THIS IS A NEW MECHANISM
+   * RATHER THAN A NEW VALUE. Holding 5.0 against paper pins these hues near
+   * L 0.50, and the sRGB gamut at L 0.50 will not give them chroma. Solved for
+   * maximum in-gamut chroma at that contrast, three of the five get WORSE:
+   * agent -20%, hold -13%, pass -12%; fail gains 9%. At that lightness amber
+   * resolves to #825900, which is brown, and green to bottle green. You cannot
+   * make a vivid mid-dark colour on white. The colour has to occupy AREA
+   * instead of glyphs.
+   *
+   * SO STATUS GETS A CHIP: a chromatic tint carries the meaning, and a dark
+   * label on it carries the legibility. Both grounds get one, because a chip on
+   * paper and bare text on dark would be two different components wearing one
+   * name.
+   *
+   * Every label measured on its OWN chip, floor 4.8 rather than 4.5, because
+   * 4.5 exactly is one rounding from failing and this file has been bitten by
+   * that twice. Chip against its ground is 1.28 to 1.72 here, enough to read as
+   * a surface without becoming a second background.
+   *
+   * A CHIP IS NOT A NEW MEANING. It wears one of the five status words and
+   * nothing else, it never carries an intent, and `--mrd-stop` has no chip
+   * because a control is pressed rather than reported.
+   */
+  --mrd-you-chip: oklch(0.28 0.14 315); /* label 4.83 on chip */
+  --mrd-you-on-chip: oklch(0.68 0.22 315);
+  --mrd-agent-chip: oklch(0.34 0.072 235); /* 5.26 */
+  --mrd-agent-on-chip: oklch(0.74 0.157 235);
+  --mrd-pass-chip: oklch(0.34 0.089 152); /* 7.63 */
+  --mrd-pass-on-chip: oklch(0.84 0.22 152);
+  --mrd-fail-chip: oklch(0.32 0.132 27); /* 4.8 */
+  --mrd-fail-on-chip: oklch(0.71 0.183 27);
+  --mrd-hold-chip: oklch(0.34 0.071 78); /* 6.68 */
+  --mrd-hold-on-chip: oklch(0.82 0.17 78);
+
+  /*
    * ── CONTROL, WHICH IS A THIRD PALETTE AND NOT A SIXTH STATUS ───────────
    *
    * `--mrd-stop` is what a control that HALTS WORK IN PROGRESS wears: stop this
@@ -785,6 +830,40 @@
   --mrd-hold: oklch(0.52 0.12 78);
   --mrd-hold-dim: oklch(0.56 0.11 78);
 
+  /*
+   * Status chips on paper. The argument is in the dark block; this is the half
+   * it was written for. Measured against `paper`, label measured on its own
+   * chip, floor 4.8.
+   *
+   *   you    #e29fff / #730095   label 4.91   chip 1.79 vs bg
+   *   agent  #69caff / #004e6f         4.95        1.65
+   *   pass   #79f29f / #006933         4.91        1.26
+   *   fail   #ffa096 / #90000b         4.91        1.76
+   *   hold   #feb72f / #674600         4.90        1.58
+   *
+   * SOLVED AGAINST `bg` (#f6f3ee) AND NOT `paper`, WHICH IS THE CORRECTION
+   * THAT MATTERS. A first pass solved these against `paper` and measured
+   * beautifully on paper and badly where they actually sit: `pass` came out at
+   * 1.09 against `bg`, which is a chip you cannot see is a chip. Every figure
+   * above was read back out of a real browser through a canvas, off the
+   * rendered custom property, not computed in the abstract.
+   *
+   * `pass` is still the weak one at 1.26, and it always will be: a green light
+   * enough to read as green sits close to a warm off-white in LUMINANCE while
+   * being plainly green in HUE. It is the one chip carried by chroma rather
+   * than by value, so it is the first to re-check if the light ground moves.
+   */
+  --mrd-you-chip: oklch(0.8 0.149 315);
+  --mrd-you-on-chip: oklch(0.42 0.206 315);
+  --mrd-agent-chip: oklch(0.8 0.119 235);
+  --mrd-agent-on-chip: oklch(0.4 0.086 235);
+  --mrd-pass-chip: oklch(0.87 0.16 152);
+  --mrd-pass-on-chip: oklch(0.46 0.12 152);
+  --mrd-fail-chip: oklch(0.8 0.115 27);
+  --mrd-fail-on-chip: oklch(0.41 0.168 27);
+  --mrd-hold-chip: oklch(0.83 0.16 78);
+  --mrd-hold-on-chip: oklch(0.42 0.088 78);
+
   /* Re-darkened like every semantic hue, and by the same amount the neighbours
      move: 0.68 to 0.48 with the hue and chroma held, so a stop control is the
      same colour idea on both grounds and only its lightness answers the paper.
@@ -871,6 +950,16 @@
   --color-mrd-fail: var(--mrd-fail);
   --color-mrd-hold: var(--mrd-hold);
   --color-mrd-hold-dim: var(--mrd-hold-dim);
+  --color-mrd-you-chip: var(--mrd-you-chip);
+  --color-mrd-you-on-chip: var(--mrd-you-on-chip);
+  --color-mrd-agent-chip: var(--mrd-agent-chip);
+  --color-mrd-agent-on-chip: var(--mrd-agent-on-chip);
+  --color-mrd-pass-chip: var(--mrd-pass-chip);
+  --color-mrd-pass-on-chip: var(--mrd-pass-on-chip);
+  --color-mrd-fail-chip: var(--mrd-fail-chip);
+  --color-mrd-fail-on-chip: var(--mrd-fail-on-chip);
+  --color-mrd-hold-chip: var(--mrd-hold-chip);
+  --color-mrd-hold-on-chip: var(--mrd-hold-on-chip);
   /* A control that halts work, never a status. See its declaration above. */
   --color-mrd-stop: var(--mrd-stop);
 
