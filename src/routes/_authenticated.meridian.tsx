@@ -22,6 +22,7 @@ import { RecommendationCard, type Recommendation } from "@/components/meridian/R
 import { RunTimeline, type TimelineEvent } from "@/components/meridian/RunTimeline";
 import { ToolStream, type ToolStreamRow } from "@/components/meridian/ToolStream";
 import { PlanCard, type PlanStep } from "@/components/meridian/PlanCard";
+import { Action, Actions, Approve } from "@/components/meridian/surface-parts";
 import {
   RecordStatus,
   RecordTag,
@@ -2051,6 +2052,15 @@ function MeridianGallery() {
             <PlanCardCases />
           </Pair>
         </Panel>
+
+        <Panel
+          title="Controls: the four faces, and the one that releases something"
+          note="The first time these appear on this page, which is worth saying out loud: every surface in the product has been composing from them and nobody had looked at the four side by side in both grounds. Approve is a separate component rather than a fifth variant because it is the one control in the product that unblocks something, and orchid means exactly that. Destructive is new, and it is deliberately the quietest of the four: what protects a destructive act is distance plus a confirm, never volume, so it sits in the trailing slot with a wash rather than a slab. Its fill is eight per cent because that is what the label measures against, 4.64 at worst on a floating pane in the dark theme, where ten per cent lands exactly on the text floor and thirteen falls under it. Hover firms the border rather than deepening the wash, for the same reason. Tab through each row and watch the ring; press and hold to see the scale. The disabled row is the one that has caught real defects here, because a dead control that still shouts is promising something it will not do."
+        >
+          <Pair>
+            <ControlCases />
+          </Pair>
+        </Panel>
       </div>
     </div>
   );
@@ -2375,6 +2385,64 @@ function PlanCardCases() {
       </Case>
       <Case label="A decision in flight">
         <PlanCard steps={five} onApprove={noop} onRevise={noop} busy />
+      </Case>
+    </Stack>
+  );
+}
+
+/*
+ * ── K-02, THE CONTROLS ──────────────────────────────────────────────────
+ * The labels are real ones from the product rather than "Button", because a
+ * control's width and its voice are half of how it reads and "Button" has
+ * neither. "Stop this run" is the label that made `--mrd-stop` necessary.
+ *
+ * THE DISABLED ROW EARNS ITS PLACE. Twelve primary buttons once shipped a
+ * 1.19:1 label on paper and no fixture had ever handed one an action, so the
+ * broken state was never rendered on any machine. A disabled destructive is the
+ * same shape of trap: it inherits `disabled:opacity-45` like the other three,
+ * which takes its label under the text floor, and that is a house-wide
+ * behaviour rather than something this variant introduced.
+ */
+function ControlCases() {
+  return (
+    <Stack>
+      <Case label="At rest">
+        <Actions>
+          <Action variant="primary">Hand it over</Action>
+          <Action>Open the run</Action>
+          <Action variant="quiet">Change it</Action>
+        </Actions>
+      </Case>
+
+      <Case label="The gate, which is the only orchid control in the product">
+        <Actions>
+          <Approve shortcut="A">Approve the plan</Approve>
+          <Action variant="quiet">Review the evidence</Action>
+        </Actions>
+      </Case>
+
+      <Case label="Destructive, separated by distance rather than by volume">
+        <Actions trailing={<Action variant="destructive">Stop this run</Action>}>
+          <Action variant="primary">Keep going</Action>
+          <Action variant="quiet">Steer it</Action>
+        </Actions>
+      </Case>
+
+      <Case label="Destructive on its own, beside the other three">
+        <Actions>
+          <Action variant="destructive">Discard the changeset</Action>
+          <Action variant="destructive">Remove the connection</Action>
+        </Actions>
+      </Case>
+
+      <Case label="Dead, and no longer shouting">
+        <Actions trailing={<Action variant="destructive" disabled>Stop this run</Action>}>
+          <Approve disabled>Approve the plan</Approve>
+          <Action variant="primary" disabled>
+            Hand it over
+          </Action>
+          <Action disabled>Open the run</Action>
+        </Actions>
       </Case>
     </Stack>
   );

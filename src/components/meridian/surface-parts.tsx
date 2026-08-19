@@ -357,7 +357,7 @@ function Keycap({ children }: { children: React.ReactNode }) {
   );
 }
 
-export type ActionVariant = "default" | "primary" | "quiet";
+export type ActionVariant = "default" | "primary" | "quiet" | "destructive";
 
 const ACTION_FACE: Record<ActionVariant, string> = {
   /*
@@ -380,6 +380,60 @@ const ACTION_FACE: Record<ActionVariant, string> = {
   quiet: "text-mrd-mute enabled:hover:bg-mrd-hover enabled:hover:text-mrd-body",
   default:
     "border border-mrd-line bg-mrd-lift text-mrd-body enabled:hover:bg-mrd-lift-hover enabled:hover:text-mrd-ink",
+  /*
+   * ── STOPS SOMETHING, OR REMOVES IT ──────────────────────────────────────
+   *
+   * Stop this run and discard forty minutes of work. Discard the changeset.
+   * Remove the connection. Until `--mrd-stop` existed there was nowhere for
+   * this control to stand: the colour law reserves `--mrd-fail` for an outcome
+   * that has already happened and forbids it on an intent, and a neutral face
+   * makes a stop indistinguishable from the benign secondary sitting next to it.
+   *
+   * IT IS THE QUIETEST OF THE FOUR ON PURPOSE, and that is not timidity. What
+   * protects a destructive act is DISTANCE plus a CONFIRM, never volume. A stop
+   * button that dominates a run surface gets pressed by accident, and a warning
+   * a reader meets forty times a day is a warning they have stopped reading.
+   * `Actions` already separates it by distance, in its own `trailing` slot; the
+   * confirm is the Dialog.
+   *
+   * SO THE FILL IS A WASH RATHER THAN A SLAB. 8%, and the figure is measured
+   * rather than picked: the label is `--mrd-stop` sitting on its own wash, and
+   * across every ground stop in both themes that reads 4.64 at worst, on a
+   * floating pane in the dark theme, and 6.21 at best. At 10% the same worst
+   * case is 4.50, exactly on the text floor, and at 13% it is 4.29, under it.
+   * A control label may not be a hundredth from failing.
+   *
+   * HOVER FIRMS THE EDGE AND LEAVES THE FILL ALONE, which is the one thing here
+   * that looks like a quirk and is not. Deepening the wash on hover is the
+   * obvious move and it takes the label under 4.5 in exactly the state a person
+   * is committing to a destructive act. The border instead: 40% at rest, which
+   * measures 1.92 and is deliberately quiet, stepping to 75% and 3.55 under the
+   * pointer, so the edge clears the 3:1 a boundary owes at the moment it matters.
+   * meridian.css already establishes the idiom on its form fields, where the
+   * border STEPS UP rather than gaining a ring.
+   *
+   * ── THE CONSTRAINT THAT MAKES ALL OF THIS LEGAL, AND IT IS ABSOLUTE ─────
+   *
+   * **`--mrd-stop` MAY ONLY EVER PAINT SOMETHING A PERSON CAN PRESS.** Never a
+   * chip, never a dot, never a rule, never a row's state, never a count.
+   *
+   * Measured, and this is the whole reason: `--mrd-stop` and `--mrd-fail`
+   * collapse in greyscale. Against each other they read **1.12 on dark and 1.04
+   * on paper**, which is indistinguishable. The chroma separation that makes
+   * them obviously different colours to most readers does nothing for a reader
+   * who cannot separate hues, and nothing at all in a black-and-white
+   * screenshot.
+   *
+   * That is survivable ONLY because the two live in different systems: `fail`
+   * reports STATE and appears on chips, dots and rows, while `stop` is a CONTROL
+   * colour and appears on buttons. A reader never has to tell them apart,
+   * because the shape already did. Put `--mrd-stop` on a chip and the greyscale
+   * law breaks, silently, with no gate to catch it: the ratchet sees a valid
+   * `--mrd-*` token and passes. There is no test that can currently stop this,
+   * so it is written here in the file that owns the token's only legal use.
+   */
+  destructive:
+    "border border-mrd-stop/40 bg-mrd-stop/8 text-mrd-stop enabled:hover:border-mrd-stop/75",
 };
 
 /**
@@ -398,6 +452,19 @@ const ACTION_FACE: Record<ActionVariant, string> = {
  * evidence". They then disagreed about what `primary` meant, and one of them
  * spent orchid on a failed read's retry. Making the accent a different
  * COMPONENT rather than a different string is what stops that recurring.
+ *
+ * ── THE FOURTH VARIANT, AND WHY IT DID NOT SPLIT OFF INTO ITS OWN COMPONENT ──
+ * `destructive` was added 2026-08-19 and it is a variant rather than a second
+ * `Approve`-style component, which is the opposite call to the one made above.
+ * The reason the accent got its own component is that `primary` meant four
+ * different things to four authors, so the WORD was the problem. `destructive`
+ * has no such ambiguity: a control either stops or removes something or it does
+ * not, and there is nothing for two readers to disagree about.
+ *
+ * THE `Approve` DISTINCTION IS UNCHANGED AND STILL THE ONLY ONE THAT MATTERS
+ * HERE. `Approve` is for a click that UNBLOCKS: something is held and pressing
+ * it releases it. `destructive` is for a click that STOPS or REMOVES. The test
+ * is whether clicking it unblocks anything, and if it does, it is not this.
  */
 export function Action({
   variant = "default",

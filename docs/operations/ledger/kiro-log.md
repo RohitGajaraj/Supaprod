@@ -302,3 +302,76 @@ finished and pushed first. K-02 is next.
 
 **Gates.** tsc clean · 9,463 pass / 0 fail / 23 skip / 60 todo across 572 files · build ok. New
 suite is 20 tests. Ratchet total unchanged.
+
+---
+
+## K-02 · BUILT · 2026-08-19 23:10
+
+**Did.** Added a fourth `ActionVariant`, `destructive`, to `surface-parts.tsx`, wearing
+`--mrd-stop` as an 8% wash with a stop label and a stop border, and built the gallery's first
+controls panel: all four variants plus `Approve`, at rest, in an `Actions` row with the destructive
+in the `trailing` slot, and a disabled row. The `Approve` split is untouched and restated in the
+file: approve is a click that UNBLOCKS, destructive is a click that STOPS or REMOVES, and the test
+is whether pressing it releases anything.
+
+**The greyscale collapse you measured is now written into the file that owns the token's only legal
+use, and it changed the design.** I had not measured stop against fail and you are right: 1.12 on
+dark, 1.04 on paper, which my calculator reproduces exactly. So the constraint is stated as
+absolute in `ACTION_FACE`, in the terms you gave: `--mrd-stop` may only ever paint something a
+person can press, never a chip, dot, rule, row state or count, because the two tokens live in
+different systems and a reader never has to tell them apart as long as the SHAPE already did.
+
+**Unsure.** Three, and the first is the only real design call in the item.
+
+1. **8% wash, and the figure is measured rather than chosen.** The label is `--mrd-stop` sitting on
+   its own wash, so the fill and the label move together and deepening one weakens the other.
+   Across every ground stop in both themes: **8% gives 4.64 at worst** (a floating pane on dark)
+   **and 6.21 at best; 10% gives exactly 4.50**, which is on the text floor and therefore one
+   rounding from failing; **13% gives 4.29**, under it. So 8%, and the wash is fainter than I would
+   have picked by eye.
+2. **Hover firms the BORDER and does not touch the fill.** This is the part that looks like a quirk.
+   Deepening the wash on hover is the obvious move and it takes the label under 4.5 in exactly the
+   state a person is committing to a destructive act. The border goes 40% (measures 1.92, quiet on
+   purpose) to 75% (3.55, which clears the 3:1 a boundary owes) at the moment it matters.
+   meridian.css already establishes this idiom on its form fields, where the border steps up rather
+   than gaining a ring, so it is the house move rather than mine.
+3. **It is a variant and not its own component**, which is the opposite call to the one this file
+   made for `Approve`. The reason `Approve` split off is that four authors meant four things by
+   `primary`, so the WORD was the problem. `destructive` has no such ambiguity: a control either
+   stops or removes something or it does not. If that turns out wrong, the fix is a component and
+   the argument for it is already written in the header.
+
+**There is no gate that can catch the misuse, and I could not build one.** A `--mrd-stop` chip
+would pass the ratchet, because the ratchet sees a valid `--mrd-*` token and a chip is not a
+retired vocabulary. The check that would catch it is greppable and worth writing: **`mrd-stop` may
+appear only on an element that is a `button`, or inside `surface-parts.tsx` and `Dialog.tsx`.**
+K-02's `Owns` lists no test file, and the two files that could hold such a guard,
+`src/__tests__/surface-discipline.test.ts` and `meridian-ratchet.test.ts`, belong to neither this
+item nor any Kiro item I have read. **Proposing it as a new item rather than reaching outside
+`Owns`.** Until it exists the constraint is a comment, and comments do not fail builds.
+
+**Noticed.** Three.
+
+1. **Every `/NN` opacity utility in this repo falls back to the FULL colour on a browser without
+   `color-mix`.** Tailwind emits `.bg-mrd-stop\/8{background-color:var(--mrd-stop)}` and then
+   overrides it inside `@supports (color:color-mix(in lab, red, red))`. So on such a browser my
+   destructive control is a solid stop slab carrying a stop label, which is invisible. **This is
+   house-wide and pre-existing**, not something this variant introduced:
+   `FineTuneCard.tsx:372` (`bg-mrd-agent/15` under `text-mrd-agent`) and `PromptBar.tsx:416`
+   (`bg-mrd-agent/15 text-mrd-agent`) collapse identically. `color-mix` has been in every current
+   engine since 2023, so this is a browser-support floor decision rather than a bug, but it is
+   undocumented and it is the second time a token pair that inverts together has produced an
+   invisible label in this system.
+2. **The gallery had no panel for `Action` at all** before this item, which is why K-02's
+   acceptance criterion "rendered beside the other variants" required building the panel rather
+   than adding to one. Four control faces that every surface in the product composes from, and
+   nobody had put them side by side in both grounds. That is the exact gap the 1.19:1 primary
+   button got through.
+3. **`disabled:opacity-45` takes the destructive label under the text floor**, like it does the
+   other three. I left it: it is `CONTROL_DEAD`, applied house-wide, and changing it would repaint
+   every disabled control in the product from inside a variant item. The disabled row is in the
+   gallery so it can be looked at rather than argued about.
+
+**Gates.** tsc clean · 9,463 pass / 0 fail / 23 skip / 60 todo across 572 files · build ok.
+Verified the three utilities reach the built stylesheet as `color-mix(in oklab, var(--mrd-stop) 8%
+| 40% | 75%, transparent)`. Ratchet total unchanged; no raw colour in the diff.
