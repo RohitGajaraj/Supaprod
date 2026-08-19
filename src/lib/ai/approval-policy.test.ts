@@ -33,7 +33,14 @@ const EXTERNAL_REVERSIBLE = "github.issue.create";
 const EXTERNAL_PARTIAL = "studio.commit";
 const EXTERNAL_IRREVERSIBLE = "delegate.openhands";
 const FORCE_REVIEW = "release.publish";
-const UNCATALOGUED = "repo.read";
+/*
+ * A NAME IN NO CATALOGUE. It was `repo.read` when this file was written, and K-11
+ * catalogued all seventeen read-only tools the next hour, which broke two
+ * assertions here. That is the right kind of break: the fix moved the tool out of
+ * the uncatalogued case, so the example moved with it. The payoff is asserted
+ * below in "a catalogued read asks nothing".
+ */
+const UNCATALOGUED = "quarry.excavate";
 
 function record(
   over: Partial<ApprovalTrackRecord> = {},
@@ -127,7 +134,36 @@ describe("an uncatalogued tool fails closed, and says why in words", () => {
 
   it("handles a name that is not a tool at all without throwing", () => {
     expect(decide("")).toBe("always-human");
-    expect(decide("quarry.excavate")).toBe("always-human");
+    expect(decide("not.a.real.tool")).toBe("always-human");
+  });
+
+  it("asks nothing for a read, now that reads are catalogued", () => {
+    /*
+     * THE PAYOFF OF K-11, ASSERTED FROM THIS SIDE. Before those seventeen rows
+     * existed, every one of these resolved `always-human` here for the same reason
+     * they scored `high` in `toolRisk`: an unknown blast radius is treated as the
+     * largest one. They are internal and reversible, so they are now the axis
+     * default, which is to not ask at all.
+     */
+    for (const tool of [
+      "repo.read",
+      "repo.tree",
+      "workspace.search",
+      "signals.list",
+      "themes.list",
+      "mission.observe",
+      "sources.connect",
+    ]) {
+      expect(decide(tool), tool).toBe("never-ask");
+    }
+  });
+
+  it("still makes a metered read earn it, because the spend is the consequence", () => {
+    // `web.*` are `partial` beside `web.crawl`, for its own stated reason: they
+    // change nothing and the credits they spend are not refundable.
+    for (const tool of ["web.search", "web.fetch", "web.map"]) {
+      expect(decide(tool), tool).toBe("earn-it");
+    }
   });
 });
 

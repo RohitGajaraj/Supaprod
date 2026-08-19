@@ -9,6 +9,7 @@
  * per-agent cap and the min-confirm floor both read the old answer.
  */
 import { expect, test, describe } from "bun:test";
+import { TOOL_DEFAULTS } from "@/lib/ai/tools/defaults";
 import {
   assessTool,
   toolRisk,
@@ -37,6 +38,114 @@ describe("coverage: the two tables describe the same world", () => {
   test("the catalogue is not empty, so the two assertions above mean something", () => {
     // Both set comparisons above pass trivially against two empty tables.
     expect(CATALOGUED_TOOLS.length).toBeGreaterThan(30);
+  });
+});
+
+/*
+ * ── THE ASSERTION THAT WAS MISSING, ADDED 2026-08-19 ──────────────────────
+ *
+ * The three tests above compare the two tables to EACH OTHER, and they passed
+ * while seventeen registry tools were in neither. That is the shape of guard this
+ * repo keeps finding: internally consistent, and blind to the thing that actually
+ * went wrong.
+ *
+ * WHAT IT COST. `toolRisk` fails closed, so a tool with no row scored `high`, and
+ * `loop.server.ts:186` demotes any high-risk tool from `auto` to `confirm`. An
+ * omission was therefore the strictest gate available, applied silently.
+ * `cluster.trigger` had been deliberately set to `auto` BECAUSE it was 24 of 60
+ * pending approvals; with no row it scored high, was demoted back, and queued
+ * anyway at 18 of 53 pending. A decision a person had already taken was being
+ * reversed by a missing table row, and no test could see it.
+ *
+ * IT READS `TOOL_DEFAULTS` RATHER THAN `TOOL_REGISTRY`, deliberately.
+ * `registry.server.ts` is a server module and pulling it into a unit test drags
+ * the whole runtime in. `TOOL_DEFAULTS` carries one row per registered tool for
+ * the seeding path, `every-tool-can-be-named.test.ts` already uses it as the
+ * roster for exactly this purpose, and a tool cannot reach the registry without
+ * one.
+ */
+describe("coverage: every registered tool is catalogued", () => {
+  const REGISTERED = Object.keys(TOOL_DEFAULTS);
+
+  test("there is a roster to check against", () => {
+    // Without this the two assertions below pass against an empty object.
+    expect(REGISTERED.length).toBeGreaterThan(50);
+  });
+
+  test("no registered tool is missing its consequence", () => {
+    const missing = REGISTERED.filter((t) => !CATALOGUED_TOOLS.includes(t));
+    expect(
+      missing,
+      "these tools score `high` by default and are demoted to `confirm`, which is a gate nobody chose",
+    ).toEqual([]);
+  });
+
+  test("no registered tool is missing its risk profile", () => {
+    const missing = REGISTERED.filter((t) => !PROFILED_TOOLS.includes(t));
+    expect(missing, "these tools score worst-case on all four axes").toEqual([]);
+  });
+
+  test("no catalogue row describes a tool that is no longer registered", () => {
+    /*
+     * The other direction, and it is not symmetric with the orphan test above:
+     * that one compares the two tables, this one compares them to the roster. A
+     * tool renamed in the registry leaves rows in BOTH tables, so the two agree
+     * with each other and neither applies to anything.
+     */
+    const orphans = CATALOGUED_TOOLS.filter((t) => !REGISTERED.includes(t));
+    expect(orphans, "these rows apply to no registered tool").toEqual([]);
+  });
+
+  test("the tool this was found through is no longer gated by an absent row", () => {
+    /*
+     * Named rather than left to the general rule, because the general rule is what
+     * was missing and a regression here has a specific, measurable cost: this tool
+     * alone was 34% of the pending approval queue.
+     */
+    expect(toolRisk("cluster.trigger")).not.toBe("high");
+  });
+
+  test("a read is not gated as though nobody knew what it did", () => {
+    // The sixteen read-only tools were the bulk of the omission. Every one of them
+    // now scores below `high`, which is what stops the demotion firing.
+    for (const t of [
+      "repo.read",
+      "repo.search",
+      "repo.tree",
+      "github.ci.read",
+      "workspace.search",
+      "workspace.list_tasks",
+      "signals.list",
+      "themes.list",
+      "sources.status",
+      "sources.connect",
+      "mission.observe",
+      "web.search",
+      "web.fetch",
+      "web.map",
+    ]) {
+      expect(toolRisk(t), `${t} is still gated as an unknown`).not.toBe("high");
+    }
+  });
+
+  test("cataloguing them loosened nothing that should stay tight", () => {
+    /*
+     * The direction that matters for safety. Everything irreversible, and
+     * everything that reaches the repo or the world, must still be `high`. If this
+     * list ever shrinks, a write got quietly reclassified.
+     */
+    for (const t of [
+      "studio.pr.merge",
+      "studio.revert",
+      "studio.commit",
+      "studio.sync_branch",
+      "github.commit.append",
+      "delegate.openhands",
+      "release.publish",
+      "agent.spawn",
+    ]) {
+      expect(toolRisk(t), `${t} stopped being high-risk`).toBe("high");
+    }
   });
 });
 

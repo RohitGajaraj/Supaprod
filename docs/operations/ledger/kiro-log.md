@@ -869,3 +869,102 @@ tests. No migration, no production read, nothing wired.
 > claim worth testing against production is the item's own: that only 26% of 313 approvals were for
 > something a human had to rule on. If this module agrees, it should classify roughly three quarters
 > of them as `never-ask` or `earn-it`.
+
+---
+
+## K-11 · BUILT · 2026-08-20 00:44
+
+**Did.** Catalogued all seventeen missing tools in both `CONSEQUENCES` and `RISK_PROFILE`, corrected
+a false claim in `RISK_PROFILE`'s own header, and added seven assertions to
+`tool-risk-six-dimensions.test.ts` that compare the two tables to the REGISTRY rather than only to
+each other. Measured after: **59 registered tools, 59 catalogued, 59 profiled, zero orphans.**
+`toolRisk("cluster.trigger")` is now `low`, so the demotion no longer fires on it.
+
+**The premise is exactly right, and my first measurement of it was wrong.** I counted 55 registry
+tools and 16 gaps and was about to report the item as off by one. The four `mission.*` tools are
+declared in `src/lib/ai/tools/orchestrator.server.ts`, not `registry.server.ts`, and my regex only
+read the latter. With them: 59 tools, 17 gaps, `mission.observe` among them. The item's figures stand
+and mine did not, which is worth recording because I nearly filed a correction to a correct item.
+
+**I verified the mechanism in code rather than repeating it.** `loop.server.ts:186` is
+`(HIGH_RISK_MIN_CONFIRM.has(t) || (isHighRiskTool(t) && !BUILD_LANE_AUTONOMOUS.has(t))) && mode ===
+"auto"` then `mode = "confirm"`, and `isHighRiskTool` is `toolRisk() === "high"`, which fails closed
+for an uncatalogued name. Two lines further down, `mode === "confirm" && toolRisk(t) === "low"`
+promotes back to `auto`. So an absent row was both the demotion and the reason the promotion could
+never apply.
+
+**## K-11 · QUESTION · the file's own comment said the opposite, and I corrected it**
+
+`RISK_PROFILE`'s header read: *"Read-only tools are omitted deliberately: `CONSEQUENCES` catalogues
+side-effecting tools, and anything not in it is not gated by this file at all."* The first half was
+the intent. **The second half is false in effect** and is the sentence that let seventeen rows go
+missing: an omission was the strictest gate available, applied silently. I rewrote it in place to say
+what actually happens and to point at the new guard. Flagging it because it is a documented intent
+being overturned, not a typo, and because `tool-consequences.ts` is not in this item's stated scope
+beyond adding rows.
+
+**Unsure.** Four, and the first two are the two the item said deserved thought.
+
+1. **`sources.connect` is a READ and its name says otherwise.** Its description is "Look up setup
+   instructions and capabilities for a named data source". It connects nothing. I catalogued it
+   reversible with an undo that says so out loud, because reading the name as a write is the mistake
+   it invites and gating it would put an approval in front of an instruction manual. **The name is
+   the real defect** and renaming it is not mine.
+2. **`studio.checks.run` executes code and I did not gate it.** It clones the changeset's branch into
+   a fresh sandbox, runs the checks, reports real exit codes, and destroys the sandbox: nothing in the
+   repo changes and nothing leaves. `trust-ramp.ts` already argues this for the other four
+   verification tools, and its words are the reason this one matters most: "It would put an approval
+   in front of the check that exists to shorten the approval queue, and it would make skipping the
+   check the cheapest path through the loop." It carries `opsImpact: "build"` rather than `none`,
+   because it genuinely runs the build and calling that `none` would be the flattering reading.
+3. **`web.search`, `web.fetch` and `web.map` are `partial`, not `reversible`**, which means they stay
+   `medium` and do not get the confirm-to-auto promotion. That follows `web.crawl`, which is already
+   `partial` with the reason stated in its own comment: "The spend is the irreversible part, and
+   saying so is the honest reading of partial." **The item's parenthetical calls the whole `web.*`
+   family reversible.** I took the file's precedent over the item, because one family split across
+   two classifications is the disagreement this repo keeps paying for. They still stop being `high`,
+   which is the fix that mattered.
+4. **`cluster.trigger` is `reversible` although it writes.** It regroups signals into themes, claims
+   them atomically and files a stage event each. All re-runnable, nothing deleted, so re-clustering
+   is the undo. That gives `low`, which is the strongest form of the fix: it survives the demotion
+   AND gets promoted from `confirm`. If someone judges theme reassignment as not undoable, it becomes
+   `partial` and `medium`, and the acceptance criterion still holds.
+
+**Noticed.** Four.
+
+1. **The existing coverage test compared the two tables to EACH OTHER and passed while seventeen
+   tools were in neither.** That is this repo's recurring guard shape: internally consistent and
+   blind to the thing that went wrong. The new assertions read the roster, and one of them checks the
+   direction the old orphan test could not: a tool renamed in the registry leaves rows in BOTH
+   tables, so they agree with each other and neither applies to anything.
+2. **My K-10 tests broke, and it was the right kind of break.** `approval-policy.test.ts` used
+   `repo.read` as its uncatalogued example. K-11 catalogued it an hour later and two assertions
+   failed. I moved the example to a name in no catalogue and added the payoff from the other side: the
+   seven read tools that resolved `always-human` through the policy module now resolve `never-ask`,
+   and the three metered `web.*` reads resolve `earn-it`. **That is K-11's effect proved through K-10
+   rather than asserted.**
+3. **My earlier note about `cluster.trigger` is now settled, and both halves were true.**
+   `toolActionLabel` returned "clustering signals" while `toolRisk` returned `high`: catalogued for
+   LANGUAGE, uncatalogued for RISK. So the tool read perfectly well in the UI while being demoted
+   back to a gate the founder had already removed.
+4. **Nine tools remain `high` and every one is a genuine write**: `studio.pr.merge`,
+   `studio.revert`, `studio.commit`, `studio.sync_branch`, `studio.fix.commit`,
+   `github.commit.append`, `delegate.openhands`, `release.publish`, `agent.spawn`. A test pins that
+   list from the other direction, because the risk in a cataloguing pass is loosening something that
+   should stay tight, and a set comparison cannot tell the two directions apart.
+
+**Both path names in the item's `Owns` are wrong, and this is the third one.**
+`src/lib/__tests__/tool-risk-six-dimensions.test.ts` does not exist; the file is
+`src/lib/tool-risk-six-dimensions.test.ts`. K-08's `Owns` named a `.tsx` that was a `.ts`, and K-09's
+excluded the file holding one of the values it required. Worth a sweep of the queue's `Owns` paths
+against the tree.
+
+**Gates.** tsc clean · 9,579 pass / 0 fail / 23 skip across 575 files · build ok. 34 tests on
+approval-policy, 51 on the two tool-consequence suites. No behaviour change to the 42 rows that were
+already there, asserted by the existing "assessTool reports exactly the tier toolRisk reports" test
+still passing over all 59.
+
+> **Claude does after:** the 53 pending approvals should now resolve differently. `cluster.trigger`
+> was 18 of them and is `low`, so the demotion stops firing and the founder's 2026-08-03 `auto`
+> seeding takes effect. Worth measuring the queue before and after a publish rather than trusting
+> this.

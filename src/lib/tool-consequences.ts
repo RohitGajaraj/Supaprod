@@ -285,6 +285,152 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     reversible: "partial",
     undo: "Nothing was changed anywhere. The credits it spends are not refundable.",
   },
+
+  /*
+   * ── THE SEVENTEEN THAT WERE MISSING, CATALOGUED 2026-08-19 ─────────────
+   *
+   * WHY THIS WAS URGENT RATHER THAN TIDY. `toolRisk` FAILS CLOSED: a tool with no
+   * entry here scores `high`, and `loop.server.ts:186` demotes any high-risk tool
+   * from `auto` to `confirm`. So an absent row is not a neutral omission, it is
+   * the strictest possible gate, applied silently.
+   *
+   * The live cost was measurable. `cluster.trigger` was deliberately seeded
+   * `auto` on 2026-08-03 BECAUSE it was 24 of 60 pending approvals. Having no row
+   * here it scored `high`, the demotion put it back to `confirm`, and it queued
+   * anyway: 18 of the 53 pending approvals, 34% of the whole queue. A fix a person
+   * had already made was being reversed by a missing table row.
+   *
+   * ── AND THE COMMENT ON `RISK_PROFILE` WAS WRONG ABOUT THIS ────────────
+   * It said read-only tools are "omitted deliberately" because "anything not in it
+   * is not gated by this file at all". The first half was the intent; the second
+   * half is false in effect, for the reason above. That sentence is corrected
+   * where it sits, because a comment telling the next reader an omission is free
+   * is how seventeen of them accumulated.
+   *
+   * ── THE RULE THAT DECIDES `reversible` FOR A READ ──────────────────────
+   * `web.crawl` set it and it generalises: a read is `reversible` when it changes
+   * nothing and its cost is bounded and incidental, and `partial` when it changes
+   * nothing but its SPEND is the consequence. So the `web.*` family is `partial`
+   * beside `web.crawl`, and a database read, a GitHub API read and a sandbox that
+   * destroys itself are `reversible`.
+   */
+
+  // --- The web family. Changes nothing, spends real money doing it. --------
+  "web.search": {
+    effect: "Searches the public web and returns ranked results, optionally reading each one.",
+    reversible: "partial",
+    undo: "Nothing was changed anywhere. The credits it spends are not refundable.",
+  },
+  "web.fetch": {
+    effect: "Reads one URL and returns its main content.",
+    reversible: "partial",
+    undo: "Nothing was changed anywhere. The credits it spends are not refundable.",
+  },
+  "web.map": {
+    effect: "Lists the URLs on one domain, without reading them.",
+    reversible: "partial",
+    undo: "Nothing was changed anywhere. The credits it spends are not refundable.",
+  },
+
+  // --- Reads. Nothing changes and nothing leaves. --------------------------
+  "repo.read": {
+    effect: "Reads up to eight files from the connected repo.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "repo.search": {
+    effect: "Searches the connected repo's code and returns matching paths.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "repo.tree": {
+    effect: "Lists the connected repo's file tree.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "github.ci.read": {
+    effect: "Reads the status checks on a pull request.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "workspace.search": {
+    effect: "Searches the workspace's own documents, specs, notes and signals.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "workspace.list_tasks": {
+    effect: "Lists this workspace's tasks.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "signals.list": {
+    effect: "Lists the signals already ingested into this workspace.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "themes.list": {
+    effect: "Lists the workspace's grouped signal themes.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "sources.status": {
+    effect: "Reports which sources have been sending signals, and how many.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  /*
+   * A READ, DESPITE ITS NAME, and it earns a comment because the name is actively
+   * misleading: it connects nothing. It looks up the setup instructions and
+   * capabilities for a named connector so an agent can talk somebody through
+   * linking one. Reading it as a write is the mistake the name invites, and gating
+   * it would put an approval in front of an instruction manual.
+   */
+  "sources.connect": {
+    effect: "Looks up how a named source is connected, and what it can do.",
+    reversible: "reversible",
+    undo: "Nothing to undo; it reads setup instructions and connects nothing.",
+  },
+  "mission.observe": {
+    effect: "Reads the live state of every step in this mission.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+
+  // --- Writes that can be run again, which is why they are not gated. ------
+  /*
+   * THE ONE THIS WHOLE BLOCK EXISTS FOR. It regroups recent signals into themes,
+   * claims each signal atomically, and files a stage event per signal. Every one of
+   * those is re-runnable and none of them deletes a signal, so re-clustering is
+   * the undo and `reversible` is the honest reading rather than the convenient one.
+   */
+  "cluster.trigger": {
+    effect: "Regroups this workspace's recent signals into themes.",
+    reversible: "reversible",
+    undo: "Run it again. No signal is deleted and the grouping is replaceable.",
+  },
+  "critic.evaluate": {
+    effect: "Red-teams a bet or a spec and files an advisory verdict on it.",
+    reversible: "reversible",
+    undo: "The verdict is advisory and can be replaced by running it again.",
+  },
+  /*
+   * IT EXECUTES CODE, AND IT IS STILL NOT GATED. That looks like the wrong call
+   * until you read what it does: it clones the changeset's branch into a fresh
+   * sandbox, runs the checks, reports the real exit codes, and destroys the
+   * sandbox. Nothing in the repo changes and nothing leaves.
+   *
+   * `trust-ramp.ts` already argues this out for the other four verification tools,
+   * and its argument is the whole reason this one matters: "Flooring them would
+   * invert their point twice over. It would put an approval in front of the check
+   * that exists to shorten the approval queue, and it would make skipping the
+   * check the cheapest path through the loop." This is the one of the five that
+   * actually runs, so gating it is the version of that mistake that bites.
+   */
+  "studio.checks.run": {
+    effect: "Runs this changeset's checks in a throwaway sandbox and reports the real results.",
+    reversible: "reversible",
+    undo: "Nothing to undo; the sandbox is destroyed and the repo is untouched.",
+  },
 };
 
 const DEFAULT: ToolConsequence = {
@@ -487,9 +633,14 @@ const SURFACE_SCORE: Record<ChangeSurface, number> = { narrow: 0, moderate: 1, b
 /**
  * The four further axes, per tool.
  *
- * Read-only tools are omitted deliberately: `CONSEQUENCES` catalogues
- * side-effecting tools, and anything not in it is not gated by this file at
- * all. Within it, every one of the 36 is scored explicitly rather than derived
+ * CORRECTED 2026-08-19. This used to say read-only tools were "omitted
+ * deliberately" because "anything not in it is not gated by this file at all".
+ * The intent was right and the second half was FALSE: `toolRisk` fails closed, so
+ * a tool with no row scored `high` and `loop.server.ts` demoted it from `auto` to
+ * `confirm`. An omission was the strictest gate available, applied silently, and
+ * it cost 34% of the pending approval queue. Every registry tool is catalogued
+ * now, read-only ones included, and `registry-is-catalogued.test.ts` fails the
+ * build if a new one arrives without a row. Within it, every one of the 36 is scored explicitly rather than derived
  * from a naming pattern, because the interesting cases are exactly the ones a
  * pattern gets wrong (`studio.secrets.scan` is an internal read that touches
  * the most sensitive data in the product; `scheduler.propose` sounds external
@@ -790,6 +941,128 @@ const RISK_PROFILE: Record<string, ToolRiskProfile> = {
   "web.crawl": {
     dataExposure: "none",
     opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+
+  /*
+   * ── THE SAME SEVENTEEN, ON THE FOUR FURTHER AXES ───────────────────────
+   *
+   * `dataExposure` measures what LEAVES. A workspace or repo read is `internal`
+   * because the data it touches is ours; the `web.*` family is `none`, following
+   * `web.crawl`'s own reasoning, because a search sends a query and brings public
+   * pages back and nothing of the workspace crosses.
+   *
+   * `opsImpact` is `none` for every one of these except `studio.checks.run`, which
+   * is `build`: it genuinely runs the build, in a sandbox it then destroys. Calling
+   * that `none` would be the flattering reading.
+   *
+   * `verificationGap` is `verified` for a read that hands back exactly what it
+   * read, and `checkable` where there is a result to look at afterwards: the web
+   * family, and the three writes.
+   *
+   * `changeSurface` is `narrow` everywhere except `cluster.trigger`, which is
+   * `moderate` because one invocation regroups up to eighty signals at once.
+   */
+  "web.search": {
+    dataExposure: "none",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "web.fetch": {
+    dataExposure: "none",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "web.map": {
+    dataExposure: "none",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "repo.read": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "repo.search": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "repo.tree": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "github.ci.read": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "workspace.search": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "workspace.list_tasks": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "signals.list": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "themes.list": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "sources.status": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "sources.connect": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "mission.observe": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "cluster.trigger": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "moderate",
+  },
+  "critic.evaluate": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "studio.checks.run": {
+    dataExposure: "internal",
+    opsImpact: "build",
     verificationGap: "checkable",
     changeSurface: "narrow",
   },
