@@ -15,7 +15,7 @@
 > | | Why it jumps |
 > | --- | --- |
 > | **K-80 `Flowchart`** | The one component the reference ships and Meridian does not. Nothing here can draw a graph, so the Run Map the direction already specified cannot be built at all. |
-> | **K-81 Loading state** | A shipped primitive that is measurably wrong against the reference: coloured where it should be monochrome, one type size where there should be two. Every surface that shows work in flight inherits it. |
+> | **K-81 `AgentPulse`** | Removes the brand mark the founder ruled against, and pins the label to one type stop. **Its azure explicitly stays** -- see the item. |
 > | **K-82 `InsightCards` chart** | Third, and **it keeps its permission to be declined** — see the item. It is an addition to a tuned component rather than a primitive gap, so it jumps feature work but never at the cost of degrading what is there. |
 >
 > | **K-83 glyphs and connectors** | The glyphs name the wrong things and a duration wraps to three lines in a column sized for a clock. Both are in shipped run views. |
@@ -1948,43 +1948,42 @@ It also happens to be the primitive the direction already asked for. [`../planni
 
 ---
 
-**K-81 · The loading state is coloured, loose and large, and the reference is none of those**
-`STATUS: TODO` · deps: K-09 · size: M · **PRIORITY: jump list, second**
+**K-81 · `AgentPulse` keeps its azure and loses the brand mark**
+`STATUS: TODO` · deps: K-09 · size: S · **PRIORITY: jump list, second**
 
-> **Jumps the queue** (see the ruling at the top of this file). This is a *shipped* primitive that is wrong, which is the worse case of the two: every surface showing work in flight already inherits it, so each day it stays wrong the correction gets more expensive rather than less.
+> **REWRITTEN 2026-08-20 after Kiro's QUESTION, which was right.** The original item named `LoadingState` and every one of its four criteria was already met there: monochrome `bg-mrd-ink` cells, a 13px label over a 12px mono elapsed, and Drive/Dots/Orbit with Surfer already skipped. **The component being described was `AgentPulse`.** The original also cited a founder ruling to `DESIGN-SYSTEM.md`, where `grep -ci brand` returns 0. Full correction in the Claude log.
 
-**What.** Bring `LoadingState` to the reference's mechanics: monochrome cells, tighter type, and the three motion variants. Remove the brand-mark loader from the "Agent at work, two marks" gallery panel.
+**What.** Remove the brand-mark option from `AgentPulse`, and bring its label onto the same type stop `LoadingState` uses. Leave its colour alone.
 
-**Why.** Founder review 2026-08-20, looking at the two side by side. Three specific complaints and all three are measurable.
+**Why. One thing goes, one thing explicitly stays, and the difference is the item.**
 
-**The reference, read off the live site through `getComputedStyle` on 2026-08-20:**
+- **The brand mark goes.** Founder, 2026-08-19, verbatim: *"That circle gear icon is not good. I don't want to use that."* Ruled in the room; it needs no document behind it.
+- **The azure stays.** Do not repaint the lattice in ink. The founder's complaint that "the logos are not visible in light mode" was a different defect entirely -- the light ground re-declared every token and never re-bound `color`, so glyphs inherited the dark ink and measured **1.00 contrast on paper**. That is fixed in `meridian.css`. **Measured after: the azure lattice is 7.02 on dark and 5.62 on paper.** It was never the thing that was invisible.
+  - It is also the canonical use of `--mrd-agent`, which the audit counts at 59 against `--mrd-you`'s 97 and names as the imbalance to close. Taking azure off the agent indicator removes the one surface that says "a machine is working".
+  - And the file's own argument is right: `LoadingState` reports a job, which has no actor; this reports an agent. In ink the two become one component with a rotating word.
 
-| | beautifului.dev | Meridian today |
-| --- | --- | --- |
-| Cell | **4x4px, radius 1px, fill `rgb(242,243,244)`** | azure |
-| Label | **13px · weight 500 · Inter · tracking -0.14px · line-height 19.5px** | 14px |
-| Elapsed | **12px · weight 400 · JetBrains Mono · `rgb(108,111,117)`** | 14px |
-| Variants | **Drive · Dots · Orbit · Surfer** | one |
+**How.**
 
-1. **The loader is monochrome there and azure here.** Near-white cells on the dark ground, no hue at all. The founder's instruction is to keep the reference's own treatment rather than substitute ours. This does **not** contradict the colour law: azure means "a machine is working", and a loader is already unambiguously that by motion and position, so the hue is spending a status word to say something the component already says.
-2. **The type is one size here and two there.** 13px label plus a 12px monospace elapsed, against our single 14px for both. That is why ours reads loose and large: no size difference means no rank, and the elapsed figure competes with the label instead of sitting under it.
-3. **Build `Drive`, `Dots` and `Orbit`. Skip `Surfer`** (founder's call: the fourth is not ours). The existing file already documents the timing reasoning to preserve, that the drive cycle is shorter than its sweep so two fronts are in flight, and the orbit is slower because one travelling cell at the same speed reads as a glitch.
-
-**And remove the brand-mark loader.** The gallery's "Agent at work, two marks" panel offers a brand asterisk beside the pixel lattice, and the founder has ruled against the asterisk outright. Drop the mark variant and its panel; keep the lattice. The standing ruling that the brand belongs in the logo and not in interaction states is already recorded in `DESIGN-SYSTEM.md`.
+1. **Delete the `glyph="mark"` option from `AgentPulse` itself**, not just its use in the gallery. Half-applying it leaves the prop in place and the ruling unenforced, which is worse than either end.
+2. **Overturn the argument in the file, in the file.** `AgentPulse.tsx`'s header claims a standing ruling that what a person watches while waiting should be the brand. **That claim is what this reverses.** Edit it in place, cite the founder and the date, or the next reader finds a file arguing against the code it contains.
+3. **Label to 13px.** `AgentPulse.tsx:226` uses `text-mrd-body` at 14px where `LoadingState` uses 13px for the same job. Two indicators, one type stop.
+4. **Remove the "Agent at work, two marks" gallery panel's mark cases**, since there is now one mark rather than two, and rename the section for what it shows.
 
 **Acceptance.**
-- Cells are monochrome and measure 4x4 with a 1px radius in both grounds.
-- Label and elapsed sit on two different type stops, from the ladder, never arbitrary values.
-- Three variants render and are switchable in the gallery.
-- The brand-mark loader is gone from `_authenticated.meridian.tsx` and from `LoadingState`.
-- Ratchet total unchanged or lower.
+- No path renders the brand asterisk in an interaction state; the `glyph` prop no longer offers it.
+- `AgentPulse` still paints `--mrd-agent`, and a test asserts it, so the next reader cannot "tidy" it to ink.
+- The file's header no longer claims a ruling that has been reversed.
+- Label sits on the same stop as `LoadingState`'s.
+- `AgentPulse` has five callers outside the gallery; all five still render. Ratchet unchanged or lower.
 
-**Owns.** `src/components/meridian/LoadingState.tsx`, `src/components/meridian/__tests__/loading-state.test.tsx`, `src/routes/_authenticated.meridian.tsx`
+**Owns.** `src/components/meridian/AgentPulse.tsx`, `src/components/meridian/__tests__/agent-pulse.test.tsx`, `src/routes/_authenticated.meridian.tsx`
 
 ---
 
 **K-82 · A trend chart in `InsightCards`, and permission to decline it**
-`STATUS: TODO` · deps: K-09 · size: M · **PRIORITY: jump list, third**
+`STATUS: DECLINED 2026-08-20` · deps: K-09 · size: M
+
+> **CLOSED, not deferred.** Kiro took the permission this item offered and was right to. The chart already exists, with keyboard scrubbing and series toggles, and every acceptance criterion was already met. One criterion I wrote would have BROKEN a correct decision: I said no status token may be a series colour, but these two lines are semantic (a forecast against what happened, coloured by whether it held) rather than categorical, so semantic colour is right and the criterion was wrong. Nothing to come back to. Full reasoning in the Claude log.
 
 > **Jumps feature work, but it is third and the order matters.** It is an addition to a tuned component rather than a primitive that is missing or wrong, so it outranks anything that merely consumes the design system and outranks nothing else. **Jumping the queue does not raise the bar for declining it** — the permission below is unchanged, and "this would degrade the card" remains the correct answer if it is the true one.
 

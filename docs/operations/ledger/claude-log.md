@@ -695,3 +695,102 @@ by `20260725130000_helio_demo_seed_rich.sql:1184`. **A re-seed restores all
 seven**, because the clone copies whatever the master workspace holds. The seed
 writes an approval for a tool the product no longer has, and that must be
 corrected in the seed rather than re-cancelled after every clone.
+
+## K-81 · RULED · 2026-08-20 01:45
+
+**Kiro is right on every point and the item was mine, so this is a correction
+before it is a ruling.** It refused to build a wrong item, refused to half-apply a
+contested ruling, and caught a citation I invented. All three were the correct
+call.
+
+**Verified before ruling, because a correction that is itself unchecked is worse
+than the error.**
+
+- **`LoadingState.tsx` already meets all four acceptance criteria.** `bg-mrd-ink`
+  at `size-[4px]` with `rounded-[1px]`, so monochrome and not azure. Label
+  `text-[13px]`, elapsed `text-[12px]` mono, so two stops. `LoadingVariant =
+  "Drive" | "Dots" | "Orbit"`, so three, with `Surfer` already skipped. It has no
+  `glyph` prop and never had a brand mark. **The item described a component that
+  was already correct.**
+- **`AgentPulse.tsx` is the component the item was actually describing.**
+  `bg-mrd-agent` at `:142`, `glyph = "mark"` defaulting at `:157`, the seven-petal
+  mark at `:71`.
+- **My citation was false.** K-81 says the ruling is "already recorded in
+  `DESIGN-SYSTEM.md`". `grep -ci brand docs/design/DESIGN-SYSTEM.md` returns
+  **0**. Not a misremembered line number -- the word does not occur in that file.
+  I asserted a document said something it does not say, which is precisely the
+  failure this repo keeps a findings register to prevent.
+
+**1. The target is `AgentPulse`, not `LoadingState`.** The item is rewritten to
+say so and `AgentPulse.tsx` is added to its `Owns`.
+
+**2. Azure STAYS on `AgentPulse`. Do not remove it.** Three reasons and the first
+is that the premise for removing it has evaporated:
+
+- **The founder's complaint was visibility, and visibility had a different
+  cause.** "The logos are not visible in light mode" was the `currentColor` bug:
+  entering the light ground re-declared every token and never re-bound `color`, so
+  every glyph inherited the dark ink and measured **1.00** on paper. That is fixed
+  in `meridian.css` and glyphs now measure 15.63. **Measured after the fix, the
+  azure lattice is 7.02 on dark and 5.62 on paper.** It was never the thing that
+  was invisible.
+- **It is the canonical use of the token that means "a machine is working."** The
+  audit's own count is `--mrd-agent` 59 against `--mrd-you` 97, and calls that out
+  as the imbalance to close: "five surfaces exist for a person is required and
+  essentially one for a machine is working." Taking azure off the agent indicator
+  removes the one.
+- **The file's argument is correct and Kiro was right to protect it.**
+  `LoadingState` reports a job, which has no actor; `AgentPulse` reports an agent.
+  In ink they become the same component with a rotating word, and the question
+  stops being what colour it is and becomes why there are two.
+
+**3. The brand mark GOES, and here is the citation that actually exists.** Not
+`DESIGN-SYSTEM.md`. The founder, directly, on 2026-08-19: *"That circle gear icon
+is not good. I don't want to use that."* That is a ruling made in the room and it
+needs no document behind it.
+
+**Apply it whole, which is what Kiro declined to do by halves and was right to.**
+Remove the `glyph="mark"` option from `AgentPulse` itself, not only its use in the
+gallery. **And overturn the argument in the file rather than painting over it:**
+the header currently claims a standing ruling that what a person watches while
+waiting should be the brand. That claim is what this ruling reverses, so it is
+edited in place with the founder's words and this date, or the next reader finds
+a file arguing against the code it contains.
+
+**Noticed 1 is a real catch and it changes the item's own table.** The reference
+cell fill I recorded as `rgb(242,243,244)` is the rendered result of `bg-ink` at
+0.15 opacity. Written as a literal it would be wrong on paper. **A token at low
+opacity is the mechanism**, which is what `LoadingState` already does, and my
+table gave the symptom rather than the cause.
+
+---
+
+## K-82 · RULED · 2026-08-20 01:45
+
+**Decline accepted, the reasoning is better than the item's, and the item was
+wrong twice.**
+
+**My `Why` was false.** I wrote that the card "states a movement in words and
+numbers and never shows it." `InsightCards.tsx` has shipped a two-series smoothed
+chart, rendered in the gallery with real data at
+`_authenticated.meridian.tsx:571`. Every acceptance criterion I wrote was already
+met, including two I did not know to ask for: keyboard scrubbing, and an end dot
+that hides while scrubbing so it cannot be mistaken for the cursor.
+
+**And one criterion I wrote would have destroyed a correct decision.** I said "no
+status token used as a series colour." The chart uses `--mrd-you-dim` for the
+forecast and the verdict's own tone for the actual, deliberately, and the file
+argues it at length. **I applied the viz ruling to the wrong half of its own
+distinction:** `--mrd-viz-*` exists for CATEGORICAL series, which answer "which of
+these is which." These two lines answer "what does this mean" -- a forecast
+against what happened, coloured by whether it held. That is semantic, so semantic
+colour is right and my criterion was wrong.
+
+**This is the permission working exactly as written.** The item said a `BLOCKED`
+entry naming the line where it breaks beats a chart that degrades a tuned card.
+Kiro found the line, named it, and stopped. **K-82 is closed as declined, not
+deferred** -- there is nothing here to come back to.
+
+**Both of these were my errors, found by the agent I was reviewing.** Recording
+that plainly because the queue's rule is that an item's `Why` is a proposal from
+someone who could have misread the code, and twice tonight that someone was me.
