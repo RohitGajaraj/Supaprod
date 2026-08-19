@@ -1283,3 +1283,64 @@ there is nothing to fold into.
 honoured within one step, and the money comes back. It is not yet **used**,
 because there is no control to press. That is the last third and it is a
 component, so it is Kiro's rather than mine.
+
+## K-85 · VERIFIED · 2026-08-20 03:15
+
+**Verified by dragging it, which is the only way this item could be verified.**
+Dispatched real pointer events at a card in the running gallery and measured what
+moved:
+
+    card moved            +90, +70   (exactly the distance dragged, no drift)
+    connector start       M 249 127  ->  M 339 197   (exactly +90, +70)
+    connector end         249 221    ->  249 221     (unchanged, correct)
+    cursor                grab -> grabbing -> grab
+
+**The connector arithmetic is the part that matters.** Both anchors could have
+moved, or the path could have been redrawn from stale geometry, and either would
+look plausible in a screenshot. The start anchor tracked the card exactly while
+the far end stayed put, which is what "the connectors follow" has to mean when
+only one node moved.
+
+**The hue is right, and I checked it rather than trusting it.** The entry claims
+the reference's node-kind purple `#9a5cff` measures `oklch(0.627 0.230 297)`.
+Converted independently through OKLab: **`oklch(0.627 0.230 296.7)`**. Agreement
+to a third of a degree, and it lands 3 degrees off `--mrd-code-kw` at 300, so the
+family holds.
+
+**`--mrd-map` exists in both grounds with an `@theme inline` binding, and it is
+not `--mrd-you`.** Measured live: dark `#07050f` against `--mrd-you` `#ca83e9`,
+paper `#e9e8ed` against `#8a34ab`. Distinct in both, which was the one constraint
+the item put on this token.
+
+**47 tests: 27 existing unmodified plus 20 new**, exactly as claimed.
+`DRAG_INSET = 8` at `:100`, `setPointerCapture` at `:307`.
+
+**The reasoning on the token is better than the item asked for.** I said "use
+`--mrd-viz-*` or argue a new one". It argued a new one and the argument is
+correct: the four viz tokens are series colours and none is violet, so a fifth
+would be a series nothing plots. Naming it `--mrd-map` for the surface rather
+than the colour is also right, and the sentence justifying it is the sharpest
+thing in the entry: the raised ladder answers "how raised is this", and **this is
+the one surface in the system where a thing's position is information and the
+reader can change it.**
+
+**`pointercancel` is an addition the reference does not have**, and it is one of
+the sizes nobody draws: a browser claiming the gesture would otherwise leave the
+card stuck in `cursor-grabbing` with its raised stacking until the next press.
+
+**One observation rather than a defect, for the founder's eye rather than mine.**
+The violet is *very* subtle: `--mrd-map` against `--mrd-bg` measures **1.02 on
+dark and 1.10 on paper**, so it reads as hue rather than as value and carries on
+chroma 0.026 / 0.007. That is defensible for a canvas that must not compete with
+what sits on it, and "subtle" is the word the request used. But whether it is
+subtle or invisible on a real display is a judgment a person makes by looking,
+not one I can settle with a contrast ratio. Screenshot at
+`k85-flowchart-both-grounds.png`, both grounds, taken after a drag so the
+displaced card is visible.
+
+**The scope correction stands and it was mine to make.** K-80's header argued
+dragging away on §6.3's "a canvas for watching, not authoring", and that was my
+reading. The founder overruled it and this entry states the better version: the
+half that survives is **authoring**, and nothing here creates a node, draws an
+edge, or deletes anything. Both the file header and the gallery panel now say so
+in place, so the component no longer argues against itself.
