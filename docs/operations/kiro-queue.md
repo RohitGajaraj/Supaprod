@@ -157,7 +157,9 @@ So you know what is covered and do not attempt it:
 
 **The failure this is aimed at is not ugliness. It is arbitrariness.** A component that renders correctly, passes its tests and clears the ratchet can still be **randomly assembled** — spacing that came from whatever looked fine, a glyph chosen because it was to hand, a label format that differs from the one three components over. Every one of those passes every gate this repo has.
 
-**So before a component is `BUILT`, walk this list. It is short on purpose.**
+**What follows is six EXAMPLES of that failure, not a checklist, and the difference decides whether this rule works.** Each one was found by looking at what has already shipped here. **Satisfying these six and nothing else is the same failure one level up** — a component assembled to pass a list rather than designed. The instruction is to acquire the lens these six were seen through and then apply it to everything, including every defect of this kind that is not written down and never will be.
+
+**The test, on any element you are about to ship: can you say why it is exactly there, exactly that size, exactly that word?** If the honest answer is "it looked fine", it is not finished. That question is the rule. The six below are only worked examples of asking it.
 
 1. **Does every column line up with the one above it?** Measured, not eyeballed. A duration that sits in the label column while every sibling row puts its number in the time column is the single most visible tell that a component was assembled rather than designed. *This is live in `RunTimeline` today: the `28m 0s` on a silence row does not sit on the clock column that every event row uses.*
 2. **Is one idea expressed one way everywhere in the component?** An agent credited as `Research · Discover` on one row and `Challenge` on the next is two formats. Pick the format, state it in the file, apply it to every row including the ones where half of it is missing.
