@@ -798,7 +798,7 @@ function TrendBody({ insight }: { insight: TrendInsight }) {
             <div key={figure.label}>
               <dt className="text-[11px] text-mrd-mute">{figure.label}</dt>
               <dd
-                className={`font-mrd-mono text-[16px] font-semibold tabular-nums ${
+                className={`font-mrd-mono text-mrd-lead font-semibold tabular-nums ${
                   figure.tone === "pass"
                     ? "text-mrd-pass"
                     : figure.tone === "fail"
@@ -861,7 +861,7 @@ function SplitBody({ insight }: { insight: SplitInsight }) {
         {active && (
           <span
             aria-hidden
-            className="flex size-3.5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold"
+            className="flex size-3.5 shrink-0 items-center justify-center rounded-full text-mrd-nano font-bold"
             style={{ background: segmentFill(activeIndex, active.tone), color: "var(--mrd-bg)" }}
           >
             {active.label.slice(0, 1).toUpperCase()}
@@ -1110,7 +1110,7 @@ function NothingSettledYet({
       data-mrd=""
       className="rounded-mrd-card border border-mrd-line bg-mrd-sheet p-[var(--mrd-s5)]"
     >
-      <span className="block text-[16px] font-medium text-mrd-ink">
+      <span className="block text-mrd-lead font-medium text-mrd-ink">
         No outcome has been settled yet
       </span>
       <p className="mt-[var(--mrd-s3)] max-w-[46ch] text-[13px] leading-relaxed text-mrd-body">
@@ -1152,7 +1152,7 @@ function CouldNotRead({ reason, onRetry }: { reason: string; onRetry?: () => voi
       role="alert"
       className="rounded-mrd-card border border-mrd-line bg-mrd-sheet p-[var(--mrd-s5)]"
     >
-      <span className="flex items-center gap-2 text-[16px] font-medium text-mrd-ink">
+      <span className="flex items-center gap-2 text-mrd-lead font-medium text-mrd-ink">
         <svg
           aria-hidden
           width="14"

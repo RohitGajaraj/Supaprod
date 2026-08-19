@@ -247,7 +247,7 @@ export function AgentCards({
                */}
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span
-                  className="truncate text-[13.5px] font-medium"
+                  className="truncate text-mrd-body font-medium"
                   style={{ color: off ? "var(--mrd-mute)" : "var(--mrd-ink)" }}
                 >
                   {card.name}

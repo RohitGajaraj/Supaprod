@@ -69,6 +69,27 @@ const REPO_ROOT = join(HERE, "..", "..", "..");
  * Read out of the `@theme` bridge rather than from the raw `--mrd-*`
  * declarations, and the difference is the whole point of the test: the raw
  * declarations are what a person reads, the bridge is what generates a utility.
+ *
+ * ── AND OUT OF `@utility`, ADDED 2026-08-19, BECAUSE THERE ARE NOW TWO DOORS ──
+ *
+ * This function read `@theme` only, and its own failure message told an author
+ * that `--mrd-t-body` was "NOT bridged" and to write `text-[13px]` instead. That
+ * advice was correct when it was written and is now the thing the type ladder
+ * exists to stop, so the message has been rewritten too.
+ *
+ * WHY THE SECOND DOOR EXISTS, since a reader will reasonably ask why the type
+ * stops are not simply in `@theme` with everything else. Tailwind's theme
+ * namespace for a font size is `--text-*`. That string is v3 Obsidian's retired
+ * type scale and one of the nine markers `meridian-ratchet-scan.ts` fails a
+ * build on, so declaring `--text-mrd-base` in `@theme` takes meridian.css's
+ * `--text-` count from 0 to 13 and trips rule 2. Verified by planting one
+ * binding and reading the guard's own output: `src/styles/meridian.css
+ * --text-: 0 -> 1`.
+ *
+ * So the two gates in this repo disagreed about how to add a font size, and
+ * `@utility` is the door that satisfies both. **This is a real conflict between
+ * two guards rather than a preference**, and it is recorded here because the
+ * next person to add a type stop will otherwise re-derive it from a red build.
  */
 function bridgedTokens(): Set<string> {
   const css = readFileSync(join(REPO_ROOT, "src/styles/meridian.css"), "utf8");
@@ -76,6 +97,14 @@ function bridgedTokens(): Set<string> {
   for (const m of css.matchAll(
     /^\s+--(?:color|spacing|text|font|font-weight|leading|tracking|radius|shadow|ease|duration|breakpoint)-(mrd[a-z0-9-]*)\s*:/gm,
   )) {
+    names.add(m[1]);
+  }
+  /*
+   * `@utility text-mrd-base { ... }` generates the utility `text-mrd-base`, so
+   * what is captured here is the name MINUS its property prefix, to match the
+   * shape the `@theme` branch above produces and the shape `UTILITY` matches.
+   */
+  for (const m of css.matchAll(/^@utility\s+[a-z-]+?-(mrd-[a-z0-9-]+)\s*\{/gm)) {
     names.add(m[1]);
   }
   return names;
@@ -155,8 +184,12 @@ describe("every Meridian utility class paints", () => {
             "The usual cause is reading a name in meridian.css and typing it",
             "verbatim. The raw custom property and the Tailwind name differ:",
             "  --mrd-s3            ->  spacing utilities say  mrd-3   (no `s`)",
-            "  --mrd-t-body        ->  NOT bridged. Use an explicit size,",
-            "                          text-[13px], as the ported surfaces do.",
+            "  --mrd-t-body        ->  text-mrd-body. The thirteen type stops are",
+            "                          `@utility` rules rather than `@theme` keys,",
+            "                          because Tailwind's font-size namespace is",
+            "                          `--text-*` and that string is a RETIRED",
+            "                          vocabulary the ratchet fails a build on.",
+            "                          Add a new stop the same way, never in @theme.",
             "  --mrd-w-600         ->  NOT bridged. Use font-medium / font-[650].",
             "  --mrd-lh-relaxed    ->  NOT bridged. Use leading-relaxed.",
             "  a pill             ->  rounded-full. The radius scale is",

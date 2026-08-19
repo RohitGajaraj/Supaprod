@@ -223,7 +223,7 @@ export function AgentPulse({
     <span
       data-mrd=""
       className={`inline-flex min-w-0 items-center text-mrd-mute ${
-        compact ? "gap-mrd-3 text-[13px]" : "gap-mrd-4 text-[13.5px]"
+        compact ? "gap-mrd-3 text-mrd-base" : "gap-mrd-4 text-mrd-body"
       }`}
     >
       {glyph === "grid" ? <PixelGlyph /> : <BrandGlyph />}

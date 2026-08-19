@@ -269,7 +269,19 @@ function SourceMark({ source, size }: { source: AnswerSource; size: 3 | 3.5 | 4 
           <path d={d} />
         </svg>
       ) : (
-        <span className={size === 3 ? "text-[8px] font-medium" : "text-[9px] font-medium"}>
+        /*
+         * ONE SIZE, WHERE THERE USED TO BE TWO. This was `8px` at the small box
+         * and `9px` at the larger one, and both were off the type ladder. The
+         * ladder's floor is 10px and the ratchet law forbids shrinking type to
+         * satisfy an instruction, so both snapped UP to the same stop and the
+         * distinction they encoded no longer exists.
+         *
+         * That is the right outcome rather than a loss: a one-letter source
+         * initial at 8px against the same letter at 9px was a difference nobody
+         * could see, and neither was legible. The box still changes size with
+         * `size`, which is where that variation belongs.
+         */
+        <span className="text-mrd-nano font-medium">
           {source.label.slice(0, 1).toUpperCase()}
         </span>
       )}

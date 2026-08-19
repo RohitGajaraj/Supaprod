@@ -257,7 +257,7 @@ export function Line({
     </>
   );
 
-  const labelClass = "min-w-0 text-[13.5px] text-mrd-ink";
+  const labelClass = "min-w-0 text-mrd-body text-mrd-ink";
 
   return (
     <div

@@ -108,7 +108,7 @@ export function NeedsSetup({
       // Not aria-live. This is the state on arrival, not a change to announce,
       // and a live region here would interrupt a screen reader mid-navigation.
     >
-      <h2 className="text-[16px] leading-snug font-medium text-mrd-ink">{title ?? words.title}</h2>
+      <h2 className="text-mrd-lead leading-snug font-medium text-mrd-ink">{title ?? words.title}</h2>
 
       <p className="mt-mrd-3 max-w-[62ch] text-[13px] leading-relaxed text-mrd-body">
         {body ?? words.body}

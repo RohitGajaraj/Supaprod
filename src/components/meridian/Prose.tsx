@@ -144,7 +144,7 @@ export function Prose({
         data-mrd=""
         data-markdown={markdown ? "true" : undefined}
         className={[
-          "mrd-prose text-[13.5px] leading-[1.6] text-mrd-body",
+          "mrd-prose text-mrd-body leading-[1.6] text-mrd-body",
           /* The markdown container drops the panel, the measure, the pre-wrap AND
            the outer margin, exactly as `.sp-prose[data-markdown]` did: inside
            Ask the pane IS the measure, and the turn above already spaced it. */

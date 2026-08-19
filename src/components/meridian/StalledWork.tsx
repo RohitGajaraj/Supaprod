@@ -274,7 +274,7 @@ export function StalledWork({
        * who reads only this line should already know whether to act, and the
        * oldest age is the fact that decides it.
        */}
-      <h2 className="text-[16px] leading-snug font-medium text-mrd-ink">
+      <h2 className="text-mrd-lead leading-snug font-medium text-mrd-ink">
         {waitingOnPerson.length > 0 ? (
           <>
             {waitingOnPerson.length === 1

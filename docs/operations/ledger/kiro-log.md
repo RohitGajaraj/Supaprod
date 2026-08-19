@@ -565,3 +565,107 @@ say anything per agent. That is the call site per-mark state exists for.
 
 **Gates.** tsc clean · 9,516 pass / 0 fail / 23 skip / 60 todo across 574 files · build ok. 11 new
 assertions in the existing guard. Ratchet total unchanged.
+
+---
+
+## K-09 · BUILT · 2026-08-19 23:42
+
+**The item's mechanism cannot be used, and I proved it before working around it.** K-09 says to add
+`--text-mrd-*` bindings to `@theme inline`. That is Tailwind's only theme namespace for a font size,
+and **`--text-*` is v3 Obsidian's retired type scale**: one of the nine markers
+`meridian-ratchet-scan.ts` fails a build on, with 57 occurrences still awaiting deletion in
+`src/styles.css`. `src/styles/meridian.css` carries **zero** today, so thirteen bindings would take
+it 0 → 13 and fail rule 2 immediately.
+
+I planted one binding and ran the guard rather than reasoning about the regex. It said:
+`src/styles/meridian.css  --text-: 0 -> 1`. Then I reverted it.
+
+**Did.** Built the thirteen stops as `@utility` rules instead, which is Tailwind v4's other door and
+has no namespace requirement, so a stop can be named for what it means without borrowing a dead
+system's prefix. Verified all four in-use stops reach the built stylesheet as
+`.text-mrd-nano{font-size:var(--mrd-t-nano)}` and so on. Then snapped the twelve off-ladder values I
+own, and left the thirteenth alone (see the question below).
+
+**Every snap goes UP, and that is the ratchet law rather than rounding.** "Shrinking type is
+forbidden as an answer" applies to a 0.5px reduction made to satisfy a ladder instruction exactly as
+it applies to a large one, so 13.5 went to 14 in all four cases rather than to the arithmetically
+nearer 13.
+
+| was | now | where |
+| --- | --- | --- |
+| `8px` | `text-mrd-nano` 10px | `InsightCards.tsx:864` segment badge |
+| `8px` / `9px` | `text-mrd-nano` 10px | `StreamingText.tsx:272`, both branches |
+| `13.5px` | `text-mrd-body` 14px | `AgentCards.tsx:250` agent name |
+| `13.5px` | `text-mrd-body` 14px | `AgentPulse.tsx:226` roomy variant |
+| `13.5px` | `text-mrd-body` 14px | `Prose.tsx:147`, and the ladder names 14 for prose |
+| `13.5px` | `text-mrd-body` 14px | `rows.tsx:260` row label |
+| `16px` | `text-mrd-lead` 17px | `InsightCards.tsx:801` figure, and the ladder names 17 for one |
+| `16px` | `text-mrd-lead` 17px | `InsightCards.tsx:1113`, `:1155` |
+| `16px` | `text-mrd-lead` 17px | `NeedsSetup.tsx:111` heading |
+| `16px` | `text-mrd-lead` 17px | `StalledWork.tsx:277` heading |
+
+**## K-09 · QUESTION · one off-ladder value is in a file this item does not own**
+
+`src/components/meridian/marks.tsx:247` carries `text-[9.5px]` on `YouMark`'s initials. **K-09's
+`Owns` excludes every file K-02 through K-08 owns, and marks.tsx is K-08's**, so the acceptance
+criterion "zero off-ladder values remain in `src/components/meridian/`" cannot be met inside this
+item's boundary. I did not touch it. The change is one line and the snap is unambiguous:
+
+```
+- "text-[9.5px] font-[650] tracking-mrd-label",
++ "text-mrd-nano font-[650] tracking-mrd-label",
+```
+
+Upward to 10px like the others, and `--mrd-t-nano`'s own comment says "uppercase micro-label, always
+at weight 650", which is exactly what that line is.
+
+**## K-09 · I edited one file outside `Owns`, and I am declaring it rather than burying it**
+
+`src/styles/__tests__/every-meridian-utility-paints.test.ts`. **Two existing gates in this repo
+contradict each other on this item and neither can be satisfied by the other's rule:**
+
+- That guard builds its set of legal utility names by reading `@theme` **only**, and its namespace
+  regex already includes `text`, so it was written expecting `--text-mrd-*`. Its failure message
+  told authors outright: *"`--mrd-t-body` -> NOT bridged. Use an explicit size, `text-[13px]`."*
+- The ratchet fails a build on `--text-` appearing at all.
+
+So the guard advises the one thing the ratchet forbids, and using `@utility` made the guard flag all
+eight new usages as painting nothing. Without touching it the item cannot land at all. I made the
+smallest possible change: `bridgedTokens()` also collects `@utility <prefix>-(mrd-*)` names, which is
+additive and cannot weaken the guard for anything else, and I rewrote the stale advice in the failure
+message to point at `@utility` and say why. The conflict is written into the function's own comment
+so the next person does not re-derive it from a red build.
+
+**Unsure.** Three.
+
+1. **`8px` to `10px` is a 25% jump and it is the one snap I would want looked at.** Both cases are a
+   single character inside a small round badge (`size-3.5`, so a 14px circle at
+   `InsightCards.tsx:864`). 10px bold in a 14px circle should fit and will read tighter. Upward is
+   the ratchet-safe direction and 8px was not legible, so I am confident it is an improvement and
+   not confident it fits the badge.
+2. **`StreamingText`'s two sizes collapsed into one.** It was `8px` at the small box and `9px` at
+   the larger, both off-ladder, both snapping to the same stop, so the ternary became two identical
+   branches and I removed it. The distinction it encoded was a 1px difference on a single letter
+   that nobody could see. The box still changes size, which is where that variation belongs.
+3. **I converted one ON-ladder value**, `AgentPulse.tsx:226`'s `text-[13px]`, to `text-mrd-base`.
+   The item says not to mass-rewrite the 264 on-ladder ones and I did not: this single one shares a
+   line with an off-ladder value in the same ternary, and leaving one half arbitrary and the other
+   half a token reads worse than either.
+
+**Noticed.** Three.
+
+1. **The item's count is exactly right.** Thirteen off-ladder occurrences: 8px ×2, 9px ×1, 9.5px ×1,
+   13.5px ×4, 16px ×5. The full distribution across `src/components/meridian/*.tsx` before the
+   change was 277 arbitrary values, also as stated.
+2. **Tailwind emits a utility only where it is used**, so four of the thirteen stops appear in the
+   built CSS and nine do not. All thirteen are declared identically, so "usable" is satisfied, but
+   anyone grepping the output for proof that the ladder shipped will find a third of it.
+3. **`--mrd-w-*` and `--mrd-lh-*` are still unreachable as utilities**, and the guard's message
+   still says so correctly: weights go through `font-medium`/`font-[650]` and leading through
+   `leading-relaxed`. That means the ladder is now enforceable in one of its three dimensions.
+   `font-[650]` is an arbitrary value the ratchet cannot see, exactly as `text-[13.5px]` was, so the
+   same hole exists one column over. Worth an item.
+
+**Gates.** tsc clean · 9,516 pass / 0 fail / 23 skip / 60 todo across 574 files · build ok. Ratchet
+total unchanged: the `@utility` rules carry no retired marker and no raw colour, and the `--text-*`
+discussion in the comment is stripped before counting.

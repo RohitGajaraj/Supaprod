@@ -926,6 +926,87 @@
 }
 
 /*
+ * ── THE TYPE LADDER, AS UTILITIES ───────────────────────────────────────
+ *
+ * WHY THIS EXISTS. The ladder above is thirteen documented stops and until now
+ * it COULD NOT BE ENFORCED. `@theme` exposes colours, radii, shadows, spacing
+ * and fonts to Tailwind, and nothing else, so there was no `text-mrd-*` to
+ * write and every author hand-wrote `text-[Npx]` instead. Measured 2026-08-19:
+ * 277 arbitrary values inside the design system's own components, thirteen of
+ * them off the ladder entirely at 8, 9, 9.5, 13.5 and 16px. The ratchet cannot
+ * see an arbitrary Tailwind value, so the debt was invisible to the one gate
+ * that exists to catch exactly this.
+ *
+ * ── WHY `@utility` AND NOT `@theme`, WHICH IS WHAT YOU WOULD EXPECT ─────
+ *
+ * Tailwind's theme namespace for a font size is `--text-*`. There is no other
+ * one: `--text-mrd-base: 13px` inside `@theme inline` is the documented way to
+ * get a `text-mrd-base` utility, and it is the way this was specified.
+ *
+ * IT CANNOT BE USED HERE, AND THE REASON IS THIS REPO'S OWN HISTORY.
+ * `--text-*` IS A RETIRED VOCABULARY. It is v3 Obsidian's type scale, it is one
+ * of the nine markers `meridian-ratchet-scan.ts` fails a build on, and
+ * `src/styles.css` still carries 57 occurrences of it awaiting deletion. Adding
+ * thirteen more to the file that DEFINES Meridian would take this file's
+ * `--text-` count from 0 to 13 and fail rule 2 on the spot.
+ *
+ * Verified rather than reasoned about: one binding was planted, `bun test` was
+ * run, and the guard reported `src/styles/meridian.css  --text-: 0 -> 1` before
+ * it was reverted. So the collision is real and not a theory about a regex.
+ *
+ * `@utility` is Tailwind v4's other door and it has no namespace requirement,
+ * so a stop can be named for what it means without borrowing a dead system's
+ * prefix. It also happens to be the more honest mechanism for this ladder:
+ * `--text-*` in `@theme` couples a size to a default line height, and Meridian
+ * keeps leading in its own `--mrd-lh-*` family precisely because the reference's
+ * 1.5 applies at every size rather than varying with it.
+ *
+ * ONE STOP PER RULE, NO SHORTHANDS. Each of these sets `font-size` and nothing
+ * else, so `text-mrd-base leading-mrd-body` composes and neither surprises the
+ * other.
+ */
+
+@utility text-mrd-nano {
+  font-size: var(--mrd-t-nano);
+}
+@utility text-mrd-micro {
+  font-size: var(--mrd-t-micro);
+}
+@utility text-mrd-tiny {
+  font-size: var(--mrd-t-tiny);
+}
+@utility text-mrd-data {
+  font-size: var(--mrd-t-data);
+}
+@utility text-mrd-small {
+  font-size: var(--mrd-t-small);
+}
+@utility text-mrd-label {
+  font-size: var(--mrd-t-label);
+}
+@utility text-mrd-base {
+  font-size: var(--mrd-t-base);
+}
+@utility text-mrd-body {
+  font-size: var(--mrd-t-body);
+}
+@utility text-mrd-lead {
+  font-size: var(--mrd-t-lead);
+}
+@utility text-mrd-h3 {
+  font-size: var(--mrd-t-h3);
+}
+@utility text-mrd-h2 {
+  font-size: var(--mrd-t-h2);
+}
+@utility text-mrd-h1 {
+  font-size: var(--mrd-t-h1);
+}
+@utility text-mrd-display {
+  font-size: var(--mrd-t-display);
+}
+
+/*
  * ── MOTION KEYFRAMES ────────────────────────────────────────────────────
  * Prefixed, because `spin` and `fade-in` already exist in a 133KB stylesheet
  * and a keyframe collision resolves by source order with no warning.
