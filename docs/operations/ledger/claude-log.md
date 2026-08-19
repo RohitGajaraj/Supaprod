@@ -1347,8 +1347,8 @@ in place, so the component no longer argues against itself.
 
 ## Claude lane · LANDED · 2026-08-20 03:25
 
-**A steer can now be addressed to a track, so the six stations that never open a
-mission are reachable.** Migration `20260820032000` applied and recorded; the loop
+**A steer can now be addressed to a track, so a station that never opens a
+mission is reachable.** Migration `20260820032000` applied and recorded; the loop
 reads it. **Criterion 11 is not met yet** and the reason is at the bottom.
 
 **The defect.** `agent_messages` addressed a steer by `mission_id` and had no
