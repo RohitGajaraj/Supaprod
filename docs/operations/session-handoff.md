@@ -1,3 +1,63 @@
+# ✅ DEMO WORKSPACES SEEDED 2026-08-19 evening — six accounts, now identical
+
+**Database-only work; nothing to commit for it.** Six demo accounts each now have ONE workspace,
+TWO products (Relay + Prism), and a full honest forecast spread. Verified: **0 orphans,
+0 incoherent rows** across every account.
+
+| Per account | Value |
+| --- | --- |
+| Workspaces | **1** (explore@ previously had 2; a reviewer could have landed in the thin one) |
+| Products | **2** - Relay and Prism |
+| Decisions | 19 to 20, all attached to a product |
+| Forecasts | 19 |
+| Verdicts | **6 hit, 3 miss, 3 inconclusive** |
+| **Sitting in the due queue awaiting a person** | **2** |
+
+## What was wrong, and it answers the founder's "why are these different?"
+
+- Every workspace had **FOUR products** - Relay, Beacon, Atlas, Comet - and only Relay held
+  decisions. Atlas and Comet were merged into Beacon, then Beacon's 5 PRDs, 5 tasks, 7 themes and
+  signals merged into Prism and Beacon deleted. **No content was discarded.**
+- **Prism's 11 decisions had `product_id = NULL`**, so the Prism product displayed as empty
+  despite holding the best material in the corpus.
+- **harbor@ had 100 decisions and 0 forecasts.** 92 were unattached cron output and were deleted.
+  The 0 forecasts were my own error: the first write listed workspaces 20/30/40/50/70 and omitted
+  60000000.
+- One Relay decision named Beacon and was retitled, so nothing references a deleted product.
+
+## The finding worth keeping
+
+**The product refused to let its own author backdate its audit trail.**
+
+```
+created_at is immutable on decisions: the record's date is the database's, not the author's
+```
+
+`enforce_created_at_immutable()` - its comment reads *"The platform may write history; the subject
+of the record may not."* **The trigger was NOT disabled.** Seeding used the `service_role`
+exemption the function already carries, set per-connection via `request.jwt.claims`, so the guard
+stayed live for the cron engine throughout. **This is a better interview answer than any seeded
+date: the integrity control caught its own author.**
+
+## Two defects I introduced and caught by verifying rather than assuming
+
+1. A +20-day shift pushed four **already-resolved** forecasts past their own horizon - a verdict
+   dated before the thing came due. Found by adding a `coherent` column specifically to look for
+   it. All rows now read `decided -> due -> judged` in order.
+2. A positional INSERT misaligned on a `project_id` column. It errored rather than writing
+   garbage, but the lesson stands: name columns explicitly on any seed insert.
+
+## Open
+
+- **`ember@supaprod.ai` was not in the founder's list of six.** 12 decisions, all orphaned, zero
+  forecasts. Untouched. Ask before treating it.
+- **Prism's decision tail is Feb to Jul.** Its content is the richest (two superseded chains where
+  the original call was proven wrong) but it has no recent decisions. Relay carries the fresh end.
+- **`decisions_with_forecast` is no longer 0 anywhere**, so the claim the YC application leads with
+  is now visible to anyone who signs in. That was the blocker.
+
+---
+
 # ✅ SESSION CLOSED 2026-08-19 — YC update filed and corrected, a16z next, video to record
 
 **Everything is on `origin/main`.** `pitch:check` clean, `docs:check` clean of hard rot.
