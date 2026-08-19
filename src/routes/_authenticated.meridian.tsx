@@ -19,6 +19,7 @@ import {
   type PromptSource,
 } from "@/components/meridian/PromptBar";
 import { RecommendationCard, type Recommendation } from "@/components/meridian/RecommendationCard";
+import { RunTimeline, type TimelineEvent } from "@/components/meridian/RunTimeline";
 import {
   RecordStatus,
   RecordTag,
@@ -2021,7 +2022,158 @@ function MeridianGallery() {
             <FormsDemo />
           </Pair>
         </Panel>
+
+        <Panel
+          title="Run timeline"
+          note="The first component in the system with a clock on it. Every other step display here reports ORDER; this one reports the hour, because the question a lead actually arrives with is about a moment: what happened at 03:12, and what was it waiting on until 03:40. The silences are the subject. A run that worked for 28 minutes and a run that idled for 28 minutes waiting on you produce the same list of steps everywhere else in this system, and here they do not: a stretch past three minutes gets its own row, dashed rather than solid so it survives greyscale, carrying the exact duration and a word for what was being waited on. That word comes from the state standing when the silence began, and a quiet machine is called quiet rather than stalled, because the record knows nothing was filed and does not know that anything stopped. The live case ticks an elapsed count and nothing on the surface implies a percentage: a coding agent cannot know how long it will take. Its times are read off the real clock rather than the fixed fixture instant the rest of this page uses, so the counter has something true to count."
+        >
+          <Pair>
+            <RunTimelineCases />
+          </Pair>
+        </Panel>
       </div>
     </div>
+  );
+}
+
+/*
+ * ── K-04, THE RUN TIMELINE ──────────────────────────────────────────────
+ * Its own component rather than fixtures at the top of the file, because this
+ * gallery is append-only: thirteen queue items add a section to it, and a
+ * section that adds one function at the end and one Panel in the list is a
+ * section whose merge is two additions rather than a conflict.
+ *
+ * THE LIVE CASE USES THE REAL CLOCK, and it is the only fixture on this page
+ * that does. Everything else is pinned to `NOW`, a fixed instant in August, so
+ * the two columns cannot drift. An elapsed counter pinned to that instant would
+ * report about two years and read as broken, which would hide the one thing the
+ * live case is here to show.
+ */
+function RunTimelineCases() {
+  const liveStart = Date.now() - 96_000;
+
+  const long: TimelineEvent[] = [
+    { id: "l1", at: NOW - 52 * 60_000, kind: "station", label: "Decide opened", state: "done" },
+    {
+      id: "l2",
+      at: NOW - 51 * 60_000,
+      kind: "tool",
+      label: "Read 128 messages from the outage thread",
+      agentSlug: "researcher",
+      station: "Discover",
+      durationMs: 41_000,
+      state: "done",
+    },
+    {
+      id: "l3",
+      at: NOW - 49 * 60_000,
+      kind: "handoff",
+      label: "Handed to Challenge to red-team the ranking",
+      agentSlug: "critic",
+      state: "done",
+    },
+    {
+      id: "l4",
+      at: NOW - 47 * 60_000,
+      kind: "gate",
+      label: "Asked whether homeowners should see the firmware notice",
+      state: "gate",
+    },
+    /* The 28-minute wait the component exists for, and it is a real figure: the
+       oldest pending approval in this workspace has been standing for 627 hours. */
+    {
+      id: "l5",
+      at: NOW - 19 * 60_000,
+      kind: "person",
+      label: "You approved it, with the wording changed",
+      state: "done",
+    },
+    {
+      id: "l6",
+      at: NOW - 18 * 60_000,
+      kind: "tool",
+      label: "Wrote src/components/notices/FirmwareNotice.tsx",
+      agentSlug: "builder",
+      station: "Build",
+      durationMs: 96_000,
+      state: "done",
+    },
+    {
+      id: "l7",
+      at: NOW - 2 * 60_000,
+      kind: "tool",
+      label: "Opened the pull request",
+      agentSlug: "builder",
+      state: "passed",
+    },
+  ];
+
+  const failed: TimelineEvent[] = [
+    { id: "f1", at: NOW - 9 * 60_000, kind: "station", label: "Build opened", state: "done" },
+    {
+      id: "f2",
+      at: NOW - 8 * 60_000,
+      kind: "tool",
+      label: "Ran the checks",
+      detail: "Twelve of 8,787 failed, all in meridian-ratchet.test.ts.",
+      durationMs: 34_000,
+      state: "failed",
+    },
+  ];
+
+  const held: TimelineEvent[] = [
+    { id: "h1", at: NOW - 86 * 60 * 60_000, kind: "station", label: "Discover opened", state: "done" },
+    {
+      id: "h2",
+      at: NOW - 86 * 60 * 60_000 + 30_000,
+      kind: "station",
+      label: "Grouping signals stopped: no source is connected",
+      detail: "Thirty-nine of 43 work items are standing here for the same reason.",
+      station: "Discover",
+      state: "held",
+    },
+  ];
+
+  const liveEvents: TimelineEvent[] = [
+    { id: "v1", at: liveStart, kind: "station", label: "Build opened", state: "done" },
+    {
+      id: "v2",
+      at: liveStart + 60_000,
+      kind: "tool",
+      label: "Running the test suite",
+      agentSlug: "builder",
+      state: "working",
+    },
+  ];
+
+  return (
+    <Stack>
+      <Case label="Nothing has run here yet">
+        <RunTimeline events={[]} />
+      </Case>
+      <Case label="One event">
+        <RunTimeline
+          events={[
+            { id: "one", at: NOW - 60_000, kind: "station", label: "Decide opened", state: "done" },
+          ]}
+        />
+      </Case>
+      <Case label="A long run, with a 28 minute wait in it">
+        <RunTimeline events={long} />
+      </Case>
+      <Case label="A run that failed">
+        <RunTimeline events={failed} />
+      </Case>
+      {/* No `now` here on purpose. A live tail on this one would tick a figure
+          measured off the fixed August fixture instant, and `useElapsed` has no
+          hours branch, so an 86-hour hold renders as "5160m 0.0s". The hold
+          itself is the fact this case is here to show. */}
+      <Case label="Held on a condition, and waiting on nobody">
+        <RunTimeline events={held} />
+      </Case>
+      <Case label="Live, still going">
+        <RunTimeline events={liveEvents} now={Date.now()} />
+      </Case>
+    </Stack>
   );
 }

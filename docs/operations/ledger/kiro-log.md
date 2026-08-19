@@ -89,3 +89,94 @@ Verified the token reaches the built stylesheet: `.output/public/assets/styles-*
 `--mrd-stop:oklch(68% .105 12)` and `--mrd-stop:oklch(48% .105 12)`. Ratchet total unchanged;
 the hex values in the comment are stripped by `stripCssComments` before counting, so they are
 not raw colour.
+
+---
+
+## K-04 · STARTED · 2026-08-19 22:43
+
+Skipping K-02 and K-03 rather than taking them: both depend on K-01, which is `BUILT` and not
+`VERIFIED`, and the rule is deps must be `VERIFIED`. They are waiting on Claude, not on me.
+K-04 has no dependencies and is the lowest-numbered item that does.
+
+---
+
+## K-04 · BUILT · 2026-08-19 22:48
+
+**Did.** Built `src/components/meridian/RunTimeline.tsx`, a 17-test suite at
+`src/components/meridian/__tests__/run-timeline.test.tsx`, and a six-case gallery section
+appended to `_authenticated.meridian.tsx`. Every row prints its own wall clock as a real `<time>`
+with an ISO `dateTime`, and any stretch longer than three minutes becomes its own row: dashed
+rail, exact duration from the existing `formatDuration`, and a word for what was being waited on
+taken from the state that was standing when the silence began. Live mode adds one tail row whose
+figure comes from `useElapsed`, and a test asserts there is no `progressbar`, no `progress`, no
+`aria-valuenow` and no `%` anywhere in the output.
+
+**Unsure.** Five, and the first is the design decision the item did not settle.
+
+1. **The axis is literal in its labels and ordinal in its space.** The item says "against a real
+   time axis", which can be read as proportional vertical space. I did not do that, and the
+   reasoning is in the file: a run with a 40-minute wait and 200 tool calls two seconds apart
+   would spend its whole height on the wait and compress the events into a few pixels, so it
+   fails the item's own "renders 200 events" requirement in order to draw a gap the reader can
+   simply be told about. **If proportional space is what was meant, this is the decision to
+   overturn**, and the honest middle would be a capped proportional segment, which I judged worse
+   than either end because it is proportional right up to the point where it silently is not.
+2. **`done` and `passed` are separate states, and `done` carries no colour.** I followed
+   `run-parts.tsx` (done neutral, only provable success green) rather than `TaskRows` (done
+   green). The two already disagree in this repo and I had to pick one. Forty green rows on an
+   ordinary run is the product asserting a success nobody checked, so I took run-parts. This
+   means `--mrd-pass` appears on roughly one row of a healthy run.
+3. **A silent machine is called "with nothing reported", not "stalled".** A 45-minute gap after a
+   `working` event might be a stalled agent or might be a long compile. The record knows only
+   that nothing was filed. Calling it stalled would report an outcome the timeline is not
+   entitled to, which is the same rule that keeps red off an intent. It reads weaker than
+   "stalled" and I think it is the only honest form. A test pins it.
+4. **`kind` and `state` both have a `gate` member.** Both are in the item's contract and they
+   mean different things (a gate happened; something is waiting on you), so a `gate` event in a
+   `gate` state renders the word twice in two places. It looks like a smell and I kept it,
+   because collapsing them would make `kind` unable to say "a person was asked" on a row whose
+   state has since moved to `done`.
+5. **Five kinds, no catch-all.** I drafted a sixth `note` kind and cut it, following ToolChips'
+   own stated principle that a fifth glyph nobody can name is noise. A caller with an event that
+   is none of station / tool / handoff / gate / person does not know what it is drawing. This may
+   turn out to be one kind short once K-15's real SSE frames arrive.
+
+**I could not look at it, and that is the one acceptance criterion I have not met.** `/meridian`
+sits behind `_authenticated` and redirected to `/login`; I hold no session and the demo logins are
+a metered shared resource I was not told to spend. So "rendered in the gallery in both grounds"
+is written and typechecked but unseen, and the greyscale claim rests on structure rather than on a
+screenshot: the silence is dashed where work is solid, and every state renders its meaning as a
+word beside the hue, both of which survive colour removal by construction. **A visual pass in both
+grounds is owed and it is Claude's.**
+
+**Noticed.** Five things, three of them duplication this repo already has a rule about.
+
+1. **The scroll-edge measurement is now the second copy in Meridian.** `SidebarNav` carries the
+   same fifteen lines inside its component body. I imported `edgeMask` because it is exported and
+   re-derived only the measurement, which cannot be extracted without editing `SidebarNav.tsx` —
+   not in K-04's `Owns`. **This wants a `use-scroll-edges.ts` hook** and it is exactly the shape
+   that produced seven copies of `initialsFrom`. Worth a queue item.
+2. **`formatDuration` lives in `src/components/studio/run-return.ts`**, so a Meridian primitive
+   now imports from a station folder. I did that deliberately rather than write an eighth
+   duration formatter (there are already five relative-time helpers: `run-state.ago`,
+   `product/format.relTime`, `today/when.ago`, `discover/format.relTimeCaps`, and this one). The
+   module is pure with zero imports so nothing heavy comes with it, but the direction is wrong
+   and `marks.tsx` records the rule for fixing it: a part moves into Meridian the moment a second
+   surface means the same thing by it.
+3. **`useElapsed` has no hours branch.** It formats `${m}m ${s}s` above 60 seconds and never
+   rolls over, so an 86-hour hold renders as "5160m 0.0s". That is why the gallery's held case
+   does not run live. It has not bitten yet because the only current caller is a loading state
+   measured in seconds, and it will bite the moment a real long-running hold gets a live tail.
+4. **`MarkState` cannot express a hold.** Its seven states spend two on a person (`gate`,
+   `waiting`) and have no amber at all, so Meridian's own mark vocabulary cannot draw the single
+   most common state in the workspace, the one `--mrd-hold` was admitted for. `run-parts.tsx`'s
+   `RunMarkState` can, and it is in a station folder. That is two vocabularies, neither complete,
+   and it is why K-04 has a third. **K-08 is already in `marks.tsx` and is the natural place to
+   fix it**, though its stated scope is per-mark state rather than a new state.
+5. **The item's premise checks out.** `grep -il timeline src/components/meridian` returned zero
+   before this change, and the audit register's line for it ("No run timeline") matches. Nothing
+   in the item was stale.
+
+**Gates.** tsc clean · 9,422 pass / 0 fail / 23 skip / 60 todo across 570 files · build ok. The
+new suite is 17 tests. Ratchet total unchanged: the component carries no retired token and no raw
+colour.
