@@ -21,6 +21,8 @@ Two agents build this repo at once and they have **different capabilities**, so 
 | Can run `bun test`, `tsc`, `build` | yes | yes |
 | Share of the work | **~70%** | ~30% |
 
+> **Corrected 2026-08-19: Kiro can write documentation and can search the web.** An earlier version of this file reserved both for Claude, which was wrong and cost the queue four research items it could have taken. What Kiro cannot reach is **the database, the MCP servers, and the live app** — nothing else.
+
 **Kiro builds blind.** That is not a limitation to work around, it is the sorting rule: **every item in this queue is one whose correctness can be established from the repo alone** — a component renders, a pure function returns the right value, a type checks, a test passes. Nothing here needs to know what is in a table.
 
 **Claude verifies and wires.** Migrations, production queries, runtime behaviour, and anything whose truth lives in the database stay with Claude, because this repo has already shipped nine features that passed every test and did nothing in production. A green suite is evidence the code does what the test says, and nothing more.
@@ -36,49 +38,28 @@ Two agents build this repo at once and they have **different capabilities**, so 
 3. **Set its status to `IN PROGRESS`** and commit that change on its own before you start.
 4. **Build only the files listed in `Owns`.** If the work genuinely needs a file outside that list, stop and add a line to §4 Blocked rather than editing it — a file outside `Owns` is owned by a Claude item and editing it will conflict.
 5. **Run the gates before you commit:** `bunx tsc --noEmit`, `bun test`, `bun run build`. All three must be clean. `bun test` includes the Meridian ratchet, which will fail the build if a new file carries a retired token or a raw colour.
-6. **Set status to `BUILT`** and append an entry to §3 Build log saying what you did, what you were unsure about, and anything you noticed that is not in the item.
-7. **Push:** `git push origin main`.
-8. **Never set `VERIFIED`.** That is Claude's to set, and it means "checked against production", which you cannot do.
+6. **Append a `BUILT` entry to [`ledger/kiro-log.md`](./ledger/kiro-log.md)** — what you did, what you were unsure about, what you noticed. **In the same commit as the code**, never separated, or the log describes work that is not there.
+7. **Push to `main`.**
+8. **Never write `VERIFIED`.** That is Claude's verb and it means "checked against production", which you cannot do. **You do not set status anywhere else either** — an item's state is derived from the latest log entry naming it, so there is no status field for the two of you to fight over.
 
 ### Claude
 
-1. Read §3 Build log for entries with no verdict.
-2. Verify against production and runtime, not against the test suite.
-3. Move `BUILT` → `VERIFIED` or `REJECTED`, with a reason on the same line.
-4. A `REJECTED` item goes back to `TODO` with a note saying what was wrong.
+1. Read [`ledger/kiro-log.md`](./ledger/kiro-log.md) for `BUILT` entries with no verdict.
+2. Verify against **production and the running app**, not against the diff or the suite.
+3. Append `VERIFIED` or `REJECTED` to [`ledger/claude-log.md`](./ledger/claude-log.md), saying **what was checked**, not that it looked right.
+4. A `REJECTED` item is picked up again by Kiro from the reason in the entry.
 
 ### How the two lanes meet, concretely
 
-**Two different things have been sharing the word "branch", and only one of them is refused.**
+**Kiro works on `main` directly.** Not a long-lived copy of it, and not a fork.
 
-| | Verdict | Why |
-| --- | --- | --- |
-| **A short-lived branch per item**, cut from `main`, merged within hours | **Yes, do this** | Normal git hygiene. `main` never sees a red tree, and each item is reviewable on its own |
-| **A long-lived copy of `main`** that both agents build on for weeks, merged or swapped in at the end | **No** | See below |
+> **Corrected 2026-08-19.** An earlier version of this file told Kiro to cut a `kiro/K-NN-slug` branch per item. That convention **does not exist on the remote** — it was written as though it did, which is exactly the kind of claim this repo has a rule against. Working on `main` is simpler, and it is what makes the work visible: **Lovable deploys only `main`**, so an item that has not landed there is an item nobody can look at.
 
-**Kiro should work on a sub-branch per item.** Point it at `kiro/K-NN-slug`, let it merge to `main` when its gates are green. That is not the thing that was ruled against.
+**What is still refused is a long-lived copy of `main`** that both agents build on for weeks and swap in at the end. **The code can be branched and the database cannot** — there is one Supabase instance and migrations applied through Lovable are live immediately, so such a branch either applies its migrations to the database `main` is running on, in which case `main` was never protected, or does not apply them, in which case it cannot run at all. Full reasoning: [`../design/agent-first-surface-brief.md`](../design/agent-first-surface-brief.md) §6.
 
-**What was ruled against is the long-lived copy.** That was proposed and ruled against on 2026-08-19, and the reason is not preference: **the code can be branched and the database cannot.** There is one Supabase instance and migrations applied through Lovable are live immediately, so a long-lived branch either applies its migrations to the database `main` is running on — in which case `main` was never protected — or does not apply them, in which case the branch cannot run. Lovable also deploys only from `main`, so a branch is a thing nobody can look at, and looking at it is a design law here. Full reasoning: [`../design/agent-first-surface-brief.md`](../design/agent-first-surface-brief.md) §6.
+**`main` is never retired, replaced, or force-pushed.** That orphaned 4,124 commits on 2026-07-27 and a `pre-push` hook blocks it now.
 
-**`main` is never retired, replaced, or force-pushed.** That operation orphaned 4,124 commits on 2026-07-27 and a `pre-push` hook blocks it now.
-
-**So the flow is:**
-
-```
-  Kiro  ──► short-lived branch ──► gates green ──► merge to main ──► Claude verifies
-            one item per branch     tsc/test/build    fast-forward      against production
-                                                                            │
-                                                          VERIFIED ◄────────┤
-                                                          REJECTED ◄────────┘
-                                                          (back to TODO with the reason)
-```
-
-1. **One branch per item**, named `kiro/K-NN-short-slug`, cut fresh from `main`. Short-lived means hours or a day, not a week — a branch that outlives the item it was cut for is how merge debt starts.
-2. **All three gates green before merge:** `bunx tsc --noEmit`, `bun test`, `bun run build`. This is Kiro's gate and it is not optional.
-3. **Merge to `main`** and delete the branch. Push with an explicit refspec.
-4. **Claude verifies from `main`**, against production and the running app — not against the diff.
-
-**Why merge to `main` rather than hold branches open:** Lovable deploys `main`, so an item that has not merged is an item nobody can look at, and half this queue is user-visible. Holding twenty branches open to "be safe" produces twenty untested things and one enormous merge.
+**Claude works in a separate worktree on its own lane**, pulls `main` to verify, and pushes its verdict. Different folders on disk is the one rule with no exception: two agents in one working tree race each other's writes and neither can tell.
 
 **Where the safety actually comes from, since it is not the branch:**
 
@@ -164,11 +145,13 @@ So you know what is covered and do not attempt it:
 
 **What you do not decide alone:** anything touching a migration, production data, or a claim about what is live. Those are not judgment calls, they are things the repo has already been burned by guessing at. Nine features once shipped that passed every test and did nothing in production, and none was found by reading code.
 
-### Status values
+### Status is derived, not stored
 
-`TODO` → `IN PROGRESS` → `BUILT` → `VERIFIED` | `REJECTED`
+`TODO` → `STARTED` → `BUILT` → `VERIFIED` | `REJECTED`
 
-Kiro owns the first three transitions. Claude owns the last. Neither writes the other's.
+**There is no status field.** An item's state is **the most recent log entry naming it**, across both ledgers. Kiro may write `STARTED` `BUILT` `BLOCKED` `QUESTION`; Claude may write `VERIFIED` `REJECTED` `RULED` `LANDED`. Neither writes the other's verbs.
+
+This exists because both agents write constantly and **a file with one writer cannot conflict.** Protocol: [`ledger/README.md`](./ledger/README.md).
 
 ### The rules that fail a build here
 
@@ -197,7 +180,7 @@ These are not style preferences; `bun test` enforces them.
 
 ## 2. The queue
 
-**75 items. Dependencies are item numbers.** `Owns` is exhaustive — those are the only files to touch.
+**79 items. Dependencies are item numbers.** `Owns` is exhaustive — those are the only files to touch.
 
 ---
 
@@ -1792,22 +1775,80 @@ It also matters for governance rather than only for delight: promotion is the mo
 
 ---
 
-## 3. Build log
+### Group L — The reference research nobody has done
 
-Kiro appends one entry per item on completion. Claude appends a verdict under it.
+**These are Kiro's because Kiro can search the web**, and they were wrongly reserved for Claude until 2026-08-19.
 
-> _Format:_
-> `### K-NN · <title> · BUILT <date>`
-> **Did.** What you built, in two or three sentences.
-> **Unsure.** Anything you guessed at, or a decision that could reasonably have gone another way.
-> **Noticed.** Anything true that is not in the item — a defect nearby, a stale comment, a surprise.
-> **Gates.** tsc / test / build results.
->
-> _Claude replies:_ `**VERDICT: VERIFIED** <what was checked in production>` or `**VERDICT: REJECTED** <what was wrong>`
+The standing rule since 2026-08-01: **research the best proven product in that category and lift its information model and verbs outright, even close to literally.** Name the reference before building; originality is not the goal. Every pass is appended to [`../design/REFERENCE-PATTERNS.md`](../design/REFERENCE-PATTERNS.md) **in the same session**, so it is never paid for twice.
 
-_(empty)_
+`REFERENCE-PATTERNS.md` records the state: Discover, Design and Build researched 2026-08-01, Decide partially. **Plan, Ship and Learn have never been done**, and **Brain is not in that table at all.** Four surfaces with no reference floor, which is why the design brief refuses to let them be invented.
+
+> **One thing to fix while you are in that file:** its header instructs the reader to express findings *"in our own `--sp-*` primitives"*. `--sp-*` is **retired vocabulary** and this is a live document teaching it. Correct it to Meridian in whichever of these items lands first, and say in your log that you did.
+
+**Each item follows the same shape.** Read an existing section of `REFERENCE-PATTERNS.md` first — Discover or Build — and match its depth and structure. What is wanted is **the information model and the verbs**, with URLs, not a visual description. Never copy visual style.
 
 ---
+
+**K-76 · Research the Plan station**
+`STATUS: TODO` · deps: none · size: M
+
+**What.** Research and append a Plan section to `REFERENCE-PATTERNS.md`. Reference class already named in that file: **Linear cycles, Productboard roadmap**. Add whatever else genuinely earns a place.
+
+**Why.** Plan is where a decision becomes a spec somebody could build from, and it is the station whose output every later station consumes. It has no reference floor, so the surface has been designed from first principles by whoever touched it last. The specific questions it must answer: how is scope shown without becoming a Gantt chart, how does a spec show its citations, how is sequencing expressed, and what does a spec look like while an agent is still writing it.
+
+**Acceptance.** URLs for every claim · information model and verbs, not visuals · matches the depth of the existing Discover section · appended, never a new file.
+
+**Owns.** `docs/design/REFERENCE-PATTERNS.md`
+
+---
+
+**K-77 · Research the Ship station**
+`STATUS: TODO` · deps: K-76 · size: M
+
+**What.** Research and append a Ship section. Named class: **changelog and release-notes tooling**. Worth adding: Vercel and Netlify deploy surfaces, LaunchDarkly and Statsig rollout controls, GitHub Releases.
+
+**Why.** Ship holds the one call that cannot be undone, and `release.publish` is pinned to review in three places and never graduates. So this surface has to make an irreversible decision feel safe rather than fast, which is a genuinely different design problem from the other six. Specific questions: how is a release's blast radius shown before the click, how is a flag-gated rollout expressed, and what does the surface say when a deploy is green but the flag is still off.
+
+**Acceptance.** As K-76.
+
+**Owns.** `docs/design/REFERENCE-PATTERNS.md`
+
+---
+
+**K-78 · Research the Learn station**
+`STATUS: TODO` · deps: K-77 · size: M
+
+**What.** Research and append a Learn section. Named class: **Amplitude and experiment readouts**. Worth adding: Statsig and Eppo results surfaces, and how forecasting tools show a resolved prediction against its claim.
+
+**Why.** **This is the station the whole company rests on** and it is the least researched. A readout has to say what was believed, what happened, and whether the two agree — without letting a person retro-fit the belief, which is the failure mode every experiment tool has fought. Specific questions: how is a forecast shown against its outcome, how is *not yet conclusive* expressed without reading as failure, and how does a readout show what it changed downstream.
+
+**Acceptance.** As K-76, plus: **it must cover how a settled result is shown to change something else**, because that is the loop closing and it is the part generic analytics tools do not have.
+
+**Owns.** `docs/design/REFERENCE-PATTERNS.md`
+
+---
+
+**K-79 · Research Brain, which is in no reference table at all**
+`STATUS: TODO` · deps: K-78 · size: M
+
+**What.** Add a **Brain** row to the reference-class table and research it. Candidate class: **Notion AI and its knowledge surfaces, Glean, Guru, Obsidian's graph, and how coding agents surface what they retrieved** (Cursor's context pills, Claude Code's file reads).
+
+**Why.** Brain is the layer the strategy calls the only defensible one, and it is the only major surface with **no reference class named anywhere** — the table in `REFERENCE-PATTERNS.md` has seven station rows and does not mention it. Specific questions: how does a surface show *what the system knows* without becoming a search box, how is a retrieved memory shown at the point it influenced something, and how does a system show that it learned something without claiming more than it did.
+
+**Note the constraint before you research:** the vocabulary canon **bans "remembers", "stores" and "logs"** as verbs of the brain, because they claim less than the product delivers. So a reference that models itself as storage is a counter-example rather than a template.
+
+**Acceptance.** As K-76, plus a **Brain** row added to the reference-class table.
+
+**Owns.** `docs/design/REFERENCE-PATTERNS.md`
+
+---
+
+## 3. Build log
+
+**Moved to [`ledger/`](./ledger/README.md) on 2026-08-19.** Both agents were writing this section, which guarantees conflicts. Each now appends to its own single-writer file:
+
+- **[`ledger/kiro-log.md`](./ledger/kiro-log.md)** — Kiro only
+- **[`ledger/claude-log.md`](./ledger/claude-log.md)** — Claude only
 
 ## 4. Blocked
 

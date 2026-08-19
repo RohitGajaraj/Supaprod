@@ -85,7 +85,9 @@ Genuinely unresolved. Answer with a named reference, per the standing rule that 
 | 4 | How does a surface show agent activity without lying? | 64 files use a loading state; the ones where no agent is running must not show it |
 | 5 | What does an illustration look like across the set? | §2a of the contract: it draws the product's own mechanics, never a mascot |
 
-**Four stations still have no reference research at all** — Discover's signal stream, Design's fidelity ladder, Ship's release surface, and Brain. `REFERENCE-PATTERNS.md` records this gap. **Do not invent them; research them first.**
+**Three stations have no reference research at all — Plan, Ship and Learn** — plus **Brain**, which is not in that table and has never had one named. `REFERENCE-PATTERNS.md` records the gap: Discover, Design and Build were researched on 2026-08-01 and Decide partially. **Do not invent the missing four; research them first.**
+
+> _Corrected 2026-08-19: an earlier version of this line named Discover and Design as unresearched. They are done. The open ones are Plan, Ship, Learn and Brain._
 
 ---
 
