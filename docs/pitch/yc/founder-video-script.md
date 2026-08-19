@@ -76,6 +76,53 @@ No employer, no title, no degree, no mission name, no metric, no product-usage n
 
 ---
 
+## The four earlier takes from 2026-08-19, kept so the progression is legible
+
+**Nothing here is deleted. Each one was rejected for a named reason, and the reasons are the doctrine.**
+
+### V1 — 159 words. Rejected: the forecast beat was a definition, not a picture.
+
+```
+Hi YC, I'm Rohit. The form says Cadence. It's Supaprod now.
+So here's the thing that broke this year. Agents got good. Building got cheap. A team can ship five times what it used to. And nobody got any better at knowing what was worth building in the first place.
+That gap used to be survivable, because you shipped slowly enough to notice you were wrong. Now you can ship the wrong thing all quarter, at speed, and find out in the review. And when someone asks why you decided it, nobody can reconstruct it, because the reasoning was never anywhere.
+So that's what Supaprod is. Agents read everything a team already has, tell them what to build, argue down the weak bets, build it, ship it, then grade what happened against what was promised.
+And the part I care most about: the moment a team commits, what they expect goes down with it and it locks. That's the one thing you cannot go back and reconstruct later. Everything else about a decision survives somewhere. What you believed before you found out doesn't, unless something caught it.
+That's why I've resigned and gone all in on this. Building got cheap. Deciding didn't. I'd rather find out than wonder.
+```
+
+**Why it went.** *"The part I care most about"* shrinks a founder to caring about one feature. And the closing beat asked a listener to hold two abstractions at once, in the last fifteen seconds, at speaking pace, with no image to hang them on. **The hardest idea in the pitch, delivered fastest.** Also carried *"ship five times what it used to"*, an unsourceable number a partner would push on first.
+
+### V2 — 168 words. Rejected: the scene was about the missing forecast, which is layer 03 wearing a problem statement.
+
+```
+Hi YC, I'm Rohit. The form says Cadence. It's Supaprod now.
+Close to a decade in product, and the worst meeting is always the same one. Someone asks why we built something six months back. I can find the Slack thread, the ticket, the pull request. What I can't find is what we thought would happen. Nobody writes that down. So nobody can tell if it was a good call or a lucky one.
+That was survivable when building was the bottleneck. Agents removed that bottleneck. They didn't remove the other one. Building got cheap. Deciding didn't.
+So Supaprod decides. It reads everything a team already has, tells them what to build next with the evidence, then argues against its own answer and kills the weak bets before anyone spends a sprint on them.
+And when they commit, it writes down what they expect, before they find out. Then it comes back when the results land and says whether they were right.
+I quit my job for this. I'd rather find out than wonder.
+```
+
+**Why it went.** Opening on a scene was the right move and it survives into V5. But the scene was built on the missing FORECAST, and **the thing a team actually loses is the reasoning behind the call.** V2 also never said the product builds and ships, so it read as an advisor rather than an operator.
+
+### V3 — 178 words. Rejected: the resignation was biography stapled to the end.
+
+Introduced the numbered spine, which survives into V5: *"So Supaprod does three things. One… Two… Three…"* **That was the fix for the layer problem** — a layer cannot be quietly dropped when the listener is counting. Layer 02 finally said *"Discover, decide, spec, design, build, ship."*
+
+**Why it went.** It closed on *"That's why I've resigned"*, which arrives as an announcement rather than a consequence. Founder ruling: put the quit where it is caused.
+
+### V4 — 176 words. Rejected: layer 3 scored and sorted but did not learn or guide, and the closing line had no object.
+
+Moved the resignation to directly after *"Nobody was building for that"* — problem, response, cost. **That is a story; the old order was a list.** Also replaced the vague *"deciding"* with *"knowing what to build"*, which plants layer 01 inside the problem statement.
+
+**Why it went.** Two faults the founder caught. Layer 3 said it *grades* and *re-ranks*, which is scoring and sorting, not **learning and guiding**. And *"I'd rather find out than wonder"* pointed at nothing: find out **what**? A poster line, not a founder line.
+
+> **An accuracy fix caught between V3 and V4, worth keeping:** a draft read *"So I quit my job and built it"*, which reverses what happened. He started building and quit eleven weeks in. *"So I did. And I've quit my job to finish it"* is the true sequence, and it is the stronger line anyway, because it says he was building before he had permission to.
+
+---
+
+
 # The founder video
 
 > _Living file, ordered newest first._

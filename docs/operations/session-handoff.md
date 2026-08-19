@@ -1,3 +1,61 @@
+# ✅ SESSION CLOSED 2026-08-19 — YC update filed and corrected, a16z next, video to record
+
+**Everything is on `origin/main`.** `pitch:check` clean, `docs:check` clean of hard rot.
+**This file is APPEND ONLY and that is now enforced** (see below). Prepend your section, never replace.
+
+## What the founder does next, in order
+
+1. **Record the YC founder video tonight.** Script: [`../pitch/yc/founder-video-script.md`](../pitch/yc/founder-video-script.md), **V5 at the top**. 185 words, ~1:12, cut lines marked. Six beats to learn, not a script to read. Read-along artifact: <https://claude.ai/code/artifact/37081a44-2916-44cc-852e-a0a2fb951f30>
+2. **Resubmit the YC update.** Two fields only: Progress Update's *how far along* and *how long*. Paste text is in `../pitch/yc/APPLICATION-FINAL.md` §A. **Do not open the Fundraising card** - one radio, already No, and an empty update is a small negative.
+3. **a16z speedrun: DO NOT APPLY YET.** Reasoning below.
+
+## a16z speedrun, researched from their own pages 2026-08-19
+
+| Fact | Source |
+| --- | --- |
+| **No video required upfront.** Form only; a video pitch or a 15-minute interview is requested only if the application advances | speedrun.a16z.com/faq |
+| Application gate is **email + reCAPTCHA**, questions sit behind it. **An agent cannot pass the reCAPTCHA** - the founder opens it and pastes the question set | apply page, read 2026-08-19 |
+| Next cohort **SR008, early 2027**. **Priority window 12 Oct to 1 Nov**; year-round otherwise | apply page |
+| Terms: **$500K for 10%** on a SAFE plus $500K in the next round within 18 months, $10M+ partner credits | FAQ |
+
+**RECOMMENDATION: apply inside the priority window, not now.** There is zero deadline pressure,
+the terms are the most dilutive of the three programmes in flight, and the seven weeks buys the
+one thing five independent readers said would change their score. Speedrun also skews games and
+consumer AI, so the positioning axis needs real work rather than a port of the YC answers.
+
+## The finding that should drive the next seven weeks
+
+**Five adversarial readers, median 5-6/10, all naming the same defect unprompted: no human outside
+the founder appears anywhere in the application.** Full verdicts and the answer to each are in
+[`../pitch/founder-answer-playbook.md`](../pitch/founder-answer-playbook.md).
+**`../pitch/design-partner-kit.md` holds 25 hand-picked, live-verified practitioners, unsent since
+2026-07-10.** That send is the highest-value action available.
+
+## Two gates added today, both PROVEN to fire
+
+Rules that live only in prose rot. Both of these existed in CLAUDE.md and in `docs/pitch/README.md`
+and were followed by nobody, because nothing checked.
+
+- **`check_playbook_freshness`** - the playbook must be stamped no older than the newest filing.
+  It had gone **15 days and three filings stale**. The bank had a checker; the playbook had prose.
+- **`check_handoff_is_append_only`** - reads the committed version of THIS FILE from git and fails
+  if the previous top heading has vanished. **Answers the question directly: before today, a lane
+  writing this file WOULD have erased everything, and it has happened.** Now it cannot.
+
+Both were verified by deliberately breaking them and confirming the failure message, then restoring.
+
+## Live state of the demo workspace, with the query
+
+```sql
+select email, last_sign_in_at from auth.users where email='explore@supaprod.ai';
+```
+`last_sign_in_at` = **2026-08-13 08:12 UTC**, which matches our own rewrite session that day, so
+there is no evidence YC has ever opened the product. Queue **is** armed: **12 pending approvals**,
+19 decisions, 6 missions. **But `decisions_with_forecast` = 0** - the claim the application leads
+with is invisible to anyone who logs in. **Seed that before a partner opens it.**
+
+---
+
 # 🟡 YC FALL 2026 UPDATE, 2026-08-19 — filed once, corrected, ready to resubmit
 
 **Uncommitted in the working tree.** `pitch:check` clean, `docs:check` clean of hard rot.

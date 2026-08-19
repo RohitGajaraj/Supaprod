@@ -40,6 +40,12 @@ ROOT = Path(
 APPS = ROOT / "docs" / "pitch" / "applications"
 YC = ROOT / "docs" / "pitch" / "yc"
 BANK = APPS / "answer-bank.md"
+# Added 2026-08-19. The playbook carried the SAME "update after every application"
+# rule as the answer bank, in CLAUDE.md and in docs/pitch/README.md, and went 15
+# days and three filings stale anyway. The difference was never discipline: the
+# bank had a checker and the playbook had prose. Rules without gates rot.
+PLAYBOOK = ROOT / "docs" / "pitch" / "founder-answer-playbook.md"
+HANDOFF = ROOT / "docs" / "operations" / "session-handoff.md"
 BASELINE = APPS / "baseline.yml"
 
 FAIL: list[str] = []
@@ -188,6 +194,8 @@ def newest_filing() -> tuple[date | None, str]:
 
 
 def check_stamp() -> None:
+    check_playbook_freshness()
+    check_handoff_is_append_only()
     if not BANK.exists():
         FAIL.append(f"answer-bank.md is missing at {BANK}")
         return
@@ -252,6 +260,70 @@ def check_numbers() -> None:
                             f"{f.name} records {n} migrations, live is {live}. Re-derive."
                         )
                     break
+
+
+
+def check_playbook_freshness() -> None:
+    """The playbook must be updated after every application, same as the bank.
+
+    WHY THIS EXISTS: on 2026-08-19 the playbook's stamp read 2026-08-04 while EF,
+    Hub71 and a YC update had all been filed in between. The founder caught it and
+    asked the right question: why did it go stale? Because nothing checked. The
+    rule was written in two places and enforced in none.
+    """
+    if not PLAYBOOK.exists():
+        FAIL.append(f"founder-answer-playbook.md is missing at {PLAYBOOK}")
+        return
+    text = PLAYBOOK.read_text(encoding="utf-8", errors="replace")
+    m = re.search(r"Last updated: (20\d{2}-\d{2}-\d{2})", text)
+    if not m:
+        FAIL.append(
+            "founder-answer-playbook.md has no 'Last updated: YYYY-MM-DD' stamp. "
+            "It is the file that compounds across programmes; undated, nobody can "
+            "tell whether it reflects the last filing."
+        )
+        return
+    stamped = datetime.strptime(m.group(1), "%Y-%m-%d").date()
+    newest, who = newest_filing()
+    if newest and stamped < newest:
+        FAIL.append(
+            f"founder-answer-playbook.md is stamped {stamped} but the newest filing "
+            f"is {who} ({newest}). Every application and every interview updates the "
+            f"playbook IN THE SAME SESSION: a pushback you could not answer, a "
+            f"rejection reason, a changed number. A learning that does not reach it "
+            f"does not travel to the next programme."
+        )
+
+
+def check_handoff_is_append_only() -> None:
+    """session-handoff.md is written by every lane, so it is APPEND ONLY.
+
+    WHY THIS EXISTS: three sessions once closed within ten minutes and each
+    overwrote the others. A handoff that replaces its predecessor destroys the
+    context the next session needs, and the loss is invisible because the file
+    still looks complete.
+    """
+    if not HANDOFF.exists():
+        return
+    try:
+        prev = subprocess.run(
+            ["git", "show", "HEAD:docs/operations/session-handoff.md"],
+            capture_output=True, text=True, cwd=ROOT,
+        ).stdout
+    except Exception:
+        return
+    if not prev.strip():
+        return
+    prev_heads = [ln for ln in prev.split("\n") if ln.startswith("# ")]
+    if not prev_heads:
+        return
+    now = HANDOFF.read_text(encoding="utf-8", errors="replace")
+    if prev_heads[0] not in now:
+        FAIL.append(
+            "session-handoff.md REPLACED the previous handoff instead of prepending "
+            f"to it. The heading {prev_heads[0][:60]!r} is gone. Every lane writes "
+            "this file; append a new section at the top and leave what was there."
+        )
 
 
 def check_paste_hygiene() -> None:
