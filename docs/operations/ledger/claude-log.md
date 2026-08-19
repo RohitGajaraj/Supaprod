@@ -1238,3 +1238,48 @@ files this touched**.
 **Still not done, so criterion 10 is not yet met.** Nothing polls the row, so a
 stopped run is marked and keeps working until it ends on its own. The loop-side
 abort and the control are the remaining two thirds.
+
+## Claude lane · LANDED · 2026-08-20 03:05
+
+**A stopped run now stops. The loop reads the row at each step head and abandons
+its remaining work.** That is the second of the stop's three parts; the writer
+landed at 02:50 and the control is Kiro's.
+
+**Placed before the checkpoint, deliberately.** Checkpointing a step we are about
+to abandon persists work nobody will use and leaves a resume pointing at it. The
+steer read is skipped for the same reason: consuming a steer we will never act on
+loses it, and that file already records losing steers on eviction as an audit
+finding.
+
+**Best effort, and the direction of that choice is the interesting part.** A
+failed read logs and carries on rather than stopping the run. **The cost of
+missing a stop is one more step. The cost of a transient database blip killing
+every run in flight is every run in flight.** So the failure mode points at
+continuing, which is the same reasoning the steer read beside it already uses.
+
+**It does not refund, and that is a correctness point rather than an omission.**
+`stopRun` already handed the draw back. The halt path a few lines below *does*
+refund, because nothing else did for it. Refunding twice would be a real defect,
+so this returns without touching credits.
+
+**It does not write a status either.** Whoever stopped the run already said so and
+theirs is the answer that stands. `finalize`'s precondition would refuse the
+overwrite anyway, but returning here means we never ask.
+
+**Reuses the existing `halted` channel** with `kind: "stopped"` rather than adding
+a field, so no type changes and no caller changes. A stop and a halt are the same
+shape to a caller: the run ended without delivering.
+
+**The cost, stated plainly.** One indexed primary-key read per step, on every
+run, including the overwhelming majority nobody will ever stop. Against a step
+that makes a model call costing seconds and cents, that is negligible, and there
+is no cheaper channel: the steer read beside it queries a different table, so
+there is nothing to fold into.
+
+**Gates:** tsc clean, 9,798 pass / 0 fail, build ok.
+
+**Where criterion 10 now stands.** "Runs stopped by a user, ever: 0 (impossible)
+-> possible, and used." It is now **possible**: a stop can be written, it is
+honoured within one step, and the money comes back. It is not yet **used**,
+because there is no control to press. That is the last third and it is a
+component, so it is Kiro's rather than mine.

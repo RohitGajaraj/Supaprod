@@ -18,7 +18,7 @@ import {
 import { refundAbandonedRunCredits } from "@/lib/credits.functions";
 // K-12's canonical vocabulary, and this is its first consumer. It imports
 // nothing itself, so there is no cycle to create by reading it here.
-import { terminalStatusFilter } from "@/lib/run-status";
+import { isStoppable, terminalStatusFilter } from "@/lib/run-status";
 import { TOOL_REGISTRY, describeToolsForPrompt, type ToolCtx } from "./tools/registry.server";
 import { resolveMissionSpendCap } from "./mission-caps.server";
 import { resolveToolAccess } from "@/lib/ai/tools/defaults";
@@ -1079,6 +1079,60 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
   const keyResolutionCache: KeyResolutionCache = {};
 
   for (let i = s.startStep; i < maxSteps; i++) {
+    /*
+     * ── DID SOMEBODY STOP THIS RUN ────────────────────────────────────────
+     *
+     * `stopRun` (`agent-runs.functions.ts`) writes `cancelled` to the row. It
+     * cannot reach into this loop to abort it: the loop is one worker
+     * invocation and the stop request is another, so there is no shared memory
+     * between them and an `AbortController` handed across is unreachable by
+     * definition. **The row is the channel**, and this is the read.
+     *
+     * BEFORE THE CHECKPOINT ON PURPOSE. Checkpointing a step we are about to
+     * abandon persists work nobody will use and leaves a resume pointing at it.
+     * The steer read below is also skipped, for the same reason: consuming a
+     * steer we will never act on loses it.
+     *
+     * BEST EFFORT, AND THAT DIRECTION IS DELIBERATE. A failed read logs and
+     * carries on rather than stopping the run. The cost of missing a stop is
+     * one more step; the cost of a transient database blip killing healthy runs
+     * is every run in flight. Same reasoning the steer read beside it uses.
+     *
+     * NO REFUND HERE. `stopRun` already handed the draw back, and the halt path
+     * below refunds because nothing else did. Refunding twice would be a real
+     * defect, so this returns without touching credits.
+     *
+     * NO STATUS WRITE EITHER. Whoever stopped this run already said so, and
+     * theirs is the answer that stands. `finalize`'s precondition would refuse
+     * to overwrite it anyway, but returning here means we never ask.
+     */
+    if (runId) {
+      let endedAs: string | null = null;
+      try {
+        const { data: live } = await supabase
+          .from("agent_runs")
+          .select("status")
+          .eq("id", runId)
+          .maybeSingle();
+        const liveStatus = (live?.status as string | null) ?? null;
+        if (liveStatus && !isStoppable(liveStatus)) endedAs = liveStatus;
+      } catch (e) {
+        console.error("stop check failed, continuing:", e);
+      }
+      if (endedAs) {
+        console.warn(`[loop] run ${runId} was ${endedAs} at step ${i}; abandoning remaining work.`);
+        return {
+          trace_id: traceId,
+          agent_slug: agent.slug,
+          steps,
+          final: `Stopped at step ${i}. Someone ended this run while it was working, so the rest was not done.`,
+          approvals_queued: approvalsQueued,
+          run_id: runId,
+          halted: { kind: "stopped", reason: `run was marked ${endedAs} by another actor` },
+        };
+      }
+    }
+
     // F-STUDIO: mid-session operator steering. Unconsumed steer messages on
     // the mission are appended as operator guidance before this step's model
     // call (so they land inside the checkpoint), and marked consumed only
