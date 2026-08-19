@@ -1663,3 +1663,105 @@ per phase most work passes through: something to notice it, something to rank it
 > `no-specialists` is the reachable one (disable every agent but the orchestrator). Also confirm that
 > a forced "do" on an account with no conductor row now seeds one and dispatches, which is the case
 > the item says returns prose today.
+
+---
+
+## K-85 · BUILT · 2026-08-20 04:20
+
+**Did.** The Flowchart's cards drag and the connectors follow, ported off the reference's own source.
+The dotted canvas takes a faint violet cast through a new `--mrd-map` token, argued and measured in
+both grounds. The 27 existing tests pass unmodified; 20 new ones join them.
+
+**The founder was right and the scope I wrote was wrong.** K-80's header argued the dragging was
+deliberately not ported, on §6.3's "a canvas for watching, not authoring", and that a node a reader
+can shove around invites them to think the layout means something. The better reading is his: a graph
+you cannot rearrange is a picture. Sixteen connectors crossing each other is precisely the case where
+the layout derived from the graph is the layout nobody can read. The half of my argument that survives
+is AUTHORING: nothing creates a node, draws an edge or deletes anything. Both the file header and the
+gallery panel now say so in place, so the next reader does not find a component arguing against itself.
+
+**Ported from the source, and every mechanic is load-bearing.** Fetched the page again and read the
+real TypeScript out of it rather than watching the rendered version:
+
+| mechanic | why it cannot be dropped |
+| --- | --- |
+| `setPointerCapture` | without it a hand that outruns the card leaves its box and the card stops dead under a finger still moving |
+| 3px threshold | a press must stay a press; a mouse button moves two pixels under a real hand |
+| both axes clamped to the CANVAS, not the row | the entire point is moving a card off its row; `DRAG_INSET` 8 keeps an edge out from under the rounded corner |
+| one-tick `setTimeout` on release | `pointerup` fires before `click`, so clearing the drag immediately lets every drag end in a selection toggle |
+
+**One deliberate divergence.** The reference sets a node's `zIndex` by reading its drag ref during
+render. It works there because a state update follows in the same tick, but a ref read during render is
+a value React is entitled to have changed since. Held in state here.
+
+**One addition the reference does not have.** `pointercancel` is bound alongside `pointerup`. A browser
+cancels a pointer when it claims the gesture (a system swipe, a context menu, a lost capture), and
+without it the card keeps `cursor-grabbing` and its raised stacking until the next press. One of the
+sizes nobody draws; a test covers it.
+
+**The violet ground needed a new token, and `--mrd-viz-*` could not do it.** Those four are series
+colours and none is violet: orange, blue, green, red. A fifth added for this would be a series nothing
+plots. So `--mrd-map`, named for the surface rather than the colour, because a map is not a step on the
+raised ladder: `bg / sink / sheet / lift / float / solid` all answer "how raised is this", and this is
+the one surface in the system where a thing's POSITION is information and the reader can change it.
+The direction already calls it the Run Map (§6.3) and that is the word.
+
+**Hue 297, taken off the reference's own constant.** Its node-kind purple is `#9a5cff`, which measures
+`oklch(0.627 0.230 297)`. Measured rather than guessed, and it lands 3 degrees from `--mrd-code-kw` at
+300, the one violet Meridian already owns, so the family stays coherent. Explicitly not `--mrd-you`:
+that is the orchid at 315 and it means a person is required, and a background wearing a status word is
+the failure the colour law exists to stop.
+
+**The lightness does not move, and that is the whole safety.** Each ground's map sits at exactly its
+own `sink` lightness (0.125 dark, 0.932 paper) and adds only chroma, so the dot pattern's contrast
+against it is a function of lightness alone. Measured after: **4.985 on dark** (4.977 before, a hair
+better) and **1.313 on paper**, unchanged. The founder's "the dots stay visible on paper" is met by
+construction. For scale, the reference's own light-ground dot measures 1.243 against its page, so ours
+is the stronger of the two. A test asserts the equal lightness rather than restating the numbers, and
+planting a 0.94 there fails it.
+
+**I got the chroma wrong first, by trusting arithmetic over looking.** The first version solved each
+ground's chroma so the map sat the same OKLab distance from its own neutral sink: dE 0.022 both sides,
+0.018 dark and 0.012 paper. The reasoning was sound. Rendered side by side it was **one idea expressed
+two ways**: the dark cast was almost invisible and the paper one read as a lavender PANEL. Apparent
+colourfulness collapses as lightness falls, so equal distance is not equal cast.
+
+Corrected by rendering a four-by-four grid of candidates in both grounds and matching by eye:
+**0.026 on dark, 0.007 on paper, a ratio of 3.7 to 1.** That ratio is the measurement, and it is
+pinned by a test with the failed arithmetic recorded beside it. Every status token still carries at
+least 3.5x the chroma of this wash (the weakest is 0.105, so a quarter of it on dark and a fifteenth
+on paper), which is what keeps a ground from reading as a state.
+
+**A defect the cast would have introduced.** The edge labels plate themselves with a stroke in the
+ground colour so a word crossing its own curve stays readable, and that stroke was `--mrd-sink`. Those
+were the same colour until the ground took its cast; one step off, and every label wears a grey halo.
+Moved to `--mrd-map`, with a test.
+
+**Pushed back.** Two.
+1. **No visible grab handle, and `cursor-grab` is the whole affordance.** The reference puts no grip on
+   a step card either: its six-dot handle lives inside the condition rows, which this port has no
+   equivalent of. Adding one to every node would change a layout that has already been measured and
+   verified.
+2. **Positions are not persisted, and I did not invent somewhere to keep them.** Nothing writes an
+   offset anywhere, so a reload returns the graph's own layout. Whether a person's untangling should
+   outlive the page is a product decision nobody has taken, and inventing storage for it would be a
+   feature nobody asked for on the item that was asked for.
+
+**Unsure.** One. **`prefers-reduced-motion` is satisfied by there being nothing to suppress**, which is
+a thinner answer than the acceptance criterion implies. Position is set directly with no transition on
+`left` or `top`, so a dragged card sits under the pointer in both motion settings. That is deliberate
+rather than an omission: the reduced-motion block in `meridian.css` stills keyframe ANIMATIONS and does
+not touch transitions, so a transition put there would have run for everyone. A test pins the absence.
+
+**Noticed.** One. **The token has one caller**, which sits against the 2026-08-15 ruling that a token
+earns its place on the second. The alternative was a raw colour in the component, which the ratchet
+forbids outright, and the item explicitly authorises arguing a canvas token. The second caller is the
+Run Map surface §6.3 already specifies and this component exists to draw.
+
+**Gates.** tsc clean · 9,723 pass / 0 fail / 23 skip across 581 files · build ok · ratchet unchanged.
+Looked at in both grounds before and after, three times, which is how the chroma error was caught.
+
+> **Claude does after:** open `/meridian` and drag a card in both grounds, on a trackpad and on a
+> touch screen. The two things a test cannot see are whether pointer capture really holds when the
+> pointer outruns the card, and whether the violet reads as faint on a real display rather than in a
+> screenshot.

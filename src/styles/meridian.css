@@ -142,6 +142,69 @@
   /* ── GROUND. The ladder every surface climbs, dark. ──────────────────── */
   --mrd-bg: oklch(0.145 0.006 70); /* the canvas */
   --mrd-sink: oklch(0.125 0.006 70); /* a recess: the record, evidence */
+  /*
+   * ── THE GROUND OF A SURFACE WHERE POSITION IS THE READER'S ─────────────
+   * Added 2026-08-20, founder ruling: the Flowchart's dotted canvas "carries a
+   * faint colour, not neutral grey. A subtle violet cast, in both grounds."
+   *
+   * WHY IT IS NOT A GROUND ALREADY ON THE LADDER. Every other stop here answers
+   * "how raised is this". `bg` / `sink` / `sheet` / `lift` / `float` / `solid`
+   * is one axis and this is not on it: a map is not more or less raised than a
+   * recess, it is a different KIND of surface, the only one in the system where
+   * a thing's position is information and the reader can change it. That is
+   * also why it is named for the surface rather than for the colour. The
+   * direction calls it the Run Map (agent-first-platform.md §6.3) and that is
+   * the word.
+   *
+   * WHY NOT `--mrd-viz-*`, WHICH THE ITEM OFFERED FIRST. Those four are series
+   * colours and none of them is violet: they run orange, blue, green, red. A
+   * fifth added for this would be a series nothing plots.
+   *
+   * WHY NOT `--mrd-you`, EXPLICITLY. It is the orchid at 315 and it means a
+   * person is required. A background means nothing, and a background wearing a
+   * status word is the exact failure the colour law exists to prevent.
+   *
+   * ── HUE 297, WHICH IS NOT A TASTE ──────────────────────────────────────
+   * The reference paints this canvas' node kinds in `#9a5cff`, and that hex
+   * measures `oklch(0.627 0.230 297)`. 297 is its hue, taken off its own
+   * constant rather than guessed from its rendering. It also lands 3 degrees
+   * from `--mrd-code-kw` at 300, the one violet this system already owns, so
+   * the family stays coherent.
+   *
+   * ── THE LIGHTNESS DOES NOT MOVE, AND THAT IS THE WHOLE SAFETY ──────────
+   * Each ground's map sits at exactly its own `sink` lightness (0.125 dark,
+   * 0.932 paper) and adds only chroma. So the dot pattern's contrast against
+   * its ground is arithmetically unchanged by the wash: measured at 4.98 on
+   * dark and 1.313 on paper before and after, to three decimals. The founder's
+   * constraint that the dots stay visible on paper is met by construction
+   * rather than by luck, and for scale, the reference's own light-ground dot
+   * measures 1.243 against its page, so ours is already the stronger of the two.
+   *
+   * ── HOW FAINT, AND WHY THE ARITHMETIC ALONE GOT IT WRONG ───────────────
+   * FIRST ATTEMPT, WHICH SHIPPED FOR AN HOUR AND WAS WRONG. The chroma in each
+   * ground was solved so the map sat the same OKLab distance from that ground's
+   * own neutral sink: dE 0.022 both sides, giving 0.018 on dark and 0.012 on
+   * paper. The reasoning was sound and the result was not. Rendered side by side
+   * the dark cast was almost invisible and the paper one read as a lavender
+   * PANEL rather than a cast, which is one thing expressed two ways, the exact
+   * defect the design rules name.
+   *
+   * WHY EQUAL DISTANCE IS NOT EQUAL CAST. Apparent colourfulness collapses as
+   * lightness falls: the same chroma that tints a 0.932 ground unmistakably is
+   * swallowed by a 0.125 one. So the numbers below are matched by EYE, against
+   * each other and against the page each sits on, and the ratio that falls out
+   * is 3.7 to 1. That is a measurement of a perceptual fact, not a taste: a dark
+   * ground needs roughly four times the chroma to carry the same faint cast.
+   *
+   * IT STILL CANNOT BE READ AS A STATUS, which the correction had to preserve.
+   * The weakest status token in the system carries chroma 0.105. This ground is
+   * a quarter of that on dark and a fifteenth of it on paper, in a system where
+   * status is always a saturated mark on a neutral field.
+   *
+   * AND THE DOTS ARE STILL FREE: measured after the correction at 4.985 on dark
+   * (4.977 before, so a hair better) and 1.313 on paper, unchanged.
+   */
+  --mrd-map: oklch(0.125 0.026 297); /* a canvas whose positions are the reader's */
   --mrd-sheet: oklch(0.175 0.006 70); /* chrome: header, rail */
   --mrd-lift: oklch(0.215 0.007 70); /* a raised control, secondary button */
   /*
@@ -770,6 +833,13 @@
 [data-theme="light"] {
   --mrd-bg: oklch(0.965 0.008 85);
   --mrd-sink: oklch(0.932 0.011 85);
+  /* `sink`'s own lightness, hue 297, and a QUARTER of dark's chroma because a
+     light ground shows a cast far more readily than a dark one. Matched to the
+     dark ground by eye rather than by arithmetic; the version solved for equal
+     OKLab distance sat at 0.012 and read as a lavender panel next to dark's
+     near-invisible tint. Reads as a cool lilac against the cream, and the dots
+     keep their 1.313. Full argument beside the dark declaration. */
+  --mrd-map: oklch(0.932 0.007 297);
   --mrd-sheet: oklch(0.985 0.005 85);
   --mrd-lift: oklch(0.951 0.009 85);
   /* Darker, not lighter: on paper a raised control steps AWAY from a light
@@ -943,6 +1013,7 @@
 @theme inline {
   --color-mrd-bg: var(--mrd-bg);
   --color-mrd-sink: var(--mrd-sink);
+  --color-mrd-map: var(--mrd-map);
   --color-mrd-sheet: var(--mrd-sheet);
   --color-mrd-lift: var(--mrd-lift);
   --color-mrd-lift-hover: var(--mrd-lift-hover);

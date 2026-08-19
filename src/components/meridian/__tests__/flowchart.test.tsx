@@ -16,6 +16,7 @@
  * a test asserts the estimate is only a fallback rather than the layout itself.
  */
 import { describe, expect, it } from "bun:test";
+import { readFileSync } from "node:fs";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import { Flowchart, flowFromSteps, type FlowEdge, type FlowNode } from "../Flowchart";
@@ -392,5 +393,257 @@ describe("a straight run does not make its caller invent a layout", () => {
 
   it("joins nothing for a single step", () => {
     expect(flowFromSteps([{ id: "a", title: "One" }]).edges).toEqual([]);
+  });
+});
+
+/**
+ * ── DRAGGING, ADDED FOR K-85 ─────────────────────────────────────────────
+ *
+ * Every figure below is derived from the same two fallbacks the rest of this file
+ * uses, so the arithmetic is checkable rather than measured. With CW 480 and a
+ * 300px node at x 0.5, a card's home is cx 240; five rows of 92 at PAD_Y 24 and
+ * ROW_GAP 64 put the canvas at 764 tall. The clamps therefore sit at cx 158 and
+ * 322 (half a card plus the 8px inset) and top 8 and 664.
+ *
+ * WHAT happy-dom CANNOT DO, and how each test works around it: there is no
+ * pointer capture and no hit testing, so `setPointerCapture` is called
+ * optionally in the component and the events are dispatched straight at the
+ * wrapper. That is exactly what a captured pointer does in a browser, which is
+ * why the substitution is honest rather than convenient.
+ */
+const CANVAS_H = 764;
+const HOME_CX = 240;
+const HOME_TOP = PAD_Y;
+
+/** The element carrying the drag handlers: the node's absolute wrapper. */
+function card(title: string): HTMLElement {
+  const el = screen.getByText(title).closest('[class*="cursor-grab"]');
+  if (!el) throw new Error(`no draggable wrapper around "${title}"`);
+  return el as HTMLElement;
+}
+
+const at = (el: HTMLElement) => ({ left: el.style.left, top: el.style.top, z: el.style.zIndex });
+
+/** One whole gesture: press, travel, release. */
+function dragBy(el: HTMLElement, dx: number, dy: number) {
+  fireEvent.pointerDown(el, { pointerId: 1, clientX: 100, clientY: 100 });
+  fireEvent.pointerMove(el, { pointerId: 1, clientX: 100 + dx, clientY: 100 + dy });
+  fireEvent.pointerUp(el, { pointerId: 1, clientX: 100 + dx, clientY: 100 + dy });
+}
+
+describe("a reader can untangle the graph, and the connectors keep up", () => {
+  it("moves the card it was given and leaves every other one alone", () => {
+    render(<Flowchart {...BRANCH} />);
+    const moved = card("A firmware complaint arrives");
+    const untouched = card("Is it worth a bet?");
+    dragBy(moved, 50, 30);
+    expect(at(moved).left).toBe(`${HOME_CX + 50}px`);
+    expect(at(moved).top).toBe(`${HOME_TOP + 30}px`);
+    // The second row's home, unchanged: 24 + 92 + 64.
+    expect(at(untouched).top).toBe(`${PAD_Y + EST_H + ROW_GAP}px`);
+    expect(at(untouched).left).toBe(`${HOME_CX}px`);
+  });
+
+  it("re-routes the connector onto the card's new anchor", () => {
+    // THE POINT OF THE WHOLE ITEM. A graph whose edges detach on the first move
+    // is worse than one that cannot move at all.
+    const { container } = render(<Flowchart {...BRANCH} />);
+    const before = paths(container)[0];
+    expect(before.startsWith(`M ${HOME_CX} ${HOME_TOP + EST_H}`)).toBe(true);
+    dragBy(card("A firmware complaint arrives"), 50, 30);
+    const after = paths(container)[0];
+    // The bottom anchor is the card's top plus its measured height, so both
+    // numbers move with it.
+    expect(after.startsWith(`M ${HOME_CX + 50} ${HOME_TOP + 30 + EST_H}`)).toBe(true);
+    expect(after).not.toBe(before);
+  });
+
+  it("keeps the incoming connector on the pill offset when the target moves", () => {
+    // `rank` carries a kind, so its top anchor is PILL_OFFSET below its edge.
+    // Dragging it must carry that offset along or the curve lands beside the pill.
+    const { container } = render(<Flowchart {...BRANCH} />);
+    dragBy(card("Is it worth a bet?"), 0, 40);
+    const arriving = paths(container)[0];
+    const y = PAD_Y + EST_H + ROW_GAP + 40 + PILL_OFFSET;
+    expect(arriving.endsWith(`${HOME_CX} ${y}`)).toBe(true);
+  });
+
+  it("continues a second drag from where the first one stopped", () => {
+    render(<Flowchart {...BRANCH} />);
+    const el = card("A firmware complaint arrives");
+    dragBy(el, 40, 20);
+    dragBy(el, 20, 10);
+    expect(at(el).left).toBe(`${HOME_CX + 60}px`);
+    expect(at(el).top).toBe(`${HOME_TOP + 30}px`);
+  });
+
+  it("will not let a card leave the canvas in any direction", () => {
+    render(<Flowchart {...BRANCH} />);
+    const up = card("A firmware complaint arrives");
+    dragBy(up, -1000, -1000);
+    // Half a 300px card plus the 8px inset; and the inset alone, vertically.
+    expect(at(up).left).toBe("158px");
+    expect(at(up).top).toBe("8px");
+
+    render(<Flowchart {...BRANCH} />);
+    const down = screen.getAllByText("A firmware complaint arrives")[1].closest(
+      '[class*="cursor-grab"]',
+    ) as HTMLElement;
+    dragBy(down, 1000, 1000);
+    expect(at(down).left).toBe("322px");
+    expect(at(down).top).toBe(`${CANVAS_H - EST_H - 8}px`);
+  });
+});
+
+describe("a drag is not a click, and a click is not a drag", () => {
+  it("still selects when the pointer barely moved", () => {
+    // Two pixels is a hand on a mouse button, not a gesture. The card must not
+    // shift and the press must still land.
+    let picked: string | null = "untouched";
+    render(<Flowchart {...BRANCH} selectedId={null} onSelect={(id) => (picked = id)} />);
+    const el = card("Is it worth a bet?");
+    dragBy(el, 2, 1);
+    fireEvent.click(screen.getByRole("button", { name: /Is it worth a bet/ }));
+    expect(picked).toBe("rank");
+    expect(at(el).top).toBe(`${PAD_Y + EST_H + ROW_GAP}px`);
+  });
+
+  it("does not select at the end of a real drag", () => {
+    let picked: string | null = "untouched";
+    render(<Flowchart {...BRANCH} selectedId={null} onSelect={(id) => (picked = id)} />);
+    dragBy(card("Is it worth a bet?"), 60, 0);
+    fireEvent.click(screen.getByRole("button", { name: /Is it worth a bet/ }));
+    expect(picked).toBe("untouched");
+  });
+
+  it("selects again on the press after a drag", () => {
+    // The suppression lasts one tick, not forever. A card you have moved must
+    // still be openable.
+    let picked: string | null = null;
+    render(<Flowchart {...BRANCH} selectedId={null} onSelect={(id) => (picked = id)} />);
+    const el = card("Is it worth a bet?");
+    dragBy(el, 60, 0);
+    fireEvent.click(screen.getByRole("button", { name: /Is it worth a bet/ }));
+    expect(picked).toBe(null);
+    return new Promise<void>((done) => {
+      setTimeout(() => {
+        fireEvent.click(screen.getByRole("button", { name: /Is it worth a bet/ }));
+        expect(picked).toBe("rank");
+        done();
+      }, 0);
+    });
+  });
+});
+
+describe("the drag says what it is doing, and stops when it is told to", () => {
+  it("raises the card it is carrying above its neighbours", () => {
+    render(<Flowchart {...BRANCH} />);
+    const el = card("A firmware complaint arrives");
+    expect(at(el).z).toBe("1");
+    fireEvent.pointerDown(el, { pointerId: 1, clientX: 100, clientY: 100 });
+    expect(at(el).z).toBe("2");
+    expect(el.className).toContain("cursor-grabbing");
+    fireEvent.pointerUp(el, { pointerId: 1, clientX: 100, clientY: 100 });
+    expect(at(el).z).toBe("1");
+    expect(el.className).toContain("cursor-grab");
+  });
+
+  it("lets go when the browser takes the pointer away", () => {
+    // A system swipe or a lost capture ends the gesture. Without this the card
+    // keeps the grabbing cursor and its raised stacking until the next press.
+    render(<Flowchart {...BRANCH} />);
+    const el = card("A firmware complaint arrives");
+    fireEvent.pointerDown(el, { pointerId: 1, clientX: 100, clientY: 100 });
+    fireEvent.pointerCancel(el, { pointerId: 1 });
+    expect(at(el).z).toBe("1");
+    expect(el.className).not.toContain("cursor-grabbing");
+  });
+
+  it("never animates its position, so reduced motion has nothing to suppress", () => {
+    // `meridian.css`'s reduced-motion block stills keyframe ANIMATIONS and does
+    // not touch transitions, so a transition on left or top would have run for
+    // everyone. A dragged card must sit under the pointer, not ease toward it.
+    render(<Flowchart {...BRANCH} />);
+    const el = card("A firmware complaint arrives");
+    expect(el.className).not.toMatch(/transition-(all|\[?(left|top)])/);
+    expect(el.getAttribute("style") ?? "").not.toContain("transition");
+  });
+
+  it("takes a finger rather than the page underneath it", () => {
+    render(<Flowchart {...BRANCH} />);
+    expect(card("A firmware complaint arrives").className).toContain("touch-none");
+  });
+});
+
+describe("the canvas ground carries a colour, and it is not a status", () => {
+  const CSS = readFileSync("src/styles/meridian.css", "utf8");
+  const oklch = (token: string) =>
+    [...CSS.matchAll(new RegExp(`--mrd-${token}:\\s*oklch\\(([\\d.]+) ([\\d.]+) ([\\d.]+)\\)`, "g"))].map(
+      (m) => ({ L: Number(m[1]), C: Number(m[2]), H: Number(m[3]) }),
+    );
+
+  it("paints the canvas with the map token rather than the neutral recess", () => {
+    const { container } = render(<Flowchart {...BRANCH} />);
+    expect((container.firstElementChild as HTMLElement).className).toContain("bg-mrd-map");
+  });
+
+  it("plates an edge label in the same colour as the ground it sits on", () => {
+    // These were one colour until the ground took its cast. A plate one step off
+    // its ground reads as a grey halo around the word.
+    const { container } = render(<Flowchart {...BRANCH} />);
+    const label = [...container.querySelectorAll("text")].find((t) => t.textContent === "yes");
+    expect(label?.getAttribute("stroke")).toBe("var(--mrd-map)");
+  });
+
+  it("is declared in both grounds", () => {
+    expect(oklch("map").length).toBe(2);
+  });
+
+  it("sits at its own ground's recess lightness, so the dots cannot lose contrast", () => {
+    // THE SAFETY, ASSERTED RATHER THAN DESCRIBED. The dot pattern is a
+    // semi-transparent neutral over this ground, so its contrast is a function of
+    // lightness alone. Equal lightness means the wash is free.
+    const map = oklch("map");
+    const sink = oklch("sink");
+    expect(sink.length).toBe(2);
+    map.forEach((m, i) => expect(m.L).toBe(sink[i].L));
+  });
+
+  it("is violet in both grounds, at the hue the reference measured", () => {
+    // #9a5cff, the reference's own node-kind purple, is oklch(0.627 0.230 297).
+    for (const m of oklch("map")) expect(m.H).toBe(297);
+  });
+
+  it("carries far too little chroma to be read as a status", () => {
+    // Every status token runs 0.105 to 0.195, always as a saturated mark on a
+    // neutral field. Measured, this ground is a quarter of the weakest on dark
+    // and a fifteenth of it on paper. Dark is the near case on purpose: a dark
+    // ground needs about four times the chroma to carry the same faint cast.
+    const weakest = Math.min(
+      ...["you", "agent", "pass", "fail", "hold", "stop"].flatMap((t) => oklch(t).map((v) => v.C)),
+    );
+    expect(weakest).toBe(0.105);
+    for (const m of oklch("map")) {
+      expect(weakest / m.C).toBeGreaterThan(3.5);
+    }
+  });
+
+  it("holds the two chromas that were matched by eye, at their measured ratio", () => {
+    // PINNED BECAUSE THE ARITHMETIC GOT THIS WRONG ONCE. Solving for an equal
+    // OKLab step from each ground's neutral gave 0.018 and 0.012, and rendered
+    // side by side that was a near-invisible tint beside a lavender panel:
+    // one idea expressed two ways. These are the corrected pair, and the ratio
+    // is the perceptual fact behind them rather than a preference.
+    const [dark, paper] = oklch("map");
+    expect(dark.C).toBe(0.026);
+    expect(paper.C).toBe(0.007);
+    expect(+(dark.C / paper.C).toFixed(1)).toBe(3.7);
+  });
+
+  it("is not the orchid, and the test can tell the difference", () => {
+    const you = oklch("you");
+    expect(you.length).toBeGreaterThan(0);
+    for (const v of you) expect(v.H).toBe(315);
+    for (const m of oklch("map")) expect(m.H).not.toBe(315);
   });
 });

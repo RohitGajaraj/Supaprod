@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
 import { StationGlyph, type StationGlyphKind } from "./station-glyphs";
 
@@ -44,13 +44,33 @@ import { StationGlyph, type StationGlyphKind } from "./station-glyphs";
  *    pill. This is the "connectors meet nodes at a consistent anchor rather than
  *    wherever the maths lands" rule, and it is the reference's own solution to it.
  *
- * ── WHAT IS DELIBERATELY NOT PORTED ─────────────────────────────────────
- * THE DRAGGING. The reference's cards drag anywhere on the canvas and the
- * connectors follow. This is a watching surface: §6.3 says "for watching, not
- * authoring", and a run map whose nodes a reader can shove around invites them to
- * believe the layout means something. Position here is derived from the graph, so
- * it always means the same thing.
+ * ── THE DRAGGING, WHICH THIS FILE ONCE ARGUED AGAINST ───────────────────
+ * This header used to say the dragging was deliberately not ported, on the
+ * grounds that §6.3 calls the Run Map "a canvas for watching, not authoring",
+ * and that nodes a reader can shove around invite them to believe the layout
+ * means something.
  *
+ * FOUNDER RULING 2026-08-20 OVERTURNS THAT, and it is the better reading:
+ * a graph you cannot rearrange is a picture, and a run map the reader cannot
+ * untangle is not a map. Sixteen connectors crossing each other is exactly the
+ * case where the layout derived from the graph is the layout nobody can read.
+ * The line the ruling keeps is the one about AUTHORING: nothing here creates a
+ * node, draws an edge or deletes anything. Dragging moves a card so the reader
+ * can see past it. That is reading, not editing.
+ *
+ * The drag is the reference's own, ported off its source rather than watched:
+ * a pointer-capture drag with a 3px threshold, offsets held per node, both axes
+ * clamped so a card cannot leave the canvas, and a suppressed click so a drag
+ * does not also toggle selection. Positions are NOT persisted: nothing writes
+ * them anywhere, so a reload returns the graph's own layout. Whether a person's
+ * untangling should outlive the page is a product decision nobody has taken.
+ *
+ * ONE DELIBERATE DIVERGENCE FROM THE SOURCE. The reference sets a node's
+ * `zIndex` by reading its drag ref during render, which works there because a
+ * state update follows in the same tick, but a ref read during render is a
+ * value React is entitled to have changed since. Held in state here instead.
+ *
+ * ── WHAT IS DELIBERATELY NOT PORTED ─────────────────────────────────────
  * THE DECORATIVE HUE. The reference paints its kind pill and its step icon in a
  * per-kind colour, purple for Trigger and amber for If/Else. Meridian cannot: its
  * five hues are status words with fixed meanings and amber already means "stopped,
@@ -68,6 +88,16 @@ const ROW_GAP = 64;
 const PILL_OFFSET = 30;
 /** Only until the first measurement lands. Never used for layout after that. */
 const ESTIMATED_HEIGHT = 92;
+/**
+ * The reference's own two drag figures.
+ *
+ * `DRAG_SLOP` is why a click on a card is still a click: a pointer that travels
+ * under 3px has not been dragged, it has been pressed by a hand that moved.
+ * `DRAG_INSET` keeps a card's edge this far inside the canvas, so a node can
+ * never be pushed under the rounded corner and lost.
+ */
+const DRAG_SLOP = 3;
+const DRAG_INSET = 8;
 
 export type FlowNode = {
   id: string;
@@ -113,6 +143,25 @@ export function Flowchart({
   const nodeRefs = useRef(new Map<string, HTMLElement>());
   const [width, setWidth] = useState(0);
   const [heights, setHeights] = useState<Record<string, number>>({});
+  /**
+   * WHERE THE READER PUT EACH CARD, as a delta from where the graph put it.
+   *
+   * A delta rather than an absolute position, which is the reference's choice and
+   * the right one: `x` is a FRACTION of canvas width, so a card that has been
+   * moved still follows the canvas when the pane is resized, and an untouched
+   * card has no entry here at all rather than an entry that happens to match.
+   */
+  const [offsets, setOffsets] = useState<Record<string, { dx: number; dy: number }>>({});
+  /** Which card is under the pointer right now, so it draws over its neighbours. */
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const drag = useRef<{
+    id: string;
+    startX: number;
+    startY: number;
+    baseDx: number;
+    baseDy: number;
+    moved: boolean;
+  } | null>(null);
 
   /*
    * MEASURE, DO NOT DECLARE. The reference does this with one ResizeObserver on
@@ -171,11 +220,18 @@ export function Flowchart({
   /* 480 until the first measurement, which is the reference's own fallback. */
   const cw = width || 480;
 
-  const place = (n: FlowNode) => ({
+  /** Where the graph puts a node, before the reader has moved anything. */
+  const home = (n: FlowNode) => ({
     w: Math.min(n.w ?? DEFAULT_WIDTH, cw * 0.92),
     cx: n.x * cw,
     top: rowY[rows.indexOf(n.row)] ?? PAD_Y,
   });
+
+  const place = (n: FlowNode) => {
+    const at = home(n);
+    const off = offsets[n.id];
+    return { w: at.w, cx: at.cx + (off?.dx ?? 0), top: at.top + (off?.dy ?? 0) };
+  };
 
   /*
    * A node's connector anchors. The top one is offset by the kind pill, which is
@@ -211,6 +267,85 @@ export function Flowchart({
   };
 
   /*
+   * ── DRAGGING ────────────────────────────────────────────────────────────
+   * The reference's mechanics, and each of the four is load-bearing.
+   *
+   * POINTER CAPTURE, so a hand that outruns the card keeps dragging it. Without
+   * it the pointer leaves the node's box on the first fast move and the card
+   * stops dead under a finger that is still moving.
+   *
+   * A 3px THRESHOLD, so a press is still a press. `moved` only latches once the
+   * pointer has travelled far enough that nobody would call it a click, and the
+   * card does not shift by the two pixels a hand gives a mouse button.
+   *
+   * BOTH AXES CLAMPED against the canvas rather than the row, because the whole
+   * point is moving a card OFF its row. Held `DRAG_INSET` inside so an edge
+   * cannot disappear under the rounded corner.
+   *
+   * THE CLICK IS SUPPRESSED AFTER A REAL DRAG, and the one-tick `setTimeout` is
+   * why: `pointerup` fires before `click`, so clearing the drag immediately
+   * would let the card's own `onClick` toggle selection at the end of every
+   * drag. The timeout holds `moved` true across exactly that gap.
+   *
+   * NOTHING HERE IS ON A KEYBOARD PATH. These are pointer events only, so a
+   * person tabbing through the cards can still select them and can never
+   * accidentally displace one. Position is not information a keyboard user is
+   * missing: the graph's own layout is the answer, and dragging only ever
+   * departs from it.
+   */
+  const startDrag = (node: FlowNode) => (event: ReactPointerEvent<HTMLDivElement>) => {
+    const off = offsets[node.id];
+    drag.current = {
+      id: node.id,
+      startX: event.clientX,
+      startY: event.clientY,
+      baseDx: off?.dx ?? 0,
+      baseDy: off?.dy ?? 0,
+      moved: false,
+    };
+    setDraggingId(node.id);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const moveDrag = (node: FlowNode) => (event: ReactPointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    if (!d || d.id !== node.id) return;
+    const travelX = event.clientX - d.startX;
+    const travelY = event.clientY - d.startY;
+    if (!d.moved && Math.hypot(travelX, travelY) < DRAG_SLOP) return;
+    d.moved = true;
+
+    const at = home(node);
+    const h = heightOf(node.id);
+    const cx = Math.min(
+      Math.max(at.cx + d.baseDx + travelX, at.w / 2 + DRAG_INSET),
+      cw - at.w / 2 - DRAG_INSET,
+    );
+    const top = Math.min(
+      Math.max(at.top + d.baseDy + travelY, DRAG_INSET),
+      canvasHeight - h - DRAG_INSET,
+    );
+    setOffsets((current) => ({ ...current, [node.id]: { dx: cx - at.cx, dy: top - at.top } }));
+  };
+
+  /*
+   * `pointercancel` is bound to this too, which the reference does not do. A
+   * browser cancels a pointer when it decides the gesture belongs to it instead
+   * (a system back-swipe, a context menu, a lost capture), and without this the
+   * card would keep `cursor-grabbing` and its raised z-index until the next
+   * press. One of the sizes nobody draws.
+   */
+  const endDrag = (node: FlowNode) => () => {
+    const d = drag.current;
+    if (d?.id !== node.id) return;
+    setDraggingId(null);
+    if (d.moved) setTimeout(() => (drag.current = null), 0);
+    else drag.current = null;
+  };
+
+  const wasDragged = () => drag.current?.moved === true;
+
+  /*
    * THE ZERO CASE. A run with no map is not an error: a mission that has not been
    * planned yet has no branches to draw.
    *
@@ -238,7 +373,7 @@ export function Flowchart({
       data-mrd=""
       role="group"
       aria-label={label}
-      className="relative w-full overflow-hidden rounded-mrd-card border border-mrd-line bg-mrd-sink font-mrd select-none"
+      className="relative w-full overflow-hidden rounded-mrd-card border border-mrd-line bg-mrd-map font-mrd select-none"
       style={{
         height: canvasHeight,
         /*
@@ -246,6 +381,12 @@ export function Flowchart({
          * A grid reads as a spreadsheet and a plain panel gives the eye nothing to
          * judge distance against, so a node dragged nowhere looks placed nowhere.
          * The 1px dot inside a 1.25px stop is what keeps it from banding.
+         *
+         * THE DOT DOES NOT CHANGE NOW THE GROUND IS TINTED, and that is on
+         * purpose. `--mrd-map` sits at exactly `--mrd-sink`'s lightness in each
+         * ground and adds only chroma, so this pattern's contrast against it is
+         * arithmetically what it was: 4.98 on dark, 1.313 on paper. The argument
+         * and both measurements are in `meridian.css` beside the token.
          */
         backgroundImage: "radial-gradient(var(--mrd-edge) 1px, transparent 1.25px)",
         backgroundSize: "22px 22px",
@@ -291,8 +432,11 @@ export function Flowchart({
                   textAnchor="middle"
                   className="fill-mrd-mute font-mrd text-mrd-data"
                   /* A plate behind the word, so a label crossing its own curve is
-                     still readable. `paint-order` draws the stroke first. */
-                  stroke="var(--mrd-sink)"
+                     still readable. `paint-order` draws the stroke first. It is
+                     the CANVAS token, not `sink`: those were the same colour
+                     until the ground took its violet cast, and a plate one step
+                     off its ground reads as a grey halo round the word. */
+                  stroke="var(--mrd-map)"
                   strokeWidth="4"
                   paintOrder="stroke"
                 >
@@ -338,8 +482,32 @@ export function Flowchart({
               if (el) nodeRefs.current.set(node.id, el);
               else nodeRefs.current.delete(node.id);
             }}
-            className="absolute flex -translate-x-1/2 flex-col items-start gap-1.5"
-            style={{ left: cx, top, width: w }}
+            onPointerDown={startDrag(node)}
+            onPointerMove={moveDrag(node)}
+            onPointerUp={endDrag(node)}
+            onPointerCancel={endDrag(node)}
+            /*
+             * `touch-none` so a finger drags the card instead of scrolling the
+             * page, which is the reference's own class here and the only way a
+             * touch drag works at all.
+             *
+             * `cursor-grab` is the whole affordance, and it is deliberately the
+             * only one: the reference puts no visible grip on a step card either
+             * (its six-dot handle lives inside the condition rows), and adding a
+             * grip to every node would change a layout that has already been
+             * measured and verified.
+             *
+             * NO TRANSITION ON `left` OR `top`, in either state. A dragged card
+             * must sit under the pointer rather than easing towards it, so there
+             * is nothing here for `prefers-reduced-motion` to suppress. That
+             * matters because the reduced-motion block in `meridian.css` stills
+             * keyframe ANIMATIONS and does not touch transitions, so a transition
+             * put here would have run for everyone.
+             */
+            className={`absolute flex -translate-x-1/2 touch-none flex-col items-start gap-1.5 ${
+              draggingId === node.id ? "cursor-grabbing" : "cursor-grab"
+            }`}
+            style={{ left: cx, top, width: w, zIndex: draggingId === node.id ? 2 : 1 }}
           >
             {node.kind ? (
               /*
@@ -357,7 +525,13 @@ export function Flowchart({
               <button
                 type="button"
                 aria-pressed={active}
-                onClick={() => onSelect(active ? null : node.id)}
+                onClick={() => {
+                  // A drag that ended on this card is not a press on it. See the
+                  // one-tick timeout in `endDrag` for why the flag is still set
+                  // when this runs.
+                  if (wasDragged()) return;
+                  onSelect(active ? null : node.id);
+                }}
                 className={`w-full rounded-mrd-card border text-left transition-colors duration-150 ${
                   active
                     ? "border-mrd-ink bg-mrd-float"

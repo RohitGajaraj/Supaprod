@@ -1949,7 +1949,7 @@ It also happens to be the primitive the direction already asked for. [`../planni
 ---
 
 **K-85 · `Flowchart` gains dragging and a violet ground**
-`STATUS: TODO` · deps: none · size: L · **PRIORITY: jump list, second**
+`STATUS: BUILT` · deps: none · size: L · **PRIORITY: jump list, second**
 
 **What.** Make the nodes draggable with the connectors following, and give the dotted canvas a faint violet cast in both grounds.
 
@@ -1970,6 +1970,7 @@ It also happens to be the primitive the direction already asked for. [`../planni
 - The 27 existing tests pass unmodified. If one must change, say why in the log.
 
 **Owns.** `src/components/meridian/Flowchart.tsx`, `src/components/meridian/__tests__/flowchart.test.tsx`, `src/routes/_authenticated.meridian.tsx`
+· built also with `src/styles/meridian.css` (the new `--mrd-map` token, which the item asks for and which cannot live anywhere else).
 
 ---
 
