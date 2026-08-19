@@ -70,7 +70,7 @@ These are not style preferences; `bun test` enforces them.
 
 ## 2. The queue
 
-**26 items. Dependencies are item numbers.** `Owns` is exhaustive — those are the only files to touch.
+**72 items. Dependencies are item numbers.** `Owns` is exhaustive — those are the only files to touch.
 
 ---
 
@@ -638,6 +638,934 @@ Deriving state from activity rather than storing it is what stops the six-spelli
 - No import from any `.server.ts`; no I/O.
 
 **Owns.** `src/lib/agent-activity.ts`, `src/lib/agent-activity.test.ts`
+
+---
+
+## 2b. The debt is mostly dead code, not a porting job
+
+**Measured by the sweep on 2026-08-19, and it changes the shape of the work.** The Meridian ratchet reports 5,864 occurrences across 285 files, and that figure reads as a large migration. It is not.
+
+- **`src/components/ui` holds 455 occurrences and 322 of them are unreachable.** A transitive import walk rooted outside the folder leaves nine live modules; the other 39 are imported by nothing. Two of them, `badge.tsx` at 35 and `menubar.tsx` at 34, are the 11th and 13th largest debt files in the entire repo and have zero importers.
+- **`src/styles.css` carries three top-level theme blocks, not two**, and the earliest is dead in full: `:root` at line 3220 sits *between* the two light blocks and beats the first on source order. Deleting it drops the file 1224 → 1022 with zero behaviour change.
+- **`[data-obsidian]` is declared four times at top level.** 56 declarations in the earliest block are shadowed by a later one and paint nothing.
+
+**So the first move is deletion, not migration.** It is cheaper, it is permanent, and it is the only debt reduction that cannot regress.
+
+> **One rule governs every deletion item.** `meridian-ratchet.test.ts` rule 3 **fails when a count goes DOWN** and the baseline still permits the old number, because reclaimed ground is re-frozen. So a deletion goes red until `bun run design:ratchet` records the lower count, and **the lowered `meridian-ratchet.baseline.json` ships in the same commit.** That script is local file I/O with no network. It is only ever for recording debt you removed; never run it to clear a growth failure.
+
+---
+
+### Group F — Dead code, deleted rather than ported
+
+Every item here removes lines. The measured Meridian debt in this repo is **not mostly a porting job**: `src/components/ui` alone is 455 occurrences of which 322 are unreachable, and `src/styles.css` carries three separate blocks that are overridden before they paint. Deleting is cheaper, safer and permanent, and it is the only kind of debt reduction that cannot regress.
+
+**One rule governs every item in this group.** `src/__tests__/meridian-ratchet.test.ts:99` — "keeps the ground that has been gained" — **fails when a count goes DOWN and the baseline still permits the old number.** So every deletion here goes red on `bun test` until you run `bun run design:ratchet` and commit the lowered `src/__tests__/meridian-ratchet.baseline.json` in the same commit. That script is local file I/O, no network. **It is only ever for recording debt you removed. Never run it to make a growth failure go away.**
+
+---
+
+**K-27 · Delete the 39 dead shadcn modules in `src/components/ui`**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** Delete the 39 unreachable modules under `src/components/ui`: `accordion`, `alert`, `aspect-ratio`, `avatar`, `badge`, `breadcrumb`, `calendar`, `card`, `carousel`, `chart`, `checkbox`, `collapsible`, `context-menu`, `dot-pattern`, `drawer`, `form`, `hover-card`, `input-otp`, `menubar`, `navigation-menu`, `pagination`, `progress`, `radio-group`, `resizable`, `scroll-area`, `select`, `separator`, `shader-animation`, `sidebar`, `skeleton`, `slider`, `sonner`, `switch`, `table`, `tabs`, `textarea`, `toggle`, `toggle-group`, `tooltip`. In the same commit change `src/__tests__/client-storage-consent.test.ts:303` — the assertion that `writers` equals exactly `["src/components/ui/sidebar.tsx"]` becomes `[]` — and correct `docs/operations/security/cookie-and-storage-policy.md`, which states at line 15 and again in the table at line 32 that the only `document.cookie` write in the tree is `sidebar_state` at `src/components/ui/sidebar.tsx:86`.
+
+**Why.** A transitive import walk rooted at every file **outside** `src/components/ui` leaves nine live modules (`alert-dialog`, `button`, `command`, `dialog`, `dropdown-menu`, `input`, `label`, `popover`, `sheet`). The other 39 are reachable from nothing. They carry **322 of the folder's 455 debt occurrences**, including `ui/badge.tsx` at 35 and `ui/menubar.tsx` at 34 — the #11 and #13 files on the whole debt table, both pure `--ds-*` token debt with zero importers. The only references anywhere outside the folder are six mentions in `./design-reference/tempo-v5/*.md`, which is retired pattern documentation, not code.
+
+**How.** The policy doc is the part that is easy to miss and the part that matters: **it is the supporting document for a shipped privacy policy, and deleting `sidebar.tsx` makes it false.** `scripts/docs-doctor.sh` only link-checks `.md` targets, so a dead link to a `.tsx` passes silently — nothing will catch this for you. Leave the second assertion in that test block (`mounted` `toEqual([])`) alone; it stays valid. Roughly 28 npm dependencies (most `@radix-ui/*`, `embla-carousel-react`, `vaul`, `sonner`, `recharts`, `input-otp`, `react-day-picker`, `react-hook-form`, `react-resizable-panels`) become unimported — **do not remove them in this item**, note them in the build log.
+
+**Acceptance.**
+- 39 files gone; the nine live modules untouched.
+- `bunx tsc --noEmit` clean — nothing outside the folder imported any of them.
+- `client-storage-consent.test.ts` passes with the empty-writers expectation.
+- The cookie policy doc names no deleted path and carries no dead link; `bun run docs:check` clean.
+- Baseline re-frozen lower, in the same commit.
+
+**Owns.** the 39 files above under `src/components/ui/`, `src/__tests__/client-storage-consent.test.ts`, `docs/operations/security/cookie-and-storage-policy.md`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-28 · Delete the early light-theme block in `styles.css`, and move nothing out of it**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** Delete `styles.css` lines **1856–1991** — the first `[data-theme="light"], .light-theme` block — in full. **Move neither property out of it.**
+
+**Why.** There are three blocks, not two. `:root { … }` occupies lines **3220–3564** (260 custom properties) *between* the two light blocks. `:root` and `[data-theme="light"]` are both specificity (0,1,0), both match `<html>`, and all three are unlayered plain CSS — the file's `@layer base` and `@layer utilities` open at 475 and 602 and close well before 1856. So `:root@3220` already beats the early block on source order and **all 106 of its properties are dead**, not 104. Measured by simulating the deletion through the ratchet's own `debtInCss` counter: `src/styles.css` goes **1224 → 1022**, a 202-occurrence drop (93 raw hex, 109 `--ds-`) with zero behaviour change.
+
+**How.** The trap is the "move the two unique properties" instruction that looks obvious and ships a visible regression. `--ds-focus-ring` is harmless — `:root@3220` carries the byte-identical value. **`--ds-contrast-fg` is not.** It is `#000` in the early block and `#fff` at `:root@3220`, so light theme computes `#fff` today; placing `#000` into the later block at 3567 makes it win **for the first time** and flips light-theme text on every solid chip from white to black — `src/components/ui/badge.tsx` lines 43, 49, 55, 65, 72, 77, 83, 93 and `src/components/ui/tooltip.tsx` lines 27, 31 all pair `text-(--ds-contrast-fg)` with a `--ds-*-800`/`-700` fill. Black on `--ds-red-800` is the regression. Both properties are already covered at the values light theme renders today. If `#000` is genuinely wanted, that is a separate design ruling, not cascade arithmetic. (If K-27 has landed, some of those badge call sites are gone; the rule stands either way.)
+
+**Acceptance.**
+- Lines 1856–1991 removed; no property relocated.
+- `bun run dev` and compare light ground before and after: no visible change on any chip, tooltip or focus ring.
+- Baseline re-frozen; `src/styles.css` records the lower number.
+
+**Owns.** `src/styles.css`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-29 · Delete the shadowed declarations in the early `[data-obsidian]` block**
+`STATUS: TODO` · deps: K-28 · size: S
+
+**What.** `styles.css` declares `[data-obsidian]` at top level **four** times — 2096, 2358, 2567 (the Loom v4 block) and 3711 — plus `html[data-obsidian]` at 3013. Compute the set of property names in the block at **2096–2354** that any *later* `[data-obsidian]` block redeclares, and delete those lines from the early block only. Do not touch the later blocks.
+
+**Why.** Identical selector, identical specificity, later source order: for every shadowed name the early declaration is unconditionally overridden and paints nothing. **The count is 56, not the 51 you get from diffing against 3711 alone** — the Loom block at 2567 shadows five more (`--shadow-elevated`, `--shadow-glass`, `--tempo-text-base`, `--text-h2`, `--text-hero`) that 3711 does not touch. Simulated: `styles.css` **1224 → 1181**. Small in isolation, but this two-block structure has already caused two documented production defects in this file — `src/styles.css` header lines 27–41 and the block comment at 2366–2372 record both, and the fix in each case was to re-alias, leaving these lines behind.
+
+**How.** **Compute the shadowed set, do not take it from a list** — the early block holds 160 declarations (it also carries `color-scheme: dark`, so 109 are unique to it, not 108). A five-line script that parses the four blocks and prints the intersection is the right tool; paste its output into the build log. Do not delete any of the 109 unique properties.
+
+**Acceptance.**
+- Every deleted name is provably redeclared in a `[data-obsidian]` block that appears later in the file.
+- 109 unique properties remain in the early block.
+- Obsidian ground renders identically in `bun run dev`.
+- Baseline re-frozen lower.
+
+**Owns.** `src/styles.css`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-30 · Delete the unreachable `--ds-*` and `--text-*` token names from `styles.css`**
+`STATUS: TODO` · deps: K-29 · size: M
+
+**What.** Write a throwaway reachability script: strip comments from every `.css`, `.ts` and `.tsx` under `src/`, plus `index.html` and `public/`, capture **both** `var(--x)` and `var(--x, fallback)` forms, seed the live set with every token named outside `styles.css`, then close over token-to-token references until fixed. Delete the declaration lines for everything not in the closure. Run the script, do not trust any pre-written list.
+
+**Why.** These are declarations no renderer can reach, re-declared across the `:root`, `[data-theme="light"]` and `[data-obsidian]` blocks so each dead name costs two or three lines. Verified-clean whole families: **`--ds-teal-*`, `--ds-ember-100..500`, `--ds-amber-300/500/1000`, `--ds-green-300/500/1000`, `--ds-red-300/500/1000`, `--ds-gray-alpha-600..1000`**, and the six dead Obsidian type tokens `--text-hero`, `--text-h1`, `--text-h2`, `--text-emphasis`, `--text-mono-floor`, `--text-mono-micro`. Also dead and easy to miss: `--ds-blue-400/500`, `--ds-shadow-xs/2xs/xl/2xl`, `--text-helper`, `--ds-ember-bg-hover`, `--ds-ember-bg-subtle`. `styles.css` is the largest debt file in the repo at 1224.
+
+**How.** **Four families look dead and are not.** `--ds-pink-*` is live: `styles.css:3783` declares `--pencil-blossom: var(--ds-pink-900)`, consumed by `src/components/obsidian/pencil-mark.tsx:13` and `pencil.tsx:8` and asserted in `__tests__/pencil-mark.test.tsx:4`; `--ds-pink-700` is read at 3554 (`--chart-4`) and 3777 (`--fuchsia`). `--ds-purple-*` is live via `--violet-soft` at 3518. In the motion family, `--ds-motion-overlay-scale/timing` and `--ds-motion-popover-timing` are dead but the adjacent `--ds-motion-overlay-duration` and `--ds-motion-popover-duration` are **live**. And `--ds-page-width` is referenced at 3400 inside `--ds-page-width-with-margin`, so it is dead only transitively and the pair must go together — which is exactly what the closure step is for. Exclude `design-reference/` and `videos/` from the roots: they are docs and captured build output, not code.
+
+**Acceptance.**
+- The script is in the build log with its output, so the set is reproducible.
+- Zero deleted name appears in any `var()` anywhere in `src/`, `index.html` or `public/`.
+- Pencil marks, charts and both motion durations render unchanged in dev.
+- Baseline re-frozen lower.
+
+**Owns.** `src/styles.css`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-31 · Delete the 75 dead class families in `styles.css`**
+`STATUS: TODO` · deps: K-30 · size: M
+
+**What.** Delete the rule blocks for the 75 of `styles.css`'s 152 declared classes that no component references, and the `@keyframes` they orphan. Whole retired eras: the 12 `.ambient-weather--*` variants plus `.ambient-weather` and `.weather-live`; the Loom atmosphere (`.loom-atmosphere`, `.loom-details`, `.loom-details-chevron`, `.loom-thread-active`); the hero layer (`.hero-aurora`, `.hero-aurora-a/b`, `.hero-editorial`, `.hero-ghost-mark`, `.hero-watermark-spin`, `.animate-aurora`); the Tempo type scale (`.text-heading-32/40/48/56/64/72`, `.text-copy-16/18/20/24`, `.text-copy-13-mono`, `.text-label-14-mono/18/20`, `.text-ink-subtle`, `.text-balance`); the retired button set (`.btn-agentic`, `.btn-approve`, `.btn-lg`, `.btn-link`, `.btn-tertiary`, `.btn-pill`, `.btn-pill-outline`, `.btn-reject`); material and elevation presets (`.material-base`, `.material-fullscreen`, `.shadow-glass`, `.glass-panel`); the cad motion utilities (`.cad-flutter`, `.cad-flutter-l`, `.cad-focus-glow`, `.flow-pulse`, `.stagger-rise`, `.rise-3`, `.float-soft`, `.hover-lift`); and the singles (`.ai-pulse-mark`, `.ai-working-word`, `.receipt-card`, `.neural-gradient`, `.neural-text`, `.construction-pill`, `.cooking-banner`, `.band-stone`, `.station-row`, `.stream-caret`, `.rule-hairline`, `.rule-strong`, `.hairline-strong`, `.surface-3`).
+
+**Why.** 110 rule blocks, roughly 668 lines — **a sixth of the file's length** — for 37 measured occurrences. The debt-per-line is low and the line count is the point: several of these names now survive only inside docblocks explaining that the component already ported off them, and a retired vocabulary sitting in the stylesheet with an explanatory comment is precisely how the next reader re-adopts it.
+
+**How.** **The trap is a class name that collides with a live custom property.** `.hairline-strong` the class is dead — it exists only at `styles.css:606-608` as `border-color: var(--hairline-strong)`. `--hairline-strong` the **token** is live in 20+ non-comment call sites (`MissionGraph`, `CommandPalette`, `Avatar`, `Sketch`, `AuditTag`, `InvitationsPanel`, `VouchersPanel`, `obsidian/aurora`, `obsidian/citation`, `obsidian/spotlight`, `obsidian/graph-slider`, `MissionOrchestratorDetail`) and is declared at lines 251, 382, 2116, 3505 and 3726 — all **outside** the class rule. Delete the rule, keep every declaration. Same care for `.rule-hairline` (1020) and `.rule-strong` (1023). Grep each name with a leading `.` and confirm the hit is in `className`, not in `var()`.
+
+**Acceptance.**
+- Each deleted class has zero `className` references under `src/`.
+- Every `--hairline-strong` declaration still present; `bunx tsc --noEmit` and dev render unchanged on the surfaces listed above.
+- No orphaned `@keyframes` left behind.
+- Baseline re-frozen lower.
+
+**Owns.** `src/styles.css`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-32 · Delete the dead codediff, term and split families from `primitives.css`**
+`STATUS: TODO` · deps: none · size: M
+
+**What.** Delete `primitives.css` lines **1417–1836** (the whole span; no non-target top-level selector lives inside it, including the bare `.sp-term` at 1558) and **1904–1930** (`.sp-agrid` from 1904, `.sp-acard` and its hover 1909–1919, `.sp-aname`/`.sp-asub` 1920–1930), plus `.sp-filename`. Then repoint the three assertions in `src/__tests__/surface-discipline.test.ts:123-130` — `ruleBody(css, '.sp-codediff-row[data-kind="add"]')`, its `del` twin, and `expect(css).toContain(".sp-codediff-sign")` — at `CodeDiff.tsx`, exactly as the §1 test in that same file was already repointed at `.cd-body`.
+
+**Why.** `CodeDiff.tsx` moved its paint into its own `<style href="mrd-code-diff">` sheet (`.cd-row`, `.cd-sign`, `.cd-body`) and `ChangesPanel.tsx` ported off `.sp-split*`; both recorded it in their docblocks (`CodeDiff.tsx:48-52`, `ChangesPanel.tsx:103` and `:249`). Simulated deletion drops `primitives.css` from **509 to 444** measured occurrences for roughly 447 lines of classes nothing renders. **The guard pinned to the moved string is the repo's own documented failure mode, already recorded once inside this very test file** — leaving it pinned means the next port trips over the same thing.
+
+**How.** `CodeDiff.tsx:310-344` already carries `.cd-row[data-kind="add"]` → `--mrd-pass`, `[data-kind="del"]` → `--mrd-fail` and `.cd-sign`, so the repointed assertions have a real target and must still fail if that mapping is broken. **Do not weaken them into a `toBeDefined`** — the whole value is that they assert add is pass-hued and del is fail-hued. `primitives.css:1934` carries a live explanatory comment inside the `.sp-grid` docblock — "the only grid in the system was `.sp-agrid` / `.sp-acard` below" — which becomes false; correct it. `docs/operations/session-handoff.md:93` still describes these as open; leave it, Claude owns that file.
+
+**Acceptance.**
+- Named ranges deleted; no other selector removed.
+- `surface-discipline.test.ts` asserts the same two hues and the sign class against `CodeDiff.tsx`, and goes red if either mapping is inverted.
+- `bun test` green; baseline re-frozen lower.
+
+**Owns.** `src/styles/primitives.css`, `src/__tests__/surface-discipline.test.ts`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-33 · Delete the unreachable `--sp-*` declarations and the five dead rules in `ink.css` and `shell.css`**
+`STATUS: TODO` · deps: none · size: M
+
+**What.** Two sweeps in one commit because they share a file and a re-freeze. (a) `ink.css` holds 180 `--sp-*` declaration **lines** over 159 unique names (21 are second-mode re-declarations). Run a comment-stripped `var()` sweep across every `.css`/`.ts`/`.tsx` under `src/`, plus `index.html` and `public/`, capturing both the bare and fallback forms, and delete every declaration line for a name with zero references — **65 names across 73 lines** when last measured. (b) Delete `.sp-iconbtn` (`shell.css:437-455`, three rules), and in `ink.css` `.ink-hairline-b` (876), `.ink-kicker` (886), `.ink-input-focus` (855-865) **together with its sole consumer token `--ink-input-ring` at 858**, and `.ink-skeleton` across **915–933** — that range covers `@keyframes ink-skeleton` (915-922), the rule (924-928) **and the `@media (prefers-reduced-motion: reduce)` override at 929-933**, which is orphaned if you stop at 930.
+
+**Why.** `ink.css` is the token-definition file the whole retired Cadence/ink layer reads, so shrinking it is what eventually makes the file **deletable** rather than merely tidier: simulated, it goes **302 → 217**, an 85-occurrence drop including 40 of its raw-hex literals. Whole abandoned sub-systems come out — the ring geometry (`--sp-ring`, `--sp-ring-gap`, `--sp-ring-lg/sm`, `--sp-ring-stroke`, `--sp-ring-stroke-sm`), the agent-mark sizing left behind when marks moved to Meridian (`--sp-mark-glyph`, `--sp-mark-lg`, `--sp-text-monogram`, `--sp-text-wordmark`, `--sp-track-monogram`, `--sp-track-wordmark`), the greeting ramp, the score/seen/tint ramps, five z-index tokens, four durations, the rail and grid widths, three unused spacing rungs, and the stage/eviq colours (`--sp-stage-design/plan/ship`, `--sp-eviq-mine/borrowed/inferred`, `--sp-star`, `--sp-ctx-split`, `--sp-pane-settings-w` — which `primitives.tsx:15` already documents as declared-and-unimplemented). `shell.css` is otherwise **100% live**: 121 of its 124 class names render, so after (b) it holds no dead paint at all.
+
+**How.** The baseline records `ink.css` at `{"--sp-": 195}`, not 180, because the ratchet counts every `--sp-` occurrence in code — declarations **plus** `ink.css`'s own internal `var()` references — so the re-frozen number is not "180 minus the deleted lines". Do not compute it; run `bun run design:ratchet`. Two comments go dangling: `--sp-space-9` is discussed in a `today.css` comment and `--sp-score-strong` in a `queue-instruments.test.tsx` comment; note them in the build log, do not chase them here. `shell.css` drops on two markers, because `.sp-iconbtn svg` reads `var(--sp-icon)`.
+
+**Acceptance.**
+- Every deleted name has zero `var()` references in the sweep, and the sweep script is in the build log.
+- `.ink-skeleton`'s reduced-motion override is gone with it; no orphaned keyframes or tokens remain.
+- `bun test` green with both files re-frozen at their new numbers.
+
+**Owns.** `src/styles/ink.css`, `src/styles/shell.css`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-34 · Swap the 262 exactly one-to-one `--sp-*` references to their Meridian tokens**
+`STATUS: TODO` · deps: K-32, K-33 · size: M
+
+**What.** `ink.css` declares 23 `--sp-*` tokens whose entire value is `var(--mrd-…)` — `--sp-ink`, `--sp-mute`, `--sp-line`, `--sp-pass`, `--sp-fail`, the `--sp-solid*` set, the five `--sp-radius-*` and the rest. Textually replace each `var(--sp-X)` with `var(--mrd-Y)` at the **262 stylesheet reference sites**: `primitives.css` (211), `today.css` (50), `shell.css` (1). Then delete the eight aliases no component references either — `--sp-font-sans`, `--sp-radius-chip`, `--sp-radius-row`, `--sp-sheet`, `--sp-solid`, `--sp-solid-edge`, `--sp-solid-hover`, `--sp-solid-ink` — from `ink.css`. The other 15 aliases stay until their component call sites port.
+
+**Why.** The single biggest pure-CSS lever in the layer: **270 occurrences retired** (262 references plus 8 alias declarations) across three files, and it moves `primitives.css` and `today.css` toward deletion rather than shuffling debt sideways. Provably a no-op: all 46 relevant declarations sit only at `:root` or a root-level `[data-theme="light"]` (`ink.css` 580 and 799, `meridian.css` 627), none of which redeclares any of the 23 aliases — the light values now come from `meridian.css:628-715` under the same root-level selector. So every reference resolves to the same computed value before and after.
+
+**How.** `ink.css` chains 11 of its own declarations off these aliases — lines 86, 295, 297, 303, 304, 492, 494, 518, 522, 653, 661, e.g. `--sp-score-strong: var(--sp-pass)` and `--sp-font-px: "Geist Pixel Square", var(--sp-font-mono)`. **They are deliberately out of scope**, and none of the eight deletion candidates appears among them, so the deletions stay safe. `.output/public/assets/*` and `videos/supaprod-film/capture/extracted/page.html` carry hundreds of stale `--sp-*` references; they are build output and a capture, are scanned by neither guard, and **must not be edited**.
+
+**Acceptance.**
+- Zero `var(--sp-X)` remains in the three stylesheets for any of the 23 aliased names.
+- The eight unreferenced aliases are gone; the other 15 still declared.
+- Both grounds render identically in `bun run dev` — this is the assertion, since the computed values are unchanged by construction.
+- Baseline re-frozen lower on all four files.
+
+**Owns.** `src/styles/primitives.css`, `src/styles/today.css`, `src/styles/shell.css`, `src/styles/ink.css`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-35 · Delete the unused TanStack query harness**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** Delete `src/lib/testing/tanstack-query-mocks.ts`.
+
+**Why.** 189 lines, **zero importers**. Grep for `tanstack-query-mocks`, `TanstackMockManager`, `createTanstackMocks`, `createMockUseQuery`, `createMockUseMutation` and `createMockUseServerFn` across `src`, `test`, `e2e` and `scripts` returns only the defining file. The only other references are `docs/operations/testing/archive/coverage-gaps-late-july.md` — the document that commissioned it, now in `archive/` — and the graphify wiki. Its sibling `src/lib/testing/threads-mock.ts` is imported by `src/components/ask/__tests__/AskPane.test.tsx:16`, so the directory is live and this one file is the outlier.
+
+**How.** **Do not try to wire it in instead.** It cannot be adopted as written: `createMockUseMutation` ignores the mutation key and always reads the hardcoded `"default"` slot, and `createMockUseServerFn` keys on `serverFn.name`, which is not a stable identifier for TanStack `createServerFn` wrappers. Two independent panels needed this harness and neither used it, and the pattern that actually works elsewhere — 8 real `mock.module` calls in `src/components/ask/__tests__/AskPane.test.tsx`, 5 in `src/components/mission/composer/__tests__/GlobalComposer.test.tsx` — does not import it. Also do not take `ApprovalsPanel.test.tsx` at its word: its 26 apparent `mock.module` sites are **comment lines**, 25 of them `// TODO: needs the mock.module harness`, and the whole suite of 27 tests contains exactly one `expect`. That file is a separate problem and is not yours here.
+
+**Acceptance.**
+- File deleted; `bunx tsc --noEmit`, `bun test` and `bun run build` clean.
+- Build log names `AskPane.test.tsx` as the working pattern, so the next agent looking for a harness finds it.
+
+**Owns.** `src/lib/testing/tanstack-query-mocks.ts`
+
+---
+
+**K-36 · Delete two dead exports sitting in live modules**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** Delete `rollUpStations` and its `StationState` type from `src/lib/relay.ts` **52–110**, and `describeTurn` from `src/lib/spine/activity.ts` **148–167**.
+
+**Why.** `relay.ts`'s four other exports (`toRelaySteps`, `relayByStation`, `stationActiveRun`, `miniRelay`) are all imported by `src/components/agents/AgentRelay.tsx`; `rollUpStations` is imported by nothing, and `relay.ts` has no test file, so nothing pins it either. `describeTurn` has zero references anywhere in `src`, `test`, `e2e` or `scripts` — the module's two importers (`src/components/spine/TrackActivity.tsx:37`, `src/lib/spine/track.functions.ts:60`) take `countKinds` and `Turn`, and `src/lib/spine/activity.test.ts` imports `buildActivity`, `countKinds` and `liveTurn`. **That is 60 lines of unexercised logic carrying a live status-mapping bug** (`relay.ts:36-38` misreads `complete` and `completed_with_failures`), so keeping it means keeping a defect nobody can hit and everybody can copy.
+
+**How.** Use **148**–167 for `describeTurn`, not 155–167: its JSDoc block sits at 148–154 ("One line per turn, in the product's voice…") and deleting from 155 leaves the comment dangling above `countKinds`. Deleting `relay.ts` 52–110 leaves two consecutive blank lines at 51 and 111; close them. And do not treat grep as the verification — run the gates. **`git status` under-reports in this worktree**: it showed clean while a file was in a deleted state, and only `git diff-index --name-status HEAD` revealed it. Use plumbing for any repo-state claim in the build log.
+
+**Acceptance.**
+- Both symbols gone, with their doc comments, and no stray blank-line pairs.
+- `bunx tsc --noEmit` exit 0, `bun test` fully green, `bun run build` clean.
+
+**Owns.** `src/lib/relay.ts`, `src/lib/spine/activity.ts`
+
+---
+
+**K-37 · Delete the palette's two unwired mechanisms**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** Delete `src/lib/palette-recents.ts` and the `getRecents()` call plus its `RECENT` section in `src/components/supaprod/CommandPalette.tsx`. Delete `src/lib/desk-compose.ts` and the four dead ACT verbs it serves — "Add a task", "Capture a signal", "Share status" and "Start a focus block" — from `src/lib/palette-sections.ts:37-40`, together with the early-return branches that exist only to suppress navigation for them at `CommandPalette.tsx:168` and `GlobalComposer.tsx:142`.
+
+**Why.** Both are half-wired mechanisms that claim an action they cannot perform. `pushRecent` is called nowhere, so `sessionStorage` key `supaprod:recents` is never written and `getRecents().map(recentToRow)` has returned an empty array for every user since the module shipped. `desk-compose.ts` is the mirror image: the consuming half — `consumePendingDeskCompose`, `resetDeskComposeForTest`, `useDeskComposeIntent` — has **zero callers**, and grep for the event literals `supaprod:task-compose`, `supaprod:signal-compose` and `supaprod:status-compose` returns only their declarations at `desk-compose.ts:16-18`. So three verbs dispatch an event with no listener, set a pending flag nothing reads, then navigate to `/today` — **the exact behaviour the module header says it was written to stop.** The fourth is worse: "Start a focus block" fires `supaprod:focus-compose` and `desk-compose.ts:6` asserts `FocusDock` listens globally, but `find src -name "FocusDock*"` returns nothing — the file is gone, and both call sites return early on that event, so the verb is a complete no-op.
+
+**How.** **Do not build the writers instead.** Both candidate writer sites are dead code: `<CommandPalette` is mounted nowhere (`_authenticated.tsx:262` records it as retired-in-tree, and only `GotoShortcuts` is imported from that file), and `GlobalComposerHost` is referenced only inside its own comments (`GlobalComposer.tsx:62-66`: "the overlay is unreachable rather than merely discouraged"). Wiring would convert "index with no writer" into "index with an unreachable writer". The types confirm it independently — `PaletteRun` (`palette-sections.ts:13`) carries no `id`, `label` or `kind`, so a `RecentObject` cannot be constructed at `onRun` without changing the overlay signature. The live path for the verbs is `SuggestionPopover.tsx:99` → `GlobalComposer.onRun`, so that is where their removal must show. **Three raw-text guards read `CommandPalette.tsx` as source** — `AppFrame.station-keys.test.ts:40`, `no-synthetic-key-dispatch.test.ts:75`, `route-inventory.test.ts:155` — keep them green; they are all offline.
+
+**Acceptance.**
+- Both lib modules gone; no dangling import anywhere.
+- The four verbs no longer appear in the palette or the composer, and no early-return branch survives that exists only for them.
+- The three source-text guards pass unweakened; baseline re-frozen if `CommandPalette.tsx`'s recorded count drops.
+- `bunx tsc --noEmit`, `bun test`, `bun run build` clean.
+
+**Owns.** `src/lib/palette-recents.ts`, `src/lib/desk-compose.ts`, `src/lib/palette-sections.ts`, `src/components/supaprod/CommandPalette.tsx`, `src/components/mission/composer/GlobalComposer.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+### Group G — The Meridian gaps, then the components blocked behind them
+
+79 component files import `src/components/shell/primitives`. Of the 29 distinct symbols they use, **all but four already have a Meridian equivalent**. K-38 builds those four; everything after it is a mechanical port that was impossible before.
+
+**Two standing notes for this group and the next.**
+
+- **K-09 claims all of `src/components/meridian/` in its `Owns`.** Any item below that edits that folder carries `deps: K-09` so the two never hold the same file open.
+- **`AppFrame`'s 50 remaining `.sp-*` class names are NOT in this queue and must not be started.** `src/styles/shell.css:36` states the opposite decision in the sheet's own header — "THE CLASS NAMES STAY `sp-`. Four colocated guards read them out of this file and out of AppFrame.tsx as SOURCE TEXT… Renaming the vocabulary would make three guards about shipped defects pass vacuously, which is a worse outcome than a legacy prefix." The shell already **paints** in Meridian (`shell.css` carries 387 `--mrd-*` references against 26 `--sp-*`). Renaming that layer is a ruling, not a port. K-46 takes the six occurrences that are not the class-name argument and stops there.
+
+---
+
+**K-38 · Build `Pre`, `Grid`, `Cell` and a row `SelectionBar`**
+`STATUS: TODO` · deps: K-09 · size: M
+
+**What.** Add to `src/components/meridian`: (1) a `Pre` for plain preformatted monospace output; (2) a `Grid`; (3) a `Cell` carrying shell/primitives' `mark`/`lead`/`sub`/`onClick`/`selected`/`disabled`/`tone` contract, rendering a **real `<button>`** when `onClick` is present; (4) a bulk-row selection bar taking the `Selection` object from `src/components/shell/use-selection.ts` plus a row count, under a name that does **not** collide with the existing `SelectionActions`. Draw them on Meridian Tailwind utilities the way `Region` does (`rounded-mrd-xs`, `text-mrd-mute`, `gap-mrd-4`), never on `.sp-*` classes.
+
+**Why.** I diffed the symbols every consumer imports from `shell/primitives` against every export under `src/components/meridian`. 29 symbols are in use and 25 already map (`Block`→`Region`, `PageHead`→`PageHeading`, `Empty`→`NothingHere`/`NothingYet`, `Failed`→`ReadFailed`, `Loading`→`LoadingState`, `Button`→`Action`/`Approve`, `Record`→`RecordSpeaks`, `Select`→`Picker`, `Switch`→`Toggle`, plus 20 exact-name matches). **The four gaps are `Pre` (9 consumers), `Cell` (5), `Grid` (3) and `SelectionBar` (3)**, and without them `AccountConnectionsSection` (51 occurrences), `RoadmapColumns` (35), `IntegrationsTab` (27) and `TeamCard` (15) cannot be ported at all.
+
+**How.** **`SelectionBar` is the trap.** Meridian already exports `SelectionActions`, but `src/components/meridian/SelectionActions.tsx:213` takes `range: Range | null` and a `containerRef` — it is a floating **prose-editing** toolbar, an unrelated concept wearing a colliding name. `shell/primitives.tsx:1291` is the row-selection bar. Pick a distinct name and say so in the build log. **Read `src/styles/primitives.css` as well as the `.tsx`**: half the source contract lives there — `.sp-pre` at 1392, `.sp-grid` at 1941, `.sp-cell` at 1958 including the hover computed from `--sp-cell-bg` that the `Cell` doc comment says is the entire reason `tone` works, and `.sp-selbar` at 2385. A port from the `.tsx` alone drops those mechanics. Before building `Pre`, **evaluate `src/components/meridian/CodeBlock.tsx`** — it is Meridian's preformatted-code block, built to replace an uncapped `<pre>`; its API is tokenised and streaming (`filename: string`, pre-tokenised `lines: CodeToken[][]`), which is the wrong shape for a raw deploy log, but that judgement belongs in the build log rather than being assumed.
+
+**Escape-to-clear has no existing test and you must write one.** The contract does **not** live in `use-selection.ts` — that module exports only `type Selection` and `useSelection`, and grep for `escape|keydown` in it returns nothing. Escape-to-clear lives inside the `SelectionBar` component body in `shell/primitives.tsx` as a `React.useEffect` window listener gated behind `if (count === 0) return;`. No test in the repo renders that component, so nothing today asserts Escape clears a selection, that `count === 0` returns null, or that "Select all N" only appears when `!allSelected && total > count`. Pin all three.
+
+**Acceptance.**
+- Four components exported, each rendered in `src/routes/_authenticated.meridian.tsx` in both grounds.
+- `Cell` renders `<button>` when `onClick` is present and a non-interactive element otherwise; `tone` still drives the hover.
+- New render tests cover the selection bar's Escape-to-clear, its empty early return, and the select-all gate.
+- No `.sp-*` class and no retired token in any new file — new files must be born clean under ratchet rule 1.
+
+**Owns.** `src/components/meridian/surface-parts.tsx`, `src/components/meridian/__tests__/` (new test files for the four), `src/routes/_authenticated.meridian.tsx`
+
+---
+
+**K-39 · The seven settings panels off `shell/primitives`**
+`STATUS: TODO` · deps: K-38 · size: M
+
+**What.** Port `IntegrationsTab`, `DataSection`, `DiagnosticsSection`, `NotificationsSection`, `TeamCard`, `ProductsTab` and `MembersCard` to Meridian imports. The union of symbols across all seven is exactly: `Block`→`Region`, `Button`→`Action`/`Approve`, `Empty`→`NothingHere`/`NothingYet`, `Failed`→`ReadFailed`, `Loading`→`LoadingState`, `PageHead`→`PageHeading`, `Select`→`Picker`, `Switch`→`Toggle`, `Field`/`Input`/`Receipt` keeping their names, and `Pre` (K-38) in `IntegrationsTab` and `TeamCard`. Then clear the residual inline `--sp-*` tokens: 8 in `IntegrationsTab`, 4 in `MembersCard`, 3 in `DataSection`, 2 in `DiagnosticsSection`, 1 each in `TeamCard` and `ProductsTab`.
+
+**Why.** `settings/*` is **131 occurrences across 8 files, of which 107 is `import:` plus `usage:shell/primitives`** — the mechanical half of the whole folder. Checking the imported symbol set per file, exactly one symbol in the folder has no Meridian equivalent, and K-38 built it. `NotificationsSection.tsx` is the cleanest single win in the repo at 16 occurrences that are 100% primitives usage with zero token or class debt.
+
+**How.** The folder already has a behavioural harness in `src/lib/settings-search.test.ts`, which pins these panels **by name** and in places reads them as source text for keyword coverage — copy deleted during a port can fail it, so keep user-visible strings intact. The baseline tracks `import:shell/primitives` and `usage:shell/primitives` per file **in addition to** `--sp-`; drive all three to zero per file and re-freeze, rather than leaving the old counts standing.
+
+**Acceptance.**
+- Zero `shell/primitives` imports across the seven files.
+- `settings-search.test.ts` green without modification.
+- Each of the seven renders unchanged in `bun run dev` under `/settings`.
+- Baseline re-frozen lower on all seven.
+
+**Owns.** `src/components/settings/IntegrationsTab.tsx`, `src/components/settings/DataSection.tsx`, `src/components/settings/DiagnosticsSection.tsx`, `src/components/settings/NotificationsSection.tsx`, `src/components/settings/TeamCard.tsx`, `src/components/settings/ProductsTab.tsx`, `src/components/settings/MembersCard.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-40 · `WorkspaceClaimCard` and `CreditCapsCard`**
+`STATUS: TODO` · deps: none · size: M
+
+**What.** Swap both files' `shell/primitives` imports for Meridian. `WorkspaceClaimCard` uses `Block`, `Button`, `Checkbox`, `Empty`, `Failed`, `Loading`, `Value`; `CreditCapsCard` uses `Block`, `Button`, `Empty`, `Failed`, `Field`, `Input`, `Select` and carries 5 inline `--sp-*` refs. Additionally replace the raw `<select className="sp-select">` at `WorkspaceClaimCard.tsx:303-319` with `Picker` and give it an id of its own.
+
+**Why.** These are the two densest pure-swap files in the tree by usage — `WorkspaceClaimCard` is 30 of its 32 occurrences in `usage:shell/primitives`, `CreditCapsCard` 25 of 31 — and neither needs `Pre`, `Grid`, `Cell` or the selection bar, so unlike `AccountConnectionsSection` they are blocked on nothing. Both are pinned by name in `src/lib/settings-search.test.ts` and mounted from `src/routes/_authenticated.settings.tsx`.
+
+**How.** **Do not assume tsc will catch a mismapping; for most of this port it cannot.** Meridian's `Picker` is `React.SelectHTMLAttributes<HTMLSelectElement>` and `Input` is `React.InputHTMLAttributes<HTMLInputElement>`, structurally identical to the shell versions — `Select`→`Picker` and `Input`→`Input` produce **zero** typecheck signal. The compiler helps in exactly three places, and each needs a decision rather than a rename: `Button variant="ghost"` (6 sites across the two files; `ActionVariant` is `"default" | "primary" | "quiet"` with no ghost), `Value tone="live"` (2) and `tone="warn"` (1) against Meridian's `"quiet" | "pass" | "fail" | "hold" | "agent"` — likely `live`→`agent` and `warn`→`hold`, stated in the build log — and `Field`, where Meridian requires `htmlFor: string` that shell left optional, so real ids must be minted.
+
+**Acceptance.**
+- Zero `shell/primitives` imports and zero `sp-select` in either file.
+- Every `Field` has a real `htmlFor` bound to a real control id.
+- The three tone/variant remaps are named in the build log with the reasoning.
+- `settings-search.test.ts` green; baseline re-frozen lower.
+
+**Owns.** `src/components/billing/WorkspaceClaimCard.tsx`, `src/components/billing/CreditCapsCard.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-41 · `AccountConnectionsSection`, the largest primitives consumer in the tree**
+`STATUS: TODO` · deps: K-38 · size: M
+
+**What.** Port the settings connections panel: 38 rendered primitives across `Block`, `Button`, `Cell`, `Empty`, `Failed`, `Grid`, `Input`, `Loading`, `PageHead`, `Select`, plus 4 inline `--sp-*` refs and 8 `.sp-*` classes.
+
+**Why.** 51 occurrences, sixth-heaviest file in the tree, and **38 of them are `usage:shell/primitives` — the most rendered retired UI in any single file.** It is also the concrete reason `Grid` and `Cell` were worth building rather than hand-rolling: the connector grid is exactly the shape `Cell` was written for, and `shell/primitives.tsx:251` records why — "tinted, never bordered… nineteen bordered cells in one region is nineteen bordered containers" — and that lanes were writing an eight-property inline reset each time before it existed. Losing that reasoning to a per-file reimplementation is how the cap gets broken again.
+
+**How.** **Two tests read this file as source text and will fail on an innocent refactor.** `src/lib/connectors/providers/gateway-era-adapters.test.ts:111` `readFileSync`s it and asserts four literals: `const primary = conns[0]` (line 1052) and `mVerify.mutate(primary.id)` (line 1154) must remain **present**, `mVerify.mutate(suite` and `mVerify.mutate(account.id)` must remain **absent**. Renaming the `primary` local or restructuring the Verify call fails it. `src/lib/settings-search.test.ts:179` likewise reads it for keyword coverage. The connector list comes from `buildConnectorCatalog()` in `src/lib/connectors/catalog.ts` (call site at line 497), which reads the registry — `src/lib/connectors/catalog.test.ts` is what proves the tile set is static, so the panel can be reasoned about entirely offline. Its sole consumer is `src/routes/_authenticated.settings.tsx:218-220`; touch it only if the props change, and if they do, this item is blocked on K-58.
+
+**Acceptance.**
+- Zero `shell/primitives` imports; the grid renders through K-38's `Grid`/`Cell`, not a local reimplementation.
+- `gateway-era-adapters.test.ts` and `settings-search.test.ts` green, unmodified.
+- Connector tiles render identically in dev, including hover tint.
+- Baseline re-frozen lower.
+
+**Owns.** `src/components/connections/AccountConnectionsSection.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-42 · `RoadmapColumns` and `CommitCeremony`**
+`STATUS: TODO` · deps: K-38 · size: M
+
+**What.** Port both plan-board files off `shell/primitives`. `RoadmapColumns` uses `Button`, `Choices`, `Empty`, `Failed`, `Receipt` and the selection bar, plus 22 inline `--sp-*` refs; `CommitCeremony` uses six primitive call sites across three components (`Button` ×2, `Field` ×2, `Input` ×2) plus 22 `--sp-*` refs.
+
+**Why.** 64 occurrences together, and the `plan` folder is 106 of which `BetCard` (K-44) is the other 42. The selection-bar dependency is worth naming precisely **because it looks satisfied and is not**: five files reference `SelectionBar` — `DiscoverSurface`, `DecisionQueue`, `RoadmapColumns`, and the `decide` and `today` routes — and an agent scanning Meridian's exports finds `SelectionActions` and assumes it is the target. It is not: `src/components/meridian/SelectionActions.tsx:213` takes a DOM `Range` and a container ref for highlighting prose.
+
+**How.** `CommitCeremony`'s raw `--sp-*` grep returns 25; three of those are docblock prose the scanner correctly excludes, so the code count is 22 — port the 22 and leave the prose. `DecisionQueue.tsx` and `DiscoverSurface.tsx` are in `Owns` only because they are the other consumers of the same bar; **change them only if K-38's chosen name forces an import edit**, and say so in the build log if you touch them at all.
+
+**Acceptance.**
+- Both plan-board files free of `shell/primitives`.
+- The bulk-selection behaviour is unchanged, proved by K-38's new render tests rather than by inspection.
+- `bunx tsc --noEmit`, `bun test`, `bun run build` clean; baseline re-frozen lower.
+
+**Owns.** `src/components/plan/RoadmapColumns.tsx`, `src/components/plan/CommitCeremony.tsx`, `src/components/today/DecisionQueue.tsx`, `src/components/discover/DiscoverSurface.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-43 · `AuditLineageSheet`: 45 class names, all defined in one stylesheet**
+`STATUS: TODO` · deps: K-34 · size: M
+
+**What.** Port the lineage pane's 29 distinct `.sp-*` class names (`sp-lineage-*`, `sp-chain-*`, `sp-trail-*`) onto Meridian utilities, deleting the matching rule blocks from `src/styles/shell.css` as each one goes.
+
+**Why.** Fourth-heaviest component file at 45 and the cleanest single-file class port in the tree: every one of its class names resolves into `src/styles/shell.css`, a sheet already 387 `--mrd-*` references deep with only 38 occurrences of debt overall. **The paint under this component is already Meridian; only the naming layer is retired.** The file's own header records that it was ported once before off Loom v4 and shadcn Sheet, so the design intent ("the pane, not a modal sheet", "no ember") is written down and does not need re-deciding.
+
+**How.** **One class must survive the port.** `src/components/ask/AskPane.tsx:359` carries the literal selector `".sp-lineage"` in its `KEEPS_IT_OPEN` pointerdown list. If the pane root loses that class, **any press inside the lineage pane dismisses Ask** — and no test catches it, because `AskPane.test.tsx:1013` builds its own synthetic `<div class="sp-lineage">` fixture and stays green regardless of what the real component renders. Keep the class on the root, or edit both sides in this commit and say which you did. Second trap: `escape-layers.test.tsx:64` does `strip(read(...AuditLineageSheet.tsx))` — it asserts on the component's **source text**, so it constrains how the Escape binding is written, not only what it does. Third: the CSS half is not token-free — the lineage rule blocks reference `--sp-header-h`, `--sp-pane-ask-w` and `--sp-pane-inset` (6 occurrences), so `shell.css`'s recorded debt drops and must be re-frozen with the port. Its colocated test is `src/components/supaprod/__tests__/lineage-chain.test.ts`.
+
+**Acceptance.**
+- 29 class names gone from the component; their rule blocks gone from `shell.css`.
+- Ask stays open on a pointerdown inside the lineage pane, verified in `bun run dev`.
+- `lineage-chain.test.ts`, `AskPane.test.tsx` and `escape-layers.test.tsx` green.
+- Baseline re-frozen lower on both files.
+
+**Owns.** `src/components/supaprod/AuditLineageSheet.tsx`, `src/styles/shell.css`, `src/components/supaprod/__tests__/lineage-chain.test.ts`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-44 · `BetCard`: 42 occurrences and no data hooks**
+`STATUS: TODO` · deps: none · size: M
+
+**What.** Replace the 33 inline `--sp-*` references in `src/components/plan/BetCard.tsx` with Meridian tokens, swap the 5 `shell/primitives` markers (1 import, 4 usages) for `forms.Checkbox`/`forms.Input`, and re-home the 4 `.sp-*` classes.
+
+**Why.** 42 occurrences, **zero data hooks** (grep for `useQuery|useMutation|useServerFn|supabase` returns 0), 400 lines — the best ratio of debt to risk among the non-trivial component files. Its header already documents the design rulings the port must preserve (the promise leads, ember is a 2px rule not a chip, no mono caps, the Checkbox is a real one), so the visual intent is fixed and only the vocabulary moves.
+
+**How.** **Seven colour tokens alias straight through and the size tokens do not.** Clean: `ink.css:311` `--sp-lift`→`--mrd-lift`, `:312` `--sp-sink`→`--mrd-sink`, `:338` `--sp-ink`→`--mrd-ink`, `:339` `--sp-body`→`--mrd-body`, `:340` `--sp-mute`→`--mrd-mute`, `:343` `--sp-line`→`--mrd-line`, `:268` `--sp-gate`→`--mrd-you`. **Not clean, and this is where a mechanical swap breaks the layout:** Meridian's spacing scale is `--mrd-s1..s8` = 2/4/6/10/16/24/40/64px, so `--sp-space-1..4` (4/8/12/16px) does **not** map positionally — that swap shrinks every gap — and 8px and 12px have no exact stop anywhere in the scale. Type needs care too: `--sp-text-meta` 13px → `--mrd-t-base`, `--sp-text-data` 12px → `--mrd-t-small` (**not** `--mrd-t-data`, which is 11.5px), `--sp-text-data-sm` 11.5px → `--mrd-t-data`; `--mrd-t-meta` and `--mrd-t-data-sm` **do not exist**. `--sp-radius-card` is 10px against `--mrd-r-card` 12px. Only `--sp-weight-strong` 600 → `--mrd-w-semi` is exact. Five more occurrences are unmapped by any rule: `--sp-line-soft` ×2 (a **raw rgba** at `ink.css:366` with a second light-ground declaration at 603, so it needs a genuine Meridian decision, not a find-and-replace), `--sp-eviq-rule`, `--sp-leading-row`, `--sp-font-mono`. **Where no `--mrd-*` fits, build it in `meridian.css` with its argument in the file. Never widen the baseline.** Note also that `.sp-check` and `.sp-block-more` live in `src/styles/primitives.css` (2115 and 139), not `ink.css`; `src/components/meridian/forms.tsx` exports `Checkbox` and `Input` and is the real target.
+
+**Acceptance.**
+- Every one of the 33 refs is either mapped to an existing `--mrd-*` or to a token newly built in `meridian.css` with its reasoning.
+- Spacing and radius changes are deliberate and listed in the build log with before/after px, not silent.
+- Card renders side by side with `main` in dev at the same width.
+- Baseline re-frozen lower.
+
+**Owns.** `src/components/plan/BetCard.tsx`, `src/styles/meridian.css`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-45 · `PlanPicker`**
+`STATUS: TODO` · deps: K-09 · size: S
+
+**What.** Swap the 27 inline `--sp-*` refs for Meridian tokens and move the five class names onto Meridian components: `sp-tabs`/`sp-tab` → `src/components/meridian/Tabs.tsx`, `sp-field-label` → Meridian `Field`, `sp-block-more` → `Region`'s `goTo`/`toggle` control face, and `sp-hint` → a Meridian equivalent.
+
+**Why.** 15th on the debt table at 32, mounted from two routes (`_authenticated.settings.tsx` and `_authenticated.admin.pricing.tsx`), pinned by `src/lib/entitlements.test.ts`, and its header at line 5 records the narrow true claim that makes it safe to work on offline: **"Driven by entitlements + billing-tier; no DB catalog dependency"** — plan definitions are not fetched from a table. The header also records the four things removed on the last port and why, so the port has a stated design floor.
+
+**How.** `sp-hint` resolves in **none** of `styles.css`, `ink.css`, `primitives.css` or `shell.css` — it is painting nothing today, so removing it is free and adding a Meridian equivalent is a new decision, not a port; the honest move is to delete it and say so. The other three (`sp-block-more` 139, `sp-field-label` 921, `sp-tabs` 1849 in `primitives.css`) **do** paint, so removing them changes rendering — compare in dev. Verify this file by **static source scan, not by rendering it**: `PlanPicker` imports `StripeEmbeddedCheckout`, which imports `createCheckoutSession`/`createTopUpCheckout` from `@/lib/payments.functions`, which pulls in `requireSupabaseAuth` and `supabaseAdmin`. Nothing in this port touches that import and no test mounts the component, but do not add one that does.
+
+**Acceptance.**
+- Zero `--sp-*` and zero `.sp-*` in the file.
+- Tabs answer ArrowLeft/ArrowRight/Home/End through `meridian/Tabs`, which already implements roving focus.
+- `entitlements.test.ts` green; no new test mounts the component.
+- Baseline re-frozen lower.
+
+**Owns.** `src/components/billing/PlanPicker.tsx`, `src/components/meridian/Tabs.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-46 · `AppFrame`: the six occurrences that are not the class-name argument**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** Swap the four `--sp-*` refs in the `KEYCAP` object at `src/components/shell/AppFrame.tsx:567` — `--sp-font-mono`→`--mrd-mono`, `--sp-text-kbd`→`--mrd-t-micro`, `--sp-weight-regular`→`--mrd-w-regular`, `--sp-radius-xs`→`--mrd-r-xs`. Then kill the two scanner artefacts: line 1620 renders the command glyph as the HTML entity `&#8984;`, whose `#8984` is what the raw-colour regex counts, so emit the literal glyph; line 1818 carries `key="sp-tier-rule"`, a React key matched by the `class:sp-` pattern — rename it.
+
+**Why.** The shell is the most-seen surface and `AppFrame` carries 63 occurrences, third-highest in the tree. Running the real scanner over it gives `{"--sp-":4,"class:sp-":58,"raw-colour":1}` — so **six of the 63 come off in one small, provably safe edit before anyone has to argue about the other 57**, which are the contested class-name layer this queue does not touch.
+
+**How.** Three of the four are exact: `--sp-font-mono` (`ink.css:85`) and `--sp-radius-xs` (`ink.css:222`) are literal `var()` aliases of the Meridian tokens, and `--sp-weight-regular` and `--mrd-w-regular` are both 400. **`--sp-text-kbd` is not an exact equivalence and must not be described as one**: `ink.css:105` is 11px, `meridian.css:534` `--mrd-t-micro` is 10.5px, and the exact-value match is `--mrd-t-tiny` at 11px. `--mrd-t-micro` is still the defensible choice on meaning — its own comment reads "keycaps, the quietest meta" — but it changes rendered keycap text from 11px to 10.5px. Make the call, state it as a deliberate semantic port in the build log, and screenshot the keycaps.
+
+**Acceptance.**
+- `AppFrame`'s baseline entry goes from `{"--sp-": 4, "class:sp-": 58, "raw-colour": 1}` to `{"class:sp-": 57}` via `bun run design:ratchet`.
+- The command glyph renders identically; the renamed React key does not change list identity or remount rows.
+- No `.sp-*` class name renamed anywhere in the diff.
+
+**Owns.** `src/components/shell/AppFrame.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+### Group H — Route ports
+
+1005 of the repo's occurrences sit in route files. These items take the densest of them. Every one carries the same closing step — `bun run design:ratchet`, baseline committed with the port — and the same hazard: **a `Button`→`Action` swap is never a pure rename**, because shell's `variant` union is `"default" | "primary" | "ghost"` and `ActionVariant` (`surface-parts.tsx:360`) is `"default" | "primary" | "quiet"`. Every `ghost` becomes `quiet`. Likewise `Value`'s tone union differs: shell has `quiet|pass|warn|fail|live`, Meridian has `quiet|pass|fail|hold|agent`, so every `warn` needs a semantic decision (usually `hold`) and every `live` one too (usually `agent`).
+
+---
+
+**K-47 · The two public money pages: `/pricing` and `/checkout`**
+`STATUS: TODO` · deps: none · size: M
+
+**What.** Replace every ink-era colour in `src/routes/pricing.tsx` and `src/routes/checkout.tsx` with `--mrd-*`: `var(--ink-subtle,#6b6457)`→`var(--mrd-mute)`, `var(--ink,#1f1b16)`→`var(--mrd-ink)`, `var(--paper,#f6f2ea)`→`var(--mrd-bg)`, `var(--hairline,rgba(0,0,0,0.09))`→`var(--mrd-line)`, `var(--canvas)`→ its Meridian ground, `var(--moss-success,#4f8a59)`→`var(--mrd-pass)`. Replace **all 13** `--ember` occurrences in `pricing.tsx` — lines 100, 101, 102 (the chip near the top), 367 and 370 (the recommended card's border and background tint), 392, 393, 394 (the tier-icon chip), 404 and 405 (the "Popular" badge, whose text is at 410), 627 and 629 (the primary CTA), and 732 — with `--mrd-solid` / `--mrd-you`. **Then delete the `inkTheme` object at `pricing.tsx:724-733` and its spread into the page root at line 745.**
+
+**Why.** 120 of the repo's 1005 route-file occurrences sit in these two files (`pricing.tsx` 83, `checkout.tsx` 37) and neither carries a single retired *component*, so this is pure colour work on the two pages a stranger sees before they pay. **The hex fallbacks are provably dead**: `src/styles.css:161` is a bare `:root` block defining `--paper`, `--ink`, `--ink-subtle` and `--hairline`, so `var(--paper, #f6f2ea)` can never reach its fallback — the parchment values have not painted anything since that block landed. And the ember usage contradicts a standing ruling: **ember stays in the logo and must not share a token with an interaction state.**
+
+**How.** The `inkTheme` object is the largest single cluster of raw hex in the file and the item is worthless without it: it declares `--paper:#0a0a0a`, `--canvas`, `--soft-stone`, `--ink`, `--ink-subtle`, `--ink-muted`, `--hairline`, `--ember:#FF6B2C` and `--moss-success` as literal hex. Note that its `--ember` is `#FF6B2C` while every consumer fallback in the same file is `#c2622e` or `#c2602e` — **the shim and its fallbacks already disagree**, which is the clearest possible evidence nobody can predict what these pages paint. Once the consumers read `--mrd-*`, the object is dead code; leaving it means the raw-colour count barely moves. `checkout.tsx` has **zero** `--ember` and **zero** `--moss-success` — it carries only `--ink-subtle` (9), `--ink` (5), `--paper` (4), `--hairline` (7). Keep the five SimpleIcons connector brand hexes at `pricing.tsx` lines 24, 31, 38, 45, 52 exactly as they are, and **name the gap in the build log**: Meridian has no escape hatch for a third-party brand mark, and the scanner's only exemption covers `--brand-mark-*` declarations in `styles.css`.
+
+**Acceptance.**
+- Zero `--ember`, `--paper`, `--ink*`, `--hairline`, `--canvas`, `--moss-success` in either file; `inkTheme` gone.
+- The five connector hexes remain, and the build log states the exemption gap.
+- Both pages screenshotted before and after in `bun run dev`, in both grounds.
+- Baseline re-frozen substantially lower on both.
+
+**Owns.** `src/routes/pricing.tsx`, `src/routes/checkout.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-48 · The public shared-decision page**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** In `src/routes/d.$slug.tsx` replace the ink-era palette with `--mrd-*`: `var(--paper,#f6f2ea)`→`var(--mrd-bg)` (61), `var(--ink,#1f1b16)`→`var(--mrd-ink)` (62), the three `var(--hairline,…)` borders (74, 107, 216)→`var(--mrd-line)`, `--ink-subtle` (113, 214, 244), `--ink-faint` (96, 148, 160, 225), `--ink-muted` (137, 233), and all **three** `var(--emerald,#2f8f6b)` sites — 49 in `STATUS`, plus 215 and 216 where it sets the "Still stands" chip and appears inside a `color-mix()` in a template-literal border. Map the `STATUS` table at 49–51 onto the status ladder: emerald→`--mrd-pass`, `var(--rose,#b4493f)`→`--mrd-fail`, pending's `--ink-faint`→`--mrd-hold`.
+
+**Why.** 22 occurrences in 261 lines — **the densest debt-per-line of any route**. It is also the clearest case of a page speaking two palettes at once: every fallback hex is parchment, while line 64 spreads `PUBLIC_INK_THEME`, which overrides `--paper` to `#0a0a0a`. The fallbacks are unreachable anyway (`src/styles.css:161`). And the `STATUS` map is the substantive part: **approved/rejected/pending is exactly the pass/fail/hold ladder Meridian already defines**, so it stops being three ad-hoc hexes on the one page an outsider is shown as evidence.
+
+**How.** **Do not collapse `--ink-subtle` and `--ink-muted` onto `--mrd-mute`.** The ink theme separates them deliberately (#a1a1aa vs #8f959e, re-pitched 2026-08-07 for WCAG AA) and Meridian has `--mrd-faint` available to preserve the ramp. On the `PUBLIC_INK_THEME` spread at line 64: **unspreading it is not covered by any gate here and needs a dev-server eyeball.** `inkTheme.ts` publishes sixteen custom properties onto the root, which cascade to `LandingBackdrop`, `SupaprodMark`, `PreSignupCTA` and the global `.bento`, `.btn btn-ghost btn-sm`, `.mono-label`, `.font-display` classes; eleven of those are never named in this route file, so "the page reads Meridian tokens directly" does not make the spread redundant. Removing it removes no literal, lowers no count, and tsc will not notice. **Four other surfaces share the constant** — `LegalPageShell.tsx:59`, `film.tsx:69`, `demo.tsx:417`, `proof.tsx:64`, `t.$slug.tsx:89` — so it must not be deleted, only unspread here, and only if the page still looks right.
+
+**Acceptance.**
+- Zero raw hex and zero ink-era token in the file.
+- Approved/rejected/pending read as pass/fail/hold and survive a greyscale check.
+- The page screenshotted before and after with the spread removed; if it regresses, the spread stays and the build log says so.
+- Baseline re-frozen lower.
+
+**Owns.** `src/routes/d.$slug.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-49 · Observability: status words become `Value` tones**
+`STATUS: TODO` · deps: none · size: M
+
+**What.** In `src/routes/_authenticated.admin.observability.tsx` replace the `shell/primitives` import at line 116: `Value`→`surface-parts.Value` (10), `Block`→`Region` (9), `Empty`→`NothingHere` (5), `Failed`→`ReadFailedLine` (3), `Loading`→`Reading` (3), `Switch`→`Toggle` (1). Convert the six inline status spans at lines 295, 338, 364, 529, 561, 613 — two of which are ternaries carrying both classes — into `<Value tone="hold">` and `<Value tone="fail">`. Swap the two `var(--sp-font-mono)` (528, 560) for `var(--mrd-mono)` and `var(--text-subtle)` at 784 for `var(--mrd-mute)`.
+
+**Why.** 43 occurrences, third-highest route file, and the cleanest demonstration of the hole the ratchet's own header describes: **this file carries only 3 token occurrences but 8 retired CSS class strings, all of them status words.** `sp-fail` and `sp-warn` are painted by `src/styles/primitives.css:275-279` off `--sp-fail`/`--sp-warn`, a retired layer whose end state is deletion. Meridian answers them exactly — `surface-parts.Value:1007` takes `quiet|pass|fail|hold|agent`, and **`hold` is precisely the amber "stopped, and not on you" meaning `sp-warn` was standing in for.**
+
+**How.** One call site is a judgement, not a rename: the `<Block>` at line 263 passes `more`/`onMore` (269–277). `Region` has no `more`/`onMore` — its header controls are `goTo`/`onGoTo` (navigates), `toggle`/`onToggle`/`toggled` (discloses, emits `aria-expanded`) and `act`/`onAct`/`acting` (dispatches work). That site is a "Show all N" / "Only what is wrong" **disclosure**, so it becomes `toggle`/`onToggle`/`toggled` and now owes an `aria-expanded` state it never had. tsc catches it if you miss it.
+
+**Acceptance.**
+- Zero `shell/primitives` and zero `sp-warn`/`sp-fail` in the file.
+- The disclosure control emits `aria-expanded` and answers Enter and Space.
+- Every converted span survives greyscale — hold and fail must not be distinguishable by hue alone.
+- Baseline re-frozen with all five markers at zero.
+
+**Owns.** `src/routes/_authenticated.admin.observability.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-50 · Threads: retire the hand-rolled context column**
+`STATUS: TODO` · deps: none · size: M
+
+**What.** In `src/routes/_authenticated.threads.tsx` replace the `shell/primitives` import at line 143: `Button`→`Action` (6), `Empty`→`NothingHere` (4), `Failed`→`ReadFailedLine` (4), `Block`→`Region` (2), `Input`→`forms.Input` (2), `Loading`→`Reading` (2), `PageHead`→`PageHeading` (1), `Switch`→`Toggle` (1), plus `Surface` and `Receipt` as import-line swaps. Replace the seven hand-written `sp-ctx-*` divs at 478–520 with `CtxHead`/`CtxRow`/`CtxBody` from `@/components/meridian/ContextColumn`. Map the ten `--sp-*` tokens, including **`--sp-body` at line 260**, which no prefix rule reaches.
+
+**Why.** 42 occurrences, fourth-highest. The interesting half is the 7 `sp-ctx` class strings: **this file reimplements the context column as raw divs** (`sp-ctx-head`, `sp-ctx-row`, `sp-ctx-name`, `sp-ctx-sub`, `sp-ctx-body`) rather than composing it, so the debt survives any component-level port — exactly the failure mode the ratchet's fourth-hole note records. `ContextColumn` already exports all three and is in use by 7 other routes, so the template is in-repo.
+
+**How.** There is **no "frozen count of 42"**: `meridian-ratchet.baseline.json:1014` is four independently ratcheted markers — `--sp-`: 10, `class:sp-`: 7, `import:shell/primitives`: 1, `usage:shell/primitives`: 24 — compared separately. A completed port takes all four to zero, which means `bun test` goes **red** with "GOOD NEWS, AND THE BASELINE IS NOW STALE" until you re-freeze. The route does not call `getConversation`; it imports `listThreads`, `getThread` and `searchConversations` from `@/lib/threads.functions` and binds them at 283–285 as `fetchThreads`, `fetchThread`, `runSearch`, so line 328 is `runSearch`. And `src/lib/ask-open.test.ts:58` reads this route as source text and requires the literals `"openAskConversation"` and `"Continue in Ask"` to survive the `Button`→`Action` swap.
+
+**Acceptance.**
+- All four baseline markers at zero and re-frozen.
+- The context column composes `CtxHead`/`CtxRow`/`CtxBody`; no `sp-ctx-*` string remains.
+- `--sp-body` mapped, not skipped.
+- `ask-open.test.ts` green.
+
+**Owns.** `src/routes/_authenticated.threads.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-51 · Trace detail: one query, four context blocks**
+`STATUS: TODO` · deps: none · size: M
+
+**What.** In `src/routes/_authenticated.traces.$traceId.tsx` replace line 133's import: `Button`→`Action` (4), `PageHead`→`PageHeading` (4), `Surface`→`meridian/Surface` (4), `Block`→`Region` (3), `CtxHead` (3), `CtxBody` (2), `CtxRow` (2) → `meridian/ContextColumn`, `Empty`→`NothingHere` (2), `Failed`→`ReadFailedLine` (2), `Loading`→`Reading` (1).
+
+**Why.** 28 occurrences with the simplest data shape of any route candidate: a **single** `useQuery(getTrace)` at line 466 and no mutations at all, so there is no write path to reason about. Its 7 context-column usages make it the natural pair to K-50, and `ContextColumn` is already in use by 7 routes so the target API is established rather than newly adopted. The file already imports `meridian/rows` and `meridian/marks` (120–121, 134), so half the vocabulary is present.
+
+**How.** Three of the four `Button` uses pass `variant="ghost"` (597, 614, 697) and must become `quiet`. `meridian/Surface` is a verbatim move of `primitives.Surface` — same markup, same class names, same props — so those four carry zero visual risk. This route still imports `CtxRow` from `shell/primitives`, so if K-70 has landed, the Meridian `CtxRow` it now uses renders a real `<button>` when given `onClick`; this route passes none, so nothing changes here.
+
+**Acceptance.**
+- Zero `shell/primitives` in the file; all four baseline markers at zero and re-frozen.
+- Every `ghost` is `quiet`; no `variant` string survives that `ActionVariant` does not name.
+- The trace detail page renders identically in dev against the same trace.
+
+**Owns.** `src/routes/_authenticated.traces.$traceId.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-52 · The two admin roster panes, ported together**
+`STATUS: TODO` · deps: none · size: M
+
+**What.** Port `src/routes/_authenticated.admin.people.tsx` and `src/routes/_authenticated.admin.workspaces.tsx` in one pass — they import the identical primitive set at lines 117 and 114. `Button`→`Action`, `Block`→`Region`, `Field`→`forms.Field`, `Input`→`forms.Input`, `Value`→`surface-parts.Value`, `Empty`→`NothingHere`, `Failed`→`ReadFailedLine`, `Loading`→`Reading`, `Select`→`Picker`, `Receipt`→`meridian/Receipt`. Replace the hand-rolled tablist at `people.tsx:147-160` (`sp-tabs` plus two `sp-tab` buttons with `role="tablist"`) with `meridian/Tabs`, and the two `sp-fail` spans — `people.tsx:258` and `workspaces.tsx:280` — with `<Value tone="fail">`.
+
+**Why.** 68 occurrences combined (41 + 27) across two files that are structurally the same surface — a debounced search list beside a detail pane — with the same ten-symbol import line, so porting them apart means solving the same mapping twice. **`people.tsx:147` is the concrete upgrade**: it hand-writes `role="tablist"` with two `sp-tab` buttons and no keyboard handling, while `meridian/Tabs.tsx:88-108` implements roving focus for ArrowLeft/ArrowRight/Home/End and is already used by 4 routes.
+
+**How.** Both files already import from `meridian` (`rows` for `Row`/`Line`, `surface-parts` for `Num`/`Actions`), so this **finishes a partial port rather than starting one** and `surface-parts` is an existing import line. Neither file uses a `tone=` prop anywhere today, so the divergent tone unions cause no collision — `fail` exists in both. `meridian/Receipt.tsx:64-81` has a parameter list identical to `primitives.tsx:452-469`, so that swap cannot regress.
+
+**Acceptance.**
+- Both files free of `shell/primitives`; `class:sp-` at zero on both (4 and 1 today).
+- The tablist answers ArrowLeft/ArrowRight/Home/End and moves focus, not just selection.
+- Baseline re-frozen with both entries lower (usage counts 36 and 25 → 0).
+
+**Owns.** `src/routes/_authenticated.admin.people.tsx`, `src/routes/_authenticated.admin.workspaces.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-53 · Admin pricing and the admin overview, ported as one**
+`STATUS: TODO` · deps: none · size: M
+
+**What.** Port `src/routes/_authenticated.admin.pricing.tsx` (import at 127) and `src/routes/_authenticated.admin.index.tsx` (import at 78) together. pricing: `Button`→`Action` (7), `Field`→`forms.Field` (5), `Input`→`forms.Input` (5), `Block`→`Region` (4), `Failed`→`ReadFailedLine` (3), `Checkbox`→`forms.Checkbox` (2), `Empty`→`NothingHere` (2), `Loading`→`Reading` (1), `Receipt`→`meridian/Receipt` (1). index: `Button`→`Action` (4), `Block`→`Region` (2), `Failed`→`ReadFailedLine` (2), `Loading`→`Reading` (2), `Empty`→`NothingHere` (1), `Field`→`forms.Field` (1), `Gate`→`meridian/Gate` (1), `Input`→`forms.Input` (1). Convert the six inline status spans (index 230, 235, 276, 339; pricing 379, 644) to `<Value tone>` and rewrite `checkClass` at `admin.index.tsx:98-99` — which literally returns the strings `"sp-fail"`/`"sp-warn"` — into a tone-returning helper.
+
+**Why.** 54 occurrences combined. **`checkClass` is worth calling out on its own: a helper that hands back the retired class name as a string means the retired vocabulary is being *computed* rather than written, and every call site inherits it.** Both files are the same admin form-and-status shape and both use only the plain `<Loading>` form. `meridian/Gate.tsx:52-67` has a parameter list identical to `primitives.tsx:360-371`, so that swap is an import-line edit.
+
+**How.** Two mappings need a decision. `admin.index.tsx:355` uses `<Button variant="ghost">` ("Retry the checks") → `quiet`. And **the Meridian tone union has no `warn`**: `GoLiveCheck["status"]` includes `warn` and `checkClass` maps it to `sp-warn`, so the new helper must map `warn`→`hold`. Note there are two exported `Value`s — `shell/primitives.tsx:942` *does* have a `warn` tone, and importing that one would defeat the whole port. Take the helper's return type to the Meridian tone union so the compiler enforces it.
+
+**Acceptance.**
+- `checkClass` returns a `Value` tone, not a class string, and its type is Meridian's union.
+- Zero `sp-*` class occurrences across the two files (8 today).
+- No `variant="ghost"` survives.
+- Baseline re-frozen lower on both.
+
+**Owns.** `src/routes/_authenticated.admin.pricing.tsx`, `src/routes/_authenticated.admin.index.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-54 · Admin platform: the proof that `meridian/forms` is complete**
+`STATUS: TODO` · deps: K-38 · size: M
+
+**What.** In `src/routes/_authenticated.admin.platform.tsx` swap the thirteen-symbol import at line 96: `Button`→`Action` (5), `Input`→`forms.Input` (5), `Failed`→`ReadFailedLine` (4), `Field`→`forms.Field` (4), `Block`→`Region` (3), `Loading`→`Reading` (3), `Empty`→`NothingHere` (2), `Select`→`Picker` (2), `Switch`→`Toggle` (2), `Checkbox`→`forms.Checkbox` (1), `Value`→`surface-parts.Value` (1), `Gate`→`meridian/Gate` (1), `Pre`→K-38's `Pre` (1). Swap the one `var(--sp-font-mono)` for `var(--mrd-mono)`.
+
+**Why.** 36 occurrences, and uniquely broad: **this one file exercises every control in the retired forms layer at once** — `Field`, `Input`, `Select`, `Switch`, `Checkbox` — so porting it is the strongest available check that `@/components/meridian/forms.tsx` and `surface-parts`' `Picker`/`Toggle` actually cover the surface area. If something is missing, it shows here first.
+
+**How.** Two traps. `forms.Field:123` makes `htmlFor` **required** where `primitives.Field:677` made it optional, so all four fields need real ids minted and bound. And line 425 is `<Button variant="ghost">` → `quiet`; a literal tag-name swap fails tsc there. The `<Pre>` is why this waits on K-38 — do not hand-roll a local `<pre>` to unblock yourself, and do not force the log through `CodeBlock`, whose `filename: string` plus pre-tokenised `lines: CodeToken[][]` shape is wrong for a raw deploy log.
+
+**Acceptance.**
+- All 13 symbols resolved to Meridian; four `htmlFor` ids minted and each pointing at a control that exists.
+- The deploy log renders through K-38's `Pre` with no local `<pre>` in the diff.
+- Baseline re-frozen with all markers at zero.
+
+**Owns.** `src/routes/_authenticated.admin.platform.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-55 · Sync: kill the two hand-written `sp-btn` controls**
+`STATUS: TODO` · deps: K-38 · size: M
+
+**What.** In `src/routes/_authenticated.sync.tsx` replace line 99's import: `Button`→`Action` (13), `Empty`→`NothingHere` (4), `Block`→`Region` (2), `Failed`→`ReadFailedLine` (2), `Loading`→`Reading` (2), `PageHead`→`PageHeading` (2), `Surface`→`meridian/Surface` (2), `Gate`→`meridian/Gate` (1), `Pre`→K-38's `Pre` (1). Then fix the two controls that skipped the component entirely: **line 278 is an anchor** — `<a className="sp-btn" data-variant="ghost" href={m.external_url} target="_blank" rel="noreferrer">Read both first</a>` — and line 304 is a `<Link className="sp-btn">`. Both need Meridian's `CONTROL_SHAPE` face; the anchor keeps `href`/`target`/`rel` and its `ghost` intent, not an `onClick` it never had.
+
+**Why.** 32 occurrences, and **`Button` alone is 13 of them — the highest single-symbol concentration in any route here**, which makes it the cheapest debt-per-decision port on the list. The two `sp-btn` strings are the interesting part: `.sp-btn` is defined in `src/styles/primitives.css:437`, a fully retired stylesheet, so **those two controls keep the old paint no matter how many components are swapped**.
+
+**How.** Seven sites use `variant="ghost"` (264, 269, 368, 375, 512, 521, plus the anchor's `data-variant`) and all become `quiet` — the "13, identical swap" framing understates the edit. `meridian/Surface` documents that it is a verbatim move of `primitives.Surface`, so those two carry zero visual risk. Note that with `Pre` present from K-38 the shell import can be deleted outright; if K-38 chose a different name for it, say so in the build log rather than leaving `import:shell/primitives` at 1.
+
+**Acceptance.**
+- Both `sp-btn` controls render through Meridian's control face, keyboard reachable with the Meridian focus ring, and the anchor still opens in a new tab with `rel="noreferrer"`.
+- No `variant="ghost"` survives; `import:shell/primitives` at zero.
+- Baseline re-frozen lower.
+
+**Owns.** `src/routes/_authenticated.sync.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-56 · Boundary: the first route adoption of `meridian/MoreMenu`**
+`STATUS: TODO` · deps: none · size: L
+
+**What.** `src/routes/_authenticated.boundary.tsx` already imports `meridian/Surface` at line 88; finish it by replacing line 87's `shell/primitives` import. `Block`→`Region` (8), `Empty`→`NothingHere` (4), `Input`→`forms.Input` (3), `MoreItem`→`meridian/MoreMenu.MoreItem` (3), `Value`→`surface-parts.Value` (3), `CtxBody`/`CtxHead`→`meridian/ContextColumn` (2 each), `Loading`→`Reading` (2), `PageHead`→`PageHeading` (2), `Failed`→`ReadFailedLine` (1), `MoreMenu`→`meridian/MoreMenu` (1), `Receipt`→`meridian/Receipt` (1).
+
+**Why.** 33 occurrences and a file that already proves the pattern works — a previous pass moved it onto `meridian/Surface` and stopped, leaving 32 usages of one retired import behind. That is the exact half-ported shape `meridian/Surface.tsx`'s own header documents (one shared judgement call held six finished surfaces on the retired layer). It is also **the only route that would put `@/components/meridian/MoreMenu` into the route tree for the first time**: the component exists and is exported, but `grep -rl meridian/MoreMenu src/routes/` returns zero, so its 4 usages here are the adoption test.
+
+**How.** Three swaps are not renames. (a) `Value`: the route passes `tone="warn"` at line 625 and `tone={o.tone}` at 209, where `outcomeLabel` returns `"warn"` for both the declined and expired outcomes — tsc errors until `warn` is remapped, most likely to `hold`. (b) `Block` at 186 and 610 passes `more`/`onMore`, which `Region` names `toggle`/`onToggle` and which additionally wants `toggled` to emit `aria-expanded`. (c) `MoreItem`'s prop is `onClick`, not `onSelect`; the shape is otherwise identical. One build hazard: `tool-override-insert-is-complete.test.ts` matches mutation blocks with `/useMutation\(\{[\s\S]*?\n  \}\);/` and asserts none lacks `onError`, so **reindenting a mutation while editing JSX can silently break that guard** — leave mutation blocks' indentation alone.
+
+**Acceptance.**
+- `import:shell/primitives` and `usage:shell/primitives` (32) both at zero.
+- `MoreMenu` renders from Meridian and its items answer keyboard.
+- `outcomeLabel`'s return type is Meridian's tone union, so the remap is compiler-enforced rather than spot-fixed.
+- `tool-override-insert-is-complete.test.ts` green; baseline re-frozen lower.
+
+**Owns.** `src/routes/_authenticated.boundary.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-57 · Take the Obsidian `Button` out of the two routes that still render one**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** `src/routes/_authenticated.admin.invites.tsx:59` and `src/routes/_authenticated.admin.tsx:50` both do `import { Button } from "@/components/obsidian"`. Replace both with `surface-parts.Action`, mapping obsidian's `variant="accent"` → `primary`, `variant="secondary"` → `default`, and its `loading` prop → `disabled={mutation.isPending}` — the pattern already used at `src/routes/_authenticated.crew.tsx:850,853`. **invites has two call sites, not one**: line 190 (`secondary`, already `disabled={revoke.isPending}`) and line 334 (`accent`, `loading={mint.isPending}`, `disabled={mint.isPending || !note.trim()}`); admin.tsx's is line 206. While there, finish invites' `shell/primitives` import at 58 (`Field`→`forms.Field` 4, `Input`→`forms.Input` 4, `Block`→`Region` 3, `Empty`→`NothingHere` 2, `Failed`→`ReadFailedLine` 1, `Loading`→`Reading` 1), the three `var(--sp-font-mono)` at 180/350/358 and `var(--text-body)`/`var(--text-primary)` at 347/351. In admin.tsx replace the eight `--text-*` and two `--hairline` occurrences (120, 134–144, 184, 191, 194, 210) and swap `PageHead`→`PageHeading`, `Surface`→`meridian/Surface`.
+
+**Why.** 34 occurrences across two small files (367 and 218 lines), and `admin.tsx:120-144` hand-draws a tab strip out of `--text-primary`/`--text-subtle` and a 2px border-bottom, which is what `meridian/Tabs` exists for.
+
+**How.** **Do not claim the route tree becomes obsidian-free.** `src/routes/_authenticated.runs.$missionId.tsx:230` still imports `TestStationPanel` from `@/components/obsidian/TestStationPanel`, and six components outside `src/routes/` still import the obsidian `Button`. Also: **the ratchet cannot see this eviction at all.** Both markers in `src/__tests__/meridian-ratchet-scan.ts` require a subpath — `import:components/obsidian` is `/from\s+["'](?:@\/components|\.{1,2}\/[^"']*)\/obsidian\/[^"']+["']/` at line 208, and `RETIRED_MODULES` uses `source: /\/obsidian\/[^/]+$/` at 248 — while both files import the **barrel** `"@/components/obsidian"`, which matches neither. That is why neither file carries an obsidian entry in the baseline. Verify the eviction with grep and say so; the ratchet will only confirm the `--sp-`/`--text-`/`--hairline`/shell-primitives drops. One real loss to record: obsidian's `Button` sets `aria-busy={true}` from `loading` (asserted in `src/components/obsidian/button-consolidation.test.tsx`) and `Action` has no equivalent, **so the busy announcement is dropped** — note it in the build log as a Meridian gap.
+
+**Acceptance.**
+- `grep -rn "components/obsidian" src/routes/` returns only the `TestStationPanel` import and the `chat.tsx` comment.
+- All three obsidian `Button` call sites render through `Action` with the right variant and a pending-disabled state.
+- The admin tab strip uses `meridian/Tabs` and answers arrow keys.
+- Baseline re-frozen lower on both files.
+
+**Owns.** `src/routes/_authenticated.admin.invites.tsx`, `src/routes/_authenticated.admin.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-58 · Settings: the largest single block of route debt**
+`STATUS: TODO` · deps: K-38 · size: L
+
+**What.** Swap the one `@/components/shell/primitives` import at **`src/routes/_authenticated.settings.tsx:241`** for Meridian equivalents and rename the call sites: `Button`→`Action` (21), `PageHead`→`PageHeading` (17), `Block`→`Region` (15, `more`/`onMore` → `goTo`/`onGoTo`), `Empty`→`NothingHere` (10), `Input`→`forms.Input` (9), `Loading`→`Reading` (9), `Failed`→`ReadFailedLine` (8), `Field`→`forms.Field` (4), `Select`→`Picker` (3), `Textarea`→`forms.Textarea` (2). Map the 34 `--sp-*` tokens (`--sp-ink`/`--sp-mute`→`--mrd-ink`/`--mrd-mute`, `--sp-space-N`→`--mrd-sN`, `--sp-text-*`→`--mrd-t-*`, `--sp-font-mono`→`--mrd-mono`, `--sp-radius-card`→`--mrd-r-card`, `--sp-line`→`--mrd-line`, `--sp-lift`→`--mrd-lift`) and the 9 `sp-` class strings: `sp-pass`/`sp-fail`/`sp-warn` become `<Value tone="pass|fail|hold">`.
+
+**Why.** 142 occurrences — **the single biggest route file in the baseline, 14% of all route debt and 59 more than the next file.** It is also already half-Meridian: it imports `meridian/rows`, `meridian/surface-parts`, `meridian/SidebarNav`, `meridian/AgentCards` and `meridian/NeedsSetup` at lines 159–214, and `src/routes/__tests__/settings-nav-is-meridian.test.ts` already pins part of it. The remaining 98 shell/primitives usages are the last thing holding a mostly-ported surface on the retired layer.
+
+**How.** **The `<Surface>` swap is not a drop-in at the page body, and doing it as written breaks a shipped test.** There are two hand-rolled `sp-inner`/`sp-main` pairs: 293–294 (inside `errorComponent`) and 496/512 (the page body). `src/components/meridian/Surface.tsx` accepts only `{children, context, wide}` and renders `<div className="sp-inner"><div className={wide ? "sp-wide" : "sp-main"}>` with **no prop pass-through**, while the body pair carries `id={PANE_ID}`, `tabIndex={-1}` and inline styles (`display:flex`, `flexWrap:wrap`, `gap: var(--sp-space-6) var(--sp-ctx-gap)`, `flex: 1 1 460px`). `settings-nav-is-meridian.test.ts:67` asserts `ships("id={PANE_ID}")` and `:63` asserts the skip link, so a naive swap kills the skip link and the test. **Only the `errorComponent` pair is a clean `<Surface>`**; the body either needs an extended `Surface` (a real Meridian gap, argued in the file) or keeps its hand-rolled divs. Two tokens are unmapped by the table above and are live code, not comments: `--sp-ctx-gap` (501) and `--sp-weight-medium` (2657) — if no `--mrd-*` fits, build it in Meridian. All nine `<Loading>` sites (729, 1067, 1346, 1904, 2162, 2327, 2554, 2601, 2729) use the plain form with no `working` prop, so that one **is** a literal rename. `Button`'s `icon` prop (`primitives.tsx:406-410`) has no counterpart on `Action` (`surface-parts.tsx:402-412`), but this route never passes it — the only "icon" hit, line 807, is in a comment — so it is a heads-up for other files, not a blocker here.
+
+**Acceptance.**
+- `settings-nav-is-meridian.test.ts` green **unmodified**, skip link included.
+- `--sp-ctx-gap` and `--sp-weight-medium` both resolved, either mapped or newly built in `meridian.css` with their argument.
+- All three status classes replaced by `Value` tones, greyscale-safe.
+- Baseline re-frozen lower; no marker left standing.
+
+**Owns.** `src/routes/_authenticated.settings.tsx`, `src/styles/meridian.css`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-59 · Today, together with the stylesheet that paints it**
+`STATUS: TODO` · deps: K-34 · size: L
+
+**What.** Port `src/routes/_authenticated.today.tsx` and `src/styles/today.css` as one unit, because `today.tsx:39` imports the sheet. Route: `Failed`→`ReadFailedLine` (6), `Block`→`Region` (5), `Button`→`Action` (4), `Loading`→`Reading` (3), `PageHead`→`PageHeading` (3), `Surface`→`meridian/Surface` (3), `Empty`→`NothingHere` (1), `Receipt`→`meridian/Receipt` (1), `Value`→`surface-parts.Value` (1). Stylesheet: remap the remaining `--sp-*` declarations to `--mrd-*`. Port `src/routes/__tests__/today-states-its-wait.test.ts` in the same commit.
+
+**Why.** The largest unit in the queue at 223 occurrences (29 route, 194 stylesheet), second only to `styles.css` and `primitives.css` across the whole baseline. Porting the route alone is **the exact failure the ratchet's third-hole note warns about — "a port that swaps components and leaves the paint behind moves the debt rather than clearing it"** — and `today.css` is 810 lines that only this route loads, so it can go in the same commit with no blast radius.
+
+**How.** **Do not add `onClick` and `title` to `RecordSpeaks`. That design has been ruled against twice, on the record.** `src/routes/_authenticated.decide.tsx:2955-2965` states it verbatim: "The retired `Record` took an `onClick` and a `title` and made the WHOLE recess clickable, which is how this surface's one checkable claim ended up with an affordance nobody could see: a paragraph that happens to be a button announces nothing and looks like prose. Meridian's `RecordSpeaks` deliberately has no onClick." `DiscoverSurface.tsx:2885` repeats it and `surface-parts.tsx:900-913` gives the reason. `decide.tsx` shows the sanctioned port for exactly this shape: `<RecordSpeaks>` with a named `<Door>` underneath that names the destination — and `today.tsx` already imports `Door` at line 2. So `today.tsx:1181` becomes RecordSpeaks-plus-Door, `surface-parts.tsx` is **not** in `Owns`, and 10+ existing `RecordSpeaks` call sites stay as they are.
+
+Second: `today-states-its-wait.test.ts` pins the literal component spellings — `<Loading` at L98 and L119, `jsx.indexOf("<Loading>Reading what it learned.</Loading>")` at L182 and L197, `<Block title` at L199. `Loading`→`Reading` and `Block`→`Region` break all of them. **Re-pin the test to the property, not the new spelling**, so the next rename does not repeat this. Third: `today.tsx:328` passes `variant="ghost"` → `quiet`, and `today.tsx:357` passes `more`/`onMore` → `goTo`/`onGoTo`. Fourth: the stylesheet is a semantic remap, not a prefix swap — of the 43 distinct `--sp-*` tokens in `today.css` only 8 have a same-named `--mrd-` twin, and at least four have **no Meridian equivalent at all**: `--sp-space-9` (`meridian.css` stops at `--mrd-s8`), `--sp-stage-discover`, `--sp-stage-decide`, and `--sp-warn` (nearest is `--mrd-hold`). Those are gaps to build in `meridian.css`, each with its argument in the file.
+
+**Acceptance.**
+- `today.css` carries no `--sp-*`; every gap is a new `--mrd-*` token with its reasoning, not a widened baseline.
+- `today-states-its-wait.test.ts` asserts the wait behaviour, names no component spelling, and still fails if a read renders without stating its wait.
+- No `onClick` or `title` added to `RecordSpeaks`; the record's action sits in a `Door` beneath it.
+- `/today` screenshotted before and after in both grounds.
+- Baseline re-frozen lower on both files.
+
+**Owns.** `src/routes/_authenticated.today.tsx`, `src/styles/today.css`, `src/routes/__tests__/today-states-its-wait.test.ts`, `src/styles/meridian.css`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+### Group I — The status vocabulary, and the guards that missed it
+
+`agent_runs.status` and `missions.status` are different vocabularies that look alike, and **every defect below is a reader keying on a word its writer never writes, or a writer's word no reader knows.** K-12 builds the canonical type. These items fix the specific readers, and pin them.
+
+A standing distinction for the whole group, because it is the thing that has repeatedly gone wrong: `complete` is an **agent_runs** status (`src/lib/agents.functions.ts:211`). `planning`, `blocked`, `shipped` and `draft` are **missions** statuses. `skipped` is a **mission_steps** status. `waiting_approval` is a run status; the mission-table gate value is `blocked` — `src/components/obsidian/build-status.test.ts:35` says so in as many words.
+
+---
+
+**K-60 · `runBucket` is blind to 41% of runs**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** Add `halted → "failed"` and `waiting_approval → "queued"` to `RUN_STATE` in `src/lib/agent-fleet.ts`, and add a case per key to `src/lib/agent-fleet.test.ts`, which names neither today. Then delete the special-case `bucketOf()` at `src/lib/crew.functions.ts:161-166` and its comment, which claims `runBucket` "does not carry" `complete` — `agent-fleet.ts:77` has carried it since.
+
+**Why.** `RUN_STATE` has keys for neither `halted` nor `waiting_approval`, so `runBucket()` returns `"other"` for them. `computeAgentFleet` still does `total += 1` at line 145 but never increments `running`/`queued`/`done`/`failed`, so **`FleetAgent.total` stops reconciling with its own four tallies** and `summary.withExceptions` misses every halted run. The file's own comment at 73–76 explains that a missing key made runs "uncounted as finished wherever the fleet model is read" — **that fix landed on the 2-run `complete` case and left the rest of the table half-filled.** `src/lib/crew.functions.ts:45` imports `runBucket`, so the hole is in the crew tallies too, and the local `bucketOf` wrapper is now dead code whose comment states something false about the module it wraps.
+
+**How.** **Do not add `blocked` or `skipped`.** Neither is an `agent_runs` status — `src/components/runs/run-state.ts:22-27` says `blocked` is the mission table's word, and `skipped` is a `mission_steps` value — so both would be dead keys, and a test asserting `runBucket("blocked") === "queued"` is a tautology proving nothing. **And `completed_with_failures` is explicitly out of scope for this item.** It is the 452-run case and it is genuinely contested in the repo: six sites treat it as stopped (`AgentRosterPanel.tsx:81`, `AgentInspector.tsx:58`, `run-state.ts:32`, `obsidian/build-status.ts:31`, `ask-blocks.server.ts:290`, and `mission-advance.server.ts`, which deliberately excludes it from `RUN_SUCCESS_STATUSES`), two treat it as delivered (`credit-policy.ts:161`, `run-analytics.ts:74`). Because `computeAgentFleet`'s `failed` tally drives `withExceptions` — the supervise-by-exception signal — bucketing it either way makes the fleet view contradict the governance roster over the same rows. **Flag it in §4 Blocked for a ruling; do not decide it in a port.**
+
+**Acceptance.**
+- `runBucket("halted")` and `runBucket("waiting_approval")` return a real bucket, each with its own test case.
+- `bucketOf` and its comment gone from `crew.functions.ts`; crew tallies unchanged in output.
+- `completed_with_failures` untouched, with a §4 Blocked line naming the two camps and the six/two split.
+
+**Owns.** `src/lib/agent-fleet.ts`, `src/lib/agent-fleet.test.ts`, `src/lib/crew.functions.ts`
+
+---
+
+**K-61 · The delegate desk files finished missions under Queued**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** Add `halted: "attention"` to `STATUS_TO_LANE` in `src/lib/delegate-desk.ts` (80–118), add `complete` to `STEP_DONE` (line 128), and extend `src/lib/delegate-desk.test.ts` with a case for each.
+
+**Why.** `laneForStatus` (line 123) falls to `DEFAULT_LANE = "awaiting"` for any unknown status, and "awaiting" is labelled **"Queued — Handed off, waiting to start"** (`LANE_META`, line 72), so a halted mission reads as not yet started. And `STEP_DONE` has `completed`/`done` but not `complete`, so **every step finished through `src/lib/agents.functions.ts:211` understates `missionProgress`** — which `src/components/shell/BoardPanel.tsx:75` renders as a percentage. A progress bar that under-reports is worse than no bar.
+
+**How.** Three of the four keys that look obviously missing must **not** be added to `STATUS_TO_LANE`. `complete` is an `agent_runs` status, so it belongs in `STEP_DONE` (load-bearing: the step strip falls back to `agent_runs` rows when a mission has no `mission_steps`) and is inert in the lane map. `waiting_approval` is not a mission status either — `src/lib/reliability/gate-state.ts:5-11` records that the loop "marks the RUN `waiting_approval` without touching the parent mission", and the gate-sync reconciler writes `missions.status='blocked'`, which is **already** mapped to `needsYou` at line 84, so adding it would commit the exact defect K-63 exists to fix. `completed_with_failures` is contested — the attention lane's own blurb is "Stopped early. Failed or cancelled.", so routing a partly-failed mission to "Done. Finished." over-claims. Leave it, and reference K-60's §4 Blocked line.
+
+**Acceptance.**
+- A halted mission lands in `attention`, not `awaiting`, with a test.
+- `missionProgress` counts a step finished as `complete`, with a test.
+- No key added for a status that no mission writer produces.
+
+**Owns.** `src/lib/delegate-desk.ts`, `src/lib/delegate-desk.test.ts`
+
+---
+
+**K-62 · Terminal statuses the runaway detector calls active**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** Add `halted` and `completed_with_failures` to `TERMINAL_STATUSES` in `src/lib/reliability/runaway.ts:66`, add a case per status to `src/lib/reliability/runaway.test.ts` asserting severity `"watch"` rather than `"runaway"` for a breached-but-finished mission, and correct `docs/features/runaway-detection.md`, which documents terminal as "(done/failed/cancelled)".
+
+**Why.** Line 66 is `new Set(["done","completed","failed","cancelled","canceled"])` under the comment "Anything not listed is treated as ACTIVE", and line 72 defines the consequence: **"runaway = breached AND still active (actionable now); watch = breached but terminal (post-hoc)."** So a mission that breached a spend or hop ceiling and then halted is escalated as **actionable-now forever** instead of settling to post-hoc watch. This is the false-alarm generator sitting inside the mechanism whose whole job is to tell an operator what needs them now.
+
+**How.** **Do not add `complete`.** The only writer of the singular form is `src/lib/agents.functions.ts:211`, which updates `agent_runs`, not `missions`; every mission-terminal list in the repo uses `completed` (`missions.functions.ts:615`, `build/native.server.ts:93`, `MissionOrchestratorDetail.tsx:929`). Adding it is unevidenced and cuts against the file's own "anything not listed is ACTIVE, fail loud toward visibility" design note. This is `completed_with_failures`'s one uncontested reading: whatever bucket it belongs in for the fleet model, it is unambiguously **finished**, so it cannot be actionable-now. Note that the doc already misstates the suite size as "18 cases" when it is 22, which shows `docs:check` does not enforce it — fix both while you are there.
+
+**Acceptance.**
+- A breached mission at `halted` or `completed_with_failures` returns `watch`, each with a test.
+- `complete` not added.
+- `runaway-detection.md` names the real terminal set and the real suite size; `bun run docs:check` clean.
+
+**Owns.** `src/lib/reliability/runaway.ts`, `src/lib/reliability/runaway.test.ts`, `docs/features/runaway-detection.md`
+
+---
+
+**K-63 · The ghost status `awaiting_approval`, and the mission words leaking into run readers**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** Replace `LIVE_STATUS` at `src/components/governance/AgentRosterPanel.tsx:80` with the canonical set that already exists at `src/lib/governance.functions.ts:349` — `LIVE_RUN_STATUSES = new Set(["queued", "running", "waiting_approval"])` — importing it rather than re-declaring. Fix `src/components/cockpit/AgentInspector.tsx:43` and `:57` the same way, including the `status === "running" || status === "planning"` branch at 56. **Delete** the dead `awaiting_approval` key from `STATUS_TO_LANE` in `src/lib/delegate-desk.ts:86` and add nothing in its place. Then add a guard test asserting that every status string a reader keys on is one a writer writes **to that same column**.
+
+**Why.** `awaiting_approval` has **four occurrences across `src/` and `supabase/`, and all four are readers.** There is no writer anywhere: the only status written for a gate is `waiting_approval` (`src/lib/ai/loop.server.ts:1429`). Consequence: `AgentRosterPanel`'s `stateFor` (148–154) can never return `"running"` for a gated run, so **an agent waiting on the user wears the idle mark** — the exact opposite of the one signal the roster exists to give. `AgentInspector`'s `runStatusLabel` never prints "Waiting on a decision from you" and falls through to the raw column value. And `LIVE_STATUS` carries a **second** ghost: `planning` is a mission status and a tool category, never an `agent_runs` value, while the set omits the real live values `queued` and `dispatched`.
+
+**How.** **The guard test must be scoped per column or it has no teeth on the defect it exists to catch.** "Every status a reader keys on is one some writer writes" passes trivially against the union of all vocabularies — `planning` *is* written, just to `missions.status`. Build three sets (run status, mission status, step status) from the writers, and assert each reader against the right one. And on `delegate-desk.ts:86`: deleting the dead key is correct, but **adding `waiting_approval` there would introduce a key no mission writer ever produces** — `STATUS_TO_LANE` maps mission status, and the existing `blocked: "needsYou"` already covers the mission gate.
+
+**Acceptance.**
+- `grep -rn awaiting_approval src/ supabase/` returns nothing.
+- A gated run renders as live on the roster and prints its "waiting on a decision from you" label in the inspector.
+- The guard fails if a reader keys on a word written only to a different column, proved by planting `planning` back into a run-status set.
+- No mission-status map gains a run-status key.
+
+**Owns.** `src/components/governance/AgentRosterPanel.tsx`, `src/components/cockpit/AgentInspector.tsx`, `src/lib/delegate-desk.ts`, `src/lib/__tests__/status-vocabulary-per-column.test.ts`
+
+---
+
+**K-64 · Two of the four normalisers have no tests, and three of the four disagree**
+`STATUS: TODO` · deps: K-12, K-60 · size: M
+
+**What.** Write `src/lib/__tests__/one-run-status-vocabulary.test.ts`. Build one table of every spelling the repo writes or reads — `complete`, `completed`, `completed_with_failures`, `done`, `succeeded`, `failed`, `halted`, `cancelled`, `running`, `queued`, `waiting_approval`, `blocked`, `proposed` — and drive all four normalisers over it: `runState` (`src/components/runs/run-state.ts:34`), `runBucket` (`src/lib/agent-fleet.ts:91`), `classifyRunOutcome` (`src/lib/run-analytics.ts:69`), `taskStatus` (`src/components/meridian/TaskRows.tsx:103`). Assert the three things they must agree on — which spellings are **terminal**, which are **successful**, which mean **a person is required** — then fix the two branches that are wrong and pin `taskStatus`'s not-yet-started case explicitly.
+
+**Why.** Three of the four disagree, and each was measured by running it.
+
+**`runState("complete") === "queued"`.** Line 42 tests `status === "completed" || status === "done"` and never the singular, which `src/lib/agents.functions.ts:211` writes on the single-agent happy path. So a finished run reads **Queued** in both the Runs list and the Runs board — and `run-state.ts`'s own header says the failure mode it exists to prevent is "a run reads Working in the list and sits under Done on the board, which destroys trust in both at once." `runBucket` and `classifyRunOutcome` both get it right; this file is the only one that does not.
+
+**`classifyRunOutcome("cancelled") === null`**, i.e. still in flight. `run-analytics.test.ts:45-47` pins `running`, `waiting_approval` and `null` as in-flight and never tests `cancelled`. `agent-fleet.ts:83` maps it to `failed`, `run-state.ts:31` to `stopped`. **A cancelled run is dropped from every station success rate forever.**
+
+**`taskStatus` has zero tests** — grep returns three non-file callers and no test file. Its `default: return "blocked"` (`TaskRows.tsx:122`) sends `queued`, `proposed` and `pending` to the label "Waiting on you" in `--mrd-you`, **the hue reserved for a person being required**, and `proposed` is the majority mission state.
+
+**How.** The strongest evidence these are known-incomplete is that call sites already patch around them: `src/components/today/RunState.tsx:86-90` wraps `taskStatus` in a `STOPPED` map for `cancelled`/`halted` with a comment saying both were arriving as "waiting on you, in ORCHID". **Each fix was applied at one caller and never at the mapping, which is how the next caller inherits the bug** — so fix the mapping, then check whether the wrapper is still needed and say so. K-60 removes the same pattern in `crew.functions.ts`; do not re-add it. Note `run-state.ts` value-imports `agentDisplayName`/`agentRelayVerb` and `run-analytics.ts` imports `agentStation`, both from `@/lib/agent-vocabulary` — that chain bottoms out at `@/lib/ai/tools/defaults` with zero imports, so the whole test stays pure, but do not assume it: assert it.
+
+**Acceptance.**
+- One table, four normalisers, three agreement assertions, offending spellings printed by name rather than counted.
+- `runState("complete")` is terminal; `classifyRunOutcome("cancelled")` is not in-flight.
+- `taskStatus` has a not-yet-started case that is not `blocked` and does not wear `--mrd-you`.
+- The test imports nothing from a `.server.ts` and does no I/O.
+
+**Owns.** `src/lib/__tests__/one-run-status-vocabulary.test.ts`, `src/components/runs/run-state.ts`, `src/components/meridian/TaskRows.tsx`, `src/lib/run-analytics.ts`, `src/lib/run-analytics.test.ts`, `src/components/runs/run-state.test.ts`, `src/components/today/RunState.tsx`
+
+---
+
+**K-65 · Seven copies of `initialsFrom`**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** Move `initialsFrom` into its own pure module under `src/lib` and import it from the seven call sites: `src/components/memory/MemoryReviewQueue.tsx:83`, `src/components/ask/AskPane.tsx:150`, `src/components/knowledge/DecisionsPanel.tsx:154`, `src/components/engine-room/rooms/ReceiptsPanel.tsx:107`, `src/routes/_authenticated.threads.tsx:196`, `src/routes/_authenticated.runs.$missionId.tsx:400`, `src/components/shell/AppFrame.tsx:586`. Widen the signature to the `AppFrame` variant, the only one that accepts `undefined`.
+
+**Why.** Seven non-test files carry a byte-identical seven-line body, and `src/routes/_authenticated.settings.tsx:813` carries a comment pointing at the `AppFrame` copy as the reference — **a cross-file dependency held together by prose.** `ReceiptsPanel.tsx:105-106` states the invariant that makes the duplication a real risk rather than mere untidiness: "Your initials, derived the same way the app header derives them, so the disc on a receipt you settled is the same disc you see in the corner." Seven copies is seven chances for that to stop being true silently.
+
+**How.** Give it a dedicated file rather than co-locating in `src/lib/agent-vocabulary.ts`: that module imports `TOOL_DEFAULTS` from `@/lib/ai/tools/defaults`, and while `AppFrame`, `threads.tsx`, `runs.$missionId.tsx` and `ReceiptsPanel` already import it, `AskPane`, `MemoryReviewQueue` and `DecisionsPanel` do not — co-locating adds a module edge to three files for no reason. Move the doc comment with the function. `ReceiptsPanel.tsx` is not in the baseline at all, so it is governed by ratchet **rule 1** (a file the baseline has never seen must be born clean), not rule 2 — do not introduce a token there.
+
+**Acceptance.**
+- One definition; seven importers; the `settings.tsx` comment updated to name the module instead of a file it does not import.
+- Signature accepts `undefined`; every call site compiles unchanged otherwise.
+- No new debt in any touched file; `bun test` green.
+
+**Owns.** `src/lib/initials.ts`, `src/components/shell/AppFrame.tsx`, `src/components/ask/AskPane.tsx`, `src/components/memory/MemoryReviewQueue.tsx`, `src/components/knowledge/DecisionsPanel.tsx`, `src/components/engine-room/rooms/ReceiptsPanel.tsx`, `src/routes/_authenticated.threads.tsx`, `src/routes/_authenticated.runs.$missionId.tsx`
+
+---
+
+**K-66 · A declared default must survive the runtime**
+`STATUS: TODO` · deps: K-11 · size: M
+
+**What.** Write `src/lib/ai/tools/a-declared-default-must-survive-the-runtime.test.ts` with three assertions, each proved by planting the defect — delete one catalogue row and watch it go red.
+
+**(a) Declared auto must resolve auto.** For every `TOOL_DEFAULTS` entry with `mode: "auto"`, assert `resolveToolMode(name, "auto", "ambient", false) === "auto"`. **Print the offending names, not a count** — knowing which tool needs a row is the whole work of fixing it.
+**(b) Declared confirm/review must be able to reach the gate.** For every entry whose mode is not `auto`, assert its `TOOL_REGISTRY` category is one the loop's approval branch admits (`write` | `planning`), or that it is a named control-flow exemption.
+**(c) A risk cap must not block reads while permitting writes.** Assert `filterToolsByRisk(allTools, "low").allowed` contains the core read tools (`workspace.search`, `repo.read`, `signals.list`) and is not composed exclusively of write-category tools.
+
+Add a floor test (`Object.keys(TOOL_DEFAULTS).length > 40`) so an emptied registry cannot make the loops pass vacuously — the convention `every-tool-can-be-named.test.ts` and `tool-consequences.test.ts` already use.
+
+**Why.** Measured by running it: **18 tools declare `mode: "auto"` and resolve to `confirm` on `ambient`, the most permissive arc.** `CONSEQUENCES` holds 42 keys against `TOOL_DEFAULTS`'s 59; `toolRisk` (`src/lib/tool-consequences.ts:391`) fails closed to `high`; `resolveToolMode` (`src/lib/ai/loop.server.ts:186-192`) demotes high+auto to `confirm`. So `cluster.trigger`, set to `auto` on 2026-08-03 with a fifteen-line argument at `src/lib/ai/tools/defaults.ts:107-121`, queues an approval anyway. **The existing guard cannot see any of this**: `src/lib/tool-consequences.test.ts:187` scopes itself to `d.mode !== "auto"` on purpose, so all 18 are outside it by construction.
+
+**The cap inversion is the sharpest of the three and is documented nowhere.** `filterToolsByRisk(all, "low")` returns 24 tools **and every one is a write** — `decision.record`, `prd.draft`, `tasks.create`, `studio.stage`, `memory.promote` — while blocking `workspace.search`, `signals.list`, `repo.read`, `web.search`, `sources.status`. **A risk cap tightens an agent by removing its ability to read and keeping its ability to write.** `src/lib/tool-consequences.ts:74-78` predicts exactly this failure in its own comment and nothing checks it. (b) is the same root cause running the other way: `memory.promote` declares `mode: "confirm"` at `defaults.ts:189` and runs unattended, because `isWrite` at `loop.server.ts:1379` is `category === "write" || category === "planning"` and its category is `memory`.
+
+**How.** `CONSEQUENCES` (`tool-consequences.ts:21`) and `RISK_PROFILE` (:498) are **module-private**, so the test must go through the public surface: `CATALOGUED_TOOLS` (:888), `PROFILED_TOOLS` (:889), `toolConsequence`, `toolRiskProfile`, `toolRisk`, `filterToolsByRisk`. **(a) and (c) are red on a clean tree and go green only because K-11 filled the catalogue** — that is the dependency, and it is why this item comes second rather than being folded into K-11. (b) yields exactly two offenders on the current tree, `memory.promote` (category `memory`) and `web.crawl` (category `read`); decide whether each is a named exemption or a category correction and say which in the build log.
+
+**Acceptance.**
+- Three assertions plus the floor test; each proved red by planting the defect, with the planting described in the build log.
+- Offending tool names printed, never counted.
+- Test imports only the public surface of `tool-consequences.ts`.
+- Green on the post-K-11 tree.
+
+**Owns.** `src/lib/ai/tools/a-declared-default-must-survive-the-runtime.test.ts`
+
+---
+
+**K-67 · Every nav door resolves to a route file**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** Add cases to `src/lib/nav-model.test.ts` asserting that every `to` in `PRIMARY_NAV`, `FOOTER_NAV` and `ENGINE_ROOM_PATHS` resolves to a route file on disk.
+
+**Why.** All 18 nav paths resolve today — this is a ratchet, not a fix, and it is worth saying so plainly. `nav-model.test.ts:152-161` spot-checks exactly **two** of them (`/runs`, `/crew`), so the other 16 are unguarded and currently correct. `AGENTS.md` §4 names "a capability with no door" as the dominant defect in this repo, and the inverse — a door onto nothing — is the failure that ships a 404 in the primary rail. **The measured cleanliness is the argument for pinning it now**: the list is short today and will not be short after the next feature.
+
+**How.** **Do not write a new authenticated-route inventory file.** That work already exists: `src/lib/__tests__/route-inventory.test.ts` covers the authenticated half, added 2026-07-30 after the Artifacts incident, and already defines `AUTH_EXEMPT` (with written reasons for `/start`, `/onboarding`, `/m`, `/meridian`), `RETIRED_LINKERS` so a link from dead chrome does not count, `isRedirectStub()`, `authRouteFiles()` and `authRoutePath()`, and generates one test per non-stub non-exempt authenticated route. Adding a second file creates a second `EXEMPT` list that will drift from the first. If you need its redirect-stub rule, copy the one it uses — `content.includes("throw redirect") && content.split("\n").length < 45` — and not a line-count heuristic; files containing `redirect(` span 8 to 94 lines continuously, so there is no gap to split on.
+
+**Acceptance.**
+- One case per nav constant, failing with the offending `to` value named.
+- No new inventory test file; no second exemption list.
+- Green on the current tree, and red if a nav entry is pointed at a path with no route file.
+
+**Owns.** `src/lib/nav-model.test.ts`
+
+---
+
+### Group J — States, focus, and the two surfaces every failure lands on
+
+`DESIGN-SYSTEM.md:128` names seven states — "Empty, partial, failed, denied, very long, very short, slow" — **each one composed, not merely handled.** Meridian composes four. These items close two of the gaps and fix three surfaces that left the system entirely.
+
+---
+
+**K-68 · The app's two universal failure surfaces render entirely outside Meridian**
+`STATUS: TODO` · deps: K-09 · size: M
+
+**What.** Port `AuthedError` (`_authenticated.tsx:95-135`) and `AuthedNotFound` (`:137-156`), and the root `NotFoundComponent` (`__root.tsx:48-81`) and `ErrorComponent` (`:83-118`), onto Meridian: rebuild them from `ReadFailed`/`NothingHere` plus `Action`, put `data-mrd=""` on each root, and delete `fallbackWrap` (`_authenticated.tsx:83-93`) and `BoundaryShell` (`__root.tsx:24`).
+
+**Why.** Four early returns rendering outside the design system, and **every one of them is a failed read or an empty workspace at the highest-traffic point in the product.** They were missed by every early-return sweep because they are route **options** (`errorComponent:`), not `return` statements in a component body. `_authenticated.tsx:79-80` is the error and notFound boundary for all 94 authenticated routes; `__root.tsx:294-295` is the boundary for all 112. Measured: `_authenticated.tsx` carries 17 retired occurrences (`--text-` 5, `--hairline` 1, `data-obsidian` 5, `class:sp-` 1, raw-colour 5) and `__root.tsx` 10 (`--ds-` 1, `--text-` 6, `--font-pixel` 1, `data-obsidian` 1, raw-colour 1) — **27 across three retired systems.** Concretely: raw hex `#C6C0B8` at 102/127/140 and `#A39D94` at 111/147; `--hairline` at 125, banned by name on 2026-08-18; `var(--font-pixel)` and `var(--ds-gray-1000)` at `__root.tsx:56/59`. **Neither file carries `data-mrd` anywhere**, so "Reload the page" (117), "Back to Today" (143), "Try again" (`__root.tsx:102`) and "Go home" (:112) all fall through to the legacy `[data-obsidian] :focus-visible` at `styles.css:2388` instead of the Meridian ring. `__root.tsx:52` also cites `DESIGN-TEMPO.md` as its authority, which `CLAUDE.md` forbids outright.
+
+**How.** All six components are **module-local and not exported**, so "render them in both grounds to prove it" requires extracting them first — do that deliberately, into the same file or a small colocated module, and say which. The root `ErrorComponent` takes a second prop, `reset: () => void`, and calls `router.invalidate()` alongside `reset()`; **the Meridian rebuild must preserve that retry wiring**, not just the error prop. Take the baseline down by the reclaimed count.
+
+**Acceptance.**
+- All four surfaces render Meridian components with `data-mrd=""` on the root.
+- Every button in them takes the Meridian focus ring, checked in dev with Tab.
+- Retry still calls both `reset()` and `router.invalidate()`.
+- No `DESIGN-TEMPO.md` citation survives; baseline re-frozen 27 lower.
+
+**Owns.** `src/routes/_authenticated.tsx`, `src/routes/__root.tsx`, `src/components/meridian/surface-parts.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-69 · 58 focus rings that paint nothing, because the utility loses to an unlayered rule**
+`STATUS: TODO` · deps: none · size: M
+
+**What.** Replace per-component `focus-visible:outline-*` Tailwind utilities with `data-mrd=""` on the component root in the 28 files that declare a ring and carry no `data-mrd`, starting with the live surfaces: `RoomCard.tsx:42`, `ConnectionStrip.tsx`, `RowActions.tsx`, `DrawingsTable.tsx`, `AuditTag.tsx`, `BillingBanner.tsx`, `_authenticated.admin.tsx:132`. Then add a guard asserting no file declares a `focus-visible:outline` utility without `data-mrd`.
+
+**Why.** Confirmed in the repo's own words. `src/styles.css:2368-2369` states that its `[data-obsidian] :focus-visible` rule at 2388 "is unlayered plain CSS (it sits after both explicit `@layer base` and `@layer utilities` close earlier in this file)", and `meridian.css:1063-1070` states "Tailwind emits utilities into its own `utilities` layer, so `focus-visible:outline-[var(--mrd-edge-focus)]` could not win no matter what colour it named." `AuthedLayout` mounts `data-obsidian` on `<html>` for the whole authenticated tree, so **every one of these is overridden in the running app.** Measured: 53 lines declare such a utility across 46 files; 109 utility tokens exist under `src/`; **58 of them sit in 28 files carrying no `data-mrd`.** `RoomCard.tsx:42` is the clearest case — it declares `focus-visible:[outline-color:var(--focus-ring)]`, which loses the cascade **and** names the legacy alias rather than the Meridian neutral, so it would be wrong even if it won. The 18 tokens in already-tagged Meridian files are equally inert, but they name the colour the winning rule already paints, so they are invisible no-ops rather than broken rings — fold them into the guard's scope and delete them as noise.
+
+**How.** `src/styles/meridian.css` is **read-only** here: the winning rule at line 1089 already exists and needs no edit. The one grep hit to exclude is `src/components/supaprod/__tests__/sketch-components.test.tsx:345`, a hand-built props fixture inside a test, not a component declaring a ring. Verify by Tab, not by reading CSS — the whole finding exists because the CSS reads correct and paints nothing.
+
+**Acceptance.**
+- Every one of the 28 files either carries `data-mrd` on its root or has its dead utility removed.
+- Tabbing through `RoomCard`, `RowActions`, `AuditTag` and the admin tab strip in dev shows the Meridian ring.
+- The guard fails on a planted `focus-visible:outline` in a file with no `data-mrd`.
+- Baseline re-frozen where any count dropped.
+
+**Owns.** `src/components/engine-room/RoomCard.tsx`, `src/components/engine-room/ConnectionStrip.tsx`, `src/components/runs/RowActions.tsx`, `src/components/design/DrawingsTable.tsx`, `src/components/supaprod/AuditTag.tsx`, `src/components/billing/BillingBanner.tsx`, `src/routes/_authenticated.admin.tsx`, `src/__tests__/focus-ring-is-inherited.test.ts`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-70 · Meridian's `CtxRow` is announced as a button and does nothing**
+`STATUS: TODO` · deps: K-09 · size: S
+
+**What.** Make `CtxRow` in `src/components/meridian/ContextColumn.tsx` render a real `<button type="button">` when `onClick` is present, instead of `<div role="button" tabIndex={0}>`. While there, drop the dead `data-mrd` token from the className string at line 34 — it is a class name, not the attribute, and no `.data-mrd` rule exists in any stylesheet.
+
+**Why.** Lines 56–66 render `<div onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined}>` **with no `onKeyDown`**. A div does not natively activate on Enter or Space, so the row is reachable by Tab, announces itself to a screen reader as a button, takes the focus ring — and does nothing when operated. **Focusable-and-announced-but-inert is worse than not being focusable at all.** This is a regression against the floor: the retired Cadence/ink `CtxRow` it replaced returns a real `<button>` at `primitives.tsx:1221`, and its docblock at `primitives.tsx:239` states the rule — "It is a REAL `<button>` when it does something, so it is tabbable, it answers Space and Enter, and it takes the app-wide focus ring" — which `OpportunityRow.test.tsx:223` restates. **The Meridian replacement lost it.** No caller passes `onClick` today across the 9 call sites in `DiscoverSurface`, `decide`, `learn` and `plan.index`, which is precisely why it is cheap now and expensive after the first caller lands.
+
+**How.** **The obvious test does not work in this runner and would pass on nothing.** I probed it: `fireEvent.keyDown(nativeButton, {key:"Enter"})` fires the handler **0 times** while `fireEvent.click` fires it once — neither happy-dom nor jsdom synthesises Enter/Space activation of a native button, that is browser behaviour. And `getByRole("button")` already matches the existing div, so role is not a discriminator either. Assert `expect(screen.getByRole("button").tagName).toBe("BUTTON")` plus `type="button"`, and use `fireEvent.click` for the handler. Two scope notes: three separate `CtxRow` exports exist (`meridian/ContextColumn.tsx:32`, `shell/primitives.tsx:1182`, `crew/CrewChrome.tsx:452`) — **only the Meridian one is in scope and `shell/primitives.tsx` stays read-only** — and `traces.$traceId.tsx` and `governance/CriticBadge.tsx` still import from the shell one, so this fix does not reach them. Finally, the className string carries no `text-left`, so a native button will centre the row text; fix that in the same change.
+
+**Acceptance.**
+- `tagName === "BUTTON"` and `type="button"` when `onClick` is present; a plain element when it is not.
+- Row text stays left-aligned.
+- The dead `data-mrd` class token is gone from the string; the attribute is unaffected.
+- Test green, and red if the element reverts to a div.
+
+**Owns.** `src/components/meridian/ContextColumn.tsx`, `src/components/meridian/__tests__/context-column.test.tsx`
+
+---
+
+**K-71 · `Refused` — the denied state has no component**
+`STATUS: TODO` · deps: K-09 · size: S
+
+**What.** Add a `Refused` component to `src/components/meridian/surface-parts.tsx` beside `ReadFailed`, for the case where a read **succeeded** and the answer is "you may not see this", and adopt it at `src/routes/_authenticated.admin.tsx`, the one surface that already distinguishes the case by hand.
+
+**Why.** `DESIGN-SYSTEM.md:128` names seven states. Meridian composes `Reading` (slow), `NothingHere` and `NothingYet` (empty), `ReadFailed`/`ReadFailedLine` (failed), and `NeedsSetup` covers precondition-missing. **There is no denied**: a case-insensitive grep for `denied|forbidden|noaccess|unauthori` across `src/components/meridian/` returns zero. The product needs it and one surface already knows — `_authenticated.admin.tsx:29-31` writes the rule out: "an operator cannot tell a failed permission CHECK from a 'you are not an admin' VERDICT. That distinction is already honoured below (register D-11) and must stay: **an error must never wear another state's clothes**" — and then honours it with a locally-built `AdminErrorCard`. **The right distinction made once, by hand, where the system has no word for it, is how it drifts back.**
+
+**How.** `NoAccessCard` is **not** purely presentational and must not be swallowed: it carries the bootstrap claim path (`bootstrapSelfAdmin` gated on `anyAdminExists`), and the route's header reads "KEEP the bootstrap claim path. A workspace with zero admins is unadministrable, and this is the only way out of it." So `Refused` needs a children or action slot and the adoption keeps that branch intact. The flag is a prop, so this stays offline. Note the swap lowers retired-token counts in a baselined file — re-freeze in the same commit.
+
+**Acceptance.**
+- `Refused` exported, rendered in the gallery in both grounds, visually distinct from `ReadFailed` — a refusal is not an error.
+- The admin bootstrap claim path still renders and still works.
+- Copy states what is refused and what to do, in practitioner language.
+- Baseline re-frozen lower.
+
+**Owns.** `src/components/meridian/surface-parts.tsx`, `src/routes/_authenticated.admin.tsx`, `src/components/meridian/__tests__/refused.test.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-72 · `EmptyRow` left the system**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** Add `data-mrd=""` to `EmptyRow` at `src/components/engine-room/RoomDetail.tsx:99-101`.
+
+**Why.** Line 100 returns `<p className="py-mrd-5 text-[13px] leading-relaxed text-mrd-mute">{message}</p>` — **no `data-mrd`**. Every other member of the read-state family carries it: `Reading` (`surface-parts.tsx:663`), `NothingHere` (:699), `NothingYet` (:725), `ReadFailed` (:780), `ReadFailedLine` (:820), `PanelReading` (`EngineChrome.tsx:402`). `EmptyRow` is the single exception, **and it is the empty state — what production shows most often.** It is swapped in after a read resolves at seven call sites across four Engine Room rooms, several of them early returns (`VerifyCockpit.tsx` 179, 252, 392, 471; `RecordRoom.tsx:63`; `SpendRoom.tsx:128`; `RoutinesPanel.tsx:95`). `ApprovalCard.tsx:143-148` documents the mechanism from the 2026-08-15 sweep: "An early return is how a component root quietly loses it."
+
+**How.** **Add the attribute and nothing else.** Do not add `role="status" aria-live="polite"`: only the pending and failed members carry those, and the two empty states, `NothingHere` and `NothingYet`, deliberately do not. Copying the pending pattern would make this the only empty state in the system that announces itself, and `VerifyCockpit` renders it at four sites on one screen — four polite live regions competing. Do not write the sweeping "every exported state component carries `data-mrd`" guard either: `VerdictSentence`, `ErrorRetry`'s wrapper div and `Row`'s non-interactive branch all lack it in this same file, and `DESIGN-SYSTEM.md:186` says `data-mrd` exists so **controls** inherit the focus ring — a `<p>` with no focusable child does not need one. Pinning a rule with no defect behind it is how a guard starts costing more than it catches.
+
+**Acceptance.**
+- `EmptyRow` carries `data-mrd=""`; no aria attributes added.
+- No sweeping guard added; the other three gaps in the file are named in the build log with the reason each may be correct as-is.
+- `bun test` green, ratchet total unchanged.
+
+**Owns.** `src/components/engine-room/RoomDetail.tsx`
 
 ---
 
