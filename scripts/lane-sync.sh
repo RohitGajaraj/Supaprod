@@ -37,11 +37,26 @@ if [ -n "$DIRTY" ]; then
   say ""
   printf '%s\n' "$DIRTY" | head -20
   say ""
-  say "${DIM}Everything below is still accurate; only the rebase was skipped.${OFF}"
+  # This used to say "Everything below is still accurate; only the rebase was
+  # skipped." That is false, and it is false in the direction that matters.
+  #
+  # The fetch above still runs, so the commit counts and the file list ARE
+  # accurate. But the verdict and question sections read `ledger/*.md` OFF DISK,
+  # and on a dirty tree those files are whatever this lane last pulled. On
+  # 2026-08-19 that produced a run reporting three of Kiro's commits by SHA and
+  # "Nothing awaiting a verdict" in the same breath, because the ledger it read
+  # predated all three. A reader who believed the reassurance would have gone
+  # back to sleep with two items waiting.
+  #
+  # So: say which half is stale rather than claiming neither is.
+  say "${DIM}Commit counts above are live. The ledger sections BELOW are read from${OFF}"
+  say "${DIM}disk and are as stale as this tree -- commit or stash, then re-run.${OFF}"
+  STALE_LEDGER=1
   hr
   SKIP_REBASE=1
 else
   SKIP_REBASE=0
+  STALE_LEDGER=0
 fi
 
 # ── 2. what is on main that we do not have ──────────────────────────────────
@@ -100,12 +115,17 @@ if [ -f "$KIRO" ]; then
   NP="$(printf '%s\n' "$PENDING" | grep -c '^K-' || true)"
 
   if [ "${NP:-0}" -gt 0 ]; then
+    [ "${STALE_LEDGER:-0}" = "1" ] && say "${YEL}(read from a stale tree, see above)${OFF}"
     say "${BOLD}${NP} item(s) BUILT and awaiting your verdict:${OFF}"
     printf '%s\n' "$PENDING" | grep '^K-' | sed 's/^/  /'
     say ""
     say "${DIM}Verify against PRODUCTION and the running app, not the diff.${OFF}"
   else
-    say "${GRN}Nothing awaiting a verdict.${OFF} ${DIM}Work your own lane.${OFF}"
+    if [ "${STALE_LEDGER:-0}" = "1" ]; then
+      say "${YEL}Nothing awaiting a verdict IN THIS TREE, which is stale. Re-run after committing.${OFF}"
+    else
+      say "${GRN}Nothing awaiting a verdict.${OFF} ${DIM}Work your own lane.${OFF}"
+    fi
   fi
 
   # Anything Kiro could not proceed on, MINUS anything already ruled on.
@@ -124,6 +144,7 @@ if [ -f "$KIRO" ]; then
   OPEN_Q="$(comm -23 <(printf '%s\n' "$ASKED" | grep -v '^$') <(printf '%s\n' "$ANSWERED" | grep -v '^$') 2>/dev/null | grep '^K-' || true)"
   if [ -n "$OPEN_Q" ]; then
     say ""
+    [ "${STALE_LEDGER:-0}" = "1" ] && say "${YEL}(read from a stale tree, see above)${OFF}"
     say "${YEL}Kiro is blocked or asking on:${OFF}"
     # Print the most recent line for each still-open id, so the verb and date show.
     for id in $OPEN_Q; do
