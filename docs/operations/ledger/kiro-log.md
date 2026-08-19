@@ -1138,3 +1138,85 @@ than a BUILT or a BLOCKED.** Three things need ruling, and any of them unblocks 
    ruling lands, and that is worth knowing before anyone schedules it as an M.
 
 **Moving to K-82**, third on the jump list. Nothing here is blocked on me.
+
+---
+
+## K-82 · QUESTION · 2026-08-20 00:58 · declined, and the item gave permission
+
+**I am taking the permission this item offered, and the reason is stronger than "it would be
+risky": the chart is already there, and building it as specified would remove a canonical
+decision.**
+
+**The item's `Why` is false as written.** It says *"The card today states a movement in words and
+numbers and never shows it."* `InsightCards.tsx` has shipped a two-series smoothed chart for some
+time, and the gallery renders it with real data at `_authenticated.meridian.tsx:571`: a `forecast`
+series of `[42, 46, 50, 54, 57, 59, 60]` against an `actual` of `[42, 44, 51, 60, 66, 69, 71]`.
+
+**Every acceptance criterion is met by the file as it stands:**
+
+| Criterion | Where it already is |
+| --- | --- |
+| Two series, a dot at each end | `series: InsightSeries[]`, and the end dot at `:584-600`, which hides while scrubbing so it cannot be mistaken for the cursor's point |
+| Smoothed, no chart library | `curvePath` at `:383`. Its own comment records replacing a polyline: *"`M … L … L …` is a chart drawn with a ruler"* |
+| Fits the card without changing its outer dimensions | One `300x120` viewBox with `preserveAspectRatio="none"`, stretching to the container |
+| Series toggles | `views?: { id, label, series }[]`, rendered as pills at `:696` |
+| A follow-up question | `followUp` on the insight |
+| "scrub-ready" | Keyboard scrubbing at `:470`, `ArrowRight`/`ArrowLeft`. The reference only claims scrub-ready; this is actually keyboard-reachable |
+| No chart library added | `liveline` was deliberately removed. The file says why: it took a `theme={dark ? …}` prop, and Meridian tokens re-resolve on their own, so needing that prop would have meant the mapping was wrong |
+
+**## The one criterion I would have had to BREAK to satisfy, and why that is the decline**
+
+*"No raw colour and no status token used as a series colour."*
+
+The chart uses status tokens on purpose. `seriesColour` at `:282` returns `--mrd-you-dim` for the
+forecast line and the verdict's own tone, pass or fail, for the actual. That is not an oversight, it
+is argued at length in the file's header and it is the product's thesis:
+
+> *"The TREND chart's two lines carry MEANING, so they take semantic colour: a forecast is what a
+> PERSON believed, so it is orchid at rest, and the actual line is an OUTCOME, so it is green or red
+> once settled and neutral while it is still open. That pairing is the product's whole thesis and it
+> would be lost to a categorical palette."*
+
+**And meridian.css agrees, in a comment about the exact pixels.** Its `-dim` block says: *"`you-dim`
+draws the FORECAST line on the trend chart, so the one line representing what a person believed was
+the least visible thing in the frame on the paper ground."* The stop was re-solved from 2.65 to 3.71
+against `float` **for this caller**. So the design system does not merely permit this usage, it has
+already been measured and corrected for it.
+
+Repainting these two lines `--mrd-viz-*` would take the forecast-versus-outcome pairing, which is the
+one thing this product claims is defensible, and turn it into "series one and series two". That is
+the "this would degrade the card" answer the item said was the correct one if true, and it is true.
+
+**The item's own reasoning for `--mrd-viz-*` is right in general and wrong here**, and the distinction
+is already written in the file: the BREAKDOWN card decides per segment, and a slice that is only a
+bucket does take `--mrd-viz-*` under the 2026-08-15 founder ruling. Categorical colour for categories,
+status colour for status, decided per element rather than per component. The trend chart's two lines
+are not categories.
+
+**Noticed.** Four.
+
+1. **The reference's own version is the weaker one here**, which is worth saying because the standing
+   rule is to mimic rather than reinterpret. Its chart is two named product lines, Mint Chip against
+   Pistachio, which genuinely ARE categories and correctly take a categorical palette. Ours is a
+   forecast against what happened. Same shape, different meaning, and the palette follows the meaning.
+   This is a case where the reference's pattern was ported and its COLOUR deliberately was not, and
+   the file records that decision rather than leaving it to be rediscovered.
+2. **A third series is refused, with a reason**: *"Two lines is the ceiling this earns, because there
+   are only two meanings in the frame... A third series would need a fourth meaning and there is no
+   fourth meaning."* The forecast is also dashed and the actual solid, so the pair separates with the
+   hue removed. That is the greyscale rule already satisfied on this component.
+3. **`src/components/meridian/__tests__/insight-cards.test.tsx` does not exist**, so the criterion
+   "every existing `InsightCards` test still passes unmodified" has nothing to check. That is the
+   fourth wrong path in an `Owns` list today, after K-08's extension, K-09's exclusion and K-81's
+   file. **The 56KB component with the most reasoning in it has no test of its own**, which is a real
+   gap and a much better use of this item's budget than the chart it already has. I have not written
+   one, because that is a different item and this one told me to stop rather than expand.
+4. **`obsidian/graph-slider.tsx` is a second scrubbable chart**, with 60 `todo` tests against it in
+   `__tests__/graph-slider-component.test.tsx`. It is in the retired Obsidian folder. Whether the
+   Meridian chart supersedes it is worth a look, because two scrubbable charts is the shape this repo
+   keeps paying for, and 60 unwritten tests suggests somebody started and stopped.
+
+**Nothing changed in the tree.** tsc clean · 9,606 pass / 0 fail · `git status` empty.
+
+**The jump list is now empty from my side: K-80 built, K-81 a question, K-82 declined. Resuming by
+number at K-12.**
