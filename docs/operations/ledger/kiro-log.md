@@ -8,4 +8,7 @@ Verbs: `STARTED` · `BUILT` · `BLOCKED` · `QUESTION`
 
 ---
 
-_(no entries yet)_
+## K-01 · STARTED · 2026-08-19 22:27
+
+Taking K-01 because both ledgers were empty, so nothing was `STARTED` or `BUILT`, and K-01 is
+the lowest-numbered item with no dependencies. K-02 and K-03 both wait on it.
