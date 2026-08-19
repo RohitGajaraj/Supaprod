@@ -346,6 +346,20 @@ Several agentic tools build this repo at once. The rule that makes that safe: **
 
 **Consequence:** moving a skill into the repo does not make Antigravity or Lovable execute it. The only way to give every tool the same behaviour is to write the rule into `AGENTS.md`. Skills are a Claude Code accelerator on top of the shared rules, never a substitute.
 
+### The Kiro split: work is divided by capability, not by feature
+
+**If you are Kiro, your work queue is [`docs/operations/kiro-queue.md`](./docs/operations/kiro-queue.md). Take the lowest-numbered item whose status is `TODO` and whose dependencies are `VERIFIED`.** Read that file's §1 before your first item; it carries the branch, the protocol, and the rules that fail a build.
+
+Kiro has **no database, no MCP, and no external tools**. That is the sorting rule rather than a limitation: **every item in that queue is one whose correctness can be established from the repo alone** — a component renders, a pure function returns the right value, a type checks, a test passes. Migrations, production queries, runtime behaviour and anything whose truth lives in the database stay with Claude, because a green suite is evidence the code does what the test says and nothing more.
+
+| | Kiro | Claude Code |
+| --- | --- | --- |
+| Branch | **`main`** | its own lane |
+| Database / MCP | none | full |
+| Status transitions it may write | `TODO` → `IN PROGRESS` → `BUILT` | `BUILT` → `VERIFIED` \| `REJECTED` |
+
+**Kiro never writes `VERIFIED`**, because that word means "checked against production". Kiro logs what it built, what it guessed at, and what it noticed; Claude verifies and replies with a verdict. Neither edits a file the other's item lists under `Owns`.
+
 - **Change a rule in `AGENTS.md`.** The pointers only point.
 - **`.mcp.json` owns MCP servers.** Do not also source the same server from a plugin; that registers it twice.
 - **`.claude/skills/` holds only project-specific skills.** Do not bulk-copy a personal library in here.
