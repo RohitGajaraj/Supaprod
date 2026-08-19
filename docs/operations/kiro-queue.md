@@ -70,7 +70,7 @@ These are not style preferences; `bun test` enforces them.
 
 ## 2. The queue
 
-**22 items. Dependencies are item numbers.** `Owns` is exhaustive — those are the only files to touch.
+**26 items. Dependencies are item numbers.** `Owns` is exhaustive — those are the only files to touch.
 
 ---
 
@@ -528,6 +528,114 @@ The argument is already written in this tool's own description, applied to a dif
 - `bun run docs:check` clean.
 
 **Owns.** `architecture/orchestration.md`, `architecture/runtime.md`, `architecture/observability.md`
+
+---
+
+### Group E — Patterns lifted from the reference class
+
+Each of these is a mechanic measured in a shipped product, not an idea. The evidence sits in the item.
+
+---
+
+**K-23 · `PlanGate` — one gate, three answers, and the dial is the forecast**
+`STATUS: TODO` · deps: K-06 · size: L
+
+**What.** A component that presents a plan and takes **one** decision with three answers:
+
+```
+  Start it, and let it run           →  auto within policy, report at the end
+  Start it, check with me on writes  →  confirm at each external write
+  Keep planning                      →  redirect before any spend
+```
+
+It renders the plan (K-06 `PlanCard`), the route (K-20 `RunMap` when present), the spend ceiling (K-07 `Spend`), and returns the chosen autonomy level plus any edits.
+
+**Why.** **This is the highest-value component in the queue and it closes two separate problems with one interaction.**
+
+*It fixes approvals.* Anthropic's instrumented sessions show users make **~70% of planning decisions and only ~20% of execution decisions**, while one prompt triggers around ten agent actions. People want to own the plan and delegate the execution. And a step-level gate cannot be rescued by better design: **93% of permission prompts are approved** — Anthropic names it approval fatigue. **A gate that gets clicked through is worse than no gate, because it manufactures the appearance of review while producing none of it.** Our own record agrees: six agents at a 100% approval rate, eleven tools asked 130 times and answered zero times.
+
+*It captures the moat.* Choosing how much rope a run gets, **before the outcome is known**, is a recorded belief about that work. That is exactly "what a team believed would happen, recorded before the outcome was known" — the one thing the strategy says a competitor cannot reconstruct, because it leaves no trace unless something catches it at the moment of the call. **The forecast stops needing a form and becomes the by-product of a gate that has to exist anyway.**
+
+**How.** One decision, three answers, one keystroke each — do not split it into a confirm plus a settings toggle. The plan must be **editable in place** before the choice commits; a gate you cannot redirect is a speed bump. Return the chosen level as a value; **do not persist anything** — Claude wires it to `agent_autonomy` and to the decision record.
+
+**Acceptance.**
+- Three answers, each reachable by keyboard, each stating its consequence in plain words.
+- The plan is editable before committing, and removing a station demands a reason.
+- Spend ceiling shown before the choice, never after.
+- Returns `{ autonomy, editedPlan, reason? }` and writes nothing.
+- Gallery: a five-step plan, a one-step plan, and a plan whose route was edited.
+
+**Owns.** `src/components/meridian/PlanGate.tsx`, `src/components/meridian/__tests__/plan-gate.test.tsx`, `src/routes/_authenticated.meridian.tsx`
+
+---
+
+**K-24 · `AgentInbox` — sorted by who needs you, not by who is working**
+`STATUS: TODO` · deps: K-08 · size: L
+
+**What.** A list component grouping agent sessions as **needs input → ready for review → working → done**, with one-line present-participle summaries, reply-in-place without navigating away, idle rows self-hiding, and everything past three collapsing to "N idle agents".
+
+**Why.** The instinct in an agent product is to render every agent working at once. The evidence says that is the wrong surface. **Showing many agents *working* is bad; showing many agents *needing you* is good.** Cursor shipped eight-way parallelism with no compare-and-pick surface and per-turn review died with it. Human active focus caps at three or four items. Anthropic's sizing guidance is blunt: *"three focused teammates often outperform five scattered ones."*
+
+Separately, the review surface is now the actual bottleneck: across 22,000 developers over two years, throughput rose **33.7%** while median review time rose **441.5%** and PRs merged with zero review rose **31.3%**. Generation is commoditised. **The review surface is the product.**
+
+**How.** This is what `/` (Home) becomes, and it is a different object from a dashboard of activity. Grouping is by **what it needs from a person**, never by station or agent. Status verbs are present participles ("reading Intercom", "waiting on you"), never adjectives. Use K-08's per-mark state — this surface is the reason that change matters. Reply-in-place must not navigate.
+
+**Acceptance.**
+- Four groups, in that order, with empty groups hidden entirely.
+- More than three idle rows collapse to a single summary row.
+- Reply-in-place works without a route change.
+- Renders 3, 12 and 60 sessions without the page scrolling sideways.
+- Composed: nothing running, everything blocked on one person, and one agent failed.
+- Greyscale test passes.
+
+**Owns.** `src/components/meridian/AgentInbox.tsx`, `src/components/meridian/__tests__/agent-inbox.test.tsx`, `src/routes/_authenticated.meridian.tsx`
+
+---
+
+**K-25 · Correct Meridian's motion, weight and loading policy**
+`STATUS: TODO` · deps: none · size: M
+
+**What.** Three token-level corrections in `src/styles/meridian.css`, each with its reasoning written into the file.
+
+**Why.** Meridian's standing rule is that the reference class is the floor. These three were never ported because they live in a token file rather than in a component, so no parity pass could see them.
+
+1. **Motion is roughly twice as slow as the reference, and the asymmetry is inverted.** Meridian ships `--mrd-d-press: 120ms`, `--mrd-d-move: 220ms`, `--mrd-d-enter: 420ms`. Linear's shipped scale is `0s / 0.15s / 0.1s / 0.25s / 0.35s` — the whole scale sits **below** Material's 200-500ms band, and the governing choice is **enter 0s, exit 0.15s**. That inversion is the finding: **things should appear instantly and leave gently.** Waiting 420ms for a panel to fade in reads as the software thinking; watching it leave over 150ms reads as considered.
+2. **Body weight should be 450, not 400.** The reference sets running text at 450 and caps its scale at 15px. On Meridian's neutral OKLCH ground, 400 at 14px reads thin rather than quiet.
+3. **There is no loading policy.** The reference shows **no loader at all for the first 1000ms**, adds explanatory text 800ms later, dismisses in 0.1s, and **disables all animation in the error state**. Supaprod shows `BrandWait` after 150ms with a 300ms minimum, so a 200ms navigation is *guaranteed* to flash a loader for 300ms — slower-feeling than showing nothing. The design contract's own outstanding item 6 says "fix the latency, not the spinner"; this is that, at the token layer.
+
+**How.** Change the tokens and the `BrandWait` thresholds only. **Do not retune individual components** — the whole point is that these are system-level. Note in the build log anything that looked wrong afterwards, because a faster scale will expose animations that were leaning on the slow enter to hide a layout shift.
+
+**Acceptance.**
+- Enter approaches zero; exit and movement carry the easing budget.
+- `--mrd-w-regular` is 450, and the gallery still reads correctly at every size.
+- No loader appears before 1000ms; none animates in an error state.
+- Each change carries its reasoning and its source in the file, per Meridian's own rule.
+- Ratchet total unchanged.
+
+**Owns.** `src/styles/meridian.css`, `src/components/supaprod/BrandWait.tsx`
+
+---
+
+**K-26 · One activity vocabulary for agent sessions**
+`STATUS: TODO` · deps: none · size: M
+
+**What.** A pure module `src/lib/agent-activity.ts` defining the emittable activity types, the derived session states, and a pure `deriveSessionState(activities, now)`.
+
+**Why.** The product has **six spellings of run status**, eleven mission-status words with no constraint, and every surface re-deriving its own mapping. Linear solved exactly this and publishes the schema: five emittable activity types (`thought`, `action`, `elicitation`, `response`, `error`, plus a user-only `prompt`), six **auto-derived** session states, an `ephemeral` flag for transient rows, and hard timing contracts — **acknowledge within 10 seconds or show unresponsive; stale at 30 minutes; stale is recoverable.**
+
+Deriving state from activity rather than storing it is what stops the six-spellings problem recurring: there is no status field for a writer to invent a new word in.
+
+**How.** Lift the vocabulary close to verbatim; this is the standing "research the best proven product in that category and lift its information model and verbs outright" rule, and Linear is that product for this object. Keep `ephemeral` — it is what lets a thinking row disappear without leaving litter in the timeline. Encode the three timing contracts as named constants with their reasoning.
+
+**Pure only.** No database, no writers changed. K-12's normaliser maps today's spellings onto this; that is Claude's wiring job afterwards.
+
+**Acceptance.**
+- Types exported; `deriveSessionState` is pure and total.
+- Unresponsive at 10s, stale at 30min, and stale is recoverable — each a named constant with a comment.
+- Tests cover every state transition including recovery from stale.
+- No import from any `.server.ts`; no I/O.
+
+**Owns.** `src/lib/agent-activity.ts`, `src/lib/agent-activity.test.ts`
 
 ---
 

@@ -283,6 +283,38 @@ The crew will:
 
 Three things this earns. It replaces a long approvals queue with **one approval at the top**, which is exactly the doctrine's "policy not permission." It makes the route legible, which is the thing `routeIntent` already computes and throws away. And it gives the user a redirect point *before* spend, which is cheaper than steering after.
 
+**The evidence that this is the right place for the gate.** Anthropic instrumented real Claude Code sessions and found users make **~70% of planning decisions and only ~20% of execution decisions**, while a single prompt triggers around ten agent actions and sometimes over a hundred. People want to own the plan and delegate the execution. Gating the steps fights that; gating the plan serves it.
+
+**And the reason a step-level gate cannot be rescued: 93% of permission prompts are approved.** Anthropic names the mechanism as approval fatigue. **A gate that is clicked through is worse than no gate, because it manufactures the appearance of review while producing none of it.** Our own record says the same thing in different numbers — six agents at a 100% approval rate, and eleven tools asked 130 times and answered zero times.
+
+### 3.4 The gate sets the dial, and the dial is the forecast
+
+This is the most important single interaction in the redesign, and it resolves §1.5 without adding a form.
+
+The plan gate should not ask "may I proceed?" It should ask **how much rope this piece of work gets**, the way Claude Code's plan gate does — three answers in one keystroke, scoped to the work just read:
+
+```
+  Start it, and let it run          →  auto within policy, report at the end
+  Start it, check with me on writes →  confirm at each external write
+  Keep planning                     →  redirect before any spend
+```
+
+**The choice is a forecast.** Deciding how much autonomy a run earns, **before the outcome is known**, is a recorded belief about that work — exactly "what a team believed would happen, recorded before the outcome was known," which `CLAUDE.md` names as the only thing a competitor cannot reconstruct. It leaves no trace unless something captures it at the moment of the call, and this is that moment.
+
+So the forecast stops being a three-field form on `/brain` that one person filled in once. It becomes **a by-product of the one gate that has to exist anyway** — which is precisely the posture the positioning canon already argues for: the forecast as a by-product of doing the work, whose first consumer is the agent doing the next piece, never a scoreboard for a reviewing executive.
+
+**What still needs saying explicitly.** The dial answers *how confident are we*. It does not answer *what do we expect to happen* or *how will we know*. Those two stay as fields on `decision.record` (§9 Slice 2). The dial is the third leg and the one that was never going to be typed into a form.
+
+### 3.5 Showing many agents: an inbox, not a control room
+
+The instinct in an agent product is to render every agent working at once. The evidence says that is the wrong surface.
+
+**Showing many agents *working* is bad; showing many agents *needing you* is good.** Cursor shipped eight-way parallelism with no compare-and-pick surface and per-turn review died with it. Human active focus caps at three or four items. Anthropic's own sizing guidance is blunt: start with three to five agents, and *"three focused teammates often outperform five scattered ones."*
+
+The one multi-agent surface that demonstrably works is an **inbox sorted by who needs you**: grouped as needs-input → ready-for-review → working → done, one-line summaries in present-participle verbs, reply without leaving the list, idle rows self-hiding and collapsing to "N idle agents" past three.
+
+That is what `/` (Home) should be, and it is a very different object from a dashboard of activity. It also gives `MarkStack` its real job (§7) and explains why the fix there is per-mark state rather than a bigger stack.
+
 ---
 
 ## 4. Interaction, navigation, and workspace model
@@ -381,6 +413,8 @@ This is the answer to §1.7b, and it is the doctrine already written down finall
 3. **Demotion is automatic; promotion needs a person.** This is the asymmetry that makes the ladder safe, and it is the *only* automated autonomy movement any shipped product has: Claude Code's circuit breaker pauses auto mode after 3 consecutive or 20 session-level blocks. No shipped product raises a ceiling on track record alone. So: N consecutive rejections drops a rung automatically and says so; every rise requires a human, informed by the record ("approved 44 of 47 at the point of decision").
 4. **A tool rejected every time is disabled, not re-offered.** `delegate.openhands` 0/7 and `calendar.create` 0/7 are the product asking a question whose answer it already has, seven times.
 
+**Rule 5, and it is the one that compounds: the gate offers to retire itself.** Codex proposes a persistent prefix rule inline the moment you approve a command twice; Claude Code mines your own transcripts to write the allowlist for you. **The accumulated allowlist is the asset** — every gate answered should make the next one less likely, or the queue is a treadmill. Supaprod's doctrine already specifies the exact interaction (*"You approved 14 of these without changes. Let Engineer do it alone?"*) and nothing implements it, while `agent_tool_modes` holds one row and `trust_graduation_proposals` holds two.
+
 **Three queue mechanics that must ship with it:**
 
 - **Every approval declares its own default and expires into it.** Reversible → proceeds and is logged. Irreversible → cancels and says why. Nothing waits 627 hours.
@@ -440,6 +474,20 @@ Every extension below is justified against Meridian's own law: a token earns its
 | `--text-mrd-*` bindings | 277 hand-written `text-[Npx]` values across `meridian/`, 13 off-ladder. The type ladder is documented and unenforceable, and the ratchet cannot see arbitrary Tailwind values. |
 
 **Deliberately not proposed:** a sixth status colour. The system refuses one in writing and the refusal is correct.
+
+### 7.1 Two corrections to Meridian itself, measured against the reference class
+
+Meridian's own standing rule is that beautifui.dev is the floor and the mechanics get ported from source. These two were never ported because they are not visible in a component, only in a token file.
+
+**Motion is roughly twice as slow as the premium reference, and the asymmetry is inverted.** Meridian ships `--mrd-d-press: 120ms`, `--mrd-d-move: 220ms`, `--mrd-d-enter: 420ms`. Linear's shipped scale, read from its bundle, is `0s / 0.15s / 0.1s / 0.25s / 0.35s` — the entire scale sits **below** Material's 200-500ms band, and the governing choice is **enter 0s, exit 0.15s**.
+
+That inversion is the finding. **Things should appear instantly and leave gently.** Waiting 420ms for a panel to fade in reads as the software thinking; watching it leave over 150ms reads as considered. Every product in the premium tier does this and Meridian currently does the opposite. `--mrd-d-enter` should approach zero for appearance, with the easing budget spent on exit and on movement between states.
+
+**Body weight should be 450, not 400.** Linear sets running text at 450 and caps the scale at 15px. Meridian's `--mrd-w-regular: 400` with a 14px base is one notch lighter than the reference at the same size. On the neutral OKLCH ground Meridian uses, 400 reads thin rather than quiet.
+
+**And a loading policy Meridian has no rule for.** The reference behaviour: **no loader at all for the first 1000ms**, explanatory text only 800ms after that, dismissal in 0.1s, and **all animation disabled in the error state**. Supaprod currently shows `BrandWait` after 150ms with a 300ms minimum — so a 200ms navigation is *guaranteed* to flash a loader for 300ms, which is slower-feeling than showing nothing. The design contract's own standing item 6 says *"fix the latency, not the spinner"*; this is the token-level expression of that.
+
+These are cheap changes with a large perceived effect, and they are the difference between a system that is correct and one that feels expensive.
 
 **Reference gap to close:** Plan, Ship and Learn have never been researched against a proven product, per `REFERENCE-PATTERNS.md:18-26`, while Discover, Decide, Design and Build have. Three of seven stations have no reference floor.
 
