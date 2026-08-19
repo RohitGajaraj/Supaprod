@@ -675,7 +675,24 @@ export function Reading({ children = "Reading." }: { children?: React.ReactNode 
  * to tell them apart by what they SAY rather than by their container, so this
  * and `ReadFailed` are the same box in two moods.
  *
- * No accent and no illustration: an empty state must not invent a call to act.
+ * No accent: an empty state must not invent a call to act.
+ *
+ * THE ILLUSTRATION HALF OF THIS RULE WAS LIFTED ON 2026-08-19 (founder ruling),
+ * and it is worth saying why it was wrong rather than only that it is gone. The
+ * stated reason was that an empty state must not invent a call to act, which is
+ * an argument about FAKE BUTTONS. It never supported a ban on drawing, and the
+ * two got fused because both were true of the same bad screen.
+ *
+ * What replaces it is narrower than "illustrations are allowed": AN ILLUSTRATION
+ * DRAWS THE PRODUCT'S OWN MECHANICS -- the loop turning, the seven stations, the
+ * crew, a signal becoming a bet -- in the monoline vocabulary `station-glyphs`
+ * already uses. Never a mascot, never a stock figure, and never a scene that
+ * asserts activity the workspace does not have, which is the empty-state version
+ * of the honesty rule the shell applies to its agent marks.
+ *
+ * The reason for that shape: a drawing of our own model cannot be copied without
+ * copying the model, and it cannot lie about what the product is doing. A
+ * cartoon can do both.
  * `action` is the door, and it is omitted rather than filled with a
  * plausible-looking button wherever there is genuinely nowhere to go.
  */

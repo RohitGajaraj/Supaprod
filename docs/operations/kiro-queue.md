@@ -114,6 +114,8 @@ The design system has no vocabulary for an agent working. Measured: `--mrd-you` 
 
 **Owns.** `src/components/meridian/surface-parts.tsx`, `src/routes/_authenticated.meridian.tsx`
 
+> **Rebase note.** Claude edited the `NothingHere` doc comment in this file on 2026-08-19 to lift the illustration ban (founder ruling, recorded in [`../design/DESIGN-SYSTEM.md`](../design/DESIGN-SYSTEM.md) §2a). Comment-only, no behaviour change. Pull before you start.
+
 ---
 
 **K-03 · `Dialog`**
