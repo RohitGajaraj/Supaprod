@@ -80,3 +80,168 @@ describe("every active agent has a mark of its own", () => {
     }
   });
 });
+
+/**
+ * ── THE STACK'S STATE, ADDED 2026-08-19 (K-08) ──────────────────────────────
+ *
+ * `MarkStack` took ONE state for the whole stack, so it could not render three
+ * agents in three states. That is not an edge case in a seven-station loop, it is
+ * the normal case: Watch has finished, Research is still going, Challenge is
+ * waiting on a person. A stack that can only say one thing about all three has to
+ * say the least true of them.
+ *
+ * TWO PROPERTIES ARE UNDER TEST AND THE SECOND IS THE IMPORTANT ONE.
+ *
+ *   1. Three states render at once.
+ *   2. THE ONE-BLINK RULE STILL HOLDS THROUGH THE NEW DOOR. `gate` is the only
+ *      animated state and exactly one mark on a screen may wear it. The old rule
+ *      could be read off the index because there was one state; a per-mark state
+ *      is a way for a caller to hand three marks `gate` individually, and if the
+ *      rule still only looked at the shared prop, four marks would blink in
+ *      unison again. So the rule runs over the RESOLVED states.
+ *
+ * `createElement` rather than JSX because this file is `.ts` and predates the
+ * change. The queue item names it `.tsx`, which it is not; renaming it would
+ * break the read-tracking of a file two other guards live in, for no gain.
+ *
+ * State is read off the ACCESSIBLE NAME rather than off a class, because that is
+ * where `AgentMark` puts it (`"Watch, gate"`), and a reader who cannot separate
+ * orchid from orchid-dim gets the state from exactly there.
+ */
+import { createElement } from "react";
+import { render } from "@testing-library/react";
+
+import { MarkStack, type StackAgent } from "../marks";
+
+/** Every mark's state, in DOM order, read the way a screen reader would. */
+function statesOf(container: HTMLElement): string[] {
+  return [...container.querySelectorAll('[role="img"]')].map((node) => {
+    const label = node.getAttribute("aria-label") ?? "";
+    const at = label.lastIndexOf(", ");
+    return at === -1 ? "idle" : label.slice(at + 2);
+  });
+}
+
+function stack(agents: StackAgent[], state?: StackAgent["state"]) {
+  return render(createElement(MarkStack, state ? { agents, state } : { agents }));
+}
+
+describe("a stack can say three different things at once", () => {
+  it("renders three marks in three states", () => {
+    const { container } = stack([
+      { slug: "discovery-scout", state: "verified" },
+      { slug: "researcher", state: "running" },
+      { slug: "critic", state: "gate" },
+    ]);
+
+    expect(statesOf(container)).toEqual(["verified", "running", "gate"]);
+  });
+
+  it("animates only the one that is asking, and only that one", () => {
+    const { container } = stack([
+      { slug: "discovery-scout", state: "verified" },
+      { slug: "researcher", state: "running" },
+      { slug: "critic", state: "gate" },
+    ]);
+
+    const animated = [...container.querySelectorAll('[role="img"]')]
+      .map((node) => node.getAttribute("style") ?? "")
+      .map((style) => (style.includes("mrd-attention") ? "moves" : "still"));
+
+    // `running` is ambient and breathes; `gate` blinks faster; `verified` is an
+    // outcome and has nothing left to wait for, so it must be still.
+    expect(animated).toEqual(["still", "moves", "moves"]);
+  });
+
+  it("falls back to the stack's state for any mark that does not carry one", () => {
+    const { container } = stack(
+      [{ slug: "discovery-scout" }, { slug: "researcher", state: "failed" }, { slug: "critic" }],
+      "running",
+    );
+
+    expect(statesOf(container)).toEqual(["running", "failed", "running"]);
+  });
+});
+
+describe("the one-blink rule survives the new door", () => {
+  it("gives gate to the first mark that asks and dresses the rest as waiting", () => {
+    const { container } = stack([
+      { slug: "discovery-scout", state: "gate" },
+      { slug: "researcher", state: "gate" },
+      { slug: "critic", state: "gate" },
+    ]);
+
+    expect(
+      statesOf(container),
+      "three marks are blinking in unison, which is the defect this rule exists for",
+    ).toEqual(["gate", "waiting", "waiting"]);
+  });
+
+  it("passes the blink to the first ASKING mark, not to the first mark", () => {
+    /*
+     * The subtle half. Under the old signature "first wins" was the same as
+     * "index zero wins". It is not any more: if the crew's finished agent is
+     * listed first, the blink belongs to whoever is actually waiting.
+     */
+    const { container } = stack([
+      { slug: "discovery-scout", state: "verified" },
+      { slug: "researcher", state: "gate" },
+      { slug: "critic", state: "gate" },
+    ]);
+
+    expect(statesOf(container)).toEqual(["verified", "gate", "waiting"]);
+  });
+
+  it("spends the blink only on a mark that is actually drawn", () => {
+    /*
+     * The stack draws four. Resolving before slicing would let a fifth agent claim
+     * the one blink and leave the four on screen all showing `waiting`, which
+     * reads as a queue with nothing at the front of it.
+     */
+    const { container } = stack([
+      { slug: "discovery-scout", state: "running" },
+      { slug: "researcher", state: "running" },
+      { slug: "critic", state: "running" },
+      { slug: "builder", state: "running" },
+      { slug: "planner", state: "gate" },
+    ]);
+
+    expect(statesOf(container)).toEqual(["running", "running", "running", "running"]);
+  });
+});
+
+describe("every existing caller renders exactly as it did", () => {
+  it("keeps the shared-state signature working untouched", () => {
+    // `AppFrame.tsx:1417` and `AgentRelay.tsx:145` both call it exactly like this.
+    const { container } = stack([{ slug: "discovery-scout" }, { slug: "researcher" }], "running");
+    expect(statesOf(container)).toEqual(["running", "running"]);
+  });
+
+  it("reduces to the old gate behaviour when the state is shared", () => {
+    // `AppFrame.tsx:1419` passes a shared `gate` over a list of waiting agents.
+    const { container } = stack(
+      [{ slug: "discovery-scout" }, { slug: "researcher" }, { slug: "critic" }],
+      "gate",
+    );
+    expect(statesOf(container)).toEqual(["gate", "waiting", "waiting"]);
+  });
+
+  it("still draws a single agent without the stack wrapper", () => {
+    const { container } = stack([{ slug: "discovery-scout" }], "gate");
+    expect(container.querySelectorAll('[role="img"]').length).toBe(1);
+    expect(statesOf(container)).toEqual(["gate"]);
+  });
+
+  it("still draws nothing at all for an empty crew", () => {
+    const { container } = stack([]);
+    expect(container.innerHTML).toBe("");
+  });
+
+  it("still caps the stack at four", () => {
+    const { container } = stack(
+      Array.from({ length: 9 }, () => ({ slug: "researcher" })),
+      "running",
+    );
+    expect(container.querySelectorAll('[role="img"]').length).toBe(4);
+  });
+});

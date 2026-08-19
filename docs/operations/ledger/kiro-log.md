@@ -500,3 +500,68 @@ answer than the bar did.
 
 **Gates.** tsc clean · 9,505 pass / 0 fail / 23 skip / 60 todo across 574 files · build ok. New
 suite is 21 tests. Ratchet total unchanged.
+
+---
+
+## K-08 · BUILT · 2026-08-19 23:31
+
+**Did.** `MarkStack` now takes an optional `state` per agent, exported as `StackAgent`, falling back
+to the stack's shared one. The signature is purely additive, so no call site changed and none
+needed to. Added 11 tests to the existing marks guard and a seven-case gallery section.
+
+**The item's headline number is wrong, and the correction changes how risky this is.** The item says
+`MarkStack` has **37 importers** and is "the product's real presence layer". Measured:
+
+- **`src/components/meridian/marks.tsx` has 39 importers.** That is the module, and the widely used
+  export is `AgentMark`, not `MarkStack`.
+- **`MarkStack` is rendered in 3 places across 2 files:** `components/shell/AppFrame.tsx:1417`,
+  `AppFrame.tsx:1419`, and `components/agents/AgentRelay.tsx:145`. Five files mention the name at
+  all, and two of those are a comment in `shell/primitives.tsx` and a comment in
+  `hooks/use-live-agents.ts`.
+
+**The defect is real and the fix is right; only the impact claim was inflated.** It also means the
+item's central instruction, "this is a breaking change across 37 files, so keep the old signature
+working and migrate call sites in a later item", was solving a problem that is not there: with three
+render sites I could have changed the signature outright. I kept it additive anyway, because
+`AppFrame.tsx` and `AgentRelay.tsx` are not in this item's `Owns` and an additive change needs no
+follow-up item at all.
+
+**`AppFrame.tsx:1419` is the shared-state workaround in the wild**, and worth reading:
+`state={gateSurfaceOnScreen ? "waiting" : "gate"}` over a whole list of waiting agents. It is
+deciding one state for the group by asking a question about the SCREEN, because it had no way to
+say anything per agent. That is the call site per-mark state exists for.
+
+**Unsure.** Three.
+
+1. **The one-blink rule now runs over the RESOLVED states, which is a behaviour change nobody asked
+   for and I think is required.** Under the old signature "first wins" was the same as "index zero
+   wins", because there was one state. Per-mark state is a new door through which a caller can hand
+   three marks `gate` individually, and if the rule had kept looking only at the shared prop, four
+   marks would blink in unison again through the new API. So `gate` goes to the first mark that
+   ASKS for it, which for a shared state reduces exactly to the old behaviour, and a test pins that
+   reduction.
+2. **I slice to four before resolving, not after.** Resolving first would let a fifth agent claim
+   the one blink and leave the four drawn marks all showing `waiting`, which reads as a queue with
+   nothing at the front of it. A test pins it.
+3. **I did not add an amber state, and I flagged in K-04 that this was the place to.** `MarkState`
+   still has no `--mrd-hold`: its seven words spend two on a person and none on a condition, so
+   Meridian's own mark vocabulary cannot draw the single most common state in the workspace. That
+   is a change to the design system's state vocabulary rather than a per-mark plumbing change, and
+   K-08 explicitly scopes to the latter, so I left it. **Still recommending it as its own item.**
+
+**Noticed.** Two.
+
+1. **The item's `Owns` names `agent-marks-are-distinct.test.tsx` and the file on disk is `.ts`.**
+   There is no `.tsx`. I extended the `.ts` using `createElement` rather than renaming, because a
+   rename would break read-tracking on a file that carries two unrelated guards, and creating a
+   second file with the same base name is worse. The tests read a mark's state off its ACCESSIBLE
+   NAME rather than off a class, which is both where `AgentMark` puts it and where a reader who
+   cannot separate orchid from orchid-dim gets it.
+2. **`shell/primitives.tsx` still contains the comment recording that these moved out**, and
+   `AgentMark` is named in 50 files. So the retired shell primitive is still the name 50 files
+   reach for even though the implementation moved to Meridian. Not a defect, but it means the
+   migration's last step is a rename nobody has done, and the count is 50 rather than the 33 or 56
+   that `marks.tsx`'s own header quotes.
+
+**Gates.** tsc clean · 9,516 pass / 0 fail / 23 skip / 60 todo across 574 files · build ok. 11 new
+assertions in the existing guard. Ratchet total unchanged.

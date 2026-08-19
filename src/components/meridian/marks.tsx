@@ -139,39 +139,86 @@ export function AgentMark({
 }
 
 /**
+ * One agent in a stack. `state` is per mark and falls back to the stack's.
+ *
+ * ── WHY THIS FIELD WAS ADDED, 2026-08-19 ────────────────────────────────
+ * `MarkStack` has 37 importers, which makes it the product's real presence
+ * layer, and it took ONE state for the whole stack. So it could not render three
+ * agents in three different states, which is not an edge case in a seven-station
+ * loop, it is the normal case: Watch has finished, Research is still going, and
+ * Challenge is waiting on a person. A stack that can only say one thing about all
+ * three has to say the least true of them.
+ *
+ * That was a structural limit on showing multi-agent work, sitting in the most
+ * used component in the system.
+ */
+export type StackAgent = {
+  slug: string | null | undefined;
+  name?: string | null;
+  /** This mark's own state. Omitted, it takes the stack's shared one. */
+  state?: MarkState;
+};
+
+/**
  * Two or more at once, reading as one crew on one job.
  *
  * THE STACK ENFORCES THE ONE BLINK, BECAUSE A CALLER CANNOT. `gate` is the only
  * animated state and exactly one mark on a screen may wear it. This component
- * takes ONE state and applied it to every agent, so a stack of four asked for
+ * took ONE state and applied it to every agent, so a stack of four asked for
  * `gate` blinked four marks in unison: precisely the failure the rule was
  * written after, reproduced by the component meant to be governed by it.
  *
- * So a stack asked for `gate` gives it to the FIRST mark and dresses the rest
- * as `waiting`, which is the same meaning without the animation. Held here and
- * not at each call site: a rule every caller must remember is a rule that gets
- * forgotten, and this one already was.
+ * So a stack gives `gate` to the FIRST mark that asks for it and dresses every
+ * later one as `waiting`, which is the same meaning without the animation. Held
+ * here and not at each call site: a rule every caller must remember is a rule
+ * that gets forgotten, and this one already was.
+ *
+ * ── THE RULE NOW RUNS OVER THE RESOLVED STATES, NOT OVER THE PROP ───────
+ * That distinction is the whole reason per-mark state did not reintroduce the
+ * defect it was added around. Under the old signature there was one state, so
+ * "first one wins" could be read off the index. With per-mark state a caller can
+ * hand three marks `gate` individually, and if the rule still only looked at the
+ * shared prop, three marks would blink in unison again through the new door.
+ *
+ * So each mark's state is resolved first, then the one-blink rule is applied to
+ * the RESULT. A stack given a shared `gate` renders exactly as it did before,
+ * because the resolution reduces to the old behaviour.
  */
 export function MarkStack({
   agents,
   state = "running",
 }: {
-  agents: { slug: string | null | undefined; name?: string | null }[];
+  agents: StackAgent[];
+  /** The state for every mark that does not carry its own. */
   state?: MarkState;
 }) {
   if (agents.length === 0) return null;
-  if (agents.length === 1) {
-    return <AgentMark slug={agents[0].slug} name={agents[0].name} state={state} />;
+
+  /*
+   * `slice` before resolving rather than after, so the one `gate` is spent on a
+   * mark that is actually drawn. Resolving first would let a fifth agent claim
+   * the blink and leave the four on screen all showing `waiting`, which reads as
+   * a queue with nothing at the front of it.
+   */
+  const shown = agents.slice(0, 4);
+  let gateSpent = false;
+  const resolved: MarkState[] = shown.map((agent) => {
+    const want = agent.state ?? state;
+    if (want !== "gate") return want;
+    if (gateSpent) return "waiting";
+    gateSpent = true;
+    return "gate";
+  });
+
+  if (shown.length === 1) {
+    return <AgentMark slug={shown[0].slug} name={shown[0].name} state={resolved[0]} />;
   }
+
   return (
     <span data-mrd="" className="flex shrink-0 items-center">
-      {agents.slice(0, 4).map((a, i) => (
+      {shown.map((a, i) => (
         <span key={`${a.slug ?? "x"}-${i}`} className={i === 0 ? "" : "-ml-[7px]"}>
-          <AgentMark
-            slug={a.slug}
-            name={a.name}
-            state={state === "gate" && i > 0 ? "waiting" : state}
-          />
+          <AgentMark slug={a.slug} name={a.name} state={resolved[i]} />
         </span>
       ))}
     </span>

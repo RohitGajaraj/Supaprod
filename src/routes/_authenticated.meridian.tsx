@@ -25,6 +25,7 @@ import { PlanCard, type PlanStep } from "@/components/meridian/PlanCard";
 import { Action, Actions, Approve } from "@/components/meridian/surface-parts";
 import { Dialog } from "@/components/meridian/Dialog";
 import { Spend } from "@/components/meridian/Spend";
+import { MarkStack } from "@/components/meridian/marks";
 import {
   RecordStatus,
   RecordTag,
@@ -2081,6 +2082,15 @@ function MeridianGallery() {
             <SpendCases />
           </Pair>
         </Panel>
+
+        <Panel
+          title="Mark stack, one state per mark"
+          note="The presence layer, and until now it took one state for the whole crew, so it could not say that Watch has finished while Research is still going and Challenge is waiting on you. That is not an edge case in a seven-station loop, it is the normal case, and a stack that can only say one thing about all three has to say the least true of them. The mixed stack is the new capability; the uniform one beside it is the old signature, untouched, because both live call sites still pass a shared state. The rule that matters is the one you cannot see unless it breaks: exactly one mark on a screen may blink for a person, so the stack gives the blink to the first mark that actually asks for it and dresses every later one in the same meaning without the animation. Per-mark state is a new way for a caller to ask three marks to blink at once, so the rule now runs over the resolved states rather than over the prop. Identity is still the glyph and status is still the hue, which is why the stack of four reads as four different agents rather than as four copies of a colour."
+        >
+          <Pair>
+            <MarkStackCases />
+          </Pair>
+        </Panel>
       </div>
     </div>
   );
@@ -2620,6 +2630,82 @@ function SpendCases() {
       </Case>
       <Case label="No cap set at all">
         <Spend label="This account" spent={412.86} cap={null} />
+      </Case>
+    </Stack>
+  );
+}
+
+/*
+ * ── K-08, THE MARK STACK ────────────────────────────────────────────────
+ * Real crew slugs, so every glyph on this panel is the drawing that agent
+ * actually wears elsewhere in the product. The point of the panel is the pair:
+ * the mixed stack and the uniform one side by side, because the uniform one is
+ * what both live call sites still render and it must be identical to what it was.
+ */
+function MarkStackCases() {
+  return (
+    <Stack>
+      <Case label="Mixed: one finished, one working, one waiting on you">
+        <MarkStack
+          agents={[
+            { slug: "discovery-scout", state: "verified" },
+            { slug: "researcher", state: "running" },
+            { slug: "critic", state: "gate" },
+          ]}
+        />
+      </Case>
+
+      <Case label="Uniform, which is what both live callers pass">
+        <MarkStack
+          agents={[{ slug: "discovery-scout" }, { slug: "researcher" }, { slug: "critic" }]}
+          state="running"
+        />
+      </Case>
+
+      <Case label="Three asking at once, and only the first may blink">
+        <MarkStack
+          agents={[
+            { slug: "discovery-scout", state: "gate" },
+            { slug: "researcher", state: "gate" },
+            { slug: "critic", state: "gate" },
+          ]}
+        />
+      </Case>
+
+      <Case label="The blink goes to whoever is asking, not to whoever is first">
+        <MarkStack
+          agents={[
+            { slug: "discovery-scout", state: "verified" },
+            { slug: "researcher", state: "gate" },
+            { slug: "critic", state: "gate" },
+          ]}
+        />
+      </Case>
+
+      <Case label="A run that went wrong halfway">
+        <MarkStack
+          agents={[
+            { slug: "planner", state: "verified" },
+            { slug: "builder", state: "failed" },
+            { slug: "reviewer", state: "quiet" },
+          ]}
+        />
+      </Case>
+
+      <Case label="Four, which is the cap">
+        <MarkStack
+          agents={[
+            { slug: "discovery-scout", state: "verified" },
+            { slug: "researcher", state: "verified" },
+            { slug: "strategist", state: "running" },
+            { slug: "critic", state: "gate" },
+            { slug: "planner", state: "gate" },
+          ]}
+        />
+      </Case>
+
+      <Case label="One agent, which draws no stack at all">
+        <MarkStack agents={[{ slug: "builder", state: "running" }]} />
       </Case>
     </Stack>
   );
