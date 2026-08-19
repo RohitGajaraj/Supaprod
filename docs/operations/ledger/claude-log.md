@@ -1551,3 +1551,80 @@ nothing out and implements no `getBBox`, so it measured in a real browser rather
 than asserting an intention. That is correct and it is the same reason I verify
 here rather than in the suite. **A test that cannot see the thing it is about is
 worse than no test**, because it reports green about a question it never asked.
+
+## Claude lane · RULED · 2026-08-20 04:20
+
+**The trust score's eval leg is decided and wired. Seven dimensions compose as
+`mean(quality) x (1 - max(risk))`, and rows judged before this morning do not
+count.** This was the item the queue reserved for me as "a product decision about
+what agent quality means, not a rename".
+
+**What was actually wrong was worse than dead.** The leg selected
+`ai_evals.ai_event_id` and `.score`. Neither column exists -- the key is
+`event_id` and there is no `score`, only the seven dimensions. So the filter
+matched nothing, `evals_total` was always 0, and `shrink(0, 0)` returned `PRIOR`
+exactly.
+
+**That is not a neutral failure. `PRIOR` is 0.5 and the leg carries 0.2, so it
+was a flat +0.10 on every agent, always.** An agent whose other three legs sum to
+0.65 displayed 75, and `suggestArc` calls 75 **"trusted"**. Agents have been
+graduating on a constant, and the constant was generous.
+
+**THE COMPOSITION, and the two choices that decide it.**
+
+The seven are two kinds of question, so averaging them together is a category
+error: `groundedness`, `relevance`, `coherence` are quality, higher better;
+`hallucination_score`, `toxicity`, `pii_risk`, `prompt_injection_risk` are risk,
+lower better.
+
+1. **Quality is a mean. Risk is a MAX.** Risks are not fungible. A response with
+   `pii_risk` 0.9 and `toxicity` 0 is not "average risk 0.45", it is a response
+   that leaked personal data. The worst one is the one that matters, which is the
+   same reasoning `toolRisk` uses when it fails closed.
+2. **They multiply rather than average.** Averaged, three good quality scores
+   wash out one serious safety failure: a seven-way mean of a maximally toxic but
+   well-written answer is **0.857**, which reads as a good agent. Multiplied it is
+   **0**. **A trust score that can be talked out of a safety failure by good
+   prose is not a trust score.**
+
+**A dimension nobody scored is ignored, not assumed.** `prompt_injection_risk` is
+NULL in all 77 rows. Null as 0 would claim a safety nobody measured; null as 1
+would zero every row for a column the judge never returned. Skipped, and the
+scored ones decide -- the same shape as `unknown` not counting as terminal. A row
+with no quality dimension at all returns `null` and contributes nothing, because
+0 is a damning number an unjudged row has not earned.
+
+**AND THE PART I ONLY FOUND BY CHECKING MY OWN CHANGE AGAINST PRODUCTION.**
+
+Before shipping I ran the formula over the real rows. Result:
+
+    mean quality        0.892
+    mean worst risk     0.853
+    mean eval score     0.119     against the 0.5 the frozen leg gave
+    rows scoring worse than frozen:  77 of 77
+
+**Every agent with evals would have collapsed**, and not because of anything the
+agents did. `worstRisk` is 0.853 because `hallucination_score` is stored on the
+inverted polarity -- the contradictory prompt I fixed this morning in
+`eval-tick.ts`. Quality 0.892 and "hallucination" 0.853 are the same number
+twice, once inverted.
+
+**So the rows judged under the old contract are not counted.**
+`judgedUnderCurrentContract` refuses anything written before 2026-08-20. Scoring
+them under the corrected rules would not measure those agents, it would measure
+the bug, and an operator watching an agent fall from trusted to observing
+overnight would be looking at a prompt fix. The rows are not deleted and not
+rewritten: they stay as the record of what was judged, under the contract that
+judged them. **They are simply not evidence about agent quality.**
+
+**CONSEQUENCE, STATED PLAINLY SO NOBODY READS THIS AS FINISHED.** The eval leg
+now contributes nothing until the tick runs again under the corrected prompt.
+`shrink` holds it at PRIOR meanwhile -- which is exactly where it has been all
+along. **The difference is that it is now waiting for evidence rather than
+pretending to have it**, and it will move the moment real evidence exists. The
+tick last succeeded on 2026-07-23; restarting it is separate work and is the next
+thing this leg needs.
+
+**16 tests**, and they pin the decisions rather than the arithmetic, including
+one whose whole job is to fail if someone deletes the cutoff to "make the eval
+leg finally do something".
