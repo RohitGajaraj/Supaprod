@@ -229,9 +229,7 @@ export function isTerminal(status: RunStatus): boolean {
  * Sorted so the string a caller builds is stable, and a snapshot test of a query
  * does not fail on key order.
  */
-export const TERMINAL_RUN_STATUSES: readonly RunStatus[] = [
-  ...new Set(Object.values(SPELLINGS)),
-]
+export const TERMINAL_RUN_STATUSES: readonly RunStatus[] = [...new Set(Object.values(SPELLINGS))]
   .filter(isTerminal)
   .sort();
 
