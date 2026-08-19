@@ -1358,3 +1358,79 @@ part that would not get copied.
 > `decisions_with_forecast_claim` moving off 1. **The number to watch is not the count of forecasts,
 > it is the count of forecasts whose horizon is in the future when written**, because a horizon in
 > the past is the failure this schema now refuses and the old rows may carry them.
+
+---
+
+## K-14 · BUILT · 2026-08-20 01:22
+
+**Did.** Narrowed `learning.record`'s `verdict` enum to the three the CHECK constraint permits,
+rewrote the description so it no longer instructs the agent into the value that crashes, and removed
+the now-dead `importance: a.verdict === "uncertain" ? 3 : 5` ternary. 13 tests.
+
+**Premise verified in the migrations, not taken on trust.** `learnings.verdict` carries
+`CHECK (verdict IN ('validated','missed','mixed'))` in
+`20260611161500_f_v5_loop_close_learnings.sql:21` and again in `20260611175350:12`, and **no
+migration widens it**. The insert is `if (error) throw new Error(error.message)`. So an agent
+following "Say uncertain rather than guessing" got a 23514 and the whole tool call failed: the one
+path told to be honest was the one path that crashed, and the more careful the agent the more often
+it happened.
+
+**## K-14 · QUESTION · the description could not point at deferral, because agents cannot defer**
+
+The item says: *"So narrow, and point the description at deferral instead of inventing a verdict."*
+The narrowing is done. **The pointing is not, and doing it would have shipped a claim that outruns
+its wiring.**
+
+`prds.outcome_check_by` is the deferral mechanism and the ruling behind it is exactly as the item
+describes, in `20260806100000_a_bet_can_be_too_early_to_judge.sql`. But `rearmOutcomeCheck` is
+reached from `components/learn/SettlePanel.tsx` and `lib/outcome.functions.ts` and **from no agent
+tool at all.** Deferral is a human-only hand.
+
+So a description telling an agent to defer would tell it to use something it does not have, and it
+would fail as silently as the crash it replaced: the agent would have no tool to call, would file
+nothing, and nothing would say why. The description instead says **do not call this tool at all**,
+gives the ruling's own words for why a deferral is not a verdict, and adds the half that makes the
+instruction followable: *nothing is lost by waiting*, and what waiting is being weighed against is
+that every verdict re-ranks the bet behind it. An agent with no evidence and no cost to waiting
+waits; one told only "do not guess" files something anyway.
+
+**If an agent SHOULD be able to defer, that is a tool that does not exist yet**, and it is small: one
+`def()` wrapping `rearmOutcomeCheck` with the spec id. I have not written it because it is not in
+this item's `Owns` and it is a new capability rather than a narrowing.
+
+**Unsure.** Two.
+
+1. **`importance` is now 5 for all three verdicts**, where `uncertain` used to get 3. The ternary is
+   dead because every verdict this tool can be handed is decisive, so the choice was 5 or a new
+   distinction. I took 5: a `mixed` lesson is not worth less than a `missed` one in the precedent
+   pool, it is harder to act on, which is a property of its text rather than of its importance.
+2. **I left the `typeof delta === "number"` guard in place** even though `VERDICT_CONFIDENCE_DELTA`
+   now holds exactly the three verdicts and the lookup cannot miss. It is shared with the human path
+   in `outcome.functions.ts`, so a verdict added there and not here would move confidence by
+   `undefined` rather than not moving it. Removing a guard because the current call sites make it
+   unreachable is how that class of bug returns.
+
+**Noticed.** Three, and the first is a live wrong string in the database.
+
+1. **Two seed migrations describe this tool to users with the four-value vocabulary.**
+   `20260801134557_...sql:11` and `20260801190000_station_tools_seed.sql:55` both insert a
+   `station_tools` row reading *"Record what a shipped piece of work actually taught us, with a
+   verdict of validated, missed, mixed or uncertain."* Those rows are **data**, they are already
+   applied, and applied migrations are not mine to hand-edit. So the code no longer offers
+   `uncertain` and the seeded description still advertises it. **That is Claude's to correct with an
+   update, and it is worth doing, because it is the string a person reads in the boundary UI.**
+2. **`VERDICT_CONFIDENCE_DELTA` never had an `uncertain` key**, so the confidence side of the loop was
+   always correct. The comment there explained the absence as protecting honesty, when the honest
+   value was crashing before it ever reached the delta lookup. Corrected in place.
+3. **The `learn-can-say-not-yet.test.ts` suite already covers the human deferral path**, which is why
+   the ruling is well recorded and the agent gap is not: the half that was built got a test, and the
+   half that was not was never noticed as missing.
+
+**Gates.** tsc clean · 9,666 pass / 0 fail / 23 skip across 579 files · build ok. The refusal test
+names `learnings_verdict_check` and the constraint text in its failure message, so a reader who
+reintroduces the fourth value is sent to the table rather than to the test.
+
+> **Claude does after:** update the two seeded `station_tools` descriptions, and check whether any
+> `learnings` row carries a verdict outside the three. If the CHECK has been enforced since creation
+> there should be none, which would confirm the crash was total rather than partial: no agent ever
+> succeeded in writing `uncertain`, so nothing needs repairing, only the door closing.

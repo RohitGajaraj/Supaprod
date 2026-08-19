@@ -3998,11 +3998,37 @@ const designDraft = def({
 const learningRecord = def({
   name: "learning.record",
   description:
-    "Record what a shipped piece of work actually taught us. verdict is validated (it did what we expected), missed (it did not), mixed (some of both), or uncertain (not enough evidence yet). Say uncertain rather than guessing: only the first three compound into future guidance, so a wrong confident verdict poisons later advice.",
+    "Record what a shipped piece of work actually taught us. verdict is validated (it did what we expected), missed (it did not), or mixed (some of both). Those three are the only verdicts there are. If the evidence is not in yet, DO NOT CALL THIS TOOL AT ALL: a deferral is the absence of an outcome rather than a kind of one, the spec stays on the Learn desk and comes back when it is due, and nothing is lost by waiting. Guessing is the one thing that costs something, because every verdict re-ranks the bet behind it and compounds into later guidance, so a wrong confident verdict is not a wrong row, it is wrong advice for months.",
   category: "write",
   argsSchema: z.object({
     summary: z.string().min(1).max(4000),
-    verdict: z.enum(["validated", "missed", "mixed", "uncertain"]),
+    /*
+     * ── THREE, BECAUSE THE DATABASE PERMITS THREE ─────────────────────────
+     *
+     * This read `["validated", "missed", "mixed", "uncertain"]` and the
+     * description told the agent "Say uncertain rather than guessing", while
+     * `learnings.verdict` has carried `CHECK (verdict IN ('validated','missed',
+     * 'mixed'))` since it was created and no migration ever widened it. The
+     * insert below is `if (error) throw`, so AN AGENT FOLLOWING THIS TOOL'S OWN
+     * INSTRUCTION GOT A 23514 AND THE WHOLE TOOL CALL FAILED. The one path that
+     * was told to be honest was the one path that crashed.
+     *
+     * A FOURTH VALUE IS NOT THE FIX, and that is already ruled rather than
+     * decided here. Migration 20260806100000 argues it: "Adding `too_early` to
+     * that CHECK would put a row in the precedent pool that every consumer must
+     * remember to exclude. That is the `is_sample` defect this repo has already
+     * paid for twice: a value whose correctness depends on every future reader
+     * remembering it exists. A deferral is the ABSENCE of an outcome, not a kind
+     * of outcome, and it should not be stored where outcomes are stored."
+     *
+     * SO THE DESCRIPTION POINTS AT NOT CALLING THE TOOL, not at a deferral hand.
+     * `prds.outcome_check_by` is the deferral mechanism and it is HUMAN-ONLY:
+     * `rearmOutcomeCheck` is reached from `learn/SettlePanel.tsx` and
+     * `outcome.functions.ts` and from no agent tool. Telling an agent to defer
+     * would be telling it to use a hand it does not have, which is the class of
+     * claim this repo calls a claim outrunning its wiring.
+     */
+    verdict: z.enum(["validated", "missed", "mixed"]),
     metric_label: z.string().min(1).max(120).optional(),
     metric_value: z.string().min(1).max(120).optional(),
     prd_id: z.string().uuid().optional(),
@@ -4139,9 +4165,19 @@ const learningRecord = def({
       if (opp) {
         oppTitle = (opp.title as string | null) ?? null;
         priorIce = opp.ice_score == null ? null : Number(opp.ice_score);
-        // `uncertain` is deliberately absent from the delta table and must not
-        // move confidence: the tool's own description tells the agent to say
-        // uncertain rather than guess, so acting on it would punish honesty.
+        /*
+         * The delta table holds exactly the three verdicts, so this lookup can no
+         * longer miss. The guard below stays anyway: `VERDICT_CONFIDENCE_DELTA`
+         * lives in `outcome.functions.ts` and is shared with the human path, so a
+         * verdict added there and not here would silently move confidence by
+         * `undefined` rather than not moving it.
+         *
+         * The comment this replaces said `uncertain` was deliberately absent from
+         * the table "because the tool's description tells the agent to say
+         * uncertain rather than guess". That description was instructing the agent
+         * into a value the CHECK constraint refuses, so the honesty it was
+         * protecting crashed the call instead.
+         */
         const delta = VERDICT_CONFIDENCE_DELTA[a.verdict as keyof typeof VERDICT_CONFIDENCE_DELTA];
         if (typeof delta === "number") {
           const newConfidence = clampConfidence((opp.confidence ?? 5) + delta);
@@ -4259,7 +4295,12 @@ const learningRecord = def({
         opportunityId,
         learningId,
         content: a.summary,
-        importance: a.verdict === "uncertain" ? 3 : 5,
+        /* Was `a.verdict === "uncertain" ? 3 : 5`, and the ternary is now dead:
+           every verdict this tool can be handed is decisive, so all three carry
+           the same weight into the precedent pool. A `mixed` lesson is not worth
+           less than a `missed` one; it is harder to act on, which is a property of
+           the text rather than of its importance. */
+        importance: 5,
         verdict: a.verdict,
         priorIce,
         newIce,
