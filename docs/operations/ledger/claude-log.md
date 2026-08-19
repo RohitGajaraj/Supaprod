@@ -1449,3 +1449,57 @@ differ by exactly one class each way (`gap-mrd-4` against `gap-mrd-3`) would fai
 if a future `compact` took anything else away. "Both are 13px" would not.
 
 **14 tests. Gates green on the merged tree.**
+
+## Claude lane · LANDED · 2026-08-20 03:50
+
+**`steerTrack` exists, so the steer path is complete end to end for every
+station.** `spine/track.functions.ts`, beside `startTrack`, `advanceTrack`,
+`retryStation` and `setStationWaiver`, which is where a track verb belongs.
+
+**The chain, all three parts now present:**
+
+    steerTrack        writes a row addressed to a track   <- this
+    agent_messages    carries track_id                    <- 20260820032000
+    loop.server.ts    reads it when there is no mission   <- 03:25
+
+**A track is the address, not an agent, and that is the design decision.** No
+`to_agent_id`, no `to_agent_slug`. `steerStudioSession` hardcodes `"builder"`,
+which is right for Build because Build has one agent. **A track's station changes
+as the work moves**, so naming an agent would address the message to whoever
+happened to hold it when the person started typing. The loop matches on
+`track_id` and `kind`, so it reaches whoever is working the track when it is
+read.
+
+**The RLS read is the authorization, deliberately.** The track is fetched through
+the caller's own client, so a track they cannot see returns the same "could not
+be found" as an id that is genuinely absent. It leaks nothing about whether the
+id exists, and it is the same idiom `setStationWaiver` beside it already uses.
+
+**2000 characters because that is what the loop injects.** `loop.server.ts`
+slices to 2000 before appending. Accepting more would take text the product
+silently discards, and a person whose last sentence vanished has been lied to by
+a form.
+
+**A finished track refuses the steer** rather than accepting a row nobody will
+read. An unconsumed steer on a stopped track is not harmful, it is permanently
+pending, and someone who typed it is entitled to know it landed nowhere.
+Statuses verified in both places rather than guessed: the type says
+`"open" | "done" | "abandoned"` and production holds 43 open and 1 done, so the
+guard is live rather than dead.
+
+**On the thing I deferred this for.** I stopped the previous slice short saying a
+public server function that injects a person's words into a running agent
+deserved its own thought about who may steer what. Having had it: three bounds
+hold it, and none is sufficient alone. The caller is authenticated. RLS has
+already agreed they may see this track. And the loop appends the text under an
+explicit "Operator steering" label as a `user` turn rather than blending it into
+the system prompt, so the model is told what it is reading. **What this is not is
+a way to reach a track you could not otherwise read.**
+
+**Gates:** tsc clean, 9,832 pass / 0 fail across 582 files, build ok.
+
+**Criterion 11, stated exactly.** The mechanism now works for all seven stations
+and I can say that because each part is verified rather than assumed. **No user
+has steered anything, because there is no control to press** -- that is a
+component and it is Kiro's. The criterion reads "stations that ACCEPT a steer",
+and all seven now do.
