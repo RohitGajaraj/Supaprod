@@ -50,6 +50,12 @@ have.
    ledger/kiro-log.md. You never write to ledger/claude-log.md.
 4. docs/design/DESIGN-SYSTEM.md — the Meridian contract. Meridian is the only design
    system. Five others are retired and none is a reference.
+5. docs/planning/initiatives/audit-reports/agent-audit-2026-08.md — the findings
+   register behind every item's "Why". Read the section for the subsystem your item
+   touches BEFORE you build it. It also names which existing docs are stale, which
+   matters because several items exist only because a doc claimed something the code
+   had stopped doing. If your item's premise disagrees with the register, say so in
+   your log rather than picking one silently.
 
 THEN: take the lowest-numbered item whose status is TODO in the log and whose
 dependencies are VERIFIED. Build exactly that one item. Do not batch items and do not
@@ -161,12 +167,35 @@ READ FIRST:
 3. docs/operations/ledger/README.md — you write ONLY to ledger/claude-log.md
 4. docs/planning/initiatives/agent-first-platform.md — the direction, and where every
    acceptance number comes from
+5. docs/planning/initiatives/audit-reports/agent-audit-2026-08.md — the findings
+   register. Roughly 60 agents produced it; it names what is broken, what is queued,
+   what is already fixed, and WHICH EXISTING DOCS ARE STALE. Read the section for
+   whatever you are about to touch. When you fix a finding, update its state there in
+   the same commit — a register that drifts is worse than none, because the next reader
+   trusts it.
+
+STAY IN SYNC. THIS IS THE RULE MOST LIKELY TO BE SKIPPED, AND SKIPPING IT SILENTLY
+BREAKS EVERYTHING ELSE.
+
+Kiro pushes to `main` continuously. A lane that has not pulled is a lane verifying work
+that has already moved, on a tree that no longer exists. Run this:
+
+  bun run lane:sync
+
+It fetches, rebases, and tells you three things: what landed on main, which items are
+now BUILT and awaiting your verdict, and whether Kiro is blocked on a question only you
+can answer. It refuses to rebase a dirty tree rather than stashing behind your back, and
+it never pushes.
+
+RUN IT: before you start any piece of work · before you push anything · after you finish
+any unit of work · and whenever roughly 20 to 30 minutes have passed inside a long task.
+That last one is the one that matters, because a two-hour migration will otherwise never
+trigger the others. If you cannot remember when you last synced, you are overdue.
 
 YOUR LOOP, and run it in batches rather than per item — do not idle waiting for Kiro:
 
-  git fetch origin && git rebase origin/main
-  # read docs/operations/ledger/kiro-log.md for BUILT entries with no verdict
-  # verify each ONE AT A TIME, against production and the running app
+  bun run lane:sync
+  # verify each pending item ONE AT A TIME, against production and the running app
 
 Verification means querying the live database through the Lovable MCP and running the
 app, NOT reading the diff and not trusting the suite. This repo has shipped nine

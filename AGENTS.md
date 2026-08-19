@@ -83,6 +83,7 @@ Four things carry most of the value in this file. If you read nothing else:
 | Per-feature status and who is on what | [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) |
 | What the last session did and left open | [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md) |
 | What is actually true in production | **The live database.** Not a doc. |
+| **What the last full audit found, and what is still open** | [`docs/planning/initiatives/audit-reports/agent-audit-2026-08.md`](./docs/planning/initiatives/audit-reports/agent-audit-2026-08.md). **Read its section for the subsystem you are about to touch.** Roughly 60 agents produced it on 2026-08-19; every finding is verified against code or production, and it names which docs are stale so you do not trust one. |
 
 Read the handoff and the SSOT cursor. Do not re-read the whole corpus; that is the cost this repo has been paying and the reason it was cleaned up.
 
@@ -325,6 +326,8 @@ When you do write docs, four rules keep this from rotting again:
 ---
 
 ## 9. Traps this repo has already paid for
+
+> **Before adding a row here, check the audit register** — [`docs/planning/initiatives/audit-reports/agent-audit-2026-08.md`](./docs/planning/initiatives/audit-reports/agent-audit-2026-08.md). It carries roughly 60 agents' findings from 2026-08-19, grouped by subsystem, each marked open, queued, closed, or stale-doc. **Read the section for what you are touching before you start**, and **update a finding's state in the same commit as its fix.** The traps below are the ones general enough to bind every change; the register holds the specific ones.
 
 Each of these cost real time. Add a row before you hit the same thing a third time.
 

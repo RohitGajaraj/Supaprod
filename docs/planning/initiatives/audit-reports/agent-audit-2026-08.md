@@ -6,6 +6,26 @@
 
 **It is a findings register, not a plan.** The plan is [`../agent-first-platform.md`](../agent-first-platform.md). The work list is [`../../../operations/kiro-queue.md`](../../../operations/kiro-queue.md). This is the evidence underneath both, and the place to check before re-investigating something.
 
+---
+
+## When to read this, and why it is not optional
+
+**Read the relevant section before you touch a subsystem.** Not the whole file — the section for the thing you are about to change. It will usually tell you one of three things, and each saves a wasted hour:
+
+| If you are about to… | Read | Because |
+| --- | --- | --- |
+| Change anything about runs, agents, tools or autonomy | §2 | Two orchestration engines exist and only one is documented; six of seven stations are structurally unsteerable |
+| Touch Ask, the composer, or dispatch | §3 | Dispatch works through an accidental `@cos` prefix, and the branch designed for it is dead |
+| Change a station's data flow, or trust a station doc | §4 | `lifecycle-signal-to-learning.md` is **substantially stale** — six of its twelve gaps are now wrong |
+| Add or change a background job | §5 | 36 of 38 ticks are scheduled, one is orphaned, and nine tables are written by ticks and read by nothing |
+| Do any design or UI work | §6 | Most Meridian debt is **dead code, not a porting job**, and four docs declared retired systems current until 2026-08-19 |
+| Quote a number outward, or in an application | §1 | Every figure here carries its query. Several previously-quoted numbers were wrong |
+| Re-run research on agent architecture or UX | §7 | **Do not re-run these.** The external research is recorded with its sources |
+
+**And the discipline that makes this file worth keeping:** when you fix something listed here, **change its `State` in the same commit as the fix.** A register that drifts from reality is worse than no register, because the next reader trusts it. That is the exact failure this file documents in §8 about ten other documents.
+
+**When you find something new, add a row.** This file is append-and-correct, not frozen. A finding nobody wrote down is a finding somebody pays for twice. The plan is [`../agent-first-platform.md`](../agent-first-platform.md). The work list is [`../../../operations/kiro-queue.md`](../../../operations/kiro-queue.md). This is the evidence underneath both, and the place to check before re-investigating something.
+
 **Every finding was verified against code or production**, not read from a document. Where a doc claimed something the code did not do, that is recorded as its own finding.
 
 ---
