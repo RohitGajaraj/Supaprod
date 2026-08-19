@@ -2235,3 +2235,77 @@ Plus `founder.commitment`: **notice served, quitting, full time.** *Sabbatical, 
 ## Video
 
 <https://youtu.be/_3yemDMdyHQ> — unlisted, 1:02, on the Supaprod channel, thumbnail built from the brand fonts. Source and masters in `iCloud → Supaprod → EF_Bridge`. The source recording peaked at **+0.07 dBFS (clipping)** and sat 4.6 LU under YouTube's target; both corrected without touching colour or framing.
+
+---
+
+# Claude lane, overnight 2026-08-19 into 08-20. Appended, not replacing.
+
+**The one thing to do first: publish.** Every line of code from this session is on
+`main` and **not live**. The migrations ARE live, because migrations apply
+immediately and app code waits on your publish (`AGENTS.md:98`). So production is
+running **this session's schema against last week's code**. Nothing is broken --
+every migration is additive and nothing existing reads the new columns -- but
+**four §10 criteria are waiting on that one button** and cannot move without it.
+
+**Kiro appears stalled, and its work is uncommitted.** Checked three times across
+50 minutes: 5 modified files in `Supaprod/`, zero edits in the last 30 minutes.
+It is mid-K-84 (`PlanCard`) and also has `RunTimeline.tsx`, `ToolStream.tsx` and a
+new `run-rows.tsx` open, which looks like it was extracting a shared row module.
+**Nothing on my side blocks it** -- no unanswered question, and K-84's only
+dependency is verified. The uncommitted work exists only on disk in that
+worktree; I did not touch it.
+
+## What landed
+
+**Five migrations, applied one at a time and verified between each**, because
+Lovable collapses a batch. `is_sample` on `learnings` and `agent_memory` before
+any re-seed; `learnings` gaining a workspace FK, `product_id` and `decision_id`;
+`agent_memory.product_id` with a CHECK refusing one on method memory;
+`agent_autonomy.workspace_id`; the missing `credit_ledger.product_id` FK. One of
+them **deleted 16 production rows in its first draft and does not any more** --
+`NOT VALID` gets the same guarantee without the destruction.
+
+**The stop exists.** `stopRun` writes it, the loop polls the row and abandons its
+work, and `finalize` can no longer overwrite the verdict. The guard landed
+*before* the writer on purpose: had it landed second, the first stop ever pressed
+would have been silently reversed.
+
+**A steer reaches every station.** Six of seven never open a mission, so a steer
+had nowhere to land. Rather than invent missions -- which that file refuses, with
+reasons -- a steer now names a **track**, which every station has.
+
+**The trust score's eval leg is decided**: `mean(quality) x (1 - max(risk))`, and
+rows judged before the prompt fix do not count.
+
+**Nine Kiro items verified, two rejected** (K-03 for shipping a false claim in a
+test name; K-07 for `cap={0}` rendering as healthy and negative spend emitting
+negative geometry).
+
+## Numbers that changed, each one a query
+
+Pending approvals **53 → 31** (25 futile ones cancelled; 3 came back because the
+fix is undeployed). Never-decided **130 → 66**. Criterion 17 **met**: 0 duplicate
+agent names. Criterion 15 **met**: 0 orphan routes. Criterion 2 measured properly
+for the first time: **158 of 316 approvals ever raised should never have been
+raised**, and all 158 resolve on publish with no code change.
+
+## Three things that are true and unwelcome
+
+**`cron.eval-tick` stopped dead on 2026-08-05** and nothing noticed. 1,609 clean
+runs, then nothing, while the rest of the tick layer ran tonight. The query that
+would say why needs `psql`; `cron.job_run_details` times out through the MCP.
+
+**Every forecast resolution in the database is seeded.** All 91, none
+agent-attributed, all timestamped at exactly midnight. Nothing in the product
+writes one.
+
+**Zero learnings exist in a real workspace.** The moat's own table has never held
+a row that was not fiction.
+
+## The habit worth keeping
+
+Four times tonight I measured the wrong thing and caught it: counted prose as
+code, parsed `oklch()` with a regex written for `rgb()`, asked a per-workspace
+question of a per-user lookup, and read an empty result from a broken shell loop
+as a clean answer. **An empty result from a broken query is indistinguishable
+from a clean result.** Ask the instrument its sample size before believing it.
