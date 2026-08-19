@@ -1986,7 +1986,7 @@ It also happens to be the primitive the direction already asked for. [`../planni
 ---
 
 **K-81 · `AgentPulse` keeps its azure and loses the brand mark**
-`STATUS: TODO` · deps: K-09 · size: S · **PRIORITY: jump list, second**
+`STATUS: BUILT` · deps: K-09 · size: S · **PRIORITY: jump list, second**
 
 > **REWRITTEN 2026-08-20 after Kiro's QUESTION, which was right.** The original item named `LoadingState` and every one of its four criteria was already met there: monochrome `bg-mrd-ink` cells, a 13px label over a 12px mono elapsed, and Drive/Dots/Orbit with Surfer already skipped. **The component being described was `AgentPulse`.** The original also cited a founder ruling to `DESIGN-SYSTEM.md`, where `grep -ci brand` returns 0. Full correction in the Claude log.
 

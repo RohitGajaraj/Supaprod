@@ -1338,38 +1338,40 @@ function MeridianGallery() {
         </Panel>
 
         {/*
-         * TWO GLYPHS, ONE INDICATOR, SIDE BY SIDE ON PURPOSE.
+         * ONE MARK NOW, AND THIS PANEL USED TO SHOW TWO.
          *
-         * The founder asked to judge these against each other rather than take
-         * a recommendation, and that is the right instinct: a rejected design
-         * that exists only in git history is one nobody can look at.
+         * The comparison was real and it has been settled: the founder judged
+         * the brand geometry here on 2026-08-19 and ruled it out, so the option
+         * is deleted from the component rather than merely un-defaulted. There
+         * is nothing left to put side by side, and a panel still offering the
+         * choice would be a decision the product has already taken, re-opened.
          *
-         * Everything except the mark is identical, so the comparison is of the
-         * mark alone: same dictionary, same shimmer, same azure, same elapsed
-         * figure. Both are shown running, because neither can be judged still.
+         * The four cases are now the four states this indicator actually has:
+         * with a noun and a clock, with neither, and each of those roomy and
+         * compact. Compact differs in the GAP alone; the type stop is the same
+         * 13px in both, which is also `LoadingState`'s.
          */}
         <Panel
-          title="Agent at work, two marks"
-          note="The same indicator with the brand geometry and with the reference's pixel lattice. The brand mark is ours and nothing in the category looks like it, and a standing ruling says what a person watches while they wait should be the brand rather than a borrowed spinner. The lattice is calmer, reads better small, and sits more quietly beside the shimmering word. One is more distinctive, the other more restrained. Colour is azure in both: a machine is working, never green, which reports an outcome."
+          title="Agent at work"
+          note="A rotating verb, the noun it is working on, and how long it has been going. The mark is the reference's pixel lattice, tinted azure rather than the ink LoadingState uses: that one reports a job, which has no actor, and this one reports an agent. Never green, which reports an outcome. The brand geometry was the default here until 2026-08-19 and was ruled out in the room; the option is gone from the component, not just from this panel. Compact changes the gap and not the size, because shrinking type to save a row is the answer the ratchet forbids."
         >
           <Pair>
             <div className="flex flex-col gap-5">
               <AgentPulse
                 label="Scout is reading the record"
                 seed="scout"
-                glyph="mark"
                 detail="14 signals"
                 startedAt={Date.now() - 47_000}
               />
               <AgentPulse
                 label="Scout is reading the record"
                 seed="scout"
-                glyph="grid"
                 detail="14 signals"
                 startedAt={Date.now() - 47_000}
+                compact
               />
-              <AgentPulse label="Critique is reading the drawing" seed="critique" glyph="mark" />
-              <AgentPulse label="Critique is reading the drawing" seed="critique" glyph="grid" />
+              <AgentPulse label="Critique is reading the drawing" seed="critique" />
+              <AgentPulse label="Critique is reading the drawing" seed="critique" compact />
             </div>
           </Pair>
         </Panel>

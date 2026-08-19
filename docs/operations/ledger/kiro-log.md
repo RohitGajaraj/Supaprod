@@ -1765,3 +1765,76 @@ Looked at in both grounds before and after, three times, which is how the chroma
 > touch screen. The two things a test cannot see are whether pointer capture really holds when the
 > pointer outruns the card, and whether the violet reads as faint on a real display rather than in a
 > screenshot.
+
+---
+
+## K-81 · BUILT · 2026-08-20 05:05
+
+**Did.** The brand mark is deleted from `AgentPulse`, not un-defaulted. The `glyph` prop is gone with
+it. The label moved to 13px, which is the stop `LoadingState` uses for the same job, and it is now the
+same stop in both densities. The azure is untouched and a test says so. The gallery panel that showed
+the two marks side by side is now the four states the indicator actually has.
+
+**One thing went and one thing explicitly stayed, and getting that split right was the item.** Both
+complaints arrived in the same review and only one of them was about this file.
+
+| the complaint | the fix |
+| --- | --- |
+| *"That circle gear icon is not good. I don't want to use that."* | the seven-petal `BrandGlyph` is deleted, and so is the union that offered it |
+| "the logos are not visible in light mode" | **not here.** `[data-theme="light"]` re-declared every token and never re-bound `color`, so every `currentColor` glyph inherited the dark ground's ink and measured 1.00 on paper. Fixed in `meridian.css` by another lane |
+
+Measured after that fix, the azure lattice is 7.02 on dark and 5.62 on paper. It was never the thing
+that was invisible, and repainting it in ink would have deleted the one surface in the product that
+says a machine is working. `--mrd-agent` is counted at 59 against `--mrd-you`'s 97 in the 2026-08-19
+audit, which names that imbalance as the thing to close rather than widen.
+
+**Deleted the prop rather than defaulting it, and the item asked for exactly this.** `glyph?: "mark" |
+"grid"` with `grid` as the new default would render identically today and leave the ruled-out drawing
+one prop away, with the union standing as an invitation. A ruling enforced by a default is not
+enforced. Only the gallery ever passed the prop, so nothing outside Owns had to change.
+
+**The type stop, and why it is BOTH densities.** `compact` dropped the size from `text-mrd-body` (14px)
+to `text-mrd-base` (13px), which made two indicators out of one component and put the roomy one a stop
+above `LoadingState`'s 13px label for the same job. 13px is now both, so `compact` changes the GAP and
+nothing else, which is what compact should mean: tighter, not smaller. Shrinking type to save room is
+the answer the ratchet forbids, and it had shipped here as a prop.
+
+A test asserts the two densities differ by exactly one class each way (`gap-mrd-4` against
+`gap-mrd-3`), which is a stronger claim than "both are 13px" and would fail if a future `compact` took
+anything else away.
+
+**Proven by planting, both directions.** Re-adding an `<ellipse>` with `mrd-spin` fails the
+petal-geometry test; restoring the conditional type stop fails two of the type tests.
+
+**One test caught my own comment.** The source assertion for "no glyph union" matched the sentence in
+the new comment explaining which union was deleted. The comment is right to name it, so the test now
+strips comments and asserts against the CODE, and separately asserts the prose still records what
+went, because an absence with no reason attached is how a deletion gets undone.
+
+**Pushed back.** Two.
+1. **The item says `AgentPulse` has five callers outside the gallery. It has fifteen**, across `decide`,
+   `design`, `plan.spec`, `plan.index`, `build.index`, `ship`, `runs.$missionId`, `TrackActivity`,
+   `CrewWorking`, `RunReturn`, `OpportunityDetailSheet` and `primitives`. The figure did not change
+   what I built, since none of them passes `glyph`, but a count that low would have made "all five
+   still render" a much weaker check than it needed to be.
+2. **`LoadingState` writes the same stop as `text-[13px]`**, a raw arbitrary value for a size that is
+   on the ladder as `--mrd-t-base`. On the ladder by value, off it by form. Not this item's file, so a
+   test pins that `AgentPulse` does not copy the habit and the finding is recorded here instead.
+
+**Noticed.** Two.
+1. **The animated brand mark still renders in two other interaction states**, `ask/Working.tsx` (via
+   `SupaprodMark size={15} animated`) and `supaprod/BrandWait.tsx`. The acceptance criterion reads "no
+   path renders the brand asterisk in an interaction state", which is broader than this item's `Owns`.
+   I did not touch either, and think that is right rather than merely cautious: `BrandWait` carries the
+   founder's own words asking for the mark in that moment, and the 2026-08-19 ruling was about the
+   indicator that sits beside a row while an agent works, twelve times over. Different job, different
+   ruling, and reversing one by implication is how a ruling gets applied where nobody meant it.
+   **Worth an explicit yes or no from him rather than a guess from me.**
+2. **`mrd-spin` and `mrd-attention` both survive with other callers** (`PlanCard`, `TaskRows`,
+   `Thinking`, `SelectionActions`, `StatusChip`), so removing the glyph left no dead keyframes.
+
+**Gates.** tsc clean · 9,749 pass / 0 fail / 23 skip across 582 files · build ok · ratchet unchanged.
+
+> **Claude does after:** open `/meridian` and check the indicator in both grounds, then one real
+> surface with it live (`/decide` has three mounts). The thing a test cannot see is whether the lattice
+> at 13px still reads as calm beside the shimmering word now that the word is a stop smaller.

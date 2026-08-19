@@ -16,10 +16,28 @@ import { useElapsed } from "@/components/meridian/use-elapsed";
  * ── WHY THIS IS IN MERIDIAN, AND WHY IT WAS THE LAST THING LEFT ─────────
  * beautifui.dev has no equivalent. Its nearest components, Loading State and
  * Thinking, are both already ported and at parity, and neither carries a
- * rotating verb, a per-action noun, or a brand glyph. So the reference could
- * not answer this one, which is precisely the case the founder's standing
- * ruling covers: where no reference element exists, build it into the system
- * rather than reach past the system.
+ * rotating verb or a per-action noun. So the reference could not answer this
+ * one, which is precisely the case the founder's standing ruling covers: where
+ * no reference element exists, build it into the system rather than reach past
+ * the system.
+ *
+ * ── THE BRAND MARK IS GONE, AND THIS FILE USED TO ARGUE FOR IT ──────────
+ * FOUNDER, 2026-08-19, VERBATIM: *"That circle gear icon is not good. I don't
+ * want to use that."* Ruled in the room, and it needs no document behind it.
+ *
+ * WHAT IS BEING REVERSED. This file carried the claim that there was a standing
+ * ruling that the thing a person watches while they wait should be the brand
+ * rather than a borrowed spinner, and it shipped a seven-petal mark turning at
+ * 6s as the DEFAULT, with the reference's pixel lattice as an opt-in variant.
+ * That is now the other way round, and the variant is not a variant: the option
+ * is deleted rather than defaulted away, because a prop that still offers the
+ * ruled-out thing leaves the ruling unenforced and the next author will find it.
+ *
+ * The claimed ruling is also not written down anywhere: `grep -ci brand` in
+ * `DESIGN-SYSTEM.md` returns 0. The mark still earns other moments, and those
+ * have their own rulings in their own files (`BrandWait` for the auth load,
+ * `ask/Working` for the pane). This is about the indicator that sits beside a
+ * row while an agent works, twelve times over, which is a different job.
  *
  * Until today this was the last retired-layer dependency of every already
  * ported surface. Three separate ports in one afternoon reported it as the
@@ -68,67 +86,30 @@ import { useElapsed } from "@/components/meridian/use-elapsed";
  */
 
 /**
- * The seven-petal mark at indicator scale.
- *
- * Redrawn rather than importing `SupaprodMark`, because that one carries the
- * full brand lockup, which is illegible at 14px and expensive to animate. This
- * is the same geometry reduced to what survives at this size.
- *
- * It turns slowly and breathes; it never spins fast, because a fast spinner
- * reads as "blocked" and this is the opposite of blocked. Both animations are
- * declared INLINE, because meridian.css's reduced-motion block matches on the
- * style attribute and an animation in a utility class would keep running for
- * someone who asked it not to.
- */
-function BrandGlyph() {
-  const petals = Array.from({ length: 7 }, (_, i) => (i * 360) / 7);
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="14"
-      height="14"
-      aria-hidden="true"
-      className="shrink-0 text-mrd-agent"
-      style={{
-        transformOrigin: "50% 50%",
-        animation: "mrd-spin 6s linear infinite, mrd-attention 2.6s var(--mrd-ease-soft) infinite",
-      }}
-    >
-      {petals.map((deg) => (
-        <ellipse
-          key={deg}
-          cx="12"
-          cy="6.4"
-          rx="2.1"
-          ry="4.1"
-          fill="currentColor"
-          transform={`rotate(${deg} 12 12)`}
-        />
-      ))}
-    </svg>
-  );
-}
-
-/**
- * THE PIXEL GRID, the other candidate, kept as a variant rather than as a
- * replacement so the two can be compared on one screen.
+ * THE PIXEL GRID, now the only glyph this indicator has.
  *
  * This is beautifui.dev's loading mechanic, already ported into
  * `meridian/LoadingState` from that site's own source: a 3x3 lattice on a
  * staggered chevron so two fronts are always in flight and the grid never reads
  * as empty mid-cycle.
  *
- * IT IS TINTED `--mrd-agent`, WHERE `LoadingState` USES INK. That is not a
- * preference. `LoadingState` reports a JOB running, which has no actor; this
- * reports an AGENT running, and azure is the token that says so. The same
- * lattice in ink would be the generic loader wearing our spacing.
+ * IT IS TINTED `--mrd-agent`, WHERE `LoadingState` USES INK, and that is the one
+ * thing about this component that must not be tidied. It is not a preference.
+ * `LoadingState` reports a JOB running, which has no actor; this reports an
+ * AGENT running, and azure is the token that says so. The same lattice in ink
+ * would be the generic loader wearing our spacing, and the two components would
+ * become one with a rotating word.
  *
- * WHAT IT COSTS, said plainly, because the choice is a real trade. The brand
- * mark is ours and nothing else in the category looks like it, and there is a
- * standing ruling that the thing a person watches while they wait should be the
- * brand rather than a borrowed spinner. The lattice is calmer, reads better at
- * small sizes, and sits more quietly beside the shimmer. One is more
- * distinctive; the other is more restrained.
+ * THE AZURE IS NOT WHAT WAS INVISIBLE ON PAPER, which is worth stating because
+ * the two defects were reported together and only one of them was here. Glyphs
+ * measured 1.00 contrast on the light ground because entering
+ * `[data-theme="light"]` re-declared every token and never re-bound `color`, so
+ * every `currentColor` glyph inherited the dark ground's ink. That is fixed in
+ * `meridian.css`. Measured after the fix, this lattice is 7.02 on dark and 5.62
+ * on paper. It is also the canonical use of `--mrd-agent`, which the 2026-08-19
+ * audit counts at 59 against `--mrd-you`'s 97 and names as the imbalance to
+ * close: repainting it in ink would delete the one surface in the product that
+ * says a machine is working.
  */
 function PixelGlyph() {
   /* The chevron stagger from LoadingState's Drive variant. `null` is a cell
@@ -154,7 +135,6 @@ export function AgentPulse({
   compact = false,
   detail,
   startedAt,
-  glyph = "mark",
 }: {
   /** The static sentence a screen reader gets, once. Never the rotating word. */
   label: string;
@@ -193,16 +173,13 @@ export function AgentPulse({
    * `detail`: an empty slot beats an invented fact.
    */
   startedAt?: number;
-  /**
-   * Which mark turns while the agent works.
-   *
-   * `mark` is the seven-petal brand geometry; `grid` is the reference's pixel
-   * lattice. Both are kept so they can be judged side by side in the gallery
-   * rather than one of them living only in git history, where nobody can look
-   * at it. The default is the brand, per the standing ruling that what a person
-   * watches while they wait should be ours.
+  /*
+   * THERE IS NO `glyph` PROP ANY MORE, and the deletion is the point rather than
+   * a tidy-up. It offered `"mark" | "grid"` and defaulted to the brand mark the
+   * founder ruled out on 2026-08-19. Keeping it with `grid` as the default would
+   * have left the ruled-out drawing one prop away, and left the union standing as
+   * an invitation. One indicator, one mark.
    */
-  glyph?: "mark" | "grid";
 }) {
   const elapsed = useElapsed(startedAt, startedAt != null);
   const base = React.useMemo(() => seedFrom(seed), [seed]);
@@ -222,11 +199,20 @@ export function AgentPulse({
   return (
     <span
       data-mrd=""
-      className={`inline-flex min-w-0 items-center text-mrd-mute ${
-        compact ? "gap-mrd-3 text-mrd-base" : "gap-mrd-4 text-mrd-body"
+      /*
+       * ONE TYPE STOP, IN BOTH DENSITIES. `compact` used to drop the size from
+       * `text-mrd-body` (14px) to `text-mrd-base` (13px), which made two
+       * indicators of one component and put the roomy one a stop above
+       * `LoadingState`'s 13px label for the same job. 13px is now both, so
+       * `compact` changes the GAP and nothing else, which is what compact should
+       * mean: tighter, not smaller. Shrinking type to save room is the answer the
+       * ratchet forbids.
+       */
+      className={`inline-flex min-w-0 items-center text-mrd-base text-mrd-mute ${
+        compact ? "gap-mrd-3" : "gap-mrd-4"
       }`}
     >
-      {glyph === "grid" ? <PixelGlyph /> : <BrandGlyph />}
+      <PixelGlyph />
 
       {/* The live region carries the STATIC label. */}
       <span className="sr-only" aria-live="polite">
