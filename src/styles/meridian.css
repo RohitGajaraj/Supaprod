@@ -367,6 +367,72 @@
   --mrd-hold-dim: oklch(0.62 0.095 78);
 
   /*
+   * ── CONTROL, WHICH IS A THIRD PALETTE AND NOT A SIXTH STATUS ───────────
+   *
+   * `--mrd-stop` is what a control that HALTS WORK IN PROGRESS wears: stop this
+   * run, discard this draft, remove this connection. It is the only token in
+   * this file that paints an INTENT rather than a state, and that is why it had
+   * to be added rather than borrowed.
+   *
+   * WHY NOTHING EXISTING COULD DO THE JOB. The colour law reserves `--mrd-fail`
+   * for an outcome that has already happened and forbids it on an intent:
+   * "roll back is not red, because red reports a result." So a stop control had
+   * two options, both wrong. Wear `fail` and it claims a failure that has not
+   * occurred. Wear a neutral and it is indistinguishable from the benign
+   * secondary sitting next to it, which is how somebody discards forty minutes
+   * of work by aiming at the wrong button. The product has no stop control
+   * anywhere today and this absence is a large part of the reason.
+   *
+   * IT IS NOT A SIXTH STATUS HUE, AND IT COULD NOT HAVE BEEN ONE. The wheel is
+   * full: measured, the widest gap between adjacent status hues is 83 degrees
+   * (pass 152 to agent 235) and its centre is 193, a cyan that sits 41 and 42
+   * from its neighbours and reads INFORMATIONAL, which this file already names
+   * as a trap because blue means a machine is working. A stop control lives on
+   * exactly the surface an agent-working indicator lives on, so cyan is the
+   * worst seat available rather than the best. Every other gap centre lands
+   * within 37 of a neighbour, inside the range where the commonest colour
+   * vision deficiencies merge them. So the sixth-meaning refusal stands
+   * untouched, and this token is not asking for an exemption from it: it is a
+   * CONTROL colour, the third non-status palette in this file after viz and
+   * syntax, and it may only ever paint something a person can press. Never a
+   * chip, never a dot, never a rule, never a row's state. If it appears on
+   * anything that merely REPORTS, that is the defect.
+   *
+   * IT STAYS IN THE RED FAMILY, DELIBERATELY. Halting is the one act every
+   * reader already recognises in red, and leaving the family to satisfy a rule
+   * about status hues would cost recognition to gain nothing. What the law
+   * forbids is `--mrd-fail` on an intent, and that stays forbidden: these two
+   * values are far apart, and hue 12 is a cool crimson against fail's warm
+   * vermilion at 27.
+   *
+   * IT IS QUIETER THAN `--mrd-fail`, WHICH IS THE POINT. Chroma is held at
+   * 0.105 against fail's 0.19 and 0.195, so it reads as clay rather than as a
+   * signal, and it can never out-shout the failure it exists to prevent.
+   * Distance plus a confirm is what protects a destructive act; volume is not,
+   * and a stop button that dominates a run surface trains people to ignore it.
+   *
+   * MEASURED, in both grounds, against every ground stop and against its own
+   * 13% wash, the fill a destructive control actually sits on. WCAG asks 3:1 of
+   * a non-text control; this clears that with room and clears the 4.5 text
+   * floor on every plain surface, so the same token can carry the label.
+   *
+   *   dark  #d07c87  bg 6.54  sink 6.67  sheet 6.26  lift 5.79  float 5.21
+   *                  on its own wash, worst case float 4.29
+   *   paper #8f414e  bg 6.25  sink 5.67  lift 6.00  float 6.84
+   *                  on its own wash, worst case sink 4.71
+   *
+   * For scale, `--mrd-fail` measures 4.65 against dark `float` and 3.96 on its
+   * own wash there, so this is legible everywhere the incumbent is and in two
+   * places it is not.
+   *
+   * FIRST CALLER the `destructive` variant of `Action` in
+   * `src/components/meridian/surface-parts.tsx`. SECOND CALLER the confirm in
+   * `src/components/meridian/Dialog.tsx` that stops a run and discards its
+   * work, which is the case that made a modal necessary at all.
+   */
+  --mrd-stop: oklch(0.68 0.105 12);
+
+  /*
    * ── DATA VISUALISATION, WHICH IS NOT THE STATUS PALETTE ───────────────
    *
    * Founder ruling 2026-08-15, and it resolves a tension this file had been
@@ -719,6 +785,13 @@
   --mrd-hold: oklch(0.52 0.12 78);
   --mrd-hold-dim: oklch(0.56 0.11 78);
 
+  /* Re-darkened like every semantic hue, and by the same amount the neighbours
+     move: 0.68 to 0.48 with the hue and chroma held, so a stop control is the
+     same colour idea on both grounds and only its lightness answers the paper.
+     Measured worst case 5.67 against `sink` plain and 4.71 on its own 13% wash.
+     Reasoning for the token itself is on the dark declaration. */
+  --mrd-stop: oklch(0.48 0.105 12);
+
   /* The reference's own light-theme data palette. Each is darker and more
      saturated than its dark-theme twin, which is what keeps a 2px series
      line readable on white — the same reason our semantic hues re-darken. */
@@ -798,6 +871,8 @@
   --color-mrd-fail: var(--mrd-fail);
   --color-mrd-hold: var(--mrd-hold);
   --color-mrd-hold-dim: var(--mrd-hold-dim);
+  /* A control that halts work, never a status. See its declaration above. */
+  --color-mrd-stop: var(--mrd-stop);
 
   --color-mrd-code-kw: var(--mrd-code-kw);
   --color-mrd-code-fn: var(--mrd-code-fn);
