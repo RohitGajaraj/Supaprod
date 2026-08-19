@@ -24,6 +24,7 @@ import { ToolStream, type ToolStreamRow } from "@/components/meridian/ToolStream
 import { PlanCard, type PlanStep } from "@/components/meridian/PlanCard";
 import { Action, Actions, Approve } from "@/components/meridian/surface-parts";
 import { Dialog } from "@/components/meridian/Dialog";
+import { Spend } from "@/components/meridian/Spend";
 import {
   RecordStatus,
   RecordTag,
@@ -2071,6 +2072,15 @@ function MeridianGallery() {
             <DialogCases />
           </Pair>
         </Panel>
+
+        <Panel
+          title="Spend"
+          note="Nothing in this system rendered spend, in a product that meters credits and enforces three separate ceilings, and the colour law names a cap nearly spent as its own example of amber. So the meaning had a token, the token had a documented example, and the example had no component. This is also the one place a bar is allowed: the rule against them is that a coding agent cannot know how long it will take, and here both numbers are known exactly and the denominator does not move, so the proportion is the fact rather than a guess dressed as one. Amber arrives at eighty per cent, which is where the product already raises its approaching-cap notification, and red waits until the ceiling has actually been hit, because red reports a result. The state is said in words as well as in ink, and it is said as the amount left rather than as a percentage, since that is the figure a reader was about to work out. The last case is real: a workspace with no cap runs every station until the work finishes, and that is worth a sentence rather than an empty track."
+        >
+          <Pair>
+            <SpendCases />
+          </Pair>
+        </Panel>
       </div>
     </div>
   );
@@ -2561,6 +2571,55 @@ function DialogCases() {
           every ten minutes will have nothing new to group. Reconnecting later starts from the
           newest ticket, not from where it left off, so anything filed in between is not picked up.
         </Dialog>
+      </Case>
+    </Stack>
+  );
+}
+
+/*
+ * ── K-07, SPEND ─────────────────────────────────────────────────────────
+ * The three ceilings are the real ones: the per-track cap at $5, the per-mission
+ * cap at $10, and an account cap with no default. The consequences are the ones
+ * the product's own copy already states, quoted rather than rewritten, because
+ * they differ per ceiling and that is exactly why the component refuses to write
+ * them itself.
+ */
+function SpendCases() {
+  return (
+    <Stack>
+      <Case label="Nothing spent yet">
+        <Spend label="This work item" spent={0} cap={5} />
+      </Case>
+      <Case label="Under way, and nothing to say about it">
+        <Spend label="This work item" spent={1.34} cap={5} />
+      </Case>
+      <Case label="Under a cent, which must not read as nothing">
+        <Spend label="Today" spent={0.0008} cap={5} />
+      </Case>
+      <Case label="Nearly spent, which is what amber is for">
+        <Spend
+          label="This work item"
+          spent={4.38}
+          cap={5}
+          note="Raising the cap carries on from where it stopped."
+        />
+      </Case>
+      <Case label="The ceiling was hit, which is the only thing red may mean">
+        <Spend
+          label="This work item"
+          spent={5}
+          cap={5}
+          note="The work stopped where it was and is waiting for you."
+        />
+      </Case>
+      <Case label="Past the ceiling, because a call in flight still lands">
+        <Spend label="This run" spent={11.42} cap={10} note="Over-cap calls are blocked." />
+      </Case>
+      <Case label="An earlier warning, for a workspace that asked for one">
+        <Spend label="This account, today" spent={26.5} cap={50} alertAt={0.5} />
+      </Case>
+      <Case label="No cap set at all">
+        <Spend label="This account" spent={412.86} cap={null} />
       </Case>
     </Stack>
   );

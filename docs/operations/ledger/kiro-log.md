@@ -443,3 +443,60 @@ test that strips comments from the component's own source before checking. Ratch
 
 **Still owed on K-02, K-03 and K-04, and it is yours:** a visual pass in both grounds. The gallery
 sections are written and typechecked and I have never seen any of them.
+
+---
+
+## K-07 · BUILT · 2026-08-19 23:24
+
+**Did.** Built `src/components/meridian/Spend.tsx`, a 21-test suite, and an eight-case gallery
+section. Amber at 80% of the cap, red only once the ceiling has actually been hit, neutral before
+that. Proximity is drawn as a LENGTH and said again in words, so it survives the colour being
+removed. The state resolver is exported as `spendState` so a caller cannot arrive at a different
+answer than the bar did.
+
+**Unsure.** Four.
+
+1. **A bar, in a system that refuses progress bars.** I judged this the one legitimate case and
+   wrote the argument in the file: the refusal is about a coding agent's unknowable duration, and
+   here both numbers are exact and the denominator does not move, so the proportion is the fact
+   rather than a guess dressed as one. **If the rule is read as "no bars at all", this becomes two
+   numbers and a word**, and the cost is that a reader does the arithmetic themselves.
+2. **The word is the remaining amount, not "nearly spent".** "$0.62 left" is the figure a reader
+   was going to work out next. It is a longer string than a status word and it changes as spend
+   moves, which is why the figures are pinned to the right edge rather than flowing.
+3. **The bar is `aria-hidden` and the text carries everything.** `role="meter"` is semantically
+   correct for a measurement in a known range and announces as nothing in several screen readers.
+   The numbers and the state are already text, so nothing is lost, but a caller who expected a
+   meter role will not find one. A test pins the absence so the decision is visible rather than
+   accidental.
+4. **80% is the default alert and it is configurable.** I took the figure from
+   `notifications.functions.ts`, which already raises "Approaching spend cap" at `dCap * 0.8`, and
+   made it a prop because the same file's copy says "alert at ${pct}%", which implies the product
+   stores one per workspace. **I did not verify that a per-workspace threshold column exists** —
+   that needs the database. If it does not, the prop is speculative and should collapse to a
+   constant.
+
+**Noticed.** Three, and the first is a fresh duplication finding for the register.
+
+1. **There are FIVE copies of the same USD formatter, four of them byte-identical.**
+   `routes/_authenticated.admin.proof.tsx:98`, `routes/_authenticated.admin.ai-costs.tsx:75`,
+   `components/engine-room/rooms/SpendRoom.tsx:28` and
+   `components/engine-room/rooms/RecordRoom.tsx:34` all declare
+   `usd`/`fmtUsd` with the identical body `n < 0.01 && n > 0 ? $${n.toFixed(4)} : $${n.toFixed(2)}`.
+   `routes/_authenticated.runs.index.tsx:333` is a fifth variant of the same idea, and
+   `lib/engine-room-glance.ts:349` and `lib/model-label.ts:99` are two more partial ones. **All of
+   them hard-code a dollar sign and a decimal point**, so all of them are wrong in any locale that
+   puts the symbol after the number. That is why I did not import one, and it is worth a queue item
+   in its own right: this is the same shape as the seven copies of `initialsFrom`, at seven copies.
+2. **`--mrd-r-xs` now has a caller it did not have.** The bar's track and fill use
+   `rounded-mrd-xs`. Not a finding so much as a note that the radius scale's smallest stop was also
+   sitting unused, alongside the three tokens K-03 found.
+3. **Two of my own test expectations were arithmetically wrong today** and this item had the third:
+   I asserted `spendState(7.99, 10, 0.8)` was "nearly" when 80% of 10 is 8.00, so 7.99 is correctly
+   "spending". The corrected test now pins both sides of the boundary, which is what it should have
+   done first. Three wrong assertions in one session is a pattern worth naming: every one was a
+   test I wrote to guard a rule, and in each case getting the arithmetic wrong would have produced a
+   test that passed while permitting the defect.
+
+**Gates.** tsc clean · 9,505 pass / 0 fail / 23 skip / 60 todo across 574 files · build ok. New
+suite is 21 tests. Ratchet total unchanged.
