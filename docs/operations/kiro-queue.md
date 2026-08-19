@@ -2,13 +2,25 @@
 
 > _Created: 2026-08-19 · Last updated: 2026-08-19_
 
-> ### BUILD K-80 NEXT. It is numbered last and it is not last.
+> ### PRIMITIVES BUILD BEFORE THE THINGS THAT USE THEM. This overrides the numbers.
 >
-> **Founder ruling 2026-08-20.** `Flowchart` is the one component the reference ships that Meridian does not have, and **a primitive that does not exist is a primitive nobody builds a feature with.** Every item after it that could have drawn a graph will instead invent a one-off, and the cost of that is paid quietly and forever. It was queued as K-80 only because 79 numbers were already taken; the number records when it was written, not when it should be built.
+> **Founder ruling 2026-08-20, and it is a standing rule rather than a one-off promotion.**
 >
-> **Take it as soon as K-09 is `VERIFIED`**, which is its only dependency. If K-09 is still awaiting a verdict, take the next lowest-numbered item, and switch to K-80 the moment that verdict lands rather than finishing the group you are in.
+> **A primitive that lands after its consumers is a primitive nobody used.** By the time it exists, every feature that needed it has already invented a one-off, and now you have both: the primitive AND the debt it was supposed to prevent. That cost is paid quietly, forever, and no gate ever reports it. The same is true of a primitive that ships *wrong*: every consumer inherits the wrongness, and fixing it later means touching all of them instead of one.
+>
+> **So: any item that ADDS a missing primitive, or CORRECTS a shipped one, jumps the queue.** Its number records when it was written, not when it should be built. Numbers are a filing system, not a plan.
+>
+> **The jump list, in order. Take these before any lower-numbered item.**
+>
+> | | Why it jumps |
+> | --- | --- |
+> | **K-80 `Flowchart`** | The one component the reference ships and Meridian does not. Nothing here can draw a graph, so the Run Map the direction already specified cannot be built at all. |
+> | **K-81 Loading state** | A shipped primitive that is measurably wrong against the reference: coloured where it should be monochrome, one type size where there should be two. Every surface that shows work in flight inherits it. |
+> | **K-82 `InsightCards` chart** | Lowest of the three, and **it keeps its permission to be declined** — see the item. It is an addition to a tuned component rather than a primitive gap, so it jumps feature work but never at the cost of degrading what is there. |
+>
+> **When this list is empty, resume by number.** When a new primitive item is written, add it here in the same commit, or it will be built last by default and this ruling will have to be made again.
 
-**If you are Kiro and you have just been asked "what are you building next": read [§1 How to work](#1-how-to-work), then take the lowest-numbered item whose status is `TODO` and whose dependencies are all `VERIFIED` — except K-80, which jumps the queue, see above. Everything you need is in its row.**
+**If you are Kiro and you have just been asked "what are you building next": read [§1 How to work](#1-how-to-work). Take the jump list above first, in its order. Then take the lowest-numbered item whose status is `TODO` and whose dependencies are all `VERIFIED`. Everything you need is in its row.**
 
 **Every item's `Why` comes from the findings register: [`../planning/initiatives/audit-reports/agent-audit-2026-08.md`](../planning/initiatives/audit-reports/agent-audit-2026-08.md).** If an item's premise looks wrong to you, that file is where to check it — it records what was measured, when, and against what. It also names which existing docs are stale, which matters because several items exist only because a doc claimed something the code stopped doing.
 
@@ -1932,7 +1944,9 @@ It also happens to be the primitive the direction already asked for. [`../planni
 ---
 
 **K-81 · The loading state is coloured, loose and large, and the reference is none of those**
-`STATUS: TODO` · deps: K-09 · size: M
+`STATUS: TODO` · deps: K-09 · size: M · **PRIORITY: jump list, second**
+
+> **Jumps the queue** (see the ruling at the top of this file). This is a *shipped* primitive that is wrong, which is the worse case of the two: every surface showing work in flight already inherits it, so each day it stays wrong the correction gets more expensive rather than less.
 
 **What.** Bring `LoadingState` to the reference's mechanics: monochrome cells, tighter type, and the three motion variants. Remove the brand-mark loader from the "Agent at work, two marks" gallery panel.
 
@@ -1965,7 +1979,9 @@ It also happens to be the primitive the direction already asked for. [`../planni
 ---
 
 **K-82 · A trend chart in `InsightCards`, and permission to decline it**
-`STATUS: TODO` · deps: K-09 · size: M
+`STATUS: TODO` · deps: K-09 · size: M · **PRIORITY: jump list, third**
+
+> **Jumps feature work, but it is third and the order matters.** It is an addition to a tuned component rather than a primitive that is missing or wrong, so it outranks anything that merely consumes the design system and outranks nothing else. **Jumping the queue does not raise the bar for declining it** — the permission below is unchanged, and "this would degrade the card" remains the correct answer if it is the true one.
 
 > **READ THIS BEFORE STARTING.** The founder's instruction, verbatim in substance: *"If you can add value, only touch the current insight cards. If not, don't touch and spend much time and damage the existing one. I do not want to damage the existing one. It has already gone through a lot of fine-tuning."*
 >
