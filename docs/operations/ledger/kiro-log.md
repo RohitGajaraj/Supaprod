@@ -375,3 +375,71 @@ item nor any Kiro item I have read. **Proposing it as a new item rather than rea
 **Gates.** tsc clean · 9,463 pass / 0 fail / 23 skip / 60 todo across 572 files · build ok.
 Verified the three utilities reach the built stylesheet as `color-mix(in oklab, var(--mrd-stop) 8%
 | 40% | 75%, transparent)`. Ratchet total unchanged; no raw colour in the diff.
+
+---
+
+## K-03 · BUILT · 2026-08-19 23:17
+
+**Did.** Built `src/components/meridian/Dialog.tsx`, a 21-test suite, and a three-case gallery
+section including the destructive question that K-01 and K-02 exist for. Scrim from `--mrd-scrim`,
+panel on `--mrd-shadow-pane`, `role="dialog"` with `aria-modal`, `aria-labelledby` on the title and
+`aria-describedby` on the consequence. Focus moves in on open, wraps at both edges, returns to the
+trigger on close, and the body scroll lock restores whatever value it found rather than clearing it.
+The actions row is passed in as `Action`/`Approve` children, so the dialog makes no call about which
+of the control faces is the accent.
+
+**Unsure.** Four, and the first is the one most likely to be wrong.
+
+1. **It does not portal, and that is a real trade rather than a simplification.** `[data-theme="light"]`
+   is an attribute selector on a subtree, so a dialog portalled to `document.body` leaves the
+   subtree that set the ground and renders dark on a paper page. It would also make the gallery
+   unable to show it in both grounds at all, which is the surface that caught the 1.19:1 button.
+   **The cost is stated in the file so nobody rediscovers it:** a `position: fixed` element is
+   positioned against the nearest ancestor carrying `transform`, `filter`, `perspective`,
+   `backdrop-filter` or `container-type`, so a caller mounting this deep inside a transformed card
+   will trap the overlay inside that box. Mount from a surface's root. **If that bites in a real
+   surface, the fix is a portal target prop, not a portal to body.**
+2. **The trap only intervenes at the two edges.** Taking over every Tab means reimplementing the
+   browser's focus order, and that is where hand-rolled traps go wrong: a radio group, a
+   `contenteditable` and a horizontally scrolling toolbar all move focus in ways a selector list
+   does not predict. The middle of the order is the browser's. It is also, honestly, the half
+   happy-dom cannot test, so the implementation and the test agree about where the line is.
+3. **Escape and the scrim call `onClose`; an action calls nothing.** The dialog never closes itself
+   on a decision, because "keep the question open and say what went wrong" is a real answer and a
+   component cannot know when it applies. Every caller therefore has to close it, which is one more
+   thing to forget. The alternative, auto-closing, would make a failed confirm silently vanish.
+4. **No `inert` on the background.** Without a portal I cannot mark siblings inert without reaching
+   into the caller's tree. `aria-modal="true"` is the declared mitigation and is what the item asks
+   for, but a screen reader's virtual cursor can still reach content behind the scrim. Worth
+   revisiting if `useConfirm` adopts this.
+
+**Noticed.** Four.
+
+1. **The item's premise is very slightly off and it is worth correcting for the record.**
+   `--mrd-shadow-pane` had **zero** callers, as stated. `--mrd-scrim` had **one**:
+   `src/components/prds/RewindButton.tsx:111`, on a Radix `AlertDialog.Overlay`. So "defined and
+   consumed by nothing" is true of the shadow and one caller out for the scrim. Nothing about the
+   item changes.
+2. **`useConfirm` is the real target and it is not in this item's `Owns`.** `hooks/use-confirm.tsx`
+   is the confirm that roughly 32 surfaces share, it is a Radix alert dialog drawn in
+   `components/shell/primitives` (the retired Cadence/ink layer), and `runs.index.tsx`'s own comment
+   records that adopting it was how the last shadcn import left the route files. **Adopting this
+   component underneath that hook is the change that actually retires legacy dialogs**, and it is
+   one item, cleanly scoped, that nobody has written yet. Recommending it.
+3. **RTL cannot see the scrim as a button, and that turned out to be the better assertion.** My
+   test expected one button in a dialog with no actions, because the scrim is a `<button>`. It is
+   `aria-hidden`, so a role query excludes it and the count is zero. I changed the expectation to
+   zero and rewrote the comment to say what it now proves: a screen reader is offered exactly one
+   way out, Escape, and never an unnamed dismiss control. That is the second time today one of my
+   own assertions was measuring the wrong thing and passing would have been worse than failing.
+4. **`--mrd-r-pane` had no caller either.** `--radius-mrd-pane` is bound in `@theme inline` and
+   `rounded-mrd-pane` appears nowhere in the tree before this component. Three tokens on this
+   surface were waiting for a floating pane that did not exist, which is a tidy illustration of the
+   audit's own point about capability with no door.
+
+**Gates.** tsc clean · 9,484 pass / 0 fail / 23 skip / 60 todo across 573 files · build ok. New
+suite is 21 tests. No `alert`, `confirm`, `prompt` or native `<dialog>` in the diff, asserted by a
+test that strips comments from the component's own source before checking. Ratchet total unchanged.
+
+**Still owed on K-02, K-03 and K-04, and it is yours:** a visual pass in both grounds. The gallery
+sections are written and typechecked and I have never seen any of them.
