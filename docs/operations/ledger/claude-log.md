@@ -177,3 +177,99 @@ needs one optional argument its two callers can already fill.
 foreign key on `credit_ledger.product_id`, which is the only one of the sixteen
 `product_id` columns without one. Free to apply, since the column is 100% NULL.
 Not applied because the founder authorised four and that is four.
+
+## K-04 · VERIFIED · 2026-08-19 23:52
+
+**The criterion Kiro could not meet is now met, and I met it the way it was
+owed: by looking.** Ran the dev server, opened `/meridian` in a real browser at
+an authenticated session, found the Run timeline section and photographed each
+ground separately. Screenshots are untracked, at repo root, `k04-timeline-light.png`
+and `k04-timeline-dark.png`.
+
+**Both grounds render, and I measured them rather than trusting my eyes** -- the
+first full-viewport screenshot made both panes look dark, which was wrong. Per
+pane, from the live DOM:
+
+    pane0  background oklch(0.145 …)  text oklch(0.61 …)   dark ground, light text
+    pane1  background oklch(0.965 …)  text oklch(0.52 …)   light ground, dark text
+
+My first pass at this classified both as DARK, because I parsed an `oklch()`
+string with a regex written for `rgb()` and read the lightness as a red channel.
+Recording that because it is the second time this repo has been bitten by
+measuring a colour with the wrong instrument, and the fix is the same both times:
+read the value, not the string.
+
+**Every acceptance claim in the entry holds in the running app.** 28 `<time>`
+elements carrying real ISO `dateTime` attributes (`2026-08-14T08:29:00.000Z`
+rendering as `13:59`). Zero `[role=progressbar]`, zero `<progress>`, zero
+`aria-valuenow`, and no `%` character anywhere in the section. Zero console
+errors on the route.
+
+**The subject of the component is visible and it works.** Both silences render as
+their own rows -- `28m 0s waiting on you` and `16m 0s before anything else
+happened` -- on a dashed rail against solid rails for work, which is the greyscale
+survival the entry claimed by construction and which I can now confirm by sight.
+`passed` appears on exactly one row of the healthy run, which is the `done` versus
+`passed` call in Unsure 2 behaving as argued. The dark pane additionally shows the
+held case carrying `on hold` in amber with "Grouping signals stopped: no source is
+connected".
+
+**On Unsure 1, the ordinal-versus-proportional axis: the call stands.** The
+rendered result answers it better than the argument did. A 28 minute wait and a
+41 second tool call occupy comparable vertical space and the reader is told the
+duration in words on the row, so nothing is lost, and the 200-event case the item
+requires stays possible. Proportional space would have spent the height on the
+silence.
+
+**Not verified, and out of scope for this item:** `useElapsed` has no hours branch
+(Noticed 3), so a live tail past 60 minutes renders `5160m 0.0s`. The gallery's
+held case is static, so this does not appear on screen today. It is real and it is
+a separate item.
+
+---
+
+## K-02 · VERIFIED · 2026-08-19 23:52
+
+**Checked by re-deriving the wash mathematics independently, then reading the
+built stylesheet.** The design decision in this item is a single number and it is
+the whole item, so that is what I checked.
+
+    wash  8%   dark worst 4.64 (float)    paper worst 5.07 (sink)
+    wash 10%   dark worst 4.50 (float)    paper worst 4.92 (sink)
+    wash 13%   dark worst 4.29 (float)    paper worst 4.71 (sink)
+
+**Kiro's figures reproduce and its choice is correct.** 10% lands on **exactly
+4.50**, the text floor, which is one rounding from failing -- so 8% is not
+conservatism, it is the only value with margin. Border alphas measure 1.94 at 40%
+and 3.55 at 75% against dark `float`; the entry says 1.92 and 3.55. The 0.02 gap
+on the quiet state is immaterial, both readings agree it is far under 3:1 by
+design and that the hover state clears it.
+
+**Hover firming the border rather than the fill is the right call and the reason
+is arithmetic.** Deepening an 8% wash toward 13% takes the label to 4.29, under
+the floor, in precisely the moment a person is committing to a destructive act.
+Moving the boundary instead leaves the label where it is.
+
+**Noticed 1 is real, I reproduced it, and it is worse than a curiosity.** The
+built stylesheet emits both of these, in this order:
+
+    .bg-mrd-stop\/8{background-color:var(--mrd-stop)}
+    .bg-mrd-stop\/8{background-color:color-mix(in oklab, var(--mrd-stop) 8%, transparent)}
+
+On any engine without `color-mix` the first wins and the control becomes a solid
+stop-coloured slab carrying a stop-coloured label, which is invisible. The entry
+is right that this is house-wide and pre-existing rather than introduced here
+(`FineTuneCard.tsx:372`, `PromptBar.tsx:416` collapse the same way). Filed, not
+charged to this item.
+
+**The guard Kiro proposed and could not build is the correct guard and it should
+exist.** `--mrd-stop` may appear only on an element that is a button, or inside
+`surface-parts.tsx` and `Dialog.tsx`. Until it does, the constraint that makes the
+greyscale collapse survivable is a comment, and comments do not fail builds. That
+is now the single highest-value small item in this queue, because it is the only
+thing standing between the measured 1.04 collapse and a shipped defect.
+
+**Gates on the merged tree:** tsc clean, 9,546 pass / 0 fail across 572 files,
+build ok, ratchet baseline unchanged.
+
+**K-03 is unblocked.** K-05 and K-06 are read but not yet ruled on.
