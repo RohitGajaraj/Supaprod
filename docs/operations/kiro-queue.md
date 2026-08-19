@@ -101,7 +101,7 @@ These are not style preferences; `bun test` enforces them.
 
 ## 2. The queue
 
-**72 items. Dependencies are item numbers.** `Owns` is exhaustive — those are the only files to touch.
+**75 items. Dependencies are item numbers.** `Owns` is exhaustive — those are the only files to touch.
 
 ---
 
@@ -1626,6 +1626,76 @@ Add a floor test (`Object.keys(TOOL_DEFAULTS).length > 40`) so an emptied regist
 
 ---
 
+### Group K — Multi-product context scope
+
+**Read [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) §2.3 before starting any of these.** It carries the ruling and the measurement behind it. The short version: **evidence is product-scoped and never promotes; method is workspace-scoped and promotes deliberately.** Multi-product is already the majority state — 11 of 17 workspaces have more than one product, 7 have four.
+
+**The two migrations this group depends on are Claude's** (`product_id` on `learnings` and `agent_memory`; `workspace_id` on `agent_autonomy`). Every item below is buildable and testable before they land, because each is either pure logic or a client change.
+
+---
+
+**K-73 · `resolveMemoryScope`, as a pure function**
+`STATUS: TODO` · deps: none · size: M
+
+**What.** A new pure module `src/lib/memory-scope.ts` exporting `resolveMemoryScope({kind, origin}) => { scope: "product" | "workspace", promotable: boolean, reason: string }`, plus exhaustive tests.
+
+**Why.** The scope rule currently exists nowhere, so every writer picks a scope implicitly and they disagree. Production shows `agent_memory.scope` holding `agent` (1,083), `workspace` (81) and `global` (11) — three values that do not answer the question this ruling asks, which is *whose evidence is this*. Getting it wrong in either direction is expensive: leaking evidence between products makes the director rank on another product's measurements, and for an agency running three clients in one workspace that is a confidentiality breach; while scoping *method* to a product means every product re-learns the same lesson, which kills the compounding claim outright.
+
+**How.** The rule maps onto the existing `kind` column and is written out in §2.3. **Evidence never promotes** — `precedent` and anything outcome-derived is a measurement, and a measurement about product A is not true of product B. **Method promotes** — `reflection` and `correction` are about how to work. `note` is genuinely ambiguous, so it takes a declared scope and **defaults to product**, which is the safe direction.
+
+Make `reason` a sentence a person could read in a promotion prompt, because it will be shown in one. **Do not read the database** and do not import anything `.server.ts` — Claude supplies the rows.
+
+**Acceptance.**
+- Pure: no Supabase, no I/O, no `.server.ts` import. A test importing it must not pull the AI runtime.
+- Every `kind` covered, including an unknown kind, which must default to `product` rather than throwing.
+- A test asserts evidence kinds return `promotable: false`. **This is the one that matters most** — it is the confidentiality guarantee expressed as a test.
+- Each `reason` reads as a sentence, not a token.
+
+**Owns.** `src/lib/memory-scope.ts`, `src/lib/memory-scope.test.ts`
+
+---
+
+**K-74 · Ask retrieves workspace-wide no matter where you are standing**
+`STATUS: TODO` · deps: none · size: S
+
+**What.** Set `retrievalProductId` from the resolved scope in `src/components/ask/AskPane.tsx`, and show which product Ask is answering from.
+
+**Why.** `retrievalProductId` is a **real, working option on `useAskStream`** and the pane **never sets it**. `AskPane` also forces `productId: null` for conversation persistence, which is correct and separate. So Ask retrieves across the whole workspace regardless of the product you are looking at — and the pane's own comments describe a product chip that was never carried over from an earlier version. **Any multi-product story is wrong until this is wired**, and with 11 of 17 workspaces already multi-product this is live today, not a future concern.
+
+**How.** `scopeForPath` in `src/lib/ask-context.tsx` already resolves scope from the URL and returns a `label` — extend it to carry the product, and pass it through. Keep the persistence `productId: null` exactly as it is; it is deliberate and has its reasoning in place. **Show the product Ask is scoped to**, because silent scoping is how someone gets an answer from the wrong product and never learns it.
+
+**Acceptance.**
+- On a product-scoped route, retrieval is scoped to that product.
+- Workspace-wide retrieval still happens where no product is resolvable, and the UI says which of the two is in force.
+- Conversation persistence is unchanged.
+- A test covers both branches.
+
+**Owns.** `src/components/ask/AskPane.tsx`, `src/lib/ask-context.tsx`, `src/lib/__tests__/ask-context-product-scope.test.ts`
+
+---
+
+**K-75 · `PromotionCard`: a lesson graduating is an event, not an accident**
+`STATUS: TODO` · deps: K-73 · size: M
+
+**What.** A Meridian component rendering one proposed promotion: the lesson, the product it was learned in, the evidence under it, what it would change if approved, and approve / not-yet / never controls.
+
+**Why.** This is the compounding claim made visible, and it is the honest version of it. The canon forbids saying the product *"remembers"*; what it may say is that **a lesson earned in one product graduated to the workspace, and here is who approved it.** The machinery already exists and is not product-aware: `memory_candidates` is the staging table (20 rows) and `house_rules` is the workspace-level standing rule with a `pending → approved` flow that **reaches every agent's system prompt**. What is missing is the surface where a person sees the graduation and rules on it.
+
+It also matters for governance rather than only for delight: promotion is the moment evidence could cross a product boundary, so it is exactly where a person belongs. Business tier sells "who may promote", and this is that control.
+
+**How.** `Approve` is the correct control here and `Action` is not — the distinction in `surface-parts.tsx` is that `Approve` is for a click that **unblocks** something held, which this is. **"Never" must be a real third option**, distinct from "not yet": a lesson that is wrong should be refusable permanently, or the queue fills with the same rejected candidate. Take the promotion decision as a callback; **persist nothing** — Claude wires it.
+
+**Acceptance.**
+- All three outcomes render and are keyboard reachable.
+- The card names the product the lesson came from, and what approving would change.
+- Composed states: no candidates, one, and a lesson whose evidence failed to load.
+- Uses `Approve` for approve and `Action` for the other two.
+- Greyscale test passes.
+
+**Owns.** `src/components/meridian/PromotionCard.tsx`, `src/components/meridian/__tests__/promotion-card.test.tsx`, `src/routes/_authenticated.meridian.tsx`
+
+---
+
 ## 3. Build log
 
 Kiro appends one entry per item on completion. Claude appends a verdict under it.
@@ -1667,6 +1737,9 @@ Not a backlog — the complement of this queue, listed so Kiro knows these are c
 | Restarting and alarming `eval-tick` | Cron state lives in the database |
 | Surfacing tick failures | Needs to know which failures are real |
 | Every acceptance number in the direction doc | Production queries |
+| `product_id` on `learnings` and `agent_memory` | Migration, and it needs a production read of what exists before backfilling |
+| `workspace_id` on `agent_autonomy` | Migration. Autonomy is keyed per user today, so a graduated agent arrives untrusted for the next person |
+| Wiring promotion through `memory_candidates` to `house_rules` | Writes, and it crosses a product boundary |
 | Navigation collapse | Depends on K-17 to K-20 landing and proving out first |
 
 ---

@@ -250,23 +250,64 @@ Stations stop being *places* and become **phases of a Run**. They keep their dis
 **Law 3 — Visible, steerable, stoppable.**
 An agent whose work cannot be watched cannot be trusted; one that cannot be redirected cannot be corrected; one that cannot be stopped cannot be governed. All three are currently partial or absent, and they are the price of admission for autonomy rather than a nice-to-have.
 
-### 2.3 Context: what persists, and at what scope
+### 2.3 Context scope: evidence is product, method is workspace
 
-The brief asks for persistent project context and multiple products. The tenancy spine already exists — `account → workspace → product`, with RLS keyed on membership **in the database rather than in application code**, which is what makes autonomy safe here. What is missing is a **declared scope for each kind of context**, so that adding a second product does not silently cross-contaminate the first.
+**Founder ruling requested and made 2026-08-19. Measured first, because the intuition and the schema disagreed in an instructive way.**
 
-| Context | Scope | Today | Change |
+**Multi-product is already the majority state, not a future case: 11 of 17 workspaces have more than one product and 7 have four.**
+
+#### What the schema does today
+
+| Carries `product_id` | Does **not** |
+| --- | --- |
+| `signals` · `themes` · `opportunities` · `decisions` · `prds` · `rag_chunks` · `connection_bindings` | **`learnings`** · **`agent_memory`** · **`house_rules`** |
+
+**Evidence carries a product. Everything learned from it drops one.** The moment a verdict is written the product dimension is discarded, so a measurement taken in product A is retrievable, unlabelled, while ranking product B.
+
+#### The ruling
+
+**The instinct "scope memory to the product" is right about the dominant harm and wrong if applied universally.** `agent_memory.kind` already splits the two cases:
+
+| Kind | Rows | What it is | Scope |
 | --- | --- | --- | --- |
-| **Signals and evidence** | product | scoped | none |
-| **Questions and Bets** | product, referencing across | opportunities are product-scoped | none |
-| **Runs** | product | mission/track scoped | none |
-| **Memory** | **workspace** | already workspace-visible on all 1,170 rows, with 101 cross-author recalls | **stop understating it** |
-| **Standing rules** (`house_rules`) | workspace | reaches every agent prompt | none |
-| **Policy and autonomy** | workspace, per agent | `agent_autonomy` per (user, agent) | **move to workspace**, or a second person inherits nothing |
-| **Track record** | workspace | computed on read | none |
+| `reflection` | 1,111 | an agent reflecting on how it worked | **method** → workspace |
+| `correction` | 10 | a person corrected the agent | **method** → workspace |
+| `precedent` | 28 | a settled outcome | **evidence** → **product** |
+| `note` | 26 | mixed | declared, defaults to product |
 
-> **The one real defect here:** autonomy is keyed **per user**, so an agent that a colleague spent three months graduating arrives untrusted for the next person. The record travels and the *permission* does not, which is exactly backwards — the record is the evidence, and the permission is the conclusion drawn from it.
+- **Evidence is product-scoped, and never promotes.** A measurement about product A is not true of product B. Leaking it makes the director *wrong*, and for an agency running three clients in one workspace it is a confidentiality breach rather than noise.
+- **Method is workspace-scoped.** *"Check the window before blaming deliverability"* is true everywhere. If each product re-learns it, the compounding claim is dead.
+- **Agent track record is workspace-scoped.** It is a fact about the agent, not about the product.
+- **Default is PRODUCT.** Safe by default; promotion is the deliberate act.
 
-**Multiple products under one workspace share the brain and the boundaries, and share nothing else.** A verdict in product A moves ranking in product A. It reaches product B only through `agent_memory` and `house_rules`, which is the correct blast radius: what was *learned* generalises, what was *measured* does not.
+#### Promotion is a first-class event, and its machinery already exists
+
+`memory_candidates` is already a staging table and `house_rules` is already the workspace-level standing rule with a `pending → approved` flow that reaches **every agent's system prompt**. Neither is product-aware. Making them so turns a lesson graduating from one product to the whole workspace into **a visible, governable moment** instead of an accident:
+
+```
+  product memory  ──►  memory_candidate  ──►  house_rule (workspace)
+  (evidence stays)      (method proposed)      (approved, reaches every agent)
+```
+
+That is also the honest form of the compounding claim: not *"it remembers"*, but *"a lesson earned in one product graduated, and here is who approved it."*
+
+#### Packaging: products are free, isolation is what is sold
+
+**Do not charge per product.** A second product costs more **credits**, and credits are already metered, so a product fee double-charges — once for usage, once for existing. That is the mistake [`pricing-architecture.md`](../../strategy/pricing/pricing-architecture.md) already records burying itself, when a band picker rendered *"$2000/mo for volume whose underlying cost is about $2."*
+
+| Tier | What multi-product buys |
+| --- | --- |
+| **Any** | unlimited products, each with its own evidence boundary |
+| **Business** | cross-product **governance**: who may promote a lesson to the workspace, and per-product connector binding (`connection_bindings` already carries `product_id`) |
+| **Enterprise** | **provable** isolation: a cross-product audit showing nothing crossed, and per-product connector credentials |
+
+This adds no pricing axis. It is what Business already sells — *"the collaboration and governance layer, not capacity"* — extended to the boundary that matters once a workspace holds more than one product.
+
+#### The defects this ruling exposes
+
+1. **`learnings` and `agent_memory` need `product_id`.** Until then evidence cannot be scoped at all. **Migration, so it is Claude's.**
+2. **`agent_autonomy` has neither `workspace_id` nor `product_id`** — it is keyed per user, so an agent a colleague spent three months graduating arrives untrusted for the next person. **The record travels and the permission does not, which is backwards:** the record is the evidence, the permission is the conclusion drawn from it.
+3. **`retrievalProductId` is a real option on the Ask hook and the pane never sets it**, so Ask retrieves workspace-wide regardless of where you are standing. Any multi-product story is wrong until that is wired.
 
 
 ## 3. Reimagined lifecycle and surfaces
