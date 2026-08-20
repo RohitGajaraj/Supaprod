@@ -4147,3 +4147,87 @@ No production code changed. **The deliverable is that the wrong refactor did not
 get built**, and the right one is now specified against a measurement rather than
 an assumption. The RPC, its fallback when the function is absent, and its tests
 are the next piece of work.
+
+---
+
+## K-22 · VERIFIED · 2026-08-20 10:22 · and verifying it found main already red, from my own push
+
+Verified, and the verification uncovered something worse than anything in the item.
+
+### The item, verified
+
+- **`ai_traces`**: zero occurrences in `src/**` and `supabase/migrations/**`. The
+  premise holds and the correction is right.
+- **The trust score is four legs at 30/20/20/30**, which is what `trust.server.ts`
+  computes. The old contract said three at 40/30/30. Correct.
+- **The eval leg is documented as FIXED rather than broken**, and Kiro is right to
+  refuse the item's instruction there. The item said to mark it broken with a
+  pointer "since Claude is fixing it"; it was fixed this morning, so writing
+  "broken" would have shipped the next false claim into the file whose whole
+  subject is false claims. **Refusing a stale instruction and saying why is the
+  behaviour I want.**
+
+### The gate change, which is where the risk was
+
+Kiro edited `scripts/docs-doctor.sh` — the pre-commit gate — because check [11]
+scanned `.` with a hand-maintained exclude list and failed on two **untracked,
+gitignored** local exports, blocking every markdown commit for anyone who had them
+on disk. It filters hits through `git check-ignore` rather than adding an eleventh
+`--exclude-dir`.
+
+**I tested it rather than reading it**, because a weakened gate reads exactly like
+a fixed one. Wrote a violating file into `docs/`, ran the gate: **exit 1**, caught.
+Removed it: **exit 0**. The change drops only what git ignores, and a tracked file
+is never ignored.
+
+### And that probe found main red, which was mine
+
+The probe's output showed a **second** FAIL I had not put there:
+`kiro-log.md:2874`. Running the gate properly:
+
+```
+bun run docs:check ; echo $?   ->   1
+```
+
+**`main` was red on the doc gate**, on two checks, and had been since I pushed
+after rebasing onto K-22.
+
+**I did not see it because I have been piping the gate through `tail` all night.**
+`bun run docs:check 2>&1 | tail -2` reports the exit status of `tail`, which is
+always 0, so a failing gate prints "ISSUES FOUND" two lines above a cheerful
+summary and I read the summary.
+
+**This is recorded in my own memory as a past incident, in these words: "A pipe
+hides the gate's exit code — `docs:check | tail && push` reads tail's status, so a
+failing gate ships; main went out red."** I reproduced it exactly. It stayed
+invisible for hours only because the gate was genuinely green until the merged
+tree contained a real FAIL.
+
+**The compounding mistake was the tick before**: I ran `docs:check` BEFORE the
+rebase, then re-gated after it with tsc, test and build only. **Verify on the
+merged tree means all four gates, not the three that are quick to rerun.**
+
+### The cause, and why the fix is the script's own rule
+
+Both FAILs were inside Kiro's K-22 entry, which quotes the retired claims it is
+recording the correction of. **That is the entry, not a lapse in it.**
+
+One screen above check [9], the script already states the principle and applies
+it: append-forward logs are excluded, *"whose job is to record what was said at
+the time"* — `session-decisions`, `strategic-inputs-log`, `session-handoff`,
+`build-log`. **`ledger/claude-log.md` and `ledger/kiro-log.md` were created
+2026-08-19, after that list was written, and were never added to it.**
+
+So the fix is not a new exemption, it is the existing rule reaching two files that
+postdate it. Added to checks [9] and [11], with the reasoning written where the
+exclusion lives. **Every ledger entry recording a design-system correction would
+otherwise turn main red**, which makes this a defect that was going to fire
+repeatedly rather than once.
+
+Verified after: gate green at **exit 0**, and a planted violation in `docs/` still
+fails at **exit 1**.
+
+### Changed for good: how I run gates
+
+`bun run docs:check` now runs unpiped, with `$?` read explicitly. **A gate whose
+result I read through `tail` is not a gate I ran.**

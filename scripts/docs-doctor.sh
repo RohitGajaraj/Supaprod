@@ -186,6 +186,7 @@ stale_hits() {
   grep -rInE "$1" $STALE_SCOPE ./AGENTS.md ./README.md ./CLAUDE.md ./GEMINI.md 2>/dev/null \
     | grep -v '/archive/' | grep -v 'docs/research/' | grep -v 'docs/prompts/' \
     | grep -v 'session-decisions\|strategic-inputs-log\|session-handoff\|build-log' \
+    | grep -v 'ledger/claude-log\|ledger/kiro-log' \
     | grep -viE 'never (say|close|call|write)|bans?\b|ban on|banned|do not (say|use)|retired|instead of|rather than|superseded|no longer|insists|forbidden|stale as of|\| \*\*"|^[^:]*:[0-9]+:\s*\||^[^:]*:[0-9]+:\s*-\s*"' || true
 }
 STALE=""
@@ -262,6 +263,19 @@ echo ""
 # folder was excluded, and the link was into archive/ rather than to a DESIGN-*.md
 # filename. This checks the DECLARATION rather than the link, which is the shape the
 # defect actually takes.
+# THE TWO AGENT LEDGERS ARE EXCLUDED, for the reason check [9] already gives one
+# screen up: they are append-forward logs "whose job is to record what was said at
+# the time". `ledger/claude-log.md` and `ledger/kiro-log.md` were created
+# 2026-08-19, after that exclusion list was written, so they were never added to
+# it. Both quote the retired claims they are recording the correction of -- that
+# is the entry, not a lapse in it -- and on 2026-08-20 exactly that turned main
+# red: an entry explaining this check's own fix tripped it, and checks [9] and
+# [11] together blocked every further markdown commit by either agent.
+#
+# An append-only record of a false claim being retired is the opposite of a live
+# doc asserting it. If the ledgers ever do assert one, the ledger protocol's own
+# rule applies -- corrections go in a NEW entry naming the one they correct -- and
+# no grep can enforce that.
 echo "-- [11] a retired design system DECLARED current in a live doc --"
 # A GITIGNORED FILE IS NOT A LIVE DOC, and this check failed on two of them for
 # anyone who had them on disk (found 2026-08-20 while K-22 was correcting the
@@ -292,6 +306,7 @@ DECLARED="$(grep -rIn -E '(CURRENT|is the law|design contract for|source of trut
   --exclude-dir=archive --exclude-dir=worktrees --exclude-dir=.agents --exclude-dir=.kiro \
   --exclude-dir=.gemini --exclude-dir=.conductor 2>/dev/null \
   | grep -viE 'retired|history is not authority|was wrong|corrected|no longer|superseded|used to' \
+  | grep -v 'ledger/claude-log\|ledger/kiro-log' \
   | drop_ignored )"
 if [ -n "$DECLARED" ]; then
   echo "$DECLARED" | sed 's/^/  FAIL retired system declared current: /'
