@@ -7379,3 +7379,199 @@ taken on is true.
 prose and nothing from the plot. That is not what this item asked for and it is not the reason it
 was declined, but it is the honest gap on that surface and it is worth its own small item rather
 than being folded into a closed one.
+
+## K-82 (finding correction) · VERIFIED · 2026-08-21 02:31 · Kiro is right, I looked for the name on the wrong element
+
+**Accepted, and the correction is mine to carry.** My K-82 note said none of the `InsightCards` SVGs
+carries a `role`, `<title>` or `<desc>`, so the chart has no accessible name. **Measured in the running
+gallery: 8 of 8 SVGs are `aria-hidden`, and the wrappers carry `role="group"` with a real `aria-label`
+(`"Install completion after the walkthrough rewrite, use arrow keys…"`) and `tabIndex >= 0`.** The chart
+is named and it is keyboard-scrubbable.
+
+**The finding inverted the fix, exactly as Kiro says.** A `<title>` on an `aria-hidden` SVG does nothing,
+and `role="img"` would have added a second accessible object competing with the group that already names
+the chart. Filing it would have made the surface worse.
+
+**Same shape as five instrument failures already recorded today: I measured the wrong element.** The
+focus-ring pass read an outline against its own element instead of the parent ground; this read the name
+on the painting instead of the control. Worth stating plainly because the tell is identical and I did not
+recognise it the second time.
+
+---
+
+## K-86 · VERIFIED · 2026-08-21 02:31 · the two guards run and both fail on a planted defect
+
+`bun test src/styles/__tests__/` on the three style guards: **12 pass, 0 fail, 31 expect() calls.**
+`every-token-used-is-defined` and `one-utility-name-means-one-thing` are new and both hold.
+
+---
+
+## K-87 · VERIFIED · 2026-08-21 02:31 · the token half, and `--line` really was resolving to its fallback
+
+**Checked the four in `router.tsx` by reading what they compile to, not the diff.** All four are
+`var(--mrd-*, <literal>)`: `--mrd-body` (60, 87), `--mrd-faint` (71), `--mrd-line` (85). Every literal is
+byte-identical to the retired token's value, so nothing moved on screen. `--line` was declared in no
+stylesheet, so `var(--line, rgba(255,255,255,0.12))` had always painted the fallback — the same
+undeclared-name defect K-86 guards for, and taking it while adjacent was right.
+
+---
+
+## K-87 · RULED · 2026-08-21 02:31 · take option 2, and the hole is not empty
+
+**Option 2, and Kiro was right to refuse to route around the guard.** A colour inside
+`var(--mrd-*, <fallback>)` is already tokenised; the literal is the documented degradation path, not
+hardcoded colour where a token belongs. That is a repo-wide refinement rather than a carve-out, and
+**verified against the actual lines: it clears all 4 in `router.tsx` outright.** Retired tokens keep
+counting separately, so nothing is masked.
+
+**And option 3 is refuted by what is sitting in the hole.** `server.ts`'s 8 have no `var()` and cannot be
+reached by option 2, so widening the roots is still needed for that file. **Checked what is actually
+there:** line 58 is `.primary { background: #ff6b2c; }`, and `#ff6b2c` is `--brand-mark-ember`
+(`styles.css:212`) — **the brand mark colour backing a button**, in the one file the guard cannot see.
+Whether the 500 page may spend ember on a primary action is a founder question I am not answering here;
+the point for this ruling is that "leave the top of `src` unguarded" is the option that keeps that
+invisible.
+
+**So: option 2 now, and the roots widen for `server.ts` behind a coverage-expansion step rather than an
+override.** The ratchet cannot currently tell "the code got worse" from "the scanner got better", and that
+gap will recur every time the eyes widen. A one-time adopt that records a newly-scanned file at its
+current count is a different operation from raising a count on a file already scanned, and only the second
+is the forbidden move. **The precedent Kiro was right to worry about is created by the override, not by
+the mechanism.**
+
+---
+
+## K-88 · VERIFIED (the pairing) · 2026-08-21 02:31 · the 1.19:1 trap is avoided, and the dialog itself is still owed
+
+**Took the criterion Kiro handed over and did not claim more than I measured.** Kiro stated no browser
+check was done. `bg-mrd-solid` + `text-mrd-on-solid` — the specific pairing `surface-parts.tsx` records as
+the trap where `text-mrd-ink` on `bg-mrd-solid` measures 1.19:1 — **measures 13.38:1 on paper and 11.31:1
+on dark** in the running app, through a 1×1 canvas so OKLCH resolves. **Control passed: body ground
+actually changed, `rgb(255,255,255)` → `rgb(10,10,10)`.** The pairing is light in both grounds, as the file
+documents.
+
+**What I could NOT do, stated rather than papered over.** The dialog never rendered. `ConnectTrustDialog`
+is reachable only from `AccountConnectionsSection`, the connector catalogue needs data the lane harness
+stubs to `[]`, and Settings → Connectors renders no Connect control under it. **So the dialog's own strings
+were not measured and this criterion is only half met.**
+
+**Back to Kiro, and it is small:** `ConnectTrustDialog` has no gallery case. That is the whole reason its
+acceptance criterion could not be met by a browser, and a case would make it measurable in one pass.
+
+---
+
+## K-89 · VERIFIED · 2026-08-21 02:31 · the deletion is complete, and the comment rewrite is better than my ruling asked for
+
+**My K-17 ruling said six files, not two.** Checked all six. `StreamingText.tsx` and `ToolChips.tsx` are
+gone, and **`grep` across `src/` returns zero surviving references** to either name, excluding
+`ToolApprovalChips`. All four comments I named are handled.
+
+**`AgentScorecardPanel.tsx:82` is the one worth recording.** My ruling asked for the comment to say what is
+true after the deletion. It now justifies the name on its own merits — the chips carry an approval RATE per
+tool, a fact about trust rather than a record of calls, so anything named for tools and chips alone
+promises a stream the panel does not show. **That reason survives the deletion; the one I asked for
+("named to avoid a collision") would have evaporated with the component it referenced.**
+
+---
+
+## K-90 · VERIFIED · 2026-08-21 02:31 · the guard holds, and it caught a planted collision
+
+`one-utility-name-means-one-thing.test.ts` passes and pins the known set to exactly `["body"]`. The
+mechanism is confirmed independently: `.output` compiles to both `font-size:var(--mrd-t-body)` and
+`color:var(--mrd-body)` under one selector.
+
+---
+
+## K-90 · RULED · 2026-08-21 02:31 · the severity is wrong in the filing, and only one of the three pairings breaks
+
+**Measured every colliding element in the running gallery, because the filing reasoned from stylesheet
+order and stylesheet order is exactly the thing worth checking.** Tokens: base 13px, label 12.5px, data
+11.5px, body 14px.
+
+| pairing | asks | paints | count | verdict |
+| --- | --- | --- | --- | --- |
+| `text-mrd-base` + `text-mrd-body` | 13px | **14px** | 10 | **broken** |
+| `text-mrd-label` + `text-mrd-body` | 12.5px | 12.5px | 30 | correct |
+| `text-mrd-data` + `text-mrd-body` | 11.5px | 11.5px | 86 | correct |
+
+**`body` sits between `base` and `label`/`data` in the emitted scale, so it beats `base` and loses to the
+other two.** The filing has the cascade backwards for two of three pairings. **`Spend.tsx` is named as
+"the worst"; it pairs `text-mrd-label`, asks 12.5px and paints 12.5px — it is correct.** The three
+`text-mrd-data` sites are correct too. **The defect is 6 source sites, all one idiom
+(`text-mrd-base font-medium text-mrd-body`), not 10 across three idioms.** My own note said "roughly 60
+call sites" and Kiro is right that it is 167; both of us were wrong about which ones hurt.
+
+**The rename: option A, and the cost objection does not survive the measurement.** The 13-name type scale
+is the deliberate enumerated namespace and the 60-name colour ramp is what wandered in, so the colour
+loses the name. **Do it as expand-then-rename, which is behaviour-preserving and checkable:** first
+rewrite all 167 sites to say size and colour explicitly (`text-mrd-body` → `text-mrd-body text-mrd-<new>`),
+which changes nothing on screen because every one of them already gets both; then the rename is mechanical
+and the 6 broken sites can finally say what they mean, card-subject size with supporting-prose colour.
+**That removes the silent-regression risk on the 157, which is the real cost in option A and the reason
+"probably heading for" was not good enough.** Confirm the codemod by diffing computed styles before and
+after, not by reading it.
+
+**The final name is the founder's, and the codemod makes it cheap to overrule.** Not blocking Kiro on that:
+the mechanism is settled either way.
+
+---
+
+## K-91 · VERIFIED · 2026-08-21 02:31 · both branches correct, and the fixed one has no rendered coverage
+
+**Read the ternary rather than the claim.** `surface-parts.tsx:316-321` is
+`lead ? "text-[20px] …" : "text-[14px] …"`. The fix landed. **Measured all 63 `h2` in the gallery: 20px
+×47, 17px ×8, 13px ×8.** The 8 at 13px are `ReadFailed` (914) and `Refused` (1070), which K-91 checked and
+deliberately left alone as level-rather-than-smaller — that scoping is correct and the measurement agrees
+with it.
+
+**But nothing paints at 14px.** All 47 gallery `Region`s pass `lead`, so **the branch this item fixed is
+not exercised anywhere in the gallery**, while the product carries 364 `<Region` usages across 7 importers
+that mostly do not pass it. Source correct, guard pinned, paint unobserved. **Back to Kiro: a gallery case
+for a non-`lead` `Region`**, or the most common heading in the app has no rendered coverage.
+
+---
+
+## LANDED · 2026-08-21 02:31 · the consent screen still promises a Figma capability withdrawn two weeks ago
+
+**Found while checking K-88's neighbourhood, and it is the highest-stakes copy surface in the product.**
+`connect-trust.ts:51-53` tells the user at the OAuth consent moment that Supaprod reads **"File metadata
+for the files you reference in a spec or brief."** That is word for word the capability
+`connectors/registry.ts` **withdrew on 2026-08-06** because it does not exist. The registry says so in its
+own comment and points at the dialog; the dialog was never swept.
+
+**Re-checked all three legs rather than trusting the comment, and one of them has gone stale.**
+1. *"figma maps to stubAdapter"* — **no longer true.** `figmaAdapter` has been real since 2026-08-15.
+2. *"no figma entry in PULL_INGESTORS, so kickFirstIngest returns 0"* — **holds.** The ingestor list is
+   intercom, stripe, slack, zendesk, hubspot, salesforce, canny, productboard, gmail, microsoft_mail.
+3. *"no field on a spec can hold a design reference"* — **holds.** `contract.evidence_links` is the only
+   structured slot and every writer fills it from `citations`.
+
+**So the withdrawal is still correct and the consent claim is still false**, even though the reason the
+registry gives for it is now a third stale. **This is the shape, not the location:** the 2026-08-06 audit
+fixed the `description` field and did not sweep the other place the same promise is made. The registry
+comment even names google_tasks and jira as sharing the shape.
+
+**Also recorded:** `registry.ts:706` points at `ConnectTrustDialog.tsx:58` for the verbatim string; the
+rows now sit around 108-116. Kiro flagged it and correctly did not edit outside its `Owns`.
+
+---
+
+## LANDED · 2026-08-21 02:31 · the six stub adapters are unreachable in production, not just in the source argument
+
+`gateway-era-adapters.test.ts` pins six providers as stubs and argues from source that nothing can reach
+them: `verifyConnection` loads from `connections`, the five suite providers write to
+`user_calendar_connections`, and that surface has only Reconnect and Disconnect. **Checked the premise
+against production, which the test cannot do.**
+
+```sql
+SELECT provider, count(*) FROM connections GROUP BY provider;
+-- github 2 · linear 1 · slack 1 · salesforce 1
+```
+
+**Zero rows for gmail, google_calendar, google_tasks, microsoft_outlook, microsoft_mail or firecrawl.**
+Nothing reaches Verify on any of them, so the stubs are correct and writing five adapters would be exactly
+the "correct code that nothing reaches" the test warns about. **I went looking for the inverse defect —
+gmail and microsoft_mail have real ingestors but a stub validate — and it is not one.** The ingest path and
+the Verify path are different surfaces, and only the second is stubbed.
+
+---
