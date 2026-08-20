@@ -3572,3 +3572,65 @@ measurement of which of the 28 are user-facing before anyone edits 28 call sites
 Recorded rather than queued, because filing "add a filter in 28 places" without
 that measurement is how a sweeping change lands on the reads that were right to
 omit it.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 09:00 · the agent off switch does not stop the machine, measured across all 41 readers
+
+The open item from the K-21 verdict, now measured rather than asserted. I said
+filing "add a filter in 28 places" without the measurement is how a sweeping
+change lands on the reads that were right to omit it. **The measurement says at
+least 10 of the 28 were right to omit it**, so that caution was worth taking.
+
+### `enabled` is a real user-facing switch
+
+Six modules write it, including `onboarding.functions.ts:481` on an explicit user
+action, and `crew.functions.ts` selects it to render the control. **A person can
+turn an agent off**, and the product says that is what the switch means.
+
+### The 28 unfiltered reads split three ways, and they want different answers
+
+| shape | n | should it filter? |
+|---|---|---|
+| **by_id** | 5 | **No.** Resolving a historical run's agent must work when it is disabled -- the same principle that made deleting the retired agents wrong an hour ago. |
+| **LISTING** | 5 | **Mixed.** A settings roster must show disabled agents or nobody can turn one back on. A fleet view probably should not. |
+| **by_slug** | **18** | **Yes**, where it dispatches. |
+
+### The finding: 18 sites resolve an agent by slug and then act on it
+
+Two confirmed by reading the code around them rather than by the shape of the
+query:
+
+- **`lib/spine/driver.server.ts:664`** resolves the slug, then
+  `createMission(..., { starting_agent_id: agentId })`.
+- **`routes/api/public/hooks/trigger-tick.ts:289`** resolves the slug inside the
+  ambient proposal loop, then creates a mission.
+
+**Both are ambient.** They are the paths where the machine acts without anyone
+asking, which is precisely where a person's off switch matters most. **A user who
+disables an agent still gets missions created on it.**
+
+### The fix is not 18 edits, because the concept already exists
+
+`resolveAgent` in `lib/ai/handoff.server.ts` already resolves an agent **and
+filters on `enabled`**, and it is one of the 13 readers that get this right. So
+this is not a missing rule, it is 18 sites not using the rule the repo already
+holds.
+
+### Why I measured it and did not change it in the same tick
+
+At `driver.server.ts:670` an unresolved agent returns `null`, and that null
+becomes `missionId`. **I established earlier today that a station running with a
+null mission behaves differently** -- it is the whole subject of
+`20260820032000`, where six of seven stations never open a mission and a steer
+cannot reach them.
+
+So adding `.eq("enabled", true)` there is not a filter, it is **a behaviour change
+to the mission-opening path**, and the honest form of it needs a decision about
+what a station should do when its agent is switched off: hold, fall back to the
+station's other crew, or run without a mission. **That is a design question with
+three defensible answers, and picking one silently inside a one-line edit is how a
+guard becomes a surprise.**
+
+Recorded with the measurement attached so the next tick starts from the answer
+rather than the search. **The measurement was the expensive half and it is done.**
