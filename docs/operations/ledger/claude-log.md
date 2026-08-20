@@ -7161,3 +7161,137 @@ loop writing one real row.
 **No rewrite is needed and I am not asking for one.** The pass is research and its research is
 good; one sentence in it describes an intention as a practice. **A reader who takes that sentence
 to the ROADMAP would design the edge and never notice nothing writes the string.**
+
+---
+
+## K-79 (correction) · VERIFIED · 2026-08-21 03:05 · it swept three places where I had quoted one
+
+**I said I was not asking for a rewrite. Kiro made it anyway and was right to**, because the same
+assumption had leaked past the sentence I quoted into the information model and the directives.
+**A defect is a shape rather than a location**, and correcting only the line a reviewer happened
+to name is how the other two survive.
+
+Verified: the doc no longer claims we already do it, and the model table now reads *"ours in code,
+in `supersededContent`, and **not yet in any row**"*.
+
+**It also kept the record of the error rather than editing it away** -- the paragraph now says the
+first draft claimed otherwise and was measured against production on 2026-08-21. That is the house
+rule applied to a doc rather than to a ledger, and it is the right call: a silent correction leaves
+the next reader no way to know the claim was ever tested.
+
+---
+
+## Claude lane · LANDED · 2026-08-21 03:10 · §10 at the close of the day, and one criterion is getting worse as the ports land
+
+**Every figure a query, run just now.** Compared against the original baseline and against my own
+04:45 and 15:35 measurements.
+
+| # | criterion | original | 15:35 | **now** | |
+| --- | --- | --- | --- | --- | --- |
+| 1 | pending approvals | 53 | 36 | **38** | 0 past expiry · **none raised since the deploy** |
+| 3 | raised then never decided | 130 | 66 | **66** | unchanged |
+| 4 | oldest pending | 627h | 644h | **652h** | +8h, exactly the elapsed time |
+| 8 | missions `proposed` past 24h | 66% | 66.5% | **66.5%** | unmoved |
+| 9 | runs clean | 38% | 37.8% | **36.9%** | 712 of 1,929 |
+| 16 | `agent_runs.status` spellings | 6 | 6 | **6** | now enumerated and bound by K-64 |
+| 18 | `--mrd-agent` v `--mrd-you` | 59 v 97 | 92 v 141 | **92 v 165** | **ratio 0.61 -> 0.65 -> 0.56** |
+| 19 | ratchet total | 5,864 | 5,157 | **3,355** | **42.8% cleared** |
+
+### The one that is getting worse, and it is worth naming at the close
+
+**Criterion 18 has moved away from its target all day, monotonically, and it is the ports doing
+it.** `--mrd-you` grew from 97 to 141 to **165**. `--mrd-agent` has not moved from **92** since
+this morning.
+
+The criterion wants **near parity**, on the reasoning that a product whose premise is machines
+doing work should not have five surfaces for "a person is required" and one for "a machine is
+working". **Every ported surface adds affordances for the person and none adds one for the
+machine**, so the gap widens with each item that lands, and nothing in the build queue treats it
+as a target.
+
+**This is not a defect in any item and every one of those ports was correct.** It is an emergent
+property of porting a queue that was written surface by surface, and it is exactly the kind of
+thing a per-item verdict cannot see. **Worth a founder look before the next batch**, because the
+cheapest moment to fix a ratio is before another fifty call sites land on the wrong side of it.
+
+### What moved today and why, in one line each
+
+- **19 fell 2,509** because Kiro deleted dead code and ported live code, all day, and it is the
+  only criterion that improved.
+- **1 stopped regrowing** because a publish landed at 13:47 and K-11's catalogue went live. It is
+  the only criterion that moved because a fix reached production.
+- **16 is unchanged at 6 and that is now fine**: K-64 enumerated all six against their writers and
+  bound four normalisers to them, so the number is a described fact rather than a drift.
+- **8 and 9 are unmoved because nothing has addressed them**, and 9 drifted slightly as the
+  denominator grew by 94 runs.
+- **3, 4 unchanged.** The 38-approval backlog is now safe to clear and nobody has cleared it.
+
+**Not one criterion has been met.** The closest is 19, whose target is "never higher" and which is
+therefore met by construction rather than by achievement.
+
+---
+
+## Claude lane · LANDED · 2026-08-21 03:30 · seventeen migrations were unrecorded, none was unapplied, and the difference matters
+
+**Founder asked for pending migrations to be applied one by one and verified individually,
+because Lovable batches and drops things. The instinct was right and the failure was the
+opposite shape: every one had been APPLIED and seventeen had never been RECORDED.**
+
+### What was actually wrong
+
+`supabase_migrations.schema_migrations` had no row for **17** of the 544 local migrations. The
+cause is that several were applied **out of band through direct SQL** -- by this lane and earlier
+sessions, using the same MCP route I used for the credits top-up -- **and direct SQL does not
+write the migrations table.**
+
+**That is a live CI hazard rather than a cosmetic one.** `scripts/check-migrations.sh` runs on
+`prebuild` and exits non-zero for any file with no matching row. It skips locally because
+`PGHOST` is unset, which is exactly why nobody had seen it. **The first CI run with database
+credentials would have failed the build on seventeen files that were never broken.**
+
+### Verified one at a time, by effect rather than by bookkeeping
+
+**Every one was checked against the live schema before its row was written**, because recording a
+migration as applied on the strength of its filename would be the same class of error the
+founder was worried about:
+
+| migration | what I checked | live |
+| --- | --- | --- |
+| `20260807200000` reserve static root files | 7 of 7 slugs in `reserved_workspace_slugs` | yes |
+| `20260807210000` invite-code signup | `invite_codes` table exists | yes |
+| `20260807220000` seed invite codes | `SP-INVESTOR-M4XT2B` present, 6 codes total | yes |
+| `20260807230000` reserve email asset slugs | 6 of 6 slugs present | yes |
+| `20260810120000` unnamed tier keeps memory | `set_agent_memory_expiry()` exists | yes |
+| `20260810140000` created_at immutable | function **and** `trg_learnings_created_at_immutable` | yes |
+| `20260820072500` the judge could not file | `ai_evals_derive_workspace_id()` + its trigger | yes |
+| `20260820074000` eval tick URL | cron job 40 carries the `supaprod.ai` URL, active, `*/30` | yes |
+| `20260820084500` two retired agents | `operations` and `growth-strategist` both `enabled=false` | yes |
+| `20260820110000` liveness_results | table **and** its RLS policy | yes |
+
+**Nothing needed applying. Ten rows written for the ten above**, each carrying what was verified
+in `created_by` so the next reader can see the record was earned rather than assumed.
+
+### Seven of the seventeen were my own instrument, and I nearly filed them as gaps
+
+My first diff matched applied rows on `version` or on a 14-digit prefix of `name`. **Seven
+Lovable-generated migrations carry a UUID as their name**, so the prefix match found nothing and
+they read as missing:
+
+```
+  local 20260811093000_6f42fb92…   applied as version 20260811093018, name 6f42fb92…
+  local 20260811114942_b147ac5e…   applied as version 20260811114953, name b147ac5e…
+```
+
+**Lovable records the apply timestamp seconds after the filename timestamp**, which
+`check-migrations.sh` documents in its own comment and which I did not carry into my query.
+Matching on `name = <filename suffix>` resolves all seven. **They were applied and recorded
+correctly the whole time.**
+
+**Fifth instrument correction of the day**, and the same tell as the others: a cluster of
+failures sharing one shape.
+
+### Where it stands
+
+`bun run db:check`: **556 migrations scanned, 0 apply-fatal errors**, 4 warnings, all
+pre-existing and in migrations from June and July. Re-ran the reconciliation over every
+migration since 2026-07-20 matching on version, name, or prefix: **0 still missing.**
