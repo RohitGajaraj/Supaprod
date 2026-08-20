@@ -4436,3 +4436,79 @@ refused to start three ticks ago. **The seam is real, not a stopping point dress
 up as one.** Next: the tick writes rows for the oldest few, the page reads them,
 both with tests, and then the three capability entries that have been waiting on
 headroom go in.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 11:24 · the tick now checks a slice instead of everything, and I reproduced my own gate bug while building it
+
+The code half of `20260820110000`. **The tick writes; the page still computes
+live, which is a safe intermediate state**: the table fills, nothing reads it yet,
+and the product behaves exactly as before.
+
+### What changed
+
+`liveness-tick.ts` reads every `liveness_results` row in one query, asks
+`selectDueEntries` for the **six least-recently-checked** registry entries across
+all three kinds, and passes only those to `buildLivenessReport`, which already
+accepted subsets. Then it upserts their verdicts.
+
+**Rows are written BEFORE the alarms**, deliberately. `captureError` can throw,
+and a throw after the report but before the upsert would cost the run its place in
+the rotation and make the same slice due forever.
+
+### The scheduler, and why it has no state
+
+`rotation.ts`, ten tests. Never-checked first, then oldest, ties on id.
+
+**There is no cursor and that is the design.** A new capability has no row, sorts
+first, and is checked next run. A run that dies half way leaves its rows older, so
+the next run takes them without being told. A cursor would have to stay correct
+across restarts, registry edits and partial failures; **`checked_at` already
+answers all three.**
+
+The test worth keeping is the third: **an unparseable `checked_at` counts as never,
+not as now.** The other reading strands a subtly corrupt row forever while the page
+keeps serving its last good verdict, which is the exact failure this whole layer
+exists to catch.
+
+### I contradicted a deliberate past decision, so I answered it rather than edited around it
+
+That file's header argued **against** what I built: *"No new store, no new
+surface, no migration for a results table that would itself need watching."*
+
+The objection is right about alarms and does not reach what the table is for.
+`error_events` is where a FINDING goes and is unchanged. `liveness_results` is a
+SCHEDULE, and it exists because the whole report costs ~2 queries per capability
+under a Worker's subrequest cap, which held the registry at 13 entries against 36
+jobs.
+
+**And it does not need watching in the way that sentence feared: a row nobody
+refreshed sorts FIRST.** Going unwatched is the input that fixes it, not a second
+thing to monitor. Written into the header where the old claim was, rather than
+deleted.
+
+### I reproduced the bug I shipped a fix for two hours ago
+
+While wiring this I ran:
+
+```
+bunx tsc --noEmit 2>&1 | tail -3 && echo "tsc clean"
+```
+
+and it printed **"tsc clean" underneath a screen of type errors**, because `tail`
+exits 0 and `&&` reads `tail`. That is the identical mistake that put main red this
+morning, made by me, **two hours after committing `lane:gates` to make it
+impossible**, and in the same session where I wrote that a rule an agent has to
+remember is not a rule.
+
+The tool worked when I used it. The gap is that I only used it at the end, and
+during the build I fell back to the habit it replaces. **Nothing is wrong with the
+fix; the lesson is that the fix only helps at the moment I would otherwise be
+guessing**, which is mid-build rather than pre-push.
+
+The real error underneath was ordinary: `liveness_results` is not in the generated
+Database types. Fixed with the repo's existing idiom rather than a new one -- a
+narrow structural client, the precedent `liveness.functions.ts` names in its own
+comment and the `error_events` writer already uses.
+
+Gates green through `lane:gates`, exit 0, all four.
