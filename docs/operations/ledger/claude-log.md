@@ -3990,3 +3990,84 @@ database side of it has returned a confident wrong number.
 The correct instrument, for whoever measures this next: read enabled slugs from
 `agents`, resolve them through `agent-vocabulary.ts`, and group on
 `(name, station)`. **Never on anything the database calls a name.**
+
+---
+
+## Claude lane · RULED · 2026-08-20 09:58 · the liveness registry is FULL, at exactly its own ceiling, and that is why coverage stalled at 2 of 36
+
+I set out to register more capabilities and found the reason nobody had. **It is
+not neglect. The instrument is structurally out of room.**
+
+### The measurement
+
+`report.test.ts` asserts the whole report stays within **45 outbound
+subrequests**, because it runs inside a Cloudflare Worker and *"a liveness page
+that trips that ceiling would report nothing at all, which is precisely the
+failure it exists to catch."*
+
+Measured by instrumenting the counter directly:
+
+| | queries |
+|---|---|
+| today, as it stands | **45** |
+| with three more capabilities added | **48** |
+| the assertion | **≤ 45** |
+
+**It is sitting exactly on its limit.** Not near it -- on it. The next capability
+anybody adds, for any reason, breaks that test.
+
+**And the last of that headroom was taken this morning by me**, when I registered
+`eval-judging`. It fit, the suite went green, and nothing anywhere said the
+cupboard was now empty.
+
+### The test already ruled on how to fix it, and I am following that
+
+> *"If this assertion goes red, the fix is a cheaper probe and not a bigger
+> number: prefer one `in` filter over one query per value."*
+
+**So the entries came out rather than the number going up.** Reverted; the suite is
+71 pass, 0 fail. Raising 45 to 60 would have been one character and would have
+traded a page that reports nothing for a page that reports nothing *later*.
+
+### The enabling change, sized
+
+Probes by source today: **`job_runs` 6, `table` 6, `ai_events` 1.**
+
+`resolveProbe` turns each spec into `{ table, timeColumn, filters }` and every one
+is executed on its own. **The six `job_runs` probes ask six separate questions of
+one table, differing only in `job_name`** -- exactly the shape the test's own
+comment says to collapse.
+
+One query answers all six, and I have already written it: the census at 08:30 read
+the last run of **37 job names in a single statement**, via a `VALUES` lateral with
+one indexed lookup each. That is the batched probe, proven against production
+before there was a reason to build it.
+
+The win is not marginal. Collapsing six probes to one frees enough room that the
+constraint stops being "how many capabilities may we watch" and becomes "which
+ones are worth watching", which is the question the registry was written to ask.
+
+### The three entries, kept rather than lost
+
+They are measured and justified and only the ceiling stops them. Recorded here so
+re-adding is an edit rather than an investigation:
+
+- **`digest-delivery`** — `notifications.digest-tick`, hourly. Criterion 14: 16
+  users, **one** has a preferences row, and `sendDueDigests` reads its user list
+  *from that table*. Blast radius today is one person, with no bounce and no error
+  surface. Worth watching the moment the reachability bug is fixed.
+- **`source-watching`** — `ambient.scout-tick`, hourly. The product promises to
+  watch your sources. `scout_runs` records `error` and `skipped-cap` per target
+  and the only read of that table sums `fetch_count`, so a scout failing every
+  fetch reports it to nobody (K-86).
+- **`outcome-sweep`** — `cron.outcome-tick`, hourly. One of only two writers of
+  `learnings`, the table the central claim rests on, which today holds **zero**
+  non-sample rows while the trust leg that consumes it is proven wired.
+
+### Not doing the refactor in the same tick as discovering the need
+
+Batching changes how every probe is executed, and the module it lives in is the
+one thing that says whether anything else in this product is alive. **A change
+there that is subtly wrong makes every future verdict on this page untrustworthy
+without saying so** -- which is the failure mode the whole file exists to prevent.
+It gets its own tick and its own tests.
