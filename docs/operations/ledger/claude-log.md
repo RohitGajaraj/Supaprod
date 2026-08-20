@@ -6318,3 +6318,92 @@ into `gate_ambient_downgrade` territory rather than alarming**, and §10 tracks 
 (criterion 12) but nothing tracks *model* failures per surface. **A 23% error rate on a live
 surface is not visible anywhere in the product.** That is closer to criterion 12's spirit than
 to a new idea, and it is a question for the founder rather than something I should build under.
+
+---
+
+## K-69 · VERIFIED · 2026-08-20 19:15 · the ring is real, measured by tabbing rather than by reading the cascade
+
+**The entry ends with "Owed. Not looked at in a browser, and a focus ring is exactly the thing
+a test cannot confirm is visible."** That is the split stated exactly, so this is that look.
+
+**Tabbed 45 elements per ground and measured each ring where it actually paints:**
+
+```
+                          dark      light
+  elements focused         45        45
+  carrying a 2px outline   44        44
+  inside [data-mrd]        45        45     <- the mechanism the item added
+  ring below 3:1            0         0
+  weakest ring           5.35      5.35
+  sample ring   dark  oklch(0.98 0.003 70 / 0.62)  18.02 : 1
+                light oklch(0.28 0.012 70 / 0.78)  14.00 : 1
+```
+
+**WCAG 2.2 wants 3:1 for focus appearance. The weakest is 5.35 and the typical is 14 to 18.**
+
+**The premise is confirmed from the other side too:** every focused element resolves its ring
+through `[data-mrd]`, not through a Tailwind utility, which is what the unlayered
+`[data-obsidian] :focus-visible` rule predicts. Tagging the root is the mechanism that paints.
+
+**I nearly reported 10 to 14 weak rings and they were my instrument.** My first pass compared
+the outline colour against the focused element's OWN background and found ten rings at exactly
+1.00, which reads as an invisible ring. **An outline paints outside the border box**, so it sits
+over the parent's ground; measured there, every one of those clears 3:1 comfortably. **Fourth
+instrument correction today**, and the tell each time was the same: a suspiciously round number
+appearing in a cluster.
+
+**Unsure 1, the 14 written exemptions: keep the list.** A guard that passes everywhere is
+decorative, and the second test that fails when an exemption stops describing a real file is
+what stops the list becoming fiction. **That second test is the part worth keeping**, and it is
+the same anti-vacuity habit this lane has now added unasked four times.
+
+**Noticed, and the entry is right that it is not a failure:** K-69 reclaimed zero ratchet
+counts because `--focus-ring` and `--mrd-focus` are not ratchet markers, so 58 broken rings were
+invisible to the guard meant to catch retired vocabulary. **The count and the quality measure
+different things**, and this is the clearest case of it today.
+
+**One thing left open, stated rather than glossed:** one `INPUT` of the 45 carries no outline
+and no box shadow in either ground. I did not identify which, and an input can legitimately show
+focus through a border colour change that my probe does not read. **Not a rejection, and not
+cleared either** -- worth one look by whoever next touches `meridian/forms`.
+
+---
+
+## K-44, K-50, K-53, K-56, K-68 · VERIFIED · 2026-08-20 19:18 · four routes leave the debt file entirely
+
+**Ratchet 4,778 -> 4,585, files 247 -> 242.** Criterion 19 is now **1,279 below its 5,864
+baseline, 21.8% of the recorded debt cleared today.**
+
+**Four ported files are gone from the baseline entirely rather than merely reduced:**
+
+```
+  _authenticated.threads.tsx        absent
+  _authenticated.boundary.tsx       absent
+  _authenticated.admin.pricing.tsx  absent
+  _authenticated.admin.index.tsx    absent
+  __root.tsx           raw-colour 1        (was --ds- 1, --text- 6, --font-pixel 1, data-obsidian 1)
+  _authenticated.tsx   data-obsidian 3, class:sp- 1
+```
+
+**Rendered in both grounds, contrast measured per element with colours resolved through a
+canvas:**
+
+```
+  /threads        dark 18 / light 50 elements     0 below AA
+  /boundary       dark 44 / light 44              0 below AA
+  /admin/pricing  dark 44 / light 44              1 below AA on paper
+  /admin          dark 44 / light 44              1 below AA on paper
+```
+
+**Zero page errors on all eight loads.**
+
+**The single miss on both admin routes is the one I queued as K-88 an hour ago** -- "Could not
+load your admin access" at **2.79:1** on paper, from `admin-ui.tsx` painting `var(--madder)`.
+**So it reproduces on K-53's two routes as well**, which strengthens rather than changes the
+item: the shared error component is now inherited by four ported admin pages and none of them
+can fix it, because none of them owns it.
+
+**K-56 is the first route to adopt `meridian/MoreMenu`** and K-68 replaces the boundary states
+`__root.tsx` and `_authenticated.tsx` were drawing inline. Both render clean in both grounds,
+which is the check that matters for a boundary state: it is the surface a person sees when
+something else has already failed, so it must not fail too.
