@@ -5908,3 +5908,86 @@ statements of one rule, written in different places by different lanes, and they
 `reflection`, `note`, `precedent` and **`correction`**. So that list **omits a kind that exists
 and names three that do not**. K-73 is right and the liveness probe is wrong; anything checking
 memory coverage through that registry is checking the wrong vocabulary.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 16:40 · the station and tool frames are emitted, I could not confirm them on the wire, and the error message that got in the way is wrong
+
+Queue clear, so lane item 2: the SSE frames. **The emit half is done and I did not need to
+build it** -- `chat.ts:975` sends `{ station: dispatchedStation }` and `:1291` sends
+`{ tool }`, the latter added today with a careful argument for deriving the name from what
+the pipeline actually did rather than from what it was asked to do.
+
+**The half that is mine is confirming a real request puts those frames on the wire**, and I
+could not finish it. Recording the attempt rather than the conclusion, because the reason is
+useful.
+
+### What I did
+
+Auth has recovered (password grant 200 in 1.2s, against the 504s at 13:00), so I took a real
+session and posted to `/api/chat` on the running server with a real `conversationId`, reading
+the SSE stream frame by frame.
+
+**Five requests, four questions, two models. Every one returned three frames:**
+
+```
+  data: {"choices":[{"delta":{"content":"I hit a snag answering that. Try again or switch models."}}]}
+  data: {"meta":{ ... tokens_in: 0, tokens_out: 0, research: {mode: "chat"} }}
+  data: [DONE]
+```
+
+No `station`, no `tool`, no `status`. **And that is not evidence against the frames**, because
+the pipeline never ran: `runResearch` is gated on `researchMode !== "chat"`, the mode comes
+from a classifier that is itself a model call, and the model call failed every time.
+
+### Why it failed, and it is not the product
+
+Every one of the five is in `ai_events` with `error_code: model_error` and
+**`"AI rate limit reached. Try again in a moment."`**, `via: gateway`, 0 tokens.
+
+**Production is healthy in the same window**, which is the check that stops this being reported
+as an outage:
+
+```
+  ai_events, last full hours    09:00  371 ok     10:00  372 ok     11:00  30 ok
+  errors                        1 to 2 model_error per hour
+```
+
+Production cron `judge` calls on `gemini-2.5-flash-lite` succeeded at **11:00:12, :13, :15,
+:17 and :20**, seconds either side of my failures on the same gateway. **So the limit is on
+the key my local server uses, not on the product**, and the SSE confirmation is blocked on
+local capacity rather than on anything in the repo.
+
+**Do not read this as "the frames do not work."** It is "the frames were not exercised". They
+stay unconfirmed, and this entry is what stops the next reader assuming otherwise.
+
+### The finding I did get, and it is a surface telling a person something untrue
+
+The user-visible text for a rate limit is:
+
+> *"I hit a snag answering that. Try again or switch models."*
+
+The recorded error is *"AI rate limit reached."* Two things are wrong with the substitution.
+
+1. **It hides a cause the product knows.** "Rate limited, try in a moment" is actionable.
+   "I hit a snag" is not, and a person who sees it twice concludes the product is broken.
+2. **"Switch models" is advice that does not work, and I tested it rather than assuming.**
+   I switched from `google/gemini-3-flash-preview` to `google/gemini-2.5-flash-lite` and got
+   **the identical rate limit on both**, because the limit is on the gateway key rather than on
+   the model. So the one suggestion the message makes is the one thing that cannot help.
+
+**That is a copy defect with a measurement behind it**, and it is the kind this lane exists to
+find: the string is humanized, it passes every gate, and it sends the person somewhere useless.
+
+### Noticed while reading production
+
+**`gate_credit_exhausted` blocked 15 calls at 10:00 and 12 at 09:00.** That is the credit
+system doing its job rather than a defect, but it is worth knowing that a material share of
+attempts are being refused for credit rather than served, and nothing in §10 tracks it.
+
+### Where lane item 2 stands
+
+- **Station and tool frames: emitted, not confirmed.** Needs one successful research-mode
+  request. Worth retrying when the gateway key has headroom; it is minutes of work, not hours.
+- `missionId` on every station and the per-run stop both landed earlier (criteria 10 and 11 at
+  04:45), and neither has a control to press, which is Kiro's half rather than mine.
