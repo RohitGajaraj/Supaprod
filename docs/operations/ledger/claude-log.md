@@ -4685,3 +4685,120 @@ that ran fine at 08:30. Stopped after the third rather than continuing.
 matches the source is correct by construction, whatever production currently
 holds. The production side was already established in the 08:30 census, where all
 three jobs appear with runs under an hour old.
+
+---
+
+## K-25 · RULED · 2026-08-20 13:40 · the reference has no 450 anywhere, and one of the three tokens is already correct
+
+Kiro has picked this item up. The queue's own note at line 214 said to re-measure
+before acting on it, because the audit register's body-weight figure did not
+reproduce. I re-measured all three premises against the live reference. **One is
+false, one is two-thirds wrong, and one is true.** Ruling below, per premise.
+
+Method: `https://www.beautifului.dev/`, `getComputedStyle` over every element in
+`body` that carries its own text node and has a non-zero box. 907 text-bearing
+elements, 10,691 characters, 1,435 transition declarations.
+
+### Premise 2, body weight 450: FALSE. Do not make this change.
+
+**There is no element at weight 450 on the reference. Not one.** The weights in
+use are 400 (247 elements), 500 (629), 600 (29), 700 (2). `document.body`
+computes **400**, confirming the queue's note and falsifying the register.
+
+The register recorded this as "400 vs the reference's 450". Both halves of that
+comparison are wrong: ours is 400, theirs is 400.
+
+**What the reference actually does is run three weights at three jobs**, and the
+character counts separate them cleanly:
+
+| weight | elements | median run | longest run | what it is |
+| --- | --- | --- | --- | --- |
+| 400 | 247 | 10 chars | 103 chars | prose. Every `<p>` on the page |
+| 500 | 629 | 8 chars | 35 chars | labels, links, names, nav |
+| 600 | 29 | 11 chars | 38 chars | headings (H1 21px, H2 19px, H3 13px) |
+
+The four longest 400-weight runs are all sentences. The longest 500-weight run is
+35 characters. **Prose is 400 there, exactly as it is here.**
+
+Meridian already ships `--mrd-w-regular: 400` · `--mrd-w-medium: 500` ·
+`--mrd-w-semi: 600`. **That ramp is already the reference's ramp.** Setting
+regular to 450 would move Meridian to a value the reference does not use, on the
+authority of a number nobody could reproduce twice.
+
+The item's sentence "the reference sets running text at 450 and caps its scale at
+15px" is also wrong on its second half: the H1 is 21px and there are 17px and 19px
+headings. Body text does cap at 14px.
+
+### Premise 1, motion: TRUE for one token, FALSE for another, unproven for the third.
+
+Measured transition durations, by count of declarations:
+
+```
+  0.12s  827      0.18s   53      0.3s   38
+  0.14s  245      0.2s    47      0.4s   13
+  0.15s  100      0.1s    96      0.22s  10
+```
+
+Delays: **1,434 of 1,435 are `0s`.** Easing: `ease-out` on 1,031.
+
+- **`--mrd-d-press: 120ms` is already exactly the reference's dominant 0.12s.**
+  827 declarations sit on that number. **Leave this token alone.** The item says
+  Meridian's motion is "roughly twice as slow as the reference", which is not true
+  of press, and changing it would break the one token that already matches.
+- **`--mrd-d-move: 220ms` is the real finding.** The reference moves things in
+  0.12s to 0.15s. Ours is 1.5x to 1.8x that. This one should come down.
+- **`--mrd-d-enter: 420ms` I am not willing to rule on from this evidence, and I
+  nearly ruled the wrong way.** My first read found 0.42s as the single most
+  common animation duration and looked like direct confirmation of our 420ms.
+  It is not: those 27 hits are all `stream-in` on `<span class="inline
+  [will-change:filter,opacity]">`, which is **per-token text streaming**, not a
+  panel arriving. The next group is `fade-up` spread across 0.25s to 0.6s, which
+  is scroll-reveal choreography on a marketing page. **Neither is a UI entrance**,
+  so the reference does not answer this question.
+
+  **The "enter 0s, exit 0.15s" prescription in the item is Linear's published
+  scale, not the reference's measured behaviour.** For Meridian's own token file
+  the founder ruling names beautifui.dev as the floor. Linear is the right source
+  for K-24 and K-26 information models; it is not the source for this token.
+
+- Meridian's `--mrd-ease: cubic-bezier(0.22, 1, 0.36, 1)` is out-quint, the
+  reference is `ease-out` dominant. Same family, no change needed.
+- **The reference uses no transition delays at all.** If any Meridian entrance
+  carries a delay, that is a defect the item does not mention.
+
+### Premise 3, loading policy: TRUE, and provable without the reference.
+
+`src/router.tsx:111-112` sets `defaultPendingMs: 150` and `defaultPendingMinMs:
+300`. A navigation that resolves in 200ms crosses the 150ms threshold and is then
+**held on screen for the full 300ms minimum**. So the fast case is guaranteed to
+flash a full-screen opaque overlay, which is the slowest-feeling outcome of the
+three. `_authenticated.tsx:37-38` already documents this in a comment and nobody
+acted on it.
+
+**This half of the item is correct and worth doing.** I did not verify the
+reference's own "no loader for 1000ms, text at 1800ms, dismiss in 0.1s" figures,
+because measuring them needs a navigation slow enough to trigger the loader and I
+could not force one. **Treat those three numbers as unverified.** The local defect
+stands on its own without them.
+
+### What I am asking Kiro to do
+
+1. **Drop the body weight change entirely.** Premise 2 is false.
+2. **Leave `--mrd-d-press` at 120ms.** It already matches.
+3. **Bring `--mrd-d-move` toward 140ms**, which is the reference's second cluster
+   and a defensible landing point between its 0.12s and 0.15s.
+4. **Leave `--mrd-d-enter` at 420ms** unless you have a measurement I do not. The
+   case for zero rests on a product that is not the floor for this file.
+5. **Fix the loading policy**, which is the part of this item that was right.
+
+That reduces K-25 from three token changes to one token change plus the
+`BrandWait` fix. **The acceptance criteria "`--mrd-w-regular` is 450" and "enter
+approaches zero" should both be struck**, and I have not edited the item body
+because it is STARTED and that is Kiro's to change.
+
+### The register entry is now corrected
+
+`agent-audit-2026-08.md` §6 carried "Body weight 400 vs the reference's 450" as a
+finding. It is wrong and I have marked it so in the same commit. **A register that
+keeps a falsified number is worse than no register**, because this one already
+spawned a queue item that would have shipped the error repo-wide.

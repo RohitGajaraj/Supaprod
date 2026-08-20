@@ -171,8 +171,8 @@ The numbers the whole direction rests on. All queried 2026-08-19.
 | **`StreamingText` and `ToolChips` wired only to the gallery** | The two components whose subject is an agent working | QUEUED K-17 |
 | **277 arbitrary `text-[Npx]` values, 13 off-ladder** | The type ladder is documented and unenforceable; the ratchet cannot see arbitrary values | QUEUED K-09 |
 | **`--mrd-you` 97 uses vs `--mrd-agent` 59** | Five surfaces exist for "a person is required" and one for "a machine is working" | context |
-| **Motion is ~2× slower than the reference, and inverted** | Meridian `enter: 420ms`; reference `enter 0s / exit 0.15s`. Things should appear instantly and leave gently | QUEUED K-25 |
-| **Body weight 400 vs the reference's 450** | Reads thin on the OKLCH ground | QUEUED K-25 |
+| **Motion: `--mrd-d-move` is slow. The other two are not** **CORRECTED 2026-08-20** | **`--mrd-d-press: 120ms` already equals the reference's dominant 0.12s (827 of 1,435 declarations), so "2x slower" is false for it.** `--mrd-d-move: 220ms` vs the reference's 0.12-0.15s is the real gap. **The `enter 0s / exit 0.15s` figure is Linear's published scale, not measured on the reference**, whose only long animations are text streaming and scroll reveal | `claude-log.md` K-25 RULED |
+| ~~**Body weight 400 vs the reference's 450**~~ **FALSIFIED 2026-08-20** | **The reference has no element at weight 450. Measured over 907 text-bearing elements: 400 (prose), 500 (labels), 600 (headings). `document.body` computes 400, same as ours.** Meridian's 400/500/600 ramp already matches. Struck from K-25 | `claude-log.md` K-25 RULED |
 | **No loading policy** | Reference shows nothing for 1000ms; Supaprod flashes `BrandWait` after 150ms with a 300ms minimum | QUEUED K-25 |
 | All 19 beautifui.dev components ported | 11 parity, 5 fixed, 3 ahead | context |
 | **Plan, Ship, Learn have no reference research. Brain is in no table at all** | Discover, Design, Build done 2026-08-01; Decide partial | QUEUED K-76 to K-79 |
