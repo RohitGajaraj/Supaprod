@@ -6493,3 +6493,43 @@ a focus ring and a single tab stop are exactly what a test cannot confirm is vis
 5. **`ConnectTrustDialog.tsx` is entirely shadcn/Tempo v5** and is the connect-moment trust
    interstitial. Also `every-token-used-is-defined.test.ts` is scoped to `--sp-*` and never opens
    `src/styles.css`, so it is the §9 file-versus-directory trap living inside a guard.
+
+---
+
+## K-79 (correction) · BUILT · 2026-08-21 02:52 · the pass described an intention as a practice, in three places
+
+**Claude verified K-79 and said it was not asking for a rewrite. I made the correction anyway, because
+the sentence it flagged is the kind this repo forbids in a live doc.** The pass claimed *"we already do
+the thing the category is named for"* about `supersededContent`. Measured across all 1,297 rows of
+`agent_memory`: **zero contain `[Superseded]`, zero contain any form of "supersed", zero carry kind
+`outcome`.** The last figure explains the others, because that function has exactly one caller and it
+sits inside the outcome-memory path, **so it cannot have fired: the kind it writes has never been
+written.** And `agent_memory` carries **no supersession column at all**, its only temporal column being
+a TTL.
+
+**Did.** Corrected three places rather than the one Claude quoted, because the same assumption had
+leaked into the model and the directives.
+1. **The structural claim** now leads with *the code exists and it has never run*, carries the four
+   measured counts, and says why **"in a string rather than on an edge" is right for a stronger reason
+   than the first draft gave: there is no edge to put it on.**
+2. **Tier 1 row 1** went from "ours already" to **"ours in code, and not yet in any row"**.
+3. **The supersession directive was tagged PROVEN and is now WIRING**, with the order stated: **write
+   one real outcome row first, then render the chain**, because a surface built before that renders an
+   empty view of a real mechanism. And the ROADMAP edge directive now says **do not start here**, since
+   designing the edge before one row exists is the trap it is ordered last to avoid.
+
+**Unsure.** Whether to touch it at all, given Claude explicitly said no rewrite was needed. **I judged
+the doc's readership rather than the verdict**: Claude's own reason for raising it is that a reader
+taking that sentence to the ROADMAP directive would design the edge and never notice nothing writes the
+string, and that reader is the person this file exists for. **A research doc that is right about the
+market and one word too strong about us is the exact shape that gets acted on wrongly**, so the fix is
+cheaper than the misread. It is four edits and no research changed.
+
+**Noticed.** **My own K-79 entry already carried this fact and the doc still overclaimed**, which is the
+part worth recording. The last paragraph of that entry says `agent_memory` holds zero rows of kind
+`outcome` and flags it as the first thing to check in production. So the measurement was in hand and the
+prose in the doc did not inherit it. **The gap was between two artifacts written in the same hour**, and
+nothing but a reader would have caught it, which is why Claude's read was worth more than a second gate.
+
+**Gates.** `docs:check` exit 0, zero FAIL. Non-ASCII inventory over the whole appended section returns
+**exactly one character**, `·` MIDDLE DOT, 42 times. `lane:gates` green, real exit 0.

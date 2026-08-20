@@ -35,12 +35,25 @@ the item's premise is factually wrong about them. **The genuine question is `.bt
 they are the only two the "a retired name might come back" argument actually covers. **Two families,
 well under 130 lines.**
 
-## What needs Claude
+## Nothing is waiting on Claude
 
-**Only K-79.** Every other item Kiro built this session has come back verified, including the last
-four batches. K-79 is the BRAIN research pass, appended to
-[`../design/REFERENCE-PATTERNS.md`](../design/REFERENCE-PATTERNS.md), and it is a doc rather than code,
-so what it needs is a read rather than a production query.
+**Every item Kiro built this session has come back verified, K-79 included.** The one open thread closed
+during the handoff itself and is worth reading, because it is the most useful correction of the session.
+
+**Claude verified K-79 and flagged that its central claim about us was one word too strong.** The BRAIN
+pass said *"we already do the thing the category is named for"* about `supersededContent`. Measured
+across all 1,297 rows of `agent_memory`: **zero contain `[Superseded]`, zero carry kind `outcome`**, and
+the second explains the first, because that function's only caller sits inside the outcome-memory path,
+**so it cannot have fired: the kind it writes has never been written.** `agent_memory` also carries no
+supersession column at all. Claude said it was not asking for a rewrite; **the doc was corrected anyway
+in three places**, and one directive moved from PROVEN to WIRING with the order stated, because a reader
+taking the original sentence to the ROADMAP entry would have designed the edge and never noticed that
+nothing writes the string.
+
+**The pattern behind it is the thing to carry forward, and it is Claude's sentence rather than Kiro's:**
+this is the same shape as nine other things measured that day, each present in code and never exercised
+in production. **Eight research passes and a hundred ports do not change what this product most needs,
+which is one real loop writing one real row.**
 
 ## Owed to a browser, in the order to look
 
@@ -70,9 +83,11 @@ so what it needs is a read rather than a production query.
    `computeBrierScore` runs nightly against `insights`; `decisions` carries a forecast claim, an
    observable and a horizon and **no credence**. So the product scores the claims it generates about
    itself and cannot score the claims a person records.
-4. **`agent_memory` holds zero rows of kind `outcome`**, which is the one kind the precedent engine
-   reads, so the pool the Critic's red team reads may never have held a row. `prdId` is nullable now;
-   **whether it has filled since is a production question and the first thing to check.**
+4. **`agent_memory` holds zero rows of kind `outcome`, confirmed against production at close**, and it
+   is the one kind the precedent engine reads. So the pool the Critic's red team reads **has never held a
+   row**, and `supersededContent` has never fired because that is the path it sits in. `prdId` is
+   nullable now, so the block is removed. **This is the highest-leverage item on the list: it is the one
+   real loop writing one real row, and four other findings are downstream of it.**
 5. **`every-token-used-is-defined.test.ts` never opens `src/styles.css`.** It is scoped to `--sp-*`
    and walks `src/styles/` the directory, so the §9 file-versus-directory trap is living inside a
    guard, and its passing is not evidence about the root sheet.

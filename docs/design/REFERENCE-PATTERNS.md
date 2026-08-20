@@ -2411,8 +2411,20 @@ than overwritten**, and it is worth assessing for agentic applications needing p
 across sessions or traceable decision reasoning. That is a precise description of `supersededContent`
 in `src/lib/ai/memory.server.ts`, which appends a note and keeps the prior verdict verbatim on the
 argument that *"we called it validated in March and it was missed by June"* is the highest-signal
-thing this product owns. **So we already do the thing the category is named for. We do it in a content
-string rather than on an edge, and the difference is what the directives below are about.**
+thing this product owns.
+
+**So the code to do the thing the category is named for exists, and it has never run. Corrected
+2026-08-21 against production, because the first draft of this paragraph said we already do it, which
+described an intention as a practice.** Measured across all 1,297 rows of `agent_memory`: **zero
+contain `[Superseded]`, zero contain any form of "supersed", and zero carry kind `outcome`** (the table
+holds `reflection` 1,195, `precedent` 28, `note` 25, `correction` 11). The last figure explains the
+others, because `supersededContent` has exactly one caller and it sits inside the outcome-memory path,
+**so the function cannot have fired: the kind it writes has never been written.** And `agent_memory`
+carries **no supersession column of any kind**, no `superseded_by`, `superseded_at`, `valid_from` or
+`valid_until`, its only temporal column being a TTL. **So "in a string rather than on an edge" is right
+for a stronger reason than the first draft gave: there is no edge to put it on.** A reader who took the
+original sentence to the ROADMAP directive would have designed the edge and never noticed that nothing
+writes the string, which is why the honest version leads instead.
 
 ## Three premise corrections, because two of them change what may be recommended
 
@@ -2453,7 +2465,7 @@ to name which of the two questions it is showing.
 
 | # | Field | Lifted from |
 | --- | --- | --- |
-| 1 | **the lesson in the words it was written in, never rewritten** | the context-graph definition (a superseded fact is invalidated, not overwritten) · ours already, in `supersededContent` |
+| 1 | **the lesson in the words it was written in, never rewritten** | the context-graph definition (a superseded fact is invalidated, not overwritten) · ours in code, in `supersededContent`, and **not yet in any row** |
 | 2 | **what settled it, resolvable to the exact passage and not to the artifact** | Glean deep-linked citations · Perplexity numbered citations |
 | 3 | **whose lesson it is: the product it was learned in, or the whole workspace** | ours already, in `resolveMemoryScope`, and the only field here with no reference-class equivalent, because none of these products has a tenancy question inside one customer |
 | 4 | **a freshness state a reader can see without asking**, and a verb to renew it | Guru verification and its trust indicator · Metaculus Reaffirm, carried forward from the Learn pass |
@@ -2658,10 +2670,13 @@ first real use, and no directive here may render a sentence that outruns that.
 - **PROVEN. Put a state on every row Brain draws.** `importance`, `last_used_at` and the verdict in
   `metadata` are all read by the rerank today, and none is shown. Guru's trust indicator is the
   reference, our signal is the better one, and the surface currently spends none of it.
-- **PROVEN. Make the supersession chain walkable on the surface.** `rememberOutcome` writes
-  `metadata.supersedes` naming what a row replaced, and marks each replaced row with the note naming
-  its successor, so **the chain is already bidirectional in the data.** Brain renders neither end. The
-  context-graph definition is the argument for why this is the station's most defensible view.
+- **WIRING, and it was tagged PROVEN in the first draft, which was wrong.** Make the supersession chain
+  walkable on the surface. `rememberOutcome` writes `metadata.supersedes` naming what a row replaced and
+  marks each replaced row with the note naming its successor, **so the chain is bidirectional in the
+  code and exists in no row**: zero of 1,297 rows carry the mark, because the kind that path writes has
+  never been written. **The order is therefore write one real outcome row first, then render the chain**,
+  and a surface built before that would render an empty view of a real mechanism. The context-graph
+  definition is still the argument for why this is the station's most defensible view once it has data.
 - **PROVEN. Name what a standing rule was distilled from, rather than counting it.** The Learn pass
   found `HouseRulesPanel` rendering "distilled from 3 learnings" with no way to reach the three, and
   `house_rules.source_learning_ids` holds the ids. Same count-versus-pointer correction, third
@@ -2678,9 +2693,12 @@ first real use, and no directive here may render a sentence that outruns that.
   lesson that opens the settled outcome it came from at the line that settled it. `metadata` already
   carries `learning_id`, `prd_id` and `opportunity_id`, so the artifact resolves; the passage does not.
 - **ROADMAP. Temporal validity on the edge rather than in the text.** The category's defining property.
-  `supersededContent` achieves the honesty of it inside a content string, which means **a reader can
-  see that a fact was superseded and a query cannot filter on when.** Moving it onto an edge is what
-  would let the record be read as at a date, and it is a schema change rather than a surface one.
+  `supersededContent` is written to achieve the honesty of it inside a content string, which would mean
+  **a reader can see that a fact was superseded and a query cannot filter on when.** Moving it onto an
+  edge is what would let the record be read as at a date, and it is a schema change rather than a
+  surface one. **Do not start here.** `agent_memory` carries no supersession column at all, so there is
+  no edge to move it to, and nothing writes the string either: **designing the edge before one real row
+  exists is the trap this directive is ordered last to avoid.**
 - **ROADMAP. Two authors, labelled apart, on one surface.** Cursor's rules against memories and Claude
   Code's `CLAUDE.md` against auto memory. We have both halves in `house_rules` and `agent_memory` and
   Brain does not draw the distinction, which matters because a person may overrule one of them and not
