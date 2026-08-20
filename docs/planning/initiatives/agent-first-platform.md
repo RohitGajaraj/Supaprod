@@ -954,7 +954,9 @@ Behavioural, measured in production, not in tests. This repo has shipped nine fe
 > | 6 | 0 | **0** | | 19 | 5,864 | **5,542** |
 > | 8 | 66% | **66.5%** | | | | |
 >
-> **Criterion 1 is regressing and it is not waiting on work, it is waiting on a publish.** All 8 of its live rows are `cluster.trigger`, first seen 2026-08-19 20:20 and still arriving; every other pending tool is frozen in the seeded July batch. K-11 fixed the cause in application code, and application code is not live until the founder publishes.
+> **PUBLISH LANDED 2026-08-20 13:47 UTC** (`latest_commit_sha 61d3176ee`, one commit behind main). **Today's code is live**, so the standing *"committed TypeScript is not deployed TypeScript"* caveat no longer applies to it. Criterion 1 measured 38 at 19:35, +2 on four hours, **but nothing raised since 10:20** while `cron.cluster-tick` ran at 13:50 and `sense` logged 38 calls in four hours -- so the path is live and raising none. **The stop predates the deploy by 3.5 hours, so the deploy does not explain it and I could not find what does.** Clean test from here: any new `cluster.trigger` approval after 13:47 means the catalogue is not working.
+>
+> **Criterion 1 was regressing and it was not waiting on work, it was waiting on a publish.** All 8 of its live rows are `cluster.trigger`, first seen 2026-08-19 20:20 and still arriving; every other pending tool is frozen in the seeded July batch. K-11 fixed the cause in application code, and application code is not live until the founder publishes.
 >
 > **Criterion 3 is `status='expired'`, and the definition matters:** `decided_at IS NULL` returns 151, because it folds in 36 pending and 49 rows this lane cancelled deliberately. Recording a number without its query is how that gets read as an 85-point regression.
 >

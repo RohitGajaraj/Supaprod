@@ -6407,3 +6407,75 @@ can fix it, because none of them owns it.
 `__root.tsx` and `_authenticated.tsx` were drawing inline. Both render clean in both grounds,
 which is the check that matters for a boundary state: it is the surface a person sees when
 something else has already failed, so it must not fail too.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 19:35 · the publish happened, so the caveat that has run through every entry today is now retired
+
+**Production is running today's code.** Confirmed through the Lovable project record rather
+than inferred:
+
+```
+  is_published        true
+  latest_commit_sha   61d3176ee19f22795ef1f5944c2f2d563e27551e
+  updated_at          2026-08-20 13:47:50 UTC   (19:17 IST, ~40 minutes ago)
+  url                 https://supaprod.lovable.app
+```
+
+`61d3176ee` is **Kiro's K-69 focus-ring commit**, it is an ancestor of `HEAD`, and main is
+exactly **one commit ahead of it** -- my own verdict entry, which is docs only.
+
+**So every code fix from today is live**: K-11's tool catalogue, the eight route ports, the
+status mappings, the focus rings, the boundary states. **The standing caveat from the 04:45
+entry -- *"committed TypeScript is not deployed TypeScript"* -- no longer applies to today's
+work**, and I have been repeating it in every entry since. It is retired as of this deploy.
+
+### The prediction I came here to test, and it half failed
+
+At 15:35 I wrote that criterion 1 regrows "about one row every two to three hours for as long
+as the fix sits undeployed". Measured four hours later:
+
+```
+  pending approvals    36 -> 38      (+2 in 4 hours)
+  cluster.trigger      8  -> 10
+  newest cluster.trigger approval    2026-08-20 10:20:54 UTC
+```
+
+**The direction was right and the rate was not.** +2 over four hours averages to my figure, but
+it is not a rate: **both arrived early and nothing has been raised for three and a half hours.**
+An average over a bursty series is not a prediction, and I stated it as one.
+
+### And the tidy explanation for the stop is wrong, which the timestamps settle
+
+The obvious story is "the publish landed, K-11 went live, the futile approvals stopped". **The
+timestamps refuse it.** Approvals stopped at **10:20**; this deploy is **13:47**. A deploy
+cannot explain a stop three and a half hours before it.
+
+**The workspace is not merely quiet either**, which is the other easy answer: `cron.cluster-tick`
+last ran at **13:50**, six minutes before I measured, and the `sense` surface has **38 calls in
+the last four hours, the newest one minute old.** So the path that raises these approvals is
+running and raising none.
+
+**I do not know what stopped it at 10:20 and I am not going to invent a cause.** I cannot see
+deploy history through this tool, so an earlier publish is possible and unfalsifiable from here.
+**Third time today a tidy causal story has failed a check**, and the only reason this one did
+not get written down as fact is that the deploy record carried a timestamp.
+
+### What is now cleanly testable, and it is a real prediction rather than an average
+
+**K-11's catalogue is definitively live as of 13:47.** So from here, a `cluster.trigger`
+approval being raised at all would mean the catalogue is not doing its job. **Zero new
+`cluster.trigger` approvals after 13:47 is the pass; any is the fail.** That is falsifiable in
+one query next tick, which the previous version of this claim was not.
+
+### §10 deltas since the 15:35 measurement
+
+| # | 15:35 | now | note |
+| --- | --- | --- | --- |
+| 1 | 36 | **38** | +2, both early in the window |
+| 18 | 92 v 141 | **92 v 143** | ratio 0.652 -> 0.643, `--mrd-you` grew and `--mrd-agent` did not |
+| 19 | 5,157 | **4,585** | **1,279 below the 5,864 baseline, 21.8% cleared** |
+
+**Criterion 18 is drifting the wrong way while the ports run**, which is worth watching rather
+than acting on: every ported surface adds "a person is required" affordances faster than it adds
+"a machine is working" ones, and the criterion wants parity.
