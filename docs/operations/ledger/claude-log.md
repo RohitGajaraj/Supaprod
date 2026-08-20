@@ -2277,3 +2277,124 @@ reader" is a column-grained property that everyone measures per table.**
 
 Filed as **K-86** for the surface. The measurement is mine; the surface is
 component work.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 06:29 · criteria 7 and 14 measured, and the forecast numbers that looked like progress were all seeded
+
+The last two unmeasured §10 criteria, and a correction to two I did not set out
+to touch.
+
+### Criterion 14 — users reachable by digest without a Settings visit. **0. Confirmed, with the mechanism.**
+
+**The digest's user list *is* the preferences table.** `sendDueDigests`
+(`notifications.functions.ts`) opens with:
+
+```
+.from("user_notification_preferences").select("user_id,digest_frequency,...").limit(200)
+if (rows.length === 0) return { scanned: 0, sent: 0 }
+```
+
+A user with no row there is never scanned, never due, never sent.
+
+**The content path is opt-out and the reachability path is opt-in, which is the
+whole defect.** `generateDigest` defaults every category on -- `digest_frequency
+?? "daily"`, `digest_approvals ?? true`, and so on -- so the product's stated
+intent is clearly that a digest should arrive without configuring anything. That
+intent is unreachable, because the query that decides *who* gets considered runs
+before any of those defaults apply.
+
+**Nothing creates the row except the user.** One writer creates rows:
+`updateNotificationPreferences`, a `requireSupabaseAuth` server function behind
+the Settings form. **No migration and no signup trigger inserts one** -- checked
+every migration for a trigger or seed on that table, there is none.
+
+Production, this minute:
+
+| | |
+|---|---|
+| users (`profiles`) | **16** |
+| have a preferences row | **1** |
+| ever sent a digest | **1** |
+
+**15 of 16 users cannot receive a digest at all**, and the one who can is the one
+who saved the form.
+
+**A second defect in the same query, currently harmless.** `.limit(200)` with no
+`ORDER BY`. At one row it does nothing; at scale it silently serves an arbitrary
+200 users per tick, and *which* 200 is whatever Postgres returns, so a user could
+be skipped indefinitely without any surface saying so. Recording it now because
+it is invisible until it is a support ticket.
+
+### Criterion 7 — a resolved forecast changes a rank. **Never. And the reason is specific.**
+
+Not "there is no ranking". **The ranking exists, it has an outcome leg, and the
+leg reads a different column.** `computeAgentTrust` (`trust.server.ts`) is four
+weighted legs:
+
+```
+raw = 0.3*mission + 0.2*approval + 0.2*eval + 0.3*outcome
+```
+
+`outcome` is `learnings.verdict === "validated"`, attributed to an agent by
+joining through `decisions`. And it selects, from `decisions`, exactly
+`prd_id, decided_by_agent_slug` -- **the join keys and nothing else.** The table
+carrying `forecast_resolution` is read by the ranking, on the same row, and the
+resolution is not selected.
+
+Every other reader of `forecast_resolution` either writes it
+(`brain/forecast-resolution.ts`, `settle_forecast`), looks for ones still
+unresolved (`forecast-audit.server.ts`, `mcp.functions.ts`), or displays it
+(`ForecastDeskPanel.tsx`). **Nothing ranks on it.**
+
+**This one is worth stating plainly against the canon.** `CLAUDE.md` holds that
+the moat is the forecast captured at decision time. The product captures
+forecasts, resolves them, and shows them. The single place where a resolved
+forecast would change what happens next -- which agent is trusted with more --
+does not read it. **A forecast that changes no decision is an artifact, which is
+the exact thing the canon says is not the moat.**
+
+### The correction I did not go looking for: criteria 5 and 6 have NOT moved
+
+The first query came back looking like a landslide: **289 decisions, 146
+carrying a forecast (50.5%), 91 resolved**, against a recorded 0.3% and 0.
+
+**All of it is seed data.** Grouped by workspace:
+
+| workspace | decisions | with forecast | resolved |
+|---|---|---|---|
+| Explore workspace | 61 | **0** | **0** |
+| My workspace | 50 | **0** | **0** |
+| Sample workspace | 20 | 20 | 12 |
+| Helio Labs ×7 (lantern, compass, harbor, explore, voyage, meridian, …) | 19–20 each | 19 each | 12 each |
+| Sample sandbox | 11 | 0 | 0 |
+
+**Seven Helio Labs workspaces with identical counts is one fixture cloned per
+demo tenant**, not seven teams forecasting. Every workspace carrying a forecast
+is named Sample or Helio. **The two that look like real use carry 0 forecasts and
+0 resolutions between them, across 111 decisions.**
+
+So: **criterion 5 is 0 of 111 in real workspaces and criterion 6 is 0.** Both
+unchanged. Had I reported the headline number, this log would now claim the moat
+metric went from 0.3% to 50% overnight on the strength of a demo fixture.
+
+**This is the third time tonight and at least the fourth this week**, which is
+why the rule exists: a number without the query that produced it, and without
+knowing whose rows it counted, is not evidence.
+
+### What I am not doing, and why it is a decision rather than an omission
+
+The obvious next move is a fifth leg on the trust score reading
+`forecast_resolution`, and the shrinkage already handles the empty case -- `n=0`
+returns the prior, so it would sit inert and begin discriminating on the first
+real resolution. That is the honest form of the canon's own claim: wired and
+proven, accruing on first use.
+
+**I am not adding it in the same breath as measuring it.** Two legs of four are
+already prior-only in real workspaces: `outcome`, because no real workspace has a
+`learnings` row, and `eval`, because the contract cutoff excludes all 77
+historical rows. **Half the weight of this score currently carries no evidence**,
+and adding a third empty leg changes every agent's rank today while explaining
+nothing about any agent. The right order is to establish why the first two are
+empty before widening the formula. Filed as the next thing in my own lane, not
+as a Kiro item -- it is server work.
