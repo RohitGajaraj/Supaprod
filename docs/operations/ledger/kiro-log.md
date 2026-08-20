@@ -3203,3 +3203,95 @@ the browser before this is called verified.**
 `docs:check` clean · `check-humanized.sh` clean. Ratchet total unchanged; `BrandWait`'s recorded
 debt is preserved exactly, because removing its one `--sp-bg` fallback would have tripped rule 3
 and I am not the item that re-freezes the baseline.
+
+---
+
+## K-26 · BUILT · 2026-08-20 13:28
+
+**Did.** Built `src/lib/agent-activity.ts`, a module with **zero imports**, and a 51-test suite.
+Linear's six activity types lifted verbatim (`thought`, `action`, `elicitation`, `response`, `error`,
+plus the user-only `prompt`), its six state names spelled as it spells them including
+`awaitingInput`'s camel case, both timing figures, and `deriveSessionState(activities, now)` which
+derives state from the last activity rather than reading a status field. Sources cited by URL in the
+header.
+
+**The design claim, and it is why this shape rather than a status enum.** Every one of the six
+spellings in `agent_runs.status` got in the same way: a writer needed a word, a text column accepted
+any string, and it typed one. **The defect is the column, not the writers.** So there is no status
+field here at all, which means there is nowhere for a seventh word to be invented: adding one would
+mean adding a branch to a typed union in a file whose test enumerates it.
+
+**Two things the type system now carries that were prose elsewhere.** `ephemeral` exists only on the
+`thought` and `action` members, so `{ type: "response", ephemeral: true }` is a compile error rather
+than a server-side rejection. And `prompt` is separated into its own type, so `isAgentEmittable`
+enforces Linear's stated rule that an agent cannot write a person's message.
+
+**Unsure.** Four places where Linear does not say what the item claims, each documented at the code
+it affects.
+
+1. **`unresponsive` is NOT one of Linear's six states, and the item reads as though it were.** Its
+   docs list `pending, active, error, awaitingInput, complete, stale` and separately say an agent
+   that does not answer in ten seconds "will be shown as unresponsive", never saying which of the six
+   that reads as. I modelled it as a **flag on the snapshot rather than a seventh state**, which is
+   the only reading that keeps the six-state claim true and lets both facts be true at once: a prompt
+   nobody answered for an hour is `stale` **and** unresponsive. A seventh state would have forced one
+   of those to be dropped. **This is the judgement most likely to be wrong.**
+2. **The ten-second clock is documented for the `created` event only.** Running it on a trailing
+   follow-up `prompt` is ours, because a follow-up nobody acknowledged is the same fact one step
+   later and a person waiting cannot tell the two situations apart. Also noted in the file: Linear
+   lets an agent stop that clock by setting an external URL instead of emitting; we have no
+   equivalent, so emitting is the only acknowledgement available.
+3. **Whether `awaitingInput`, `error` or `complete` escalate to stale is not stated anywhere.** I
+   say no, only `active` and `pending` do, and the argument is this repo's own colour law:
+   `--mrd-you` means a person is required and `--mrd-agent` means a machine is working, so silence
+   in an `awaitingInput` session belongs to the person and painting it stale **blames the machine for
+   the human's pause.** Stale therefore means exactly one thing: something was supposed to be
+   happening and nothing is.
+4. **The item asked for three named constants and I shipped two.** The third contract, "stale is
+   recoverable", **is not a duration** and a millisecond constant cannot express it: it is a rule
+   about which timestamp the window is measured from. The clock runs from the LAST activity and the
+   state is read off the LAST activity, so emitting anything both resets the clock and re-reads the
+   state. **Recovery is what the derivation does when it is simply run again**, which is why there is
+   nothing to call and no terminal state to escape. It lives in `STALE_AFTER_MS`'s comment, in the
+   derivation, and in six tests.
+
+Smaller calls: `at` is epoch ms rather than an ISO string, so the module needs no date parsing and no
+failure mode for an unparseable one. `deriveSessionState` returns a snapshot rather than a bare
+string, because `unresponsive` is a second question about the same instant and two functions would
+mean two traversals against two values of `now` that can disagree. No `id` on an activity, per data
+minimalism. `timelineActivities` is an addition the item did not ask for, and it is required: a
+captured field with no reader is litter by this repo's own rule, and a flag nobody honours is worse
+than no flag because a writer will set it and believe something happens.
+
+**Proven non-vacuous by planting, both directions.** Measuring staleness from the session's first
+activity instead of its last fails 7 tests; letting every state escalate to stale fails 3. Both
+reverts confirmed by re-reading the file.
+
+**Noticed.** Four.
+
+1. **There are FIVE status normalisers, not the four `run-status.ts` enumerates.**
+   `src/lib/relay.ts:24` carries a fifth, `mapRelayStatus`, and it knows **four spellings the
+   canonical layer does not**: `awaiting_review`, `gate`, `planned`, `ready`. So wiring the four to
+   `run-status.ts` would still leave a surface reading raw strings, and `awaiting_review` in
+   particular is a live spelling with no canonical home. Worth adding to the audit register.
+2. **`relay.ts` already reaches for the word `ephemeral` for this exact idea**, twice, in prose:
+   "each agent is one row showing only its latest line (ephemeral)". The concept was already named
+   and nothing implemented it, which is a missing door rather than a duplicate, and
+   `timelineActivities` is the mechanism that prose was describing.
+3. **`self-improve-governance.ts` is the closest existing precedent** for a pure module with an
+   injected `now` and an exported staleness constant. There are now two independent staleness notions
+   in `src/lib` with different windows (14 days against 30 minutes) and different subjects.
+4. **The purity-assertion technique has a trap and I hit it.** Scanning raw source for a forbidden
+   symbol fails on a header comment that NAMES the thing it is warning against: my header names
+   `normalizeRunStatus` deliberately, to tell the next reader which vocabulary this is. Fixed by
+   stripping comments before the scan, and the reason is recorded in the test so the next person
+   copying the technique does not re-learn it. **Worth checking whether
+   `approval-policy.test.ts`'s import scan has the same latent issue.**
+
+**Gates.** tsc clean · 51 pass / 0 fail / 159 expect() on the new suite · ratchet 4 pass, both new
+files born clean · full `lane:gates` green on the merged tree.
+
+> **Claude does after:** this changes nothing until something emits these activities. Mapping today's
+> six `agent_runs` spellings onto these six states is the wiring, it needs a live read to check what
+> is safe to collapse, and `mapRelayStatus`'s four extra spellings should be folded into that pass
+> rather than discovered during it.
