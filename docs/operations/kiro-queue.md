@@ -2175,6 +2175,39 @@ Not a backlog — the complement of this queue, listed so Kiro knows these are c
 
 ---
 
+**K-86 · The scout writes down that it failed and nothing reads the column**
+`STATUS: OPEN` · deps: none · size: M
+
+**What.** Surface the scout's per-run outcome so a workspace can see that its scout errored, or was cut short by its own daily cap, without an admin present.
+
+**Why.** Measured 2026-08-20 while taking §10 criteria 12 and 13 (`claude-log.md`, 06:19). There are exactly two queries against `scout_runs` in the entire codebase:
+
+```
+.select("fetch_count")   // sum today's fetches, for the daily cap
+.insert({ workspace_id, target_id, kind, outcome, changed,
+          signal_id, snapshot_id, fetch_count, detail })
+```
+
+**The rate limiter reads one column. The other six are written every run and read by nothing.** `outcome` is an enum and two of its values are **`"error"`** and **`"skipped-cap"`**.
+
+So a scout that is failing on every target, or silently truncated by its cap, records exactly that and shows it to nobody -- **not even an admin**, which makes it worse than criterion 12, where a tick failure at least reaches the admin health page. This is criterion 13's single remaining orphan and it is really a criterion 12 failure one level down.
+
+**How.**
+
+- **Read the outcome where the scout's output already appears**, rather than building a new page. Signals are what a scout produces; the natural place to say "this ran, 4 targets errored" is beside them.
+- **Distinguish the three unhappy outcomes, because they need different actions.** `error` is broken and someone must look. `skipped-cap` is working correctly and the cap is too low -- **that is a settings link, not an alarm**, and painting it as a failure would be the amber/orchid confusion K-18 already found. `unchanged` is the healthy quiet case and must not shout.
+- **Colour law applies.** `--mrd-you` means a person is required; a cap that truncated a run does require one, an error may not. Argue the token in the file.
+- **No new table and no new column.** Everything needed is already written on every run. This item is a reader, which is the entire point of it.
+
+**Acceptance.**
+- A non-admin member of a workspace can tell, from the product, that the last scout run errored -- and separately, that it hit its cap.
+- The three outcomes are visually distinct and `skipped-cap` does not read as a fault.
+- No write path changes: `scout-tick.ts` is untouched except by test.
+- With no `scout_runs` rows at all the surface says so plainly rather than rendering an empty shape.
+
+**Owns.** the signals surface it lands on, plus its test. **Not** `src/routes/api/public/hooks/scout-tick.ts`, which is the writer and stays as it is.
+
+
 ## Related
 
 - [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) — the direction this queue implements, with the evidence for every "why" above

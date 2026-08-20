@@ -2187,3 +2187,93 @@ Kiro had stalled from an instrument that could not see its work, and once
 concluded five verified items were unverified from an instrument that trusted a
 number it should have measured. **Each time the tool was answering a narrower
 question than the one I was asking it.**
+
+---
+
+## Claude lane · LANDED · 2026-08-20 06:19 · criteria 12 and 13 measured, and 13 was a table-shaped question about a column
+
+Two of the five unmeasured §10 criteria. **Both were code questions wearing
+database clothing**, which is why they sat unmeasured behind "needs `psql`":
+neither needs a row count, and I had filed them next to ones that do.
+
+### Criterion 12 — tick failures visible to a non-admin. **Still 0. No drift.**
+
+Every path from a failed tick to a human is admin-only, and there are only three:
+
+1. **`job_runs`** — two readers. `observability.functions.ts` returns
+   `{ error: "Forbidden" }` without an `admin` row in `user_roles`, and the
+   tables under it are RLS-guarded to `has_role('admin')` besides.
+   `/api/public/health` does read it unauthenticated, but by its own contract
+   "leaks NOTHING beyond ok/error" — one scheduler-alive bit for an uptime
+   monitor, no per-tick detail.
+2. **`error_events`** — one reader, `listErrorEvents`, same admin gate.
+3. **`lib/liveness/*`** — a real reader I nearly missed, because it reaches
+   `job_runs` through a probe abstraction rather than an inline
+   `.from().select()`. Its only consumers are `observability.functions.ts` and
+   `_authenticated.admin.observability.tsx`.
+
+**I checked whether the admin route is guarded rather than assuming the filename
+meant it**, because a route named `admin` that is merely named that would be a
+security finding worth raising tonight. It is guarded: the layout renders on
+`me.data?.isAdmin` (`_authenticated.admin.tsx:116`) and the server functions gate
+again at the database. Defence in depth, no finding.
+
+### Criterion 13 — tick-written tables with no reader. **At most 1, against a recorded 9.**
+
+Instrument, stated so the number can be re-derived or attacked:
+
+- transitive ES-import closure from the 39 tick hooks → **87 modules**
+- a **write** is `.from(t)` followed within 250 chars by
+  `insert|update|upsert|delete` → **23 tables**
+- a **reader** is `.from(t)` followed by `.select(`, anywhere in `src`, excluding
+  tests and the generated types file
+
+**One orphan: `scout_runs`.** Same answer under both readings — no reader outside
+its own writers, and no reader anywhere outside the tick layer. `error_events`
+has exactly one reader and it is admin-only.
+
+**"At most" is doing real work in that sentence.** This sees PostgREST `.from()`
+calls and static imports only. A table read through an `.rpc()`, a view, or a
+materialised view is invisible to it, and this codebase does use RPCs. **An
+invisible reader makes a table look like an orphan**, so the instrument
+over-reports: 1 is a ceiling, not a count.
+
+**I am not claiming 9 → 1.** I cannot reproduce the 9, because I do not know its
+definition, and reporting a drift between two different measurements would be
+inventing a result. What is recorded here is a number with its method attached.
+
+**The instrument had already lied to me once, in the familiar way.** Its first
+version missed `listErrorEvents` entirely, because the call is
+`.from("error_events" as never)` and a pattern expecting `.from("x")` does not
+match a cast sitting inside the parens. Same shape as parsing `oklch()` with an
+`rgb()` regex: **the sweep answers a narrower question than the one asked, and
+returns a confident number either way.**
+
+### The real finding is one level below the table
+
+**`scout_runs` is not a table with no reader. It is a table where one column has
+a reader and six do not.** There are exactly two queries against it in the whole
+codebase:
+
+```
+.select("fetch_count")   // sum today's fetches, for the daily cap
+.insert({ workspace_id, target_id, kind, outcome, changed,
+          signal_id, snapshot_id, fetch_count, detail })
+```
+
+So the rate limiter reads `fetch_count`, and **`outcome`, `changed`, `detail`,
+`kind`, `target_id`, `signal_id` and `snapshot_id` are written on every run and
+read by nothing.** `outcome` is an enum whose values include **`"error"` and
+`"skipped-cap"`**.
+
+**That is criterion 12 restated at a smaller scale, and it is worse than criterion
+12.** A tick failure is at least visible to an admin. A scout that is erroring on
+every target, or silently truncated by its own daily cap, writes that fact to a
+column no surface in the product reads — admin included. **A user whose scout has
+stopped working cannot find out, and neither can the founder.**
+
+A table-level count cannot see this, which is the general lesson: **"has a
+reader" is a column-grained property that everyone measures per table.**
+
+Filed as **K-86** for the surface. The measurement is mine; the surface is
+component work.
