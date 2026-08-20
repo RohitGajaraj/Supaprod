@@ -1,3 +1,97 @@
+# ✅ SESSION CLOSED 2026-08-21 · Kiro · the build queue is finished, and two questions are waiting on the founder
+
+**State at close.** Working tree clean, no untracked files, `HEAD` identical to `origin/main` at
+`71c8e0d5b`, **0 ahead / 0 behind**. `lane:gates` green on all four with the exit code read from `$?`.
+**Every item K-01 through K-85 now carries a log entry**, so the queue has no eligible work left and
+nothing is blocked, because nothing is left.
+
+**What this session did.** 61 items from K-25 onward, in 14 pushes, each one gated before it went out.
+Most ran as parallel sub-agents on disjoint `Owns` sets, with the generated ratchet baseline re-frozen
+centrally once per batch so items sharing that file landed in one commit instead of leaving red on
+main. **Debt 5,157 → 3,355 occurrences and 257 → 230 files carrying it**, and `src/styles.css` alone
+went 3,886 → 2,797 lines across K-28, K-29, K-30 and K-31.
+
+## Two questions waiting on the founder, and Claude has already narrowed one of them
+
+**1. K-37, the four ACT verbs. Delete them, or wire the listener and mount the palette?** "Add a
+task", "Capture a signal", "Share status" and "Start a focus block" are good palette verbs that today
+**silently do nothing**: three dispatch events with no listener, and the fourth asserts a `FocusDock`
+that is not in the tree. **Wiring the listener alone does not ship a feature**, because both candidate
+hosts are themselves unreachable, so it moves the deadness one layer down. The real cost is mounting
+the palette, which is a product decision about whether this app has one. The `palette-recents` half is
+already deleted and needed no ruling: its writer had no caller, so the key was never written once and
+Recent had returned an empty array for every user since it shipped. Kiro's read, offered rather than
+acted on: **delete the verbs and raise the palette as its own item**, because four verbs that lie are
+worse than four that are absent.
+
+**2. K-31, the `.btn-*` families, and the question is smaller than Kiro's entry says.** Kiro kept
+eight classes on the dated DO-NOT-DELETE ruling in `styles.css` and logged it as a founder call.
+**Claude then counted the tree and corrected the scope, which is the more useful half.** Four of them
+are **live at 82 call sites** (`.btn` 49, `.btn-primary` 12, `.btn-ghost` 12, `.btn-sm` 9) including
+`login.tsx` and the public shared-decision page, and Claude loaded `/login` and confirmed they paint.
+**So for those four there is nothing to rule on: deleting them breaks the sign-in page today**, and
+the item's premise is factually wrong about them. **The genuine question is `.btn-pill` and
+`.btn-pill-outline` only**, both at zero call sites, both carrying their own "Kept, not cut" note, and
+they are the only two the "a retired name might come back" argument actually covers. **Two families,
+well under 130 lines.**
+
+## What needs Claude
+
+**Only K-79.** Every other item Kiro built this session has come back verified, including the last
+four batches. K-79 is the BRAIN research pass, appended to
+[`../design/REFERENCE-PATTERNS.md`](../design/REFERENCE-PATTERNS.md), and it is a doc rather than code,
+so what it needs is a read rather than a production query.
+
+## Owed to a browser, in the order to look
+
+1. **`text-mrd-body` resolves as BOTH a colour and a 14px font size.** Found independently by three
+   workers and then measured against the real Tailwind compiler by a fourth, which found that
+   `text-mrd-base text-mrd-body` renders at **14px**, because both rules emit from one candidate and
+   the `@utility` size rules sort alphabetically. Roughly 60 call sites use it meaning colour.
+   **This is the highest-value single thing to look at**, because if the size rule wins anywhere,
+   body-text colour is silently falling back.
+2. **`/settings` and `/pricing`**, the two surfaces that changed most. Settings control heights went
+   40px → 32px on fourteen controls, and pricing stopped being force-dark.
+3. **A keyboard tab through the engine room, the runs table and the agent inbox in both grounds.** A
+   focus ring and a single resident tab stop are exactly what a test cannot confirm is visible.
+4. **Today's now-colourless notices section**, where K-59 refused to build station hues into
+   `meridian.css` on Law 4 and removed all colour from one section. A reviewer who wants a hue back
+   should look before ruling.
+
+## Findings that are nobody's item yet, in the order to raise them
+
+1. **The generated Supabase types are stale against applied migrations.** `learnings.decision_id`,
+   `learnings.product_id` and `agent_memory.product_id` were applied 2026-08-19 and none is in
+   `types.ts`, so **`tsc` rejects three columns that exist**. That is AGENTS.md §9's trap in mirror
+   image, and regenerating the types is the precondition for two Learn directives.
+2. **A fifth copy of the failure surface at `src/router.tsx:35`**, invisible to the ratchet because
+   `src/router.tsx` sits outside `SCAN_ROOTS`. The guard meant to stop these multiplying cannot see it.
+3. **The calibration number the forecast thesis rests on is computed against the wrong table.**
+   `computeBrierScore` runs nightly against `insights`; `decisions` carries a forecast claim, an
+   observable and a horizon and **no credence**. So the product scores the claims it generates about
+   itself and cannot score the claims a person records.
+4. **`agent_memory` holds zero rows of kind `outcome`**, which is the one kind the precedent engine
+   reads, so the pool the Critic's red team reads may never have held a row. `prdId` is nullable now;
+   **whether it has filled since is a production question and the first thing to check.**
+5. **`every-token-used-is-defined.test.ts` never opens `src/styles.css`.** It is scoped to `--sp-*`
+   and walks `src/styles/` the directory, so the §9 file-versus-directory trap is living inside a
+   guard, and its passing is not evidence about the root sheet.
+6. Smaller ones, each recorded at its item: **`ConnectTrustDialog.tsx` is entirely shadcn/Tempo v5**
+   and is the connect-moment trust interstitial · `supaprod/Primitives.tsx` uses `text-heading-26` and
+   `text-heading-21`, **declared in no stylesheet**, so two headings paint nothing · Meridian's
+   `Region` heading is 13px against `Row`'s 14px lead, **which reintroduces the defect
+   `primitives.css` documents at length** · `Action` carries no `aria-busy`.
+
+## How to resume
+
+The queue is spent, so the next session is not a queue session. **Read
+[`./ledger/kiro-log.md`](./ledger/kiro-log.md) from the K-79 entry backwards** for the state, and
+[`./ledger/claude-log.md`](./ledger/claude-log.md) for the verdicts. The two founder questions above
+are the only things blocking, and neither blocks the other. **Truth about production is still the live
+database and not this file.**
+
+---
+
 # ✅ SESSION CLOSED 2026-08-19 evening — three worktrees on one commit, and an upstream bug that had already been fixed once
 
 **Git plumbing only. No product code, no doc changes beyond this file.** All three worktrees and all
