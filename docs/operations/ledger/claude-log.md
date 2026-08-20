@@ -2695,3 +2695,95 @@ both surface, `K-19` stays suppressed by its verdict, and `K-1` does not swallow
 that both writers share a clock, and that an id is always followed by a
 separator. **A tool that reports "nothing to do" is the one worth distrusting**,
 because its failure looks exactly like success.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 07:12 · the remaining §10 numbers re-measured, and two of them have been counting a fixture
+
+Criteria 1, 3, 4, 8, 9, 16, 17, 18 measured against production this morning. With
+7, 12, 13, 14 earlier and the 5/6/15 corrections, **every criterion in §10 now
+has a current number with its query attached.**
+
+| # | criterion | recorded | now | reading |
+|---|---|---|---|---|
+| 1 | pending approvals | 53 | **35** | but see below -- 28 are seed |
+| 3 | raised then never decided | 130 | **101** | |
+| 4 | oldest pending | 627h | **635h** | it is a seed row |
+| 8 | missions proposed >24h | 66% | **66%** of 349 | unchanged |
+| 9 | runs clean | 38% | **38%** of 1,791 | unchanged |
+| 16 | run status spellings | 6 | **6** | unchanged |
+| 17 | duplicate agent name at a station | 2 | **0** | **met** |
+| 18 | `--mrd-agent` vs `--mrd-you` | 59:97 | **52:79** | ratio 0.61 → 0.66 |
+| 19 | Meridian ratchet | 5,864 | never higher | enforced, suite green |
+
+### Criterion 1 is four fixtures and one live leak
+
+The 35 break down by tool, and the shape gives it away:
+
+| tool | pending | workspaces | days spanned |
+|---|---|---|---|
+| `backlog.prioritize` | 7 | 7 | **1** (2026-07-24) |
+| `memory.promote` | 7 | 7 | **1** (2026-07-24) |
+| `mission.dispatch` | 7 | 7 | **1** (2026-07-25) |
+| `studio.pr.merge` | 7 | 7 | **1** (2026-07-25) |
+| `cluster.trigger` | 7 | 5 | **2** (2026-08-19 → **today**) |
+
+**Four tools, seven rows each, one row per demo workspace, each created on a
+single day in July.** That is one fixture per Helio clone, not a backlog. **28 of
+the 35 pending approvals are seed data.**
+
+**The seventh is the real one and it is still arriving.** `cluster.trigger` is
+spread over 5 workspaces across yesterday and today. I cancelled 25 futile
+approvals in `20260820013000` and said the migration was safe because K-11 closed
+the source; **K-11 is application code and is not deployed**, so they came back.
+Seven more since. Nothing here is new information -- it is the same finding
+accruing interest on the founder's publish click.
+
+**So criterion 1's honest number is 7 live pending approvals, not 35**, and the
+target of "< 10" is arguably already met on real rows while being missed on the
+seed. I am recording both rather than picking the flattering one.
+
+### Criterion 4 has never measured what it says
+
+**The oldest pending approval is one of the July seed rows.** 635 hours back from
+now is 2026-07-24, which is exactly the `backlog.prioritize` / `memory.promote`
+fixture date. The criterion reads "oldest pending approval, 627h, target < its
+declared expiry" and it has been reporting the age of a demo row since it was
+written. **The 8-hour rise from 627 to 635 is not decay, it is the clock moving
+while a fixture sits there.**
+
+Worth stating because this criterion is meant to catch neglect and cannot: a real
+approval left for a month would be indistinguishable from the fixture that is
+already there.
+
+### Criterion 17 is met, and I nearly measured it at the wrong grain
+
+Grouping by `(workspace_id, name)` returned ten "collisions" of six agents each.
+**Every one had `workspace_id = NULL` and an identical slug** -- the same default
+roster held per user, lumped together by a null key. That is the per-user /
+per-workspace confusion I have already made once on the orchestrator lookup.
+
+At the grain the product actually resolves by, `(user_id, name)`: **0 colliding
+groups, 0 agents involved.** Met.
+
+### Criterion 18: the baseline counted comments
+
+Two instruments, because the numbers disagreed and one of them had to be wrong:
+
+- **counting comments**, as the baseline evidently did: **52 vs 79**, ratio 0.66,
+  which is the number comparable to the recorded 59 vs 97 at 0.61.
+- **code only**, comments stripped: **31 vs 38**, ratio **0.82**.
+
+The second is the truer measure of what the product paints and the first is the
+only one comparable to the baseline. Both recorded; **the drift claim uses the
+comparable one**, because comparing a stripped count against an unstripped
+baseline would manufacture a 47% "improvement" out of a change in method.
+
+### The three that did not move, and why that is expected
+
+**8 and 9 are unchanged to the percentage point** (66%, 38%) on larger
+denominators -- 349 missions and 1,791 runs. **16 is unchanged at 6 spellings**:
+K-12 built and verified the canonical set, but nothing writes through it yet, and
+that was explicit in the item -- "nothing here changes a writer or a consumer".
+A module that exists is not a module that is wired, and the criterion correctly
+refuses to move for one.
