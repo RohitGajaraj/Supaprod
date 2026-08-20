@@ -4112,3 +4112,234 @@ the guard working.** After: `lane:gates` green on all four, real exit 0.
     src/styles/primitives.css  --sp-: 506 -> 429
     src/styles/shell.css       --sp-:  26 ->  24
     total 5,340 -> 5,157
+
+---
+
+## K-38 · BUILT · 2026-08-20 16:52
+
+> **A NOTE ON THIS ENTRY AND THE NEXT THREE, because it changes how they should be read.** These four
+> items were built in parallel and **the build reports were lost before I received them.** The code is
+> complete and all four gates are green, but everything below is written from **my own read of the diff
+> and of the comments the builder left in the files**, not from a builder's account of its own
+> uncertainty. So the `Unsure` fields here are thinner than they should be: they record the doubts the
+> code states, not the ones only the author knew. **Verification should lean on the diff rather than on
+> this entry**, and that is the honest consequence of the interruption rather than a claim that nothing
+> was uncertain.
+
+**Did.** Four parts added to `surface-parts.tsx`: `Pre`, `Grid`, `Cell`, and the row-selection bar. A
+gallery section appended to `_authenticated.meridian.tsx`, and two new suites,
+`catalog-parts.test.tsx` and `bulk-bar.test.tsx`. **This unblocks K-39, K-41, K-42, K-54, K-55 and
+K-58**, which is why the API shape mattered more than the speed.
+
+**## The selection bar is called `BulkBar`, and that is the decision the six blocked items inherit**
+
+The file states it is not a style choice. Meridian already exports `SelectionActions`, which takes
+`range: Range | null` and a positioned `containerRef` and draws highlight panels over prose: **an
+unrelated concept wearing a colliding name.** This is the other kind of selection, row ids held by
+`use-selection` plus a count. **K-42's own body warns that an agent scanning Meridian's exports finds
+`SelectionActions` and assumes it is the target**, so the name had to be distinct. `BulkBar` is what
+K-42 and K-55 will import.
+
+**## The hover formula was not ported, and the reason is measured rather than aesthetic**
+
+This is the sharpest thing in the diff. The retired sheet computed `Cell`'s hover from its tint with a
+**single** formula, and `Cell`'s own doc comment says that coupling is the entire reason `tone` works.
+The formula is gone and the coupling survives, because **Meridian's `lift` sits ABOVE `bg` on dark and
+BELOW `sink` at 0.932 on paper.** One formula in both grounds therefore makes **a hovered raised cell
+read as a recess on paper**, which is the inverted-token class of defect this system keeps finding. So
+the tone picks a ground and each ground names its own hover.
+
+**`Pre` is a separate part and `CodeBlock` was evaluated rather than assumed**, as the item required.
+The file records `mode="raw"` on `CodeBlock` as the option considered and rejected. `Pre` also **caps
+its height, which the retired `.sp-pre` did not**, is focusable because it scrolls, and **sets no outer
+margin** where `.sp-pre` baked in a `margin-top` and so let the box decide its own placement. That last
+one follows `Actions`: a composition decision belongs to the composition.
+
+**`Cell` renders a real `<button>` when `onClick` is present**, and the file notes two properties a
+`<button>` gets wrong for this shape and fixes them rather than living with them.
+
+**Unsure**, and per the note above these are the doubts the code states rather than the builder's own.
+**`Cell`'s label weight deliberately does not follow `Row`'s**, argued as a grid being SCANNED where a
+list is READ; that is a real judgement and a reader could disagree. **`Grid` takes both `columns` and a
+minimum, with `columns` winning when both are passed**, which is a two-prop API where one might have
+done. And **`BulkBar`'s height moved 38px to 44px**, which the file flags as the one figure in the item
+not derived from a token.
+
+**Noticed.** `Grid`'s comment records that the retired sheet carried its column arithmetic **as a custom
+property**, so a grid whose contents changed could be re-fitted from outside; that mechanic has no
+Meridian counterpart and became props instead. Worth knowing before somebody looks for the property.
+
+**Gates.** `lane:gates` green, all four, real exit 0. The two new suites plus the other four new files
+in this batch total **95 tests, 0 fail, 164 expect() calls.** The new files are born clean: the ratchet
+baseline moved only for K-32 and K-33's three stylesheets.
+
+---
+
+## K-63 · BUILT · 2026-08-20 16:55
+
+**Did.** The ghost is gone from the tree: **`grep -rn awaiting_approval src/ supabase/` returns
+nothing**, which is the item's acceptance criterion and I ran it myself. `AgentRosterPanel` now
+**imports** `LIVE_RUN_STATUSES` from `governance.functions.ts` rather than re-declaring it,
+`AgentInspector`'s `RUN_STATUS` map and `runMarkState` are keyed on `waiting_approval`, the `planning`
+branch is gone from both, and the dead key is deleted from `delegate-desk.ts` with **nothing put in its
+place.**
+
+**The local copy held three words and only one was a status `agent_runs` ever carries**: `planning` is a
+missions word and a tool category, the gate word was misspelled with an `awaiting` prefix that no writer
+anywhere produces, **and `queued` was missing entirely**, so a run that had not been picked up yet read
+as stopped. `stateFor` could never return `running` for a gated run, so **an agent waiting on a decision
+from the person reading the panel wore the idle mark**, the exact inverse of the one signal a roster
+exists to give.
+
+**## `Owns` extension, one word**
+
+`src/lib/governance.functions.ts` is not in K-63's `Owns` and the change there is `const` ->
+**`export const`** on line 349. The item says to import the canonical set rather than re-declare it, and
+**it was not exported**, so the item is unbuildable without that word. No logic, no behaviour, nothing
+else in the file.
+
+**## The guard test avoids poisoning its own acceptance criterion, and that is the best thing in it**
+
+The item's acceptance is that a grep for the ghost returns nothing. A guard test naming the ghost
+literally **would itself satisfy the grep and fail the criterion.** The test assembles the string from
+parts instead, and says so at the top. That is a trap I did not anticipate when I wrote the brief.
+
+**It is scoped per column, which the item insisted on and is the whole point**: three writer sets built
+from the writers with the writing file cited per member, each reader declared against the column it
+actually reads. The file states why the obvious version has no teeth: *"Every status a reader keys on is
+one some writer writes somewhere" passes trivially, because `planning` IS written, just to a different
+table.*
+
+**It is grep-based over source text rather than importing the readers, deliberately**: two of the three
+live in `.tsx` components whose module graph reaches `.server.ts`, and the file argues that **a guard
+which needs a bundler to run is a guard that gets skipped.**
+
+**Unsure.** Reports lost, so this is from the code. The one thing I would want a second opinion on is
+that the writer sets are **hand-transcribed with citations rather than derived**, so they can drift from
+the writers they name. The citations make that checkable, which is the mitigation, but it is not
+automatic.
+
+---
+
+## K-66 · BUILT · 2026-08-20 16:57
+
+**Did.** `a-declared-default-must-survive-the-runtime.test.ts`, one new file, with the three assertions
+and the floor test. **All pass on the post-K-11 tree**, which is what the item predicted: (a) and (c)
+were red before K-11 filled the catalogue and go green because it did.
+
+The floor test is there so an emptied registry cannot make the loops pass vacuously, and the suite also
+carries `the catalogue is real, so no loop below passes by having nothing to check`, which asserts the
+consequence catalogue and risk profile are above the floor **and that the core reads are declared at
+all** before anything is checked about them.
+
+**(c) is the assertion that was documented nowhere and it is the sharpest of the three.**
+`filterToolsByRisk(all, "low")` returned 24 tools **and every one was a write** while blocking
+`workspace.search`, `signals.list`, `repo.read`, `web.search` and `sources.status`. **A risk cap
+tightened an agent by removing its ability to read and keeping its ability to write.**
+`tool-consequences.ts:74-78` predicts exactly that in its own comment and nothing checked it. The suite
+now has three cases on it, including one named `would say so if it did, which is why the assertion above
+is worth reading`.
+
+**Unsure.** The item asked for a decision on (b)'s two offenders, `memory.promote` (category `memory`)
+and `web.crawl` (category `read`): whether each is a named exemption or a category correction. **The
+test passes, so it took one of those two paths, and I cannot tell from the diff which reasoning was
+applied to which tool.** A category correction would have meant editing `registry.server.ts`, which was
+forbidden to this item, so it must be the exemption route. **That is inference rather than a report, and
+it is the single thing in these four items most worth reading the code for.**
+
+---
+
+## K-70 · BUILT · 2026-08-20 16:59
+
+**Did.** `CtxRow` renders a real `<button type="button">` when `onClick` is present. The old branch was
+`<div onClick role="button" tabIndex={0}>` **with no `onKeyDown`**, so the row was reachable by Tab,
+announced itself as a button and took the focus ring, **then did nothing when operated. Focusable and
+announced but inert is worse than not being focusable at all.**
+
+**This was a regression against the floor rather than a gap**: the retired Cadence/ink `CtxRow` it
+replaced returns a real `<button>` at `primitives.tsx:1221` and its docblock states the rule outright.
+The Meridian replacement lost it.
+
+**`w-full text-left` came with the element rather than as polish**, and the file says why: a button
+centres its content and shrinks to fit, and this row's layout assumes full width with the text against
+the left edge. **That is the defect the item warned would follow the fix.**
+
+**The dead `data-mrd` class token is out of the className string**, with a comment recording that no
+`.data-mrd` rule exists in any stylesheet so it styled nothing, and that the attribute below it is the
+real one. **Both branches carry the attribute**, which is the rule that fails a build here.
+
+**Unsure.** From the code rather than a report. The test cannot assert the thing that actually matters:
+neither happy-dom nor jsdom synthesises Enter or Space activation of a native button, so **the only
+honest assertions are `tagName === "BUTTON"` and `type="button"`, with `fireEvent.click` for the
+handler.** That limitation was in my brief and the value of the guard rests on it being stated in the
+test file.
+
+**Noticed.** Three `CtxRow` exports exist (`meridian/ContextColumn.tsx`, `shell/primitives.tsx`,
+`crew/CrewChrome.tsx`) and **only the Meridian one is fixed.** `traces.$traceId.tsx` and
+`governance/CriticBadge.tsx` still import the shell one, so this does not reach them.
+
+---
+
+## K-74 · BUILT · 2026-08-20 17:02
+
+**Did.** `retrievalScope()` in `ask-context.tsx` resolves which product's record answers, and `AskPane`
+passes it as `retrievalProductId` and **says out loud which product the answer is drawn from.**
+`retrievalProductId` has been a real working option on `useAskStream` since PC-36 **and the pane never
+set it**, so Ask read across every product in the workspace no matter which one you were standing in.
+
+**It narrows only where more than one product exists, and that is two decisions in one line.** A
+workspace with a single product has nothing to separate, so narrowing there could only remove rows
+without isolating anything. And `use-workspace.tsx` already rules that the product concept stays
+invisible until a second product exists, **so the chip appears on exactly the workspaces where the
+distinction is real.**
+
+**The persistence `productId: null` is untouched**, and the diff adds a comment separating three
+questions that were previously two: `scope` narrows to the RECORD on screen, `productId` picks the
+THREAD's bucket, and this narrows to the PRODUCT you are standing in. The file notes conflating them
+**broke the switcher once already.**
+
+**The chip copy passes the voice rules I was worried about.** It reads `Answering from <name>` or
+`Answering from every product`, never the word **"context"**, which is banned on a user-facing surface
+here because it reads as the LLM context window. It carries no status hue, correctly, because a product
+is not a status. And there is a real edge handled: **the product name can be absent for a beat while
+products load, and a chip that blinks between a real name and a placeholder is worse than one that
+waits**, so it renders nothing until the name arrives.
+
+**Unsure.** From the code. The chip's longer sentence is a `title` attribute, which is **not reachable
+by keyboard and invisible on touch**, so the detail is decoration for a mouse user rather than
+information anyone is guaranteed to get. Whether that matters depends on whether the short line is
+sufficient on its own, and I think it is, but a real disclosure would not be a tooltip.
+
+**Noticed.** The chip is drawn with inline `--mrd-*` styles inside a pane whose surrounding code still
+speaks `--sp-*`, and the diff says so deliberately: **nothing new is built in a retired vocabulary,
+whatever the file around it still speaks.** That is the correct call and it means `AskPane` is now a
+mixed-layer file, which is worth knowing when somebody ports it.
+
+**Gates for K-63, K-66, K-70 and K-74 together.** `lane:gates` green, all four, real exit 0.
+**95 tests across the six new files, 0 fail, 164 expect() calls.** Ratchet total moved only for K-32 and
+K-33.
+
+---
+
+## K-76 · BUILT · 2026-08-20 17:05
+
+**Did.** Appended a **Plan** section to `REFERENCE-PATTERNS.md`, 322 lines, researched against Linear
+and Productboard product documentation with URLs, matching the existing Discover section's structure:
+information model as a table with a source column, verbs marked for what was lifted, a deliberately-not-
+adopted list, and a sources block.
+
+**Corrected the file's own retired instruction, which the queue asked whichever Group L item landed
+first to do.** Its header told the reader to express findings *"in our own `--sp-*` primitives"`*.
+**`--sp-*` is retired vocabulary and that was a live document teaching it.** It now points at Meridian
+(`src/styles/meridian.css`, `--mrd-*`) and records that `--sp-*` is life support rather than a target.
+**This is the file every future reference pass reads first**, so the correction matters more than the
+section it shipped with.
+
+**Unsure.** Reports lost. The four questions the item required the section to answer are scope without a
+Gantt chart, how a spec shows its citations, how sequencing is expressed, and **what a spec looks like
+while an agent is still writing it.** The fourth is the one a roadmap tool is least likely to answer,
+because neither reference has agents writing specs, so **that is the question most likely to be recorded
+as a gap rather than a finding.** Worth reading the section for whether it says so plainly or papers
+over it.
+
+**Gates.** `docs:check` clean, and `lane:gates` green on all four with real exit 0.

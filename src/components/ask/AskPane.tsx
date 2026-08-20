@@ -120,7 +120,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useAskStream } from "@/hooks/use-ask-stream";
 import { useApprovalPush } from "@/hooks/use-approval-push";
-import { useAsk, chipLabel } from "@/lib/ask-context";
+import { useAsk, chipLabel, retrievalScope } from "@/lib/ask-context";
 import { defaultIntent, contentForIntent, type AskIntent } from "@/lib/ask-intent";
 import { openAskConversation } from "@/lib/ask-open";
 import { detectReference } from "@/lib/palette-reference";
@@ -164,7 +164,18 @@ export function AskPane() {
 
 function AskPaneOpen() {
   const ask = useAsk();
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, activeProductId, activeProduct, productsVisible } = useWorkspace();
+  /**
+   * WHICH PRODUCT'S RECORD ANSWERS, and it is not the same question as which
+   * thread you are in. See `retrievalScope` in ask-context.tsx for the ruling.
+   * Resolved here rather than in `AskProvider` because the provider deliberately
+   * holds no workspace data, and this component already reads it.
+   */
+  const retrieval = retrievalScope({
+    productId: activeProductId ?? null,
+    productName: activeProduct?.name ?? null,
+    manyProducts: Boolean(productsVisible),
+  });
   const [initials, setInitials] = React.useState("?");
   const [draft, setDraft] = React.useState("");
   const [intentOverride, setIntentOverride] = React.useState<AskIntent | null>(null);
@@ -210,6 +221,12 @@ function AskPaneOpen() {
     // Retrieval is UNAFFECTED: `scope` above is what narrows an answer, and it
     // still follows the screen.
     productId: null,
+    // AND WHICH PRODUCT'S RECORD ANSWERS, a third question the two lines above
+    // do not settle. `scope` narrows to the RECORD on screen and `productId`
+    // picks the thread's bucket; this narrows to the PRODUCT you are standing
+    // in. It was never set until now, so an answer about one product could be
+    // built out of another product's evidence. See `retrievalScope`.
+    retrievalProductId: retrieval.productId,
     // New per session, kept within one. See 4b in the header.
     pointer: "session",
     onDictation: (text) => setDraft((d) => (d ? `${d} ${text}` : text)),
@@ -619,6 +636,36 @@ function AskPaneOpen() {
           </Button>
         </span>
       </header>
+
+      {/* WHICH PRODUCT THE ANSWER IS DRAWN FROM, said out loud.
+          Silent scoping is how somebody gets an answer built out of the wrong
+          product's evidence and never finds out. It sits under the header rather
+          than beside the scope chip because that chip names the RECORD on screen
+          and this names the PRODUCT, and a 392px header cannot carry both
+          without ellipsising one of them. Absent, not blank, on a workspace with
+          one product: there is no boundary to disclose there.
+          Meridian tokens in an `--sp-*` pane on purpose: nothing new is built in
+          a retired vocabulary, whatever the file around it still speaks. */}
+      {retrieval.chip ? (
+        <div
+          data-mrd=""
+          title={retrieval.detail}
+          style={{
+            flex: "none",
+            padding: "6px 16px",
+            fontSize: 11.5,
+            color: "var(--mrd-mute)",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            borderBottomWidth: 1,
+            borderBottomStyle: "solid",
+            borderBottomColor: "var(--mrd-line-soft)",
+          }}
+        >
+          {retrieval.chip}
+        </div>
+      ) : null}
 
       <div ref={bodyRef} style={{ flex: 1, overflowY: "auto", padding: "var(--sp-space-4)" }}>
         {browsing ? (

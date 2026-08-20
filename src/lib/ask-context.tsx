@@ -125,6 +125,71 @@ export function chipLabel(scope: AskScope | null, workspaceName: string | null):
   return workspaceName?.trim() || "this workspace";
 }
 
+/**
+ * WHICH PRODUCT'S RECORD ANSWERS THE QUESTION.
+ *
+ * `retrievalProductId` has been a real, working option on `useAskStream` since
+ * PC-36 and the pane never set it, so Ask read across every product in the
+ * workspace no matter which one you were standing in. That is a confidentiality
+ * problem rather than a ranking nit: 11 of 17 workspaces hold more than one
+ * product and 7 hold four, and for an agency running three clients in one
+ * workspace, product A's measurements answering a question about product B is a
+ * leak. The ruling this implements is agent-first-platform.md 2.3: evidence is
+ * product-scoped, method is workspace-scoped.
+ *
+ * IT NARROWS ONLY WHERE MORE THAN ONE PRODUCT EXISTS, and that is two decisions
+ * in one line. A workspace with a single product has nothing to separate, so
+ * narrowing there could only remove rows without isolating anything. And
+ * `use-workspace.tsx` already rules that the product CONCEPT stays invisible
+ * until a second product exists, so the chip appears on exactly the workspaces
+ * where the distinction is real.
+ *
+ * SEPARATE FROM PERSISTENCE, deliberately. `AskPane` forces `productId: null`
+ * so one conversation per session lives in the workspace bucket, which is a
+ * decision about which THREAD you are in. This is a decision about which RECORD
+ * answers. Conflating them is what broke the switcher once already.
+ */
+export type AskRetrieval = {
+  /** Handed to `useAskStream` as `retrievalProductId`. Null reads the workspace. */
+  productId: string | null;
+  /** What the chip says. Empty where the workspace holds one product. */
+  chip: string;
+  /** The longer sentence behind the chip. */
+  detail: string;
+};
+
+export function retrievalScope(args: {
+  /** `useWorkspace().activeProductId`. */
+  productId: string | null;
+  /** `useWorkspace().activeProduct?.name`. */
+  productName: string | null;
+  /** `useWorkspace().productsVisible`: the workspace holds more than one. */
+  manyProducts: boolean;
+}): AskRetrieval {
+  const { productId, productName, manyProducts } = args;
+
+  if (!manyProducts) return { productId: null, chip: "", detail: "" };
+
+  if (productId) {
+    // The name can be absent for a beat while products load, and a chip that
+    // blinks between a real name and a placeholder is worse than one that waits.
+    const name = productName?.trim();
+    if (!name) return { productId, chip: "", detail: "" };
+    return {
+      productId,
+      chip: `Answering from ${name}`,
+      detail: `Ask reads ${name}'s record and nothing from your other products. Switch product at the top of the screen to ask about a different one.`,
+    };
+  }
+
+  return {
+    productId: null,
+    chip: "Answering from every product",
+    detail:
+      "No product is selected, so Ask reads the record of every product in this workspace.",
+  };
+}
+
 /** The one conversation Threads handed back, so re-reading and continuing are
  *  the same motion. `productId` is the thread's own product: null forces the
  *  workspace bucket rather than quietly filing it under the active product. */

@@ -25,7 +25,7 @@ official product documentation**, with URLs. Treat it as reliable.
 | --- | --- | --- |
 | **Discover** | Sentry issue stream · Linear Triage · Productboard Insights · Enterpret / Unwrap / Dovetail | ✅ researched 2026-08-01, below |
 | **Decide** | inherits Discover's triage verbs; Linear's split view | ✅ partially, below |
-| **Plan** | Linear cycles / Productboard roadmap | ⬜ not yet researched |
+| **Plan** | Linear cycles / Productboard roadmap · Basecamp hill charts · Productboard Spark · Linear's agent-session API · GitHub Spec Kit · Anthropic Citations | ✅ researched 2026-08-20, below |
 | **Design** | Figma Dev Mode + Make · v0 · Lovable · Uizard · Stitch | ✅ researched 2026-08-01, below |
 | **Build** | GitHub Copilot · Devin · Cursor · Claude Code · Codex | ✅ researched 2026-08-01, below |
 | **Ship** | changelog and release-notes tooling | ⬜ not yet researched |
@@ -899,8 +899,9 @@ Researched 2026-08-10 against official product documentation. **Supaprod 36-hour
 
 # BEAUTIFUL UI: 19 primitives for agentic interfaces
 
-Researched and captured 2026-08-14. **This section supersedes the `--sp-*` instruction in this
-file's own header.** The founder retired every prior design system on 2026-08-14 (v1, v2, v3,
+Researched and captured 2026-08-14. **This section used to be the only correction of the `--sp-*`
+instruction that stood in this file's own header; the header itself was fixed on 2026-08-19 and now
+says Meridian, so the two agree.** The founder retired every prior design system on 2026-08-14 (v1, v2, v3,
 Obsidian, Tempo, Cadence/ink) and instructed that the platform be designed fresh. New work is
 expressed in **Meridian** (`src/styles/meridian.css`, `--mrd-*`). `--sp-*` is life support for
 surfaces not yet migrated: never extend it, drop it as each surface moves, delete it when the last
@@ -1205,3 +1206,318 @@ Two lessons, both general:
    different thing (`preventDefault` swallowing a letter somebody is typing).
 2. **Focus and selection must have one writer.** This had two: focus set the selection and the mover
    set the selection and then moved focus. Two-way bindings on focus are how lists loop.
+
+---
+
+# PLAN: turning a decision into a spec somebody could build from
+
+Researched 2026-08-20 against official product documentation. **Structural insight: a spec is not a
+document with sections, it is a set of unknowns with an order.** The named reference class in the
+table above (Linear cycles, Productboard roadmap) is a planning surface for *work already
+understood*, and Plan's job starts one step earlier, when nobody yet knows what the work is. That
+mismatch is why the four questions in the brief split cleanly: two of them the named class answers
+well, one it barely touches, and one it does not address at all.
+
+## Verdict on the named class first, because two of the four questions needed a different reference
+
+| Question | Does Linear cycles / Productboard roadmap answer it? | What actually answers it |
+| --- | --- | --- |
+| 1. Scope without a Gantt chart | **Yes, and better than expected.** Linear's cycle graph makes scope a moving line rather than a bar, and its date fields are granular *by certainty*. Productboard's releases are explicitly buckets, not dates. | Linear projects and cycle graph · Productboard releases · **Basecamp's hill chart**, which is the only one that shows progress without counting anything |
+| 2. How a spec shows its citations | **No.** A roadmap card carries counts and links, not claim-level attribution. Productboard's evidence link runs feedback into a feature (already captured in the Discover section), which is the inverse direction: evidence to item, not sentence to source. | **Anthropic's Citations API** is the only fully specified claim-level model found, and Productboard **Spark** is the only product that ships spec-grade grounding. **A named gap: nobody in the planning category renders a cited spec.** |
+| 3. Sequencing | **Yes, and it is the strongest part of Linear's model:** ordered milestones with optional dates, blocked / blocking relations, and a dependency that can be marked *violated*. | Linear milestones and project dependencies, plus **Shape Up's ordering rule** for which unknown to attack first |
+| 4. A spec while an agent is still writing it | **No. The roadmap surface has no concept of it.** | **Linear's Agent Session and Agent Activity API** (a state machine derived from what the agent emitted), **Productboard Spark** (the closest live competitor to this station), and **GitHub Spec Kit** for how an unfinished spec marks its own holes |
+
+**Two references earned their place and were named nowhere in this file before today.** Basecamp's hill chart, because
+it is the only shipped answer to "show me where this stands" that refuses both task counts and
+estimates, and both of those are the failure modes our surface would otherwise walk into. And
+Productboard Spark, because it is a generally available agent that drafts specs from clustered
+signal and hands them to a coding agent, which is this station's job description; ignoring it would
+mean designing Plan without reading the nearest competitor's manual.
+
+## The merged information model for one spec
+
+**Tier 1, the spec is not usable without these**
+
+| # | Field | Lifted from |
+| --- | --- | --- |
+| 1 | one-line intent, plus the decision it descends from, resolvable both ways | Linear (a project is "units of work that have a clear outcome", issues attach to exactly one) |
+| 2 | **scope as a list of named vertical slices, not a task list.** Each slice is a thing somebody can click and try | Shape Up ("integrate one slice"; scopes give the project its vocabulary) |
+| 3 | **dates whose granularity matches the certainty**: year, half, quarter, month, or exact day, chosen per spec | Linear timeframes ("select start and target dates that match your level of certainty") |
+| 4 | per-slice position on the unknown-to-known axis, held separately from percent done | Basecamp hill chart (uphill is figuring out, downhill is executing) |
+| 5 | **non-goals, captured as an answered judgment call rather than an empty heading** | Spark (it asks the in-scope and out-of-scope question rather than guessing) |
+| 6 | **open questions as typed markers carrying the question text**, blocking promotion until answered | Spec Kit (`[NEEDS CLARIFICATION: specific question]`, plus a checklist item that none remain) |
+| 7 | each success claim with the oracle that will settle it | ours already; Spark stores goals and metrics in the spec and reads them back at 7, 14 and 30 days |
+| 8 | **citations at claim level: the quoted span plus a location that resolves back to it** | Anthropic Citations API (`cited_text` with a char, page, or block range) |
+| 9 | **state from a closed vocabulary the system moves**, derived from the last thing that happened | Linear agent sessions (six states, inferred from the last emitted activity, never self-declared) |
+| 10 | **health as a signal that decays when nobody speaks**: On track / At risk / Off track, and an explicit missing-update state | Linear initiative and project updates (staleness marks a project when the last update was On Track and one is overdue) |
+
+**Tier 2**: sequencing edges (`Blocked by` / `Blocking`, each able to read *violated*) · milestone
+order, independent of whether any milestone has a date · capacity read from the trailing three
+cycles rather than from anyone's opinion · progress that starts counting when work *starts*, not
+only when it completes · a scope line that rises when scope is added · version history with revert ·
+release bucket in the Now / Next / Later family · exactly one lead.
+
+**Tier 3, focused pane only**: the agent's evolving step list · the thought and action stream with
+each action's result · what the draft was grounded in (Spark reads the codebase before writing) ·
+superseded clauses, kept resolvable · and the divergence between the snapshot taken when a cycle
+closed and the live list, which Linear documents rather than hides.
+
+> **The finding that most changes our build: the market's planning surfaces carry a citation
+> *count*, and its AI surfaces carry a citation *pointer*, and only the pointer survives being
+> questioned.** Anthropic's model returns the cited sentence itself and a resolvable range into the
+> source, and states that the extracted span is a guaranteed valid pointer to the document rather
+> than something the model wrote. Our `ProjectionSource` is `{ label: string }`. A label is a claim
+> that a source exists. **Plan's specs are read by the next agent and by Learn six months later, so
+> a citation that cannot be resolved to a span is a footnote, not evidence.**
+
+## The verb set
+
+`[L]` Linear · `[P]` Productboard · `[S]` Spark · `[B]` Basecamp / Shape Up · `[K]` Spec Kit ·
+`[A]` Anthropic Citations. Marked verbs are lifted close to literally, including the name.
+
+| Verb | Required effect on the data |
+| --- | --- |
+| Slice `[B]` | adds a named scope to the spec. A scope may exist with **no tasks under it yet**, and that is a real state meaning "work known to exist, not yet discovered", not an empty list |
+| Split a scope `[B]` | when one slice cannot be described as uphill or downhill because parts of it differ, it must break into slices that move independently. **Stuck is sometimes a boundary error, not a work problem** |
+| Move on the hill `[B]` | records the position and a timestamp, so the second-order view (is this moving?) exists. A slice that has not moved reads as stuck **without anybody having to say so** |
+| Set a timeframe `[L]` | writes a date *and its granularity*. A quarter is stored as a quarter and never rendered as a day |
+| Blocked by / Blocking `[L]` | a typed edge, not a note. When the blocker resolves, **the edge demotes itself to `Related` automatically** rather than sitting there as a stale flag |
+| Flag violated `[L]` | computed, not entered: a dependency whose dates now contradict the order reads red on sight, and is filterable as a class |
+| Order milestones `[L]` | drag order is meaningful **with or without dates**, which is what lets sequencing exist before scheduling does |
+| Promote a milestone `[L]` | a milestone that outgrew itself converts into its own project, and the properties it carries over are suggested from its content |
+| Bucket `[P]` | assigns to a Now / Next / Later style container. Productboard's own guidance is to keep the near term granular and go broader further out, and **to avoid committing to narrow timeframes beyond the short term** |
+| Mark clarification needed `[K]` | writes a typed open question with the question spelled out. The rule is stated as *do not guess*: an unspecified thing is marked, never assumed |
+| Answer a clarification `[K]` `[S]` | resolves one marker, and the answer is attributed to the person who gave it. Promotion out of draft requires the set to be empty |
+| Steer `[S]` | injects an instruction into a run in flight, redirecting the draft **without stopping and restarting it** |
+| Queue `[S]` | holds the next message until the current turn ends, so typing is not an interrupt |
+| Accept / reject an edit `[S]` | per-change, on the agent's highlighted diff into the document. **Ours must not expire, see the anti-patterns below** |
+| Revert `[S]` `[L]` | version history on the document, and on Linear's side an update stream that records property changes (target date, lead, milestones) alongside the prose |
+| Post an update `[L]` | one health word from a closed set plus prose. Silence is a state the system reports on its own |
+| Cite `[A]` | attaches a span and a resolvable location to a specific sentence, not to the document |
+| Hand off `[S]` | exports the spec to the tracker while **the spec stays the live source**, rather than the copy in the tracker becoming the truth |
+
+## The four questions, answered
+
+### 1. Scope without a Gantt chart
+
+Three mechanics, and each one removes a reason to draw bars.
+
+**Scope is a line, not a set of bars.** Linear's cycle graph draws total scope as its own line
+against a target line, so **work added mid-cycle is visible as the scope line rising** rather than
+as everything silently reflowing. Scope is measured in estimate points where estimates are on and
+falls back to issue count where they are not, which is the honest degradation: the surface still
+works when nobody estimates.
+
+**Precision is a property of the date, not of the renderer.** Linear stores a timeframe at the
+granularity you chose, and Productboard sizes a timeline card to at least one full unit of the
+timeline's own interval, so an item cannot be drawn looking more precise than the plan is. A Gantt
+chart's real defect is not the bars, it is that every bar claims day-level precision it does not
+have.
+
+**And the strongest answer refuses counting entirely.** Basecamp's argument is worth restating
+because it applies directly to an agent-written plan: a list of tasks with none outstanding is
+ambiguous between *finished* and *nobody has found the rest of the work yet*, and to-do lists grow
+as a team learns. Estimates cannot express that either, because the same four-hour estimate means
+something different on familiar work than on work nobody has done. So the hill chart replaces
+percent-done with **position between unknown and known**, per slice. Two further mechanics come with
+it and both are ours to take: a dot that has not moved is a raised hand, which lets a person be
+stuck without volunteering that they are, and progress is legible at the second order, where the
+question is what is moving rather than what is done.
+
+### 2. How a spec shows its citations
+
+**The named class does not answer this and we should stop expecting it to.** Productboard's link
+between feedback and a feature is real and already captured in the Discover section, but it points
+the other way: it says this item has 40 pieces of evidence behind it. It does not say *this sentence
+came from that sentence*.
+
+The two references that do answer it:
+
+**Anthropic's Citations API supplies the data model outright.** Response text is split into blocks,
+and any block may carry a list of citations. Each citation carries the quoted span plus a typed
+location: a character range for text, a page range for a PDF, or a content-block index for chunks
+the caller defined. Four properties of that design are the ones worth lifting.
+
+1. **The span is extracted, not generated.** The docs' own comparison with prompting a model to
+   cite says the parsed form is guaranteed to point at the supplied document, which is the whole
+   difference between a citation and a plausible-looking reference.
+2. **Granularity is a decision made at ingest.** Automatic chunking is by sentence; a caller who
+   needs different granularity supplies its own blocks. Our themes, signals and prior decisions are
+   already chunk-shaped, so this maps onto the existing model rather than needing a new one.
+3. **Some content is readable but not citable.** A document's `title` and `context` are passed to
+   the model and explicitly cannot be cited from. That separation is exactly what we need between a
+   spec's framing and the evidence under it.
+4. **Citations stream with the text.** They arrive as a delta on the block being written, so a
+   half-written spec is cited as far as it has been written. There is no uncited draft that gets
+   footnoted at the end, which is the state a reviewer cannot judge.
+
+**Spark supplies the product-level claim**, and it is the competitive fact of this pass: its stated
+difference from a general assistant is that every output traces back to the feedback or signal
+behind it and can be verified before anyone acts on it, and that a spec is grounded in the codebase
+so it does not contradict how the product already works. **The gap left open is that grounding is
+described as a property of the whole document, not as a pointer on a line.** That is the seam.
+
+### 3. Sequencing
+
+**Linear expresses order as a constraint graph and a rank, and dates are downstream of both.**
+Milestones are ordered by dragging and a date is optional, so a plan can be fully sequenced before
+it is scheduled at all. Issue relations are typed (`blocked`, `blocking`, `related`, `duplicate`),
+and the mechanic worth copying most exactly is that **a blocking relation demotes itself to
+`related` once the blocker resolves**: the constraint disappears when it stops being true, without
+anyone tidying up. Project-level dependencies then add the computed half: a dependency line reads
+blue when it holds and **red when it has been violated**, violation is a filter, and dragging a
+project bumps the backlog and planned work downstream of it while a modifier holds the chain still.
+
+Cycles add the automatic behaviour: unfinished work rolls into the next cycle on its own, backlog
+and cancelled work does not, and there is no way to keep unfinished work sitting in a closed cycle.
+Capacity on a not-yet-started cycle is a dial computed from the last three completed cycles, or from
+team size when there is no track record yet, which is the right shape for a number the product
+asserts rather than asks for.
+
+**Shape Up supplies what Linear deliberately does not: which unknown to attack first.** The rule is
+three tests on a candidate first slice, and they are already in imperative form. **Core**, meaning
+the rest of the work is meaningless without it. **Small**, or carving it off buys nothing.
+**Novel**, so it eliminates uncertainty rather than adding finished work. The reasoning behind it
+transfers directly to an agent plan: routine work expands to fill whatever time it is given, while
+genuinely unknown work is where the schedule actually breaks, so the scariest slice goes first and
+the screw-tightening goes last.
+
+### 4. What a spec looks like while an agent is still writing it
+
+**Linear's Agent Session and Agent Activity API is the most complete published model of this state,
+and it is a specification rather than a screenshot.** What to lift:
+
+- **Six session states, and the agent does not set them**: `pending`, `active`, `error`,
+  `awaitingInput`, `complete`, `stale`. Linear derives the state from the last activity emitted.
+  A surface that asks an agent to declare "I am working" has a second source of truth for the one
+  fact a reader most needs.
+- **Five activity types with fixed shapes**, validated server-side and rejected when malformed:
+  `thought`, `elicitation` (it needs an answer), `action` with `action` / `parameter` / an optional
+  `result`, `response` (terminal), `error`. **An action that has started and an action that finished
+  are the same object with the result filled in**, which is why a run reads as a history rather than
+  as a log of two half-related events.
+- **A user's message is a type the agent cannot produce.** `prompt` activities are user-generated
+  only. Attribution is enforced by the schema, not by convention.
+- **The activity stream is the readable record, and comments are not.** The best-practices page says
+  outright to reconstruct a conversation from activities rather than comments, because comments are
+  editable and may have changed, while activities are frozen at the time they were written.
+  **That is our own doctrine arriving from somebody else's API docs: what was believed at the moment
+  of the call only exists if something wrote it down then, in a form that cannot be edited
+  afterwards.**
+- **Ephemeral is a property of the cheap activity types only.** `thought` and `action` may be marked
+  ephemeral and replaced by whatever comes next; `elicitation`, `response` and `error` may not. The
+  transient half of a run is allowed to disappear and the load-bearing half is not.
+- **The plan is a checklist that is expected to change.** The Agent Plan API (technology preview)
+  holds an array of steps with `pending` / `inProgress` / `completed` / `canceled`, and the agent is
+  expected to add, change and remove entries as it discovers work. **Discovery is modelled as normal
+  rather than as plan failure**, which is the same point the hill chart makes about growing to-do
+  lists.
+- **Two timers, and both are about the reader.** A first activity within 10 seconds or the session
+  shows as unresponsive; 30 minutes without one and it goes stale, recoverable by emitting anything.
+  Waiting is never left unexplained.
+- **Uncertainty resolves into a question, not a percentage.** `issueRepositorySuggestions` returns
+  ranked candidates with confidence scores, and the documented behaviour is to proceed when
+  confident and otherwise send the short list back as an elicitation. Note this does not contradict
+  the Discover finding that nobody scores a cluster: the score here is on machine-checkable set
+  membership, and it is spent on choosing between asking and proceeding rather than shown as a
+  number for the reader to argue with.
+
+**Spark shows the same problem solved inside a document rather than a session.** The agent's edits
+land in the spec highlighted for accept or reject; version history reverts; a message can be queued
+or injected mid-turn with **Steer**; and a thread badge distinguishes *there is something new* from
+**waiting on you**, in orange. Chats carry the agent's reasoning under each prompt so a reader can
+see what the draft was built from.
+
+**Spec Kit answers the narrower question of what the half-written spec says about its own holes**,
+and the answer is a typed marker with the question written into it, backed by a rule that the model
+must mark rather than assume, and a completeness checklist whose first item is that no markers
+remain. It also separates the artifacts by what they are for: the spec holds what and why, the plan
+holds how, and detail that would drown the plan is pushed into companion files. Its gate mechanic is
+worth noting for our Decide station too: a failed simplicity gate does not block, it demands a
+written justification.
+
+## What these products get wrong for an agent-operated product
+
+Anti-patterns. Do not copy them.
+
+1. **Spark's un-answered edits are accepted for you, and the highlights do not survive a reload.**
+   Its own limitations section states that changes not accepted or rejected are accepted
+   automatically, and that highlights persist only for the current browser session. **This is the
+   single worst pattern found in the pass**, because it converts "I have not looked yet" into "I
+   approved this", and then removes the evidence that the sentence came from an agent at all. Under
+   our canon an unreviewed agent edit stays attributed forever; the fallback for silence is
+   *unreviewed*, never *approved*.
+2. **Spark's chats are private and cannot be shared, while the documents are shared.** So the
+   collaborative artifact is the spec and the reasoning that produced it is the one thing nobody
+   else can read. The reasoning is the part Learn needs.
+3. **The roadmap is a view and the truth is elsewhere.** Productboard's own guidance is to edit on
+   grid boards and use roadmaps for alignment. That is a sound answer for a human tool and the wrong
+   one here: if the plan surface cannot be acted on, an agent working the plan is working somewhere
+   the reader is not looking.
+4. **Health is self-reported by the person with the most incentive to round up.** Linear's health
+   word is chosen by the lead. The decay signal is the good half and we take it; the missing half is
+   a computed second opinion. **Ours must be able to say the lead says On track and the evidence
+   says otherwise**, which is available to us and not to them because we hold the forecast.
+5. **Hill position is dragged by hand.** The chart's honesty depends entirely on the person moving
+   the dot, and Basecamp says as much: team members with the context drag the scopes into position.
+   For an agent-run slice, position must be derived from what the agent has actually closed, with the
+   manual drag surviving only as an override that is visible as one.
+6. **Cycle rollover carries no reason.** Unfinished work moves to the next cycle automatically, and
+   nothing records why it did not finish. That is the cheapest learning signal in the whole station
+   and every tool here throws it away.
+7. **Fixed vocabularies you cannot extend where extension is the point.** Productboard's release
+   statuses are three, unnameable and unremovable; Linear's project dependency supports end to start
+   only; the milestone focus marker cannot be turned off even when several run in parallel, per
+   Linear's own FAQ. A computed marker a user cannot correct is a small version of the permanent
+   priority override the Discover section rejects.
+8. **Nobody shows what the plan chose *not* to do, or what it dropped and why.** Non-goals exist as
+   a field in several tools and as an interrogation in exactly one (Spark asks). None of them keeps a
+   dropped slice resolvable with the reason attached. Same opening as the declined-cluster gap in
+   Discover, and the same reason it matters: the record of what was refused is what makes the record
+   of what was chosen worth reading.
+
+## What this means for our Plan surface, stated as directives rather than status
+
+Verified from the repo only. Production behaviour is not checked here.
+
+- `src/lib/spec-projections.ts` already carries the right spine: an Outcome Contract of intent,
+  success clauses with a proof oracle, non-goals, budget and an ambiguity policy, projected on
+  demand into PRD, FRD, status and one-pager views with a drift state of `current`, `stale` or
+  `no-contract`, and clauses that can be `superseded` rather than deleted. **The drift chip is the
+  same instinct as Linear's staleness marker and it is already better, because it is computed.**
+- **`ProjectionSource = { label: string }` is the gap this research names most sharply.** Numbered
+  `[n]` markers already exist in the PRD and FRD projections; what is missing is the span and the
+  resolvable location behind each number. Anthropic's three location types are the shape to copy.
+- **The `ambiguity policy` field on the contract is our `[NEEDS CLARIFICATION]` and should be
+  rendered as one**: each open question spelled out on the spec, blocking promotion, answered by a
+  named person, and never silently assumed.
+- **Nothing in the current model expresses a slice's position between unknown and known.** Percent
+  complete and status are both downhill-phase instruments. This is a Meridian question as much as a
+  data one, since it needs a token for a two-phase axis and none exists.
+- The verbs to add first, in the order the research argues for: mark clarification needed, split a
+  slice, and record the reason a slice moved out of a cycle.
+
+## Sources
+
+Linear: [Projects](https://linear.app/docs/projects) ·
+[Cycles](https://linear.app/docs/use-cycles) ·
+[Cycle graph](https://linear.app/docs/cycle-graph) ·
+[Project milestones](https://linear.app/docs/project-milestones) ·
+[Issue relations](https://linear.app/docs/issue-relations) ·
+[Project dependencies](https://linear.app/docs/project-dependencies) ·
+[Initiative and Project updates](https://linear.app/docs/project-updates) ·
+[Developing the Agent Interaction](https://linear.app/developers/agent-interaction) ·
+[Interaction Best Practices](https://linear.app/developers/agent-best-practices).
+Productboard: [Productboard Spark](https://support.productboard.com/hc/en-us/articles/44571897288723-Productboard-Spark) ·
+[Plan releases to decide what to deliver when](https://support.productboard.com/hc/en-us/articles/360058214113-Plan-releases-to-decide-what-to-deliver-when) ·
+[Timeline boards](https://support.productboard.com/hc/en-us/articles/25194944993939-Timeline-boards-Flexible-time-based-roadmaps) ·
+[Quick start guide: Roadmaps](https://support.productboard.com/hc/en-us/articles/29983922254739-Quick-start-guide-Roadmaps) ·
+[Time horizons](https://support.productboard.com/hc/en-us/articles/4403428374675-Time-horizons-Snap-timeline-cards-to-weeks-months-or-quarters) ·
+[Track progress on roadmaps](https://support.productboard.com/hc/en-us/articles/4573645378707-Track-progress-on-roadmaps).
+Basecamp: [Shape Up, Show Progress](https://basecamp.com/shapeup/3.4-chapter-13) ·
+[Shape Up, Get One Piece Done](https://basecamp.com/shapeup/3.2-chapter-11).
+GitHub: [Spec Kit, spec-driven.md](https://github.com/github/spec-kit/blob/main/spec-driven.md) ·
+[Spec Kit docs](https://github.github.com/spec-kit/index.html).
+Anthropic: [Citations](https://docs.claude.com/en/docs/build-with-claude/citations).
+
+Content was rephrased for compliance with licensing restrictions.

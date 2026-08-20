@@ -30,8 +30,10 @@ export interface CtxRowProps {
 }
 
 export function CtxRow({ mark, name, title, sub, onClick, href }: CtxRowProps) {
+  // `data-mrd` was in this string as a CLASS. No `.data-mrd` rule exists in any
+  // stylesheet, so it styled nothing; the attribute below is the real one.
   const className =
-    "flex gap-mrd-2 py-mrd-1 px-mrd-2 rounded-mrd-ctl text-[12px] transition-colors data-mrd";
+    "flex gap-mrd-2 py-mrd-1 px-mrd-2 rounded-mrd-ctl text-[12px] transition-colors";
   const hoverClass = onClick || href ? "hover:bg-mrd-hover cursor-pointer" : "";
 
   const displayName = title || name;
@@ -54,14 +56,34 @@ export function CtxRow({ mark, name, title, sub, onClick, href }: CtxRowProps) {
     );
   }
 
+  /**
+   * A ROW THAT DOES SOMETHING IS A REAL `<button>`.
+   *
+   * This branch was `<div onClick role="button" tabIndex={0}>` with no
+   * `onKeyDown`. A div does not natively activate on Enter or Space, so the row
+   * was reachable by Tab, announced itself as a button and took the focus ring,
+   * then did nothing when operated. Focusable and announced but inert is worse
+   * than not being focusable at all.
+   *
+   * `text-left` and `w-full` come with the element rather than being extra
+   * polish: a button centres its content and shrinks to fit, and this row's
+   * whole layout assumes full width with the text against the left edge.
+   */
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={`${className} ${hoverClass} w-full text-left`}
+        data-mrd=""
+      >
+        {content}
+      </button>
+    );
+  }
+
   return (
-    <div
-      onClick={onClick}
-      className={`${className} ${hoverClass}`}
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      data-mrd=""
-    >
+    <div className={`${className} ${hoverClass}`} data-mrd="">
       {content}
     </div>
   );
