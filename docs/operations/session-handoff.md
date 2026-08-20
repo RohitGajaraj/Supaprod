@@ -2401,3 +2401,78 @@ reasoning before it was caught.
 WITH real_ws AS (SELECT id FROM workspaces WHERE NOT is_sample AND deleted_at IS NULL)
 SELECT ... FROM <table> WHERE workspace_id IN (SELECT id FROM real_ws);
 ```
+
+---
+
+# 2026-08-20 · Kiro lane, close of session
+
+**Everything this session built is committed and pushed to `main`. Tree clean at
+`d7b475780`.** The note above saying Kiro held ten staged uncommitted files was true
+when it was written; K-23 landed shortly after as `c35c8504d`.
+
+## SHIPPED, FIVE ITEMS
+
+| Item | What landed | Commit |
+| --- | --- | --- |
+| **K-03** (was `REJECTED`) | `Dialog`: the false claim removed from all three places it shipped, a tall panel made recoverable, and the confirming action fixed to one side | `91fbc81b9` |
+| **K-07** (was `REJECTED`) | `Spend`: a zero cap now reads as a ceiling, the bar clamped at both ends, a sub-cent amount draws a real mark, and `BudgetsPanel`'s second resolver deleted | `909e85533` |
+| **K-22** | The three architecture contracts corrected, and the spine documented for the first time | `65c5ab227` |
+| **K-23** | `PlanGate`, and `ReasonField` extracted at its third caller with both originals migrated | `c35c8504d` |
+| **K-24** | `AgentInbox` | `d7b475780` |
+
+All five carry a full entry in [`ledger/kiro-log.md`](./ledger/kiro-log.md) with what was
+guessed at and what was noticed. **None says `VERIFIED`**; all five are waiting on a
+verdict.
+
+## THE FOUR THINGS WORTH A PRODUCTION READ, IN ORDER OF VALUE
+
+1. **`spendState` now calls a cap of `0` a ceiling rather than an absence**, matching
+   what `checkBudget` enforces. It changes what a workspace with a zero cap sees, and
+   `BudgetsPanel` now paints a burn under the threshold `quiet` where it used to paint
+   `pass`. That second one is visible on a shipped settings surface.
+2. **Whether two `track-tick` invocations have ever overlapped.** The spine has no
+   advisory lock and no CAS claim on a track, unlike `mission_steps`. Documented as a
+   real gap in `orchestration.md` rather than left to be discovered.
+3. **The three `PlanGate` answers have no mapping onto `agent_autonomy.arc`**, which has
+   four values. Deliberately left out, and the open question is whether `run-it` means
+   `trusted` or `ambient`, because the difference is whether a hard-locked tool still
+   stops the run.
+4. **`AgentInbox`'s idle threshold is ten minutes, derived from `track-tick`'s cadence
+   rather than from real session gaps.** One query over `agent_runs` timestamps settles
+   whether that reads as quiet.
+
+## THREE TRAPS THIS SESSION PAID FOR, NONE OF THEM IN AGENTS.md YET
+
+1. **A bare `git stash pop` is a coin flip in this repo.** There are 37 stashes. Mine
+   applied an unrelated 28-file entry that deleted 2,378 lines under `src/lib/build/`.
+   Recovered with no loss, but the cheap habit is `git show HEAD:<path>` for comparing
+   against a clean tree, and naming the stash if you must create one.
+2. **A plant harness that restores from `/tmp` must not be left running while you edit
+   the file it backs up.** A lingering instance of mine silently reverted four edits
+   after I killed the script; `tsc` caught it. Restore from git, not from a copy.
+3. **A planted defect that HANGS is worse than one that fails**, because it cannot be
+   told from broken infrastructure. `AgentInbox` had a latent infinite loop that only
+   appeared under a plant, and the fix belonged at the dangerous act rather than at the
+   one caller that happened to guard it.
+
+## TWO CHECKER CHANGES, BOTH DECLARED
+
+`scripts/docs-doctor.sh` was blocking commits twice and both fixes are in `65c5ab227`
+and `c35c8504d`:
+
+- **Check [11] scanned gitignored files**, so it failed on two local-only design
+  exports nobody can commit. It now asks `git check-ignore` what belongs to the repo.
+- **Checks [9] and [11] failed on the ledger itself**, because an entry recording a fix
+  has to quote the defect. The append-forward logs are now one shared list used by
+  both. **Claude reached the same conclusion in the same hour from the other side**;
+  the merge kept one list rather than two copies.
+
+## WHERE THE QUEUE STANDS
+
+**Resume at K-25.** It is `TODO`, has no dependencies, and is the last of the three
+token-level corrections. One caution the queue itself already records: its premise that
+body weight should be 450 **did not reproduce** when measured on the live reference,
+which returns 400. Re-measure before changing it repo-wide.
+
+**K-37 still needs a founder ruling** and is the worked example of an item nobody
+should build without one.
