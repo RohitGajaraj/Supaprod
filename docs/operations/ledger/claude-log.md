@@ -3634,3 +3634,79 @@ guard becomes a surprise.**
 
 Recorded with the measurement attached so the next tick starts from the answer
 rather than the search. **The measurement was the expensive half and it is done.**
+
+---
+
+## Claude lane · RULED · 2026-08-20 09:10 · the off-switch finding I filed an hour ago was wrong, and correcting it is worth more than the finding was
+
+At 09:00 I wrote "the agent off switch does not stop the machine" and measured 18
+dispatch sites that resolve an agent by slug without filtering on `enabled`.
+**The measurement was accurate and the conclusion drawn from it was false.**
+
+### The switch works, and it is enforced at the one place that matters
+
+`loop.server.ts:547`:
+
+```
+if (agent.enabled === false) {
+  throw new Error(`Agent is disabled: ${input.agentSlug}`);
+}
+```
+
+with the comment "Refuse a fresh dispatch of a disabled agent. This guards the
+direct entry points (chat, orchestrator, reactor, build, agent_loop) and fails
+cleanly before any `agent_runs` row is created."
+
+**`runAgentLoop` is the chokepoint every dispatch passes through**, including the
+spine driver, which runs `runAgentLoop(..., { agentSlug: seat.slug })` per seat.
+So the 18 unfiltered reads are 18 sites that *resolve an id*, and the rule is
+enforced once, downstream, where it cannot be bypassed. **That is the better
+design than 18 copies of the same filter**, and I proposed replacing it with
+exactly that.
+
+### Two errors of mine, and they are different in kind
+
+**First, I misread my own instrument.** My 13-of-41 "filters on enabled" count
+flagged a read whenever the string `enabled` appeared near it -- which matches
+**selecting** the column as readily as **filtering** on it. `loop.server.ts:542`
+selects `enabled` in its column list and then checks it in code four lines later,
+which my heuristic could not tell from a `.eq("enabled", true)`. The number was
+never load-bearing for the conclusion, but it was wrong in both directions.
+
+**Second, and worse, I named a dispatch site that is not one.** I cited
+`driver.server.ts:664` as a place that "resolves the slug, then creates a mission
+with `starting_agent_id`". It does -- but that is `missionForTrack`, and
+`driver.server.ts:1190` calls it only when `station === "build"`. **The actual
+dispatch is `runAgentLoop` at `:1236` over `crew`**, which I had not traced. I
+inferred a dispatch from the shape of a query instead of following the call.
+
+**That is the exact failure I have caught four times in others today**, and the
+reason it is worth writing down at length: I found it by continuing to check
+after I already had a finding I liked.
+
+### What is actually open, and it is narrow
+
+**`resumeAgentLoop` does not check `enabled`.** It selects
+`id,slug,name,role,system_prompt,max_tool_risk` -- the column is not even read.
+The comment in `runAgentLoop` says "Queued child runs resume via
+`resumeAgentLoop`, not here; that path re-checks separately if needed". **It does
+not re-check.** "If needed" was a hedge and this is the answer to it.
+
+So: **a disabled agent cannot begin new work, and a run already queued for it will
+still continue.**
+
+### The ruling
+
+**Resume should refuse too, and it should cancel rather than strand.** Disabling an
+agent is a withdrawal of authority, not a pause, and a queued run that resumes
+afterwards acts on authority the person has taken back. But refusing without
+cancelling leaves the run queued forever, which is the same trap as the 130
+approvals nobody ever decided.
+
+**Not implementing it in this tick**, and for a stated reason rather than
+tiredness: `cancelled` is a terminal status and writing one is the exact thing
+`TERMINAL_RUN_STATUSES` and the `finalize` precondition exist to guard, so this
+change belongs with a test that pins the precondition rather than beside a
+correction. It is small and it is next.
+
+**The 18-site refactor is withdrawn.** Nothing there needs changing.
