@@ -28,6 +28,42 @@ describe("agent-fleet — run bucketing", () => {
     expect(runBucket(null)).toBe("other");
     expect(runBucket("weird")).toBe("other");
   });
+
+  // K-60. Both of these are written on agent_runs and neither had a key, so
+  // runBucket returned "other" for them: computeAgentFleet incremented `total`
+  // and none of the four tallies, so FleetAgent.total stopped reconciling with
+  // its own parts.
+  it("buckets a halted run as failed, so withExceptions can see it", () => {
+    expect(runBucket("halted")).toBe("failed");
+    expect(runBucket(" Halted ")).toBe("failed");
+  });
+
+  it("buckets a run parked at a gate as queued, not other", () => {
+    expect(runBucket("waiting_approval")).toBe("queued");
+  });
+});
+
+describe("agent-fleet — every bucketed run lands in exactly one tally", () => {
+  // K-60's real defect was not the word, it was the arithmetic: `total` counts
+  // every row while only a bucketed row reaches a tally, so an unkeyed status
+  // silently breaks the identity below.
+  it("reconciles total with running + queued + done + failed for halted and gated runs", () => {
+    const fleet = computeAgentFleet([
+      r({ agent_slug: "scout", status: "halted" }),
+      r({ agent_slug: "scout", status: "waiting_approval" }),
+      r({ agent_slug: "scout", status: "running" }),
+      r({ agent_slug: "scout", status: "completed" }),
+    ]);
+    const scout = fleet.agents.find((a) => a.slug === "scout")!;
+    expect(scout).toMatchObject({ running: 1, queued: 1, done: 1, failed: 1, total: 4 });
+    expect(scout.running + scout.queued + scout.done + scout.failed).toBe(scout.total);
+  });
+
+  it("counts an agent whose only run halted as an exception", () => {
+    const fleet = computeAgentFleet([r({ agent_slug: "builder", status: "halted" })]);
+    expect(fleet.agents.find((a) => a.slug === "builder")!.state).toBe("attention");
+    expect(fleet.summary.withExceptions).toBe(1);
+  });
 });
 
 describe("agent-fleet — per-agent tallies + state", () => {

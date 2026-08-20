@@ -16,7 +16,9 @@ Per mission, a threshold breach on any of:
 - **Pinned step** — any single step at `attempts ≥ maxStepAttemptsCeiling` (default 3, above the default `max_attempts` of 2 so a normal exhausted retry never trips).
 - **Spend** — summed `agent_runs.spend_used_usd` over `maxSpendUsd` (default $5).
 
-**Severity:** `runaway` when a breach is found and the mission is still **active**; `watch` when it breached but is already **terminal** (`done`/`failed`/`cancelled`) — worth a post-hoc look, not a live fire. An **unknown** status is treated as active (fail-loud toward visibility).
+**Severity:** `runaway` when a breach is found and the mission is still **active**; `watch` when it breached but is already **terminal**, worth a post-hoc look rather than a live fire. An **unknown** status is treated as active (fail-loud toward visibility).
+
+The terminal set is `done`, `completed`, `completed_with_failures`, `failed`, `halted`, `cancelled`, `canceled` (K-62). `halted` and `completed_with_failures` were both missing until then, so a mission that breached a ceiling and then stopped was reported as actionable now forever. The singular `complete` is deliberately absent: its only writer updates `agent_runs`, not `missions`, and every mission-terminal list in the repo spells it `completed`.
 
 ## Calibration (why these numbers)
 
@@ -24,7 +26,7 @@ The defaults are **independently-chosen heuristics that sit deliberately above t
 
 ## How it works
 
-- **Pure detector** — [`../../src/lib/reliability/runaway.ts`](../../src/lib/reliability/runaway.ts): `assessMission` / `assessMissions` + `isTerminalStatus` / `summarizeRunaway`. Deterministic (the clock is injected as `ageMinutes`) and **total** (zero-step missions, unknown status, NaN/negative aggregates all yield a defined verdict; no divide-by-zero). Fully unit-tested (`runaway.test.ts`, 18 cases).
+- **Pure detector** — [`../../src/lib/reliability/runaway.ts`](../../src/lib/reliability/runaway.ts): `assessMission` / `assessMissions` + `isTerminalStatus` / `summarizeRunaway`. Deterministic (the clock is injected as `ageMinutes`) and **total** (zero-step missions, unknown status, NaN/negative aggregates all yield a defined verdict; no divide-by-zero). Fully unit-tested (`runaway.test.ts`, 24 cases).
 - **Read-only server fn** — `getRunawayMissions({ days? })` in [`../../src/lib/reliability.functions.ts`](../../src/lib/reliability.functions.ts): scans the caller's recent missions (capped at 200, with a `truncated` flag), fetches the children (`mission_steps`, `agent_runs`) for **only those mission ids**, folds them into per-mission stats, and runs the detector. User-scoped (`.eq('user_id', userId)` on the missions query; the child fetches `.in('mission_id', ids)` over the user's own ids only). No writes, no agent calls, no AI spend, no loop/chokepoint edits.
 
 ## Governance & guardrails

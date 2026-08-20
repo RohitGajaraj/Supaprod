@@ -48,6 +48,20 @@ describe("delegate-desk — status → lane", () => {
     expect(laneForStatus("some_custom_state")).toBe("awaiting");
     expect(laneForStatus("")).toBe("awaiting");
   });
+
+  // K-61. `halted` had no key, so it took DEFAULT_LANE, and that lane is
+  // labelled "Queued — Handed off, waiting to start": a mission that stopped
+  // early read as one that had never begun.
+  it("files a halted mission under 'needs a look', not queued", () => {
+    expect(laneForStatus("halted")).toBe("attention");
+    expect(laneForStatus(" Halted ")).toBe("attention");
+  });
+
+  it("puts a halted mission in the attention lane end to end", () => {
+    const desk = computeDelegateDesk([m({ id: "h", status: "halted" })]);
+    expect(desk.lanes.find((l) => l.id === "attention")!.missions.map((x) => x.id)).toEqual(["h"]);
+    expect(desk.counts.awaiting).toBe(0);
+  });
 });
 
 describe("delegate-desk — progress", () => {
@@ -61,6 +75,18 @@ describe("delegate-desk — progress", () => {
     expect(
       missionProgress([{ status: "completed" }, { status: "skipped" }, { status: "executed" }]),
     ).toEqual({ done: 3, total: 3, pct: 100 });
+  });
+
+  // K-61. `complete` is the singular agent_runs spelling, and the step strip
+  // falls back to agent_runs rows when a mission has no mission_steps, so
+  // without this key the percentage BoardPanel renders under-reported.
+  it("counts a step finished as 'complete' (singular), the agent_runs spelling", () => {
+    expect(missionProgress([{ status: "complete" }])).toEqual({ done: 1, total: 1, pct: 100 });
+    expect(missionProgress([{ status: "complete" }, { status: "running" }])).toEqual({
+      done: 1,
+      total: 2,
+      pct: 50,
+    });
   });
 
   it("does not count error/denied/running steps as done", () => {

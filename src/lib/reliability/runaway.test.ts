@@ -26,10 +26,15 @@ describe("isTerminalStatus", () => {
     expect(isTerminalStatus("done")).toBe(true);
     expect(isTerminalStatus("failed")).toBe(true);
     expect(isTerminalStatus("cancelled")).toBe(true);
+    expect(isTerminalStatus("halted")).toBe(true);
+    expect(isTerminalStatus("completed_with_failures")).toBe(true);
     expect(isTerminalStatus("running")).toBe(false);
     expect(isTerminalStatus("pending")).toBe(false);
     // unknown -> not terminal -> treated as active (fail-loud toward visibility)
     expect(isTerminalStatus("weird_new_status")).toBe(false);
+    // `complete` (singular) is an agent_runs status, never a missions one, so it
+    // stays out of the set rather than being guessed in.
+    expect(isTerminalStatus("complete")).toBe(false);
   });
 });
 
@@ -82,6 +87,21 @@ describe("assessMission", () => {
 
   it("downgrades a breached-but-terminal mission to watch (post-hoc, not live)", () => {
     const v = assessMission(m({ status: "done", hopCount: 99 }));
+    expect(v.isRunaway).toBe(true);
+    expect(v.severity).toBe("watch");
+  });
+
+  // K-62. Both statuses are written to missions.status and neither was in
+  // TERMINAL_STATUSES, so a mission that breached a ceiling and then stopped kept
+  // being reported as actionable now.
+  it("downgrades a breached mission that halted to watch", () => {
+    const v = assessMission(m({ status: "halted", hopCount: 99 }));
+    expect(v.isRunaway).toBe(true);
+    expect(v.severity).toBe("watch");
+  });
+
+  it("downgrades a breached mission that completed_with_failures to watch", () => {
+    const v = assessMission(m({ status: "completed_with_failures", spendUsd: 40 }));
     expect(v.isRunaway).toBe(true);
     expect(v.severity).toBe("watch");
   });

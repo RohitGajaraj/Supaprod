@@ -156,16 +156,6 @@ async function resolveWorkspace(
   return (data as string | null) ?? null;
 }
 
-/** `agent_runs.status` is written by three different writers. `runBucket` is
- *  the repo's tested normalizer and covers the loop's vocabulary; the
- *  single-agent path in agents.functions.ts writes "complete" (singular),
- *  which that table does not carry, so it is mapped here rather than left to
- *  fall through to "other" and quietly under-report finished work. */
-function bucketOf(status: string | null): "running" | "queued" | "done" | "failed" | "other" {
-  if ((status ?? "").trim().toLowerCase() === "complete") return "done";
-  return runBucket(status);
-}
-
 function emptyTally(): CrewRunTally {
   return { total: 0, running: 0, queued: 0, finished: 0, failed: 0, lastAt: null };
 }
@@ -179,7 +169,7 @@ function tallyRuns(rows: RunRow[]): Map<string, CrewRunTally> {
     if (!slug) continue;
     const t = out.get(slug) ?? emptyTally();
     t.total += 1;
-    const b = bucketOf(r.status);
+    const b = runBucket(r.status);
     if (b === "running") t.running += 1;
     else if (b === "queued") t.queued += 1;
     else if (b === "done") t.finished += 1;

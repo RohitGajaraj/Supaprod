@@ -110,6 +110,11 @@ const STATUS_TO_LANE: Readonly<Record<string, DeskLaneId>> = {
   // attention — stopped early
   error: "attention",
   failed: "attention",
+  // `halted` is a missions status (missions.functions.ts, resume-runs.ts,
+  // trigger-tick.ts all write it) and had no key here, so it fell to
+  // DEFAULT_LANE. That lane reads "Queued — Handed off, waiting to start", so a
+  // mission that stopped early reported as not yet begun.
+  halted: "attention",
   cancelled: "attention",
   canceled: "attention",
   denied: "attention",
@@ -128,6 +133,11 @@ export function laneForStatus(status: string): DeskLaneId {
 const STEP_DONE = new Set([
   "executed",
   "completed",
+  // `complete`, singular, is what the single-agent path writes on agent_runs
+  // (agents.functions.ts:211), and the step strip falls back to agent_runs rows
+  // when a mission has no mission_steps. Without this key every step finished
+  // that way was counted as unfinished, so the percentage under-reported.
+  "complete",
   "done",
   "ok",
   "success",

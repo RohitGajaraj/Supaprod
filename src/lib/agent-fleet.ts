@@ -69,6 +69,11 @@ const RUN_STATE: Readonly<Record<string, RunBucket>> = {
   pending: "queued",
   scheduled: "queued",
   proposed: "queued",
+  // A run parked at a human gate (loop.server.ts writes `waiting_approval` on
+  // agent_runs) has not finished and is not consuming an agent, but it is still
+  // live work handed to that agent. "queued" keeps it inside liveLoad instead of
+  // dropping it out of every tally while `total` still counts it.
+  waiting_approval: "queued",
   completed: "done",
   // `complete`, singular, is what runAgent writes on the happy path
   // (agents.functions.ts). It was missing here, so every run that finished
@@ -80,6 +85,11 @@ const RUN_STATE: Readonly<Record<string, RunBucket>> = {
   success: "done",
   error: "failed",
   failed: "failed",
+  // `halted` is what the loop and the resume sweeper write on agent_runs when a
+  // run is stopped without finishing. It was missing, so every halted run fell to
+  // "other": uncounted in all four tallies while `total` still counted it, and
+  // invisible to `summary.withExceptions`, the supervise-by-exception signal.
+  halted: "failed",
   cancelled: "failed",
   canceled: "failed",
   denied: "failed",

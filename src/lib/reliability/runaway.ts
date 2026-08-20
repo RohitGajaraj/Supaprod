@@ -62,8 +62,34 @@ export const DEFAULT_RUNAWAY_CONFIG: RunawayConfig = {
   maxStepAttemptsCeiling: 3,
 };
 
-/** Missions in a terminal state. Anything not listed is treated as ACTIVE (fail-loud toward visibility). */
-const TERMINAL_STATUSES = new Set(["done", "completed", "failed", "cancelled", "canceled"]);
+/**
+ * Missions in a terminal state. Anything not listed is treated as ACTIVE (fail-loud toward visibility).
+ *
+ * `halted` and `completed_with_failures` were both missing, and both are written
+ * to missions.status: `halted` by missions.functions.ts, resume-runs.ts and
+ * trigger-tick.ts, `completed_with_failures` by handoff.server.ts and
+ * verify-green.server.ts. A mission that breached a ceiling and then stopped was
+ * escalated as actionable-now forever, inside the mechanism whose only job is to
+ * say what needs an operator now.
+ *
+ * `completed_with_failures` is contested elsewhere in the repo (K-60 leaves it
+ * alone for that reason), but this is its one uncontested reading: whichever
+ * bucket it belongs in for a fleet count, it is unambiguously FINISHED, so it
+ * cannot be actionable now. That is why it is safe here and not safe there.
+ *
+ * The singular `complete` is deliberately absent. Its only writer
+ * (agents.functions.ts:211) updates agent_runs, not missions, and every
+ * mission-terminal list in the repo spells it `completed`.
+ */
+const TERMINAL_STATUSES = new Set([
+  "done",
+  "completed",
+  "completed_with_failures",
+  "failed",
+  "halted",
+  "cancelled",
+  "canceled",
+]);
 
 export function isTerminalStatus(status: string): boolean {
   return TERMINAL_STATUSES.has(status);
