@@ -1,6 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Row, Who } from "@/components/meridian/rows";
-import { Num, Door } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Door,
+  NothingHere,
+  Num,
+  PageHeading,
+  ReadFailedLine,
+  Reading,
+  RecordSpeaks,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
@@ -18,7 +29,8 @@ import { RunState, ShippedState } from "@/components/today/RunState";
 import { ago, daysSince, withinLastDay } from "@/components/today/when";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useSelection } from "@/components/shell/use-selection";
-import { Block, Button, Empty, Failed, Loading, PageHead, Receipt, Record as RecordRecess, Surface, Value } from "@/components/shell/primitives";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Surface } from "@/components/meridian/Surface";
 import { AgentMark } from "@/components/meridian/marks";
 import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -112,16 +124,34 @@ export const Route = createFileRoute("/_authenticated/today")({
    */
   errorComponent: ({ error, reset }) => (
     <Surface wide>
-      <PageHead
-        title="Today did not open."
-        sub="Whatever the crew did overnight is still on the record. This is the page failing to draw it."
-      />
-      <Block>
-        <Empty>{(error as Error)?.message ?? "The reason did not come back with the error."}</Empty>
-        <Button variant="primary" onClick={reset}>
-          Try again
-        </Button>
-      </Block>
+      {/* THE RHYTHM IS STATED HERE, BECAUSE NOTHING ELSE STATES IT ANY MORE.
+          This was a `PageHead` over a `Block`, and the block reserved 36px above
+          itself plus 28px inside. Meridian's `Region` reserves nothing on the
+          founder's ruling (see the head of `today.css`), so a branch that
+          returns two siblings has to say what sits between them. 40px, the
+          number that ruling names, and the same gap the sheet gives every
+          section of the surface this branch replaces.
+
+          The `Region` that used to wrap the message is gone rather than ported.
+          It carried no title, so it rendered an empty section wrapper, and the
+          message needs a container of its own here anyway: this branch IS the
+          whole surface, which is the one case `NothingHere` is for rather than
+          `NothingYet`. Its `action` slot is where the retry belongs. */}
+      <div className="flex flex-col gap-mrd-7">
+        <PageHeading
+          title="Today did not open."
+          sub="Whatever the crew did overnight is still on the record. This is the page failing to draw it."
+        />
+        <NothingHere
+          action={
+            <Action variant="primary" onClick={reset}>
+              Try again
+            </Action>
+          }
+        >
+          {(error as Error)?.message ?? "The reason did not come back with the error."}
+        </NothingHere>
+      </div>
     </Surface>
   ),
 });
@@ -324,10 +354,10 @@ function CriticBrief({
         </div>
       ) : null}
       <div className="today-actions">
-        <Button onClick={onOpen}>See the full analysis</Button>
-        <Button variant="ghost" onClick={onAnother}>
+        <Action onClick={onOpen}>See the full analysis</Action>
+        <Action variant="quiet" onClick={onAnother}>
           Try another idea
-        </Button>
+        </Action>
       </div>
     </section>
   );
@@ -341,22 +371,26 @@ function Lane({
   name,
   waiting,
   quiet,
-  more,
-  onMore,
+  goTo,
+  onGoTo,
   children,
 }: {
   name: string;
   waiting: React.ReactNode;
   quiet: boolean;
-  more?: string;
-  onMore?: () => void;
+  /** The way OUT of this lane, naming where it lands. `Region` split the retired
+   *  `more`/`onMore` into `goTo` (navigates) and `toggle` (reveals in place, and
+   *  emits `aria-expanded`) because one prop was serving two controls. Every
+   *  lane here navigates to /runs, so this is the navigating half. */
+  goTo?: string;
+  onGoTo?: () => void;
   children?: React.ReactNode;
 }) {
   return (
     <div className="today-lane" data-quiet={quiet}>
-      <Block title={name} sub={waiting} more={more} onMore={onMore}>
+      <Region title={name} sub={waiting} goTo={goTo} onGoTo={onGoTo}>
         {children ?? null}
-      </Block>
+      </Region>
     </div>
   );
 }
@@ -825,25 +859,32 @@ function Today() {
               is the thing below and saying it twice is the ban this file's own
               lane subtitle records. The subtitle names the boundary instead,
               which is the one fact neither of the two bodies below states. */}
-          <PageHead title="Today" sub="Everything on this surface belongs to a workspace." />
-          {workspacesUnreadable ? (
-            <Block title="The workspaces you are in">
-              <Failed onRetry={() => refreshWorkspaces()}>
-                This could not be read, so it cannot tell a quiet morning from a workspace it never
-                saw.
-              </Failed>
-            </Block>
-          ) : (
-            <NeedsSetup
-              kind="no-workspace"
-              thenWhat="this opens on what the crew finished overnight, what is waiting on your call, and what stopped."
-              action={
-                <Button variant="primary" onClick={() => navigate({ to: "/onboarding" })}>
-                  Set up your workspace
-                </Button>
-              }
-            />
-          )}
+          <PageHeading title="Today" sub="Everything on this surface belongs to a workspace." />
+          {/* `.today-arrival` states the gap under the heading for BOTH arms.
+              The refused arm used to get it from `Block`, and `NeedsSetup` never
+              had it at all: it is a bare Meridian section with no outer margin,
+              so it has been sitting flush under the subtitle. One wrapper covers
+              the pair and neither arm can drift from the other. */}
+          <div className="today-arrival">
+            {workspacesUnreadable ? (
+              <Region title="The workspaces you are in">
+                <ReadFailedLine onRetry={() => refreshWorkspaces()}>
+                  This could not be read, so it cannot tell a quiet morning from a workspace it
+                  never saw.
+                </ReadFailedLine>
+              </Region>
+            ) : (
+              <NeedsSetup
+                kind="no-workspace"
+                thenWhat="this opens on what the crew finished overnight, what is waiting on your call, and what stopped."
+                action={
+                  <Action variant="primary" onClick={() => navigate({ to: "/onboarding" })}>
+                    Set up your workspace
+                  </Action>
+                }
+              />
+            )}
+          </div>
         </div>
       </Surface>
     );
@@ -853,7 +894,7 @@ function Today() {
     <Surface wide>
       <div className="today-page">
         <p className="today-greeting">{greeting}</p>
-        <PageHead
+        <PageHeading
           title={headline}
           sub={
             <>
@@ -911,27 +952,37 @@ function Today() {
               ),
             )}
             quiet={shipped.length === 0 && runsState === "ready"}
-            more={shipped.length > 0 ? laneDoor(shipped.length) : undefined}
-            onMore={() => navigate({ to: "/runs" })}
+            goTo={shipped.length > 0 ? laneDoor(shipped.length) : undefined}
+            onGoTo={() => navigate({ to: "/runs" })}
           >
             {/* THE ONE LIVE REGION FOR THE RUN RECORD, AND IT COVERS THE WAIT
                 ONLY. Three lanes are fed by this single read, and three
-                `<Loading>`s would announce the same fetch three times to a
-                screen reader. The other two say they are reading in their own
-                subtitle and stay silent.
-                THE FAILURE IS A DIFFERENT CASE AND ALL THREE NOW CARRY IT.
-                `Failed` is not a live region, so three of them announce nothing,
-                and the reason to hold back never applied to it: the retry lived
-                here alone, so a reader whose run record refused was told "This
-                could not be read." over the stuck and still-running lanes with
-                no way to ask again, on the two lanes where not knowing costs the
-                most. */}
+                `Reading`s would announce the same fetch three times to a screen
+                reader. The other two say they are reading in their own subtitle
+                and stay silent.
+                THE FAILURE IS A DIFFERENT CASE AND ALL THREE NOW CARRY IT. The
+                retry lived here alone, so a reader whose run record refused was
+                told "This could not be read." over the stuck and still-running
+                lanes with no way to ask again, on the two lanes where not
+                knowing costs the most.
+
+                AND THE MERIDIAN PORT CHANGED WHAT THAT COSTS, so it is written
+                down rather than assumed. The retired `Failed` was a plain
+                paragraph and announced nothing; `ReadFailedLine` carries
+                `role="status" aria-live="polite"`. So one refused run record now
+                speaks three times instead of none. That is judged acceptable and
+                not the same defect as three identical waits: each of the three
+                says a DIFFERENT thing ("what went live", "what stopped", "what
+                is still going"), which is three facts a reader needs rather than
+                one fact repeated. If it turns out to be too much in a real
+                screen reader, the fix belongs on the primitive as an opt-out,
+                not as a hand-rolled silent copy here. */}
             {stillWaiting(missions) ? (
-              <Loading>Reading what the crew finished.</Loading>
+              <Reading>Reading what the crew finished.</Reading>
             ) : missions.isError ? (
-              <Failed onRetry={() => void missions.refetch()}>
+              <ReadFailedLine onRetry={() => void missions.refetch()}>
                 The run record did not load, so this cannot say what went live.
-              </Failed>
+              </ReadFailedLine>
             ) : (
               shipped.slice(0, LANE_ROWS).map((mission) => (
                 <Row
@@ -1007,12 +1058,12 @@ function Today() {
             }
           >
             {stillWaiting(queue) ? (
-              <Loading>Reading what needs you.</Loading>
+              <Reading>Reading what needs you.</Reading>
             ) : queue.isError ? (
-              <Failed onRetry={() => void queue.refetch()}>
+              <ReadFailedLine onRetry={() => void queue.refetch()}>
                 Your decisions are unchanged and this could not read them. Retry before you treat
                 the morning as clear.
-              </Failed>
+              </ReadFailedLine>
             ) : focused ? (
               <DecisionQueue
                 items={items}
@@ -1073,17 +1124,17 @@ function Today() {
               ),
             )}
             quiet={stuck.length === 0 && runsState === "ready"}
-            more={stuck.length > 0 ? laneDoor(stuck.length) : undefined}
-            onMore={() => navigate({ to: "/runs" })}
+            goTo={stuck.length > 0 ? laneDoor(stuck.length) : undefined}
+            onGoTo={() => navigate({ to: "/runs" })}
           >
             {/* The wait is announced once, by the shipped lane; see the note
                 there. The refusal is not announced at all, so it belongs on
                 every lane that cannot draw without the read, with the retry
                 that used to exist in one place only. */}
             {runsState === "reading" ? null : runsState === "failed" ? (
-              <Failed onRetry={() => void missions.refetch()}>
+              <ReadFailedLine onRetry={() => void missions.refetch()}>
                 The run record did not load, so this cannot say what stopped.
-              </Failed>
+              </ReadFailedLine>
             ) : (
               stuck.slice(0, LANE_ROWS).map((mission) => (
                 <Row
@@ -1126,15 +1177,15 @@ function Today() {
               ),
             )}
             quiet={running.length === 0 && runsState === "ready"}
-            more={running.length > 0 ? laneDoor(running.length) : undefined}
-            onMore={() => navigate({ to: "/runs" })}
+            goTo={running.length > 0 ? laneDoor(running.length) : undefined}
+            onGoTo={() => navigate({ to: "/runs" })}
           >
             {/* Same division as the stuck lane: the wait is announced once by
                 the shipped lane, the refusal is silent and belongs here too. */}
             {runsState === "reading" ? null : runsState === "failed" ? (
-              <Failed onRetry={() => void missions.refetch()}>
+              <ReadFailedLine onRetry={() => void missions.refetch()}>
                 The run record did not load, so this cannot say what is still going.
-              </Failed>
+              </ReadFailedLine>
             ) : (
               running.slice(0, LANE_ROWS).map((mission) => {
                 const agent = mission.current_agent_slug
@@ -1165,41 +1216,67 @@ function Today() {
         <FocusNext workspaceId={workspaceId} />
 
         {stillWaiting(learnings) ? (
-          <Loading>Reading what it learned.</Loading>
+          <Reading>Reading what it learned.</Reading>
         ) : learnings.isError ? (
-          /* SAME BLOCK, SAME NAME, WHICHEVER WAY THE READ WENT. The failed arm
+          /* SAME REGION, SAME NAME, WHICHEVER WAY THE READ WENT. The failed arm
              called itself "Latest learning" and the loaded arm "It learned one
              thing", so the section changed its name depending on whether the
              fetch worked. */
-          <Block title={LEARNING_BLOCK}>
-            <Failed onRetry={() => void learnings.refetch()}>
-              The outcome record did not load, so this cannot show what changed next.
-            </Failed>
-          </Block>
+          <div className="today-learned">
+            <Region title={LEARNING_BLOCK}>
+              <ReadFailedLine onRetry={() => void learnings.refetch()}>
+                The outcome record did not load, so this cannot show what changed next.
+              </ReadFailedLine>
+            </Region>
+          </div>
         ) : learning?.summary ? (
-          <Block title={LEARNING_BLOCK}>
-            <RecordRecess
-              title="Open this outcome in the record"
-              onClick={() =>
-                navigate({ to: "/brain", search: { tab: "learnings", learning: learning.id } })
-              }
-              evidence={
-                <>
-                  {learning.recorded_by_agent_slug
-                    ? `${agentDisplayName(learning.recorded_by_agent_slug)} recorded it`
-                    : "Recorded"}
-                  {learning.created_at
-                    ? ` · ${new Date(learning.created_at).toLocaleDateString(undefined, {
-                        day: "numeric",
-                        month: "short",
-                      })}`
-                    : ""}
-                </>
-              }
-            >
-              {learning.summary}
-            </RecordRecess>
-          </Block>
+          <div className="today-learned">
+            <Region title={LEARNING_BLOCK}>
+              {/* THE DOOR CAME OUT OF THE RECESS AND BECAME A NAMED CONTROL.
+                  The retired `Record` took an `onClick` and a `title` and made
+                  the WHOLE recess clickable, which is how a surface's one
+                  checkable claim ends up with an affordance nobody can see: a
+                  paragraph that happens to be a button announces nothing and
+                  looks like prose. Meridian's `RecordSpeaks` deliberately has no
+                  onClick, so the door is drawn underneath it, in words, naming
+                  where it lands. `decide.tsx` ports the identical shape and
+                  `surface-parts.tsx` carries the reasoning.
+
+                  The label is the string that used to be the recess's `title`,
+                  unchanged. It was already written as a destination rather than
+                  as a verb, which is exactly what a door owes, and it was
+                  reachable only by hovering. `items-start` on the column so the
+                  door hugs its own label: a Door is a word, and a button
+                  stretched across a region centres its text and underlines it
+                  across the full width, which reads as a broken heading. */}
+              <div className="flex flex-col items-start gap-mrd-3">
+                <RecordSpeaks
+                  evidence={
+                    <>
+                      {learning.recorded_by_agent_slug
+                        ? `${agentDisplayName(learning.recorded_by_agent_slug)} recorded it`
+                        : "Recorded"}
+                      {learning.created_at
+                        ? ` · ${new Date(learning.created_at).toLocaleDateString(undefined, {
+                            day: "numeric",
+                            month: "short",
+                          })}`
+                        : ""}
+                    </>
+                  }
+                >
+                  {learning.summary}
+                </RecordSpeaks>
+                <Door
+                  onClick={() =>
+                    navigate({ to: "/brain", search: { tab: "learnings", learning: learning.id } })
+                  }
+                >
+                  Open this outcome in the record
+                </Door>
+              </div>
+            </Region>
+          </div>
         ) : null}
 
         <div data-page-composer className="today-composer">

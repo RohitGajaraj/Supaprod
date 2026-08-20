@@ -1,8 +1,14 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, test } from "bun:test";
 
 import { chainOf } from "../AuditLineageSheet";
 import type { LineageNodeView } from "@/lib/lineage-graph.functions";
 import type { LineageStep } from "@/lib/lineage-graph";
+
+const SRC = join(import.meta.dir, "..", "..", "..");
+const read = (rel: string) => readFileSync(join(SRC, rel), "utf8");
+const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
 /**
  * These cases came from LIVE DATA, not imagination. Rendering the founder's own
@@ -140,5 +146,57 @@ describe("chainOf", () => {
       nodes: [node("prd", "p1")],
     };
     expect(chainOf(graph)[0].relation).toBe("derived_from");
+  });
+});
+
+/**
+ * THE ONE CLASS NAME THAT IS AN API, AND THE HOLE THAT LET IT ROT.
+ *
+ * `AskPane.tsx` lists the literal selector `".sp-lineage"` in its
+ * `KEEPS_IT_OPEN` pointerdown list, because this pane is summoned FROM Ask,
+ * takes Ask's exact geometry and covers it. Lose the class off the pane root and
+ * every press in here dismisses the conversation that asked for the trace --
+ * which destroys the thread, not just the pane.
+ *
+ * NOTHING CAUGHT IT, AND THAT IS THE POINT. `AskPane.test.tsx` proves the
+ * stand-down behaviour against its own synthetic `<div class="sp-lineage">`
+ * fixture, so it stays green whatever the real component renders. The two halves
+ * of one contract sat in two files with no assertion joining them, and the
+ * Meridian port -- whose whole job was deleting `sp-` class names -- walked
+ * straight past it.
+ *
+ * So this reads BOTH SOURCES and asserts they still agree. A source-text guard
+ * rather than a render, for the same reason `escape-layers.test.tsx` gave: the
+ * fact being protected is that two files name the same string, and mounting
+ * either one cannot observe that.
+ */
+describe("the lineage pane keeps the hook Ask reads", () => {
+  const SHEET = strip(read(join("components", "supaprod", "AuditLineageSheet.tsx")));
+  const ASK = strip(read(join("components", "ask", "AskPane.tsx")));
+
+  test("the pane root still carries the class Ask stands down for", () => {
+    expect(SHEET).toContain('className="sp-lineage"');
+  });
+
+  test("Ask still lists that selector, so the contract has two live ends", () => {
+    expect(ASK).toContain('".sp-lineage"');
+    expect(ASK).toContain("KEEPS_IT_OPEN");
+  });
+
+  test("the rest of the pane speaks Meridian, so the hook cannot hide a relapse", () => {
+    // Every other `sp-` class went to a Meridian utility on 2026-08-21. Without
+    // this the guard above would happily protect a pane that had drifted back
+    // onto the retired vocabulary one class at a time.
+    const classes = [...SHEET.matchAll(/["`\s](sp-[a-z0-9-]+)["`\s]/g)].map((m) => m[1]);
+    expect([...new Set(classes)]).toEqual(["sp-lineage"]);
+  });
+
+  test("the pane is a data-mrd root, or its controls take the legacy focus ring", () => {
+    // `src/styles.css` carries an UNLAYERED `[data-obsidian] :focus-visible`
+    // rule and the authenticated tree mounts that attribute on <html>, so an
+    // unlayered rule beats every layer: a control only gets Meridian's ring by
+    // sitting inside a `data-mrd` root. This pane has four pressable things in
+    // it and the ring is the only thing telling a keyboard reader where they are.
+    expect(SHEET).toContain('data-mrd=""');
   });
 });

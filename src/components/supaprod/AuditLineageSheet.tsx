@@ -45,11 +45,103 @@ import { getLineageGraph, type LineageNodeView } from "@/lib/lineage-graph.funct
 import type { LineageStep } from "@/lib/lineage-graph";
 import { getMissionChain } from "@/lib/trust-chain.functions";
 import { MissionChain } from "@/components/trust/MissionChain";
-import { NothingHere, ReadFailed, Reading } from "@/components/meridian/surface-parts";
+import { NothingHere, Num, ReadFailed, Reading } from "@/components/meridian/surface-parts";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { artifactWord, relationWord } from "@/lib/artifact-words";
 
 export const OPEN_LINEAGE_EVENT = "supaprod:open-lineage";
+
+/* ------------------------------------------------------------------ *
+ * The paint, on Meridian
+ *
+ * WHERE THE 28 CLASS NAMES WENT. This pane's rules lived in
+ * `src/styles/shell.css` under a `sp-` vocabulary Cadence/ink retired. They
+ * already PAINTED in Meridian tokens, so nothing on screen was wrong; that is
+ * exactly why the naming layer was worth moving. A second vocabulary that
+ * renders identically to the first is where the next divergence comes from.
+ *
+ * ONE CLASS SURVIVES AND IT IS LOAD BEARING. `AskPane.tsx` lists the literal
+ * selector `".sp-lineage"` in its `KEEPS_IT_OPEN` pointerdown list, because this
+ * pane is summoned FROM Ask and covers it. Drop the class off the root and every
+ * press inside this pane dismisses the conversation that asked for the trace.
+ * `AskPane.test.tsx` builds its own synthetic `<div class="sp-lineage">` fixture,
+ * so it stays green whatever this file renders: nothing would catch it. The
+ * root's geometry rule stays in `shell.css` with it, because `--sp-header-h`,
+ * `--sp-pane-ask-w` and `--sp-pane-inset` are a layout contract this pane SHARES
+ * with Ask, and a copy of a shared number is two numbers for one fact.
+ *
+ * THE TRAP THAT DECIDED HALF OF THESE STRINGS, verified against the compiler
+ * rather than reasoned about. `text-mrd-body` is BOTH a colour and the 14px type
+ * stop: `--color-mrd-body` in `@theme inline` and an `@utility` of the same name,
+ * emitted as one rule carrying `font-size` AND `color`. So `text-mrd-base
+ * text-mrd-body` on one element renders at 14px, not 13px, because Tailwind
+ * emits `.text-mrd-base` first. The answer here is inheritance: each timeline row
+ * carries the body ink and its children state only their own size, so no element
+ * ever wears both names at once.
+ * ------------------------------------------------------------------ */
+
+/**
+ * THE MACHINE VOICE: mono, uppercase, at the data stop.
+ *
+ * DELIBERATELY NOT `Eyebrow`, which is Meridian's micro-label and the obvious
+ * reach. Eyebrow is 10px sans at weight 650 and its own docblock calls itself
+ * "the ONE place mono is not used" for a label. Adopting it here would take
+ * 11.5px down to 10px, and shrinking type is forbidden as a port answer; it
+ * would also drop the mono face that marks these lines as the record speaking
+ * rather than a person. The face was decided when this pane came off Loom v4.
+ * The port moves the vocabulary, not the design.
+ */
+const MACHINE_LABEL = "font-mrd-mono text-mrd-data tracking-mrd-label text-mrd-mute uppercase";
+
+/** A timeline dot. It carries no rule of its own: the line down to the next row
+ *  belongs to the row (`TIMELINE_ROW`), so the last row draws nothing into
+ *  nothing. Each caller adds its own top margin, which is 6px on the trail and
+ *  5px on the chain and was never one number. */
+const MARK = "size-[7px] flex-none rounded-full bg-mrd-line";
+
+/** Back and Close. Quiet by default and NOT Meridian's `Action`, which is a 32px
+ *  control on a 9px radius: dropping two of those into a baseline-aligned pane
+ *  header would grow it by half again and change a geometry this pane shares
+ *  with Ask deliberately. */
+const HEAD_BTN =
+  "rounded-mrd-xs px-mrd-2 py-mrd-1 text-mrd-label text-mrd-mute hover:bg-mrd-hover hover:text-mrd-ink";
+
+/** The chain, read as ONE column. `m-0 p-0 list-none` is stated rather than left
+ *  to preflight because `src/styles.css` is 3,700 lines of unlayered legacy
+ *  selectors and unlayered CSS beats `@layer base` whatever it says. */
+const CHAIN = "m-0 mt-mrd-4 list-none p-0";
+
+/** Never a silent stop: a chain that merely hit a depth cap must not read as a
+ *  chain that ended. */
+const MORE = "m-0 mt-mrd-4 text-mrd-label text-mrd-mute";
+
+/** One row of a timeline: the dot, the rule down to the next row, and the body
+ *  ink every child inherits rather than naming. See the `text-mrd-body` trap. */
+const TIMELINE_ROW =
+  "relative flex gap-[12px] text-mrd-body before:absolute before:left-[3px] before:w-px before:bg-mrd-line-soft last:pb-0 last:before:hidden";
+
+/**
+ * A connected id is a door, so it looks like one.
+ *
+ * `fontSize` is inline and that is the point rather than a shortcut. The chip
+ * needs the 11.5px data stop AND the body ink, and `text-mrd-body` carries a
+ * font-size of its own, so any pairing of the two utilities resolves by
+ * emission order. An inline declaration beats the utilities layer outright, so
+ * this is 11.5px whatever Tailwind decides to emit first.
+ */
+function TraceRef({ id, onFollow }: { id: string; onFollow: (next: string) => void }) {
+  return (
+    <button
+      type="button"
+      className="rounded-mrd-xs border border-mrd-line px-mrd-3 py-px tracking-mrd-label text-mrd-body transition-[color,border-color] duration-[var(--mrd-d-press)] ease-[var(--mrd-ease)] hover:border-mrd-ink hover:text-mrd-ink"
+      style={{ fontSize: "var(--mrd-t-data)" }}
+      onClick={() => onFollow(id)}
+      title={`Trace ${id}`}
+    >
+      <Num>{id}</Num>
+    </button>
+  );
+}
 
 /** Open the lineage pane for an audit id from anywhere. */
 export function openLineage(ref: string) {
@@ -148,26 +240,23 @@ function ChainNode({
       ? `A ${word} with no title on the record`
       : `A ${word} we could not read`;
   return (
-    <li className="sp-chain-node" data-resolved={node.resolved ? "true" : "false"}>
-      <span className="sp-chain-mark" aria-hidden="true" />
-      <div className="sp-chain-body">
-        <div className="sp-chain-kind">
+    <li className={`${TIMELINE_ROW} pb-[14px] before:top-[14px] before:bottom-0`}>
+      <span className={`mt-[5px] ${MARK}`} aria-hidden="true" />
+      <div className="min-w-0 flex-1">
+        <div className={MACHINE_LABEL}>
           {word}
-          {relation ? <span className="sp-chain-rel"> · {relationWord(relation)}</span> : null}
+          {relation ? <span className="text-mrd-faint"> · {relationWord(relation)}</span> : null}
         </div>
-        <div className="sp-chain-title">{label}</div>
-        <div className="sp-chain-meta">
+        {/* A node we could not read is dimmed, never hidden. A missing node
+            silently shortens the chain and nobody can tell; a dim one says so. */}
+        <div
+          className={`mt-mrd-1 text-mrd-base leading-[1.35] ${node.resolved ? "" : "text-mrd-mute italic"}`}
+        >
+          {label}
+        </div>
+        <div className="mt-mrd-2 flex flex-wrap items-center gap-[8px] text-mrd-label text-mrd-mute">
           {node.status ? <span>{node.status}</span> : null}
-          {node.ref ? (
-            <button
-              type="button"
-              className="sp-trail-ref"
-              onClick={() => onFollow(node.ref as string)}
-              title={`Trace ${node.ref}`}
-            >
-              {node.ref}
-            </button>
-          ) : null}
+          {node.ref ? <TraceRef id={node.ref} onFollow={onFollow} /> : null}
         </div>
       </div>
     </li>
@@ -328,26 +417,36 @@ export function AuditLineageSheet() {
   };
 
   return (
-    <aside className="sp-lineage" role="complementary" aria-label="Lineage">
-      <header className="sp-lineage-head">
-        <span className="sp-lineage-ref">{(d?.ref ?? ref).replace("·", " · ")}</span>
+    /* `sp-lineage` is a HOOK, not paint: AskPane reads that exact selector to
+       decide a press in here must not dismiss it. See the note at the top of
+       this file. `data-mrd` is what gives every control below Meridian's focus
+       ring; without it they take the legacy one, because the unlayered
+       `[data-obsidian] :focus-visible` rule beats every layer. */
+    <aside className="sp-lineage" data-mrd="" role="complementary" aria-label="Lineage">
+      <header className="flex flex-none items-baseline gap-mrd-4 border-b border-mrd-line-soft px-mrd-5 py-[14px]">
+        {/* The id is mono because it is an identifier, and identifiers are read
+            character by character. It is NOT Geist Pixel: that face was retired,
+            and it was doing brand work in a slot that needs legibility. */}
+        <span className="text-mrd-data tracking-mrd-label text-mrd-ink">
+          <Num>{(d?.ref ?? ref).replace("·", " · ")}</Num>
+        </span>
         {d?.found || d?.ambiguous ? (
-          <span className="sp-lineage-kind">
+          <span className="text-mrd-label text-mrd-mute">
             {d.label} · {d.stage}
           </span>
         ) : null}
-        <span className="sp-lineage-spacer" />
+        <span className="flex-1" />
         {trail.length > 0 ? (
-          <button type="button" className="sp-lineage-btn" onClick={back}>
+          <button type="button" className={HEAD_BTN} onClick={back}>
             Back
           </button>
         ) : null}
-        <button type="button" className="sp-lineage-btn" onClick={() => setRef(null)}>
+        <button type="button" className={HEAD_BTN} onClick={() => setRef(null)}>
           Close
         </button>
       </header>
 
-      <div className="sp-lineage-body">
+      <div className="flex-1 overflow-auto p-mrd-5">
         {q.isLoading ? (
           <Reading>Tracing the record.</Reading>
         ) : q.isError ? (
@@ -373,23 +472,26 @@ export function AuditLineageSheet() {
            * Choosing re-enters on the uuid, never on the tag, because the uuid
            * path is exact and the tag path is what collided. */
           <>
-            <p className="sp-lineage-ambig">
+            <p className="mt-0 mb-[14px] text-mrd-body leading-[1.5]">
               This tag matches <strong>{d.candidateCount}</strong> records. Six characters are not
               enough to name one, so nothing has been chosen.
             </p>
-            <ol className="sp-chain">
+            <ol className={CHAIN}>
               {d.candidates.map((c) => (
-                <li className="sp-chain-node" key={c.entityId}>
-                  <span className="sp-chain-mark" aria-hidden="true" />
-                  <div className="sp-chain-body">
+                <li
+                  className={`${TIMELINE_ROW} pb-[14px] before:top-[14px] before:bottom-0`}
+                  key={c.entityId}
+                >
+                  <span className={`mt-[5px] ${MARK}`} aria-hidden="true" />
+                  <div className="min-w-0 flex-1">
                     <button
                       type="button"
-                      className="sp-lineage-pick"
+                      className="block p-0 text-left text-mrd-base leading-[1.35] hover:text-mrd-ink hover:underline"
                       onClick={() => follow(c.entityId)}
                     >
                       {c.title ? stripAutoPrefix(c.title) : "Untitled"}
                     </button>
-                    <div className="sp-chain-meta">
+                    <div className="mt-mrd-2 flex flex-wrap items-center gap-[8px] text-mrd-label text-mrd-mute">
                       {c.status ? <span>{c.status}</span> : null}
                       {c.createdAt ? <span>{fmt(c.createdAt)}</span> : null}
                     </div>
@@ -398,7 +500,7 @@ export function AuditLineageSheet() {
               ))}
             </ol>
             {d.candidateCount > d.candidates.length ? (
-              <p className="sp-chain-more">
+              <p className={MORE}>
                 Showing the first {d.candidates.length} of {d.candidateCount}.
               </p>
             ) : null}
@@ -410,8 +512,10 @@ export function AuditLineageSheet() {
           </NothingHere>
         ) : (
           <>
-            <h3 className="sp-lineage-title">{stripAutoPrefix(d.title)}</h3>
-            <div className="sp-lineage-meta">
+            <h3 className="mt-0 mb-mrd-2 text-mrd-base leading-[1.35] font-medium text-mrd-ink">
+              {stripAutoPrefix(d.title)}
+            </h3>
+            <div className="mb-[18px] text-mrd-label text-mrd-mute">
               {d.status ? <span>{d.status}</span> : null}
               {d.status && d.createdAt ? <span aria-hidden="true"> · </span> : null}
               {d.createdAt ? <span>recorded {fmt(d.createdAt)}</span> : null}
@@ -419,27 +523,21 @@ export function AuditLineageSheet() {
 
             {/* The walk. Every connected entity is itself a tag you can follow,
               which is the whole point: the record is a graph, not a row. */}
-            <ol className="sp-trail">
+            <ol className="m-0 list-none p-0">
               {d.steps.map((s, i) => (
-                <li className="sp-trail-step" key={`${s.label}-${i}`}>
-                  <span className="sp-trail-mark" aria-hidden="true" />
-                  <div className="sp-trail-body">
-                    <div className="sp-trail-label">
+                <li
+                  className={`${TIMELINE_ROW} pb-mrd-5 before:top-[15px] before:bottom-[2px]`}
+                  key={`${s.label}-${i}`}
+                >
+                  <span className={`mt-mrd-3 ${MARK}`} aria-hidden="true" />
+                  <div className="min-w-0 flex-1">
+                    <div className={MACHINE_LABEL}>
                       {s.label}
-                      {s.at ? <span className="sp-trail-at"> · {fmt(s.at)}</span> : null}
+                      {s.at ? <span className="text-mrd-faint"> · {fmt(s.at)}</span> : null}
                     </div>
-                    <div className="sp-trail-detail">
+                    <div className="mt-[3px] flex flex-wrap items-center gap-[8px] text-mrd-base">
                       <span>{stripAutoPrefix(s.detail)}</span>
-                      {s.ref ? (
-                        <button
-                          type="button"
-                          className="sp-trail-ref"
-                          onClick={() => follow(s.ref as string)}
-                          title={`Trace ${s.ref}`}
-                        >
-                          {s.ref}
-                        </button>
-                      ) : null}
+                      {s.ref ? <TraceRef id={s.ref} onFollow={follow} /> : null}
                     </div>
                   </div>
                 </li>
@@ -454,16 +552,27 @@ export function AuditLineageSheet() {
               how a person narrates causation. Two headed lists would make the
               reader assemble that order themselves. */}
             {graphQ.data?.found && chainOf(graphQ.data).length > 0 ? (
-              <div className="sp-lineage-chain">
-                <div className="sp-trail-label">The chain</div>
-                <ol className="sp-chain">
+              <div className="mt-mrd-6">
+                <div className={MACHINE_LABEL}>The chain</div>
+                <ol className={CHAIN}>
                   {chainOf(graphQ.data).map((entry) =>
                     entry.focus ? (
-                      <li className="sp-chain-node" data-focus="true" key="focus">
-                        <span className="sp-chain-mark" aria-hidden="true" />
-                        <div className="sp-chain-body">
-                          <div className="sp-chain-kind">{entry.node.kind} · you are here</div>
-                          <div className="sp-chain-title">{stripAutoPrefix(d.title)}</div>
+                      /* Where you are, marked by WEIGHT and size rather than
+                         colour: the focus is a position in the story, not a
+                         status, and colour in this system carries status. */
+                      <li
+                        className={`${TIMELINE_ROW} pb-[14px] before:top-[14px] before:bottom-0`}
+                        key="focus"
+                      >
+                        <span
+                          className="mt-[5px] -ml-px size-[9px] flex-none rounded-full bg-mrd-ink"
+                          aria-hidden="true"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className={MACHINE_LABEL}>{entry.node.kind} · you are here</div>
+                          <div className="mt-mrd-1 text-mrd-base leading-[1.35] font-medium text-mrd-ink">
+                            {stripAutoPrefix(d.title)}
+                          </div>
                         </div>
                       </li>
                     ) : (
@@ -477,7 +586,7 @@ export function AuditLineageSheet() {
                   )}
                 </ol>
                 {graphQ.data.truncated ? (
-                  <p className="sp-chain-more">
+                  <p className={MORE}>
                     The chain continues past this. Follow an id above to keep walking.
                   </p>
                 ) : null}
@@ -485,8 +594,8 @@ export function AuditLineageSheet() {
             ) : null}
 
             {d.kind === "mission" && chainQ.data ? (
-              <div className="sp-lineage-chain">
-                <div className="sp-trail-label">Trust chain</div>
+              <div className="mt-mrd-6">
+                <div className={MACHINE_LABEL}>Trust chain</div>
                 <MissionChain chain={chainQ.data} />
               </div>
             ) : null}

@@ -95,9 +95,54 @@ function offenders(source: string, pattern: RegExp): string[] {
     .filter((line) => pattern.test(line));
 }
 
-const waits = [...src.matchAll(/<Loading(\s[^>]*)?>([\s\S]*?)<\/Loading>/g)].map(([, , text]) =>
-  text.trim(),
+/**
+ * THE COMPONENT THE SURFACE WAITS WITH, DISCOVERED RATHER THAN NAMED.
+ *
+ * ── WHY THIS IS READ OUT OF THE SOURCE AND NOT WRITTEN DOWN ─────────────
+ * Every assertion below used to spell `<Loading>`, the retired Cadence/ink
+ * primitive. On 2026-08-21 Today was ported to Meridian and `Loading` became
+ * `Reading` -- a rename that STRENGTHENED the property this file protects, since
+ * `Reading`'s own header records that it is deliberately not `LoadingState` and
+ * may not grow an elapsed timer on a plain fetch -- and it broke five
+ * assertions here.
+ *
+ * That is the third time this file has been broken by an improvement, and the
+ * two earlier ones are written out in full further down. Each time the lesson
+ * was the same and each time the replacement pinned a slightly better-chosen
+ * string. So this one does not pin a string at all: the tag is whatever the
+ * surface's first `stillWaiting(...) ? <X>` branch renders, and the rules below
+ * are asserted against X.
+ *
+ * WHAT THAT COSTS, said plainly: if the surface ever stopped rendering a
+ * component in that position, this resolves to null and the first test below
+ * fails on it by name rather than silently passing on an empty match set. That
+ * is the failure mode a discovered value has to close, and it is closed.
+ */
+const WAIT_TAG = /stillWaiting\(\w+\)\s*\?\s*\(?\s*<([A-Z]\w*)\b/.exec(jsx)?.[1] ?? null;
+
+/** Every symbol this route imports, whatever module it came from. Used to prove
+ *  the wait is a shared primitive rather than something hand-rolled here. */
+const IMPORTED = new Set(
+  [...src.matchAll(/import\s+\{([^}]*)\}\s*from\s*["'][^"']+["']/g)].flatMap(([, clause]) =>
+    clause
+      .split(",")
+      .map((part) =>
+        part
+          .trim()
+          .replace(/^type\s+/, "")
+          .split(/\s+as\s+/)
+          .pop()!
+          .trim(),
+      )
+      .filter(Boolean),
+  ),
 );
+
+const waits = WAIT_TAG
+  ? [...src.matchAll(new RegExp(`<${WAIT_TAG}(\\s[^>]*)?>([\\s\\S]*?)</${WAIT_TAG}>`, "g"))].map(
+      ([, , text]) => text.trim(),
+    )
+  : [];
 
 /** The three reads Today makes. Each owns a region, so each owns a wait. */
 const READS = ["queue", "missions", "learnings"] as const;
@@ -110,26 +155,47 @@ describe("Today renders something for every read in flight", () => {
     expect(offenders(src, /isPending\s*\?\s*null/)).toEqual([]);
   });
 
+  it("waits with a component at all, so the rules below have a subject", () => {
+    // The one thing a discovered tag has to prove about itself. If no
+    // `stillWaiting(x) ? <Something>` branch exists, every assertion keyed off
+    // WAIT_TAG would pass by having nothing to check, which is the failure mode
+    // a guard may not have.
+    expect(WAIT_TAG, "no `stillWaiting(x) ? <Component>` branch in Today").not.toBeNull();
+  });
+
   it("each read renders the third fact while it is still running", () => {
     for (const read of READS) {
       // `stillWaiting(read)`, not `read.isLoading`. Both mean "no answer yet";
       // only the second is wrong when a query is pending-but-not-fetching or has
       // resolved empty before auth attached, which is how a populated workspace
       // rendered its first-run screen on production (see @/lib/query-state).
-      const waiting = new RegExp(`stillWaiting\\(${read}\\)\\s*\\?\\s*\\(?\\s*<Loading>`).test(jsx);
+      //
+      // AND THE SAME COMPONENT FOR ALL THREE, which is the half a per-read check
+      // would miss: three regions each hand-rolling their own wait is how a
+      // surface ends up announcing one fetch three ways.
+      const waiting = new RegExp(
+        `stillWaiting\\(${read}\\)\\s*\\?\\s*\\(?\\s*<${WAIT_TAG}[\\s>]`,
+      ).test(jsx);
       expect({ read, waiting }).toEqual({ read, waiting: true });
     }
     expect(waits.length).toBe(READS.length);
   });
 
-  it("the wait comes from the primitive, which is what carries the live region", () => {
-    // Loading is a `<p aria-live="polite">` with a reserved min-height, so
-    // hand-rolling one drops the announcement and the reserved height in a single
-    // line, and the screen reader going quiet is the half nobody catches in review.
-    const imported = /import \{([\s\S]*?)\} from "@\/components\/shell\/primitives";/.exec(src);
-    expect(imported).not.toBeNull();
-    expect(imported![1]).toContain("Loading");
-    expect(offenders(src, /className="sp-loading"/)).toEqual([]);
+  it("the wait comes from a shared primitive, which is what carries the live region", () => {
+    // The wait is a live region with a reserved height, so hand-rolling one drops
+    // the announcement and the reserved height in a single line, and the screen
+    // reader going quiet is the half nobody catches in review.
+    //
+    // ASSERTED AS "IMPORTED AND NOT DECLARED HERE" rather than as a module path.
+    // The old form named `@/components/shell/primitives`, which pinned this
+    // surface to the retired component layer: the guard would have had to be
+    // edited to allow the port, and a guard that blocks a correct change is one
+    // somebody deletes. What actually matters is that the wait is a part the
+    // design system owns, wherever the system currently lives.
+    expect(IMPORTED.has(WAIT_TAG!), `${WAIT_TAG} is rendered but never imported`).toBe(true);
+    expect(offenders(src, new RegExp(`(function|const)\\s+${WAIT_TAG}\\b`))).toEqual([]);
+    // And nothing here rolls its own announcement alongside it.
+    expect(offenders(jsx, /aria-live/)).toEqual([]);
   });
 });
 
@@ -177,9 +243,12 @@ describe("Today's wait copy is honest", () => {
   });
 
   it("no plain database read wears an agent's clothes", () => {
-    // surface-discipline §7: `working` is only for a genuinely dispatched agent.
-    // Today reads three tables and dispatches nothing.
-    expect(offenders(src, /<Loading[^>]*\bworking\b/)).toEqual([]);
+    // surface-discipline §7: an agent indicator is only for a genuinely
+    // dispatched agent. Today reads three tables and dispatches nothing, so the
+    // wait may not be handed any flag that would dress it as one.
+    expect(
+      offenders(src, new RegExp(`<${WAIT_TAG}[^>]*\\b(working|agent|busy|pending)\\b`)),
+    ).toEqual([]);
     expect(offenders(src, /AgentPulse/)).toEqual([]);
   });
 });
@@ -194,9 +263,16 @@ describe("Today never prints a claim it has not read yet", () => {
     // same lesson the headline test three cases down has already had to learn
     // twice. The property is that the wait comes first and the titled branch is
     // reached only through `learning?.summary`, and neither depends on the copy.
-    const waitAt = jsx.indexOf("<Loading>Reading what it learned.</Loading>");
+    //
+    // AND NOT ON THE COMPONENT SPELLING EITHER, SINCE 2026-08-21. This read
+    // `<Block title`, and the Meridian port renamed `Block` to `Region` --
+    // another rename that broke a case whose subject is ORDER, which is the
+    // third time on this file. The title is already hoisted to a named constant
+    // BECAUSE it has to be identical in both arms, so the constant is the honest
+    // anchor: it moves only when the thing this case is about moves.
+    const waitAt = jsx.indexOf(`<${WAIT_TAG}>Reading what it learned.</${WAIT_TAG}>`);
     const guardAt = jsx.search(/learning\?\.summary\s*\?/);
-    const titleAt = jsx.indexOf("<Block title", guardAt);
+    const titleAt = jsx.indexOf("LEARNING_BLOCK", guardAt);
     expect(waitAt).toBeGreaterThan(-1);
     expect(guardAt).toBeGreaterThan(-1);
     expect(titleAt).toBeGreaterThan(-1);

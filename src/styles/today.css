@@ -1,20 +1,21 @@
 /* ═══════════════════════════════════════════════════════════════════════════
- * RETIRED DESIGN SYSTEM. DO NOT BUILD FROM THIS FILE.
+ * TODAY'S PAINT, ON MERIDIAN. Ported 2026-08-21 (K-59).
  *
- * The Cadence/ink Today sheet is retired. It still runs, deliberately: deleting the retired systems
- * in one move is how the 2026-07 rebuild failed, so they stay until each
- * surface is ported. THAT IS LIFE SUPPORT, NOT ENDORSEMENT.
+ * This file used to open with the retired-system banner, because every value in
+ * it came off Cadence/ink. It no longer does: the sheet carries no `--sp-*`
+ * token, and the route it paints composes entirely from `src/components/meridian`.
  *
- * READING THIS FILE IS NOT PERMISSION TO COPY IT. A rule in here is a record of
- * a system that lost, not an authority. When it disagrees with Meridian,
- * MERIDIAN WINS AND THIS FILE IS WRONG (founder ruling 2026-08-18).
+ * WHAT A RULE IN HERE IS FOR. Only this surface loads this sheet, and the reason
+ * it exists at all rather than living in utilities is that four of its objects
+ * are LAYOUTS with measured reasoning attached — the lane rhythm, the open call,
+ * the notice grid's dead column, the director's two-track split. Each of those
+ * notes below records a browser measurement, and a note is the only thing that
+ * stops the same defect being reintroduced by someone tidying up.
  *
  * BUILD FROM:  src/styles/meridian.css  ·  src/components/meridian/
  * CONTRACT:    docs/design/DESIGN-SYSTEM.md
  *
  * No --mrd-* token fits? That is a gap in Meridian and you build it there.
- * Reaching back here because a value already exists is the single move the
- * whole migration exists to stop.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ===================================================================
@@ -29,33 +30,40 @@
  * Reading order is shipped-first, because what is already live is the hardest
  * thing to reverse. VISUAL weight is call-first, because the call is the only
  * thing that needs a decision. Those two are reconciled here and nowhere else:
- * the lanes are rules and two lines of text, and the open call is the one
- * bordered, shadowed, floating object on the surface. Give any lane a card and
- * that reconciliation is gone.
+ * the lanes are two lines of text, and the open call is the one bordered,
+ * shadowed, floating object on the surface. Give any lane a card and that
+ * reconciliation is gone.
  *
- * A LANE AT ZERO COLLAPSES ITS OWN BREATHING ROOM (`data-quiet`). `.sp-block`
- * reserves 36px above and 28px inside for a section that has content; four
- * empty sections wearing that would cost ~440px to say four true sentences.
- * At zero the lane is a name and a fact, about 50px, and four of them read as
- * one short taxonomy rather than as four empty rooms.
+ * A LANE AT ZERO COLLAPSES ITS OWN BREATHING ROOM (`data-quiet`). Four empty
+ * sections wearing the full between-lane gap would cost roughly 160px to say
+ * four true sentences. At zero the lane is a name and a fact, about 50px, and
+ * four of them read as one short taxonomy rather than as four empty rooms.
  * =================================================================== */
 
 /* `--today-section-gap`: ONE GAP BETWEEN SECTIONS, AND THERE WERE TWO
  * (2026-08-11, measured at 1280 in a browser).
  *
  * Walking the rendered page top to bottom, the space above each sibling section
- * went 36, 40, 40, 36, 40. The lanes and "The last thing it learned" are
- * `.sp-block`s and take that primitive's own 36px; this sheet's own sections
- * took `--sp-space-9`, which ink.css documents as the WORK REGION GUTTER rather
- * than as a gap between groups. Wrong token, and the page paid for it in a
- * rhythm that changed every other section.
+ * went 36, 40, 40, 36, 40. The lanes and "The last thing it learned" were
+ * `.sp-block`s and took that primitive's own 36px; this sheet's own sections
+ * took a work-region gutter token rather than a gap between groups. Wrong
+ * token, and the page paid for it in a rhythm that changed every other section.
  *
- * It resolves toward 36 rather than 40 because `.sp-block` is the shared
- * primitive and draws the majority of the sections here: matching it is a
- * change to this surface, moving it would be a change to every station. */
+ * IT RESOLVES TO 40 NOW, AND THE 36 WAS THE ONLY REASON IT DID NOT BEFORE. The
+ * old value was chosen to match `.sp-block`, and `primitives.css`'s own header
+ * records the founder overruling that primitive in both directions on
+ * 2026-08-18: "Meridian's `Region` carries no outer margin and no border ON
+ * PURPOSE, the caller states the rhythm once per surface, and no hairline,
+ * divider or section border comes back." So the caller states it, once, here,
+ * and `--mrd-s7` is the number that ruling names. Every ported station uses it.
+ *
+ * A TOKEN AND NOT `gap` ON `.today-page`, deliberately. The greeting sits 10px
+ * above the headline ON PURPOSE — it is a courtesy and the sentence under it is
+ * the highest-leverage element on the surface — so a container gap would either
+ * blow that pair apart or squash every section down to it. */
 .today-page {
   --today-quiet: var(--mrd-mute);
-  --today-section-gap: 36px;
+  --today-section-gap: var(--mrd-s7);
   width: 100%;
   max-width: 1120px;
 }
@@ -64,7 +72,6 @@
   --today-quiet: var(--mrd-body);
 }
 
-.today-page .sp-subtitle,
 .today-greeting,
 .today-open-meta,
 .today-keys,
@@ -79,6 +86,13 @@
   color: var(--today-quiet);
 }
 
+/* `.sp-btn` IS STILL LIVE HERE, AND THAT IS NOT LEFTOVER DEBT. Four components
+   this route mounts — DecisionQueue, PushedInsights, QuietMorning's example and
+   the ask composer — still render the retired `Button`, each under its own queue
+   item. These three rules are what keeps their controls reachable inside the
+   flex rows this sheet lays out, so they go when the last of those is ported and
+   not before. Deleting them early costs a clipped verb and a 32px touch target
+   on the surface every session opens on. */
 .today-page .sp-btn {
   flex: none;
   justify-content: center;
@@ -97,12 +111,19 @@
  * make. */
 
 .today-greeting {
-  margin: 0 0 var(--sp-space-2);
-  font-size: var(--sp-text-meta);
-  line-height: var(--sp-leading-tight);
+  margin: 0 0 var(--mrd-s4);
+  font-size: var(--mrd-t-base);
+  line-height: var(--mrd-lh-snug);
 }
 
-.today-page .sp-title {
+/* THE HEADLINE IS A SENTENCE, SO IT IS BALANCED. `PageHeading` sets the size,
+   the weight and the ink and deliberately caps nothing: it is used on fifteen
+   ported surfaces and most of those titles are a noun. This one is a count and
+   a verb ("3 decisions are ready for your review. 1 run is stuck."), and a
+   sentence that wraps with one orphaned word on the second line reads as a
+   layout accident. Scoped to the direct child so no heading inside a region
+   picks it up. */
+.today-page > header[data-mrd] h1 {
   text-wrap: balance;
 }
 
@@ -111,37 +132,53 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sp-space-3);
+  gap: var(--mrd-s5);
 }
 
 .today-kicker,
 .today-evidence-label,
 .today-recommendation-label {
   font-family: var(--mrd-font);
-  font-size: var(--sp-text-meta);
-  font-weight: var(--sp-weight-medium);
+  font-size: var(--mrd-t-base);
+  font-weight: var(--mrd-w-medium);
   letter-spacing: normal;
   text-transform: none;
   color: var(--today-quiet);
 }
 
-/* ---- the lanes ---------------------------------------------------- */
+/* ---- the lanes ----------------------------------------------------
+ * THE RHYTHM BETWEEN LANES IS STATED HERE BECAUSE THE PRIMITIVE NO LONGER
+ * STATES IT. `.sp-block` reserved 36px above and 28px inside itself, and the
+ * quiet lane clawed that back to 20 + 20. Meridian's `Region` reserves nothing,
+ * on the founder's ruling quoted at the top of this file, so both numbers move
+ * here where a reader can see them against each other.
+ *
+ * 40px full, 24px quiet, and the STEP is the load-bearing part rather than
+ * either value: `data-quiet` means nothing at all if a lane with no body takes
+ * the same room as one with three rows, and 24 is the stop below 40. */
 
 .today-lanes {
-  margin-top: var(--sp-space-6);
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--today-section-gap);
 }
 
-.today-lane[data-quiet="true"] > .sp-block {
-  margin-top: var(--sp-space-5);
-  padding-top: var(--sp-space-5);
+.today-lane + .today-lane {
+  margin-top: var(--mrd-s7);
 }
 
-.today-lane[data-quiet="true"] .sp-block-head {
-  margin-bottom: var(--sp-space-1);
+.today-lane + .today-lane[data-quiet="true"] {
+  margin-top: var(--mrd-s6);
 }
 
-.today-lane[data-quiet="true"] .sp-block-sub {
-  margin-bottom: 0;
+/* The two sections that are a bare `Region` rather than a lane, and so lose the
+   same reserved margin. Named wrappers rather than `> section[data-mrd]`: three
+   of this page's children are sections it does not own, and a positional
+   selector would silently start moving one of them the day it grew an
+   attribute. */
+.today-arrival,
+.today-learned {
+  margin-top: var(--today-section-gap);
 }
 
 /* ---- the open call ------------------------------------------------
@@ -149,35 +186,44 @@
  * and the only object on the page carrying a shadow. That is what makes it
  * read as the thing to act on without spending a colour on it: the surface is
  * monochrome and the hierarchy survives greyscale, because it is built from
- * elevation and size rather than hue. */
+ * elevation and size rather than hue.
+ *
+ * The shadow is Meridian's own float, which is a smaller one than the retired
+ * sheet drew (8px blur against 14). It is the token declared for "genuinely
+ * floating: menu, pane" and it is solved in both grounds, which the retired
+ * pair of black rgba stacks was not. */
 
 .today-open {
-  margin-top: var(--sp-space-4);
-  padding: var(--sp-space-5) var(--sp-space-6) var(--sp-space-6);
+  margin-top: var(--mrd-s5);
+  /* Was 20px top against 24 on the other three sides. Meridian's ramp steps 16
+     then 24 with no 20, so the top takes the larger stop and the padding comes
+     out even. Nothing was written down about the asymmetry, and evening it up
+     is the direction the ratchet permits. */
+  padding: var(--mrd-s6);
   background: var(--mrd-float);
   border: 1px solid var(--mrd-line);
   border-radius: var(--mrd-r-card);
-  box-shadow: var(--sp-shadow);
+  box-shadow: var(--mrd-shadow-float);
 }
 
 .today-open-meta {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--sp-space-2);
-  padding-bottom: var(--sp-space-4);
-  border-bottom: 1px solid var(--sp-line-soft);
-  font-size: var(--sp-text-meta);
+  gap: var(--mrd-s4);
+  padding-bottom: var(--mrd-s5);
+  border-bottom: 1px solid var(--mrd-line-soft);
+  font-size: var(--mrd-t-base);
 }
 
 /* The separators are drawn rather than typed, so a meta line that loses its
    project or its impact never leaves a stranded middot. Mixed from the
-   metadata ink rather than from --sp-line: an edge token is about 1.2:1
-   against this ground and a separator nobody can see is worse than none, since
-   the reader is left with three words floating at equal distance. */
+   metadata ink rather than from an edge token: an edge is about 1.2:1 against
+   this ground and a separator nobody can see is worse than none, since the
+   reader is left with three words floating at equal distance. */
 .today-open-meta > * + *::before {
   content: "·";
-  margin-right: var(--sp-space-2);
+  margin-right: var(--mrd-s4);
   color: color-mix(in oklab, var(--mrd-mute) 55%, transparent);
 }
 
@@ -194,12 +240,25 @@
   color: var(--mrd-body);
 }
 
-.today-open-who .sp-mark {
+/* THE MARK SHRINKS TO FIT THE LINE, AND THE HOOK HAD ALREADY MOVED.
+ *
+ * These two rules read `.sp-mark`, which `AgentMark` stopped rendering when the
+ * marks moved into Meridian: `primitives.css` records deleting that 213-line
+ * block. So the mark in this meta line has been drawing at its own 22px, next
+ * to 13px text, since that port — the rule was inert and nothing measured it.
+ *
+ * `[role="img"]` is the hook now, and it is the mark's own semantic root rather
+ * than a class that can move again. 18px is the size this line was composed at
+ * and Meridian's product-wide 22px is deliberately NOT the answer here: its
+ * header says shrinking the mark everywhere to suit the densest case is the move
+ * the ratchet forbids, which cuts both ways — a caller may still fit it to one
+ * line. Unlayered, so it beats Tailwind's `size-[22px]`, which is in a layer. */
+.today-open-who [role="img"] {
   width: 18px;
   height: 18px;
 }
 
-.today-open-who .sp-mark svg {
+.today-open-who [role="img"] > svg {
   width: 13px;
   height: 13px;
 }
@@ -207,7 +266,7 @@
 .today-open-pos {
   margin-left: auto;
   flex: none;
-  font-size: var(--sp-text-data);
+  font-size: var(--mrd-t-small);
 }
 
 /* Pushed to the trailing edge by the rule above, so the middot that would
@@ -220,7 +279,7 @@
    comes before. Inside this card the meta line does that job, so the Gate's
    own entrance would be a second divider one line below the first. */
 .today-open > .sp-gate {
-  margin-top: var(--sp-space-4);
+  margin-top: var(--mrd-s5);
   padding-top: 0;
   border-top: 0;
 }
@@ -231,7 +290,7 @@
 }
 
 .today-open .sp-acts {
-  gap: var(--sp-space-2);
+  gap: var(--mrd-s4);
 }
 
 .today-pick {
@@ -248,8 +307,8 @@
    every caller that fits. */
 .today-page .sp-selbar {
   flex-wrap: wrap;
-  padding: var(--sp-space-2) var(--sp-space-4);
-  row-gap: var(--sp-space-2);
+  padding: var(--mrd-s4) var(--mrd-s5);
+  row-gap: var(--mrd-s4);
 }
 
 /* Wrapped, `margin-left: auto` would shove the verbs onto a line of their own
@@ -265,16 +324,16 @@
 .today-queue-head {
   display: flex;
   align-items: baseline;
-  gap: var(--sp-space-4);
-  margin-top: var(--sp-space-4);
+  gap: var(--mrd-s5);
+  margin-top: var(--mrd-s5);
 }
 
 .today-queue {
-  margin-top: var(--sp-space-3);
+  margin-top: var(--mrd-s5);
 }
 
 .today-queue > .today-open {
-  margin: var(--sp-space-4) 0;
+  margin: var(--mrd-s5) 0;
 }
 
 /* THE TICK BOX LEADS, WHICH COSTS ONE THING AND BUYS ANOTHER.
@@ -288,8 +347,14 @@
  * is that Tab reaches the row before the box that visually precedes it. It is
  * a real cost and it is small: each box carries the row's own title as its
  * accessible name ("Select: <title>"), so it is never ambiguous which row it
- * belongs to whichever order you meet them in. */
-.today-queue .sp-row-action {
+ * belongs to whichever order you meet them in.
+ *
+ * THE SELECTOR MOVED WITH `Row` AND THE RULE DID NOT, until this port. This
+ * read `.sp-row-action`, which Meridian's `Row` does not render — it marks the
+ * container `data-has-action` and puts the control in the last child instead —
+ * so the box has been sitting at the trailing edge, silently, since that port.
+ * Everything above is why that is worth a rule rather than worth accepting. */
+.today-queue [data-mrd-row][data-has-action] > span:last-child {
   order: -1;
 }
 
@@ -298,20 +363,20 @@
   align-items: baseline;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: var(--sp-space-3);
-  margin-top: var(--sp-space-4);
+  gap: var(--mrd-s5);
+  margin-top: var(--mrd-s5);
 }
 
 .today-keys {
   margin: 0;
-  font-size: var(--sp-text-data);
-  line-height: var(--sp-leading-tight);
+  font-size: var(--mrd-t-small);
+  line-height: var(--mrd-lh-snug);
 }
 
 /* Standing under the list rather than beside the door, it has to buy its own
    space; inside `.today-after` the flex row has already given it some. */
 .today-queue + .today-keys {
-  margin-top: var(--sp-space-4);
+  margin-top: var(--mrd-s5);
 }
 
 .today-keys kbd,
@@ -323,7 +388,7 @@
   background: var(--mrd-lift);
   color: var(--mrd-body);
   font-family: var(--mrd-mono);
-  font-size: var(--sp-text-kbd);
+  font-size: var(--mrd-t-tiny);
   line-height: 1.5;
 }
 
@@ -339,10 +404,10 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--sp-space-2);
-  margin-top: var(--sp-space-5);
-  padding-top: var(--sp-space-4);
-  border-top: 1px solid var(--sp-line-soft);
+  gap: var(--mrd-s4);
+  margin-top: var(--mrd-s6);
+  padding-top: var(--mrd-s5);
+  border-top: 1px solid var(--mrd-line-soft);
 }
 
 /* ---- the quiet morning's worked example ---------------------------
@@ -353,9 +418,9 @@
 
 .today-example {
   margin-top: var(--today-section-gap);
-  padding: var(--sp-space-6);
+  padding: var(--mrd-s6);
   background: var(--mrd-sink);
-  /* Mixed from the metadata ink, not from --sp-line. The edge token measures
+  /* Mixed from the metadata ink, not from an edge token. The edge measures
      about 1.2:1 against this ground, and a dashed border nobody can see does
      not do the one job it is here for. Still monochrome: an example is not a
      status and may not spend a hue. */
@@ -367,12 +432,13 @@
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: var(--sp-space-3);
+  gap: var(--mrd-s5);
 }
 
 /* Monochrome on purpose. An example is not a status, and every hue in this
    system is spoken for by one. */
-.today-example-tag {
+.today-example-tag,
+.today-evidence-kind {
   display: inline-flex;
   padding: 2px 7px;
   border: 1px solid var(--mrd-line);
@@ -380,61 +446,79 @@
   background: var(--mrd-lift);
   color: var(--mrd-body);
   font-family: var(--mrd-font);
-  font-size: var(--sp-text-label);
-  font-weight: var(--sp-weight-medium);
-  line-height: var(--sp-leading-tight);
+  font-size: var(--mrd-t-label);
+  font-weight: var(--mrd-w-medium);
+  line-height: var(--mrd-lh-snug);
 }
 
 .today-example-note,
 .today-example-keys {
-  font-size: var(--sp-text-meta);
-  line-height: var(--sp-leading-body);
+  font-size: var(--mrd-t-base);
+  line-height: var(--mrd-lh-prose);
 }
 
 .today-example-title {
   max-width: 60ch;
-  margin: var(--sp-space-4) 0 0;
+  margin: var(--mrd-s5) 0 0;
   font-family: var(--mrd-font);
-  font-size: var(--sp-text-prose);
-  font-weight: var(--sp-weight-regular);
+  font-size: var(--mrd-t-body);
+  font-weight: var(--mrd-w-regular);
   color: var(--mrd-body);
-  line-height: var(--sp-leading-body);
+  line-height: var(--mrd-lh-prose);
   text-wrap: pretty;
 }
 
 .today-example-call {
-  margin-top: var(--sp-space-5);
+  margin-top: var(--mrd-s6);
 }
 
+/* THE QUESTION STOP, AND MERIDIAN HAD ALREADY SETTLED IT.
+ *
+ * The retired sheet set a 19px/1.32/-0.019em "gate" role with a 36ch measure,
+ * and Meridian has no 19px stop. It does have this exact role solved twice
+ * over: `meridian/Gate.tsx` and `approvals/CallGate.tsx` both draw the question
+ * at `text-[20px] leading-tight font-medium`, and Gate's header says why they
+ * agree — "two gates that disagree about their own shape is how a design system
+ * stops being one". So the four question-and-heading rules in this file take
+ * `--mrd-t-h3` (20px) and `--mrd-lh-tight` (1.15).
+ *
+ * THE TRACKING DECLARATION IS GONE RATHER THAN MAPPED. meridian.css sets
+ * `--mrd-track` on `html, body`, unlayered, and states that it is uniform at
+ * every size and that a per-component tracking token "would drift within a
+ * release and is the exact fussiness this avoids". These headings inherit it.
+ *
+ * THE MEASURE STAYS A LITERAL. `--mrd-measure` is 68ch and is for prose; a
+ * question is capped short on purpose. It is written as 36ch because the sibling
+ * rule twenty lines up already writes 34ch for the same role, so the two do not
+ * agree closely enough for a token to be naming a decision anybody made. */
 .today-example-q {
-  max-width: var(--sp-gate-max);
+  max-width: 36ch;
   margin: 0;
   font-family: var(--mrd-font);
-  font-size: var(--sp-text-gate);
-  font-weight: var(--sp-weight-strong);
-  letter-spacing: var(--sp-track-gate);
-  line-height: var(--sp-leading-gate);
+  font-size: var(--mrd-t-h3);
+  font-weight: var(--mrd-w-semi);
+  line-height: var(--mrd-lh-tight);
   color: var(--mrd-ink);
   text-wrap: balance;
 }
 
 .today-example-why {
-  margin-top: var(--sp-space-4);
+  margin-top: var(--mrd-s5);
 }
 
 .today-example-why > p:not(.today-example-label) {
   margin: 0;
   padding: 5px 0;
   max-width: 72ch;
-  font-size: var(--sp-text-prose);
+  font-size: var(--mrd-t-body);
   color: var(--mrd-body);
-  line-height: var(--sp-leading-body);
+  line-height: var(--mrd-lh-prose);
 }
 
 .today-example-label {
-  margin: 0 0 var(--sp-space-2);
+  margin: 0 0 var(--mrd-s4);
   font-family: var(--mrd-mono);
-  font-size: var(--sp-text-data-sm);
+  font-size: var(--mrd-t-data);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--mrd-mute);
@@ -442,9 +526,9 @@
 
 .today-example-keys {
   max-width: 72ch;
-  margin: var(--sp-space-5) 0 0;
-  padding-top: var(--sp-space-4);
-  border-top: 1px solid var(--sp-line-soft);
+  margin: var(--mrd-s6) 0 0;
+  padding-top: var(--mrd-s5);
+  border-top: 1px solid var(--mrd-line-soft);
 }
 
 /* ---- the director's read ------------------------------------------
@@ -455,13 +539,13 @@
 .today-director {
   min-width: 0;
   margin-top: var(--today-section-gap);
-  padding: var(--sp-space-6);
+  padding: var(--mrd-s6);
   background: var(--mrd-sink);
-  border: 1px solid var(--sp-line-soft);
+  border: 1px solid var(--mrd-line-soft);
   border-radius: var(--mrd-r-card);
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
-  column-gap: var(--sp-space-8);
+  column-gap: var(--mrd-s7);
   align-content: start;
 }
 
@@ -488,49 +572,48 @@
   margin: 0;
   font-family: var(--mrd-font);
   color: var(--mrd-ink);
-  font-weight: var(--sp-weight-strong);
+  font-weight: var(--mrd-w-semi);
   text-wrap: balance;
 }
 
 .today-director-title {
-  margin-top: var(--sp-space-5);
-  font-size: var(--sp-text-gate);
-  line-height: var(--sp-leading-gate);
-  letter-spacing: var(--sp-track-gate);
+  margin-top: var(--mrd-s6);
+  font-size: var(--mrd-t-h3);
+  line-height: var(--mrd-lh-tight);
 }
 
 .today-director-detail {
-  margin: var(--sp-space-3) 0 0;
+  margin: var(--mrd-s5) 0 0;
   color: var(--mrd-body);
-  font-size: var(--sp-text-prose);
-  line-height: var(--sp-leading-note);
+  font-size: var(--mrd-t-body);
+  line-height: var(--mrd-lh-prose);
   text-wrap: pretty;
 }
 
 .today-director-rank {
   flex: none;
-  font-size: var(--sp-text-data);
+  font-size: var(--mrd-t-small);
 }
 
 .today-director-evidence {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sp-space-2) var(--sp-space-4);
-  margin-top: var(--sp-space-4);
-  font-size: var(--sp-text-data);
+  gap: var(--mrd-s4) var(--mrd-s5);
+  margin-top: var(--mrd-s5);
+  font-size: var(--mrd-t-small);
 }
 
 .today-director-move {
   display: flex;
   align-items: flex-start;
   flex-direction: column;
-  gap: var(--sp-space-3);
-  margin-top: var(--sp-space-5);
-  padding-top: var(--sp-space-4);
-  border-top: 1px solid var(--sp-line-soft);
+  gap: var(--mrd-s5);
+  margin-top: var(--mrd-s6);
+  padding-top: var(--mrd-s5);
+  border-top: 1px solid var(--mrd-line-soft);
   color: var(--mrd-body);
-  font-size: var(--sp-text-meta);
-  line-height: var(--sp-leading-tight);
+  font-size: var(--mrd-t-base);
+  line-height: var(--mrd-lh-snug);
 }
 
 .today-director-move > div {
@@ -538,7 +621,7 @@
 }
 
 .today-recommendation-label {
-  margin-bottom: var(--sp-space-1);
+  margin-bottom: var(--mrd-s2);
 }
 
 /* ---- the composer -------------------------------------------------
@@ -549,17 +632,17 @@
 .today-composer {
   display: grid;
   grid-template-columns: minmax(220px, 0.45fr) minmax(0, 1fr);
-  gap: var(--sp-space-6);
+  gap: var(--mrd-s6);
   align-items: center;
   margin-top: var(--today-section-gap);
-  padding: var(--sp-space-5) 0;
-  border-top: 1px solid var(--sp-line-soft);
-  border-bottom: 1px solid var(--sp-line-soft);
+  padding: var(--mrd-s6) 0;
+  border-top: 1px solid var(--mrd-line-soft);
+  border-bottom: 1px solid var(--mrd-line-soft);
 }
 
 .today-composer-copy {
-  margin-top: var(--sp-space-1);
-  font-size: var(--sp-text-meta);
+  margin-top: var(--mrd-s2);
+  font-size: var(--mrd-t-base);
 }
 
 .today-ask-form {
@@ -574,7 +657,7 @@
 .today-ask-shortcut {
   position: absolute;
   top: 50%;
-  right: var(--sp-space-3);
+  right: var(--mrd-s5);
   transform: translateY(-50%);
   padding: 2px 5px;
   border: 1px solid var(--mrd-line);
@@ -582,7 +665,7 @@
   background: var(--mrd-lift);
   color: var(--today-quiet);
   font-family: var(--mrd-mono);
-  font-size: var(--sp-text-kbd);
+  font-size: var(--mrd-t-tiny);
   line-height: 1.2;
   pointer-events: none;
 }
@@ -597,11 +680,45 @@
   align-items: end;
 }
 
+/* THE THREE HUES CAME OFF, AND ALL THREE WERE ILLEGAL RATHER THAN MERELY OLD.
+ *
+ * This section painted its kicker and its dot the Discover station's teal, and
+ * gave each notice a `--today-evidence-hue` that resolved to the Discover teal,
+ * the Decide gold or the retired sheet's `--sp-warn` amber.
+ *
+ *   THE TWO STAGE HUES ARE LAW 4. "Identity is shape, status is hue", and a
+ *       station ramp is identity: DESIGN-SYSTEM.md records it found and removed
+ *       three separate times, and `marks.tsx` and `primitives.css` each record
+ *       refusing to carry `--sp-hue` across for the same reason. Building
+ *       `--mrd-stage-*` to receive them would have reinstated it in the one file
+ *       that is supposed to hold the line.
+ *   `--sp-warn` WAS A SIXTH STATUS WORD in a system whose whole colour law is
+ *       that there are five. meridian.css answers this in its own words:
+ *       "SIXTH MEANING: NO ... If something needs to be noticed and carries none
+ *       of these five meanings, it needs STRUCTURE — a Notice, a rule, a heading
+ *       — not a new colour."
+ *
+ * SO WHAT AN EVIDENCE KIND IS, SAID PROPERLY: a CATEGORY. Three of them, and
+ * `PushedInsights` already names each one in words on the chip — "Decision
+ * changed", "Contradicting evidence", "Connected evidence". None of the five
+ * status meanings applies: nothing has passed, nothing has failed, no condition
+ * is being waited on, and no decision by this reader releases anything.
+ *
+ * `--mrd-viz-1..4` IS THE OTHER PERMITTED ANSWER AND IT IS REFUSED HERE, on
+ * `OpportunityRow.tsx`'s recorded reasoning: the viz ramp is orange, blue,
+ * green, red, so a categorical encoding puts a green and a red back in front of
+ * a reader who has learned that green and red are outcomes. Viz earns its keep
+ * where a legend or an axis says what a series is. Three chips do not have one.
+ *
+ * So the category is carried by the WORD, which names itself, and the chip takes
+ * the same monochrome recipe as `.today-example-tag` twenty lines up — which
+ * already states this rule on this surface and is the reason the inconsistency
+ * was visible at all. The dot stays: it is the structure the ruling above asks
+ * for, and it marks the section without claiming a state. */
 .today-notices .today-kicker {
   display: inline-flex;
   align-items: center;
-  gap: var(--sp-space-2);
-  color: color-mix(in oklab, var(--sp-stage-discover) 68%, var(--mrd-ink));
+  gap: var(--mrd-s4);
 }
 
 .today-notices .today-kicker::before {
@@ -610,32 +727,31 @@
   height: 6px;
   flex: none;
   border-radius: 50%;
-  background: var(--sp-stage-discover);
+  background: var(--mrd-mute);
 }
 
 .today-notices h2 {
-  margin-top: var(--sp-space-1);
-  font-size: var(--sp-text-gate);
-  line-height: var(--sp-leading-gate);
-  letter-spacing: var(--sp-track-gate);
+  margin-top: var(--mrd-s2);
+  font-size: var(--mrd-t-h3);
+  line-height: var(--mrd-lh-tight);
 }
 
 .today-notices-count {
   flex: none;
-  font-size: var(--sp-text-data);
+  font-size: var(--mrd-t-small);
 }
 
 .today-notices-sub {
   max-width: 66ch;
-  margin: var(--sp-space-2) 0 0;
-  font-size: var(--sp-text-meta);
-  line-height: var(--sp-leading-body);
+  margin: var(--mrd-s4) 0 0;
+  font-size: var(--mrd-t-base);
+  line-height: var(--mrd-lh-prose);
   text-wrap: pretty;
 }
 
 .today-notice-list {
-  margin-top: var(--sp-space-4);
-  border-top: 1px solid var(--sp-line-soft);
+  margin-top: var(--mrd-s5);
+  border-top: 1px solid var(--mrd-line-soft);
 }
 
 /* THE MEASURE CAP BELONGS ON THE COLUMN, NOT ON THE CHILD (2026-08-10).
@@ -643,9 +759,9 @@
  * This was `minmax(0, 1fr) auto` while `.today-notice-copy` carried
  * `max-width: 72ch`. At 1440px that made the copy COLUMN 853px wide holding an
  * element that could never exceed 619px, so 234px of every row was space no
- * content could reach. Add the 24px gap and the actions landed roughly 290px
- * from the end of the sentence they belong to, on the most-visited screen in
- * the product. Nothing looked broken; it just read as stretched rather than
+ * content could reach. Add the gap and the actions landed roughly 290px from
+ * the end of the sentence they belong to, on the most-visited screen in the
+ * product. Nothing looked broken; it just read as stretched rather than
  * composed, which is most of the difference between a tool and a template.
  *
  * Capping the ROW instead was tried and rejected: it shortens the row's own
@@ -654,26 +770,18 @@
  * so every rule still lines up, and `justify-content: start` puts the leftover
  * space after the actions instead of inside the row.
  *
- * Leading is the row token, not the document token: these are lines you scan
- * down, not paragraphs you read. See the note on .sp-line in primitives.css. */
+ * Leading is `--mrd-lh-snug`: these are lines you scan down, not paragraphs you
+ * read. meridian.css declares that stop "UI rows. Was 1.4; the reference's air
+ * lives here", which is the retired row token this replaces, by name. */
 .today-notice {
-  --today-evidence-hue: var(--sp-stage-discover);
   display: grid;
   grid-template-columns: minmax(0, 72ch) auto;
   justify-content: start;
-  gap: var(--sp-space-6);
+  gap: var(--mrd-s6);
   align-items: center;
-  padding: var(--sp-space-5) 0;
-  line-height: var(--sp-leading-row);
-  border-bottom: 1px solid var(--sp-line-soft);
-}
-
-.today-notice[data-evidence-kind="changed"] {
-  --today-evidence-hue: var(--sp-stage-decide);
-}
-
-.today-notice[data-evidence-kind="challenged"] {
-  --today-evidence-hue: var(--sp-warn);
+  padding: var(--mrd-s6) 0;
+  line-height: var(--mrd-lh-snug);
+  border-bottom: 1px solid var(--mrd-line-soft);
 }
 
 /* The 72ch measure moved up to the grid column above. Two places enforcing one
@@ -683,34 +791,20 @@
   min-width: 0;
 }
 
-.today-evidence-kind {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 7px;
-  border: 1px solid color-mix(in oklab, var(--today-evidence-hue) 28%, var(--mrd-line));
-  border-radius: var(--mrd-r-chip);
-  background: color-mix(in oklab, var(--today-evidence-hue) 10%, transparent);
-  color: color-mix(in oklab, var(--today-evidence-hue) 70%, var(--mrd-ink));
-  font-family: var(--mrd-font);
-  font-size: var(--sp-text-label);
-  font-weight: var(--sp-weight-medium);
-  line-height: var(--sp-leading-tight);
-}
-
 .today-notice h3 {
-  margin-top: var(--sp-space-2);
-  font-size: var(--sp-text-body);
-  line-height: var(--sp-leading-tight);
+  margin-top: var(--mrd-s4);
+  font-size: var(--mrd-t-body);
+  line-height: var(--mrd-lh-snug);
 }
 
 .today-notice p {
-  margin: var(--sp-space-1) 0 0;
-  font-size: var(--sp-text-meta);
+  margin: var(--mrd-s2) 0 0;
+  font-size: var(--mrd-t-base);
   /* The explanation under a notice is scanned inside a list, not read as
    * prose, so it takes row leading. The SECTION description above the list
-   * (.today-notices-sub) keeps body leading, because that one genuinely is a
+   * (.today-notices-sub) keeps prose leading, because that one genuinely is a
    * paragraph. */
-  line-height: var(--sp-leading-row);
+  line-height: var(--mrd-lh-snug);
   text-wrap: pretty;
 }
 
@@ -719,7 +813,7 @@
 .today-critic-signals {
   display: flex;
   align-items: center;
-  gap: var(--sp-space-2);
+  gap: var(--mrd-s4);
   flex-wrap: wrap;
 }
 
@@ -727,7 +821,7 @@
 
 .today-critic {
   margin-top: var(--today-section-gap);
-  padding: var(--sp-space-6);
+  padding: var(--mrd-s6);
   background: var(--mrd-float);
   border: 1px solid var(--mrd-line);
   border-radius: var(--mrd-r-card);
@@ -735,44 +829,44 @@
 
 .today-critic-title {
   max-width: 46ch;
-  margin-top: var(--sp-space-4);
-  font-size: var(--sp-text-gate);
-  line-height: var(--sp-leading-gate);
+  margin-top: var(--mrd-s5);
+  font-size: var(--mrd-t-h3);
+  line-height: var(--mrd-lh-tight);
 }
 
 .today-critic-summary {
   max-width: 72ch;
-  margin: var(--sp-space-3) 0 0;
+  margin: var(--mrd-s5) 0 0;
   color: var(--mrd-body);
-  font-size: var(--sp-text-prose);
-  line-height: var(--sp-leading-note);
+  font-size: var(--mrd-t-body);
+  line-height: var(--mrd-lh-prose);
   text-wrap: pretty;
 }
 
 .today-critic-evidence {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sp-space-6);
-  margin-top: var(--sp-space-5);
-  padding: var(--sp-space-4);
+  gap: var(--mrd-s6);
+  margin-top: var(--mrd-s6);
+  padding: var(--mrd-s5);
   background: var(--mrd-sink);
   border-radius: var(--mrd-r-card);
   color: var(--mrd-body);
-  font-size: var(--sp-text-meta);
-  line-height: var(--sp-leading-body);
+  font-size: var(--mrd-t-base);
+  line-height: var(--mrd-lh-prose);
 }
 
 .today-critic-evidence ul,
 .today-critic-evidence p {
-  margin: var(--sp-space-2) 0 0;
+  margin: var(--mrd-s4) 0 0;
 }
 
 .today-critic-evidence ul {
-  padding-left: var(--sp-space-5);
+  padding-left: var(--mrd-s6);
 }
 
 .today-actions {
-  margin-top: var(--sp-space-5);
+  margin-top: var(--mrd-s6);
 }
 
 @media (max-width: 900px) {
@@ -785,7 +879,7 @@
   .today-open,
   .today-critic,
   .today-example {
-    padding: var(--sp-space-5);
+    padding: var(--mrd-s6);
   }
 
   /* IT WRAPS, IT DOES NOT STACK. Forced into a column each fact took a line of
@@ -805,12 +899,12 @@
 
   .today-composer {
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--sp-space-3);
+    gap: var(--mrd-s5);
   }
 
   .today-notice {
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--sp-space-4);
+    gap: var(--mrd-s5);
   }
 
   .today-notice-actions {

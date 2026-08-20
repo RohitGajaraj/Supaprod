@@ -2338,11 +2338,32 @@ button.sp-me {
   cursor: pointer;
 }
 
-/* ---------- the lineage pane ----------
+/* ---------- the lineage pane: ONE RULE, AND IT IS THE GEOMETRY ----------
  * Where a thing came from, and what it caused. Same geometry as Ask, because
  * it is the same kind of thing: a column you consult BESIDE the work, not a
  * dialog that takes the screen. Someone tracing provenance is comparing it
  * against what they were already looking at, and a modal makes that impossible.
+ *
+ * THE OTHER 28 RULES ARE GONE, and they went UP into the component rather than
+ * sideways into another sheet: `AuditLineageSheet.tsx` composes from Meridian
+ * utilities now, and its own header carries the two decisions that were not
+ * mechanical. The rules had already been converted to `--mrd-*` tokens, so
+ * nothing on screen was wrong -- which is exactly why the naming layer was worth
+ * moving. A second vocabulary that renders identically to the first is not a bug,
+ * it is where the next divergence comes from.
+ *
+ * WHY THIS ONE STAYED, and it is two reasons at once rather than a concession:
+ *
+ *   1. `.sp-lineage` IS AN API. `AskPane.tsx` lists the literal selector in its
+ *      `KEEPS_IT_OPEN` pointerdown list, because this pane is summoned FROM Ask
+ *      and covers it. Take the class off the root and every press in here
+ *      dismisses the conversation that asked for the trace. `AskPane.test.tsx`
+ *      builds its own synthetic `<div class="sp-lineage">`, so it stays green
+ *      whatever the real component renders: nothing would catch it.
+ *   2. THE GEOMETRY IS A SHARED CONTRACT. `--sp-header-h`, `--sp-pane-ask-w` and
+ *      `--sp-pane-inset` are on this file's short list of numbers Ask reads too.
+ *      Copying them into the component would put two numbers behind one fact,
+ *      which is the thing that list exists to prevent.
  *
  * NO EMBER ANYWHERE IN HERE. The Loom-era version painted the ref and every
  * timeline dot ember. Ember means "waiting on you" and nothing else in this
@@ -2361,258 +2382,6 @@ button.sp-me {
   background: var(--mrd-float);
   border-radius: var(--mrd-r-pane);
   box-shadow: var(--mrd-shadow-pane);
-}
-.sp-lineage-head {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--mrd-line-soft);
-  flex: none;
-}
-/* The id is mono because it is an identifier, and identifiers are read
- * character by character. It is NOT Geist Pixel: that face was retired, and it
- * was doing brand work in a slot that needs legibility. */
-.sp-lineage-ref {
-  font-family: var(--mrd-mono);
-  font-size: var(--mrd-t-data);
-  letter-spacing: 0.06em;
-  color: var(--mrd-ink);
-}
-.sp-lineage-kind {
-  font-size: var(--mrd-t-label);
-  color: var(--mrd-mute);
-}
-.sp-lineage-spacer {
-  flex: 1;
-}
-.sp-lineage-btn {
-  border: 0;
-  background: none;
-  font: inherit;
-  font-size: var(--mrd-t-label);
-  color: var(--mrd-mute);
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: var(--mrd-r-xs);
-}
-.sp-lineage-btn:hover {
-  color: var(--mrd-ink);
-  background: var(--mrd-hover);
-}
-.sp-lineage-body {
-  padding: 16px;
-  overflow: auto;
-  flex: 1;
-}
-.sp-lineage-title {
-  font-size: var(--mrd-t-base);
-  font-weight: var(--mrd-w-medium);
-  color: var(--mrd-ink);
-  line-height: 1.35;
-  margin: 0 0 4px;
-}
-.sp-lineage-meta {
-  font-size: var(--mrd-t-label);
-  color: var(--mrd-mute);
-  margin-bottom: 18px;
-}
-
-/* The trail. A rule joins the steps because provenance is a sequence, and the
- * rule is the cheapest way to say so without drawing a diagram. */
-.sp-trail {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.sp-trail-step {
-  display: flex;
-  gap: 12px;
-  position: relative;
-  padding-bottom: 16px;
-}
-.sp-trail-step:last-child {
-  padding-bottom: 0;
-}
-.sp-trail-mark {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--mrd-line);
-  margin-top: 6px;
-  flex: none;
-}
-/* The connecting rule, drawn from each step except the last. */
-.sp-trail-step:not(:last-child)::before {
-  content: "";
-  position: absolute;
-  left: 3px;
-  top: 15px;
-  bottom: 2px;
-  width: 1px;
-  background: var(--mrd-line-soft);
-}
-.sp-trail-body {
-  min-width: 0;
-  flex: 1;
-}
-.sp-trail-label {
-  font-family: var(--mrd-mono);
-  font-size: var(--mrd-t-data);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--mrd-mute);
-}
-.sp-trail-at {
-  color: var(--mrd-faint, var(--mrd-mute));
-}
-.sp-trail-detail {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  color: var(--mrd-body);
-  font-size: var(--mrd-t-base);
-  margin-top: 3px;
-}
-/* A connected id is a door, so it looks like one. */
-.sp-trail-ref {
-  font-family: var(--mrd-mono);
-  font-size: var(--mrd-t-data);
-  letter-spacing: 0.06em;
-  color: var(--mrd-body);
-  border: 1px solid var(--mrd-line);
-  border-radius: var(--mrd-r-xs);
-  padding: 1px 6px;
-  background: none;
-  cursor: pointer;
-  transition:
-    color var(--mrd-d-press) var(--mrd-ease),
-    border-color var(--mrd-d-press) var(--mrd-ease);
-}
-.sp-trail-ref:hover {
-  color: var(--mrd-ink);
-  border-color: var(--mrd-ink);
-}
-.sp-lineage-chain {
-  margin-top: 24px;
-}
-
-/* ---------- the chain ----------
- * Where a thing came from and what it caused, read as ONE story: origin at the
- * top, time running down THROUGH the focus. The founder described it in one
- * breath, so it renders in one column; two headed lists would make the reader
- * assemble the order themselves. */
-.sp-chain {
-  list-style: none;
-  margin: 10px 0 0;
-  padding: 0;
-}
-.sp-chain-node {
-  display: flex;
-  gap: 12px;
-  position: relative;
-  padding-bottom: 14px;
-}
-.sp-chain-node:last-child {
-  padding-bottom: 0;
-}
-.sp-chain-node:not(:last-child)::before {
-  content: "";
-  position: absolute;
-  left: 3px;
-  top: 14px;
-  bottom: 0;
-  width: 1px;
-  background: var(--mrd-line-soft);
-}
-.sp-chain-mark {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--mrd-line);
-  margin-top: 5px;
-  flex: none;
-}
-/* Where you are, marked by weight rather than colour: the focus is a position
- * in the story, not a status, and colour in this system carries status. */
-.sp-chain-node[data-focus="true"] .sp-chain-mark {
-  background: var(--mrd-ink);
-  width: 9px;
-  height: 9px;
-  margin-left: -1px;
-}
-.sp-chain-node[data-focus="true"] .sp-chain-title {
-  color: var(--mrd-ink);
-  font-weight: var(--mrd-w-medium);
-}
-/* A node we could not read is dimmed, never hidden. A missing node silently
- * shortens the chain and nobody can tell; a dim one says so. */
-.sp-chain-node[data-resolved="false"] .sp-chain-title {
-  color: var(--mrd-mute);
-  font-style: italic;
-}
-.sp-chain-body {
-  min-width: 0;
-  flex: 1;
-}
-.sp-chain-kind {
-  font-family: var(--mrd-mono);
-  font-size: var(--mrd-t-data);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--mrd-mute);
-}
-.sp-chain-rel {
-  color: var(--mrd-faint, var(--mrd-mute));
-}
-.sp-chain-title {
-  font-size: var(--mrd-t-base);
-  color: var(--mrd-body);
-  margin-top: 2px;
-  line-height: 1.35;
-}
-.sp-chain-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-size: var(--mrd-t-label);
-  color: var(--mrd-mute);
-  margin-top: 4px;
-}
-/* Never a silent stop: a chain that merely hit a depth cap must not read as a
- * chain that ended. */
-.sp-chain-more {
-  font-size: var(--mrd-t-label);
-  color: var(--mrd-mute);
-  margin: 10px 0 0;
-}
-
-/* A tag that names more than one row. Six hex characters collide: every seeded
- * opportunity in the demo workspace shorts to the same six. Stated plainly
- * rather than resolved silently. */
-.sp-lineage-ambig {
-  font-size: var(--mrd-t-base);
-  color: var(--mrd-body);
-  margin: 0 0 14px;
-  line-height: 1.5;
-}
-.sp-lineage-pick {
-  display: block;
-  text-align: left;
-  border: 0;
-  background: none;
-  padding: 0;
-  font: inherit;
-  font-size: var(--mrd-t-base);
-  color: var(--mrd-body);
-  cursor: pointer;
-  line-height: 1.35;
-}
-.sp-lineage-pick:hover {
-  color: var(--mrd-ink);
-  text-decoration: underline;
 }
 
 /* ---------- the dock ----------

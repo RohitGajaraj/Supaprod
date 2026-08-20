@@ -5882,3 +5882,215 @@ verified**, and nothing else in the queue is closer.
 
 **Gates.** tsc 0 · `agent-fleet.test.ts` **17 pass / 0 fail** · build pass · docs:check pass ·
 `lane:gates` green, real exit 0 read from `$?`. The ratchet did not move.
+
+---
+
+## K-30 · BUILT · 2026-08-20 23:58
+
+**Did.** Deleted **72 unreachable token names, 124 declaration lines** from `src/styles.css` across four
+blocks: 4 `--text-*` from the early `[data-obsidian]`, 5 from the second, 63 from `:root`, 52 from
+`[data-theme="light"]`. File 3,798 → 3,673 lines. **`styles.css` debt down 223**: `--ds-` 518 → 398,
+`--text-` 49 → 40, raw-colour 287 → 193.
+
+**Unreachability was computed, not assumed, and the method is the finding.** Comment-strip first, then
+**seed on every `--name` occurrence outside `styles.css` rather than on `var()`**, plus every `var()`
+inside it that sits in a non-custom-property declaration, plus every name declared in an `@theme`
+block. Then close over token-to-token references to a fixed point. Before: 169 declared, 97 live, 72
+dead. After: **97 declared, 97 live, 0 dead.** Cross-checked with a literal whole-repo grep per name:
+hits in exactly two places, gitignored build output and one `//` comment.
+
+**Unsure.** **Four things I kept that the item told me to delete, and each would have been an invisible
+runtime defect.**
+1. **`--ds-shadow-xs`, `-2xs`, `-xl`, `-2xl`: the item's premise is false.** It lists them as "also dead
+   and easy to miss". `e2e/09-elevation-tokens.spec.ts` probes **all eight** `--ds-shadow-*` names and
+   asserts `expect(unresolved).toEqual([])` on four routes. That assertion was deliberately revived on
+   2026-08-10 after the file spent weeks probing names that did not exist. **8 lines kept.**
+2. **`--ds-teal-600`: "verified-clean whole family" is false for one step.** `--chart-2` reads it, and
+   `--chart-2` feeds `--color-chart-2` inside `@theme inline`, which is how `bg-chart-2` is generated.
+   The other nine teal steps went.
+3. **`--ds-pink-*` and `--ds-purple-*`: the item calls both families live and only four steps are.** I
+   deleted 16 declarations and kept `-pink-700`, `-pink-900`, `-purple-600`, `-purple-900`. **This is
+   the call most defensibly reversible**: I read the family label as shorthand because the item's own
+   evidence names only those steps and its `What` says to run the script rather than trust a list.
+4. **One consequence accepted rather than resolved: the ramps are now gappy.** Teal keeps only 600,
+   pink 700/900, purple 600/900. A reader looking for an intermediate step finds a hole, which is
+   correct under the standing ruling (a missing value is a gap in Meridian, never a reason to reach
+   back here) but it changes how the file reads.
+
+**Noticed.** Four, and the first two are the ones that matter.
+1. **The guard named as catching this failure mode cannot see it.**
+   `every-token-used-is-defined.test.ts` is scoped to `--sp-*` only, and its `declaredTokens()` walks
+   the **`src/styles/` directory and never opens `src/styles.css`**. That is AGENTS.md §9's
+   file-versus-directory trap **living inside the guard itself**. It passes, and its passing is not
+   evidence about this change. A `--ds-`/`--text-` arm reading the root sheet is a real gap.
+2. **Tailwind v4's arbitrary-value shorthand is not `var()`, and a var-only scan would have deleted
+   live tokens.** `z-(--ds-z-modal)`, `p-(--ds-popover-padding)`, `duration-(--ds-motion-popover-duration)`
+   and `ease-(--ds-motion-timing-swift)` appear across six shadcn files. A `var()`-only script would
+   have removed every `--ds-z-*`, `--ds-popover-*`, `--ds-size-*`, `--ds-overlay-backdrop-*`,
+   `--ds-focus-ring*` and `--ds-motion-*`. **Seeding on any `--name` occurrence is what catches it**,
+   and the item does not mention this.
+3. **`@theme inline` is a consumer with zero `var()` readers and it heads three alias chains.** My
+   first pass marked `--color-chart-2/3/4` dead; Tailwind generates utilities from them, which is what
+   keeps three colour steps alive. That is the alias-chain-through-a-non-`var()`-mechanism case one
+   level deeper than a `var()` chain.
+4. **Every line reference in the item's own `How` is stale**, the same finding K-29 reported: `--ds-page-width`
+   3400 → 3196, `--chart-4` 3554 → 3351, `--violet-soft` 3518 → 3315. The token facts held; the
+   coordinates did not. Also: **there is no `index.html` in this repo**, which the item names as a scan
+   root, and `meridian-ratchet-scan.ts:84` carries pre-K-28 numbers in its docblock.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. **Structural check: braces 405/405
+unchanged, final depth 0, top-level blocks 110 unchanged, the four blocks whose selector is exactly
+`[data-obsidian]` still four**, custom-property declaration lines 839 → 715. 530 pass across the 15
+test files naming `--ds-` or `--text-`.
+
+---
+
+## K-43 · BUILT · 2026-08-20 23:58
+
+**Did.** 44 of 45 occurrences off `AuditLineageSheet.tsx`, 28 of 29 distinct class names gone,
+`class:sp-` **45 → 1**. Deleted **252 lines** from `shell.css`: 28 rule blocks plus their
+`::before`, `:last-child`, `:hover` and `[data-focus]`/`[data-resolved]` descendants. Added
+`data-mrd=""` to the root, because the four controls in here were taking the legacy focus ring.
+Four new guards in the test file, and **the premise checked out**: 45 occurrences, 29 names, and
+**no guard reads any of them as source text** across the seven files that read `shell.css` or
+`AppFrame.tsx`.
+
+**`.sp-lineage` stays, and it is the one that must.** `AskPane.tsx:369` reads that exact selector in
+`KEEPS_IT_OPEN`, so dropping it means every press inside this pane dismisses the conversation that
+asked for the trace. `AskPane.test.tsx` builds its own synthetic `<div class="sp-lineage">`, **so it
+stays green whatever this component renders and nothing would have caught it.** The new guard asserts
+both ends name the same string, plus that `sp-lineage` is now the *only* `sp-` class in the file so the
+hook cannot shelter a relapse. **Proven red by planting the defect**: renaming the root to
+`mrd-lineage` fails 3 of the 4.
+
+**Unsure.** Three, and the second is the one to argue with.
+1. **The `text-mrd-body` collision, measured against the real compiler rather than reasoned about.**
+   Compiled probe sheets with Tailwind 4.3.3 against `meridian.css`: `text-mrd-body` emits **both**
+   rules from one candidate, and the `@utility` size rules sort alphabetically, so
+   `text-mrd-base text-mrd-body` renders **14px, not 13px** — and `text-[13px]` loses too. The answer
+   here is **inheritance**: each timeline `<li>` carries the ink and its children state only their own
+   size, so nothing wears both names. Scoped to the `<li>` rather than the pane root deliberately, or
+   `MissionChain`'s inherited ink would have flipped from `--mrd-ink` to `--mrd-body`.
+2. **Six off-scale px values kept as arbitrary rather than grown to the next stop: 3, 5, 8, 12, 14,
+   15, 18.** I read take-the-larger-stop as governing `--sp-space-N` *token* mappings, and these are
+   already raw px in the retired sheet, so preserving them changes no pixel while 8→10 and 12→16 would
+   visibly re-rhythm every timeline row. `meridian/rows.tsx` sets the precedent with `py-[11px]` and
+   `gap-[18px]`. **If the ruling is "grow to the stop regardless of provenance", six values move.**
+3. **One deliberate growth: the ambiguous-tag paragraph 13px → 14px.** It is prose and `--mrd-t-body`
+   is the stop named for prose, and taking it avoided a fifth inline `fontSize`.
+   Two classes deliberately not adopted, both refusals written into the file: **`Eyebrow`** for the
+   mono uppercase labels (10px sans at weight 650, and its own docblock calls itself the one place mono
+   is not used for a label, so taking it shrinks type **and** drops the mono face the pane's header
+   records as a decision), and **`Action variant="quiet"`** for Back and Close (a 32px control on a 9px
+   radius would grow this baseline-aligned header by half again and break a geometry it shares with Ask
+   on purpose).
+   **The token gap to name, since `meridian.css` was not mine: the space ramp has no 8px, 12px, 14px or
+   18px stop, and this one pane needed all four.** 8 and 12 are the two that matter, because they are
+   the gaps inside a dense timeline row.
+
+**Noticed.** Four.
+1. **The item's CSS-debt premise is wrong and I changed course on it.** It says the deleted rule blocks
+   carry 6 `--sp-*` occurrences so `shell.css`'s debt drops. All 6 are in the **root** `.sp-lineage`
+   rule, which cannot go, and `shell.css:42` names `--sp-header-h`, `--sp-pane-ask-w` and
+   `--sp-pane-inset` as layout contracts **shared with Ask**, where a component-local copy would be two
+   numbers for one fact. Moving them would also have taken this file from `--sp-: 0` to `6` and failed
+   ratchet rule 2 outright. **So `shell.css`'s debt is unchanged at 24/10** and only the component
+   drops. The 28 deleted blocks were already 100% `--mrd-*`.
+2. **`AuditTag.tsx`, the door *into* this pane, is still entirely Loom v4** — `loom-press`,
+   `--text-primary`, `--hairline-strong`, a hardcoded `borderRadius: 5`. The pane now speaks Meridian
+   and the control that opens it does not.
+3. **`text-mrd-body` is live debt beyond this file.** `meridian/ContextColumn.tsx:98` writes
+   `text-[12px] … text-mrd-body` and is therefore **rendering at 14px**, and `Prose.tsx:147` writes
+   `text-mrd-body` twice in one string. Both outside Owns.
+4. `primitives.css:417` is now a stale cross-reference: its comment says it matches `.sp-trail-label`
+   "exactly", and that rule no longer exists.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. `lineage-chain.test.ts` **12 pass**
+(8 existing + 4 new). **Every guard reading `shell.css` or `AuditLineageSheet.tsx` as source text
+passes**: `AppFrame.station-keys`, `AppFrame.rail-covers-keys`, `the-gutter-answers-the-work-region`,
+`rows-are-scanned-not-read`, `one-prompt-per-screen`, `sidebar-fade-is-honest`, `escape-layers`,
+`chord-stands-down-under-a-confirmation`, plus `AskPane.test.tsx` at 82 including all four pointerdown
+stand-down cases. **163 pass across 12 files.**
+**Not verified, and it needs a browser:** acceptance criterion 2, that Ask stays open on a pointerdown
+inside the pane. The guards prove both ends still name the same string, which is the part a test can
+hold; the press itself needs a person.
+
+---
+
+## K-59 · BUILT · 2026-08-20 23:58
+
+**Did.** `today.css` `--sp-` **144 → 0** across 30 distinct tokens, and `_authenticated.today.tsx` off
+`shell/primitives` entirely (import 1 → 0, usage 28 → 0). **The rhythm is stated once and it is 40px**:
+`--today-section-gap` was a `36px` literal chosen to match `.sp-block` and is now `--mrd-s7`, the number
+the founder's ruling names as `.sp-block`'s replacement. Lanes step **40px full, 24px quiet** (was 64
+and 40), and the step is the load-bearing part, because `data-quiet` means nothing if an empty lane
+takes the same room as one with three rows. Two new one-line rules carry the section gap for the two
+bare `Region`s that lost `.sp-block`'s reserved margin. The wait-state test was re-pinned to the
+property rather than the spelling.
+
+**Unsure.** **I refused the item's `--mrd-stage-*` instruction, and it is the one place I did not
+comply.** The item lists `--sp-stage-discover`, `--sp-stage-decide` and `--sp-warn` as gaps to build in
+`meridian.css`. Building a station ramp there is **Law 4, identity is shape and status is hue**, which
+`DESIGN-SYSTEM.md` records found and removed **three times**, and both `marks.tsx` and `primitives.css`
+record refusing to carry `--sp-hue` across for that reason. `meridian.css` refuses the sixth hue in its
+own words: *"SIXTH MEANING: NO … it needs STRUCTURE, a Notice, a rule, a heading, not a new colour."*
+So building them would have reinstated the defect **in the file that holds the line**, and each would
+have had one caller against the two-caller rule. Instead the three evidence kinds are treated as a
+**category**, which `PushedInsights` already names in words on each chip, and the chip takes the
+monochrome recipe of a rule twenty lines away in the same file that already states this argument.
+`--mrd-viz-*` is the other permitted answer and is refused on `OpportunityRow.tsx`'s recorded reasoning
+that the ramp's green and red read as pass and fail. **`--sp-warn` → `hold` was the mapping I was given
+and it did not survive contact: nothing here is waiting on a condition.** This removes all colour from
+one section and **a reviewer who wants a hue back should look at it in a browser first.**
+
+Type and leading, before → after, with the two that came down named plainly: `--sp-text-prose`
+13.5 → **14px** · `--sp-text-gate` 19 → **20px** · `--sp-leading-body` 1.55 → **1.625** ·
+`--sp-leading-note` 1.6 → **1.625** · **`--sp-leading-gate` 1.32 → 1.15**, which takes a 20px line box
+from 25.08px to 23px and is the one measured value that got tighter, taken because `meridian/Gate.tsx`
+and `approvals/CallGate.tsx` both draw the question at `text-[20px] leading-tight` and Gate's header
+says why they must agree · `--sp-leading-row` 1.4 → **1.5**, because `meridian.css` names 1.4 as what
+snug replaced · **`--sp-track-gate` −0.019em deleted rather than mapped**, since `--mrd-track` is set
+unlayered on `html, body` · the 36ch measure stays a literal, because `--mrd-measure` is 68ch and is for
+prose and the sibling rule already writes 34ch for the same role.
+Spacing, larger stop each time: 8 → **10** ×14 · 12 → **16** ×9 · 20 → **24** ×14 · 32 → **40** ×1.
+`.today-open`'s padding was `20px 24px 24px` and is now an even 24px, so a deliberate-looking smaller
+top is gone and nothing was written down about it. **And `Region` and `PageHeading` change things I did
+not override**: lane titles 14px/600 → **13px/500**, lane subtitles 13 → 12.5px, page subtitle 13.5px
+mute → 13px body, which in dark is *brighter*.
+
+**Noticed.** Four, and the first two are live defects nobody had reported.
+1. **Two rules in `today.css` had been inert since earlier ports and nothing measured it.**
+   `.today-open-who .sp-mark` sized the open call's agent mark to 18px next to 13px text, and
+   `AgentMark` stopped rendering that class when marks moved into Meridian, **so it has been drawing at
+   22px.** Worse: `.today-queue .sp-row-action { order: -1 }` put the selection tick box at the
+   **leading** edge under twenty lines of reasoning about scanning and shift-range-select, and Meridian's
+   `Row` marks the container `data-has-action` instead, **so the box has been sitting at the trailing
+   edge.** Both retargeted, both inside Owns, and the second is a real UX regression on the queue.
+2. **Meridian's `Region` reintroduces a defect `primitives.css` documents at length.**
+   `.sp-block-title` was pinned at 14px *because* a region label had been rendering **smaller than the
+   rows under it**, "the one relationship a heading may never have", measured on Brain 2026-08-11.
+   `Region`'s `h2` is 13px and `Row`'s lead is 14px, **so every ported station now has that relationship
+   again.** Not Today-specific and wants its own item.
+3. **The item's counts predate K-34 in two places and one of its four gaps does not exist.**
+   `today.css` was 144 live, not 194; **30** distinct tokens, not 43; and `--sp-space-9` occurs **only
+   inside a comment**, where the rule it describes already used a `36px` literal.
+4. **`ReadFailedLine` carries `role="status" aria-live="polite"` and the retired `Failed` carried
+   nothing**, so one refused `missions` read now speaks **three times** where it used to be silent.
+   Judged acceptable and written inline, because the three sentences differ, so it is three facts rather
+   than one repeated. If a real screen reader disagrees, the fix is an opt-out on the primitive, never a
+   silent hand-rolled copy in the route. Also: **seven `.sp-*` selectors stay in `today.css` on
+   purpose**, because `DecisionQueue` and `PushedInsights` still render the retired `Button`, `Gate` and
+   `SelectionBar` under their own items, and deleting them early costs a clipped verb and a 32px touch
+   target on the surface every session opens on.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. `today-states-its-wait.test.ts`
+**21 pass**, and **proven red**: planting `stillWaiting(learnings) ? null` reds two cases. All 27 route
+suites **307 pass / 0 fail**. All five `src/styles/__tests__/` files pass. prettier and
+`check-humanized.sh` clean.
+**Not done: the screenshots.** Every read on `/today` is `enabled: Boolean(workspaceId)` behind auth, so
+I cannot reach a populated state. **Everything above is arithmetic on tokens rather than a look at the
+surface**, and the lane type step plus the now-colourless notices section are what a browser would
+settle fastest.
+
+**Baseline re-frozen: 3,840 → 3,400 occurrences, 232 → 230 files carrying debt.** Across the session:
+**5,157 → 3,400, and 257 → 230 files.**

@@ -5,8 +5,8 @@
     "It only ever moves DOWN. A file absent from this list must be clean.",
     "Do not hand-edit; do not regenerate to silence a failure."
   ],
-  "totalOccurrences": 3840,
-  "fileCount": 232,
+  "totalOccurrences": 3400,
+  "fileCount": 230,
   "files": {
     "src/components/admin/admin-ui.tsx": {
       "--text-": 2,
@@ -625,7 +625,7 @@
       "--text-": 2
     },
     "src/components/supaprod/AuditLineageSheet.tsx": {
-      "class:sp-": 45
+      "class:sp-": 1
     },
     "src/components/supaprod/AuditTag.tsx": {
       "--text-": 4,
@@ -794,10 +794,6 @@
     "src/routes/_authenticated.settings.tsx": {
       "class:sp-": 2
     },
-    "src/routes/_authenticated.today.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 28
-    },
     "src/routes/_authenticated.tsx": {
       "data-obsidian": 3,
       "class:sp-": 1
@@ -932,15 +928,15 @@
       "raw-colour": 8
     },
     "src/styles.css": {
-      "--ds-": 518,
-      "--text-": 49,
+      "--ds-": 398,
+      "--text-": 40,
       "--hairline": 46,
       "--madder": 4,
       "--glacier": 15,
       "--font-pixel": 5,
       "--raised": 9,
       "data-obsidian": 38,
-      "raw-colour": 287
+      "raw-colour": 193
     },
     "src/styles/decide.css": {
       "--sp-": 1
@@ -963,9 +959,6 @@
       "--hairline": 1,
       "class:sp-": 10,
       "raw-colour": 1
-    },
-    "src/styles/today.css": {
-      "--sp-": 144
     }
   }
 }
