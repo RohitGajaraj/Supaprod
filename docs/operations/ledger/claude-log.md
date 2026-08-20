@@ -3851,3 +3851,80 @@ measurement would have produced a confident number**, which is how the other two
 cost real time.
 
 Suite: 9,929 across 586 files, 0 fail.
+
+---
+
+## K-07 · VERIFIED · 2026-08-20 09:40
+
+The second rejected item rebuilt, and the argument it rests on is a server fact
+rather than a display preference. Verified end to end, and I nearly rejected it on
+a grep.
+
+### The decisive claim, checked at the source
+
+Kiro argues the surviving resolver is not the senior one but the one that agrees
+with the runtime. Both halves hold:
+
+- **`runtime.server.ts:922`** — `b.daily_usd_cap != null && … Number(b.daily_usd_used) >= Number(b.daily_usd_cap)` then throws.
+  With `cap = 0` and `used = 0`, **`0 >= 0` is true and the call is refused.** A cap
+  of zero blocks everything.
+- **`budgets.functions.ts:146`** — `daily_usd_cap: z.number().min(0).nullable()`, so
+  **zero is a value a person can store.**
+
+So a workspace can be set to spend nothing, the server enforces it absolutely, and
+**both resolvers read that state as "no ceiling at all"** — the exact opposite. The
+fix aligns the drawing with what the runtime does to your money, which is a
+different and much better argument than "this component is newer".
+
+### The three defects, verified in the code rather than the log
+
+```
+cap === null ? 0 : cap > 0 ? Math.max(0, Math.min(100, (spent / cap) * 100)) : 100
+```
+
+- **`cap = 0` → 100**, and **the division is answered before it happens**, so
+  nothing produces `Infinity`.
+- **`Math.max(0, …)`** clamps the bottom, so `spent = -2` draws `0%` rather than
+  `width:-40%`.
+- **`spendState`** now returns `uncapped` only for `cap === null`, and its `nearly`
+  branch is guarded by `alertAt > 0`, so a threshold of zero is no longer a
+  permanent amber.
+- The floor is `spent > 0 && pct > 0 ? " min-w-1" : ""`, so an amount under a cent
+  draws a mark and an empty bar stays empty. `min-w-1` against the track's `h-1`
+  is the same token, so the minimum mark is square by construction rather than by
+  coincidence.
+
+31 spend tests pass.
+
+### I nearly rejected this on a grep
+
+`burnTone` still exists at `BudgetsPanel.tsx:184` and is still called at `:516`,
+directly under a comment saying **"THIS USED TO BE A SECOND RESOLVER AND IT IS
+DELETED"**. Given that the original rejection was itself about a false claim
+shipping in a comment, that reads like the same defect twice.
+
+Reading the body settles it:
+
+```
+function burnTone(burn, cap, alertPct) {
+  return SPEND_TONE[spendState(burn, cap, alertPct / 100)];
+}
+```
+
+**The resolver is deleted. What survives is a one-line adapter**, and the comment
+above it says exactly that in its first sentence. There is one answer to "how
+close is this to its ceiling" and one place it is computed.
+
+**Fourth time today that reading the body rather than trusting the match changed a
+verdict**, and the first where trusting it would have sent correct work back.
+
+### The `Owns` extension is sound
+
+The item listed three files; Kiro also changed `BudgetsPanel.tsx`, and said so
+with the reason: **"reconcile them and delete one" cannot be done from inside the
+file that is not being deleted from.** Checked independently — `BudgetsPanel`
+appears **zero** times anywhere in the queue, so no open item owns it and there is
+nothing to collide with.
+
+**Declaring the overreach with its reason is the behaviour the rule is for.** The
+rule exists to stop two agents writing one file, not to stop a correct change.
