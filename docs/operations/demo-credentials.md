@@ -49,6 +49,36 @@ The seed gives each workspace **5 pending approvals whose `expires_at` sits only
 
 **Re-armed 2026-07-28:** undecided rows only (`status in (pending, expired)` and `decided_at is null`) reset to `pending` with `expires_at = now() + 60 days`; decision-history rows (approved / rejected / executed / failed) untouched, they are the record partners should see. Verified after: 5 live pending in all seven prefixes. **This holds until late September. Re-run the same reset before any interview window, and after any re-clone** — a fresh clone inherits the short expiries and starts decaying immediately.
 
+### 💳 The credits decay too, and that is a second axis (found 2026-08-20)
+
+**The queue rots by TIME. The balance rots by USE, and nothing was watching it.** Measured
+2026-08-20, before a top-up: `compass@` **0**, `harbor@` **0**, `lantern@` **1**, `explore@` **2**,
+`voyage@` **8**. Only `meridian@` (742) was healthy.
+
+`LOW_CREDITS_WARN` is **100** (`src/lib/entitlements.ts:126`), so five accounts were under it and
+`BillingBanner` put this at the top of **every page in the shell**:
+
+> *"Running low: 0 AI credits left. Top up or upgrade so the loop keeps running."*
+
+**A reviewer would have read that before seeing anything work**, and it was not only cosmetic:
+`gate_credit_exhausted` refused **167 calls in 24 hours across 5 users**.
+
+**Topped up 2026-08-20 to 5,000 each** (founder-authorised), recorded in `credit_ledger` as `grant`
+and in `admin_audit_log`. Verified after: the lowest account in the system is now 742, and the
+banner is gone from `/today` and `/approvals`.
+
+**Rule for the next review window: check the BALANCE as well as the queue.** One query:
+
+```sql
+SELECT u.email, coalesce(ac.balance_credits,0)+coalesce(ac.topup_credits,0) AS credits
+FROM accounts a JOIN auth.users u ON u.id=a.owner_id
+LEFT JOIN account_credits ac ON ac.account_id=a.id
+WHERE u.email LIKE '%@supaprod.ai' ORDER BY credits;
+```
+
+Anything at or under 100 shows the banner. **Agents spend these accounts too**: this lane's own
+verification runs drained `harbor@` over one day.
+
 > [!IMPORTANT]
 > **Never give two firms the same login.** The demo's signature beat is approving a pending gate, and approving is a *write*. Two firms on one workspace means the second one opens an empty queue and sees a dead room. That is the entire reason these four exist rather than sharing `explore@`.
 
