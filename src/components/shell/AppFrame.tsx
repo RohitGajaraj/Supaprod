@@ -140,6 +140,7 @@ import { listMissions } from "@/lib/missions.functions";
 import { listAgents } from "@/lib/agents.functions";
 import { listCrew } from "@/lib/crew.functions";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
+import { initialsFrom } from "@/lib/initials";
 import { useTheme } from "@/hooks/use-theme";
 import {
   ENGINE_ROOM_PATHS,
@@ -574,14 +575,6 @@ const RAIL_KEY = "supaprod:rail-narrow";
  * decide when to hide the rail's labels; nothing else ever read it. The stale
  * `supaprod:rail-visited` key is harmless and is not migrated — it simply
  * stops being written. */
-
-function initialsFrom(email: string | null | undefined, name?: string | null): string {
-  const source = (name ?? "").trim() || (email ?? "").split("@")[0] || "";
-  const parts = source.split(/[\s._-]+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
 
 /** What the shell needs off the account's roster: a uuid, and the slug the
  *  agent catalog can actually draw and name. `listAgents` selects the whole

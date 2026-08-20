@@ -142,18 +142,11 @@ import { SuggestionRail } from "./SuggestionRail";
 import { AskSwitcher } from "./AskSwitcher";
 import { AskTurn, toTurns } from "./AskTurn";
 import { approvalsQueueKey, missionsKey } from "@/lib/query-keys";
+import { initialsFrom } from "@/lib/initials";
 
 /** The seat that answers. `api/chat.ts` runs the loop as `orchestrator`, so
  *  this is a wiring fact, not a flattering label. */
 const ANSWERED_BY = "orchestrator";
-
-function initialsFrom(email: string | null, name: string | null): string {
-  const source = (name ?? "").trim() || (email ?? "").split("@")[0] || "";
-  const parts = source.split(/[\s._-]+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
 
 /* ------------------------------------------------------------------ *
  * The pane

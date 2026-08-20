@@ -213,6 +213,7 @@ import {
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { listDeployments } from "@/lib/deployments.functions";
 import { getDesignParity } from "@/lib/design-parity.functions";
+import { initialsFrom } from "@/lib/initials";
 import { ChangesPanel } from "@/components/studio/ChangesPanel";
 import { PreviewPanel } from "@/components/studio/PreviewPanel";
 import { ReceiptsPanel } from "@/components/studio/ReceiptsPanel";
@@ -395,14 +396,6 @@ function startedAt(iso: string | null | undefined): string | null {
   return d.toDateString() === new Date().toDateString()
     ? `today ${hm}`
     : `${d.toLocaleDateString(undefined, { day: "numeric", month: "short" })} ${hm}`;
-}
-
-function initialsFrom(email: string | null, name: string | null): string {
-  const source = (name ?? "").trim() || (email ?? "").split("@")[0] || "";
-  const parts = source.split(/[\s._-]+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 function cap(s: string): string {

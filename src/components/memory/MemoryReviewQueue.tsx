@@ -58,6 +58,7 @@ import {
 } from "@/lib/memory-candidates.functions";
 import { sourceLabel, supersedesPreview, willSupersede } from "@/lib/memory-candidates";
 import { relativeTime } from "@/lib/memory-view";
+import { initialsFrom } from "@/lib/initials";
 import { Gate, Receipt } from "@/components/shell/primitives";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
 
@@ -78,14 +79,6 @@ function markFor(source: string, initials: string) {
   if (source === "user") return <YouMark initials={initials} />;
   if (source === "outcome") return <AgentMark slug={null} name="the loop" state="quiet" />;
   return <AgentMark slug={null} name="An agent" state="quiet" />;
-}
-
-function initialsFrom(email: string | null, name: string | null): string {
-  const source = (name ?? "").trim() || (email ?? "").split("@")[0] || "";
-  const parts = source.split(/[\s._-]+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 const stamp = () =>

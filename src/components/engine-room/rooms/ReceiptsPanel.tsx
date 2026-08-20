@@ -79,6 +79,7 @@ import {
   type TrustReceipt,
 } from "@/lib/trust-ledger.functions";
 import { shortHead } from "@/lib/trust-verify";
+import { initialsFrom } from "@/lib/initials";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { relTimeCaps } from "@/components/discover/format";
 import { receiptStatusLabel, ledgerSummary } from "@/components/trust/format";
@@ -100,16 +101,6 @@ const KIND_TABS: { id: Kind; label: string }[] = [
  *  caps; the row's time slot is already mono, so the shout is spare ink. */
 function since(iso: string | null | undefined): string {
   return iso ? relTimeCaps(iso).toLowerCase() : "";
-}
-
-/** Your initials, derived the same way the app header derives them, so the
- *  disc on a receipt you settled is the same disc you see in the corner. */
-function initialsFrom(email: string | null, name: string | null): string {
-  const source = (name ?? "").trim() || (email ?? "").split("@")[0] || "";
-  const parts = source.split(/[\s._-]+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 function useInitials(): string {

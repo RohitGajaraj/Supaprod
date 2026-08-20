@@ -3479,3 +3479,67 @@ landing before it re-froze the baseline**, and once on `docs:check` reporting 7 
 `docs/conventions/`, which is the `/tmp/dd_referenced.txt` race K-27's entry documents. **Neither was
 caused by these items**, both were green on the merged tree, and the figures above are from the final
 run.
+
+---
+
+## K-65 · BUILT · 2026-08-20 14:12
+
+**Did.** `initialsFrom` now lives once, in `src/lib/initials.ts`, imported by all seven files. I read
+all seven bodies verbatim before writing anything: **the body is byte-identical in all seven**, and
+the only difference anywhere in the seven is the `AppFrame` signature's nullability
+(`email: string | null | undefined, name?: string | null` against `email: string | null,
+name: string | null` in the other six). **Nothing else diverged, so nothing was flattened.** Each call
+site lost exactly the local function and gained one import; every call expression is untouched.
+
+The doc comment carries the `ReceiptsPanel` sentence forward verbatim, because it is the clearest
+statement of why this was a risk rather than untidiness: your initials, derived the same way the app
+header derives them, so the disc on a receipt you settled is the same disc you see in the corner.
+**That held by luck.** Seven copies is seven chances for it to stop being true silently, and the
+failure mode is two surfaces drawing the same person differently with no way to tell which is right.
+
+**Unsure.** Three.
+
+1. **The signature widening relaxes six call sites.** Widening to the shell's variant means the other
+   six now accept an `undefined` they never asked for, which is the item's explicit instruction and is
+   safe, but it does drop a compile-time guarantee those six had. The alternatives were an overload
+   set or having `AppFrame` coerce at its call site, both of which preserve the narrow contract at a
+   complexity nobody asked for. I followed the item.
+2. **`name` became optional rather than merely nullable**, because that is exactly the shell's
+   variant. No caller omits it today, so this is latitude nothing uses.
+3. **Import placement is next to each file's existing `@/lib/*` cluster** rather than sorted, so every
+   changed line traces to this item. No file has an enforced import order.
+
+**## K-65 · `Owns` extension, one line, declared**
+
+`src/routes/_authenticated.settings.tsx:813` carried a prose pointer at the `AppFrame` copy as the
+reference implementation, which is **a cross-file dependency held together by a comment.** It now
+names the module. That file is not in this item's `Owns` and **the acceptance criterion cannot be met
+without it**, since the criterion is that the comment names the module rather than a file it does not
+import. Comment only, no code, no JSX, no token.
+
+`src/components/shell/AppFrame.tsx` is also listed under **K-46**, and K-65's own `Owns` includes it,
+so touching it here is sanctioned. The edit there is exactly two lines: one import added, the
+seven-line local function removed.
+
+**Noticed.** Four.
+
+1. **No eighth copy.** Two sweeps, one by name and one by the body's shape (`slice(0, 2).toUpperCase()`),
+   found exactly seven definitions and no near-miss under a different name. `src/lib` had no initials
+   helper at all.
+2. **`src/components/meridian/station-glyphs.tsx:65` cites "seven copies of `initialsFrom`" as its own
+   lesson.** It is prose about the defect rather than a pointer at a file, so I left it. It is now
+   describing history rather than the present, which is the correct thing for that comment to do.
+3. **The same shape is already logged twice in this ledger and neither has an item.** Seven copies of a
+   currency formatter, **each hard-coding a dollar sign and a decimal point**, so all seven are wrong
+   in any locale that puts the symbol after the number (worse than this one, and there is a shared
+   `components/product/format.ts` that four of them ignore). And the scroll-edge measurement, now at
+   three copies, which `RunTimeline.tsx:297` already carries a comment asking for.
+4. **`formatDuration` lives in `src/components/studio/run-return.ts` and is imported by two Meridian
+   primitives**, so a design-system part reaches into a station folder. Third instance of the same
+   shape in one batch.
+
+**Gates.** `lane:gates` green, all four, verdict read off its own last line. **9,991 pass / 0 fail** /
+23 skip / 60 todo / 26,699 expect() across 591 files. No retired token and no raw colour added to any
+touched file, including the two governed by ratchet **rule 1** rather than rule 2
+(`ReceiptsPanel.tsx`, which is absent from the baseline, and the new `src/lib/initials.ts`).
+`design:ratchet` not run.

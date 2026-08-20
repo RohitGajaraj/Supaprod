@@ -139,6 +139,7 @@ import {
 import { renameConversation } from "@/lib/conversations.functions";
 import { proposeMemoryCandidate } from "@/lib/memory-candidates.functions";
 import { openAskConversation } from "@/lib/ask-open";
+import { initialsFrom } from "@/lib/initials";
 import { Answer } from "@/components/ask/Answer";
 import { Block, Button, Empty, Failed, Input, Loading, PageHead, Receipt, Surface, Switch } from "@/components/shell/primitives";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
@@ -191,14 +192,6 @@ function since(iso: string | null): string | null {
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours}h ago`;
   return `${Math.floor(hours / 24)}d ago`;
-}
-
-function initialsFrom(email: string | null, name: string | null): string {
-  const source = (name ?? "").trim() || (email ?? "").split("@")[0] || "";
-  const parts = source.split(/[\s._-]+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 /** One line of a transcript: the mark, the name, what was said, when.

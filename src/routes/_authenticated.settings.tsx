@@ -810,7 +810,7 @@ function ProfileSection() {
          * He was right, and the cause is worse than a missing preview. The picker
          * saves to localStorage and `src/components/supaprod/Avatar.tsx` -- the only
          * thing that renders an orb -- IS MOUNTED NOWHERE IN THE PRODUCT. The shell
-         * draws initials instead (`initialsFrom` in AppFrame). This route's own header
+         * draws initials instead (`initialsFrom` in `src/lib/initials.ts`). This route's own header
          * records killing "the avatar identity header sitting above the fields", and
          * that header was the one place the choice was ever shown. So a person could
          * pick from twelve marks and never see one anywhere.

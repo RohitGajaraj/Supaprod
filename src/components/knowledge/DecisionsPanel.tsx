@@ -86,6 +86,7 @@ import {
   type DecisionRow,
   type DecisionSource,
 } from "@/lib/decisions.functions";
+import { initialsFrom } from "@/lib/initials";
 import { Receipt } from "@/components/shell/primitives";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
 import { ageOf, displayWho, OUTCOME_WORD, SOURCE_LABEL } from "./decisions-shared";
@@ -149,14 +150,6 @@ function whoLine(d: DecisionRow): string {
     return d.decided_by_agent_slug ? `${who} raised it` : `${who} logged it`;
   }
   return `${who} settled it`;
-}
-
-function initialsFrom(email: string | null, name: string | null): string {
-  const source = (name ?? "").trim() || (email ?? "").split("@")[0] || "";
-  const parts = source.split(/[\s._-]+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 // Anti-scroll (founder ruling 2026-07-06 / PC-32): the list shows the top few
