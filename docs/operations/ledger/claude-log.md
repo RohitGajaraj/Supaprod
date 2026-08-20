@@ -3414,3 +3414,77 @@ recorded here rather than needing to be re-derived per entry.
 being alive this morning says nothing about tomorrow, which is the entire lesson
 of a tick that ran 48 times a day into a wall for fifteen days while every surface
 reported health.
+
+---
+
+## K-20 · VERIFIED · 2026-08-20 08:36
+
+Verified against the merged tree and the component's own source, claim by claim.
+**Every one holds, including the one I expected to find a hole in.**
+
+### The dedup, which was the riskiest part of the change
+
+Kiro reports that `Record<AgentStation, StationGlyphKind>` was declared **twice,
+character for character** -- `GLYPH_FOR_STATION` in `crew/CrewChrome.tsx` and
+`STATION_MARK` in `shell/AppFrame.tsx` -- both commented as "the one place the two
+meet", and that it moved the map to `station-glyphs.tsx` with both call sites
+reading it.
+
+**Checked hardest because it touches two live surfaces to remove a duplicate**, and
+a half-done dedup leaves exactly the drift it claims to fix. Measured:
+
+- **one** declaration of that Record type in the whole repo, in
+  `components/meridian/station-glyphs.tsx`
+- **nine** files import it, including both `CrewChrome.tsx` and `AppFrame.tsx`
+- no third copy anywhere
+
+Complete, not partial. And the reasoning is the repo's own measured lesson rather
+than a preference: the cost is never the duplicate, it is that copies drift and a
+station becomes a spiral on one surface and a target on another.
+
+### The policy the item was actually about
+
+`RunMap.tsx:166` `const ready = reason.trim().length > 0`, the commit gated on it,
+and `:204` `<Action ... disabled={!ready}>`. **A station cannot come off the route
+without a reason**, enforced by the control rather than asked for by a label.
+
+The founder ruling has been in force for weeks and `SpineRoute.waived` has carried
+`{ station, reason, by, reopensWhen }` the whole time with **nothing in the product
+ever asking anyone for a reason.** Kiro's framing is right and worth keeping: *a
+policy with no interaction is not enforced, it is written down.* That is the same
+class as the eval tick -- a thing that looked implemented because the shape for it
+existed.
+
+`:363` handles the legacy case honestly: a waived station with no reason renders
+"Nobody said why this station came off the route." rather than an empty space.
+
+### No tool name, and I nearly filed a false finding on it
+
+My first sweep flagged a `tool` field on `RunMapStation`. **It was my regex, not
+the code** -- a 600-character window that ran past the type and caught a comment
+saying "There is deliberately no `tool` field beside this one". The type has
+`station`, `state`, `outcome`, `hold`, `waivedReason`, `steps`, and nothing else.
+
+The test pins it structurally rather than by rendering:
+`expect(CODE).not.toMatch(/\btool\b\s*\??\s*:/)` against the component's own
+source, so no future edit adds the field without failing. Paired with the
+forbidden-prop loop at `:294` over `onAddStation`, `onReorder`, `onConnect`,
+`onAddStep`, `draggable`. **Absence enforced as structure, which is the only way
+absence stays true.**
+
+### It learned from the item I verified this morning
+
+`RunMapStation.hold` carries the **raw** `HoldReason`, not the sentence, and the
+comment says why: `holdLine` rewrites two of the reasons to name their station, so
+they no longer equal their own entry in `HOLD_LINE` and a surface branching on the
+prose cannot recognise them. **That is K-18's finding, applied unprompted in a
+different component.**
+
+### What I did NOT verify, stated plainly
+
+**Visual quality against the beautifui.dev bar.** I checked structure, reuse,
+enforcement and tests -- 26 pass, and the full suite is 9,915 with 0 failures on
+the merged tree, up 26 from before this landed. I did not look at it rendered, in
+either ground, at any width. **For a component whose whole purpose is a surface,
+that is a real gap in this verdict** and the founder's eye is the instrument that
+closes it.
