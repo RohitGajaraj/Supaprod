@@ -107,11 +107,39 @@ hr
 KIRO="docs/operations/ledger/kiro-log.md"
 CLAUDE="docs/operations/ledger/claude-log.md"
 
+# An item is waiting on you when Kiro has said a thing about it MORE TIMES than
+# you have answered. Counting, rather than subtracting sets, for two reasons.
+#
+# 1. AN ITEM CAN GO ROUND THE LOOP TWICE. BUILT -> REJECTED -> BUILT again is
+#    the normal life of a rejected item, and `sort -u` collapsed the second
+#    build into the first while `comm -23` then deleted the id outright,
+#    because a verdict for it already existed. K-03 and K-07 are both sitting
+#    REJECTED as this is written, so the next rebuild of either would have been
+#    reported as "nothing awaiting a verdict" and Kiro would have waited on a
+#    verdict that was never coming. Counts see the second build; sets cannot.
+#
+# 2. IT NEEDS NO CLOCK. The obvious alternative -- take the most recent entry
+#    per id -- reads the timestamps in the ledger, and those are written by the
+#    agents rather than measured. Checked against commit times on 2026-08-20,
+#    Kiro's stamps ran from +63 to +247 minutes ahead of real time and the drift
+#    grew monotonically, so every Kiro entry sorts after every verdict of yours
+#    and a most-recent-wins reader calls verified items unverified. That exact
+#    misreading happened here at 06:00 and cost a tick. A count of append-only
+#    lines is true whatever the writers believe the time is.
+pending_ids() {  # kiro-file  asked-verbs  claude-file  answered-verbs
+  local kfile="$1" averbs="$2" cfile="$3" rverbs="$4" id n_asked n_answered
+  for id in $(grep -oE "^## K-[0-9]+ · ($averbs)" "$kfile" 2>/dev/null \
+              | grep -oE 'K-[0-9]+' | sort -u); do
+    n_asked="$(grep -cE "^## ${id} · ($averbs)" "$kfile" 2>/dev/null || true)"
+    n_answered="$(grep -cE "^## ${id} · ($rverbs)" "$cfile" 2>/dev/null || true)"
+    if [ "${n_asked:-0}" -gt "${n_answered:-0}" ]; then printf '%s\n' "$id"; fi
+  done
+  return 0
+}
+
 if [ -f "$KIRO" ]; then
-  # every item Kiro reports BUILT, minus every item Claude has ruled on
-  BUILT="$(grep -oE '^## (K-[0-9]+) · BUILT' "$KIRO" 2>/dev/null | grep -oE 'K-[0-9]+' | sort -u)"
-  RULED="$(grep -oE '^## (K-[0-9]+) · (VERIFIED|REJECTED)' "$CLAUDE" 2>/dev/null | grep -oE 'K-[0-9]+' | sort -u)"
-  PENDING="$(comm -23 <(printf '%s\n' "$BUILT" | grep -v '^$') <(printf '%s\n' "$RULED" | grep -v '^$') 2>/dev/null)"
+  # every item Kiro has built more times than you have judged it
+  PENDING="$(pending_ids "$KIRO" 'BUILT' "$CLAUDE" 'VERIFIED|REJECTED')"
   NP="$(printf '%s\n' "$PENDING" | grep -c '^K-' || true)"
 
   if [ "${NP:-0}" -gt 0 ]; then
@@ -138,10 +166,8 @@ if [ -f "$KIRO" ]; then
   # not printing it -- and this script exists precisely because a reminder nobody
   # acts on is not a reminder.
   #
-  # Same subtraction the verdict check above already does, for the same reason.
-  ASKED="$(grep -oE '^## K-[0-9]+ · (BLOCKED|QUESTION)' "$KIRO" 2>/dev/null | grep -oE 'K-[0-9]+' | sort -u)"
-  ANSWERED="$(grep -oE '^## K-[0-9]+ · RULED' "$CLAUDE" 2>/dev/null | grep -oE 'K-[0-9]+' | sort -u)"
-  OPEN_Q="$(comm -23 <(printf '%s\n' "$ASKED" | grep -v '^$') <(printf '%s\n' "$ANSWERED" | grep -v '^$') 2>/dev/null | grep '^K-' || true)"
+  # Same counting the verdict check above already does, for the same reason.
+  OPEN_Q="$(pending_ids "$KIRO" 'BLOCKED|QUESTION' "$CLAUDE" 'RULED')"
   if [ -n "$OPEN_Q" ]; then
     say ""
     [ "${STALE_LEDGER:-0}" = "1" ] && say "${YEL}(read from a stale tree, see above)${OFF}"
