@@ -2158,3 +2158,91 @@ repo, and the local one is the one with callers. Worth a rename before somebody 
 
 > **Claude does after:** this needs a ruling rather than a verification. The measurement is in the two
 > collisions above and the `AskTurn` quote; the decision is which of the three options is right.
+
+---
+
+## K-18 · BLOCKED · 2026-08-20 09:40
+
+**Did not build.** Two of the item's three factual claims are wrong, and correcting them changes what
+the item should be. **There is a real defect underneath, it is smaller than the item, and it is in a
+file the item does not own.**
+
+**1. There are 15 hold reasons, not 16.** Counted off `HOLD_LINE` in `src/lib/spine/driver.ts`:
+`paused`, `waiting-on-a-person`, `no-agent`, `done`, `produced-nothing`, `nothing-to-hand-on`,
+`stalled`, `over-budget`, `out-of-time`, `out-of-credit`, `needs-evidence`,
+`needs-a-waived-station`, `station-cannot-finish`, `corrections-spent`, `given-up`. Fifteen. The
+acceptance criteria ask for 16 to render, which cannot be satisfied.
+
+**And one of the fifteen is not a hold at all.** `done` reads *"The route is finished. This work has
+been graded."* Rendering it in a list of stopped work would report finished work as stuck, which is the
+`pending`-reads-as-`blocked` defect `PlanCard` exists because of, repeated one layer up.
+
+**2. "None of them surfaces anywhere" is false.** The accessor is wired end to end:
+
+- `holdLine(hold, { station })` — `driver.ts:700`, tolerant of unknown values, substitutes the station's
+  display name for the four station-specific reasons.
+- `rowToTrack` maps `last_hold` through it onto every track row — `track.functions.ts:141`.
+- `TrackStart.tsx:472` renders it: `sub={t.hold ?? t.summary}`, with a comment stating the ordering
+  decision out loud, that the hold outranks the route because *"silence and still running look
+  identical, and only one of them is true"*.
+
+So **all fifteen sentences already reach a rendered surface.** `runs.index.tsx` references `hold`
+seventeen times as well. The item's `Why` describes a gap that was closed.
+
+### The defect that is actually there, and it is the item's own colour law inverted
+
+`TrackStart.tsx:487` paints the station chip for **every** hold with amber:
+
+```tsx
+<Value tone={t.hold ? "hold" : "quiet"}>{AGENT_STATIONS[t.station].name}</Value>
+```
+
+`waiting-on-a-person` is a hold, so a gate waiting on **you** renders in the token that means *stopped,
+and NOT on you*. That is precisely the distinction the item calls "the whole reason both tokens exist",
+and the shipped code has it backwards for the one reason where it matters most. The file even knows the
+reason is special: three lines above, it computes `waitingOnAPerson` to decide whether to draw a
+control, and then does not use it for the tone.
+
+**The split, and it is not mine to guess at.** `meridian.css` names the test: orchid where a decision on
+this work releases it, amber where a condition has to change. Its own enumeration puts *"no source is
+connected"* and *"a cap is nearly spent"* under AMBER, which decides five of the fifteen against the
+reading their sentences suggest. My classification:
+
+| | reasons |
+| --- | --- |
+| **orchid**, a decision on this work | `waiting-on-a-person`, `station-cannot-finish`, `corrections-spent`, `given-up` |
+| **amber**, a condition elsewhere or self-resolving | `paused`, `no-agent`, `produced-nothing`, `nothing-to-hand-on`, `stalled`, `over-budget`, `out-of-time`, `out-of-credit`, `needs-evidence`, `needs-a-waived-station` |
+| **neither, not a hold** | `done` |
+
+`StalledWork`'s own header argues the amber side of this independently and from production data: 26
+tracks were starved of evidence while the product told their owners to go inspect a station, so
+`needs-evidence` must not wear orchid. That argument is right and it is why `out-of-credit` and
+`over-budget` sit with it despite sentences that ask a person to act: you top up an account, you do not
+decide this track.
+
+### What K-18 should be
+
+1. **Apply the split in `TrackStart.tsx`**, which is where the sentences already render and where the
+   tone is currently wrong. **Not in the item's `Owns`** (`StalledWork.tsx`, `runs.index.tsx`,
+   `meridian.tsx`), and it is the only change that fixes a live surface.
+2. **Extend `StalledWork` from `reason?: "you" | "source"` to the real `HoldReason`**, rendering
+   `holdLine` verbatim rather than its own hardcoded source sentence. Its two values are a private
+   approximation of a fifteen-value vocabulary that already exists, which is the one-idea-two-ways
+   failure at the data layer. This part IS in `Owns` and I can build it.
+3. **Drop the "16 reasons" and "all 16 in the gallery" criteria to 15, and exclude `done`.**
+
+**Why I stopped rather than building part 2 alone.** It would leave the classification living in
+`StalledWork` while the surface that actually renders holds keeps painting them all amber, so the two
+would disagree about the same fifteen values in the same release. The map belongs beside `HOLD_LINE` in
+`driver.ts` where both can read it, and that is a third file outside `Owns`. **Three files, none of
+them the ones listed, on an item whose stated premise is false: that is a rewrite of the item, not a
+build of it.**
+
+**Nothing is touched.** No partial state to undo.
+
+**Gates.** Not run: nothing changed.
+
+> **Claude does after:** rule on the rescope. If the shape above is right, the item wants a new `Owns`
+> of `driver.ts` (the classification beside `HOLD_LINE`), `TrackStart.tsx` (the tone) and
+> `StalledWork.tsx` (the vocabulary), and its count corrected to 15 with `done` excluded. The
+> `TrackStart` tone bug is worth fixing whatever happens to the rest.

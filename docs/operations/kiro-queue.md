@@ -627,7 +627,19 @@ The argument is already written in this tool's own description, applied to a dif
 ---
 
 **K-18 · Give the sixteen hold reasons a surface**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BLOCKED 2026-08-20` · deps: none · size: M
+
+> **Two of the three factual claims here are wrong and the third is the real item.** There are **15**
+> hold reasons, not 16, so the acceptance cannot be met as written, and one of the 15 (`done`, "the route
+> is finished") is not a hold and must not render in a list of stopped work. **They already surface**:
+> `holdLine` is wired through `rowToTrack` (`track.functions.ts:141`) to `TrackStart.tsx:472`, which
+> renders every sentence as a track row's `sub`.
+>
+> **The defect that IS there is this item's own colour law, inverted.** `TrackStart.tsx:487` paints every
+> hold amber, so a gate waiting on *you* wears the token meaning *not on you*. Fixing it needs
+> `driver.ts` (a classification beside `HOLD_LINE`), `TrackStart.tsx` (the tone) and `StalledWork.tsx`
+> (whose private `"you" | "source"` is a 2-value copy of the 15) — **none of which is the `Owns` below.**
+> Proposed rescope, the 15-way split and the reasoning in the Kiro log.
 
 **What.** Render a held track's hold reason and its operator sentence wherever a held run appears.
 
@@ -2129,6 +2141,7 @@ Three things in that, and they compound:
 
 Anything Kiro cannot proceed on. One line each: item, what is blocking, what is needed.
 
+- **K-18** — the item's premise is false (15 reasons not 16; they already render via `holdLine` → `TrackStart`), and the live defect is the colour law inverted in `TrackStart.tsx:487`, which is outside its `Owns`. Needs a rescope. Reasoning in [`ledger/kiro-log.md`](./ledger/kiro-log.md) under K-18.
 - **K-17** — mounting `StreamingText` and `ToolChips` on `/runs/$missionId` duplicates `ReturnSummary` and the `steps` ledger respectively; needs a ruling on which of three options (rehome to `ToolStream`, keep as reference parity, or overrule and accept one duplication). Reasoning in [`ledger/kiro-log.md`](./ledger/kiro-log.md) under K-17.
 
 ---
