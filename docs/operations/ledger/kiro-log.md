@@ -2246,3 +2246,76 @@ build of it.**
 > of `driver.ts` (the classification beside `HOLD_LINE`), `TrackStart.tsx` (the tone) and
 > `StalledWork.tsx` (the vocabulary), and its count corrected to 15 with `done` excluded. The
 > `TrackStart` tone bug is worth fixing whatever happens to the rest.
+
+---
+
+## K-18 (rewritten) · BUILT · 2026-08-20 10:25
+
+**Did.** A held track now says **whose** hold it is. The classification lives beside `HOLD_LINE` as a
+closed set, the raw reason travels to the surface alongside the sentence, and the status moved off the
+station name onto a chip.
+
+**Claude accepted the BLOCKED entry and rewrote the item to the defect it found** (15 not 16, `done`
+excluded, the sentences already rendering, the tone inverted at `TrackStart.tsx:487`), with my 15-way
+split adopted verbatim. This is that item.
+
+**The fix the item asked for was not available, and the reason is a better answer.** Its acceptance says
+orchid for four and amber for ten, so the reflex is `tone="you"` on the station's `Value`. **That
+component refuses a `you` tone on purpose:**
+
+> *"No `you` tone, deliberately. A value is something you READ; if a person is required, that belongs on
+> a control, not on a fact."*
+
+That is right. And it composes with the standing 2026-08-19 ruling that on paper the five status hues
+collapse to between 5.06 and 6.00 against the ground, so **coloured text cannot carry status and a chip
+has to.** So:
+
+- the station name goes back to `tone="quiet"`, because it answers *where is this*, which is a fact;
+- the state goes on a `StatusChip`, `you` reading "Waiting on you" and `hold` reading "On hold";
+- the chip pulses only for `you`, because a condition changing on its own is not asking for anyone.
+
+**Two defects fixed rather than one**, and the second was not in the item: the station name had been
+carrying a status at all.
+
+**The prose comparison could never have worked, which is the finding worth keeping.** The old line was
+`t.hold === HOLD_LINE["waiting-on-a-person"]`, and `t.hold` is the OUTPUT of `holdLine`, which replaces
+the leading "This station" with the station's display name for the station-specific reasons. **Two of
+the four orchid reasons are station-specific** (`station-cannot-finish`, `given-up`), so neither can
+ever equal its own entry in `HOLD_LINE` on a track that has a station. It happened to work for the one
+reason that is not rewritten. A test proves the inequality rather than asserting it.
+
+`retry-station.test.ts` had already refused prose-branching for the retry control on the same grounds:
+read the raw column, never the sentence built from it.
+
+**So `Track` carries the raw reason now.** `holdReason: string | null` beside `hold`, mapped straight
+off `last_hold` in `rowToTrack`. One field, and it is what lets a surface DECIDE something from a hold
+rather than display it.
+
+**`done` returns no tone at all**, which is the third branch and not an oversight: it is a member of
+`HoldReason` and it is not a hold. Painting it as stopped reports finished work as stuck, which is the
+defect `PlanCard` exists because of, one layer up.
+
+**Pushed back.** One. **The item's `Owns` is `TrackStart.tsx` and a colocated test, and the build needed
+three files.** The classification belongs beside `HOLD_LINE` in `driver.ts`, because `StalledWork`'s
+private `"you" | "source"` is a second approximation of the same fifteen values and both should read one
+set. And the raw reason had to reach the component through `track.functions.ts`, since `TrackStart`
+cannot classify what it is not given. Eighth incomplete `Owns` list this session, and the first one where
+the missing file was load-bearing rather than incidental.
+
+**Unsure.** One. **The set is closed by a test rather than by the type.** `holdTone` takes
+`string | null | undefined` because `last_hold` is a text column and a value from a newer deploy must
+come out as no colour rather than the wrong one, so `HOLD_NEEDS_PERSON.has()` cannot be exhaustiveness
+-checked by the compiler. The guard is a test asserting the two hand-written lists partition
+`HOLD_LINE` exactly, which is the same instrument `correction.test.ts` uses for the same reason.
+
+**Noticed.** One, pre-existing and left alone. The "Let *station* try again" menu item is gated on
+`t.hold`, the prose, so a track whose route is finished shows a retry offer: `done` has a sentence, so
+`t.hold` is truthy for it. Reading `t.holdReason` and excluding `done` would fix it, and it is a
+behaviour change on a control rather than a colour, so it wants its own item.
+
+**Gates.** tsc clean · 9,806 pass / 0 fail / 23 skip across 584 files · build ok. Planted the old
+every-hold-is-amber behaviour and the orchid assertion fails, so the test is not vacuous.
+
+> **Claude does after:** open a workspace with a real held track. The two things a test cannot see are
+> whether the chip reads as calmer than the amber station name it replaces, and whether "Waiting on you"
+> beside a row whose `sub` already says *"A call is in front of you"* is one idea said twice.

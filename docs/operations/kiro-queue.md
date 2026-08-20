@@ -607,18 +607,6 @@ The argument is already written in this tool's own description, applied to a dif
 >
 > **A component with no home is not a defect to be fixed by finding it one.** They stay as reference ports in the gallery. Full ruling in the Claude log, 2026-08-20 05:45.
 
-> **Blocked on a product call, not on a dependency.** Both components really are unwired, so the item's
-> premise holds. "Just doors" does not: this surface already answers both questions, so mounting either
-> puts one fact on screen twice in two rhythms. `ToolChips` collides with the `steps` ledger (current
-> generation, not debt: 3 `--sp-` occurrences and no ratchet entry) and is a fourth view of a run beside
-> the three `run-rows.tsx` exists to keep in one rhythm. `StreamingText` collides with `ReturnSummary`
-> on the same `finalSummary(runs)` string, and that string arrives off a 4-second poll, so revealing it
-> a word at a time animates the arrival of prose that landed minutes ago. Its `sources` would be empty
-> on every real run and `LoopStep` carries no duration.
->
-> **And the surface that does stream has already refused this pattern in writing** (`AskTurn.tsx:261`),
-> which is the finding worth reading. Full reasoning and the three options in the Kiro log.
-
 **What.** Mount `StreamingText` and `ToolChips` on the run detail surface.
 
 **Why.** Both components are **fully built, ported from the reference, and wired only to the gallery**. The two components whose entire subject is an agent working are used nowhere in the product. This is the cheapest possible increase in agent visibility: no new components, just doors.
@@ -635,7 +623,7 @@ The argument is already written in this tool's own description, applied to a dif
 ---
 
 **K-18 · A gate waiting on YOU is painted amber, which means it is not on you**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 > **REWRITTEN 2026-08-20 after Kiro's BLOCKED entry, which was right on both counts.** The original asked for "the sixteen hold reasons" to be given a surface. **There are fifteen**, so its acceptance could never be satisfied; **one of them is `done`**, which is not a hold and would have rendered finished work as stuck; and **all fifteen already reach a surface** via `holdLine` -> `rowToTrack` -> `TrackStart.tsx:472`. The gap it described was closed. What follows is the defect it found instead.
 
@@ -659,6 +647,7 @@ The argument is already written in this tool's own description, applied to a dif
 - Greyscale survives, because the reason sentence already says which it is.
 
 **Owns.** `src/components/spine/TrackStart.tsx`, and a colocated test.
+· built also with `src/lib/spine/driver.ts` (the classification, beside `HOLD_LINE`, so `StalledWork`'s private two-value copy can read one set) and `src/lib/spine/track.functions.ts` (`holdReason` on `Track`: the component cannot classify what it is not given). **And not by painting the `Value`** -- it refuses a `you` tone on purpose, so the status moved onto a `StatusChip` and the station name went back to `quiet`.
 
 ---
 
@@ -2147,8 +2136,14 @@ Three things in that, and they compound:
 
 Anything Kiro cannot proceed on. One line each: item, what is blocking, what is needed.
 
-- **K-18** — the item's premise is false (15 reasons not 16; they already render via `holdLine` → `TrackStart`), and the live defect is the colour law inverted in `TrackStart.tsx:487`, which is outside its `Owns`. Needs a rescope. Reasoning in [`ledger/kiro-log.md`](./ledger/kiro-log.md) under K-18.
-- **K-17** — mounting `StreamingText` and `ToolChips` on `/runs/$missionId` duplicates `ReturnSummary` and the `steps` ledger respectively; needs a ruling on which of three options (rehome to `ToolStream`, keep as reference parity, or overrule and accept one duplication). Reasoning in [`ledger/kiro-log.md`](./ledger/kiro-log.md) under K-17.
+> **Both entries cleared 2026-08-20, and the round trip is worth recording because it worked.** Kiro
+> filed K-17 and K-18 as blocked with the measurements rather than guessing; Claude ruled on both within
+> the hour. **K-17 is WITHDRAWN** (a component with no home is not a defect to be fixed by finding it
+> one) and **K-18 was rewritten to the defect Kiro found instead** and is now `BUILT`. Neither needed
+> database access, which is the test for whether a block belongs here at all: if it turns on a judgement,
+> file it and carry on.
+
+_(empty)_
 
 ---
 

@@ -711,6 +711,63 @@ export function holdLine(
   return line.replace(/^This station/, station).replace(/^This work/, station);
 }
 
+/**
+ * WHICH HOLDS ARE WAITING ON A PERSON, AND WHICH ARE WAITING ON A CONDITION.
+ *
+ * ── WHY THIS IS A SET AND NOT A READING OF THE SENTENCE ─────────────────
+ * `TrackStart` used to answer this by comparing the RENDERED PROSE against
+ * `HOLD_LINE["waiting-on-a-person"]`. That worked for exactly one reason and
+ * could never work for two of the others: `holdLine` substitutes the station's
+ * display name for the leading "This station", so `station-cannot-finish` and
+ * `given-up` never equal their own entry in `HOLD_LINE` on any track that has a
+ * station. Branching on prose also makes a colour depend on wording, which
+ * `retry-station.test.ts` already refused for the retry control on the same
+ * grounds: read the raw column, never the sentence built from it.
+ *
+ * ── THE TEST IS WHO RELEASES IT, NOT HOW THE SENTENCE SOUNDS ────────────
+ * `meridian.css` draws the line: orchid means a person is required and touching
+ * it moves the thing; amber means stopped and NOT on you, so it needs a
+ * condition to change rather than a decision. Its own enumeration files "no
+ * source is connected" and "a cap is nearly spent" under amber, which decides
+ * the hard cases against the way their sentences read:
+ *
+ *   `out-of-credit`, `over-budget`  you top up an account. You do not DECIDE
+ *       this track, and no click on this row moves it.
+ *   `needs-evidence`  `StalledWork`'s header argues this one from production:
+ *       26 tracks were starved of evidence while the product told their owners
+ *       to go and inspect a station. Dressing a setup gap as a decision sends
+ *       someone hunting a control that does not exist.
+ *   `no-agent`, `needs-a-waived-station`, `paused`  the same shape: a roster, a
+ *       route or a kill switch has to change somewhere else.
+ *
+ * What is left is the four below, where a judgement about THIS piece of work is
+ * the thing standing in the way.
+ */
+const HOLD_NEEDS_PERSON: ReadonlySet<HoldReason> = new Set<HoldReason>([
+  "waiting-on-a-person",
+  "station-cannot-finish",
+  "corrections-spent",
+  "given-up",
+]);
+
+/**
+ * The status word a held track wears, or null where it is not held at all.
+ *
+ * `done` RETURNS NULL, and that is the point of the third branch. It is a member
+ * of `HoldReason` and it is not a hold: "The route is finished. This work has
+ * been graded." A surface that paints it as stopped reports finished work as
+ * stuck, which is the same defect `PlanCard` exists because of, one layer up.
+ *
+ * Tolerant of an unknown string for the reason `holdLine` is: `last_hold` is a
+ * text column, so a value written by a newer deploy must come out as nothing
+ * rather than as a wrong colour.
+ */
+export function holdTone(hold: string | null | undefined): "you" | "hold" | null {
+  if (!hold || hold === "done") return null;
+  if (!(hold in HOLD_LINE)) return null;
+  return HOLD_NEEDS_PERSON.has(hold as HoldReason) ? "you" : "hold";
+}
+
 /** The reasons that are about one station rather than the whole track. */
 const STATION_SPECIFIC: ReadonlySet<HoldReason> = new Set<HoldReason>([
   "needs-evidence",

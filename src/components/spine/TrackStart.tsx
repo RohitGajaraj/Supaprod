@@ -51,7 +51,8 @@ import {
 import { TrackChain } from "@/components/spine/TrackChain";
 import { TrackActivity } from "@/components/spine/TrackActivity";
 import { nextStation, WORK_SHAPE_LABEL, type WorkShape } from "@/lib/spine/route";
-import { HOLD_LINE } from "@/lib/spine/driver";
+import { holdTone } from "@/lib/spine/driver";
+import { StatusChip } from "@/components/meridian/StatusChip";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import { Action, NothingYet, Region, Value } from "@/components/meridian/surface-parts";
 import { Choices, Field, Input, Textarea } from "@/components/meridian/forms";
@@ -449,7 +450,20 @@ export function TrackStart() {
            * where it cannot be forgotten rather than in one component's
            * condition. The person still gets a sentence saying why.
            */
-          const waitingOnAPerson = t.hold === HOLD_LINE["waiting-on-a-person"];
+          /*
+           * OFF THE RAW REASON NOW, NOT OFF THE SENTENCE.
+           *
+           * This read `t.hold === HOLD_LINE["waiting-on-a-person"]`, comparing
+           * the RENDERED PROSE. It happened to work for that one reason and
+           * could never work for two of the other three that also need a
+           * person: `holdLine` replaces the leading "This station" with the
+           * station's display name, so `station-cannot-finish` and `given-up`
+           * never equal their own entry in `HOLD_LINE` on a track that has a
+           * station. `retry-station.test.ts` refused prose-branching for the
+           * retry control on the same grounds.
+           */
+          const tone = holdTone(t.holdReason);
+          const waitingOnAPerson = tone === "you";
 
           const open = showing === t.id;
 
@@ -477,12 +491,38 @@ export function TrackStart() {
                     button would swap information for a control. It is a fact and
                     not an affordance, so the row still carries exactly ONE
                     thing that can be pressed. */}
-                    {/* `warn` BECAME `hold`, and here the rename is exactly
-                    right rather than merely mechanical: a track carrying a hold
-                    is stopped for a reason the reader cannot press their way
-                    out of, which is what Meridian's amber says in as many
-                    words. */}
-                    <Value tone={t.hold ? "hold" : "quiet"}>{AGENT_STATIONS[t.station].name}</Value>
+                    {/*
+                    ── THE STATION IS A FACT AGAIN, AND THE STATUS MOVED TO A CHIP ──
+
+                    This read `tone={t.hold ? "hold" : "quiet"}`, so EVERY hold
+                    painted the station amber, including `waiting-on-a-person`.
+                    Amber means stopped and NOT on you, so a gate waiting on the
+                    reader was wearing the one token that says it is not theirs:
+                    the single distinction those two tokens exist to draw,
+                    inverted for the case where it matters most.
+
+                    The reflex fix is a `you` tone on this `Value`, and the
+                    component refuses one on purpose: *"A value is something you
+                    READ; if a person is required, that belongs on a control, not
+                    on a fact."* That is right, and it is the better answer than
+                    the one the item asked for. The station name answers "where
+                    is this", which is why the row is read at all, so it goes
+                    back to `quiet` and stops carrying a state it never owned.
+
+                    The state goes on a `StatusChip`, which is also the standing
+                    law from 2026-08-19: on paper the five status hues collapse
+                    to between 5.06 and 6.00 against the ground and stop reading
+                    as colour, so coloured TEXT cannot carry status and a chip
+                    has to. One idea, one place, and it survives greyscale
+                    because the reason sentence in the row's `sub` already says
+                    which it is.
+                    */}
+                    {tone ? (
+                      <StatusChip status={tone} pulse={tone === "you"}>
+                        {tone === "you" ? "Waiting on you" : "On hold"}
+                      </StatusChip>
+                    ) : null}
+                    <Value tone="quiet">{AGENT_STATIONS[t.station].name}</Value>
 
                     {/* Behind the three dots rather than out on the row, which is
                     the shape boundary.tsx already uses for a per-row move: a

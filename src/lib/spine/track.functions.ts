@@ -90,6 +90,17 @@ export type Track = {
    * unless the reason is carried out to the surface.
    */
   hold: string | null;
+  /**
+   * THE RAW REASON, beside the sentence built from it.
+   *
+   * `hold` above is prose, and prose is not a state. A surface that has to
+   * DECIDE something from the hold -- which status word it wears, whether a
+   * control belongs on the row -- has to read this instead, because `holdLine`
+   * rewrites two of the reasons to name their station and they no longer equal
+   * their own entry in `HOLD_LINE`. Added 2026-08-20, when `TrackStart` was
+   * found painting every hold amber by testing the sentence.
+   */
+  holdReason: string | null;
   /** When the driver last touched it. Null means it has never been driven. */
   drivenAt: string | null;
 };
@@ -139,6 +150,7 @@ function rowToTrack(r: TrackRow): Track {
     // `holdLine` substitutes the station's own display name and leaves every
     // other reason exactly as written, so there is no second copy of the words.
     hold: holdLine(r.last_hold, { station: r.station as AgentStation }),
+    holdReason: r.last_hold,
     drivenAt: r.driven_at ?? null,
   };
 }
