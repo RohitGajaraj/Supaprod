@@ -5786,3 +5786,52 @@ for exactly the defect of 2026-08-07, so it worked.
 `AppFrame.station-keys.test.ts`, `no-synthetic-key-dispatch.test.ts` and `route-inventory.test.ts`,
 **58 pass / 0 fail** between them. The ratchet did not move: `CommandPalette.tsx` carries no recorded
 marker that this touched.
+
+---
+
+## Queue state · 2026-08-20 22:58 · every remaining item is blocked, and it is waiting rather than stuck
+
+**This session took 55 items from K-25 onward.** What is left is seven items, and **not one of them
+is eligible**: each waits on a dependency I built but cannot verify, or on a ruling that is not mine.
+I have run out of work rather than run into a wall, and the difference matters, so here is the exact
+shape of it.
+
+| Item | Waits on | Why I cannot start it |
+| --- | --- | --- |
+| **K-30** | K-29 | K-29 is BUILT and not verified. It deletes from the same 3,799-line `styles.css` block K-29 just cut 56 declarations out of, so starting it now means computing shadowing against a state nobody has confirmed. |
+| **K-31** | K-30 | Chained behind the above. |
+| **K-43** | K-34 | K-34 is BUILT and not verified. K-43's 45 class names are defined in the stylesheets K-34 just swapped 211 references inside. |
+| **K-59** | K-34 | Same dependency, and K-59 owns the stylesheet that paints Today. |
+| **K-64** | K-12, **K-60** | **This one is blocked by a ruling, not by a verification.** K-64 is "two of the four normalisers have no tests, and three of the four disagree", and the disagreement it exists to settle **is** `completed_with_failures`, which is the open question under K-60 above. Writing tests for four normalisers while the thing they disagree about is undecided would encode the disagreement as the contract, which is the defect two of the nine dead features had. |
+| **K-78** | K-77 | K-77 is BUILT and not verified, and it corrected two of its own three questions, so the Ship pass it hands to Learn may itself change. |
+| **K-79** | K-78 | Chained behind the above. |
+
+**Two open questions, both logged above, and they are what unblocks the most.**
+1. **`completed_with_failures`: `done` or `failed`?** 622 runs, 33.8% of the table, six sites call it
+   stopped and two call it delivered. **Answering it clears K-60 and K-64.** Full argument and the
+   consequence of each answer in the K-60 entry.
+2. **The four ACT verbs: delete, or wire the listener and mount the palette?** Full cost in the K-37
+   entry. Nothing waits on this one.
+
+**What is owed to a browser, gathered in one place, because none of it is checkable from here.**
+- **`text-mrd-body` resolves as both a colour and a 14px font size** across roughly 60 call sites,
+  found independently by three workers. If the `@utility` wins the emission order, body-text colour is
+  silently falling back everywhere. **This is the highest-value single thing to look at.**
+- **`/settings` and `/pricing`** are the two surfaces that changed most and are unlooked-at.
+  `pricing.tsx` stopped being force-dark, and settings' control heights went 40px to 32px on fourteen
+  controls.
+- **A keyboard tab through the engine room, the runs table and the agent inbox in both grounds.** The
+  focus ring and the inbox's single tab stop are exactly the things a test cannot confirm are visible.
+- **`Refused` and `PromotionCard` are not in the `/meridian` gallery in a form a person has looked
+  at**, and `Refused` is not in it at all, because that file was outside K-71's Owns.
+
+**Three things I found that are nobody's item yet, in the order I would raise them.**
+1. **A fifth copy of the failure surface at `src/router.tsx:35`**, invisible to the ratchet because
+   `src/router.tsx` is outside `SCAN_ROOTS`. The guard meant to stop these multiplying cannot see it.
+2. **`ConnectTrustDialog.tsx` is 100% shadcn/Tempo v5** and is the connect-moment trust interstitial,
+   the most consequential screen the connectors pane opens.
+3. **No product column exists anywhere on the lesson path**, so the promotion card's own acceptance
+   line cannot be satisfied by any real row. `multi-product-and-isolation.md` lists that migration as
+   step 2 and it has not landed.
+
+**Baseline across the session: 5,157 → 3,840 occurrences, 257 → 232 files carrying debt.**
