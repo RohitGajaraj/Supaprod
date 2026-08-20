@@ -4802,3 +4802,247 @@ because it is STARTED and that is Kiro's to change.
 finding. It is wrong and I have marked it so in the same commit. **A register that
 keeps a falsified number is worse than no register**, because this one already
 spawned a queue item that would have shipped the error repo-wide.
+
+---
+
+## K-23 · VERIFIED · 2026-08-20 14:35 · every acceptance line checked in the running app, including the negative case
+
+**How this was checked, because it was not a normal sign-in.** Production
+`/auth/v1/token` is intermittently returning **504 after ~35s** today (see the
+LANDED entry below), so a real login could not be relied on. The authenticated
+gate is client side: `_authenticated.tsx` `beforeLoad` calls
+`supabase.auth.getSession()`, a localStorage read, and `needsOnboarding()` fails
+**open** on any read error. So a well-formed session was seeded into localStorage
+and the real `/meridian` route was driven in Chromium at 1400x1200.
+
+**Nothing about the component was stubbed.** The gallery cases are static
+fixtures that take no database. Only the auth boundary was supplied, and auth is
+not what this item builds.
+
+### Acceptance, line by line
+
+**Three answers, each reachable by keyboard, each stating its consequence.**
+Three `<button>` elements, `data-answer` = `run-it` · `check-writes` ·
+`keep-planning`, **all three `tabIndex: 0`**, each carrying its digit and a plain
+sentence:
+
+```
+1  Start it, and let it run            It runs to the end inside the boundaries
+                                       you have already set, and tells you when
+                                       it is done.
+2  Start it, check with me on writes   It stops and asks before anything leaves
+                                       this workspace: a pull request, an email...
+3  Keep planning                       Nothing runs and nothing is charged.
+```
+
+**Spend ceiling shown before the choice, never after.** Measured as **geometry,
+not DOM order**, which is the only way this can be wrong on screen and right in
+the markup: ceiling text top **530.1px**, answer group top **564.8px**. The
+ceiling is above the answers. It reads "Past the ceiling the work stops where it
+is and waits for you."
+
+**The plan is editable before committing, and removing a station demands a
+reason.** Verified including the refusal, which is the half a positive test
+misses:
+
+| step | text fields | commit button |
+| --- | --- | --- |
+| before | 0 | -- |
+| click "Skip it" | 1, focused | **`Skip this step` disabled** |
+| **press Enter with an empty reason** | **1, still open** | **still disabled** |
+| type a reason | 1 | **enabled** |
+| press Enter | 0, closed | committed |
+
+**An empty reason is refused rather than accepted quietly.** After committing,
+the row drops its "Skip it" control and **carries the reason inline** ("not
+needed, we already have the data") rather than printing the word "skipped",
+which is the better call.
+
+**Returns `{ autonomy, editedPlan, reason? }` and writes nothing.**
+- The gallery echo after a decision reads **`run-it, 1 steps skipped`** -- so the
+  edit made before the choice travels into `editedPlan`, which is the whole point
+  of the item.
+- **Writes nothing, measured rather than assumed:** every non-localhost request
+  was recorded across the decision. **Zero.** No route change either.
+
+**Gallery cases.** All three the item asks for are present, plus two more: a
+five-step plan, one step with no route, a route somebody already edited, the echo
+of what came back, and a decision in flight that cannot be pressed twice.
+
+### Noticed
+
+1. **`1 steps skipped` in the gallery echo.** A pluralisation defect on a
+   rendered surface. It is in `_authenticated.meridian.tsx`, not in `PlanGate`,
+   and it is a dev surface rather than a customer one, so it is not a rejection.
+   **Worth fixing in whatever commit next touches that file.**
+2. **Five "Skip it" and six "Take it off" controls render**, one per plan step and
+   one per route stop, so the edit affordance scales with the plan rather than
+   being a single control.
+3. **The answer buttons are the only tab stops in the gate**, which is correct
+   here and is exactly what `AgentInbox` is missing next door.
+
+> **Claude does after:** the `agent_autonomy` wiring the item deliberately left
+> out, which is mine and needs the live schema. Kiro's question -- whether
+> `run-it` means `trusted` or `ambient` -- is a real fork and I am not answering
+> it from the component. It needs a read of what `agent_autonomy.arc` actually
+> holds, and the database is unreachable right now.
+
+---
+
+## K-24 · REJECTED · 2026-08-20 14:40 · the mechanics are right and two of them cannot be reached in the running app
+
+Same harness as K-23 above. **Most of this component is correct**, and the
+rejection is narrow, but both defects are the kind a green suite cannot see.
+
+### What passed, measured across the 10 inbox instances the gallery renders
+
+- **Four groups, in order, empty groups hidden.** `orderCorrect: true` on every
+  instance; **no instance drew an empty group.**
+- **Idle collapse past three.** One case declares 6 and renders 1 row plus
+  "5 agents have gone quiet", and it opens. It **summarises rather than
+  truncating**, which is the defect this repo has recorded twice.
+- **Composed cases** all render: nothing running, everything blocked on one
+  person, and one agent failed.
+- **Failed is a field, not a fifth group.** A `Failed` chip appears inside
+  `Waiting on you` and inside `Ready for you to look at`. **Kiro's call was
+  right** and the item should be read as settling it.
+- **Greyscale survives**, because status is carried as words -- `Needs you`,
+  `Failed` -- not by hue alone.
+- **No sideways scroll, in a real layout engine at four widths:** 1400, 768, 380
+  and 320. Page scrollWidth equals clientWidth at every one, and the worst row
+  overflow is **0px**.
+- **`j`/`k` and the arrows work correctly once a selection exists:** j moved
+  0 -> 1 -> 2, k moved back to 1.
+
+### Defect 1. The list has no tab stop, so a keyboard cannot reach it
+
+`Row` carries `tabIndex={selected ? 0 : -1}`. **That is a roving tabindex with no
+initial stop.** With nothing selected -- the state every one of these renders in
+-- **every row is `-1` and the count of tabbable elements inside the listbox is
+0.** The wrapper holding `onKeyDown` has no `tabIndex` either, and the listbox
+computes `tabIndex: -1`.
+
+Measured, not reasoned about: **25 consecutive Tab presses never landed inside
+the inbox.**
+
+The only way in is a mouse. Clicking a row focuses it but deliberately does **not
+select** it (`onClick` calls `session.onOpen?.()`, and the comment explains why
+selection was removed from focus). So from a cold page:
+
+```
+  Tab      -> never arrives
+  click    -> focuses a row, selects nothing
+  click, j -> selection finally appears, and from here everything works
+```
+
+**Kiro's log says "over one tab stop for the whole list". There are zero.** The
+mechanic is Linear's and it is implemented correctly apart from its entry point:
+a roving tabindex needs one row to hold `0` when nothing is selected. That is the
+fix, and it is one line.
+
+**This is not a nitpick on a component that is about to become `/` (Home).**
+
+### Defect 2. Reply in place is dead in the gallery, and reply is the point
+
+Acceptance says "Reply-in-place works without a route change." **It cannot be
+exercised at all in the running app.**
+
+`Row` draws the reply control only when `session.onReply` is defined
+(`: session.onReply ? (`). **`onReply` appears zero times in
+`_authenticated.meridian.tsx`. So does `onOpen`.** Measured in the rendered page:
+**`buttons inside rows: 0`, across all 10 instances.** No reply field can be
+opened, and clicking a row calls an `onOpen` nobody passed.
+
+**The unit tests pass because they wire `onReply` themselves** -- four of them do.
+So the component is right and the surface never shows it. **This is the ninth
+time this repo has shipped something that passed every test and did nothing in
+the running app, and it is the reason this lane exists.** Reading the diff would
+not have found it.
+
+### Noticed, and it is not a reason for the rejection
+
+**The test that claims the 3 / 12 / 60 requirement cannot measure it.**
+`agent-inbox.test.tsx:374` is named *"renders 3, 12 and 60 sessions and keeps
+every row inside the container"*. What it asserts is that every `.truncate` title
+**also carries the class `min-w-0`**, plus that at least one row rendered. It
+never measures a width, and **jsdom has no layout engine, so it could not.**
+Change the layout so rows overflow while keeping both class names and this test
+still passes. It is a guard on a spelling rather than on the claim.
+
+**I could not measure it either, because the gallery's largest case is 6
+sessions** -- there is no 12 and no 60. What I could do instead I did: the
+truncation mechanic holds in a real browser at 320px, which is where it would
+fail if it were going to. **So the mechanic is sound and the criterion is
+unproven, which are different things.** Adding a 60-row case would close both.
+
+### To clear this
+
+1. **Give the list an entry point.** One row holds `tabIndex={0}` when nothing is
+   selected, so Tab reaches the inbox.
+2. **Wire `onReply` and `onOpen` in the gallery fixtures**, so reply in place is
+   demonstrable on the surface the item names.
+3. **Add a 12 and a 60 session case** while you are in that file, which also
+   gives the layout claim something real to stand on.
+
+Nothing in the component's logic needs rewriting. **The four groups, the
+participles, the collapse, the failed-as-a-field call and the two focus guards
+are all right**, and the guards in particular were worth the trouble they cost.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 14:45 · production sign-in is flapping, and two tidy explanations for it were both wrong
+
+**Recorded because the next agent that cannot sign in will otherwise spend the
+session hunting a credential, which `demo-credentials.md` already warns has
+happened twice.**
+
+### What is true
+
+`POST /auth/v1/token?grant_type=password` on the production Supabase project is
+**intermittently returning 504 after ~35 seconds**. In its healthy windows the
+same request answers in **under a second**. Both states were observed repeatedly
+inside twenty minutes, on the same accounts, with the same bodies.
+
+The Lovable MCP is degraded in the same window: **`SELECT 1` returned
+`499 request_cancelled`**, three times running. So no production read was
+possible and no acceptance number could be re-measured today.
+
+**This is platform side and the founder has already reported it to Lovable. There
+is nothing in this repo to fix**, and it is recorded here only so the symptom is
+recognisable.
+
+### Two explanations that fitted the evidence and were both false
+
+Worth writing down, because each survived a first look and died to a control.
+
+**First: "it is per account, and it tracks how hard automation leans on that
+account."** The opening sweep was a clean gradient -- `harbor@` no response at
+45s, `voyage@` 504 at 40s, `compass@` 400 at 17.9s, `meridian@` 0.48s,
+`lantern@` 0.43s -- and `harbor@` is documented as "the account any agent uses
+for testing". It was a tidy story. **Re-running the identical sweep minutes later
+returned fast 400s for all five.** The gradient was load, not accounts.
+
+**Second: "a wrong password fails fast, a correct one times out."** This one was
+better evidenced: two accounts, two different passwords, both 504 at ~35s, while
+every wrong password in the same minutes came back in under a second. It even had
+a mechanism -- a successful login does extra work a failed one skips, so a broken
+hook would look exactly like this. **The control killed it: the same account with
+a deliberately wrong password 504'd 35.6s later, seconds after the "correct"
+one.**
+
+**Both times the wrong conclusion was one measurement away from being written
+down as fact, and both times it was a control that stopped it.** The first
+needed only a repeat; the second needed a case that should have behaved
+differently and did not.
+
+### What this cost, and what it did not
+
+It blocked the database half of the lane: no `product_id` migration work, no
+acceptance re-measurement, no answer to Kiro's `agent_autonomy.arc` question.
+
+**It did not block verification.** The authenticated gate is client side --
+`getSession()` is a localStorage read and `needsOnboarding()` fails open on a read
+error -- so a seeded session reaches `/meridian`, and the gallery cases are static
+fixtures that never touch the database. **K-23 and K-24 were both verified in the
+real running app on that basis**, with only the auth boundary supplied. Where a
+verdict depended on that, it says so.
