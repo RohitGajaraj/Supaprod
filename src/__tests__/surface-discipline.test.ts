@@ -33,7 +33,7 @@ function stripCssComments(css: string): string {
 function ruleBody(css: string, selector: string): string | null {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   // Match the selector only when it is the whole selector list for the block, so
-  // `.sp-codediff-body` does not also match `.sp-codediff-body[data-wrap]`.
+  // `.cd-body` does not also match `.cd-body[data-wrap] .cd-row`.
   const re = new RegExp(`(^|\\})\\s*${escaped}\\s*\\{([^}]*)\\}`, "m");
   const m = re.exec(stripCssComments(css));
   return m ? m[2] : null;
@@ -119,15 +119,31 @@ describe("surface-discipline §5: a diff delta is green and red, and never a fak
   });
 
   test("per-line diff colour comes from the tokens, in both directions", () => {
-    const css = stripCssComments(read("styles/primitives.css"));
-    const add = ruleBody(css, '.sp-codediff-row[data-kind="add"]');
-    const del = ruleBody(css, '.sp-codediff-row[data-kind="del"]');
+    /*
+     * READ FROM THE COMPONENT, NOT FROM primitives.css, SINCE 2026-08-20.
+     *
+     * Same repointing the §1 scroller test above already had for `.cd-body`,
+     * and the same reason. The diff's paint moved into `CodeDiff.tsx`'s own
+     * `<style href="mrd-code-diff">` sheet on 2026-08-18; the
+     * `.sp-codediff-*` rules this read were left behind, rendered by nothing,
+     * and satisfied the assertion anyway. Those rules are now deleted, so the
+     * guard has to read the sheet that actually paints.
+     *
+     * WHAT IT STILL ASSERTS, unchanged and deliberately narrow: an added line
+     * is pass-hued, a removed line is fail-hued, and the sign column exists so
+     * colour is never the only carrier. Invert the mapping and this goes red.
+     */
+    const css = stripCssComments(read("components/studio/CodeDiff.tsx"));
+    const add = ruleBody(css, '.cd-row[data-kind="add"]');
+    const del = ruleBody(css, '.cd-row[data-kind="del"]');
     expect(add).not.toBeNull();
     expect(del).not.toBeNull();
-    expect(add!).toContain("--sp-pass");
-    expect(del!).toContain("--sp-fail");
+    expect(add!).toContain("--mrd-pass");
+    expect(add!).not.toContain("--mrd-fail");
+    expect(del!).toContain("--mrd-fail");
+    expect(del!).not.toContain("--mrd-pass");
     // Colour is never the only carrier: the sign column must exist too.
-    expect(css).toContain(".sp-codediff-sign");
+    expect(css).toContain(".cd-sign");
   });
 
   test("Diffstat draws no zero side", () => {

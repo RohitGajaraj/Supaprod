@@ -102,7 +102,6 @@
      when this layer does. */
   --sp-font-sans: var(--mrd-font);
   --sp-font-mono: var(--mrd-mono);
-  --sp-font-px: "Geist Pixel Square", var(--sp-font-mono);
 
   /* ---- Type scale ----
    * Role named, lifted verbatim from the prototype. These are tuned by
@@ -111,10 +110,8 @@
    * secondary text rather than a heading ladder. See the OPEN QUESTION
    * note at the foot of this block. 12px floor on anything a person
    * reads; the two values below it carry data, not prose. */
-  --sp-text-greet: 30px; /* the door greeting. Pixel face, one place */
   --sp-text-title: 25px; /* page title (h1) */
   --sp-text-gate: 19px; /* the gate question, biggest thing on a surface */
-  --sp-text-wordmark: 14.5px; /* brand wordmark, optical only */
   --sp-text-body: 14px; /* base. rows, nav, agent names, inputs */
   --sp-text-prose: 13.5px; /* secondary reading. live line, gate lines, ask */
   --sp-text-meta: 13px; /* row second line, sublabels */
@@ -122,10 +119,8 @@
   --sp-text-data: 12px; /* mono. timestamps, counts, durations */
   --sp-text-data-sm: 11.5px; /* mono. rail counts, stage numbers */
   --sp-text-kbd: 11px; /* keycaps */
-  --sp-text-monogram: 9.5px; /* inside a 22px identity disc */
 
   /* ---- Leading ---- */
-  --sp-leading-greet: 1.15;
   --sp-leading-title: 1.24;
   --sp-leading-gate: 1.32;
   --sp-leading-row: 1.4; /* two-line rows, kept tight */
@@ -136,10 +131,7 @@
   /* ---- Tracking ---- (negative as size grows, positive on small caps) */
   --sp-track-title: -0.028em;
   --sp-track-gate: -0.019em;
-  --sp-track-wordmark: -0.017em;
   --sp-track-num: -0.01em;
-  --sp-track-greet: 0.005em;
-  --sp-track-monogram: 0.01em;
 
   /* ---- Weight ----
    * Mona Sans is installed as four STATIC instances (400/500/600/700),
@@ -150,7 +142,6 @@
   --sp-weight-regular: 400;
   --sp-weight-medium: 500; /* labels, quiet emphasis */
   --sp-weight-strong: 600; /* headings, active nav, names (was 550) */
-  --sp-weight-heavy: 700; /* identity monograms only (was 650) */
 
   /* ---- Density ----
    * The law (anti-slop.md §3): tight inside a group, generous between
@@ -167,15 +158,9 @@
   --sp-space-6: 24px;
   --sp-space-7: 28px; /* the rule's breathing room, below a block edge */
   --sp-space-8: 32px; /* THE LAW: between groups */
-  --sp-space-9: 40px; /* work region gutter */
-  --sp-space-10: 52px; /* main column to context column */
-  --sp-space-11: 72px; /* work region floor */
 
   /* ---- Shell geometry ---- (step 2 builds against these) */
   --sp-header-h: 56px;
-  --sp-rail-w: 236px;
-  --sp-rail-w-narrow: 64px;
-  --sp-navrow-h: 38px;
   --sp-row-h: 36px; /* standard row */
   --sp-row-h-decision: 44px; /* a row carrying a decision earns the height */
   /* THE GUTTER ANSWERS THE WORK REGION, NOT THE WINDOW.
@@ -209,31 +194,21 @@
   --sp-work-pad-y: clamp(20px, 2.5cqi, 36px);
   --sp-work-pad-x: clamp(20px, 2.9cqi, 44px);
   --sp-work-pad-bottom: 72px;
-  --sp-work-max: 1400px;
   --sp-main-max: 74ch; /* measure, not pixels: it tracks the type */
   --sp-title-max: 34ch;
   --sp-gate-max: 36ch;
-  --sp-ctx-w: 316px;
   --sp-ctx-gap: 52px;
   --sp-pane-ask-w: 392px;
-  --sp-pane-settings-w: 352px;
   --sp-pane-inset: 22px;
-  --sp-door-card-w: 344px;
   /* The context column splits at a CONTAINER width of 1120px, asked of
    * the work region and never of the window. @container conditions
    * cannot read a custom property, so 1120px is written literally at
    * the query and recorded here as the single source of the number. */
-  --sp-ctx-split: 1120px;
 
   /* ---- Control and mark sizes ---- */
   --sp-mark: 22px; /* agent mark, identity disc */
-  --sp-mark-glyph: 16px; /* the glyph inside a 22px mark */
-  --sp-mark-lg: 30px; /* crew roster */
-  --sp-ctl-xs: 30px; /* rail collapse */
-  --sp-ctl-sm: 34px; /* icon button, ask button, settings door */
   --sp-ctl-md: 38px; /* button */
   --sp-ctl-lg: 40px; /* text input */
-  --sp-ctl-xl: 42px; /* door submit, provider button */
   --sp-icon: 17px; /* nav and toolbar icons, at the size of their label */
   --sp-icon-sm: 15px;
 
@@ -259,11 +234,7 @@
   --sp-dur-mid: 200ms; /* rail width, toggle travel */
   --sp-dur-slow: 280ms; /* pane slide, scrim */
   /* Named loops. Each one is a fact that is genuinely still changing. */
-  --sp-dur-breathe: 2400ms; /* a running agent's glyph */
-  --sp-dur-spin: 1700ms; /* the ring around a running agent */
-  --sp-dur-attention: 1600ms; /* the one blink in the system: a gate */
   --sp-dur-lamp: 8s; /* the record's spotlight, felt not watched */
-  --sp-dur-revolve: 190s; /* the door watermark */
 
   /* ---- Stage families ----
    * Agent identity is a stage family. The seven loop stages own seven
@@ -274,10 +245,7 @@
    * from competing with the four status colours below. */
   --sp-stage-discover: #6fa9a0;
   --sp-stage-decide: #c39a5e;
-  --sp-stage-plan: #8fa464;
-  --sp-stage-design: #ab7fa0;
   --sp-stage-build: #6d97c2;
-  --sp-stage-ship: #bd8092;
   --sp-stage-learn: #a89f66;
 
   /* ---- Outcomes and gates ---- never on an agent mark */
@@ -310,17 +278,20 @@
    * They alias the outcome colours on purpose rather than introducing a
    * parallel palette: a strong score and a passing check are the same idea at
    * different resolutions, and the light theme already redefines all three, so
-   * these follow it without a second set of overrides. */
-  --sp-score-strong: var(--sp-pass);
-  --sp-score-fair: var(--sp-warn);
-  --sp-score-weak: var(--sp-fail);
+   * these follow it without a second set of overrides.
+   *
+   * THE SIX DECLARATIONS ARE GONE, 2026-08-20. `--sp-score-strong/fair/weak`
+   * and `--sp-move-up/down` were read by nothing: a comment-stripped `var()`
+   * sweep of every stylesheet and every .ts/.tsx found zero call sites, so the
+   * ramp above was an argument the product never took up. The reasoning stays
+   * because the ARGUMENT is still right and Meridian is where it lands next;
+   * the aliases went because an unreferenced alias is not a spare, it is a
+   * second answer waiting to disagree with the first. */
 
   /* Movement. Up is not always good in the world, but on every surface that
    * shows a delta here it is: a score that rose, a count that grew, a run that
    * got faster. Where a rise is bad the caller must say so rather than reuse
-   * these. */
-  --sp-move-up: var(--sp-pass);
-  --sp-move-down: var(--sp-fail);
+   * these. DELETED with the ramp above, same date, same reason. */
 
   /* ---- Surfaces (dark: the design target) ----
    * prototype: --bg --sheet --lift --sink --float
@@ -401,9 +372,6 @@
   --sp-scrim: rgb(0 0 0 / 0.58);
 
   /* ---- Atmosphere ---- the door field, the context starfield, the lamp */
-  --sp-star: rgba(255, 255, 255, 0.62);
-  --sp-grid: rgba(255, 255, 255, 0.028);
-  --sp-grid-strong: rgba(255, 255, 255, 0.052);
   --sp-spot: rgba(255, 246, 236, 0.052);
 
   /* ==================================================================
@@ -437,13 +405,14 @@
    * is the correct order and makes the colour genuinely optional.
    *
    * Geometry only, so it is theme-invariant and defined once. A ring that
-   * changed size between themes would move the row it sits in. */
-  --sp-ring: 13px; /* the status glyph, optically matched to 14px body text */
-  --sp-ring-sm: 10px; /* inside a dense 36px scan row */
-  --sp-ring-lg: 17px; /* a station header, matched to --sp-icon */
-  --sp-ring-stroke: 1.5px; /* the ring's own weight at --sp-ring */
-  --sp-ring-stroke-sm: 1.25px; /* thinner ring needs a thinner stroke to read */
-  --sp-ring-gap: 2px; /* ring to its label */
+   * changed size between themes would move the row it sits in.
+   *
+   * THE SIX RING TOKENS ARE GONE, 2026-08-20. `--sp-ring`, `-sm`, `-lg`,
+   * `-stroke`, `-stroke-sm` and `-gap` were declared here and read nowhere, so
+   * the finding above never reached a component: the geometry was written down
+   * and the glyph was never built. That is worth keeping as a note and not as
+   * six unreferenced lengths. When the status glyph does get built it is a
+   * Meridian component and it sizes from `--mrd-*`. */
 
   /* ---- Density ----
    * The research found row height is not a continuum. It clusters in two
@@ -459,9 +428,6 @@
    * ~20px of height and saves ~120px of width, which the research named the
    * single biggest density lever available. */
   --sp-row-scan: 38px; /* one row = one atom. lists, evidence, signals */
-  --sp-row-read: 52px; /* two lines, no action. a decision in a queue */
-  --sp-row-act: 68px; /* carries a control. approvals, gates, anything with a verb */
-  --sp-row-gap: 1px; /* rows are separated by a rule, not by space */
 
   /* ---- Elevation ----
    * There was exactly one shadow, and it is the deep one for floating
@@ -475,8 +441,6 @@
    * a second vocabulary for one idea (the reasoning already recorded above
    * --sp-scrim). --sp-shadow stays exactly as it was, aliased by role, so
    * nothing that already uses it moves. */
-  --sp-shadow-menu: 0 6px 16px -4px rgba(0, 0, 0, 0.5), 0 2px 5px -2px rgba(0, 0, 0, 0.4);
-  --sp-shadow-pane: var(--sp-shadow);
   --sp-shadow-sheet: 0 24px 60px -12px rgba(0, 0, 0, 0.78), 0 8px 20px -6px rgba(0, 0, 0, 0.55);
 
   /* ---- Provenance ----
@@ -507,20 +471,23 @@
    *
    * Rendered as a 2px left rule or a dot, never a fill: at fill area these
    * would become the loudest thing on screen and spend a budget the shell
-   * is holding at under 3%. */
-  --sp-eviq-mine: var(--sp-gate);
-  --sp-eviq-inferred: var(--sp-stage-build);
-  --sp-eviq-borrowed: var(--sp-mute);
+   * is holding at under 3%.
+   *
+   * THE THREE COLOURS ARE GONE, 2026-08-20. `--sp-eviq-mine`,
+   * `--sp-eviq-inferred` and `--sp-eviq-borrowed` were read by nothing, so the
+   * component this describes was never built. Only the invariant weight below
+   * survives, and it survives because something reads it. */
   --sp-eviq-rule: 2px; /* the left rule's weight. invariant */
 
   /* ---- Tint ----
    * Status chips converged hard on a 8-18% fill of their own hue across
    * the study, and every call site here was hand-writing a colour-mix or an
    * rgba. Named by intensity because that is genuinely what varies; the hue
-   * is supplied by the caller. */
-  --sp-tint-quiet: 0.08; /* a resting chip */
-  --sp-tint-plain: 0.12; /* the default */
-  --sp-tint-loud: 0.18; /* a chip that must be found in a dense table */
+   * is supplied by the caller.
+   *
+   * ALL THREE ARE GONE, 2026-08-20, read by nothing. The call sites the note
+   * complains about are still hand-writing their colour-mix, so this records a
+   * real gap rather than a solved problem, and the gap belongs to Meridian. */
 
   /* ---- The session boundary ----
    * "Since you last looked" was the sharpest single idea in the agent
@@ -533,14 +500,11 @@
    * below arrived while you were gone". Not a divider -- the system already
    * has --sp-line-soft for that -- because this one carries meaning and
    * must be findable by scrolling to it. Ember, because the boundary is
-   * defined entirely by a human's attention. */
-  --sp-seen-rule: var(--sp-gate);
-  --sp-seen-weight: 1px;
-  --sp-seen-fade: color-mix(
-    in oklab,
-    var(--sp-gate) 14%,
-    transparent
-  ); /* the wash below the rule */
+   * defined entirely by a human's attention.
+   *
+   * `--sp-seen-rule`, `--sp-seen-weight` and `--sp-seen-fade` ARE GONE,
+   * 2026-08-20, in both themes, read by nothing. The session boundary was
+   * never built, so this is a design note now and not a token group. */
 
   /* ---- Stacking order ----
    * SALVAGED 2026-08-10 from src/styles/design-tokens.css, which a PARALLEL
@@ -578,12 +542,14 @@
    * portal: that fight is lost by design and the answer is the `--ds-z-*` stop.
    *
    * Pure ordering, so it is theme invariant and defined once. A stacking order
-   * that changed between themes would reorder the screen on a toggle. */
-  --sp-z-dock: 30; /* the composer dock, above the work region it sits on */
-  --sp-z-tip: 50; /* the rail's label, over the row it names */
-  --sp-z-summon: 60; /* a summoned full-viewport overlay: the board */
-  --sp-z-sheet: 62; /* a side sheet, above a board that may have opened it */
-  --sp-z-menu: 70; /* a menu, the topmost thing inside the frame. See Q3 */
+   * that changed between themes would reorder the screen on a toggle.
+   *
+   * THE FIVE STOPS ARE GONE, 2026-08-20, and the gap they name is not.
+   * `--sp-z-dock`, `-tip`, `-summon`, `-sheet` and `-menu` were read by
+   * nothing: every one of the bare z-index values this note counts is STILL
+   * bare in shell.css and primitives.css. The ladder was written down and
+   * never adopted, which is the worst of both states, so the note survives as
+   * the open question it always was and the unread declarations do not. */
 }
 
 /* ---- Light ----
@@ -626,18 +592,13 @@
    * than as a hole cut in it. Same family as the shadow directly above. */
   --sp-scrim: rgb(70, 55, 30, 0.42);
 
-  --sp-star: rgba(90, 70, 40, 0.26);
-  --sp-grid: rgba(80, 60, 25, 0.03);
-  --sp-grid-strong: rgba(80, 60, 25, 0.055);
   --sp-spot: rgba(255, 252, 242, 0.92);
 
-  /* the same seven families, taken down for a warm ground */
+  /* The stage families that are still read, taken down for a warm ground. Plan,
+   * design and ship left on 2026-08-20 in both themes: nothing read them. */
   --sp-stage-discover: #3d7a70;
   --sp-stage-decide: #8f6a26;
-  --sp-stage-plan: #5c7234;
-  --sp-stage-design: #7b5070;
   --sp-stage-build: #3f648a;
-  --sp-stage-ship: #8a5060;
   --sp-stage-learn: #756d33;
 
   --sp-warn: #8f6a26;
@@ -651,25 +612,25 @@
    * file. A stacking order in particular must not vary, or the screen would
    * reorder itself on a toggle.
    *
-   * The provenance tokens are absent on purpose. --sp-eviq-mine resolves
-   * through --sp-gate, --sp-eviq-inferred through --sp-stage-build and
-   * --sp-eviq-borrowed through --sp-mute, and all three of those are already
-   * restated above. They self-adjust, and restating them here would create a
-   * second place to keep in sync. */
+   * The provenance colours were absent on purpose, because they resolved
+   * through --sp-gate, --sp-stage-build and --sp-mute, which are restated
+   * above. They were deleted outright on 2026-08-20, in the dark block, having
+   * been read by nothing; only --sp-eviq-rule survives and it is a weight, not
+   * a colour, so it has no paper value either. */
 
   /* Shadows on paper are a warm brown at low opacity, never black -- the same
    * argument the scrim makes a few lines up: pure black over a warm ground
    * reads as a hole cut in the sheet rather than as something resting on it.
    * These sit in the same family as --sp-shadow directly above. */
-  --sp-shadow-menu: 0 4px 12px -4px rgba(80, 60, 25, 0.14), 0 1px 3px -1px rgba(80, 60, 25, 0.08);
   --sp-shadow-sheet:
     0 20px 48px -14px rgba(80, 60, 25, 0.22), 0 6px 14px -6px rgba(80, 60, 25, 0.12);
 
-  /* The session boundary's wash. Ember on paper is --sp-gate #c2500f, a deeper
-   * and redder ember than the dark theme's #ff6b2c, so the same alpha would
-   * read heavier here. Taken down to compensate: the rule should be findable
-   * by scrolling to it, never loud enough to compete with the rows beneath. */
-  --sp-seen-fade: color-mix(in oklab, var(--sp-gate) 9%, transparent);
+  /* The session boundary's wash used to be here, taken down because ember on
+   * paper is --sp-gate #c2500f, deeper and redder than the dark theme's
+   * #ff6b2c, so the same alpha read heavier. `--sp-seen-fade` went on
+   * 2026-08-20 with the rest of that group, read by nothing in either theme.
+   * The compensation is recorded because whoever builds the boundary will need
+   * it again. */
 }
 
 /* ---- The one atom that belongs with the tokens ----
@@ -703,11 +664,13 @@
  * 3. Two objects share stop 70. `.sp-menu` is a menu and `.sp-keys` is
  *    the shortcut sheet, and shell.css says of the latter that it is
  *    "built on the board panel's geometry ... because the two are the
- *    same object". If that is true then `.sp-keys` belongs at
- *    --sp-z-summon with the board, and the two would stop tying. It is
- *    left where it ships because moving it changes which surface wins
- *    when both are open, and that is a product judgement rather than a
- *    tokenizing one. Recorded, not decided.
+ *    same object". If that is true then `.sp-keys` belongs on the board's
+ *    stop, and the two would stop tying. It is left where it ships because
+ *    moving it changes which surface wins when both are open, and that is a
+ *    product judgement rather than a tokenizing one. Recorded, not decided.
+ *    Still open on 2026-08-20, and now with no ladder to move it onto: the
+ *    five `--sp-z-*` stops were deleted that day because nothing read them,
+ *    so both objects are still bare numbers in shell.css.
  * =================================================================== */
 
 /* ===================================================================
@@ -799,7 +762,6 @@
   /* Focus (landing grammar: double ring for gates, calm ring for typing) */
   --ink-focus-gap: var(--ink-bg);
   --ink-focus-ring: var(--voice-human);
-  --ink-input-ring: rgba(255, 255, 255, 0.3);
 
   /* Geometry */
   --ink-radius-control: 8px;
@@ -857,7 +819,6 @@
   --verdict-fail: #cf222e;
 
   --ink-focus-gap: var(--ink-bg);
-  --ink-input-ring: rgba(0, 0, 0, 0.3);
 }
 
 /* ---- Shared crafted pieces ---------------------------------------- */
@@ -870,30 +831,10 @@
     0 0 0 4px var(--ink-focus-ring);
 }
 
-/* Typing focus: calm single ring. Inputs are not gates. */
-.ink-input-focus:focus-visible,
-.ink-input-focus:focus-within {
-  outline: none;
-  box-shadow: 0 0 0 1px var(--ink-input-ring);
-}
-/* The container carries the ring; inner fields never double-ring. Overrides
-   the legacy app-wide focus styles until the Phase 4 purge removes them. */
-.ink-input-focus textarea:focus,
-.ink-input-focus textarea:focus-visible,
-.ink-input-focus input:focus,
-.ink-input-focus input:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
 .ink-panel {
   background: var(--ink-panel);
   border: 1px solid var(--ink-hairline);
   border-radius: var(--ink-radius-panel);
-}
-
-.ink-hairline-b {
-  border-bottom: 1px solid var(--ink-hairline);
 }
 
 /* Mono machine voice: kickers, trace rows, timestamps, counts. */
@@ -901,13 +842,6 @@
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.08em;
-}
-.ink-kicker {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-subtle);
 }
 
 /* Working pulse (machine voice). Static ring under reduced motion. */
@@ -927,28 +861,6 @@
   .ink-working {
     animation: none;
     box-shadow: 0 0 0 3px var(--voice-machine-soft);
-  }
-}
-
-/* Skeletons: shaped like arriving content, calm opacity breath. */
-@keyframes ink-skeleton {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 0.9;
-  }
-}
-.ink-skeleton {
-  background: var(--ink-raised);
-  border-radius: 6px;
-  animation: ink-skeleton 1.6s ease-in-out infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .ink-skeleton {
-    animation: none;
-    opacity: 0.7;
   }
 }
 

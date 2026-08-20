@@ -3976,3 +3976,139 @@ branch above the evidence check, which makes a declaration able to widen anythin
 
 **Gates.** tsc 0 errors · 28 pass / 0 fail / 292 expect() · ratchet 4 pass with both new files born
 clean · build clean · em and en dash sweep 0 · retired-token and raw-colour grep 0.
+
+---
+
+## K-32 · BUILT · 2026-08-20 16:40
+
+**Did.** Ground **SUPERSEDED**, confirmed rather than repeated: `CodeDiff.tsx:43-52` records the
+2026-08-18 port and its own sheet exists (`.cd-term`, `.cd-body`, `.cd-row`, `.cd-sign`, `.cd-text`,
+`.cd-pair`, `.cd-side`, all on `--mrd-*`); `ChangesPanel.tsx:103` and `:249` record porting the two
+panes and the filename off `.sp-split*` and `.sp-filename`. **Both live equivalents render today.**
+460 lines out, `primitives.css` 2561 -> 2101.
+
+**Every line number in the item is +19 stale, confirmed at five independent anchors**, so everything
+was located by content and the edit is guarded by a first-and-last-line content assertion that refuses
+on a mismatch:
+
+| item says | real | what is there |
+| --- | --- | --- |
+| 1417 | **1436** | `.sp-split {` |
+| ~1558 | **1577** | the bare `.sp-term {` |
+| 1836 | **1855** | closing `}` of `@container (max-width: 720px)` |
+| 1904 | **1923** | `.sp-agrid {` |
+| 1930 | **1949** | blank after `.sp-asub`'s `}` |
+
+**Two deliberate deviations from the item's span.** I extended the first cut **upward by 12 lines** to
+take `/* ---------- the list-and-detail split ---------- */`, the family's own section docblock, which
+the item's start would have orphaned describing nothing. And **`.sp-filename` needed no separate cut**:
+it sits at real line 1549, INSIDE the first span, not outside it as the item's "plus `.sp-filename`"
+phrasing implies.
+
+**My own class-name sweep ran before deleting**, comment-stripped across all `.ts`/`.tsx`/`.css`/`.js`/
+`.html` under `src/` plus `index.html` and `public/`, excluding `.output/`, `design-reference/`,
+`videos/` and the `" 2"` artifact dirs: **29 candidate class names, 26 referenced nowhere outside the
+stylesheet.** The only three with an outside reference were `.sp-codediff-body`, `-row` and `-sign`,
+**all in `surface-discipline.test.ts` itself**, which is precisely the pin this item exists to move.
+
+**I strengthened the three repointed assertions rather than merely moving them.** They now read
+`.cd-row[data-kind="add"]` -> `--mrd-pass`, the `del` twin -> `--mrd-fail`, and `toContain(".cd-sign")`,
+**and each hue assertion also asserts the ABSENCE of the opposite token**, so a rule carrying both
+cannot pass. No `toBeDefined` anywhere.
+
+**Planted the inversion, as the item requires.** Swapped the two rule bodies in `CodeDiff.tsx` so add
+read `--mrd-fail` and del read `--mrd-pass`:
+
+    141 |     expect(add!).toContain("--mrd-pass");
+    Received: "background: color-mix(in oklab, var(--mrd-fail) 13%, transparent); ..."
+    0 pass  1 fail
+
+Reverted and confirmed byte-identical to `HEAD`. **`CodeDiff.tsx` is outside `Owns` and was touched
+only for that sanctioned proof.**
+
+**Corrected the comment the deletion falsified**, and added two tombstones in the file's own
+established convention (see the `.sp-mark` and `.sp-stagegroup` tombstones already there): one for the
+split/term/codediff families naming where the paint lives now and why the guard moved, one for the
+roster grid.
+
+**Unsure.** Two. The 12-line docblock taken above the item's span is a judgement: an orphaned section
+header reading as a description of nothing seemed worse than a tombstone, and reverting it is one
+block. And **`src/components/shell/primitives.tsx:234` and `:257` still describe `.sp-acard` as if it
+exists** ("The roster keeps its own pair", "`.sp-acard` was written for a `<div>`"). Outside both items'
+`Owns`, so untouched, and worth an item.
+
+**Noticed.** The item's simulated drop was 509 -> 444. **Real, measured with the ratchet's own
+`debtInCss`: 517 -> 440**, a 77-occurrence drop, all on `--sp-`; `data-obsidian` 3 and `class:sp-` 8 did
+not move.
+
+---
+
+## K-33 · BUILT · 2026-08-20 16:44
+
+**Did.** Two sweeps. **128 lines out of `ink.css`** (981 -> 893, with about 40 lines of tombstone prose
+added back) and **22 out of `shell.css`** (2968 -> 2951).
+
+**(a) I wrote the sweep rather than trusting the list, and it reproduced the item exactly**: 180
+`--sp-*` declaration lines over 159 unique names, of which **65 names across 73 lines are read by
+nothing.** The script strips comments first (this file's own docblocks name dozens of tokens they no
+longer use), reads both the bare `var(--x)` and `var(--x, fallback)` forms, scans every
+`.css`/`.ts`/`.tsx`/`.js`/`.jsx` under `src/` plus `index.html` and `public/` while excluding
+`.output/`, `design-reference/` and `videos/`, **and then closes the set over token-to-token references
+so a name whose only reader is another live token stays.** A one-pass sweep would have deleted the
+inner half of a two-step alias chain.
+
+**Re-ran it afterwards: 107 lines, 94 names, 0 dead. No second wave**, so nothing lost its last reader
+to this pass.
+
+**`--sp-seen-fade` is a five-line declaration, not one.** Deleting only the item's single line would
+have left `in oklab, var(--sp-gate) 14%, transparent );` dangling as a **parse error**.
+
+**(b) Four of the five rules have a tail the item's numbers would have orphaned**, and this is the
+finding worth keeping:
+
+| rule | item says | real | the tail |
+| --- | --- | --- | --- |
+| `.sp-iconbtn` (`shell.css`) | 437-455 | **456-477** | the item's end is 3 lines short and **cuts inside `.sp-iconbtn svg`**, orphaning its `width`, `height` and `}` |
+| `.ink-input-focus` | 855-865 | **873-888** | the item's end lands on the OPENING line of the second rule, orphaning `outline: none !important; ... }` |
+| `--ink-input-ring` | "~858", one | **802 (dark) and 860 (light), two** | deleting one leaves an unread token behind |
+| `.ink-skeleton` | 915-933 | **933-954** | the item is right that the reduced-motion override orphans, **and its own end number still stops one line short of that override's closing brace** |
+| `.ink-hairline-b`, `.ink-kicker` | ~876, ~886 | 895-898, 905-911 | none |
+
+**`--shell-ctl-sm` and `--sp-icon` both survive** `.sp-iconbtn`'s removal, with six readers each, and
+`shell.css` drops on exactly the two markers the item predicted.
+
+**Six `ink.css` docblocks lost their whole token group, and I appended a tombstone to each rather than
+deleting the reasoning** — on the ratchet's own stated position that a guard which punishes the
+write-up teaches people to delete the write-up. The stacking-order one records that **every bare
+z-index it complains about is still bare**, so the gap survives as an open question rather than as five
+unread numbers. Four comments in the light block were left false by the cut and are corrected.
+
+**One cross-item fix, legal because `shell.css` is this item's `Owns`:** `shell.css:1270` told the
+reader its overflow pair "is written the way `.sp-codediff-body` in primitives.css writes it, for the
+reason recorded there". **K-32 deleted that rule and its reason in the same batch.** Repointed at
+`.cd-body` in `CodeDiff.tsx`.
+
+**Unsure.** The item's "65 names across 73 lines" was measured before K-32 landed; **my sweep ran after
+and returned the identical figures**, so K-32's 430-line cut took no `ink.css` token's last reader with
+it. Worth knowing, since the two were sequenced on the same file family. And whether the tombstone
+prose is wanted at all versus a clean cut: it costs nothing on the ledger, but it is prose I chose.
+
+**Noticed.** Three.
+
+1. **The item's simulated 302 -> 217 undershoots. Real: 302 -> 198.** The gap is mostly that an
+   aliasing declaration carries TWO `--sp-` occurrences: `--sp-score-strong: var(--sp-pass)` removes
+   both. `raw-colour` fell 107 -> 89, so 18 raw hex and rgba literals left with the atmosphere, stage
+   and shadow groups.
+2. **`every-token-used-is-defined.test.ts` checks used-to-defined only, never defined-to-used**, which
+   is why 65 names could sit unread indefinitely and why this sweep had to be written by hand.
+3. Both dangling comments the item flagged are left alone as instructed: `--sp-space-9` in a `today.css`
+   comment, `--sp-score-strong` in `queue-instruments.test.tsx:193`.
+
+**Gates, both items, one `design:ratchet` run at the end.** Before the re-freeze `bun test` was
+**10,031 pass / 1 fail**, the single failure being rule 3 on exactly the four counts below, **which is
+the guard working.** After: `lane:gates` green on all four, real exit 0.
+
+    src/styles/ink.css         --sp-: 195 -> 109      raw-colour: 107 -> 89
+    src/styles/primitives.css  --sp-: 506 -> 429
+    src/styles/shell.css       --sp-:  26 ->  24
+    total 5,340 -> 5,157

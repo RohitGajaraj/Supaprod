@@ -453,28 +453,11 @@
   gap: 4px;
   flex: none;
 }
-.sp-iconbtn {
-  width: var(--shell-ctl-sm);
-  height: var(--shell-ctl-sm);
-  border: 0;
-  background: none;
-  border-radius: var(--mrd-r-ctl);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  color: var(--mrd-mute);
-  transition:
-    background var(--mrd-d-press) var(--mrd-ease),
-    color var(--mrd-d-press) var(--mrd-ease);
-}
-.sp-iconbtn:hover {
-  background: var(--mrd-hover);
-  color: var(--mrd-ink);
-}
-.sp-iconbtn svg {
-  width: var(--sp-icon);
-  height: var(--sp-icon);
-}
+/* `.sp-iconbtn`, its hover and its `svg` sizing sat here and were DELETED
+ * 2026-08-20: three rules, no `className` anywhere in the tree. Icon buttons
+ * are Meridian's now. Nothing else in this file read them, and the two
+ * `var(--sp-icon)` references they carried were this file's last two on that
+ * token. */
 /*
  * ASK, A SECONDARY CONTROL, AND ITS HOVER USED TO DO NOTHING.
  *
@@ -1267,8 +1250,8 @@
 
 @media (max-width: 640px) {
   .sp-strip {
-    /* SIDEWAYS ONLY, and the pair is written the way `.sp-codediff-body` in
-     * primitives.css writes it, for the reason recorded there: `overflow-x:
+    /* SIDEWAYS ONLY, and the pair is written the way `.cd-body` in
+     * `CodeDiff.tsx` writes it, for the reason recorded there: `overflow-x:
      * auto` alone makes `overflow-y` compute to `auto` as well, and a second
      * vertical scroll container is how a page comes to feel stuck. Nothing in
      * this strip overflows vertically, so `hidden` clips nothing -- it only
