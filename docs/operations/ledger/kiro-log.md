@@ -3796,3 +3796,183 @@ agent-fleet 13, delegate-desk 14, runaway 24, 51 across the three suites. Ratche
 `design:ratchet` was not run. **None of these three is verified**: they are pure-logic changes and a
 green suite proves the code does what the tests say and nothing more. Whether the new buckets and lanes
 read correctly against real rows is a production question.
+
+---
+
+## K-67 · BUILT · 2026-08-20 15:52
+
+**Did.** One `describe` block appended to `nav-model.test.ts`: a case per nav constant
+(`PRIMARY_NAV` 12 paths, `FOOTER_NAV` 2, `ENGINE_ROOM_PATHS` 4) plus a canary. Each collects offenders
+into an array and asserts `toEqual([])`, so the diff **names** the offender (`"Brain (/brainz)"`) rather
+than counting it, which is the difference between "the rail is broken" and knowing which keycap goes
+nowhere. Resolution follows TanStack's flat convention: dots are slashes and either
+`_authenticated.<seg>.tsx` or `.index.tsx` counts.
+
+**The canary is the part that matters and the item did not ask for it.** `the resolver can fail, so a
+pass below is evidence rather than a vacuum` pins `/today` true (plain file), `/plan` true (reached
+through its `.index` child) and `/no-such-door` false. **Without it, a resolver that stopped resolving
+anything would pass all three cases silently** by finding no offenders, which is precisely the shape of
+guard this repo keeps paying for.
+
+**No new file, no exemption list, and the block says why.** `route-inventory.test.ts` owns the opposite
+direction and owns the only exemption lists in the repo (`AUTH_EXEMPT`, `RETIRED_LINKERS`); it cannot
+answer this question because it walks the routes folder and never reads the nav model. This walks the
+nav model and **needs no exemptions at all: a rail entry has no legitimate reason to point at nothing.**
+
+**I did not adopt the redirect-stub rule, and that is a deliberate divergence from the item's hint.** A
+stub answers the URL `engineRoomActive` is asked about, so `/govern` and `/trust-ledger` resolving is
+correct rather than a defect. **The question here is existence, never what renders.**
+
+**Planted twice, both reverted.** `ENGINE_ROOM_PATHS` `/sync` -> `/sync-planted-ghost` failed with
+`+ ["/sync-planted-ghost"]`. `PRIMARY_NAV` `/brain` -> `/brainz` failed with `+ ["Brain (/brainz)"]`,
+proving the label-plus-path naming. Both plants also tripped 6 and 2 pre-existing cases respectively,
+which is itself reassuring. `nav-model.ts` is not in `Owns`; the reverts are byte-exact and grep
+confirms `to: "/brain"` at 210 and `"/sync"` at 421 with no planted string anywhere, **but I cannot run
+`git status` to show a clean diff, so that file is worth one glance on verification.**
+
+**Unsure.** Two. Whether a primary or footer door should additionally resolve to a **surface** rather
+than a stub: I did not assert it, because none of the 14 is a stub today so the rule would have no
+defect behind it. And **`/admin` resolves twice**, through a 218-line layout and an index, and my
+resolver accepts either, so **the test cannot tell a layout-only route from a real one.**
+
+**Noticed.** Three.
+
+1. **A doc claim in `nav-model.ts` is wrong and I deliberately did not pin it.** The
+   `ENGINE_ROOM_PATHS` comment says "/govern and /trust-ledger are redirect stubs that land here." By
+   `route-inventory.test.ts`'s own stub rule, **only `/trust-ledger` qualifies**: 32 lines with one
+   redirect, against `_authenticated.govern.tsx` at 64 lines with three. Pinning that would have gone
+   red on a stale sentence rather than a defect.
+2. The existing two-door spot-check at 152-161 is now subsumed, and I kept it: it also pins exact
+   filenames and the `CANONICAL_PATHS` case above it says "proven real below", so deleting it breaks a
+   live cross-reference.
+3. **`_authenticated.discover.tsx` carries a conditional `throw redirect` inside a real 94-line
+   surface**, which any future line-count stub heuristic would misread. That is the 8-to-94 continuum
+   the item warns about, with a concrete instance.
+
+**Gates.** `lane:gates` green. `nav-model.test.ts` alone: 30 pass, 0 fail.
+
+---
+
+## K-72 · BUILT · 2026-08-20 15:54
+
+**Did.** Added `data-mrd=""` to `EmptyRow` in `RoomDetail.tsx` and nothing else. Verified the family
+claim before editing: `data-mrd` is on `Reading` (732), `NothingHere` (775), `NothingYet` (800),
+`ReadFailed` (860) and `ReadFailedLine` (898), and `role="status" aria-live="polite"` is on **only** the
+three pending and failed members. `EmptyRow` was the single exception in a six-member family, **and it
+is the empty state, which is what production shows most often.**
+
+**No aria, and the reason is arithmetic rather than taste.** The two empty states in the system,
+`NothingHere` and `NothingYet`, deliberately carry no live region. `VerifyCockpit` renders `EmptyRow` at
+four sites on one screen, so copying the pending pattern would have produced **four polite live regions
+competing on one screen.** No guard added either, for the reason below.
+
+**## The three other `data-mrd` gaps in this file, and why each may be correct as-is**
+
+The acceptance asks for these named, and they are the argument against the sweeping guard: **all three
+lack the attribute for a reason the code can state, so a "every exported state component carries
+`data-mrd`" rule would flag three correct pieces of code to catch one real gap.**
+
+1. **`VerdictSentence`** (~120) is a `<p>` of body prose. `DESIGN-SYSTEM.md:186` makes `data-mrd` the
+   inheritance point for the focus ring **on controls**; a paragraph with no focusable descendant
+   inherits nothing and offers nothing to focus. It is also not a read state, so the family argument
+   that carried `EmptyRow` does not reach it: `EmptyRow` was odd against five siblings, this has none.
+2. **`ErrorRetry`'s wrapper div** (~106) is a spacing shell around `ReadFailed`, **which already carries
+   `data-mrd=""` on its own root**, and the only focusable thing in the subtree (the retry `Action`)
+   sits inside that root. Tagging the outer div nests a second identical scope around the first.
+3. **`Row`'s non-interactive branch** (~76) is the `<div>` returned when `onOpen` is absent, and that
+   branch exists **precisely because there is nothing to activate** — its own docblock states the rule,
+   "A row that goes nowhere is a div". The interactive branch already carries `data-mrd=""` plus
+   `mrd-focus-inset`. Tagging the inert one puts a focus-ring scope on the branch chosen for having no
+   focus.
+
+**Unsure.** **`RoomDetail` itself is unreachable by its own docblock**: `_authenticated.engine-room.tsx`
+grew its own chassis on 2026-08-06. The **row vocabulary is the live export set** (`Row`, `EmptyRow`,
+`ErrorRetry`, `PanelPending`), so this fix lands on the live half of a file whose main component is a
+deletion candidate. **The file's status is worth a verdict.** And the visible effect of the attribute is
+a focus-ring scope, so a `<p>` of text shows no visual change either way.
+
+**Noticed.** `EmptyRow` takes `message` as a prop while `ErrorRetry` and `PanelPending` take
+`children`, so one member of the same vocabulary is called differently from its neighbours. Not broken,
+worth knowing for whoever consolidates the read-state family.
+
+**Gates.** `lane:gates` green. Ratchet total unchanged, baseline untouched, `design:ratchet` not run.
+
+---
+
+## K-73 · BUILT · 2026-08-20 15:58
+
+**Did.** Built `src/lib/memory-scope.ts` (zero imports) and a 28-test suite.
+`resolveMemoryScope({kind, origin}) => {scope, promotable, reason}` plus the pieces the rule is made of,
+exported so no caller restates the table: `classifyMemoryKind`, `isEvidenceKind`, `scopeForKindAlone`,
+`originOnlyNarrows`, and the three kind lists.
+
+Resolution order **is** the design: evidence settled first and nothing later can loosen it, then
+`outcomeDerived` overrides the label, then a declaration may **narrow** anything, then method, then a
+declaration may **widen** only what was genuinely undecided, then product.
+
+`origin` is `{ outcomeDerived?, declaredScope? }`. I started with a provenance union
+(`run | person | seed | outcome`) and cut it: four of its five values changed nothing, and under data
+minimalism a field with no consumer does not ship. Both survivors have a branch that reads them.
+
+**## K-73 · the ruling names four kinds, the store writes seven, and the one it calls evidence has no writer**
+
+This is the finding and it changes the answer. §2.3 does say what the item claims, but **its table is
+wrong about the code.**
+
+- **§2.3 calls `precedent` "a settled outcome". Nothing writes `precedent`.** Settled outcomes are
+  written as `kind: "outcome"` (`OUTCOME_MEMORY_KIND` in `outcome-memory.ts`, written by
+  `memory.server.ts:443`), and the read side agrees: `decision-precedent.server.ts` filters on
+  `kind === OUTCOME_MEMORY_KIND`. **So the kind the ruling names as THE evidence case is the one no
+  writer produces, and the one that actually carries evidence went unnamed.** Both are treated as
+  evidence here. Naming only the ruling's four would have left every real settled outcome falling to the
+  unknown default: **the right answer reached by accident, and luck is not a confidentiality
+  guarantee.**
+- **The real set is seven, not four**, and there is **no CHECK constraint on `kind` in any migration**,
+  so it is free text and anything can arrive: `reflection`, `note`, `outcome`, `correction`, `fact`,
+  `preference`, and `precedent` (no writer, 28 production rows, enumerated in `liveness/registry.ts`).
+
+**Unsure.** Five, and two are placements the ruling does not cover.
+
+1. **`preference` -> method, promotable. Mine, not the ruling's.** Seeded as "product decisions in this
+   workspace follow a decision-first process", which is method by the ruling's own definition. Could
+   have been ambiguous; I went method because `promotable` only opens a proposal a person rules on, so
+   the downside is a queue item rather than a leak.
+2. **`fact` -> ambiguous, defaulting to product. The most arguable call here.** It is seeded at
+   `scope: "workspace"`, which reads like an argument for method. Placed as ambiguous because a fact is
+   as often "our churn is 4%" as "we are a two-person team", **and only the second travels.** A
+   declaration still recovers the workspace case, so nothing is lost.
+3. **An unknown kind behaves differently from an ambiguous one, and conflating them was the plausible
+   mistake.** A declaration can widen `note` and `fact` and cannot widen `hunch`. The alternative
+   reading would let a new writer promote by passing a flag instead of by adding a kind to the method
+   list in the open. **I chose the visible route** and it is tested.
+4. **`outcomeDerived` beats `declaredScope: "workspace"`.** `{kind: "note", outcomeDerived: true,
+   declaredScope: "workspace"}` returns product. The harm is asymmetric, so evidence wins over a
+   declaration.
+5. `originOnlyNarrows` is **exempted for ambiguous kinds**, because widening them is the feature. That
+   makes the invariant narrower than `approval-policy`'s, and the exemption is stated in both the module
+   and the test rather than hidden.
+
+**Planted the realistic refactor rather than a strawman**: moved the `declaredScope === "workspace"`
+branch above the evidence check, which makes a declaration able to widen anything, so
+`{kind: "outcome", declaredScope: "workspace"}` returns `{scope: "workspace", promotable: true}`.
+**4 tests failed, including both headline ones.** Reverted, 28 pass.
+
+**Noticed.** Four.
+
+1. **The §2.3 mismatch above is a real doc defect**, not a wording quibble: the ruling's evidence row
+   names a kind with no writer. Worth a correction in `agent-first-platform.md` §2.3, which is not my
+   file.
+2. **`liveness/registry.ts:256` enumerates six of the seven kinds and is missing `correction`.** Its own
+   note records that `note` and `precedent` were 100% unembedded on 2026-08-02, so **the human-curated
+   memories were exactly the ones recall could never reach.** If `correction` rows are also unembedded,
+   that check cannot see it.
+3. **There are now three places enumerating memory kinds and none agree**: `liveness/registry.ts` (six),
+   `memory-view.ts`'s `KIND_LABELS` (three), and this module (seven). Mine is a fourth enumeration,
+   which is the duplication `AGENTS.md` §6 warns about. **I looked for an existing home to extend and
+   there is none**, so the three lists are exported for whoever consolidates.
+4. `agent_memory` also carries a **`visibility`** column (`workspace | private`, with a CHECK
+   constraint, migration `20260802190000`). That is a fourth axis alongside `scope` and the new product
+   boundary, and §2.3 does not mention it.
+
+**Gates.** tsc 0 errors · 28 pass / 0 fail / 292 expect() · ratchet 4 pass with both new files born
+clean · build clean · em and en dash sweep 0 · retired-token and raw-colour grep 0.

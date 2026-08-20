@@ -356,3 +356,74 @@ describe("nav-model - active-state math", () => {
     ]);
   });
 });
+/**
+ * EVERY DOOR RESOLVES TO A ROUTE FILE.
+ *
+ * A ratchet, not a repair. All 18 paths across the three constants resolve
+ * today, and only two of them were held: the spot-check above pins /runs and
+ * /crew because they are the pair CANONICAL_PATHS exempts, which left the
+ * other sixteen correct and unguarded. AGENTS.md §4 names "a capability with
+ * no door" as this repo's dominant defect; the inverse is the one a user sees,
+ * because a door onto nothing ships a 404 in the primary rail. The measured
+ * cleanliness is the argument for pinning it now: the list is short today and
+ * will not be short after the next feature.
+ *
+ * SCOPE, so this never grows into a second inventory. `route-inventory.test.ts`
+ * owns the opposite direction, every authenticated surface has a live door, and
+ * owns the only exemption lists in the repo (AUTH_EXEMPT, RETIRED_LINKERS). It
+ * cannot answer this question, because it walks the routes folder and never
+ * reads the nav model. This walks the nav model and needs no exemption list at
+ * all: a rail entry has no legitimate reason to point at nothing.
+ */
+describe("nav-model - every door resolves to a route file on disk", () => {
+  const ROUTES = join(import.meta.dir, "..", "routes");
+
+  /**
+   * TanStack's flat file convention: dots are slashes, and a `.index` file
+   * serves the bare path. So /brain is `_authenticated.brain.tsx` and /plan is
+   * `_authenticated.plan.index.tsx`, and either spelling resolves.
+   *
+   * A REDIRECT STUB COUNTS AS RESOLVED, deliberately. /govern and
+   * /trust-ledger are stubs that land in the engine room, and ENGINE_ROOM_PATHS
+   * lists them for exactly that reason: they answer the URL whose active state
+   * engineRoomActive is asked about. The question here is whether the path
+   * exists, never what it renders.
+   */
+  function candidateFiles(to: string): string[] {
+    const seg = to.replace(/^\//, "").split("/").join(".");
+    return [`_authenticated.${seg}.tsx`, `_authenticated.${seg}.index.tsx`];
+  }
+
+  function resolves(to: string): boolean {
+    return candidateFiles(to).some((f) => existsSync(join(ROUTES, f)));
+  }
+
+  it("the resolver can fail, so a pass below is evidence rather than a vacuum", () => {
+    expect(resolves("/today")).toBe(true); // a plain route file
+    expect(resolves("/plan")).toBe(true); // reached through its .index child
+    expect(resolves("/no-such-door")).toBe(false);
+  });
+
+  /*
+   * Each case NAMES the offender instead of counting it. A count tells you the
+   * rail is broken; the label and path tell you which keycap goes nowhere,
+   * which is the whole diagnosis.
+   */
+  it("every PRIMARY_NAV `to` has a route file", () => {
+    const dead = PRIMARY_NAV.filter((n) => !resolves(n.to)).map((n) => `${n.label} (${n.to})`);
+    expect(dead).toEqual([]);
+  });
+
+  it("every FOOTER_NAV `to` has a route file", () => {
+    const dead = FOOTER_NAV.filter((n) => !resolves(n.to)).map((n) => `${n.label} (${n.to})`);
+    expect(dead).toEqual([]);
+  });
+
+  it("every ENGINE_ROOM_PATHS entry has a route file", () => {
+    // Strings, not NavItemDefs, so the path IS the name. These drive the rail
+    // row's active state, so an entry with no route file lights a row for a
+    // URL nobody can be standing on.
+    const dead = ENGINE_ROOM_PATHS.filter((p) => !resolves(p));
+    expect(dead).toEqual([]);
+  });
+});

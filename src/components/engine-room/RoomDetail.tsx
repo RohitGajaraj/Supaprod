@@ -97,7 +97,11 @@ export function Row({ subject, value, statusWord, tone, onOpen }: RowProps) {
 
 /** NOTHING EXISTS in this view, which is not a failed read and not a filter. */
 export function EmptyRow({ message }: { message: string }) {
-  return <p className="py-mrd-5 text-[13px] leading-relaxed text-mrd-mute">{message}</p>;
+  return (
+    <p data-mrd="" className="py-mrd-5 text-[13px] leading-relaxed text-mrd-mute">
+      {message}
+    </p>
+  );
 }
 
 /** A failed read says so and offers one retry: an error may never wear an empty
