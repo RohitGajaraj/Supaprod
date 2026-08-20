@@ -53,6 +53,8 @@ export type CapabilityReport = {
   lastAt: string | null;
   ageMs: number | null;
   neverExecuted: boolean;
+  /** When the stored verdict was taken. Null when computed live just now. */
+  checkedAt?: string | null;
 };
 
 export type IntegrityReport = {
@@ -67,6 +69,8 @@ export type IntegrityReport = {
   nullRatio: number | null;
   deadSegments: string[];
   segments: Array<{ segment: string; totalRows: number; offendingRows: number }>;
+  /** When the stored verdict was taken. Null when computed live just now. */
+  checkedAt?: string | null;
 };
 
 export type VocabularyReport = {
@@ -79,6 +83,8 @@ export type VocabularyReport = {
   totalRows: number;
   undeclaredRows: number;
   unusedValues: string[];
+  /** When the stored verdict was taken. Null when computed live just now. */
+  checkedAt?: string | null;
 };
 
 export type LivenessReport = {

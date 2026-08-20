@@ -4512,3 +4512,61 @@ narrow structural client, the precedent `liveness.functions.ts` names in its own
 comment and the `error_events` writer already uses.
 
 Gates green through `lane:gates`, exit 0, all four.
+
+---
+
+## Claude lane · RULED · 2026-08-20 11:40 · the founder overturned my call on unchecked capabilities, and he was right on the arithmetic
+
+I shipped the page read serving `unknown` for any capability the rotation had not
+reached, and argued that probing it live "would hand the cap straight back". **The
+founder pushed back, and the reasoning behind my call was wrong.**
+
+### The error
+
+**I conflated recomputing the WHOLE report with filling in the entries that are
+missing.** The whole report is ~45 subrequests. One missing capability is **two**:
+a windowed count and an all-time latest. Ten missing capabilities is twenty.
+
+The cap only comes back in one situation -- a fresh table where **every** entry is
+missing at once -- and I had generalised that single case into a rule covering the
+ordinary one, where the fill is a handful of queries.
+
+**The product argument he made is also right and I had not weighed it.** A page
+whose subject is "what is happening right now" saying "I do not know" about
+something it could answer in two queries is a worse page, and the answer arrives
+before anyone would have noticed the wait.
+
+### What it does now
+
+The page reads the stored rows in one query, then **probes the missing entries
+live and shows them**, costed per entry so the pathological case cannot render
+nothing:
+
+- `probeCost` -- `2` for a capability or vocabulary check, `2 + 2N` for an
+  integrity check with N segments, which is what `readIntegrity` actually asks.
+- `planLiveFill` -- spends up to **36** subrequests on the missing entries and
+  returns what fits AND what does not, so **nothing is silently dropped**. A
+  deferred entry reads unchecked; it does not read fine. That is the difference
+  between a budget and a truncation.
+- 36 leaves room under the 45 the budget test asserts, and covers a dozen
+  ordinary capabilities or two of the most expensive integrity checks.
+
+The live results are shaped **as stored rows** and merged before rendering, so
+there is one path from a verdict to the report rather than two that can drift. A
+freshly probed entry carries `checked_at` of now, truthfully, beside rows measured
+hours ago.
+
+### Why this is worth writing down beyond the fix
+
+The wrong call was not a slip in the code, it was **a real constraint applied one
+level too broadly**. The cap is real, the test that guards it is right, and this
+morning I correctly refused twice to raise it. Having been right about the cap
+three times, I reached for it a fourth time where it did not apply, and produced a
+worse product decision with a technically-shaped justification.
+
+**A constraint that has been correct repeatedly is the one most likely to get
+applied where it does not hold**, and the tell was that I never costed the actual
+case -- one entry, two queries -- before ruling on it. **Every other measurement
+today I took before deciding. This one I asserted.**
+
+18 rotation tests, 6 stored tests, gates green through `lane:gates`.

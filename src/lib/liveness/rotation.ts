@@ -93,3 +93,66 @@ export function selectDueEntries(
     })
     .slice(0, limit);
 }
+
+
+/**
+ * What one registry entry costs to probe, in outbound subrequests.
+ *
+ * `readProbe` asks two: a windowed count and an all-time latest, which are
+ * different filters and cannot be merged. `readIntegrity` asks two for the table
+ * plus two per declared segment. `readVocabulary` asks two.
+ *
+ * This is an estimate used only to decide how many entries may be filled in live
+ * before the page risks a Worker's subrequest cap. It is deliberately the WORST
+ * case for each shape: under-counting here is the failure that renders nothing.
+ */
+export function probeCost(entry: {
+  kind: RotationEntry["kind"];
+  segments?: number;
+}): number {
+  if (entry.kind === "integrity") return 2 + 2 * (entry.segments ?? 0);
+  return 2;
+}
+
+/**
+ * How many subrequests the page may spend filling in entries the rotation has
+ * not reached yet.
+ *
+ * `report.test.ts` holds the whole report at 45 against a 50 cap. Reading the
+ * stored rows is one query, so 36 leaves comfortable room and still covers a
+ * dozen ordinary capabilities or two of the most expensive integrity checks.
+ *
+ * WHY FILL LIVE AT ALL. A capability registered a minute ago would otherwise read
+ * "not checked yet" until the next tick, and a page that says "I do not know"
+ * about something it could answer in two queries is a worse page. The budget
+ * exists for the pathological case -- a fresh table where EVERY entry is missing
+ * -- not for the ordinary one, where the fill is a handful of queries.
+ */
+export const LIVE_FILL_BUDGET = 36;
+
+/**
+ * The entries to fill in live, in registry order, while the budget lasts.
+ *
+ * Returns what fits and what does not, because the caller has to render both: a
+ * filled entry gets a real verdict and an unfilled one honestly reads unknown.
+ * **Nothing is silently dropped**, which is the difference between a budget and a
+ * truncation.
+ */
+export function planLiveFill<T extends { id: string }>(
+  missing: Array<{ entry: T; kind: RotationEntry["kind"]; segments?: number }>,
+  budget: number = LIVE_FILL_BUDGET,
+): { fill: T[]; deferred: T[] } {
+  const fill: T[] = [];
+  const deferred: T[] = [];
+  let spent = 0;
+  for (const m of missing) {
+    const cost = probeCost({ kind: m.kind, segments: m.segments });
+    if (spent + cost <= budget) {
+      spent += cost;
+      fill.push(m.entry);
+    } else {
+      deferred.push(m.entry);
+    }
+  }
+  return { fill, deferred };
+}
