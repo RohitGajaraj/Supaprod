@@ -1858,156 +1858,21 @@
 }
 
 /* ===========================================================================
- * Light (parchment) theme — accessible status palette
+ * The first light (parchment) theme block stood here and was deleted 2026-08.
  * ---------------------------------------------------------------------------
- * Several components were authored against dark canvases and use Tailwind's
- * light hues (text-amber-300, text-emerald-300, …) for status chips. Those
- * shades sit at ~85% lightness — readable on char, invisible on parchment.
- * Redefine the relevant Tailwind tokens only when `.dark` is not active so
- * the same class names resolve to legible mid-tones on parchment.
- * Translucent fills like `bg-amber-500/15` already pass contrast — only the
- * 200/300/400 text shades are retuned.
- * Re-keyed 2026-07-11: was `html:not(.dark)`, which fired whenever the .dark
- * class was missing even while the page rendered Tempo dark (:root IS dark).
- * Keyed to [data-theme='light'] per the theme contract: dark default = .dark
- * class + NO data-theme; light = data-theme='light' set AND .dark removed.
- * TEMPO v5: light theme derived from the same 10×10 scale model as dark. */
-[data-theme="light"],
-.light-theme {
-  color-scheme: light;
-
-  /* Backgrounds — 100 for pages/components, 200 sparingly for subtle differentiation */
-  --ds-background-100: #fff;
-  --ds-background-200: #fafafa;
-
-  /* Gray — same role model as dark: 100-300 component bg, 400-600 borders,
-     700-800 high-contrast bg, 900-1000 text */
-  --ds-gray-100: #f2f2f2;
-  --ds-gray-200: #ebebeb;
-  --ds-gray-300: #e6e6e6;
-  --ds-gray-400: #eaeaea;
-  --ds-gray-500: #c9c9c9;
-  --ds-gray-600: #a8a8a8;
-  --ds-gray-700: #8f8f8f;
-  --ds-gray-800: #7d7d7d;
-  --ds-gray-900: #4d4d4d;
-  --ds-gray-1000: #171717;
-
-  --ds-gray-alpha-100: #0000000d;
-  --ds-gray-alpha-200: #00000015;
-  --ds-gray-alpha-300: #0000001a;
-  /* Was #00000014 (7.8%), which sat BELOW alpha-300's #0000001a (10.2%) and
-     made the light ladder non-monotonic. Dark climbs 21 then 24 across the
-     same step, so the two themes put --hairline (alpha-400) and --card-border
-     (alpha-300) in OPPOSITE relative orders: a hairline read heavier than a
-     card edge in dark and lighter in light. 1d keeps the step small, matching
-     dark's shape, and stops the pair inverting between themes. */
-  --ds-gray-alpha-400: #0000001d;
-  --ds-gray-alpha-500: #00000036;
-  --ds-gray-alpha-600: #0000003d;
-  --ds-gray-alpha-700: #00000070;
-  --ds-gray-alpha-800: #00000082;
-  --ds-gray-alpha-900: #000000b3;
-  --ds-gray-alpha-1000: #000000e8;
-
-  /* Ember — same scale, light values */
-  --ds-ember-100: oklch(0.97 0.02 315);
-  --ds-ember-200: oklch(0.95 0.03 315);
-  --ds-ember-300: oklch(0.925 0.045 315);
-  --ds-ember-400: oklch(0.885 0.065 315);
-  --ds-ember-500: oklch(0.78 0.11 315);
-  --ds-ember-600: oklch(0.5 0.19 315);
-  --ds-ember-700: oklch(0.44 0.185 315);
-  --ds-ember-800: oklch(0.38 0.17 315);
-  --ds-ember-900: oklch(0.32 0.14 315);
-  --ds-ember-1000: oklch(0.2 0.09 315);
-
-  /* Blue — same hue (~215) darkened for AA contrast on white */
-  --ds-blue-100: #f0f6fe;
-  --ds-blue-200: #e2edfc;
-  --ds-blue-300: #cfe2fa;
-  --ds-blue-400: #a9ccf6;
-  --ds-blue-500: #74a8ef;
-  --ds-blue-600: #2e6ed6;
-  --ds-blue-700: #2560c4;
-  --ds-blue-800: #1d51ad;
-  --ds-blue-900: #1a478f;
-  --ds-blue-1000: #143463;
-
-  --ds-red-100: #ffeef0;
-  --ds-red-200: #ffe9ea;
-  --ds-red-300: #ffe4e5;
-  --ds-red-400: #ffd8d7;
-  --ds-red-500: #ffb5b6;
-  --ds-red-600: #ff6a6e;
-  --ds-red-700: #fc0035;
-  --ds-red-800: #e70022;
-  --ds-red-900: #d60020;
-  --ds-red-1000: #46000c;
-
-  --ds-amber-100: #fff6e1;
-  --ds-amber-200: #fff4d4;
-  --ds-amber-300: #fff1c8;
-  --ds-amber-400: #ffdd84;
-  --ds-amber-500: #ffc85e;
-  --ds-amber-600: #fa0;
-  --ds-amber-700: #ffb200;
-  --ds-amber-800: #f90;
-  --ds-amber-900: #a64f00;
-  --ds-amber-1000: #541c00;
-
-  --ds-green-100: #ecfdec;
-  --ds-green-200: #e5fce7;
-  --ds-green-300: #d3fad1;
-  --ds-green-400: #b9f5bc;
-  --ds-green-500: #82eb8d;
-  --ds-green-600: #4ce15e;
-  --ds-green-700: #28a948;
-  --ds-green-800: #279141;
-  --ds-green-900: #107d32;
-  --ds-green-1000: #00370d;
-
-  --ds-teal-100: #dffffb;
-  --ds-teal-200: #ddfef6;
-  --ds-teal-300: #ccf9f1;
-  --ds-teal-400: #b1f7ec;
-  --ds-teal-500: #52f0db;
-  --ds-teal-600: #00e2c4;
-  --ds-teal-700: #00a694;
-  --ds-teal-800: #008d7d;
-  --ds-teal-900: #007a6e;
-  --ds-teal-1000: #003d34;
-
-  --ds-purple-100: #f9f0ff;
-  --ds-purple-200: #f9f1ff;
-  --ds-purple-300: #f5e8ff;
-  --ds-purple-400: #f1d9ff;
-  --ds-purple-500: #dda9ff;
-  --ds-purple-600: #c77dff;
-  --ds-purple-700: #9f00f4;
-  --ds-purple-800: #8400cd;
-  --ds-purple-900: #7c00c9;
-  --ds-purple-1000: #2e004d;
-
-  --ds-pink-100: #ffeaf5;
-  --ds-pink-200: #ffeaf2;
-  --ds-pink-300: #ffe0eb;
-  --ds-pink-400: #ffd5e1;
-  --ds-pink-500: #fdb3cc;
-  --ds-pink-600: #f97ea7;
-  --ds-pink-700: #f22782;
-  --ds-pink-800: #e4106e;
-  --ds-pink-900: #c41562;
-  --ds-pink-1000: #460523;
-
-  --ds-contrast-fg: #000;
-
-  /* Focus ring, light theme. NOT EMBER — see the note at the `:root`
-     declaration of this token. Focus is a position report, not a brand moment. */
-  --ds-focus-color: oklch(0.55 0.12 245);
-  --ds-focus-ring: 0 0 0 2px var(--ds-background-100), 0 0 0 4px var(--ds-focus-color);
-  --ds-focus-ring-outline: 2px solid var(--ds-focus-color);
-}
+ * It painted nothing. All 107 of its declarations are redeclared further down
+ * this file, and the two blocks that carry them, `:root` and the second
+ * `[data-theme="light"], .light-theme`, are unlayered plain CSS at the same
+ * specificity (0,1,0) on the same element, so source order settled it and the
+ * later ones won. 106 values were byte-identical.
+ *
+ * ONE VALUE WAS NOT, AND IT IS WHY NOTHING WAS RELOCATED. This block set
+ * `--ds-contrast-fg: #000` while `:root` sets `#fff`, so light theme has always
+ * computed `#fff` for the ink that sits on a solid fill -- today that reaches
+ * the app through `--destructive-foreground`. Moving `#000` into a later block
+ * would make it win for the first time and turn that ink black on a saturated
+ * red. If black is wanted there, it is a design ruling, not cascade arithmetic.
+ * =========================================================================== */
 
 /* === Flow mode — the calm front (OPS-01) ===
    When `html.flow` is set, the chrome recedes so your work holds the eye: the

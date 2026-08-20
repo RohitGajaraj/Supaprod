@@ -3598,3 +3598,201 @@ held**, so the sentence in `meridian.css` is corrected to say so. The `--mrd-d-e
 for the first real dismissal moves from 150ms to **140ms** to match the retuned move token.
 
 **Gates.** `lane:gates` green, all four, real exit 0 read from `$?` rather than through a pipe.
+
+---
+
+## K-28 · BUILT · 2026-08-20 15:38
+
+**Did.** Deleted the first `[data-theme="light"], .light-theme` block from `src/styles.css` in full and
+**relocated nothing.** `src/styles.css` debt **1224 -> 1022**, a 202 drop (109 `--ds-`, 93 raw hex),
+exactly the item's predicted figure. Baseline re-frozen; repo total now 5,340 across 257 files.
+
+**The item's line numbers are +19 off and I acted on my own.** The file has grown above the block
+since the item was written.
+
+| | item says | measured |
+| --- | --- | --- |
+| the early light block | 1856-1991 | **1875-2010**, the same 136 lines |
+| `:root` between the two light blocks | 3220-3564 | **3239-3583** |
+| `@layer base` | opens 475 | opens **494**, closes 600 |
+| `@layer utilities` | opens 602 | opens **621**, closes **1843** |
+
+**The layer boundary is the load-bearing check and it holds.** `@layer utilities` closes at 1843, 32
+lines before the block opened, so the block was unlayered plain CSS sitting between two `@keyframes`
+at top level. Both `:root` blocks and the surviving light block are unlayered too, all at specificity
+(0,1,0) on the same element, and `data-theme="light"` is stamped on `document.documentElement` by
+`__root.tsx:342` and `use-theme.tsx:48`, **which is what makes them the same element.** Source order
+settled it and the early block painted nothing. The one later layer, `@layer components` at 3849, is
+irrelevant: an unlayered rule beats every layer.
+
+**The count is 107, not the item's 106.** 106 custom properties plus `color-scheme: light`. Every one
+has a later declaration in a block that matches `<html>` unconditionally in the light ground, so
+**zero uncovered.** 106 were byte-identical to their later winner. Exactly one differed, and it is the
+trap:
+
+- **`--ds-contrast-fg`** was `#000` here and is `#fff` at `:root`, **which wins today.** Light theme
+  has always computed `#fff`. Relocating `#000` would have made it win **for the first time** and
+  turned the ink on a solid fill black.
+- `--ds-focus-ring` byte-identical at `:root`, as stated. `color-scheme: light` byte-identical in the
+  surviving block.
+
+**The regression surface narrowed while I worked and did not close.** K-27 deleted `badge.tsx` and
+`tooltip.tsx` in this same batch, so the ten `text-(--ds-contrast-fg)` call sites the item names are
+gone. **But the alias survives**: `--destructive-foreground: var(--ds-contrast-fg)` in `styles.css`
+itself feeds shadcn's destructive treatments, so the black-on-red regression would still ship, through
+one alias rather than ten class strings. **The trap is still live and the item's reasoning still
+applies.**
+
+**Unsure.** One close call, and it is not the one the item names. **Two of the deleted names are not in
+the surviving light block at all**, `--ds-contrast-fg` and `--ds-focus-ring`, and are covered only by
+`:root`. At `<html>` that is total. But `[data-theme="light"]` is also used as a **subtree** selector,
+where `:root` does not match, and there is exactly one such element: `Ground` in
+`_authenticated.meridian.tsx:201`. It is safe today because `meridian.css:1683-1685` re-declares the
+focus tokens inside `[data-mrd]` and nothing there consumes `--ds-contrast-fg`. **But if anyone ever
+wraps a `ui/button` or `ui/input` in a bare `data-theme="light"` div outside `[data-mrd]`, its focus
+halo resolves the dark inner ring.** Subtler than "later wins" and worth knowing.
+
+**What I did instead of the dev-server comparison the acceptance asks for, and what it does not cover.**
+Parsed the file into top-level blocks with brace-depth tracking over a comment- and string-masked copy,
+extracted depth-1 declarations per block, and for each of the 107 names listed every later declaration
+with its line, value and selector. A property counted as safe only if a later declaration exists AND
+either matches the early value or already wins. **This does not confirm the paint. Nobody has looked at
+the light ground**, and a token resolved outside CSS cascade order would be invisible to it (none are;
+no JS reads these).
+
+**Noticed.** Four.
+
+1. **For K-29, K-30 and K-31: recompute every line number, do not trust the queue.** They were
+   uniformly +19 before this change and everything below 1875 has now shifted **-136**. Current
+   positions: `[data-obsidian]` 1980-2238, 2242-2245, 2451-2510 · `html[data-obsidian]` 2897 · `:root`
+   3104-3448 · light 3452-3580 · dark 3586-3590 · `[data-obsidian]` 3595-3707.
+2. **`shader-animation.tsx` is still in `src/components/ui`** although K-27's list includes it. That is
+   K-27's held file and its own entry explains why; noting it here because a reader checking K-27's
+   deletion count against the folder will find 11 files rather than 10.
+3. **The block carried a 15-line descriptive comment that a pure range delete would have orphaned**,
+   describing the block that was going. Replaced with a shorter note recording that it was shadowed and
+   that `--ds-contrast-fg` must not be rescued. Comments are stripped by `debtInCss`, so the 1022 figure
+   is unaffected.
+4. `design:ratchet` reported exactly **2 reclaimed counts, both `src/styles.css`**, with nothing grown
+   and nothing newly measured, so the baseline write touched no other file's record.
+
+**Gates.** `lane:gates` unpiped, exit 0, `GATES GREEN` on its own last line. Baseline
+`src/styles.css`: `{"--ds-":629,...,"raw-colour":406}` = 1224 **before**, `{"--ds-":520,...,"raw-colour":313}`
+= 1022 **after**.
+
+---
+
+## K-60 · BUILT · 2026-08-20 15:42
+
+**Did.** Added `waiting_approval -> "queued"` and `halted -> "failed"` to `RUN_STATE` in
+`agent-fleet.ts`, each with a comment naming its writer and the consequence of the omission. Added four
+test cases: one per key on `runBucket`, plus two on `computeAgentFleet` asserting the arithmetic
+identity `running + queued + done + failed === total` over a halted and a gated run, and that an agent
+whose only run halted reads `state: "attention"` and lands in `summary.withExceptions`. Deleted
+`bucketOf()` and its five-line comment from `crew.functions.ts`; `tallyRuns` calls `runBucket` directly
+and the existing import is still consumed.
+
+**Proven non-vacuous by planting.** Removed `halted: "failed"` and three tests failed, including
+`Expected: "attention", Received: "idle"` on the exceptions case. Restored, 13 of 13 green.
+
+**## K-60 · the contested status is worse than the item says, and it is nine to four**
+
+The item scopes `completed_with_failures` out and asks for the six/two split to be verified. **The
+named six and two all verify at the named lines.** But the split is bigger:
+
+| reading | sites |
+| --- | --- |
+| **stopped**, 9 | `AgentRosterPanel.tsx:81` · `AgentInspector.tsx:58` · `run-state.ts:32` · `obsidian/build-status.ts:31` · `ask-blocks.server.ts:290` · `mission-advance.server.ts:154` and again at `:470` · **plus** `obsidian/ask-canvas.tsx:47` ("BLOCKED") · `build-engine.functions.ts:150` · `demo.functions.ts:73`, pinned by its own test at `:42` |
+| **finished**, 4 | `credit-policy.ts:161` · `run-analytics.ts:74` · **plus** `ask/AskRunCard.tsx:46,69` ("finished, with failures") · `today/RunState.tsx`'s `ShippedState`, whose comment argues outright that it IS a live run |
+
+And **`handoff.server.ts:597` and `verify-green.server.ts` WRITE it** as a mission's honest finish,
+which is the writer's own view and sits with the finished camp.
+
+**`AgentInspector.tsx` contradicts itself inside one file**: line 45 labels it "Finished, with
+failures" while line 58 sets the mark state to `failed`. **The words and the colour on the same row
+disagree.**
+
+**So the largest hole in `RUN_STATE` is still open**: 452 runs bucket to `"other"` and `FleetAgent.total`
+still fails to reconcile for them. It cannot be closed without picking a side that some surface will
+then contradict, and because this tally drives `withExceptions`, choosing wrong makes the fleet view and
+the governance roster disagree over the same rows. **Needs a ruling, not a build.**
+
+**Unsure.** `waiting_approval -> "queued"` is the item's instruction and it keeps the run inside
+`liveLoad`, which is right for a fleet lens, but it means **a gated run makes an agent read `queued`
+rather than surfacing the gate.** The fleet model has no `waiting` state, so this is the best answer
+inside the existing four-value union rather than a clean one.
+
+Also worth flagging: the acceptance says "crew tallies unchanged in output". True of the wrapper
+deletion alone, since `runBucket` already carried `complete`, so `bucketOf` was a no-op. **The
+`RUN_STATE` additions do change crew tallies**, which is the item's own stated intent ("the hole is in
+the crew tallies too"). No `crew.functions` test file exists, so nothing needed re-baselining.
+
+---
+
+## K-61 · BUILT · 2026-08-20 15:44
+
+**Did.** Added `halted: "attention"` to `STATUS_TO_LANE` and `"complete"` to `STEP_DONE` in
+`delegate-desk.ts`, both with a comment naming the writer. Three test cases: `laneForStatus("halted")`
+including the trim and case path, an end-to-end `computeDelegateDesk` case asserting the mission lands
+in `attention` with `counts.awaiting === 0`, and a `missionProgress` case for the singular `complete` at
+both 100% and 50%.
+
+**Added no key for `complete`, `waiting_approval` or `completed_with_failures` in `STATUS_TO_LANE`**,
+per the item, and the reasoning holds on inspection: `complete` is an `agent_runs` status so it belongs
+in `STEP_DONE` only, and `waiting_approval` never touches the parent mission, whose gate value is
+`blocked` and is already mapped to `needsYou`.
+
+**Proven non-vacuous.** Removed `"complete"` from `STEP_DONE` and the progress case failed. Restored,
+14 of 14 green.
+
+**Noticed.** Two, both copy rather than logic, both in a file this item owns but outside its scope.
+
+1. **`STATUS_TO_LANE` still carries `awaiting_approval: "needsYou"`, the dead key K-63 exists to
+   delete.** Left it, because deleting it here would take half of K-63 without its guard test.
+2. **`STEP_DONE` counts `skipped` as done**, which is correct for a progress bar since a skipped step
+   will not run again, but it means "done" in that percentage is **terminal** rather than **succeeded**.
+   Not a defect, and the two readings will collide the first time anything derives a success rate from
+   `missionProgress`.
+3. The `attention` lane blurb is "Stopped early. Failed or cancelled." A halted mission now lands there
+   and is neither, so the blurb is narrower than its contents.
+
+---
+
+## K-62 · BUILT · 2026-08-20 15:46
+
+**Did.** `TERMINAL_STATUSES` is now the seven `done, completed, completed_with_failures, failed, halted,
+cancelled, canceled`. The one-line comment became a block naming each new member's writers, stating the
+uncontested-finished argument, and recording why the singular `complete` is deliberately absent. Two
+test cases asserting `severity === "watch"` with `isRunaway` still true for a breached mission at
+`halted` and at `completed_with_failures`, and `isTerminalStatus` extended with both plus **a negative
+assertion that `complete` is NOT terminal**, so the omission is pinned rather than merely absent.
+
+**Why this is safe here and not in K-60, and the comment says so:** whichever bucket
+`completed_with_failures` belongs in for a fleet count, **it is unambiguously FINISHED**, so it cannot
+be actionable-now. That is its one uncontested reading, and it is the whole reason two items in the same
+batch treat the same status differently.
+
+**Proven non-vacuous.** Removed `"halted"` and two tests failed. Restored, 24 of 24 green.
+
+**## K-62 · the doc's count was stale by four before this item, which is the finding**
+
+The item says the doc misstates the suite as 18 cases when it is 22. **Measured: it was 22 before my
+additions and is 24 after.** So the doc was stale by four **already**, which confirms the item's read
+that `docs:check` does not enforce the number. Doc now says 24, **and it will go stale again the next
+time anyone adds a case**, because nothing checks it. A doc that carries a hand-maintained count of a
+test suite is a doc that rots; the durable fix is to stop stating the number.
+
+**Unsure.** The doc's date header is nonstandard for this repo (`> _Created: ... Status: ...`, no
+`Last updated`). `docs:check` passes on it and rewriting the header is adjacent work, so **my correction
+is not dated in the header.**
+
+**Noticed.** `assessMission` treats `pending` as active and a test asserts it. That is deliberate under
+the fail-loud note, but **`pending` is not a value any mission writer produces**, which makes it a dead
+key of the opposite kind: a reader keying on a word nobody writes. That is exactly what K-63's guard
+test is designed to catch, so it belongs there.
+
+**Gates, all three items in one run.** `lane:gates` green, exit 0, verdict on its own last line.
+agent-fleet 13, delegate-desk 14, runaway 24, 51 across the three suites. Ratchet did not complain and
+`design:ratchet` was not run. **None of these three is verified**: they are pure-logic changes and a
+green suite proves the code does what the tests say and nothing more. Whether the new buckets and lanes
+read correctly against real rows is a production question.
