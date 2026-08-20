@@ -2478,3 +2478,78 @@ the reason guard and two tests fail, so the enforcement is real.
 > width is the thing to judge. Nothing in the product mounts `RunMap` yet, so it is a component with a
 > gallery door and no product door: `SpineRoute` is what feeds it, and `TrackStart` already renders that
 > route as a single station chip.
+
+---
+
+## K-21 · BUILT · 2026-08-20 13:35
+
+**Did.** Four guards in `driver.test.ts` that see the two thirds of the catalogue its existing filter
+cannot, and the catalogue now records why an alias may share a display name and what makes that safe.
+**No agent merged, renamed or removed.** The unseeding is flagged for Claude, as the item asks.
+
+**The display-name collision is a DATA defect and the catalogue is already correct.** `engineer` is
+`deprecated` here, which is right, and it is seeded into all 16 workspaces, which is what makes both it
+and `builder` render as "Engineer" at Build. **The aliases share names on purpose** and that is the whole
+mechanism: a run recorded months ago against `scout` has to come back reading "Watch" rather than a
+title-cased guess. So the code-side fix is not a rename, which would break the only thing an alias is
+for. It is the invariant that was never written down: **an alias may never be seeded**, and no two
+ACTIVE agents may share a name at one station. That is now a guard.
+
+**`active` means two different things depending on `tier`, and that is the drift underneath the item.**
+The field is documented "active = seeded + shown". True for `cast`. False for `crew`: `reactor` and
+`archivist` are active, seeded nowhere and shown nowhere, which is correct for what they are and means
+the word is carrying two meanings. So the new guard asks the question **per tier** rather than once:
+
+- a `cast` agent must be in a station crew, or the station does part of its job forever;
+- a `crew` agent must **not** be, because a station-dispatched agent is by definition user-facing.
+
+I did not add a third `status` value. `tier` already says engine-only, so a `status: "engine"` would say
+it twice and the two could then disagree. Recorded as a documented split instead.
+
+### The finding the item did not have
+
+Nobody had asked the question in the other direction. The existing guard checks *every active agent has a
+station*; **nothing checked that every slug the code dispatches is a current agent.** Those are different
+failures and only the second one lies: `agentDisplayName` falls back to a title-cased slug, so a run
+attributes itself to an agent that is not on the roster and looks entirely normal doing it.
+
+Swept every `agentSlug: "…"` in `src/**` outside tests. **Two stale dispatches**, both in the gallery:
+`agentSlug: "planner"` and `agentSlug: "designer"`, deprecated aliases used as fixture data. They
+rendered as "Plan" and "Design" through the alias mechanism, so nothing looked wrong.
+
+**I fixed the fixtures rather than excluding the gallery from the sweep**, which was the tempting weaker
+move. The gallery is the design system's own showcase; demonstrating retired ids there is exactly how a
+retired id gets copied into a real surface. Now `sprint-planner` and `ux-architect`.
+
+Tests are excluded from the sweep, and that exclusion is load-bearing rather than convenient: their
+fixtures dispatch deprecated and invented slugs deliberately, to prove the fallbacks work.
+
+**Two of my own assertions were wrong and I want them on the record.**
+1. I asserted two distinct `face` values per station as a merge guard. **Sense has three seats and all
+   three are scouts**, because Sense produces signals rather than an artifact for someone to read back.
+   The existing test already pins the maker-reader pair "at every station that produces an artifact",
+   which is the correct scoping, so restating it worse was not an improvement. Replaced with the
+   acceptance's unguarded third line instead: every deprecated alias still resolves to a real name at a
+   station that still exists, so a historical run stays readable.
+2. My first dispatch sweep covered only `src/lib` and found four sites. Widening it to `src/**` found
+   nine and the two stale ones. A guard scoped to the directory I happened to be reading is a guard that
+   passes because it is looking the wrong way.
+
+**Handed to Claude, and it is a data change rather than a judgement.** **Unseed `engineer` from all 16
+workspaces.** It is `deprecated` in the catalogue and seeded in production, which is the live half of this
+item and needs a migration. Nothing in the code will stop it coming back until that row is gone; the
+guard added here only stops the catalogue re-creating the collision.
+
+**Pushed back.** One. **The item's acceptance says `driver.test.ts` should fail if an active agent of any
+tier "is dispatched by nothing".** Taken literally that fails today, because nothing dispatches `reactor`
+or `archivist` and both are active. I did not make it fail, and the reason is that the literal reading is
+wrong: a crew agent is not supposed to be dispatched by a station, so the honest guard is one rule per
+tier rather than one rule for both. Whether the reactor subsystem should dispatch `reactor` by slug at all
+is a real open question and a separate item: `reactor.functions.ts` exists and never names it.
+
+**Gates.** tsc clean · 9,836 pass / 0 fail / 23 skip across 585 files · build ok. Planted `engineer` back
+to `active` and the collision guard fires, so it is not vacuous.
+
+> **Claude does after:** the migration above. Also worth a production read on whether `reactor` and
+> `archivist` should exist as catalogue rows at all: they are active, dispatched by nothing, and the
+> subsystem that shares the first one's name never refers to it.

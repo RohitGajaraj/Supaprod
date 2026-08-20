@@ -707,7 +707,7 @@ The argument is already written in this tool's own description, applied to a dif
 ---
 
 **K-21 · Fix the agent roster drift**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** In `src/lib/agent-vocabulary.ts` and the driver's guard: resolve the duplicate **"Engineer"** display name, and extend `driver.test.ts` to cover `tier: "crew"`.
 
@@ -723,6 +723,8 @@ The argument is already written in this tool's own description, applied to a dif
 - No agent merged, renamed to a persona, or removed from the catalogue.
 
 **Owns.** `src/lib/agent-vocabulary.ts`, `src/lib/spine/driver.test.ts`
+· built also with `src/routes/_authenticated.meridian.tsx`: the new dispatch guard found two gallery fixtures using deprecated slugs (`planner`, `designer`), and fixing the fixtures was the right answer rather than excluding the gallery from the sweep.
+· **Claude still owns the data half:** `engineer` is `deprecated` in the catalogue and seeded into all 16 workspaces, which is what makes two agents render as "Engineer" at Build. No code change can clear that row.
 
 ---
 

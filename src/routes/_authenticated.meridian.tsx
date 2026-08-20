@@ -2489,7 +2489,7 @@ function PlanCardCases() {
       id: "p3",
       label: "Draft the spec, with the precedent cited",
       state: "needs-approval",
-      agentSlug: "planner",
+      agentSlug: "sprint-planner",
       station: "plan",
       touches: "SPEC-2214 Firmware reboot notice",
       reversible: "reversible",
@@ -2498,7 +2498,7 @@ function PlanCardCases() {
       id: "p4",
       label: "Put a surface in front of it",
       state: "skipped",
-      agentSlug: "designer",
+      agentSlug: "ux-architect",
       station: "design",
       why: "The notice reuses a shipped component, so there is nothing new to draw.",
     },
@@ -2543,7 +2543,7 @@ function PlanCardCases() {
   const stationless: PlanStep[] = [
     { id: "n1", label: "Read the two conflicting tickets", state: "done", agentSlug: "researcher" },
     { id: "n2", label: "Decide which one is the real complaint", state: "active", agentSlug: "strategist" },
-    { id: "n3", label: "Write it up", state: "pending", agentSlug: "planner" },
+    { id: "n3", label: "Write it up", state: "pending", agentSlug: "sprint-planner" },
   ];
 
   return (

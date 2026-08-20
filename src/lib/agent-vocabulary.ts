@@ -201,7 +201,30 @@ export interface CatalogEntry {
   hue: string;
   /** A lucide icon name, the agent's geometric mark. Color is never the only signal. */
   glyph: string;
-  /** active = seeded + shown; deprecated = map-only, renders a name on historical runs. */
+  /**
+   * active = seeded + shown; deprecated = map-only, renders a name on historical runs.
+   *
+   * ── AND `active` MEANS TWO DIFFERENT THINGS DEPENDING ON `tier` ─────────
+   * Recorded 2026-08-20 rather than corrected, because correcting it is a data
+   * change and this is the catalogue.
+   *
+   * For a `cast` agent the sentence above is true: active means it is seeded into
+   * a workspace, shown in the roster, and dispatched by a station crew.
+   *
+   * For a `crew` agent it is false on both counts. `reactor` and `archivist` are
+   * `active` and are seeded NOWHERE and shown NOWHERE, which is correct for what
+   * they are -- engine-only mechanisms, dispatched by their own subsystem rather
+   * than by a station -- and it means the word is carrying two meanings. The guard
+   * that now reads it is in `spine/driver.test.ts`, and it asks the question per
+   * tier rather than once: a cast agent must be in a station crew, and a crew
+   * agent must NOT be, because a station-dispatched agent is by definition
+   * user-facing.
+   *
+   * A third value would be the tidy fix and it is not obviously right: `tier`
+   * already says engine-only, so a `status` of `engine` would say it twice and
+   * the two could then disagree. Left as a documented split until somebody has a
+   * reason to prefer one.
+   */
   status: SpecialistStatus;
   /** The orchestrator/conductor: routes work, never a station occupant in the relay. */
   conductor?: boolean;
@@ -462,7 +485,29 @@ export const SPECIALIST_CATALOG: CatalogEntry[] = [
     status: "active",
   },
 
-  // --- DEPRECATED / aliases: map-only, render a friendly name on historical runs ---
+  /*
+   * ── DEPRECATED / ALIASES: map-only, a friendly name on historical runs ────
+   *
+   * THEY SHARE DISPLAY NAMES WITH THE LIVE AGENTS ON PURPOSE, and that is the
+   * whole mechanism rather than an oversight. A run recorded months ago against
+   * `scout` has to come back reading "Watch", not `scout` and not a title-cased
+   * guess, so the alias carries the CURRENT name of the seat it used to be.
+   *
+   * WHICH MAKES ONE THING LOAD-BEARING: an alias may never be seeded. The moment
+   * one is, its workspace has two rows with one name and no way to tell them
+   * apart, which is the single failure a job-verb naming scheme exists to prevent.
+   *
+   * THAT IS LIVE TODAY AND IT IS A DATA DEFECT, NOT A CATALOGUE ONE. `engineer`
+   * is `deprecated` here and correct here, and it is seeded into all 16
+   * workspaces in production, so both it and `builder` render as "Engineer" at
+   * Build. Unseeding it is a migration and belongs to the lane with database
+   * access; `spine/driver.test.ts` now guards the half that lives in this file, by
+   * refusing two ACTIVE agents with one name at one station.
+   *
+   * Do not resolve the collision by renaming either one. `builder` is the live
+   * seat and its name is the product's word for that job; renaming the alias
+   * would break the only thing the alias is for.
+   */
   {
     slug: "operations",
     name: "Chief of Staff",
