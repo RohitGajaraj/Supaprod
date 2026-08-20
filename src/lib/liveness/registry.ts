@@ -110,6 +110,42 @@ export const TRACKED_CAPABILITIES: TrackedCapability[] = [
     note: "The product's central claim is that how a bet turned out changes the next call. If this is dead, the claim is dead, and nothing else on this page matters as much.",
   },
 
+  // --- Three added 2026-08-20, once coverage stopped being capped ---------------
+  //
+  // These waited on headroom rather than on judgement: the report was computed
+  // whole in one Worker invocation, so the registry could not grow past about
+  // thirteen entries. It is now checked in slices by the tick and read from
+  // `liveness_results` by the page, so the question is which capabilities are
+  // worth watching rather than how many fit. Each of these has a measurement from
+  // the same day behind it.
+  {
+    id: "digest-delivery",
+    title: "The digest actually going out",
+    proof: "A job_runs row for notifications.digest-tick",
+    cadence: "continuous",
+    expectedIntervalMs: 60 * MINUTE,
+    probe: { source: "job_runs", jobName: "notifications.digest-tick", successfulOnly: true },
+    note: "Measured 2026-08-20 for §10 criterion 14: 16 users, ONE has a notification preferences row, and that row is the only one this job can ever find, because `sendDueDigests` reads its user list FROM that table. So the blast radius of this job dying is currently one person and nobody would hear about it: there is no bounce, no error surface and no second channel. Registered before the reachability bug is fixed rather than after, because the moment it is fixed this job is the only thing standing between a workspace and silence.",
+  },
+  {
+    id: "source-watching",
+    title: "The scout reading the sources somebody connected",
+    proof: "A job_runs row for ambient.scout-tick",
+    cadence: "continuous",
+    expectedIntervalMs: 60 * MINUTE,
+    probe: { source: "job_runs", jobName: "ambient.scout-tick", successfulOnly: true },
+    note: "The product's promise is that it watches your sources so you do not have to, and a promise nobody can see failing is the worst kind. Measured 2026-08-20: `scout_runs` records an outcome per target, including `error` and `skipped-cap`, and the ONLY read of that table is the rate limiter summing `fetch_count`. Six of its seven columns are written and read by nothing (K-86). So if this job stops, or keeps running while every fetch errors, the record exists and no surface reports it, admin included.",
+  },
+  {
+    id: "outcome-sweep",
+    title: "The nightly sweep that grades what shipped",
+    proof: "A job_runs row for cron.outcome-tick",
+    cadence: "continuous",
+    expectedIntervalMs: 60 * MINUTE,
+    probe: { source: "job_runs", jobName: "cron.outcome-tick", successfulOnly: true },
+    note: "One of only two writers of `learnings`, beside the agent's own `learning.record`, and `learnings` is the table the product's central claim rests on. Measured 2026-08-20: every learning row in the database is `is_sample`, so ZERO real verdicts exist, and the trust score's outcome leg (30% of the weight) has therefore never had an input. The leg is proven wired: 77 rows carry a prd_id, 49 resolve to a decision naming an agent, 35 would score. It waits on rows, and this job is one of two things that can write them.",
+  },
+
   // --- Finding 6, 2026-08-20: dead for fifteen days, and nothing here watched it
   {
     id: "eval-judging",

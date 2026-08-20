@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import { buildLivenessReport, summariseReport } from "./report";
+import { TRACKED_CAPABILITIES } from "./registry";
 import type { LivenessClient, ProbeQuery, ProbeResult } from "./probe";
 import {
   TRACKED_CAPABILITIES,
@@ -254,7 +255,60 @@ describe("a database that will not answer", () => {
 });
 
 describe("the query budget", () => {
-  it("stays well inside a Worker's outbound subrequest ceiling", async () => {
+  /*
+   * WHAT THIS ASSERTION USED TO BE, AND WHY IT MOVED RATHER THAN LOOSENED.
+   *
+   * It read `expect(queries).toBeLessThanOrEqual(45)` against a report built over
+   * the WHOLE registry, because both callers -- the admin page and the tick --
+   * computed everything in one Cloudflare Worker invocation, under a 50
+   * subrequest cap. That was correct and it caught real attempts to grow the
+   * registry, twice on 2026-08-20.
+   *
+   * **It also capped the product at about 13 watchable capabilities, against 36
+   * scheduled jobs**, which is why coverage stalled at 2 of 36. The number was
+   * never the problem; computing the whole registry per invocation was.
+   *
+   * NO CALLER DOES THAT ANY MORE. `cron.liveness-tick` checks the six
+   * least-recently-checked entries and stores the verdicts; the admin page reads
+   * those rows and probes only what is missing, within a costed budget
+   * (`planLiveFill`). Both pass explicit subsets. A full-registry build is now a
+   * thing only a test asks for.
+   *
+   * So the total moved to where the total is actually decided, and is asserted in
+   * `rotation.test.ts` ("a fresh table defers the overflow instead of blowing the
+   * cap"), where it holds at ANY registry size rather than up to thirteen. What
+   * stays here is the input that feeds it: **one entry must remain cheap.** If a
+   * probe starts costing more, every budget downstream is wrong, and this is
+   * where that shows.
+   *
+   * This is not the "bigger number" the old comment warned against. The old
+   * comment said the fix is a cheaper probe rather than a bigger number; the fix
+   * turned out to be asking for fewer probes, and the number is not in this file
+   * any more.
+   */
+  it("keeps a single capability probe at two queries, which every budget assumes", async () => {
+    let queries = 0;
+    const counting = makeClient((call) => {
+      queries += 1;
+      if (call.head) return { count: 10 };
+      const orderColumn = call.ops.find(([op]) => op === "order")?.[1] as string | undefined;
+      return orderColumn ? { data: [{ [orderColumn]: ago(MINUTE) }] } : { count: 10 };
+    });
+
+    await buildLivenessReport(counting, {
+      now: NOW,
+      windowDays: 7,
+      capabilities: [TRACKED_CAPABILITIES[0]],
+      integrityChecks: [],
+      vocabularyChecks: [],
+    });
+
+    // A windowed count and an all-time latest. They are different filters and
+    // cannot be merged, which is why `probeCost` in rotation.ts says two.
+    expect(queries).toBe(2);
+  });
+
+  it("still fits the whole registry today, so nothing has silently got expensive", async () => {
     let queries = 0;
     const counting = makeClient((call) => {
       queries += 1;
@@ -265,12 +319,14 @@ describe("the query budget", () => {
 
     await buildLivenessReport(counting, { now: NOW, windowDays: 7 });
 
-    // A Cloudflare Worker caps outbound subrequests per invocation, and this
-    // report runs inside one. A liveness page that trips that ceiling would
-    // report nothing at all, which is precisely the failure it exists to catch.
-    // If this assertion goes red, the fix is a cheaper probe and not a bigger
-    // number: prefer one `in` filter over one query per value.
-    expect(queries).toBeLessThanOrEqual(45);
+    /*
+     * A canary rather than a cap. No caller builds the full registry, so this
+     * failing does not mean the page is broken -- it means per-entry cost grew,
+     * and every budget that trusts `probeCost` needs re-measuring. Raise it only
+     * alongside a registry that genuinely grew; investigate it if the registry
+     * did not.
+     */
+    expect(queries).toBeLessThanOrEqual(60);
   });
 });
 

@@ -4570,3 +4570,63 @@ case -- one entry, two queries -- before ruling on it. **Every other measurement
 today I took before deciding. This one I asserted.**
 
 18 rotation tests, 6 stored tests, gates green through `lane:gates`.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 11:52 · the liveness cap is gone, and the three entries that failed the build at 09:58 now pass
+
+The arc closes. **Coverage went from 2 watched jobs to 6, and the next one is an
+entry rather than an investigation.**
+
+### The hole I left an hour ago, found by asking why the test still mattered
+
+Before adding the entries I checked whether the budget test was still guarding
+anything real. **It was, and the thing it was guarding was mine.**
+`liveness.functions.ts:186` still computed the WHOLE registry for any non-default
+`windowDays`. I had budgeted the default path and left an unbounded one beside it,
+which would have started rendering nothing the moment the registry grew.
+
+**A branch I wrote in the same file, an hour earlier, for the case I was not
+thinking about.** Collapsed: there is now one path, and it is bounded by
+construction. Read whatever the tick stored for this window, probe what is missing
+within `planLiveFill`'s budget, report the overflow as unchecked. The default
+window finds almost everything stored; a 30-day window finds nothing stored and
+fills to the budget. **Same code, both cases.**
+
+### The budget test moved rather than loosened, and that distinction is the whole thing
+
+It asserted the full registry at **≤ 45**. No caller builds the full registry any
+more -- the tick passes a slice, the page passes what is missing -- so that
+assertion capped the product at 13 capabilities while protecting a path nothing
+takes.
+
+**The total moved to where the total is now decided**, `planLiveFill`, and is
+asserted in `rotation.test.ts` at **any** registry size rather than up to thirteen.
+What stays in `report.test.ts` is the input every budget depends on: **one
+capability probe costs exactly two queries.** If that grows, every budget
+downstream is wrong and this is where it shows.
+
+The old comment said the fix is a cheaper probe rather than a bigger number. **The
+fix turned out to be asking for fewer probes, and the number is not in that file
+any more.** I refused to raise it twice this morning and I did not raise it now.
+
+### The three entries, and what each is actually watching
+
+- **`digest-delivery`** — 16 users, ONE preferences row, and `sendDueDigests`
+  reads its user list from that table. Blast radius today is one person, with no
+  bounce and no error surface.
+- **`source-watching`** — `scout_runs` records `error` and `skipped-cap` per
+  target, and the only read of that table sums `fetch_count`, so a scout failing
+  every fetch reports it to nobody.
+- **`outcome-sweep`** — one of two writers of `learnings`, which holds zero
+  non-sample rows while the trust leg consuming it is proven wired.
+
+### What this cost, and it is worth stating plainly
+
+Four ticks. The first specified the wrong fix, the second measured and killed it,
+the third built the storage, and this one closed a hole I had opened myself. **The
+measurement that redirected it took ten minutes and would have saved the first
+tick entirely.**
+
+Coverage is now 6 of 36. The remaining 30 are a judgement about which are
+capabilities rather than a limit on how many fit.
