@@ -25,9 +25,16 @@ async function getServerEntry(): Promise<ServerEntry> {
 
 // Catastrophic 500 fallback rendered by this worker entry. A standalone HTML
 // document with inline styles because the app stylesheet and token layer may
-// not be reachable at this point; hex values mirror the Tempo dark tokens
-// (--ds-background-100 #0a0a0a, --ds-gray-1000 #ededed). Dark-first per
-// DESIGN-TEMPO.md section 1. The "500" numeral is the page's single Geist
+// not be reachable at this point; the hex values are Meridian's dark ground,
+// resolved through a 1x1 canvas because the tokens are OKLCH and cannot be
+// read off the source: --mrd-bg #0c0a08, --mrd-ink #f5f3f1, --mrd-mute
+// #a19e9a, --mrd-body #bebcb9, --mrd-solid #37332f, --mrd-on-solid #f5f3f1.
+// Measured 2026-08-21: ink on ground 17.86:1, mute on ground 7.41:1, and the
+// primary pair 11.31:1, which is the pair surface-parts.tsx documents as light
+// in both grounds. This page was Tempo greys with a v1 Ember button fill until
+// the founder ruled it ported; both systems are retired, and the file sits
+// outside the ratchet's scan roots, which is why it kept them. Dark-first.
+// The "500" numeral is the page's single Geist
 // Pixel brand moment (contract sections 3 and 8), mirroring the 404 boundary
 // in __root.tsx; the @font-face points at the self-hosted Pixel Square file
 // (never Google Fonts) and degrades to the mono stack if it cannot load.
@@ -48,15 +55,15 @@ function renderBrandedErrorPage(): string {
         font-display: swap;
       }
       :root { color-scheme: dark; }
-      body { font: 15px/1.55 "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #ededed; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
+      body { font: 15px/1.55 "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif; background: #0c0a08; color: #f5f3f1; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
       .card { max-width: 26rem; width: 100%; text-align: center; padding: 2rem; }
-      .code { font-family: "Geist Pixel Square", ui-monospace, monospace; font-size: 52px; line-height: 1; color: #ededed; margin-bottom: 12px; }
+      .code { font-family: "Geist Pixel Square", ui-monospace, monospace; font-size: 52px; line-height: 1; color: #f5f3f1; margin-bottom: 12px; }
       h1 { font-size: 1.35rem; font-weight: 600; margin: 0 0 0.5rem; letter-spacing: -0.01em; }
-      p { color: #9c978f; margin: 0 0 1.5rem; }
+      p { color: #a19e9a; margin: 0 0 1.5rem; }
       .actions { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
       a, button { padding: 0.5rem 1rem; border-radius: 0.5rem; font: inherit; font-size: 0.8125rem; cursor: pointer; text-decoration: none; border: 1px solid transparent; }
-      .primary { background: #ff6b2c; color: #160903; font-weight: 600; }
-      .secondary { background: transparent; color: #c6c0b8; border-color: rgba(255,255,255,0.09); }
+      .primary { background: #37332f; color: #f5f3f1; font-weight: 600; }
+      .secondary { background: transparent; color: #bebcb9; border-color: rgba(246,246,246,0.11); }
     </style>
   </head>
   <body>

@@ -7575,3 +7575,81 @@ gmail and microsoft_mail have real ingestors but a stub validate — and it is n
 the Verify path are different surfaces, and only the second is stubbed.
 
 ---
+
+## K-87 (follow-through) · LANDED · 2026-08-21 02:57 · the 500 page leaves two retired systems, founder-authorised
+
+**Founder ruled 2026-08-21: port it.** `renderBrandedErrorPage()` in `src/server.ts` was painted in two
+retired systems at once. Its own comment said the greys mirrored **Tempo** (v5), and
+`.primary { background: #ff6b2c }` was an **ember button fill**, which `DESIGN-SYSTEM.md` lists as the
+signature of **v1 Ember**. Meridian's primary button is `--mrd-solid`, `oklch(0.325 0.009 70)`, chroma
+0.009 and effectively hueless, so the orange face was not merely old, it was the opposite of what a
+Meridian primary action looks like. The page also already had its one sanctioned brand moment, the "500"
+numeral in Geist Pixel Square; the button was a second, unsanctioned one.
+
+**Resolved the tokens through a 1x1 canvas rather than converting OKLCH by hand**, because the file cannot
+reach the token layer and needs literals: `--mrd-bg #0c0a08`, `--mrd-ink #f5f3f1`, `--mrd-mute #a19e9a`,
+`--mrd-body #bebcb9`, `--mrd-solid #37332f`, `--mrd-on-solid #f5f3f1`.
+
+**Verified by rendering the page, not by reading the edit.** Extracted the template, loaded it in a
+browser and measured every string:
+
+| element | pair | measured |
+| --- | --- | --- |
+| "500" numeral, `h1` | ink on ground | **17.86:1** |
+| body copy | mute on ground | **7.41:1** |
+| "Try again" | on-solid on solid | **11.31:1** |
+| "Go home" | body on ground | **10.43:1** |
+
+**11.31:1 is the same number the live app returned for that pair earlier today**, measured a different way,
+which is the cross-check worth having. No orange remains in the document. Six replacements, each asserted
+on its occurrence count before writing, because a hex fix that silently misses one field is the defect
+shape this repo keeps paying for.
+
+**`src/server.ts` is in no open item's `Owns`.** Checked before editing.
+
+---
+
+## K-90 (corrects my own RULED entry above) · RULED · 2026-08-21 02:57 · option B, and my option A was reasoning from Kiro's framing rather than the two namespaces
+
+**I ruled option A earlier today and it was wrong. Founder ruled option B on 2026-08-21 and the evidence
+is what changed my recommendation, not the ask.** My entry accepted the framing that the 13-name type
+scale is the deliberate enumerated namespace and the 60-name colour ramp wandered into it. **Read the two
+namespaces directly and it is backwards.**
+
+- **The colour ramp is coherent.** `ink` *(the thing itself)*, `body` *(supporting prose)*, `mute`
+  *(labels, metadata)*, `faint` *(the quietest stop that is still AA)*. Four stops, consistent, and each
+  comment is the stop's real job.
+- **The type scale contradicts itself, with or without the collision.** `--mrd-t-base: 13px` is commented
+  *"a card's subject, a row's title"* and sits directly above `--mrd-t-body: 14px`, commented **"THE BASE.
+  prose and anything read at length"**. A scale cannot hold a stop called `base` and then name a different
+  stop as the base.
+
+**So the incoherent namespace is the one that should give up the name.**
+
+**And the decider is the six broken sites.** They read `text-mrd-base font-medium text-mrd-body`, asking
+for card-subject size with supporting-prose colour, and paint 14px because the colour's hidden size beats
+`base`. Rename the SIZE stop and `text-mrd-body` becomes colour-only, so `text-mrd-base` supplies 13px and
+`text-mrd-body` supplies the colour. **Those six need no edit at all; they simply start doing what they
+were always asking for.** Under option A they would each need rewriting AND the ink ramp would lose a name
+that is correct.
+
+**The spec, for whoever builds it.**
+1. Rename the size stop only: `--mrd-t-body` to `--mrd-t-prose`, and the `@utility text-mrd-body` that
+   sets `font-size` to `@utility text-mrd-prose`. **`--color-mrd-body` does not move.** Verified
+   `prose` collides with nothing in `meridian.css` today.
+2. Add `text-mrd-prose` to the **157 sites that carry `text-mrd-body` and no other size utility**. They
+   get 14px invisibly today and would otherwise fall back to inheritance. This is the whole risk in the
+   change and it is mechanical.
+3. **Touch none of the 10 that already carry a size utility.** Six start painting 13px, which is the fix.
+   The `text-mrd-label` site and the three `text-mrd-data` sites already paint correctly and stay correct,
+   because `body` loses to both of those in the cascade.
+4. **Acceptance, and it is measurable rather than argued:** diff computed `font-size` across the gallery
+   before and after. **Exactly 10 elements may change, all of them `text-mrd-base` pairings, all 14px to
+   13px.** Anything else moving means step 2 missed a site.
+5. Empty the guard's allow-list, `["body"]` to `[]`. That list only ever shortens, which the guard says.
+
+**Noticed and deliberately not folded in.** `--mrd-t-base` at 13px is still an odd name for *"a card's
+subject"* once `prose` exists beside it. That is a second, smaller naming question and it does not block
+this one.
+
+---
