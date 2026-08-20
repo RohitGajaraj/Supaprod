@@ -138,6 +138,7 @@ import { TabPanel, Tabs } from "@/components/meridian/Tabs";
 import {
   Action,
   Actions,
+  Door,
   Figure,
   PageHeading,
   ReadFailed,
@@ -412,6 +413,11 @@ function EngineRoomOverview({
   openRoom: (key: RoomKey) => void;
   openSync: (conflictId?: string) => void;
 }) {
+  /* Its own, rather than a prop threaded down from the page: this component
+     already takes two navigation callbacks and a third would be the point at
+     which the parent is doing this one's routing for it. `from` matches the
+     page's, so a relative navigation resolves the same way either side. */
+  const navigate = useNavigate({ from: "/engine-room" });
   const reading = rooms.some((r) => r.loading);
   const failed = rooms.filter((r) => r.error !== null);
   const watching = rooms.filter((r) => r.glance !== null && r.glance.state === "watch");
@@ -485,6 +491,34 @@ function EngineRoomOverview({
 
         <Region title="Reading from">
           <SourcesLine onSync={openSync} />
+        </Region>
+
+        {/*
+         * THE DESIGN SYSTEM'S OWN DOOR, AND WHY IT IS HERE OF ALL PLACES.
+         *
+         * `/meridian` is a 3,047-line gallery of every component in the system in
+         * both grounds, and until now it had ZERO inbound links anywhere in the
+         * codebase: reachable only by typing the address. That is this repo's
+         * named dominant defect, on the surface whose whole job is to catch it in
+         * other people's work.
+         *
+         * IT BELONGS IN THE ENGINE ROOM by the doctrine's own test. A component
+         * gallery is machinery: it is the output of the design system rather than
+         * a surface anyone does product work on, and doctrine 1.3 puts traces,
+         * evals, prompts and internals behind one recessed door rather than in
+         * the rail. It is deliberately NOT a nav row (this item forbids one, and
+         * rightly: nav is contract-controlled) and deliberately not in Settings,
+         * which is where you CONFIGURE the application rather than where you look
+         * at what it is made of.
+         *
+         * Engine-Room: the gallery is the machine's own parts laid out; the
+         * product surfaces are what it assembles. This door is the seam.
+         */}
+        <Region
+          title="What it is made of"
+          sub="Every component in the design system, in both grounds, with the states nobody draws composed rather than described."
+        >
+          <Door onClick={() => void navigate({ to: "/meridian" })}>Open the design system</Door>
         </Region>
       </div>
     </Surface>

@@ -2319,3 +2319,79 @@ every-hold-is-amber behaviour and the orchid assertion fails, so the test is not
 > **Claude does after:** open a workspace with a real held track. The two things a test cannot see are
 > whether the chip reads as calmer than the amber station name it replaces, and whether "Waiting on you"
 > beside a row whose `sub` already says *"A call is in front of you"* is one idea said twice.
+
+---
+
+## K-19 · BUILT · 2026-08-20 11:05
+
+**Did.** Checked all six first, as the item asks. **Five of them are redirect stubs and want neither a
+link nor a deletion.** One is a real 3,047-line surface with no way in, and it now has a door in the
+Engine Room.
+
+**Owns, declared as the item requires:** `src/routes/_authenticated.engine-room.tsx`.
+
+### Which is which, measured
+
+| route | lines | what it is | what it needed |
+| --- | --- | --- | --- |
+| `/artifacts` | 23 | stub → `/brain` | nothing |
+| `/m` (index) | 31 | stub → `/today` | nothing |
+| `/m/$productId` | 32 | stub → `/today` | nothing |
+| `/missions/$missionId` | 25 | stub → `/runs/$missionId` | nothing |
+| `/prds/$id` | 28 | stub → `/plan/spec/$id` | nothing |
+| `/studio/$missionId` | 40 | stub → `/runs/$missionId` | nothing |
+| **`/meridian`** | **3,047** | **the design system gallery** | **a door** |
+
+**A redirect stub with no inbound link is not an orphan. It is doing its job.** It exists to catch links
+that already exist OUTSIDE this codebase: a bookmark, an old Slack message, a doc, a browser's history.
+Adding a new inbound link to a deprecated address would be the defect, because it manufactures traffic
+to a path we have already decided is not the one.
+
+**So the item's two options are both wrong for these five, and there is a third.** It offers "reachable
+from a rendered control, or removed as a dead stub". Removing them fails `AGENTS.md`'s own delete test on
+every ground: they are not shadowed, not regenerable, not broken as written, and **not superseded — they
+ARE the supersession mechanism.** Deleting a working redirect is how you create the link rot it exists to
+prevent. All six were verified to point at live routes.
+
+The repo already holds this rule, in `a-301-that-lands-one-tab-away.test.ts`: *"a link that lands
+somewhere real and wrong is worse than one that fails."* A stub's correctness is where it LANDS, not
+whether anything points at it, and that test is the instrument for it.
+
+### The one real orphan, and where its door goes
+
+`/meridian` is the whole design system laid out in both grounds, and it had **zero inbound links** —
+reachable only by typing the address. That is this repo's named dominant defect, sitting on the surface
+whose job is to catch it in everything else.
+
+**It goes in the Engine Room, by doctrine 1.3's own test.** A component gallery is machinery: it is the
+output of the design system rather than a surface anyone does product work on, and the doctrine puts
+traces, evals, prompts and internals behind one recessed door rather than in the rail. Deliberately not
+a nav row, which this item forbids and is right to. Deliberately not Settings, which is where you
+CONFIGURE the application rather than where you look at what it is made of.
+
+One `Region` titled "What it is made of" with one `Door`, appended after "Reading from", carrying the
+greppable `Engine-Room:` reasoning the doctrine asks for.
+
+**Pushed back.** Two.
+1. **"These six routes have zero inbound links" is true and misleading.** Six of the seven paths named
+   are redirect stubs whose design is to have none. The item's `Why` treats the count as the defect; the
+   count is correct and only one instance of it is a problem. A reachability test that flags a redirect
+   stub is measuring the wrong thing.
+2. **The item guessed `/m` and `/studio/$missionId` "may be redirect stubs".** All six are. The one it
+   did not flag as a possible stub, `/meridian`, is the only one that is not.
+
+**Unsure.** One. **The gallery's door is a judgement I would like checked.** The Engine Room is the
+doctrine-correct home and I can say why it is exactly there. What I cannot say is whether a design
+gallery should be reachable by a customer at all, or whether it wants a build-time gate. It renders no
+customer data and states no claim about the workspace, so shipping it visible is defensible; if the
+answer is that it should be internal-only, the door is one line to gate and the item should say so.
+
+**Noticed.** One. `EngineRoomOverview` now creates its own `useNavigate` rather than taking a third
+navigation callback from the page. Two were already threaded down as props (`openRoom`, `openSync`), and
+a third would be the point at which the parent is doing this component's routing for it.
+
+**Gates.** tsc clean · 9,806 pass / 0 fail / 23 skip across 584 files · build ok.
+
+> **Claude does after:** open `/engine-room` and press the door. The thing worth confirming beyond the
+> link working is that the new region reads as the quietest thing on that page: it is a way out to a
+> workbench, not a feature, and it sits below a region about live connections.

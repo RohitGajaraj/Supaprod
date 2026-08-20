@@ -652,7 +652,14 @@ The argument is already written in this tool's own description, applied to a dif
 ---
 
 **K-19 · Doors for the six orphan routes**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
+
+> **Six of the seven paths named here are redirect stubs, and a redirect stub with no inbound link is
+> doing its job.** It catches links that already exist outside the codebase. Adding one would manufacture
+> traffic to an address we have decided against; deleting one fails `AGENTS.md`'s delete test on every
+> ground, because they are not superseded, they ARE the supersession mechanism. All six verified pointing
+> at live routes. **`/meridian` was the one real orphan** (3,047 lines, zero inbound links) and now has a
+> door in the Engine Room, per doctrine 1.3: a component gallery is machinery. Measurements in the Kiro log.
 
 **What.** Give an inbound link to `/artifacts`, `/m`, `/meridian`, `/missions/$missionId`, `/prds/$id`, `/studio/$missionId`.
 
@@ -666,6 +673,7 @@ The argument is already written in this tool's own description, applied to a dif
 - The route-reachability test passes without being weakened.
 
 **Owns.** whichever surfaces provide the links, listed in the build log before you start
+· built with `src/routes/_authenticated.engine-room.tsx` only, because five of the six needed nothing.
 
 ---
 
