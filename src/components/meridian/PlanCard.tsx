@@ -3,7 +3,7 @@ import * as React from "react";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { REVERSIBILITY_LABEL, type Reversibility } from "@/lib/tool-consequences";
 
-import { Field, Input } from "./forms";
+import { ReasonField } from "./forms";
 import { StatusChip } from "./StatusChip";
 import {
   RUN_LINE,
@@ -340,14 +340,15 @@ function offersSkip(state: PlanStepState): boolean {
  * admission on a skipped step that arrived with no reason, which is what this
  * stops being necessary for skips taken here.
  *
- * INLINE RATHER THAN A DIALOG. `usePrompt()` is the house way to ask for a string
- * and it is wrong here twice: this file is a Meridian primitive and may not depend
- * on an app-level hook, and the acceptance is that a person can decide without
- * leaving the card. A modal takes the step's own context off the screen at the
- * moment they are being asked to justify a decision about it.
- *
- * ENTER SUBMITS AND ESCAPE CANCELS, because a one-field form that only closes by
- * mouse is a trap for the reader who opened it from the keyboard.
+ * ── THE MECHANIC MOVED TO `forms.tsx` ON 2026-08-20 ─────────────────────
+ * The body of this used to be here, and `RunMap`'s waive carried a second copy
+ * of the same twenty lines: Enter submits, Escape cancels, commit guarded on a
+ * trimmed non-empty value. `RunMap`'s own comment named the duplication and said
+ * the fix was a `ReasonField` both called, deferred because `forms.tsx` was a
+ * file it did not own. `PlanGate` became the third caller, so the extraction
+ * happened then. What is left here is the WORDS, which are the part that is
+ * genuinely this card's: the question a person is being asked and the example
+ * under it. The behaviour is one copy now.
  */
 function SkipReason({
   stepId,
@@ -360,54 +361,17 @@ function SkipReason({
   onCommit: (reason: string) => void;
   onCancel: () => void;
 }) {
-  const [reason, setReason] = React.useState("");
-  const inputId = `plan-skip-reason-${stepId}`;
-  const ready = reason.trim().length > 0;
-
-  const commit = () => {
-    if (ready && !busy) onCommit(reason.trim());
-  };
-
   return (
-    <div className="mt-mrd-3 flex flex-col gap-mrd-3">
-      <Field
-        label="Why skip this?"
-        hint="It goes on the record beside the step, so the next reader can see the call that was made."
-        htmlFor={inputId}
-      >
-        <Input
-          id={inputId}
-          value={reason}
-          autoFocus
-          placeholder="The branch was already merged by hand"
-          onChange={(e) => setReason(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              commit();
-            }
-            if (e.key === "Escape") {
-              e.preventDefault();
-              onCancel();
-            }
-          }}
-        />
-      </Field>
-      <Actions>
-        {/*
-         * QUIET, NOT `Approve` AND NOT `destructive`. Orchid is spent on the one
-         * control that unblocks and red reports an outcome, so neither is
-         * available to mark an intention. A skip is a choice, and the thing that
-         * makes it safe is that it cannot be taken without a reason, not volume.
-         */}
-        <Action variant="quiet" onClick={commit} disabled={!ready || busy}>
-          Skip this step
-        </Action>
-        <Action variant="quiet" onClick={onCancel} disabled={busy}>
-          Keep it
-        </Action>
-      </Actions>
-    </div>
+    <ReasonField
+      id={`plan-skip-reason-${stepId}`}
+      label="Why skip this?"
+      hint="It goes on the record beside the step, so the next reader can see the call that was made."
+      placeholder="The branch was already merged by hand"
+      commitLabel="Skip this step"
+      busy={busy}
+      onCommit={onCommit}
+      onCancel={onCancel}
+    />
   );
 }
 

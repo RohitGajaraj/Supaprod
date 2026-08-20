@@ -22,6 +22,7 @@ import { RecommendationCard, type Recommendation } from "@/components/meridian/R
 import { RunTimeline, type TimelineEvent } from "@/components/meridian/RunTimeline";
 import { ToolStream, type ToolStreamRow } from "@/components/meridian/ToolStream";
 import { PlanCard, type PlanStep } from "@/components/meridian/PlanCard";
+import { PlanGate } from "@/components/meridian/PlanGate";
 import { Action, Actions, Approve } from "@/components/meridian/surface-parts";
 import { Dialog } from "@/components/meridian/Dialog";
 import { Spend } from "@/components/meridian/Spend";
@@ -2133,8 +2134,155 @@ function MeridianGallery() {
             <RunMapCases />
           </Pair>
         </Panel>
+
+        <Panel
+          title="The Plan Gate"
+          note="One decision, three answers, and it replaces a queue rather than rendering one. The evidence it is built on is not ours: instrumented sessions show people make about seventy per cent of planning decisions and about twenty per cent of execution decisions, while one prompt sets off around ten agent actions, and ninety-three per cent of permission prompts get approved. A gate that gets clicked through is worse than no gate, because it manufactures the appearance of review and produces none of it. Our own record is worse than the study: six agents at a hundred per cent approval rate, and eleven tools asked a hundred and thirty times and answered zero times. So the whole decision moves to the one moment somebody actually wants it, before anything runs. The information model is ported from Claude Code's permission prompt rather than invented: numbered answers, a full sentence each, one keystroke each, and no accent on any of them. Its third answer is the one worth copying most exactly, because refusing and redirecting are the same act and it makes them one answer instead of a rejection followed by a separate instruction. Press 1, 2 or 3 anywhere on the card. Nothing here is orchid, and that is the rule rather than an omission: all three answers release the gate, so either all three wear the accent or none does, and a house favourite would be the product making the call it is asking you to make. A person is required, and that is said with a chip. Everything above the answers is editable first, because a gate you cannot redirect is a speed bump: skip a step, take a station off the route, and both ask why before they will complete. The ceiling sits directly above the answers and never below them, since deciding how much runs without you is deciding how much gets spent without you. It writes nothing at all: the answer leaves as a value and what it means is the caller's."
+        >
+          <Pair>
+            <PlanGateCases />
+          </Pair>
+        </Panel>
       </div>
     </div>
+  );
+}
+
+/*
+ * ── K-23, THE PLAN GATE ─────────────────────────────────────────────────
+ * The three cases the item asks for, and the numbers are the product's real
+ * ones: the per-track ceiling is $5, the plan is the shape a spine track
+ * actually walks, and the last case shows a route somebody has already edited so
+ * the recorded reason is visible rather than described.
+ *
+ * IT KEEPS ITS OWN STATE HERE rather than resetting on every decision, because
+ * the panel's job is to let a reader press an answer and see what came back. A
+ * gate that reset itself would answer and vanish.
+ */
+function PlanGateCases() {
+  const [last, setLast] = useState<string | null>(null);
+
+  const plan: PlanStep[] = [
+    {
+      id: "g1",
+      label: "Read the verify-step drop-off in Intercom and PostHog",
+      state: "pending",
+      agentSlug: "researcher",
+      station: "discover",
+    },
+    {
+      id: "g2",
+      label: "Decide whether the shorter verify step is worth the risk",
+      state: "pending",
+      agentSlug: "critic",
+      station: "decide",
+    },
+    {
+      id: "g3",
+      label: "Write the spec, with the two paths it must not break",
+      state: "pending",
+      agentSlug: "prd-writer",
+      station: "plan",
+    },
+    {
+      id: "g4",
+      label: "Open the pull request behind a flag",
+      state: "pending",
+      agentSlug: "builder",
+      station: "build",
+      touches: "supaprod/verify-step-shorter",
+      reversible: "partial",
+    },
+    {
+      id: "g5",
+      label: "Post the change to the release channel",
+      state: "pending",
+      agentSlug: "release",
+      station: "ship",
+      touches: "#releases",
+      reversible: "irreversible",
+    },
+  ];
+
+  const route: RunMapStation[] = [
+    { station: "sense", state: "pending" },
+    { station: "decide", state: "pending" },
+    { station: "define", state: "pending" },
+    { station: "design", state: "pending" },
+    { station: "build", state: "pending" },
+    { station: "ship", state: "pending" },
+  ];
+
+  const edited: RunMapStation[] = route.map((s) =>
+    s.station === "design"
+      ? {
+          ...s,
+          state: "skipped",
+          waivedReason: "It reuses the shipped verify component, so there is nothing new to draw",
+        }
+      : s,
+  );
+
+  return (
+    <Stack>
+      <Case label="A five-step plan, which is the case this was built for">
+        <PlanGate
+          steps={plan}
+          stops={route}
+          spend={{
+            label: "This work item",
+            spent: 0,
+            cap: 5,
+            note: "Past the ceiling the work stops where it is and waits for you.",
+          }}
+          onDecide={(d) =>
+            setLast(
+              `${d.autonomy}, ${d.editedPlan.steps.filter((s) => s.state === "skipped").length} steps skipped${
+                d.reason ? `, note: ${d.reason}` : ""
+              }`,
+            )
+          }
+        />
+      </Case>
+
+      <Case label="What came back, so an answer is not a dead end">
+        <p className="text-mrd-data leading-relaxed text-mrd-mute">
+          {last ?? "Press an answer above and what the gate handed back appears here."}
+        </p>
+      </Case>
+
+      <Case label="One step, and no route yet">
+        <PlanGate
+          steps={[plan[0]!]}
+          spend={{ label: "This work item", spent: 0.0008, cap: 5 }}
+          onDecide={() => {}}
+        />
+      </Case>
+
+      <Case label="A route somebody already edited, with the reason on the record">
+        <PlanGate
+          steps={plan.slice(0, 3)}
+          stops={edited}
+          spend={{
+            label: "This account, today",
+            spent: 41.2,
+            cap: 50,
+            note: "Raising the ceiling carries on from where it stopped.",
+          }}
+          onDecide={() => {}}
+        />
+      </Case>
+
+      <Case label="A decision already in flight, so nothing can be pressed twice">
+        <PlanGate
+          steps={plan.slice(0, 2)}
+          stops={route.slice(0, 2)}
+          spend={{ label: "This work item", spent: 2.4, cap: 5 }}
+          busy
+          onDecide={() => {}}
+        />
+      </Case>
+    </Stack>
   );
 }
 

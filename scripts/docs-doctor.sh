@@ -178,15 +178,35 @@ else echo "  ok"; fi
 # by actually being found in a live doc. Add a line when a ruling retires a phrase.
 #
 # Scoped out: archive/ (history must stay accurate to its date), references/ and
-# prompts/ (verbatim source material), and the three append-forward logs, whose
-# job is to record what was said at the time.
+# prompts/ (verbatim source material), and the append-forward logs, whose job is to
+# record what was said at the time.
+#
+# THE APPEND-FORWARD LOGS ARE ONE LIST NOW, shared by check [9] and check [11]
+# (2026-08-20). It was inline in [9] only, and it was already three names short:
+# `ledger/kiro-log.md` and `ledger/claude-log.md` are the two build ledgers, both
+# strictly append-only with one writer each, and both have to be able to QUOTE a
+# defect in order to record fixing it. Within one hour of the ledger existing that
+# stopped being hypothetical: an entry recording that check [11] had been failing
+# on two gitignored exports named the file and quoted the planted string, and the
+# next markdown commit was blocked by its own changelog.
+#
+# A record that cannot name what it fixed is not a record. The rule these checks
+# enforce is about what a doc CLAIMS; a log entry saying "this used to say X and X
+# was wrong" claims the opposite of X.
+#
+# ARRIVED AT TWICE, INDEPENDENTLY, IN THE SAME HOUR. Claude hit the same wall from
+# the other side and added the same two exclusions as separate inline greps; this
+# is the merge of the two, kept as one shared list rather than two copies of it,
+# for the reason the repo has already paid for seven times over. Both versions had
+# identical behaviour; the only difference is how many places the next name has to
+# be added in.
+RECORD_FILES='session-decisions\|strategic-inputs-log\|session-handoff\|build-log\|ledger/kiro-log\|ledger/claude-log'
 echo "-- [9] retired wording still present in LIVE docs --"
 STALE_SCOPE="--include=*.md docs architecture"
 stale_hits() {
   grep -rInE "$1" $STALE_SCOPE ./AGENTS.md ./README.md ./CLAUDE.md ./GEMINI.md 2>/dev/null \
     | grep -v '/archive/' | grep -v 'docs/research/' | grep -v 'docs/prompts/' \
-    | grep -v 'session-decisions\|strategic-inputs-log\|session-handoff\|build-log' \
-    | grep -v 'ledger/claude-log\|ledger/kiro-log' \
+    | grep -v "$RECORD_FILES" \
     | grep -viE 'never (say|close|call|write)|bans?\b|ban on|banned|do not (say|use)|retired|instead of|rather than|superseded|no longer|insists|forbidden|stale as of|\| \*\*"|^[^:]*:[0-9]+:\s*\||^[^:]*:[0-9]+:\s*-\s*"' || true
 }
 STALE=""
@@ -306,7 +326,7 @@ DECLARED="$(grep -rIn -E '(CURRENT|is the law|design contract for|source of trut
   --exclude-dir=archive --exclude-dir=worktrees --exclude-dir=.agents --exclude-dir=.kiro \
   --exclude-dir=.gemini --exclude-dir=.conductor 2>/dev/null \
   | grep -viE 'retired|history is not authority|was wrong|corrected|no longer|superseded|used to' \
-  | grep -v 'ledger/claude-log\|ledger/kiro-log' \
+  | grep -v "$RECORD_FILES" \
   | drop_ignored )"
 if [ -n "$DECLARED" ]; then
   echo "$DECLARED" | sed 's/^/  FAIL retired system declared current: /'

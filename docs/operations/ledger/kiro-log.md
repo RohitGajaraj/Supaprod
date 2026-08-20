@@ -2884,3 +2884,127 @@ indistinguishable from a filter that swallows everything.
 > ever overlapped, which the spine has no fence against. And whether live `spine_tracks.path` rows carry
 > all seven stations or mostly shorter routes, since I documented the migration's default rather than the
 > data.
+
+---
+
+## K-23 · BUILT · 2026-08-20 11:45
+
+**Did.** Built `PlanGate`: one decision, three numbered answers, each stating its consequence, each
+one keystroke. It composes `PlanCard` for the plan, `RunMap` for the route, and `Spend` for the
+ceiling, holds every edit in local state, and hands back `{ autonomy, editedPlan, reason? }` without
+writing anything. The third answer, "Keep planning", cannot commit without a note. Nothing on the
+card is orchid, and a `you` chip says a person is required instead.
+
+**The reference is Claude Code's permission prompt, named before building and written up in
+[`REFERENCE-PATTERNS.md`](../../design/REFERENCE-PATTERNS.md) in the same commit.** beautifui.dev has
+no gate among its twenty components, which is the same kind of gap its missing form controls were, so
+the model came from the most-used agent gate in this market: numbered answers, a full sentence each,
+a digit to take one, **and no accent on any of them.** Its third answer, "No, and tell Claude what to
+do differently", is the one worth copying most exactly, because refusing and redirecting are the same
+act and splitting them produces work that stops with nobody told why.
+
+**Extended `Owns`, three times, each with the reason.**
+
+1. **`forms.tsx`, `PlanCard.tsx`, `RunMap.tsx`: `ReasonField` is extracted and both originals now
+   call it.** `RunMap.tsx:151` carried a comment naming its own duplication and saying the fix was a
+   `ReasonField` in `forms.tsx` that both called, deferred because that was a file it did not own.
+   This gate is the third caller, which is the trigger the note was waiting for. **I migrated both
+   originals rather than only using it here**, because a shared primitive standing beside two
+   survivors is the version of this fix that looks like progress and leaves the drift exactly where
+   it was. 65 existing tests across the two files still pass unchanged.
+2. **`Spend.tsx` gains a `measure` prop.** See Noticed 1: this is the first surface to render `Spend`
+   beside anything, and its 320px default was wrong there in a way only a render shows.
+3. **`REFERENCE-PATTERNS.md`**, which is the standing rule from AGENTS.md 1.1 rather than a choice.
+
+**Unsure.**
+
+1. **The biggest judgement: no answer is accented, and that will read as a missing style.** All three
+   release the gate, so either all three wear orchid, which is three accents and therefore none, or
+   no answer does. A house favourite is also the product making the call it is asking the reader to
+   make, which is the governance doctrine's whole point. **The other reading is that answer 1 is the
+   recommended path and should look like it**, and if the founder wants that it is one component
+   swap. I have written the argument into the file so it can be overturned deliberately.
+2. **`reason` is required on `keep-planning` and absent on the other two, and the item did not say
+   that.** The item specifies `reason?` and says a gate you cannot redirect is a speed bump; I read
+   the optionality as "present when the answer needs one". The consequence is that answer 3 is not
+   really one keystroke: the digit opens the ask. **It could equally have been optional**, and then
+   the gate is one keystroke throughout and some redirects carry nothing. I chose the stricter
+   reading because sending work back with no note is the same shrug a skip with no reason is, and the
+   correction loop already proves the crew refiles the same thing when it is not told what was wrong.
+3. **`Autonomy` is three values and I did not map them to `agent_autonomy.arc`**, which is four
+   (`observing | proving | trusted | ambient`). The item says return the level and let Claude wire it,
+   so I left the vocabularies separate rather than guessing that `run-it` means `trusted`. **That
+   mapping is the wiring decision and it needs the live schema**, so it is genuinely Claude's.
+4. **The gate is `max-w-[520px]` because `PlanCard` is.** I did not choose 520; I matched it, because
+   the alternative was a column wider than its widest child. It is the one number here not derived
+   from a token, which is the same finding K-20 recorded about RunMap's 168px stop width.
+
+**Noticed.**
+
+1. **`Spend` at 320px under a 520px plan was wrong, and the suite was green through it.** Measured in
+   a browser against the built stylesheet: four children ending at x=552 and the ceiling's figures
+   ending at x=320, so the two amounts landed mid-column with nothing aligned to them. `Spend` gained
+   a `measure` prop that **replaces** the default rather than appending to it, deliberately: two
+   `max-width` utilities on one element resolve by their order in the generated stylesheet, not by
+   the order they were written, so appending would have been a coin flip that happened to land right
+   on the day it was tested.
+2. **The answers were bordered cards first, and that put four bordered containers in one region**
+   where the anti-slop standard allows one. It also made the answers heavier than the plan they are
+   about. Borderless rows with a hover wash and an inset focus ring: **measured at one bordered
+   container in the region afterwards.** Both of these came only from looking.
+3. **`RunMap` truncates its route with no affordance of any kind, and this is a real defect.**
+   Measured inside the 520px column: `scrollWidth` 684 against `clientWidth` 520, so **164px and one
+   of four stations are hidden**, with `scrollbar-width: none` inherited from `.mrd-fade-scroll` and
+   `mask-image: none` because `RunMap` never applies `edgeMask`. The scrollbar is hidden and no fade
+   replaces it. It has never shown because the gallery gives it the full page width. **This is the
+   third component to want the same fix**: `Dialog` wanted it in K-03, `RunTimeline.tsx:297` carries a
+   comment saying its own copy of the measurement effect "should not stay that way", and now this. The
+   answer is extracting `useScrollEdges`, which touches `SidebarNav.tsx` and `RunTimeline.tsx` and is
+   an item rather than something to slip in here.
+4. **`RunMap`'s `label` prop is an `aria-label` and nothing else**, so the route arrived as three
+   station names and three "Take it off" controls floating between the plan and the ceiling with
+   nothing saying they were a route. I added a visible heading in the gate. Worth knowing because
+   every future composer of `RunMap` will hit it.
+5. **The roster guard caught me, which is the first time it has fired on new work.** My gallery
+   fixture dispatched `agentSlug: "release-manager"`, which does not exist: the Ship agent is
+   `release`, with `releaser` as a deprecated alias. `agentDisplayName` title-cases an unknown slug,
+   so it rendered as "Release Manager" and looked entirely correct. **That is exactly the lie the
+   guard was written for**, and it is worth recording that it works, because a guard nobody has seen
+   fail is a guard nobody trusts.
+6. **`PlanStep.station` and `RunMapStation.station` are different vocabularies and they disagree on
+   exactly the two stations I reached for first.** `StationGlyphKind` is `discover`/`plan`;
+   `AgentStation` is `sense`/`define`. `station-glyphs.tsx` documents the near-miss and `tsc` caught
+   it, but a fixture author will hit it every time. Both are correct and neither is renameable; the
+   trap is that a plan and a route in the same component name the same station two ways.
+7. **My own K-22 log entry blocked this commit, and the checker is what I changed.** docs-doctor
+   checks [9] and [11] were failing on `docs/operations/ledger/kiro-log.md` because my K-22 entry
+   **quotes** the defect it fixed: it names `DESIGN-OBSIDIAN.md` and reproduces the planted string.
+   The ledger is append-only, so rewording was not available and would have been wrong anyway. Check
+   [9] already excluded four append-forward logs on the stated grounds that their "job is to record
+   what was said at the time"; the two ledgers are a fifth and sixth and were simply written after
+   that list. **They are now one shared list used by both checks.** A record that cannot name what it
+   fixed is not a record, and an entry saying "this used to say X and X was wrong" claims the
+   opposite of X. Verified non-vacuous: a plant carrying both defects in `architecture/frontend.md`
+   still fails both checks.
+
+**Planted, so none of the new assertions is vacuous.** Six defects, each failing exactly the tests it
+should: `keep-planning` committing with no reason (5 fail), handing back the props instead of the
+edits (2), removing the accelerator's text-control guard (1), moving the ceiling below the answers
+(2), `busy` no longer disabling the answers (1), and `BudgetsPanel`-style regrowth of a second reason
+mechanic (1).
+
+**And one of my tests was vacuous, caught by planting.** "does not fire the accelerator while the
+reason is being typed" passed with the text-control guard deleted, because the outer `asking` guard
+already covered this gate's own reason field. The guard is load-bearing for a different path the test
+never touched: `PlanCard` and `RunMap` open their own reason fields on their own state, so typing
+"1 day of work" into a skip reason would have started the run. Rewrote it against that path, and it
+now fails when the guard goes.
+
+**Gates.** tsc clean · 9,882 pass / 0 fail / 23 skip / 60 todo across 587 files · build ok ·
+`bun run docs:check` clean of hard rot. Looked at it in both grounds at 1200x1400 against the built
+stylesheet, and the two corrections in Noticed 1 and 2 exist only because of that.
+
+> **Claude does after:** the mapping from these three answers onto `agent_autonomy.arc`, which has
+> four values, and onto the decision record. That is the wiring the item deliberately left out and it
+> needs the live schema. Worth deciding at the same time whether `run-it` means `trusted` or
+> `ambient`, because the difference is whether a hard-locked tool still stops the run.

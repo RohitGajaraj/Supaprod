@@ -1095,3 +1095,68 @@ which is the same string the panel renders, and **both validated the method** by
 extraction of Loading State against the port already committed here. Both recorded the method in
 their file headers rather than claiming a panel read. If you are re-extracting, do it with ONE
 browser tab, or use the payload and say so.
+
+---
+
+## The permission prompt, read off Claude Code, for `PlanGate` (K-23, 2026-08-20)
+
+**The reference for a gate is not beautifui.dev.** It documents twenty components and none of them
+is a permission prompt, which is the same kind of gap its missing form controls were: it is a
+vocabulary for agentic interfaces and this decision belongs to the class of things a coding agent
+does. So the reference named before building was **Claude Code's own permission prompt**, on the
+grounds that it is the most-used agent gate in this market and the one whose failure modes have been
+measured at scale rather than argued about.
+
+### The information model, lifted
+
+| | The prompt | What `PlanGate` does with it |
+| --- | --- | --- |
+| Shape | a numbered list of answers, two or three | three answers, numbered 1 to 3 |
+| Each answer | a full sentence, not a verb | label plus a consequence in plain words |
+| Keyboard | the digit takes the answer | the digit takes it, from anywhere on the card |
+| Accent | **none.** No answer is styled as preferred | none, and the `you` status is a chip instead |
+| Frame | no borders. A plain list, the row under the pointer lights up | borderless rows, hover wash, inset focus ring |
+| Refusal | *"No, and tell Claude what to do differently"* | "Keep planning", which opens a reason field |
+
+**The third answer is the one worth copying most exactly, and it is the one most products get
+wrong.** Refusing and redirecting are the same act. Splitting them into a reject button and a
+separate instruction box produces the state everybody has seen: work stopped, nobody told it why,
+and the next attempt is identical to the one that was refused. Ours will not commit that answer
+without a note, for the same reason a skipped station cannot be recorded without one.
+
+**No accent is a design position rather than a missing style.** Every answer releases the gate, so
+either all three carry the accent, which is three accents and therefore none, or no answer does. A
+house favourite among them is also the product making the call it is asking the reader to make.
+
+### Two things NOT taken from it
+
+- **Its scope.** The prompt asks about one tool call. `PlanGate` asks about a whole plan, once,
+  because a step-level gate cannot be rescued by better design: 93% of permission prompts get
+  approved, and our own record is worse at six agents on a 100% approval rate with eleven tools
+  asked 130 times and answered zero times. A gate that gets clicked through manufactures the
+  appearance of review and produces none of it.
+- **Its position in the flow.** The prompt interrupts. This one sits before anything runs, which is
+  what makes "Keep planning" free and therefore honest.
+
+### What only a render showed, and it changed the component twice
+
+Both corrections came from serving the built stylesheet and measuring, not from the test suite,
+which was green through both defects.
+
+1. **The answers were bordered cards first.** Rendered, that put **four bordered containers in one
+   region** (the plan card plus three answers) where the anti-slop standard allows one, and it made
+   the answers visually heavier than the plan they are about. Borderless rows with a hover wash: one
+   bordered container in the region, measured.
+2. **`Spend` rendered at its own 320px default under a 520px plan and above 520px answers.** The
+   label sits left and the figures sit hard right, so at 320 both amounts landed in the middle of
+   the column with nothing aligned to them. `Spend` gained a `measure` prop and the gate passes the
+   column's own width; every child's right edge is now at the same pixel.
+
+### A defect this exposed in `RunMap`, which is not this item's to fix
+
+`RunMap` inside a 520px column: `scrollWidth` 684 against `clientWidth` 520, so **164px and one of
+four stations are hidden**, with `scrollbar-width: none` from `.mrd-fade-scroll` and
+`mask-image: none` because `RunMap` never applies `edgeMask`. **The route truncates with no
+affordance of any kind.** It has never shown because the gallery gives it the full page width.
+The fix is the same shared `useScrollEdges` extraction that `Dialog` wanted in K-03 and that
+`RunTimeline.tsx` already carries a comment asking for.

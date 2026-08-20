@@ -185,6 +185,7 @@ export function Spend({
   currency = "USD",
   alertAt = 0.8,
   note,
+  measure = "max-w-80",
 }: {
   /** Which ceiling this is. Three exist, so an unlabelled figure is ambiguous. */
   label: string;
@@ -210,6 +211,24 @@ export function Spend({
    * Inventing one consequence for all three would make it wrong twice.
    */
   note?: ReactNode;
+  /**
+   * HOW WIDE THE MEASURE IS, and it is a whole utility rather than a boolean
+   * because the caller knows its column and this component does not.
+   *
+   * Added 2026-08-20 when `PlanGate` became the first surface to render this
+   * BESIDE anything. Standing alone in the gallery, 320px is right. Stacked under
+   * a 520px plan and above 520px controls it was wrong in a way only a render
+   * shows: the label sits left and the figures sit hard right, so at 320 the two
+   * amounts landed in the middle of the column with nothing aligned to them,
+   * while every neighbour's right edge was at 520. Sibling components share a
+   * rhythm or they are not a set.
+   *
+   * It REPLACES the default rather than being appended to it, deliberately. Two
+   * `max-width` utilities on one element resolve by their order in the generated
+   * stylesheet, not by the order they were written in, so appending one would be
+   * a coin flip that happened to land right on the day it was tested.
+   */
+  measure?: string;
 }) {
   const state = spendState(spent, cap, alertAt);
   const chip = CHIP[state];
@@ -255,7 +274,7 @@ export function Spend({
         : "";
 
   return (
-    <div data-mrd="" className="w-full max-w-80 font-mrd">
+    <div data-mrd="" className={`w-full ${measure} font-mrd`}>
       {/*
        * The label sits left and the figures sit hard right, which is what keeps
        * the digits from shoving anything. `tabular-nums` holds each digit to one

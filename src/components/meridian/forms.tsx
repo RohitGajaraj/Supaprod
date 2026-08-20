@@ -1,7 +1,10 @@
 import * as React from "react";
 
+import { Action, Actions } from "./surface-parts";
+
 /**
- * THE FORM VOCABULARY. A field, a label, a box to type in, a tick, a pick.
+ * THE FORM VOCABULARY. A field, a label, a box to type in, a tick, a pick, and a
+ * reason a decision cannot complete without.
  *
  * ── WHY MERIDIAN DID NOT HAVE THESE, AND WHY THAT MATTERED ──────────────
  * Measured 2026-08-16: every form in the product -- all of Settings, all of
@@ -385,6 +388,113 @@ export function Choices<T extends string>({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * ReasonField: a decision that cannot be taken without saying why
+ * ------------------------------------------------------------------ */
+
+/**
+ * ASK FOR THE REASON, AND REFUSE TO COMPLETE WITHOUT ONE.
+ *
+ * ── WHY IT IS HERE AND NOT IN THE THIRD CALLER ──────────────────────────
+ * `PlanCard`'s skip and `RunMap`'s waive both hand-rolled this, and `RunMap`'s
+ * own comment named the duplication rather than hiding it: *"the right fix is a
+ * `ReasonField` in `forms.tsx` that both call. That is a third file this item
+ * does not own, so it is recorded in the build log instead of done quietly
+ * here."* `PlanGate` is the third caller, so this is the moment, and both
+ * originals now call it. **There is one copy of the mechanic, not three, and not
+ * a shared one beside two survivors** -- which is the outcome that would have
+ * looked like progress and left the drift in place.
+ *
+ * A token earns its place on the second caller and so does a component.
+ *
+ * ── THE MECHANIC, WHICH IS THE PART THAT WAS DRIFTING ───────────────────
+ * Enter submits, Escape cancels, the commit is guarded on a trimmed non-empty
+ * value, and the submit is dead until there is one. **Enter and Escape are the
+ * load-bearing half**: a one-field form that only closes by mouse is a trap for
+ * the reader who opened it from the keyboard, and that is the behaviour most
+ * likely to be dropped by whoever writes the fourth copy.
+ *
+ * ── INLINE, NEVER A DIALOG ──────────────────────────────────────────────
+ * `usePrompt()` is the house way to ask for a string and it is wrong for every
+ * caller of this: these are Meridian primitives and may not depend on an
+ * app-level hook, and a modal takes the subject off the screen at the moment
+ * somebody is being asked to justify a decision about it.
+ *
+ * ── WHY NEITHER CONTROL IS ACCENTED ─────────────────────────────────────
+ * `quiet` on both, never `Approve` and never `destructive`. Orchid is spent on
+ * the one control that unblocks something and red reports an outcome that has
+ * happened, so neither is available to mark an intention. **What makes one of
+ * these decisions safe is that it cannot be taken without a reason, which is a
+ * different guard from volume.**
+ */
+export function ReasonField({
+  id,
+  label,
+  hint = "It goes on the record beside the decision, so the next reader sees the call that was made rather than a gap.",
+  placeholder,
+  commitLabel,
+  cancelLabel = "Keep it",
+  busy = false,
+  onCommit,
+  onCancel,
+}: {
+  /** Binds the label to the input. Required for the same reason `Field` requires it. */
+  id: string;
+  /** The question, as a question. "Why skip this?" */
+  label: React.ReactNode;
+  /** What the label cannot say. Defaults to where the reason ends up. */
+  hint?: React.ReactNode;
+  /** A real example, not a restatement of the label. */
+  placeholder?: string;
+  /** What the commit does, in its own words. "Take it off the route." */
+  commitLabel: string;
+  cancelLabel?: string;
+  /** True while a decision is in flight. Both controls go dead, not hidden. */
+  busy?: boolean;
+  /** Called with the trimmed reason, never with an empty string. */
+  onCommit: (reason: string) => void;
+  onCancel: () => void;
+}) {
+  const [reason, setReason] = React.useState("");
+  const ready = reason.trim().length > 0;
+
+  const commit = () => {
+    if (ready && !busy) onCommit(reason.trim());
+  };
+
+  return (
+    <div data-mrd="" className="mt-mrd-3 flex flex-col gap-mrd-3">
+      <Field label={label} hint={hint} htmlFor={id}>
+        <Input
+          id={id}
+          value={reason}
+          autoFocus
+          placeholder={placeholder}
+          onChange={(e) => setReason(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commit();
+            }
+            if (e.key === "Escape") {
+              e.preventDefault();
+              onCancel();
+            }
+          }}
+        />
+      </Field>
+      <Actions>
+        <Action variant="quiet" onClick={commit} disabled={!ready || busy}>
+          {commitLabel}
+        </Action>
+        <Action variant="quiet" onClick={onCancel} disabled={busy}>
+          {cancelLabel}
+        </Action>
+      </Actions>
     </div>
   );
 }

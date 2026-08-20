@@ -4,7 +4,7 @@ import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import { holdLine } from "@/lib/spine/driver";
 
 import { Flowchart, flowFromSteps } from "./Flowchart";
-import { Field, Input } from "./forms";
+import { ReasonField } from "./forms";
 import type { PlanStep, PlanStepState } from "./PlanCard";
 import { GLYPH_FOR_STATION, StationGlyph } from "./station-glyphs";
 import { StatusChip, type StatusWord } from "./StatusChip";
@@ -145,12 +145,21 @@ function markTone(state: PlanStepState): string {
 /**
  * Taking a station off the route, which cannot be completed without a reason.
  *
- * SAME MECHANIC AS `PlanCard`'s SKIP, AND THAT IS A DUPLICATION I AM NAMING
- * RATHER THAN HIDING: Enter submits, Escape cancels, the commit is guarded on a
- * trimmed non-empty value, and the submit is dead until then. Two copies of one
- * mechanic will drift, and the right fix is a `ReasonField` in `forms.tsx` that
- * both call. That is a third file this item does not own, so it is recorded in
- * the build log instead of done quietly here.
+ * ── THE DUPLICATION THIS COMMENT NAMED IS CLOSED, 2026-08-20 ────────────
+ * It used to say: *"SAME MECHANIC AS `PlanCard`'s SKIP, AND THAT IS A
+ * DUPLICATION I AM NAMING RATHER THAN HIDING... the right fix is a `ReasonField`
+ * in `forms.tsx` that both call. That is a third file this item does not own, so
+ * it is recorded in the build log instead of done quietly here."*
+ *
+ * `PlanGate` became the third caller, which is the trigger the note was waiting
+ * for, so the mechanic now lives in `forms.tsx` and all three call it. **Both
+ * copies went, not just this one**: a shared primitive standing beside two
+ * survivors would have looked like the fix and left the drift exactly where it
+ * was.
+ *
+ * What stays here is the wording, which is the part that is really this route's:
+ * the question names the station, because "why is this coming off" in a list of
+ * seven is a pronoun with no referent.
  */
 function WaiveReason({
   station,
@@ -161,54 +170,16 @@ function WaiveReason({
   onCommit: (reason: string) => void;
   onCancel: () => void;
 }) {
-  const [reason, setReason] = React.useState("");
-  const inputId = `run-map-waive-${station}`;
-  const ready = reason.trim().length > 0;
-  const commit = () => {
-    if (ready) onCommit(reason.trim());
-  };
-
   return (
-    <div className="mt-mrd-3 flex flex-col gap-mrd-3">
-      <Field
-        label={`Why is ${AGENT_STATIONS[station].name} coming off the route?`}
-        hint="It stays on the record beside the route, so the next reader can see the call rather than a gap."
-        htmlFor={inputId}
-      >
-        <Input
-          id={inputId}
-          value={reason}
-          autoFocus
-          placeholder="The notice reuses a shipped component, so there is nothing new to draw"
-          onChange={(e) => setReason(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              commit();
-            }
-            if (e.key === "Escape") {
-              e.preventDefault();
-              onCancel();
-            }
-          }}
-        />
-      </Field>
-      <Actions>
-        {/*
-         * QUIET, NOT `destructive`. Taking a station off a route that has not
-         * started removes nothing that exists: no work has run there and none is
-         * lost. What makes it safe is that it cannot be done without a reason,
-         * which is a different guard from volume. `destructive` is for a click
-         * that stops or removes something real.
-         */}
-        <Action variant="quiet" onClick={commit} disabled={!ready}>
-          Take it off the route
-        </Action>
-        <Action variant="quiet" onClick={onCancel}>
-          Keep it
-        </Action>
-      </Actions>
-    </div>
+    <ReasonField
+      id={`run-map-waive-${station}`}
+      label={`Why is ${AGENT_STATIONS[station].name} coming off the route?`}
+      hint="It stays on the record beside the route, so the next reader can see the call rather than a gap."
+      placeholder="The notice reuses a shipped component, so there is nothing new to draw"
+      commitLabel="Take it off the route"
+      onCommit={onCommit}
+      onCancel={onCancel}
+    />
   );
 }
 
