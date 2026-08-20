@@ -286,12 +286,38 @@ export function Region({
     <section data-mrd="" className="flex flex-col">
       {head ? (
         <div className="flex items-baseline justify-between gap-mrd-4">
+          {/*
+           * 14px AND NOT 13px, AND THIS IS THE SECOND TIME IT HAS BEEN FIXED.
+           *
+           * `Row`'s lead -- an ordinary list row inside this very region -- is
+           * 14px (`rows.tsx`). At 13px this heading was set SMALLER than its own
+           * content, which is the one relationship a heading may never have.
+           *
+           * The retired system had already found and fixed this, and the port
+           * dropped the fix without comment. `primitives.css` records it in
+           * full: `.sp-block-title` was 13.5px against `.sp-row-lead`'s 14px,
+           * measured 2026-08-11, and on Brain the effect was total -- one 25px
+           * h1 and then ten objects inside a single 1px band, so the sentences
+           * carrying the surface's whole argument read at the optical weight of
+           * a row's metadata.
+           *
+           * 14px IS THE FLOOR, NOT A PROMOTION. The heading sits level with the
+           * rows it introduces and `font-medium` does the separating, which is
+           * exactly the weight step that ruling prescribed. A region that needs
+           * to be genuinely dominant asks with `lead`, which takes the 20px rung
+           * reserved for it.
+           *
+           * NOT `text-mrd-body`, even though that names 14px. It is the one
+           * colliding utility in the system: it compiles to a font-size AND a
+           * colour, so it would silently overwrite `text-mrd-ink` here. See
+           * `src/styles/__tests__/one-utility-name-means-one-thing.test.ts`.
+           */}
           {title ? (
             <h2
               className={
                 lead
                   ? "text-[20px] leading-tight font-medium text-mrd-ink"
-                  : "text-[13px] font-medium text-mrd-ink"
+                  : "text-[14px] font-medium text-mrd-ink"
               }
             >
               {title}

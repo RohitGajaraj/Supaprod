@@ -2549,6 +2549,43 @@ green.
 
 ---
 
+# Group P · a fix the port dropped
+
+**K-91 · `Region`'s heading was smaller than the rows it introduces, for the second time**
+`STATUS: TODO` · deps: none · size: S
+**What.** `Region`'s `<h2>` in `src/components/meridian/surface-parts.tsx` was `text-[13px]` in its default
+branch, while `Row`'s `lead` in `src/components/meridian/rows.tsx` -- an ordinary item **inside that very
+region** -- is `text-[14px]`. **So every region label in the product was set smaller than its own content.**
+Raise it to 14px, keep `font-medium`, and guard it.
+**Why. This had already been found, measured and fixed once, and the Meridian port dropped the fix without
+comment.** `src/styles/primitives.css:101` carries the original post-mortem: `.sp-block-title` was 13.5px
+against `.sp-row-lead`'s 14px, measured **2026-08-11**, and it states the rule as **"the one relationship a
+heading may never have."** It also records what the inversion did: on Brain, *"one 25px h1 and then ten objects
+inside a single 1px band, so the sentences carrying the surface's whole argument read at the optical weight of
+a row's metadata."* **Meridian reintroduced it at a full 1px rather than half.**
+**It is a regression rather than a disagreement.** Neither `DESIGN-SYSTEM.md` nor `meridian.css` documents a
+region heading stop, and there is no comment at the call site, which a reasoned choice would have had. And
+AGENTS.md §5 is explicit that today's design is the floor and that shrinking type is forbidden as an answer.
+**How.** One value, `text-[13px]` becomes `text-[14px]` in the **default** branch only. **Do not touch the
+`lead` branch's 20px**, which is how a region asks to be genuinely dominant, the same role the retired system
+gave `--sp-text-gate`. **`font-medium` stays and does the separating**, which is exactly the weight step the
+2026-08-11 ruling prescribed when it put the label level with its rows.
+**Do NOT reach for `text-mrd-body` even though it names 14px.** It is the one colliding utility in the system
+(K-90): it compiles to a font size **and** a colour, so it would silently overwrite the `text-mrd-ink` already
+on this heading. The arbitrary value is correct here and matches the two branches either side of it.
+**Checked, and no other heading in the file has this defect**, so the fix must not be widened: `PageHeading` is
+25px over 13px prose, and `ReadFailed` and `Refused` are 13px over their own 13px prose, which is **level rather
+than smaller** and is what the ruling permits. **`Region` is the only part heading 14px content.**
+**Acceptance.**
+- The default branch is >= `Row`'s lead, and the `lead` branch is still strictly greater than the default.
+- A guard fails the build if either relationship breaks, and **is proven by planting the 13px back**.
+- The guard pins `Row`'s lead too, so lowering the row instead of raising the heading cannot satisfy it.
+- The reason is recorded at the call site, with the date of the first fix, so a third port cannot drop it silently.
+**Owns.** `src/components/meridian/surface-parts.tsx`,
+`src/components/meridian/__tests__/a-heading-is-never-smaller-than-its-content.test.ts`
+
+---
+
 ## Related
 
 - [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) — the direction this queue implements, with the evidence for every "why" above

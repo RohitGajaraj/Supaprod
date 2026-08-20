@@ -6812,3 +6812,51 @@ for twice.
 
 **Gates.** The guard's own file 3 pass 0 fail, and 1 fail with the collision planted. `lane:gates` green, real
 exit 0.
+
+---
+
+## K-91 · BUILT · 2026-08-21 07:15 · a heading smaller than its own rows, and the port had already been told
+
+**Did.** `Region`'s `<h2>` default branch went `text-[13px]` → `text-[14px]`, `font-medium` kept, `lead`'s 20px
+untouched. **`Row`'s lead is 14px**, and a `Row` sits *inside* a `Region`, so every region label in the product
+was set smaller than its own content. 364 `<Region` usages across 7 importers, so the reach is most of the app.
+
+**Why this is a regression and not a taste argument.** `src/styles/primitives.css:101` already found, measured
+and fixed it **on 2026-08-11**, in the retired system, and states the rule outright: **"the one relationship a
+heading may never have."** It also records the damage: on Brain, *"one 25px h1 and then ten objects inside a
+single 1px band, so the sentences carrying the surface's whole argument read at the optical weight of a row's
+metadata."* **Meridian's port reintroduced it at a full 1px rather than half.** Neither `DESIGN-SYSTEM.md` nor
+`meridian.css` documents a region heading stop and there was no comment at the call site, which is what a
+deliberate choice would have carried, so this was a port that never saw the ruling. AGENTS.md §5 also settles
+the direction independently: today's design is the floor and shrinking type is forbidden as an answer.
+
+**Did not reach for `text-mrd-body` although it names 14px.** It is K-90's colliding utility: it compiles to a
+font size **and** a colour, so it would have silently overwritten the `text-mrd-ink` already on this heading.
+**This is the eleventh instance of that defect, avoided rather than added**, and the reason is written at the
+call site so the next person does not walk into it.
+
+**Guarded, and the guard had to be fixed twice by its own assertions.** New file
+`a-heading-is-never-smaller-than-its-content.test.ts`, four assertions, and it **pins `Row`'s lead as well**, so
+lowering the row instead of raising the heading cannot satisfy the comparison. **Proven by planting 13px back**:
+`Expected: >= 14`, then passing on restore.
+
+The two bugs it caught in itself are the part worth keeping. **First**, the reader matched
+`font-medium text-mrd-ink`, which is true of **both** ternary branches, so it read the `lead` branch as the
+default and the inequality passed for the wrong reason. **Second**, once scoped to the ternary it still scanned
+the whole file, where that class combination appears **six times** across `PageHeading`, `ReadFailed`, `Refused`
+and `Cell`, and it was picking `PageHeading`'s 25px as `lead`. Now scoped to the `<h2>` and it **throws rather
+than guesses** if it cannot read exactly two branches. **A guard that reads the wrong number and agrees with you
+is worse than no guard**, which is the third time this session that planting a defect exposed the collector
+rather than the code.
+
+**Checked before widening, and deliberately did not widen.** The other five sites carrying that combination are
+**not** the same defect: `PageHeading` is 25px over 13px prose, and `ReadFailed` and `Refused` are 13px over
+their **own** 13px prose, which is **level rather than smaller** and is exactly what the 2026-08-11 ruling
+permits. **`Region` is the only part in the file that heads 14px content.**
+
+**Noticed.** `rows.tsx` uses `text-[14px]`, `text-[13px]` and `text-[12px]` as arbitrary values rather than
+scale utilities, and **`text-[12px]` is off-ladder** against `--mrd-t-label: 12.5px`. That is the audit
+register's "277 arbitrary `text-[Npx]` values, 13 off-ladder" finding (K-09), already tracked, and not widened
+into here.
+
+**Gates.** The guard 4 pass 0 fail, and 1 fail with the regression planted. `lane:gates` green, real exit 0.
