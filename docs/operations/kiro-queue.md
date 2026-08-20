@@ -596,8 +596,16 @@ The argument is already written in this tool's own description, applied to a dif
 
 ---
 
-**K-17 · Wire `StreamingText` and `ToolChips` out of the gallery**
-`STATUS: BLOCKED 2026-08-20` · deps: K-05 · size: M
+**K-17 · ~~Wire `StreamingText` and `ToolChips` out of the gallery~~**
+`STATUS: WITHDRAWN 2026-08-20` · deps: K-05 · size: M
+
+> **WITHDRAWN, not deferred. Do not build this and do not come back to it.**
+>
+> The premise held: both components have **zero product callers**, confirmed. The prescription did not. On the run route both would say something twice -- `ToolChips` against the steps ledger that already renders every tool call, `StreamingText` against `ReturnSummary` -- and `StreamingText` would animate prose that arrived minutes ago off a 4-second poll, asserting "this is being written now" about a finished string.
+>
+> **The decisive evidence is that the surface it would have gone to already refuses this exact pattern in writing.** `AskTurn.tsx:261-268` states there is deliberately no second branch for the in-flight case, because *"a separate 'streaming text' path is exactly how a surface ends up showing raw hashes for the eight seconds a person is actually watching it, and then tidying itself up once they have stopped."*
+>
+> **A component with no home is not a defect to be fixed by finding it one.** They stay as reference ports in the gallery. Full ruling in the Claude log, 2026-08-20 05:45.
 
 > **Blocked on a product call, not on a dependency.** Both components really are unwired, so the item's
 > premise holds. "Just doors" does not: this surface already answers both questions, so mounting either
@@ -626,33 +634,31 @@ The argument is already written in this tool's own description, applied to a dif
 
 ---
 
-**K-18 · Give the sixteen hold reasons a surface**
-`STATUS: BLOCKED 2026-08-20` · deps: none · size: M
+**K-18 · A gate waiting on YOU is painted amber, which means it is not on you**
+`STATUS: TODO` · deps: none · size: S
 
-> **Two of the three factual claims here are wrong and the third is the real item.** There are **15**
-> hold reasons, not 16, so the acceptance cannot be met as written, and one of the 15 (`done`, "the route
-> is finished") is not a hold and must not render in a list of stopped work. **They already surface**:
-> `holdLine` is wired through `rowToTrack` (`track.functions.ts:141`) to `TrackStart.tsx:472`, which
-> renders every sentence as a track row's `sub`.
->
-> **The defect that IS there is this item's own colour law, inverted.** `TrackStart.tsx:487` paints every
-> hold amber, so a gate waiting on *you* wears the token meaning *not on you*. Fixing it needs
-> `driver.ts` (a classification beside `HOLD_LINE`), `TrackStart.tsx` (the tone) and `StalledWork.tsx`
-> (whose private `"you" | "source"` is a 2-value copy of the 15) — **none of which is the `Owns` below.**
-> Proposed rescope, the 15-way split and the reasoning in the Kiro log.
+> **REWRITTEN 2026-08-20 after Kiro's BLOCKED entry, which was right on both counts.** The original asked for "the sixteen hold reasons" to be given a surface. **There are fifteen**, so its acceptance could never be satisfied; **one of them is `done`**, which is not a hold and would have rendered finished work as stuck; and **all fifteen already reach a surface** via `holdLine` -> `rowToTrack` -> `TrackStart.tsx:472`. The gap it described was closed. What follows is the defect it found instead.
 
-**What.** Render a held track's hold reason and its operator sentence wherever a held run appears.
+**What.** Paint the station chip by WHICH hold it is, not by whether there is one.
 
-**Why.** The spine driver has **16 distinct hold reasons, each with an operator sentence already written** at `src/lib/spine/driver.ts:652-684` — `waiting-on-a-person`, `stalled`, `out-of-credit`, `no-agent`, `produced-nothing`, `nothing-to-hand-on` and ten more. **None of them surfaces anywhere.** A user sees work stop and cannot learn why, while the exact sentence explaining it sits unused in the codebase.
+**Why.** `TrackStart.tsx:487` reads `tone={t.hold ? "hold" : "quiet"}`. **Every hold gets amber, including `waiting-on-a-person`.** So a gate waiting on *you* renders in the token meaning **stopped, and not on you** -- the one distinction those two tokens exist to draw, inverted for the case where it matters most. The file already computes `waitingOnAPerson` at `:452` to decide whether to draw a control, and does not use it for the tone.
 
-**How.** The sentences exist — use them verbatim; do not write new copy. Distinguish the two kinds with the colour law: a hold waiting on **a person** is `--mrd-you`; a hold waiting on **a condition** (credit, time, a missing input) is `--mrd-hold`. That distinction is the whole reason both tokens exist. `StalledWork` already models this and is the component to extend or follow.
+**How.** The split, argued from `meridian.css`'s own enumeration rather than from how the sentences sound:
+
+| | reasons |
+| --- | --- |
+| **orchid**, a decision on THIS work releases it | `waiting-on-a-person`, `station-cannot-finish`, `corrections-spent`, `given-up` |
+| **amber**, a condition elsewhere, or it resolves itself | `paused`, `no-agent`, `produced-nothing`, `nothing-to-hand-on`, `stalled`, `over-budget`, `out-of-time`, `out-of-credit`, `needs-evidence`, `needs-a-waived-station` |
+| **neither** | `done`, which is not a hold |
+
+**The test for the hard cases is who releases it.** You top up an account; you do not *decide* this track. So `over-budget` and `out-of-credit` are amber despite sentences that sound like a request. `StalledWork`'s header argues the same from production: **26 tracks were starved of evidence while the product told their owners to go inspect a station**, which is why `needs-evidence` must not wear orchid.
 
 **Acceptance.**
-- Every one of the 16 reasons renders with its own sentence.
-- Person-holds and condition-holds are visually distinct and survive greyscale.
-- A gallery entry shows all 16.
+- Orchid for exactly the four, amber for the ten, neither for `done`.
+- A test asserts the classification **by reason** rather than by rendered class name, so it survives a copy change.
+- Greyscale survives, because the reason sentence already says which it is.
 
-**Owns.** `src/components/meridian/StalledWork.tsx`, `src/routes/_authenticated.runs.index.tsx`, `src/routes/_authenticated.meridian.tsx`
+**Owns.** `src/components/spine/TrackStart.tsx`, and a colocated test.
 
 ---
 
