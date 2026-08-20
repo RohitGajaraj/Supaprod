@@ -263,11 +263,36 @@ echo ""
 # filename. This checks the DECLARATION rather than the link, which is the shape the
 # defect actually takes.
 echo "-- [11] a retired design system DECLARED current in a live doc --"
+# A GITIGNORED FILE IS NOT A LIVE DOC, and this check failed on two of them for
+# anyone who had them on disk (found 2026-08-20 while K-22 was correcting the
+# architecture contracts, which is when it started blocking commits).
+#
+# `design-reference/Latest Design System - v3 /DESIGN-OBSIDIAN.md` and its
+# handoff twin were UNTRACKED as of `2894167ad` -- deliberately local-only large
+# exports -- and both open with `status: THE design contract for the product
+# app`. That sentence is true of what the file was when it was written and the
+# file is not in the repo, so there is nothing to correct and nothing to commit:
+# the only ways to clear the FAIL were to edit a founder's local export or to
+# stop scanning things git does not track. Every other check in this script is
+# scoped to `docs architecture` for the same reason; this one scans `.` with a
+# hand-maintained exclude list, which cannot keep up.
+#
+# `git check-ignore` rather than another `--exclude-dir`: the list was already
+# ten directories long and would have needed an eleventh the next time somebody
+# unpacked a reference bundle. This asks git what belongs to the repo.
+drop_ignored() {
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    f="${line%%:*}"
+    git check-ignore -q "$f" 2>/dev/null || printf '%s\n' "$line"
+  done
+}
 DECLARED="$(grep -rIn -E '(CURRENT|is the law|design contract for|source of truth)[^|]{0,160}(Tempo|Obsidian|Loom|Ember|Cadence/ink)' . \
   --include='*.md' --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=graphify-out \
   --exclude-dir=archive --exclude-dir=worktrees --exclude-dir=.agents --exclude-dir=.kiro \
   --exclude-dir=.gemini --exclude-dir=.conductor 2>/dev/null \
-  | grep -viE 'retired|history is not authority|was wrong|corrected|no longer|superseded|used to' )"
+  | grep -viE 'retired|history is not authority|was wrong|corrected|no longer|superseded|used to' \
+  | drop_ignored )"
 if [ -n "$DECLARED" ]; then
   echo "$DECLARED" | sed 's/^/  FAIL retired system declared current: /'
   echo "  (Meridian is the only design system. v1 Ember, v3 Obsidian, v4 Loom, v5 Tempo"

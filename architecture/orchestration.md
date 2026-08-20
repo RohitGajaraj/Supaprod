@@ -1,12 +1,33 @@
 # architecture/orchestration.md — Orchestration & automation layer
 
-> _Created: 2026-06-03 · Last updated: 2026-06-19_
+> _Created: 2026-06-03 · Last updated: 2026-08-20_
 
-> How autonomous missions run: parallel sub-agents, parallel sessions, multi-product isolation, and the automation engine. The second invariant of the system (the first is the chokepoint — [`runtime.md`](./runtime.md)). Rules: [`AGENTS.md`](../AGENTS.md). Data: [`data.md`](./data.md). Auth/tenancy: [`security.md`](./security.md).
+> How autonomous work runs: the two driver layers, parallel sub-agents, multi-product isolation, and the automation engine. The second invariant of the system (the first is the chokepoint — [`runtime.md`](./runtime.md)). Rules: [`AGENTS.md`](../AGENTS.md). Data: [`data.md`](./data.md). Auth/tenancy: [`security.md`](./security.md).
+
+> **Corrected 2026-08-20 against the code. This file documented one of the two orchestration layers and named five tables that do not exist.**
+>
+> - **The spine was missing entirely**, and it is the layer that walks all seven stations. Everything below the mission section described the DAG engine, which in practice only ever advances Build. A reader learning the system from this file would have concluded the seven-station loop does not exist. §"The spine" is new.
+> - **`ai_traces` does not exist** and was named twice. Spans are `trace_id` and `parent_event_id` on `ai_events`; see [`runtime.md`](./runtime.md).
+> - **Five of the seven tables in the data section are fiction**: `mission_sessions`, `mission_nodes`, `workflows`, `workflow_versions` and `automation_triggers` have zero occurrences outside this file's own sentence.
+> - **The trust score has four legs, not three**, and their weights are not the ones this file implied.
 
 ## The one rule
 
-**Every autonomous, multi-step workflow goes through one orchestration layer.** Just as every AI call goes through the chokepoint, every _mission_ (a goal an agent or swarm executes across steps) goes through the orchestrator. That makes parallelism, approval routing, cost caps, checkpointing, and observability uniform across the whole product.
+**Every autonomous, multi-step workflow goes through a driver, and there are exactly two.** Just as every AI call goes through the chokepoint, no multi-step work runs from an ad-hoc loop. That makes parallelism, approval routing, cost caps, checkpointing, and observability uniform across the whole product.
+
+**The two are not alternatives and they answer different questions.** Read this table before either section below, because the single most confusing thing about this layer is that "orchestration" has meant the second one in every document written before 2026-08.
+
+| | **The spine** (track layer) | **The mission** (DAG layer) |
+| --- | --- | --- |
+| Unit of work | one `spine_tracks` row: a piece of work walking a route | one `missions` row: a goal fanned into `mission_steps` |
+| Question it answers | which station is this work at, and may it move | which steps are ready, and is the graph finished |
+| Driver | `driveTrackOnce` (`src/lib/spine/driver.server.ts:990`) | `advanceMissionCore` (`src/lib/ai/mission-advance.server.ts:956`) |
+| Cadence | `track-tick`, **every 10 minutes**, 5 tracks per tick | `resume-runs`, **every minute**, 50 missions per tick |
+| Stations it covers | **all seven** | **Build, in practice** |
+| Plans with a model | **no.** `decideDrive` is a pure function | **no.** Model-free by design; the orchestrator LLM only ever drew the initial plan |
+| State | `station` · `status` · `attempts` · `last_hold` · `pending_gates` · spend meter | `mission_steps.status` · `depends_on` · `attempts` |
+
+**Why Build and not the rest.** It is not a filter. A mission row only exists where something creates one, and on the autonomous route the only caller is `missionForTrack`, invoked under `if (station === "build")`. The other six run bare `agent_runs` with `missionId: null`, so the DAG engine has nothing to advance for them. The human route creates missions too, through chat handover and `startOrchestratedMission`.
 
 ## Core concepts
 
@@ -16,13 +37,49 @@
 | **Session** | One running execution of a mission (or sub-mission). Many sessions run in parallel across products. |
 | **Orchestrator agent** | Plans the mission, spawns and coordinates sub-agents, routes approvals, manages parallelism. See roster in [`docs/planning/archive/build-log.md`](../docs/planning/archive/build-log.md). |
 | **Sub-agent** | An ephemeral specialist spawned by the orchestrator for a sub-task; inherits the chokepoint, a tool allow-list, and governance; returns its result and is torn down. |
-| **Step / node** | A unit of work in the mission DAG (a tool call, an agent turn, an approval gate). |
+| **Step / node** | A unit of work in the mission DAG (a tool call, an agent turn, an approval gate). The table is **`mission_steps`**, carrying `idx`, `agent_slug`, `sub_goal`, `depends_on int[]` and `status`. |
+| **Track** | A piece of work walking a route through the seven stations. One `spine_tracks` row. **This is the unit of the autonomous loop** and it is not a mission. |
+| **Station** | One of the seven stops. Declared once, as `AGENT_STATION_ORDER` in `src/lib/agent-vocabulary.ts:171`: `sense · decide · define · design · build · ship · learn`. **The internal ids are not the user-facing names**: `sense` is Discover and `define` is Plan. |
+| **Crew** | The seats a station runs, in order, within one tick. `stationCrew(station)`. Each seat is briefed with what the previous seat filed, which is the same handoff that runs between stations applied inside one. |
+
+## The spine, which is the layer that walks the loop
+
+**Added 2026-08-20. It was undocumented for the whole of its life, and it is the layer the product's central claim rests on.**
+
+**One track, one station, one tick.** `track-tick` (`src/routes/api/public/hooks/track-tick.ts`) selects up to 5 `status='open'` tracks ordered `driven_at ASC NULLS FIRST`, so a track that has never been driven starts promptly and one busy track cannot starve the rest. It drives them **sequentially**, sharing one tick clock, and calls `driveTrackOnce` on each.
+
+**The planning is deterministic and only the work uses a model.** `decideDrive` (`src/lib/spine/driver.ts:595`) is a pure function of `{paused, station, pendingApprovals, attempts, lastHold, upstream}` with a tested precedence order, and that order is the contract:
+
+```
+paused  →  waiting-on-a-person  →  route finished  →  attempt ceiling  →  no agent  →  act
+```
+
+`paused` is first because a kill switch outranks everything and a driver that reasoned past one would be the worst bug this feature could have. `waiting-on-a-person` is second because a track with a call already in front of someone must not dispatch more work. Route arithmetic is pure too: `nextStation` walks `route.path` in station order. **No model chooses the next station, the route, or the crew.**
+
+**What one drive does, in order.** Harvest gates answered since the last tick, so an approval given while the track was held is on the record before anything is decided. Read the upstream artifacts, which is the brief. Read the correction history. Decide. Then run the crew seat by seat through `runAgentLoop`, checking the spend cap and the tick deadline before each seat, re-reading what each seat filed so the next one is briefed on rows that actually exist.
+
+**Two gates stand between a station finishing and the track moving**, and both exist because the loop once ran end to end and delivered nothing:
+
+1. **`produced-nothing`** — the station ran cleanly and filed no row. A station's output is the row it wrote, so advancing here would report progress the work did not buy.
+2. **`nothing-to-hand-on`** — the station filed something, and not what the next station needs. The predicate is `STATION_NEEDS[next]`, the **next** station's own precondition, rather than this station's expected artifact. Those questions come apart exactly when a station does the wrong job well, which is the case nothing else notices: everything downstream then reports, correctly, that it was handed nothing.
+
+Both count an attempt, so `MAX_STATION_ATTEMPTS` (3) still bounds the retries.
+
+**Every stop is reported and none is silent.** `last_hold` is a fifteen-value union (`HoldReason`, `driver.ts:200`) and each value has a sentence a person reads in `HOLD_LINE`. The distinctions in it are diagnoses rather than shades: `out-of-time` is ours and never counts an attempt, `out-of-credit` is the account and never counts an attempt, `over-budget` is the track's own ceiling, and `stalled` is the station. Getting that wrong has cost real work twice, both recorded in the file: three tracks frozen behind an empty account having never once run, and 26 more frozen at a terminal correction hold for the same reason.
+
+**The pending-approval hold is scoped to the track's own gates**, not to the person. It used to count every pending row in `agent_approvals` for the user, so one unanswered call froze every track that person owned, permanently. That is the governance principle exactly inverted: the busier the queue, the less the agents were allowed to do.
+
+**Reaching the ceiling is not terminal.** A held track at the attempt ceiling goes to `correctIfPossible`, which sends the work **back** to the station that owns the missing precondition, with a note saying what it is being asked to fix, and writes the confirmed lesson only once the station that could not finish finishes.
+
+**Its data.** `spine_tracks` (route, station, status, attempts, last_hold, pending_gates, spend meter, driven_at) and `spine_track_members` (the artifact index: `track_id`, `artifact_kind`, `artifact_id`, `station`). Transitions go to `stage_events` with `entity_type='spine_track'`, the same trail every other artifact writes to rather than a private log.
+
+**Where it is weaker than the mission layer, stated rather than left to be discovered.** Two overlapping `track-tick` invocations are not fenced: there is no advisory lock and no CAS claim on a track the way `mission_steps` has one. What separates them is the 10-minute cadence against a job that runs in well under a minute, plus the `driven_at` ordering. That is a real gap rather than a design choice.
 
 ## Parallelism model
 
 - **Many sub-agents per mission** run concurrently on independent nodes of the mission DAG; results fan back in at join nodes.
 - **Many sessions in parallel** across missions and products. Each session is isolated (its own context, memory scope, budget, branch/worktree for build work).
-- **Concurrency control:** Postgres advisory locks per resource (e.g. `agent_id`, mission_id) prevent double-execution; the scheduler fans out due work each tick without overlap (carried over from the legacy `agent-tick` advisory-lock fix — see [`docs/planning/archive/build-log.md`](../docs/planning/archive/build-log.md)).
+- **Concurrency control is compare-and-swap, not advisory locks** (corrected 2026-08-20: `pg_advisory_lock` and `pg_try_advisory_*` have zero occurrences in `supabase/migrations/**` and `src/lib/**`, and the `agent-tick` this line credited does not exist). Step dispatch claims `planned → dispatched` with `.eq("status","planned")` and only the caller that matches a row enqueues, so overlapping ticks cannot double-dispatch. A step left at `dispatched` with no `run_id` for 3 minutes is treated as a lost dispatch and recovered. Per-tick dispatch is capped at 10 steps per mission, and a workspace at 5 `running` runs queues the sixth rather than starting it.
 - **Caps:** per-mission max-steps and max-cost; a session that exceeds caps pauses and routes to approval rather than running away.
 
 ## Mission lifecycle (state machine)
@@ -43,7 +100,7 @@ The effective approval mode at each gate is **not** read directly from `agent_to
 - `Proving` forces `confirm` on `auto` tools.
 - `Trusted` lets `confirm`-mode tools execute inline; `review` stays sticky.
 - `Ambient` lets everything execute inline EXCEPT hard-locked tools (`calendar.create`, future destructive ones) which keep `confirm`.
-- Trust score (0–100) is computed on read from real signals — mission success rate, approval acceptance rate, eval mean — Bayesian-shrunk toward 0.5 when sample <10. The score never lives in a column; it can never go stale.
+- Trust score (0–100) is computed on read from real signals, each Bayesian-shrunk toward 0.5 with a prior weight of 10 so a handful of samples cannot swing it. The score never lives in a column; it can never go stale. **There are four legs, not the three this line used to name** (corrected 2026-08-20 against `computeAllAgentTrust`): mission success rate **0.3**, approval acceptance **0.2**, eval mean **0.2**, validated-outcome rate **0.3**. The fourth is the one that matters most to the product's own argument, and it was missing from this file: it asks whether the work this agent decided on actually turned out well once real signal arrived, rather than whether it ran clean or a person accepted the gate. Full history, including the seven weeks the eval leg spent frozen: [`observability.md`](./observability.md) §6.
 - The dial is set by the operator on `/agents`; the loop reads `loadAgentArc(userId, agentId)` once per run.
 - **Operator-facing explanation** (what the 0–100 score means, qualitative label bands, the three ingredients, per-arc behavior, safety floors, operator playbook): [`../docs/features/trust-and-autonomy.md`](../docs/features/trust-and-autonomy.md). Keep that doc in sync when the score formula or arc behavior changes.
 
@@ -60,11 +117,21 @@ The effective approval mode at each gate is **not** read directly from `agent_to
 
 ## The live orchestration surface
 
-The UI ([`docs/design/archive/ember-editorial-landing.md`](../docs/design/archive/ember-editorial-landing.md), [`frontend.md`](./frontend.md)) renders the mission DAG live: per-node status, current step, files touched, tool calls, cost, and approval state — with pause / steer / approve controls. This is the "watch the agents build/ship" surface. It reads from `ai_traces` + a `missions`/`sessions` table set and Supabase Realtime.
+The UI ([`docs/design/archive/ember-editorial-landing.md`](../docs/design/archive/ember-editorial-landing.md), [`frontend.md`](./frontend.md)) renders the mission DAG live: per-node status, current step, files touched, tool calls, cost, and approval state — with pause / steer / approve controls. This is the "watch the agents build/ship" surface. It reads `missions` + `mission_steps` + `agent_runs` + `agent_messages`, and the per-call telemetry through `ai_events` (`trace_id` / `parent_event_id`). **Not `ai_traces`, which does not exist** (corrected 2026-08-20; see [`runtime.md`](./runtime.md)). There is no `sessions` table either.
 
-## Data (new tables this layer needs)
+## Data this layer actually uses
 
-`missions`, `mission_sessions`, `mission_nodes` (DAG edges + state), `workflows` + `workflow_versions`, `automation_triggers`. All RLS-scoped by `user_id` + `workspace_id` + `product_id`. Schema authored via migrations ([`data.md`](./data.md)).
+**Corrected 2026-08-20. This section named seven tables and five of them are fiction.** `mission_sessions`, `mission_nodes`, `workflows`, `workflow_versions` and `automation_triggers` have zero occurrences in `supabase/migrations/**`, in `src/**`, and in `src/integrations/supabase/types.ts`; the only hits anywhere in the repo were this sentence. They were a design that was written down and never built, and leaving them here meant every reader learned a schema the database does not have.
+
+**The mission layer:** `missions`, `mission_steps` (the DAG carrier, which is what this file used to call `mission_nodes`), `agent_messages` (the A2A wire format), `agent_runs`, `agent_run_checkpoints`. Plus the `next_ready_mission_steps` RPC, which is where "a step is ready when every dependency is done" is actually enforced.
+
+**The spine layer:** `spine_tracks`, `spine_track_members`, and `stage_events` for transitions.
+
+**Shared:** `agent_approvals` for gates, `agent_autonomy` for the arc, `kill_switches` for the pause.
+
+**The automation engine's real tables** are `event_subscriptions` and `event_queue`, documented in the section of that name below. That is the thing `workflows` and `automation_triggers` were imagined as, and it shipped under different names with a narrower shape.
+
+All RLS-scoped by `user_id` + `workspace_id` + `product_id`. Schema authored via migrations ([`data.md`](./data.md)).
 
 ## A2A handoff (shipped — Bundle 4)
 
@@ -99,8 +166,10 @@ Every new opportunity (theme- or signal-promoted) and every freshly generated PR
 
 ## Invariants
 
-- No multi-step autonomous work outside the orchestrator.
-- Every node logs to `ai_traces`/`tool_calls` via the chokepoint.
+- No multi-step autonomous work outside the two drivers. Adding a third is the change this file exists to prevent.
+- Every node logs to `ai_events` (+ `tool_calls`) via the chokepoint. **Not `ai_traces`** — corrected 2026-08-20, it does not exist.
+- **A station never advances on the strength of a run that filed nothing, or that filed something the next station cannot use.** Both are holds, both are reported, and both count an attempt.
+- Neither driver plans with a model. A change that puts an LLM in the path between "this station finished" and "move to the next one" is wrong even if it works.
 - Cross-product/session isolation is never bypassed.
 - Side-effecting nodes honor the mission's approval policy.
 

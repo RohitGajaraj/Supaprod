@@ -2771,3 +2771,116 @@ the width declaration. Same class of mistake as counting a class name across eve
 **Gates.** tsc clean · 9,851 pass / 0 fail / 23 skip / 60 todo across 585 files · build ok. Confirmed
 `min-w-1` exists in the freshly built `styles-*.css` before trusting any measurement of it, since a class
 absent from the stylesheet measures as a fix to a problem that is still there.
+
+---
+
+## K-22 · BUILT · 2026-08-20 10:00
+
+**Did.** Corrected the three architecture contracts against the code, and found more wrong than the item
+listed. `orchestration.md` gains the spine, the layer that actually walks the seven stations and had never
+been documented at all; its data section lost five tables that do not exist; its concurrency claim lost
+advisory locks that are nowhere in the repo. `runtime.md` lost `ai_traces` and gained the real span
+mechanism, and its `surface` list is now the union the code exports. `observability.md`'s trust score went
+from three legs at 40/30/30 to the four at 30/20/20/30 that the code has, with the eval leg's seven-week
+outage recorded rather than described as live.
+
+**The item's premise held on two of three, and the third has moved.** `ai_traces`: confirmed, zero
+occurrences in `src/**` and `supabase/migrations/**`. Two orchestration layers with different drivers and
+cadences: confirmed, both cron schedules read off their migrations. **But the eval leg is no longer
+broken.** The item says to mark it broken with a pointer "since Claude is fixing it"; Claude fixed it
+earlier today, in `trust.server.ts` plus migrations `20260820072500` and `20260820074000`. So writing
+"broken" would have been the new false claim. It is documented as what it is: fixed, with the failure and
+both causes recorded, because a leg that was a flat +0.10 on every agent for seven weeks is the strongest
+argument this file's own honesty rule has.
+
+**Extended `Owns`, three times, each declared with the reason.**
+
+1. **`architecture/data.md` and `architecture/integrations.md`** each named `ai_traces` too. The
+   acceptance criterion is "no contract describes a table that does not exist", and it is not met by
+   fixing three files while two more carry the same fiction. Neither appears in any item's `Owns`,
+   checked across the whole queue. One line each.
+2. **`scripts/docs-doctor.sh`**, and this one was not optional: **the pre-commit hook runs docs-doctor on
+   any commit touching markdown, and it was already failing, so K-22 could not be committed at all.**
+   Check [11] scans `.` with a hand-maintained exclude list and does not ask git what belongs to the
+   repo, so it failed on two **untracked, gitignored** local exports
+   (`design-reference/Latest Design System - v3 /DESIGN-OBSIDIAN.md` and its handoff twin, untracked at
+   `2894167ad`). Both open with `status: THE design contract for the product app`, which was true when
+   they were written and is not in the repo. The only two ways to clear it were to edit a founder's local
+   file or to stop scanning things git does not track. I filtered the hits through `git check-ignore`
+   rather than adding an eleventh `--exclude-dir`, because the list would have needed a twelfth the next
+   time somebody unpacked a reference bundle.
+
+**Unsure.**
+
+1. **The biggest judgement: how much of the spine to write down.** The item says "the spine layer is
+   documented alongside the mission layer", and the spine's own source carries several thousand words of
+   argument that is better than anything I could restate. I chose to document the **contract** rather than
+   the implementation: the two gates before a track may move, the hold vocabulary and why the
+   distinctions in it are diagnoses, the precedence order in `decideDrive`, and where its data lives.
+   What I left in the code is the incident history behind each hold, because that is a story about
+   particular defects and it is already in the file that has to be edited when the behaviour changes.
+   **The other reading is that a contract file should be shorter than what I wrote**, and I did add
+   roughly 40 lines to a 107-line file.
+2. **I documented a weakness the item did not ask about, and it is the one thing here Claude should check
+   against production.** Two overlapping `track-tick` invocations are **not fenced**: no advisory lock, no
+   CAS claim on the track, unlike `mission_steps` which has one. What separates them is a 10-minute
+   cadence against a job that finishes in well under a minute, plus the `driven_at` ordering. I wrote it
+   as a real gap rather than a design choice. If two ticks have ever overlapped in production, that would
+   show as a track driven twice in one window, and I cannot look.
+3. **`burnTone`-shaped question, in doc form: I said `mission_steps` is what the doc called
+   `mission_nodes`.** That is my inference from the shape (`depends_on int[]`, `idx`, `status`), not from
+   a document saying so. The doc described `mission_nodes` as "DAG edges + state" and `mission_steps`
+   carries both, so I am confident, but it is a reading rather than a record.
+4. **I named `spine_tracks.path` as defaulting to all seven stations** on the strength of the migration's
+   own default. Whether live rows actually carry all seven, or whether most were created with a shorter
+   route, is a production question.
+
+**Noticed.**
+
+1. **`runtime.md`'s `surface` list was wrong in the most expensive possible place.** It named
+   `mcp_server` and `a2a`, **neither of which has ever been in the `CallSurface` union**, and omitted
+   `scheduler`, `sense`, `decision` and `test`. That line is the one an author reads when adding an AI
+   surface, and the contract requires the literal to live in the exported type, so following the doc
+   would not compile. The union's own comment records `decision` being added on 2026-07-11 "when the tool
+   landed without extending this union", which is the same failure in the other direction. **Not in the
+   item, and I think it is the worst single line of the three files.**
+2. **The cron-hook list named six hooks out of 38, and one of the six does not exist.** `agent-tick` has
+   zero occurrences in `src/**` and `supabase/migrations/**`. I did not replace it with a list of 38: a
+   list that long in a contract file is a list that goes stale, so it points at
+   `ls src/routes/api/public/hooks/` and names only the two that carry the loop.
+3. **`eval-tick` was listed as "scheduled/on-demand" and has had a real 30-minute cron since
+   2026-07-02.** It was posting to a URL that did not exist, fixed today. Two of its numbers were also
+   conflated: it scans 200 candidates and judges 20, and the doc had only the 20.
+4. **`resume-runs` advances 50 missions per tick, not 20**, and `track-tick` was missing from the cron
+   table entirely, which is how a reader could scan that table and not learn that the seven-station loop
+   has a driver.
+5. **The stations have two naming systems and the doc had neither written down.** `AGENT_STATION_ORDER`
+   is `sense · decide · define · design · build · ship · learn`, and `sense` is Discover while `define`
+   is Plan. That is the same class of trap as §9's "read `builder` as Build" and it now has a row in the
+   concepts table.
+6. **A tooling incident, mine, recorded because it nearly cost work.** I ran `git stash` to compare
+   docs-doctor against a clean tree, the command timed out mid-way, and I then ran a bare `git stash pop`
+   which applied **an unrelated 28-file stash from a prior session** that deleted 2,378 lines under
+   `src/lib/build/`. Recovered with no loss: I had copied my five files out first, `git reset` plus
+   `git checkout -- .` cleared the conflicted pop, `src/lib/build/` is intact at 37 files and
+   `git status src/` is clean. **The lesson is specific and belongs in §9: this repo has 37 stashes, so a
+   bare `git stash pop` is a coin flip.** Name the entry, or do not stash at all. Comparing against a
+   clean tree is better done with `git show HEAD:<path>`.
+7. **`bun test` ran 586 files where the last item ran 585.** Claude landed
+   `20260820084500_two_retired_agents_were_still_on_the_roster.sql` and a test with it while I worked.
+   Noting it so the count change is not read as mine.
+
+**Planted, so the docs-doctor change is not vacuous.** Appended
+`The design contract for the product app is Obsidian.` to `architecture/frontend.md`, a **tracked** file,
+and check [11] failed on it. **My first plant was wrong and passed**: I wrote "Obsidian is the design
+contract for..." and the regex requires the keyword before the system name, so it matched nothing and for
+a moment looked like I had broken the check. Worth recording, because a plant that fails to reproduce is
+indistinguishable from a filter that swallows everything.
+
+**Gates.** tsc clean · 9,856 pass / 0 fail / 23 skip / 60 todo across 586 files · build ok ·
+`bun run docs:check` clean of hard rot, with only the pre-existing missing-date-header WARNs left.
+
+> **Claude does after:** two production reads, neither blocking. Whether two `track-tick` invocations have
+> ever overlapped, which the spine has no fence against. And whether live `spine_tracks.path` rows carry
+> all seven stations or mostly shorter routes, since I documented the migration's default rather than the
+> data.

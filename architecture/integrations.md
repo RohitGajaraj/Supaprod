@@ -45,7 +45,7 @@ The differentiator: Cadence as a node other agents plug into, and a consumer of 
 
 - **MCP server** — expose tasks, PRDs, agents, calendar, discovery, copilot as MCP tools at `src/routes/api/mcp.ts`; per-user scoped `mcp_tokens`; config snippets for Claude Desktop / Cursor / ChatGPT. Every invocation logs `surface='mcp_server'`.
 - **MCP client** — register external servers (`mcp_servers`), cache catalogs (`mcp_server_tools`), per-agent allow-listed tools; destructive calls reuse the approval gates.
-- **A2A** — Agent Cards at `/.well-known/agent.json`; A2A server (`message/send`, `message/stream`, `tasks/*`) with `a2a_tasks`/`a2a_messages`; A2A client with `delegate_to_agent`, `a2a_peers` registry; multi-agent DAG stitched into `ai_traces`.
+- **A2A** — Agent Cards at `/.well-known/agent.json`; A2A server (`message/send`, `message/stream`, `tasks/*`) with `a2a_tasks`/`a2a_messages`; A2A client with `delegate_to_agent`, `a2a_peers` registry; multi-agent DAG stitched into `ai_events` via `trace_id` / `parent_event_id` (this said `ai_traces` until 2026-08-20; that table does not exist).
 - **Unified protocol gateway** (`src/lib/protocols/`) reuses the Phase 6 auth/tracing/guardrails substrate — no second runtime.
 
 ## Interop safety (Phase 7)

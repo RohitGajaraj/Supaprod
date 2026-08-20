@@ -1,6 +1,13 @@
 # architecture/observability.md: what we can see, and the bars we hold
 
-> _Created: 2026-06-14 · Last updated: 2026-06-19_
+> _Created: 2026-06-14 · Last updated: 2026-08-20_
+
+> **Corrected 2026-08-20 against the code, and the corrections bear on this file's own claim harder than on any other contract, because a doc about honest measurement was carrying four wrong measurements.**
+>
+> - **The trust score has four legs, not three, at 0.3 / 0.2 / 0.2 / 0.3.** The fourth, validated-outcome rate, is jointly the heaviest and was not mentioned anywhere in this file.
+> - **Its eval leg was a frozen constant for about seven weeks**, and this file described it as live. It queried two columns that do not exist, which made it a flat +0.10 on every agent.
+> - **`resume-runs` advances 50 missions per tick, not 20.**
+> - **`track-tick` was missing from the cron table**, which is the tick that drives the seven-station loop. `eval-tick` was listed as "scheduled/on-demand" and runs every 30 minutes.
 
 > **What this is.** The observability surfaces Cadence already runs (cost, traces, evals, drift, guardrails, the proof gauntlet, logging) and the non-functional requirements that govern them (latency, scale, availability, the inference-cost and margin model, rate limits, retention). Strategy canon: [`docs/strategy/archive/v7-agentic-product-os.md`](../docs/strategy/archive/v7-agentic-product-os.md). The AI chokepoint that produces most of this telemetry: [`runtime.md`](./runtime.md). Orchestration and the loop: [`orchestration.md`](./orchestration.md). Security and the kill switch: [`security.md`](./security.md). Build history and roadmap: [`docs/planning/archive/build-log.md`](../docs/planning/archive/build-log.md).
 >
@@ -40,7 +47,7 @@ Spend is enforced, not just recorded. `ai_budgets` holds per-user daily and mont
 
 Two eval paths, both on the 0-to-100 mental model the team uses (stored internally as 0-to-1 dimensions, read as a 0-100 score):
 
-- **Per-event LLM judge.** The `eval-tick` hook picks up to 20 recent `ai_events` (last 24h, `status='ok'`, excluding the judge's own `surface='judge'`/`'eval'` calls) that lack an `ai_evals` row, and scores them with `google/gemini-2.5-flash-lite` across seven dimensions: hallucination, groundedness, relevance, coherence, toxicity, pii_risk, prompt_injection_risk, plus a rationale and any unsupported claims. Rows land in `ai_evals`, keyed to `event_id`.
+- **Per-event LLM judge.** The `eval-tick` hook runs **every 30 minutes** (`*/30 * * * *`, registered as `cadence-eval-tick`), scans the 200 most recent `ai_events` from the last 24h (`status='ok'`, excluding the judge's own `surface='judge'`/`'eval'` calls), and judges up to **20** of those lacking an `ai_evals` row, with `google/gemini-2.5-flash-lite` across seven dimensions. **It reserves a `pending` row before the paid call**, so two overlapping ticks cannot both pay to judge the same event: previously both computed the same set and both judged, and only the second insert lost on the unique index, after the spend. **It wrote nothing at all until 2026-08-20** for the two reasons in §6: hallucination, groundedness, relevance, coherence, toxicity, pii_risk, prompt_injection_risk, plus a rationale and any unsupported claims. Rows land in `ai_evals`, keyed to `event_id`.
 - **Structured suites.** `eval_suites` (named case collections with a `schedule_cron`) and `eval_case_results` (per-case scored outputs). The `eval-suite-tick` hook (daily, 3am) runs enabled suites whose `last_run_at` is stale by more than an hour, via `runEvalSuite` in the eval runner.
 
 The deploy-gate intent (an eval regression of ten or more points on a Cadence-core case blocks the deploy, KI-14) is the standing policy from [`runtime.md`](./runtime.md). The judge and suites are wired. The gate's enforcement in CI is the part to verify against the live pipeline.
@@ -67,7 +74,20 @@ The three numbers v7 names as the proof the engine works are computed over live 
 - **Ritual retention.** `ritual_sessions` (the reflection-session table, migration `20260614150000`): are operators coming back to the daily loop.
 - **Autonomy ratio.** The share of side-effecting tool runs that executed unattended (`is_unattended`, derived from `isSideEffectingTool`), surfaced as the "Executed unattended" audit on the mission cockpit. The number v7 wants trending up.
 
-Trust is the related per-agent score. `computeAllAgentTrust` (`trust.server.ts`) reads three live signal tables on demand: mission success rate from `agent_runs` (40%), approval acceptance from `agent_approvals` (30%), mean eval score joined through `ai_events.agent_id` from `ai_evals` (30%), all shrunk toward 0.5 with a prior weight of 10 so a handful of samples cannot swing the score. It produces a 0-to-100 score and an arc hint; the operator sets the actual arc via `agent_autonomy`.
+Trust is the related per-agent score, and **this paragraph was wrong about it in two ways until 2026-08-20: it named three legs where there are four, with weights that were never the code's.** `computeAllAgentTrust` (`trust.server.ts`) reads four live signals on demand, each shrunk toward 0.5 with a prior weight of 10 so a handful of samples cannot swing the score:
+
+| Leg | Weight | Source |
+| --- | --- | --- |
+| Mission success rate | **0.3** | `agent_runs.status = 'completed'` over all that agent's runs |
+| Approval acceptance | **0.2** | `agent_approvals`, approved over approved + rejected |
+| Eval mean | **0.2** | `ai_evals` joined to `ai_events.agent_id` through `event_id` |
+| **Validated-outcome rate** | **0.3** | `learnings.verdict`, attributed via `decisions.decided_by_agent_slug` |
+
+It produces a 0-to-100 score and an arc hint; the operator sets the actual arc via `agent_autonomy`. **The fourth leg is the one this doc had never mentioned and it is the one that matters most to the product's argument**: it asks whether the work an agent decided on actually turned out well once real signal came in, rather than whether it ran clean or a person accepted the gate. It is also the heaviest leg jointly with mission success.
+
+**The eval leg was a frozen constant for about seven weeks, and the way it failed is the reason this file's honesty rule exists.** It selected `ai_evals.ai_event_id` and `.score`; **neither column exists** (the key is `event_id`, and there is no aggregate score, only seven named dimensions). So the filter matched nothing, `evals_total` was always 0, and `shrink(0, 0)` returns the prior exactly. That is not a neutral failure: at weight 0.2 and a prior of 0.5 it was **a flat +0.10 on every agent, forever**, and `suggestArc` calls 75 "trusted". Agents were graduating on a constant. **Fixed 2026-08-20**, together with the two reasons the table had nothing real in it anyway: `ai_evals.workspace_id` was `NOT NULL` defaulting to a function that returns null under the service role, so every judge insert failed the constraint (`20260820072500`), and the cron was posting to a URL that did not exist (`20260820074000`).
+
+**The seven dimensions compose rather than average**, and the shape is worth knowing because it is a safety property. Quality (`groundedness`, `relevance`, `coherence`) is a mean; risk (`hallucination_score`, `toxicity`, `pii_risk`, `prompt_injection_risk`) is a **max**, because risks are not fungible and a response with `pii_risk` 0.9 and `toxicity` 0 is not "average risk 0.45". The two multiply: `quality × (1 - worstRisk)`. Averaged, three good quality scores would wash out one serious safety failure. **A trust score that can be talked out of a safety failure by good prose is not a trust score.** A dimension nobody scored is skipped rather than assumed, and a row judged before the contract was fixed is not counted at all (`judgedUnderCurrentContract`), because the rows that predate it are demo fixtures rather than any agent's work.
 
 **Gap (Partial):** every input table is real and the math is real. The numbers only become _meaningful_ once a real account runs the loop on real data, which is gated on M-0 (slug bug + migration sync) and M-A (ambient on-ramp, real ingest) in the v7 roadmap. The gauntlet is the dashboard the launch gate reads; it is waiting on the data, not on more code.
 
@@ -83,12 +103,12 @@ Structured row-level telemetry (the tables above) is the primary observability l
 | --- | --- | --- |
 | Cost and tokens | `ai_events`, `ai_budgets`, `ai_surface_budgets`, `ai_budget_alerts`; chokepoint | Built; Partial on real data |
 | Execution traces | `ai_events` (`trace_id` / `parent_event_id`), `tool_calls`, `agent_run_checkpoints`; `/traces` | Built |
-| Per-event evals | `ai_evals`; `eval-tick` (judge: `gemini-2.5-flash-lite`, 7 dims) | Built; Partial coverage |
+| Per-event evals | `ai_evals`; `eval-tick` (every 30 min, judge: `gemini-2.5-flash-lite`, 7 dims) | Built; **writing real rows only since 2026-08-20** |
 | Structured eval suites | `eval_suites`, `eval_case_results`; `eval-suite-tick` (3am) | Built; coverage = authored cases |
 | Drift | `drift_snapshots`; `drift-tick` (4am) | Built; thin on signal pre-launch |
 | Guardrails | `guardrail_rules`, `guardrail_hits`; chokepoint + kill switch | Built |
 | Proof gauntlet | `agent_approvals`, `ritual_sessions`, `is_unattended`; `/govern?tab=gauntlet` | Built; Partial on real data |
-| Trust score | `computeAllAgentTrust` over `agent_runs` / `agent_approvals` / `ai_evals` | Built |
+| Trust score | `computeAllAgentTrust`, four legs at .3/.2/.2/.3 over `agent_runs` / `agent_approvals` / `ai_evals` / `learnings` | Built; **the eval leg was a frozen +0.10 until 2026-08-20** |
 | Application logging | `console.*` to Workers stream; `error-capture.ts` | Partial; aggregation Missing |
 
 ---
@@ -111,12 +131,13 @@ The runtime is a Cloudflare Worker; horizontal scale of the request path is the 
 
   | Hook                 | Schedule            | Batch cap                                                                                             |
   | -------------------- | ------------------- | ----------------------------------------------------------------------------------------------------- |
-  | `resume-runs`        | every minute        | 5 queued/stale/waiting runs resumed; then up to 20 running missions advanced via `advanceMissionCore` |
+  | `resume-runs`        | every minute        | 5 queued/stale/waiting runs resumed; then up to **50** running missions advanced via `advanceMissionCore` (`MISSION_ADVANCE_BATCH`; this row said 20 until 2026-08-20) |
+  | `track-tick`         | **every 10 minutes** | **5 open `spine_tracks` driven one station each**, least recently driven first. This row was missing entirely, and it is the tick that walks the seven-station loop |
   | `approvals-tick`     | every minute        | pending approvals processed                                                                           |
   | `event-reactor-tick` | every minute        | 10 `event_queue` rows (`approval_mode='auto'`) drained                                                |
   | `outcome-tick`       | hourly              | approved PRDs with linked issues, checked for close                                                   |
   | `indexer-tick`       | hourly (:07)        | recent workspace content chunked and embedded into `rag_chunks`                                       |
-  | `eval-tick`          | scheduled/on-demand | 20 recent `ai_events` lacking an eval                                                                 |
+  | `eval-tick`          | **every 30 minutes** | 200 scanned, 20 judged per tick. This row said "scheduled/on-demand"; the cron is real and has been since 2026-07-02, it was posting to a 404 |
   | `eval-suite-tick`    | daily (3am)         | enabled suites stale by >1h                                                                           |
   | `drift-tick`         | daily (4am)         | users active in the last 30 days                                                                      |
   | `memory-tick`        | daily               | low-value, unused memory rows pruned                                                                  |
