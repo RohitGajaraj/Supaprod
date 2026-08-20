@@ -3281,3 +3281,70 @@ day backlog.
 
 That is one of the two starved legs fed. The other, `outcome`, still waits on work
 reaching Learn, which waits on Ship, which has never run.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 08:15 · the instrument that should have caught the dead tick watches 2 of 36 jobs
+
+Now that the fix is confirmed, the deferred question: **why did nobody notice for
+fifteen days?** I expected the answer to be "the failure was unobservable". It is
+not. The answer is that **nothing was watching.**
+
+### The gap
+
+`lib/liveness/registry.ts` declares one entry per tracked capability and asks each
+"what row does this write when it works?". Counted this morning:
+
+- **cron jobs scheduled: 36**
+- **cron jobs with a liveness entry: 2** (`cron.embed-tick`, `cron.liveness-tick`)
+
+**34 scheduled jobs have no staleness check of any kind.** Any of them can die the
+way the eval tick died -- silently, with every surface reporting health, because
+every surface reads `job_runs` and a job that has stopped writing rows is
+indistinguishable from a job that never had any.
+
+### This was foreseen in the file's own header, and I am the sixth case
+
+The registry says it was "SEEDED WITH THE FIVE REAL CASES. On 2026-08-02 five
+separately shipped features were found to be doing nothing in production, all in
+one session, all passing typecheck and tests." It then asks that "any future entry
+should be able to point at the same kind of sentence."
+
+**The eval tick is the sixth instance of precisely that pattern**, and it was never
+registered, so the instrument built in response to five of them could not see the
+sixth.
+
+Added as `eval-judging`, with the incident sentence the header asks for:
+`job_runs` for `cron.eval-tick`, `successfulOnly`, expecting a fire every 30
+minutes. 71 liveness tests pass unchanged.
+
+### Why I registered ONE and not thirty-four
+
+The file is explicit: **"one entry per tracked CAPABILITY"**, not per cron job, and
+"what does not belong here: usage funnels". Bulk-adding 34 entries would be
+guessing at 34 proofs I have not established, and an entry whose `proof` line is
+wrong is worse than no entry -- it reports health from the wrong row.
+
+The eval tick I can justify to the letter: it writes an `ai_evals` row, that row
+is now demonstrably written when it works, and there is a fifteen-day incident to
+name.
+
+**The other 33 are a real and open risk**, and expanding coverage is the next
+thing in my lane rather than Kiro's -- it is a data file and a set of production
+measurements, not a component. Each needs its own answer to "what row proves this
+ran", which is a measurement per job, not a bulk edit.
+
+### The pg_net watcher, reconsidered and dropped
+
+Last tick I deferred a watcher over `net._http_response`. **Having found this, I am
+not building it at all**, and that is a decision rather than a deferral.
+
+A staleness check on `job_runs` catches this failure **regardless of mechanism** --
+a 404, a timeout, an unscheduled job, a crashed handler, a hung request all end in
+the same observable: no row where a row was due. The pg_net watcher would have
+caught exactly one of those causes, using a table that retains six hours, to
+answer a question the existing layer answers better from a table that retains
+everything.
+
+**The narrower instrument looked attractive because it was closer to the specific
+bug I had just fixed.** That is the wrong reason to build an instrument.

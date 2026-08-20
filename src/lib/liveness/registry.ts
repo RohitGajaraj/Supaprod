@@ -110,6 +110,18 @@ export const TRACKED_CAPABILITIES: TrackedCapability[] = [
     note: "The product's central claim is that how a bet turned out changes the next call. If this is dead, the claim is dead, and nothing else on this page matters as much.",
   },
 
+  // --- Finding 6, 2026-08-20: dead for fifteen days, and nothing here watched it
+  {
+    id: "eval-judging",
+    title: "The judge scoring what the models actually produced",
+    proof: "An ai_evals row written by the tick, not by the demo seed",
+    cadence: "continuous",
+    // cron.job 40, */30. Two fires an hour when it is working.
+    expectedIntervalMs: 30 * MINUTE,
+    probe: { source: "job_runs", jobName: "cron.eval-tick", successfulOnly: true },
+    note: "THE ENTRY THIS FILE'S OWN PREMISE ASKED FOR, ARRIVING SIX INSTANCES LATE. This capability had never worked: ai_evals.workspace_id was NOT NULL defaulting to current_user_default_workspace(), which is null under the service role, so every insert the tick ever attempted failed the constraint -- and eval-tick.ts discarded the insert error and reported a concurrency race, so ~620 runs went green writing nothing. Then on 2026-08-05 its cron job began posting to /hooks/cadence-eval-tick, a route that does not exist, and a 404 never reaches withJobRun, so it stopped producing even a failing row. Fifteen days of total silence read as health on every surface, because nothing asked when this last ran. Fixed 2026-08-20 by 20260820072500 and 20260820074000; first real rows written at 02:30 that day. Registered so the next fifteen days are one query away instead of an accident.",
+  },
+
   // --- The sweep that keeps findings 1, 2 and 4 fixed -------------------------
   {
     id: "embedding-sweep",
