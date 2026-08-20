@@ -153,3 +153,168 @@ describe("the scrim belongs to its theme", () => {
     expect(light.slice(0, 60)).not.toMatch(/rgb\(0[ ,]/);
   });
 });
+/**
+ * A UTILITY CLASS THAT IS USED AND NEVER DECLARED FAILS THE SAME SILENT WAY.
+ *
+ * THE DEFECT. `className="text-heading-26"` matches no rule, and a selector
+ * that matches nothing is not a fallback, it is nothing. Tailwind's preflight
+ * has already reset `h1` to inherit its size, so the page title in
+ * `SurfaceHeader` would have painted at body size and `DrillHeader`'s title
+ * `<div>` always would. The declared scale is 14/16/20/24 for headings and
+ * 13/14 for copy; 26 and 21 were never in it.
+ *
+ * Nothing above this line could catch it, and neither could anything else.
+ * `--sp-*` at least names a custom property, so the guard in this file has a
+ * token to look for. A class name is a plain string: to `tsc` it is a valid
+ * string, to the CSS parser it is a selector that simply never matches, and to
+ * the build it is nothing at all. Every file typechecked, every test passed.
+ *
+ * WHY IT COST NOTHING YET, AND WHY IT WAS STILL WORTH FIXING. Both call sites
+ * live in components with zero importers, so no user has seen a body-sized
+ * page title. The bill arrives the day somebody gives `SurfaceHeader` the door
+ * it is missing, and then it is a page title, on a surface nobody would think
+ * to re-check. Free to fix now, quietly wrong later.
+ */
+
+/* Both grounds have to be read, and this is the trap AGENTS.md section 9
+ * records: `src/styles.css` is a FILE and `src/styles/` is a DIRECTORY, and
+ * both exist in this repo. `declaredTokens()` above reads only the directory,
+ * which is correct for what it looks for and would be a hole here: all six
+ * heading and copy classes are declared in the 123 KB root sheet and none in
+ * the directory. A collector that walked only `src/styles/` would find zero
+ * declared classes, call every live use an orphan, and get deleted for crying
+ * wolf. */
+const ROOT_SHEET = join(ROOT, "src", "styles.css");
+
+/** `.text-heading-<n>` / `.text-copy-<n>` rules that actually exist. */
+function declaredTextClasses(): Set<string> {
+  const out = new Set<string>();
+  const collect = (raw: string) => {
+    for (const m of stripCssComments(raw).matchAll(/\.(text-(?:heading|copy)-\d+)\b/g)) {
+      out.add(m[1]);
+    }
+  };
+  collect(readFileSync(ROOT_SHEET, "utf8"));
+  for (const f of readdirSync(STYLES)) {
+    if (!f.endsWith(".css")) continue;
+    collect(readFileSync(join(STYLES, f), "utf8"));
+  }
+  return out;
+}
+
+/** Every quoted or backticked run inside a fragment of source. */
+const LITERALS = /(["'`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
+
+/**
+ * The class-name STRINGS a file hands to `className`, quotes removed.
+ *
+ * Attribute values come in three shapes here and all three carry classes:
+ * a bare `"..."`, a `{cn("...", className)}` call that spans lines, and a
+ * template literal. The bare shape is the one to watch, and the first version
+ * of this collector got it wrong in the direction that matters: it returned
+ * the region after `className=` and then looked for quoted runs INSIDE it, so
+ * `className="text-heading-24"` contributed nothing and the guard found three
+ * classes where twenty-two uses exist. It was caught only because the planted
+ * defect went unreported. A collector that quietly finds less than it should
+ * is the same failure as the one this file was written for.
+ *
+ * Braces are counted rather than matched by regex, because `{cn(...)}` nests
+ * and a lazy regex stops at the first `}` it meets, which in practice is the
+ * one closing an interpolation.
+ */
+function classNameLiterals(src: string): string[] {
+  const out: string[] = [];
+  for (const m of src.matchAll(/className\s*=\s*/g)) {
+    let i = (m.index ?? 0) + m[0].length;
+    const open = src[i];
+    if (open === '"' || open === "'" || open === "`") {
+      const end = src.indexOf(open, i + 1);
+      if (end === -1) continue;
+      out.push(src.slice(i + 1, end));
+      continue;
+    }
+    if (open !== "{") continue;
+    let depth = 0;
+    const start = i;
+    for (; i < src.length; i++) {
+      if (src[i] === "{") depth++;
+      else if (src[i] === "}" && --depth === 0) break;
+    }
+    // Only literal contents count inside an expression. A bare identifier
+    // cannot be a class, and a variable holding one is not readable here.
+    for (const lit of src.slice(start + 1, i).matchAll(LITERALS)) out.push(lit[2]);
+  }
+  return out;
+}
+
+/** Every text class NAMED in a className, mapped to the files naming it. */
+function usedTextClasses(): Map<string, string[]> {
+  const found = new Map<string, string[]>();
+  const walk = (dir: string) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === "node_modules" || e.name.startsWith(".")) continue;
+      const full = join(dir, e.name);
+      if (e.isDirectory()) {
+        walk(full);
+        continue;
+      }
+      if (!/\.(tsx|ts)$/.test(e.name)) continue;
+      if (/\.test\.(ts|tsx)$/.test(e.name)) continue;
+      /* Comments are stripped for the same reason the ratchet strips them: a
+       * class inside a comment paints nothing, and the notes explaining a
+       * retired class read identically to the defect. `DataSection.tsx` names
+       * `text-copy-13` in a header explaining what did not survive a rebuild. */
+      const src = stripComments(readFileSync(full, "utf8"));
+      for (const value of classNameLiterals(src)) {
+        for (const c of value.matchAll(/\b(text-(?:heading|copy)-\d+)\b/g)) {
+          const list = found.get(c[1]) ?? [];
+          list.push(full.slice(ROOT.length + 1));
+          found.set(c[1], list);
+        }
+      }
+    }
+  };
+  walk(join(ROOT, "src"));
+  return found;
+}
+
+describe("no text-heading/text-copy class is used unless a stylesheet declares it", () => {
+  it("every className on the type scale matches a real rule", () => {
+    const declared = declaredTextClasses();
+    const orphans: string[] = [];
+    for (const [cls, files] of usedTextClasses()) {
+      if (declared.has(cls)) continue;
+      orphans.push(`${cls} used in ${[...new Set(files)].slice(0, 3).join(", ")}`);
+    }
+    // Sorted so a failure reads the same way twice and a diff is legible.
+    expect(orphans.sort()).toEqual([]);
+  });
+
+  it("the scale is still found in the sheets, so this cannot pass by finding nothing", () => {
+    // A guard whose inputs are empty is decoration, and this one is one bad
+    // path away from empty: the classes live in a file the sibling collector
+    // never opens. Both halves are asserted, declared and used.
+    const declared = declaredTextClasses();
+    for (const cls of [
+      "text-heading-14",
+      "text-heading-16",
+      "text-heading-20",
+      "text-heading-24",
+      "text-copy-13",
+      "text-copy-14",
+    ]) {
+      expect(declared.has(cls)).toBe(true);
+    }
+    const used = usedTextClasses();
+    expect(used.size).toBeGreaterThan(3);
+    expect([...used.values()].reduce((n, f) => n + f.length, 0)).toBeGreaterThan(10);
+  });
+
+  it("the two that were invented are gone from the code", () => {
+    // 26 moved to 24 and 21 moved to 20, onto the scale that exists rather
+    // than declaring two more stops nobody designed.
+    const used = usedTextClasses();
+    expect(used.has("text-heading-26")).toBe(false);
+    expect(used.has("text-heading-21")).toBe(false);
+  });
+});

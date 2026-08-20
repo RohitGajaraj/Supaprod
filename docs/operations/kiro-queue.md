@@ -2322,6 +2322,129 @@ container it sits in.
 **Owns.** `src/components/admin/admin-ui.tsx`.
 
 
+# Group M · the three findings that were nobody's item
+
+**Written 2026-08-21, after the queue was exhausted.** These were recorded as findings during Groups
+A to L, each noticed while building something else, and none was ever written up as an item. All three
+are **repo-only**, which is why they are Kiro's: a class is declared or it is not, a guard sees a file
+or it does not, a component imports a retired system or it does not.
+
+**Each finding as recorded was partly wrong, and the corrections are in the `Why` lines.** That is the
+reason to write them up rather than act on the note: two of the three were filed with a blast radius the
+code does not support.
+
+**K-86 · Two heading classes that are declared in no stylesheet**
+`STATUS: TODO` · deps: none · size: S
+**What.** In `src/components/supaprod/Primitives.tsx`, `SurfaceHeader` (line 185) sets
+`className="text-heading-26"` on its `<h1>` and `DrillHeader` (line 364) sets `className="text-heading-21"`
+on its title `<div>`. **Neither class is declared anywhere.** The declared scale is
+`text-heading-14/16/20/24` and `text-copy-13/14`, all six in `src/styles.css` around 2692-2751. Move the
+two call sites onto the scale that exists: **26 becomes `text-heading-24`, 21 becomes `text-heading-20`.**
+Then add the guard, which is the durable half.
+**Why.** **A class declared nowhere is not a fallback, it is nothing**, and Tailwind's preflight resets
+`h1` to inherit its size, so `SurfaceHeader`'s page title would paint at body size and `DrillHeader`'s
+`<div>` title always would. **The finding as filed said "two headings paint nothing", which is true, and
+implied it is visible today, which it is not:** `SurfaceHeader`, `DrillHeader`, `TabRow`, `EmptyState`,
+`RiskTag`, `SubTabs` and `Cite` all have **zero importers**, measured across `src`, so nothing renders
+either one. Only `MonoLabel`, `StatusBadge`, `StepDot` and `VerdictChip` are live out of that file. **So
+this is a trap rather than a defect: it costs nothing until somebody gives `SurfaceHeader` the door it is
+missing, and then it costs a page title.** Fix it while it is free. **Do not delete the seven doorless
+exports** (AGENTS.md §6: unused is not a reason to delete, and this repo's dominant defect is a capability
+reachable from nowhere).
+**How.** The two renames are one line each. **The guard is the point of the item.**
+`src/styles/__tests__/every-token-used-is-defined.test.ts` already proves this exact class of defect for
+`var(--sp-*)`, and its own header explains why nothing else could catch it: CSS has no notion of an
+undeclared name, so an unresolvable reference is the empty string rather than an error. **A utility class
+behaves the same way and no guard covers it.** Extend that file, do not create a second one: collect every
+`text-heading-*` and `text-copy-*` literal appearing in a `className` across `src`, collect every
+`.text-heading-*` / `.text-copy-*` rule declared in `src/styles.css` **and** `src/styles/*.css`, and fail
+on the difference. **Read the root sheet explicitly**, because §9's trap applies and the existing
+`declaredTokens()` in that same file reads only `src/styles/` the directory. Include the load-bearing
+assertion the file already models: prove the collector finds the six declared classes, so the guard cannot
+pass by finding nothing.
+**Acceptance.**
+- No `className` in `src` names a `text-heading-*` or `text-copy-*` that no stylesheet declares.
+- The new guard **fails when the defect is planted**, and the log says it was planted and seen.
+- The guard reads `src/styles.css` as well as `src/styles/`, and a comment says why.
+- The seven doorless exports are still exported.
+- Baseline unchanged, because it tracks `--ds-`, `--text-`, `--font-pixel` and imports, not classes.
+**Owns.** `src/components/supaprod/Primitives.tsx`, `src/styles/__tests__/every-token-used-is-defined.test.ts`
+
+---
+
+**K-87 · The ratchet cannot see the top of `src/`**
+`STATUS: TODO` · deps: none · size: S
+**What.** `src/__tests__/meridian-ratchet-scan.ts:68` sets `SCAN_ROOTS = ["src/components", "src/routes"]`,
+so **every file directly in `src/` is invisible to the ratchet.** `src/router.tsx` carries three retired
+`--text-*` uses at lines 60, 71 and 87. Replace them with Meridian and **widen the roots to cover
+top-level `src` files**, so the guard meant to stop this multiplying can see where it happened.
+**Why.** **The guard that exists to stop retired tokens spreading has a blind spot at the top of the tree
+it is guarding**, the same shape as §9's `src/styles.css`-versus-`src/styles/` trap, one level up.
+`router.tsx` is not a marginal file: it owns `RouteError`, the route-level error fallback that **mounts on
+public parchment routes as well as dark ones.** **The finding as filed called it "a fifth copy of the
+failure surface", and that is the part to treat carefully:** its own header states that nothing in it
+animates and that this is a rule rather than an oversight, and it uses inline styles with literal fallbacks
+deliberately, because it renders before the token layers load. **So do not consolidate it onto a shared
+component.** The token names are the defect; the inline-style approach is a decision with a reason on the
+record.
+**How.** `--text-body` becomes `--mrd-body` (declared `supporting prose`), `--text-muted` becomes
+`--mrd-faint` (`the quietest stop that is still AA`). **Keep every literal fallback exactly as it is**,
+byte for byte: they are what actually paints before the token layers arrive, which is the whole reason they
+are there. This is a raw `var()` in an inline style, so it is **not** exposed to the `text-mrd-body` utility
+collision recorded against the Meridian sweep. Then add the top of `src` to `SCAN_ROOTS`. **Fix the
+occurrences rather than re-freezing the baseline upward** (DESIGN-SYSTEM: never widen the baseline to pass).
+Two more are in `src/server.ts:29` **inside a comment**, and the scanner strips comments before counting, so
+they need nothing; confirm that rather than assuming it.
+**Acceptance.**
+- Zero retired tokens in `src/router.tsx`, fallbacks unchanged.
+- The top of `src` is scanned, and the scanner is shown to actually read `src/router.tsx` rather than assumed to.
+- `RouteError` still animates nothing.
+- **Corrected 2026-08-21, after measuring.** This originally read *"and the baseline total does not rise"*, and
+  the measurement falsified it: widening the roots exposes **12 pre-existing `raw-colour` occurrences**, 4 in
+  `src/router.tsx` and 8 in `src/server.ts`. **All 12 are literal colours inside documents that render before
+  the token layer is reachable**, and both files say so in their own comments: `router.tsx` mounts on public
+  routes before token layers load, and `server.ts`'s `renderBrandedErrorPage()` is the catastrophic 500
+  fallback, a standalone HTML document whose comment states the app stylesheet may not be reachable and that
+  its hex values mirror the Tempo dark tokens. **So they must be recorded, not removed**, and the criterion
+  was wrong rather than the code. **This is not the forbidden move.** DESIGN-SYSTEM bans widening the baseline
+  *to pass*, which means adding debt and then raising the ceiling. Here no code changed and no debt was added:
+  the guard's eyes changed. The 12 become visible and labelled where a reader can audit them, instead of
+  invisible, and from now on a *new* retired token or raw colour in either file fails the build. **That is the
+  whole value of the item.** An exemption was considered and rejected: `isExempt` is path-based, so exempting
+  these two files would also blind the guard to `--ds-`, `--sp-` and every other marker in them.
+**Owns.** `src/router.tsx`, `src/__tests__/meridian-ratchet-scan.ts`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
+**K-88 · The connect-moment trust dialog is still Tempo v5**
+`STATUS: TODO` · deps: none · size: M
+**What.** `src/components/connections/ConnectTrustDialog.tsx`, 78 lines, is built entirely from the retired
+stack: `@/components/ui/dialog` and `@/components/ui/button` (shadcn) plus the Tempo v5 class
+`text-copy-13`. Port it onto Meridian: `src/components/meridian/Dialog.tsx` and the Meridian control set in
+`surface-parts.tsx`.
+**Why.** **This is the interstitial a person reads at the exact moment they decide whether to trust us with
+an account**, and it is the one surface the Engine-Room doctrine names directly: users connect their own
+sources through one Connect button and never touch keys or wiring. **It is live at three call sites** in
+`AccountConnectionsSection.tsx` (835, 1104, 1314), so unlike most of the retired-stack files in this queue
+it is not a doorless leftover. `registry.ts:706` notes that this component renders a withdrawal string
+verbatim, so the copy is load-bearing and comes from `trustCopyFor`.
+**How.** **Change no copy.** Every string comes from `trustCopyFor` in `@/lib/connect-trust` or from the
+provider registry, and `registry.ts:706` states the withdrawal sentence is rendered verbatim on purpose; a
+port that improves the wording breaks a documented contract. Keep `ProviderLogo` as it is. The `Button`
+becomes the Meridian control, and **the primary action is the one that grants access, so it is the filled
+face rather than `Approve`**: orchid is spent on one meaning, a person is required to unblock stopped work,
+and a dialog the user opened is not stopped work. **Look at it in both grounds**, because a trust surface
+that reads wrong on paper is worse than one that reads plain.
+**Acceptance.**
+- Zero `@/components/ui/*` imports and zero Tempo v5 classes in the file; its baseline entry shrinks.
+- Every string identical to before, `trustCopyFor` untouched.
+- All three call sites still render, and the dialog opens and dismisses.
+- Checked on both grounds, and the log says which was checked rather than that it looked right.
+- Baseline re-frozen lower.
+**Owns.** `src/components/connections/ConnectTrustDialog.tsx`, `src/__tests__/meridian-ratchet.baseline.json`
+
+---
+
 ## Related
 
 - [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) — the direction this queue implements, with the evidence for every "why" above

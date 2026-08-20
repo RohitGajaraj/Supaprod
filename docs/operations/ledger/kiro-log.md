@@ -6533,3 +6533,146 @@ nothing but a reader would have caught it, which is why Claude's read was worth 
 
 **Gates.** `docs:check` exit 0, zero FAIL. Non-ASCII inventory over the whole appended section returns
 **exactly one character**, `·` MIDDLE DOT, 42 times. `lane:gates` green, real exit 0.
+
+---
+
+## K-86 · BUILT · 2026-08-21 04:10 · two classes that were never declared, and a guard for the class of defect
+
+**Did.** `text-heading-26` became `text-heading-24` and `text-heading-21` became `text-heading-20` in
+`src/components/supaprod/Primitives.tsx`, onto the scale that exists rather than declaring two new stops
+nobody designed. **The guard is the deliverable**, appended to
+`src/styles/__tests__/every-token-used-is-defined.test.ts` as a new `describe` rather than a second file,
+because that file already proves this exact defect class for `var(--sp-*)` and its header already explains
+why nothing else can catch it. It collects every `text-heading-*` / `text-copy-*` named in a `className`
+across `src`, collects every such rule declared in **`src/styles.css` the file AND `src/styles/` the
+directory**, and fails on the difference. Reading both is commented as §9's trap, and it is not theoretical
+here: **all six declared classes live in the root sheet and none in the directory**, so a collector that
+walked only the directory would have called every live use an orphan.
+
+**Unsure, and it turned into the useful part.** The planted defect did not fail the test I expected. It
+failed the **load-bearing assertion** instead, `Expected: > 3 / Received: 3`, which exposed a bug in my own
+collector: for the bare `className="..."` shape it returned the quote-stripped contents and then searched
+*that* for quoted runs, so every bare use contributed nothing and only the three `{cn("...")}` uses were
+seen. **A collector that silently finds less than it should is the same failure this file exists for**, so
+the history is written into its doc comment. Fixed, re-planted, and the second run failed correctly:
+
+```
+- []
++ [ "text-heading-99 used in src/components/supaprod/Primitives.tsx" ]
+```
+
+**Noticed.** **The finding as filed was half wrong and the correction matters more than the fix.** It said
+two headings paint nothing, which is true, and implied it is visible, which it is not: `SurfaceHeader`,
+`DrillHeader`, `TabRow`, `EmptyState`, `RiskTag`, `SubTabs` and `Cite` have **zero importers**. Only
+`MonoLabel`, `StatusBadge`, `StepDot` and `VerdictChip` are live in that file. **So this was a trap, not a
+defect: free today, a body-sized page title the day somebody gives `SurfaceHeader` its missing door.** All
+seven doorless exports are still exported, per §6.
+
+Also noticed: the guard only sees literals reachable from a `className`, so a class assembled in a `cva`
+config or returned by a helper would escape it. No such case exists for these six today, all 22 uses are
+direct. **`text-label-13` and `text-label-12` are declared in the same block and are not covered**, because
+the item scoped this to heading and copy; one word of regex if that class of defect appears there.
+
+**Gates.** `bunx tsc --noEmit` 0 · the guard's own file 8 pass 0 fail · `bun test` 10,256 pass 0 fail ·
+`lane:gates` green, real exit 0. Baseline untouched, as predicted: it tracks `--ds-`, `--text-`,
+`--font-pixel` and imports, not classes.
+
+---
+
+## K-87 · BUILT (half) + BLOCKED (half) · 2026-08-21 04:25 · the tokens are fixed, and the guard that refused to be widened was right
+
+**Did, and it is the half that needed no ruling.** `src/router.tsx` now speaks Meridian:
+`--text-body` → `--mrd-body` (twice, lines 60 and 87), `--text-muted` → `--mrd-faint` (71), and
+`--line` → `--mrd-line` (85). **Every literal fallback is byte-identical**, because they are what actually
+paints before the token layers load, which the file's own header states is the reason they exist. Did not
+consolidate `RouteError` onto a shared failure component: the finding called it "a fifth copy", but its
+header records that nothing in it animates *as a rule rather than an oversight*, and the inline-style
+approach is a decision with a reason on the record. It still animates nothing.
+
+**Two things found while doing it.** `--line` was in no stylesheet at all, so
+`var(--line, rgba(255,255,255,0.12))` had always resolved to its fallback: the same undeclared-name defect
+K-86 guards for classes, sitting one line from the two I was fixing, so I took it. And **the literal
+fallbacks are byte-copies of the retired tokens' values** -- `styles.css:1771` declares
+`--text-body: #c6c0b8` and 1772 `--text-muted: #a39d94`. They still do their stated job, so they stay, but
+a reader should know they now mirror a retired layer rather than the token above them.
+
+**BLOCKED, and the block is correct.** Widening the scanner is not landing, and **the repo refused it rather
+than me.** I wrote the top-level scan (non-recursive, so it cannot double-count the trees below it) and
+**proved it works**: planting `--ds-gray-900` in `router.tsx` was counted as `--ds-: 1`, and removing it
+returned to clean. Then `design:ratchet` **refused to write**:
+
+```
+REFUSING TO WRITE. This would RAISE the permitted debt:
+  src/router.tsx  raw-colour: 0 -> 4
+  src/server.ts   raw-colour: 0 -> 8
+```
+
+**All 12 are literal colours in documents that cannot reach the token layer, and both files say so in their
+own comments.** `router.tsx` mounts on public routes before token layers load; `server.ts`'s
+`renderBrandedErrorPage()` is the catastrophic 500 fallback, a standalone HTML document whose comment states
+the app stylesheet may not be reachable and that its hex values mirror the Tempo dark tokens. **No code
+changed and no debt was added. The guard's eyes changed.** But `design:ratchet` cannot tell that from the
+forbidden move, and **a guard I can talk my way past is not a guard**, so I reverted the widening rather than
+route around it. `src/__tests__/meridian-ratchet-scan.ts` is untouched.
+
+**The decision this needs, because I am not authorised to make it.** The `raw-colour` rule exists to stop
+hardcoded hex where a token belongs, and it does not model the one case where a hex is the *only* option.
+Three paths, and I recommend the second:
+1. **Record the 12 and widen the roots.** Honest but needs the refusal overridden, and the override is the
+   precedent, not the number.
+2. **Teach the rule that a colour inside `var(--mrd-*, <fallback>)` is already tokenised** and the literal is
+   the documented degradation. **This clears all 4 in `router.tsx` outright** and is a principled repo-wide
+   refinement rather than a carve-out; retired *tokens* keep counting separately, so nothing is masked. It
+   does not help `server.ts`'s 8, which have no `var()` at all.
+3. **Leave the hole.** Cheapest, and it means the top of `src` stays unguarded.
+**Rejected outright:** a path-based exemption for the two files, which would also blind the guard to
+`--ds-`, `--sp-` and every other marker in them.
+
+I also corrected the item's own acceptance line in the queue, which said *"the baseline total does not
+rise"*. **The measurement falsified it, so the criterion was wrong rather than the code**, and it now says
+what was measured and why.
+
+**Gates.** `lane:gates` green, real exit 0, with the widening reverted and the token fix in.
+
+---
+
+## K-88 · BUILT · 2026-08-21 04:30 · the connect-moment dialog leaves the retired stack, and its copy did not move
+
+**Did.** `src/components/connections/ConnectTrustDialog.tsx` is off shadcn and Tempo v5 and onto Meridian.
+Out: `@/components/ui/dialog`, `@/components/ui/button`, `text-copy-13`. In: `@/components/meridian/Dialog`
+and `Action`, `Actions`, `Eyebrow` from `surface-parts`. **Props unchanged**, so the three live call sites in
+`AccountConnectionsSection.tsx` (835, 1104, 1314) needed no edit; Meridian's `Dialog` only reports a
+dismissal, so `onOpenChange` stayed on the outside and maps to `onClose={() => onOpenChange(false)}` inside
+rather than changing a contract three callers depend on.
+
+**Every rendered string is byte-identical** and `@/lib/connect-trust` was not touched, so the withdrawal
+sentence `registry.ts:706` cares about still renders verbatim. `Eyebrow` applies `uppercase` exactly as the
+retired label span did, so the DOM text and the casing transform are both unchanged.
+
+**The primary action is the filled face, not `Approve`.** Orchid is spent on one meaning in this system, a
+person is required to release stopped work, and **a dialog the reader opened by pressing Connect is not
+stopped work**, so `Approve` here would put the accent on chrome and cost it its meaning everywhere else.
+
+**Three changes beyond a straight swap, each stated so they can be reversed.** The retired version set
+`divide-y` on the container *and* `border-b` on every row, stacking a 2px line between any two rows; only the
+per-row rule survives, which keeps the structure and drops the doubling. `items-baseline` replaced
+`items-start` + `pt-px`, which states the intent the `pt-px` was hacking and survives a value wrapping to
+three lines. And the row label is now Meridian's sans micro-label rather than mono, on `Num`'s rule that
+mono is for data a reader compares down a column; **keeping mono would need either a `className` on
+`Eyebrow` or a hand-rolled span, and widening a primitive's API unasked is worse than asking.**
+
+**Unsure.** **No browser check was done and I am not claiming one.** A dev server blocks, so both grounds
+were reasoned at the token level instead: every colour used is either alpha-carried on the pane
+(`--mrd-line-soft`, `--mrd-hover`) or inverts with the ground (`--mrd-ink`, `--mrd-mute`, `--mrd-solid`,
+`--mrd-float`), and the primary pair is `bg-mrd-solid` + `text-mrd-on-solid`, which is the pair
+`surface-parts.tsx` documents as light in **both** grounds. That pairing is not decoration: it is the
+specific trap that file records, where `text-mrd-ink` on `bg-mrd-solid` measures **1.19:1 on paper**. **This
+is the item's one unmet acceptance criterion** and it belongs to whoever opens a browser next.
+
+**Noticed.** `src/lib/connectors/registry.ts:706` points at `ConnectTrustDialog.tsx:58` for the verbatim
+withdrawal string, and **that line number is now stale**; the rows sit around 108-116. Not edited, because
+`registry.ts` is outside this item's `Owns`.
+
+**Gates.** `bunx tsc --noEmit` 0 · `bun run build` 0 · `lane:gates` green, real exit 0. Baseline re-frozen
+**down**: `import:components/ui` 2 → 0 and `usage:components/ui` 7 → 0, taking the register to **229 files
+and 3,346 occurrences** from 230 and 3,355.

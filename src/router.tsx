@@ -57,7 +57,7 @@ function RouteError({ error }: { error: Error }) {
           fontSize: 14,
           lineHeight: 1.55,
           maxWidth: "48ch",
-          color: "var(--text-body, #C6C0B8)",
+          color: "var(--mrd-body, #C6C0B8)",
         }}
       >
         This page hit an error.
@@ -68,7 +68,7 @@ function RouteError({ error }: { error: Error }) {
           fontSize: 12.5,
           lineHeight: 1.5,
           maxWidth: "56ch",
-          color: "var(--text-muted, #A39D94)",
+          color: "var(--mrd-faint, #A39D94)",
           overflowWrap: "anywhere",
         }}
       >
@@ -82,9 +82,9 @@ function RouteError({ error }: { error: Error }) {
           padding: "6px 14px",
           fontSize: 12.5,
           borderRadius: 8,
-          border: "1px solid var(--line, rgba(255,255,255,0.12))",
+          border: "1px solid var(--mrd-line, rgba(255,255,255,0.12))",
           background: "transparent",
-          color: "var(--text-body, #C6C0B8)",
+          color: "var(--mrd-body, #C6C0B8)",
           cursor: "pointer",
         }}
       >

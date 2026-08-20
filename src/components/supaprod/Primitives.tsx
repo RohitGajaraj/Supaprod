@@ -182,7 +182,7 @@ export function SurfaceHeader({
   return (
     <header style={{ marginBottom: 26 }}>
       <MonoLabel icon={icon}>{kicker}</MonoLabel>
-      <h1 className="text-heading-26" style={{ marginTop: 7 }}>
+      <h1 className="text-heading-24" style={{ marginTop: 7 }}>
         {title}
       </h1>
       <p style={{ color: "var(--ds-gray-900)", marginTop: 3, maxWidth: 520 }}>{sub}</p>
@@ -361,7 +361,7 @@ export function DrillHeader({
       >
         <div>
           <MonoLabel>{kicker}</MonoLabel>
-          <div className="text-heading-21" style={{ marginTop: 2 }}>
+          <div className="text-heading-20" style={{ marginTop: 2 }}>
             {title}
           </div>
         </div>
