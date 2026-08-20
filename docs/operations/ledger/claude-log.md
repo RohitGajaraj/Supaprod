@@ -7653,3 +7653,57 @@ subject"* once `prose` exists beside it. That is a second, smaller naming questi
 this one.
 
 ---
+
+## K-90 (correction) · VERIFIED · 2026-08-21 03:00 · the correction matches my measurement, and the name it was blocked on now exists
+
+**Accurate in every figure**, and it is the same table I measured independently: base 13px, label 12.5px,
+data 11.5px, body 14px, with `body` between them so it beats `base` and loses to `label` and `data`. Six
+sites in one idiom, and `Spend.tsx` correct rather than "the worst".
+
+**The unblock, and it supersedes what this entry read.** Kiro recorded the mechanism as **option A**,
+which is what I ruled this morning and **I have since corrected to option B** in the entry directly above
+this one, on the founder's ruling of 2026-08-21. The size stop gives up the name, not the colour.
+**The name is `prose`**: `--mrd-t-body` becomes `--mrd-t-prose` and the `@utility text-mrd-body` that sets
+`font-size` becomes `@utility text-mrd-prose`. Verified `prose` collides with nothing in `meridian.css`.
+**`--color-mrd-body` does not move.**
+
+**Which makes the blocked reasoning obsolete in Kiro's favour.** The entry says the six broken sites
+cannot be fixed ahead of the rename because no way exists to write 13px with the body colour. **Under
+option B they need no edit at all** -- once `text-mrd-body` is colour-only, `text-mrd-base` supplies the
+13px they were always asking for. The expand step still applies, but only to the **157 sites carrying
+`text-mrd-body` and no other size utility**, and the 10 carrying one are left alone. Full spec and the
+measurable acceptance test are in my ruling above.
+
+---
+
+## K-92 · VERIFIED · 2026-08-21 03:00 · the implication holds in the rendered DOM, not just in the component
+
+**Checked the one thing that would break it silently.** `busy` is only safe if it cannot be beaten by a
+stray `disabled` arriving through `rest`. `surface-parts.tsx:553-561` renders `{...rest}` first, then
+`disabled={disabled || busy || undefined}` and `aria-busy={busy || undefined}`. Correct, and the comment
+says why.
+
+**Then measured the invariant in the running app rather than trusting it.** Across the gallery:
+
+- **581 buttons**, of which **8 carry `aria-busy="true"`** -- so the gallery does exercise the state.
+- **0 are busy without also being disabled.** The implication holds in the DOM.
+- **36 disabled in total**, so 28 are legitimately unavailable rather than working, which is the
+  distinction this item exists to restore.
+- **0 buttons carry a hand-set `aria-busy` with any other value**, which is the shape that would survive
+  an older call site setting it by hand.
+
+**Back to Kiro, and it is the thing this item already flagged rather than anything new.**
+`DataSection.tsx:222` and `:231` are worth taking now. The local at `:110` is
+`"workspace" | "agents" | null`, a discriminant naming **which** export is running, and both controls read
+`disabled={busy !== null}`, so exporting the workspace disables the agents control too. **The labels
+already distinguish correctly** (`busy === "workspace" ? "Preparing" : "Download"`), so today the agents
+button reads "Download" while being unavailable for a reason that is not about it. **Per-site
+`busy={busy === "workspace"}` and `busy={busy === "agents"}` alongside the existing `disabled`, and rename
+the local to `exporting` in the same change**, which is exactly the honest form the item proposed. Leaving
+it to Kiro rather than taking it because it is component state and this lane does not own the file.
+
+**The two `ControlsPanel` call sites and `sync.tsx`'s four were right to leave.** A call expression is not
+something a literal-shaped guard can judge, and widening the guard to admit calls would admit the
+compounds too.
+
+---
