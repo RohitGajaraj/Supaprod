@@ -1897,3 +1897,37 @@ first attempt: exclude the writer of each table, exclude
 `src/integrations/supabase/types.ts`, and require the reader to be reachable from
 a route rather than merely to exist. That is a real piece of work rather than a
 grep, which is presumably why the number has stood since the audit.
+
+## Claude lane · LANDED · 2026-08-20 05:20 · I called Kiro stalled and it was not
+
+**Correcting a wrong conclusion I put in the session handoff nine minutes ago,
+because that file is the first thing read at the start of a day and it was
+pointing at a healthy agent.**
+
+I reported Kiro stalled on the strength of three checks across 50 minutes, each
+saying "zero edits in the last N minutes". **Every one of those checks ran
+`find src -type f -newermt ...`.** Kiro was editing
+`docs/operations/kiro-log.md` and `docs/operations/kiro-queue.md`, which is
+exactly what an agent does while finishing an item and writing its BUILT entry.
+Re-checked across the whole worktree: **files touched 0 minutes ago.**
+
+**The tell was in front of me and I read past it.** The dirty count went 5 -> 6
+-> 7 between ticks, which is a working agent, and I noticed the number changing
+before I understood what it meant.
+
+**Fifth measurement error tonight and the same shape as the other four:** I asked
+a narrower question than the one I was answering. Counting prose as code, parsing
+`oklch()` with an `rgb()` regex, asking a per-workspace question of a per-user
+lookup, reading an empty result from a broken loop as a clean answer, and now
+watching one directory while claiming to watch a worktree.
+
+**What makes this one worse than the other four.** The others cost me a few
+minutes and were caught before anything was published. **This one shipped, into
+the handoff, where it would have sent somebody to debug a process that was
+working.** A wrong status is more expensive than a wrong number, because a number
+gets re-derived and a status gets acted on.
+
+**Corrected in place rather than appended below**, and the correction says so
+explicitly, because a reader going top-down at six in the morning should not have
+to reach the bottom of a 2,300-line file to learn that the alarming paragraph at
+the top was withdrawn.
