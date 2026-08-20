@@ -2976,3 +2976,85 @@ No further instances, no queue item, nothing to hand to Kiro. Recorded so that t
 next reader does not re-run this sweep, and so that if a 39th table is added with
 this shape, the reason it is safe is written down: **the default is a trap only
 for a writer with no reason to know its own workspace.**
+
+---
+
+## Claude lane · LANDED · 2026-08-20 07:42 · the eval tick's schedule has been posting to a 404, and the pair of fixes is now complete
+
+The half I had parked as "needs `psql`". It did not. **The Lovable MCP connects as
+`postgres`, so `cron.job` is readable** -- it is `cron.job_run_details` that times
+out, and I had let one blocked table stand in for a whole subsystem.
+
+### The bug is one word in a URL
+
+Job 40 posts to `https://supaprod.ai/api/public/hooks/**cadence-**eval-tick`.
+The route file is `eval-tick.ts`, so the endpoint is `/api/public/hooks/eval-tick`.
+**The job's name leaked into its path.**
+
+The convention is unambiguous in the siblings, which is why this is known rather
+than guessed -- a `cadence-` prefix belongs to the job name, never the path:
+
+| job name | endpoint | |
+|---|---|---|
+| `cadence-eval-suite-tick` | `/hooks/eval-suite-tick` | works |
+| `cadence-drift-tick` | `/hooks/drift-tick` | works |
+| `cadence-indexer-tick` | `/hooks/indexer-tick` | works |
+| `cadence-eval-tick` | `/hooks/cadence-eval-tick` | **404** |
+
+### Swept, not spot-fixed
+
+All **36** scheduled jobs matched against the **39** files in
+`src/routes/api/public/hooks/`:
+
+- **exactly one job points at a route that does not exist:** `cadence-eval-tick`
+- **exactly one hook route has no job pointing at it:** `eval-tick`
+
+**They are the same tick, and that symmetry is the proof.** The other unmatched
+files are `-_auth.server`, a helper rather than a route, and `funnel-week2` and
+`github-webhook`, which are called from outside.
+
+### Why it left no trace, which is the reusable part
+
+**A 404 never reaches `withJobRun`, so no `job_runs` row is written -- not even a
+failing one.** The tick did not start failing on 2026-08-05, it **stopped being
+observable**. Every instrument here watches `job_runs`, so all of them reported
+silence, and silence is what a job that was never scheduled looks like too.
+
+`job_runs` for `cron.eval-tick`: 48 a day through 08-04, 26 on 08-05, then
+nothing. I read that as a schedule that stopped. It was a schedule that kept
+firing perfectly into a wall.
+
+### Verified against the live app, with no side effects
+
+Reading the altered row proves only that the row changed. **A request with no
+`x-cron-key` distinguishes a missing route from a live one without triggering any
+work or spending anything**, since the route answers 401 before it does anything:
+
+```
+POST /api/public/hooks/eval-tick          -> 401   route exists
+POST /api/public/hooks/cadence-eval-tick  -> 404   route does not exist
+POST /api/public/hooks/sense-tick         -> 401   control, known-working job
+```
+
+**The control is the part that makes this evidence.** `sense-tick` is a job that
+demonstrably runs, and it answers exactly as the fixed URL does, so the 404 is a
+real absence rather than something about how I asked.
+
+Job 40 now: endpoint `eval-tick`, schedule `*/30 * * * *`, active, auth header and
+30s timeout preserved, id and name unchanged. **Only the URL moved.**
+
+### The pair, and why neither alone was worth shipping
+
+- `20260820072500` -- the trigger, so an insert can succeed at all.
+- `20260820074000` -- this, so the tick runs.
+
+**Revived on its own this morning, the schedule would have resumed running 48
+times a day and writing nothing**, because every insert would still have died on
+the NOT NULL. And the trigger alone would have sat there correct and unexercised.
+Two independent faults, in the same feature, each of which fully explains the
+symptom on its own -- which is exactly why I spent a week describing this as one
+problem.
+
+**Still to confirm:** the first scheduled fire lands on the next half hour. A
+`job_runs` row for `cron.eval-tick`, and the first `ai_evals` row this product has
+ever written that is not seed data, are the two things to look for next tick.
