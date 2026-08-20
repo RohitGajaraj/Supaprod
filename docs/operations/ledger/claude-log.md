@@ -3139,3 +3139,73 @@ to answer a question the schema could already answer one join away.** The row-le
 flags are still right for their own purpose -- a seeded row can sit in a real
 workspace -- but the workspace flag is the one that decides whether a number
 describes the product working.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 07:56 · the 404s were being recorded the whole time, in a table nothing watches
+
+Waiting on the first scheduled fire of the repaired eval tick (02:30 UTC), I went
+looking for whether the failure had left any trace at all. **It had.**
+
+`net._http_response` retains roughly six hours of `pg_net` results. In the window
+2026-08-19 20:21 → 2026-08-20 02:20:
+
+| status | responses |
+|---|---|
+| 200 | 1,860 |
+| **404** | **12** |
+| null | 1 |
+
+**Twelve 404s in six hours is exactly two an hour, which is a `*/30` schedule**,
+and the 36-job sweep established that exactly one job pointed at a route that does
+not exist. The newest 404 is `02:00:01` -- the last fire before the URL was
+corrected at 02:07.
+
+I cannot join them to a URL: `net.http_request_queue` is drained as requests
+complete, so the response outlives the request that names it. **The attribution is
+therefore an inference, and it is a falsifiable one** -- see the prediction below.
+
+### The observability gap, which is the finding
+
+**A cron dispatch that never reaches the application is invisible to every
+instrument this repo has.** `withJobRun` writes `job_runs` from *inside* the
+handler, so a request that 404s produces no row -- not a failure row, not
+anything. `lib/liveness/*` and the admin health surface both read `job_runs`.
+**They were all watching the wrong side of the wall.**
+
+Meanwhile the HTTP layer was recording the failure every thirty minutes, for
+fifteen days, in a table nothing in this repo has ever queried. `net` appears
+nowhere in `src`.
+
+**This is the same shape as the eval tick's own bug, one level up.** There, a
+failed insert was reported as a lost race. Here, a failed dispatch is reported as
+nothing at all -- and nothing is worse, because a wrong answer at least prompts a
+question. **Silence reads as health on every surface we have.**
+
+### The falsifiable prediction
+
+Cheap and decisive, so the attribution above does not have to be taken on trust.
+After `02:30:00 UTC`:
+
+- **If the 404s were the eval tick:** no new 404 appears after 02:00:01, and a
+  `job_runs` row for `cron.eval-tick` shows up within a minute of 02:30.
+- **If they were something else:** the 404 count keeps climbing on the half hour,
+  and the something else is still unfound.
+
+Both outcomes are informative and the check costs one query. **Recorded before the
+result is known, deliberately**, because a prediction written after the fact is
+not one.
+
+### Not building the watcher yet
+
+The obvious follow-on is a check that surfaces non-2xx cron dispatches, since this
+class of failure is currently unobservable. **I am not writing it this tick.** It
+would be a watcher for a fault I fixed twenty minutes ago and have not yet
+confirmed fixed, and the first thing it should be tested against is the very
+transition happening at 02:30. Building it before that lands means testing it
+against nothing.
+
+Noted here as the next candidate in my lane, with the constraint that matters
+already known: `net._http_response` holds about six hours, so this is a live
+signal and not a history. Anything reading it has to run often or record what it
+saw.
