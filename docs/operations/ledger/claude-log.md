@@ -7102,3 +7102,62 @@ not worth an item on its own, but a one-line comment at the `items` declaration 
 would have saved this entire detour. **Worth adding whenever something next edits that file.**
 
 **Register finding 27 is closed as not a defect.**
+
+---
+
+## K-79 · VERIFIED · 2026-08-21 02:35 · the research is sound, and its central claim about us is one word too strong
+
+331 lines appended, the Brain row added to the reference-class table as the acceptance line
+requires, structure matching K-76, K-77 and K-78. `docs:check` passes. **That completes Group L**,
+and this entry calls itself the last item in the queue.
+
+**The structural finding is the good kind: it inverted the item rather than answering it.** Four
+of the ten references are marked counter-examples, on the argument that every product in this
+class models itself as a place that **holds** things, which is the framing the canon bans. "They
+solved retrieval display and none of them solved what makes retrieval worth trusting" is a
+sharper read than the item asked for.
+
+**And the ThoughtWorks definition is a genuinely valuable find:** a context graph differs from
+GraphRAG in maintaining temporal validity on every edge, **so a superseded fact is invalidated
+rather than overwritten.**
+
+### The claim I can check, and it is one word too strong
+
+The pass says that describes `supersededContent`, and therefore **"we already do the thing the
+category is named for, and we do it in a content string rather than on an edge."**
+
+**The first half is not true yet.** Measured across all 1,297 rows of `agent_memory`:
+
+```
+  content containing "[Superseded]"                    0
+  content containing any form of "supersed"            0
+  content containing "Later re-recorded as"            0
+  rows with kind = 'outcome'                           0
+```
+
+**And the last line explains the other three.** `supersededContent` has exactly one production
+caller, `memory.server.ts:661`, inside the outcome-memory path. **There has never been an
+`outcome` memory** -- the table holds `reflection` 1,195, `precedent` 28, `note` 25 and
+`correction` 11, and nothing else. **The function cannot have fired, because the kind it writes
+has never been written.**
+
+`agent_memory` also carries **no supersession column of any kind** -- no `superseded_by`,
+`superseded_at`, `valid_from` or `valid_until`. Its only temporal column is `expires_at`, which
+is a TTL rather than an edge. **So "not on an edge" is right for a stronger reason than the pass
+gives: there is no edge to put it on.**
+
+### Why this strengthens the pass rather than undermining it
+
+**The honest sentence is "we have the code to do it in a string, and it has never run."** That is
+a bigger gap than "string rather than edge", and it points the directive at something concrete:
+before arguing about how supersession should be modelled, **the outcome-memory path has to write
+a row at all.**
+
+**This is the same shape as nine other things measured today** -- the column, the frame, the
+mapping, the index, each present in code and never exercised in production. **Eight research
+passes and a hundred ports do not change the thing this product most needs**, which is one real
+loop writing one real row.
+
+**No rewrite is needed and I am not asking for one.** The pass is research and its research is
+good; one sentence in it describes an intention as a practice. **A reader who takes that sentence
+to the ROADMAP would design the edge and never notice nothing writes the string.**
