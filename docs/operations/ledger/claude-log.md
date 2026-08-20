@@ -2499,3 +2499,93 @@ workspace". **Most of this is the absence of real use rather than a defect**, an
 a starved leg on an unused product is not evidence of a broken leg. The two
 things that are defects regardless of usage are Ship never having run and the
 eval tick being dead.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 06:52 · Ship has never run, shipping happens anyway, and I corrected an inference I had made an hour earlier
+
+Following the two defects the last entry named as real regardless of usage. This
+is the first: **Ship has never held a track member.**
+
+### It is not the routing, and I checked every layer that could have been
+
+- **The path includes it.** All 44 tracks on production carry `ship`:
+  43 on `["sense","decide","define","design","build","ship","learn"]` and one on
+  `["define","design","build","ship","learn"]`. None is waived.
+- **`nextStation` would return it.** `route.ts:311` takes the first station on
+  the path with a higher order index, so `build -> ship` on every one of those
+  routes.
+- **The driver handles it.** `driver.ts:578` has the case, with a real brief.
+- **The station has a tool and no gap.** `STATION_ARTIFACT.ship` is
+  `{ kind: "deployment", table: "deployments", createdBy: "release.publish",
+  gap: null }`.
+
+Every layer is correct. The station is simply never exercised.
+
+### Two facts that sit badly together
+
+**`release.publish` has never raised an approval, of any status.** That is
+evidence here, and only here: `attach.ts` records it as **pinned to review** --
+"the only gate in the loop: a production deploy is irreversible and customers see
+it" -- so a call necessarily leaves an approval row. No rows, no calls.
+
+**`deployments` holds 42 rows and every one is `success`.** So this product
+deploys, repeatedly and successfully, and **not one of those deploys went through
+the station whose entire job is shipping.** The spine's Ship station and the
+thing that actually ships have never been the same path.
+
+Member rows by station, all kinds, production:
+
+| station | what it holds |
+|---|---|
+| sense | signal 586, theme 48, task 12 |
+| define | task 28, prd 6, signal 4 |
+| design | prototype 7, signal 1 |
+| decide | decision 6, signal 1 |
+| build | mission 3 |
+| **ship** | **nothing, ever** |
+| learn | learning 2 (2026-08-01) |
+
+### The correction: an inference I made this morning was unsound
+
+Earlier today I wrote that `learning.record` "has never been called" because no
+`learning.record` approval exists. **That does not follow.** An approval row
+exists only for a call that actually gates, and a tool auto-approved at low risk
+leaves none. Learn holds two `learning` members, so something did file learnings
+at that station.
+
+**The argument survives for `release.publish` and dies for `learning.record`**,
+and the difference is a property I had not checked when I made it: one is pinned
+to review and the other is not. Same shape as every measurement error tonight --
+**a test that is valid for one case, applied to a second case that does not meet
+its precondition.**
+
+What is still true about Learn, checked directly rather than inferred: both
+members are `is_sample`, both `verdict = "missed"`, both recorded by
+`data-analyst` on 2026-08-01, and **neither carries a `prd_id`**. The outcome leg
+requires one, so **even these two could never have scored an agent.** The
+conclusion the earlier entry drew is unchanged; the reasoning it used to get
+there was wrong and is replaced.
+
+### Fixed here, because it is a comment lying about its own table
+
+`attach.ts` opened with "**FOUR** of the seven stations still cannot produce a
+member row: they have no registered tool that creates their artifact at all."
+**The table 20 lines below it gives all seven a `createdBy` and every `gap` as
+null**, and the tests assert the table, so the prose was the stale half and had
+been contradicted by the founder ruling of 2026-08-01 and the Build mission fix.
+
+Rewritten to say what is now true, to keep the method warning that was the
+paragraph's real value (attribution is by the tool that returned the id, never by
+what was created while a station ran), and to record the measurement that a
+closed gap is not a used tool. **`gap: null` means the hands exist. Ship's have
+never been used.**
+
+### Not filing this as a queue item yet
+
+The obvious item is "make Ship run", and I do not yet know whether that is a
+defect or a description. Work reaches Build on three tracks and stops; nothing
+has been observed failing AT Ship, because nothing has arrived there. **Filing
+"make Ship run" would be specifying a fix for a fault nobody has seen.** The next
+step is to watch one track cross `build -> ship`, which needs a track to get that
+far -- and that is the same upstream starvation the trust-score ruling ran into.

@@ -187,12 +187,26 @@ export const TOOL_PRODUCTS: Readonly<Record<string, ToolProduct>> = {
  * run that logs a signal really did log a signal, and dropping it would lose a
  * true fact to keep a tidy one.
  *
- * The uncomfortable half of this table is the point of writing it down. FOUR of
- * the seven stations still cannot produce a member row: they have no registered
- * tool that creates their artifact at all, so no attribution scheme whatsoever
- * would produce a row for them. A time-window query would have "found" rows for
- * those stations anyway, written by a cron or a person, and filed them against
- * the track as though the station had made them.
+ * The uncomfortable half of this table WAS the point of writing it down: four of
+ * the seven stations could not produce a member row at all, having no registered
+ * tool that created their artifact. **That is no longer true and the table below
+ * is the proof** -- every station now carries a `createdBy` and every `gap` is
+ * null, closed one at a time by the founder ruling of 2026-08-01 and the Build
+ * mission fix after it.
+ *
+ * The warning the paragraph carried is still worth keeping, because it is about
+ * method rather than about the gaps: a time-window query would have "found" rows
+ * for a station with no tool anyway, written by a cron or a person, and filed
+ * them against the track as though the station had made them. **Attribution is
+ * by the tool that returned the id, never by what happened to be created while a
+ * station was running.**
+ *
+ * MEASURED 2026-08-20, because a closed gap is not the same as a used tool.
+ * `spine_track_members` on production holds rows for six of the seven stations;
+ * **ship has none, of any kind, ever**, and `release.publish` -- pinned to
+ * review, so a call always leaves an approval row -- has never raised one.
+ * Meanwhile `deployments` holds 42 rows, all successful. **Shipping happens, and
+ * it happens outside the spine.**
  */
 export type StationArtifact = {
   /** The kind this station exists to produce. */
