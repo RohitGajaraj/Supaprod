@@ -597,7 +597,19 @@ The argument is already written in this tool's own description, applied to a dif
 ---
 
 **K-17 · Wire `StreamingText` and `ToolChips` out of the gallery**
-`STATUS: TODO` · deps: K-05 · size: M
+`STATUS: BLOCKED 2026-08-20` · deps: K-05 · size: M
+
+> **Blocked on a product call, not on a dependency.** Both components really are unwired, so the item's
+> premise holds. "Just doors" does not: this surface already answers both questions, so mounting either
+> puts one fact on screen twice in two rhythms. `ToolChips` collides with the `steps` ledger (current
+> generation, not debt: 3 `--sp-` occurrences and no ratchet entry) and is a fourth view of a run beside
+> the three `run-rows.tsx` exists to keep in one rhythm. `StreamingText` collides with `ReturnSummary`
+> on the same `finalSummary(runs)` string, and that string arrives off a 4-second poll, so revealing it
+> a word at a time animates the arrival of prose that landed minutes ago. Its `sources` would be empty
+> on every real run and `LoopStep` carries no duration.
+>
+> **And the surface that does stream has already refused this pattern in writing** (`AskTurn.tsx:261`),
+> which is the finding worth reading. Full reasoning and the three options in the Kiro log.
 
 **What.** Mount `StreamingText` and `ToolChips` on the run detail surface.
 
@@ -2117,7 +2129,7 @@ Three things in that, and they compound:
 
 Anything Kiro cannot proceed on. One line each: item, what is blocking, what is needed.
 
-_(empty)_
+- **K-17** — mounting `StreamingText` and `ToolChips` on `/runs/$missionId` duplicates `ReturnSummary` and the `steps` ledger respectively; needs a ruling on which of three options (rehome to `ToolStream`, keep as reference parity, or overrule and accept one duplication). Reasoning in [`ledger/kiro-log.md`](./ledger/kiro-log.md) under K-17.
 
 ---
 

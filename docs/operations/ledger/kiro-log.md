@@ -2070,3 +2070,91 @@ Rendered and measured three times, and the two corrections in this entry both ca
 > **Claude does after:** wire the two handlers to something real. The step controls are built and
 > mounted only in the gallery, so this is a door away from being a capability: nothing in the product
 > passes `onSkipStep` yet, and the reason it captures has nowhere to be written.
+
+---
+
+## K-17 · BLOCKED · 2026-08-20 09:10
+
+**Did not build.** The premise is half right and the prescription is wrong, and the wrong half is not a
+detail: **mounting either component where this item says would put one fact on screen twice**, in two
+rhythms, on a surface that already answers both questions.
+
+**What is true.** `StreamingText` and `ToolChips` have no product caller. Their only importers are the
+gallery and their tests. That part of the item is exactly right, and so is the principle behind it.
+
+**What is not true is "just doors".**
+
+### 1. `ToolChips` is a fourth view of a run, and three were already unified
+
+`run-rows.tsx`'s own header states that `PlanCard`, `RunTimeline` and `ToolStream` are *"three views of
+one run"* that shipped as three products (three mark sizes, three gutters, three subject sizes) and were
+pulled onto shared primitives for it. `one-run-one-rhythm.test.tsx` fails the build if they drift apart.
+**`ToolChips` is not on those primitives**: it is a 320px `max-w-80` column with its own 7px rows, its
+own four-icon `ToolKind` vocabulary and its own collapse state.
+
+And the run route already renders every tool call: the `steps` tab's ledger, `_authenticated.runs.$missionId.tsx:985-1156`,
+one `RunRow` per step with `stepLabel`, `summarizeArgs`, a per-step `RunMark`, and a door for the
+thoughts and the tail. **`ToolChips` says the same thing in a narrower shape.** I checked whether the
+ledger might be the old thing worth replacing, which would have made this item coherent: it is not.
+`src/components/runs/run-parts.tsx` carries 3 `--sp-` occurrences and **no ratchet baseline entry at
+all**, so it is current-generation and tuned, not debt.
+
+### 2. `StreamingText` on this surface would animate the arrival of settled prose
+
+The only assistant prose in the run record is `finalSummary(runs)`: the last `kind:"final"` step's
+message, or `run.output`. The route reads it off a **4-second poll**, so by the time this surface has
+it, it arrived minutes ago. Revealing it a word at a time would be theatre, and it is the class of
+claim this repo forbids: the animation asserts "this is being written now" about a string that is
+finished. `ReturnSummary` (`:1454-1460`) already renders that same message, split lead-and-full with a
+"Read all of it" door, so it would also be **the run's final message on screen twice**.
+
+Two more of its four inputs have nothing honest to fill them: **there is no citation structure anywhere
+in the run record**, so `sources` would be empty on every real run, and **`LoopStep` carries no
+duration** (`duration_ms` is a run-level column and is not on `StudioRunDetail`).
+
+There is also a live hazard the item does not mention: the reveal restarts whenever `parts` changes
+identity, so a `parts` array derived inline from the 4s poll **re-writes the whole answer every four
+seconds, forever.**
+
+### The part worth taking to the founder
+
+I went looking for the honest home for `StreamingText` instead of just refusing, expected it to be the
+Ask pane, and **found that surface refusing this exact pattern in writing.** `AskTurn.tsx:261-268`:
+
+> *"There is deliberately no second branch for the in-flight case: the stream patches `content` on this
+> same message, so the half-written answer and the finished one are the same JSX and cannot render
+> differently. A separate 'streaming text' path is exactly how a surface ends up showing raw hashes for
+> the eight seconds a person is actually watching it, and then tidying itself up once they have stopped."*
+
+That is the one surface in the product with real token streaming and real citations, and it has already
+decided against a per-word reveal, for a reason I think is right. **So `StreamingText` may be a
+component with no honest home here**: it is the reference's answer block, and this product's answer
+surface renders progressive markdown instead, on purpose.
+
+`ToolChips` is a different shape of the same problem: `ToolStream` is its live-rhythm successor, on the
+shared primitives, and is also unmounted. **Two components for one job, and the older one is the one
+this item asks to wire.**
+
+**What I need, and it is a product call rather than a build decision.** Three options, and I do not
+think this is mine to pick:
+
+1. **Give them the homes they fit** rather than this surface. `ToolStream` gets the run route (it is on
+   the shared rhythm and its subject is arrival), and `ToolChips` and `StreamingText` are recorded as
+   superseded, which is one of the four grounds `AGENTS.md` allows for deletion.
+2. **Keep them as reference parity** and say so in the gallery, so the next audit stops counting them
+   as unwired debt. They are correct ports; being unused is a product decision, not a defect.
+3. **Overrule me** and mount them anyway. If that is the call, say which of the two duplications is
+   acceptable, because I cannot avoid both: `ToolChips` collides with the ledger and `StreamingText`
+   collides with `ReturnSummary`.
+
+**I have not touched `_authenticated.runs.$missionId.tsx`.** Nothing is half-built and nothing is left
+in a state anyone has to undo.
+
+**Noticed while reading, and unrelated to the above.** `src/components/engine-room/AgentScorecardPanel.tsx:81`
+declares its own local `function ToolChips({ tools })`. Two different components with one name in one
+repo, and the local one is the one with callers. Worth a rename before somebody imports the wrong one.
+
+**Gates.** Not run: nothing changed. Moving to K-18.
+
+> **Claude does after:** this needs a ruling rather than a verification. The measurement is in the two
+> collisions above and the `AskTurn` quote; the decision is which of the three options is right.
