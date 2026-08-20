@@ -38,9 +38,14 @@ type AgentLite = { agent_id: string; slug: string; name: string; role: string };
 /** The run's own status, in the words a person would use. The raw enum is the
  *  correct technical whisper in a log and nowhere else. */
 const RUN_STATUS: Record<string, string> = {
-  planning: "Planning",
   running: "Running",
-  awaiting_approval: "Waiting on a decision from you",
+  // `waiting_approval` is the word the loop writes when a run parks at a gate
+  // (`ai/loop.server.ts`). This map keyed an `awaiting`-prefixed spelling that no
+  // writer anywhere produces, plus `planning`, which is a missions word, so the
+  // one label a person most needs to see never printed: a gated run fell through
+  // to the raw column value below. There is no `planning` run, so there is no
+  // label for one.
+  waiting_approval: "Waiting on a decision from you",
   completed: "Finished",
   completed_with_failures: "Finished, with failures",
   failed: "Failed",
@@ -53,8 +58,8 @@ function runStatusLabel(status: string | null): string {
 }
 
 function runMarkState(status: string | null): MarkState {
-  if (status === "running" || status === "planning") return "running";
-  if (status === "awaiting_approval") return "waiting";
+  if (status === "running") return "running";
+  if (status === "waiting_approval") return "waiting";
   if (status === "failed" || status === "completed_with_failures") return "failed";
   return "idle";
 }

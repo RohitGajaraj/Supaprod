@@ -83,7 +83,12 @@ const STATUS_TO_LANE: Readonly<Record<string, DeskLaneId>> = {
   blocked: "needsYou",
   held: "needsYou",
   awaiting: "needsYou",
-  awaiting_approval: "needsYou",
+  // An `awaiting`-prefixed spelling of the gate word was here and is gone. No
+  // writer of any column produced it, and nothing replaces it: this map takes a
+  // MISSION status, the loop marks the RUN `waiting_approval` without touching
+  // the parent mission, and the gate-sync reconciler writes
+  // `missions.status='blocked'`, which `blocked` above already routes to this
+  // same lane.
   awaiting_input: "needsYou",
   needs_input: "needsYou",
   needs_review: "needsYou",

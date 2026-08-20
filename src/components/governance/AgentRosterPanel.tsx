@@ -54,6 +54,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { getSwarmHud } from "@/lib/swarm.functions";
+import { LIVE_RUN_STATUSES } from "@/lib/governance.functions";
 import { getAllAgentTrust, type AgentTrust } from "@/lib/trust.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
@@ -75,9 +76,17 @@ export function ago(iso: string | null | undefined): string | null {
   return `${Math.floor(hours / 24)}d`;
 }
 
-/** The statuses `agent_runs` writes while a run is still going. Anything else
- *  is a run that has stopped, so the mark stops with it. */
-const LIVE_STATUS = new Set(["planning", "running", "awaiting_approval"]);
+/**
+ * The live set is IMPORTED, not re-declared, and the reason is what the local
+ * copy did. It held three words and only one of them is a status `agent_runs`
+ * ever carries. `planning` is a missions word and a tool category, and the third
+ * was an `awaiting`-prefixed spelling of the gate word that no writer anywhere
+ * produces: the loop marks a gated run `waiting_approval`. So `stateFor`
+ * below could never return "running" for a run parked at a gate, and an agent
+ * waiting on a decision from the person reading this panel wore the idle mark,
+ * the exact inverse of the one signal a roster exists to give. The copy also
+ * omitted `queued`, so a run that had not been picked up yet read as stopped.
+ */
 const FAILED_STATUS = new Set(["failed", "completed_with_failures"]);
 
 export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }) {
@@ -142,13 +151,15 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
     [agents, trustById],
   );
 
-  const working = agents.filter((a) => a.enabled && LIVE_STATUS.has(a.latest_run?.status ?? ""));
+  const working = agents.filter(
+    (a) => a.enabled && LIVE_RUN_STATUSES.has(a.latest_run?.status ?? ""),
+  );
   const off = agents.filter((a) => !a.enabled);
 
   function stateFor(a: (typeof agents)[number]): MarkState {
     if (!a.enabled) return "quiet";
     const status = a.latest_run?.status ?? "";
-    if (LIVE_STATUS.has(status)) return "running";
+    if (LIVE_RUN_STATUSES.has(status)) return "running";
     if (FAILED_STATUS.has(status)) return "failed";
     return "idle";
   }
@@ -207,7 +218,7 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
             const t = trustById.get(a.agent_id);
             const name = agentDisplayName(a.slug, a.name);
             const run = a.latest_run;
-            const live = a.enabled && LIVE_STATUS.has(run?.status ?? "");
+            const live = a.enabled && LIVE_RUN_STATUSES.has(run?.status ?? "");
             return (
               <Row
                 key={a.agent_id}

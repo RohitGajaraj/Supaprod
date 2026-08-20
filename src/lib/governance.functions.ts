@@ -346,7 +346,7 @@ const ExtendApprovalSchema = z.object({
  * `queued` (enqueued, not yet picked up), `running`, and `waiting_approval`
  * (which is the state a gate being extended is normally in).
  */
-const LIVE_RUN_STATUSES = new Set(["queued", "running", "waiting_approval"]);
+export const LIVE_RUN_STATUSES = new Set(["queued", "running", "waiting_approval"]);
 
 /**
  * Put an approval back on the clock.
