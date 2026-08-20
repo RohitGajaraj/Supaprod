@@ -1,6 +1,6 @@
 # Cookies and client-side storage
 
-> _Created: 2026-08-07 · Last updated: 2026-08-07_
+> _Created: 2026-08-07 · Last updated: 2026-08-20_
 
 **Supaprod sets no cookies and loads no third-party script, so no consent banner is shown.** This file is the evidence behind that sentence: every key the app writes into a browser, the file and line that writes it, why it exists, how long it lives, and the legal reading that follows. It is the factual base under the "Cookies and local storage" section of [`/privacy`](../../../src/routes/privacy.tsx), the way [`/subprocessors`](../../../src/routes/subprocessors.tsx) is the factual base under the sub-processor paragraph.
 
@@ -12,7 +12,7 @@
 
 **No consent banner is legally required today.** Four facts carry it, and all four are checked by the guard test:
 
-1. **Zero cookies are set.** The only `document.cookie` write in the tree is `sidebar_state` at [`src/components/ui/sidebar.tsx:86`](../../../src/components/ui/sidebar.tsx), stock shadcn scaffolding. `SidebarProvider` is exported and imported by no file, so that line never runs. Even if it ran it would be a functional cookie holding a UI preference the user set with their own click, which needs no consent under any reading.
+1. **Zero cookies are set, and nothing in the tree can set one.** There is no `document.cookie` write anywhere in the source at all. Until 2026-08-20 there was exactly one, `sidebar_state` in the stock shadcn `SidebarProvider`, which no file imported so the line never ran; that module was deleted along with the rest of the unreachable shadcn layer under `src/components/ui`. The cookie surface is now empty rather than dormant, which is the stronger version of the same fact: the next cookie in this product is a new decision, not a scaffold waking up.
 2. **Every persistent store is authentication or a preference the person set.** Session tokens and theme, density, rail width, dismissed banners. ePrivacy Art. 5(3) exempts storage strictly necessary to deliver a service the user explicitly requested, and a preference the user set by acting on the interface is the textbook case.
 3. **The only analytics-adjacent storage is tab-scoped, random, and first-party.** `supaprod:landing-session` and `cad_landing_visit` live in `sessionStorage`, which the browser destroys when the tab closes. Neither leaves the origin.
 4. **No third party receives anything from the browser.** No vendor SDK is in `package.json`, no external `<script src>` is in the app shell, fonts are self-hosted. Vendor analytics is server-side and currently off, twice over.
@@ -27,11 +27,9 @@ Classification is the ePrivacy one: **necessary** means the product cannot deliv
 
 ### Cookies
 
-| Name | Written at | Lifetime | Class | Note |
-| --- | --- | --- | --- | --- |
-| `sidebar_state` | [`src/components/ui/sidebar.tsx:86`](../../../src/components/ui/sidebar.tsx) | 7 days | functional | **Dead code.** No file imports `SidebarProvider`, so the write never executes. Kept because ripping stock shadcn out of `src/components/ui/` is a separate change with its own risk. |
+**None.** The table that used to sit here had one row and it is gone: `sidebar_state`, a 7-day functional cookie written by the stock shadcn `SidebarProvider`, which no file imported so the line never executed. It went out on 2026-08-20 with the rest of the unreachable shadcn layer under `src/components/ui`, so the write no longer exists in the source. No count is given here on purpose, for the reason the correction table at the foot of this page gives: a hand-maintained number in a sentence nobody re-counts is how this document rots.
 
-That is the whole cookie surface. There is no session cookie, no analytics cookie, and no `Set-Cookie` anywhere on the server (`rg "Set-Cookie" src/` returns nothing).
+That is the whole cookie surface, and it is empty in both directions. No session cookie, no analytics cookie, no `document.cookie` write anywhere in `src/`, and no `Set-Cookie` anywhere on the server (`rg "Set-Cookie" src/` returns nothing). The guard test asserts the empty list rather than the one dormant row, so a first cookie now fails the build and arrives here to be argued.
 
 ### localStorage: survives until the person clears it
 

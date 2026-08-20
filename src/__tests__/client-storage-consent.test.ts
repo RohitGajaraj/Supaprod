@@ -290,17 +290,19 @@ describe("client storage stays inside the no-consent-banner position", () => {
 });
 
 describe("nothing in the browser can set a cookie or reach a third party", () => {
-  test("the only document.cookie write is the unused shadcn sidebar preference", () => {
+  test("nothing in the tree writes document.cookie", () => {
     // THE DEFECT: a cookie is the one store that rides every request to the
     // server, so it is the store that turns a preference into ambient tracking
-    // data. Supaprod sets none. `sidebar_state` in the stock shadcn scaffold is
-    // the single write in the tree and SidebarProvider is imported by no file, so
-    // it never runs. If a second write appears, or that component gets mounted,
-    // the cookie section of the privacy policy stops being true.
+    // data. Supaprod sets none, and now writes none: the single write in the tree
+    // was `sidebar_state` in the stock shadcn scaffold at
+    // src/components/ui/sidebar.tsx, and that file was deleted with the other 38
+    // unreachable shadcn modules on 2026-08-20. The cookie surface is empty
+    // rather than dormant, so the first write to appear is a new claim and this
+    // test is where it has to be argued.
     const writers = clientSources().filter((file) =>
       /document\s*\.\s*cookie\s*=/.test(stripComments(readFileSync(file, "utf8"))),
     );
-    expect(writers.map((f) => relative(REPO, f))).toEqual(["src/components/ui/sidebar.tsx"]);
+    expect(writers.map((f) => relative(REPO, f))).toEqual([]);
 
     const mounted = clientSources().filter(
       (file) =>

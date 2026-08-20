@@ -3295,3 +3295,94 @@ files born clean · full `lane:gates` green on the merged tree.
 > six `agent_runs` spellings onto these six states is the wiring, it needs a live read to check what
 > is safe to collapse, and `mapRelayStatus`'s four extra spellings should be folded into that pass
 > rather than discovered during it.
+
+---
+
+## K-27 · BUILT · 2026-08-20 13:55 · 38 of 39 deleted, one held under the item's own tiebreak
+
+**Did.** Re-derived the reachability walk myself rather than trusting the item, deleted **38** of the
+39 modules, corrected the test and the privacy doc that asserted the old state, and re-froze the
+baseline. **Ratchet total 5,864 -> 5,542, exactly the 322 the item predicted.** Debt-carrying files
+285 -> 257.
+
+**My own measurement, and it matches the item name for name.** A transitive walk rooted at every code
+file outside `src/components/ui`, resolving `@/`, `~/` and relative specifiers, then closing over
+in-folder edges:
+
+| | |
+| --- | --- |
+| modules in the folder | **48**, plus `button.test.tsx` |
+| live, all by direct import from outside | **9** — `alert-dialog` (3 importers), `button` (7), `command` (1), `dialog` (4), `dropdown-menu` (1), `input` (2), `label` (1), `popover` (3), `sheet` (3) |
+| unreachable | **39** |
+| debt: folder / live nine / dead 39 | **455 / 133 / 322** |
+
+**No module is live only transitively**, which is worth recording: the folder has no internal
+dependency chain holding anything alive, so the walk's answer is the same as a flat grep would have
+given. `badge.tsx` at 35 and `menubar.tsx` at 34 confirmed as stated.
+
+**Ground for all 38: REGENERABLE.** `bunx shadcn@latest add <name>` restores any of them and nothing
+authored here is lost. `dot-pattern.tsx` is magicui rather than core shadcn, so it is restorable from
+that registry instead and the only authored delta was a four-line docblock; the ground holds thinly
+and I deleted it.
+
+**## K-27 · QUESTION · `shader-animation.tsx` is held, and REGENERABLE does not hold for it**
+
+**There is no shadcn or magicui component by that name.** The file is authored here: a hand-written
+GLSL fragment shader, a Supaprod-specific "tint toward Midnight Indigo" line, a
+`prefers-reduced-motion` branch and a full `three` teardown. **No command restores it**, so deleting
+it destroys authored work, which is precisely what the REGENERABLE test exists to prevent. It fits
+the Group F KEEP clause squarely instead: a capability that works and is only unreachable is a
+missing door rather than dead code, and the ruling's tiebreak is explicit that an unclear bucket is a
+KEEP.
+
+**Holding it costs nothing measurable: it carries zero ratchet debt, so the full 322-occurrence
+reduction is banked either way.** If the ruling is that it goes, it is one `rm` and a re-run of
+`design:ratchet` that will change no number. What it needs is a decision about whether decorative
+WebGL with no door is a door to build or a thing to drop, and that is a product call rather than a
+build one.
+
+**Unsure.** One besides the above. **`@hookform/resolvers` is now unimported but I cannot prove the
+deleted `form.tsx` was ever its importer** — shadcn's `form.tsx` usually imports only
+`react-hook-form`, so it may have been orphaned before this change.
+
+**Noticed.** Six, and the second is a live gate defect.
+
+1. **The item is wrong about `sonner`.** It lists the package among those becoming unimported. It
+   does not: `Toaster` in `src/routes/__root.tsx:9` and `toast` in five other files import the npm
+   package **directly**, never through the deleted wrapper. That is also exactly why the wrapper was
+   dead. `cmdk` stays (live `command.tsx`) and `three` stays (`GraphUniverseCanvas.tsx`).
+2. **`docs-doctor` check [10] is not concurrency-safe, and it cost a false red.** My first
+   `docs:check` exited 1 with **379 FAIL orphans**, every live doc in the repo. Reproduced the cause:
+   check [10] writes its reference list to the fixed global path `/tmp/dd_referenced.txt` and
+   `rm -f`s it at the end, **so two overlapping runs delete each other's list mid-loop and the
+   survivor reports every doc as unreachable.** Proven by running two instances at once, one exited
+   1 with bogus orphans and the other 0. **This is the same gate that took main red on 2026-08-20,
+   and the pre-commit hook auto-runs it**, so a manual `docs:check` racing a commit reproduces it in
+   ordinary use. One-line fix (`mktemp` rather than the fixed path); `scripts/docs-doctor.sh` is
+   outside `Owns` so nothing was changed.
+3. **The design-reference count is off by a lot and it changes nothing.** The item says six mentions
+   in `./design-reference/tempo-v5/*.md`. The real figure is **47 across 11 files, and zero at that
+   path** — they are under `tempo-v5/patterns/`, `applied/` and `Design reference for v3/`. All
+   retired pattern documentation, none of it code, all left alone.
+4. **Stale references outside `Owns`, worst first.** `docs/conventions/ui-chrome.md:16` is a **live
+   conventions doc** whose pattern table sends a reader to `src/components/ui/alert.tsx` for "errors
+   that need attention", which is the shape that makes somebody re-vendor it. `docs/features/flow-mode.md:33`
+   names `src/components/ui/sonner.tsx` as the mounted Toaster, now false and already misleading.
+   `src/styles/meridian.css:926` says "39 modules ... queued for deletion", now 38 gone and 1 held.
+   `src/styles.css:2945` points a future picker at the deleted themed Radix `<Select>`.
+5. **28 npm dependencies newly orphaned, no manifest touched.** 20 Radix packages plus
+   `embla-carousel-react`, `input-otp`, `react-day-picker`, `react-hook-form`, `@hookform/resolvers`,
+   `react-resizable-panels`, `recharts`, `vaul`. Separately and **pre-existing**: `framer-motion`,
+   `@monaco-editor/react` and `@types/d3-force` have no importer either.
+6. **The ratchet behaved exactly as documented and I confirmed it rather than assuming.** Before
+   re-freezing, rule 3 failed with 37 reclaimed counts. That is the guard working, not a problem.
+
+**On the privacy doc, which was the part the item said was easy to miss.** Both the verdict fact and
+the Cookies table are rewritten, and the table is now a **"None."** paragraph rather than an empty
+table, because a table with no rows reads as an omission. **I deliberately gave no module count in
+that prose**, following the doc's own correction note: a hand-maintained number in a sentence nobody
+re-counts is how it rotted the first time.
+
+**Gates.** All four green, `docs:check` run unpiped with `$?` read directly. tsc 0 errors, which is
+the real proof nothing outside the folder imported any of the 38. **9,991 pass / 0 fail** / 23 skip /
+60 todo across 591 files. Build clean. `lane:gates` last line `GATES GREEN`.
