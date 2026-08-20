@@ -7295,3 +7295,87 @@ failures sharing one shape.
 `bun run db:check`: **556 migrations scanned, 0 apply-fatal errors**, 4 warnings, all
 pre-existing and in migrations from June and July. Re-ran the reconciliation over every
 migration since 2026-07-20 matching on version, name, or prefix: **0 still missing.**
+
+---
+
+## K-17 · RULED · 2026-08-21 04:05 · delete both, and the four comments that name them have to go in the same commit
+
+**Founder ruling, taken with the measurement in front of him: delete `StreamingText` and
+`ToolChips`, and record why.**
+
+### The block was right, and I checked the half only production can answer
+
+Kiro refused to mount them and gave three reasons. **The one I could test was the strongest and it
+holds harder than the entry claims.**
+
+The entry says `StreamingText`'s `sources` input has nothing to fill it **in the run record**.
+Measured across the whole database:
+
+```
+  citation-shaped columns in public   ai_evals.citations   prds.citations
+  prds carrying citations             0 of 90
+  the run record                      no citation column at all
+```
+
+**So `sources` has no data source anywhere in the product, not merely in the surface the item
+proposed.** `ai_evals.citations` is populated (77 of 578) but it holds a judge's citations about
+an evaluation, which is a different object from an agent's answer sources. **There is nowhere to
+wire this input, so "mount it later when citations exist" was never an option that was waiting.**
+
+The rest of the block stands on its own evidence: `ToolChips` is a fourth view of a run where
+three were deliberately unified and pinned by `one-run-one-rhythm.test.tsx`; the steps ledger
+already renders every tool call and carries **no ratchet baseline entry**, so it is
+current-generation rather than debt; and the Ask pane, the one surface in the product with real
+token streaming, **has ruled against a per-word reveal in writing** for a reason I agree with.
+
+### What I checked that changes the deletion, and it is not in the block
+
+**Four files name these components in prose, and none of them imports either one.** I checked
+because a grep for the names returned four non-gallery files and that would have falsified the
+"no product caller" premise. **It does not: all four are comments.** But they are load-bearing
+comments:
+
+```
+  ToolStream.tsx:23           why ToolChips could not be this component
+  DiffTable.tsx:306           a cross-reference to StreamingText's source rows
+  SelectionActions.tsx:52     "Streaming belongs to StreamingText, which owns the reveal timing"
+  AgentScorecardPanel.tsx:82  why its chips are named ToolApprovalChips, to avoid colliding
+                              with the ToolChips in components/meridian
+```
+
+**Delete the components and all four point at nothing.** The last one is the worst: it explains a
+rename made to avoid a collision with a component that would no longer exist, so the next reader
+finds a justification for a name with no reason behind it.
+
+**So the deletion is six files, not two:** the two components, their gallery cases, and the four
+comments rewritten to say what is true afterwards. `AgentScorecardPanel`'s should keep the rename
+and lose the collision, because the name is still the better one.
+
+**Neither component carries ratchet debt**, so the baseline does not move and this is not a debt
+item. It is a maintenance-surface item: two components, their gallery cases and their tests stop
+needing to be kept correct.
+
+**Record the argument where the code was**, not only here. Kiro's block is the best statement of
+why these two have no honest home and it should not survive only as a log entry.
+
+---
+
+## K-82 · RULED · 2026-08-21 04:08 · the decline is upheld, and the chart it says already ships does
+
+**Kiro declined this item on the ground that its `Why` is false** -- that `InsightCards` already
+renders the two-series chart the item asks for, so building it as specified would replace a
+canonical decision with a reimplementation.
+
+**Verified in the running gallery rather than by reading the file.** The Insight cards section
+renders **8 SVGs carrying 6 plotted series paths**, counted as path or polyline geometry longer
+than 40 characters so an icon cannot be mistaken for a series. **The chart ships and it plots real
+data.**
+
+**The decline stands and the item closes.** The item offered the permission and the ground it was
+taken on is true.
+
+**One thing worth a look, not a rejection:** none of those SVGs carries a `role`, `<title>` or
+`<desc>`, so **the chart has no accessible name.** A person on a screen reader gets the card's
+prose and nothing from the plot. That is not what this item asked for and it is not the reason it
+was declined, but it is the honest gap on that surface and it is worth its own small item rather
+than being folded into a closed one.
