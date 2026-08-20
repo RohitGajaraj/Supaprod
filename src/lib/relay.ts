@@ -49,66 +49,6 @@ export function mapRelayStatus(s: string | null | undefined): RelayStatus {
   }
 }
 
-export type StationState = {
-  station: AgentStation;
-  /** The station label shown on the spine. */
-  name: string;
-  /** The static outcome line: what this station is for. */
-  outcome: string;
-  /** The live status of work at this station right now. */
-  status: RelayStatus;
-  /** A live one-liner: a running agent's task, the latest handoff into the station, or a rest line. */
-  note: string;
-  /** How many cast agents are running here right now. */
-  runningCount: number;
-  /** The cast agent slugs active (running or at a gate) at this station. */
-  agentSlugs: string[];
-};
-
-/** Roll the live swarm HUD up into the six-station spine state. */
-export function rollUpStations(hud: SwarmHud | null | undefined): StationState[] {
-  const agents = hud?.agents ?? [];
-  const handoffs = hud?.handoffs ?? [];
-  const approvals = hud?.approvals ?? [];
-
-  return AGENT_STATION_ORDER.map((station) => {
-    const here = agents.filter(
-      (a) =>
-        agentTier(a.slug) === "cast" &&
-        !isConductor(a.slug) &&
-        resolveStationTotal(a.slug) === station,
-    );
-    const active = here.filter((a) => {
-      const st = mapRelayStatus(a.latest_run?.status);
-      return st === "running" || st === "gate";
-    });
-    const running = active.filter((a) => mapRelayStatus(a.latest_run?.status) === "running");
-    const gateHere =
-      active.some((a) => mapRelayStatus(a.latest_run?.status) === "gate") ||
-      approvals.some((ap) => !!ap.agent_slug && resolveStationTotal(ap.agent_slug) === station);
-
-    const inboundHere = handoffs
-      .filter((h) => resolveStationTotal(h.to_agent_slug) === station)
-      .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))[0];
-
-    let note = "Clear";
-    if (running[0]?.latest_run?.input) note = running[0].latest_run.input;
-    else if (inboundHere?.task) note = inboundHere.task;
-
-    const status: RelayStatus = gateHere ? "gate" : running.length > 0 ? "running" : "idle";
-
-    return {
-      station,
-      name: AGENT_STATIONS[station].name,
-      outcome: AGENT_STATIONS[station].blurb,
-      status,
-      note: note.slice(0, 140),
-      runningCount: running.length,
-      agentSlugs: active.map((a) => a.slug),
-    };
-  });
-}
-
 export type RelayStep = {
   runId: string;
   slug: string;

@@ -145,27 +145,6 @@ function stationOfMember(members: MemberRow[], artifactId: string): string | nul
   return members.find((m) => m.artifact_id === artifactId)?.station ?? null;
 }
 
-/**
- * One line per turn, in the product's voice.
- *
- * Written as what the agent DID, not as a status word, because "Design:
- * completed_with_failures" tells a person nothing they can act on while "Design
- * drafted a prototype" tells them what they now have.
- */
-export function describeTurn(t: Turn): string {
-  if (t.outcome === "working") return `${t.agentName} is working`;
-  if (t.outcome === "waiting") return `${t.agentName} is queued`;
-
-  if (t.made.length) {
-    const counted = countKinds(t.made);
-    return `${t.agentName} filed ${counted}`;
-  }
-  // The honest nothing. A turn that produced no artifact is the case a person
-  // most needs to see, so it is stated plainly rather than dressed as progress.
-  if (t.outcome === "stopped") return `${t.agentName} stopped without filing anything`;
-  return `${t.agentName} finished without filing anything`;
-}
-
 /** "2 signals and a spec", never "2 signal(s)". */
 export function countKinds(made: Turn["made"]): string {
   const byKind = new Map<string, number>();

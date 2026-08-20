@@ -3386,3 +3386,96 @@ re-counts is how it rotted the first time.
 **Gates.** All four green, `docs:check` run unpiped with `$?` read directly. tsc 0 errors, which is
 the real proof nothing outside the folder imported any of the 38. **9,991 pass / 0 fail** / 23 skip /
 60 todo across 591 files. Build clean. `lane:gates` last line `GATES GREEN`.
+
+---
+
+## K-35 · BUILT · 2026-08-20 14:02
+
+**Did.** Deleted `src/lib/testing/tanstack-query-mocks.ts`, 189 lines, zero importers. Ground:
+**BROKEN AS WRITTEN**, and I confirmed both defects by reading the file rather than repeating the
+item.
+
+- **`createMockUseMutation` destructures `{ mutationFn }` and never uses it.** Its body calls
+  `manager.getMutationState("default")` with a literal, so `setMutationState(name, ...)` writes into
+  a keyed map the hook can only read one slot of, and **two mutations on one panel get the same
+  state.** The comment above the line admits it: "For a real implementation, we'd track multiple
+  mutations."
+- **`createMockUseServerFn` does `serverFn?.name || "unknown"`.** A TanStack `createServerFn` wrapper
+  carries no stable `Function.name`, so this resolves to `"unknown"` or a minified name and
+  `getServerFnMock` falls through to a default returning `{}`. **The default is silent, so a test
+  that thought it had mocked a server function gets a fake pass rather than an error.**
+
+Zero importers verified across `src`, `test`, `e2e` and `scripts`. The only matches anywhere are the
+defining file, `docs/operations/testing/archive/coverage-gaps-late-july.md` (the archived document
+that commissioned it, which still marks it implemented), and generated graphify artifacts.
+
+**The pattern that works, recorded so the next agent looking for a harness finds it.** Real
+`mock.module` calls at the top of the test file, before any import of the component under test.
+`src/components/ask/__tests__/AskPane.test.tsx` is the reference with 8 of them (lines 28, 39, 47, 55,
+67, 81, 87, 102; a ninth occurrence at 75 is prose in a comment), and
+`GlobalComposer.test.tsx` has 5. Neither imports the deleted harness. The live sibling
+`src/lib/testing/threads-mock.ts` stays, and is how a process-wide `mock.module` is kept resettable
+between files.
+
+**Unsure.** Nothing. The delete is unambiguous.
+
+**Noticed.** `ApprovalsPanel.test.tsx` is confirmed and worse than the item says. It is at
+`src/components/governance/ApprovalsPanel.test.tsx`, not under a `__tests__/` folder, so it does not
+match the sibling convention. Of its 26 `mock.module` occurrences, one is prose and **25 are
+`// TODO: needs the mock.module harness` comments.** It declares 27 tests and the whole file contains
+**one** `expect(`. So **26 tests assert nothing and pass.** Not mine, not touched, and a much better
+use of a future item's budget than the harness that was deleted.
+
+---
+
+## K-36 · BUILT · 2026-08-20 14:05
+
+**Did.** Removed `rollUpStations` and its `StationState` type from `src/lib/relay.ts`, and
+`describeTurn` from `src/lib/spine/activity.ts`, both with their doc comments and with no stray
+blank-line pairs. Ground: **BROKEN AS WRITTEN** for both, and the bug behind that ground is real.
+
+Both traps in the item were correct and both were avoided. Using **148** rather than 155 took the
+"One line per turn, in the product's voice" block out with the function, so line 148 is now the
+`/** "2 signals and a spec", never "2 signal(s)". */` comment sitting correctly on `countKinds`. The
+two consecutive blank lines at 51 and 111 in `relay.ts` are closed.
+
+**## The status-mapping bug is real, it is bigger than the item says, and I did not fix it**
+
+`mapRelayStatus` at `relay.ts:36-38` has a done arm of exactly `case "completed": case "done":` and
+**no arm anywhere for `completed_with_failures` or for bare `complete`**, so both fall to
+`default: return "idle"`. The production distribution is recorded in
+`src/lib/ai/mission-advance.server.ts:90-92` over all 1,135 `agent_runs`:
+
+    completed 541 · completed_with_failures 452 · failed 126 · halted 7 · waiting_approval 7 · complete 2
+
+**So roughly 40% of every run in the database maps to `idle` in the relay**, plus a second spelling
+that exists in the data. A run that reached an answer with a failed tool step reads to a user as
+though nothing happened there. And `idle` is the value the calm vocabulary uses for "nothing to say",
+so **the misread is silent: no fail hue, no gate, no line.**
+
+**That is why deleting beat keeping.** `rollUpStations` was 59 lines whose entire job was folding
+that mapper's output into per-station status, with no test file on `relay.ts` pinning any of it.
+Keeping it kept a second, unexercised consumer of a known-wrong mapping for anyone to copy. **Fixing
+the mapper is a different item**, because the four surviving exports depend on its current behaviour.
+
+**Unsure.** Whether bare `complete` is still being written today or is only those 2 historical rows.
+That needs a live read. Either way the mapper has no arm for it.
+
+**Noticed.** **`mapRelayStatus` is the fifth normaliser and it is not in the inventory.**
+`src/lib/run-status.ts:11-25` documents this exact family of defect and enumerates four, naming
+`completed_with_failures` and what each does with it. This is a fifth, and it knows four spellings the
+canonical layer does not (`awaiting_review`, `gate`, `planned`, `ready`). **Same finding arrived
+independently from K-26 in this batch**, which is the strongest argument for adding it to the register
+rather than to a comment.
+
+**Gates for both.** `lane:gates` green, last line read directly. **9,991 pass / 0 fail** / 23 skip /
+60 todo / 26,691 expect() across 591 files. Neither item's files appear in the ratchet baseline, so no
+re-freeze was needed and `design:ratchet` was not run.
+
+**One thing about the gate output in this batch, because it would mislead a reader.** Six items were
+built in parallel in one worktree and the gates read red twice on things belonging to a sibling item:
+once on the ratchet's rule 3 listing 37 reclaimed `src/components/ui/*` counts, which was **K-27
+landing before it re-froze the baseline**, and once on `docs:check` reporting 7 spurious orphans under
+`docs/conventions/`, which is the `/tmp/dd_referenced.txt` race K-27's entry documents. **Neither was
+caused by these items**, both were green on the merged tree, and the figures above are from the final
+run.
