@@ -160,12 +160,16 @@ export type AgentSession = {
 function Row({
   session,
   selected,
+  entry = false,
   replying,
   onAskReply,
   onCloseReply,
 }: {
   session: AgentSession;
   selected: boolean;
+  /** The list's single resident tab stop while nothing is selected. See the
+   *  argument at the call site: without it the inbox is unreachable by keyboard. */
+  entry?: boolean;
   replying: boolean;
   onAskReply: () => void;
   onCloseReply: () => void;
@@ -194,7 +198,7 @@ function Row({
          * inside a row. A `<ul>` of `<li>` carrying that markup is invalid where
          * this is merely plain.
          */
-        tabIndex={selected ? 0 : -1}
+        tabIndex={selected || entry ? 0 : -1}
         role="option"
         aria-selected={selected}
         /*
@@ -397,6 +401,25 @@ export function AgentInbox({
           const rowProps = (session: AgentSession) => ({
             session,
             selected: selected === session.id,
+            /*
+             * THE WAY IN, AND WITHOUT IT THE LIST HAD NONE.
+             *
+             * A roving tabindex needs exactly one resident `0`, and this one had
+             * none until something was selected. Every row read `-1`, the wrapper
+             * carrying the keydown handler has no `tabIndex` of its own, and the
+             * listbox computed `-1` too, so measured in a real browser **25
+             * consecutive Tab presses never landed inside the inbox.** The only
+             * way in was a mouse, and clicking focuses a row without selecting it
+             * on purpose (see the note on the missing focus handler above), so the
+             * keyboard shortcuts stayed unreachable until a click and then a `j`.
+             *
+             * `entry` is true for the FIRST row in the flattened visible order
+             * while nothing is selected, and false the instant something is. So
+             * the count of tabbable rows is exactly one at every moment, which is
+             * the whole contract, and Tab lands on the top of the list, which is
+             * the row a triage surface should hand you first.
+             */
+            entry: selected === null && order[0] === session.id,
             replying: replyingTo === session.id,
             onAskReply: () => setReplyingTo(session.id),
             onCloseReply: () => setReplyingTo(null),

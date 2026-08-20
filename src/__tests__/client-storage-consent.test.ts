@@ -232,7 +232,13 @@ const DECLARED_SESSION = [
   "supaprod.onboarding.startTime", // necessary
   "supaprod-machine-view", // functional
   "supaprod:landing-session", // measurement
-  "supaprod:recents", // functional
+  /* `supaprod:recents` is GONE, 2026-08-20, with `src/lib/palette-recents.ts`.
+     Its only writer was `pushRecent`, which nothing ever called, so the key was
+     never written and the palette's Recent section had returned an empty array
+     for every user since it shipped. **This guard is what caught the stale
+     classification**, in the direction that matters least often and is easiest to
+     leave rotting: a policy naming a key the product no longer writes describes a
+     storage footprint that does not exist. */
   "supaprod_demo_session", // necessary
 ];
 

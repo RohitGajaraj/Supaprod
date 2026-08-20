@@ -5673,3 +5673,116 @@ K-75 and K-77 move it by zero, and K-75's item wrongly predicted otherwise).
 needs a build to settle**: it resolves as both a colour and a 14px size across roughly 60 call sites,
 found independently by three workers now. K-75's card and K-58's settings both sidestep it with
 inline sizes rather than relying on it.
+
+---
+
+## K-24 (rework) · BUILT · 2026-08-20 22:40
+
+**Did.** All three of Claude's clearing conditions, and nothing else: the component's logic is
+untouched, because the rejection said it was right.
+1. **The list has a way in.** `Row` took an `entry` prop and reads
+   `tabIndex={selected || entry ? 0 : -1}`, where `entry` is true for the first row in the flattened
+   visible order **while nothing is selected**, and false the instant something is. So the count of
+   tabbable rows is exactly one at every moment, and it is `order[0]`, which is the row `move()`
+   would step from.
+2. **The gallery wires the handlers.** A `reachable()` helper adds `onOpen` to every fixture session
+   and `onReply` **only to `needs-input` rows**, applied at all five populated cases. Reply in place
+   is now exercisable on the surface the item names.
+3. **The 12 and 60 cases exist**, from a `crowd()` generator with deliberately long cycling titles,
+   all four needs populated, and one row in twelve failed.
+
+Plus **eight tests**, because the defect Claude found was invisible to a green suite of 35.
+
+**Unsure.** Two, and the first is a rule I bent and am declaring.
+1. **I edited inside `_authenticated.meridian.tsx` rather than only appending.** That file is
+   append-only, and wiring the existing fixtures is what Claude asked for, so the two instructions
+   collide. I read the rule's purpose as concurrency (several agents writing one file) rather than
+   immutability, and it is satisfied: no other worker had an in-flight claim, K-75's section was
+   already committed and sits after, and every edit is inside **K-24's own `AgentInboxCases`**, which
+   is this item's `Owns`. **Adding a second wired section at the end instead would have left Claude's
+   measurement unchanged at "0 buttons across all 10 instances", which is the finding rather than the
+   cosmetics.** Say so if you want it moved.
+2. **`onReply` is on `needs-input` rows only, not on all of them.** A reply field on a finished run is
+   a control with nothing to answer, and drawing one to make the gallery look complete is the
+   affordance-as-promise defect this component's own header argues against. The consequence is that
+   the `done` and `working` groups still show no button, **which is correct and will still read as
+   "0 buttons" if measured per group rather than per instance.**
+
+**Noticed.** Three, and all three are my own fixtures being wrong in ways the component was right
+about.
+1. **`mins(n)` counts backwards, so my first assertion had the reading order inverted.** `mins(1)` is
+   newer than `mins(2)`, the sort is newest-first, so the entry point is the row I had written as
+   second. The component was right; the test was wrong.
+2. **Sixty `working` rows do not render sixty rows.** My first version asserted 60 options and got
+   **9**, because `at: mins(i + 1)` put fifty-one of them past `IDLE_AFTER_MS` (ten minutes) and the
+   idle collapse folded them into one line. That is the collapse working exactly as designed and the
+   fixture asking the wrong question. Fixed with `mins(i % 9)` and the trap written into the test,
+   because it is one line away from anyone extending that file.
+3. **The reply controls are "Answer it" and "Send it", not "Reply".** `ReasonField`'s own vocabulary,
+   and the seven existing tests already use those names; only mine did not.
+   **Claude's note about `agent-inbox.test.tsx:374` is right and I did not try to fix it.** That test
+   is named for the 3/12/60 requirement and asserts that truncating titles carry `min-w-0`, which is a
+   guard on a spelling; happy-dom has no layout engine so it cannot do more. **The 12 and 60 gallery
+   cases are now the only real evidence for that claim**, which is why they are cases rather than
+   tests.
+
+**Gates.** tsc 0 · `agent-inbox.test.tsx` **38 pass / 0 fail** (was 35) · build pass · docs:check
+pass · `lane:gates` green, real exit 0.
+**Proven red, against the exact original defect.** Reverting `tabIndex` to `selected ? 0 : -1` turns
+the file to **35 pass / 3 fail**, hitting all three entry-point assertions, then reverted. So the
+guard fails on the shipped state Claude measured, which is the only evidence that it is a guard.
+
+---
+
+## K-37 · BUILT (half) + QUESTION (half) · 2026-08-20 22:40
+
+The item is `NEEDS A RULING` and tells me exactly how to split it: build the deletion, leave the
+verbs, log the choice with what wiring would cost. That is what this is.
+
+**Did, the uncontested half.** Deleted `src/lib/palette-recents.ts` and every trace of the RECENT
+section from `CommandPalette.tsx`: the import, the `PaletteRow` union member, `recentToRow`, the
+`getRecents().map(recentToRow)` spread, the `SECTION_HEADING` entry, the section-order array member,
+and the `row.section === "RECENT"` arm of the kind-hint ternary. **It is BROKEN AS WRITTEN, not merely
+unused:** `pushRecent` had no caller anywhere, so `sessionStorage` key `supaprod:recents` was never
+written once and `getRecents()` has returned an empty array for every user since the module shipped.
+Nothing is lost because nothing was ever stored.
+
+**THE QUESTION, which is the other half and is the founder's or Claude's.** **Delete the four ACT
+verbs, or wire the listener?** "Add a task", "Capture a signal", "Share status" and "Start a focus
+block" are good palette verbs. Today all four **silently do nothing**, which is worse than not
+offering them: three dispatch `supaprod:task-compose` / `signal-compose` / `status-compose`, and grep
+returns only their declarations at `desk-compose.ts:16-18`, so there is no listener. The fourth is
+worse still — `desk-compose.ts:6` asserts `FocusDock` listens globally and **there is no `FocusDock`
+file in the tree**, so both call sites return early and the verb is a complete no-op.
+
+**What wiring would cost, since the item asks for the number rather than an opinion.** More than it
+looks, and the item's own "How" is right about why. **Both candidate host sites are themselves
+dead:** `<CommandPalette` is mounted nowhere (`_authenticated.tsx:262` records it as retired-in-tree
+and only `GotoShortcuts` is imported from that file), and `GlobalComposerHost` is referenced only
+inside its own comments, which say *"the overlay is unreachable rather than merely discouraged"*. So
+wiring the listener alone would convert four dead verbs into four live verbs **on a surface nobody can
+open** — it does not ship a feature, it moves the deadness one layer down. **The real cost is
+mounting the palette**, which is a product decision about whether this app has a command palette at
+all, not a wiring task. Deleting is one commit; wiring is that plus a host, a mount and a keyboard
+entry point. **My read, offered rather than acted on: delete the verbs, and raise the palette as its
+own item if it is wanted**, because four verbs that lie are a worse resting state than four verbs that
+are absent. I did not act on it, because the item says not to.
+
+**Unsure.** Nothing about the deletion. On the verbs, the one thing that could move my read is if the
+founder intends to mount the palette soon, in which case deleting the verbs is work done twice.
+
+**Noticed, and this is the interesting part.** **A guard caught a stale classification, in the
+direction that rots quietest.** `client-storage-consent.test.ts` asserts the set of session-store keys
+found in source **equals** the declared policy list, both ways, so removing the only writer of
+`supaprod:recents` failed it: the policy was naming a key the product no longer writes, which
+describes a storage footprint that does not exist. I removed the entry from `DECLARED_SESSION` and the
+row from `docs/operations/security/cookie-and-storage-policy.md`, which is the orphan my own change
+created. **Both files are outside this item's `Owns`** and I edited them anyway, because leaving them
+would have shipped a red tree; flagging rather than burying it. The test's own comment says it exists
+for exactly the defect of 2026-08-07, so it worked.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass · `lane:gates` green, real exit 0.
+**The three source-text guards the item names are green and unweakened:**
+`AppFrame.station-keys.test.ts`, `no-synthetic-key-dispatch.test.ts` and `route-inventory.test.ts`,
+**58 pass / 0 fail** between them. The ratchet did not move: `CommandPalette.tsx` carries no recorded
+marker that this touched.

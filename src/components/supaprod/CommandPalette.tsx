@@ -8,7 +8,6 @@ import {
   type ActVerb,
   type JumpDestination,
 } from "@/lib/palette-sections";
-import { getRecents, type RecentObject } from "@/lib/palette-recents";
 import { OPEN_MODAL_SELECTOR } from "@/lib/overlay";
 import { PRIMARY_NAV, FOOTER_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav-model";
 import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
@@ -39,7 +38,6 @@ type PaletteRow =
       to: string;
       search?: Record<string, string>;
     }
-  | { section: "RECENT"; label: string; kind: string; to: string; search?: Record<string, string> }
   | { section: "ACT"; label: string; to: string; search?: Record<string, string>; event?: string }
   | { section: "ASK"; label: string; intent: string }
   | {
@@ -71,10 +69,6 @@ const SETTINGS_ROWS: PaletteRow[] = FOOTER_NAV.map((d) => ({
 
 function actToRow(v: ActVerb): PaletteRow {
   return { section: "ACT", label: v.label, to: v.run.to, search: v.run.search, event: v.run.event };
-}
-
-function recentToRow(r: RecentObject): PaletteRow {
-  return { section: "RECENT", label: r.label, kind: r.kind, to: r.to, search: r.search };
 }
 
 function catalogToRow(c: CatalogEntry): PaletteRow {
@@ -117,7 +111,6 @@ export function CommandPalette() {
         ...JUMP_DESTINATIONS.map(jumpToRow),
         ...SETTINGS_ROWS,
         ...ACT_VERBS.map(actToRow),
-        ...getRecents().map(recentToRow),
       ];
     }
     const ql = q.toLowerCase();
@@ -198,11 +191,10 @@ export function CommandPalette() {
     JUMP: "Jump",
     SETTINGS: "Settings",
     ACT: "Act",
-    RECENT: "Recent",
     ASK: "Ask",
     CATALOG: "Catalog",
   };
-  for (const label of ["JUMP", "SETTINGS", "ACT", "RECENT", "ASK", "CATALOG"]) {
+  for (const label of ["JUMP", "SETTINGS", "ACT", "ASK", "CATALOG"]) {
     const items = bySection.get(label);
     if (items?.length) sectioned.push({ label, items });
   }
@@ -317,11 +309,9 @@ export function CommandPalette() {
                         : row.section === "ASK" ||
                             (row.section === "ACT" && row.event === "supaprod:open-ask")
                           ? "⌘J"
-                          : row.section === "RECENT"
+                          : row.section === "CATALOG"
                             ? row.kind
-                            : row.section === "CATALOG"
-                              ? row.kind
-                              : undefined;
+                            : undefined;
                     const index = String(i + 1).padStart(2, "0");
                     return (
                       <div

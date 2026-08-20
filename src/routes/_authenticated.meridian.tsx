@@ -2206,6 +2206,29 @@ function AgentInboxCases() {
   const now = 1_760_000_000_000;
   const mins = (n: number) => now - n * 60_000;
 
+  /*
+   * THE HANDLERS, AND WITHOUT THEM HALF THIS COMPONENT WAS UNREACHABLE ON THE
+   * ONE SURFACE THAT DRAWS IT.
+   *
+   * `Row` draws its reply control only where `session.onReply` is defined and
+   * treats a row as clickable only where `onOpen` is. Neither appeared anywhere
+   * in this file, so measured in the running app there were **zero buttons inside
+   * rows across every instance**, and "reply in place works without a route
+   * change" could not be exercised at all. The unit tests passed because four of
+   * them wire `onReply` themselves, which is exactly the shape this lane exists to
+   * catch: the component was right and the surface never showed it.
+   *
+   * `onReply` goes only where a row is actually ASKING something. A reply field on
+   * a finished run is a control with nothing to answer, and drawing one to make a
+   * gallery look complete would be the affordance-as-promise defect.
+   */
+  const reachable = (list: AgentSession[]): AgentSession[] =>
+    list.map((s) => ({
+      ...s,
+      onOpen: () => {},
+      onReply: s.need === "needs-input" ? () => {} : undefined,
+    }));
+
   const morning: AgentSession[] = [
     {
       id: "m1",
@@ -2245,31 +2268,33 @@ function AgentInboxCases() {
   return (
     <Stack>
       <Case label="A working morning, which is all four groups at once">
-        <AgentInbox sessions={morning} now={now} />
+        <AgentInbox sessions={reachable(morning)} now={now} />
       </Case>
 
       <Case label="Nothing running, which is a good state rather than an empty one">
-        <AgentInbox sessions={morning.filter((s) => s.need !== "working")} now={now} />
+        <AgentInbox sessions={reachable(morning.filter((s) => s.need !== "working"))} now={now} />
       </Case>
 
       <Case label="Everything blocked on one person, which is a policy failure to surface">
         <AgentInbox
           now={now}
-          sessions={[1, 2, 3, 4].map((n) => ({
-            id: `b${n}`,
-            title: ["Shorten the verify step", "Drop the Zendesk source", "Raise the daily ceiling", "Rename the Plan station"][n - 1]!,
-            need: "needs-input" as const,
-            activity: "waiting on you",
-            agentSlug: ["critic", "researcher", "operations", "ux-architect"][n - 1]!,
-            at: mins(n * 20),
-          }))}
+          sessions={reachable(
+            [1, 2, 3, 4].map((n) => ({
+              id: `b${n}`,
+              title: ["Shorten the verify step", "Drop the Zendesk source", "Raise the daily ceiling", "Rename the Plan station"][n - 1]!,
+              need: "needs-input" as const,
+              activity: "waiting on you",
+              agentSlug: ["critic", "researcher", "operations", "ux-architect"][n - 1]!,
+              at: mins(n * 20),
+            })),
+          )}
         />
       </Case>
 
       <Case label="One agent failed, and it is still the group it needs rather than a fifth one">
         <AgentInbox
           now={now}
-          sessions={[
+          sessions={reachable([
             {
               id: "f1",
               title: "Open the pull request behind a flag",
@@ -2289,14 +2314,14 @@ function AgentInboxCases() {
               at: mins(34),
             },
             ...morning.filter((s) => s.need === "working"),
-          ]}
+          ])}
         />
       </Case>
 
       <Case label="Five have gone quiet, so they fold into one line that says how many">
         <AgentInbox
           now={now}
-          sessions={[
+          sessions={reachable([
             ...[1, 2, 3, 4, 5].map((n) => ({
               id: `q${n}`,
               title: `A piece of work nobody has heard from, number ${n}`,
@@ -2306,8 +2331,32 @@ function AgentInboxCases() {
               at: mins(20 + n),
             })),
             ...morning.filter((s) => s.need === "working"),
-          ]}
+          ])}
         />
+      </Case>
+
+      {/*
+       * THE TWO SIZES THE ITEM ASKS ABOUT AND THE GALLERY DID NOT HOLD.
+       *
+       * The acceptance line is 3, 12 and 60 sessions with every row inside its
+       * container, and the largest case here was 6, so the claim had nothing on
+       * this surface to stand on. `agent-inbox.test.tsx:374` is named for the
+       * requirement and cannot measure it either: it asserts that every truncating
+       * title also carries `min-w-0`, which is a guard on a spelling rather than on
+       * a width, and happy-dom has no layout engine so it could not do more.
+       *
+       * These two cases are the layout claim's only real evidence, and they are
+       * here rather than in a test because the thing being claimed is a rendered
+       * width. 60 is also the size at which the ONE tab stop stops being a nicety:
+       * without it, sixty rows are sixty stops between this list and anything
+       * after it.
+       */}
+      <Case label="Twelve sessions, where the groups start doing the work rather than the scroll">
+        <AgentInbox now={now} sessions={reachable(crowd(12, mins))} />
+      </Case>
+
+      <Case label="Sixty sessions, which is why the whole list is one tab stop">
+        <AgentInbox now={now} sessions={reachable(crowd(60, mins))} />
       </Case>
 
       <Case label="Nothing needs you, drawn as one sentence and silence">
@@ -2315,6 +2364,45 @@ function AgentInboxCases() {
       </Case>
     </Stack>
   );
+}
+
+/**
+ * A CROWDED INBOX, GENERATED RATHER THAN TYPED OUT SIXTY TIMES.
+ *
+ * The titles are long on purpose: a short title cannot fail to fit, so a fixture
+ * built from short ones would prove nothing about the truncation it exists to
+ * exercise. They cycle rather than repeat, so a reader can tell one row from the
+ * next and see that the order inside a group is newest first.
+ *
+ * The needs cycle across all four groups so every group is populated at both
+ * sizes, and one row in twelve is marked failed, which is roughly what a bad
+ * afternoon looks like and is enough to show the chip inside two different
+ * groups.
+ */
+function crowd(count: number, mins: (n: number) => number): AgentSession[] {
+  const needs = ["needs-input", "ready", "working", "done"] as const;
+  const titles = [
+    "Shorten the verify step so a new account reaches the first screen without waiting for an email",
+    "Read the Zendesk backlog for the last fourteen days and cluster it by what people actually wanted",
+    "Open the pull request behind a flag, with the migration written and the rollback named",
+    "Post the change to the release channel and link the spec it was built against",
+    "Grade the shorter verify step against what the team said would happen before it shipped",
+  ];
+  const slugs = ["critic", "researcher", "builder", "release", "data-analyst"] as const;
+
+  return Array.from({ length: count }, (_, i) => ({
+    id: `c${i}`,
+    title: `${titles[i % titles.length]!} (${i + 1})`,
+    need: needs[i % needs.length]!,
+    activity: i % 4 === 0 ? "waiting on you" : "still going",
+    asking:
+      i % 4 === 0
+        ? "Keep the email confirmation, or drop it and verify on first sign-in?"
+        : undefined,
+    failed: i % 12 === 7,
+    agentSlug: slugs[i % slugs.length]!,
+    at: mins(i + 1),
+  }));
 }
 
 /*

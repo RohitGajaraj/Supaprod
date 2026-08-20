@@ -569,3 +569,127 @@ describe("the selection has exactly one writer", () => {
     expect(document.querySelector('[aria-selected="true"]')?.id).toBe("agent-inbox-row-a");
   });
 });
+
+/**
+ * THE WAY IN, WHICH A GREEN SUITE MISSED ENTIRELY.
+ *
+ * Verified against the running app 2026-08-20 and rejected: `Row` carried
+ * `tabIndex={selected ? 0 : -1}`, which is a roving tabindex with NO INITIAL
+ * STOP. With nothing selected, the state every gallery instance renders in, every
+ * row was `-1`, the wrapper holding the keydown handler has no `tabIndex`, and
+ * the listbox computed `-1` too. **25 consecutive Tab presses never landed inside
+ * the inbox.** The only way in was a mouse, and a click deliberately focuses
+ * without selecting, so `j` and `k` stayed unreachable until a click and then a
+ * key.
+ *
+ * Why the existing tests could not see it: every one of them either selects
+ * something first or fires the key on the wrapper directly, so they exercise the
+ * list from a state a keyboard user cannot reach. **The count of tabbable rows in
+ * the resting state is the assertion, and nothing was making it.**
+ */
+describe("AgentInbox — the list has exactly one way in", () => {
+  const two = [
+    session({ id: "a", title: "First", at: mins(1) }),
+    session({ id: "b", title: "Second", at: mins(2) }),
+  ];
+
+  it("holds one tabbable row before anything is selected, so Tab can arrive", () => {
+    const { container } = render(<AgentInbox now={NOW} sessions={two} />);
+    const stops = container.querySelectorAll('[role="option"][tabindex="0"]');
+    expect(
+      stops.length,
+      "a roving tabindex with no resident 0 is unreachable: Tab skips the whole list and the shortcuts never become available",
+    ).toBe(1);
+  });
+
+  it("puts that stop on the first row in reading order, not on an arbitrary one", () => {
+    /*
+     * Newest first inside a group, and `mins(n)` counts BACKWARDS from now, so
+     * "First" at one minute ago is the newer of the two and leads. The entry point
+     * has to be whatever the keyboard would move from, or the first `j` jumps
+     * somewhere the eye was not: `move()` reads `order.indexOf(selected)`, so the
+     * resident stop and `order[0]` have to be the same row.
+     */
+    const { container } = render(<AgentInbox now={NOW} sessions={two} />);
+    expect(container.querySelector('[role="option"][tabindex="0"]')?.id).toBe(
+      "agent-inbox-row-a",
+    );
+  });
+
+  it("still holds exactly one once a selection exists, which is the whole contract", () => {
+    const { container } = render(<AgentInbox now={NOW} sessions={two} />);
+    fireEvent.keyDown(container.firstElementChild!, { key: "j" });
+    const stops = container.querySelectorAll('[role="option"][tabindex="0"]');
+    expect(stops.length, "two resident tab stops, so Tab lands inside the list twice").toBe(1);
+    // And it moved WITH the selection rather than staying on the entry row.
+    expect(stops[0]!.id).toBe("agent-inbox-row-a");
+  });
+
+  it("holds one at sixty rows, which is where sixty stops would be the defect", () => {
+    /*
+     * Every `at` is inside `IDLE_AFTER_MS`, which is ten minutes, so none of these
+     * folds into the collapsed idle line and all sixty really render. Written the
+     * obvious way first, with `mins(i + 1)`, this rendered NINE options rather than
+     * sixty: fifty-one of them were over ten minutes old and `working`, so the
+     * collapse swallowed them. That is the component behaving correctly and the
+     * fixture asking the wrong question, and it is worth the comment because the
+     * same trap is one line away from anyone extending this file.
+     */
+    const many = Array.from({ length: 60 }, (_, i) =>
+      session({ id: `c${i}`, title: `Row ${i}`, at: mins(i % 9) }),
+    );
+    const { container } = render(<AgentInbox now={NOW} sessions={many} />);
+    expect(container.querySelectorAll('[role="option"]').length).toBe(60);
+    expect(container.querySelectorAll('[role="option"][tabindex="0"]').length).toBe(1);
+  });
+});
+
+/**
+ * REPLY IN PLACE IS DRAWN ONLY WHERE THERE IS SOMETHING TO ANSWER.
+ *
+ * The acceptance line is that reply in place works without a route change, and it
+ * could not be exercised in the running app at all: `Row` draws the control only
+ * where `session.onReply` is defined, and `onReply` appeared **zero times** in the
+ * gallery, so `buttons inside rows: 0` across every instance. The unit tests
+ * passed because four of them wire it themselves.
+ *
+ * The gallery now wires it, and this is the guard on the shape of that wiring: a
+ * reply field on a finished run is a control with nothing to answer, so the
+ * absence is asserted as well as the presence.
+ */
+describe("AgentInbox — the reply control follows the question", () => {
+  it("draws no control on a row nobody passed a reply handler for", () => {
+    const { container } = render(
+      <AgentInbox now={NOW} sessions={[session({ id: "a", title: "First", at: mins(1) })]} />,
+    );
+    expect(
+      container.querySelectorAll("button").length,
+      "a reply control appeared with no handler behind it, which is an affordance that is a promise",
+    ).toBe(0);
+  });
+
+  it("draws it, opens it and hands the text back where a handler exists", () => {
+    const said: string[] = [];
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[
+          {
+            ...session({ id: "a", title: "First", at: mins(1) }),
+            need: "needs-input",
+            asking: "Keep the email confirmation, or drop it?",
+            onReply: (text: string) => said.push(text),
+          },
+        ]}
+      />,
+    );
+    // "Answer it" opens it and "Send it" commits, which is `ReasonField`'s own
+    // vocabulary rather than the generic word for the mechanic.
+    fireEvent.click(screen.getByRole("button", { name: "Answer it" }));
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "Drop it." } });
+    fireEvent.click(screen.getByRole("button", { name: "Send it" }));
+    expect(said, "the reply never reached the caller, so reply in place is decorative").toEqual([
+      "Drop it.",
+    ]);
+  });
+});

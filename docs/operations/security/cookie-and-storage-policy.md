@@ -64,7 +64,6 @@ Two keys are read or deleted and never written, so they are migration debris rat
 | `supaprod.onboarding.justLanded` | [`ObsidianOnboarding.tsx:1001`](../../../src/components/onboarding/ObsidianOnboarding.tsx) | A one-shot handoff to Today, removed as it is read. | necessary |
 | `supaprod.onboarding.criticReview` | [`ObsidianOnboarding.tsx:1126`](../../../src/components/onboarding/ObsidianOnboarding.tsx) | The review just produced, handed to Today, removed as it is read. | necessary |
 | `supaprod.credits.low-dismissed` | [`src/components/billing/BillingBanner.tsx:106`](../../../src/components/billing/BillingBanner.tsx) | A banner dismissed for this tab. | functional |
-| `supaprod:recents` | [`src/lib/palette-recents.ts:43`](../../../src/lib/palette-recents.ts) | The palette's three most recent objects. | functional |
 | `supaprod-machine-view` | [`src/hooks/use-machine-view.tsx:30`](../../../src/hooks/use-machine-view.tsx) | Human or machine view. | functional |
 
 ---
