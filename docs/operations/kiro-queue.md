@@ -2496,6 +2496,59 @@ since it already carries the section explaining the distinction and is the survi
 
 ---
 
+# Group O · one class name that does two jobs
+
+**K-90 · `text-mrd-body` is both a colour and a font size**
+`STATUS: BUILT (guard) + FOUNDER QUESTION (the rename)` · deps: none · size: S for the guard, M for the rename
+**What.** Meridian declares its type scale as **13 explicit `@utility text-mrd-*` rules** setting `font-size`,
+and separately declares **60 colours as `--color-mrd-*`**, each of which Tailwind turns into a `text-mrd-*`
+rule setting `color`. **Exactly one name falls in both sets: `body`.** So `.text-mrd-body` compiles to two
+rules and **both always apply.**
+**Why, and this is measured in the built stylesheet rather than reasoned about.** `.output`'s compiled CSS
+carries both `font-size:var(--mrd-t-body)` and `color:var(--mrd-body)` under the one selector. **It is not a
+"which wins" bug, which is why it survived:** different properties do not conflict, so the class quietly does
+two jobs and every caller gets both. The bill lands on a caller who wanted one of them and also named a size.
+`--mrd-t-base` is **13px** and `--mrd-t-body` is **14px**, so `text-mrd-base font-medium text-mrd-body` asks
+for 13px and paints at 14px. **Class order in the attribute cannot fix it**, because stylesheet source order
+decides.
+**Measured 2026-08-21.** 167 `className` attributes name `text-mrd-body`. **157 use it for colour alone** and
+are harmless in practice, since they also silently pin the prose size they were probably going to get anyway.
+**10 are actively wrong**, each pairing it with a different size:
+| Where | Pairs with | Asks for | Paints at |
+| --- | --- | --- | --- |
+| `PlanCard`, `PlanGate`, `RunTimeline`, `AgentInbox`, `Flowchart`, `RunMap` | `text-mrd-base` | 13px | **14px** |
+| `Spend.tsx` | `text-mrd-label` | **12.5px** | **14px** |
+| `RunMap`, `Flowchart`, `run-rows` | `text-mrd-data` | data size | **14px** |
+**Six of them are the same idiom**, `text-mrd-base font-medium text-mrd-body`, meaning "card subject size,
+supporting-prose colour". It is a reasonable thing to want and there is no way to say it today.
+**Nothing else could have caught it.** Both halves are individually correct and current: `tsc` sees valid
+strings, the ratchet sees no retired token because both names are Meridian, and the undeclared-name guards in
+`src/styles/__tests__/` look for a name resolving to **nothing**, which is the opposite failure. Every gate was
+green.
+**How. The guard is built and the rename is not, on purpose.**
+- **BUILT:** `src/styles/__tests__/one-utility-name-means-one-thing.test.ts` fails the build on any *new*
+  collision between the colour set and the size set, and pins the known set to exactly `["body"]`. **Proven by
+  planting `--color-mrd-lead`**, which failed, then removing it. `body` is listed there because it is real and
+  unfixed, not because it is acceptable; **removing it from that list is the acceptance test for the rename**,
+  and the list only ever gets shorter.
+- **FOUNDER QUESTION:** which of the two loses the name. This is a Meridian naming decision, not a bug fix, so
+  it is not Kiro's to take. **Option A, rename the colour** (`--color-mrd-body` becomes something like
+  `--color-mrd-prose`): principled, because the 13-name type scale is the deliberate, enumerated namespace and
+  the 60-name colour ramp is the one that wandered into it. Cost: **157 call sites**. **Option B, rename the
+  size utility** (`text-mrd-body` becomes `text-mrd-copy`): cost is the 10 above plus any site meaning the
+  size, far fewer, but it renames the stop the scale itself calls "THE BASE. prose and anything read at
+  length", which is the name most likely to be reached for again. **Rejected already: adding an alias token so
+  both names survive.** The `--sp-radius-lg` post-mortem in `every-token-used-is-defined.test.ts` is a
+  standing ruling against exactly that: two vocabularies for one idea are guaranteed to drift.
+**Acceptance for the rename, when it is ruled.**
+- `KNOWN_COLLISIONS` in the guard is `[]`, and the guard's third `it` is updated rather than deleted.
+- The 10 sites above render at the size they ask for, checked in a browser at both grounds.
+- No alias, and no third name for either idea.
+**Owns.** `src/styles/__tests__/one-utility-name-means-one-thing.test.ts` (built). The rename would own
+`src/styles/meridian.css` plus its call sites.
+
+---
+
 ## Related
 
 - [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) — the direction this queue implements, with the evidence for every "why" above

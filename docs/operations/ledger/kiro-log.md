@@ -6761,3 +6761,54 @@ one when the SVG is deliberately hidden.
 **Nothing was changed.** Recording it because the alternative was filing an item to add attributes that would
 have made the surface worse, and because a finding that survives as a `worth a look` note is the kind that
 gets built later by someone with less context.
+
+---
+
+## K-90 · BUILT (guard) + QUESTION (the rename) · 2026-08-21 06:05 · one class name compiles to two rules, and both apply
+
+**Did.** Chased the highest-value item on the owed-to-a-browser list and it turned out to be measurable from
+the repo, so it did not need a browser at all. **`text-mrd-body` is both a colour and a font size**, and the
+proof is in the built stylesheet rather than in reasoning: `.output`'s compiled CSS carries **both**
+`font-size:var(--mrd-t-body)` and `color:var(--mrd-body)` under the one selector.
+
+**The mechanism.** Meridian declares 13 explicit `@utility text-mrd-*` rules for the type scale and 60
+`--color-mrd-*` tokens, each of which Tailwind turns into a `text-mrd-*` colour rule. **Exactly one name is in
+both sets.** **It is not a "which one wins" bug, and that is why it survived every gate:** different properties
+do not conflict, so the class quietly does two jobs and every caller gets both.
+
+**Measured, and it corrects the finding as filed.** The note said roughly 60 call sites. It is **167 `className`
+attributes across 84 files**, and the split is the part that matters: **157 use it for colour alone** and are
+harmless in practice, because the size they silently also get is the prose size they were probably heading for.
+**10 are actively wrong**, each pairing it with a different size, and stylesheet source order means **class
+order in the attribute cannot fix them**:
+- **Six are one idiom**, `text-mrd-base font-medium text-mrd-body`, in `PlanCard`, `PlanGate`, `RunTimeline`,
+  `AgentInbox`, `Flowchart` and `RunMap`. They ask for **13px** and paint at **14px**.
+- **`Spend.tsx` is the worst**, pairing `text-mrd-label` with it: asks for **12.5px**, paints at **14px**.
+- Three pair it with `text-mrd-data` (`RunMap`, `Flowchart`, `run-rows`).
+**The six are asking for something real that cannot be said today**: card-subject size with supporting-prose
+colour.
+
+**Built the half that needs no ruling.** `src/styles/__tests__/one-utility-name-means-one-thing.test.ts` fails
+on any **new** collision between the two sets and pins the known set to exactly `["body"]`. **Proven by
+planting `--color-mrd-lead`** against the existing `lead` size utility: the guard failed naming it, and passed
+again on removal, with `meridian.css` verified byte-identical to HEAD afterwards. A new file rather than an
+extension, because the two guards next to it look for a name resolving to **nothing** and this is the opposite
+failure, a name resolving to two things.
+
+**Did not do the rename, and it is a founder question rather than a blocked build.** Choosing which of the two
+loses the name is a Meridian naming decision. **Option A, rename the colour** is the principled one, since the
+13-name type scale is the deliberate enumerated namespace and the 60-name colour ramp is what wandered into it,
+but it costs **157 call sites**. **Option B, rename the size utility** costs the 10 plus any site meaning the
+size, far fewer, but it renames the stop the scale itself calls *"THE BASE. prose and anything read at
+length"*. **I rejected the obvious third option outright**: adding an alias so both names survive. The
+`--sp-radius-lg` post-mortem in `every-token-used-is-defined.test.ts` is a standing ruling against it, two
+vocabularies for one idea drift.
+
+**Noticed.** **`body` is in the guard's allow-list because it is real and unfixed, not because it is
+acceptable**, and the guard says so in its own comment. Emptying that list is the acceptance test for whoever
+takes the rename, and the list only ever shortens. Recording it that way rather than as a bare TODO because a
+guard that permits a defect silently is how the defect becomes the contract, which this repo has already paid
+for twice.
+
+**Gates.** The guard's own file 3 pass 0 fail, and 1 fail with the collision planted. `lane:gates` green, real
+exit 0.

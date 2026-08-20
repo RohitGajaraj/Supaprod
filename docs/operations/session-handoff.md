@@ -108,6 +108,113 @@ those three zeros become ones.**
 
 ---
 
+# ✅ SESSION CLOSED 2026-08-21 (later) · Kiro · the findings that were nobody's item are items now, and three guards exist that could not have caught their own defects
+
+**State at close.** Working tree clean, `HEAD` identical to `origin/main`, **0 ahead / 0 behind**,
+`lane:gates` green on all four with the exit read from `$?`. **Groups M, N and O were written and built after
+the queue was declared exhausted**, taking it from K-85 to **K-90**.
+
+**Why there was more work after "the queue is finished".** The queue was genuinely spent: all 85 items carried
+a closing entry. What was left sat in two other places. **Findings recorded while building other items and
+never written up**, and **a founder ruling that arrived after the close**. Both are invisible to a protocol
+that says "take the lowest-numbered `TODO`", which is worth knowing the next time this queue looks empty.
+
+**A note on reading the ledgers, because it cost me a wrong conclusion first.** The recorded timestamps are
+not reliably ordered: Claude stamped the K-30/K-43/K-59 verdict 22:05 against a build entry at 23:58, and
+K-83, K-84 and K-85 all carry verdicts stamped **earlier than the builds they verify**. **Presence of a verdict
+is the signal, not its timestamp.** Sorting by time reports nineteen items as open when none is.
+
+## What was built
+
+| Item | What |
+| --- | --- |
+| **K-86** | Two heading classes declared in no stylesheet, moved onto the scale that exists, **plus a guard** that fails on any `text-heading-*` / `text-copy-*` class no stylesheet declares. |
+| **K-87** | `src/router.tsx` speaks Meridian. **The scanner widening is BLOCKED and the block is correct**, see below. |
+| **K-88** | The connect-moment trust dialog off shadcn and Tempo v5 onto Meridian, no copy change, no prop change, three live call sites untouched. |
+| **K-89** | `StreamingText` and `ToolChips` deleted on the founder ruling, 1,198 lines, and the argument moved into `ToolStream.tsx`. |
+| **K-90** | **`text-mrd-body` is both a colour and a font size.** Guard built; the rename is a founder question. |
+
+**Debt: 3,355 → 3,346 occurrences, 230 → 229 files.**
+
+## Three questions waiting on the founder, and each comes with its numbers
+
+**1. K-90, and it is the new one.** `text-mrd-body` compiles to **two** rules, `font-size` and `color`, and both
+always apply. Not a "which wins" bug, which is why every gate stayed green: different properties do not
+conflict. **167 `className` attributes name it. 157 are harmless. 10 are actively wrong**, pairing it with a
+different size that it then overrides, and class order cannot fix it because stylesheet source order decides.
+Six are one idiom asking for 13px and painting at 14px; `Spend.tsx` asks for 12.5px and paints at 14px.
+**The question is which of the two loses the name.** Renaming the colour is principled and costs 157 sites;
+renaming the size utility costs far fewer but renames the stop the scale calls "THE BASE". **An alias is
+already ruled out** by the `--sp-radius-lg` post-mortem: two vocabularies for one idea drift.
+
+**2. K-87's second half, where a guard refused me and was right.** Widening the ratchet to see the top of `src`
+works, proven by planting a token and seeing it counted. Then `design:ratchet` **refused to write**, because it
+would raise permitted debt by 12 `raw-colour` occurrences. **All 12 are literal colours in documents that
+cannot reach the token layer** and both files say so themselves: `router.tsx` mounts before token layers load,
+and `server.ts`'s `renderBrandedErrorPage()` is the catastrophic 500 fallback. **No code changed; the guard's
+eyes changed.** But the script cannot tell that from the forbidden move, and **a guard that can be talked past
+is not a guard**, so the widening was reverted. Recommended path of three: **teach the rule that a colour inside
+`var(--mrd-*, <fallback>)` is already tokenised**, which clears all four in `router.tsx` as a principled
+repo-wide refinement rather than a carve-out.
+
+**3. K-37, unchanged from the earlier close.** The four ACT verbs, delete or mount the palette. Wiring the
+listener does not ship a feature, because both candidate hosts are themselves unreachable.
+
+**K-31 is no longer a question.** Claude's verdict narrowed it and then the deletion work settled it.
+
+## What changed in what we believe
+
+**A finding is not a work order, and three of five inverted on measurement.** This is the pattern worth keeping.
+- **K-86's** "two headings paint nothing" was true and **not visible**: both components have zero importers, so
+  it was a trap costing a page title the day one gets a door, not a live defect.
+- **K-87's** "a fifth copy of the failure surface" ignored that `RouteError`'s inline styles and its
+  no-animation rule are both **decisions with reasons in the file**. The token names were the defect.
+- **Claude's own K-82 follow-on was wrong and was not filed.** It reported the `InsightCards` chart as having no
+  accessible name. **It has one:** the chart is `aria-hidden` inside a focusable `role="group"` with an
+  `aria-label` and arrow-key scrubbing, and the segments view labels every segment. Adding a `<title>` to an
+  `aria-hidden` SVG does nothing, and `role="img"` would create a competing accessible object. **Filing it would
+  have made the surface worse.**
+- **The audit register's default was inverted once, on the record.** Its row for `StreamingText`/`ToolChips` read
+  as "these need doors". The answer was a grave, because their inputs do not exist in production. That row now
+  says so, and states the test: **whether a doorless capability's inputs exist in production.**
+
+**And the find that generalises.** K-89's deletion left a seventh reference **no identifier grep would ever have
+caught**: the surviving gallery note opened *"Tool chips above takes a finished array…"*, naming the deleted
+panel in **user-visible copy**. **An identifier grep is not a reference sweep when a component's name is also
+English.**
+
+## Still owed to a browser
+
+K-90 removed the top item from this list by measuring it instead. What is left:
+1. **`/settings` and `/pricing`**, the two surfaces that changed most in the earlier session.
+2. **A keyboard tab through the engine room, the runs table and the agent inbox in both grounds.**
+3. **K-88's trust dialog in both grounds.** Its one unmet criterion: the port was reasoned at token level and
+   **no browser check was done**, which the entry states rather than glosses.
+4. **The now-colourless notices section** from K-59.
+
+## Findings that are still nobody's item
+
+1. **The generated Supabase types are stale against applied migrations.** `learnings.decision_id`,
+   `learnings.product_id`, `agent_memory.product_id` applied 2026-08-19 and absent from `types.ts`, so **`tsc`
+   rejects three columns that exist.** Needs Lovable MCP, so it is not Kiro's.
+2. **`computeBrierScore` runs against `insights`, not `decisions`.** So the product scores claims it generates
+   about itself and cannot score the claims a person records. **The forecast thesis rests on this number.**
+3. **`agent_memory` holds zero rows of kind `outcome`**, confirmed against production, so the precedent pool has
+   never held a row and `supersededContent` has never fired. **Highest leverage on the list: one real loop
+   writing one real row**, and several other findings are downstream of it.
+4. **`Action` has no `aria-busy`.** It spreads `...rest`, so a caller *can* pass it; nothing sets it. Needs a
+   consumer to be worth adding under data-minimalism.
+5. Smaller: **Meridian's `Region` heading is 13px against `Row`'s 14px lead**, which reintroduces a defect
+   `primitives.css` documents at length.
+
+## How to resume
+
+Read [`./ledger/kiro-log.md`](./ledger/kiro-log.md) from the K-90 entry backwards. **K-86 through K-90 are
+`BUILT` and none has a verdict yet**, so Claude's next pass has five items and one of them, K-90, is a question
+rather than a build. **Truth about production is still the live database and not this file.**
+
+---
+
 # ✅ SESSION CLOSED 2026-08-21 · Kiro · the build queue is finished, and two questions are waiting on the founder
 
 **State at close.** Working tree clean, no untracked files, `HEAD` identical to `origin/main` at
