@@ -2511,16 +2511,28 @@ two jobs and every caller gets both. The bill lands on a caller who wanted one o
 `--mrd-t-base` is **13px** and `--mrd-t-body` is **14px**, so `text-mrd-base font-medium text-mrd-body` asks
 for 13px and paints at 14px. **Class order in the attribute cannot fix it**, because stylesheet source order
 decides.
-**Measured 2026-08-21.** 167 `className` attributes name `text-mrd-body`. **157 use it for colour alone** and
-are harmless in practice, since they also silently pin the prose size they were probably going to get anyway.
-**10 are actively wrong**, each pairing it with a different size:
-| Where | Pairs with | Asks for | Paints at |
-| --- | --- | --- | --- |
-| `PlanCard`, `PlanGate`, `RunTimeline`, `AgentInbox`, `Flowchart`, `RunMap` | `text-mrd-base` | 13px | **14px** |
-| `Spend.tsx` | `text-mrd-label` | **12.5px** | **14px** |
-| `RunMap`, `Flowchart`, `run-rows` | `text-mrd-data` | data size | **14px** |
-**Six of them are the same idiom**, `text-mrd-base font-medium text-mrd-body`, meaning "card subject size,
-supporting-prose colour". It is a reasonable thing to want and there is no way to say it today.
+**Measured 2026-08-21, and CORRECTED the same day by Claude against the running gallery. The corrected
+table is the one to act on; the original is kept below it because the way it was wrong is the useful
+part.** 167 `className` attributes name `text-mrd-body`. **161 are correct. Six are wrong**, and they are
+one idiom.
+| pairing | asks | paints | sites | verdict |
+| --- | --- | --- | --- | --- |
+| `text-mrd-base` + `text-mrd-body` | 13px | **14px** | 6 | **broken** |
+| `text-mrd-label` + `text-mrd-body` | 12.5px | 12.5px | 30 | correct |
+| `text-mrd-data` + `text-mrd-body` | 11.5px | 11.5px | 86 | correct |
+**`body` (14px) sits BETWEEN `base` (13px) and `label` (12.5px) / `data` (11.5px) in the emitted scale, so
+it beats `base` and loses to the other two.** The six broken ones are all
+`text-mrd-base font-medium text-mrd-body`, meaning "card-subject size, supporting-prose colour", in
+`PlanCard`, `PlanGate`, `RunTimeline`, `AgentInbox`, `Flowchart` and `RunMap`. It is a reasonable thing to
+want and there is no way to say it today.
+> **What the original filing got wrong, kept because it is the instructive half.** It claimed **10** wrong
+> sites across **three** idioms and named **`Spend.tsx` as "the worst"**, asking 12.5px and painting 14px.
+> **`Spend.tsx` is correct**: it pairs `text-mrd-label`, asks 12.5px and paints 12.5px. So are the three
+> `text-mrd-data` sites. **The filing had the cascade backwards for two of the three pairings**, because it
+> reasoned from stylesheet order instead of measuring the emitted scale, and stylesheet order is exactly
+> the thing that needed checking. **Both of us were wrong about which sites hurt** and in opposite
+> directions: the earlier note said "roughly 60 call sites", this filing said 167 and was right about the
+> total, and neither identified the six.
 **Nothing else could have caught it.** Both halves are individually correct and current: `tsc` sees valid
 strings, the ratchet sees no retired token because both names are Meridian, and the undeclared-name guards in
 `src/styles/__tests__/` look for a name resolving to **nothing**, which is the opposite failure. Every gate was
@@ -2540,9 +2552,22 @@ green.
   length", which is the name most likely to be reached for again. **Rejected already: adding an alias token so
   both names survive.** The `--sp-radius-lg` post-mortem in `every-token-used-is-defined.test.ts` is a
   standing ruling against exactly that: two vocabularies for one idea are guaranteed to drift.
-**Acceptance for the rename, when it is ruled.**
+**The mechanism is settled and only the NAME is open (Claude, 2026-08-21).** Option A, rename the colour,
+**as expand-then-rename**, which is behaviour-preserving and checkable: first rewrite all 167 sites to say
+size and colour explicitly, which changes nothing on screen because every one of them already gets both;
+then the rename is mechanical and the six broken sites can finally say what they mean. **That is what
+removes the silent-regression risk on the other 161**, which is the real cost of option A. **Confirm the
+codemod by diffing computed styles before and after, never by reading it.**
+**Still blocked, and specifically on the name rather than the approach.** The expand step writes
+`text-mrd-<new>` at 167 sites, so it cannot start until the new colour name exists, and the six broken
+sites cannot be fixed ahead of it either: what they need is 13px with the body colour, and until the colour
+has a name that carries no size there is no way to write it. **Do not reach for an arbitrary value or an
+alias** -- the `--sp-radius-lg` post-mortem rules out the alias, and an arbitrary size would still lose to
+`text-mrd-body`'s own font-size on source order.
+**Acceptance for the rename, when the name is ruled.**
 - `KNOWN_COLLISIONS` in the guard is `[]`, and the guard's third `it` is updated rather than deleted.
-- The 10 sites above render at the size they ask for, checked in a browser at both grounds.
+- The **six** sites render at 13px, checked in a browser on both grounds.
+- **The other 161 are diffed on computed styles before and after, and nothing moved.**
 - No alias, and no third name for either idea.
 **Owns.** `src/styles/__tests__/one-utility-name-means-one-thing.test.ts` (built). The rename would own
 `src/styles/meridian.css` plus its call sites.

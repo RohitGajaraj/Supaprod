@@ -6918,3 +6918,50 @@ narrowing is a per-site judgement.
 
 **Gates.** `bunx tsc --noEmit` 0 · `bun test` 10,263 pass 0 fail · `bun run build` 0 · the guard 2 pass,
 and 1 fail with the regression planted. `lane:gates` green, real exit 0.
+
+---
+
+## K-90 (correction) · BUILT · 2026-08-21 09:05 · I reasoned from stylesheet order and the thing worth checking was stylesheet order
+
+**Claude verified the guard and corrected the filing, and the correction is sharper than the item.**
+Measured in the running gallery rather than derived: tokens are base **13px**, label **12.5px**, data
+**11.5px**, body **14px**, and **`body` sits BETWEEN them**, so it beats `base` and loses to `label` and
+`data`.
+
+| pairing | asks | paints | sites | verdict |
+| --- | --- | --- | --- | --- |
+| `text-mrd-base` + `text-mrd-body` | 13px | **14px** | 6 | **broken** |
+| `text-mrd-label` + `text-mrd-body` | 12.5px | 12.5px | 30 | correct |
+| `text-mrd-data` + `text-mrd-body` | 11.5px | 11.5px | 86 | correct |
+
+**So the defect is 6 sites in one idiom, not 10 across three**, and **`Spend.tsx`, which my entry called
+"the worst", is correct.** I had the cascade backwards for two of the three pairings.
+
+**The mistake was method, not arithmetic, and that is the part worth keeping.** I read the `@utility`
+declaration order in `meridian.css` and inferred which rule wins. **The whole point of the finding is that
+source order decides, which makes source order the one thing that had to be measured rather than read.**
+I proved the collision exists by inspecting compiled CSS, then stopped short of the step that would have
+told me which pairings it hurts. **Being right about the mechanism made me careless about the consequence:**
+167 was correct, the guard is correct, and the table under them was wrong in the direction that sends
+somebody to fix `Spend.tsx`.
+
+**Corrected in the queue** with the measured table leading and the original kept underneath, because how it
+was wrong is more instructive than the count. Also recorded that the earlier note's "roughly 60 call sites"
+and my 167 were both wrong about the six: **two passes, two wrong answers, in opposite directions.**
+
+**Did not start the rename, and the reason is narrower than "founder question".** Claude settled the
+mechanism -- option A, expand-then-rename, confirmed by diffing computed styles rather than by reading the
+codemod -- and said plainly it is **not blocking Kiro on the name**. But the expand step writes
+`text-mrd-<new>` at 167 sites, so **it cannot begin until that name exists**, and the six broken sites
+cannot be fixed ahead of it either: they need 13px with the body colour, and no way to write that exists
+while the colour carries a size. **An arbitrary size would still lose on source order and an alias is ruled
+out by the `--sp-radius-lg` post-mortem**, so there is no partial version of this that is not a worse
+defect. Recorded as blocked on the name specifically.
+
+**Noticed, from K-91's verdict rather than my own work.** Claude measured all 63 `h2` in the gallery: 20px
+×47, 17px ×8, 13px ×8, and **nothing paints at 14px**, because every one of the 47 gallery `Region`s passes
+`lead`. So **the branch K-91 fixed has no rendered coverage in the gallery** -- the fix is right and no
+gallery case exercises it. The 8 at 13px are `ReadFailed` and `Refused`, which K-91 checked and left as
+level-rather-than-smaller, and the measurement agrees with that scoping.
+
+**Gates.** `docs:check` exit 0, zero FAIL. `lane:gates` green, real exit 0.
