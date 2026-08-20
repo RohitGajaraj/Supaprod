@@ -2787,3 +2787,120 @@ K-12 built and verified the canonical set, but nothing writes through it yet, an
 that was explicit in the item -- "nothing here changes a writer or a consumer".
 A module that exists is not a module that is wired, and the criterion correctly
 refuses to move for one.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 07:28 · the eval tick has never written a row, and the reason is one word in a column definition
+
+**Root cause found, fixed at the database, and verified on the real write path
+against production.** This is the eval leg of the trust score, and it was never a
+starvation problem.
+
+### The bug
+
+```
+ai_evals.workspace_id   uuid NOT NULL DEFAULT current_user_default_workspace()
+```
+
+`current_user_default_workspace()` reads `auth.uid()`. The tick writes with
+`supabaseAdmin`. Measured with no auth context:
+
+```
+select auth.uid(), public.current_user_default_workspace();
+  -> null, null
+```
+
+DEFAULT evaluates to NULL, NOT NULL rejects the row, **every insert the tick has
+ever attempted has failed.**
+
+**The sibling table is the proof**, and it is one word:
+
+| | default | nullable |
+|---|---|---|
+| `ai_events` | `current_user_default_workspace()` | **YES** |
+| `ai_evals` | `current_user_default_workspace()` | **NO** |
+
+Identical default. `ai_events` survives because the NULL is allowed to land.
+
+**The repo already knew about this failure mode twice.**
+`20260619150000_wm_f1_agent_workspace_scope.sql` states the
+"current_user_default_workspace() DEFAULT bridge ERRORS under service-role", and
+`20260701190000_ai_events_workspace_default_service_role_safe.sql` exists purely
+to fix it for `ai_events`. `ai_evals` never got the same pass, and it is the table
+where the same mistake is fatal instead of untidy.
+
+### Why nobody saw it for seven weeks
+
+`eval-tick.ts` destructured `{ data: inserted }` and **threw the error away**. A
+failed insert leaves `inserted` null, the code falls to the stale-reservation
+reclaim, that finds nothing either, and the event is recorded as
+**`"reserved by a concurrent tick"`** -- a confident diagnosis of a race that
+never happened. The handler returns 200, so `withJobRun` files a SUCCESS.
+
+The scale of the silence, measured:
+
+- `cron.eval-tick` ran **48 times a day, every day**, 2026-07-20 → 2026-08-04,
+  then 26 runs on 08-05 and stopped. **~620 green runs.**
+- Work was never short: **180 judgeable events** on 2026-07-28, a day inside the
+  window; **5,524** in the last 24 hours.
+- `ai_evals` holds **77 rows and the tick wrote none of them.** They are 11 rows
+  cloned into each of seven Helio Labs workspaces by the demo seed. **Every eval
+  this product has ever held is a fixture.**
+
+**So the earlier entry was wrong in an important way and this corrects it.** I
+recorded that evals "stopped on 2026-07-23" and treated the dead schedule as a
+second, separate fault. There was no stopping. **The tick never worked**, and
+2026-07-23 is simply the newest date the seed happened to write. The dead schedule
+is still real and still needs `psql`; it is now the *smaller* half.
+
+### The fix, and why a trigger
+
+Applied `20260820072500` through Lovable: a BEFORE INSERT trigger filling
+`workspace_id` when the default produced nothing.
+
+**A DEFAULT cannot see the row.** The truthful workspace for an eval is the
+workspace of the event it judges, knowable only from `NEW.event_id`. Postgres runs
+DEFAULT, then BEFORE triggers, then constraints, so a BEFORE trigger is the only
+place that can read the row and still beat the NOT NULL check.
+
+**Event first, user second, and the number decided it:** of 5,622 `ai_events` in
+24 hours, **939 carry a workspace_id and all 5,622 carry a user_id**. So the event
+answers where it can, and `ensure_user_default_workspace(uuid)` -- which takes the
+id as an ARGUMENT rather than reading `auth.uid()` -- answers for the rest.
+
+**It fills only a NULL**, so an explicit workspace is respected and the
+authenticated path is untouched. This rescues exactly the case the default cannot
+serve, which is exactly the background writer.
+
+### Verified on the write path, not by reading
+
+A DEFAULT and a trigger are both things that can look right and behave otherwise,
+so I exercised the real insert as the service role and rolled it back by raising:
+
+```
+PROBE_OK insert succeeded, derived workspace_id=20000000-0000-4000-8000-000000000000
+```
+
+Then confirmed nothing was left behind: **77 rows, 0 probe rows, newest still
+2026-07-23.**
+
+### The silent-failure half, fixed in code
+
+The trigger unblocks the write; it does nothing about the fact that the next
+failure would hide the same way. `eval-tick.ts` now reads the insert error and
+reports `could not reserve: <message>`, keeping "reserved by a concurrent tick"
+for the case it actually describes -- a null `inserted` with **no error**, which
+is the genuine unique-index race. **A write that failed must not be reported as a
+write that lost a race**, because those want different fixes and only one of them
+is ever looked for.
+
+**This does not take effect until the founder publishes.** The trigger is live
+now; the honest error message ships with the app.
+
+### What this unblocks
+
+The eval leg of the trust score has been contributing the prior for every agent
+because it had no rows to read. It now has a path to rows -- once the schedule is
+revived. **The schedule is the remaining half and still needs `psql`**, but it is
+now worth reviving, which before today it was not: a revived tick would have run
+48 times a day writing nothing.

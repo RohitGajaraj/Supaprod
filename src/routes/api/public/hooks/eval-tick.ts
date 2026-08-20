@@ -212,7 +212,23 @@ export const Route = createFileRoute("/api/public/hooks/eval-tick")({
             // never a terminal or a fresh in-flight reserve.
             const nowIso = new Date().toISOString();
             let reservedId: string | null = null;
-            const { data: inserted } = await supabaseAdmin
+            /*
+             * THE ERROR IS READ, and that is not a tidying-up. Discarding it hid
+             * a total outage for seven weeks: `ai_evals.workspace_id` is NOT NULL
+             * defaulting to `current_user_default_workspace()`, which reads
+             * `auth.uid()` and therefore returns NULL under this service-role
+             * client, so EVERY insert here failed the constraint. A null `data`
+             * then fell to the reclaim path below, found nothing, and the event
+             * was filed as "reserved by a concurrent tick" -- a race that had not
+             * happened -- while the handler returned 200 and `withJobRun` recorded
+             * a success. ~620 green runs, zero rows, no signal anywhere.
+             *
+             * Fixed at the database in `20260820072500`, so this insert now lands.
+             * The error stays read regardless: a write that fails must not be
+             * reported as a write that lost a race, because those two want
+             * completely different fixes and only one of them is ever looked for.
+             */
+            const { data: inserted, error: reserveErr } = await supabaseAdmin
               .from("ai_evals")
               .insert({
                 event_id: evt.id,
@@ -237,7 +253,19 @@ export const Route = createFileRoute("/api/public/hooks/eval-tick")({
               if (reclaimed) reservedId = (reclaimed as { id: string }).id;
             }
             if (!reservedId) {
-              results.push({ id: evt.id, ok: false, error: "reserved by a concurrent tick" });
+              /*
+               * Only a reserve that FAILED WITHOUT AN ERROR is a race: the insert
+               * lost the unique index to a concurrent tick and the reclaim found
+               * the winner's fresh row. An insert that errored is a fault, and it
+               * says which one.
+               */
+              results.push({
+                id: evt.id,
+                ok: false,
+                error: reserveErr
+                  ? `could not reserve: ${reserveErr.message}`
+                  : "reserved by a concurrent tick",
+              });
               continue;
             }
 
