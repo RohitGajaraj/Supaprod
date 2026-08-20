@@ -4071,3 +4071,79 @@ one thing that says whether anything else in this product is alive. **A change
 there that is subtly wrong makes every future verdict on this page untrustworthy
 without saying so** -- which is the failure mode the whole file exists to prevent.
 It gets its own tick and its own tests.
+
+---
+
+## Claude lane · RULED · 2026-08-20 10:10 · measuring the query budget before optimising it moved the target, and killed the fix I had already specified
+
+Last tick I specified the enabling change as "batch the six `job_runs` probes into
+one query", sized it, and said it only needed its own tick. **This is that tick,
+and the first thing it did was falsify the plan.**
+
+### Where the 45 actually go
+
+Instrumented the counter by table rather than assuming:
+
+| table | queries |
+|---|---|
+| **`agent_memory`** | **14** |
+| `artifact_lineage` | 6 |
+| **`job_runs`** | **6** |
+| `signals` | 4 |
+| `ai_events` | 4 |
+| `themes` | 4 |
+| `learnings` | 2 |
+| `error_events` | 2 |
+
+**`job_runs` is 6, not the 12 I predicted, and one integrity check on
+`agent_memory` costs more than twice as much as every liveness probe combined.**
+The refactor I had specified would have taken the risky change, in the module that
+decides whether anything else is alive, to free a third as much room as the
+obvious alternative.
+
+**I would not have found that by reading the code**, because the cost is `2 + 2N`
+where N is a segment count declared in the registry, and nothing at either site
+says what N is.
+
+### The obvious alternative is closed, and `evaluate.ts` closes it
+
+`readIntegrity` costs two queries per segment, and `readVocabulary` next door
+already solves the analogous problem by counting each value **only when the
+breakdown is asked for**. Making segments opt-in the same way would free 12
+queries from one check.
+
+**It is not available.** `evaluate.ts:312`: *"A segment that is entirely unwritten
+outranks the table ratio, always"*, and `deadSegments` is described there as "the
+sharpest form of this finding". The per-segment counts are not detail beside the
+verdict, **they are the verdict** in its strongest case. Dropping them to save
+queries would trade the check's best signal for room to run more checks.
+
+### Both hot spots need the same thing, and PostgREST cannot do it
+
+Six `job_runs` probes differ only by `job_name`. Six memory segments differ only
+by `kind`. **Both are one `GROUP BY` away from a single query, and PostgREST does
+not group.** So the enabling change is not a batched probe at all: it is **a
+server-side aggregate the probes can call once** -- a SQL function, which is this
+lane's to write.
+
+That serves both hot spots with one mechanism, where the plan I specified served
+the smaller one with a mechanism that only worked there.
+
+### The ceiling is real, and worth stating so nobody edits the number
+
+A Cloudflare Worker caps outbound subrequests at **50 on the free plan** and 1,000
+on paid. This repo's docs discuss Workers Paid only as a **future** purchase for
+the sandbox, so the working assumption is the free cap. **45 is therefore about
+90% of a hard platform limit**, not a preference, and at 50 the page returns
+nothing — which is the exact failure it exists to detect.
+
+So the test's instruction is right and the temptation it pre-empts is real: I had
+the one-character change available twice today and it would have looked like
+progress both times.
+
+### Nothing shipped this tick, deliberately
+
+No production code changed. **The deliverable is that the wrong refactor did not
+get built**, and the right one is now specified against a measurement rather than
+an assumption. The RPC, its fallback when the function is absent, and its tests
+are the next piece of work.
