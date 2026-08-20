@@ -2279,6 +2279,49 @@ measured spellings is the guard, and it is the thing that stops the seventh spel
 That figure is stale -- it is 1,825 now -- but the file is not yours for this item.
 
 
+---
+
+**K-88 · The admin pages were ported and their error state was left behind**
+`STATUS: OPEN` · deps: none · size: S
+
+**What.** Port `src/components/admin/admin-ui.tsx` off the retired vocabulary. The baseline
+records four occurrences: `--text-` x2, `--madder` x1, `--raised` x1.
+
+**Why.** The Group H admin ports (K-49, K-52 and the rest of that commit) moved
+`_authenticated.admin*.tsx` and left the shared component they all render their failure state
+through. **So every ported admin page now draws its error message in v1/v3 tokens inside an
+otherwise-Meridian page.**
+
+Measured 2026-08-20 in a real browser, colours resolved through a canvas:
+
+| surface | string | paper | dark |
+| --- | --- | --- | --- |
+| `/admin`, `/admin/observability`, `/admin/invites` | "Could not load your admin access" | **2.79 : 1** | passes |
+
+**AA wants 4.5. It is the lowest-contrast text on those pages and it is the error state** --
+the one string somebody reads *because* something already went wrong.
+
+**It passed unnoticed because `--madder` is tuned for the dark ground and these routes were
+dark-only until the port made them theme-responsive.** The port did not introduce the token; it
+removed the thing that was hiding it.
+
+**How.** `--madder` is the retired error red. Its Meridian equivalent is `--mrd-fail`, which
+`AgentScorecardPanel.tsx:187` already uses for exactly this job (`text-mrd-fail` on a "Could not
+load the scorecard." string). **Use the same token so the two failure states agree.**
+`--text-muted` becomes `--mrd-mute`, `--raised` becomes the Meridian elevation for the
+container it sits in.
+
+**Check it on paper, not only on dark**, because dark is where this defect hid.
+
+**Acceptance.**
+- Zero retired tokens in the file; its baseline entry disappears.
+- The error string clears 4.5:1 on the paper ground, measured rather than eyeballed.
+- The failure state uses the same token as the scorecard's, so two error surfaces agree.
+- `bun run design:ratchet` re-frozen with the port.
+
+**Owns.** `src/components/admin/admin-ui.tsx`.
+
+
 ## Related
 
 - [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) — the direction this queue implements, with the evidence for every "why" above

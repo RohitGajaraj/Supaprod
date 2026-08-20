@@ -6182,3 +6182,87 @@ exists and the minutes-only formatter is not reachable at these durations.
 against a 00:31 rebuild), so this confirms rather than replaces them. **K-04's only prior
 verdict was 23:52, which predates the 00:31 rework** -- that one was genuinely unjudged for
 seventeen hours, and neither of us could see it.
+
+---
+
+## K-40, K-46, K-47, K-48, K-49, K-51, K-52, K-57 · VERIFIED · 2026-08-20 18:35 · the money pages hold in both grounds, and the ports left one island behind
+
+**These eight were invisible to `lane:sync` until an hour ago.** They landed under a single
+heading naming all eight, which is exactly the shape my own script could not parse before I
+fixed it at 17:40. **The fix earned itself back on its first outing**, which is worth recording
+because I nearly shipped it as tidying.
+
+**The single-commit decision is correct and I would not have it otherwise.** All eight lower a
+count in a generated, single-writer baseline; separately they would need eight re-freezes
+racing one file or seven commits sitting red. `AGENTS.md` forbids a red tree, so one commit is
+the only green shape.
+
+### Every count checked rather than taken
+
+```
+  ratchet total    5,157 -> 4,778        files carrying debt   257 -> 247
+  pricing.tsx      ink-era 66 -> 0       raw colour 74 -> 5
+  checkout.tsx     ink-era 29 -> 0       raw colour 30 -> 0   (gone from the baseline entirely)
+  --ember 0 · inkTheme 0 · --brand 0 · ink-era tokens 0 across both files
+```
+
+**Criterion 19 is now 1,086 below its 5,864 baseline**, which is 18.5% of the recorded debt
+cleared in one day.
+
+### The money pages, measured in both grounds
+
+This is the half a build cannot see, and the entry explicitly asked for it. Contrast measured
+per element against its effective background, WCAG AA thresholds, **colours resolved through a
+1x1 canvas rather than a regex** -- Meridian is OKLCH and `getComputedStyle` returns
+`oklch(...)`, which no `rgb()` pattern matches. **My first two runs reported a clean page
+because the regex silently skipped every element**, and a third because the probe measured
+before hydration. Third instrument correction of the day and the same lesson each time.
+
+```
+  /pricing   dark   105 elements   0 below AA
+  /pricing   light  105 elements   1 below AA
+  /checkout  dark    24 elements   0 below AA
+  /checkout  light   24 elements   0 below AA
+```
+
+**The one miss is real but small:** "Made with Supaprod", 9px, weight 500, **3.96:1** against
+4.5. An attribution badge, not a control or a price.
+
+### On `LandingBackdrop`, which the entry asked for an opinion on
+
+**Ship it as is.** The concern is right -- making `pricing.tsx` theme-responsive exposed a
+backdrop that paints white at 3.8 to 6% opacity and is dark-only by construction, so on paper
+it nearly vanishes. **But it is `aria-hidden` decoration and the measurement says the page is
+legible without it**: 105 text elements, one 9px badge off AA, nothing else.
+
+**Losing a decoration on paper is not the same defect as losing legibility**, and the port is
+not what made the backdrop dark-only. It wants a paper variant or an explicit hide, and that is
+its own item rather than a reason to hold eight ports.
+
+**Unsure 1, the `--brand` port in `checkout.tsx`: keep it.** It resolved to ember through
+`--ds-ember-600` and was painting a primary CTA, two selected states and a link -- interaction
+states, which the standing ruling puts out of ember's reach. Leaving it would have left the two
+money pages disagreeing with each other the moment pricing lost its own ember. **The judgement
+that ember was carrying emphasis rather than status, and therefore belongs in shape and
+elevation rather than in `--mrd-you`, is the right read** and it avoids the
+identity-as-a-colour-ramp defect the design system has removed three times.
+
+### Noticed, and it is a real gap the ports opened
+
+**Every ported admin page still renders its failure state in retired tokens**, because the
+routes moved and their shared component did not. `src/components/admin/admin-ui.tsx` paints
+`color: var(--madder)` and `color: var(--text-muted)`, both on the retired vocabulary list, and
+the baseline still carries it: `--text-` x2, `--madder` x1, `--raised` x1.
+
+Measured on paper across `/admin`, `/admin/observability` and `/admin/invites`:
+
+```
+  "Could not load your admin access"   14px   2.79 : 1     (AA wants 4.5)
+```
+
+**It is the lowest-contrast text on those pages, and it is the error state** -- the one string a
+person is reading precisely because something already went wrong. On the dark ground it passes,
+which is why nothing caught it: `--madder` is tuned for dark and the routes were dark-only until
+this port made them theme-responsive.
+
+**No queue item claims this file**, so nothing will pick it up on its own. Queued as **K-88**.
