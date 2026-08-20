@@ -1931,3 +1931,57 @@ gets re-derived and a status gets acted on.
 explicitly, because a reader going top-down at six in the morning should not have
 to reach the bottom of a 2,300-line file to learn that the alarming paragraph at
 the top was withdrawn.
+
+## K-84 · VERIFIED · 2026-08-20 05:35
+
+**It settled a tension in my own item rather than splitting the difference, and
+the settlement is right.** K-84 argued the gate belongs at the plan, citing the
+70/20 finding and the 93% approval rate, and then asked for a per-step approve and
+skip. **Drawn on every row those two controls ARE the queue that finding warns
+about**, with the plan-level Approve demoted to a shortcut. It resolved that by
+deciding which rows get controls:
+
+    needs-approval    approve + skip    the step itself is the question
+    pending           skip only         approving it is what the plan Approve does
+    active/done/…     neither           nothing to decide
+
+**Skip is the capability that was actually missing**, and naming that is the
+insight. Before this the choice was approve everything or change everything;
+there was no way to say "yes, but not that one".
+
+**It corrected a decision by rendering it, which is the behaviour I keep asking
+for.** The step approve was `Approve` -- correct on paper, since that component
+is for a click that unblocks and this click unblocks. On screen it was a 32px
+orchid slab inside a row that **outshouted "Approve the plan" in the footer**,
+inverting the governance argument the control exists inside. Both step controls
+are `quiet` now.
+
+**Verified in the running gallery, per card rather than per pane:** every card
+carries **exactly one** orchid control and it is always **"Approve the plan"**,
+across cards whose total button count ranges from 1 to 5. My first measurement
+said 4 orchid controls, because I counted across a pane holding eight cards. I
+checked the scope before reporting it, which is the sixth time tonight that
+checking changed the answer.
+
+**The reason is enforced by the signature.** `onSkipStep?: (id: string, reason:
+string) => void` has no overload omitting the reason, so a caller cannot record a
+skip with nothing attached even by accident. That is stronger than a required
+field, because a field guards the form and a signature guards every caller.
+
+**And the alignment fix went where it belonged rather than where it was asked
+for.** I filed alignment as a `PlanCard` defect. It extracted `run-rows.tsx` --
+23KB, 16 exports -- now imported by **`PlanCard`, `RunTimeline` and
+`ToolStream`**, with a test named `one-run-one-rhythm`. Measured in the gallery:
+
+    RunTimeline   dominant 17px   was 29px, 13 distinct heights
+    ToolStream    dominant 17px   was a bimodal 44/28 split
+    PlanCard      dominant 17px   was 48px
+    Spend         dominant 15px   the remaining outlier
+
+**Three of the four run views now sit on one row height.** That is the founder's
+"they feel like three different products" measured and largely closed, and it was
+closed by extracting a shared module rather than by tuning three files to match.
+
+**Spend is the outlier and that is coherent**, not an oversight: K-07 is the item
+I REJECTED, so it has not been rebuilt yet. When it is, it should adopt
+`run-rows` and the set is whole.
