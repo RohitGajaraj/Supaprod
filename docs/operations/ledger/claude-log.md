@@ -4368,3 +4368,71 @@ genuinely the next substantial piece in this lane.
 `lane-sync.sh` ended every run with `next: bunx tsc --noEmit && bun test` -- **half
 the gates**, and main went out red this morning on one of the two it omitted. **A
 prompt that lists a subset teaches the subset.** It now names `bun run lane:gates`.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 11:08 · the schema that lets the liveness registry grow, and the scheduler is an ORDER BY
+
+Applied `20260820110000`. **The design is settled and the storage is live**; the
+code that fills it is the next piece and the split is at a safe seam.
+
+### What was actually wrong
+
+Not "the page is slow". **The product may watch 13 capabilities, ever**, against
+36 scheduled jobs, because `buildLivenessReport` costs about two queries per
+capability and both callers -- the admin page and the daily tick -- compute the
+whole thing inside one Worker invocation, under a 50-subrequest cap that the
+budget test holds at 45. It is sitting exactly on that number.
+
+**Coverage was capped by an execution model, and I had been reading it as a query
+to optimise.**
+
+### The shape, and the part worth keeping
+
+One row per capability, holding its last verdict and `checked_at`. The tick checks
+**the N least-recently-checked** and upserts; the page reads every row in one
+query.
+
+**The scheduler is `order by checked_at asc nulls first` and nothing else.** A
+newly registered capability has no row, sorts first, and is picked up next run. No
+cursor, no "where did we stop", and a run that dies half way just leaves those
+rows older so the next run takes them. **The absence of state is the feature: a
+cursor is a thing that can be wrong**, and this has nothing to be wrong about.
+
+Three consequences, and the third is the point:
+
+1. the page cannot trip the cap whatever the registry grows to;
+2. each tick run costs a fixed, small number of queries regardless of registry
+   size;
+3. **the registry may grow** -- coverage becomes which capabilities are worth
+   watching rather than how many fit in one invocation, which is the question the
+   registry was written to ask.
+
+### Why per-capability rows rather than one report blob
+
+`getLivenessReport` takes `windowDays` from 1 to 90. **One stored report answers
+exactly one window**, so every other request recomputes and the cap is back. Rows
+carry the window they were measured in: the default is free, a non-default window
+is a live computation, which is the split the page actually needs.
+
+That constraint only turned up on reading the function, and it changed the design
+from a cache into a schedule.
+
+### Checked rather than assumed
+
+`has_role` is `(_user_id uuid, _role app_role)` -- I wrote the policy from a
+comment that said `has_role('admin')` and verified the real signature before
+applying. Verified after: table present, **RLS on, one policy, two indexes, zero
+rows.**
+
+### Why stopping here is not the same as stopping mid-change
+
+**The table is inert.** Nothing writes it and nothing reads it, so the product
+behaves exactly as it did an hour ago and will keep doing so until the tick and
+the page are changed together. A migration that no code references cannot half-ship.
+
+That is a different thing from leaving a probe refactor half done, which is what I
+refused to start three ticks ago. **The seam is real, not a stopping point dressed
+up as one.** Next: the tick writes rows for the oldest few, the page reads them,
+both with tests, and then the three capability entries that have been waiting on
+headroom go in.
