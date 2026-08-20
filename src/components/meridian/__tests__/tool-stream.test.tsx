@@ -225,7 +225,7 @@ describe("a failed call says what broke", () => {
   });
 });
 
-describe("the empty state uses ToolChips' own words", () => {
+describe("the empty state is a first class case, not a blank", () => {
   it("tells a live run and a finished one apart", () => {
     const { rerender } = render(<ToolStream rows={[]} working />);
     expect(screen.getByText("Nothing called yet.")).toBeTruthy();

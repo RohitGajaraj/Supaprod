@@ -302,8 +302,10 @@ export function DiffTable({
                              * the whole added-row block wider than the table it
                              * is supposed to line up with — which is what put
                              * the added columns out of register with the header
-                             * above them. The rule is the same one that governs
-                             * the source rows in StreamingText.
+                             * above them. The rule is not local to this table:
+                             * anywhere in Meridian that a grid item is expected
+                             * to truncate, `min-w-0` is what makes `truncate`
+                             * do anything at all.
                              */}
                             {columns.map((_, i) => {
                               const value = row.cells[i] ?? "";

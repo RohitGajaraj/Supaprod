@@ -838,15 +838,19 @@
    *
    * 2px, and the number is inherited rather than picked. The retired ink layer
    * fixed it at 2px and called it invariant; Meridian shipped with no
-   * counterpart, so four files solved it locally instead:
+   * counterpart, so four files solved it locally instead. Three of them are
+   * still here:
    *
    *   SpecProse.tsx        `const EVIDENCE_RULE = "2px"`, and its own comment
    *                        names the retired token it is standing in for
-   *   StreamingText.tsx    a literal 2px on the read-failure card
    *   EvidenceQuality.tsx  a literal 2px per evidence source
    *   BetCard.tsx          the one orchid rule on the plan board
    *
-   * So the second caller is not a forecast here, it is the third and the fourth.
+   * The fourth was a gallery-only answer block spending the same literal on its
+   * read-failure card, deleted on 2026-08-21, and the literal went with it.
+   *
+   * So the second caller was not a forecast when this token was written, it was
+   * already the third and the fourth.
    * The alternative is the shape this repo has already paid for with seven
    * copies of one helper and four disagreeing status normalisers: one idea, four
    * literals, and they drift the first time anybody changes one.
@@ -958,7 +962,8 @@
    * EVERY CALLER OF `--mrd-d-enter` IS AN ARRIVAL. Counted 2026-08-20: eight
    * of them, all `animation:` on `mrd-fade-up`, `mrd-fade-in` or `mrd-pop-in`
    * (`_authenticated.settings.tsx`, `Receipt`, `AgentCards`, `Search`,
-   * `StreamingText`, `ContextCards` four times, `InsightCards`). Not one is a
+   * `ContextCards` four times, `InsightCards`, and one gallery-only answer block
+   * that was deleted on 2026-08-21, so seven remain). Not one of them is a
    * reveal. Taking this token to 0 would not speed those up, it would delete
    * them, and this file's own reduced-motion rule already draws that line: if
    * stopping it removes a fact, it is not decoration.

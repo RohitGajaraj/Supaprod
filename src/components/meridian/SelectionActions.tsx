@@ -49,10 +49,14 @@ import type { ReactNode, RefObject } from "react";
  * `iconoir-react` and the two atom imports are not dependencies here, so the
  * icons are inline SVG and the shimmer is built the way LoadingState builds
  * it. The reference also streams the rewrite into the passage in place; this
- * does not. Streaming belongs to StreamingText, which owns the reveal timing
- * the founder tuned on 2026-08-14, and duplicating that engine in a second
- * file is how two components drift apart. Here the result arrives when it
- * arrives, and the caller renders it.
+ * does not, and that is a decision rather than a shortcut. The one surface in
+ * this product with real token streaming, the Ask pane, refuses a separate
+ * reveal path in writing (`AskTurn.tsx`): the stream patches the same message,
+ * so a half-written answer and a finished one are the same JSX and cannot
+ * render differently. A Meridian component that did reveal prose a character at
+ * a time existed until 2026-08-21 and was deleted, partly for that reason. So
+ * there is no reveal engine to reach for here and there should not be a second
+ * one. The result arrives when it arrives, and the caller renders it.
  */
 
 export type SelectionAction = {

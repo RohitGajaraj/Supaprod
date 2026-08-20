@@ -20,11 +20,29 @@ import {
 /*
  * THE TOOL STREAM: work arriving, one row at a time, while it happens.
  *
- * ── WHY THIS EXISTS, AND WHY `ToolChips` COULD NOT BE IT ─────────────────
- * `ToolChips` takes a FINISHED ARRAY. It is a good component and it answers a
- * different question: what did this run call. Its rows all share one state, and
- * its header prints a count that is only true once the run has stopped changing
- * it.
+ * ── WHY THIS EXISTS: A FINISHED ARRAY CANNOT BE A STREAM ─────────────────
+ * The obvious way to show what an agent called is to wait for the run and then
+ * render the list. That answers a real question, what did this run call, and it
+ * is a different question from the one a person watching a run has, which is
+ * what is it doing right now. A component built on a finished array cannot be
+ * retrofitted into the second one, and the first three reasons below are
+ * structural rather than a matter of effort:
+ *
+ *   a. ITS ROWS SHARE ONE STATE. If the array is settled then every row in it
+ *      is settled, so there is nowhere to put "this call is still out". Here
+ *      state is per row (`ToolStreamState`), because at any instant one row is
+ *      running and the ones above it are not.
+ *   b. ITS HEADER COUNTS. A total taken from a run that has not stopped
+ *      changing it is wrong by the time it is read, so the honest rendering of
+ *      that header on a live run is a shimmer over a number nobody should
+ *      trust. This component prints no total at all.
+ *   c. IT HAS NO CLOCK, because a finished list has no arrival instants to
+ *      show. `at` is REQUIRED here and the SSE frame does not carry it: the
+ *      client stamps arrival, which is the only honest instant a stream has.
+ *   d. AND ONE THAT IS A HABIT RATHER THAN A CONSEQUENCE, listed because it is
+ *      the one that gets copied: a block that appears whole animates every row
+ *      on every render, which is right for it and wrong for a column that
+ *      grows. See `settledAtMount`.
  *
  * Nothing in this system showed work ARRIVING. That is the largest hole in "you
  * can see agents working", which is the product's own stated core, and the frame
@@ -32,6 +50,44 @@ import {
  * string }`, the client parses it, and nothing emits it yet. This component is
  * written against that frame's real shape, so wiring it is a mount and not an
  * adapter.
+ *
+ * ── THE ALTERNATIVE WAS BUILT, CONSIDERED, AND DELETED ──────────────────
+ * Two Meridian components used to sit beside this one in the gallery: a chips
+ * block that took exactly the finished array described above, and an answer
+ * block that revealed prose one character at a time. Both were faithful ports
+ * of a reference pattern, both were correct, and neither ever had a product
+ * caller. They were DELETED on 2026-08-21 by founder ruling. The argument sits
+ * here rather than only in a log because the next person who wants either one
+ * will be standing in this file.
+ *
+ * THE CHIPS BLOCK was a fourth view of a run where three had just been unified.
+ * `PlanCard`, `RunTimeline` and this component shipped as three products, three
+ * mark sizes and three gutters, and were pulled onto `run-rows.tsx` for it;
+ * `one-run-one-rhythm.test.tsx` fails the build if they drift apart again. The
+ * chips block was not on those primitives, it was a 320px column with its own
+ * row height and its own four-icon tool vocabulary, and the run route already
+ * renders every tool call in its steps ledger. That ledger carries no ratchet
+ * debt, so it is current work rather than something waiting to be replaced.
+ * Mounting the chips block would have put one fact on screen twice, in two
+ * rhythms, on a surface that already answered it.
+ *
+ * THE ANSWER BLOCK failed on the half only production could answer, and this is
+ * the measurement worth carrying forward: its `sources` input had NO DATA
+ * SOURCE ANYWHERE IN THE PRODUCT. Measured across the whole database, 0 of 90
+ * `prds` carry citations and the run record has no citation column at all.
+ * `ai_evals.citations` is populated, but it holds a JUDGE's citations about an
+ * evaluation, which is a different object from an agent's answer sources. So
+ * "mount it later, when citations exist" was never an option that was waiting;
+ * it was an input with nowhere to come from. On top of that, the one surface in
+ * this product with real token streaming has refused a per-word reveal in
+ * writing: the Ask pane patches `content` on the same message, so the
+ * half-written answer and the finished one are the same JSX and cannot render
+ * differently (`AskTurn.tsx`).
+ *
+ * WHAT TO TAKE FROM IT. A component with no home is not a defect you fix by
+ * finding it one. Before adding a second way to show a run alongside these
+ * rows, say which question it answers that the rows do not, and say where its
+ * inputs come from in production rather than in a fixture.
  *
  * ── THE RHYTHM IS NOT THIS FILE'S TO CHOOSE ─────────────────────────────
  * Columns, gutter, glyph size and type stops all come from `run-rows.tsx`. That
@@ -130,10 +186,10 @@ export function ToolStream({
   /*
    * ROWS PRESENT AT MOUNT DO NOT ANIMATE. Only arrivals do.
    *
-   * `ToolChips` animates every row on every render, which is correct for a block
-   * that appears whole and wrong here in two ways: reopening a surface on a run
-   * with 400 calls would play 400 entrances at once, and it costs a compositor
-   * layer per row on exactly the case the acceptance criteria name.
+   * Animating every row on every render is correct for a block that appears
+   * whole, and wrong here in two ways: reopening a surface on a run with 400
+   * calls would play 400 entrances at once, and it costs a compositor layer per
+   * row on exactly the case the acceptance criteria name.
    */
   const settledAtMount = useRef(rows.length);
 
@@ -168,8 +224,11 @@ export function ToolStream({
   };
 
   /*
-   * THE ZERO CASE, in `ToolChips`' own words. Two components saying the same
-   * thing differently is how a reader learns they are two different systems.
+   * THE ZERO CASE, AND IT IS TWO CASES. A run that has called nothing YET and a
+   * run that called nothing AT ALL are different facts, and the reader has no
+   * other way to tell them apart. These two sentences were written for the chips
+   * block deleted on 2026-08-21 and were kept verbatim when it went, so a reader
+   * who had already learnt the wording did not have to learn it twice.
    *
    * `data-mrd` on the early return as well: this is exactly how a component loses
    * the attribute, because the eye reads the main return as the root and stops.

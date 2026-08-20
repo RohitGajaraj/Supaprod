@@ -79,10 +79,11 @@ function RateStat({
  *  never a status, so it carries no hue: spending one here is what makes a real
  *  status unreadable everywhere else on the panel.
  *
- *  NAMED `ToolApprovalChips` RATHER THAN `ToolChips`, renamed 2026-08-20. There is
- *  a `ToolChips` in `components/meridian/`, and two things under one name in one
- *  repo is a grep that returns the wrong file. This one is also not what that name
- *  suggests: it renders an APPROVAL RATE per tool, not a stream of tool calls. */
+ *  NAMED `ToolApprovalChips`, AND THE LONGER NAME IS THE ACCURATE ONE. What a row
+ *  here carries is an APPROVAL RATE per tool, how often a person let that tool run,
+ *  which is a fact about trust and not a record of calls. Anything named for tools
+ *  and chips alone promises the calls themselves, so a reader would arrive at a
+ *  scorecard expecting a stream. Renamed 2026-08-20; keep the longer name. */
 function ToolApprovalChips({ tools }: { tools: ToolRecord[] }) {
   if (tools.length === 0) return null;
   const shown = tools.slice(0, MAX_TOOLS_SHOWN);

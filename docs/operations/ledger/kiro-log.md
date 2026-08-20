@@ -6676,3 +6676,88 @@ withdrawal string, and **that line number is now stale**; the rows sit around 10
 **Gates.** `bunx tsc --noEmit` 0 · `bun run build` 0 · `lane:gates` green, real exit 0. Baseline re-frozen
 **down**: `import:components/ui` 2 → 0 and `usage:components/ui` 7 → 0, taking the register to **229 files
 and 3,346 occurrences** from 230 and 3,355.
+
+---
+
+## K-89 · BUILT · 2026-08-21 05:20 · both components deleted, and the argument moved into the one that survived
+
+**Did.** Executed the founder ruling on K-17. `StreamingText.tsx` (758 lines) and `ToolChips.tsx` (440
+lines) are gone, with their gallery panels, fixtures and type imports. **`grep -rn "StreamingText\|ToolChips" src`
+returns nothing.** Baseline byte-identical, md5 unchanged, because neither file ever had an entry; the
+ratchet was run alone to confirm rather than inferred from a green suite.
+
+**This is the narrow case §6 allows, and it is worth naming because the rule normally points the other way.**
+Unused is not a reason to delete here, and this repo's dominant defect is a capability reachable from nowhere.
+These two qualified as **broken as written**: adopting either needed a rewrite *and* a data source that does
+not exist. **The test that separated them from every other doorless component in the tree is whether their
+inputs exist in production**, and the answer was measured, not assumed.
+
+**The comments were the work, not the deletion.** Nine files referenced them and the prose ones were
+load-bearing. `ToolStream.tsx` now carries the whole argument in two header sections, because the ruling was
+explicit that Kiro's block should not survive only as a log entry and **the next person who wants either
+component will be standing in that file.** `AgentScorecardPanel.tsx` keeps its `ToolApprovalChips` rename and
+now justifies it on its own terms, which was the trap: it had explained the name as avoiding a collision with
+a component that would no longer exist, so a reader would have found a justification with nothing behind it.
+`tool-stream.test.tsx` kept every assertion; only the `describe` sentence changed, since it attributed the
+empty-state wording to a deleted component.
+
+**Noticed, and it is the find of the item.** A seventh reference existed that **no grep for either identifier
+would ever have caught**: the surviving "Tool stream" gallery note opened *"Tool chips above takes a finished
+array…"*, naming the panel being deleted in **user-visible copy** rather than in a comment. Rewritten to state
+the same distinction without the pointer. **The lesson is that an identifier grep is not a reference sweep
+when a component's name is also English.**
+
+**Also fixed, because the deletion made them false.** Three live claims outside `src`: a table row in
+`agent-first-platform.md:808` describing the chips block as current, a Slice 3 directive at :897 reading
+**"Wire `StreamingText` and `ToolChips` out of the gallery"** which is now an instruction to do the thing that
+was just ruled against, and the audit register row at `agent-audit-2026-08.md:171` still marked `QUEUED K-17`.
+**AGENTS.md requires a finding's state to move in the same commit as its fix**, and the register row now also
+records that **its own prescription was wrong**: it read as "these need doors", and the answer was a grave.
+That makes it the counter-example to the register's default, with the test stated.
+
+**Unsure, and left as asked rather than guessed.** `DiffTable.tsx:306` cross-referenced the deleted answer
+block's source rows; it was generalised to the underlying `min-w-0` rule rather than re-pointed at another
+file, because naming an unverified substitute would trade one dangling reference for another.
+`meridian.css:961` keeps its "Counted 2026-08-20: eight" as the dated measurement it is, with the reason
+seven remain, rather than silently rewriting history. And the deleted components are described in
+`ToolStream.tsx` **by shape rather than by name**, since the acceptance criterion forbids the identifiers,
+which costs a reader the ability to reach them from that file through git history; the date and the ledger
+entry are the bridge.
+
+**Gates.** `bunx tsc --noEmit` 0 · `bun test` 10,256 pass 0 fail · `bun run build` 0 · `lane:gates` green,
+real exit 0. Ratchet run alone, 4 pass. **The gallery was loaded in a browser**: `/meridian` paints, 0 console
+errors, "Tool stream" present and both deleted panels absent.
+
+---
+
+## K-82 (finding correction) · BUILT · 2026-08-21 05:25 · the chart Claude flagged as unnamed is named, and the pattern is the better one
+
+**Not an item, and deliberately not filed as one.** Claude's K-82 ruling closed the item and added *"one
+thing worth a look, not a rejection"*: that none of the `InsightCards` SVGs carries a `role`, `<title>` or
+`<desc>`, so **the chart has no accessible name**, and that it deserved its own small item. **I went to file
+that item and the gap does not exist.**
+
+**Measured.** All four `<svg>` elements in `InsightCards.tsx`, and every one is correctly handled:
+- **The line chart (483)** is `aria-hidden`, and it is wrapped at **462** in
+  `role="group"` with `aria-label={`${label}, use arrow keys to read each point`}`, `tabIndex={0}`, and
+  `ArrowLeft`/`ArrowRight`/`Escape` handlers that scrub the series point by point.
+- **The segments view (887)** carries `role="group"` with `aria-label={`${insight.title}, segments`}` and a
+  **per-segment** `aria-label` giving each label and its percentage.
+- **The two remaining SVGs** are icons, hidden through an `aria-hidden` parent, inside a `role="alert"` and an
+  `aria-label`led control respectively.
+
+**So the finding inverted the fix.** Adding `<title>` to an `aria-hidden` SVG does nothing at all, and adding
+`role="img"` to it would create a **second, competing** accessible object next to the group that already names
+the chart. **The name belongs on the interactive wrapper and the painting is correctly hidden**, which is what
+the code does. The component's own comment says why the wrapper is focusable: the reference version is pointer
+only, *"which puts every figure in the chart out of reach of a keyboard, and the figures are the reason the
+chart is here."*
+
+**Why the count differed.** Claude counted **8 SVGs** in the running gallery against my 4 in the source. Both
+are right: the gallery renders these four definitions across multiple cards. The divergence is not the error.
+**The error was looking for the accessible name on the SVG**, which is the natural place to look and the wrong
+one when the SVG is deliberately hidden.
+
+**Nothing was changed.** Recording it because the alternative was filing an item to add attributes that would
+have made the surface worse, and because a finding that survives as a `worth a look` note is the kind that
+gets built later by someone with less context.

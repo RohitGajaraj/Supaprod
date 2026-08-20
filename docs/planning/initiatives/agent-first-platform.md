@@ -805,7 +805,7 @@ Every extension below is justified against Meridian's own law: a token earns its
 | `--mrd-stop` | An interrupt is an **intent**, and the colour law reserves `--mrd-fail` for **outcomes that happened**. There is currently no token an interrupt control may wear. Second caller: stop-run, and discard-changeset. |
 | `Action` variant `destructive` | Same argument at the component layer. `surface-parts.tsx` has `default\|primary\|quiet` and `Approve`; none may carry a stop. |
 | `RunTimeline` | Answers "what happened at 03:12, and what was it waiting on until 03:40" — the question a lead actually has. `--mrd-fade-rail` and `mrd-fade-scroll` were built for exactly this column and are unused. |
-| `ToolStream` | Append-as-it-arrives log with pin-to-bottom. `ToolChips` is a finished-array summary and is wired only to the gallery. |
+| `ToolStream` | Append-as-it-arrives log with pin-to-bottom. **Built, and it is the only view of this kind now.** The finished-array summary that sat beside it in the gallery was deleted 2026-08-21 by founder ruling: the run route's steps ledger already renders every tool call, so mounting it would have put one fact on screen twice in two rhythms. `ToolStream.tsx`'s own header carries the argument. |
 | `PlanCard` | Forward-looking, committed steps with `pending`/`skipped` states. `TaskStatus` has neither, and `taskStatus()` collapses unknowns to `blocked`, misreporting a not-yet-started step as stuck. |
 | `MarkStack` per-mark state | Currently one shared state for the whole stack; cannot render three agents in three states, which is the normal case for a seven-station loop. |
 | `Dialog` | `--mrd-scrim` and `--mrd-shadow-pane` are defined and consumed by nothing. "Stop and discard 40 minutes of work" needs a confirm that is not native chrome. |
@@ -894,7 +894,16 @@ Add `forecast_claim`, `forecast_how_we_will_know`, `forecast_horizon_date` to `d
 **Verify:** `decisions_with_forecast_claim` moves off 1; a resolved forecast changes a rank.
 
 ### Slice 3 — Make agents visible (days)
-Emit `station` and `tool` SSE frames. Build `ToolStream` and `RunTimeline` in Meridian. Wire `StreamingText` and `ToolChips` out of the gallery. Surface tick failures and the nine unread tables — starting with `insights.brier_score`.
+Emit `station` and `tool` SSE frames. Build `ToolStream` and `RunTimeline` in Meridian. Surface tick failures and the nine unread tables — starting with `insights.brier_score`.
+
+> **Corrected 2026-08-21.** This slice used to end "Wire `StreamingText` and `ToolChips` out of the gallery."
+> **Both components were deleted that day by founder ruling and that instruction must not be followed.** The
+> answer block's `sources` input had no data source anywhere in the product (0 of 90 `prds` carry citations,
+> the run record has no citation column, and `ai_evals.citations` holds a judge's citations about an
+> evaluation, a different object), and the chips block was a fourth view of a run where three had just been
+> unified. **What is left of this slice is emitting the frames**, which is the half that was ever blocked on
+> data rather than on a surface. Reasons in `ToolStream.tsx`'s header and `ledger/claude-log.md` under
+> "K-17 · RULED".
 **Verify:** a run can be watched end to end without opening a trace; a failing tick is visible to a non-admin.
 
 ### Slice 4 — Repair the meters (days)

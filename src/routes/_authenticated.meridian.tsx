@@ -58,14 +58,8 @@ import { Search } from "@/components/meridian/Search";
 import { SelectionActions, type SelectionPhase } from "@/components/meridian/SelectionActions";
 import { SidebarNav, type RailItem } from "@/components/meridian/SidebarNav";
 import { StalledWork, type StalledItem } from "@/components/meridian/StalledWork";
-import {
-  StreamingText,
-  type AnswerPart,
-  type AnswerSource,
-} from "@/components/meridian/StreamingText";
 import { TaskRows, type Task } from "@/components/meridian/TaskRows";
 import { Thinking, type ThinkingRow } from "@/components/meridian/Thinking";
-import { ToolChips, type ToolChipDiff, type ToolChipRow } from "@/components/meridian/ToolChips";
 import { Field, Input, Textarea, Checkbox, Choices } from "@/components/meridian/forms";
 
 /*
@@ -800,46 +794,6 @@ const DIFF_ROWS: DiffTableRow[] = [
   },
 ];
 
-/* ── the answer ────────────────────────────────────────────────────────── */
-
-const ANSWER_PARTS: AnswerPart[] = [
-  {
-    kind: "text",
-    text: "Twelve gates are pending and the oldest has been stopped since 18:31 on 10 August, which is eighty-six hours. Each one holds up exactly one named piece of work, and the oldest three are the same ask:",
-  },
-  {
-    kind: "cite",
-    source: { label: "Decide queue", where: "decide/queue", href: "#", kind: "board" },
-  },
-  {
-    kind: "text",
-    text: "whether to group the outage reports under one work item. Nothing on any surface said so, which is why the rail now carries the count. The one to answer first is the outage group, because it is the only one of the three with a spec already drafted behind it.",
-  },
-];
-
-/*
- * Three sources, three DIFFERENT kinds, and one name deliberately too long for
- * its row. The reference lists three websites with three brand marks; ours are
- * the things this product actually reads, so the mark is the kind. Three
- * distinct kinds is the point — a stack of three identical marks would prove
- * nothing about whether the mark is doing any work.
- *
- * The long name is not padding. Every source name in production is generated
- * from a document title, and titles do not agree to be short; a fixture full of
- * tidy two-word labels is exactly what hides a truncation bug until a customer
- * finds it.
- */
-const ANSWER_SOURCES: AnswerSource[] = [
-  { label: "Decide queue", where: "decide/queue", href: "#", kind: "board" },
-  {
-    label: "Support inbox, ticket 4471 — outage reports from three accounts on the same evening",
-    where: "inbox/4471",
-    href: "#",
-    kind: "ticket",
-  },
-  { label: "Field notes, week 32", where: "notes/w32", kind: "doc" },
-];
-
 /* ── chat ──────────────────────────────────────────────────────────────── */
 
 const CHAT_TURNS: ChatTurn[] = [
@@ -906,48 +860,6 @@ const CODING_ROWS: ThinkingRow[] = [
   { primary: "Edited", secondary: "group.ts", mono: true, add: 34, del: 12 },
   { primary: "Edited", secondary: "signals.ts", mono: true, del: 9 },
   { primary: "Ran", secondary: "bun test discover", mono: true },
-];
-
-const TOOL_ROWS: ToolChipRow[] = [
-  {
-    id: "tc1",
-    kind: "read",
-    label: "Read",
-    argument: "src/server/discover/group.ts",
-    mono: true,
-    detailMono: true,
-    detail: [
-      { text: "export function groupSignals(input: Signal[])" },
-      { text: "  const bySymptom = new Map<string, Signal[]>()" },
-    ],
-  },
-  { id: "tc2", kind: "think", label: "Considered", argument: "three ways to key the groups" },
-  {
-    id: "tc3",
-    kind: "write",
-    label: "Edited",
-    argument: "group.ts",
-    mono: true,
-    detail: [
-      { text: "Key on symptom rather than on source", tone: "add" },
-      { text: "Keep the source on each signal so a group can be traced back", tone: "add" },
-    ],
-  },
-  {
-    id: "tc4",
-    kind: "run",
-    label: "Ran",
-    argument: "bun test discover",
-    mono: true,
-    detailMono: true,
-    detail: [{ text: "14 pass, 0 fail, 1.9s" }],
-  },
-];
-
-const TOOL_DIFFS: ToolChipDiff[] = [
-  { file: "group.ts", add: 34, del: 12 },
-  { file: "group.test.ts", add: 56 },
-  { file: "signals.ts", del: 9 },
 ];
 
 /* ── code ──────────────────────────────────────────────────────────────── */
@@ -1735,53 +1647,6 @@ function MeridianGallery() {
         </Panel>
 
         <Panel
-          title="Streaming text"
-          note="An answer with its citations sitting inside the run of the prose, so a claim can be spot-checked without leaving the pane. The reveal is per character with a beat on punctuation, which is the timing the founder asked for on 2026-08-14, and it settles within a few seconds and stays settled. The wobble is derived from position rather than drawn at random, so both columns reveal in lockstep and a screenshot after it lands is repeatable."
-        >
-          <Pair>
-            <Stack>
-              <Case label="Nothing asked">
-                <StreamingText parts={[]} />
-              </Case>
-              <Case label="The answer could not be read">
-                <StreamingText
-                  error="Ask stopped answering after thirty seconds, and nothing came back."
-                  onRetry={noop}
-                />
-              </Case>
-              <Case label="An answer arriving">
-                {/*
-                 * `loop` is set HERE and nowhere in the product. This panel sits
-                 * about thirty panels down the page, and the reveal used to
-                 * start on mount — so it ran, finished and settled several
-                 * minutes before anyone scrolled to it, and what you arrived at
-                 * was a finished paragraph. That is the founder's report on
-                 * 2026-08-15 that streaming "pastes the entire block at once":
-                 * it was accurate, and the cause was that nobody was in the
-                 * room for the reveal. The component now waits until it is on
-                 * screen before it starts, which is the real fix; the loop is
-                 * what makes a WORKBENCH able to show the behaviour more than
-                 * once. The reference loops for the same reason.
-                 */}
-                <StreamingText
-                  parts={ANSWER_PARTS}
-                  sources={ANSWER_SOURCES}
-                  followUps={[
-                    "Which of the twelve has been stopped longest?",
-                    "What unblocks the three grouping gates at once?",
-                  ]}
-                  onFollowUp={noop}
-                  onRetry={noop}
-                  onCopy={noop}
-                  onRate={noop}
-                  loop
-                />
-              </Case>
-            </Stack>
-          </Pair>
-        </Panel>
-
-        <Panel
           title="Chat"
           note="The Ask pane opens on an empty thread every single time it is opened fresh, so that is the case composed hardest. The value over a plain transcript is that a reply is not one blob: each step names what it read and how long it took, so a person can see where an answer came from before deciding whether to believe it. One hue appears in the whole component, on the step still running, and nothing here asks for a person."
         >
@@ -1831,37 +1696,6 @@ function MeridianGallery() {
               </Case>
               <Case label="A run that took no steps">
                 <Thinking variant="Steps" rows={[]} />
-              </Case>
-            </Stack>
-          </Pair>
-        </Panel>
-
-        <Panel
-          title="Tool chips"
-          note="Every row opens directly beneath itself, into a rail that starts at the row's own left edge, and nothing else on the surface moves. That is the fix for a touched file whose detail appeared somewhere the eye had to go hunting for. The argument chip is plainly a value and not a control, because an affordance that says press me and does nothing is what this component was picked to remove. The file summary is withheld while the run is going, since a count taken from a run that has not stopped changing things is wrong by the time it is read."
-        >
-          <Pair>
-            <Stack>
-              <Case label="Nothing called">
-                <ToolChips rows={[]} />
-              </Case>
-              <Case label="Still going, so no file summary">
-                <ToolChips
-                  rows={TOOL_ROWS.slice(0, 2)}
-                  diffs={TOOL_DIFFS}
-                  working
-                  messageCount={2}
-                />
-              </Case>
-              <Case label="Settled, four calls and three files">
-                <ToolChips
-                  rows={TOOL_ROWS}
-                  diffs={TOOL_DIFFS}
-                  messageCount={2}
-                  moreCount={2}
-                  onSelectFile={noop}
-                  onShowMore={noop}
-                />
               </Case>
             </Stack>
           </Pair>
@@ -2063,7 +1897,7 @@ function MeridianGallery() {
 
         <Panel
           title="Tool stream"
-          note="Work arriving, as against work that has arrived. Tool chips above takes a finished array and is the right shape for a run that has stopped; nothing in this system showed a call happening, which is the largest hole in the one thing the product says it is for. Every row wears the mark of the thing it touched, derived from the tool's namespace rather than passed in: the source host for anything reaching the repo, a globe for a web read, a clipboard for our own checks. That is what replaced a bracket glyph drawn on every row regardless. The caption comes from the registry name through the product's own vocabulary, so prd.draft reads as drafting a spec, and a tool the vocabulary has never heard of shows its raw name, which is ugly on purpose because that is how a missing entry gets noticed rather than shipped. The one thing that moves is the chip that says Running, since the mark slot now carries an identity and spinning a source-host mark would say the host was turning. The stream follows the newest row and stops the instant you scroll up: scroll one of these up and the way back appears with a count on it."
+          note="Work arriving, as against work that has arrived. A component handed a finished array is the right shape for a run that has stopped and cannot be this one: its rows would all share one state, and its header would print a count that is only true once the run has stopped changing it. Nothing in this system showed a call happening, which is the largest hole in the one thing the product says it is for. Every row wears the mark of the thing it touched, derived from the tool's namespace rather than passed in: the source host for anything reaching the repo, a globe for a web read, a clipboard for our own checks. That is what replaced a bracket glyph drawn on every row regardless. The caption comes from the registry name through the product's own vocabulary, so prd.draft reads as drafting a spec, and a tool the vocabulary has never heard of shows its raw name, which is ugly on purpose because that is how a missing entry gets noticed rather than shipped. The one thing that moves is the chip that says Running, since the mark slot now carries an identity and spinning a source-host mark would say the host was turning. The stream follows the newest row and stops the instant you scroll up: scroll one of these up and the way back appears with a count on it."
         >
           <Pair>
             <ToolStreamCases />

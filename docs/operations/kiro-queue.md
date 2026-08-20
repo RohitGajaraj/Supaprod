@@ -2445,6 +2445,57 @@ that reads wrong on paper is worse than one that reads plain.
 
 ---
 
+# Group N · the founder ruling on K-17
+
+**K-89 · Delete `StreamingText` and `ToolChips`, and leave the argument where the code was**
+`STATUS: TODO` · deps: K-17 · size: M
+**What.** **Founder ruling 2026-08-21, recorded at `ledger/claude-log.md` under "K-17 · RULED · delete
+both".** K-17 asked for these two to be mounted, Kiro refused, and the refusal was upheld. Delete
+`src/components/meridian/StreamingText.tsx` and `src/components/meridian/ToolChips.tsx`, their gallery
+cases in `src/routes/_authenticated.meridian.tsx`, and **fix every comment that names them**, in the same
+commit.
+**Why.** **All four grounds for the block held, and the one only production could answer held hardest.**
+`StreamingText`'s `sources` input has no data source **anywhere in the product**: measured across the whole
+database, 0 of 90 `prds` carry citations and the run record has no citation column at all. `ai_evals.citations`
+is populated but holds a judge's citations about an evaluation, a different object from an agent's answer
+sources. **So "mount it later when citations exist" was never an option that was waiting.** `ToolChips` is a
+fourth view of a run where three were deliberately unified and are pinned together by
+`one-run-one-rhythm.test.tsx`, and the steps ledger already renders every tool call. And the Ask pane, the
+one surface with real token streaming, **has ruled against a per-word reveal in writing.**
+This is the narrow case §6 allows: **broken as written**, because adopting either would need a rewrite and a
+data source that does not exist. It is not the forbidden "unused, so delete" move.
+**How.** **The deletion is nine files, not two, and the comments are the reason.** Nothing imports either
+component outside the gallery, but **nine files reference them and the prose ones are load-bearing**:
+- `src/components/meridian/ToolStream.tsx` — **four** references (23, 24, 133, 171), including a whole
+  header section titled why `ToolChips` could not be this component.
+- `src/components/meridian/DiffTable.tsx:306` — cross-reference to `StreamingText`'s source rows.
+- `src/components/meridian/SelectionActions.tsx:52` — "Streaming belongs to StreamingText, which owns the reveal timing".
+- `src/components/engine-room/AgentScorecardPanel.tsx:82-83` — **the worst one.** It explains that its chips
+  are named `ToolApprovalChips` to avoid colliding with `ToolChips`. Delete the component and this justifies a
+  name with no reason behind it. **Keep the rename, lose the collision:** the name is still the better one.
+- `src/components/meridian/__tests__/tool-stream.test.tsx:228` — a `describe` reading "the empty state uses
+  ToolChips' own words". The assertion stays; only the sentence naming a deleted component changes.
+- `src/styles/meridian.css:845` and `:961` — two token-history notes naming `StreamingText`.
+**Record the argument where the code was**, per the ruling: Kiro's block is the best statement of why these
+two have no honest home, and it must not survive only as a log entry. **`ToolStream.tsx` is where it belongs**,
+since it already carries the section explaining the distinction and is the surviving component.
+**Do not** rewrite a comment into a lie by simply removing the name; say what is true afterwards.
+**Acceptance.**
+- Both files gone; zero references to either name anywhere in `src`, including comments and CSS.
+- `ToolStream.tsx` carries the argument, in enough detail that a reader who never saw `ToolChips` understands
+  why a finished-array component is not this one.
+- `AgentScorecardPanel.tsx` still explains its name without citing a component that no longer exists.
+- `tool-stream.test.tsx` keeps every assertion; only prose changes.
+- **The baseline does not move**, and that is a check rather than a hope: neither file has a baseline entry.
+- `bunx tsc --noEmit`, `bun test`, `bun run build` all clean, and the gallery route still renders.
+**Owns.** `src/components/meridian/StreamingText.tsx`, `src/components/meridian/ToolChips.tsx`,
+`src/routes/_authenticated.meridian.tsx`, `src/components/meridian/ToolStream.tsx`,
+`src/components/meridian/DiffTable.tsx`, `src/components/meridian/SelectionActions.tsx`,
+`src/components/engine-room/AgentScorecardPanel.tsx`,
+`src/components/meridian/__tests__/tool-stream.test.tsx`, `src/styles/meridian.css`
+
+---
+
 ## Related
 
 - [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) — the direction this queue implements, with the evidence for every "why" above
