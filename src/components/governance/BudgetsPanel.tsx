@@ -58,6 +58,7 @@ import {
   Value,
 } from "@/components/meridian/surface-parts";
 import { Field, Input } from "@/components/meridian/forms";
+import { SPEND_TONE, spendState } from "@/components/meridian/Spend";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { toast } from "@/lib/notify";
@@ -162,24 +163,26 @@ function ago(iso: string | null | undefined): string | null {
 }
 
 /**
- * How a burn reads against its own ceiling. The `hold` step is `alert_at_pct`,
- * the same threshold `incrementBudget` writes its alert at, so the colour on
- * screen changes at the moment the record says it does.
+ * How a burn reads against its own ceiling, resolved by the Meridian primitive
+ * rather than here.
  *
- * `hold` and not the retired layer's `warn`: Meridian has five status words and
- * `warn` is not one of them. Spend approaching a ceiling is waiting on a
- * condition -- the window resetting, or someone raising the ceiling -- which is
- * exactly what the amber says.
+ * THIS USED TO BE A SECOND RESOLVER AND IT IS DELETED. `burnTone(burn, cap,
+ * alertPct)` lived here and `spendState(spent, cap, alertAt)` lives in
+ * `meridian/Spend.tsx`, both answering "how close is this to its ceiling", and
+ * nothing made them agree. Two surfaces could call one workspace nearly-spent and
+ * not-nearly-spent on identical numbers. They disagreed about three things
+ * already: a cap of 0 read as no ceiling here and now reads as a ceiling nothing
+ * may be spent under, which is what the runtime enforces; a threshold of 0 wore a
+ * permanent amber; and a burn under the threshold painted `pass`, which Meridian
+ * reserves for an outcome that happened.
+ *
+ * The threshold is still `alert_at_pct`, the same number `incrementBudget` writes
+ * its alert at, so the colour on screen still changes at the moment the record
+ * says it does. It is divided by 100 because the primitive takes a fraction and
+ * the column stores a percentage.
  */
-function burnTone(
-  burn: number,
-  cap: number | null,
-  alertPct: number,
-): "quiet" | "pass" | "hold" | "fail" {
-  if (cap == null || cap <= 0) return "quiet";
-  if (burn >= cap) return "fail";
-  if (burn >= (alertPct / 100) * cap) return "hold";
-  return "pass";
+function burnTone(burn: number, cap: number | null, alertPct: number) {
+  return SPEND_TONE[spendState(burn, cap, alertPct / 100)];
 }
 
 /** Full payload for updateGlobalBudget with one field replaced. The server

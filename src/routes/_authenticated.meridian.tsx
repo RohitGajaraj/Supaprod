@@ -2082,7 +2082,7 @@ function MeridianGallery() {
 
         <Panel
           title="Spend"
-          note="Nothing in this system rendered spend, in a product that meters credits and enforces three separate ceilings, and the colour law names a cap nearly spent as its own example of amber. So the meaning had a token, the token had a documented example, and the example had no component. This is also the one place a bar is allowed: the rule against them is that a coding agent cannot know how long it will take, and here both numbers are known exactly and the denominator does not move, so the proportion is the fact rather than a guess dressed as one. Amber arrives at eighty per cent, which is where the product already raises its approaching-cap notification, and red waits until the ceiling has actually been hit, because red reports a result. The state is said in words as well as in ink, and it is said as the amount left rather than as a percentage, since that is the figure a reader was about to work out. The last case is real: a workspace with no cap runs every station until the work finishes, and that is worth a sentence rather than an empty track."
+          note="No Meridian primitive rendered spend, in a product that meters credits and enforces three separate ceilings, and the colour law names a cap nearly spent as its own example of amber. So the meaning had a token, the token had a documented example, and the example had no component. An earlier version of this note said nothing in the system rendered spend at all, which was wrong: the Spend panel in settings has done it since July, with its own idea of when to worry. That second idea is now gone and this component holds the only one, so the two surfaces cannot call the same workspace nearly spent and not nearly spent on the same numbers. This is also the one place a bar is allowed: the rule against them is that a coding agent cannot know how long it will take, and here both numbers are known exactly and the denominator does not move, so the proportion is the fact rather than a guess dressed as one. Amber arrives at eighty per cent, which is where the product already raises its approaching-cap notification, and red waits until the ceiling has actually been hit, because red reports a result. The state is said in words as well as in ink, and it is said as the amount left rather than as a percentage, since that is the figure a reader was about to work out. The last case is real: a workspace with no cap runs every station until the work finishes, and that is worth a sentence rather than an empty track."
         >
           <Pair>
             <SpendCases />
@@ -2836,6 +2836,31 @@ function SpendCases() {
       </Case>
       <Case label="No cap set at all">
         <Spend label="This account" spent={412.86} cap={null} />
+      </Case>
+
+      {/*
+       * THE THREE CASES NOBODY DREW, which is where all three defects were. Every
+       * case above is a reasonable number, and eight reasonable numbers is how a
+       * component ships breaking on the ninth.
+       */}
+      <Case label="A ceiling of nothing, which is not the same as no ceiling">
+        <Spend
+          label="This account"
+          spent={5}
+          cap={0}
+          note="Every call is refused at this ceiling. Raise it and the work carries on."
+        />
+      </Case>
+      <Case label="A ledger that went backwards, which the bar refuses to draw">
+        <Spend
+          label="This run"
+          spent={-2}
+          cap={5}
+          note="A credit landed after the charge it reverses. The figure is what the ledger says."
+        />
+      </Case>
+      <Case label="A threshold of nothing, which asks to hear only about the ceiling">
+        <Spend label="Today" spent={2.5} cap={5} alertAt={0} />
       </Case>
     </Stack>
   );

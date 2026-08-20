@@ -5,12 +5,20 @@ import { StatusChip } from "./StatusChip";
 /*
  * SPEND AGAINST A CEILING.
  *
- * ── WHY THIS EXISTS ─────────────────────────────────────────────────────
- * NOTHING IN THIS SYSTEM RENDERED SPEND, in a product that meters credits and
- * enforces three separate ceilings: an account cap, a per-mission cap at $10 and
- * a per-track cap at $5. Every surface that needed to say it wrote its own
- * `$${n.toFixed(2)}` inline, and there are five copies of the same four-line
- * formatter in the tree to prove it.
+ * ── WHY THIS EXISTS, CORRECTED 2026-08-20 ───────────────────────────────
+ * THE FIRST VERSION OF THIS COMMENT SAID "NOTHING IN THIS SYSTEM RENDERED
+ * SPEND" AND THAT WAS FALSE. `governance/BudgetsPanel.tsx` has rendered a burn
+ * against its ceiling since 2026-07-30, three weeks before this component was
+ * written, and it had its own resolver for the threshold. That resolver is now
+ * gone and this file holds the only one, which is the actual value delivered
+ * here and is worth more than the claim it replaces.
+ *
+ * WHAT IS TRUE: no Meridian PRIMITIVE said it, so every surface that needed to
+ * wrote its own. Measured today there are eight local money formatters in
+ * `src/**` outside tests, plus a shared `fmtUsd` in `components/product/format.ts`
+ * that four of them ignore. Meanwhile the product meters credits against three
+ * separate ceilings: an account cap, a per-mission cap at $10 and a per-track
+ * cap at $5.
  *
  * Meridian's colour law names this case by name. `--mrd-hold` means "stopped, or
  * about to be, and NOT on you", and the law's own example of it is "a cap nearly
@@ -51,14 +59,18 @@ export type SpendState = "spending" | "nearly" | "spent" | "uncapped";
 /**
  * Money, locale-safe.
  *
- * THE FIVE EXISTING COPIES COULD NOT SERVE, and this is the "say why" the search
- * rule asks for. `admin.proof.tsx`, `admin.ai-costs.tsx`, `SpendRoom.tsx` and
- * `RecordRoom.tsx` each carry a byte-identical `usd()`, and `runs.index.tsx` a
- * fifth variant, and all of them hard-code a dollar sign and a decimal point.
- * That is wrong in every locale that puts the symbol after the number or uses a
- * comma, and this component is required to be locale-safe. So the formatting
- * goes through `Intl`, which also gets the grouping separator right at four
- * figures, something none of the five do.
+ * NONE OF THE EXISTING COPIES COULD SERVE, and this is the "say why" the search
+ * rule asks for. There are more of them than the first version of this comment
+ * said: `admin.proof.tsx`, `admin.ai-costs.tsx`, `SpendRoom.tsx`, `RecordRoom.tsx`
+ * and `traces.$traceId.tsx` carry near-identical local ones, `runs.index.tsx`,
+ * `AnalyticsPanel.tsx` and `engine-room-glance.ts` carry variants, and
+ * `components/product/format.ts` carries the one that is actually shared. Every
+ * one of the nine hard-codes a dollar sign and a decimal point, which is wrong in
+ * every locale that puts the symbol after the number or uses a comma, and this
+ * component is required to be locale-safe. The shared one additionally returns
+ * `"$0"` for zero, so it cannot render the empty case as `$0.00` against a cap.
+ * So the formatting goes through `Intl`, which also gets the grouping separator
+ * right at four figures, something none of the nine do.
  *
  * FOUR DECIMALS UNDER A CENT, which the house already does and is right about:
  * `engine-room-glance.ts` says it in its own comment, "small real amounts must
@@ -76,11 +88,42 @@ function money(amount: number, currency: string): string {
   }).format(amount);
 }
 
-/** Where this stands, computed once so the bar, the hue and the words agree. */
+/**
+ * Where this stands, computed once so the bar, the hue and the words agree.
+ *
+ * THE ONLY RESOLVER OF THIS QUESTION IN THE PRODUCT, as of 2026-08-20.
+ * `BudgetsPanel` had its own `burnTone(burn, cap, alertPct)` and the two could
+ * disagree, so two surfaces could call one workspace nearly-spent and
+ * not-nearly-spent on identical numbers. That one is deleted and it calls this.
+ *
+ * `alertAt` IS A FRACTION, not a percentage, and the trap is real rather than
+ * theoretical: the column behind it is `alert_at_pct` and it stores 80, so a
+ * caller reading the database passes `pct / 100` or gets a threshold 100 times
+ * too high, which never fires and looks like nothing is wrong.
+ *
+ * ── A CAP OF ZERO IS A CEILING, NOT AN ABSENCE ──────────────────────────
+ * This used to fold `cap <= 0` into `uncapped`, and a test pinned that as the
+ * contract, so `<Spend spent={5} cap={0} />` rendered "$5.00 of $0.00" with an
+ * empty bar and no alarm at all. THE SERVER DISAGREES, which is what settles it:
+ * `checkBudget` (runtime.server.ts:915) refuses a call whenever
+ * `cap != null && used >= cap`, so a cap of 0 blocks everything, and
+ * `budgets.functions.ts` validates the column as `.min(0).nullable()`, so 0 is a
+ * value a person can store. The one honest reading is that nothing may be spent,
+ * and `spent >= cap` says that without a special case.
+ *
+ * `null` is the only absence. That now matches the render, which has always
+ * branched on `cap === null` and disagreed with this function about zero.
+ *
+ * ── A THRESHOLD OF ZERO IS NO THRESHOLD ─────────────────────────────────
+ * `alert_at_pct` has no CHECK constraint, so 0 is storable, and without the
+ * guard `spent >= cap * 0` is true at every amount including nothing spent. A
+ * workspace that set 0 would wear a permanent amber. Zero means no early
+ * warning, so the only thing it hears about is the ceiling.
+ */
 export function spendState(spent: number, cap: number | null, alertAt: number): SpendState {
-  if (cap === null || cap <= 0) return "uncapped";
+  if (cap === null) return "uncapped";
   if (spent >= cap) return "spent";
-  if (spent >= cap * alertAt) return "nearly";
+  if (alertAt > 0 && spent >= cap * alertAt) return "nearly";
   return "spending";
 }
 
@@ -109,6 +152,30 @@ const FILL: Record<SpendState, string> = {
 const CHIP: Partial<Record<SpendState, "hold" | "fail">> = {
   nearly: "hold",
   spent: "fail",
+};
+
+/**
+ * The same four states as a `Value` tone, for a surface that says this in a
+ * sentence rather than with a bar.
+ *
+ * IT EXISTS SO `BudgetsPanel` CAN DELETE ITS OWN COPY, and it deliberately does
+ * not export a second threshold: the state comes from `spendState` and this only
+ * paints it.
+ *
+ * `spending` IS QUIET AND NOT `pass`, which is a change to what that surface
+ * rendered and is the point of reconciling rather than aliasing. `burnTone`
+ * returned `pass` for a burn under the threshold, and Meridian's colour law
+ * reserves pass for "an outcome that happened, never an intent". Spending $2 of
+ * $5 is not an outcome, and painting it green is the product approving of the
+ * spend, which is not its call to make. The bar in this file has always drawn
+ * that state neutral, so this is the two surfaces agreeing rather than a new
+ * opinion.
+ */
+export const SPEND_TONE: Record<SpendState, "quiet" | "hold" | "fail"> = {
+  spending: "quiet",
+  nearly: "hold",
+  spent: "fail",
+  uncapped: "quiet",
 };
 
 export function Spend({
@@ -146,7 +213,39 @@ export function Spend({
 }) {
   const state = spendState(spent, cap, alertAt);
   const chip = CHIP[state];
-  const pct = cap && cap > 0 ? Math.min(100, (spent / cap) * 100) : 0;
+
+  /*
+   * THE FILL, CLAMPED AT BOTH ENDS. It used to be clamped at the top only, so
+   * `spent={-2} cap={5}` emitted `style="width:-40%"`, which is not a length. A
+   * negative burn is a ledger that went backwards rather than a state this
+   * component can explain, so the figure above still prints exactly what it was
+   * given and the drawing refuses to invert.
+   *
+   * A cap of zero fills the track completely, because nothing may be spent and
+   * the ceiling is therefore already at the reader's back. Dividing by it would
+   * produce Infinity, so it is answered before the division rather than after.
+   */
+  const pct =
+    cap === null ? 0 : cap > 0 ? Math.max(0, Math.min(100, (spent / cap) * 100)) : 100;
+
+  /*
+   * THE SMALLEST MARK IS A DOT, AND A DOT IS THE TRACK'S OWN HEIGHT.
+   *
+   * `spent={0.0008} cap={5}` is 0.016%, which on this 320px track is 0.05px:
+   * nothing at all, in the case the gallery labels "under a cent, which must not
+   * read as nothing". The figure said $0.0008 and the bar said no.
+   *
+   * `min-w-1` and the track's `h-1` compile to the same declaration, checked in
+   * the built stylesheet rather than assumed: both are `var(--spacing)`, which is
+   * `0.25rem`, so the floor is exactly the track's height and cannot drift from it
+   * by editing one of the two. At the floor the fill is a 4px circle rather than a
+   * hairline, which is the smallest thing this bar can draw that is still a mark.
+   * Anything narrower is a rendering artifact.
+   *
+   * Only when something has actually been spent. Zero spent draws nothing,
+   * because zero is the one amount that really does read as nothing.
+   */
+  const floor = spent > 0 && pct > 0 ? " min-w-1" : "";
 
   const word =
     state === "spent"
@@ -190,7 +289,7 @@ export function Spend({
       >
         {cap === null ? null : (
           <div
-            className={`h-full rounded-mrd-xs ${FILL[state]}`}
+            className={`h-full rounded-mrd-xs ${FILL[state]}${floor}`}
             style={{
               width: `${pct}%`,
               /* The width eases; nothing pulses. A cap that throbbed as it filled

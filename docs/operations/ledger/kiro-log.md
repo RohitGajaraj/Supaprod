@@ -2658,3 +2658,116 @@ Each planted defect failed exactly one test and the other 25 stayed green.
 **Gates.** tsc clean · 9,841 pass / 0 fail / 23 skip / 60 todo across 585 files · build ok. Verified all
 six utility classes the fix depends on exist in the built stylesheet before measuring, since a class
 absent from `styles-*.css` measures as a fix to a problem that is still there.
+
+---
+
+## K-07 (rejected, fixed) · BUILT · 2026-08-20 09:22
+
+**Did.** Fixed all three functional defects, killed the second resolver, and corrected the false premise
+where it shipped. `spendState` no longer folds a cap of 0 into `uncapped`, so a workspace that may spend
+nothing reads as a ceiling reached instead of as untouched. The fill is clamped at both ends rather than
+only at the top, and it carries a floor equal to the track's own height, so an amount under a cent draws
+a dot rather than 0.05px. A threshold of 0 no longer means a permanent amber. `BudgetsPanel`'s
+`burnTone` is gone and its one line now delegates to `spendState`.
+
+**Extended `Owns`, deliberately and with the reason.** The item lists `Spend.tsx`, `spend.test.tsx` and
+the gallery route. **I also changed `src/components/governance/BudgetsPanel.tsx`**, because "reconcile
+them and delete one" cannot be done from inside the file that is not being deleted from. It appears in
+no other item's `Owns`, checked by grep across the whole queue, so there is nothing to collide with.
+
+**Which resolver survived, and why that direction rather than the other.** `spendState` is the Meridian
+primitive, it is exported, it is tested, and it was the more nearly correct of the two. But the decisive
+argument is not seniority, it is that **the server settles what a cap of 0 means and `burnTone` was on
+the wrong side of it.** `checkBudget` at `runtime.server.ts:915` refuses a call whenever
+`cap != null && used >= cap`, so 0 blocks everything, and `budgets.functions.ts:146` validates the column
+as `.min(0).nullable()`, so 0 is a value a person can store. Both resolvers read a zero cap as no
+ceiling at all. One of them now reads it the way the runtime enforces it.
+
+**The three defects, and what each one now does.**
+
+- **`cap={0}`** rendered "$5.00 of $0.00", an empty track and no words. Now: full red track, "Cap
+  reached", and the division is answered before it happens rather than after, so nothing produces
+  Infinity. `spent={0} cap={0}` also reports the ceiling, because nothing may be spent and the ceiling
+  is at the reader's back from the start.
+- **`spent={-2}`** emitted `style="width:-40%"`. Now `width: 0%`, measured in a browser as a 0px box.
+  **The figure above it still prints exactly what the ledger says.** The drawing refuses to invert; the
+  fact is not edited to match the drawing.
+- **`spent={0.0008} cap={5}`** emitted `width:0.016%`, which is 0.05px on the 320px track, in the case
+  the gallery labels "under a cent, which must not read as nothing". Now `min-w-1`, and the reason it is
+  that class rather than a number is checkable: `min-w-1` and the track's `h-1` compile to the same
+  declaration, `var(--spacing)` at `0.25rem`. Measured on the built stylesheet the fill is **4.00 x 4.00
+  px with a 4px radius, so at the floor it is a circle**, identical in both grounds. It cannot drift from
+  the track height by someone editing one of the two.
+
+**Unsure.**
+
+1. **`spending` now paints `quiet` where `burnTone` painted `pass`, and that changes a shipped surface.**
+   It is the one visible consequence of reconciling and it is the decision most worth a second opinion,
+   because Claude can open the Spend settings surface and I cannot. My argument: Meridian reserves
+   `pass` for "an outcome that happened, never an intent", spending $2 of $5 is not an outcome, and
+   green on a spend figure is the product approving of the spend, which is not its call. The bar in
+   `Spend.tsx` has always drawn that state neutral, so this is two surfaces agreeing rather than a new
+   opinion. **The other reading is that `pass` there means "inside your policy", which is a real meaning
+   and not obviously wrong.** If that reading wins, the change is one line in `SPEND_TONE`.
+2. **I kept a function called `burnTone` in `BudgetsPanel`, now one line long.** The verdict said delete
+   one, and what I deleted is the logic. The wrapper survives because the `/100` has to live somewhere
+   with a comment on it: the column stores a percentage and the primitive takes a fraction, and a caller
+   who passes 80 gets a threshold 100 times too high, which never fires and looks like nothing is wrong.
+   Inlining it at the call site would put that trap in a JSX attribute.
+3. **A zero cap says "Cap reached" and nothing more specific.** "No spend is allowed here" would read
+   better, but the component delegates every consequence sentence to `note` on purpose, because the
+   three ceilings have three different consequences. The gallery case supplies one. I could have added a
+   fourth `SpendState` for it and did not, since the state is genuinely the same one: the ceiling has
+   been reached.
+4. **A negative spend still resolves to `spending` and wears no state at all.** I considered a fourth
+   state for a ledger that has gone backwards and rejected it: there is no evidence in the repo that it
+   happens, and inventing a state for a case nobody has seen is how a component grows a branch nobody
+   maintains. It draws nothing and prints the true figure, which is the honest minimum.
+
+**Noticed.**
+
+1. **`spend.test.tsx:73` asserted the defect as the contract.** It read
+   `expect(spendState(9, 0, 0.8)).toBe("uncapped")`, which is the exact pattern AGENTS.md §6 names as
+   worse than no test, and which two of the nine dead features had. **I wrote that line, in the original
+   build.** It is now `.toBe("spent")` with the reason above it. A test can only encode a defect if the
+   author never asked what the value ought to be, and I did not.
+2. **The formatter count in the file's own comment was wrong and I have corrected it upward.** The
+   comment said five copies. There are **nine** money formatters in `src/**` outside tests:
+   `admin.proof.tsx`, `admin.ai-costs.tsx`, `SpendRoom.tsx`, `RecordRoom.tsx`, `traces.$traceId.tsx`,
+   `runs.index.tsx`, `AnalyticsPanel.tsx`, `engine-room-glance.ts`, and the one that is actually shared,
+   `components/product/format.ts`. The verdict said four were byte-identical and understated; it is
+   worse than that. **The shared one exists and four of the local copies ignore it**, which is the more
+   useful finding, and it also cannot serve this component: it returns `"$0"` for zero, so it cannot
+   render the empty case as `$0.00` against a cap.
+3. **`Value` carries status as coloured TEXT, which the chip work exists to stop.** `surface-parts.tsx:1111`
+   paints `text-mrd-hold` and `text-mrd-fail` on a `span`, and that is exactly the measurement that put
+   the chips in `Spend`: on paper those land at 5.06 and 5.99 and amber resolves to brown. So
+   `BudgetsPanel`'s burn figure has the problem `Spend` was fixed for. **I did not change it**, because
+   `Value` is `surface-parts.tsx` and every caller of it inherits the change. It is an item, and the
+   chips are the answer.
+4. **`BudgetsPanel`'s own header claims "the burn is a `Value` whose tone IS the threshold"**, written
+   when the bar was removed to stop "colour carrying a threshold the number beside it already stated".
+   Those two sentences are in tension in the same comment block: the bar went because colour was
+   redundant, and then the colour stayed. The tone is still there and still means the threshold. Worth a
+   ruling rather than a fix.
+5. **The dev server on :8081 is serving a stale `Spend` module and I could not make it reload.** It
+   picked up my `_authenticated.meridian.tsx` change, since the new Dialog case is on the page, and it
+   still renders the old seven Spend cases per ground with the sub-cent fill at 0.05px and no floor
+   class. A hard reload did not clear it. It is not my process, so I left it alone and measured against
+   the production build instead, which is the stronger check anyway. **Flagging it because anyone reading
+   :8081 right now is reading something that is not in the tree.**
+6. **`Case` labels are not in the rendered text.** My first browser probe searched `innerText` for the
+   gallery case labels and found none of them, including ones that have been shipped for days, which
+   nearly sent me chasing a phantom. Whatever `Case` does with `label`, it does not put it in
+   `innerText`. Recorded because it will waste the next person's time the same way.
+
+**Planted, so none of the new assertions is vacuous.** Folded `cap <= 0` back into `uncapped` (3 fail),
+clamped the top only (1), removed the floor class (1), dropped the zero-threshold guard (1), and grew
+`burnTone`'s body back inside `BudgetsPanel` (1). **And I caught one of my own assertions being wrong
+while writing it**: a sweep for `"-"` across the whole style attribute matched `var(--mrd-d-move)` on the
+transition beside the width, which is a hyphen in a token name rather than a negative length. Scoped to
+the width declaration. Same class of mistake as counting a class name across every span.
+
+**Gates.** tsc clean · 9,851 pass / 0 fail / 23 skip / 60 todo across 585 files · build ok. Confirmed
+`min-w-1` exists in the freshly built `styles-*.css` before trusting any measurement of it, since a class
+absent from the stylesheet measures as a fix to a problem that is still there.
