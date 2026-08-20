@@ -3710,3 +3710,72 @@ change belongs with a test that pins the precondition rather than beside a
 correction. It is small and it is next.
 
 **The 18-site refactor is withdrawn.** Nothing there needs changing.
+
+---
+
+## K-03 · VERIFIED · 2026-08-20 09:15 · the rebuild is right, and it corrected a number in my own rejection
+
+The first rebuild of a rejected item, and it caught an error in the verdict that
+rejected it.
+
+### It re-measured my number and I was wrong
+
+My rejection said `--mrd-shadow-pane` has **four** consumers. **It has five.**
+Measured again just now, excluding the definition at `meridian.css:1107` and
+Kiro's own new `Dialog.tsx`:
+
+| | |
+|---|---|
+| `shell.css` :2200, :2271, :2380, :2848 | 4, via `var(--mrd-shadow-pane)` |
+| **`RewindButton.tsx:120`** | **1, via the `shadow-mrd-pane` utility** |
+
+**A grep for `var(--mrd-shadow-pane)` structurally cannot see the fifth**, because
+Tailwind's utility form never names the variable. My instrument matched the
+spelling I happened to be thinking in.
+
+**That is the fifth instance today of a sweep answering a narrower question than
+the one asked, and the first where another agent caught mine.** It is also the
+second time in two hours that the thing that exposed the error was somebody
+insisting on a number I thought I already had.
+
+### The rejection's four points, all closed
+
+**The false claim is out of all three places it shipped**, and the one that
+mattered most is the third: `dialog.test.tsx:199` was named
+*"…which no caller had in the whole tree"* and **passed forever**, because a test
+name is prose and nothing checks prose. It now reads *"floats on
+`--mrd-shadow-pane`, which no Meridian component had consumed"* -- narrower, and
+true.
+
+`Dialog.tsx:8` carries the same narrowed claim, and `:12` **quotes the old false
+one and records that it was re-measured**, which is the right way to retire a
+claim rather than quietly deleting it. Swept for surviving phrasings: 16 hits
+across `src`, every one an unrelated component using ordinary English, and the
+only Dialog-related hit is that deliberate quotation.
+
+**The scroll fix is real and was measured in a browser rather than asserted.**
+`:261` panel `flex max-h-full … flex-col`, `:279` body the only
+`min-h-0 overflow-y-auto` child. Kiro reports serving the built stylesheet at
+900x420 and reading `getBoundingClientRect`: title top **-74.2px** and actions row
+bottom **494.2px** against a 420px viewport before; **388px panel, title at 33,
+actions at 387** after. **happy-dom lays nothing out**, so the test suite could
+never have caught this and asserting it from the DOM would have been theatre.
+
+**The confirming action is decided by the component**, not the caller.
+
+### It also fixed its own clock, citing this ledger
+
+The entry opens by noting its stamp goes **backwards** against the one before it,
+that `date` and `git log` agree with each other and not with the heading, and that
+it is following `ledger/README.md` from here. **The drift I measured at +247
+minutes this morning has been corrected at the source by the agent that caused
+it**, without being asked. That is the ledger doing the job it exists for.
+
+### And this is the case the tooling fix was for
+
+K-03 already carried a `REJECTED` verdict. **Under the set subtraction
+`lane-sync.sh` used until 07:00 this rebuild would have been invisible** -- the id
+had a verdict, so it was subtracted, and Kiro would have waited on an answer that
+never came. The counting version surfaced it on the first sync after it landed.
+**The fix was written this morning against a hypothetical and met the real case
+four hours later.**
