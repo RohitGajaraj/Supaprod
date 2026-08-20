@@ -2277,3 +2277,225 @@ reader" is a column-grained property that everyone measures per table.**
 
 Filed as **K-86** for the surface. The measurement is mine; the surface is
 component work.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 06:29 · criteria 7 and 14 measured, and the forecast numbers that looked like progress were all seeded
+
+The last two unmeasured §10 criteria, and a correction to two I did not set out
+to touch.
+
+### Criterion 14 — users reachable by digest without a Settings visit. **0. Confirmed, with the mechanism.**
+
+**The digest's user list *is* the preferences table.** `sendDueDigests`
+(`notifications.functions.ts`) opens with:
+
+```
+.from("user_notification_preferences").select("user_id,digest_frequency,...").limit(200)
+if (rows.length === 0) return { scanned: 0, sent: 0 }
+```
+
+A user with no row there is never scanned, never due, never sent.
+
+**The content path is opt-out and the reachability path is opt-in, which is the
+whole defect.** `generateDigest` defaults every category on -- `digest_frequency
+?? "daily"`, `digest_approvals ?? true`, and so on -- so the product's stated
+intent is clearly that a digest should arrive without configuring anything. That
+intent is unreachable, because the query that decides *who* gets considered runs
+before any of those defaults apply.
+
+**Nothing creates the row except the user.** One writer creates rows:
+`updateNotificationPreferences`, a `requireSupabaseAuth` server function behind
+the Settings form. **No migration and no signup trigger inserts one** -- checked
+every migration for a trigger or seed on that table, there is none.
+
+Production, this minute:
+
+| | |
+|---|---|
+| users (`profiles`) | **16** |
+| have a preferences row | **1** |
+| ever sent a digest | **1** |
+
+**15 of 16 users cannot receive a digest at all**, and the one who can is the one
+who saved the form.
+
+**A second defect in the same query, currently harmless.** `.limit(200)` with no
+`ORDER BY`. At one row it does nothing; at scale it silently serves an arbitrary
+200 users per tick, and *which* 200 is whatever Postgres returns, so a user could
+be skipped indefinitely without any surface saying so. Recording it now because
+it is invisible until it is a support ticket.
+
+### Criterion 7 — a resolved forecast changes a rank. **Never. And the reason is specific.**
+
+Not "there is no ranking". **The ranking exists, it has an outcome leg, and the
+leg reads a different column.** `computeAgentTrust` (`trust.server.ts`) is four
+weighted legs:
+
+```
+raw = 0.3*mission + 0.2*approval + 0.2*eval + 0.3*outcome
+```
+
+`outcome` is `learnings.verdict === "validated"`, attributed to an agent by
+joining through `decisions`. And it selects, from `decisions`, exactly
+`prd_id, decided_by_agent_slug` -- **the join keys and nothing else.** The table
+carrying `forecast_resolution` is read by the ranking, on the same row, and the
+resolution is not selected.
+
+Every other reader of `forecast_resolution` either writes it
+(`brain/forecast-resolution.ts`, `settle_forecast`), looks for ones still
+unresolved (`forecast-audit.server.ts`, `mcp.functions.ts`), or displays it
+(`ForecastDeskPanel.tsx`). **Nothing ranks on it.**
+
+**This one is worth stating plainly against the canon.** `CLAUDE.md` holds that
+the moat is the forecast captured at decision time. The product captures
+forecasts, resolves them, and shows them. The single place where a resolved
+forecast would change what happens next -- which agent is trusted with more --
+does not read it. **A forecast that changes no decision is an artifact, which is
+the exact thing the canon says is not the moat.**
+
+### The correction I did not go looking for: criteria 5 and 6 have NOT moved
+
+The first query came back looking like a landslide: **289 decisions, 146
+carrying a forecast (50.5%), 91 resolved**, against a recorded 0.3% and 0.
+
+**All of it is seed data.** Grouped by workspace:
+
+| workspace | decisions | with forecast | resolved |
+|---|---|---|---|
+| Explore workspace | 61 | **0** | **0** |
+| My workspace | 50 | **0** | **0** |
+| Sample workspace | 20 | 20 | 12 |
+| Helio Labs ×7 (lantern, compass, harbor, explore, voyage, meridian, …) | 19–20 each | 19 each | 12 each |
+| Sample sandbox | 11 | 0 | 0 |
+
+**Seven Helio Labs workspaces with identical counts is one fixture cloned per
+demo tenant**, not seven teams forecasting. Every workspace carrying a forecast
+is named Sample or Helio. **The two that look like real use carry 0 forecasts and
+0 resolutions between them, across 111 decisions.**
+
+So: **criterion 5 is 0 of 111 in real workspaces and criterion 6 is 0.** Both
+unchanged. Had I reported the headline number, this log would now claim the moat
+metric went from 0.3% to 50% overnight on the strength of a demo fixture.
+
+**This is the third time tonight and at least the fourth this week**, which is
+why the rule exists: a number without the query that produced it, and without
+knowing whose rows it counted, is not evidence.
+
+### What I am not doing, and why it is a decision rather than an omission
+
+The obvious next move is a fifth leg on the trust score reading
+`forecast_resolution`, and the shrinkage already handles the empty case -- `n=0`
+returns the prior, so it would sit inert and begin discriminating on the first
+real resolution. That is the honest form of the canon's own claim: wired and
+proven, accruing on first use.
+
+**I am not adding it in the same breath as measuring it.** Two legs of four are
+already prior-only in real workspaces: `outcome`, because no real workspace has a
+`learnings` row, and `eval`, because the contract cutoff excludes all 77
+historical rows. **Half the weight of this score currently carries no evidence**,
+and adding a third empty leg changes every agent's rank today while explaining
+nothing about any agent. The right order is to establish why the first two are
+empty before widening the formula. Filed as the next thing in my own lane, not
+as a Kiro item -- it is server work.
+
+---
+
+## Claude lane · RULED · 2026-08-20 06:38 · no fifth trust leg. Both empty legs are starved upstream, and one station has never run at all
+
+Last entry I said the fifth leg waits until I know why two of four legs are
+empty. Now I know, and the answer rules the leg out rather than scheduling it.
+
+### The outcome leg is not broken. It is proven and unfed.
+
+I expected to find a wiring fault and there is none. The leg joins
+`learnings.prd_id` to a decision naming an agent, and on production data that
+join lands:
+
+| | |
+|---|---|
+| learnings carrying a `prd_id` | **77** |
+| whose `prd_id` has a decision | **49** |
+| whose decision names an agent | **49** |
+| that would score as `validated` | **35** |
+
+**35 rows would move an agent's rank today**, so the leg is demonstrably wired,
+end to end, against real rows in a real database. What it is not, is fed: every
+one of those 77 rows is `is_sample = true`. **Zero real learnings exist**, which
+I had established before and which is unchanged.
+
+### Why no real learning exists, which is the part I did not know
+
+Not an approval backlog -- that was my hypothesis, because
+`defaults.ts:169` gates `learning.record` at `mode: "confirm"` and criterion 3
+counts 130 approvals raised then never decided. **It is falsified: there has
+never been a single `learning.record` approval in this database**, of any status.
+The tool has never been called.
+
+It has never been called because **work does not reach Learn.** Track members by
+station:
+
+| station | members | tracks | last |
+|---|---|---|---|
+| sense | **646** | 24 | 2026-08-20 |
+| define | 34 | 4 | 2026-08-19 |
+| design | 8 | 4 | 2026-08-19 |
+| decide | 7 | 6 | 2026-08-19 |
+| build | 3 | 3 | 2026-08-19 |
+| **ship** | **0** | **0** | **never** |
+| learn | 2 | 1 | **2026-08-01** |
+
+**Ship has never had a track member.** The station union is seven wide in code
+(`agent-vocabulary.ts`: sense, decide, define, design, build, ship, learn) and
+production has rows for six of them. Learn's two members did not arrive through
+Ship, because Ship has never held anything -- consistent with the route being
+skippable rather than a conveyor.
+
+Sensing ran **today**. Learn was last touched **19 days ago**, on one track. The
+lifecycle collapses at a ratio of 646 to 2.
+
+### The eval leg is starved by something older than my cutoff
+
+I have been describing this leg as empty because `EVAL_CONTRACT_FIXED_AT`
+excludes the 77 historical rows judged under the self-contradicting prompt. **That
+is true and it is not the binding constraint.**
+
+`ai_evals` holds 77 rows, first `2026-06-29`, **last `2026-07-23`**. Nothing in
+**28 days**. Delete the cutoff tomorrow and the leg still carries no current
+evidence, only stale rows on the inverted polarity.
+
+**And this sharpens the eval-tick diagnosis.** `cron.eval-tick` last succeeded
+`2026-08-05 12:30`. The last eval row predates that by **13 days**, so the tick
+was running, successfully, for a fortnight while writing nothing -- and then
+stopped. Whatever killed the schedule is a second fault, not the reason the table
+went quiet. **Two failures, and I had been treating them as one.**
+
+### The ruling
+
+**No fifth leg reading `forecast_resolution`.** Not deferred on taste; refused on
+the evidence:
+
+1. **Two of four legs already carry no evidence in real workspaces** -- 50% of the
+   weight, both returning the prior. A third empty leg makes it 65% prior and
+   moves every agent's rank today while explaining nothing about any agent.
+2. **Neither empty leg is empty for a reason a formula can fix.** One waits on
+   work reaching Learn; the other waits on evals being written at all. **Adding
+   inputs to a score whose existing inputs are starved is arithmetic, not
+   measurement.**
+3. **Criterion 7 does not need a new leg to move.** The outcome leg already reads
+   `decisions` on the row that holds the resolution and selects only the join
+   keys. When forecasts resolve in a real workspace, the cheaper and truer change
+   is to widen that select -- one column on a proven join, rather than a new
+   weighted term.
+
+**What actually unblocks the trust score is upstream of it**, and neither part is
+a scoring change: work has to reach Ship and Learn, and something has to write an
+eval. **Recording that as the finding rather than shipping a formula that would
+have looked like progress.**
+
+**One caveat I am keeping honest.** 16 users, one of whom has ever saved a
+notification preference, and workspaces named "Explore workspace" and "My
+workspace". **Most of this is the absence of real use rather than a defect**, and
+a starved leg on an unused product is not evidence of a broken leg. The two
+things that are defects regardless of usage are Ship never having run and the
+eval tick being dead.
