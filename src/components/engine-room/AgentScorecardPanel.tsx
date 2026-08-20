@@ -77,8 +77,13 @@ function RateStat({
 
 /** The per-task-type breakdown, as colourless chips. A task type is a CATEGORY,
  *  never a status, so it carries no hue: spending one here is what makes a real
- *  status unreadable everywhere else on the panel. */
-function ToolChips({ tools }: { tools: ToolRecord[] }) {
+ *  status unreadable everywhere else on the panel.
+ *
+ *  NAMED `ToolApprovalChips` RATHER THAN `ToolChips`, renamed 2026-08-20. There is
+ *  a `ToolChips` in `components/meridian/`, and two things under one name in one
+ *  repo is a grep that returns the wrong file. This one is also not what that name
+ *  suggests: it renders an APPROVAL RATE per tool, not a stream of tool calls. */
+function ToolApprovalChips({ tools }: { tools: ToolRecord[] }) {
   if (tools.length === 0) return null;
   const shown = tools.slice(0, MAX_TOOLS_SHOWN);
   const extra = tools.length - shown.length;
@@ -144,7 +149,7 @@ function ScorecardRow({ card }: { card: AgentScorecard }) {
         />
       </div>
 
-      <ToolChips tools={card.byTool} />
+      <ToolApprovalChips tools={card.byTool} />
     </div>
   );
 }

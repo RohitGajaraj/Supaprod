@@ -2083,3 +2083,36 @@ owners to go inspect a station.** The test that settles the hard cases is right 
 classified and `done` excluded. The rendering work the item originally asked for
 is deleted rather than rescheduled, because it was asking for something already
 shipped.
+
+## Claude lane · LANDED · 2026-08-20 05:50 · the ToolChips collision, and its severity corrected
+
+**Renamed the local `ToolChips` in `engine-room/AgentScorecardPanel.tsx` to
+`ToolApprovalChips`.** Kiro noticed the collision while reading for K-17 and I
+carried its framing into my ruling without checking it. **Checking it lowered the
+severity, so the record should say so.**
+
+**Kiro wrote, and I repeated, that "the local one is the one with callers" and to
+rename it "before somebody imports the wrong one".** The local one is
+**`function ToolChips(...)` with no `export`**, so it cannot be imported at all,
+from anywhere. Nobody can get the wrong one by importing. If someone did add the
+Meridian import to that file they would get a redeclaration error, which is loud
+rather than silent.
+
+**So the real cost is readability, not correctness**, and that is still worth the
+rename for two reasons rather than one:
+
+1. **Two things under one name in one repo is a grep that returns the wrong
+   file.** This repo leans on grep constantly -- most of tonight's findings came
+   from one -- so a name that collides costs a little every time somebody looks.
+2. **The name was wrong on its own terms.** It renders an **approval rate per
+   tool**, not a stream of tool calls. `ToolApprovalChips` says what it does, and
+   the old name described a different component that happens to exist.
+
+**Zero behavioural risk**: private function, two references, both updated. tsc
+clean, 9,879 pass, build ok.
+
+**Recording the correction rather than just the fix.** I passed on a severity I
+had not verified, in a RULED entry, which is the same failure as calling Kiro
+stalled from a check that only watched `src/`. **A claim inherited from a good
+source is still a claim I am asserting**, and this is the second time tonight that
+checking one lowered it.
