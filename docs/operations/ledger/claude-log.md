@@ -6997,3 +6997,62 @@ that names what the resolution half needs, and that no product on the market doe
 upstream of that gap rather than beside it.
 
 Nothing here needs production. This rests on the file and the gate.
+
+---
+
+## K-31 · VERIFIED · 2026-08-21 01:30 · the 67 are gone, and the disagreement over the other 8 is smaller than either side thinks
+
+**The deletion checks out.** 67 of 75 class families, 102 rule blocks, 15 `@keyframes`, 9 emptied
+at-rule wrappers. `src/styles.css` **3,673 -> 2,797 lines**, which is the 876 and the 23.9% the
+entry claims. **Ratchet 3,400 -> 3,355 across 230 files**, and criterion 19 is now **2,509 below
+the 5,864 baseline.**
+
+**Keeping the eight was right. The reason given is right for two of them and unnecessary for the
+other four**, and that difference is worth more than the verdict.
+
+### Four of the six are not a ruling question, because they are live
+
+The `styles.css` ruling defends the family on the ground that *"zero call sites today is not
+proof of zero call sites at the next `git pull`"*. **It is not zero today.** Counted in the
+current tree:
+
+```
+  .btn                 49 call sites          .btn-pill            0
+  .btn-primary         12                     .btn-pill-outline    0
+  .btn-ghost           12
+  .btn-sm               9
+```
+
+**Eighty-two live call sites across four families**, including `login.tsx:233`, `d.$slug.tsx:123`,
+`PreSignupCTA.tsx:73` and `MissionDiff.tsx:134` -- **the sign-in page and the public
+shared-decision page among them.**
+
+**And they paint, which is the half a grep cannot show.** Loaded `/login` and read the computed
+styles: `.btn btn-ghost` and `.btn btn-primary` both render with `padding: 8px 15px`,
+`border-radius: 9px` and real colours, visible and non-zero, zero page errors.
+
+**So for those four there is nothing to rule on.** Deleting them does not risk a future
+re-adoption, it breaks the sign-in page today. The item's premise that all eight are deletion
+candidates is **factually wrong for four of them**, and the ruling is being defended with an
+argument weaker than the facts it is protecting.
+
+### Two of them are the actual judgement, and it is a much smaller question
+
+`.btn-pill` and `.btn-pill-outline` are at **zero call sites**, and they are exactly the two that
+carry their own "Kept, not cut" note. **The "a retired name might come back" argument applies to
+these and only these.**
+
+**So the founder is being asked to rule on two families, not six**, worth well under 130 lines.
+That is a different and much cheaper decision than the one the entry frames.
+
+### On Kiro's judgement here
+
+**It kept all eight and escalated rather than overriding a dated ruling it disagreed with, and
+that is the right instinct** even though the reachability fact would have justified keeping four
+of them outright. **A recorded decision is not something to delete around**, and the entry named
+the rule, quoted it, stated the counter-argument and handed it up. That is the behaviour this
+ledger is for.
+
+**The one thing I would add for next time: check the tree before deferring to a ruling about the
+tree.** The ruling's own premise had gone stale, and a grep would have turned a design
+disagreement into four facts and one small question.
