@@ -128,10 +128,16 @@ CLAUDE="docs/operations/ledger/claude-log.md"
 #    lines is true whatever the writers believe the time is.
 pending_ids() {  # kiro-file  asked-verbs  claude-file  answered-verbs
   local kfile="$1" averbs="$2" cfile="$3" rverbs="$4" id n_asked n_answered
-  for id in $(grep -oE "^## K-[0-9]+ · ($averbs)" "$kfile" 2>/dev/null \
+  # `[^0-9·]*` between the id and the separator, because an entry may qualify the
+  # id before the verb: Kiro logged `## K-18 (rewritten) · BUILT` on 2026-08-20
+  # and a pattern demanding `· ` straight after the id did not match it, so a
+  # built item sat waiting on a verdict this script reported as not needed.
+  # Excluding digits keeps `K-1` from matching `K-18`; excluding `·` keeps the
+  # match inside one heading.
+  for id in $(grep -oE "^## K-[0-9]+[^0-9·]*· ($averbs)" "$kfile" 2>/dev/null \
               | grep -oE 'K-[0-9]+' | sort -u); do
-    n_asked="$(grep -cE "^## ${id} · ($averbs)" "$kfile" 2>/dev/null || true)"
-    n_answered="$(grep -cE "^## ${id} · ($rverbs)" "$cfile" 2>/dev/null || true)"
+    n_asked="$(grep -cE "^## ${id}[^0-9·]*· ($averbs)" "$kfile" 2>/dev/null || true)"
+    n_answered="$(grep -cE "^## ${id}[^0-9·]*· ($rverbs)" "$cfile" 2>/dev/null || true)"
     if [ "${n_asked:-0}" -gt "${n_answered:-0}" ]; then printf '%s\n' "$id"; fi
   done
   return 0
