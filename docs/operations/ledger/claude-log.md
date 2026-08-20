@@ -3058,3 +3058,84 @@ problem.
 **Still to confirm:** the first scheduled fire lands on the next half hour. A
 `job_runs` row for `cron.eval-tick`, and the first `ai_evals` row this product has
 ever written that is not seed data, are the two things to look for next tick.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 07:50 · there is a canonical way to exclude demo data and I spent the night matching on names instead
+
+**`workspaces.is_sample` exists.** Boolean, NOT NULL, default false, correctly
+populated. Every seed-data finding tonight -- four of them -- was reached by
+reading workspace NAMES and noticing suspicious regularity, when one column
+answers it directly.
+
+### It is not merely tidier, it disagrees with me
+
+| is_sample | count | which |
+|---|---|---|
+| **true** | 12 | Demo workspace, **Explore workspace**, 7× Helio Labs, Sample sandbox, 2× Sample workspace |
+| false | 9 | 8× "My Workspace", **Rohit** |
+
+**"Explore workspace" is a sample workspace**, and I have twice recorded it as
+real use on the strength of its name. The entry at 06:29 says "the two that look
+like real use -- Explore workspace (61 decisions) and My workspace (50) -- carry 0
+forecasts and 0 resolutions between them, across **111 decisions**."
+
+**The conclusion was right and the denominator was wrong.** There are **55**
+decisions in real workspaces, not 111.
+
+### The real-workspace numbers, canonically
+
+| | real rows | |
+|---|---|---|
+| decisions | **55** | **0** carry a forecast, **0** resolved |
+| learnings | **0** | the outcome leg has never had an input |
+| approvals | 15 ever | **0 pending** |
+| missions | **95** | 59 proposed |
+
+**So criterion 5 is 0 of 55 and criterion 6 is 0**, both confirmed with the
+canonical filter rather than by name. Criterion 7 is unaffected: 0 resolutions
+cannot change a rank, and the ranking would not read them anyway.
+
+### A distinction I need to state rather than "correct"
+
+At 07:12 I wrote that criterion 1's honest number was "7 live pending approvals,
+not 35". Measured by `is_sample`, **real workspaces hold 0 pending approvals.**
+
+Both are true and they answer different questions:
+
+- **7 of the 35 were freshly generated** yesterday and today rather than being a
+  July fixture. That is what I measured, and it is the number that matters for
+  "is something still producing futile approvals" -- it is.
+- **0 of them are in a real workspace.** The ambient ticks run against demo
+  tenants, so the futile `cluster.trigger` approvals accumulate there.
+
+**Neither number is the honest one on its own.** Something is still generating
+futile approvals, and no real user is looking at any of them.
+
+### The ruling, so the next measurement is not a fifth improvisation
+
+**Every §10 measurement filters on `workspaces.is_sample = false` unless the
+criterion is explicitly about the demo.** Name-matching is retired: it is
+unreliable in both directions -- it called a sample workspace real, and it would
+call a real workspace named "Sample" fake.
+
+The canonical filter, written once here so it can be copied rather than reinvented:
+
+```sql
+WITH real_ws AS (
+  SELECT id FROM workspaces WHERE NOT is_sample AND deleted_at IS NULL
+)
+SELECT ... FROM <table> WHERE workspace_id IN (SELECT id FROM real_ws);
+```
+
+`deleted_at IS NULL` is part of it, because a soft-deleted workspace is not real
+use either.
+
+**Why I did not find this sooner is worth saying plainly.** I added `is_sample` to
+`learnings` and `agent_memory` myself last night, in
+`20260819180000_the_moats_own_table_cannot_say_it_is_an_example.sql`, and never
+checked whether the parent table already carried the same flag. **I built a column
+to answer a question the schema could already answer one join away.** The row-level
+flags are still right for their own purpose -- a seeded row can sit in a real
+workspace -- but the workspace flag is the one that decides whether a number
+describes the product working.
