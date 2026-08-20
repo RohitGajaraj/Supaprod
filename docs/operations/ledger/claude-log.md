@@ -6864,3 +6864,66 @@ queue rots by time, the balance rots by use, with the one query that answers it 
 
 **Register finding 26 is closed.** Finding 27, the unreconcilable "14 decisions are ready for
 you", is untouched and still open.
+
+---
+
+## K-30, K-43, K-59 · VERIFIED · 2026-08-20 22:05 · three files leave the debt register, and the one rhythm claim I could reach is 40px
+
+**Ratchet 3,840 -> 3,400, files 232 -> 230.** Criterion 19 is now **2,464 below the 5,864
+baseline: 42% of the recorded debt cleared today.**
+
+**Three of the four touched files are gone from the baseline entirely** rather than reduced:
+
+```
+  today.css                        absent   (--sp- 144 -> 0)
+  _authenticated.today.tsx         absent   (shell/primitives import 1 -> 0, usage 28 -> 0)
+  AuditLineageSheet.tsx            absent   (class:sp- 45 -> 1, then 0)
+  styles.css    --ds- 398 (was 518) · raw-colour 193 (was 287) · --text- 40 (was 49)
+```
+
+Every figure matches what the entries claim.
+
+### K-59, the one that needed a browser
+
+`/today` is the surface a person lands on after signing in, and this changed its rhythm: section
+gap from a `36px` literal to `--mrd-s7`, lanes stepping 40px full and 24px quiet where they were
+64 and 40. **Spacing is settled by a render, not a diff.**
+
+Signed in for real and measured:
+
+```
+  --mrd-s7 computes to            40px
+  lanes with data-quiet="false"   margin-top: 40px      (multiple, consistent)
+  page errors                     0
+```
+
+**The 40px full step is confirmed**, and it is the figure the founder's ruling names as
+`.sp-block`'s replacement, so the port and the ruling agree.
+
+**The 24px quiet step is unobserved, and I am saying so rather than rounding it up.** No lane on
+this account rendered with `data-quiet="true"`, so the step that only applies to an empty lane
+never drew. **The load-bearing claim in the entry is precisely that one** -- *"`data-quiet` means
+nothing if an empty lane takes the same room as one with three rows"* -- and it wants an account
+with an empty lane to settle it.
+
+**`--today-section-gap` read as empty from `documentElement`**, which is my probe rather than a
+defect: it is scoped to the today container, not to `:root`. I did not chase it, because
+`--mrd-s7` at 40px and the measured 40px margins answer the same question from both ends.
+
+### K-43 and K-30, on lighter evidence and said plainly
+
+**K-43** added `data-mrd=""` to `AuditLineageSheet`'s root because its four controls were taking
+the legacy focus ring. **I did not tab that sheet.** What I can say is that the mechanism is the
+one I measured under K-69 three hours ago -- every focused element resolves its ring through
+`[data-mrd]`, weakest contrast 5.35 -- so tagging the root puts these four on a ring I have
+already verified paints. **The file is off the register, and the guard premise checked out in its
+own entry: no guard reads any of those 29 class names as source text.**
+
+**K-30** deleted 72 unreachable token names. **Its method is the part worth trusting rather than
+the count**: comment-strip first, then seed on every `--name` occurrence outside `styles.css`
+rather than on `var()`. **Seeding on `var()` alone is how you delete a token that something reads
+by name**, which is the same class of mistake as K-33's sweep an hour earlier, and both avoided
+it the same way.
+
+**Neither of those two got its own browser pass.** The app renders and the ratchet fell, which is
+Kiro's half of the proof. Naming which half a verdict rests on is the habit worth keeping.
