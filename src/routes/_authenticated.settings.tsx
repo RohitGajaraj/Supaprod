@@ -134,9 +134,21 @@
  *
  * LAYOUT. The founder liked the left-hand settings index, so its shape survives
  * verbatim: five named groups, every door visible at once, no numbering and no
- * fold. The pane beside it renders one section at a time, sections are Blocks,
- * and a setting is a label on the left with its control on the right, one per
- * line, divided by a rule rather than boxed in a card each.
+ * fold. The pane beside it renders one section at a time, sections are Meridian
+ * `Region`s, and a setting is a label on the left with its control on the right,
+ * one per line, divided by a rule rather than boxed in a card each.
+ *
+ * MERIDIAN, 2026-08-21. The last retired import went with it: every `Block`,
+ * `Button`, `PageHead`, `Empty`, `Failed`, `Loading`, `Field`, `Input`, `Select`
+ * and `Textarea` on this surface came from `components/shell/primitives`, which is
+ * the retired Cadence/ink component layer, and the 34 `--sp-*` tokens beside them
+ * came from the same system. What is worth knowing rather than only recording:
+ * `.sp-block` carried the vertical rhythm between sections, Meridian's `Region`
+ * deliberately carries none, and the seven panels this pane mounts were ported
+ * first -- so THE PANE NOW STATES THE RHYTHM, once, at 40px. See the comment on
+ * the pane div. The two `.sp-inner`/`.sp-main` class names that remain are the app
+ * shell's own layout from `shell.css`, not the retired layer; Meridian's `Surface`
+ * renders the same two and says why.
  *
  * WHAT THE GROUPS ARE NAMED, changed 2026-08-06. The five headings used to be
  * You / Workspace / Agents / Sources and data / Plan, which group by whose thing
@@ -157,7 +169,21 @@
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingHere,
+  NothingYet,
+  Num,
+  PageHeading,
+  Picker,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Field, Input, Textarea } from "@/components/meridian/forms";
+import { Surface } from "@/components/meridian/Surface";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -238,7 +264,6 @@ import { ARC_CHOICE, MODE_CHOICE } from "@/components/crew/crew-words";
 import { stationCrew } from "@/lib/spine/driver";
 import { listCrew, type CrewMember } from "@/lib/crew.functions";
 
-import { Block, Button, Empty, Failed, Field, Input, Loading, PageHead, Select, Textarea } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 
 /* ================================================================== *
@@ -289,20 +314,28 @@ export const Route = createFileRoute("/_authenticated/settings")({
   }),
   component: SettingsPage,
   head: () => ({ meta: [{ title: "Settings · Supaprod" }] }),
+  /*
+   * MERIDIAN'S `Surface`, because this pair genuinely is the plain work region:
+   * one column, no context, no id and no focus target. The page body below is
+   * the pair that CANNOT take it -- it carries `id={PANE_ID}`, `tabIndex={-1}`
+   * and the two-column flex the founder's left-hand index needs, and `Surface`
+   * passes none of that through. The rhythm is stated here for the same reason
+   * it is stated on the pane: `Region` and `PageHeading` set no outer margin.
+   */
   errorComponent: ({ error, reset }) => (
-    <div className="sp-inner">
-      <div className="sp-main">
-        <PageHead
+    <Surface>
+      <div className="flex flex-col gap-mrd-7">
+        <PageHeading
           title="Settings did not open."
           sub={(error as Error)?.message ?? "The read failed."}
         />
         <Actions>
-          <Button variant="primary" onClick={reset}>
+          <Action variant="primary" onClick={reset}>
             Try again
-          </Button>
+          </Action>
         </Actions>
       </div>
-    </div>
+    </Surface>
   ),
 });
 
@@ -494,11 +527,23 @@ function SettingsPage() {
     // disappears is a door that disappears.
     <div
       className="sp-inner"
+      /*
+       * `rowGap` ALONE, and the column gap is deliberately not restated. It was
+       * `gap: var(--sp-space-6) var(--sp-ctx-gap)`, and `--sp-ctx-gap` (52px) has
+       * no Meridian stop: the ramp goes 40px then 64px, so mapping it would move
+       * a shipped gutter 12px either way to say the same thing. It does not have
+       * to be said here at all. `.sp-inner` in `shell.css` already declares
+       * `gap: 0 var(--sp-ctx-gap)` and shell.css is the app shell's own sheet
+       * rather than a retired layer, so leaving the column gap to it renders the
+       * identical 52px and takes the token out of this file. Only the row gap was
+       * ever this surface's own, because `.sp-inner` is a grid upstream and this
+       * one wraps.
+       */
       style={{
         display: "flex",
         flexWrap: "wrap",
         alignItems: "flex-start",
-        gap: "var(--sp-space-6) var(--sp-ctx-gap)",
+        rowGap: "var(--mrd-s6)",
       }}
     >
       <SettingsIndex active={active} onSet={setTab} />
@@ -506,10 +551,38 @@ function SettingsPage() {
           the anchor scrolls the pane into view and leaves focus in the nav, so
           the next Tab goes back to where it already was - a skip link that does
           not move focus is a skip link that does not work. */}
+      {/*
+       * ── THE SURFACE STATES THE RHYTHM, ONCE, AND THAT IS A REGRESSION CLOSED
+       * RATHER THAN A PORT DETAIL ─────────────────────────────────────────────
+       *
+       * Every pane here is a `PageHeading` followed by loose `Region`s, and
+       * Meridian's `Region` carries NO outer margin and no border on purpose --
+       * the retired `.sp-block` it replaced carried `margin-top: 36px`,
+       * `padding-top: 28px` and a `border-top`, and that sheet's own retirement
+       * note records the founder overruling all three: "the caller states the
+       * rhythm once per surface, and no hairline, divider or section border comes
+       * back". The seven panels under `components/settings/` were ported onto
+       * `Region` before this route was, so until this line existed /settings
+       * stacked its sections flush against each other.
+       *
+       * 40px (`--mrd-s7`), not 24px, and the figure is the founder's rather than
+       * a preference: the same note names "Meridian's plain 40px gap" as what
+       * replaces the 36 + 28 + hairline, and every other ported station on this
+       * shape uses `gap-mrd-7`. The 24px stop belongs to the admin tabs, which
+       * stack dense tables rather than settings sections.
+       *
+       * `flex flex-col` over `.sp-main`, which only sets `min-width: 0` and a
+       * measure this element already overrides, so nothing collides.
+       *
+       * tabIndex -1 so the skip link can actually land focus here. Without it
+       * the anchor scrolls the pane into view and leaves focus in the nav, so
+       * the next Tab goes back to where it already was - a skip link that does
+       * not move focus is a skip link that does not work.
+       */}
       <div
         id={PANE_ID}
         tabIndex={-1}
-        className="sp-main"
+        className="sp-main flex flex-col gap-mrd-7"
         /* NO `outline: none`. The pane takes focus when the nav moves between
            sections, so suppressing its ring left a keyboard user with nothing
            on screen saying where focus went -- on the one surface whose whole
@@ -523,7 +596,7 @@ function SettingsPage() {
         {active === "workspace" && <WorkspaceSection scrollToBrief={rawSection === "brief"} />}
         {active === "brand" && (
           <>
-            <PageHead
+            <PageHeading
               title="Brand"
               sub="What the design crew treats as settled before it draws anything."
             />
@@ -532,7 +605,7 @@ function SettingsPage() {
         )}
         {active === "products" && (
           <>
-            <PageHead title="Products" sub="What this workspace ships. Missions attach to one." />
+            <PageHeading title="Products" sub="What this workspace ships. Missions attach to one." />
             <ProductsTab />
           </>
         )}
@@ -546,7 +619,7 @@ function SettingsPage() {
         )}
         {active === "autonomy" && (
           <>
-            <PageHead
+            <PageHeading
               title="Autonomy and approvals"
               // It no longer says "set the boundary here". The boundary has one
               // home and this is not it; what this pane does is state what that
@@ -572,7 +645,7 @@ function SettingsPage() {
           ))}
         {active === "interop" && (
           <>
-            <PageHead
+            <PageHeading
               title="Agent access"
               sub="What an agent outside Supaprod may read, and on whose key."
             />
@@ -641,16 +714,16 @@ function Choice<T extends string>({
   label: string;
 }) {
   return (
-    <span role="group" aria-label={label} style={{ display: "flex", gap: "var(--sp-space-1)" }}>
+    <span role="group" aria-label={label} style={{ display: "flex", gap: "var(--mrd-s2)" }}>
       {options.map((o) => (
-        <Button
+        <Action
           key={o.id}
-          variant={o.id === value ? "default" : "ghost"}
+          variant={o.id === value ? "default" : "quiet"}
           aria-pressed={o.id === value}
           onClick={() => onPick(o.id)}
         >
           {o.label}
-        </Button>
+        </Action>
       ))}
     </span>
   );
@@ -725,8 +798,8 @@ function ProfileSection() {
   if (profile.isLoading) {
     return (
       <>
-        <PageHead title="Profile" sub="How you are named, and when you are reachable." />
-        <Loading>Reading your profile.</Loading>
+        <PageHeading title="Profile" sub="How you are named, and when you are reachable." />
+        <Reading>Reading your profile.</Reading>
       </>
     );
   }
@@ -736,28 +809,35 @@ function ProfileSection() {
   if (profile.isError) {
     return (
       <>
-        <PageHead title="Profile" sub="How you are named, and when you are reachable." />
-        <Failed onRetry={() => void profile.refetch()}>
+        <PageHeading title="Profile" sub="How you are named, and when you are reachable." />
+        <ReadFailedLine onRetry={() => void profile.refetch()}>
           Your profile did not load, so nothing here is safe to save yet.{" "}
           {(profile.error as Error)?.message ?? "The read failed."}
-        </Failed>
+        </ReadFailedLine>
       </>
     );
   }
 
   return (
+    /*
+     * THE FORM RESTATES THE PANE'S RHYTHM, because it is one flex child of it.
+     * Every other pane returns a fragment, which flattens into the pane's own
+     * 40px column; this one and `WorkspaceSection` return a single element, so
+     * the gap has to be stated again inside or their regions stack flush.
+     */
     <form
+      className="flex flex-col gap-mrd-7"
       onSubmit={(e) => {
         e.preventDefault();
         save.mutate();
       }}
     >
-      <PageHead
+      <PageHeading
         title="Profile"
         sub={`Anything scheduled waits for your window, ${whStart}:00 to ${whEnd}:00 in ${timezone || "your timezone"}.`}
       />
 
-      <Block title="Identity">
+      <Region title="Identity">
         <Line label="Full name" sub="Signs documents, briefs and stakeholder updates.">
           <Input
             aria-label="Full name"
@@ -852,7 +932,7 @@ function ProfileSection() {
                     borderRadius: "50%",
                     padding: 0,
                     background: orbBackground(i),
-                    border: selected ? "1.5px solid var(--sp-ink)" : "1px solid var(--sp-line)",
+                    border: selected ? "1.5px solid var(--mrd-ink)" : "1px solid var(--mrd-line)",
                     cursor: "pointer",
                   }}
                 />
@@ -861,10 +941,10 @@ function ProfileSection() {
           </span>
           </span>
         </Line>
-      </Block>
+      </Region>
 
       <div id={HOURS_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
-        <Block title="Working hours">
+        <Region title="Working hours">
           <Line
             label="Reachable from"
             sub="Outside it, a scheduled digest waits rather than pinging you."
@@ -891,22 +971,22 @@ function ProfileSection() {
             />
           </Line>
           <Actions>
-            <Button variant="primary" type="submit" disabled={save.isPending}>
+            <Action variant="primary" type="submit" disabled={save.isPending}>
               {save.isPending ? "Saving" : "Save profile"}
-            </Button>
+            </Action>
           </Actions>
-        </Block>
+        </Region>
       </div>
 
       <div id={APPEARANCE_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
-        <Block title="Appearance">
+        <Region title="Appearance">
           <Line label="Theme" sub="System follows your device. Dark is the default.">
             <Choice value={theme} options={THEME_CHOICES} onPick={setTheme} label="Theme" />
           </Line>
           <Line label="Density" sub="Compact drops a row of breathing room. Type stays the same.">
             <Choice value={density} options={DENSITY_CHOICES} onPick={setDensity} label="Density" />
           </Line>
-        </Block>
+        </Region>
       </div>
     </form>
   );
@@ -1048,8 +1128,10 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
   const filled = BRIEF_FIELDS.filter((f) => form[f.key].trim().length > 0).length;
 
   return (
-    <div ref={briefRef}>
-      <PageHead
+    /* One flex child of the pane, like `ProfileSection`'s form, so it restates the
+       40px column. See that comment for why the other panes do not have to. */
+    <div ref={briefRef} className="flex flex-col gap-mrd-7">
+      <PageHeading
         title="Brief and voice"
         sub={
           brief.isLoading
@@ -1062,17 +1144,26 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
         }
       />
 
-      <Block title="What the crew reads before it acts">
+      <Region title="What the crew reads before it acts">
         {brief.isLoading ? (
-          <Loading>Reading the brief.</Loading>
+          <Reading>Reading the brief.</Reading>
         ) : brief.isError ? (
           // A failed read must never render blank fields whose save would wipe
           // the real brief.
-          <Failed onRetry={() => void brief.refetch()}>
+          <ReadFailedLine onRetry={() => void brief.refetch()}>
             The brief did not load. {(brief.error as Error)?.message ?? "The read failed."}
-          </Failed>
+          </ReadFailedLine>
         ) : (
-          <>
+          /*
+           * THE STACK STATES ITS OWN GAP NOW. The retired `.sp-field` carried
+           * `margin-top: var(--sp-space-3)` (12px), so six stacked fields were
+           * spaced by the primitive and the Actions row underneath them was not
+           * spaced at all. Meridian's `Field` sets no outer margin, on the same
+           * rule `Actions` and `Pre` follow -- a composition decision belongs to
+           * the composition -- so one 16px column here replaces both, which is
+           * the nearest stop at or above the 12px it had.
+           */
+          <div className="flex flex-col gap-mrd-5">
             {BRIEF_FIELDS.map((f) => (
               <Field key={f.key} label={f.label} htmlFor={`brief-${f.key}`}>
                 <Textarea
@@ -1087,13 +1178,20 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
                     setBriefDirty(true);
                   }}
                 />
+                {/*
+                 * NOT `Field`'s own `hint` slot, and the reason is the binding
+                 * rather than the paint: `hint` renders no id, so moving this
+                 * there would leave `aria-describedby` pointing at nothing and
+                 * silently drop the description for anyone reading by ear. The
+                 * 5px top margin is gone because `Field` is a 6px flex column
+                 * now, so the space is stated once instead of twice.
+                 */}
                 <span
                   id={`brief-hint-${f.key}`}
                   style={{
                     display: "block",
-                    marginTop: 5,
-                    fontSize: "var(--sp-text-label)",
-                    color: "var(--sp-mute)",
+                    fontSize: "var(--mrd-t-label)",
+                    color: "var(--mrd-mute)",
                   }}
                 >
                   {f.hint}
@@ -1118,9 +1216,8 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
                 id="voice-hint"
                 style={{
                   display: "block",
-                  marginTop: 5,
-                  fontSize: "var(--sp-text-label)",
-                  color: "var(--sp-mute)",
+                  fontSize: "var(--mrd-t-label)",
+                  color: "var(--mrd-mute)",
                 }}
               >
                 The tone and stance every agent writes in. Leave it empty to skip.
@@ -1128,17 +1225,17 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
             </Field>
 
             <Actions>
-              <Button
+              <Action
                 variant="primary"
                 disabled={!dirty || save.isPending || profile.isLoading}
                 onClick={() => save.mutate()}
               >
                 {save.isPending ? "Saving" : dirty ? "Save the brief" : "Saved"}
-              </Button>
+              </Action>
             </Actions>
-          </>
+          </div>
         )}
-      </Block>
+      </Region>
 
       {/*
        * ── THE NESTED BLOCK IS GONE, 2026-08-17 ──────────────────────────────────
@@ -1165,9 +1262,9 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
       <div id={PEOPLE_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
         {/* MembersCard draws no Block of its own, so it keeps this one. TeamCard does
             draw one, which is exactly why it must not be inside this. */}
-        <Block title="People">
+        <Region title="People">
           <MembersCard />
-        </Block>
+        </Region>
       </div>
       <TeamCard />
 
@@ -1194,16 +1291,16 @@ function AdminDoor() {
 
   if (q.data?.isAdmin) {
     return (
-      <Block>
+      <Region>
         <Line
           label="Admin console"
           sub="Members, roles, the audit trail and billing for the whole workspace."
         >
-          <Button variant="ghost" onClick={() => navigate({ to: "/admin" })}>
+          <Action variant="quiet" onClick={() => navigate({ to: "/admin" })}>
             Open
-          </Button>
+          </Action>
         </Line>
-      </Block>
+      </Region>
     );
   }
 
@@ -1217,17 +1314,17 @@ function AdminDoor() {
       }
     };
     return (
-      <Block>
+      <Region>
         <Line
           label="This workspace has no admin yet"
           sub="Claiming it puts members, roles, the audit trail and billing under one person."
         >
-          <Button onClick={() => navigate({ to: "/admin" })}>Claim admin</Button>
-          <Button variant="ghost" onClick={dismiss}>
+          <Action onClick={() => navigate({ to: "/admin" })}>Claim admin</Action>
+          <Action variant="quiet" onClick={dismiss}>
             Not now
-          </Button>
+          </Action>
         </Line>
-      </Block>
+      </Region>
     );
   }
 
@@ -1284,11 +1381,14 @@ function DiagnosticsMoved({ onOpen }: { onOpen: () => void }) {
 function MemorySection({ onOpen }: { onOpen: () => void }) {
   return (
     <>
-      <PageHead title="Memory" sub="It is not set here any more." />
-      <Empty action={<Button onClick={onOpen}>Open Brain</Button>}>
+      <PageHeading title="Memory" sub="It is not set here any more." />
+      {/* `NothingHere` rather than `NothingYet`: no `Region` draws a container
+          around this, so the branch IS the whole pane and the box is the only
+          thing giving the sentence somewhere to sit. */}
+      <NothingHere action={<Action onClick={onOpen}>Open Brain</Action>}>
         What the loop knows, what it learned, and the gate that reviews a new memory all live in
         Brain now.
-      </Empty>
+      </NothingHere>
     </>
   );
 }
@@ -1337,13 +1437,13 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
     staleTime: 30_000,
   });
 
-  const head = (sub: React.ReactNode) => <PageHead title="Roster" sub={sub} />;
+  const head = (sub: React.ReactNode) => <PageHeading title="Roster" sub={sub} />;
 
   if (crew.isLoading) {
     return (
       <>
         {head("Reading the boundary in force.")}
-        <Loading>Reading the roster.</Loading>
+        <Reading>Reading the roster.</Reading>
       </>
     );
   }
@@ -1352,10 +1452,10 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
     return (
       <>
         {head("The roster did not load.")}
-        <Failed onRetry={() => void crew.refetch()}>
+        <ReadFailedLine onRetry={() => void crew.refetch()}>
           Nothing below would be the real boundary.{" "}
           {(crew.error as Error)?.message ?? "The read failed."}
-        </Failed>
+        </ReadFailedLine>
       </>
     );
   }
@@ -1427,10 +1527,12 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
     return (
       <>
         {head("Nobody has a row here yet.")}
-        <Empty action={<Button onClick={() => onOpenCrew(null)}>Open Crew</Button>}>
+        {/* The whole pane is this branch -- no `Region` is rendered on it at all --
+            so it takes the bordered half of the pair. */}
+        <NothingHere action={<Action onClick={() => onOpenCrew(null)}>Open Crew</Action>}>
           This account has no agent rows, so there is no boundary to read. They arrive with the
           first mission that needs one, already running on the default policy.
-        </Empty>
+        </NothingHere>
       </>
     );
   }
@@ -1460,7 +1562,7 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
         </>,
       )}
 
-      <Block
+      <Region
         title="Who works here"
         // The different fact, not the census again: where this is changed, and
         // what is currently waiting on a person.
@@ -1542,12 +1644,17 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
             return m ? <AgentDetail member={m} onOpenRecord={onOpenCrew} /> : null;
           }}
         />
-      </Block>
+      </Region>
 
-      <Empty>
+      {/* `NothingYet`, the BARE half, and the roster above is why. This is a
+          standing note sitting beside a full region rather than a branch standing
+          in for the pane, and the retired `.sp-empty` it replaces drew no box at
+          all -- `NothingHere` would add one and read as a second region with no
+          heading. */}
+      <NothingYet>
         A new tool asks for permission the moment it is first needed, inside the run. Every tool
         boundary across the whole crew at once lives on the boundary, not here.
-      </Empty>
+      </NothingYet>
     </>
   );
 }
@@ -1600,11 +1707,23 @@ type RosterEntry = {
 };
 
 /**
- * A figure inside a sentence, on Meridian's own tokens.
+ * A figure inside a sentence, in the SANS face.
  *
- * The retired shell primitive `Num` was the reflex here and the ratchet refused it:
- * new code may not carry a retired component, and Meridian has no Figure of its own
- * yet. Tabular numerals so a count that ticks does not reflow the line around it.
+ * ── THE REASON WRITTEN HERE WAS FALSE, AND IS CORRECTED 2026-08-21 ──────────
+ * It said "the retired shell primitive `Num` was the reflex here and the ratchet
+ * refused it: new code may not carry a retired component, and Meridian has no
+ * Figure of its own yet." Both halves are wrong. This file's `Num` comes from
+ * `meridian/surface-parts` and always did, it is rendered twelve times on this
+ * surface, and that module exports `Figure` as well.
+ *
+ * What is actually different, and is the only thing that justifies a second
+ * component: `Num` is MONO, for a figure read as data down a column. These sit
+ * inside a track-record sentence read left to right, where a monospace numeral
+ * breaks the line's rhythm. Tabular numerals so a count that ticks does not
+ * reflow the words around it.
+ *
+ * If a Meridian home for "a figure inside prose" is ever added, this is its
+ * caller and it should move there.
  */
 function Fig({ children }: { children: ReactNode }) {
   return (
@@ -1633,8 +1752,11 @@ function AgentDetail({
   const asking = member.asking?.length ?? 0;
   const trust = member.trust;
 
-  /* Named Facet, not Row: this file imports a RETIRED `Row` from shell/primitives, and a
-     local shadowing it reads as that component to every human and every scanner. */
+  /* Named Facet, not Row: this file imports Meridian's `Row` and renders it further
+     down, so a local `Row` would shadow it and read as that component to every human
+     and every scanner. (This comment used to say the import was the RETIRED `Row`
+     from shell/primitives. It was already Meridian's before the port; the shadowing
+     is the real reason and it is unchanged.) */
   const Facet = ({ label, children }: { label: string; children: ReactNode }) => (
     <div className="flex flex-col gap-1 pt-2.5 first:pt-0">
       <div className="text-[10.5px] font-medium tracking-[0.08em] text-mrd-mute uppercase">
@@ -1859,11 +1981,11 @@ function ModelsSection() {
   if (profile.isError) {
     return (
       <>
-        <PageHead title="Models and keys" sub="Which model runs your work, and whose key pays." />
-        <Failed onRetry={() => void profile.refetch()}>
+        <PageHeading title="Models and keys" sub="Which model runs your work, and whose key pays." />
+        <ReadFailedLine onRetry={() => void profile.refetch()}>
           Your model settings did not load.{" "}
           {(profile.error as Error)?.message ?? "The read failed."}
-        </Failed>
+        </ReadFailedLine>
         <ByoKeysBlock />
       </>
     );
@@ -1890,7 +2012,7 @@ function ModelsSection() {
 
   return (
     <>
-      <PageHead
+      <PageHeading
         title="Models and keys"
         sub={
           profile.isLoading
@@ -1899,87 +2021,97 @@ function ModelsSection() {
         }
       />
 
-      <Block title="Which model runs the work">
+      <Region title="Which model runs the work">
         {profile.isLoading ? (
-          <Loading>Reading your model settings.</Loading>
+          <Reading>Reading your model settings.</Reading>
         ) : (
           <>
             <Line
               label="Work you start"
               sub={`Chat and any run you kick off · ${via(defaultModel, current)}`}
             >
-              <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
+              <span style={{ color: "var(--mrd-mute)", fontSize: "var(--mrd-t-base)" }}>
                 {defaultName}
               </span>
-              <Button variant="ghost" aria-expanded={editing} onClick={() => setEditing((v) => !v)}>
+              <Action variant="quiet" aria-expanded={editing} onClick={() => setEditing((v) => !v)}>
                 Change
-              </Button>
+              </Action>
             </Line>
             {editing ? (
-              <Field label="Work you start" htmlFor="model-default">
-                <div style={{ display: "flex", gap: "var(--sp-space-2)" }}>
-                  <Select
-                    id="model-default"
-                    style={{ flex: 1 }}
-                    value={defaultModel}
-                    onChange={(e) => setDefaultModel(e.target.value)}
-                  >
-                    <optgroup label="Recommended">
-                      <option value={AUTO_MODEL}>Auto: the best model per task</option>
-                    </optgroup>
-                    {modelOptions}
-                  </Select>
-                  <Button
-                    variant="primary"
-                    disabled={saveModel.isPending}
-                    onClick={() => saveModel.mutate()}
-                  >
-                    {saveModel.isPending ? "Saving" : "Save"}
-                  </Button>
-                </div>
-              </Field>
+              /* `mt-mrd-5` is `.sp-field`'s own `margin-top` restated where it can
+                 be seen. Without it the revealed editor butts against the divider
+                 under the Line that opened it, reading as part of that row rather
+                 than as the thing it disclosed. 16px is the nearest stop at or
+                 above the retired 12px. */
+              <div className="mt-mrd-5">
+                <Field label="Work you start" htmlFor="model-default">
+                  <div style={{ display: "flex", gap: "var(--mrd-s4)" }}>
+                    <Picker
+                      id="model-default"
+                      style={{ flex: 1 }}
+                      value={defaultModel}
+                      onChange={(e) => setDefaultModel(e.target.value)}
+                    >
+                      <optgroup label="Recommended">
+                        <option value={AUTO_MODEL}>Auto: the best model per task</option>
+                      </optgroup>
+                      {modelOptions}
+                    </Picker>
+                    <Action
+                      variant="primary"
+                      disabled={saveModel.isPending}
+                      onClick={() => saveModel.mutate()}
+                    >
+                      {saveModel.isPending ? "Saving" : "Save"}
+                    </Action>
+                  </div>
+                </Field>
+              </div>
             ) : null}
 
             <Line
               label="Work the loop starts"
               sub={`Research, clustering and reflection ticks · ${via(agenticModel, currentAgentic)}`}
             >
-              <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
+              <span style={{ color: "var(--mrd-mute)", fontSize: "var(--mrd-t-base)" }}>
                 {agenticName}
               </span>
-              <Button
-                variant="ghost"
+              <Action
+                variant="quiet"
                 aria-expanded={editingAgentic}
                 onClick={() => setEditingAgentic((v) => !v)}
               >
                 Change
-              </Button>
+              </Action>
             </Line>
             {editingAgentic ? (
-              <Field label="Work the loop starts" htmlFor="model-agentic">
-                <div style={{ display: "flex", gap: "var(--sp-space-2)" }}>
-                  <Select
-                    id="model-agentic"
-                    style={{ flex: 1 }}
-                    value={agenticModel ?? ""}
-                    onChange={(e) => setAgenticModel(e.target.value || null)}
-                  >
-                    <option value="">Auto: the best model per task</option>
-                    {modelOptions}
-                  </Select>
-                  <Button
-                    variant="primary"
-                    disabled={saveAgenticModel.isPending}
-                    onClick={() => saveAgenticModel.mutate()}
-                  >
-                    {saveAgenticModel.isPending ? "Saving" : "Save"}
-                  </Button>
-                </div>
-              </Field>
+              /* Same restatement as the editor above, for the same reason. */
+              <div className="mt-mrd-5">
+                <Field label="Work the loop starts" htmlFor="model-agentic">
+                  <div style={{ display: "flex", gap: "var(--mrd-s4)" }}>
+                    <Picker
+                      id="model-agentic"
+                      style={{ flex: 1 }}
+                      value={agenticModel ?? ""}
+                      onChange={(e) => setAgenticModel(e.target.value || null)}
+                    >
+                      <option value="">Auto: the best model per task</option>
+                      {modelOptions}
+                    </Picker>
+                    <Action
+                      variant="primary"
+                      disabled={saveAgenticModel.isPending}
+                      onClick={() => saveAgenticModel.mutate()}
+                    >
+                      {saveAgenticModel.isPending ? "Saving" : "Save"}
+                    </Action>
+                  </div>
+                </Field>
+              </div>
             ) : null}
           </>
         )}
-      </Block>
+      </Region>
 
       <ByoKeysBlock />
     </>
@@ -2065,7 +2197,7 @@ function ByoKeysBlock() {
 
   return (
     <div id={BYO_KEYS_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
-      <Block
+      <Region
         title="Your own provider keys"
         sub={
           isEnterprise
@@ -2084,10 +2216,10 @@ function ByoKeysBlock() {
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-                gap: "var(--sp-space-2)",
+                gap: "var(--mrd-s4)",
               }}
             >
-              <Select
+              <Picker
                 value={keyProv}
                 onChange={(e) => setKeyProv(e.target.value)}
                 aria-label="Provider"
@@ -2097,7 +2229,7 @@ function ByoKeysBlock() {
                     {p.label}
                   </option>
                 ))}
-              </Select>
+              </Picker>
               <Input
                 value={keyLabel}
                 onChange={(e) => setKeyLabel(e.target.value)}
@@ -2120,7 +2252,7 @@ function ByoKeysBlock() {
             </div>
             {keyProv === "custom" || keyBase.trim() ? (
               <Input
-                style={{ width: "100%", marginTop: "var(--sp-space-2)" }}
+                style={{ width: "100%", marginTop: "var(--mrd-s4)" }}
                 value={keyModelId}
                 onChange={(e) => setKeyModelId(e.target.value)}
                 aria-label="Model id"
@@ -2129,20 +2261,21 @@ function ByoKeysBlock() {
             ) : null}
             <Actions>
               {/* Not primary: the primary on this section is the model save. */}
-              <Button type="submit" disabled={mSaveKey.isPending || !keyValue.trim()}>
+              <Action type="submit" disabled={mSaveKey.isPending || !keyValue.trim()}>
                 {mSaveKey.isPending ? "Saving" : "Add key"}
-              </Button>
-              <Button
+              </Action>
+              <Action
                 disabled={mTestKey.isPending || !keyValue.trim()}
                 onClick={() => mTestKey.mutate()}
               >
                 {mTestKey.isPending ? "Testing" : "Test it first"}
-              </Button>
+              </Action>
               {testResult ? (
-                <span
-                  className={testResult.ok ? "sp-pass" : "sp-fail"}
-                  style={{ fontSize: "var(--sp-text-meta)" }}
-                >
+                /* An OUTCOME that has already happened -- the key answered, or it
+                   did not -- which is the one thing Meridian's pass and fail are
+                   allowed to mean. `Value` rather than a hand-rolled span so the
+                   tone is declared in `data-tone` and not only painted. */
+                <Value tone={testResult.ok ? "pass" : "fail"}>
                   {testResult.ok ? (
                     <>
                       Answered in <Num>{testResult.latency_ms}ms</Num>
@@ -2150,7 +2283,7 @@ function ByoKeysBlock() {
                   ) : (
                     (testResult.error ?? "Test failed").slice(0, 90)
                   )}
-                </span>
+                </Value>
               ) : null}
             </Actions>
           </form>
@@ -2159,13 +2292,13 @@ function ByoKeysBlock() {
         {isEnterprise || keyList.length > 0 ? (
           <>
             {keys.isLoading ? (
-              <Loading>Reading your keys.</Loading>
+              <Reading>Reading your keys.</Reading>
             ) : keys.isError ? (
-              <Failed onRetry={() => void keys.refetch()}>
+              <ReadFailedLine onRetry={() => void keys.refetch()}>
                 Your keys did not load. {(keys.error as Error)?.message ?? "The read failed."}
-              </Failed>
+              </ReadFailedLine>
             ) : keyList.length === 0 ? (
-              <Empty>No key of your own yet. Until there is one, runs use ours.</Empty>
+              <NothingYet>No key of your own yet. Until there is one, runs use ours.</NothingYet>
             ) : (
               keyList.map((k) => (
                 <Line
@@ -2173,7 +2306,7 @@ function ByoKeysBlock() {
                   label={
                     <>
                       {BYO_PROVIDERS.find((p) => p.id === k.provider)?.label ?? k.provider}
-                      {k.label ? <span style={{ color: "var(--sp-mute)" }}> · {k.label}</span> : null}
+                      {k.label ? <span style={{ color: "var(--mrd-mute)" }}> · {k.label}</span> : null}
                     </>
                   }
                   sub={
@@ -2184,19 +2317,19 @@ function ByoKeysBlock() {
                     </Num>
                   }
                 >
-                  <Button
-                    variant="ghost"
+                  <Action
+                    variant="quiet"
                     disabled={mDelKey.isPending && mDelKey.variables === k.id}
                     onClick={() => mDelKey.mutate(k.id)}
                   >
                     Remove
-                  </Button>
+                  </Action>
                 </Line>
               ))
             )}
           </>
         ) : null}
-      </Block>
+      </Region>
     </div>
   );
 }
@@ -2318,13 +2451,26 @@ function PlanSection({ checkout }: { checkout?: string }) {
     : isPastDue
       ? "The payment method failed"
       : "Active";
-  const statusClass = sub?.cancelAtPeriodEnd ? "sp-warn" : isPastDue ? "sp-fail" : undefined;
+  /*
+   * `hold`, NOT a sixth status word. The retired sheet had `sp-warn` and Meridian
+   * has five words and no warn: a subscription set to cancel is WAITING ON A
+   * CONDITION -- the period ending -- which is exactly what amber says here.
+   * Orchid would be the reflex and it is wrong, because it promises a control on
+   * this line that releases something, and there is none. `fail` stays where it
+   * already reported an outcome that happened: the payment method failed.
+   * `quiet` for Active, which is a fact you read rather than an outcome.
+   */
+  const statusTone: "hold" | "fail" | "quiet" = sub?.cancelAtPeriodEnd
+    ? "hold"
+    : isPastDue
+      ? "fail"
+      : "quiet";
 
   if (billing.isLoading) {
     return (
       <>
-        <PageHead title="Plan" sub="What this workspace is entitled to." />
-        <Loading>Reading your plan.</Loading>
+        <PageHeading title="Plan" sub="What this workspace is entitled to." />
+        <Reading>Reading your plan.</Reading>
       </>
     );
   }
@@ -2334,17 +2480,17 @@ function PlanSection({ checkout }: { checkout?: string }) {
   if (billing.isError) {
     return (
       <>
-        <PageHead title="Plan" sub="What this workspace is entitled to." />
-        <Failed onRetry={() => void billing.refetch()}>
+        <PageHeading title="Plan" sub="What this workspace is entitled to." />
+        <ReadFailedLine onRetry={() => void billing.refetch()}>
           Your plan did not load. {(billing.error as Error)?.message ?? "The read failed."}
-        </Failed>
+        </ReadFailedLine>
       </>
     );
   }
 
   return (
     <>
-      <PageHead
+      <PageHeading
         title="Plan"
         sub={
           hasSub && renewsLabel
@@ -2354,12 +2500,10 @@ function PlanSection({ checkout }: { checkout?: string }) {
       />
       <PaymentTestModeBanner />
 
-      <Block title="What you are on">
+      <Region title="What you are on">
         <Line label={current.name} sub={current.tagline}>
           {hasSub ? (
-            <span className={statusClass} style={{ fontSize: "var(--sp-text-meta)" }}>
-              {statusWord}
-            </span>
+            <Value tone={statusTone}>{statusWord}</Value>
           ) : null}
         </Line>
         {hasSub && renewsLabel ? (
@@ -2369,27 +2513,27 @@ function PlanSection({ checkout }: { checkout?: string }) {
         ) : null}
 
         {state && !state.isOwner ? (
-          <Empty>Only the workspace owner can change or cancel the plan.</Empty>
+          <NothingYet>Only the workspace owner can change or cancel the plan.</NothingYet>
         ) : (
           <Actions>
             {hasSub ? (
-              <Button
+              <Action
                 variant={isPastDue ? "primary" : "default"}
                 disabled={openPortal.isPending}
                 onClick={() => openPortal.mutate()}
               >
                 {openPortal.isPending ? "Opening" : "Manage billing"}
-              </Button>
+              </Action>
             ) : null}
             {hasSub ? (
               sub?.cancelAtPeriodEnd ? (
-                <Button disabled={resumeSub.isPending} onClick={() => resumeSub.mutate()}>
+                <Action disabled={resumeSub.isPending} onClick={() => resumeSub.mutate()}>
                   {resumeSub.isPending ? "Resuming" : "Resume the plan"}
-                </Button>
+                </Action>
               ) : (
-                <Button variant="ghost" disabled={cancelSub.isPending} onClick={onCancelClick}>
+                <Action variant="quiet" disabled={cancelSub.isPending} onClick={onCancelClick}>
                   {cancelSub.isPending ? "Canceling" : "Cancel the plan"}
-                </Button>
+                </Action>
               )
             ) : null}
             {/*
@@ -2400,8 +2544,8 @@ function PlanSection({ checkout }: { checkout?: string }) {
              * trusting the others. The top-up is on this page now, further down.
              */}
             {currentTier !== "free" ? (
-              <Button
-                variant="ghost"
+              <Action
+                variant="quiet"
                 onClick={() =>
                   document
                     .getElementById(CREDITS_ANCHOR)
@@ -2409,15 +2553,15 @@ function PlanSection({ checkout }: { checkout?: string }) {
                 }
               >
                 Buy a credit top-up
-              </Button>
+              </Action>
             ) : null}
           </Actions>
         )}
-      </Block>
+      </Region>
 
-      <Block title="What else you could be on">
+      <Region title="What else you could be on">
         <PlanTable currentTier={currentTier} canSelect={state?.isOwner ?? false} />
-      </Block>
+      </Region>
 
       {/* The claim sits under the plan on purpose. A person who has worked alone
           for a year and is now joining an organisation is standing exactly here,
@@ -2529,7 +2673,7 @@ function CreditsSection() {
 
   return (
     <>
-      <PageHead
+      <PageHeading
         title="Credits"
         sub={
           credits.isLoading
@@ -2545,21 +2689,21 @@ function CreditsSection() {
       />
       <PaymentTestModeBanner />
 
-      <Block title="Balance">
+      <Region title="Balance">
         {credits.isError ? (
-          <Failed onRetry={() => void credits.refetch()}>
+          <ReadFailedLine onRetry={() => void credits.refetch()}>
             Your balance did not load. {(credits.error as Error)?.message ?? "The read failed."}
-          </Failed>
+          </ReadFailedLine>
         ) : credits.isLoading ? (
-          <Loading>Reading your balance.</Loading>
+          <Reading>Reading your balance.</Reading>
         ) : (
           <>
             <div
               style={{
-                fontFamily: "var(--sp-font-mono)",
+                fontFamily: "var(--mrd-mono)",
                 fontVariantNumeric: "tabular-nums",
-                fontSize: "var(--sp-text-title)",
-                color: "var(--sp-ink)",
+                fontSize: "var(--mrd-t-h2)",
+                color: "var(--mrd-ink)",
               }}
             >
               {balance !== null ? balance.toLocaleString() : "--"}
@@ -2576,7 +2720,7 @@ function CreditsSection() {
                   <Num>{data.topupCredits.toLocaleString()}</Num>
                 </Line>
                 {data.enabled && data.monthlyGrantCredits > 0 ? (
-                  <div style={{ marginTop: "var(--sp-space-3)", maxWidth: 260 }}>
+                  <div style={{ marginTop: "var(--mrd-s5)", maxWidth: 260 }}>
                     <UsageIndicator
                       used={Math.max(0, data.monthlyGrantCredits - data.balanceCredits)}
                       allowance={data.monthlyGrantCredits}
@@ -2587,7 +2731,7 @@ function CreditsSection() {
             ) : null}
           </>
         )}
-      </Block>
+      </Region>
 
       <CreditCapsCard />
 
@@ -2596,18 +2740,18 @@ function CreditsSection() {
           single caller's anchor. `scroll-mt` keeps the heading clear of the sticky
           header instead of landing it underneath. */}
       <div id={CREDITS_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
-        <Block title="Buy more">
+        <Region title="Buy more">
         {catalog.isLoading ? (
-          <Loading>Reading the price list.</Loading>
+          <Reading>Reading the price list.</Reading>
         ) : catalog.error ? (
-          <Failed onRetry={() => void catalog.refetch()}>
+          <ReadFailedLine onRetry={() => void catalog.refetch()}>
             The price list did not load. {(catalog.error as Error)?.message ?? "The read failed."}
-          </Failed>
+          </ReadFailedLine>
         ) : BUNDLES.length === 0 ? (
-          <Empty>
+          <NothingYet>
             No top-up is published yet. When one is, it appears here at the price that will actually
             be charged.
-          </Empty>
+          </NothingYet>
         ) : (
           <>
             {/* A grid, for the same reason the source catalog is one: a ladder
@@ -2619,7 +2763,7 @@ function CreditsSection() {
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fill, minmax(196px, 1fr))",
-                gap: "var(--sp-space-2)",
+                gap: "var(--mrd-s4)",
               }}
             >
               {BUNDLES.map((b) => {
@@ -2642,10 +2786,10 @@ function CreditsSection() {
                       textAlign: "left",
                       border: 0,
                       padding: "10px 12px",
-                      borderRadius: "var(--sp-radius-card)",
-                      boxShadow: selected ? "inset 0 0 0 1px var(--sp-ink)" : undefined,
-                      background: "var(--sp-lift)",
-                      color: "var(--sp-ink)",
+                      borderRadius: "var(--mrd-r-card)",
+                      boxShadow: selected ? "inset 0 0 0 1px var(--mrd-ink)" : undefined,
+                      background: "var(--mrd-lift)",
+                      color: "var(--mrd-ink)",
                       cursor: wouldExceed ? "not-allowed" : "pointer",
                       opacity: wouldExceed ? 0.45 : 1,
                     }}
@@ -2653,8 +2797,8 @@ function CreditsSection() {
                     <span
                       style={{
                         display: "block",
-                        fontSize: "var(--sp-text-body)",
-                        fontWeight: "var(--sp-weight-medium)",
+                        fontSize: "var(--mrd-t-body)",
+                        fontWeight: "var(--mrd-w-medium)",
                       }}
                     >
                       <Num>{b.credits.toLocaleString()}</Num> credits
@@ -2663,8 +2807,8 @@ function CreditsSection() {
                       style={{
                         display: "block",
                         marginTop: 1,
-                        fontSize: "var(--sp-text-label)",
-                        color: "var(--sp-mute)",
+                        fontSize: "var(--mrd-t-label)",
+                        color: "var(--mrd-mute)",
                       }}
                     >
                       {fmtPrice(b.priceCents)} · {(perCredit / 100).toFixed(3)} each
@@ -2679,7 +2823,7 @@ function CreditsSection() {
                 button at all, because a disabled buy is still a dead promise. */}
             {selectedBundle && envSafe ? (
               <Actions>
-                <Button
+                <Action
                   variant="primary"
                   disabled={
                     remainingTopupRoom !== null && selectedBundle.credits > remainingTopupRoom
@@ -2693,44 +2837,44 @@ function CreditsSection() {
                 >
                   Buy {selectedBundle.credits.toLocaleString()} credits ·{" "}
                   {fmtPrice(selectedBundle.priceCents)}
-                </Button>
+                </Action>
               </Actions>
             ) : selectedBundle ? (
-              <Empty>
+              <NothingYet>
                 Buying is not switched on in this build. The prices are live so you can plan against
                 them.
-              </Empty>
+              </NothingYet>
             ) : null}
           </>
         )}
 
         {data ? (
-          <Empty>
+          <NothingYet>
             <Num>{data.cycleTopupCredits.toLocaleString()}</Num> of{" "}
             <Num>{data.cycleTopupCapCredits.toLocaleString()}</Num> top-up credits used this cycle.{" "}
             <a
               href="mailto:sales@supaprod.ai?subject=Enterprise%20credits"
-              style={{ color: "var(--sp-ink)" }}
+              style={{ color: "var(--mrd-ink)" }}
             >
               Ask about volume pricing
             </a>{" "}
             if you need past the cap.
-          </Empty>
+          </NothingYet>
         ) : null}
-        </Block>
+        </Region>
       </div>
 
       <RedeemCodeCard />
 
       {/* The receipts for purchases made HERE. What the credits were SPENT on
           is a report, and it lives in the Engine room's Spend view. */}
-      <Block title="What you bought">
+      <Region title="What you bought">
         {credits.isLoading ? (
-          <Loading>Reading your purchases.</Loading>
+          <Reading>Reading your purchases.</Reading>
         ) : credits.isError ? (
-          <Empty>Your purchases did not load. Use the retry above.</Empty>
+          <NothingYet>Your purchases did not load. Use the retry above.</NothingYet>
         ) : !data || data.topups.length === 0 ? (
-          <Empty>Nothing bought yet. Your monthly grant is covering the work.</Empty>
+          <NothingYet>Nothing bought yet. Your monthly grant is covering the work.</NothingYet>
         ) : (
           data.topups.map((t) => (
             <Row
@@ -2738,13 +2882,16 @@ function CreditsSection() {
               tight
               lead="Credit top-up"
               sub={
-                <span className="sp-pass">+{Number(t.credits_added).toLocaleString()} credits</span>
+                /* The purchase went through, which is an outcome. */
+                <Value tone="pass">
+                  +{Number(t.credits_added).toLocaleString()} credits
+                </Value>
               }
               time={new Date(t.created_at).toLocaleDateString()}
             />
           ))
         )}
-      </Block>
+      </Region>
 
       {checkoutKey ? (
         <StripeEmbeddedCheckout

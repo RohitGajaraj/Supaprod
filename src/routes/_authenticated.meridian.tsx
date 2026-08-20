@@ -19,6 +19,7 @@ import {
   type PromptSource,
 } from "@/components/meridian/PromptBar";
 import { RecommendationCard, type Recommendation } from "@/components/meridian/RecommendationCard";
+import { NoPromotions, PromotionCard } from "@/components/meridian/PromotionCard";
 import { RunTimeline, type TimelineEvent } from "@/components/meridian/RunTimeline";
 import { ToolStream, type ToolStreamRow } from "@/components/meridian/ToolStream";
 import { PlanCard, type PlanStep } from "@/components/meridian/PlanCard";
@@ -2176,6 +2177,15 @@ function MeridianGallery() {
             <CatalogPartCases />
           </Pair>
         </Panel>
+
+        <Panel
+          title="The promotion card, where a lesson graduates"
+          note="A lesson earned in one product, put forward to hold across the whole workspace, with a person ruling on it. This is the compounding claim drawn honestly: the card never says the product remembers anything, it says a lesson is being put forward and here is what settled it. The status grammar is the thing to check first, because the obvious answer is wrong. A proposed promotion is orchid and not green: green reports an outcome that has happened, and nothing has graduated until somebody presses. Press one of the three and the card hands over to green if it graduated, red if it was ruled out, and amber if it was only kept for now, which is the only pair of words this system has for did and did not. Press each of the three and read what comes back: the answer stops being a question and states what it caused, naming the consumers rather than confirming your click, because a judgment that vanishes teaches you it left no trace. The second card is the one a reviewer will actually meet in production, and it carries no controls at all. It asks resolveMemoryScope, the same module the retrieval path asks, and that module refuses to put a measurement forward however it was labelled: for an agency running three clients inside one workspace, one client's numbers reaching another client's ranking is a confidentiality breach rather than noise, and this card would be the one place a person could cause it. So the button is absent and the sentence explaining its absence is the one that module wrote for this exact prompt. The third card is every real row today: measured against the generated types, neither agent_memory nor learnings carries a product column, so the card says nothing records which product this was learned in rather than printing a product nobody wrote down. Never is a real third answer and not a louder no. Without it the same rejected lesson is put forward again forever, and the shipped write path has no verb for it yet, which is a gap rather than a reason to drop it. It wears the stop face and sits at the far edge, because what protects a removal here is distance and a confirm, and the confirm belongs to whoever wires the act this card deliberately cannot perform."
+        >
+          <Pair>
+            <PromotionCardCases />
+          </Pair>
+        </Panel>
       </div>
     </div>
   );
@@ -3734,6 +3744,108 @@ function CatalogPartCases() {
 
       <Case label="Four hundred lines, which is the size that used to grow the page">
         <Pre>{LONG_LOG}</Pre>
+      </Case>
+    </Stack>
+  );
+}
+
+/*
+ * ── K-75, THE PROMOTION CARD ────────────────────────────────────────────
+ * Every `kind` below is one a shipped writer actually produces, which is the
+ * fixture rule that matters here rather than a nicety: the card's behaviour comes
+ * from `resolveMemoryScope`, so a fixture using a kind nothing writes would be
+ * testing a branch production never reaches. `reflection` is written by
+ * `reflection.server.ts`, `outcome` is what settled verdicts are written as, and
+ * `note` is whatever the remember tool was handed. Nothing writes `precedent`,
+ * so nothing here uses it.
+ *
+ * THE PRODUCT NAMES ARE THE ONE INVENTION AND THEY HAVE TO BE. There is no
+ * `product_id` on `agent_memory` or on `learnings`, so no real row can supply
+ * one; the third case is the honest state and it is the one to look at longest.
+ *
+ * The cards are live rather than frozen, because the settled state is the half of
+ * this component that is worth seeing and it cannot be shown without a press.
+ * Each column has its own instances, so pressing in Dark leaves Paper asking.
+ */
+function PromotionCardCases() {
+  return (
+    <Stack>
+      <Case label="Put forward, and every answer is available">
+        <PromotionCard
+          lesson="Check the send window before blaming deliverability, because a batch that lands outside it looks exactly like a reputation problem"
+          learnedIn="Fieldwork"
+          kind="reflection"
+          evidence={[
+            {
+              key: "e1",
+              label: "The retry window was the cause, and the sending domain was never at fault",
+              onOpen: noop,
+            },
+            {
+              key: "e2",
+              label: "Two later sends recovered once the window was widened, with nothing else changed",
+              onOpen: noop,
+            },
+          ]}
+          guides={[
+            "Decide reads it before it ranks the next bet, so a deliverability theme stops arriving first.",
+            "Plan cites it in the spec rather than re-deriving it from the same three signals.",
+          ]}
+        />
+      </Case>
+
+      <Case label="A measurement, which is the commonest row and carries no controls at all">
+        <PromotionCard
+          lesson="Checkout retry moved completion from 6.3 to 7.0, held over three weeks"
+          learnedIn="Fieldwork"
+          kind="outcome"
+          evidence={[
+            { key: "o1", label: "Settled against the bet that asked for it", onOpen: noop },
+            { key: "o2", label: "Measured on 4,181 sessions across three weeks" },
+          ]}
+          guides={[]}
+        />
+      </Case>
+
+      <Case label="No product recorded, which is every real row today">
+        <PromotionCard
+          lesson="Ask the person who raised the signal what they expected to happen, before ranking it"
+          learnedIn={null}
+          kind="reflection"
+          evidence={[
+            { key: "n1", label: "A person corrected the agent on this twice in one week", onOpen: noop },
+          ]}
+          guides={["Discover asks for the expectation at capture instead of inferring it later."]}
+        />
+      </Case>
+
+      <Case label="The evidence read fell over, and the decision is still available">
+        <PromotionCard
+          lesson="Two products in one workspace never share a spend ceiling, however similar they look"
+          learnedIn="Loop"
+          kind="reflection"
+          evidence={[]}
+          evidenceFailed
+          onEvidenceRetry={noop}
+          guides={["Plan sets a ceiling per product rather than per workspace."]}
+        />
+      </Case>
+
+      <Case label="Nothing is attached, which is judgment rather than a settled result">
+        <PromotionCard
+          lesson="Write the forecast before the work starts, because nobody can reconstruct what they believed afterwards"
+          learnedIn="Loop"
+          kind="note"
+          origin={{ declaredScope: "workspace" }}
+          evidence={[]}
+          guides={[
+            "Decide asks for the forecast at the gate, so it is written while the belief is still there.",
+          ]}
+        />
+      </Case>
+
+      <Case label="Nothing waiting, which is the state a quiet workspace shows">
+        <NoPromotions />
       </Case>
     </Stack>
   );

@@ -28,7 +28,7 @@ official product documentation**, with URLs. Treat it as reliable.
 | **Plan** | Linear cycles / Productboard roadmap · Basecamp hill charts · Productboard Spark · Linear's agent-session API · GitHub Spec Kit · Anthropic Citations | ✅ researched 2026-08-20, below |
 | **Design** | Figma Dev Mode + Make · v0 · Lovable · Uizard · Stitch | ✅ researched 2026-08-01, below |
 | **Build** | GitHub Copilot · Devin · Cursor · Claude Code · Codex | ✅ researched 2026-08-01, below |
-| **Ship** | changelog and release-notes tooling | ⬜ not yet researched |
+| **Ship** | Linear Releases · Vercel Rolling Releases and Instant Rollback · LaunchDarkly guarded rollouts · Statsig Release Pipelines · GitHub Releases and environment protection rules · Sentry release health · Datadog deployment tracking · LaunchNotes | ✅ researched 2026-08-20, below |
 | **Learn** | Amplitude / experiment readouts | ⬜ not yet researched |
 
 ---
@@ -1519,5 +1519,365 @@ Basecamp: [Shape Up, Show Progress](https://basecamp.com/shapeup/3.4-chapter-13)
 GitHub: [Spec Kit, spec-driven.md](https://github.com/github/spec-kit/blob/main/spec-driven.md) ·
 [Spec Kit docs](https://github.github.com/spec-kit/index.html).
 Anthropic: [Citations](https://docs.claude.com/en/docs/build-with-claude/citations).
+
+Content was rephrased for compliance with licensing restrictions.
+
+---
+
+# SHIP: making the one call that cannot be undone feel safe rather than fast
+
+Researched 2026-08-20 against official product documentation. **Structural insight: nothing in this
+market treats shipping as an event. Every one of them treats a release as an object with a
+lifecycle, and the promote is one transition inside it.** That is the difference that matters for
+our surface, because Ship currently models a release as a row that either has a production address
+or does not, and every question the brief asks turns out to be a question about a state the object
+does not yet have.
+
+The second finding is a correction to the named class. **Changelog and release-notes tooling answers
+the last third of this station and none of the first two thirds**, and the reference that answers
+the rest shipped four months ago: Linear added Releases on 2026-04-30, and its own framing is the
+sentence this station needs, that an item being Done does not mean it reached customers. Reading it
+is not optional, since it is the nearest thing in the market to what Ship is supposed to be.
+
+## Verdict on the named class first, and one question needs its premise corrected
+
+| Question | Does changelog and release-notes tooling answer it? | What actually answers it |
+| --- | --- | --- |
+| 1. Blast radius before the click | **No.** A changelog tool starts after the thing is live; its subject is the audience, not the risk. LaunchNotes' cohorts are the one part that is about blast radius, and it is the blast radius of the *announcement* | **Vercel Rolling Releases** (blast radius as a number you set rather than a thing you estimate) · **GitHub environment protection rules** (blast radius as the environment a job references) · **Linear Releases** (blast radius as the set of work items in it) · **GitHub Releases** (the comparison range is chosen, never inferred) |
+| 2. How a flag-gated rollout is expressed | **No, and the question needs restating.** See the note below: nothing in this product serves two variations of itself to customers, so a percentage rollout is not expressible on the substrate we have | **Statsig Release Pipelines** is the cleanest published model of a phased release with a gate per phase · **LaunchDarkly guarded rollouts** add the metric as the gate · **Vercel stages** add the traffic fraction |
+| 3. Green deploy, gate still closed | **No.** | **LaunchDarkly flag statuses** and **Statsig's gate lifecycle**, which both derive the answer from runtime evaluation and never from the configuration · **Sentry release health**, where adoption is a separate number from deployment · **Linear's status automations**, which move an item on release completion rather than on merge |
+
+**The premise correction, stated plainly because a recommendation built on it would be a claim
+outrunning its wiring.** There is a `feature_flags` table in this product and it is an operator kill
+switch, not a customer release gate: `src/lib/ai/supersession.server.ts` reads it through the
+`get_flag` RPC so one SQL statement can turn a mechanic on without a redeploy, and
+`/admin/platform` is the only surface that lists flags. Its payload field is even placeholdered as
+`{"rolloutPct":10}`, which is the shape of a rollout percentage and has no evaluator behind it.
+Ship's own deploy path promotes a whole app to one production address, so there is no second
+variation for a fraction of traffic to reach. **So question 2 is answered here in the form the
+substrate can carry, which is phases across environments rather than fractions of traffic, and
+question 3 is answered as "the deploy landed and nothing says it is reaching anyone", which is the
+same problem with the evaluation half removed.** The percentage form is kept as ROADMAP in the
+directives at the end.
+
+## The merged information model for one release
+
+**Tier 1, the release is not usable without these**
+
+| # | Field | Lifted from |
+| --- | --- | --- |
+| 1 | **the contents: the set of work items this release delivers, resolvable in both directions** | Linear Releases (a release is a name, a commit SHA and a set of issues; an item shows its release in its own sidebar, and items are filterable by release, stage or pipeline) |
+| 2 | the commit, plus **the commit it is being compared against, chosen rather than inferred** | GitHub Releases (a previous tag is selected when drafting, which fixes the range the notes describe) |
+| 3 | **the pipeline it belongs to, typed continuous or scheduled**, with an owning team | Linear release pipelines (one pipeline per product and environment combination, with path filters deciding which commits belong) |
+| 4 | deploy status from a closed vocabulary, **held separately from whether anything is reaching users** | LaunchDarkly flag statuses (derived from requests received, not from configuration) · Sentry (adoption is its own number) |
+| 5 | **the previous release this one can return to, named before the promote rather than after** | Vercel Instant Rollback (the dialog shows the current production deployment and the eligible ones to return to) |
+| 6 | the share of traffic currently served, where a product serves more than one build at once | Vercel stages (each stage is a larger fraction, the last is always 100%) |
+| 7 | **the metrics being watched, chosen before the rollout starts and stored on the release** | LaunchDarkly guarded rollouts · Statsig safeguards (an alert is attached to a targeting rule, with an action) |
+| 8 | health after the fact: crash-free rate, and **adoption as a share of sessions on this version** | Sentry release health (healthy, crashed, errored, abnormal, plus adoption stage markers on the graph) |
+| 9 | **who caused it**, and for a gated release who let it through | Vercel and GitHub both record the actor; GitHub's reviewing-deployments flow records the approval and the bypass |
+| 10 | **the configuration frozen at the moment of the promote** | Vercel (every promotion snapshots the project configuration, and later changes apply only to future releases, never to one in progress) |
+
+**Tier 2**: draft and pre-release as two independent flags, since one means not published and the
+other means published and not stable · the latest label as a separate act from publishing · notes
+generated from the item set with a template chosen per pipeline · a changelog assembled
+chronologically from those notes · abort as a first-class resolution distinct from rollback · soak
+time per phase · a deploy marker written onto the time series so later charts can be read against it
+· rollback detection, meaning the platform notices when the version now serving is one that served
+before · the announcement's audience.
+
+**Tier 3, focused pane only**: per-metric monitoring with the confidence interval and the number of
+contexts served at each point · a version-to-version comparison against the immediately previous
+version · adoption stage change markers on the release graph · code references, so the release can
+say whether the old path is still in the codebase · assets attached while the release is still a
+draft, before it becomes immutable · the escape hatch for reaching a stage serving zero percent.
+
+> **The finding that most changes our build: every product here separates "deployed" from
+> "delivered", and not one of them writes down what the team expected before the release went
+> out.** LaunchDarkly and Statsig come closest, because the metrics and thresholds a guarded rollout
+> watches are chosen before it starts, which is a forecast in everything but the name. Neither keeps
+> the claim after the rollout resolves: the threshold is a control that fires and then stops being
+> interesting. **Our contract's standing success clauses are exactly that claim, they already exist
+> at promote time, and nothing attaches them to the release.** That is the seam, and it is the same
+> seam the Plan section found in a different shape.
+
+> **The second finding, and it is the answer to "how do you make an irreversible act safe".** Not one
+> of these products answers with a heavier confirmation. Three mechanics do the work instead:
+> **make it partial** (a fraction, a phase, one environment), **freeze what it is about** so the
+> thing being decided cannot change underneath the decision, and **name the way back before the way
+> forward**. Vercel puts all three in one paragraph: the config snapshots at promotion, only one
+> rolling release may be in flight at a time, and the rollback target is shown in the promote dialog.
+
+## The verb set
+
+`[L]` Linear Releases · `[V]` Vercel · `[G]` GitHub · `[LD]` LaunchDarkly · `[ST]` Statsig ·
+`[S]` Sentry · `[D]` Datadog · `[LN]` LaunchNotes. Marked verbs are lifted close to literally,
+including the name.
+
+| Verb | Required effect on the data |
+| --- | --- |
+| Promote `[V]` `[L]` | points the production address at an existing build rather than rebuilding it. Vercel keeps this **separate from the endpoints that start and complete a staged rollout**, on the stated ground that each step in a pipeline should have one explicit purpose |
+| Advance `[V]` | moves to the next stage, which must serve a larger fraction than the current one. The final stage is full promotion, and reaching it ends the release's in-flight state |
+| Extend `[LD]` | when too few contexts have been served to judge, **the current stage extends itself instead of advancing**. Waiting is a computed outcome, not a person forgetting |
+| Abort `[V]` | resolves the release without shipping it. **A distinct verb from rollback**, because one ends an attempt and the other undoes an arrival |
+| Roll back `[V]` | reassigns the address to a previous build with no rebuild. Two consequences that must be said out loud: **configuration is not rebuilt with it**, and the project stays in a rolled-back state where the next push does not replace what is serving |
+| Return to it `[V]` | a rolled-back release stays in the list, marked and disabled, and can be rolled back to again. **Nothing is deleted by being undone** |
+| Freeze `[L]` | stops new work items being added to a stage that has started. The contents of a release stop moving before the release does |
+| Require review `[ST]` | a phase does not begin until an authorised person approves it, and **a phase may carry both a review and a timer, where the timer only starts counting after the approval** |
+| Soak `[ST]` / Wait `[G]` | time as the gate. GitHub's wait timer is an integer count of minutes up to 43,200, and the waiting job reads as Waiting rather than as running |
+| Guard `[LD]` `[ST]` | attaches metrics to the release before it starts, with an action on regression: pause, roll back to zero, or notify. **The threshold is written down before the outcome is known** |
+| Bypass `[G]` | forces pending work past a protection rule. Available, and recorded |
+| Generate notes `[G]` `[L]` | GitHub assembles merged pull requests, contributors and a full-changelog link; Linear generates from the item set of one release, or a range of releases on a continuous pipeline, with the format set per pipeline |
+| Draft, then publish `[G]` | assemble everything while it is still a draft, because publishing is the point after which it cannot be edited. **The recommended order exists because the act is irreversible**, which is exactly this station's problem |
+| Mark pre-release `[G]` | published and explicitly not stable. Orthogonal to draft, and the two are routinely confused |
+| Set as latest `[G]` | a separate decision from publishing, defaulting to semantic version order when nobody makes it |
+| Mark the deploy `[D]` | writes the version onto the time series, so every later chart can be read against the moment it changed |
+| Compare versions `[D]` | this version against the immediately previous one by default, any two within a window on request |
+| Detect a rollback `[D]` | the platform notices that the version now serving is one that ran before, without anyone declaring it |
+| Send to a cohort `[LN]` | targets named groups of subscribers directly, on top of whoever subscribed to the category |
+| Retire the gate `[LD]` `[ST]` | a flag with no evaluation traffic, no code references and enough age is offered for archive; a retired Statsig gate returns false and stops charging for exposures |
+
+## The three questions, answered
+
+### 1. How a release's blast radius is shown before the click
+
+Four mechanics, and the useful thing is that they are four different definitions of blast radius.
+Our station needs the first and the fourth, and cannot express the second.
+
+**Blast radius as the contents.** Linear's release is a name, a commit and a set of work items, and
+membership is decided by path filters over the commits rather than by anyone remembering to attach
+anything. That makes "what is in this" answerable at the moment of the decision, which is the
+question a person actually asks before promoting. **Ship's promote gate today quotes the preview
+address, the merge time and the cost sentence, and says nothing about contents.** The parts are on
+the same screen: `listAppliedChanges` returns a real file count derived from `studio_changes` rows,
+and the linked spec carries standing non-goals. The release document assembles all of it and renders
+it one region below, which is after the click rather than before it.
+
+**Blast radius as a fraction.** Vercel's answer is that you do not estimate it, you choose it: a new
+production deployment serves a configured share of visitors, the rest keep the previous one, and the
+release stays there for as long as you want while you compare metrics between the two. This is the
+strongest answer in the market and it is not available to us, for the reason in the premise note
+above.
+
+**Blast radius as the environment.** GitHub expresses it as the environment a job references, and
+hangs the protections off the environment rather than off the deploy: required reviewers, up to six
+users or teams with only one approval needed, a wait timer, and custom rules that time out after 30
+days. **The mechanic worth taking is that the protection is a property of the destination, not of the
+act.** A person does not decide each time whether this deploy needs review; they decided once, about
+production, which is the difference between policy and permission.
+
+**Blast radius as the range.** GitHub's draft flow asks which previous tag to compare against, so
+what the release claims to contain is a decision rather than an inference. Combined with immutable
+releases, where the guidance is to draft first, attach everything, and only then publish, the whole
+shape is: assemble while it is still cheap to change, and make the irreversible step the last and
+smallest one.
+
+### 2. How a flag-gated rollout is expressed
+
+**Statsig Release Pipelines is the model to lift, because it is a phase list where every phase
+carries its own gate and the gates are of exactly three kinds: a person, a clock, or a metric.** A
+pipeline is a named object holding one or more phases; each phase has release rules, a required
+environment, and optional condition targeting; and a phase's transition is Require Review, a time
+interval, or both, with the timer starting only once the approval lands. A pipeline with a rollout in
+flight cannot be edited until that rollout completes or is aborted, which is the same
+freeze-the-decision instinct Vercel expresses as a config snapshot.
+
+LaunchDarkly supplies the metric gate. A guarded rollout increases traffic in stages while watching
+selected metrics, and a detected regression pauses the release and notifies rather than silently
+continuing. Two details are worth copying exactly. **The metrics are attached before the rollout
+starts**, so the standard is set while the outcome is unknown. And **a stage that has not served
+enough contexts to be judged extends itself** rather than advancing on the clock, which is a
+computed "we do not know yet" in a product that could easily have shrugged and moved on.
+
+Vercel supplies the traffic gate and one hard-won lesson about it: a stage configured at zero percent
+is not hidden. Anyone can force themselves onto the canary with a query parameter, and the docs say
+so outright. **A rollout stage is not an access control**, and a surface that implies otherwise is
+selling a permission it does not hold.
+
+**What this means for a product that deploys one build to one address.** The phase list survives, the
+percentage does not. Our `deployments.environment` column already carries preview, staging and
+production, and the live workspace holds rows in all three, so a release can be expressed as an
+ordered walk across environments with a gate per step. The three gate kinds all map onto things this
+product has: a person is the existing `Approve` on the promote, a clock is expressible, and a metric
+is the spec's own success clause with its proof oracle. That is a phased release without a flag
+evaluator, and it is honest about what it is.
+
+### 3. What the surface says when the deploy is green and the gate is still closed
+
+**The whole market answers this the same way, and it is a discipline rather than a feature: the
+answer is derived from runtime evidence, never from the configuration.**
+
+LaunchDarkly's flag statuses are the sharpest version. New, active, launched and inactive are not
+configuration states: inactive means the flag is over seven days old and has not been requested in
+the last seven days, and launched means requests are arriving, it is serving one variation, and
+nothing has been reconfigured for a week. **A flag that is switched on and never evaluated does not
+read as on.** Statsig's gate lifecycle draws the same line from the other end: a gate nobody
+evaluates stops producing exposure events, and that silence is what marks it safe to remove from the
+code.
+
+Sentry separates the same two facts for a deployed build. A release has a version and an
+environment, and adoption is a separate measurement, the share of sessions occurring on that
+release, with adoption stage changes drawn as markers on the release graph. Deployed and adopted are
+different numbers, and the health chart is read against the marker rather than against the calendar.
+
+Linear says it in product terms and its recommended automation is the one to copy: set the Git
+automation to move an item into a started status called Merged when the pull request merges, and let
+the release completing be what marks it done, so downstream integrations fire when the change is
+available to customers and not when the code landed. **The status that means "shipped" is written by
+the release, not by the merge.**
+
+**Ours, and the seam.** `pickProductionDeploy` in `src/components/ship/WhatShipped.tsx` already
+refuses anything looser than environment production and status success, and its header explains why
+in exactly these terms: a failed rollout announced as live is the defect. `whereItIs` then spends
+eleven separate sentences keeping "an address a person can open" apart from "a status a provider
+reported", including one for a production deploy that succeeded and recorded no address. **That is
+the right instinct already built.** What none of it can say is whether anyone is arriving. The
+smallest honest addition is not a metric: it is a check that the production address answers, which is
+this substrate's version of an evaluation signal, and it is the difference between "we deployed it"
+and "it is serving".
+
+## What these products get wrong for an agent-operated product
+
+Anti-patterns. Do not copy them.
+
+1. **A one-click undo that undoes only part of the change.** Vercel's Instant Rollback reassigns
+   domains rather than rebuilding, and the docs note that things like environment variables are not
+   rebuilt with it. So the code returns and the configuration does not. **The most dangerous control
+   in the whole set is the one labelled as a complete reversal that is a partial one**, and a surface
+   offering it owes the sentence saying which half comes back.
+2. **A rollback quietly changes what the next push does.** Taking Vercel's rollback turns off
+   automatic assignment of production domains and leaves the project in a rolled-back state until
+   somebody promotes again. That is a policy change made by an incident-response click, and it is
+   documented rather than surfaced. Under our canon a default the user never set has to be visible
+   and changeable.
+3. **The named-reviewer queue, with a bypass instead of a policy.** GitHub's required reviewers is up
+   to six people of whom one must approve, a job waits in Waiting for as long as 30 days before
+   failing, and the pressure valve is a documented force-through. **That is the approvals queue our
+   governance ruling rejects**, and the bypass proves it: the queue was never the safety mechanism,
+   it was the thing people learned to route around.
+4. **Timers standing in for evidence.** A wait timer is a guess about when the signal arrives, and
+   the numbers in this market give the guess away: GitHub's timer is minutes, while Statsig's own
+   recommendation for watching topline metrics after a rollout is on the order of a fortnight. A
+   soak short enough to tolerate is too short to be evidence, so a timer should gate *attention*,
+   never conclusions.
+5. **The forecast is spent and thrown away.** The threshold on a guarded rollout is the most valuable
+   artifact in these products and it exists only as a trigger. Once the rollout resolves, nothing
+   holds what was expected next to what happened. Every one of these tools could tell you the
+   release was fine and none of them can tell you whether anyone was right.
+6. **Generated release notes describe the diff, not the reason.** GitHub assembles merged pull
+   requests and contributors; Linear generates from the item set. Both are lists of what changed.
+   **Nothing in the class generates a release note from the specification it was built against**,
+   which is what makes a note worth forwarding to someone who was not in the room.
+7. **The changelog is organised by build process.** Linear's changelog is per pipeline, which is
+   correct for a team watching its own deploys and wrong for a customer, who does not know that iOS
+   nightly and the web app are different pipelines. A public stream has to be assembled per product.
+8. **A rolled-back release carries no reason.** Datadog will detect that a rollback happened by
+   noticing the version now serving ran before, which is a good computed fact with the interesting
+   half missing. **Why it was rolled back is the cheapest learning signal on this station** and
+   nothing in the class keeps it. Same gap as the cycle-rollover reason in the Plan section.
+9. **A stage serving nobody is treated as hidden.** Vercel is honest that a zero percent canary is
+   reachable by anyone who sets a query parameter. The anti-pattern is not the cookie, it is the
+   temptation to describe a rollout stage as if it controlled access.
+
+## What this means for our Ship surface, stated as directives rather than status
+
+Verified from the repo only. Nothing here was checked against production, and each directive is
+tagged for how much wiring it needs: **PROVEN** means every row it reads is already read on this
+station, **WIRING** means a column or an edge has to exist first, **ROADMAP** means the substrate is
+not there at all.
+
+**The constraint every directive below obeys.** AGENTS.md records that the signal to shipped to
+learned chain is broken at Build, which writes no changeset or deployment edges. The map in
+`src/lib/spine/attach.ts` does declare both, `studio.stage` to `studio_changesets` and
+`release.publish` to `deployments`, and the note beside it records a 2026-08-20 measurement that
+`spine_track_members` holds no ship row of any kind and that `release.publish`, pinned to review so
+a call always leaves an approval row, has never raised one. **So the edge is declared and has never
+carried a release.** The two statements disagree on paper and agree in effect: no recommendation here
+assumes a deploy lineage exists, and every one that would need it is tagged WIRING or ROADMAP.
+
+- **PROVEN. Move the contents above the Approve.** `gate-order-is-an-invariant.test.tsx` already
+  pins the shape this needs, that a gate asks, then shows its reasons through `lines`, then offers
+  the control, and it pins all four of this station's gates to that order. Adding the file count from
+  `listAppliedChanges` and the spec's standing non-goals to the promote gate's `lines` is additive
+  and cannot violate it. The reference is Linear's release contents plus GitHub's chosen comparison
+  range: **before an irreversible click, the surface should say what is in the thing, not only where
+  it is and what it will cost.**
+- **PROVEN. Name the way back before the way forward.** Vercel's promote dialog shows the deployment
+  currently serving and the ones eligible to return to. `releaseStates` is sorted newest release
+  first and every live release carries `productionUrl` and `productionAt`, so the release the
+  rollback would land on is a fact this station holds and never states.
+- **PROVEN. Say who promoted it.** `deployments.triggered_by` has three writers (`"promote"` in
+  `deployments.functions.ts`, `"ci-poll-tick"` in the hook, and an agent value through
+  `lib/deployments.ts`) and no reader on any surface. The release document's sign-off section shows
+  only the design gate, so the document whose whole claim is that every line traces to a row is
+  silent about the one act on this station that reaches customers.
+- **PROVEN. Give a rollback a state on the release.** `rollbackRelease` is an intent: it stages the
+  inverse changeset and opens a run that still has to clear its gates. Nothing on the release rows
+  changes when it is taken, so `whereItIs` keeps reading "In production" and the release document
+  keeps saying it is live at that address. Vercel's model is the lift and it is the gentle one:
+  **the rolled-back release stays in the list, marked, and remains something you can return to.**
+- **WIRING. A release needs contents, plural.** `changelog_entries` carries one `prd_id` and one
+  `changeset_id`, so "what shipped in this" cannot be answered for more than one item, and the
+  release document's own gap list already says out loud that a release not linked to a spec cannot
+  state what it promised. Linear's release-to-item set is the shape, and path filters are how
+  membership is decided without anyone attaching anything by hand.
+- **WIRING. Snapshot the promise at promote time.** Vercel snapshots project configuration at
+  promotion so a change made later cannot apply to a release already in flight. Our equivalent is
+  the spec's standing success clauses, and `standingClauses` in `WhatShipped.tsx` already reads
+  exactly the right set for exactly the right reason, that a superseded clause is a metric the team
+  walked away from. **Copying those clauses onto the release at the moment of the promote is what
+  lets Learn grade against what was promised then rather than against the contract as it later
+  stands**, and it is the one directive here that is about the moat rather than about the station.
+- **WIRING. Separate deployed from reaching anyone.** Adoption in Sentry's sense needs sessions we do
+  not collect, but the weaker form is available: a check that the production address answers, stored
+  next to the deploy row. That single field is what turns "a production deploy succeeded" into "it is
+  serving", and it is the substrate's nearest equivalent to a flag status derived from evaluation
+  traffic.
+- **ROADMAP. Phases with a gate per phase.** Statsig's pipeline of phases, each gated by a person, a
+  clock or a metric, with the clock starting only after the approval, expressed over our existing
+  preview, staging and production environments rather than over traffic fractions. It needs a phase
+  object that does not exist. This is also where the station's policy story lands: **the gate belongs
+  to the destination, the way GitHub hangs protection rules off an environment, so a person sets it
+  once about production instead of being asked every time.**
+- **ROADMAP. Guarded progression.** Metrics attached before the release starts, a regression pausing
+  it, and a stage that extends itself when too little has been observed to judge. Every part of this
+  needs the observation half first.
+- **ROADMAP. Traffic fractions and variation serving.** Recorded so nobody designs it twice: this
+  product promotes one build to one address, so a percentage rollout is not expressible and should
+  not be drawn on a surface as though it were.
+- **The verbs to add first, in the order the research argues for:** name the contents at the gate,
+  name the rollback target at the gate, and record the reason a release was rolled back.
+
+## Sources
+
+Linear: [Releases](https://linear.app/docs/releases) ·
+[Releases changelog entry](https://linear.app/changelog/2026-04-30-releases) ·
+[linear-release CLI](https://github.com/linear/linear-release).
+Vercel: [Rolling Releases](https://vercel.com/docs/rolling-releases) ·
+[Instant Rollback](https://vercel.com/docs/deployments/instant-rollback) ·
+[Promoting a deployment](https://vercel.com/docs/deployments/promoting-a-deployment) ·
+[Rolling back a production deployment](https://vercel.com/docs/deployments/rollback-production-deployment).
+LaunchDarkly: [Guarded rollouts](https://launchdarkly.com/docs/home/releases/guarded-rollouts) ·
+[Managing guarded rollouts](https://launchdarkly.com/docs/home/releases/managing-guarded-rollouts) ·
+[Setting up contexts for guarded rollouts](https://launchdarkly.com/docs/home/releases/context-kinds) ·
+[Flag statuses and lifecycle stages](https://launchdarkly.com/docs/home/flags/flag-status) ·
+[Code references](https://launchdarkly.com/docs/home/flags/code-references) ·
+[List feature flag statuses (API)](https://launchdarkly.com/docs/eu-docs/api/feature-flags/get-feature-flag-statuses).
+Statsig: [Create and manage Release Pipelines](https://docs.statsig.com/release-pipeline/create-and-manage/) ·
+[Safeguards overview](https://docs.statsig.com/feature-flags/safeguards-overview) ·
+[Create a Safeguard](https://docs.statsig.com/feature-flags/safeguards-create) ·
+[Managing Feature Gate lifecycles](https://docs.statsig.com/feature-flags/feature-flags-lifecycle).
+GitHub: [Managing releases in a repository](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) ·
+[Automatically generated release notes](https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes) ·
+[Deployments and environments](https://docs.github.com/en/actions/reference/deployments-and-environments) ·
+[Reviewing deployments](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/review-deployments) ·
+[Custom deployment protection rules](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/configuring-custom-deployment-protection-rules).
+Sentry: [Release Health](https://docs.sentry.io/product/releases/health/) ·
+[Release Details](https://docs.sentry.io/product/releases/release-details/) ·
+[Session Health](https://docs.sentry.io/product/insights/frontend/session-health/).
+Datadog: [Deployment Tracking](https://docs.datadoghq.com/tracing/services/deployment_tracking/) ·
+[Automatic Faulty Deployment Detection](https://docs.datadoghq.com/watchdog/faulty_deployment_detection/) ·
+[Rollback Detection](https://docs.datadoghq.com/continuous_delivery/features/rollbacks_detection/).
+LaunchNotes: [Organizing announcements and roadmap items](https://help.launchnotes.com/en/articles/5125625-how-do-i-organize-announcements-and-roadmap-items-to-match-my-product-structure) ·
+[Sending announcements to a specific group of subscribers](https://help.launchnotes.com/en/articles/13975253-how-do-i-send-announcements-to-a-specific-group-of-subscribers).
 
 Content was rephrased for compliance with licensing restrictions.

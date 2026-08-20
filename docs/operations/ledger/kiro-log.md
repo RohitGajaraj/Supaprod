@@ -5385,3 +5385,291 @@ most. **`/settings` is worse until K-58 lands**: K-39's seven panels now stack f
 `.sp-block`'s 36px margin and 28px padding lived in the stylesheet and `Region` carries neither.
 And **`text-mrd-body` resolves as both a colour and a 14px size**, found independently by K-42 and
 K-45 across roughly 60 call sites, which only a build can settle.
+
+---
+
+## K-60 (rework) · QUESTION · 2026-08-20 21:18 · the rejection and the item contradict each other, so I did the half that needs no ruling
+
+**The contradiction, stated first, because it is the whole entry.** Claude's REJECTED verdict says:
+*"Add `completed_with_failures` to `RUN_STATE`. Which bucket is a real judgement and should be argued
+in the file."* **The item forbids exactly that, in as many words:** *"`completed_with_failures` is
+explicitly out of scope for this item … Flag it in §4 Blocked for a ruling; do not decide it in a
+port."* And the item gives its reason, which the rejection does not engage with: because
+`computeAgentFleet`'s `failed` tally drives `summary.withExceptions`, the supervise-by-exception
+signal, **bucketing it either way makes the fleet view contradict the governance roster over the same
+rows.** I did not pick a side. Picking one is stop-condition 3, a product decision that is the
+founder's, and following the verdict would break the item.
+
+**But the rejection is right that the entry asserted something false, and that half needs no ruling.**
+So I fixed the assertion rather than the mapping.
+
+**Did.** `agent-fleet.test.ts` no longer asserts the identity over a hand-picked fixture. It now
+enumerates **every status this product writes**, sourced from the production distribution Claude
+recorded under K-60 and cross-checked against the repo's writers, and holds them against a named
+`AWAITING_A_RULING` set containing exactly `completed_with_failures`. Four tests: every enumerated
+status is either bucketed or named as unruled · **the unruled list is kept honest in the other
+direction**, failing the moment a status on it gains a key, so the argument cannot outlive the
+decision · the identity is asserted across every bucketed status with the unruled ones **excluded
+explicitly rather than by omission** · and one test measures what the gap still costs, so the number
+the ruling is worth is on the record and the test is marked for deletion when it lands.
+`halted → failed`, `waiting_approval → queued` and the `bucketOf` deletion from the first pass are
+untouched; Claude confirmed all three.
+
+**Why this is better than either instruction taken alone.** The old test could pass while a third of
+every run in the system fell to `other`, because it chose four statuses and all four were bucketed:
+**an identity asserted over four buckets is only worth its weakest input, and the fixture was
+choosing not to supply one.** It is now a tested, named, greppable fact with its precondition stated,
+which is the thing Claude actually asked for in its last line — *"the identity test should be
+extended to enumerate every status production writes rather than the two this item touched."* That
+line and the "add the key" line pull in different directions; this satisfies the one that does not
+require a ruling.
+
+**THE QUESTION, and it is one sentence.** **Does `completed_with_failures` count as `done` or as
+`failed`?** It is 622 runs, 33.8% of the table, and the biggest status after `completed`. It finished,
+so `done` is defensible; it finished badly, so `failed` is defensible. The repo is split **six to
+two**: stopped at `run-state.ts:32`, `AgentRosterPanel.tsx:81`, `AgentInspector.tsx:58`,
+`obsidian/build-status.ts:31`, `ask-blocks.server.ts:290` and `mission-advance.server.ts` (which
+excludes it from `RUN_SUCCESS_STATUSES` deliberately); delivered at `credit-policy.ts:161` and
+`run-analytics.ts:74`. **What the answer changes:** `failed` puts 622 runs into
+`summary.withExceptions` and every agent that has ever had one reads as needing attention, which may
+drown the signal it exists to raise. `done` makes the fleet view call a run delivered that six other
+surfaces call stopped.
+
+**Unsure.** Whether writing the enumeration into the test file was the right home. The alternative was
+a §4 Blocked line in the queue, which the item asks for — but the queue is not mine to edit, and a
+prose note does not fail a build. **Putting it in the test means the gap is enforced rather than
+recorded**, and the queue note can still be added by whoever owns that file.
+
+**Noticed.** `bucketOf` and its false comment were already gone from `crew.functions.ts`, so that
+acceptance line was met in the first pass and Claude's verdict confirms it. Proven red as well as
+green: emptying `AWAITING_A_RULING` turns the file to **15 pass / 2 fail**, hitting the enumeration
+test and the identity test exactly as intended, then reverted.
+
+**Gates.** tsc 0 · `agent-fleet.test.ts` **17 pass / 0 fail** · build pass · docs:check pass.
+
+---
+
+## K-58 · BUILT · 2026-08-20 21:18
+
+**Did.** `_authenticated.settings.tsx` off `shell/primitives`: **markers 142 → 2** (`--sp-` 34 → 0,
+`usage` 98 → 0, `import` 1 → 0, `class:sp-` 9 → 2). All the item's rename counts matched exactly:
+`Button`→`Action` 21, `PageHead`→`PageHeading` 17, `Block`→`Region` 15, `Empty`→`NothingYet` 8 /
+`NothingHere` 2, `Input` 9, `Loading`→`Reading` 9, `Failed`→`ReadFailedLine` 8, `Field` 4, `Select`→
+`Picker` 3, `Textarea` 2. **`src/styles/meridian.css` was in the Owns and is untouched** — see below.
+**The rhythm is `flex flex-col gap-mrd-7`, 40px**, and the figure is not a preference:
+`primitives.css`'s own `.sp-block` retirement note records the founder overruling the 36px + 28px +
+hairline **in favour of Meridian's plain 40px gap**, in this exact argument, on the Design and
+Discover ports. **This closes the regression K-39 opened**, where the seven ported panels stacked
+flush.
+
+**Unsure.** Four, and the third is a shrink.
+1. **Three panes needed the rhythm restated INSIDE them, and this is the part that would have been
+   missed.** A pane returning a fragment flattens into the pane's flex column and gets the gap free,
+   which covers all seven ported panels. Three return a single element and do not:
+   `ProfileSection`'s `<form>`, `WorkspaceSection`'s `<div ref={briefRef}>`, and the
+   `errorComponent`. Without those, /settings would still have stacked Profile and Brief-and-voice
+   flush while everything else looked right.
+2. **No token was built, and that is a decision rather than an omission.** Both tokens the item
+   flagged as unmapped resolve without one. `--sp-weight-medium` 500 → **`--mrd-w-medium` 500 already
+   exists** at `meridian.css:783`; the item's mapping table simply omits it. And **`--sp-ctx-gap`
+   52px was dropped rather than mapped**: Meridian steps `--mrd-s7` 40px then `--mrd-s8` 64px, so any
+   mapping moves a shipped gutter 12px in one direction to say the same thing — but it does not need
+   saying in this file at all, because **`.sp-inner` in `shell.css` already declares
+   `gap: 0 var(--sp-ctx-gap)`**, and `shell.css` is the app shell's own sheet rather than a retired
+   layer (Meridian's `Surface.tsx` header states this). So the inline style is now `rowGap:
+   var(--mrd-s6)` alone, the column gap comes from the class, and **the rendered gutter is
+   byte-identical at 52px.** Inventing `--mrd-ctx-gap` would have earned its place on one caller,
+   which the rule forbids.
+3. **Control heights shrank 40px → 32px** on nine inputs, three pickers and two textareas, and I took
+   Meridian's. `forms.tsx` sets `FIELD_H` to `h-8` explicitly so a row of mixed controls sits on one
+   baseline, `Picker` and `Action` are both 32px, and this surface puts a `Picker` beside an `Action`
+   twice; keeping 40px would have left the select taller than the Save button next to it. **If the
+   founder reads the fields as too short, the fix belongs in `forms.tsx` for all 46 call sites, not
+   here.** Input text 13.5 → 13px, `Value` 13 → 12.5px (it hardcodes it, no override).
+   Everything else went up or stayed exact: `--sp-space-2` 8 → **10px** ×4 · `--sp-space-3` 12 →
+   **16px** · `--sp-radius-card` 10 → **12px** · `.sp-field`'s 12px outer margin → `gap-mrd-5` **16px**
+   stated by the caller · 25px, 14px, 13px, 12.5px, 24px and 4px all exact, and **`--mrd-t-label`
+   12.5px does exist**, at `meridian.css:744`.
+4. **"Active" changed colour.** `statusClass` was `undefined` for an active subscription so the word
+   inherited body ink; `Value tone="quiet"` paints it `--mrd-mute`. Defensible by `Value`'s own
+   docstring, and it is still a visible change to a shipped string. **I kept the brief hints as
+   explicit spans rather than moving them into `Field`'s `hint` slot**, because `hint` renders no
+   `id` and each `Textarea` points `aria-describedby` at one: moving them would have left six
+   dangling references and silently dropped the description for anyone reading by ear, which no gate
+   here would catch.
+
+**Noticed.** Five.
+1. **`class:sp-` cannot reach 0, so the item's "no marker left standing" is unachievable as written.**
+   The two survivors are `sp-inner` and `sp-main` on the page body, and they cannot go without either
+   extending `Surface` to pass `id`, `tabIndex` and inline styles (not in Owns) or dropping the
+   skip-link target, which `settings-nav-is-meridian.test.ts:67` pins. **Meridian's own `Surface.tsx`
+   carries 4 of the same class names in the baseline** and its header argues they are shell layout
+   rather than retired paint, so this is sanctioned residue.
+2. **Two comments in this file were already false and both are corrected.** The `Fig` helper's header
+   claimed the ratchet refused `Num` here and that Meridian has no `Figure`; this file imports `Num`
+   from Meridian and renders it **twelve** times, and that module exports `Figure`. `AgentDetail`'s
+   local `Facet` said it exists because the file imports a retired `Row` from shell; `Row` came from
+   `meridian/rows` before the port. Both shadowing arguments still hold; both premises were wrong.
+3. **A local `Choice` duplicates Meridian's `Choices` with the ARIA that file calls wrong.** `Choice`
+   renders mutually exclusive options as buttons with `aria-pressed`, and `forms.tsx` states outright
+   that `aria-pressed` is *quietly WRONG* for a one-of-N decision: it announces three independent
+   toggles, never says picking one unpicks the others, and spends three tab stops on one decision.
+   **Not swapped, because it changes the rendered control and its ARIA, which is beyond a port.** Real
+   defect on a shipped surface, good next item.
+4. **The item's `Block` → `Region` note about `more`/`onMore` is not this route's fact** — zero
+   occurrences across all 15 `Block`s, carried in from another item's file list. Also, my own briefing
+   was too strong: `surface-parts.tsx:223` accepts `toggle`, `goTo` **and** `act`, deliberately split
+   by name.
+5. **`AgentMark` is imported and rendered nowhere**, a pre-existing dead import sitting beside the one
+   the port deleted. Left alone per the mention-do-not-delete rule, and flagged because the file's own
+   header claims "the roster carries a real AgentMark per agent", so this may be a missing door rather
+   than dead weight.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. Every named suite green and
+unmodified: `settings-search` (the lowercased-haystack keyword guard, no words removed),
+`settings-sections`, `settings-doors`, `settings-nav-is-meridian` (**skip link and `id={PANE_ID}`
+intact**), `settings-profile-is-honest`, `settings-money-is-one-door`,
+`settings-has-one-list-of-sections`, `agent-detail-keeps-its-doors`, `surface-discipline`.
+
+---
+
+## K-75 · BUILT · 2026-08-20 21:18
+
+**Did.** Built `PromotionCard.tsx` (415 lines) exporting `PromotionCard`, `NoPromotions`,
+`PromotionOutcome` and `PromotionEvidence`, plus 42 tests and a six-case gallery section. **The card
+calls `resolveMemoryScope` itself rather than taking a decision**, so a card physically cannot offer
+to promote a measurement however the row was labelled: `promotable === false` removes all three
+controls and the "what approving would change" block, and prints K-73's `reason` verbatim as the
+explanation for their absence. That is K-73 wired as a governance control rather than as a label. It
+persists nothing and reads nothing.
+
+**Unsure.** Three, and the second is a premise failure I did not paper over.
+1. **The status word is `you` at rest, not `pass`, and my own briefing said `pass` was likely.** The
+   card draws the moment **before** the graduation, a proposal nobody has ruled on, and the colour law
+   reserves green and red for an outcome that has happened and never an intent — **painting a proposed
+   promotion green tells a reader the lesson already travels.** So orchid at rest, which is literally
+   true (a person is required and this reader's decision releases it), handing over to `pass` or
+   `fail` once settled, which is the pair the grammar asks for. **Red is available here in a way it was
+   not for `Refused`**, whose problem was that `ReadFailed` had already spent red one slot away; the
+   neighbour here is green. `hold` carries both "not yet" and "not promotable", on meridian.css's own
+   words for it, *stopped and not on you*. Four of the five words, each for its one meaning. **If the
+   founder wants `pass` at rest it is a one-line change and the argument is written down to overrule.**
+2. **The item's acceptance line "the card names the product the lesson came from" cannot be filled
+   from any real row today.** Checked against `types.ts`: **neither `agent_memory` nor `learnings`
+   carries a `product_id` column, and `memory_candidates` carries `kind` and `scope` and no product
+   either.** I did not invent the column and did not skip the criterion: `learnedIn` is
+   `string | null`, the null branch is a composed state with its own sentence, and it does not gate
+   the decision, because a method lesson is about how to work rather than about one product.
+   `docs/strategy/pricing/multi-product-and-isolation.md` lists that migration as step 2 and this card
+   as step 5, **and step 2 has not landed.**
+3. **The third answer has no server verb.** `decideMemoryCandidate` takes
+   `z.enum(["approve", "reject"])`, and `memory_candidates.status` is only ever written `approved` or
+   `rejected`. So "never" cannot be persisted as distinct from "not yet" today. The item is right that
+   the third answer is needed and it is a schema-and-verb change in Claude's lane. Also: **`Never`
+   wears the destructive face and its confirm is deliberately the caller's**, because a Dialog inside a
+   card that persists nothing would confirm an act this file cannot perform — flagged, because a
+   permanent refusal with no confirm is one misclick. And the settled state is **uncontrolled with no
+   prop**, so a reviewer has to press in each column to see it in both grounds.
+
+**Noticed.** Four.
+1. **A near-miss on the item's own premise.** It says the machinery "already exists and is not
+   product-aware". Both tables exist as described, but **there is no product column anywhere on the
+   lesson path** — not on `memory_candidates`, `agent_memory`, `learnings` or `house_rules`. That is a
+   bigger gap than "not product-aware" implies.
+2. **`src/components/memory/MemoryReviewQueue.tsx` imports `Gate` and `Receipt` from
+   `shell/primitives`** while Meridian ships both under the same names. Two `Gate`s and two
+   `Receipt`s on one screen is the exact drift `surface-parts.tsx` exists to end, and it is the nearest
+   neighbour to this file. Its header also still describes itself as *"Ported to the `--sp-*`
+   system"*, retired vocabulary in a live comment.
+3. **`_authenticated.crew.tsx` draws a graduation under another name** — `Proposals`, over
+   `trust_graduation_proposals`, via `decideTrustGraduation`. Genuinely different subject (an
+   **agent's** autonomy arc, not a lesson's scope) so not a duplicate, **but an agent searching for
+   "graduation" finds it first and could take it as the answer.**
+4. **`memory-scope.test.ts` already anticipated this surface**: its vocabulary guard asserts
+   `resolveMemoryScope`'s reasons never leak `memory_candidates`, `house_rules`, `product_id` or
+   `promotable` into a sentence *"somebody could read in a promotion prompt"*. Printing the reason
+   verbatim here is what that test was written for. No `--mrd-*` token was missing.
+
+**One deviation declared plainly.** The append-only rule on `_authenticated.meridian.tsx` and "the
+component must render there" cannot both hold literally, because the render tree closes at line 2182
+and React cannot reach a component appended after it. **Read as additive-only: the diff is 112
+insertions, 0 deletions**, no existing line modified or reordered, and the two insertions above
+end-of-file are one import and one `<Panel>` placed after the last existing panel.
+
+**Gates.** tsc 0 · `promotion-card.test.tsx` **42 pass / 0 fail**, 372 assertions · all 21 files in
+`components/meridian/__tests__` pass · build pass · docs:check pass.
+
+---
+
+## K-77 · BUILT · 2026-08-20 21:18
+
+**Did.** Appended a 361-line **SHIP** pass to `docs/design/REFERENCE-PATTERNS.md` and flipped the
+Ship row in the station table, matching K-76's Plan pass heading for heading. Read the actual surface
+first — `_authenticated.ship.tsx`'s whole derivation layer, `WhatShipped.tsx`,
+`gate-order-is-an-invariant.test.tsx`, `spine/attach.ts` and the `deployments` /
+`changelog_entries` shapes — so every directive names a real symbol or column. References studied:
+**Linear Releases** (the strongest, and it shipped 2026-04-30), **Vercel Rolling Releases and Instant
+Rollback**, **Statsig Release Pipelines and Safeguards**, **LaunchDarkly guarded rollouts and flag
+statuses**, **GitHub Releases and environment protection rules**, **Sentry release health**,
+**Datadog deployment tracking**, **LaunchNotes**. Every recommendation is tagged
+`PROVEN` / `WIRING` / `ROADMAP`.
+
+**The structural finding, which is the thing worth carrying out of this.** **Nothing in this market
+treats shipping as an event.** Every one of them treats a release as an **object with a lifecycle**,
+and the promote is one transition inside it. Ship currently models a release as a row that either has
+a production address or does not, so every question the item asks turns out to be a question about a
+state the object does not have. And on the moat: **every product here separates "deployed" from
+"delivered", and not one writes down what the team expected before the release went out.** Guarded
+rollouts come closest, because the metrics are chosen before the rollout starts, which is a forecast
+in all but name — **and none of them keeps the claim after the rollout resolves.** Our contract's
+standing success clauses are exactly that claim, they already exist at promote time, and nothing
+attaches them to the release.
+
+**Unsure.** **I corrected the item's premise on two of its three questions rather than answering as
+posed, and said so in the doc.** There is no customer release-flag substrate here: `feature_flags` is
+an operator kill switch read through `get_flag` by `supersession.server.ts` and listed only on
+`/admin/platform`, and Ship promotes one whole build to one address, so **there is no second variation
+for a fraction of traffic to reach.** So question 2 is answered in the form the substrate can carry
+(phases across `deployments.environment`, a gate per phase) and question 3 as "green deploy, nothing
+says it is reaching anyone", with the percentage form kept as ROADMAP. **That call could have gone the
+other way**: the admin flag payload is placeholdered `{"rolloutPct":10}`, so someone could argue a
+flag rollout is half-started. I judged it an operator gate with no evaluator. The judgment I am least
+sure of is **snapshot-the-promise**, the one recommendation about the moat rather than the station: it
+needs a column, so a builder could reasonably say it belongs in Learn's pass.
+
+**Noticed.** Four, and the first resolves an apparent contradiction in the manual.
+1. **AGENTS.md and `spine/attach.ts` disagree on paper about the deployment edge.** AGENTS.md says
+   Build writes no changeset or deployment edges; `TOOL_PRODUCTS` declares both (`studio.stage` →
+   `studio_changesets`, `release.publish` → `deployments`) with every `gap` null. The note beside them
+   records a 2026-08-20 measurement that `spine_track_members` holds **no ship row of any kind** and
+   that `release.publish`, pinned to review so a call always leaves an approval row, **has never
+   raised one**, while `deployments` holds 42 successful rows. **So the edge is declared and has never
+   carried a release.** The two statements disagree on paper and agree in effect; nothing in the pass
+   is built on the edge.
+2. **`deployments.triggered_by` is captured by three writers and read by nobody** (`"promote"`,
+   `"ci-poll-tick"`, and an agent value through `lib/deployments.ts`). So the release document, whose
+   whole claim is that every line traces to a row, **is silent about who performed the one act on this
+   station that reaches customers.** That is a data-minimalism wiring-rule miss, not just a gap.
+3. **A rollback leaves no trace on the release.** `rollbackRelease` stages an inverse changeset and
+   opens a run; no deployment row changes and there is no rolled-back column, **so `whereItIs` keeps
+   reading "In production" and the release document keeps saying it is live at that address after a
+   revert has been started.**
+4. `changelog_entries` has no `production_url` column in `types.ts`; the Ship code reads
+   `e.production_url` because `listChangelog` derives it server-side. Correct, but a reader grepping
+   the type will not find it. Also: this doc carries a non-canonical date header, pre-existing and
+   shared with about thirty other docs including `README.md`, so `docs-doctor` WARNs on it; left alone
+   rather than restructuring a header the item did not own.
+
+**Gates.** `docs:check` exit **0, 0 FAIL** across all eleven checks, orphan check [10] ok on the
+first run. **No em or en dashes**, verified programmatically over the appended range: the only
+non-ASCII character in 365 lines is `·`, which the file already uses throughout, and a scan for
+U+2010 to U+2015, U+2212, zero-width characters, soft hyphen, smart quotes and the ellipsis returned
+zero hits. `lane:gates` green, real exit 0.
+
+**Baseline re-frozen: 3,980 → 3,840 occurrences, 232 files, 4 counts reclaimed** (K-58 alone; K-60,
+K-75 and K-77 move it by zero, and K-75's item wrongly predicted otherwise).
+
+**Owed to Claude.** **The `text-mrd-body` collision is still open and is the one thing here that
+needs a build to settle**: it resolves as both a colour and a 14px size across roughly 60 call sites,
+found independently by three workers now. K-75's card and K-58's settings both sidestep it with
+inline sizes rather than relying on it.
