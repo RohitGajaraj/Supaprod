@@ -6479,3 +6479,89 @@ one query next tick, which the previous version of this claim was not.
 **Criterion 18 is drifting the wrong way while the ports run**, which is worth watching rather
 than acting on: every ported surface adds "a person is required" affordances faster than it adds
 "a machine is working" ones, and the criterion wants parity.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 20:10 · the falsifier passed with a control, and criterion 1 has stopped regrowing
+
+At 19:35 I replaced a bad prediction with a testable one: **any `cluster.trigger` approval
+raised after the 13:47 deploy means K-11's catalogue is not doing its job.** Measured:
+
+```
+  approvals raised since 13:47:50 UTC        0      (of any tool)
+  cluster.trigger raised since               0
+  ---- the control, without which zero means nothing ----
+  cron.cluster-tick runs since the deploy    4      last 14:20
+  sense model calls since the deploy        16      newest 14:00
+```
+
+**The path that raises these approvals ran four times and made sixteen model calls, and raised
+none.** Before the fix went live the same path raised one to two an hour. **So criterion 1 has
+stopped regrowing, and the mechanism is proven to have run rather than assumed idle.**
+
+This is the first criterion today to move because a code fix went live rather than because data
+was edited or dead code was deleted.
+
+**The backlog of 38 is now safe to clear, and that is a change from this morning.** The 04:45
+entry set the condition explicitly: *"I will not clear the backlog again until the code behind
+it is live, because clearing it before the cause is deployed is precisely what produced round
+two and round three."* **The cause is live as of 13:47.** I am not clearing it in this tick
+because it is a production data change and deserves its own, but the blocker is gone.
+
+---
+
+## K-29, K-34, K-39, K-41, K-42, K-45, K-54, K-55, K-69 (guard correction) · VERIFIED · 2026-08-20 20:12 · with one thing I could not check and will not claim
+
+**Ratchet 4,585 -> 3,980, files 242 -> 232.** Criterion 19 is now **1,884 below the 5,864
+baseline, 32% of the recorded debt cleared today.**
+
+### The `text-mrd-body` collision, which the entry said only a build could settle
+
+**Both definitions ship, and the answer is not that one wins.** Read out of the built CSSOM:
+
+```
+  .text-mrd-body { font-size: var(--mrd-t-body); }
+  .text-mrd-body { color: var(--mrd-body); }
+```
+
+Two rules, one selector, equal specificity, **different properties** -- so there is no conflict
+to resolve and **both apply**. Confirmed on rendered elements: `font-size: 14px` and
+`color: oklch(0.795 0.005 70)` together, which are `--mrd-t-body` and `--mrd-body` exactly.
+
+**So the defect is not a silent loss, it is a silent addition, and that is worse in one specific
+way.** An author reaching for the colour also pins the size to 14px; an author reaching for the
+size also repaints the text. **Across 591 uses in the gallery alone**, neither author gets told.
+The sizes I first measured at 11.5px and 12.5px are elements carrying a second size class that
+overrides it, which is what made this look like "the colour won" until I read the rules
+themselves.
+
+**K-42 and K-45 found this independently and both were right that it needs a build to settle.**
+The fix is a rename on one side, and it is a decision about which meaning keeps the name rather
+than something to guess at. Not this batch's to make.
+
+### What I could not check, stated rather than glossed
+
+**`/settings` and its flush-stacked panels: unverified.** The entry flags that K-39's seven
+panels now stack with no gap because `.sp-block`'s 36px margin and 28px padding lived in the
+stylesheet and `Region` carries neither, and that it is worse until K-58 lands.
+
+**My harness stubs the database, so `/settings` renders one panel and 402 characters rather than
+seven panels.** I measured a single element with `margin: 0px/0px`, which is consistent with the
+report and proves nothing, because there is no second panel to be flush against.
+
+**So I am not clearing it and not confirming it.** It is a known regression with a named fix
+(K-58) and an author who reported it rather than letting it ship quietly, which is the behaviour
+that makes this reviewable at all. **It wants one look with real data before K-58 is called
+done.**
+
+### The guard correction is the right shape
+
+K-71's `refused.test.tsx` asserts the focus utility is **absent**, and so tripped a guard looking
+for that utility: **a test proving the rule holds was reported as breaking it.** Skipping
+`__tests__/` and `*.test.ts(x)` rather than adding a fourteenth exemption is correct -- the rule
+is about what a keyboard reader meets, and nobody tabs through happy-dom.
+
+**And the exemption list is now one kind of thing**: 13 live files with a broken ring, each owned
+by another item, which reads as a debt register rather than a mixed bag. The
+exemption-honesty test still passing is the evidence the scan did not get narrowed into
+uselessness.
