@@ -3488,3 +3488,87 @@ the merged tree, up 26 from before this landed. I did not look at it rendered, i
 either ground, at any width. **For a component whose whole purpose is a surface,
 that is a real gap in this verdict** and the founder's eye is the instrument that
 closes it.
+
+---
+
+## K-21 · VERIFIED · 2026-08-20 08:52 · with its stated cause corrected, and a §10 number of mine corrected too
+
+The guards are right, the sweep-finding is right and confirmed closed, and **the
+data claim at the centre of it is wrong.** The data half was delegated to this
+lane, so correcting it is the verdict rather than a complaint.
+
+### Verified
+
+- **21 deprecated slugs in the catalogue, 0 stale `agentSlug` dispatches left in
+  `src`.** The two Kiro found -- `planner` and `designer` in the gallery -- are
+  gone, and nothing else dispatches a deprecated slug. The finding it names is
+  real and the direction it noticed matters: the existing guard asked "does every
+  active agent have a station", and nothing asked "is every slug the code
+  dispatches still an agent". Only the second one lies, because
+  `agentDisplayName` falls back to a title-cased slug and the run looks normal.
+- **The alias invariant holds.** Ten groups in the catalogue share a display name
+  at one station, and in **every one exactly one entry is `active`.** Aliases
+  sharing a name is the mechanism, not the bug: a run recorded against `scout` has
+  to come back reading "Watch".
+
+### Corrected: `engineer` is not what criterion 17 counts
+
+K-21 says `engineer` "is seeded into all 16 workspaces, which is what makes both
+it and `builder` render as 'Engineer' at Build."
+
+**`engineer` is `enabled = false` on all 16 rows.** Measured:
+
+| slug | status | enabled | rows |
+|---|---|---|---|
+| engineer | deprecated | **false** | 16 |
+| copilot | deprecated | **false** | 4 |
+| stakeholder | deprecated | **false** | 4 |
+| competitor-watcher | deprecated | **false** | 1 |
+| **operations** | deprecated | **TRUE** | 1 |
+| **growth-strategist** | deprecated | **TRUE** | 1 |
+
+Six deprecated slugs are seeded and **four were already disabled**. The two that
+were not are `operations` and `growth-strategist`, colliding with `orchestrator`
+and `strategist` at Decide. **That is exactly the 2 the criterion records**, and it
+is a different pair from the one the item names.
+
+### And my own criterion 17 was wrong in the other direction
+
+At 07:12 I recorded criterion 17 as **met at 0**. I grouped on `agents.name`, the
+database column. **The criterion says DISPLAY name**, which is resolved from the
+slug through the catalogue, and two different slugs map to one display name --
+which is the entire subject of this item.
+
+**I measured the column whose name matched the criterion's wording instead of the
+value the criterion is about**, and reported a target met. Same family as counting
+comments as code and reading `oklch()` with an `rgb()` regex: the query was
+well-formed and answered a question nobody asked.
+
+### Fixed in `20260820084500`: disabled, not deleted
+
+`enabled = false` on the two. Verified after: **0 deprecated agents enabled, both
+rows still present, their 1 run intact.** Criterion 17 is **2 → 0** by the
+mechanism the catalogue intends.
+
+**Not deleted, and the number is why.** Ten `agent_runs` reference deprecated agent
+rows. Deleting them orphans the exact history the alias mechanism exists to keep
+readable -- **the fix would break the thing it protects.** Kiro used the word
+"unseeding"; deactivation is the form of it that survives contact with the runs
+table.
+
+Safe because both belong to one user who already has `orchestrator` and
+`strategist` enabled, so nothing is lost and nothing needs re-seeding.
+
+### Left open, deliberately, and it is the bigger one
+
+**`enabled` is honoured inconsistently.** Of 41 reads of `agents` in `src`, **13
+filter on it and 28 do not** -- including `agents.functions.ts:16`, a
+`select("*")` with no filter at all. **A disabled agent can still appear on a
+surface that never asks**, which is why K-21 could reasonably believe a disabled
+`engineer` was rendering.
+
+That is a code fix across many readers, it is not this item, and it wants its own
+measurement of which of the 28 are user-facing before anyone edits 28 call sites.
+Recorded rather than queued, because filing "add a filter in 28 places" without
+that measurement is how a sweeping change lands on the reads that were right to
+omit it.
