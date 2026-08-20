@@ -20,7 +20,7 @@
  *          workspace scope, the live line and Ask.
  *    KILL  the styled <p> at weight 460 that carried the page question. It did
  *          an h1's job without being one, so screen readers and the type scale
- *          both lost. It is a PageHead now.
+ *          both lost. It is a PageHeading now.
  *
  * 4. ONE CLICK AWAY. The ten bodies. The layout answers "which question are
  *    you here with" and nothing more; every number lives one tab in.
@@ -46,8 +46,9 @@
 import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { PageHead, Surface } from "@/components/shell/primitives";
-import { Button } from "@/components/obsidian";
+import { Surface } from "@/components/meridian/Surface";
+import { Action, PageHeading } from "@/components/meridian/surface-parts";
+import { Tabs, TabPanel } from "@/components/meridian/Tabs";
 import { AdminErrorCard, AdminSkeleton } from "@/components/admin/admin-ui";
 import { amIAdmin, bootstrapSelfAdmin } from "@/lib/pricing.functions";
 import { toast } from "@/lib/notify";
@@ -80,6 +81,9 @@ const TABS = [
   { id: "/admin/invites", label: "Invites" },
 ] as const;
 
+/** Names the tab row, and every element id in it is derived from this. */
+const SECTION_TABS = "admin-sections";
+
 function activeTabId(pathname: string): (typeof TABS)[number]["id"] {
   const match = TABS.find((t) => t.id !== "/admin" && pathname.startsWith(t.id));
   return match?.id ?? "/admin";
@@ -97,7 +101,7 @@ function AdminLayout() {
     // and Ask, so this surface does not draw a second header. /admin was the
     // last TopBar mount site in the product.
     <Surface wide>
-      <PageHead
+      <PageHeading
         title="Who runs this workspace, and what is it costing?"
         sub="Members, plans and spend. Everything here changes what other people can do."
       />
@@ -115,43 +119,26 @@ function AdminLayout() {
           />
         ) : me.data?.isAdmin ? (
           <>
-            <div
-              className="flex flex-wrap"
-              style={{ gap: 4, borderBottom: "1px solid var(--hairline)", marginBottom: 20 }}
-            >
-              {TABS.map((t) => {
-                const isActive = t.id === active;
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => navigate({ to: t.id })}
-                    aria-current={isActive ? "page" : undefined}
-                    // Color lives in classes so hover can win over the resting
-                    // value (inline styles beat utilities).
-                    className={`outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] ${
-                      isActive
-                        ? "[color:var(--text-primary)]"
-                        : "[color:var(--text-subtle)] hover:[color:var(--text-primary)]"
-                    }`}
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "var(--text-mono-label)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.08em",
-                      padding: "8px 12px",
-                      borderBottom: isActive
-                        ? "2px solid var(--text-primary)"
-                        : "2px solid transparent",
-                      marginBottom: -1,
-                    }}
-                  >
-                    {t.label}
-                  </button>
-                );
-              })}
-            </div>
-            <Outlet />
+            {/* ELEVEN HAND-DRAWN TABS BECOME ONE `Tabs`. The strip was a row of
+                plain buttons wearing a 2px border and an uppercase mono label,
+                with no `role="tablist"` at all: eleven separate tab stops, and
+                Tab walked a keyboard reader through every console they had
+                already passed on. `Tabs` holds one stop for the row and moves
+                focus on ArrowLeft, ArrowRight, Home and End, and the panel below
+                names the tab it belongs to. Selection still follows a real click
+                or Enter, never an arrow, which matters here because each door is
+                an address and arrowing along the row would otherwise write
+                eleven history entries. */}
+            <Tabs
+              group={SECTION_TABS}
+              label="Which part of the console"
+              tabs={TABS.map((t) => ({ id: t.id, label: t.label }))}
+              active={active}
+              onSelect={(id) => navigate({ to: id })}
+            />
+            <TabPanel group={SECTION_TABS} active={active}>
+              <Outlet />
+            </TabPanel>
           </>
         ) : (
           <NoAccessCard anyAdminExists={!!me.data?.anyAdminExists} />
@@ -181,33 +168,38 @@ function NoAccessCard({ anyAdminExists }: { anyAdminExists: boolean }) {
     <div
       style={{
         background: "var(--card)",
-        border: "1px solid var(--hairline)",
+        border: "1px solid var(--mrd-line)",
         borderRadius: "var(--radius-card)",
         padding: "20px 22px",
         display: "grid",
         gap: 12,
       }}
     >
-      <div style={{ fontFamily: "var(--font-sans)", fontSize: 20, color: "var(--text-primary)" }}>
+      <div style={{ fontFamily: "var(--font-sans)", fontSize: 20, color: "var(--mrd-ink)" }}>
         Admin access required
       </div>
-      <p style={{ fontSize: 13, color: "var(--text-body)", margin: 0, maxWidth: 520 }}>
+      <p style={{ fontSize: 13, color: "var(--mrd-body)", margin: 0, maxWidth: 520 }}>
         The admin console manages members, roles, audit, and workspace billing. Ask a current admin
         to grant you access.
       </p>
       {!anyAdminExists ? (
         <div className="flex items-center" style={{ gap: 10 }}>
-          {/* The screen's one primary CTA: the v4 top-lit ember gradient
-              (DESIGN-LOOM §3), on the Button primitive so it gets the focus
-              ring and press feedback (register D-40). */}
-          {/* No hex overrides: the primary variant already carries the
-              token-traced ember gradient (--cta-grad-top/bottom), which
-              resolves in both themes. */}
-          <Button variant="accent" loading={claim.isPending} onClick={() => claim.mutate()}>
+          {/* The screen's one primary CTA, on `Action` so it carries Meridian's
+              control shape, focus ring and press feedback. `primary` is what
+              obsidian called `accent`, and the in-flight state is now the
+              `disabled` the mutation already knows about: obsidian's `loading`
+              additionally set `aria-busy`, which `Action` cannot express, so that
+              announcement is lost and recorded as a Meridian gap rather than
+              patched into a component this item does not own. */}
+          <Action
+            variant="primary"
+            disabled={claim.isPending}
+            onClick={() => claim.mutate()}
+          >
             {claim.isPending ? "Claiming…" : "Claim admin · one-time setup"}
-          </Button>
+          </Action>
           <span
-            style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--text-subtle)" }}
+            style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--mrd-mute)" }}
           >
             No admin exists yet. Whoever claims first becomes the first admin.
           </span>

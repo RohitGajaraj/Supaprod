@@ -118,7 +118,16 @@
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Row, Who } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingHere,
+  Num,
+  PageHeading,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
@@ -130,7 +139,8 @@ import { stripAutoPrefix } from "@/components/plan/format";
 import { Fact, FactLabel, Facts, IdFact, CopyButton } from "@/components/traces/TraceFacts";
 import { TracePane } from "@/components/traces/TracePane";
 import { ToolTrace } from "@/components/traces/ToolTrace";
-import { Block, Button, CtxBody, CtxHead, CtxRow, Empty, Failed, Loading, PageHead, Surface } from "@/components/shell/primitives";
+import { CtxBody, CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
+import { Surface } from "@/components/meridian/Surface";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 
 export const Route = createFileRoute("/_authenticated/traces/$traceId")({
@@ -570,8 +580,16 @@ export function TraceDetail({ id }: { id: string }) {
   if (trace.isLoading) {
     return (
       <Surface>
-        <PageHead title={shortTitle} />
-        <Loading>Reading the trace.</Loading>
+        {/* `.sp-block` and `.sp-empty` carried their own margins in the retired
+            sheet. Meridian's parts set none, so the surface owns the rhythm and
+            `gap-mrd-6` is the step every ported route uses. `data-mrd` rides on
+            it because `Surface` is a layout move that carries no ground of its
+            own, and an early return is exactly where a control would otherwise
+            sit outside a Meridian root. */}
+        <div data-mrd="" className="flex flex-col gap-mrd-6">
+          <PageHeading title={shortTitle} />
+          <Reading>Reading the trace.</Reading>
+        </div>
       </Surface>
     );
   }
@@ -579,25 +597,29 @@ export function TraceDetail({ id }: { id: string }) {
   if (trace.error) {
     return (
       <Surface>
-        <PageHead title={shortTitle} />
-        {TRACE_ID.test(id) ? (
-          <Failed onRetry={() => void trace.refetch()}>{(trace.error as Error).message}</Failed>
-        ) : (
-          // A MISTYPED ID AND A FAILED READ ARE DIFFERENT FACTS, and the reader
-          // acts differently on each: one is checked against the log line they
-          // came from, the other is waited out. Retrying an id that is not one
-          // never succeeds, so this branch offers no retry and leans on the way
-          // out below, which every branch here already carries.
-          <Failed>
-            That is not a trace id. A trace id is 36 characters in five groups separated by hyphens,
-            so check the one you were given for a missing character at either end.
-          </Failed>
-        )}
-        <Actions>
-          <Button variant="ghost" onClick={back}>
-            All traces
-          </Button>
-        </Actions>
+        <div data-mrd="" className="flex flex-col gap-mrd-6">
+          <PageHeading title={shortTitle} />
+          {TRACE_ID.test(id) ? (
+            <ReadFailedLine onRetry={() => void trace.refetch()}>
+              {(trace.error as Error).message}
+            </ReadFailedLine>
+          ) : (
+            // A MISTYPED ID AND A FAILED READ ARE DIFFERENT FACTS, and the reader
+            // acts differently on each: one is checked against the log line they
+            // came from, the other is waited out. Retrying an id that is not one
+            // never succeeds, so this branch offers no retry and leans on the way
+            // out below, which every branch here already carries.
+            <ReadFailedLine>
+              That is not a trace id. A trace id is 36 characters in five groups separated by
+              hyphens, so check the one you were given for a missing character at either end.
+            </ReadFailedLine>
+          )}
+          <Actions>
+            <Action variant="quiet" onClick={back}>
+              All traces
+            </Action>
+          </Actions>
+        </div>
       </Surface>
     );
   }
@@ -605,16 +627,18 @@ export function TraceDetail({ id }: { id: string }) {
   if (hopRows.length === 0) {
     return (
       <Surface>
-        <PageHead title={shortTitle} />
-        <Empty>
-          No model calls or tool calls were recorded on this trace. It may have expired, or it
-          belongs to another account.
-        </Empty>
-        <Actions>
-          <Button variant="ghost" onClick={back}>
-            All traces
-          </Button>
-        </Actions>
+        <div data-mrd="" className="flex flex-col gap-mrd-6">
+          <PageHeading title={shortTitle} />
+          <NothingHere>
+            No model calls or tool calls were recorded on this trace. It may have expired, or it
+            belongs to another account.
+          </NothingHere>
+          <Actions>
+            <Action variant="quiet" onClick={back}>
+              All traces
+            </Action>
+          </Actions>
+        </div>
       </Surface>
     );
   }
@@ -686,206 +710,213 @@ export function TraceDetail({ id }: { id: string }) {
 
           <div className="mt-mrd-6 flex flex-wrap gap-mrd-4">
             {mission ? (
-              <Button
+              <Action
                 onClick={() =>
                   void navigate({ to: "/build/$missionId", params: { missionId: mission.id } })
                 }
               >
                 Open the run
-              </Button>
+              </Action>
             ) : null}
-            <Button variant="ghost" onClick={back}>
+            <Action variant="quiet" onClick={back}>
               All traces
-            </Button>
+            </Action>
           </div>
         </>
       }
     >
-      <PageHead
-        title={mission ? stripAutoPrefix(mission.title) : shortTitle}
-        sub={
-          <>
-            <Num>{hopRows.length}</Num> {hopRows.length === 1 ? "hop" : "hops"} ·{" "}
-            <Num>{fmtMs(totalMs)}</Num> wall
-            {ranAgo ? <> · {ranAgo}</> : null}
-            {totals.failed > 0 ? (
-              <>
-                {" · "}
-                <span className="text-mrd-fail">
-                  <Num>{totals.failed}</Num> failed
-                </span>
-              </>
-            ) : null}
-            {totals.blocked > 0 ? (
-              <>
-                {" · "}
-                {/* No hue, for the reason `Outcome` gives. Weight lifts it off a
+      <div data-mrd="" className="flex flex-col gap-mrd-6">
+        <PageHeading
+          title={mission ? stripAutoPrefix(mission.title) : shortTitle}
+          sub={
+            <>
+              <Num>{hopRows.length}</Num> {hopRows.length === 1 ? "hop" : "hops"} ·{" "}
+              <Num>{fmtMs(totalMs)}</Num> wall
+              {ranAgo ? <> · {ranAgo}</> : null}
+              {totals.failed > 0 ? (
+                <>
+                  {" · "}
+                  <span className="text-mrd-fail">
+                    <Num>{totals.failed}</Num> failed
+                  </span>
+                </>
+              ) : null}
+              {totals.blocked > 0 ? (
+                <>
+                  {" · "}
+                  {/* No hue, for the reason `Outcome` gives. Weight lifts it off a
                     muted subtitle without claiming the run broke. */}
-                <span className="font-medium text-mrd-ink">
-                  <Num>{totals.blocked}</Num> stopped by a guardrail
-                </span>
-              </>
-            ) : null}
-          </>
-        }
-      />
+                  <span className="font-medium text-mrd-ink">
+                    <Num>{totals.blocked}</Num> stopped by a guardrail
+                  </span>
+                </>
+              ) : null}
+            </>
+          }
+        />
 
-      {/* Shut, one line, and it names its own failures. See ToolTrace. */}
-      <ToolTrace
-        tools={toolCalls.map((t) => ({
-          id: t.id,
-          name: t.tool_name,
-          ok: t.ok,
-          took: fmtMs(t.latency_ms),
-        }))}
-        onPick={(toolId) => setSelected({ kind: "tool", id: toolId })}
-      />
+        {/* Shut, one line, and it names its own failures. See ToolTrace. */}
+        <ToolTrace
+          tools={toolCalls.map((t) => ({
+            id: t.id,
+            name: t.tool_name,
+            ok: t.ok,
+            took: fmtMs(t.latency_ms),
+          }))}
+          onPick={(toolId) => setSelected({ kind: "tool", id: toolId })}
+        />
 
-      <Block
-        title="What ran"
-        // The one non-obvious thing about this list, said once: it is time
-        // order rather than a call tree, and the thinking is not in it.
-        sub={
-          mission
-            ? "In the order they ran, not nested: the reasoning between calls lives on the run."
-            : "In the order they ran. Previews are cut short."
-        }
-        more={showCost ? "Hide timing and cost" : "Show timing and cost"}
-        onMore={() => setShowCost((v) => !v)}
-      >
-        {hopRows.map((r) => {
-          const isSel =
-            selected != null &&
-            (r.kind === "event"
-              ? selected.kind === "event" && r.span.id === selected.id
-              : selected.kind === "tool" && r.tool.id === selected.id);
-          const rowId = r.kind === "event" ? r.span.id : r.tool.id;
-          const latency = (r.kind === "event" ? r.span.latency_ms : r.tool.latency_ms) || 0;
-          const offset = r.at - t0;
+        <Region
+          title="What ran"
+          // The one non-obvious thing about this list, said once: it is time
+          // order rather than a call tree, and the thinking is not in it.
+          sub={
+            mission
+              ? "In the order they ran, not nested: the reasoning between calls lives on the run."
+              : "In the order they ran. Previews are cut short."
+          }
+          toggle={showCost ? "Hide timing and cost" : "Show timing and cost"}
+          onToggle={() => setShowCost((v) => !v)}
+          toggled={showCost}
+        >
+          {hopRows.map((r) => {
+            const isSel =
+              selected != null &&
+              (r.kind === "event"
+                ? selected.kind === "event" && r.span.id === selected.id
+                : selected.kind === "tool" && r.tool.id === selected.id);
+            const rowId = r.kind === "event" ? r.span.id : r.tool.id;
+            const latency = (r.kind === "event" ? r.span.latency_ms : r.tool.latency_ms) || 0;
+            const offset = r.at - t0;
 
-          if (r.kind === "event") {
-            const s = r.span;
-            const actor =
-              s.surface === "agent" && s.surface_ref ? agentDisplayName(s.surface_ref) : s.surface;
-            const hits = hitsByEvent.get(s.id) ?? [];
-            const outcome =
-              s.status === "error" && s.error_message ? (
-                <span className="text-mrd-fail">{clip(s.error_message)}</span>
-              ) : s.status === "blocked" ? (
-                <span className="font-medium text-mrd-ink">
-                  {s.error_message ? clip(s.error_message) : "Stopped by a guardrail"}
-                </span>
-              ) : s.output_preview ? (
-                clip(s.output_preview)
-              ) : (
-                "No output recorded"
+            if (r.kind === "event") {
+              const s = r.span;
+              const actor =
+                s.surface === "agent" && s.surface_ref
+                  ? agentDisplayName(s.surface_ref)
+                  : s.surface;
+              const hits = hitsByEvent.get(s.id) ?? [];
+              const outcome =
+                s.status === "error" && s.error_message ? (
+                  <span className="text-mrd-fail">{clip(s.error_message)}</span>
+                ) : s.status === "blocked" ? (
+                  <span className="font-medium text-mrd-ink">
+                    {s.error_message ? clip(s.error_message) : "Stopped by a guardrail"}
+                  </span>
+                ) : s.output_preview ? (
+                  clip(s.output_preview)
+                ) : (
+                  "No output recorded"
+                );
+              return (
+                <Row
+                  key={rowId}
+                  tight
+                  focused={isSel}
+                  marks={
+                    <AgentMark
+                      slug={s.surface === "agent" ? s.surface_ref : traceAgentSlug}
+                      name={s.surface}
+                      state={markState(s.status)}
+                    />
+                  }
+                  lead={
+                    <>
+                      <Who>{actor}</Who> called <Num>{s.model}</Num>
+                    </>
+                  }
+                  // ONE REGISTER PER LINE. Cost mode replaces the preview with
+                  // the numbers rather than prefixing it: five facts in a
+                  // truncating row means the last two are never read, and you
+                  // opened cost mode because you came for the numbers. A bad
+                  // outcome is never optional and shows in either mode.
+                  sub={
+                    showCost ? (
+                      <>
+                        <Num>{(s.total_tokens || 0).toLocaleString()}</Num> tokens ·{" "}
+                        <Num>{fmtUsd(Number(s.est_cost_usd))}</Num> · started +
+                        <Num>{fmtMs(offset)}</Num>
+                        {s.status !== "ok" ? <> · {outcome}</> : null}
+                      </>
+                    ) : (
+                      <>
+                        {hits.length > 0 ? (
+                          <>
+                            <span className="font-medium text-mrd-ink">
+                              <Num>{hits.length}</Num>{" "}
+                              {hits.length === 1 ? "guardrail hit" : "guardrail hits"}
+                            </span>
+                            {" · "}
+                          </>
+                        ) : null}
+                        {outcome}
+                      </>
+                    )
+                  }
+                  time={fmtMs(latency)}
+                  onClick={() => setSelected({ kind: "event", id: s.id })}
+                />
               );
+            }
+
+            const t = r.tool;
+            const actor = traceAgentSlug ? agentDisplayName(traceAgentSlug) : "The engine";
             return (
               <Row
                 key={rowId}
                 tight
                 focused={isSel}
                 marks={
-                  <AgentMark
-                    slug={s.surface === "agent" ? s.surface_ref : traceAgentSlug}
-                    name={s.surface}
-                    state={markState(s.status)}
-                  />
+                  <AgentMark slug={traceAgentSlug} name="Tool" state={t.ok ? "idle" : "failed"} />
                 }
                 lead={
                   <>
-                    <Who>{actor}</Who> called <Num>{s.model}</Num>
+                    <Who>{actor}</Who> ran <Num>{t.tool_name}</Num>
                   </>
                 }
-                // ONE REGISTER PER LINE. Cost mode replaces the preview with
-                // the numbers rather than prefixing it: five facts in a
-                // truncating row means the last two are never read, and you
-                // opened cost mode because you came for the numbers. A bad
-                // outcome is never optional and shows in either mode.
                 sub={
-                  showCost ? (
+                  showCost && t.ok ? (
                     <>
-                      <Num>{(s.total_tokens || 0).toLocaleString()}</Num> tokens ·{" "}
-                      <Num>{fmtUsd(Number(s.est_cost_usd))}</Num> · started +
-                      <Num>{fmtMs(offset)}</Num>
-                      {s.status !== "ok" ? <> · {outcome}</> : null}
+                      started +<Num>{fmtMs(offset)}</Num>
                     </>
+                  ) : !t.ok && t.error ? (
+                    <span className="text-mrd-fail">{clip(t.error)}</span>
+                  ) : (t.result ?? t.args) != null ? (
+                    clip(JSON.stringify(t.result ?? t.args))
                   ) : (
-                    <>
-                      {hits.length > 0 ? (
-                        <>
-                          <span className="font-medium text-mrd-ink">
-                            <Num>{hits.length}</Num>{" "}
-                            {hits.length === 1 ? "guardrail hit" : "guardrail hits"}
-                          </span>
-                          {" · "}
-                        </>
-                      ) : null}
-                      {outcome}
-                    </>
+                    "No result recorded"
                   )
                 }
                 time={fmtMs(latency)}
-                onClick={() => setSelected({ kind: "event", id: s.id })}
+                onClick={() => setSelected({ kind: "tool", id: t.id })}
               />
             );
-          }
+          })}
+        </Region>
 
-          const t = r.tool;
-          const actor = traceAgentSlug ? agentDisplayName(traceAgentSlug) : "The engine";
-          return (
-            <Row
-              key={rowId}
-              tight
-              focused={isSel}
-              marks={
-                <AgentMark slug={traceAgentSlug} name="Tool" state={t.ok ? "idle" : "failed"} />
-              }
-              lead={
-                <>
-                  <Who>{actor}</Who> ran <Num>{t.tool_name}</Num>
-                </>
-              }
-              sub={
-                showCost && t.ok ? (
-                  <>
-                    started +<Num>{fmtMs(offset)}</Num>
-                  </>
-                ) : !t.ok && t.error ? (
-                  <span className="text-mrd-fail">{clip(t.error)}</span>
-                ) : (t.result ?? t.args) != null ? (
-                  clip(JSON.stringify(t.result ?? t.args))
-                ) : (
-                  "No result recorded"
-                )
-              }
-              time={fmtMs(latency)}
-              onClick={() => setSelected({ kind: "tool", id: t.id })}
-            />
-          );
-        })}
-      </Block>
-
-      {selRow ? (
-        <Block title={selRow.kind === "event" ? "The call you picked" : "The tool call you picked"}>
-          {selRow.kind === "event" ? (
-            <SpanDetail
-              span={selRow.span}
-              hits={hitsByEvent.get(selRow.span.id) ?? []}
-              evalRow={evalsByEvent.get(selRow.span.id)}
-            />
-          ) : (
-            <ToolDetail tool={selRow.tool} />
-          )}
-        </Block>
-      ) : (
-        // The root span is picked for you the moment events load, so this is
-        // reached only by a trace that recorded tool calls and no model call
-        // at all. That used to render as a page that simply stopped.
-        <Block title="Nothing is picked">
-          <Empty>Pick a hop above to read what it was sent and what came back.</Empty>
-        </Block>
-      )}
+        {selRow ? (
+          <Region
+            title={selRow.kind === "event" ? "The call you picked" : "The tool call you picked"}
+          >
+            {selRow.kind === "event" ? (
+              <SpanDetail
+                span={selRow.span}
+                hits={hitsByEvent.get(selRow.span.id) ?? []}
+                evalRow={evalsByEvent.get(selRow.span.id)}
+              />
+            ) : (
+              <ToolDetail tool={selRow.tool} />
+            )}
+          </Region>
+        ) : (
+          // The root span is picked for you the moment events load, so this is
+          // reached only by a trace that recorded tool calls and no model call
+          // at all. That used to render as a page that simply stopped.
+          <Region title="Nothing is picked">
+            <NothingHere>Pick a hop above to read what it was sent and what came back.</NothingHere>
+          </Region>
+        )}
+      </div>
     </Surface>
   );
 }

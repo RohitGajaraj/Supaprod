@@ -66,7 +66,7 @@ const label: CSSProperties = {
   display: "block",
   fontSize: 9.5,
   letterSpacing: "0.08em",
-  color: "var(--ink-subtle, #6b6457)",
+  color: "var(--mrd-mute)",
   marginBottom: 6,
 };
 
@@ -75,18 +75,20 @@ const field: CSSProperties = {
   padding: "10px 12px",
   fontSize: 14,
   borderRadius: 8,
-  border: "1px solid var(--hairline, rgba(0,0,0,0.12))",
-  background: "var(--paper, #f6f2ea)",
-  color: "var(--ink, #1f1b16)",
+  // `--mrd-field` is the border of a form control at rest, measured at 3.05:1 on
+  // both grounds. `--mrd-line` is a structural edge and reads too quiet on an input.
+  border: "1px solid var(--mrd-field)",
+  background: "var(--mrd-sink)",
+  color: "var(--mrd-ink)",
 };
 
 const stepper: CSSProperties = {
   width: 32,
   height: 32,
   borderRadius: 8,
-  border: "1px solid var(--hairline, rgba(0,0,0,0.12))",
-  background: "var(--paper, #f6f2ea)",
-  color: "var(--ink, #1f1b16)",
+  border: "1px solid var(--mrd-line)",
+  background: "var(--mrd-lift)",
+  color: "var(--mrd-ink)",
   fontSize: 16,
 };
 
@@ -136,7 +138,7 @@ function CheckoutPage() {
             gap: 8,
             marginBottom: 26,
             fontSize: 13,
-            color: "var(--ink-subtle, #6b6457)",
+            color: "var(--mrd-mute)",
             textDecoration: "none",
           }}
         >
@@ -145,9 +147,7 @@ function CheckoutPage() {
         </Link>
 
         <h1 style={{ fontSize: 26, marginBottom: 6 }}>Start with {p.name}</h1>
-        <p style={{ fontSize: 14, color: "var(--ink-subtle, #6b6457)", marginBottom: 26 }}>
-          {p.tagline}
-        </p>
+        <p style={{ fontSize: 14, color: "var(--mrd-mute)", marginBottom: 26 }}>{p.tagline}</p>
 
         {/* 1 — plan, switchable here so a buyer who changed their mind does not go back */}
         <section style={{ marginBottom: 22 }}>
@@ -166,15 +166,15 @@ function CheckoutPage() {
                     borderRadius: 9,
                     textAlign: "left",
                     cursor: "pointer",
-                    border: on
-                      ? "1.5px solid var(--brand, #ff6b2c)"
-                      : "1px solid var(--hairline, rgba(0,0,0,0.12))",
-                    background: "var(--paper, #f6f2ea)",
-                    color: "var(--ink, #1f1b16)",
+                    // Chosen is told by the select wash and a heavier edge, so it
+                    // survives greyscale. Ember never doubles as an interaction state.
+                    border: on ? "1.5px solid var(--mrd-edge)" : "1px solid var(--mrd-line)",
+                    background: on ? "var(--mrd-select)" : "transparent",
+                    color: "var(--mrd-ink)",
                   }}
                 >
                   <div style={{ fontSize: 14, fontWeight: 500 }}>{planPresentation(t).name}</div>
-                  <div style={{ fontSize: 11.5, color: "var(--ink-subtle, #6b6457)" }}>
+                  <div style={{ fontSize: 11.5, color: "var(--mrd-mute)" }}>
                     ${priceForCredits(t, 0, "monthly")}/mo{t === "team" ? " per seat" : ""}
                   </div>
                 </button>
@@ -212,7 +212,7 @@ function CheckoutPage() {
               >
                 +
               </button>
-              <span style={{ fontSize: 12, color: "var(--ink-subtle, #6b6457)" }}>
+              <span style={{ fontSize: 12, color: "var(--mrd-mute)" }}>
                 Two minimum. You can invite the rest after you sign in.
               </span>
             </div>
@@ -238,7 +238,7 @@ function CheckoutPage() {
             placeholder="you@company.com"
             autoComplete="email"
           />
-          <p style={{ fontSize: 11.5, color: "var(--ink-subtle, #6b6457)", marginTop: 6 }}>
+          <p style={{ fontSize: 11.5, color: "var(--mrd-mute)", marginTop: 6 }}>
             This becomes the owner of the workspace. Your account is created after payment succeeds,
             never before.
           </p>
@@ -262,11 +262,9 @@ function CheckoutPage() {
                   borderRadius: 9,
                   fontSize: 13,
                   cursor: "pointer",
-                  border: o.on
-                    ? "1.5px solid var(--brand, #ff6b2c)"
-                    : "1px solid var(--hairline, rgba(0,0,0,0.12))",
-                  background: "var(--paper, #f6f2ea)",
-                  color: "var(--ink, #1f1b16)",
+                  border: o.on ? "1.5px solid var(--mrd-edge)" : "1px solid var(--mrd-line)",
+                  background: o.on ? "var(--mrd-select)" : "transparent",
+                  color: "var(--mrd-ink)",
                 }}
               >
                 {o.text}
@@ -278,7 +276,7 @@ function CheckoutPage() {
         {/* 5 — the arithmetic, shown rather than asserted */}
         <section
           style={{
-            border: "1px solid var(--hairline, rgba(0,0,0,0.12))",
+            border: "1px solid var(--mrd-line)",
             borderRadius: 11,
             padding: 16,
             marginBottom: 20,
@@ -296,7 +294,7 @@ function CheckoutPage() {
               display: "flex",
               justifyContent: "space-between",
               fontSize: 12,
-              color: "var(--ink-subtle, #6b6457)",
+              color: "var(--mrd-mute)",
               marginTop: 6,
             }}
           >
@@ -311,7 +309,7 @@ function CheckoutPage() {
               fontWeight: 600,
               marginTop: 12,
               paddingTop: 12,
-              borderTop: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+              borderTop: "1px solid var(--mrd-line)",
             }}
           >
             <span>Total</span>
@@ -333,8 +331,8 @@ function CheckoutPage() {
               border: "none",
               cursor: canContinue ? "pointer" : "not-allowed",
               opacity: canContinue ? 1 : 0.5,
-              background: "var(--brand, #ff6b2c)",
-              color: "#fff",
+              background: "var(--mrd-solid)",
+              color: "var(--mrd-on-solid)",
             }}
           >
             Continue to payment · ${total}/mo
@@ -342,16 +340,16 @@ function CheckoutPage() {
         ) : (
           <div
             style={{
-              border: "1px solid var(--hairline, rgba(0,0,0,0.12))",
+              border: "1px solid var(--mrd-line)",
               borderRadius: 11,
               padding: 16,
               fontSize: 13,
-              color: "var(--ink-subtle, #6b6457)",
+              color: "var(--mrd-mute)",
             }}
           >
-            <strong style={{ color: "var(--ink, #1f1b16)" }}>Card payments open shortly.</strong>{" "}
-            Rather than show you a button that cannot take your money, here is what happens when it
-            does: you pay ${total} a month, your workspace is created with{" "}
+            <strong style={{ color: "var(--mrd-ink)" }}>Card payments open shortly.</strong> Rather
+            than show you a button that cannot take your money, here is what happens when it does:
+            you pay ${total} a month, your workspace is created with{" "}
             {includedCredits.toLocaleString()} credits
             {isBusiness ? ` and ${seats} seats` : ""}, and you sign in and invite your team.
             {/* "Start free in the meantime" sent a visitor to a signup form
@@ -362,7 +360,7 @@ function CheckoutPage() {
             <div style={{ marginTop: 12 }}>
               <a
                 href="/#join"
-                style={{ color: "var(--brand, #ff6b2c)", textDecoration: "none", fontWeight: 500 }}
+                style={{ color: "var(--mrd-ink)", textDecoration: "underline", fontWeight: 500 }}
               >
                 Ask for a beta invite in the meantime →
               </a>
@@ -370,7 +368,7 @@ function CheckoutPage() {
           </div>
         )}
 
-        <p style={{ fontSize: 11.5, color: "var(--ink-subtle, #6b6457)", marginTop: 16 }}>
+        <p style={{ fontSize: 11.5, color: "var(--mrd-mute)", marginTop: 16 }}>
           Change or cancel anytime from Settings. Need more capacity later? Add credits without
           changing plan.
         </p>

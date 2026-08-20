@@ -104,14 +104,25 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingHere,
+  Num,
+  Picker,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Field, Input } from "@/components/meridian/forms";
+import { Receipt } from "@/components/meridian/Receipt";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Fragment, useState } from "react";
 
 import { useConfirm } from "@/hooks/use-confirm";
 import { inBandError, useDebouncedValue } from "@/components/admin/admin-ui";
-import { Block, Button, Empty, Failed, Field, Input, Loading, Receipt, Select, Value } from "@/components/shell/primitives";
 import {
   adminSearchWorkspaces,
   adminGetWorkspaceDetail,
@@ -236,8 +247,12 @@ function AdminWorkspaces() {
   const capped = rows.length >= SERVER_CAP;
 
   return (
-    <>
-      <Block
+    // THE RHYTHM BETWEEN REGIONS, STATED HERE. The retired `Block` carried its
+    // own margin, padding and a rule above every section, so the page's spacing
+    // lived in a stylesheet. `Region` draws neither, so the surface owns it, and
+    // `gap-mrd-6` is the step every ported surface uses between regions.
+    <div className="flex flex-col gap-mrd-6">
+      <Region
         title="Find a workspace"
         sub={
           capped
@@ -255,17 +270,17 @@ function AdminWorkspaces() {
         </Field>
 
         {search.isLoading ? (
-          <Loading>Reading workspaces.</Loading>
+          <Reading>Reading workspaces.</Reading>
         ) : searchError ? (
-          <Failed onRetry={() => void search.refetch()}>
+          <ReadFailedLine onRetry={() => void search.refetch()}>
             The read failed, so this is not a claim that nothing matches. {searchError}
-          </Failed>
+          </ReadFailedLine>
         ) : rows.length === 0 ? (
-          <Empty>
+          <NothingHere>
             {q.trim()
               ? "Nothing matches that name, slug or owner."
               : "Every workspace on the platform is reachable from here. Type to narrow it."}
-          </Empty>
+          </NothingHere>
         ) : (
           rows.map((w) => (
             <Row
@@ -277,7 +292,7 @@ function AdminWorkspaces() {
                 <>
                   {w.deleted_at ? (
                     <>
-                      <span className="sp-fail">deleted {w.deleted_at.slice(0, 10)}</span>
+                      <Value tone="fail">deleted {w.deleted_at.slice(0, 10)}</Value>
                       {" · "}
                     </>
                   ) : null}
@@ -297,7 +312,7 @@ function AdminWorkspaces() {
             />
           ))
         )}
-      </Block>
+      </Region>
 
       {/* Keyed by the workspace, so every local state in there resets when the
           subject changes. Without it the receipts from the last workspace stay
@@ -310,7 +325,7 @@ function AdminWorkspaces() {
           summary={rows.find((w) => w.id === selected) ?? null}
         />
       ) : null}
-    </>
+    </div>
   );
 }
 
@@ -439,21 +454,21 @@ function WorkspaceInFocus({
 
   if (detail.isLoading) {
     return (
-      <Block title="The workspace you picked">
-        <Loading>Reading the workspace.</Loading>
-      </Block>
+      <Region title="The workspace you picked">
+        <Reading>Reading the workspace.</Reading>
+      </Region>
     );
   }
 
   // A failed read used to sit on "reading workspace" forever.
   if (detail.isError) {
     return (
-      <Block title="The workspace you picked">
-        <Failed onRetry={() => void detail.refetch()}>
+      <Region title="The workspace you picked">
+        <ReadFailedLine onRetry={() => void detail.refetch()}>
           The workspace did not load, so nothing here is safe to change yet.{" "}
           {(detail.error as Error)?.message ?? "The read failed."}
-        </Failed>
-      </Block>
+        </ReadFailedLine>
+      </Region>
     );
   }
 
@@ -477,8 +492,8 @@ function WorkspaceInFocus({
     demoReset.isPending;
 
   return (
-    <>
-      <Block
+    <div className="flex flex-col gap-mrd-6">
+      <Region
         title={ws?.name ?? "The workspace you picked"}
         sub={[
           ws?.slug ? `/${ws.slug}` : null,
@@ -497,7 +512,7 @@ function WorkspaceInFocus({
           }
         >
           <Value tone={deleted ? "fail" : "pass"}>{deleted ? "deleted" : "live"}</Value>
-          <Button
+          <Action
             disabled={busy}
             onClick={() => {
               if (deleted) {
@@ -516,7 +531,7 @@ function WorkspaceInFocus({
             }}
           >
             {deleted ? "Restore" : "Delete"}
-          </Button>
+          </Action>
         </Line>
 
         <Line label="Plan" sub="What this workspace is billed on.">
@@ -539,7 +554,7 @@ function WorkspaceInFocus({
             label="Demo content"
             sub="Clears every signal, decision and opportunity in here. The workspace and its members stay, and reseeding the sample is a separate script an engineer runs."
           >
-            <Button
+            <Action
               disabled={busy}
               onClick={() => {
                 void (async () => {
@@ -554,19 +569,19 @@ function WorkspaceInFocus({
               }}
             >
               {demoReset.isPending ? "Clearing" : "Clear it"}
-            </Button>
+            </Action>
           </Line>
         ) : null}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="Who is in it"
         sub="Pick one to change what they can do here. Roles take effect the moment you set them."
       >
         {members.length === 0 ? (
-          <Empty>
+          <NothingHere>
             Nobody is a member of this workspace, which usually means it was made and never opened.
-          </Empty>
+          </NothingHere>
         ) : (
           members.map((m) => {
             const label = m.email ?? m.user_id.slice(0, 8);
@@ -575,8 +590,8 @@ function WorkspaceInFocus({
             // Built once so the owner's row, which has no transfer, still gets
             // the same control rather than an empty action group beside it.
             const removeMember = (
-              <Button
-                variant="ghost"
+              <Action
+                variant="quiet"
                 disabled={busy}
                 onClick={() => {
                   void (async () => {
@@ -593,7 +608,7 @@ function WorkspaceInFocus({
                 }}
               >
                 Remove from this workspace
-              </Button>
+              </Action>
             );
             return (
               <Fragment key={m.user_id}>
@@ -611,7 +626,7 @@ function WorkspaceInFocus({
                       sub="Their access changes the moment you pick, with no further confirmation elsewhere."
                       htmlFor={`ws-role-${m.user_id}`}
                     >
-                      <Select
+                      <Picker
                         id={`ws-role-${m.user_id}`}
                         value={m.role}
                         disabled={busy}
@@ -632,13 +647,13 @@ function WorkspaceInFocus({
                             {r}
                           </option>
                         ))}
-                      </Select>
+                      </Picker>
                     </Line>
                     {isOwner ? (
                       <Actions>{removeMember}</Actions>
                     ) : (
                       <Actions trailing={removeMember}>
-                        <Button
+                        <Action
                           disabled={busy}
                           onClick={() => {
                             void (async () => {
@@ -652,7 +667,7 @@ function WorkspaceInFocus({
                           }}
                         >
                           Hand ownership to them
-                        </Button>
+                        </Action>
                       </Actions>
                     )}
                   </>
@@ -661,10 +676,10 @@ function WorkspaceInFocus({
             );
           })
         )}
-      </Block>
+      </Region>
 
       {settled.length > 0 ? (
-        <Block title="What you changed">
+        <Region title="What you changed">
           {settled.map((s) => (
             <Receipt
               key={s.id}
@@ -674,23 +689,27 @@ function WorkspaceInFocus({
               time={s.at}
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
-      <Block
+      {/* `toggle` and not `goTo`: the control reveals the rest of the history in
+          place rather than leaving for it, and `aria-expanded` is the half the
+          retired `more` slot could not emit while swapping its own label. */}
+      <Region
         title="What was already done here"
         sub="Every admin write against this workspace, newest first."
-        more={
+        toggle={
           audit.length > AUDIT_CAP
             ? openAudit
               ? "Show fewer"
               : `Show all ${audit.length}`
             : undefined
         }
-        onMore={() => setOpenAudit((v) => !v)}
+        toggled={openAudit}
+        onToggle={() => setOpenAudit((v) => !v)}
       >
         {audit.length === 0 ? (
-          <Empty>Nothing has been done to this workspace yet. You would be the first.</Empty>
+          <NothingHere>Nothing has been done to this workspace yet. You would be the first.</NothingHere>
         ) : (
           shownAudit.map((r) => (
             <Row
@@ -702,7 +721,7 @@ function WorkspaceInFocus({
             />
           ))
         )}
-      </Block>
-    </>
+      </Region>
+    </div>
   );
 }

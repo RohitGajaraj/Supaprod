@@ -4343,3 +4343,365 @@ as a gap rather than a finding.** Worth reading the section for whether it says 
 over it.
 
 **Gates.** `docs:check` clean, and `lane:gates` green on all four with real exit 0.
+
+---
+
+## K-40, K-46, K-47, K-48, K-49, K-51, K-52, K-57 · BUILT · 2026-08-20 18:10 · one commit, and the reason is the baseline
+
+> **WHY THESE EIGHT SHARE A COMMIT, stated because it departs from one item per commit.** Every one
+> of them lowers a count in `meridian-ratchet.baseline.json`, and that file is **generated, with one
+> writer at a time.** Ratchet rule 3 fails while a count has dropped and the baseline still permits
+> the old number, so committing them separately would need either eight re-freezes racing one file,
+> or seven commits sitting red on `main` until the eighth landed. **`AGENTS.md` forbids committing on
+> a red tree, so one commit with all eight log entries is the only shape that keeps every commit
+> green.** The baseline was regenerated **once**, after all eight were complete: **5,157 -> 4,778,
+> 36 reclaimed counts, 257 -> 247 files carrying debt.**
+
+---
+
+### K-47 · the two public money pages
+
+**Did.** `pricing.tsx` **66 ink-era occurrences -> 0** and raw colour **74 -> 5**; `checkout.tsx`
+**29 -> 0** and raw colour **30 -> 0**. `inkTheme` deleted with its spread, and `type CSSProperties`
+dropped as the only orphan that created.
+
+**Both facts I was told to verify rather than trust, verified.** The hex fallbacks are provably dead:
+`styles.css` declares `--paper`, `--ink`, `--ink-subtle`, `--ink-muted`, `--ink-faint`, `--hairline`,
+`--canvas`, `--soft-stone`, `--ember`, `--emerald`, `--rose` in a bare `:root` at 247-269 and again
+under `.dark`, so **no `var(--x, #hex)` on these pages could ever reach its fallback.** And the shim
+disagreed with its own consumers: `inkTheme`'s `--ember` was `#FF6B2C` against consumer fallbacks
+`#c2622e` (9) and `#c2602e` (3), with **nine other literals disagreeing the same way**.
+
+**## Where the 13 embers went, and not one went to a status hue**
+
+This is the judgement in the item. Ember was carrying **emphasis, not status**, so painting it
+`--mrd-you` would have been the identity-as-a-colour-ramp defect the design system records finding and
+removing three times. **Emphasis is told by shape and elevation instead:** the recommended card takes
+`1.5px solid var(--mrd-edge)` on `--mrd-lift` against `1px --mrd-line` on `--mrd-sheet`; the badge and
+the tier chip take an `--mrd-edge` ring at full ink. **The one site where a hue was correct is the
+primary CTA**, which is `--mrd-solid` with `--mrd-on-solid`, because that token's own documentation
+says it is the primary button face, and it also removed the `color: "#fff"` beside it.
+
+**Three ports the item did not list and I took anyway**, because leaving them would have left live
+declarations pointing at a deleted object: `--soft-stone` (toggle track), `--canvas` x4 (card grounds
+and the active pill), and a raw `rgba(0,0,0,0.09)` box shadow to `--mrd-shadow-card`. Plus a
+**fourteenth ember**, a raw `#FF6B2C` outside any `var()` on the hero eyebrow.
+
+**Unsure.** Four, and the first two are the ones to look at.
+
+1. **`--brand` in `checkout.tsx` was not in the item's inventory and I ported it anyway** (4
+   occurrences plus a `#fff`). It is ember resolving through `--ds-ember-600` and it was painting the
+   primary CTA, two selected states and a link, **which is exactly the interaction-state use the
+   standing ruling forbids**, and leaving it would have left the two money pages disagreeing after
+   pricing lost its ember. **This is the one thing here I would reverse on request.**
+2. **`pricing.tsx` is now theme-responsive and was previously forced dark**, because `inkTheme`
+   pinned it. Every surface in it reads Meridian so it is internally consistent on paper too, **but
+   `LandingBackdrop` paints white stars and grid rules at 3.8 to 6% opacity and is dark-only by
+   construction**, so on paper it is close to invisible. It is `aria-hidden` decoration. **Wants an
+   eye on both grounds.**
+3. **One non-colour line changed and it is a WCAG consequence rather than a tidy-up.** The "Ask for a
+   beta invite" link's only affordance was its orange; with the colour gone it would be prose, so
+   `textDecoration` went `none` -> `underline` (SC 1.4.1). **Revert it only if you also give it back a
+   colour.**
+4. `--mrd-lift` on both the recommended card and the chips inside it means those chips match their
+   parent's ground on that one card. Each keeps a ring so it stays delineated, but it is a look-at-it
+   call.
+
+**Noticed.** **The gap the item asked me to name: Meridian has no escape hatch for a third-party brand
+mark, and it structurally cannot be reached from here.** The ratchet's only raw-colour exemption is
+`/^\s*--brand-mark-[a-z0-9-]*\s*:[^;]*;/gm`, which fires **only on a declaration line in a
+stylesheet.** The five SimpleIcons hexes are object literals in a `.tsx` under a scanned root, so they
+can never qualify and **`pricing.tsx` can never reach `raw-colour: 0`.** The clean fix is
+`--brand-mark-github` and friends declared in `styles.css`, where the exemption already lives, read by
+`ConnectorMeta.bg`, which would also let the chips answer the paper ground. Not this item's file. The
+connector SVGs also carry `fill="white"`, a named colour the scanner does not match at all.
+
+---
+
+### K-48 · the public shared-decision page
+
+**Did.** **19 colour-token occurrences in 261 lines -> 0.** The item says 22; **I could not reproduce
+that and report what I counted**, cross-checked against the baseline's own `raw-colour: 19` for this
+file, which matches exactly at one fallback per reference.
+
+**The `STATUS` ladder is the substantive part**: approved -> `--mrd-pass`, rejected -> `--mrd-fail`,
+pending -> `--mrd-hold`. **Greyscale checked structurally rather than asserted:** every chip renders a
+6px dot **and its own word** from `st.label`, so hue is redundant. All three `--emerald` sites went,
+including the one inside a `color-mix()` in a template-literal border, so the chip's ring now tracks
+the token in both grounds. A status outside the ladder takes `--mrd-faint`, **not a borrowed status
+hue: a word we cannot place must not claim an outcome.**
+
+**The three-stop ramp is preserved by ROLE rather than by brightness, and that inverts the ink theme
+for two of them.** `--ink-subtle` (#a1a1aa, 7.72) was actually **brighter** than `--ink-muted`
+(#8f959e, 6.56), so mapping by hex would have carried across an oddity where a footnote outshines the
+rationale above it, and pushed `--ink-faint` onto a stop below `--mrd-faint` that does not exist. So:
+`--ink-subtle` -> `--mrd-mute` (metadata), `--ink-muted` -> `--mrd-body` (prose), `--ink-faint` ->
+`--mrd-faint` (mono micro-labels). Three distinct AA stops, prose above metadata, and consistent with
+K-47's two sibling pages. **Say the word and it flips to brightness order.**
+
+**## Unsure, and this one needs an eye rather than a ruling**
+
+**`PUBLIC_INK_THEME` is left in place as instructed, but porting the root already creates the
+mismatch and I want it on the record rather than discovered later.** The spread and the `background`
+live in the **same style object**, so today the root paints `--paper: #0a0a0a` and the page is forced
+dark in both themes, internally consistent. After this port the root follows the theme **while the
+spread keeps overriding `--canvas` to `#0d0d0e` for anything reading it. `.bento` reads exactly
+that** (`styles.css:1219`), and there are two `.bento` cards on this page, one holding the rationale.
+**So a light-theme visit gets a near-black card carrying light-theme `--mrd-body` text.**
+
+How much it matters: the boot script defaults to dark on an empty `localStorage`, so **a first-time
+stranger on a shared link is always dark.** Only a returning user who chose light reaches it.
+
+**What has to be checked before anyone removes the spread**, since no gate here can see it:
+`inkTheme.ts` publishes 21 properties and this route names ten, so eleven reach `LandingBackdrop`,
+`SupaprodMark`, `PreSignupCTA` and the global `.bento` / `.btn btn-ghost btn-sm` / `.mono-label` /
+`.font-display` rules. `.bento` is load-bearing and has a separate `.dark .bento` rule at 1234, so
+whether removal helps depends on which wins. **Five other surfaces share the constant**, so it can be
+unspread here but never deleted. **The cheaper intermediate**, if the light-theme hole should close
+without touching the spread, is giving those two `.bento` divs an explicit `--mrd-sheet` / `--mrd-line`
+so they stop reading `--canvas` at all. That is a ground change on a public page and wants the dev
+server, so I did not do it.
+
+**Noticed.** `var(--card-pad, 18px)` survives at the rationale card: not a colour, not a ratchet
+marker, and ink-era spacing that will want a `--mrd-*` answer when the padding scale is ported. And
+**the status dot is 6px and unlabelled by itself**, so if anyone ever shortens these chips to the dot
+alone the ladder stops being readable and the failure is silent.
+
+---
+
+### K-49 · observability
+
+**Did.** All five markers to zero: `--sp-` 2, `--text-` 1, `class:sp-` 8, and the import plus **31
+usages.** Six inline status spans converted, two of them ternaries carrying both classes.
+
+**## There were TWO disclosure judgements, not the one the item named**
+
+The item named the `<Block more/onMore>` in `FeatureLiveness`. **`MachineHealth` carries an identical
+one** ("Show all N" / "Only what is late"). Both disclose more of the region they sit in rather than
+navigating or dispatching, so both became `toggle`/`onToggle`/`toggled`, **and each now emits an
+`aria-expanded` it never had** while it had been swapping its own label since it shipped.
+
+**Greyscale holds because every converted span states its own word** (`quiet`, `doing nothing`,
+`incomplete`, `never written`, `late`, `failed`, the error kind), so `hold` and `fail` are never told
+by hue alone.
+
+**Unsure.** Two.
+1. **A residue I deliberately did not change.** The else-branch of each ternary sends `unknown`
+   ("could not check") to `fail` alongside `dead`/`broken`. **"Could not check" is arguably `hold`,
+   not `fail"** — a read that did not complete is not a verdict. I kept the original mapping to stay
+   surgical; it is a one-word edit in two places.
+2. **`Empty` -> `NothingHere` is what both the item and the queue say, and it disagrees with
+   `surface-parts`' own header**, which assigns `NothingYet` under a `Region` heading and
+   `NothingHere` to where the region itself is missing. `NothingHere` draws a bordered recessed card
+   and the retired `.sp-empty` drew **no box at all**, so **five empty states gain a visible card.**
+   `Region` draws no container so the one-box cap holds, but it is a real visual change I could not
+   eyeball.
+
+**Noticed.** **`.sp-block` supplied a 36px top margin AND a border-top hairline; `Region` supplies
+neither by design**, so a straight swap would have stacked all seven regions flush. The rhythm is now
+`flex flex-col gap-mrd-6` on the route root, the step other ported surfaces use. **The between-region
+hairline rules are gone and do not come back**, which is Region's design rather than an omission. Also
+**`Value` is fixed at 12.5px where the retired spans inherited the row lead's 14px**, so status words
+in row leads are half a step smaller than the title they trail.
+
+---
+
+### K-51 · trace detail
+
+**Did.** `shell/primitives` gone: 1 import plus **27 usages**. All three `variant="ghost"` are
+`quiet`; the fourth `Button` took no variant.
+
+**Two things verified rather than trusted.** `meridian/Surface` **is** a verbatim move, read on both
+sides: identical markup, identical `.sp-inner`/`.sp-main`/`.sp-wide`/`.sp-ctx` names, identical props,
+so those four carry zero visual risk. And **`CtxRow` was checked because it changed today**: neither
+of the two uses passes `onClick`, so both still render the inert div and the button branch K-70 added
+is not reached here.
+
+**Unsure.** Three.
+1. **A `more`/`onMore` the item did not list**, on the "What ran" region ("Show/Hide timing and
+   cost"). Same disclosure test as K-49's, so it became `toggle`/`toggled` and now emits
+   `aria-expanded`. **Not in the brief, so it is a call to confirm.**
+2. **`CtxBody` changed element: shell rendered a `div`, Meridian renders a `<p>`.** I checked the
+   hydration trap shell's own `Empty` warns about: the "Trace id" `CtxBody` holds spans plus
+   `CopyButton`, which renders a `<button>`, and **all of that is phrasing content so the `<p>` is
+   valid.** Still the one element swap in the file and worth a browser check.
+3. Same `NothingHere` versus `NothingYet` question as K-49, for two empty states.
+
+**Noticed.** The item says 28 occurrences; the ratchet's markers are **27 usages plus 1 import**, so
+28 is the pair added together rather than a usage count. And **`ToolTrace` carries its own
+`mt-mrd-5 mb-mrd-6` and now sits inside the new `gap-mrd-6`**, so the space around the tool strip is
+looser than it was. `ToolTrace` is outside `Owns`, so its margins are untouched.
+
+---
+
+### K-52 · the two admin roster panes
+
+**Did.** Both files off `shell/primitives` entirely: **36 and 25 usages**, plus `class:sp-` 4 and 1.
+The hand-rolled tablist is `meridian/Tabs` + `TabPanel`: one tab stop, **ArrowLeft/ArrowRight/Home/End
+move FOCUS** with manual activation preserved, and the panel carries `aria-labelledby` back to its tab.
+
+**## THREE OF THE ITEM'S RISK-LOWERING FACTS WERE WRONG, and one would have broken the port**
+
+1. **"Neither file uses a `tone=` prop anywhere today" is FALSE.** `people.tsx` passes `tone` twice
+   and `workspaces.tsx` three times, **and one is `tone={overrideTier ? "warn" : "quiet"}`, a tone
+   Meridian's union does not name.** Without remapping it `tsc` fails, so the "no collision" premise
+   was the opposite of true. Remapped **`warn` -> `hold`**: a plan override waits on a condition,
+   either its own expiry or an admin clearing it, and **orchid would promise a person is required,
+   which this is not.**
+2. **`variant="ghost"` appears 5 times, not 0** (4 in people, 1 in workspaces). All five are `quiet`.
+3. **`Block`'s `more`/`onMore` is not a rename here either.** Both files use it for the audit
+   disclosure, so both became `toggle`/`toggled` and now emit `aria-expanded`, **the half `more` could
+   never emit while swapping its own label.**
+
+`meridian/Receipt`'s parameter list did match exactly, so that swap was an import-line edit as claimed.
+
+**Unsure.** `Region` sets no outer margin where `.sp-block` carried 36px margin plus 24px padding plus
+a rule, so the rhythm is stated as `gap-mrd-6` on each fragment root. **Composition judgement,
+unverified in a browser.** And `Row`'s `sub` now nests a `Value` at 12.5px inside row metadata:
+semantically right, optical weight against the plain `plan_tier` beside it unchecked.
+
+**Noticed.** `people.tsx`'s header still narrates "the rebuild's Button spreads its props after the
+type". **Still true of `Action`** (`type="button"` then `{...rest}`, so both `type="submit"` forms
+still work) but it names a component the file no longer imports. Left as history.
+
+---
+
+### K-57 · the Obsidian Button eviction
+
+**Did.** All three obsidian `Button` call sites on `surface-parts.Action`, with `accent` -> `primary`,
+`secondary` -> default, and `loading` -> `disabled`. `admin.invites.tsx` **--sp- 3, --text- 2, 15
+usages -> 0**; `admin.tsx` **--text- 8, --hairline 2, 2 usages -> 0**.
+
+**Eviction verified by grep, not by the ratchet, exactly as the item required.**
+`grep -rn "components/obsidian" src/routes/` returns **two lines only**: `runs.$missionId.tsx:231`
+(`TestStationPanel`) and `chat.tsx:6` (a comment). **I am not claiming the route tree is
+obsidian-free.** The scanner structurally cannot see this: both files imported the **barrel**, which
+matches neither the subpath-anchored `import:components/obsidian` marker nor `RETIRED_MODULES`.
+
+**`admin.tsx`'s strip was worse than the item said.** Eleven plain buttons with a 2px border-bottom
+and **no `role="tablist"` at all**, so **eleven separate tab stops** and Tab walked a keyboard reader
+through every console they had already passed. Now one `Tabs` with one stop and arrow-key focus.
+**Selection still follows a real click or Enter and never an arrow**, which matters here because each
+tab is an address and arrowing along would otherwise write eleven history entries.
+
+**## The one real capability regression, recorded rather than hidden**
+
+**`aria-busy` IS LOST.** Obsidian's `Button` set `aria-busy={true}` from `loading`, asserted in
+`obsidian/button-consolidation.test.tsx`. **`Action` has no equivalent**, so two in-flight controls
+("Cutting...", "Claiming...") change their visible label and go dead **while announcing nothing.**
+**This is a Meridian gap in `surface-parts.Action`, not a route defect.** I did not add the prop:
+that file is outside this item's `Owns` and another item touched it today. **The precedent for the fix
+is in that same file: `Region`'s `act`/`acting` already emits `aria-busy`.**
+
+**Unsure.** Two. Tab element ids derive from group plus tab id and this row's ids are route paths, so
+they read `admin-sections-tab-/admin/pricing`: **legal HTML5, fine for IDREF matching since `Tabs` uses
+a ref map rather than selectors, and would not survive an unescaped `querySelector`.** Nothing does
+that today. And the old strip set `aria-current="page"` while `role="tab"` announces `aria-selected`
+instead, **so `aria-current` is deliberately not carried across** even though these tabs do change the
+address. Worth a second opinion.
+
+**Noticed.** `admin.tsx`'s `NoAccessCard` still hand-rolls a bordered box from `var(--card)`,
+`var(--radius-card)` and `var(--font-sans)`. None is a counted marker so it is untouched, **but that
+card is what `NothingHere` and `ReadFailed` exist for.**
+
+---
+
+### K-46 · AppFrame, the six that are not the class-name argument
+
+**Did.** The four `KEYCAP` swaps and both scanner artefacts. Measured with the real scanner:
+`{"--sp-":4,"class:sp-":58,"raw-colour":1}` -> **`{"class:sp-":57}`**, the acceptance target exactly.
+**No `.sp-*` class name touched**: the `class:sp-` delta is exactly 1 and it is the React key.
+
+**All four aliases were re-read rather than trusted, because `ink.css` was edited earlier today** and
+65 unread names were deleted from it. All four survive, at new line numbers.
+
+**## I took `--mrd-t-tiny` and NOT the semantic `--mrd-t-micro`, against the item's lean**
+
+Two reasons, and the first is one I would not have found without opening the file.
+
+1. **The file's own paragraph above `KEYCAP` forbids the split.** It says the two bare numbers are
+   carried from `primitives.css` "so the two keycaps in the product stay the same object". **The other
+   keycap is `.sp-btn kbd`, still drawn at `--sp-text-kbd` = 11px.** Taking micro would render the
+   rail keycap at 10.5px and the button keycap at 11px for as long as the rest of the port takes,
+   **breaking the one invariant the surrounding comment asserts.**
+2. **The ratchet law forbids shrinking type as an answer**, and 11px -> 10.5px is a shrink with no
+   request behind it.
+
+`--mrd-t-micro`'s own comment does read "keycaps, the quietest meta", so it is the better **name**.
+**My call is that the name is worth less than the 11px**, with a comment saying so and saying that
+when the button keycap moves to micro this one moves with it. **If the founder wants the semantic
+token it is a one-line change and both keycaps should move together.**
+
+**Noticed.** Nothing reads either artefact as source text, checked across `src/` and `scripts/`. And
+**the renamed React key cannot change list identity**: rows are keyed `key={to}`, and the divider is a
+standalone `aria-hidden` span with no state.
+
+---
+
+### K-40 · the two billing cards
+
+**Did.** Both files to **`{}`** in the baseline: `WorkspaceClaimCard` 30 usages plus a class,
+`CreditCapsCard` 25 usages plus 5 tokens. The raw `<select className="sp-select">` is a `Picker`.
+
+**## `Empty` -> `NothingYet` and `Failed` -> `ReadFailedLine`, the BARE halves, and I checked the CSS
+rather than taking the queue's shorthand**
+
+`.sp-empty` is padding, 13.5px, mute and a 52ch measure — **no border** — and shell's `Failed` is a
+bare `<p>`. `NothingHere` and `ReadFailed` both draw `rounded-mrd-card border border-mrd-line
+bg-mrd-sink`, so taking them **would have added ten bordered boxes inside regions that draw none**,
+against Meridian's one-box-per-region cap. **Every one of these sits inside a `Region`, so the bare
+pair is the faithful port.** (This is the same question K-49 and K-51 flagged and it resolves the
+opposite way here, because there the retired call sites were not all inside a Region.)
+
+**Six `Field`s, six real ids, each on a control that exists.** The member target **uses one id across
+both mutually exclusive branches** (`Picker` when there is a roster, `Input` when there is not),
+because a second id would bind a label to a control that never renders.
+
+**Unsure.** Four, and all four are tone or component calls.
+
+1. **`ActionVariant` gained a fourth member, `destructive`, on 2026-08-19, AFTER K-40 was written**,
+   and the item body still records the union as three. **Four of the six `ghost` sites do stop or
+   remove something and would qualify.** I left all six `quiet`, because escalating a control's paint
+   is a design change rather than a vocabulary port.
+2. **`Value tone="live"` -> `hold`, not `agent`**, against the Group H default. Both sites label the
+   word "Waiting", meaning **an admin has not answered yet**. `agent` means a machine is working and
+   none is; `hold` is Meridian's own waiting-on-a-condition, and the component's header documents this
+   exact remap.
+3. **`Value tone="warn"` -> `quiet`, not `hold`**, and this is the deviation I most want read. The
+   site renders "Lapsed" for an expired offer. **A lapsed offer is not waiting on a condition, it is
+   over**, so `hold` would state something false, and it is not an outcome with a verdict so `fail` is
+   out. What decided it: **`ClaimRow`, in the same file, already renders `phase === "expired"` as
+   `<Value tone="quiet">Lapsed</Value>` — the two halves of one card disagreed about the same fact**,
+   and `quiet` makes them agree.
+4. **`Approve` for "Accept it", declined.** A pending claim offer is genuinely held pending that
+   click, which is `Approve`'s own stated test, **so it is arguably the correct component.** Left as
+   `Action variant="primary"` and noted inline, because `Approve` spends `--mrd-you` and moving a
+   control onto the accent is a ruling rather than a port.
+
+**Noticed.** Three.
+1. **`aria-label`s kept on all six controls, deliberately.** Shell's `Field` wrapped the control in
+   its `<label>`, so each had an implicit label **and** an `aria-label`, and the `aria-label` won.
+   Meridian's `Field` renders the label as a sibling so `htmlFor` is the binding, **but the
+   `aria-label` still wins the accessible name, so the spoken name is unchanged.** Removing them is
+   the tidier end state and would change what a screen reader says, which is a copy decision, and copy
+   was frozen.
+2. **`--sp-space-2` is 8px and Meridian has no 8.** The scale steps `--mrd-s3` 6px then `--mrd-s4`
+   10px, so **the `FORM_ROW` gap grows 8 -> 10px**, because the ratchet forbids shrinking as a port
+   answer and +2px on a form row is the safe direction.
+3. `Meridian Field` is `flex flex-col`, not `display:block` as the `FORM_ROW` comment asserts. I
+   **appended** a sentence rather than editing the existing one, because `CreditCapsCard.tsx` is read
+   as a lowercased source-text haystack by `settings-search.test.ts` and deleting words there can fail
+   a keyword. All user-visible strings are byte-identical in both files, and `settings-search.test.ts`
+   passes **unmodified** at 16 of 16.
+
+---
+
+**Gates, all eight.** `lane:gates` green on all four, real exit 0 read from `$?`. `bun test` **10,126
+pass / 0 fail** after the re-freeze; before it, the single failure was rule 3 listing the 36 reclaimed
+counts, **which is the guard working.** `settings-search.test.ts` 16 of 16 unmodified.
+**Baseline 5,157 -> 4,778, files carrying debt 257 -> 247.**
+
+**Owed on all eight, and it is the same thing each time:** none of these was looked at in a browser.
+Five of them now rest on `gap-mrd-6` for a rhythm a stylesheet used to own, and two lost a
+between-region hairline. **That wants a dev-server pass in both grounds**, and `pricing.tsx` wants it
+most, because it stopped being force-dark.

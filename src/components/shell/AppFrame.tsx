@@ -558,13 +558,22 @@ export const STATION_DOORS: ReadonlyArray<{ station: string; to: string; key: st
  * it so the two keycaps in the product stay the same object.
  */
 const KEYCAP = {
-  fontFamily: "var(--sp-font-mono)",
-  fontSize: "var(--sp-text-kbd)",
+  fontFamily: "var(--mrd-mono)",
+  /* `--mrd-t-tiny` and NOT `--mrd-t-micro`, whose comment says "keycaps".
+   * The retired `--sp-text-kbd` was 11px and so is `--mrd-t-tiny`; micro is
+   * 10.5px. Two reasons the exact value wins over the nicer name here. The
+   * paragraph above says the two keycaps in the product are one object, and
+   * the other one -- `.sp-btn kbd` in primitives.css -- is still drawn at
+   * `--sp-text-kbd`, so taking micro would split them by half a pixel for the
+   * length of the port. And the design ratchet forbids shrinking type as the
+   * answer to anything. If the button keycap moves to micro later, this moves
+   * with it, and they are still one object. */
+  fontSize: "var(--mrd-t-tiny)",
   // A kbd inherits weight, so the active row would otherwise render its
   // keycap at 600 and turn a hint into a heading.
-  fontWeight: "var(--sp-weight-regular)",
+  fontWeight: "var(--mrd-w-regular)",
   padding: "1px 4px",
-  borderRadius: "var(--sp-radius-xs)",
+  borderRadius: "var(--mrd-r-xs)",
   background: "color-mix(in oklab, currentColor 13%, transparent)",
   flex: "none",
 } as React.CSSProperties;
@@ -1602,7 +1611,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
               Ask
               {/* The one key. Cmd+J is gone: it was Ask's half of a split that
                 only ever made people guess which box they wanted. */}
-              <span className="sp-askbtn-key">&#8984;K</span>
+              {/* The literal glyph, not `&#8984;`. Identical output, and the
+                  entity's digits were being counted as a raw colour by the
+                  design scanner. Every other keycap in the product already
+                  spells the command key this way. */}
+              <span className="sp-askbtn-key">⌘K</span>
             </button>
             {/* The account disc owns who you are, including the way out. Sign
               out was reachable from exactly one component in the repo and that
@@ -1800,7 +1813,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                 { rows: RAIL_SECONDARY, divider: true },
               ].flatMap(({ rows, divider }) => [
                 divider && !narrow ? (
-                  <span key="sp-tier-rule" aria-hidden className="sp-navrule" />
+                  /* The key is "tier-rule" rather than "sp-tier-rule": the class
+                     name stays, but a React key is not a class and the scanner
+                     cannot tell them apart. The rows keep their own keys off
+                     `to`, so nothing else in this list is reconciled by it. */
+                  <span key="tier-rule" aria-hidden className="sp-navrule" />
                 ) : null,
                 ...rows.map(({ to, label, Icon, count }) => {
                   const n = count ? counts[count] : 0;

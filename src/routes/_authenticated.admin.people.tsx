@@ -106,7 +106,20 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingHere,
+  Num,
+  Picker,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Field, Input } from "@/components/meridian/forms";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Tabs, TabPanel } from "@/components/meridian/Tabs";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -114,7 +127,6 @@ import { useMemo, useState } from "react";
 import { useConfirm } from "@/hooks/use-confirm";
 import { inBandError, useDebouncedValue } from "@/components/admin/admin-ui";
 import { InvitationsPanel } from "@/components/admin/InvitationsPanel";
-import { Block, Button, Empty, Failed, Field, Input, Loading, Receipt, Select, Value } from "@/components/shell/primitives";
 import {
   adminSearchUsers,
   adminGetUserDetail,
@@ -140,31 +152,32 @@ const AUDIT_CAP = 6;
 
 type Panel = "people" | "invitations";
 
+const PANEL_TABS = "admin-people";
+
+const PANELS: ReadonlyArray<{ id: Panel; label: string }> = [
+  { id: "people", label: "People" },
+  { id: "invitations", label: "Invitations" },
+];
+
 function AdminPeople() {
   const [panel, setPanel] = useState<Panel>("people");
   return (
     <div>
-      <div className="sp-tabs" role="tablist" aria-label="Who can use Supaprod">
-        <button
-          type="button"
-          role="tab"
-          className="sp-tab"
-          aria-selected={panel === "people"}
-          onClick={() => setPanel("people")}
-        >
-          People
-        </button>
-        <button
-          type="button"
-          role="tab"
-          className="sp-tab"
-          aria-selected={panel === "invitations"}
-          onClick={() => setPanel("invitations")}
-        >
-          Invitations
-        </button>
-      </div>
-      {panel === "people" ? <PeoplePanel /> : <InvitationsPanel />}
+      {/* The row used to be two hand-written buttons carrying `role="tablist"`
+          and `role="tab"` and none of the keyboard that role promises: every
+          tab was its own tab stop and an arrow key moved nothing. `Tabs` holds
+          one tab stop for the row, moves focus on ArrowLeft, ArrowRight, Home
+          and End, and the panel below names the tab it belongs to. */}
+      <Tabs
+        group={PANEL_TABS}
+        label="Who can use Supaprod"
+        tabs={PANELS}
+        active={panel}
+        onSelect={setPanel}
+      />
+      <TabPanel group={PANEL_TABS} active={panel}>
+        {panel === "people" ? <PeoplePanel /> : <InvitationsPanel />}
+      </TabPanel>
     </div>
   );
 }
@@ -214,8 +227,13 @@ function PeoplePanel() {
   const rows = capped ? found.slice(0, PAGE) : found;
 
   return (
-    <>
-      <Block
+    // THE RHYTHM BETWEEN REGIONS, STATED HERE. The retired `Block` carried its
+    // own top margin, top padding and a rule above every section, so a page's
+    // spacing lived in a stylesheet. `Region` draws no frame and no margin, so
+    // the surface owns it, and `gap-mrd-6` is the step every ported surface uses
+    // between regions.
+    <div className="flex flex-col gap-mrd-6">
+      <Region
         title="Find a person"
         sub={
           capped
@@ -233,17 +251,17 @@ function PeoplePanel() {
         </Field>
 
         {search.isLoading ? (
-          <Loading>Reading the directory.</Loading>
+          <Reading>Reading the directory.</Reading>
         ) : searchError ? (
-          <Failed onRetry={() => void search.refetch()}>
+          <ReadFailedLine onRetry={() => void search.refetch()}>
             The directory did not load, so this is not a claim that nobody matches. {searchError}
-          </Failed>
+          </ReadFailedLine>
         ) : rows.length === 0 ? (
-          <Empty>
+          <NothingHere>
             {q.trim()
               ? "Nobody matches that. Try the email they signed up with."
               : "Type an email or a name. Nothing is listed until you ask for someone."}
-          </Empty>
+          </NothingHere>
         ) : (
           rows.map((r) => (
             <Row
@@ -255,7 +273,7 @@ function PeoplePanel() {
               // says so; a working one stays quiet.
               sub={
                 <>
-                  {r.suspended ? <span className="sp-fail">sign-in blocked</span> : r.plan_tier}
+                  {r.suspended ? <Value tone="fail">sign-in blocked</Value> : r.plan_tier}
                   {" · "}
                   <Num>{r.balance_credits.toLocaleString()}</Num> credits
                 </>
@@ -269,14 +287,14 @@ function PeoplePanel() {
             />
           ))
         )}
-      </Block>
+      </Region>
 
       {/* Keyed by the person, so every local state in there resets when the
           subject changes. Without it the receipts from the last account stay
           on screen under the next one's name, which is a lie about what you
           did and to whom. */}
       {selected ? <PersonInFocus key={selected} userId={selected} /> : null}
-    </>
+    </div>
   );
 }
 
@@ -489,9 +507,9 @@ function PersonInFocus({ userId }: { userId: string }) {
 
   if (detail.isLoading) {
     return (
-      <Block title="The person you picked">
-        <Loading>Reading the account.</Loading>
-      </Block>
+      <Region title="The person you picked">
+        <Reading>Reading the account.</Reading>
+      </Region>
     );
   }
 
@@ -499,12 +517,12 @@ function PersonInFocus({ userId }: { userId: string }) {
   // assumptions about a row nobody actually saw.
   if (detail.isError) {
     return (
-      <Block title="The person you picked">
-        <Failed onRetry={() => void detail.refetch()}>
+      <Region title="The person you picked">
+        <ReadFailedLine onRetry={() => void detail.refetch()}>
           The account did not load, so nothing here is safe to change yet.{" "}
           {(detail.error as Error)?.message ?? "The read failed."}
-        </Failed>
-      </Block>
+        </ReadFailedLine>
+      </Region>
     );
   }
 
@@ -535,8 +553,8 @@ function PersonInFocus({ userId }: { userId: string }) {
           .join(", ") + (workspaces.length > 3 ? `, and ${workspaces.length - 3} more` : "");
 
   return (
-    <>
-      <Block
+    <div className="flex flex-col gap-mrd-6">
+      <Region
         title={d.user?.email ?? "The person you picked"}
         sub={[
           d.profile?.display_name || null,
@@ -557,7 +575,7 @@ function PersonInFocus({ userId }: { userId: string }) {
           }
         >
           <Value tone={blocked ? "fail" : "pass"}>{blocked ? "blocked" : "allowed"}</Value>
-          <Button
+          <Action
             disabled={busy}
             onClick={() => {
               void (async () => {
@@ -574,7 +592,7 @@ function PersonInFocus({ userId }: { userId: string }) {
             }}
           >
             {blocked ? "Allow" : "Block"}
-          </Button>
+          </Action>
         </Line>
 
         <Line
@@ -587,17 +605,21 @@ function PersonInFocus({ userId }: { userId: string }) {
                 : "No subscription row, so they are on the free floor."
           }
         >
-          <Value tone={overrideTier ? "warn" : "quiet"}>
+          {/* `hold` rather than the retired `warn`: an override is a plan
+              waiting on a condition, either the expiry it carries or an admin
+              clearing it. Meridian's amber says exactly that, and orchid would
+              promise a person is required, which this is not. */}
+          <Value tone={overrideTier ? "hold" : "quiet"}>
             {overrideTier ?? sub?.plan_tier ?? account?.plan_tier ?? "free"}
           </Value>
-          <Button
-            variant="ghost"
+          <Action
+            variant="quiet"
             aria-expanded={openPlan}
             disabled={busy}
             onClick={() => setOpenPlan((v) => !v)}
           >
             Change
-          </Button>
+          </Action>
         </Line>
 
         {openPlan ? (
@@ -612,13 +634,13 @@ function PersonInFocus({ userId }: { userId: string }) {
             }}
           >
             <Field label="Put them on" htmlFor="admin-plan-tier">
-              <Select id="admin-plan-tier" value={tier} onChange={(e) => setTier(e.target.value)}>
+              <Picker id="admin-plan-tier" value={tier} onChange={(e) => setTier(e.target.value)}>
                 {PLAN_TIERS.map((t) => (
                   <option key={t} value={t}>
                     {t}
                   </option>
                 ))}
-              </Select>
+              </Picker>
             </Field>
             <Field label="For how many days" htmlFor="admin-plan-days">
               <Input
@@ -640,20 +662,20 @@ function PersonInFocus({ userId }: { userId: string }) {
             <Actions
               trailing={
                 overrideTier ? (
-                  <Button
-                    variant="ghost"
+                  <Action
+                    variant="quiet"
                     disabled={busy}
                     onClick={() => clearOverride.mutate()}
                     type="button"
                   >
                     Clear the override
-                  </Button>
+                  </Action>
                 ) : undefined
               }
             >
-              <Button variant="primary" type="submit" disabled={busy}>
+              <Action variant="primary" type="submit" disabled={busy}>
                 {override.isPending ? "Saving" : "Save the plan"}
-              </Button>
+              </Action>
             </Actions>
           </form>
         ) : null}
@@ -669,14 +691,14 @@ function PersonInFocus({ userId }: { userId: string }) {
           <Value>
             <Num>{(account?.balance_credits ?? 0).toLocaleString()}</Num>
           </Value>
-          <Button
-            variant="ghost"
+          <Action
+            variant="quiet"
             aria-expanded={openCredits}
             disabled={busy || !account}
             onClick={() => setOpenCredits((v) => !v)}
           >
             Adjust
-          </Button>
+          </Action>
         </Line>
 
         {openCredits && account ? (
@@ -705,8 +727,8 @@ function PersonInFocus({ userId }: { userId: string }) {
             </Field>
             <Actions
               trailing={
-                <Button
-                  variant="ghost"
+                <Action
+                  variant="quiet"
                   type="button"
                   disabled={busy}
                   onClick={() => {
@@ -721,10 +743,10 @@ function PersonInFocus({ userId }: { userId: string }) {
                   }}
                 >
                   Reset the monthly cycle
-                </Button>
+                </Action>
               }
             >
-              <Button
+              <Action
                 variant="primary"
                 type="submit"
                 disabled={busy || !Number.isFinite(delta) || delta === 0}
@@ -734,7 +756,7 @@ function PersonInFocus({ userId }: { userId: string }) {
                   : delta >= 0
                     ? `Add ${Math.trunc(delta).toLocaleString()}`
                     : `Take back ${Math.abs(Math.trunc(delta)).toLocaleString()}`}
-              </Button>
+              </Action>
             </Actions>
           </form>
         ) : null}
@@ -744,10 +766,10 @@ function PersonInFocus({ userId }: { userId: string }) {
             <Num>{workspaces.length}</Num>
           </Value>
         </Line>
-      </Block>
+      </Region>
 
       {settled.length > 0 ? (
-        <Block title="What you changed">
+        <Region title="What you changed">
           {settled.map((s) => (
             <Receipt
               key={s.id}
@@ -757,23 +779,28 @@ function PersonInFocus({ userId }: { userId: string }) {
               time={s.at}
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
-      <Block
+      {/* `toggle` and not `goTo`: this control reveals the rest of the history
+          in place. `Region` split the retired `more` slot by what the control
+          does, and the half `more` could never emit is `aria-expanded`, which
+          this one owed from the day it started swapping its own label. */}
+      <Region
         title="What was already done here"
         sub="Every admin write against this account, newest first. Read it before repeating one."
-        more={
+        toggle={
           audit.length > AUDIT_CAP
             ? openAudit
               ? "Show fewer"
               : `Show all ${audit.length}`
             : undefined
         }
-        onMore={() => setOpenAudit((v) => !v)}
+        toggled={openAudit}
+        onToggle={() => setOpenAudit((v) => !v)}
       >
         {audit.length === 0 ? (
-          <Empty>Nothing has been done to this account yet. You would be the first.</Empty>
+          <NothingHere>Nothing has been done to this account yet. You would be the first.</NothingHere>
         ) : (
           shownAudit.map((r) => (
             <Row
@@ -787,7 +814,7 @@ function PersonInFocus({ userId }: { userId: string }) {
             />
           ))
         )}
-      </Block>
-    </>
+      </Region>
+    </div>
   );
 }

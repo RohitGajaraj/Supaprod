@@ -45,10 +45,14 @@ export const Route = createFileRoute("/d/$slug")({
   component: PublicDecisionPage,
 });
 
+// Approved / rejected / pending IS the pass / fail / hold ladder Meridian already
+// defines, so this stops being three ad-hoc hexes on the one page an outsider is
+// shown as evidence. Every one renders its own word beside the dot, so the meaning
+// survives greyscale and never rests on hue.
 const STATUS: Record<string, { label: string; color: string }> = {
-  approved: { label: "Approved", color: "var(--emerald, #2f8f6b)" },
-  rejected: { label: "Rejected", color: "var(--rose, #b4493f)" },
-  pending: { label: "Pending", color: "var(--ink-faint, #8a8377)" },
+  approved: { label: "Approved", color: "var(--mrd-pass)" },
+  rejected: { label: "Rejected", color: "var(--mrd-fail)" },
+  pending: { label: "Pending", color: "var(--mrd-hold)" },
 };
 
 function Shell({ children }: { children: React.ReactNode }) {
@@ -58,8 +62,8 @@ function Shell({ children }: { children: React.ReactNode }) {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        background: "var(--paper, #f6f2ea)",
-        color: "var(--ink, #1f1b16)",
+        background: "var(--mrd-bg)",
+        color: "var(--mrd-ink)",
         isolation: "isolate",
         ...PUBLIC_INK_THEME,
       }}
@@ -71,7 +75,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       </div>
       <header
         style={{
-          borderBottom: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+          borderBottom: "1px solid var(--mrd-line)",
           padding: "12px 18px",
           display: "flex",
           alignItems: "center",
@@ -93,7 +97,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             Supaprod
           </span>
         </Link>
-        <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
+        <span className="mono-label" style={{ fontSize: 9, color: "var(--mrd-faint)" }}>
           shared decision
         </span>
       </header>
@@ -104,13 +108,13 @@ function Shell({ children }: { children: React.ReactNode }) {
 
       <footer
         style={{
-          borderTop: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+          borderTop: "1px solid var(--mrd-line)",
           padding: "14px 18px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           fontSize: 11,
-          color: "var(--ink-subtle, #6b6457)",
+          color: "var(--mrd-mute)",
         }}
       >
         <span className="mono-label" style={{ fontSize: 9 }}>
@@ -134,7 +138,7 @@ function PublicDecisionPage() {
           <div className="font-display" style={{ fontSize: 20, marginBottom: 6 }}>
             Not available
           </div>
-          <p style={{ fontSize: 13, color: "var(--ink-muted, #4a4438)", margin: 0 }}>
+          <p style={{ fontSize: 13, color: "var(--mrd-body)", margin: 0 }}>
             This decision is private, or the link is no longer valid.
           </p>
         </div>
@@ -143,9 +147,11 @@ function PublicDecisionPage() {
   }
 
   const who = agentDisplayName(decision.decided_by_agent_slug);
+  // A status outside the ladder gets the quietest neutral rather than a borrowed
+  // status hue: a word we cannot place must not claim an outcome.
   const st = STATUS[decision.status] ?? {
     label: decision.status,
-    color: "var(--ink-faint, #8a8377)",
+    color: "var(--mrd-faint)",
   };
   const date = new Date(decision.created_at).toLocaleDateString(undefined, {
     year: "numeric",
@@ -157,7 +163,7 @@ function PublicDecisionPage() {
     <Shell>
       <div
         className="mono-label"
-        style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)", marginBottom: 10 }}
+        style={{ fontSize: 9, color: "var(--mrd-faint)", marginBottom: 10 }}
       >
         Decision · {who} · {date}
       </div>
@@ -209,11 +215,8 @@ function PublicDecisionPage() {
             fontSize: 10,
             padding: "2px 8px",
             borderRadius: 99,
-            color:
-              decision.outcome === "superseded"
-                ? "var(--ink-subtle, #6b6457)"
-                : "var(--emerald, #2f8f6b)",
-            border: `1px solid ${decision.outcome === "superseded" ? "var(--hairline, rgba(0,0,0,0.12))" : "color-mix(in srgb, var(--emerald, #2f8f6b) 35%, transparent)"}`,
+            color: decision.outcome === "superseded" ? "var(--mrd-mute)" : "var(--mrd-pass)",
+            border: `1px solid ${decision.outcome === "superseded" ? "var(--mrd-line)" : "color-mix(in srgb, var(--mrd-pass) 35%, transparent)"}`,
           }}
         >
           {decision.outcome === "superseded" ? "Superseded" : "Still stands"}
@@ -222,7 +225,7 @@ function PublicDecisionPage() {
       <div className="bento" style={{ padding: "var(--card-pad, 18px)" }}>
         <div
           className="mono-label"
-          style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)", marginBottom: 8 }}
+          style={{ fontSize: 9, color: "var(--mrd-faint)", marginBottom: 8 }}
         >
           Why
         </div>
@@ -230,7 +233,7 @@ function PublicDecisionPage() {
           style={{
             fontSize: 14,
             lineHeight: 1.65,
-            color: "var(--ink-muted, #4a4438)",
+            color: "var(--mrd-body)",
             margin: 0,
             whiteSpace: "pre-wrap",
           }}
@@ -241,7 +244,7 @@ function PublicDecisionPage() {
       <p
         style={{
           fontSize: 11.5,
-          color: "var(--ink-subtle, #6b6457)",
+          color: "var(--mrd-mute)",
           marginTop: 18,
           lineHeight: 1.5,
         }}

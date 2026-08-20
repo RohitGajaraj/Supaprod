@@ -18,12 +18,20 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Actions,
+  Region,
+  Action,
+  NothingYet,
+  ReadFailedLine,
+  Picker,
+} from "@/components/meridian/surface-parts";
+import { Field, Input } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { getCreditCaps, setCreditCap, removeCreditCap } from "@/lib/payments.functions";
-import { Block, Button, Empty, Failed, Field, Select, Input } from "@/components/shell/primitives";
 
 const WINDOWS = [
   { id: "cycle", label: "per cycle" },
@@ -34,10 +42,19 @@ type WindowKind = (typeof WINDOWS)[number]["id"];
 
 /** The add-a-cap row: three controls and the action, on one line where there is
  *  room and wrapping where there is not. Field is display:block, so each control
- *  gets its own flex item rather than stretching to the full width. */
+ *  gets its own flex item rather than stretching to the full width.
+ *
+ *  Since the Meridian port, Field is a flex column rather than a block; it is
+ *  still one flex item here and still shrinks to its own content, so the row
+ *  behaves as written above.
+ *
+ *  The gap was `--sp-space-2`, 8px. Meridian's scale steps 6px then 10px, so
+ *  there is no 8. Taking 10 rather than 6 because the design ratchet forbids
+ *  shrinking a surface to answer a port, and 2px more air between three
+ *  controls and their button is the safe direction. */
 const FORM_ROW: React.CSSProperties = {
   display: "flex",
-  gap: "var(--sp-space-2)",
+  gap: "var(--mrd-s4)",
   flexWrap: "wrap",
   alignItems: "flex-end",
 };
@@ -94,12 +111,12 @@ export function CreditCapsCard() {
   // find out" are different facts and the owner acts differently on each.
   if (caps.isError) {
     return (
-      <Block title="Spending caps">
-        <Failed onRetry={() => void caps.refetch()}>
+      <Region title="Spending caps">
+        <ReadFailedLine onRetry={() => void caps.refetch()}>
           Your spending caps did not load.{" "}
           {caps.error instanceof Error ? caps.error.message : "The read failed."}
-        </Failed>
-      </Block>
+        </ReadFailedLine>
+      </Region>
     );
   }
 
@@ -146,31 +163,38 @@ export function CreditCapsCard() {
 
   return (
     <>
-      <Block
+      <Region
         title="Per-product spending caps"
         sub="Cap how many credits a product can spend per window. Takes effect once metering is on."
       >
         {productCaps.length === 0 ? (
-          <Empty>Nothing is capped. Every product draws from the shared pool.</Empty>
+          <NothingYet>Nothing is capped. Every product draws from the shared pool.</NothingYet>
         ) : (
           productCaps.map((c) => (
             <Line key={c.id} label={c.targetName} sub={c.enabled ? undefined : "Off"}>
-              <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
+              <span style={{ color: "var(--mrd-mute)", fontSize: "var(--mrd-t-base)" }}>
                 <Num>{c.capCredits.toLocaleString()}</Num> credits {winLabel(c.windowKind)}
               </span>
-              <Button variant="ghost" onClick={() => rmMut.mutate(c.id)} disabled={rmMut.isPending}>
+              <Action variant="quiet" onClick={() => rmMut.mutate(c.id)} disabled={rmMut.isPending}>
                 Remove
-              </Button>
+              </Action>
             </Line>
           ))
         )}
 
         {data.products.length === 0 ? (
-          <Empty>Add a product first to set a per-product cap.</Empty>
+          <NothingYet>Add a product first to set a per-product cap.</NothingYet>
         ) : (
           <div style={FORM_ROW}>
-            <Field label="Product">
-              <Select
+            {/* The ids exist because Meridian's Field renders its label as a
+                sibling of the control rather than wrapping it, so `htmlFor` is
+                the only thing that can bind the two. The `aria-label`s are left
+                where they were: they already carried the accessible name under
+                the old wrapping label, so removing them would change what a
+                screen reader says while porting the paint. */}
+            <Field label="Product" htmlFor="product-cap-target">
+              <Picker
+                id="product-cap-target"
                 value={productId}
                 onChange={(e) => setProductId(e.target.value)}
                 aria-label="Product to cap"
@@ -182,10 +206,11 @@ export function CreditCapsCard() {
                     {p.name}
                   </option>
                 ))}
-              </Select>
+              </Picker>
             </Field>
-            <Field label="Ceiling">
+            <Field label="Ceiling" htmlFor="product-cap-credits">
               <Input
+                id="product-cap-credits"
                 type="number"
                 min={0}
                 placeholder="credits"
@@ -195,8 +220,9 @@ export function CreditCapsCard() {
                 style={{ width: 120 }}
               />
             </Field>
-            <Field label="Window">
-              <Select
+            <Field label="Window" htmlFor="product-cap-window">
+              <Picker
+                id="product-cap-window"
                 value={productWindow}
                 onChange={(e) => setProductWindow(e.target.value as WindowKind)}
                 aria-label="Cap window"
@@ -207,18 +233,18 @@ export function CreditCapsCard() {
                     {w.label}
                   </option>
                 ))}
-              </Select>
+              </Picker>
             </Field>
             <Actions>
-              <Button onClick={addProductCap} disabled={setMut.isPending}>
+              <Action onClick={addProductCap} disabled={setMut.isPending}>
                 Add cap
-              </Button>
+              </Action>
             </Actions>
           </div>
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="Per-member credit allocation"
         // This read "Business and Enterprise", which named a gate the code does
         // not enforce: writing a member cap is authorized by owner RLS alone,
@@ -227,7 +253,7 @@ export function CreditCapsCard() {
         sub="Set how many credits each member can use per window. It starts to matter once more than one person is on the account."
       >
         {memberCaps.length === 0 ? (
-          <Empty>No member is capped. Everyone draws from the shared pool.</Empty>
+          <NothingYet>No member is capped. Everyone draws from the shared pool.</NothingYet>
         ) : (
           memberCaps.map((c) => (
             <Line
@@ -242,20 +268,25 @@ export function CreditCapsCard() {
               }
               sub={c.enabled ? undefined : "Off"}
             >
-              <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
+              <span style={{ color: "var(--mrd-mute)", fontSize: "var(--mrd-t-base)" }}>
                 <Num>{c.capCredits.toLocaleString()}</Num> credits {winLabel(c.windowKind)}
               </span>
-              <Button variant="ghost" onClick={() => rmMut.mutate(c.id)} disabled={rmMut.isPending}>
+              <Action variant="quiet" onClick={() => rmMut.mutate(c.id)} disabled={rmMut.isPending}>
                 Remove
-              </Button>
+              </Action>
             </Line>
           ))
         )}
 
         <div style={FORM_ROW}>
-          <Field label="Member">
+          {/* One id for the member target, carried by whichever of the two
+              controls is on screen. They are mutually exclusive branches of the
+              same question, so a second id would bind a label to a control that
+              is not rendered. */}
+          <Field label="Member" htmlFor="member-cap-target">
             {data.members.length > 0 ? (
-              <Select
+              <Picker
+                id="member-cap-target"
                 value={memberId}
                 onChange={(e) => setMemberId(e.target.value)}
                 aria-label="Member to cap"
@@ -267,11 +298,12 @@ export function CreditCapsCard() {
                     {m.label}
                   </option>
                 ))}
-              </Select>
+              </Picker>
             ) : (
               // No roster to pick from yet, so the id is typed. The label says
               // which id, because guessing is what produces a cap on nobody.
               <Input
+                id="member-cap-target"
                 type="text"
                 placeholder="Member user ID"
                 value={memberId}
@@ -281,8 +313,9 @@ export function CreditCapsCard() {
               />
             )}
           </Field>
-          <Field label="Ceiling">
+          <Field label="Ceiling" htmlFor="member-cap-credits">
             <Input
+              id="member-cap-credits"
               type="number"
               min={0}
               placeholder="credits"
@@ -292,8 +325,9 @@ export function CreditCapsCard() {
               style={{ width: 120 }}
             />
           </Field>
-          <Field label="Window">
-            <Select
+          <Field label="Window" htmlFor="member-cap-window">
+            <Picker
+              id="member-cap-window"
               value={memberWindow}
               onChange={(e) => setMemberWindow(e.target.value as WindowKind)}
               aria-label="Member cap window"
@@ -304,19 +338,19 @@ export function CreditCapsCard() {
                   {w.label}
                 </option>
               ))}
-            </Select>
+            </Picker>
           </Field>
           <Actions>
-            <Button onClick={addMemberCap} disabled={setMut.isPending}>
+            <Action onClick={addMemberCap} disabled={setMut.isPending}>
               Set limit
-            </Button>
+            </Action>
           </Actions>
         </div>
 
         {data.members.length === 0 ? (
-          <Empty>Invite team members to set per-member credit limits.</Empty>
+          <NothingYet>Invite team members to set per-member credit limits.</NothingYet>
         ) : null}
-      </Block>
+      </Region>
     </>
   );
 }

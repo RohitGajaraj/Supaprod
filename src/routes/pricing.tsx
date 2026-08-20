@@ -2,7 +2,7 @@
 // Global monthly/annual toggle; Free / Pro / Business / Enterprise in a 4-column grid.
 // Credit dropdown stays per-card (users configure different tiers across plans).
 // Annual toggle lifts to page level so all prices update together.
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Zap, User, Users, Building2, Star } from "lucide-react";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
@@ -90,16 +90,14 @@ function ConnectorChips({ showWrite = false }: { showWrite?: boolean }) {
           </svg>
         </span>
       ))}
-      <span style={{ fontSize: 10, color: "var(--ink-subtle, #6b6457)", fontWeight: 500 }}>
-        + more
-      </span>
+      <span style={{ fontSize: 10, color: "var(--mrd-mute)", fontWeight: 500 }}>+ more</span>
       <span
         style={{
           fontSize: 9,
           fontWeight: 600,
-          color: "var(--ember, #c2602e)",
-          background: "color-mix(in oklab, var(--ember, #c2602e) 10%, transparent)",
-          border: "1px solid color-mix(in oklab, var(--ember, #c2602e) 25%, transparent)",
+          color: "var(--mrd-mute)",
+          background: "var(--mrd-lift)",
+          border: "1px solid var(--mrd-line)",
           borderRadius: 4,
           padding: "1px 5px",
           letterSpacing: "0.03em",
@@ -262,7 +260,7 @@ function BillingToggle({ annual, onChange }: { annual: boolean; onChange: (v: bo
         alignItems: "center",
         borderRadius: 99,
         padding: 4,
-        background: "var(--soft-stone, rgba(0,0,0,0.06))",
+        background: "var(--mrd-sink)",
         gap: 2,
       }}
     >
@@ -280,9 +278,9 @@ function BillingToggle({ annual, onChange }: { annual: boolean; onChange: (v: bo
               cursor: "pointer",
               fontSize: 13,
               fontWeight: active ? 600 : 500,
-              background: active ? "var(--canvas, #faf7ef)" : "transparent",
-              color: active ? "var(--ink, #1f1b16)" : "var(--ink-subtle, #6b6457)",
-              boxShadow: active ? "0 1px 3px rgba(0,0,0,0.09)" : "none",
+              background: active ? "var(--mrd-lift)" : "transparent",
+              color: active ? "var(--mrd-ink)" : "var(--mrd-mute)",
+              boxShadow: active ? "var(--mrd-shadow-card)" : "none",
               transition: "all 0.15s",
               display: "flex",
               alignItems: "center",
@@ -295,8 +293,8 @@ function BillingToggle({ annual, onChange }: { annual: boolean; onChange: (v: bo
                 style={{
                   fontSize: 10.5,
                   fontWeight: 600,
-                  color: "var(--moss-success, #4f8a59)",
-                  background: "color-mix(in oklab, var(--moss-success, #4f8a59) 14%, transparent)",
+                  color: "var(--mrd-pass)",
+                  background: "color-mix(in oklab, var(--mrd-pass) 14%, transparent)",
                   borderRadius: 99,
                   padding: "1px 6px",
                   lineHeight: 1.5,
@@ -351,7 +349,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
     <div
       style={{
         height: 1,
-        background: "var(--hairline, rgba(0,0,0,0.07))",
+        background: "var(--mrd-line)",
         margin: "16px 0",
       }}
     />
@@ -363,12 +361,11 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
         padding: "28px 24px 24px",
         display: "flex",
         flexDirection: "column",
-        border: isBusiness
-          ? "1.5px solid color-mix(in oklab, var(--ember, #c2622e) 55%, transparent)"
-          : "1px solid var(--hairline, rgba(0,0,0,0.09))",
-        background: isBusiness
-          ? "color-mix(in oklab, var(--ember, #c2622e) 4%, var(--canvas, #faf7ef))"
-          : "var(--canvas, #faf7ef)",
+        // The recommended plan is told by SHAPE, not by hue: a drawn edge and a
+        // step up the ground ladder. Ember stays in the logo and never doubles as
+        // an interaction or emphasis state.
+        border: isBusiness ? "1.5px solid var(--mrd-edge)" : "1px solid var(--mrd-line)",
+        background: isBusiness ? "var(--mrd-lift)" : "var(--mrd-sheet)",
         borderRadius: 12,
       }}
     >
@@ -389,9 +386,9 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "color-mix(in oklab, var(--ember, #c2622e) 14%, var(--canvas, #faf7ef))",
-            border: "1px solid color-mix(in oklab, var(--ember, #c2622e) 22%, transparent)",
-            color: "var(--ember, #c2622e)",
+            background: "var(--mrd-lift)",
+            border: "1px solid var(--mrd-edge)",
+            color: "var(--mrd-ink)",
           }}
         >
           <TierIcon size={16} strokeWidth={1.6} />
@@ -401,8 +398,8 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             className="mono-label"
             style={{
               fontSize: 8.5,
-              color: "var(--ember, #c2622e)",
-              border: "1px solid color-mix(in oklab, var(--ember, #c2622e) 40%, transparent)",
+              color: "var(--mrd-ink)",
+              border: "1px solid var(--mrd-edge)",
               borderRadius: 99,
               padding: "2px 8px",
             }}
@@ -441,7 +438,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
       <p
         style={{
           fontSize: 12.5,
-          color: "var(--ink, #1d1a14)",
+          color: "var(--mrd-ink)",
           fontWeight: 500,
           margin: "0 0 5px",
           lineHeight: 1.45,
@@ -454,7 +451,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
       <p
         style={{
           fontSize: 11.5,
-          color: "var(--ink-subtle, #6b6457)",
+          color: "var(--mrd-mute)",
           margin: 0,
           lineHeight: 1.5,
         }}
@@ -476,7 +473,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
           <span
             style={{
               fontSize: 12,
-              color: "var(--ink-muted, #4a4438)",
+              color: "var(--mrd-body)",
               display: "block",
               marginTop: 4,
             }}
@@ -486,7 +483,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
           <span
             style={{
               fontSize: 11.5,
-              color: "var(--ink-subtle, #6b6457)",
+              color: "var(--mrd-mute)",
               display: "block",
               marginTop: 2,
             }}
@@ -500,9 +497,9 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             <span className="font-display" style={{ fontSize: 32, fontWeight: 480, lineHeight: 1 }}>
               $0
             </span>
-            <span style={{ fontSize: 12, color: "var(--ink-subtle, #6b6457)" }}>/month</span>
+            <span style={{ fontSize: 12, color: "var(--mrd-mute)" }}>/month</span>
           </div>
-          <p style={{ fontSize: 11, color: "var(--ink-subtle, #6b6457)", margin: "5px 0 0" }}>
+          <p style={{ fontSize: 11, color: "var(--mrd-mute)", margin: "5px 0 0" }}>
             No credit card needed
           </p>
         </div>
@@ -513,7 +510,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             <span className="font-display" style={{ fontSize: 32, fontWeight: 480, lineHeight: 1 }}>
               ${displayPrice}
             </span>
-            <span style={{ fontSize: 13, color: "var(--ink-subtle, #6b6457)" }}>/mo</span>
+            <span style={{ fontSize: 13, color: "var(--mrd-mute)" }}>/mo</span>
           </div>
           <div
             style={{
@@ -524,7 +521,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
               flexWrap: "wrap",
             }}
           >
-            <span style={{ fontSize: 11, color: "var(--ink-subtle, #6b6457)" }}>
+            <span style={{ fontSize: 11, color: "var(--mrd-mute)" }}>
               {annual ? "billed annually" : "billed monthly"}
             </span>
             {yearlySavings && (
@@ -532,8 +529,8 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
                 style={{
                   fontSize: 11,
                   fontWeight: 600,
-                  color: "var(--moss-success, #4f8a59)",
-                  background: "color-mix(in oklab, var(--moss-success, #4f8a59) 14%, transparent)",
+                  color: "var(--mrd-pass)",
+                  background: "color-mix(in oklab, var(--mrd-pass) 14%, transparent)",
                   borderRadius: 99,
                   padding: "2px 8px",
                 }}
@@ -557,17 +554,17 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
           <div
             style={{
               fontSize: 9.5,
-              color: "var(--ink-subtle, #6b6457)",
+              color: "var(--mrd-mute)",
               letterSpacing: "0.08em",
               marginBottom: 5,
             }}
           >
             CREDITS / MONTH
           </div>
-          <div style={{ fontSize: 15, color: "var(--ink, #1f1b16)", fontWeight: 500 }}>
+          <div style={{ fontSize: 15, color: "var(--mrd-ink)", fontWeight: 500 }}>
             {includedCreditsFor(tier)?.toLocaleString() ?? "Custom"} included
           </div>
-          <div style={{ fontSize: 11.5, color: "var(--ink-subtle, #6b6457)", marginTop: 3 }}>
+          <div style={{ fontSize: 11.5, color: "var(--mrd-mute)", marginTop: 3 }}>
             Need more? Add credits any time, up to twice your monthly allowance. No plan change.
           </div>
         </div>
@@ -584,9 +581,9 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             borderRadius: 8,
             fontSize: 13.5,
             fontWeight: 500,
-            border: "1px solid var(--hairline, rgba(0,0,0,0.15))",
+            border: "1px solid var(--mrd-line)",
             background: "transparent",
-            color: "var(--ink, #1f1b16)",
+            color: "var(--mrd-ink)",
             textDecoration: "none",
             marginBottom: 20,
           }}
@@ -624,11 +621,9 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             borderRadius: 8,
             fontSize: 13.5,
             fontWeight: 600,
-            background: isBusiness ? "var(--ember, #c2622e)" : "transparent",
-            border: isBusiness
-              ? "1.5px solid var(--ember, #c2622e)"
-              : "1px solid var(--hairline, rgba(0,0,0,0.15))",
-            color: isBusiness ? "#fff" : "var(--ink, #1f1b16)",
+            background: isBusiness ? "var(--mrd-solid)" : "transparent",
+            border: isBusiness ? "1.5px solid var(--mrd-solid)" : "1px solid var(--mrd-line)",
+            color: isBusiness ? "var(--mrd-on-solid)" : "var(--mrd-ink)",
             textDecoration: "none",
             marginBottom: 20,
           }}
@@ -669,20 +664,15 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
                 gap: 0,
                 fontSize: 12,
                 lineHeight: 1.45,
-                color: quiet ? "var(--ink-subtle, #6b6457)" : "var(--ink, #1f1b16)",
+                color: quiet ? "var(--mrd-mute)" : "var(--mrd-ink)",
                 fontWeight: isHeader ? 500 : 400,
-                borderTop:
-                  isHeader && i > 0 ? "1px solid var(--hairline, rgba(0,0,0,0.06))" : undefined,
+                borderTop: isHeader && i > 0 ? "1px solid var(--mrd-line)" : undefined,
                 paddingTop: isHeader && i > 0 ? 8 : 0,
               }}
             >
               <div style={{ display: "flex", gap: 8 }}>
                 {!quiet && (
-                  <span
-                    style={{ color: "var(--moss-success, #4f8a59)", flexShrink: 0, marginTop: 1 }}
-                  >
-                    +
-                  </span>
+                  <span style={{ color: "var(--mrd-pass)", flexShrink: 0, marginTop: 1 }}>+</span>
                 )}
                 <span>{h}</span>
               </div>
@@ -702,7 +692,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             border: "none",
             padding: "10px 0 0",
             fontSize: 11.5,
-            color: "var(--ink-subtle, #6b6457)",
+            color: "var(--mrd-mute)",
             cursor: "pointer",
             textDecoration: "underline",
             textAlign: "left",
@@ -719,20 +709,6 @@ function PricingPage() {
   // Global billing interval — one toggle changes all 4 cards simultaneously.
   const [annual, setAnnual] = useState(false);
 
-  // The landing's ink theme, mapped onto this page's variable vocabulary
-  // (founder ruling 2026-07-15: every public page matches the parent canvas).
-  const inkTheme = {
-    "--paper": "#0a0a0a",
-    "--canvas": "#0d0d0e",
-    "--soft-stone": "#18181b",
-    "--ink": "#f4f4f5",
-    "--ink-subtle": "#a1a1aa",
-    "--ink-muted": "#71717a",
-    "--hairline": "rgba(255,255,255,0.09)",
-    "--ember": "#FF6B2C",
-    "--moss-success": "#4ac26b",
-  } as CSSProperties;
-
   return (
     <div
       style={{
@@ -740,9 +716,8 @@ function PricingPage() {
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        background: "var(--paper, #f6f2ea)",
-        color: "var(--ink, #1f1b16)",
-        ...inkTheme,
+        background: "var(--mrd-bg)",
+        color: "var(--mrd-ink)",
       }}
     >
       <LandingBackdrop />
@@ -757,7 +732,7 @@ function PricingPage() {
       >
         <header
           style={{
-            borderBottom: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+            borderBottom: "1px solid var(--mrd-line)",
             padding: "12px 18px",
             display: "flex",
             alignItems: "center",
@@ -783,9 +758,9 @@ function PricingPage() {
             href="/login"
             style={{
               fontSize: 13,
-              color: "var(--ink, #f4f4f5)",
+              color: "var(--mrd-ink)",
               textDecoration: "none",
-              border: "1px solid var(--hairline, rgba(255,255,255,0.14))",
+              border: "1px solid var(--mrd-line)",
               borderRadius: 999,
               padding: "7px 16px",
             }}
@@ -804,7 +779,7 @@ function PricingPage() {
                   fontSize: 10,
                   letterSpacing: "0.16em",
                   textTransform: "uppercase",
-                  color: "#FF6B2C",
+                  color: "var(--mrd-mute)",
                   margin: "0 0 10px",
                 }}
               >
@@ -830,7 +805,7 @@ function PricingPage() {
                 style={{
                   fontSize: 14,
                   lineHeight: 1.6,
-                  color: "var(--ink-subtle, #6b6457)",
+                  color: "var(--mrd-mute)",
                   margin: "0 auto 24px",
                   maxWidth: 520,
                 }}
@@ -873,7 +848,7 @@ function PricingPage() {
             <p
               style={{
                 fontSize: 12,
-                color: "var(--ink-subtle, #6b6457)",
+                color: "var(--mrd-mute)",
                 textAlign: "center",
                 marginTop: 28,
                 lineHeight: 1.6,
@@ -893,7 +868,7 @@ function PricingPage() {
             <p
               style={{
                 fontSize: 11.5,
-                color: "var(--ink-subtle, #6b6457)",
+                color: "var(--mrd-mute)",
                 textAlign: "center",
                 marginTop: 12,
                 lineHeight: 1.5,
@@ -910,13 +885,13 @@ function PricingPage() {
 
         <footer
           style={{
-            borderTop: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+            borderTop: "1px solid var(--mrd-line)",
             padding: "14px 18px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             fontSize: 11,
-            color: "var(--ink-subtle, #6b6457)",
+            color: "var(--mrd-mute)",
           }}
         >
           <span className="mono-label" style={{ fontSize: 9 }}>
@@ -924,7 +899,7 @@ function PricingPage() {
           </span>
           <a
             href="/#join"
-            style={{ fontSize: 11, color: "var(--ink-subtle, #6b6457)", textDecoration: "none" }}
+            style={{ fontSize: 11, color: "var(--mrd-mute)", textDecoration: "none" }}
           >
             Request access &rarr;
           </a>

@@ -113,7 +113,14 @@ import {
 import { getLivenessReport } from "@/lib/liveness.functions";
 import { getEmailHealth, sendTestEmail } from "@/lib/email-health.functions";
 import type { CapabilityReport, IntegrityReport, VocabularyReport } from "@/lib/liveness/report";
-import { Block, Empty, Failed, Loading, Switch, Value } from "@/components/shell/primitives";
+import {
+  NothingHere,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Toggle,
+  Value,
+} from "@/components/meridian/surface-parts";
 
 export const Route = createFileRoute("/_authenticated/admin/observability")({
   component: AdminObservability,
@@ -124,12 +131,17 @@ export const Route = createFileRoute("/_authenticated/admin/observability")({
  * because "this feature has never executed" outranks "this job is late".
  */
 function AdminObservability() {
+  /* THE RHYTHM MOVED HERE WITH THE PORT, and it is not decoration. `.sp-block`
+     baked in a 36px top margin and a hairline rule, so nine sections spaced
+     themselves. `Region` sets no outer margin on purpose, which means a straight
+     swap would have stacked all nine flush against each other. `gap-mrd-6` is
+     the step every ported surface uses between regions. */
   return (
-    <>
+    <div data-mrd="" className="flex flex-col gap-mrd-6">
       <EmailHealth />
       <FeatureLiveness />
       <MachineHealth />
-    </>
+    </div>
   );
 }
 
@@ -222,24 +234,24 @@ function FeatureLiveness() {
 
   if (liveness.isLoading) {
     return (
-      <Block title="Checking what is actually executing">
-        <Loading>Reading what each tracked feature last did.</Loading>
-      </Block>
+      <Region title="Checking what is actually executing">
+        <Reading>Reading what each tracked feature last did.</Reading>
+      </Region>
     );
   }
 
   if (!liveness.data || "error" in liveness.data) {
     return (
-      <Block title="Feature liveness did not load">
-        <Failed onRetry={() => void liveness.refetch()}>
+      <Region title="Feature liveness did not load">
+        <ReadFailedLine onRetry={() => void liveness.refetch()}>
           Nothing here can be read as clear.{" "}
           {liveness.data && "error" in liveness.data
             ? liveness.data.error
             : liveness.error instanceof Error
               ? liveness.error.message
               : "The read failed."}
-        </Failed>
-      </Block>
+        </ReadFailedLine>
+      </Region>
     );
   }
 
@@ -260,27 +272,28 @@ function FeatureLiveness() {
 
   return (
     <>
-      <Block
+      <Region
         title={r.headline}
         sub={
           r.counts.dead > 0
             ? "A capability is dead when it has never executed once, or has not executed in seven of its own cycles. Every line below is a real row count, not a flag someone set."
             : `Each tracked capability names the row it writes when it works, counted over the last ${r.windowDays} days. Nothing here is a usage number: one execution a month is alive, none at all is the finding.`
         }
-        more={
+        toggle={
           r.capabilities.length === 0
             ? undefined
             : showEverything
               ? "Only what is wrong"
               : `Show all ${r.capabilities.length}`
         }
-        onMore={() => setShowEverything((v) => !v)}
+        onToggle={() => setShowEverything((v) => !v)}
+        toggled={showEverything}
       >
         {shown.length === 0 ? (
-          <Empty>
+          <NothingHere>
             All {r.capabilities.length} tracked capabilities executed inside their own window. This
             stays empty for as long as every shipped feature is doing something.
-          </Empty>
+          </NothingHere>
         ) : (
           shown.map((c) => {
             const word = CAPABILITY_WORD[c.verdict];
@@ -292,10 +305,7 @@ function FeatureLiveness() {
                   <>
                     <span>{c.title}</span>
                     {word ? (
-                      <span className={c.verdict === "quiet" ? "sp-warn" : "sp-fail"}>
-                        {" "}
-                        · {word}
-                      </span>
+                      <Value tone={c.verdict === "quiet" ? "hold" : "fail"}> · {word}</Value>
                     ) : null}
                   </>
                 }
@@ -309,18 +319,18 @@ function FeatureLiveness() {
             );
           })
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title={dataVerdict}
         sub="A column that exists, is read by a query, and is written by nothing returns zero rows and returns it correctly, so there is no error anywhere to find. This is the check for that shape, plus the same thing one level up: a value the database holds that no vocabulary in the code declares."
       >
         {dataFindings.length === 0 ? (
-          <Empty>
+          <NothingHere>
             {r.integrity.length + r.vocabulary.length} checks, and every one came back full. Every
             column a feature reads has values in it, and every value the database holds is one the
             code can name.
-          </Empty>
+          </NothingHere>
         ) : (
           <>
             {r.integrity
@@ -335,10 +345,7 @@ function FeatureLiveness() {
                       <>
                         <span>{c.title}</span>
                         {word ? (
-                          <span className={c.verdict === "degraded" ? "sp-warn" : "sp-fail"}>
-                            {" "}
-                            · {word}
-                          </span>
+                          <Value tone={c.verdict === "degraded" ? "hold" : "fail"}> · {word}</Value>
                         ) : null}
                       </>
                     }
@@ -361,7 +368,7 @@ function FeatureLiveness() {
                     lead={
                       <>
                         <span>{c.title}</span>
-                        {word ? <span className="sp-fail"> · {word}</span> : null}
+                        {word ? <Value tone="fail"> · {word}</Value> : null}
                       </>
                     }
                     sub={
@@ -374,7 +381,7 @@ function FeatureLiveness() {
               })}
           </>
         )}
-      </Block>
+      </Region>
     </>
   );
 }
@@ -405,18 +412,18 @@ function MachineHealth() {
   });
 
   if (status.isLoading) {
-    return <Loading>Checking what is still running.</Loading>;
+    return <Reading>Checking what is still running.</Reading>;
   }
   if (!status.data || "error" in status.data) {
     return (
-      <Failed onRetry={() => void status.refetch()}>
+      <ReadFailedLine onRetry={() => void status.refetch()}>
         Health did not load, so nothing here can be read as clear.{" "}
         {status.data && "error" in status.data
           ? status.data.error
           : status.error instanceof Error
             ? status.error.message
             : "The read failed."}
-      </Failed>
+      </ReadFailedLine>
     );
   }
 
@@ -496,28 +503,29 @@ function MachineHealth() {
 
   return (
     <>
-      <Block
+      <Region
         title={tickVerdict}
         sub={
           stale.length === 0
             ? "Every job below reported inside its own window. A job is late, not merely quiet, when it misses two to four of its own cycles."
             : "A late job is a real incident, not scheduler jitter: the window already allows two to four missed cycles before it says so. This is the read that catches a job which stopped without raising an error."
         }
-        more={
+        toggle={
           s.cronHealth.length === 0
             ? undefined
             : showEveryJob
               ? "Only what is late"
               : `Show all ${s.cronHealth.length}`
         }
-        onMore={() => setShowEveryJob((v) => !v)}
+        onToggle={() => setShowEveryJob((v) => !v)}
+        toggled={showEveryJob}
       >
         {jobsShown.length === 0 ? (
-          <Empty>
+          <NothingHere>
             {s.cronHealth.length === 0
               ? "No jobs are expected, so nothing is being watched for silence."
               : `Nothing is late. All ${healthy.length} scheduled jobs reported inside their window.`}
-          </Empty>
+          </NothingHere>
         ) : (
           jobsShown.map((c) => (
             <Row
@@ -525,8 +533,8 @@ function MachineHealth() {
               tight
               lead={
                 <>
-                  <span style={{ fontFamily: "var(--sp-font-mono)" }}>{c.job}</span>
-                  {c.stale ? <span className="sp-fail"> · late</span> : null}
+                  <span style={{ fontFamily: "var(--mrd-mono)" }}>{c.job}</span>
+                  {c.stale ? <Value tone="fail"> · late</Value> : null}
                 </>
               }
               sub={
@@ -538,17 +546,17 @@ function MachineHealth() {
             />
           ))
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title={failVerdict}
         sub="Agent failures are counted by kind, not by agent: this read carries the failure kind and not who was running, so naming an agent here would be an attribution nobody recorded."
       >
         {failedJobs.length === 0 && agentFailures === 0 ? (
-          <Empty>
+          <NothingHere>
             No job errors in the last 50 runs and no agent failures in the last 7 days. This stays
             empty for as long as nothing breaks.
-          </Empty>
+          </NothingHere>
         ) : (
           <>
             {failedJobs.map((r) => (
@@ -557,8 +565,8 @@ function MachineHealth() {
                 tight
                 lead={
                   <>
-                    <span style={{ fontFamily: "var(--sp-font-mono)" }}>{r.job_name}</span>
-                    <span className="sp-fail"> · {r.error_kind ?? r.status}</span>
+                    <span style={{ fontFamily: "var(--mrd-mono)" }}>{r.job_name}</span>
+                    <Value tone="fail"> · {r.error_kind ?? r.status}</Value>
                   </>
                 }
                 sub={r.error_message ?? "The job failed without recording a reason."}
@@ -576,17 +584,17 @@ function MachineHealth() {
             ))}
           </>
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title={gateVerdict}
         sub="A gate firing is the product working, so this is only news in aggregate. One boundary doing all the stopping is a policy set wrong, and that is the read this block exists for."
       >
         {s.gatePressure.length === 0 ? (
-          <Empty>
+          <NothingHere>
             No call was refused and none failed in the last 7 days. This stays empty for as long as
             every boundary holds without ever being reached.
-          </Empty>
+          </NothingHere>
         ) : (
           <>
             {gatesFired.map((g) => (
@@ -610,7 +618,7 @@ function MachineHealth() {
                 lead={
                   <>
                     {g.code.replaceAll("_", " ")}
-                    <span className="sp-fail"> · failed</span>
+                    <Value tone="fail"> · failed</Value>
                   </>
                 }
                 sub="An AI call that failed on its own rather than being refused"
@@ -619,9 +627,9 @@ function MachineHealth() {
             ))}
           </>
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title={watchVerdict}
         sub="Keys are set once by an engineer in the app's hosting settings. A tool with no key is a blind spot, not a failure."
       >
@@ -633,7 +641,7 @@ function MachineHealth() {
               : "Off. Nothing is sent anywhere, even where a key is set."
           }
         >
-          <Switch
+          <Toggle
             checked={s.gateEnabled}
             disabled={setGate.isPending}
             label="Send health signals to outside tools"
@@ -655,7 +663,7 @@ function MachineHealth() {
             </Value>
           </Line>
         ))}
-      </Block>
+      </Region>
     </>
   );
 }
@@ -698,19 +706,19 @@ function EmailHealth() {
     onError: () => toast.error("The test send did not complete."),
   });
 
-  if (health.isLoading) return <Loading>Checking whether email can send.</Loading>;
+  if (health.isLoading) return <Reading>Checking whether email can send.</Reading>;
   if (!health.data || "error" in health.data) {
     return (
-      <Failed onRetry={() => void health.refetch()}>
+      <ReadFailedLine onRetry={() => void health.refetch()}>
         Could not read the email configuration, so nothing here can be trusted either way.
-      </Failed>
+      </ReadFailedLine>
     );
   }
 
   const h = health.data;
 
   return (
-    <Block
+    <Region
       title={h.configured ? "Email can send" : "Email cannot send: no API key in this runtime"}
       sub={
         h.configured ? (
@@ -781,11 +789,11 @@ function EmailHealth() {
           {test.isPending ? "Sending" : "Send test"}
         </button>
       </div>
-      <p style={{ fontSize: 11, color: "var(--text-subtle)", margin: "8px 0 0", lineHeight: 1.5 }}>
+      <p style={{ fontSize: 11, color: "var(--mrd-mute)", margin: "8px 0 0", lineHeight: 1.5 }}>
         A real send, not a validation call: only a message arriving in an inbox answers the
         question. Gmail plus-addressing gives you unlimited distinct test addresses that all land in
         one inbox, so <Value>you+test1@</Value> and <Value>you+test2@</Value> both work.
       </p>
-    </Block>
+    </Region>
   );
 }

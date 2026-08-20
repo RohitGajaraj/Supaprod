@@ -51,12 +51,18 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { Row } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  NothingHere,
+  Num,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
+import { Field, Input } from "@/components/meridian/forms";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Block, Empty, Failed, Field, Input, Loading } from "@/components/shell/primitives";
-import { Button } from "@/components/obsidian";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import {
@@ -116,21 +122,21 @@ function AdminInvites() {
   });
 
   if (door.isLoading) {
-    return <Loading>Reading which codes are live.</Loading>;
+    return <Reading>Reading which codes are live.</Reading>;
   }
 
   // A read that did not complete is not an empty keyring, and on a page about
   // who can get in, that difference is the whole page.
   if (!door.data || "error" in door.data) {
     return (
-      <Failed onRetry={() => void door.refetch()}>
+      <ReadFailedLine onRetry={() => void door.refetch()}>
         The codes did not load, so nothing here can be read as the state of the door.{" "}
         {door.data && "error" in door.data
           ? door.data.error
           : door.error instanceof Error
             ? door.error.message
             : "The read failed."}
-      </Failed>
+      </ReadFailedLine>
     );
   }
 
@@ -158,26 +164,30 @@ function AdminInvites() {
         : `${d.refusedLastDay} of ${d.attemptsLastDay} attempts refused in 24 hours`;
 
   return (
-    <>
+    // THE RHYTHM BETWEEN REGIONS, STATED HERE. The retired `Block` carried its
+    // own margin, padding and a rule above every section, so this page's spacing
+    // lived in a stylesheet. `Region` draws neither, and `gap-mrd-6` is the step
+    // every ported surface uses between regions.
+    <div className="flex flex-col gap-mrd-6">
       <MintBlock />
 
-      <Block
+      <Region
         title={verdict}
         sub="A redemption is a code being spent, which is not the same as an account: the Google path spends its use at handoff, before it can see whether the account was made."
       >
         {d.codes.length === 0 ? (
-          <Empty>
+          <NothingHere>
             Not one code exists, and that should be impossible. The migration that closed signup
             seeds a permanent partner code in the same file, so an empty list here means that
             migration has not been applied to this database. Until it is, the invite table is
             missing and nobody can be let in through the form. Check the migration before minting
             anything.
-          </Empty>
+          </NothingHere>
         ) : (
           d.codes.map((c) => (
             <Row
               key={c.id}
-              lead={<span style={{ fontFamily: "var(--sp-font-mono)" }}>{c.code}</span>}
+              lead={<span style={{ fontFamily: "var(--mrd-mono)" }}>{c.code}</span>}
               sub={
                 <>
                   {c.note ?? "No note, so nobody can say who this was for"} ·{" "}
@@ -187,8 +197,11 @@ function AdminInvites() {
               time={String(c.uses)}
               action={
                 c.status === "revoked" ? null : (
-                  <Button
-                    variant="secondary"
+                  // `default` is obsidian's `secondary`: the neutral face. The
+                  // revoke is not painted destructive, because red reports an
+                  // outcome in this system and the confirm dialog is what makes
+                  // this safe.
+                  <Action
                     disabled={revoke.isPending}
                     onClick={async () => {
                       const ok = await confirm({
@@ -203,23 +216,23 @@ function AdminInvites() {
                     }}
                   >
                     Revoke
-                  </Button>
+                  </Action>
                 )
               }
             />
           ))
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title={doorVerdict}
         sub="One row per knock, and a completed signup knocks twice (the check before the account, the redemption after). So this counts attempts at the door, never people. Nothing about who tried is stored: a failed attempt is a near miss on a secret, and a log of near misses is a log of hints."
       >
         {d.attemptsLastDay === 0 ? (
-          <Empty>
+          <NothingHere>
             No attempt has reached the door in the last 24 hours. The first row appears the moment
             somebody types a code into the signup form.
-          </Empty>
+          </NothingHere>
         ) : (
           <>
             <Row
@@ -236,8 +249,8 @@ function AdminInvites() {
             />
           </>
         )}
-      </Block>
-    </>
+      </Region>
+    </div>
   );
 }
 
@@ -286,7 +299,7 @@ function MintBlock() {
   });
 
   return (
-    <Block
+    <Region
       title="Cut a new key"
       sub="Leave the code blank and one is generated without the characters that get misread aloud. The note is required: a code nobody can trace is a code nobody can safely revoke."
     >
@@ -331,37 +344,41 @@ function MintBlock() {
           </Field>
         </div>
         <div>
-          <Button
-            variant="accent"
-            loading={mint.isPending}
+          {/* `primary` is obsidian's `accent`, and the in-flight state is the
+              `disabled` this call site already carried. Obsidian's `loading`
+              also set `aria-busy`, which `Action` cannot express, so that
+              announcement is lost here and is recorded as a Meridian gap rather
+              than patched into a component this item does not own. */}
+          <Action
+            variant="primary"
             disabled={mint.isPending || !note.trim()}
             onClick={() => mint.mutate()}
           >
             {mint.isPending ? "Cutting…" : "Mint code"}
-          </Button>
+          </Action>
         </div>
         {/* The freshly minted code, in a mono face and selectable, because the
             very next thing that happens to it is a copy into a message. It stays
             on screen until the next mint rather than flashing past in a toast. */}
         {minted ? (
-          <p style={{ fontSize: 12.5, color: "var(--text-body)", margin: 0, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 12.5, color: "var(--mrd-body)", margin: 0, lineHeight: 1.6 }}>
             <span
               style={{
-                fontFamily: "var(--sp-font-mono)",
-                color: "var(--text-primary)",
+                fontFamily: "var(--mrd-mono)",
+                color: "var(--mrd-ink)",
                 userSelect: "all",
               }}
             >
               {minted.code}
             </span>{" "}
             is live. Send it as it is, or as a one-click link:{" "}
-            <span style={{ fontFamily: "var(--sp-font-mono)", userSelect: "all" }}>
+            <span style={{ fontFamily: "var(--mrd-mono)", userSelect: "all" }}>
               /signup?invite={minted.code}
             </span>
             . <Num>{usesLine(minted)}</Num>, {expiryLine(minted).toLowerCase()}.
           </p>
         ) : null}
       </div>
-    </Block>
+    </Region>
   );
 }

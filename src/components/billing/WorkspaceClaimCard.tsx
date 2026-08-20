@@ -22,13 +22,23 @@
  */
 import { useState } from "react";
 import { Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Actions,
+  Region,
+  Action,
+  NothingYet,
+  ReadFailedLine,
+  Value,
+  Picker,
+} from "@/components/meridian/surface-parts";
+import { Checkbox } from "@/components/meridian/forms";
+import { LoadingState } from "@/components/meridian/LoadingState";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useConfirm } from "@/hooks/use-confirm";
 import { toast } from "@/lib/notify";
-import { Block, Button, Checkbox, Empty, Failed, Loading, Value } from "@/components/shell/primitives";
 import {
   CLAIM_OFFER_TTL_DAYS,
   CLAIM_RELEASE_GRACE_DAYS,
@@ -167,13 +177,13 @@ function YourClaim({ workspaceId }: { workspaceId: string }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (state.isLoading) return <Loading>Reading where this workspace belongs.</Loading>;
+  if (state.isLoading) return <LoadingState label="Reading where this workspace belongs." />;
   if (state.isError) {
     return (
-      <Failed onRetry={() => void state.refetch()}>
+      <ReadFailedLine onRetry={() => void state.refetch()}>
         We could not read whether this workspace has been claimed.{" "}
         {(state.error as Error)?.message ?? ""}
-      </Failed>
+      </ReadFailedLine>
     );
   }
 
@@ -200,7 +210,7 @@ function YourClaim({ workspaceId }: { workspaceId: string }) {
           <Num>{inventoryTotal(claim.inventory)}</Num>
         </Line>
         {view.canReleaseBlocker ? (
-          <Empty>{view.canReleaseBlocker}</Empty>
+          <NothingYet>{view.canReleaseBlocker}</NothingYet>
         ) : (
           <>
             <Line
@@ -212,8 +222,8 @@ function YourClaim({ workspaceId }: { workspaceId: string }) {
               }
             />
             <Actions>
-              <Button
-                variant="ghost"
+              <Action
+                variant="quiet"
                 disabled={release.isPending}
                 onClick={async () => {
                   const ok = await confirm({
@@ -227,7 +237,7 @@ function YourClaim({ workspaceId }: { workspaceId: string }) {
                 }}
               >
                 {release.isPending ? "Releasing" : "Release it back to me"}
-              </Button>
+              </Action>
             </Actions>
           </>
         )}
@@ -249,18 +259,25 @@ function YourClaim({ workspaceId }: { workspaceId: string }) {
               : `Waiting on an owner or admin there to accept. It lapses in ${left} ${left === 1 ? "day" : "days"} if nobody does. Nothing has moved.`
           }
         >
-          <Value tone={phase === "expired" ? "warn" : "live"}>
+          {/* `hold` for waiting, `quiet` for lapsed. The retired tones were
+              `live` and `warn`, neither of which exists in Meridian's five.
+              "Waiting" is waiting on a condition, an admin's answer, which is
+              exactly what `hold` says; `agent` would claim a machine is working
+              and none is. "Lapsed" is over rather than pending, so it is a plain
+              fact, and the organisation's half of this same card already renders
+              an expired offer as `quiet` -- so the two now agree. */}
+          <Value tone={phase === "expired" ? "quiet" : "hold"}>
             {phase === "expired" ? "Lapsed" : "Waiting"}
           </Value>
         </Line>
         <Inventory inv={offered.inventory} />
         {view.canWithdrawBlocker ? (
-          <Empty>{view.canWithdrawBlocker}</Empty>
+          <NothingYet>{view.canWithdrawBlocker}</NothingYet>
         ) : (
           <Actions>
-            <Button variant="ghost" disabled={withdraw.isPending} onClick={() => withdraw.mutate()}>
+            <Action variant="quiet" disabled={withdraw.isPending} onClick={() => withdraw.mutate()}>
               {withdraw.isPending ? "Withdrawing" : "Withdraw the offer"}
-            </Button>
+            </Action>
           </Actions>
         )}
       </>
@@ -270,10 +287,10 @@ function YourClaim({ workspaceId }: { workspaceId: string }) {
   // Nothing pending. Offer it, if this person owns it and has somewhere to send it.
   if (!view.isOwner) {
     return (
-      <Empty>
+      <NothingYet>
         Only the person who owns this workspace can hand it to an organisation. Nobody can claim it
         for them.
-      </Empty>
+      </NothingYet>
     );
   }
 
@@ -285,14 +302,14 @@ function YourClaim({ workspaceId }: { workspaceId: string }) {
   return (
     <>
       {destinations.isError ? (
-        <Failed onRetry={() => void destinations.refetch()}>
+        <ReadFailedLine onRetry={() => void destinations.refetch()}>
           We could not read where this could go. {(destinations.error as Error)?.message ?? ""}
-        </Failed>
+        </ReadFailedLine>
       ) : options.length === 0 ? (
-        <Empty>
+        <NothingYet>
           There is nowhere to bring this yet. Once you are a member of an organisation on Business
           or Enterprise, it appears here.
-        </Empty>
+        </NothingYet>
       ) : (
         <>
           <Line
@@ -300,9 +317,11 @@ function YourClaim({ workspaceId }: { workspaceId: string }) {
             sub="Only organisations that already invited you appear here, so this can never point at a stranger."
             htmlFor="claim-destination"
           >
-            <select
+            {/* A Picker rather than a bare `<select className="sp-select">`.
+                The id is its own and is the one the Line above binds with
+                `htmlFor`, so the label and the control stay one thing. */}
+            <Picker
               id="claim-destination"
-              className="sp-select"
               value={destinationId}
               onChange={(e) => {
                 setDestinationId(e.target.value);
@@ -316,22 +335,24 @@ function YourClaim({ workspaceId }: { workspaceId: string }) {
                   {d.eligible ? "" : ` (on ${planName(d.planTier)}, one seat)`}
                 </option>
               ))}
-            </select>
+            </Picker>
           </Line>
 
           {chosen && !chosen.eligible ? (
-            <Empty>
+            <NothingYet>
               {chosen.viaWorkspaceName} is on {planName(chosen.planTier)}, which is a single seat.
               It needs Business or Enterprise before it can hold a second person's workspace.
-            </Empty>
+            </NothingYet>
           ) : null}
 
-          {destinationId && preview.isLoading ? <Loading>Counting what would move.</Loading> : null}
+          {destinationId && preview.isLoading ? (
+            <LoadingState label="Counting what would move." />
+          ) : null}
           {destinationId && preview.isError ? (
-            <Failed onRetry={() => void preview.refetch()}>
+            <ReadFailedLine onRetry={() => void preview.refetch()}>
               We could not count what would move, so nothing is being offered.{" "}
               {(preview.error as Error)?.message ?? ""}
-            </Failed>
+            </ReadFailedLine>
           ) : null}
 
           {destinationId && inv ? (
@@ -353,15 +374,15 @@ function YourClaim({ workspaceId }: { workspaceId: string }) {
                   label="Confirm the claim"
                 />
               </Line>
-              {blocker ? <Empty>{blocker}</Empty> : null}
+              {blocker ? <NothingYet>{blocker}</NothingYet> : null}
               <Actions>
-                <Button
+                <Action
                   variant="primary"
                   disabled={!acknowledged || !!blocker || offer.isPending}
                   onClick={() => offer.mutate()}
                 >
                   {offer.isPending ? "Offering" : "Offer it to them"}
-                </Button>
+                </Action>
               </Actions>
             </>
           ) : null}
@@ -387,7 +408,7 @@ function ClaimRow({ row, children }: { row: AccountClaimRow; children?: React.Re
         {row.phase === "claimed" ? (
           <Value tone="pass">Held</Value>
         ) : row.phase === "offered" ? (
-          <Value tone="live">Waiting</Value>
+          <Value tone="hold">Waiting</Value>
         ) : (
           <Value tone="quiet">{row.phase === "expired" ? "Lapsed" : "Closed"}</Value>
         )}
@@ -447,12 +468,12 @@ function AccountClaims({ workspaceId }: { workspaceId: string }) {
   });
 
   if (claims.isLoading)
-    return <Loading>Reading what has been claimed into this organisation.</Loading>;
+    return <LoadingState label="Reading what has been claimed into this organisation." />;
   if (claims.isError) {
     return (
-      <Failed onRetry={() => void claims.refetch()}>
+      <ReadFailedLine onRetry={() => void claims.refetch()}>
         We could not read the claim record. {(claims.error as Error)?.message ?? ""}
-      </Failed>
+      </ReadFailedLine>
     );
   }
 
@@ -462,15 +483,15 @@ function AccountClaims({ workspaceId }: { workspaceId: string }) {
   const nothing = view.pending.length === 0 && view.held.length === 0 && view.past.length === 0;
 
   return (
-    <Block
+    <Region
       title="Work claimed into this organisation"
       sub="Who handed their accumulated work over, what it contained, and when. This is the record you would show in a review."
     >
       {nothing ? (
-        <Empty>
+        <NothingYet>
           Nobody has offered a workspace to this organisation yet. When someone who has been working
           alone offers theirs, it lands here for you to accept.
-        </Empty>
+        </NothingYet>
       ) : null}
 
       {view.pending.map((row) => (
@@ -492,20 +513,25 @@ function AccountClaims({ workspaceId }: { workspaceId: string }) {
             />
           </Line>
           <Actions>
-            <Button
+            {/* `Action variant="primary"` and NOT `Approve`, which is arguably
+                the truer component here: this offer is held pending the click,
+                which is Approve's own test. Left alone because Approve spends
+                orchid, and moving a control onto the accent is a design ruling
+                rather than a vocabulary port. Flagged for that ruling. */}
+            <Action
               variant="primary"
               disabled={!acknowledged[row.workspaceId] || respond.isPending}
               onClick={() => respond.mutate({ workspaceId: row.workspaceId, decision: "accept" })}
             >
               {respond.isPending ? "Working" : "Accept it"}
-            </Button>
-            <Button
-              variant="ghost"
+            </Action>
+            <Action
+              variant="quiet"
               disabled={respond.isPending}
               onClick={() => respond.mutate({ workspaceId: row.workspaceId, decision: "decline" })}
             >
               Decline
-            </Button>
+            </Action>
           </Actions>
         </ClaimRow>
       ))}
@@ -519,8 +545,8 @@ function AccountClaims({ workspaceId }: { workspaceId: string }) {
             <Value>{personLabel(row.acceptedByName, null, row.acceptedBy)}</Value>
           </Line>
           <Actions>
-            <Button
-              variant="ghost"
+            <Action
+              variant="quiet"
               disabled={release.isPending}
               onClick={async () => {
                 const ok = await confirm({
@@ -534,7 +560,7 @@ function AccountClaims({ workspaceId }: { workspaceId: string }) {
               }}
             >
               {release.isPending ? "Releasing" : "Release it"}
-            </Button>
+            </Action>
           </Actions>
         </ClaimRow>
       ))}
@@ -558,7 +584,7 @@ function AccountClaims({ workspaceId }: { workspaceId: string }) {
           ))}
         </>
       ) : null}
-    </Block>
+    </Region>
   );
 }
 
@@ -570,12 +596,12 @@ export function WorkspaceClaimCard() {
 
   return (
     <>
-      <Block
+      <Region
         title="Bring your work with you"
         sub="Hand this workspace, and everything it learned, to an organisation you belong to. It is one deliberate act, it needs an admin there to accept, and it can be undone."
       >
         <YourClaim workspaceId={activeWorkspaceId} />
-      </Block>
+      </Region>
       <AccountClaims workspaceId={activeWorkspaceId} />
     </>
   );
