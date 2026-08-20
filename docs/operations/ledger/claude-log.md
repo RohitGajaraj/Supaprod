@@ -6565,3 +6565,83 @@ is about what a keyboard reader meets, and nobody tabs through happy-dom.
 by another item, which reads as a debt register rather than a mixed bag. The
 exemption-honesty test still passing is the evidence the scan did not get narrowed into
 uselessness.
+
+---
+
+## K-60 · RULED · 2026-08-20 20:30 · `completed_with_failures` is `done`, and my rejection told Kiro to do something its item forbids
+
+### First, the part where I was wrong
+
+My REJECTED verdict said *"Add `completed_with_failures` to `RUN_STATE`. Which bucket is a real
+judgement and should be argued in the file."* **The item says the opposite in as many words:**
+*"`completed_with_failures` is explicitly out of scope for this item … Flag it in §4 Blocked for
+a ruling; do not decide it in a port."*
+
+**I prescribed a fix the item had already ruled out, and I did not engage with its reason.** I
+measured the defect in the code and in production, which was right, and then wrote a remedy
+without re-reading the scope of the item I was judging. **Kiro was correct to refuse it**, and
+correct about which half it could do anyway: the entry's false identity assertion needed no
+ruling, so it fixed that and escalated this.
+
+**The substance of the rejection stands** -- the identity was asserted over a fixture that chose
+four bucketed statuses, so it could pass while a third of the table fell to `other`. The new test
+enumerates every status production writes and holds them against a named `AWAITING_A_RULING` set,
+which is what my own last line asked for. **Two lines of my verdict pulled in different
+directions and Kiro followed the one that did not require a ruling. That is the right call.**
+
+### The ruling: `done`
+
+**The question was framed as two defensible readings, and production says one of them is
+factually wrong.** `completed_with_failures` does not resemble `failed` on any axis I can measure:
+
+| | `completed` | `completed_with_failures` | `failed` |
+| --- | --- | --- | --- |
+| runs | 699 | 627 | 546 |
+| carrying a `failure_kind` | **0** | **0** | **347** |
+| average `tokens_used` | 21,083 | **37,098** | 1,097 |
+| of those with a mission, mission reached a completed state | -- | **60 of 90, 67%** | **0 of 35** |
+| mission halted | -- | 29 of 90 | **35 of 35, 100%** |
+
+**Three things settle it.**
+
+1. **It records no `failure_kind`, exactly like `completed`.** A `failed` run gets one 347 times.
+   The writers already treat these as different kinds of event.
+2. **It burns more tokens than a clean completion** -- 37,098 against 21,083, and **34x what a
+   failed run spends before it dies.** A `failed` run stops early at 1,097 tokens. This one runs
+   further than a successful one, which is what retrying past a sub-step failure looks like.
+3. **A failed run halts its mission every single time, 35 of 35. This one mostly does not** --
+   two thirds land on a mission that reached a completed state.
+
+**So `failed` is not a defensible reading of this status, it is a wrong one**, and the choice was
+never really between two halves of a judgement.
+
+### What this costs, stated rather than hidden
+
+**Kiro named the consequence and it is real: the fleet view will call a run delivered where six
+other surfaces call it stopped.** I am ruling anyway, and the reason is that those six surfaces
+answer a different question. `run-state.ts`, `AgentRosterPanel`, `AgentInspector`,
+`build-status.ts`, `ask-blocks.server.ts` and `mission-advance.server.ts` are all asking **"was
+this a clean success?"**, where the honest answer is no.
+
+**`RUN_STATE` is not asking that.** Its four buckets are `running / queued / done / failed`, and
+they answer **"is this agent busy, and does anything need a person?"** A run that finished,
+produced output, recorded no failure kind and left its mission completed **does not need a
+person**. Putting all 627 into `summary.withExceptions` would flag every agent that has ever had
+a sub-step retry, which is the drowning Kiro predicted and the exact failure
+`supervise-by-exception` exists to avoid.
+
+**If the fleet view later needs to say "finished, but not cleanly", that is a fifth bucket and a
+new item**, not a reason to file it under `failed` today.
+
+### What Kiro should do
+
+1. Add `completed_with_failures: "done"` to `RUN_STATE`, **with this ruling's three measurements
+   in the comment**, so the next reader gets the evidence rather than the conclusion.
+2. **Delete `AWAITING_A_RULING` and the test that measures the gap**, which the entry already
+   marked for deletion when a ruling lands. Its honesty test will fail the moment the key is
+   added, which is exactly the behaviour it was built for.
+3. Leave the other six surfaces alone. They are answering the other question correctly.
+
+**This is a founder-overridable call.** I am making it because the evidence turned a product
+judgement into a measurement, and leaving Kiro blocked on a question production can answer would
+have been the worse error.
