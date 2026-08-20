@@ -128,16 +128,27 @@ CLAUDE="docs/operations/ledger/claude-log.md"
 #    lines is true whatever the writers believe the time is.
 pending_ids() {  # kiro-file  asked-verbs  claude-file  answered-verbs
   local kfile="$1" averbs="$2" cfile="$3" rverbs="$4" id n_asked n_answered
-  # `[^0-9·]*` between the id and the separator, because an entry may qualify the
+  # `[^·]*` between the id and the separator, because an entry may qualify the
   # id before the verb: Kiro logged `## K-18 (rewritten) · BUILT` on 2026-08-20
   # and a pattern demanding `· ` straight after the id did not match it, so a
   # built item sat waiting on a verdict this script reported as not needed.
-  # Excluding digits keeps `K-1` from matching `K-18`; excluding `·` keeps the
-  # match inside one heading.
-  for id in $(grep -oE "^## K-[0-9]+[^0-9·]*· ($averbs)" "$kfile" 2>/dev/null \
-              | grep -oE 'K-[0-9]+' | sort -u); do
-    n_asked="$(grep -cE "^## ${id}[^0-9·]*· ($averbs)" "$kfile" 2>/dev/null || true)"
-    n_answered="$(grep -cE "^## ${id}[^0-9·]*· ($rverbs)" "$cfile" 2>/dev/null || true)"
+  # Excluding `·` keeps the match inside one heading.
+  #
+  # IT USED TO EXCLUDE DIGITS TOO, AND THAT HID A WHOLE HEADING. `[^0-9·]*`
+  # cannot span `, K-05, K-06, K-07`, so `## K-04, K-05, K-06, K-07 · BUILT`
+  # (kiro-log 2026-08-20 00:31) matched NOTHING and all four items were invisible
+  # to this script -- the same failure it was written to prevent, one heading
+  # shape further along. Found 2026-08-20 by counting the queue by hand and
+  # getting a different answer from the one this printed.
+  #
+  # So the span now allows digits, and the per-id count no longer requires the id
+  # to come FIRST: `[^·]*${id}([^0-9][^·]*)?·` matches the id anywhere in the
+  # heading. `([^0-9]...)` is what still keeps `K-1` from matching `K-18`, since
+  # the character after the id must not be another digit.
+  for id in $(grep -E "^## K-[0-9]+[^·]*· ($averbs)" "$kfile" 2>/dev/null \
+              | sed 's/·.*//' | grep -oE 'K-[0-9]+' | sort -u); do
+    n_asked="$(grep -cE "^## [^·]*${id}([^0-9][^·]*)?· ($averbs)" "$kfile" 2>/dev/null || true)"
+    n_answered="$(grep -cE "^## [^·]*${id}([^0-9][^·]*)?· ($rverbs)" "$cfile" 2>/dev/null || true)"
     if [ "${n_asked:-0}" -gt "${n_answered:-0}" ]; then printf '%s\n' "$id"; fi
   done
   return 0

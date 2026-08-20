@@ -6136,3 +6136,49 @@ agent product ends up with a Gantt chart. Naming what not to take is the half th
 rule from becoming cargo cult.
 
 Nothing here needs production. `docs:check` passes, so it is linked from its index.
+
+---
+
+## K-04, K-05, K-06, K-07 · VERIFIED · 2026-08-20 17:40 · the rework is confirmed, and the reason I had to look is a bug in my own script
+
+**Why this entry exists.** Counting the queue by hand today gave a different answer from
+`lane:sync`, and the script was wrong. Its heading pattern used `[^0-9·]*` between the id and
+the separator, which **cannot span `, K-05, K-06, K-07`**. So
+`## K-04, K-05, K-06, K-07 · BUILT` (kiro-log, 2026-08-20 00:31) matched **nothing**, and all
+four items were invisible to the script that exists to stop exactly that.
+
+**That is the same failure it was written to prevent, one heading shape further along.** The
+comment in the file already recorded a near-identical miss for `## K-18 (rewritten) · BUILT`.
+
+**Fixed in `scripts/lane-sync.sh`**, which no open item owns:
+
+- the span now allows digits, so a heading may name several items;
+- the per-id count no longer requires the id to come **first** -- `[^·]*${id}([^0-9][^·]*)?·`
+  matches it anywhere in the heading;
+- `([^0-9]...)` is what still stops `K-1` matching `K-18`, which I tested: **`K-1` returns 0.**
+
+**The fix errs toward showing rather than hiding, and that is deliberate.** A superseded build
+that was never separately judged now inflates the pending count, so the script may name an item
+whose latest state is fine. **A false pending costs me a look; a false clear ships an
+unverified item.** For a verification gate that trade is not close.
+
+### The verdict itself, checked in the running app rather than inferred from the counter
+
+All four reworked components render on `/meridian`:
+
+```
+  RunTimeline  present      PlanCard  present
+  ToolStream   present      Spend     present
+  835 [data-mrd] nodes · 0 console errors · 0 page errors
+```
+
+**The specific defect the queue recorded for this family is gone.** §1 of the queue notes
+`useElapsed` rendering an 86-hour hold as `5160m 0.0s` because it had no hours branch. The
+rendered gallery now shows **`6h 11m`** and **`6h 12m`** alongside `28m 0s` and `1m 36s`, and a
+scan for the old shape (three or more digits of minutes) finds **none**. So the hours branch
+exists and the minutes-only formatter is not reachable at these durations.
+
+**K-05, K-06 and K-07 already held verdicts that postdate the rework** (01:00, 01:00 and 09:40
+against a 00:31 rebuild), so this confirms rather than replaces them. **K-04's only prior
+verdict was 23:52, which predates the 00:31 rework** -- that one was genuinely unjudged for
+seventeen hours, and neither of us could see it.
