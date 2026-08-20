@@ -4292,3 +4292,79 @@ somebody "simplifying" it back to a pipe.
 that a rejected item can come back". This replaces "remember not to pipe the
 gate". **Each one started as a rule an agent was expected to hold, and each failed
 the same way: silently, while the agent believed it was complying.**
+
+---
+
+## Claude lane · RULED · 2026-08-20 10:56 · the liveness ceiling is architectural, not a query to tune, and one design path is closed from here
+
+Went to build the aggregate I specified. **Two things changed the answer, and one
+of them closes a path I cannot open from this seat.**
+
+### The ceiling applies twice, not once
+
+I had been treating 45-of-50 as the admin page's problem. `liveness-tick.ts:44`
+runs the **same `buildLivenessReport`** daily, inside its own Worker invocation,
+to write one `error_events` row per finding.
+
+**So both callers pay the full query cost, and both sit under the same hard cap.**
+Storing the report for the page would not raise the tick's ceiling; the report
+cannot be computed at all, anywhere, beyond about 13 capabilities.
+
+### The cheap path is closed from where I sit
+
+PostgREST 12 supports server-side aggregates -- `select=kind,count()` -- which
+would give the per-segment counts in **one** query with no migration and no
+function. `postgrest-js` here is 2.110.7, recent enough to send it.
+
+**I cannot find out whether the server accepts it.** Whether aggregates are
+enabled is Supabase server configuration, not a client version; this codebase uses
+aggregates in **zero** places, so there is no precedent to read; and my only
+database access is the Lovable MCP, which executes SQL directly and **never goes
+through PostgREST**. The one instrument I have is blind to exactly this question.
+
+Recording it as a blocked path rather than a rejected one. **Anyone who can run a
+single PostgREST request against this project can settle it in a minute**, and if
+the answer is yes the fix is a few lines rather than a migration.
+
+### The ruling
+
+**No generic dynamic-SQL RPC.** The obvious shape is
+`liveness_segment_counts(_table, _column, _segment_column, _segments[])`, and it
+takes a table name from its caller, which means `format(%I)` quoting inside a
+`SECURITY DEFINER` function. That is a real injection surface added to the one
+module whose job is to tell the truth about everything else, to save queries.
+**The cost of getting it subtly wrong is worse than the ceiling it lifts.**
+
+**And the honest sizing does not justify it either.** The safe half -- batching the
+six `job_runs` probes, which have a fixed shape and need no dynamic SQL -- frees
+**5** queries. That is room for two more capabilities, against 33 unwatched. **It
+is a migration and a probe refactor for two entries.**
+
+### What the real fix is, stated so the next attempt does not start here again
+
+**Stop computing the whole report in one invocation.** The tick already runs daily
+and already writes its findings; it should compute the report **in batches across
+runs** and store what it found, and the page should read what was stored rather
+than recomputing it.
+
+That removes the ceiling as a limit on COVERAGE, which is the thing that actually
+matters: it turns "how many capabilities may we watch" back into "which ones are
+worth watching". It also removes the page's worst failure mode -- tripping the cap
+and rendering nothing, which the budget test calls "precisely the failure it
+exists to catch".
+
+The cost is that the page shows a report as of the last tick rather than as of
+now. **For "is this capability executing at all", that is the right trade**: the
+fast jobs are obviously alive and the slow ones are judged on daily and weekly
+cadences anyway, so a timestamped "as of 04:00" is honest and a blank page is not.
+
+**Not building it this tick, and this is the last time it gets deferred without a
+reason that is about the work rather than about me.** It is a change to how the
+liveness layer is scheduled and stored, it wants its own tests, and it is
+genuinely the next substantial piece in this lane.
+
+### Also fixed, since it is the same defect one layer up
+
+`lane-sync.sh` ended every run with `next: bunx tsc --noEmit && bun test` -- **half
+the gates**, and main went out red this morning on one of the two it omitted. **A
+prompt that lists a subset teaches the subset.** It now names `bun run lane:gates`.

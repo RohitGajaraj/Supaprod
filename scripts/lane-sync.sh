@@ -189,5 +189,9 @@ else
 fi
 
 hr
-say "${DIM}next: bunx tsc --noEmit && bun test   before you push anything${OFF}"
+# Names ONE command rather than four, and `lane:gates` rather than the two that
+# used to be listed here. This line said "bunx tsc --noEmit && bun test", which is
+# half the gates, and on 2026-08-20 main went out red on one of the two it omitted.
+# A prompt that lists a subset teaches the subset.
+say "${DIM}next: bun run lane:gates   before you commit or push${OFF}"
 say ""
